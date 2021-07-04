@@ -5,9 +5,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract Kresko is Ownable {
-    address public reporter;
-    uint256 public value;
-
     /**
      * Whitelist of assets that can be used as collateral
      * with their respective collateral factor and oracle address
