@@ -12,6 +12,7 @@ contract Kresko is Ownable {
     struct CollateralAsset {
         uint256 factor;
         address oracle;
+        bool exists;
     }
     mapping(address => CollateralAsset) public collateralAssets;
 
@@ -19,15 +20,13 @@ contract Kresko is Ownable {
     event UpdateCollateralAssetFactor(address assetAddress, uint256 factor);
     event UpdateCollateralAssetOracle(address assetAddress, address oracle);
 
-    modifier assetExists(address assetAddress) {
-        require(collateralAssets[assetAddress].factor != 0, "ASSET_NOT_VALID");
-        require(collateralAssets[assetAddress].oracle != address(0), "ASSET_NOT_VALID");
+    modifier collateralAssetExists(address assetAddress) {
+        require(collateralAssets[assetAddress].exists, "ASSET_NOT_VALID");
         _;
     }
 
-    modifier assetDoesNotExist(address assetAddress) {
-        require(collateralAssets[assetAddress].factor == 0, "ASSET_EXISTS");
-        require(collateralAssets[assetAddress].oracle == address(0), "ASSET_EXISTS");
+    modifier collateralAssetDoesNotExist(address assetAddress) {
+        require(!collateralAssets[assetAddress].exists, "ASSET_EXISTS");
         _;
     }
 
@@ -45,12 +44,12 @@ contract Kresko is Ownable {
         address assetAddress,
         uint256 factor,
         address oracle
-    ) public onlyOwner assetDoesNotExist(assetAddress) {
+    ) external onlyOwner collateralAssetDoesNotExist(assetAddress) {
         require(assetAddress != address(0), "ZERO_ADDRESS");
         require(factor != 0, "INVALID_FACTOR");
         require(oracle != address(0), "ZERO_ADDRESS");
 
-        collateralAssets[assetAddress] = CollateralAsset({ factor: factor, oracle: oracle });
+        collateralAssets[assetAddress] = CollateralAsset({ factor: factor, oracle: oracle, exists: true });
         emit AddCollateralAsset(assetAddress, factor, oracle);
     }
 
@@ -59,7 +58,11 @@ contract Kresko is Ownable {
      * @param assetAddress The on chain address of the asset
      * @param factor The new collateral factor of the asset
      */
-    function updateCollateralFactor(address assetAddress, uint256 factor) public onlyOwner assetExists(assetAddress) {
+    function updateCollateralFactor(address assetAddress, uint256 factor)
+        external
+        onlyOwner
+        collateralAssetExists(assetAddress)
+    {
         require(factor != 0, "INVALID_FACTOR");
 
         collateralAssets[assetAddress].factor = factor;
@@ -71,7 +74,11 @@ contract Kresko is Ownable {
      * @param assetAddress The on chain address of the asset
      * @param oracle The new oracle address for this asset
      */
-    function updateCollateralOracle(address assetAddress, address oracle) public onlyOwner assetExists(assetAddress) {
+    function updateCollateralOracle(address assetAddress, address oracle)
+        external
+        onlyOwner
+        collateralAssetExists(assetAddress)
+    {
         require(oracle != address(0), "ZERO_ADDRESS");
 
         collateralAssets[assetAddress].oracle = oracle;
