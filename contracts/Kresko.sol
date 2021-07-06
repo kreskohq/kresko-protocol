@@ -16,7 +16,7 @@ contract Kresko is Ownable {
     struct CollateralAsset {
         FixedPoint.Unsigned factor;
         address oracle;
-        bool whitelisted;
+        bool exists;
     }
 
     mapping(address => CollateralAsset) public collateralAssets;
@@ -39,13 +39,13 @@ contract Kresko is Ownable {
     event DepositedCollateral(address account, address assetAddress, uint256 amount);
     event WithdrewCollateral(address account, address assetAddress, uint256 amount);
 
-    modifier assetExists(address assetAddress) {
-        require(collateralAssets[assetAddress].whitelisted, "ASSET_NOT_VALID");
+    modifier collateralAssetExists(address assetAddress) {
+        require(collateralAssets[assetAddress].exists, "ASSET_NOT_VALID");
         _;
     }
 
-    modifier assetDoesNotExist(address assetAddress) {
-        require(!collateralAssets[assetAddress].whitelisted, "ASSET_EXISTS");
+    modifier collateralAssetDoesNotExist(address assetAddress) {
+        require(!collateralAssets[assetAddress].exists, "ASSET_EXISTS");
         _;
     }
 
@@ -59,7 +59,7 @@ contract Kresko is Ownable {
      * @param assetAddress The address of the collateral asset.
      * @param amount The amount of the collateral asset to deposit.
      */
-    function depositCollateral(address assetAddress, uint256 amount) external assetExists(assetAddress) {
+    function depositCollateral(address assetAddress, uint256 amount) external collateralAssetExists(assetAddress) {
         // Because the depositedCollateralAssets[msg.sender] is pushed to if the existing
         // deposit amount is 0, require the amount to be > 0. Otherwise, the depositedCollateralAssets[msg.sender]
         // could be filled with duplicates, causing collateral to be double-counted in the collateral value.
@@ -94,7 +94,7 @@ contract Kresko is Ownable {
         address assetAddress,
         uint256 amount,
         uint256 depositedCollateralAssetIndex
-    ) external assetExists(assetAddress) {
+    ) external collateralAssetExists(assetAddress) {
         // Require the amount to be over 0, otherwise someone could attempt to withdraw 0 collateral
         // for an asset they have not deposited. This would fail further down, but we require here
         // to be explicit.
@@ -176,7 +176,7 @@ contract Kresko is Ownable {
         address assetAddress,
         uint256 factor,
         address oracle
-    ) public onlyOwner assetDoesNotExist(assetAddress) {
+    ) external onlyOwner collateralAssetDoesNotExist(assetAddress) {
         require(assetAddress != address(0), "ZERO_ADDRESS");
         require(factor != 0, "INVALID_FACTOR");
         require(oracle != address(0), "ZERO_ADDRESS");
@@ -184,7 +184,7 @@ contract Kresko is Ownable {
         collateralAssets[assetAddress] = CollateralAsset({
             factor: FixedPoint.Unsigned(factor),
             oracle: oracle,
-            whitelisted: true
+            exists: true
         });
         emit AddCollateralAsset(assetAddress, factor, oracle);
     }
@@ -194,7 +194,11 @@ contract Kresko is Ownable {
      * @param assetAddress The on chain address of the asset
      * @param factor The new collateral factor of the asset
      */
-    function updateCollateralFactor(address assetAddress, uint256 factor) public onlyOwner assetExists(assetAddress) {
+    function updateCollateralFactor(address assetAddress, uint256 factor)
+        external
+        onlyOwner
+        collateralAssetExists(assetAddress)
+    {
         require(factor != 0, "INVALID_FACTOR");
 
         collateralAssets[assetAddress].factor = FixedPoint.Unsigned(factor);
@@ -206,7 +210,11 @@ contract Kresko is Ownable {
      * @param assetAddress The on chain address of the asset
      * @param oracle The new oracle address for this asset
      */
-    function updateCollateralOracle(address assetAddress, address oracle) public onlyOwner assetExists(assetAddress) {
+    function updateCollateralOracle(address assetAddress, address oracle)
+        external
+        onlyOwner
+        collateralAssetExists(assetAddress)
+    {
         require(oracle != address(0), "ZERO_ADDRESS");
 
         collateralAssets[assetAddress].oracle = oracle;
