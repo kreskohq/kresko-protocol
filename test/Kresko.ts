@@ -139,7 +139,7 @@ describe("Kresko", function () {
         });
     });
     
-    describe.only("Account collateral", function () {
+    describe("Account collateral", function () {
         beforeEach(async function () {
             this.collateralAssetInfos = await Promise.all([
                 deployAndWhitelistCollateralAsset(
@@ -363,7 +363,7 @@ describe("Kresko", function () {
             });
         });
 
-        describe.only("Collateral value", async function() {
+        describe("Collateral value", async function() {
             beforeEach(async function() {
                 // Have userOne deposit 100 of each collateral asset
                 this.initialDepositAmountEth = BigNumber.from(100)

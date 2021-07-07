@@ -184,6 +184,7 @@ contract Kresko is Ownable {
      * @dev O(deposited collateral assets) complexity. TODO: get this to work with tokens
      * that aren't 18 decimals.
      * @param account The account to calculate the collateral value for.
+     * @return The collateral value of a particular account.
      */
     function getCollateralValue(address account) public view returns (FixedPoint.Unsigned memory) {
         FixedPoint.Unsigned memory collateralValue = FixedPoint.Unsigned(0);
@@ -204,6 +205,7 @@ contract Kresko is Ownable {
     /**
      * @notice Gets an array of collateral assets the account has deposited.
      * @param account The account to get the deposited collateral assets for.
+     * @return An array of addresses of collateral assets the account has deposited.
      */
     function getDepositedCollateralAssets(address account) external view returns (address[] memory) {
         return depositedCollateralAssets[account];
