@@ -4,6 +4,7 @@ pragma solidity >=0.8.4;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+import "./interfaces/IOracle.sol";
 import "./libraries/FixedPoint.sol";
 
 contract Kresko is Ownable {
@@ -15,7 +16,7 @@ contract Kresko is Ownable {
      */
     struct CollateralAsset {
         FixedPoint.Unsigned factor;
-        address oracle;
+        IOracle oracle;
         bool exists;
     }
 
@@ -23,13 +24,13 @@ contract Kresko is Ownable {
 
     /**
      * Maps each account to a mapping of collateral asset address to the amount
-     * the user has deposited into this contract. Requires collateral to not rebase.
+     * the user has deposited into this contract. Requires the collateral to not rebase.
      */
     mapping(address => mapping(address => uint256)) public collateralDeposits;
 
     /**
      * Maps each account to an array of the addresses of each collateral asset the account
-     * has deposited.
+     * has deposited. Used for calculating an account's CV.
      */
     mapping(address => address[]) public depositedCollateralAssets;
 
@@ -66,7 +67,7 @@ contract Kresko is Ownable {
         require(amount > 0, "AMOUNT_ZERO");
 
         IERC20 asset = IERC20(assetAddress);
-        // Transfer tokens into this contract prior to any state changes as a measure against re-entrancy.
+        // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
         require(asset.transferFrom(msg.sender, address(this), amount), "TRANSFER_IN_FAILED");
 
         // If the account does not have an existing deposit for this collateral asset,
@@ -87,7 +88,7 @@ contract Kresko is Ownable {
      * @param assetAddress The address of the collateral asset.
      * @param amount The amount of the collateral asset to withdraw.
      * @param depositedCollateralAssetIndex The index of the collateral asset in the sender's
-     * deposited collateral assets array. Only needed if withdrawing the entire amount of a particular
+     * deposited collateral assets array. Only needed if withdrawing the entire deposit of a particular
      * collateral asset.
      */
     function withdrawCollateral(
@@ -124,49 +125,6 @@ contract Kresko is Ownable {
     }
 
     /**
-     * @notice Gets the collateral value of a particular account.
-     * @dev O(deposited collateral assets) complexity.
-     * @param account The account to calculate the collateral value for.
-     */
-    function getCollateralValue(address account) public view returns (FixedPoint.Unsigned memory) {
-        FixedPoint.Unsigned memory collateralValue = FixedPoint.Unsigned(0);
-
-        address[] memory assets = depositedCollateralAssets[account];
-        for (uint256 i = 0; i < assets.length; i++) {
-            address asset = assets[i];
-            collateralValue = collateralValue.add(
-                collateralAssets[asset].factor.mul(collateralDeposits[account][asset])
-            );
-        }
-        return collateralValue;
-    }
-
-    /**
-     * @notice Removes a particular collateral asset from an account's deposited collateral assets array.
-     * @dev Removes an element by copying the last element to the element to remove's place and removing
-     * the last element.
-     * @param account The account whose deposited collateral asset array is being affected.
-     * @param assetAddress The collateral asset to remove from the array.
-     * @param index The index of the assetAddress in the deposited collateral assets array.
-     */
-    function removeFromDepositedCollateralAssets(
-        address account,
-        address assetAddress,
-        uint256 index
-    ) internal {
-        // Ensure that the provided index corresponds to the provided assetAddress.
-        require(depositedCollateralAssets[account][index] == assetAddress, "BAD_DEPOSITED_COLLATERAL_ASSETS_INDEX");
-        uint256 lastIndex = depositedCollateralAssets[account].length - 1;
-        // If the index to remove is not the last one, overwrite the element at the index
-        // with the last element.
-        if (index != lastIndex) {
-            depositedCollateralAssets[account][index] = depositedCollateralAssets[account][lastIndex];
-        }
-        // Remove the last element.
-        depositedCollateralAssets[account].pop();
-    }
-
-    /**
      * @dev Whitelists a collateral asset
      * @param assetAddress The on chain address of the asset
      * @param factor The collateral factor of the asset
@@ -183,7 +141,7 @@ contract Kresko is Ownable {
 
         collateralAssets[assetAddress] = CollateralAsset({
             factor: FixedPoint.Unsigned(factor),
-            oracle: oracle,
+            oracle: IOracle(oracle),
             exists: true
         });
         emit AddCollateralAsset(assetAddress, factor, oracle);
@@ -217,7 +175,62 @@ contract Kresko is Ownable {
     {
         require(oracle != address(0), "ZERO_ADDRESS");
 
-        collateralAssets[assetAddress].oracle = oracle;
+        collateralAssets[assetAddress].oracle = IOracle(oracle);
         emit UpdateCollateralAssetOracle(assetAddress, oracle);
+    }
+
+    /**
+     * @notice Gets the collateral value of a particular account.
+     * @dev O(deposited collateral assets) complexity. TODO: get this to work with tokens
+     * that aren't 18 decimals.
+     * @param account The account to calculate the collateral value for.
+     */
+    function getCollateralValue(address account) public view returns (FixedPoint.Unsigned memory) {
+        FixedPoint.Unsigned memory collateralValue = FixedPoint.Unsigned(0);
+
+        address[] memory assets = depositedCollateralAssets[account];
+        for (uint256 i = 0; i < assets.length; i++) {
+            address asset = assets[i];
+            CollateralAsset memory collateralAsset = collateralAssets[asset];
+            collateralValue = collateralValue.add(
+                FixedPoint.Unsigned(collateralDeposits[account][asset])
+                    .mul(FixedPoint.Unsigned(collateralAsset.oracle.value()))
+                    .mul(collateralAsset.factor)
+            );
+        }
+        return collateralValue;
+    }
+
+    /**
+     * @notice Gets an array of collateral assets the account has deposited.
+     * @param account The account to get the deposited collateral assets for.
+     */
+    function getDepositedCollateralAssets(address account) external view returns (address[] memory) {
+        return depositedCollateralAssets[account];
+    }
+
+    /**
+     * @notice Removes a particular collateral asset from an account's deposited collateral assets array.
+     * @dev Removes an element by copying the last element to the element to remove's place and removing
+     * the last element.
+     * @param account The account whose deposited collateral asset array is being affected.
+     * @param assetAddress The collateral asset to remove from the array.
+     * @param index The index of the assetAddress in the deposited collateral assets array.
+     */
+    function removeFromDepositedCollateralAssets(
+        address account,
+        address assetAddress,
+        uint256 index
+    ) internal {
+        // Ensure that the provided index corresponds to the provided assetAddress.
+        require(depositedCollateralAssets[account][index] == assetAddress, "WRONG_DEPOSITED_COLLATERAL_ASSETS_INDEX");
+        uint256 lastIndex = depositedCollateralAssets[account].length - 1;
+        // If the index to remove is not the last one, overwrite the element at the index
+        // with the last element.
+        if (index != lastIndex) {
+            depositedCollateralAssets[account][index] = depositedCollateralAssets[account][lastIndex];
+        }
+        // Remove the last element.
+        depositedCollateralAssets[account].pop();
     }
 }

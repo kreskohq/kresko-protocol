@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract BasicOracle is Ownable {
     address public reporter;
+    // Intended to be a FixedPoint.Unsigned with 18 decimals.
     uint256 public value;
 
     event SetReporter(address oracle);
