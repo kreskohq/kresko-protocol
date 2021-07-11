@@ -77,7 +77,11 @@ contract Kresko is Ownable {
         address assetAddress,
         uint256 factor,
         address oracle
-    ) external onlyOwner collateralAssetDoesNotExist(assetAddress) {
+    )
+        external
+        onlyOwner
+        collateralAssetDoesNotExist(assetAddress)
+    {
         require(assetAddress != address(0), "ZERO_ADDRESS");
         require(factor != 0, "INVALID_FACTOR");
         require(oracle != address(0), "ZERO_ADDRESS");
@@ -130,7 +134,13 @@ contract Kresko is Ownable {
         string calldata symbol,
         uint256 kFactor,
         address oracle
-    ) external onlyOwner nonNullString(symbol) nonNullString(name) kreskoAssetDoesNotExist(symbol) {
+    )
+        external
+        onlyOwner
+        nonNullString(symbol)
+        nonNullString(name)
+        kreskoAssetDoesNotExist(symbol)
+    {
         require(kFactor != 0, "INVALID_FACTOR");
         require(oracle != address(0), "ZERO_ADDRESS");
 
