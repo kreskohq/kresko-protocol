@@ -113,13 +113,7 @@ contract Kresko is Ownable {
         if (amount == depositAmount) {
             removeFromDepositedCollateralAssets(msg.sender, assetAddress, depositedCollateralAssetIndex);
         }
-        // If for some reason the balance of this contract of the collateral asset is less than
-        // the amount being withdrawn, give the sender the entire balance of the contract.
-        // This shouldn't happen, as even loss of precision when it comes to deposited collateral
-        // is unlikely, but just to be safe this is added.
-        uint256 assetBalance = asset.balanceOf(address(this));
-        uint256 transferAmount = assetBalance < amount ? assetBalance : amount;
-        require(asset.transfer(msg.sender, transferAmount), "TRANSFER_OUT_FAILED");
+        require(asset.transfer(msg.sender, amount), "TRANSFER_OUT_FAILED");
 
         emit WithdrewCollateral(msg.sender, assetAddress, amount);
     }
@@ -194,7 +188,8 @@ contract Kresko is Ownable {
             address asset = assets[i];
             CollateralAsset memory collateralAsset = collateralAssets[asset];
             collateralValue = collateralValue.add(
-                FixedPoint.Unsigned(collateralDeposits[account][asset])
+                FixedPoint
+                    .Unsigned(collateralDeposits[account][asset])
                     .mul(FixedPoint.Unsigned(collateralAsset.oracle.value()))
                     .mul(collateralAsset.factor)
             );
