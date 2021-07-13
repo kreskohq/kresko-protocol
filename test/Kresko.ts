@@ -458,7 +458,7 @@ describe("Kresko", function () {
             let events: any = await extractEventFromTxReceipt(tx, "AddKreskoAsset");
 
             const asset = await this.kresko.kreskoAssets(events[0].args.assetAddress);
-            expect(asset.kFactor).to.equal(ONE);
+            expect(asset.kFactor.rawValue).to.equal(ONE.toString());
             expect(asset.oracle).to.equal(ADDRESS_TWO);
         });
 
@@ -466,7 +466,7 @@ describe("Kresko", function () {
             await this.kresko.updateKreskoAssetFactor(this.deployedAssetAddress, ZERO_POINT_FIVE);
 
             const asset = await this.kresko.kreskoAssets(this.deployedAssetAddress);
-            expect(asset.kFactor).to.equal(ZERO_POINT_FIVE);
+            expect(asset.kFactor.rawValue).to.equal(ZERO_POINT_FIVE.toString());
         });
 
         it("should allow owner to update oracle address", async function () {
