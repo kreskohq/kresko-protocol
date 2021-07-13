@@ -27,7 +27,7 @@ contract Kresko is Ownable {
      */
     struct KAsset {
         FixedPoint.Unsigned kFactor;
-        address oracle;
+        IOracle oracle;
         bool exists;
     }
 
@@ -226,7 +226,11 @@ contract Kresko is Ownable {
 
         // Deploy KreskoAsset contract and store its details
         KreskoAsset asset = new KreskoAsset(name, symbol);
-        kreskoAssets[address(asset)] = KAsset({ kFactor: FixedPoint.Unsigned(kFactor), oracle: oracle, exists: true });
+        kreskoAssets[address(asset)] = KAsset({
+            kFactor: FixedPoint.Unsigned(kFactor),
+            oracle: IOracle(oracle),
+            exists: true
+        });
         emit AddKreskoAsset(name, symbol, address(asset), kFactor, oracle);
     }
 
@@ -258,7 +262,7 @@ contract Kresko is Ownable {
     {
         require(oracle != address(0), "ZERO_ADDRESS");
 
-        kreskoAssets[assetAddress].oracle = oracle;
+        kreskoAssets[assetAddress].oracle = IOracle(oracle);
         emit UpdateKreskoAssetOracle(assetAddress, oracle);
     }
 
