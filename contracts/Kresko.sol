@@ -21,22 +21,23 @@ contract Kresko is Ownable {
      * deployed address, k factor, and oracle address
      */
     struct KAsset {
-        string name;
-        address addr;
         uint256 kFactor;
         address oracle;
         bool exists;
     }
 
     mapping(address => CollateralAsset) public collateralAssets;
-    mapping(string => KAsset) public kreskoAssets;
+    mapping(address => KAsset) public kreskoAssets;
+    mapping(string => bool) public kreskoAssetSymbols; // Prevents duplicate KreskoAsset symbols
 
+    // Collateral asset events
     event AddCollateralAsset(address assetAddress, uint256 factor, address oracle);
     event UpdateCollateralAssetFactor(address assetAddress, uint256 factor);
     event UpdateCollateralAssetOracle(address assetAddress, address oracle);
+    // Kresko asset events
     event AddKreskoAsset(string name, string symbol, address assetAddress, uint256 kFactor, address oracle);
-    event UpdateKreskoAssetKFactor(string symbol, uint256 kFactor);
-    event UpdateKreskoAssetOracle(string symbol, address oracle);
+    event UpdateKreskoAssetKFactor(address assetAddress, uint256 kFactor);
+    event UpdateKreskoAssetOracle(address assetAddress, address oracle);
 
     modifier collateralAssetExists(address assetAddress) {
         require(collateralAssets[assetAddress].exists, "ASSET_NOT_VALID");
@@ -48,13 +49,13 @@ contract Kresko is Ownable {
         _;
     }
 
-    modifier kreskoAssetExists(string calldata symbol) {
-        require(kreskoAssets[symbol].exists, "ASSET_NOT_VALID");
+    modifier kreskoAssetExists(address assetAddress) {
+        require(kreskoAssets[assetAddress].exists, "ASSET_NOT_VALID");
         _;
     }
 
     modifier kreskoAssetDoesNotExist(string calldata symbol) {
-        require(!kreskoAssets[symbol].exists, "ASSET_EXISTS");
+        require(!kreskoAssetSymbols[symbol], "SYMBOL_NOT_VALID");
         _;
     }
 
@@ -144,10 +145,12 @@ contract Kresko is Ownable {
         require(kFactor != 0, "INVALID_FACTOR");
         require(oracle != address(0), "ZERO_ADDRESS");
 
+        // Store symbol to prevent duplicate KreskoAsset symbols
+        kreskoAssetSymbols[symbol] = true;
+
+        // Deploy KreskoAsset contract and store its details
         KreskoAsset asset = new KreskoAsset(name, symbol);
-        kreskoAssets[symbol] = KAsset({
-            name: name,
-            addr: address(asset),
+        kreskoAssets[address(asset)] = KAsset({
             kFactor: kFactor,
             oracle: oracle,
             exists: true
@@ -157,33 +160,33 @@ contract Kresko is Ownable {
 
     /**
      * @dev Updates the k factor of a previously whitelisted kresko asset
-     * @param symbol The symbol of the kresko asset
+     * @param assetAddress The address of the kresko asset
      * @param kFactor The new k factor of the kresko asset
      */
-    function updateKreskoAssetFactor(string calldata symbol, uint256 kFactor)
+    function updateKreskoAssetFactor(address assetAddress, uint256 kFactor)
         external
         onlyOwner
-        kreskoAssetExists(symbol)
+        kreskoAssetExists(assetAddress)
     {
         require(kFactor != 0, "INVALID_FACTOR");
 
-        kreskoAssets[symbol].kFactor = kFactor;
-        emit UpdateKreskoAssetKFactor(symbol, kFactor);
+        kreskoAssets[assetAddress].kFactor = kFactor;
+        emit UpdateKreskoAssetKFactor(assetAddress, kFactor);
     }
 
     /**
      * @dev Updates the oracle address of a previously whitelisted kresko asset
-     * @param symbol The symbol of the kresko asset
+     * @param assetAddress The address of the kresko asset
      * @param oracle The new oracle address for the kresko asset
      */
-    function updateKreskoAssetOracle(string calldata symbol, address oracle)
+    function updateKreskoAssetOracle(address assetAddress, address oracle)
         external
         onlyOwner
-        kreskoAssetExists(symbol)
+        kreskoAssetExists(assetAddress)
     {
         require(oracle != address(0), "ZERO_ADDRESS");
 
-        kreskoAssets[symbol].oracle = oracle;
-        emit UpdateKreskoAssetOracle(symbol, oracle);
+        kreskoAssets[assetAddress].oracle = oracle;
+        emit UpdateKreskoAssetOracle(assetAddress, oracle);
     }
 }
