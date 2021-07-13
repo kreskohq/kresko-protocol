@@ -2,9 +2,10 @@ import hre from "hardhat";
 import { Artifact } from "hardhat/types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { expect } from "chai";
-import { BigNumber, Contract } from "ethers";
+import { BigNumber, Contract, ContractTransaction } from "ethers";
 
 import { toFixedPoint, fixedPointMul } from "../utils/fixed-point"
+import { extractEventFromTxReceipt } from "../utils/events"
 
 import { BasicOracle } from "../typechain/BasicOracle";
 import { Kresko } from "../typechain/Kresko";
@@ -407,10 +408,9 @@ describe("Kresko", function () {
             const kreskoArtifact: Artifact = await hre.artifacts.readArtifact("Kresko");
             this.kresko = <Kresko>await deployContract(this.signers.admin, kreskoArtifact);
 
-            const tx: any = await this.kresko.addKreskoAsset(NAME_ONE, SYMBOL_ONE, ONE, ADDRESS_ONE);
-            let receipt: any = await tx.wait();
-            const addKreskoAssetEvent: any = receipt.events?.filter((x: any) => {return x.event == "AddKreskoAsset"});
-            this.deployedAssetAddress = addKreskoAssetEvent[0].args.assetAddress;
+            const tx: ContractTransaction = await this.kresko.addKreskoAsset(NAME_ONE, SYMBOL_ONE, ONE, ADDRESS_ONE);
+            let events: any = await extractEventFromTxReceipt(tx, "AddKreskoAsset");
+            this.deployedAssetAddress = events[0].args.assetAddress;
         });
 
         it("Cannot add kresko assets that have the same symbol as an existing kresko asset", async function () {
@@ -455,10 +455,9 @@ describe("Kresko", function () {
 
         it("should allow owner to add new kresko assets", async function () {
             const tx: any =  await this.kresko.addKreskoAsset(NAME_TWO, SYMBOL_TWO, ONE, ADDRESS_TWO);
-            let receipt: any = await tx.wait();
-            const addKreskoAssetEvent: any = receipt.events?.filter((x: any) => {return x.event == "AddKreskoAsset"});
+            let events: any = await extractEventFromTxReceipt(tx, "AddKreskoAsset");
 
-            const asset = await this.kresko.kreskoAssets(addKreskoAssetEvent[0].args.assetAddress);
+            const asset = await this.kresko.kreskoAssets(events[0].args.assetAddress);
             expect(asset.kFactor).to.equal(ONE);
             expect(asset.oracle).to.equal(ADDRESS_TWO);
         });
