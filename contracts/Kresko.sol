@@ -78,7 +78,7 @@ contract Kresko is Ownable {
     }
 
     modifier nonNullString(string calldata str) {
-        require(keccak256(abi.encodePacked((str))) != keccak256(abi.encodePacked((""))), "NULL_STRING");
+        require(bytes(str).length > 0, "NULL_STRING");
         _;
     }
 
@@ -160,11 +160,7 @@ contract Kresko is Ownable {
         address assetAddress,
         uint256 factor,
         address oracle
-    )
-        external
-        onlyOwner
-        collateralAssetDoesNotExist(assetAddress)
-    {
+    ) external onlyOwner collateralAssetDoesNotExist(assetAddress) {
         require(assetAddress != address(0), "ZERO_ADDRESS");
         require(factor != 0, "INVALID_FACTOR");
         require(oracle != address(0), "ZERO_ADDRESS");
@@ -221,13 +217,7 @@ contract Kresko is Ownable {
         string calldata symbol,
         uint256 kFactor,
         address oracle
-    )
-        external
-        onlyOwner
-        nonNullString(symbol)
-        nonNullString(name)
-        kreskoAssetDoesNotExist(symbol)
-    {
+    ) external onlyOwner nonNullString(symbol) nonNullString(name) kreskoAssetDoesNotExist(symbol) {
         require(kFactor != 0, "INVALID_FACTOR");
         require(oracle != address(0), "ZERO_ADDRESS");
 
@@ -236,11 +226,7 @@ contract Kresko is Ownable {
 
         // Deploy KreskoAsset contract and store its details
         KreskoAsset asset = new KreskoAsset(name, symbol);
-        kreskoAssets[address(asset)] = KAsset({
-            kFactor: kFactor,
-            oracle: oracle,
-            exists: true
-        });
+        kreskoAssets[address(asset)] = KAsset({ kFactor: kFactor, oracle: oracle, exists: true });
         emit AddKreskoAsset(name, symbol, address(asset), kFactor, oracle);
     }
 
