@@ -2,9 +2,10 @@ import hre from "hardhat";
 import { Artifact } from "hardhat/types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { expect } from "chai";
-import { BigNumber, Contract } from "ethers";
+import { BigNumber, Contract, ContractTransaction } from "ethers";
 
 import { toFixedPoint, fixedPointMul } from "../utils/fixed-point"
+import { extractEventFromTxReceipt } from "../utils/events"
 
 import { BasicOracle } from "../typechain/BasicOracle";
 import { Kresko } from "../typechain/Kresko";
@@ -15,6 +16,10 @@ import { ERC20__factory } from "../typechain";
 const ADDRESS_ZERO = hre.ethers.constants.AddressZero;
 const ADDRESS_ONE = "0x0000000000000000000000000000000000000001";
 const ADDRESS_TWO = "0x0000000000000000000000000000000000000002";
+const SYMBOL_ONE = "ONE";
+const SYMBOL_TWO = "TWO";
+const NAME_ONE = "One Kresko Asset";
+const NAME_TWO = "Two Kresko Asset";
 
 const { parseEther } = hre.ethers.utils;
 const { deployContract } = hre.waffle;
@@ -77,14 +82,14 @@ describe("Kresko", function () {
                     "ZERO_ADDRESS",
                 );
             });
-            it("invalid asset factor", async function () {
-                await expect(this.kresko.addCollateralAsset(ADDRESS_TWO, ONE, ADDRESS_ZERO)).to.be.revertedWith(
-                    "ZERO_ADDRESS",
+            it("invalid factor", async function () {
+                await expect(this.kresko.addCollateralAsset(ADDRESS_TWO, 0, ADDRESS_ONE)).to.be.revertedWith(
+                    "INVALID_FACTOR",
                 );
             });
             it("invalid oracle address", async function () {
-                await expect(this.kresko.addCollateralAsset(ADDRESS_TWO, 0, ADDRESS_ONE)).to.be.revertedWith(
-                    "INVALID_FACTOR",
+                await expect(this.kresko.addCollateralAsset(ADDRESS_TWO, ONE, ADDRESS_ZERO)).to.be.revertedWith(
+                    "ZERO_ADDRESS",
                 );
             });
         });
@@ -123,13 +128,13 @@ describe("Kresko", function () {
             expect(asset.oracle).to.equal(ADDRESS_TWO);
         });
 
-        it("should not allow non-owner add assets", async function () {
+        it("should not allow non-owner to add assets", async function () {
             await expect(
                 this.kresko.connect(this.userOne).addCollateralAsset(ADDRESS_TWO, 1, ADDRESS_TWO),
             ).to.be.revertedWith("Ownable: caller is not the owner");
         });
 
-        it("should not allow non-owner update assets", async function () {
+        it("should not allow non-owner to update assets", async function () {
             await expect(
                 this.kresko.connect(this.userOne).updateCollateralFactor(ADDRESS_ONE, ZERO_POINT_FIVE),
             ).to.be.revertedWith("Ownable: caller is not the owner");
@@ -138,7 +143,7 @@ describe("Kresko", function () {
             ).to.be.revertedWith("Ownable: caller is not the owner");
         });
     });
-    
+
     describe("Account collateral", function () {
         beforeEach(async function () {
             this.collateralAssetInfos = await Promise.all([
@@ -200,14 +205,14 @@ describe("Kresko", function () {
                     collateralAsset.address,
                     depositAmount0
                 );
-                
+
                 // Deposit a secound amount
                 const depositAmount1 = parseEther("321.123");
                 await this.kresko.connect(this.userOne).depositCollateral(
                     collateralAsset.address,
                     depositAmount1
                 );
-                
+
                 // Confirm the array of the user's deposited collateral assets hasn't been double-pushed to.
                 const depositedCollateralAssetsAfter = await this.kresko.getDepositedCollateralAssets(this.userOne.address);
                 expect(depositedCollateralAssetsAfter).to.deep.equal([collateralAsset.address]);
@@ -274,7 +279,7 @@ describe("Kresko", function () {
 
             it("should allow an account to withdraw their entire deposit", async function() {
                 const collateralAsset = this.collateralAssetInfos[0].collateralAsset;
-                
+
                 await this.kresko.connect(this.userOne).withdrawCollateral(
                     collateralAsset.address,
                     this.initialDepositAmount,
@@ -395,6 +400,95 @@ describe("Kresko", function () {
                 const collateralValue = await this.kresko.getCollateralValue(this.userTwo.address);
                 expect(collateralValue.rawValue).to.equal(BigNumber.from(0));
             })
+        });
+    });
+
+    describe("Kresko Assets", function () {
+        beforeEach(async function () {
+            const kreskoArtifact: Artifact = await hre.artifacts.readArtifact("Kresko");
+            this.kresko = <Kresko>await deployContract(this.signers.admin, kreskoArtifact);
+
+            const tx: ContractTransaction = await this.kresko.addKreskoAsset(NAME_ONE, SYMBOL_ONE, ONE, ADDRESS_ONE);
+            let events: any = await extractEventFromTxReceipt(tx, "AddKreskoAsset");
+            this.deployedAssetAddress = events[0].args.assetAddress;
+        });
+
+        it("Cannot add kresko assets that have the same symbol as an existing kresko asset", async function () {
+            await expect(this.kresko.addKreskoAsset(NAME_ONE, SYMBOL_ONE, ONE, ADDRESS_ONE)).to.be.revertedWith(
+                "SYMBOL_NOT_VALID",
+            );
+        });
+
+        describe("Cannot add kresko assets with invalid parameters", function () {
+            it("invalid asset name", async function () {
+                await expect(this.kresko.addKreskoAsset("", SYMBOL_TWO, ONE, ADDRESS_ONE)).to.be.revertedWith(
+                    "NULL_STRING",
+                );
+            });
+            it("invalid asset symbol", async function () {
+                await expect(this.kresko.addKreskoAsset(NAME_TWO, "", ONE, ADDRESS_ONE)).to.be.revertedWith(
+                    "NULL_STRING",
+                );
+            });
+            it("invalid k factor", async function () {
+                await expect(this.kresko.addKreskoAsset(NAME_TWO, SYMBOL_TWO, 0, ADDRESS_ONE)).to.be.revertedWith(
+                    "INVALID_FACTOR",
+                );
+            });
+            it("invalid oracle address", async function () {
+                await expect(this.kresko.addKreskoAsset(NAME_TWO, SYMBOL_TWO, ONE, ADDRESS_ZERO)).to.be.revertedWith(
+                    "ZERO_ADDRESS",
+                );
+            });
+        });
+
+        describe("Cannot update kresko assets with invalid parameters", function () {
+            it("invalid k factor", async function () {
+                await expect(this.kresko.updateKreskoAssetFactor(this.deployedAssetAddress, 0)).to.be.revertedWith("INVALID_FACTOR");
+            });
+            it("invalid oracle address", async function () {
+                await expect(this.kresko.updateKreskoAssetOracle(this.deployedAssetAddress, ADDRESS_ZERO)).to.be.revertedWith(
+                    "ZERO_ADDRESS",
+                );
+            });
+        });
+
+        it("should allow owner to add new kresko assets", async function () {
+            const tx: any =  await this.kresko.addKreskoAsset(NAME_TWO, SYMBOL_TWO, ONE, ADDRESS_TWO);
+            let events: any = await extractEventFromTxReceipt(tx, "AddKreskoAsset");
+
+            const asset = await this.kresko.kreskoAssets(events[0].args.assetAddress);
+            expect(asset.kFactor.rawValue).to.equal(ONE.toString());
+            expect(asset.oracle).to.equal(ADDRESS_TWO);
+        });
+
+        it("should allow owner to update factor", async function () {
+            await this.kresko.updateKreskoAssetFactor(this.deployedAssetAddress, ZERO_POINT_FIVE);
+
+            const asset = await this.kresko.kreskoAssets(this.deployedAssetAddress);
+            expect(asset.kFactor.rawValue).to.equal(ZERO_POINT_FIVE.toString());
+        });
+
+        it("should allow owner to update oracle address", async function () {
+            await this.kresko.updateKreskoAssetOracle(this.deployedAssetAddress, ADDRESS_TWO);
+
+            const asset = await this.kresko.kreskoAssets(this.deployedAssetAddress);
+            expect(asset.oracle).to.equal(ADDRESS_TWO);
+        });
+
+        it("should not allow non-owner to add assets", async function () {
+            await expect(
+                this.kresko.connect(this.userOne).addKreskoAsset(NAME_TWO, SYMBOL_TWO, ONE, ADDRESS_TWO)
+            ).to.be.revertedWith("Ownable: caller is not the owner");
+        });
+
+        it("should not allow non-owner to update assets", async function () {
+            await expect(
+                this.kresko.connect(this.userOne).updateKreskoAssetFactor(this.deployedAssetAddress, ZERO_POINT_FIVE),
+            ).to.be.revertedWith("Ownable: caller is not the owner");
+            await expect(
+                this.kresko.connect(this.userOne).updateKreskoAssetOracle(this.deployedAssetAddress, ADDRESS_TWO),
+            ).to.be.revertedWith("Ownable: caller is not the owner");
         });
     });
 });
