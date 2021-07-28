@@ -11,7 +11,6 @@ import { BasicOracle } from "../typechain/BasicOracle";
 import { Kresko } from "../typechain/Kresko";
 import { MockToken } from "../typechain/MockToken";
 import { Signers } from "../types";
-import { ERC20__factory } from "../typechain";
 
 const ADDRESS_ZERO = hre.ethers.constants.AddressZero;
 const ADDRESS_ONE = "0x0000000000000000000000000000000000000001";
@@ -70,13 +69,13 @@ describe("Kresko", function () {
 
     describe("Collateral Assets", function () {
         beforeEach(async function () {
-            await this.kresko.addCollateralAsset(ADDRESS_ONE, ONE, ADDRESS_ONE);
+            this.collateralAssetInfo = await deployAndWhitelistCollateralAsset(this.kresko, 0.8, 123.45, 18);
         });
 
         it("Cannot add collateral assets more than once", async function () {
-            await expect(this.kresko.addCollateralAsset(ADDRESS_ONE, ONE, ADDRESS_ONE)).to.be.revertedWith(
-                "ASSET_EXISTS",
-            );
+            await expect(
+                this.kresko.addCollateralAsset(this.collateralAssetInfo.collateralAsset.address, ONE, ADDRESS_ONE),
+            ).to.be.revertedWith("ASSET_EXISTS");
         });
 
         describe("Cannot add collateral assets with invalid parameters", function () {
@@ -99,35 +98,39 @@ describe("Kresko", function () {
 
         describe("Cannot update collateral assets with invalid parameters", function () {
             it("invalid asset factor", async function () {
-                await expect(this.kresko.updateCollateralFactor(ADDRESS_ONE, 0)).to.be.revertedWith("INVALID_FACTOR");
+                await expect(
+                    this.kresko.updateCollateralFactor(this.collateralAssetInfo.collateralAsset.address, 0),
+                ).to.be.revertedWith("INVALID_FACTOR");
             });
             it("invalid oracle address", async function () {
-                await expect(this.kresko.updateCollateralOracle(ADDRESS_ONE, ADDRESS_ZERO)).to.be.revertedWith(
-                    "ZERO_ADDRESS",
-                );
+                await expect(
+                    this.kresko.updateCollateralOracle(this.collateralAssetInfo.collateralAsset.address, ADDRESS_ZERO),
+                ).to.be.revertedWith("ZERO_ADDRESS");
             });
         });
 
         it("should allow owner to add assets", async function () {
-            await this.kresko.addCollateralAsset(ADDRESS_TWO, ONE, ADDRESS_TWO);
+            const collateralAssetInfo = await deployAndWhitelistCollateralAsset(this.kresko, 0.8, 123.45, 18);
 
-            const asset = await this.kresko.collateralAssets(ADDRESS_TWO);
-            expect(asset.factor.rawValue).to.equal(ONE.toString());
-            expect(asset.oracle).to.equal(ADDRESS_TWO);
+            const asset = await this.kresko.collateralAssets(collateralAssetInfo.collateralAsset.address);
+            expect(asset.factor.rawValue).to.equal(collateralAssetInfo.factor);
+            expect(asset.oracle).to.equal(collateralAssetInfo.oracle.address);
             expect(asset.exists).to.be.true;
         });
 
         it("should allow owner to update factor", async function () {
-            await this.kresko.updateCollateralFactor(ADDRESS_ONE, ZERO_POINT_FIVE);
+            const collateralAssetAddress = this.collateralAssetInfo.collateralAsset.address;
+            await this.kresko.updateCollateralFactor(collateralAssetAddress, ZERO_POINT_FIVE);
 
-            const asset = await this.kresko.collateralAssets(ADDRESS_ONE);
+            const asset = await this.kresko.collateralAssets(collateralAssetAddress);
             expect(asset.factor.rawValue).to.equal(ZERO_POINT_FIVE);
         });
 
         it("should allow owner to update oracle address", async function () {
-            await this.kresko.updateCollateralOracle(ADDRESS_ONE, ADDRESS_TWO);
+            const collateralAssetAddress = this.collateralAssetInfo.collateralAsset.address;
+            await this.kresko.updateCollateralOracle(collateralAssetAddress, ADDRESS_TWO);
 
-            const asset = await this.kresko.collateralAssets(ADDRESS_ONE);
+            const asset = await this.kresko.collateralAssets(collateralAssetAddress);
             expect(asset.oracle).to.equal(ADDRESS_TWO);
         });
 
