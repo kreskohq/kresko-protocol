@@ -153,7 +153,7 @@ contract Kresko is Ownable {
     /**
      * @dev Whitelists a collateral asset
      * @param assetAddress The on chain address of the collateral asset
-     * @param factor The collateral factor of the collateral asset
+     * @param factor The collateral factor of the collateral asset. Must be <= 1e18.
      * @param oracle The oracle address for the collateral asset
      */
     function addCollateralAsset(
@@ -162,7 +162,7 @@ contract Kresko is Ownable {
         address oracle
     ) external onlyOwner collateralAssetDoesNotExist(assetAddress) {
         require(assetAddress != address(0), "ZERO_ADDRESS");
-        require(factor != 0, "INVALID_FACTOR");
+        require(factor <= FixedPoint.FP_SCALING_FACTOR, "INVALID_FACTOR");
         require(oracle != address(0), "ZERO_ADDRESS");
 
         collateralAssets[assetAddress] = CollateralAsset({
@@ -176,14 +176,16 @@ contract Kresko is Ownable {
     /**
      * @dev Updates the collateral factor of a previously whitelisted collateral asset
      * @param assetAddress The on chain address of the collateral asset
-     * @param factor The new collateral factor of the collateral asset
+     * @param factor The new collateral factor of the collateral asset. Must be <= 1e18.
      */
     function updateCollateralFactor(address assetAddress, uint256 factor)
         external
         onlyOwner
         collateralAssetExists(assetAddress)
     {
-        require(factor != 0, "INVALID_FACTOR");
+        // Setting the factor to 0 effectively sunsets a collateral asset, which
+        // is intentionally allowed.
+        require(factor <= FixedPoint.FP_SCALING_FACTOR, "INVALID_FACTOR");
 
         collateralAssets[assetAddress].factor = FixedPoint.Unsigned(factor);
         emit UpdateCollateralAssetFactor(assetAddress, factor);
@@ -209,7 +211,7 @@ contract Kresko is Ownable {
      * @dev Whitelists a kresko asset
      * @param name The name of the kresko asset
      * @param symbol The symbol of the kresko asset
-     * @param kFactor The k factor of the kresko asset
+     * @param kFactor The k factor of the kresko asset. Must be >= 1e18.
      * @param oracle The oracle address for the kresko asset
      */
     function addKreskoAsset(
@@ -218,7 +220,7 @@ contract Kresko is Ownable {
         uint256 kFactor,
         address oracle
     ) external onlyOwner nonNullString(symbol) nonNullString(name) kreskoAssetDoesNotExist(symbol) {
-        require(kFactor != 0, "INVALID_FACTOR");
+        require(kFactor >= FixedPoint.FP_SCALING_FACTOR, "INVALID_FACTOR");
         require(oracle != address(0), "ZERO_ADDRESS");
 
         // Store symbol to prevent duplicate KreskoAsset symbols
@@ -244,7 +246,7 @@ contract Kresko is Ownable {
         onlyOwner
         kreskoAssetExists(assetAddress)
     {
-        require(kFactor != 0, "INVALID_FACTOR");
+        require(kFactor >= FixedPoint.FP_SCALING_FACTOR, "INVALID_FACTOR");
 
         kreskoAssets[assetAddress].kFactor = FixedPoint.Unsigned(kFactor);
         emit UpdateKreskoAssetKFactor(assetAddress, kFactor);
