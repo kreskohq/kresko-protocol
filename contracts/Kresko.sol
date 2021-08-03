@@ -31,6 +31,8 @@ contract Kresko is Ownable {
         bool exists;
     }
 
+    uint256 public minimumCollateralizationRatio;
+
     mapping(address => CollateralAsset) public collateralAssets;
     mapping(address => KAsset) public kreskoAssets;
     mapping(string => bool) public kreskoAssetSymbols; // Prevents duplicate KreskoAsset symbols
@@ -46,6 +48,19 @@ contract Kresko is Ownable {
      */
     mapping(address => address[]) public depositedCollateralAssets;
 
+    /**
+     * Maps each account to a mapping of Kresko asset address to the amount
+     * the user has currently minted.
+     */
+    mapping(address => mapping(address => uint256)) public kreskoAssetDebt;
+
+    /**
+     * Maps each account to an array of the addresses of each Kresko asset the account
+     * has minted. Used for calculating an account's MCV.
+     */
+    mapping(address => address[]) public mintedKreskoAssets;
+
+    event UpdateMinimumCollateralizationRatio(uint256 minimumCollateralizationRatio);
     // Collateral asset events
     event AddCollateralAsset(address assetAddress, uint256 factor, address oracle);
     event UpdateCollateralAssetFactor(address assetAddress, uint256 factor);
@@ -56,6 +71,8 @@ contract Kresko is Ownable {
     event AddKreskoAsset(string name, string symbol, address assetAddress, uint256 kFactor, address oracle);
     event UpdateKreskoAssetKFactor(address assetAddress, uint256 kFactor);
     event UpdateKreskoAssetOracle(address assetAddress, address oracle);
+    event KreskoAssetMinted(address account, address assetAddress, uint256 amount);
+
 
     modifier collateralAssetExists(address assetAddress) {
         require(collateralAssets[assetAddress].exists, "ASSET_NOT_VALID");
@@ -82,9 +99,24 @@ contract Kresko is Ownable {
         _;
     }
 
-    constructor() {
-        // Intentionally left blank
+    constructor(uint256 minCollateralizationRatio) {
+        minimumCollateralizationRatio = minCollateralizationRatio;
     }
+
+    /**
+     * @dev Updates the contract's collateralization ratio
+     * @param minCollateralizationRatio The new minimum collateralization ratio
+     */
+    function updateMinimumCollateralizationRatio(uint256 minCollateralizationRatio)
+        external
+        onlyOwner
+    {
+        require(minCollateralizationRatio <= 0, "INVALID_RATIO");
+
+        minimumCollateralizationRatio = minCollateralizationRatio;
+        emit UpdateMinimumCollateralizationRatio(minimumCollateralizationRatio);
+    }
+
 
     /**
      * @notice Deposits collateral into the protocol.
@@ -322,5 +354,94 @@ contract Kresko is Ownable {
         }
         // Remove the last element.
         depositedCollateralAssets[account].pop();
+    }
+
+    /**
+     * @notice Mints new Kresko assets.
+     * @dev
+     * @param assetAddress The address of the Kresko asset.
+     * @param amount The amount of the Kresko asset to be minted.
+     */
+    function mintKreskoAsset(address assetAddress, uint256 amount) external kreskoAssetExists(assetAddress) {
+        require(amount > 0, "AMOUNT_ZERO");
+
+        // Get the value of the minter's current deposited collateral
+        FixedPoint.Unsigned memory collateralValue = getCollateralValue(msg.sender);
+        // Get the account's current minimum collateral value required to maintain current debts
+        FixedPoint.Unsigned memory minCollateralValue = getAccountMinimumCollateralValue(msg.sender);
+        // Calculate additional collateral amount required to back requested additional mint
+        FixedPoint.Unsigned memory additionalCollateralValue = getMinimumCollateralValue(assetAddress, amount);
+
+        // Verify that minter has sufficient collateral to back current debt + new requested debt
+        require(
+            minCollateralValue.add(additionalCollateralValue).isLessThanOrEqual(collateralValue),
+            "INSUFFICIENT_COLLATERAL"
+        );
+
+        // If the account does not have an existing debt for this Kresko Asset
+        // push it to the list of the account's minted Kresko Assets
+        uint256 existingDebtAmount = kreskoAssetDebt[msg.sender][assetAddress];
+        if (existingDebtAmount == 0) {
+            mintedKreskoAssets[msg.sender].push(assetAddress);
+        }
+        // Record the mint
+        kreskoAssetDebt[msg.sender][assetAddress] = existingDebtAmount + amount;
+
+        KreskoAsset(assetAddress).mint(msg.sender, amount);
+
+        emit KreskoAssetMinted(msg.sender, assetAddress, amount);
+    }
+
+    /**
+     * @notice Gets an account's minimum collateral value for its Kresko Asset debts.
+     * @dev TODO: get this to work with tokens that aren't 18 decimals.
+     * @param account The account to calculate the minimum collateral value for.
+     * @return The minimum collateral value of a particular account.
+     */
+    function getAccountMinimumCollateralValue(address account) public view returns (FixedPoint.Unsigned memory) {
+        FixedPoint.Unsigned memory minCollateralValue = FixedPoint.Unsigned(0);
+
+        address[] memory assets = mintedKreskoAssets[account];
+        for (uint256 i = 0; i < assets.length; i++) {
+            address asset = assets[i];
+            uint256 amount = kreskoAssetDebt[account][asset];
+            minCollateralValue = minCollateralValue.add(
+                getMinimumCollateralValue(asset, amount)
+            );
+        }
+        return minCollateralValue;
+    }
+
+    /**
+     * @notice Get the minimum collateral value required to keep a individual debt position healthy.
+     * @param assetAddr The address of the Kresko Asset.
+     * @param amount The Kresko Asset debt amount.
+     * @return minCollateralValue is the minimum collateral value required for this Kresko Asset amount.
+     */
+    function getMinimumCollateralValue(address assetAddr, uint256 amount)
+        public
+        view
+        kreskoAssetExists(assetAddr)
+        returns (FixedPoint.Unsigned memory minCollateralValue)
+    {
+        KAsset memory kAsset = kreskoAssets[assetAddr];
+
+        // Calculate the Kresko asset's value weighted by kFactor
+        FixedPoint.Unsigned memory weightedKreskoAssetValue = FixedPoint
+            .Unsigned(kAsset.oracle.value())
+            .mul(amount)
+            .mul(kAsset.kFactor);
+
+        // Calculate the minimum collateral required to back this Kresko asset amount
+        return weightedKreskoAssetValue.mul(150).div(100);
+    }
+
+    /**
+     * @notice Gets an array of Kresko assets the account has minted.
+     * @param account The account to get the minted Kresko assets for.
+     * @return An array of addresses of Kresko assets the account has minted.
+     */
+    function getMintedKreskoAssets(address account) external view returns (address[] memory) {
+        return mintedKreskoAssets[account];
     }
 }
