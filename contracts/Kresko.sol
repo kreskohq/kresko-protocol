@@ -2,7 +2,7 @@
 pragma solidity >=0.8.4;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "./KreskoAsset.sol";
 
 import "./interfaces/IOracle.sol";
@@ -19,6 +19,7 @@ contract Kresko is Ownable {
         FixedPoint.Unsigned factor;
         IOracle oracle;
         bool exists;
+        uint8 decimals;
     }
 
     /**
@@ -200,7 +201,8 @@ contract Kresko is Ownable {
         collateralAssets[assetAddress] = CollateralAsset({
             factor: FixedPoint.Unsigned(factor),
             oracle: IOracle(oracle),
-            exists: true
+            exists: true,
+            decimals: IERC20Metadata(assetAddress).decimals()
         });
         emit AddCollateralAsset(assetAddress, factor, oracle);
     }
@@ -300,8 +302,7 @@ contract Kresko is Ownable {
 
     /**
      * @notice Gets the collateral value of a particular account.
-     * @dev O(deposited collateral assets) complexity. TODO: get this to work with tokens
-     * that aren't 18 decimals.
+     * @dev O(# of different deposited collateral assets by account) complexity.
      * @param account The account to calculate the collateral value for.
      * @return The collateral value of a particular account.
      */
@@ -312,11 +313,30 @@ contract Kresko is Ownable {
         for (uint256 i = 0; i < assets.length; i++) {
             address asset = assets[i];
             CollateralAsset memory collateralAsset = collateralAssets[asset];
+            // Initially, use the stored amount from collateralDeposits as the
+            // raw value for the FixedPoint.Unsigned, which internally uses
+            // FixedPoint.FP_DECIMALS (18) decimals. Most collateral assets
+            // will have 18 decimals.
+            FixedPoint.Unsigned memory depositAmount = FixedPoint.Unsigned(collateralDeposits[account][asset]);
+            // Handle cases where the collateral asset's decimal amount is not 18.
+            if (collateralAsset.decimals < FixedPoint.FP_DECIMALS) {
+                // If the decimals are less than 18, multiply the depositAmount
+                // to get the correct fixed point value.
+                // E.g. having deposited 1 full token of a 17 decimal token will
+                // cause the initial setting of depositAmount to be 0.1, so we multiply
+                // by 10 ** (18 - 17) = 10 to get it to 0.1 * 10 = 1.
+                depositAmount = depositAmount.mul(10**(FixedPoint.FP_DECIMALS - collateralAsset.decimals));
+            } else if (collateralAsset.decimals > FixedPoint.FP_DECIMALS) {
+                // If the decimals are greater than 18, divide the depositAmount
+                // to get the correct fixed point value.
+                // Note because FixedPoint numbers are 18 decimals, this results
+                // in loss of precision. E.g. if the cocllateral asset has 19
+                // decimals and the deposit amount is only 1 uint, this will divide
+                // 1 by 10 ** (19 - 18), resulting in 1 / 10 = 0
+                depositAmount = depositAmount.div(10**(collateralAsset.decimals - FixedPoint.FP_DECIMALS));
+            }
             collateralValue = collateralValue.add(
-                FixedPoint
-                    .Unsigned(collateralDeposits[account][asset])
-                    .mul(FixedPoint.Unsigned(collateralAsset.oracle.value()))
-                    .mul(collateralAsset.factor)
+                depositAmount.mul(FixedPoint.Unsigned(collateralAsset.oracle.value())).mul(collateralAsset.factor)
             );
         }
         return collateralValue;
