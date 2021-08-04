@@ -289,7 +289,8 @@ describe("Kresko", function () {
 
         describe("Withdrawing collateral", async function () {
             beforeEach(async function () {
-                // Have userOne deposit 100 of each collateral asset
+                // Have userOne deposit 100 of each collateral asset.
+                // This results in an account collateral value of 40491.
                 this.initialDepositAmount = 100;
                 for (const collateralAssetInfo of this.collateralAssetInfos) {
                     await this.kresko
@@ -301,77 +302,210 @@ describe("Kresko", function () {
                 }
             });
 
-            it("should allow an account to withdraw their entire deposit", async function () {
-                const collateralAssetInfo = this.collateralAssetInfos[0];
-                const collateralAsset = collateralAssetInfo.collateralAsset;
-
-                await this.kresko.connect(this.userOne).withdrawCollateral(
-                    collateralAsset.address,
-                    collateralAssetInfo.fromDecimal(this.initialDepositAmount),
-                    0, // The index of collateralAsset.address in the account's depositedCollateralAssets
-                );
-                // Ensure that the collateral asset is removed from the account's deposited collateral
-                // assets array.
-                const depositedCollateralAssets = await this.kresko.getDepositedCollateralAssets(this.userOne.address);
-                expect(depositedCollateralAssets).to.deep.equal([
-                    // index 2 was moved to index 0 due to the way elements are removed,
-                    // which involves copying the last element into the index that's being removed
-                    this.collateralAssetInfos[2].collateralAsset.address,
-                    this.collateralAssetInfos[1].collateralAsset.address,
-                ]);
-
-                // Ensure the change in the user's deposit is recorded.
-                const amountDeposited = await this.kresko.collateralDeposits(
-                    this.userOne.address,
-                    collateralAsset.address,
-                );
-                expect(amountDeposited).to.equal(0);
-
-                // Ensure the amount transferred is correct
-                const kreskoBalance = await collateralAsset.balanceOf(this.kresko.address);
-                expect(kreskoBalance).to.equal(BigNumber.from(0));
-                const userOneBalance = await collateralAsset.balanceOf(this.userOne.address);
-                expect(userOneBalance).to.equal(collateralAssetInfo.fromDecimal(this.initialUserCollateralBalance));
+            describe("when the account's minimum collateral value is 0", function() {
+                it("should allow an account to withdraw their entire deposit", async function () {
+                    const collateralAssetInfo = this.collateralAssetInfos[0];
+                    const collateralAsset = collateralAssetInfo.collateralAsset;
+    
+                    await this.kresko.connect(this.userOne).withdrawCollateral(
+                        collateralAsset.address,
+                        collateralAssetInfo.fromDecimal(this.initialDepositAmount),
+                        0, // The index of collateralAsset.address in the account's depositedCollateralAssets
+                    );
+                    // Ensure that the collateral asset is removed from the account's deposited collateral
+                    // assets array.
+                    const depositedCollateralAssets = await this.kresko.getDepositedCollateralAssets(this.userOne.address);
+                    expect(depositedCollateralAssets).to.deep.equal([
+                        // index 2 was moved to index 0 due to the way elements are removed,
+                        // which involves copying the last element into the index that's being removed
+                        this.collateralAssetInfos[2].collateralAsset.address,
+                        this.collateralAssetInfos[1].collateralAsset.address,
+                    ]);
+    
+                    // Ensure the change in the user's deposit is recorded.
+                    const amountDeposited = await this.kresko.collateralDeposits(
+                        this.userOne.address,
+                        collateralAsset.address,
+                    );
+                    expect(amountDeposited).to.equal(0);
+    
+                    // Ensure the amount transferred is correct
+                    const kreskoBalance = await collateralAsset.balanceOf(this.kresko.address);
+                    expect(kreskoBalance).to.equal(BigNumber.from(0));
+                    const userOneBalance = await collateralAsset.balanceOf(this.userOne.address);
+                    expect(userOneBalance).to.equal(collateralAssetInfo.fromDecimal(this.initialUserCollateralBalance));
+                });
+    
+                it("should allow an account to withdraw a portion of their deposit", async function () {
+                    const amountToWithdraw = parseEther("49.43");
+                    const collateralAssetInfo = this.collateralAssetInfos[0];
+                    const collateralAsset = collateralAssetInfo.collateralAsset;
+                    const initialDepositAmount = collateralAssetInfo.fromDecimal(this.initialDepositAmount);
+    
+                    await this.kresko.connect(this.userOne).withdrawCollateral(
+                        collateralAsset.address,
+                        amountToWithdraw,
+                        0, // The index of collateralAsset.address in the account's depositedCollateralAssets
+                    );
+    
+                    // Ensure the change in the user's deposit is recorded.
+                    const amountDeposited = await this.kresko.collateralDeposits(
+                        this.userOne.address,
+                        collateralAsset.address,
+                    );
+                    expect(amountDeposited).to.equal(initialDepositAmount.sub(amountToWithdraw));
+    
+                    // Ensure that the collateral asset is still in the account's deposited collateral
+                    // assets array.
+                    const depositedCollateralAssets = await this.kresko.getDepositedCollateralAssets(this.userOne.address);
+                    expect(depositedCollateralAssets).to.deep.equal([
+                        this.collateralAssetInfos[0].collateralAsset.address,
+                        this.collateralAssetInfos[1].collateralAsset.address,
+                        this.collateralAssetInfos[2].collateralAsset.address,
+                    ]);
+    
+                    const kreskoBalance = await collateralAsset.balanceOf(this.kresko.address);
+                    expect(kreskoBalance).to.equal(initialDepositAmount.sub(amountToWithdraw));
+                    const userOneBalance = await collateralAsset.balanceOf(this.userOne.address);
+                    expect(userOneBalance).to.equal(
+                        collateralAssetInfo
+                            .fromDecimal(this.initialUserCollateralBalance)
+                            .sub(initialDepositAmount)
+                            .add(amountToWithdraw),
+                    );
+                });
             });
 
-            it("should allow an account to withdraw a portion of their deposit", async function () {
-                const amountToWithdraw = parseEther("49.43");
-                const collateralAssetInfo = this.collateralAssetInfos[0];
-                const collateralAsset = collateralAssetInfo.collateralAsset;
-                const initialDepositAmount = collateralAssetInfo.fromDecimal(this.initialDepositAmount);
+            describe.only("when the account's minimum collateral value is > 0", function () {
+                beforeEach(async function() {
+                    // Deploy Kresko assets, adding them to the whitelist
+                    const kreskoAssetAddress = await addNewKreskoAsset(this.kresko, NAME_TWO, SYMBOL_TWO, 1, 250); // kFactor = 1, price = $250
 
-                await this.kresko.connect(this.userOne).withdrawCollateral(
-                    collateralAsset.address,
-                    amountToWithdraw,
-                    0, // The index of collateralAsset.address in the account's depositedCollateralAssets
-                );
+                    // Mint 100 of the kreskoAsset. This puts the minimum collateral value of userOne as
+                    // 250 * 1.5 * 100 = 37,500, which is close to userOne's account collateral value
+                    // of 40491.
+                    const kreskoAssetMintAmount = parseEther("100");
+                    await this.kresko
+                        .connect(this.userOne)
+                        .mintKreskoAsset(kreskoAssetAddress, kreskoAssetMintAmount);
+                });
 
-                // Ensure the change in the user's deposit is recorded.
-                const amountDeposited = await this.kresko.collateralDeposits(
-                    this.userOne.address,
-                    collateralAsset.address,
-                );
-                expect(amountDeposited).to.equal(initialDepositAmount.sub(amountToWithdraw));
+                it("should allow an account to withdraw their deposit if it does not violate the health factor", async function () {
+                    const collateralAssetInfo = this.collateralAssetInfos[0];
+                    const collateralAsset = collateralAssetInfo.collateralAsset;
+                    const initialDepositAmount = collateralAssetInfo.fromDecimal(this.initialDepositAmount);
+                    const amountToWithdraw = collateralAssetInfo.fromDecimal(10);
 
-                // Ensure that the collateral asset is still in the account's deposited collateral
-                // assets array.
-                const depositedCollateralAssets = await this.kresko.getDepositedCollateralAssets(this.userOne.address);
-                expect(depositedCollateralAssets).to.deep.equal([
-                    this.collateralAssetInfos[0].collateralAsset.address,
-                    this.collateralAssetInfos[1].collateralAsset.address,
-                    this.collateralAssetInfos[2].collateralAsset.address,
-                ]);
+                    // Ensure that the withdrawal would not put the account's collateral value
+                    // less than the account's minimum collateral value:
+                    const accountMinCollateralValue =  await this.kresko.getAccountMinimumCollateralValue(this.userOne.address);
+                    const accountCollateralValue = await this.kresko.getAccountCollateralValue(this.userOne.address);
+                    const withdrawnCollateralValue = await this.kresko.getCollateralValue(collateralAsset.address, amountToWithdraw);
+                    expect(
+                        accountCollateralValue.rawValue
+                            .sub(withdrawnCollateralValue.rawValue)
+                            .gte(accountMinCollateralValue.rawValue)
+                    ).to.be.true;
 
-                const kreskoBalance = await collateralAsset.balanceOf(this.kresko.address);
-                expect(kreskoBalance).to.equal(initialDepositAmount.sub(amountToWithdraw));
-                const userOneBalance = await collateralAsset.balanceOf(this.userOne.address);
-                expect(userOneBalance).to.equal(
-                    collateralAssetInfo
-                        .fromDecimal(this.initialUserCollateralBalance)
-                        .sub(initialDepositAmount)
-                        .add(amountToWithdraw),
-                );
+                    await this.kresko.connect(this.userOne).withdrawCollateral(
+                        collateralAsset.address,
+                        amountToWithdraw,
+                        0
+                    );
+                    // Ensure that the collateral asset is still in the account's deposited collateral
+                    // assets array.
+                    const depositedCollateralAssets = await this.kresko.getDepositedCollateralAssets(this.userOne.address);
+                    expect(depositedCollateralAssets).to.deep.equal([
+                        this.collateralAssetInfos[0].collateralAsset.address,
+                        this.collateralAssetInfos[1].collateralAsset.address,
+                        this.collateralAssetInfos[2].collateralAsset.address,
+                    ]);
+    
+                    // Ensure the change in the user's deposit is recorded.
+                    const amountDeposited = await this.kresko.collateralDeposits(
+                        this.userOne.address,
+                        collateralAsset.address,
+                    );
+                    expect(amountDeposited).to.equal(initialDepositAmount.sub(amountToWithdraw));
+    
+                    const kreskoBalance = await collateralAsset.balanceOf(this.kresko.address);
+                    expect(kreskoBalance).to.equal(initialDepositAmount.sub(amountToWithdraw));
+                    const userOneBalance = await collateralAsset.balanceOf(this.userOne.address);
+                    expect(userOneBalance).to.equal(
+                        collateralAssetInfo
+                            .fromDecimal(this.initialUserCollateralBalance)
+                            .sub(initialDepositAmount)
+                            .add(amountToWithdraw),
+                    );
+
+                    // Ensure the account's minimum collateral value is <= the account collateral value
+                    // These are FixedPoint.Unsigned, be sure to use `rawValue` when appropriate!
+                    const accountMinCollateralValueAfter =  await this.kresko.getAccountMinimumCollateralValue(this.userOne.address);
+                    const accountCollateralValueAfter = await this.kresko.getAccountCollateralValue(this.userOne.address);
+                    expect(
+                        accountMinCollateralValueAfter.rawValue.lte(accountCollateralValueAfter.rawValue)
+                    ).to.be.true;
+                });
+
+                it("should revert if the withdrawal violates the health factor", async function () {
+                    const collateralAssetInfo = this.collateralAssetInfos[0];
+                    const collateralAsset = collateralAssetInfo.collateralAsset;
+
+                    const amountToWithdraw = collateralAssetInfo.fromDecimal(this.initialDepositAmount);
+
+                    // Ensure that the withdrawal would in fact put the account's collateral value
+                    // less than the account's minimum collateral value:
+                    const accountMinCollateralValue =  await this.kresko.getAccountMinimumCollateralValue(this.userOne.address);
+                    const accountCollateralValue = await this.kresko.getAccountCollateralValue(this.userOne.address);
+                    const withdrawnCollateralValue = await this.kresko.getCollateralValue(collateralAsset.address, amountToWithdraw);
+                    expect(
+                        accountCollateralValue.rawValue
+                            .sub(withdrawnCollateralValue.rawValue)
+                            .lt(accountMinCollateralValue.rawValue)
+                    ).to.be.true;
+    
+                    await expect(
+                        this.kresko.connect(this.userOne).withdrawCollateral(
+                            collateralAsset.address,
+                            amountToWithdraw,
+                            0, // The index of collateralAsset.address in the account's depositedCollateralAssets
+                        )
+                    ).to.be.revertedWith("HEALTH_FACTOR_VIOLATED");
+                });
             });
+
+            // it("should allow an account to withdraw their entire deposit", async function () {
+            //     const collateralAssetInfo = this.collateralAssetInfos[0];
+            //     const collateralAsset = collateralAssetInfo.collateralAsset;
+
+            //     await this.kresko.connect(this.userOne).withdrawCollateral(
+            //         collateralAsset.address,
+            //         collateralAssetInfo.fromDecimal(this.initialDepositAmount),
+            //         0, // The index of collateralAsset.address in the account's depositedCollateralAssets
+            //     );
+            //     // Ensure that the collateral asset is removed from the account's deposited collateral
+            //     // assets array.
+            //     const depositedCollateralAssets = await this.kresko.getDepositedCollateralAssets(this.userOne.address);
+            //     expect(depositedCollateralAssets).to.deep.equal([
+            //         // index 2 was moved to index 0 due to the way elements are removed,
+            //         // which involves copying the last element into the index that's being removed
+            //         this.collateralAssetInfos[2].collateralAsset.address,
+            //         this.collateralAssetInfos[1].collateralAsset.address,
+            //     ]);
+
+            //     // Ensure the change in the user's deposit is recorded.
+            //     const amountDeposited = await this.kresko.collateralDeposits(
+            //         this.userOne.address,
+            //         collateralAsset.address,
+            //     );
+            //     expect(amountDeposited).to.equal(0);
+
+            //     // Ensure the amount transferred is correct
+            //     const kreskoBalance = await collateralAsset.balanceOf(this.kresko.address);
+            //     expect(kreskoBalance).to.equal(BigNumber.from(0));
+            //     const userOneBalance = await collateralAsset.balanceOf(this.userOne.address);
+            //     expect(userOneBalance).to.equal(collateralAssetInfo.fromDecimal(this.initialUserCollateralBalance));
+            // });
 
             it("should revert if withdrawing the entire deposit but the depositedCollateralAssetIndex is incorrect", async function () {
                 const collateralAssetInfo = this.collateralAssetInfos[0];
@@ -409,7 +543,7 @@ describe("Kresko", function () {
             });
         });
 
-        describe("Collateral value", async function () {
+        describe("Account collateral value", async function () {
             beforeEach(async function () {
                 // Have userOne deposit 100 of each collateral asset
                 this.initialDepositAmount = BigNumber.from(100);
@@ -423,7 +557,7 @@ describe("Kresko", function () {
                 }
             });
 
-            it("returns the collateral value according to a user's deposits and their oracle prices", async function () {
+            it("returns the account collateral value according to a user's deposits and their oracle prices", async function () {
                 let expectedCollateralValue = BigNumber.from(0);
                 for (const collateralAssetInfo of this.collateralAssetInfos) {
                     expectedCollateralValue = expectedCollateralValue.add(
@@ -434,12 +568,12 @@ describe("Kresko", function () {
                     );
                 }
 
-                const collateralValue = await this.kresko.getCollateralValue(this.userOne.address);
+                const collateralValue = await this.kresko.getAccountCollateralValue(this.userOne.address);
                 expect(collateralValue.rawValue).to.equal(expectedCollateralValue);
             });
 
             it("returns 0 if the user has not deposited any collateral", async function () {
-                const collateralValue = await this.kresko.getCollateralValue(this.userTwo.address);
+                const collateralValue = await this.kresko.getAccountCollateralValue(this.userTwo.address);
                 expect(collateralValue.rawValue).to.equal(BigNumber.from(0));
             });
         });
@@ -545,7 +679,7 @@ describe("Kresko", function () {
             // Deploy Kresko assets, adding them to the whitelist
             this.kreskoAssetAddresses = await Promise.all([
                 addNewKreskoAsset(this.kresko, NAME_ONE, SYMBOL_ONE, 1, 5), // kFactor = 1, price = $5.00
-                addNewKreskoAsset(this.kresko, NAME_TWO, SYMBOL_TWO, 0.9, 500), // kFactor = 0.9, price = $500
+                addNewKreskoAsset(this.kresko, NAME_TWO, SYMBOL_TWO, 1.1, 500), // kFactor = 1.1, price = $500
             ]);
 
             this.kreskoAssets = [];
@@ -560,12 +694,14 @@ describe("Kresko", function () {
                 deployAndWhitelistCollateralAsset(
                     this.kresko,
                     0.8,
-                    123.45
+                    123.45,
+                    18
                 ),
                 deployAndWhitelistCollateralAsset(
                     this.kresko,
                     0.7,
-                    420.123
+                    420.123,
+                    18
                 ),
             ])
 
