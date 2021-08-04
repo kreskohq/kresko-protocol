@@ -85,7 +85,7 @@ describe("Kresko", function () {
                 );
             });
             it("invalid factor", async function () {
-                await expect(this.kresko.addCollateralAsset(ADDRESS_TWO, 0, ADDRESS_ONE)).to.be.revertedWith(
+                await expect(this.kresko.addCollateralAsset(ADDRESS_TWO, ONE.add(1), ADDRESS_ONE)).to.be.revertedWith(
                     "INVALID_FACTOR",
                 );
             });
@@ -97,12 +97,12 @@ describe("Kresko", function () {
         });
 
         describe("Cannot update collateral assets with invalid parameters", function () {
-            it("invalid asset factor", async function () {
+            it("reverts when setting the collateral factor to greater than 1", async function () {
                 await expect(
-                    this.kresko.updateCollateralFactor(this.collateralAssetInfo.collateralAsset.address, 0),
+                    this.kresko.updateCollateralFactor(this.collateralAssetInfo.collateralAsset.address, ONE.add(1)),
                 ).to.be.revertedWith("INVALID_FACTOR");
             });
-            it("invalid oracle address", async function () {
+            it("reverts when setting the oracle address to the zero address", async function () {
                 await expect(
                     this.kresko.updateCollateralOracle(this.collateralAssetInfo.collateralAsset.address, ADDRESS_ZERO),
                 ).to.be.revertedWith("ZERO_ADDRESS");
@@ -454,9 +454,9 @@ describe("Kresko", function () {
                 );
             });
             it("invalid k factor", async function () {
-                await expect(this.kresko.addKreskoAsset(NAME_TWO, SYMBOL_TWO, 0, ADDRESS_ONE)).to.be.revertedWith(
-                    "INVALID_FACTOR",
-                );
+                await expect(
+                    this.kresko.addKreskoAsset(NAME_TWO, SYMBOL_TWO, ONE.sub(1), ADDRESS_ONE),
+                ).to.be.revertedWith("INVALID_FACTOR");
             });
             it("invalid oracle address", async function () {
                 await expect(this.kresko.addKreskoAsset(NAME_TWO, SYMBOL_TWO, ONE, ADDRESS_ZERO)).to.be.revertedWith(
@@ -466,12 +466,12 @@ describe("Kresko", function () {
         });
 
         describe("Cannot update kresko assets with invalid parameters", function () {
-            it("invalid k factor", async function () {
-                await expect(this.kresko.updateKreskoAssetFactor(this.deployedAssetAddress, 0)).to.be.revertedWith(
+            it("reverts when setting the k factor to less than 1", async function () {
+                await expect(this.kresko.updateKreskoAssetFactor(this.deployedAssetAddress, ONE.sub(1))).to.be.revertedWith(
                     "INVALID_FACTOR",
                 );
             });
-            it("invalid oracle address", async function () {
+            it("reverts when setting the oracle address to the zero address", async function () {
                 await expect(
                     this.kresko.updateKreskoAssetOracle(this.deployedAssetAddress, ADDRESS_ZERO),
                 ).to.be.revertedWith("ZERO_ADDRESS");
@@ -488,10 +488,10 @@ describe("Kresko", function () {
         });
 
         it("should allow owner to update factor", async function () {
-            await this.kresko.updateKreskoAssetFactor(this.deployedAssetAddress, ZERO_POINT_FIVE);
+            await this.kresko.updateKreskoAssetFactor(this.deployedAssetAddress, ONE);
 
             const asset = await this.kresko.kreskoAssets(this.deployedAssetAddress);
-            expect(asset.kFactor.rawValue).to.equal(ZERO_POINT_FIVE.toString());
+            expect(asset.kFactor.rawValue).to.equal(ONE.toString());
         });
 
         it("should allow owner to update oracle address", async function () {
