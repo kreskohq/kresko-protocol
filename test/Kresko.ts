@@ -484,39 +484,6 @@ describe("Kresko", function () {
                 });
             });
 
-            // it("should allow an account to withdraw their entire deposit", async function () {
-            //     const collateralAssetInfo = this.collateralAssetInfos[0];
-            //     const collateralAsset = collateralAssetInfo.collateralAsset;
-
-            //     await this.kresko.connect(this.userOne).withdrawCollateral(
-            //         collateralAsset.address,
-            //         collateralAssetInfo.fromDecimal(this.initialDepositAmount),
-            //         0, // The index of collateralAsset.address in the account's depositedCollateralAssets
-            //     );
-            //     // Ensure that the collateral asset is removed from the account's deposited collateral
-            //     // assets array.
-            //     const depositedCollateralAssets = await this.kresko.getDepositedCollateralAssets(this.userOne.address);
-            //     expect(depositedCollateralAssets).to.deep.equal([
-            //         // index 2 was moved to index 0 due to the way elements are removed,
-            //         // which involves copying the last element into the index that's being removed
-            //         this.collateralAssetInfos[2].collateralAsset.address,
-            //         this.collateralAssetInfos[1].collateralAsset.address,
-            //     ]);
-
-            //     // Ensure the change in the user's deposit is recorded.
-            //     const amountDeposited = await this.kresko.collateralDeposits(
-            //         this.userOne.address,
-            //         collateralAsset.address,
-            //     );
-            //     expect(amountDeposited).to.equal(0);
-
-            //     // Ensure the amount transferred is correct
-            //     const kreskoBalance = await collateralAsset.balanceOf(this.kresko.address);
-            //     expect(kreskoBalance).to.equal(BigNumber.from(0));
-            //     const userOneBalance = await collateralAsset.balanceOf(this.userOne.address);
-            //     expect(userOneBalance).to.equal(collateralAssetInfo.fromDecimal(this.initialUserCollateralBalance));
-            // });
-
             it("should revert if withdrawing the entire deposit but the depositedCollateralAssetIndex is incorrect", async function () {
                 const collateralAssetInfo = this.collateralAssetInfos[0];
                 const collateralAsset = collateralAssetInfo.collateralAsset;
