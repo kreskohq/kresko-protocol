@@ -73,6 +73,7 @@ contract Kresko is Ownable {
     event UpdateKreskoAssetKFactor(address assetAddress, uint256 kFactor);
     event UpdateKreskoAssetOracle(address assetAddress, address oracle);
     event KreskoAssetMinted(address account, address assetAddress, uint256 amount);
+    event KreskoAssetBurned(address account, address assetAddress, uint256 amount);
 
     modifier collateralAssetExists(address assetAddress) {
         require(collateralAssets[assetAddress].exists, "ASSET_NOT_VALID");
@@ -407,6 +408,66 @@ contract Kresko is Ownable {
         KreskoAsset(assetAddress).mint(msg.sender, amount);
 
         emit KreskoAssetMinted(msg.sender, assetAddress, amount);
+    }
+
+    /**
+     * @notice Burns existing Kresko assets.
+     * @dev
+     * @param assetAddress The address of the Kresko asset.
+     * @param amount The amount of the Kresko asset to be burned.
+     * @param mintedKreskoAssetIndex The index of the Kresko asset in the user's minted assets array.
+     */
+    function burnKreskoAsset(
+        address assetAddress,
+        uint256 amount,
+        uint256 mintedKreskoAssetIndex
+    ) external kreskoAssetExists(assetAddress) {
+        require(amount > 0, "AMOUNT_ZERO");
+
+        // Ensure the amount being burned is not greater than the sender's debt
+        uint256 debtAmount = kreskoAssetDebt[msg.sender][assetAddress];
+        require(amount <= debtAmount, "AMOUNT_TOO_HIGH");
+
+        // Transfer kresko assets from the user to Kresko contract
+        KreskoAsset asset = KreskoAsset(assetAddress);
+        require(asset.transferFrom(msg.sender, address(this), amount), "TRANSFER_IN_FAILED");
+
+        // Record the burn
+        kreskoAssetDebt[msg.sender][assetAddress] = debtAmount - amount;
+        // If the sender is burning all of the kresko asset, remove it from minted assets array
+        if (amount == debtAmount) {
+            removeFromMintedKreskoAssets(msg.sender, assetAddress, mintedKreskoAssetIndex);
+        }
+
+        // Burn the received kresko assets, removing them from circulation
+        asset.burn(amount);
+
+        emit KreskoAssetBurned(msg.sender, assetAddress, amount);
+    }
+
+    /**
+     * @notice Removes a particular kresko asset from an account's minted kresko assets array.
+     * @dev Removes an element by copying the last element to the element to remove's place and removing
+     * the last element.
+     * @param account The account whose minted kresko asset array is being affected.
+     * @param assetAddress The kresko asset to remove from the array.
+     * @param index The index of the assetAddress in the minted kresko assets array.
+     */
+    function removeFromMintedKreskoAssets(
+        address account,
+        address assetAddress,
+        uint256 index
+    ) internal {
+        // Ensure that the provided index corresponds to the provided assetAddress.
+        require(mintedKreskoAssets[account][index] == assetAddress, "WRONG_MINTED_KRESKO_ASSETS_INDEX");
+        uint256 lastIndex = mintedKreskoAssets[account].length - 1;
+        // If the index to remove is not the last one, overwrite the element at the index
+        // with the last element.
+        if (index != lastIndex) {
+            mintedKreskoAssets[account][index] = mintedKreskoAssets[account][lastIndex];
+        }
+        // Remove the last element.
+        mintedKreskoAssets[account].pop();
     }
 
     /**
