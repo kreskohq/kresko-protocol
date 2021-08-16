@@ -15,7 +15,7 @@ import { BigNumber } from "@ethereum-waffle/provider/node_modules/ethers";
 
 const { deployContract } = hre.waffle;
 
-describe.only("NonRebasingWrapperToken", function () {
+describe("NonRebasingWrapperToken", function () {
     before(async function () {
         this.signers = {} as Signers;
 

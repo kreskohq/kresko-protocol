@@ -63,12 +63,7 @@ async function addNewKreskoAsset(kresko: Contract, name: string, symbol: string,
     await oracle.setValue(fixedPointOraclePrice);
 
     const fixedPointKFactor = toFixedPoint(kFactor);
-    const tx: ContractTransaction = await kresko.addKreskoAsset(
-        name,
-        symbol,
-        fixedPointKFactor,
-        oracle.address
-    );
+    const tx: ContractTransaction = await kresko.addKreskoAsset(name, symbol, fixedPointKFactor, oracle.address);
     let events: any = await extractEventFromTxReceipt(tx, "AddKreskoAsset");
     return events[0].args.assetAddress;
 }
@@ -486,9 +481,9 @@ describe("Kresko", function () {
 
         describe("Cannot update kresko assets with invalid parameters", function () {
             it("reverts when setting the k factor to less than 1", async function () {
-                await expect(this.kresko.updateKreskoAssetFactor(this.deployedAssetAddress, ONE.sub(1))).to.be.revertedWith(
-                    "INVALID_FACTOR",
-                );
+                await expect(
+                    this.kresko.updateKreskoAssetFactor(this.deployedAssetAddress, ONE.sub(1)),
+                ).to.be.revertedWith("INVALID_FACTOR");
             });
             it("reverts when setting the oracle address to the zero address", async function () {
                 await expect(
@@ -551,41 +546,33 @@ describe("Kresko", function () {
             this.kreskoAssets = [];
             for (const kreskoAssetAddress of this.kreskoAssetAddresses) {
                 const KreskoAssetContract = await hre.ethers.getContractFactory("KreskoAsset");
-                const kreskoAsset = await KreskoAssetContract.attach(kreskoAssetAddress)
+                const kreskoAsset = await KreskoAssetContract.attach(kreskoAssetAddress);
                 this.kreskoAssets.push(kreskoAsset);
             }
 
             // Deploy and whitelist collateral assets
             this.collateralAssetInfos = await Promise.all([
-                deployAndWhitelistCollateralAsset(
-                    this.kresko,
-                    0.8,
-                    123.45
-                ),
-                deployAndWhitelistCollateralAsset(
-                    this.kresko,
-                    0.7,
-                    420.123
-                ),
-            ])
+                deployAndWhitelistCollateralAsset(this.kresko, 0.8, 123.45, 18),
+                deployAndWhitelistCollateralAsset(this.kresko, 0.7, 420.123, 18),
+            ]);
 
             // Give userOne a balance of 1000 for each collateral asset.
             this.initialUserCollateralBalance = parseEther("1000");
             for (const collateralAssetInfo of this.collateralAssetInfos) {
-                await collateralAssetInfo.collateralAsset.setBalanceOf(this.userOne.address, this.initialUserCollateralBalance);
+                await collateralAssetInfo.collateralAsset.setBalanceOf(
+                    this.userOne.address,
+                    this.initialUserCollateralBalance,
+                );
             }
 
             // userOne deposits some collateral
             const collateralAsset = this.collateralAssetInfos[0].collateralAsset;
-            const depositAmount = parseEther("100")
-            await this.kresko.connect(this.userOne).depositCollateral(
-                collateralAsset.address,
-                depositAmount
-            );
+            const depositAmount = parseEther("100");
+            await this.kresko.connect(this.userOne).depositCollateral(collateralAsset.address, depositAmount);
         });
 
         describe("Minting assets", function () {
-            it("should allow users to mint whitelisted Kresko assets backed by collateral", async function() {
+            it("should allow users to mint whitelisted Kresko assets backed by collateral", async function () {
                 const kreskoAsset = this.kreskoAssets[0];
                 const kreskoAssetAddress = this.kreskoAssetAddresses[0];
 
@@ -599,10 +586,7 @@ describe("Kresko", function () {
 
                 // Mint Kresko asset
                 const mintAmount = 500;
-                await this.kresko.connect(this.userOne).mintKreskoAsset(
-                    kreskoAssetAddress,
-                    mintAmount
-                );
+                await this.kresko.connect(this.userOne).mintKreskoAsset(kreskoAssetAddress, mintAmount);
 
                 // Confirm the array of the user's minted Kresko assets has been pushed to.
                 const mintedKreskoAssetsAfter = await this.kresko.getMintedKreskoAssets(this.userOne.address);
@@ -618,12 +602,10 @@ describe("Kresko", function () {
 
                 // Confirm that the Kresko asset's total supply increased as expected
                 const kreskoAssetTotalSupplyAfter = await kreskoAsset.totalSupply();
-                expect(kreskoAssetTotalSupplyAfter).to.equal(kreskoAssetTotalSupplyBefore
-                    .add(mintAmount)
-                );
+                expect(kreskoAssetTotalSupplyAfter).to.equal(kreskoAssetTotalSupplyBefore.add(mintAmount));
             });
 
-            it("should allow successive, valid mints of the same Kresko asset", async function() {
+            it("should allow successive, valid mints of the same Kresko asset", async function () {
                 const kreskoAsset = this.kreskoAssets[0];
                 const kreskoAssetAddress = this.kreskoAssetAddresses[0];
 
@@ -637,10 +619,7 @@ describe("Kresko", function () {
 
                 // Mint Kresko asset
                 const firstMintAmount = 50;
-                await this.kresko.connect(this.userOne).mintKreskoAsset(
-                    kreskoAssetAddress,
-                    firstMintAmount
-                );
+                await this.kresko.connect(this.userOne).mintKreskoAsset(kreskoAssetAddress, firstMintAmount);
 
                 // Confirm the array of the user's minted Kresko assets has been pushed to.
                 const mintedKreskoAssetsAfter = await this.kresko.getMintedKreskoAssets(this.userOne.address);
@@ -656,17 +635,12 @@ describe("Kresko", function () {
 
                 // Confirm that the Kresko asset's total supply increased as expected
                 const kreskoAssetTotalSupplyAfter = await kreskoAsset.totalSupply();
-                expect(kreskoAssetTotalSupplyAfter).to.equal(kreskoAssetTotalSupplyInitial
-                    .add(firstMintAmount)
-                );
+                expect(kreskoAssetTotalSupplyAfter).to.equal(kreskoAssetTotalSupplyInitial.add(firstMintAmount));
 
                 // ------------------------ Second mint ------------------------
                 // Mint Kresko asset
                 const secondMintAmount = 70;
-                await this.kresko.connect(this.userOne).mintKreskoAsset(
-                    kreskoAssetAddress,
-                    secondMintAmount
-                );
+                await this.kresko.connect(this.userOne).mintKreskoAsset(kreskoAssetAddress, secondMintAmount);
 
                 // Confirm the array of the user's minted Kresko assets is unchanged
                 const mintedKreskoAssetsFinal = await this.kresko.getMintedKreskoAssets(this.userOne.address);
@@ -682,12 +656,10 @@ describe("Kresko", function () {
 
                 // Confirm that the Kresko asset's total supply increased as expected
                 const kreskoAssetTotalSupplyFinal = await kreskoAsset.totalSupply();
-                expect(kreskoAssetTotalSupplyFinal).to.equal(kreskoAssetTotalSupplyAfter
-                    .add(secondMintAmount)
-                );
+                expect(kreskoAssetTotalSupplyFinal).to.equal(kreskoAssetTotalSupplyAfter.add(secondMintAmount));
             });
 
-            it("should allow users to mint multiple different Kresko assets", async function() {
+            it("should allow users to mint multiple different Kresko assets", async function () {
                 const firstKreskoAsset = this.kreskoAssets[0];
                 const firstKreskoAssetAddress = this.kreskoAssetAddresses[0];
 
@@ -701,17 +673,17 @@ describe("Kresko", function () {
 
                 // Mint Kresko asset
                 const firstMintAmount = 10;
-                await this.kresko.connect(this.userOne).mintKreskoAsset(
-                    firstKreskoAssetAddress,
-                    firstMintAmount
-                );
+                await this.kresko.connect(this.userOne).mintKreskoAsset(firstKreskoAssetAddress, firstMintAmount);
 
                 // Confirm the array of the user's minted Kresko assets has been pushed to.
                 const mintedKreskoAssetsAfter = await this.kresko.getMintedKreskoAssets(this.userOne.address);
                 expect(mintedKreskoAssetsAfter).to.deep.equal([firstKreskoAssetAddress]);
 
                 // Confirm the amount minted is recorded for the user.
-                const amountMintedAfter = await this.kresko.kreskoAssetDebt(this.userOne.address, firstKreskoAssetAddress);
+                const amountMintedAfter = await this.kresko.kreskoAssetDebt(
+                    this.userOne.address,
+                    firstKreskoAssetAddress,
+                );
                 expect(amountMintedAfter).to.equal(firstMintAmount);
 
                 // Confirm the Kresko Asset as been minted to the user from Kresko.sol
@@ -720,9 +692,7 @@ describe("Kresko", function () {
 
                 // Confirm that the Kresko asset's total supply increased as expected
                 const kreskoAssetTotalSupplyAfter = await firstKreskoAsset.totalSupply();
-                expect(kreskoAssetTotalSupplyAfter).to.equal(kreskoAssetTotalSupplyInitial
-                    .add(firstMintAmount)
-                );
+                expect(kreskoAssetTotalSupplyAfter).to.equal(kreskoAssetTotalSupplyInitial.add(firstMintAmount));
 
                 // ------------------------ Second mint ------------------------
                 const secondKreskoAsset = this.kreskoAssets[1];
@@ -730,17 +700,17 @@ describe("Kresko", function () {
 
                 // Mint Kresko asset
                 const secondMintAmount = 1;
-                await this.kresko.connect(this.userOne).mintKreskoAsset(
-                    secondKreskoAssetAddress,
-                    secondMintAmount
-                );
+                await this.kresko.connect(this.userOne).mintKreskoAsset(secondKreskoAssetAddress, secondMintAmount);
 
                 // Confirm that the second address has been pushed to the array of the user's minted Kresko assets
                 const mintedKreskoAssetsFinal = await this.kresko.getMintedKreskoAssets(this.userOne.address);
                 expect(mintedKreskoAssetsFinal).to.deep.equal([firstKreskoAssetAddress, secondKreskoAssetAddress]);
 
                 // Confirm the second mint amount is recorded for the user
-                const amountMintedAssetTwo = await this.kresko.kreskoAssetDebt(this.userOne.address, secondKreskoAssetAddress);
+                const amountMintedAssetTwo = await this.kresko.kreskoAssetDebt(
+                    this.userOne.address,
+                    secondKreskoAssetAddress,
+                );
                 expect(amountMintedAssetTwo).to.equal(secondMintAmount);
 
                 // Confirm the Kresko Asset as been minted to the user from Kresko.sol
@@ -752,21 +722,19 @@ describe("Kresko", function () {
                 expect(secondKreskoAssetTotalSupply).to.equal(secondMintAmount);
             });
 
-            it("should not allow users to mint non-whitelisted Kresko assets", async function() {
+            it("should not allow users to mint non-whitelisted Kresko assets", async function () {
                 // Attempt to mint a non-deployed, non-whitelisted Kresko asset
-                await expect(this.kresko.connect(this.userOne).mintKreskoAsset(
-                    ADDRESS_TWO,
-                    5
-                )).to.be.revertedWith("ASSET_NOT_VALID");
+                await expect(this.kresko.connect(this.userOne).mintKreskoAsset(ADDRESS_TWO, 5)).to.be.revertedWith(
+                    "ASSET_NOT_VALID",
+                );
             });
 
-            it("should not allow users to mint Kresko assets over their collateralization ratio limit", async function() {
+            it("should not allow users to mint Kresko assets over their collateralization ratio limit", async function () {
                 const mintAmount = 2000;
                 // Attempt to mint amount greater than allowed: max should be around ~1500
-                await expect(this.kresko.connect(this.userOne).mintKreskoAsset(
-                    this.kreskoAssetAddresses[0],
-                    mintAmount
-                )).to.be.revertedWith("INSUFFICIENT_COLLATERAL");
+                await expect(
+                    this.kresko.connect(this.userOne).mintKreskoAsset(this.kreskoAssetAddresses[0], mintAmount),
+                ).to.be.revertedWith("INSUFFICIENT_COLLATERAL");
             });
         });
     });
