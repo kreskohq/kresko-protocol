@@ -44,6 +44,7 @@ contract RebasingToken {
         if (from != msg.sender) {
             _allowances[from][to] -= amount;
         }
+        require(_balances[from] >= nonRebasedAmount, "ERC20: transfer amount exceeds balance");
         _balances[from] -= nonRebasedAmount;
         _balances[to] += nonRebasedAmount;
         return true;

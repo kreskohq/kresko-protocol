@@ -3,6 +3,7 @@ import { Artifact } from "hardhat/types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { expect } from "chai";
 
+import { extractEventFromTxReceipt } from "../../utils/events";
 import { toFixedPoint } from "../../utils/fixed-point";
 import { expectBigNumberToBeWithinTolerance } from "../../utils/test-utils";
 
@@ -44,6 +45,15 @@ describe.only("NonRebasingWrapperToken", function () {
                 symbol,
             ])
         );
+
+        this.depositUnderlying = async (account: any, amount: BigNumber) => {
+            await this.rebasingToken.connect(account).approve(this.nonRebasingWrapperToken.address, amount);
+            return this.nonRebasingWrapperToken.connect(account).depositUnderlying(amount);
+        };
+
+        this.withdrawUnderlying = async (account: any, amount: BigNumber) => {
+            return this.nonRebasingWrapperToken.connect(account).withdrawUnderlying(amount);
+        };
     });
 
     describe("Deployment", function () {
@@ -52,16 +62,13 @@ describe.only("NonRebasingWrapperToken", function () {
         });
     });
 
-    describe("Depositing underlying tokens", function () {
+    describe("#depositUnderlying", function () {
         describe("When the underlying token does not have a rebasing event", function () {
             it("Mints tokens at a 1:1 rate", async function () {
                 const depositAmount0 = parseEther("100");
                 expect(await this.nonRebasingWrapperToken.totalSupply()).to.equal(BigNumber.from(0));
 
-                await this.rebasingToken
-                    .connect(this.userOne)
-                    .approve(this.nonRebasingWrapperToken.address, depositAmount0);
-                await this.nonRebasingWrapperToken.connect(this.userOne).depositUnderlying(depositAmount0);
+                await this.depositUnderlying(this.userOne, depositAmount0);
 
                 expect(await this.nonRebasingWrapperToken.balanceOf(this.userOne.address)).to.equal(depositAmount0);
                 expect(await this.nonRebasingWrapperToken.balanceOfUnderlying(this.userOne.address)).to.equal(
@@ -73,10 +80,7 @@ describe.only("NonRebasingWrapperToken", function () {
                 );
 
                 const depositAmount1 = parseEther("400");
-                await this.rebasingToken
-                    .connect(this.userTwo)
-                    .approve(this.nonRebasingWrapperToken.address, depositAmount1);
-                await this.nonRebasingWrapperToken.connect(this.userTwo).depositUnderlying(depositAmount1);
+                await this.depositUnderlying(this.userTwo, depositAmount1);
 
                 const depositAmountSum = depositAmount0.add(depositAmount1);
                 expect(await this.nonRebasingWrapperToken.balanceOf(this.userTwo.address)).to.equal(depositAmount1);
@@ -96,10 +100,7 @@ describe.only("NonRebasingWrapperToken", function () {
                 const depositAmount0 = parseEther("100");
                 expect(await this.nonRebasingWrapperToken.totalSupply()).to.equal(BigNumber.from(0));
 
-                await this.rebasingToken
-                    .connect(this.userOne)
-                    .approve(this.nonRebasingWrapperToken.address, depositAmount0);
-                await this.nonRebasingWrapperToken.connect(this.userOne).depositUnderlying(depositAmount0);
+                await this.depositUnderlying(this.userOne, depositAmount0);
 
                 expect(await this.nonRebasingWrapperToken.balanceOf(this.userOne.address)).to.equal(depositAmount0);
                 expect(await this.nonRebasingWrapperToken.balanceOfUnderlying(this.userOne.address)).to.equal(
@@ -128,10 +129,7 @@ describe.only("NonRebasingWrapperToken", function () {
                 // amount of non-rebasing tokens we got when previously depositing 100
                 // when the rebaseFactor was 1.
                 const depositAmount1 = parseEther("200");
-                await this.rebasingToken
-                    .connect(this.userTwo)
-                    .approve(this.nonRebasingWrapperToken.address, depositAmount1);
-                await this.nonRebasingWrapperToken.connect(this.userTwo).depositUnderlying(depositAmount1);
+                await this.depositUnderlying(this.userTwo, depositAmount1);
 
                 expect(await this.nonRebasingWrapperToken.balanceOf(this.userTwo.address)).to.equal(parseEther("100"));
                 expect(await this.nonRebasingWrapperToken.balanceOfUnderlying(this.userOne.address)).to.equal(
@@ -167,10 +165,7 @@ describe.only("NonRebasingWrapperToken", function () {
                 // of the nonRebasingWrapperToken contract, so we can expect to double the total supply
                 // of the non rebasing token, giving us an additional 200
                 const depositAmount2 = parseEther("100");
-                await this.rebasingToken
-                    .connect(this.userOne)
-                    .approve(this.nonRebasingWrapperToken.address, depositAmount2);
-                await this.nonRebasingWrapperToken.connect(this.userOne).depositUnderlying(depositAmount2);
+                await this.depositUnderlying(this.userOne, depositAmount2);
 
                 expect(await this.nonRebasingWrapperToken.balanceOf(this.userOne.address)).to.equal(parseEther("300"));
                 expect(await this.nonRebasingWrapperToken.balanceOfUnderlying(this.userOne.address)).to.equal(
@@ -182,9 +177,34 @@ describe.only("NonRebasingWrapperToken", function () {
                 );
             });
         });
+
+        it("Emits the DepositedUnderlying event", async function () {
+            const depositAmount = parseEther("100");
+            const depositUnderlyingTx = await this.depositUnderlying(this.userOne, depositAmount);
+            const events = await extractEventFromTxReceipt(depositUnderlyingTx, "DepositedUnderlying");
+            expect(events).to.not.be.undefined;
+            const event = events![0].args!;
+            expect(event.account).to.equal(this.userOne.address);
+            expect(event.underlyingDepositAmount).to.equal(depositAmount);
+            // 1:1 ratio because it's the first deposit.
+            expect(event.mintAmount).to.equal(depositAmount);
+        });
+
+        it("Reverts when the non-rebasing withdrawal amount is zero", async function () {
+            await expect(this.depositUnderlying(this.userOne, BigNumber.from(0))).to.be.revertedWith(
+                "DEPOSIT_AMOUNT_ZERO",
+            );
+        });
+
+        it("Reverts when the sender's balance cannot cover the deposit amount", async function () {
+            const userRebasingBalance = await this.rebasingToken.balanceOf(this.userOne.address);
+            await expect(this.depositUnderlying(this.userOne, userRebasingBalance.add(1))).to.be.revertedWith(
+                "ERC20: transfer amount exceeds balance",
+            );
+        });
     });
 
-    describe("Withdrawing underlying tokens", function () {
+    describe("#withdrawUnderlying", function () {
         beforeEach(async function () {
             this.depositAmount = parseEther("100");
             const accountsToDepositFor = [this.userOne, this.userTwo];
@@ -208,7 +228,7 @@ describe.only("NonRebasingWrapperToken", function () {
                 );
                 let userTokenBalanceBefore = await this.rebasingToken.balanceOf(this.userOne.address);
                 // Withdraw!
-                await this.nonRebasingWrapperToken.connect(this.userOne).withdrawUnderlying(withdrawAmount);
+                await this.withdrawUnderlying(this.userOne, withdrawAmount);
                 // Confirm the underlying funds were moved.
                 let contractTokenBalanceAfter = await this.rebasingToken.balanceOf(
                     this.nonRebasingWrapperToken.address,
@@ -243,7 +263,7 @@ describe.only("NonRebasingWrapperToken", function () {
                 contractTokenBalanceBefore = await this.rebasingToken.balanceOf(this.nonRebasingWrapperToken.address);
                 userTokenBalanceBefore = await this.rebasingToken.balanceOf(this.userOne.address);
                 // Withdraw!
-                await this.nonRebasingWrapperToken.connect(this.userOne).withdrawUnderlying(withdrawAmount);
+                await this.withdrawUnderlying(this.userOne, withdrawAmount);
                 // Confirm the underlying funds were moved.
                 contractTokenBalanceAfter = await this.rebasingToken.balanceOf(this.nonRebasingWrapperToken.address);
                 userTokenBalanceAfter = await this.rebasingToken.balanceOf(this.userOne.address);
@@ -266,7 +286,7 @@ describe.only("NonRebasingWrapperToken", function () {
                 contractTokenBalanceBefore = await this.rebasingToken.balanceOf(this.nonRebasingWrapperToken.address);
                 userTokenBalanceBefore = await this.rebasingToken.balanceOf(this.userTwo.address);
                 // Withdraw!
-                await this.nonRebasingWrapperToken.connect(this.userTwo).withdrawUnderlying(this.depositAmount);
+                await this.withdrawUnderlying(this.userTwo, this.depositAmount);
                 // Confirm the underlying funds were moved.
                 contractTokenBalanceAfter = await this.rebasingToken.balanceOf(this.nonRebasingWrapperToken.address);
                 userTokenBalanceAfter = await this.rebasingToken.balanceOf(this.userTwo.address);
@@ -301,7 +321,7 @@ describe.only("NonRebasingWrapperToken", function () {
                 );
                 let userTokenBalanceBefore = await this.rebasingToken.balanceOf(this.userOne.address);
                 // Withdraw!
-                await this.nonRebasingWrapperToken.connect(this.userOne).withdrawUnderlying(withdrawAmount);
+                await this.withdrawUnderlying(this.userOne, withdrawAmount);
                 // Confirm the underlying funds were moved.
                 let contractTokenBalanceAfter = await this.rebasingToken.balanceOf(
                     this.nonRebasingWrapperToken.address,
@@ -341,7 +361,7 @@ describe.only("NonRebasingWrapperToken", function () {
                 contractTokenBalanceBefore = await this.rebasingToken.balanceOf(this.nonRebasingWrapperToken.address);
                 userTokenBalanceBefore = await this.rebasingToken.balanceOf(this.userOne.address);
                 // Withdraw!
-                await this.nonRebasingWrapperToken.connect(this.userOne).withdrawUnderlying(withdrawAmount);
+                await this.withdrawUnderlying(this.userOne, withdrawAmount);
                 // Confirm the underlying funds were moved.
                 contractTokenBalanceAfter = await this.rebasingToken.balanceOf(this.nonRebasingWrapperToken.address);
                 userTokenBalanceAfter = await this.rebasingToken.balanceOf(this.userOne.address);
@@ -364,7 +384,7 @@ describe.only("NonRebasingWrapperToken", function () {
                 contractTokenBalanceBefore = await this.rebasingToken.balanceOf(this.nonRebasingWrapperToken.address);
                 userTokenBalanceBefore = await this.rebasingToken.balanceOf(this.userTwo.address);
                 // Withdraw!
-                await this.nonRebasingWrapperToken.connect(this.userTwo).withdrawUnderlying(this.depositAmount);
+                await this.withdrawUnderlying(this.userTwo, this.depositAmount);
                 // Confirm the underlying funds were moved.
                 contractTokenBalanceAfter = await this.rebasingToken.balanceOf(this.nonRebasingWrapperToken.address);
                 userTokenBalanceAfter = await this.rebasingToken.balanceOf(this.userTwo.address);
@@ -381,6 +401,146 @@ describe.only("NonRebasingWrapperToken", function () {
                     BigNumber.from(0),
                 );
             });
+        });
+
+        it("Emits the WithdrewUnderlying event", async function () {
+            const withdrawAmount = parseEther("50");
+            const withdrawalUnderlyingTx = await this.withdrawUnderlying(this.userOne, withdrawAmount);
+            const events = await extractEventFromTxReceipt(withdrawalUnderlyingTx, "WithdrewUnderlying");
+            expect(events).to.not.be.undefined;
+            const event = events![0].args!;
+            expect(event.account).to.equal(this.userOne.address);
+            expect(event.underlyingWithdrawAmount).to.equal(withdrawAmount);
+            // 1:1 ratio because the rebaseFactor has not been touched.
+            expect(event.burnAmount).to.equal(withdrawAmount);
+        });
+
+        it("Reverts when the non-rebasing withdrawal amount is zero", async function () {
+            await expect(this.withdrawUnderlying(this.userOne, BigNumber.from(0))).to.be.revertedWith(
+                "WITHDRAW_AMOUNT_ZERO",
+            );
+        });
+
+        it("Reverts when the non-rebasing withdrawal amount exceeds the sender's balance", async function () {
+            await expect(this.withdrawUnderlying(this.userOne, this.depositAmount.add(1))).to.be.revertedWith(
+                "WITHDRAW_AMOUNT_TOO_HIGH",
+            );
+        });
+    });
+
+    describe("#getUnderlyingAmount", function () {
+        it("Returns at a 1:1 rate when the underlying token has not had a rebasing event", async function () {
+            const depositAmount = parseEther("100");
+            await this.depositUnderlying(this.userOne, depositAmount);
+            // Test an amount < the total supply.
+            expect(await this.nonRebasingWrapperToken.getUnderlyingAmount(parseEther("50"))).to.equal(parseEther("50"));
+            // Test the full total supply.
+            expect(await this.nonRebasingWrapperToken.getUnderlyingAmount(depositAmount)).to.equal(depositAmount);
+        });
+
+        it("Returns the appropriate value when the underlying token has had a rebasing event", async function () {
+            const depositAmount = parseEther("100");
+            await this.depositUnderlying(this.userOne, depositAmount);
+
+            // Set the rebase factor to 2
+            await this.rebasingToken.setRebaseFactor(toFixedPoint(2));
+
+            // Test an amount < the total supply.
+            expect(await this.nonRebasingWrapperToken.getUnderlyingAmount(parseEther("50"))).to.equal(
+                parseEther("100"),
+            );
+            // Test the full total supply.
+            expect(await this.nonRebasingWrapperToken.getUnderlyingAmount(depositAmount)).to.equal(parseEther("200"));
+
+            // Set the rebase factor to 0.5
+            await this.rebasingToken.setRebaseFactor(toFixedPoint(0.5));
+
+            // Test an amount < the total supply.
+            expect(await this.nonRebasingWrapperToken.getUnderlyingAmount(parseEther("50"))).to.equal(parseEther("25"));
+            // Test the full total supply.
+            expect(await this.nonRebasingWrapperToken.getUnderlyingAmount(depositAmount)).to.equal(parseEther("50"));
+        });
+
+        it("Returns zero when the total supply is zero", async function () {
+            expect(await this.nonRebasingWrapperToken.getUnderlyingAmount(parseEther("100"))).to.equal(
+                BigNumber.from(0),
+            );
+        });
+
+        it("Returns zero when the provided non-rebasing amount is zero", async function () {
+            // Deposit some to make sure the total supply > 0.
+            await this.depositUnderlying(this.userOne, parseEther("100"));
+            expect(await this.nonRebasingWrapperToken.getUnderlyingAmount(0)).to.equal(BigNumber.from(0));
+        });
+
+        it("Reverts when the provided non-rebasing amount exceeds the total supply", async function () {
+            const depositAmount = parseEther("100");
+            // Assume 1:1 rate
+            await this.depositUnderlying(this.userOne, depositAmount);
+            await expect(this.nonRebasingWrapperToken.getUnderlyingAmount(depositAmount.add(1))).to.be.revertedWith(
+                "NON_REBASING_AMOUNT_TOO_HIGH",
+            );
+        });
+    });
+
+    describe("#balanceOfUnderlying", function () {
+        it("Returns the full balance at a 1:1 rate when the underlying token has not had a rebasing event", async function () {
+            // Have userOne deposit 100 and test it
+            const depositAmount0 = parseEther("100");
+            await this.depositUnderlying(this.userOne, depositAmount0);
+            expect(await this.nonRebasingWrapperToken.balanceOfUnderlying(this.userOne.address)).to.equal(
+                depositAmount0,
+            );
+
+            // Have userTwo deposit 200 and test it.
+            const depositAmount1 = parseEther("200");
+            await this.depositUnderlying(this.userTwo, depositAmount1);
+            // Allow some precision loss.
+            expectBigNumberToBeWithinTolerance(
+                await this.nonRebasingWrapperToken.balanceOfUnderlying(this.userTwo.address),
+                depositAmount1,
+                BigNumber.from(200),
+                BigNumber.from(0),
+            );
+
+            // Test that userOne is unaffected, allowing some precision loss.
+            // Allow some precision loss.
+            expectBigNumberToBeWithinTolerance(
+                await this.nonRebasingWrapperToken.balanceOfUnderlying(this.userOne.address),
+                depositAmount0,
+                BigNumber.from(100),
+                BigNumber.from(0),
+            );
+        });
+
+        it("Returns the full balance at the appropriate rate when the underlying token has had a rebasing event", async function () {
+            // Have userOne deposit 100 and test it
+            const depositAmount0 = parseEther("100");
+            await this.depositUnderlying(this.userOne, depositAmount0);
+            expect(await this.nonRebasingWrapperToken.balanceOfUnderlying(this.userOne.address)).to.equal(
+                depositAmount0,
+            );
+
+            // Set the rebasing factor to 2.
+            await this.rebasingToken.setRebaseFactor(toFixedPoint(2));
+
+            // Confirm the underlying balance of userOne is now 2x.
+            expect(await this.nonRebasingWrapperToken.balanceOfUnderlying(this.userOne.address)).to.equal(
+                depositAmount0.mul(2),
+            );
+
+            // Have userTwo deposit 200 and test it.
+            const depositAmount1 = parseEther("200");
+            await this.depositUnderlying(this.userTwo, depositAmount1);
+            // No precision loss because the calculations are lucky!
+            expect(await this.nonRebasingWrapperToken.balanceOfUnderlying(this.userTwo.address)).to.equal(
+                depositAmount1,
+            );
+
+            // Test that userOne is unaffected. No precision loss because the calculations are lucky!
+            expect(await this.nonRebasingWrapperToken.balanceOfUnderlying(this.userOne.address)).to.equal(
+                depositAmount0.mul(2),
+            );
         });
     });
 });
