@@ -32,6 +32,10 @@ contract Kresko is Ownable {
         bool exists;
     }
 
+    uint256 public constant MAX_CLOSE_FACTOR = 3e17;              // 30%
+    uint256 public constant MIN_LIQUIDATION_INCENTIVE = 1e18;     // 1%
+    uint256 public constant MAX_LIQUIDATION_INCENTIVE = 1e17;     // 10%
+
     uint256 public minimumCollateralizationRatio;
     FixedPoint.Unsigned public closeFactor;
     FixedPoint.Unsigned public liquidationIncentive;
@@ -63,6 +67,8 @@ contract Kresko is Ownable {
      */
     mapping(address => address[]) public mintedKreskoAssets;
 
+    event UpdateCloseFactor(uint256 closeFactor);
+    event UpdateLiquidationIncentive(uint256 liquidationIncentive);
     event UpdateMinimumCollateralizationRatio(uint256 minimumCollateralizationRatio);
     event Liquidation(address account, address liquidator, address repayKRAsset,
         uint256 repayAmount, address seizedCollateral, uint256 seizedAmount);
@@ -104,10 +110,13 @@ contract Kresko is Ownable {
         _;
     }
 
-    constructor(uint256 minCollateralizationRatio, uint256 _closeFactor, uint256 _liquidationIncentive) {
-        minimumCollateralizationRatio = minCollateralizationRatio;
-        closeFactor = FixedPoint.Unsigned(_closeFactor);
-        liquidationIncentive = FixedPoint.Unsigned(_liquidationIncentive);
+    constructor(
+        uint256 minimumCollateralizationRatio_,
+        uint256 closeFactor_,
+        uint256 liquidationIncentive_) {
+        minimumCollateralizationRatio = minimumCollateralizationRatio_;
+        setCloseFactor(closeFactor_);
+        setLiquidationIncentive(liquidationIncentive_);
     }
 
     /**
@@ -560,21 +569,6 @@ contract Kresko is Ownable {
     }
 
     /**
-     * @notice Gets the USD value for a single Kresko asset and amount.
-     * @param assetAddress The address of the Kresko asset.
-     * @param amount The amount of the Kresko asset to calculate the value for.
-     * @return The value for the provided amount of the Kresko asset.
-     */
-    function getKrAssetValue(
-        address assetAddress,
-        FixedPoint.Unsigned memory amount
-    ) public view returns (FixedPoint.Unsigned memory) {
-        KAsset memory krAsset = kreskoAssets[assetAddress];
-        FixedPoint.Unsigned memory amt = amount;
-        return amt.mul(FixedPoint.Unsigned(krAsset.oracle.value())).mul(krAsset.kFactor);
-    }
-
-    /**
      * @notice Gets the Kresko asset value in USD of a particular account.
      * @param account The account to calculate the Kresko asset value for.
      * @return The Kresko asset value of a particular account.
@@ -631,7 +625,7 @@ contract Kresko is Ownable {
         require(FixedPoint.Unsigned(repayAmount).isLessThanOrEqual(maxLiquidation), "REPAY_AMOUNT_TOO_LARGE");
 
         // max liquidation USD = total debt value in USD * close factor
-        FixedPoint.Unsigned memory maxLiquidationUSD = getKrAssetValue(repayKRAsset, maxLiquidation);
+        FixedPoint.Unsigned memory maxLiquidationUSD = getKrAssetValue(repayKRAsset, maxLiquidation.rawValueUnsigned());
         // seize amount = max liquidation USD * liquidation incentive * exchange rate of collateral to USD
         FixedPoint.Unsigned memory seizeAmount = maxLiquidationUSD.
             mul(liquidationIncentive).
@@ -665,5 +659,26 @@ contract Kresko is Ownable {
         require(collateralAsset.transfer(msg.sender, seizeAmountRaw), "TRANSFER_OUT_FAILED");
 
         emit Liquidation(account, msg.sender, repayKRAsset, repayAmount, collateralToSeize, seizeAmountRaw);
+    }
+
+    /**
+     * @notice Sets the close factor.
+     * @param _closeFactor The new close factor as a raw value for a FixedPoint.Unsigned.
+     */
+    function setCloseFactor(uint256 _closeFactor) public onlyOwner {
+        require(_closeFactor <= MAX_CLOSE_FACTOR, "CLOSE_FACTOR_TOO_HIGH");
+        closeFactor = FixedPoint.Unsigned(_closeFactor);
+        emit UpdateCloseFactor(_closeFactor);
+    }
+
+    /**
+     * @notice Sets the liquidation incentive.
+     * @param _liquidationIncentive The new liquidation incentive as a raw value for a FixedPoint.Unsigned.
+     */
+    function setLiquidationIncentive(uint256 _liquidationIncentive) public onlyOwner {
+        require(_liquidationIncentive >= MIN_LIQUIDATION_INCENTIVE, "LIQUIDATION_INCENTIVE_TOO_LOW");
+        require(_liquidationIncentive <= MAX_LIQUIDATION_INCENTIVE, "LIQUIDATION_INCENTIVE_TOO_HIGH");
+        liquidationIncentive = FixedPoint.Unsigned(_liquidationIncentive);
+        emit UpdateLiquidationIncentive(_liquidationIncentive);
     }
 }
