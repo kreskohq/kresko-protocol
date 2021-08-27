@@ -35,13 +35,17 @@ contract Kresko is Ownable {
     uint256 public constant MAX_BURN_FEE = 1e17; // Because FP_SCALING_FACTOR = 1e18, this is 10%
 
     uint256 public minimumCollateralizationRatio;
-    address public feeRecipient;
 
     /**
      * The percent fee imposed upon the value of burned krAssets, taken in the form of
      * the user's collateral and sent to feeRecipient.
      */
     FixedPoint.Unsigned public burnFee;
+
+    /**
+     * The recipient of burn fees.
+     */
+    address public feeRecipient;
 
     mapping(address => CollateralAsset) public collateralAssets;
     mapping(address => KAsset) public kreskoAssets;
