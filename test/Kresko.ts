@@ -20,6 +20,8 @@ const SYMBOL_TWO = "TWO";
 const NAME_ONE = "One Kresko Asset";
 const NAME_TWO = "Two Kresko Asset";
 const COLLATERALIZATION_RATIO: number = 150;
+const CLOSE_FACTOR = toFixedPoint(0.10); // 10%
+const LIQUIDATION_INCENTIVE = toFixedPoint(0.05); // 5%
 
 const { parseEther } = hre.ethers.utils;
 const { deployContract } = hre.waffle;
@@ -79,7 +81,7 @@ describe("Kresko", function () {
         this.userTwo = signers[2];
 
         const kreskoArtifact: Artifact = await hre.artifacts.readArtifact("Kresko");
-        this.kresko = <Kresko>await deployContract(this.signers.admin, kreskoArtifact, [COLLATERALIZATION_RATIO]);
+        this.kresko = <Kresko>await deployContract(this.signers.admin, kreskoArtifact, [COLLATERALIZATION_RATIO, CLOSE_FACTOR, LIQUIDATION_INCENTIVE]);
     });
 
     describe("Collateral Assets", function () {
@@ -560,7 +562,7 @@ describe("Kresko", function () {
     describe("Kresko Assets", function () {
         beforeEach(async function () {
             const kreskoArtifact: Artifact = await hre.artifacts.readArtifact("Kresko");
-            this.kresko = <Kresko>await deployContract(this.signers.admin, kreskoArtifact, [COLLATERALIZATION_RATIO]);
+            this.kresko = <Kresko>await deployContract(this.signers.admin, kreskoArtifact, [COLLATERALIZATION_RATIO, CLOSE_FACTOR, LIQUIDATION_INCENTIVE]);
 
             const tx: ContractTransaction = await this.kresko.addKreskoAsset(NAME_ONE, SYMBOL_ONE, ONE, ADDRESS_ONE);
             let events: any = await extractEventFromTxReceipt(tx, "AddKreskoAsset");
@@ -652,7 +654,7 @@ describe("Kresko", function () {
         beforeEach(async function () {
             // Deploy primary Kresko contract
             const kreskoArtifact: Artifact = await hre.artifacts.readArtifact("Kresko");
-            this.kresko = <Kresko>await deployContract(this.signers.admin, kreskoArtifact, [COLLATERALIZATION_RATIO]);
+            this.kresko = <Kresko>await deployContract(this.signers.admin, kreskoArtifact, [COLLATERALIZATION_RATIO, CLOSE_FACTOR, LIQUIDATION_INCENTIVE]);
 
             // Deploy Kresko assets, adding them to the whitelist
             this.kreskoAssetAddresses = await Promise.all([
