@@ -521,6 +521,14 @@ contract Kresko is Ownable {
         mintedKreskoAssets[account].pop();
     }
 
+    /**
+     * @notice Charges the protocol burn fee based off the value of the burned asset.
+     * @dev Takes the fee from the account's collateral assets. Attempts collateral assets
+     *   in reverse order of the account's deposited collateral assets array.
+     * @param account The account to charge the burn fee from.
+     * @param assetAddress The address of the kresko asset being burned.
+     * @param amountBurned The amount of the kresko asset being burned.
+     */
     function chargeBurnFee(
         address account,
         address assetAddress,

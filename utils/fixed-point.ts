@@ -1,5 +1,4 @@
 import { BigNumber } from "ethers";
-import { namehash } from "ethers/lib/utils";
 
 const FIXED_POINT_SCALING_FACTOR_DECIMALS = 18;
 // In other words, the raw value of 1e18 is equal to a FixedPoint of 1
