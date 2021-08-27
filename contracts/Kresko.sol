@@ -33,7 +33,7 @@ contract Kresko is Ownable {
     }
 
     uint256 public constant MAX_CLOSE_FACTOR = 3e17;              // 30%
-    uint256 public constant MIN_LIQUIDATION_INCENTIVE = 1e18;     // 1%
+    uint256 public constant MIN_LIQUIDATION_INCENTIVE = 1e16;     // 1%
     uint256 public constant MAX_LIQUIDATION_INCENTIVE = 1e17;     // 10%
 
     uint256 public minimumCollateralizationRatio;
