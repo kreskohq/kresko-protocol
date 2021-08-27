@@ -4,13 +4,14 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { expect } from "chai";
 import { BigNumber, Contract, ContractTransaction } from "ethers";
 
-import { toFixedPoint, fixedPointMul } from "../utils/fixed-point";
+import { toFixedPoint, fixedPointDiv, fixedPointMul } from "../utils/fixed-point";
 import { extractEventFromTxReceipt } from "../utils/events";
 
 import { BasicOracle } from "../typechain/BasicOracle";
 import { Kresko } from "../typechain/Kresko";
 import { MockToken } from "../typechain/MockToken";
 import { Signers } from "../types";
+import { Result } from "@ethersproject/abi";
 
 const ADDRESS_ZERO = hre.ethers.constants.AddressZero;
 const ADDRESS_ONE = "0x0000000000000000000000000000000000000001";
@@ -19,7 +20,9 @@ const SYMBOL_ONE = "ONE";
 const SYMBOL_TWO = "TWO";
 const NAME_ONE = "One Kresko Asset";
 const NAME_TWO = "Two Kresko Asset";
+const BURN_FEE = toFixedPoint(0.01); // 1%
 const COLLATERALIZATION_RATIO: number = 150;
+const FEE_RECIPIENT_ADDRESS = "0x0000000000000000000000000000000000000FEE";
 
 const { parseEther } = hre.ethers.utils;
 const { deployContract } = hre.waffle;
@@ -65,7 +68,15 @@ async function addNewKreskoAsset(kresko: Contract, name: string, symbol: string,
     const fixedPointKFactor = toFixedPoint(kFactor);
     const tx: ContractTransaction = await kresko.addKreskoAsset(name, symbol, fixedPointKFactor, oracle.address);
     let events: any = await extractEventFromTxReceipt(tx, "AddKreskoAsset");
-    return events[0].args.assetAddress;
+    const krAssetAddress = events[0].args.assetAddress;
+    const KreskoAssetContract = await hre.ethers.getContractFactory("KreskoAsset");
+    const kreskoAsset = await KreskoAssetContract.attach(krAssetAddress);
+    return {
+        kreskoAsset,
+        oracle,
+        oraclePrice: fixedPointOraclePrice,
+        kFactor: fixedPointKFactor,
+    };
 }
 
 describe("Kresko", function () {
@@ -78,7 +89,13 @@ describe("Kresko", function () {
         this.userTwo = signers[2];
 
         const kreskoArtifact: Artifact = await hre.artifacts.readArtifact("Kresko");
-        this.kresko = <Kresko>await deployContract(this.signers.admin, kreskoArtifact, [COLLATERALIZATION_RATIO]);
+        this.kresko = <Kresko>(
+            await deployContract(this.signers.admin, kreskoArtifact, [
+                COLLATERALIZATION_RATIO,
+                BURN_FEE,
+                FEE_RECIPIENT_ADDRESS,
+            ])
+        );
     });
 
     describe("Collateral Assets", function () {
@@ -378,13 +395,15 @@ describe("Kresko", function () {
             describe("when the account's minimum collateral value is > 0", function () {
                 beforeEach(async function () {
                     // Deploy Kresko assets, adding them to the whitelist
-                    const kreskoAssetAddress = await addNewKreskoAsset(this.kresko, NAME_TWO, SYMBOL_TWO, 1, 250); // kFactor = 1, price = $250
+                    const kreskoAssetInfo = await addNewKreskoAsset(this.kresko, NAME_TWO, SYMBOL_TWO, 1, 250); // kFactor = 1, price = $250
 
                     // Mint 100 of the kreskoAsset. This puts the minimum collateral value of userOne as
                     // 250 * 1.5 * 100 = 37,500, which is close to userOne's account collateral value
                     // of 40491.
                     const kreskoAssetMintAmount = parseEther("100");
-                    await this.kresko.connect(this.userOne).mintKreskoAsset(kreskoAssetAddress, kreskoAssetMintAmount);
+                    await this.kresko
+                        .connect(this.userOne)
+                        .mintKreskoAsset(kreskoAssetInfo.kreskoAsset.address, kreskoAssetMintAmount);
                 });
 
                 it("should allow an account to withdraw their deposit if it does not violate the health factor", async function () {
@@ -558,9 +577,6 @@ describe("Kresko", function () {
 
     describe("Kresko Assets", function () {
         beforeEach(async function () {
-            const kreskoArtifact: Artifact = await hre.artifacts.readArtifact("Kresko");
-            this.kresko = <Kresko>await deployContract(this.signers.admin, kreskoArtifact, [COLLATERALIZATION_RATIO]);
-
             const tx: ContractTransaction = await this.kresko.addKreskoAsset(NAME_ONE, SYMBOL_ONE, ONE, ADDRESS_ONE);
             let events: any = await extractEventFromTxReceipt(tx, "AddKreskoAsset");
             this.deployedAssetAddress = events[0].args.assetAddress;
@@ -649,22 +665,11 @@ describe("Kresko", function () {
 
     describe("Kresko asset minting and burning", function () {
         beforeEach(async function () {
-            // Deploy primary Kresko contract
-            const kreskoArtifact: Artifact = await hre.artifacts.readArtifact("Kresko");
-            this.kresko = <Kresko>await deployContract(this.signers.admin, kreskoArtifact, [COLLATERALIZATION_RATIO]);
-
             // Deploy Kresko assets, adding them to the whitelist
-            this.kreskoAssetAddresses = await Promise.all([
+            this.kreskoAssetInfos = await Promise.all([
                 addNewKreskoAsset(this.kresko, NAME_ONE, SYMBOL_ONE, 1, 5), // kFactor = 1, price = $5.00
                 addNewKreskoAsset(this.kresko, NAME_TWO, SYMBOL_TWO, 1.1, 500), // kFactor = 1.1, price = $500
             ]);
-
-            this.kreskoAssets = [];
-            for (const kreskoAssetAddress of this.kreskoAssetAddresses) {
-                const KreskoAssetContract = await hre.ethers.getContractFactory("KreskoAsset");
-                const kreskoAsset = await KreskoAssetContract.attach(kreskoAssetAddress);
-                this.kreskoAssets.push(kreskoAsset);
-            }
 
             // Deploy and whitelist collateral assets
             this.collateralAssetInfo = await deployAndWhitelistCollateralAsset(this.kresko, 0.8, 123.45, 18);
@@ -674,20 +679,19 @@ describe("Kresko", function () {
                 this.userOne.address,
                 this.initialUserCollateralBalance,
             );
-
             // userOne deposits 100 of the collateral asset.
             // This gives an account collateral value of:
             // 100 * 0.8 * 123.45 = 9,876
-            const depositAmount = parseEther("100");
+            this.collateralDepositAmount = parseEther("100");
             await this.kresko
                 .connect(this.userOne)
-                .depositCollateral(this.collateralAssetInfo.collateralAsset.address, depositAmount);
+                .depositCollateral(this.collateralAssetInfo.collateralAsset.address, this.collateralDepositAmount);
         });
 
         describe("Minting assets", function () {
             it("should allow users to mint whitelisted Kresko assets backed by collateral", async function () {
-                const kreskoAsset = this.kreskoAssets[0];
-                const kreskoAssetAddress = this.kreskoAssetAddresses[0];
+                const kreskoAsset = this.kreskoAssetInfos[0].kreskoAsset;
+                const kreskoAssetAddress = kreskoAsset.address;
 
                 // Initially the Kresko asset's total supply should be 0
                 const kreskoAssetTotalSupplyBefore = await kreskoAsset.totalSupply();
@@ -719,8 +723,8 @@ describe("Kresko", function () {
             });
 
             it("should allow successive, valid mints of the same Kresko asset", async function () {
-                const kreskoAsset = this.kreskoAssets[0];
-                const kreskoAssetAddress = this.kreskoAssetAddresses[0];
+                const kreskoAsset = this.kreskoAssetInfos[0].kreskoAsset;
+                const kreskoAssetAddress = kreskoAsset.address;
 
                 // Initially the Kresko asset's total supply should be 0
                 const kreskoAssetTotalSupplyInitial = await kreskoAsset.totalSupply();
@@ -773,8 +777,8 @@ describe("Kresko", function () {
             });
 
             it("should allow users to mint multiple different Kresko assets", async function () {
-                const firstKreskoAsset = this.kreskoAssets[0];
-                const firstKreskoAssetAddress = this.kreskoAssetAddresses[0];
+                const firstKreskoAsset = this.kreskoAssetInfos[0].kreskoAsset;
+                const firstKreskoAssetAddress = firstKreskoAsset.address;
 
                 // Initially the Kresko asset's total supply should be 0
                 const kreskoAssetTotalSupplyInitial = await firstKreskoAsset.totalSupply();
@@ -808,8 +812,8 @@ describe("Kresko", function () {
                 expect(kreskoAssetTotalSupplyAfter).to.equal(kreskoAssetTotalSupplyInitial.add(firstMintAmount));
 
                 // ------------------------ Second mint ------------------------
-                const secondKreskoAsset = this.kreskoAssets[1];
-                const secondKreskoAssetAddress = this.kreskoAssetAddresses[1];
+                const secondKreskoAsset = this.kreskoAssetInfos[1].kreskoAsset;
+                const secondKreskoAssetAddress = secondKreskoAsset.address;
 
                 // Mint Kresko asset
                 const secondMintAmount = 1;
@@ -850,7 +854,9 @@ describe("Kresko", function () {
                 // value of 1335 * 1 * 5 * 1.5 = 10,012.5
                 const mintAmount = parseEther("1335");
                 await expect(
-                    this.kresko.connect(this.userOne).mintKreskoAsset(this.kreskoAssetAddresses[0], mintAmount),
+                    this.kresko
+                        .connect(this.userOne)
+                        .mintKreskoAsset(this.kreskoAssetInfos[0].kreskoAsset.address, mintAmount),
                 ).to.be.revertedWith("INSUFFICIENT_COLLATERAL");
             });
         });
@@ -858,21 +864,25 @@ describe("Kresko", function () {
         describe("Burning kresko assets", function () {
             beforeEach(async function () {
                 // Mint Kresko asset
-                this.mintAmount = 500;
-                await this.kresko.connect(this.userOne).mintKreskoAsset(this.kreskoAssetAddresses[0], this.mintAmount);
+                this.mintAmount = toFixedPoint(500);
+                await this.kresko
+                    .connect(this.userOne)
+                    .mintKreskoAsset(this.kreskoAssetInfos[0].kreskoAsset.address, this.mintAmount);
 
                 // Approve tokens to Kresko contract in advance of burning
-                await this.kreskoAssets[0].connect(this.userOne).approve(this.kresko.address, this.mintAmount);
+                await this.kreskoAssetInfos[0].kreskoAsset
+                    .connect(this.userOne)
+                    .approve(this.kresko.address, this.mintAmount);
             });
 
             it("should allow users to return some of their Kresko asset balances", async function () {
-                const kreskoAsset = this.kreskoAssets[0];
-                const kreskoAssetAddress = this.kreskoAssetAddresses[0];
+                const kreskoAsset = this.kreskoAssetInfos[0].kreskoAsset;
+                const kreskoAssetAddress = kreskoAsset.address;
 
                 const kreskoAssetTotalSupplyBefore = await kreskoAsset.totalSupply();
 
                 // Burn Kresko asset
-                const burnAmount = 200;
+                const burnAmount = toFixedPoint(200);
                 const kreskoAssetIndex = 0;
                 await this.kresko
                     .connect(this.userOne)
@@ -880,7 +890,7 @@ describe("Kresko", function () {
 
                 // Confirm the user no long holds the burned Kresko asset amount
                 const userBalance = await kreskoAsset.balanceOf(this.userOne.address);
-                expect(userBalance).to.equal(this.mintAmount - burnAmount);
+                expect(userBalance).to.equal(this.mintAmount.sub(burnAmount));
 
                 // Confirm that the Kresko asset's total supply decreased as expected
                 const kreskoAssetTotalSupplyAfter = await kreskoAsset.totalSupply();
@@ -892,12 +902,12 @@ describe("Kresko", function () {
 
                 // Confirm the user's minted kresko asset amount has been updated
                 const userDebt = await this.kresko.kreskoAssetDebt(this.userOne.address, kreskoAssetAddress);
-                expect(userDebt).to.equal(this.mintAmount - burnAmount);
+                expect(userDebt).to.equal(this.mintAmount.sub(burnAmount));
             });
 
             it("should allow users to return their full balance of a Kresko asset", async function () {
-                const kreskoAsset = this.kreskoAssets[0];
-                const kreskoAssetAddress = this.kreskoAssetAddresses[0];
+                const kreskoAsset = this.kreskoAssetInfos[0].kreskoAsset;
+                const kreskoAssetAddress = kreskoAsset.address;
 
                 const kreskoAssetTotalSupplyBefore = await kreskoAsset.totalSupply();
 
@@ -925,7 +935,7 @@ describe("Kresko", function () {
             });
 
             it("should not allow users to return an amount of 0", async function () {
-                const kreskoAssetAddress = this.kreskoAssetAddresses[0];
+                const kreskoAssetAddress = this.kreskoAssetInfos[0].kreskoAsset.address;
                 const kreskoAssetIndex = 0;
 
                 await expect(
@@ -934,7 +944,7 @@ describe("Kresko", function () {
             });
 
             it("should not allow users to return more kresko assets than they hold as debt", async function () {
-                const kreskoAssetAddress = this.kreskoAssetAddresses[0];
+                const kreskoAssetAddress = this.kreskoAssetInfos[0].kreskoAsset.address;
                 const kreskoAssetIndex = 0;
                 const burnAmount = this.mintAmount + 1;
 
@@ -946,7 +956,7 @@ describe("Kresko", function () {
             it("should not allow users to return Kresko assets they have not approved", async function () {
                 const secondMintAmount = 1;
                 const burnAmount = this.mintAmount + secondMintAmount;
-                const kreskoAssetAddress = this.kreskoAssetAddresses[0];
+                const kreskoAssetAddress = this.kreskoAssetInfos[0].kreskoAsset.address;
 
                 await this.kresko.connect(this.userOne).mintKreskoAsset(kreskoAssetAddress, burnAmount);
 
@@ -955,6 +965,223 @@ describe("Kresko", function () {
                     this.kresko.connect(this.userOne).burnKreskoAsset(kreskoAssetAddress, burnAmount, kreskoAssetIndex),
                 ).to.be.revertedWith("ERC20: transfer amount exceeds allowance");
             });
+
+            describe("Protocol burn fee", async function () {
+                it("should charge the protocol burn fee with a single collateral asset if the deposit amount is sufficient", async function () {
+                    const kreskoAssetIndex = 0;
+                    const kreskoAssetInfo = this.kreskoAssetInfos[kreskoAssetIndex];
+
+                    const burnAmount = toFixedPoint(200);
+                    const burnValue = fixedPointMul(kreskoAssetInfo.oraclePrice, burnAmount);
+
+                    const expectedFeeValue = fixedPointMul(burnValue, BURN_FEE);
+                    const expectedCollateralFee = fixedPointDiv(expectedFeeValue, this.collateralAssetInfo.oraclePrice);
+
+                    // Get the balances prior to the fee being charged.
+                    const kreskoCollateralAssetBalanceBefore = await this.collateralAssetInfo.collateralAsset.balanceOf(
+                        this.kresko.address,
+                    );
+                    const feeRecipientCollateralAssetBalanceBefore =
+                        await this.collateralAssetInfo.collateralAsset.balanceOf(FEE_RECIPIENT_ADDRESS);
+
+                    const burnReceipt = await this.kresko
+                        .connect(this.userOne)
+                        .burnKreskoAsset(kreskoAssetInfo.kreskoAsset.address, burnAmount, kreskoAssetIndex);
+
+                    // Get the balances after the fees have been charged.
+                    const kreskoCollateralAssetBalanceAfter = await this.collateralAssetInfo.collateralAsset.balanceOf(
+                        this.kresko.address,
+                    );
+                    const feeRecipientCollateralAssetBalanceAfter =
+                        await this.collateralAssetInfo.collateralAsset.balanceOf(FEE_RECIPIENT_ADDRESS);
+
+                    // Ensure the amount gained / lost by the kresko contract and the fee recipient are as expected.
+                    const feeRecipientBalanceIncrease = feeRecipientCollateralAssetBalanceAfter.sub(
+                        feeRecipientCollateralAssetBalanceBefore,
+                    );
+                    expect(kreskoCollateralAssetBalanceBefore.sub(kreskoCollateralAssetBalanceAfter)).to.equal(
+                        feeRecipientBalanceIncrease,
+                    );
+                    expect(feeRecipientBalanceIncrease).to.equal(expectedCollateralFee);
+
+                    // Ensure the emitted event is as expected.
+                    const events = await extractEventFromTxReceipt(burnReceipt, "BurnFeePaid");
+                    expect(events!.length).to.equal(1);
+                    const eventArgs = events![0].args!;
+                    expect(eventArgs.account).to.equal(this.userOne.address);
+                    expect(eventArgs.paymentAsset).to.equal(this.collateralAssetInfo.collateralAsset.address);
+                    expect(eventArgs.paymentAmount).to.equal(expectedCollateralFee);
+                    expect(eventArgs.paymentValue).to.equal(expectedFeeValue);
+                });
+
+                it("should charge the protocol burn fee across multiple collateral assets if needed", async function () {
+                    const price = 10;
+                    // Deploy and whitelist collateral assets
+                    const collateralAssetInfos = await Promise.all([
+                        deployAndWhitelistCollateralAsset(this.kresko, 0.8, price, 18),
+                        deployAndWhitelistCollateralAsset(this.kresko, 0.8, price, 18),
+                    ]);
+
+                    const smallDepositAmount = parseEther("0.1");
+                    const smallDepositValue = smallDepositAmount.mul(price);
+
+                    // Deposit a small amount of the new collateralAssetInfos.
+                    for (const collateralAssetInfo of collateralAssetInfos) {
+                        // Give userOne a balance for the collateral asset.
+                        await collateralAssetInfo.collateralAsset.setBalanceOf(
+                            this.userOne.address,
+                            this.initialUserCollateralBalance,
+                        );
+
+                        await this.kresko
+                            .connect(this.userOne)
+                            .depositCollateral(collateralAssetInfo.collateralAsset.address, smallDepositAmount);
+                    }
+
+                    const allCollateralAssetInfos = [this.collateralAssetInfo, ...collateralAssetInfos];
+
+                    // Now test:
+
+                    const kreskoAssetIndex = 0;
+                    const kreskoAssetInfo = this.kreskoAssetInfos[kreskoAssetIndex];
+
+                    const burnAmount = toFixedPoint(200);
+                    const burnValue = fixedPointMul(kreskoAssetInfo.oraclePrice, burnAmount);
+                    const expectedFeeValue = fixedPointMul(burnValue, BURN_FEE);
+
+                    const getCollateralAssetBalances = () =>
+                        Promise.all(
+                            allCollateralAssetInfos.map(async info => ({
+                                kreskoBalance: await info.collateralAsset.balanceOf(this.kresko.address),
+                                feeRecipientBalance: await info.collateralAsset.balanceOf(FEE_RECIPIENT_ADDRESS),
+                            })),
+                        );
+
+                    // Get the balances prior to the fee being charged.
+                    const collateralAssetBalancesBefore = await getCollateralAssetBalances();
+
+                    const burnReceipt = await this.kresko
+                        .connect(this.userOne)
+                        .burnKreskoAsset(kreskoAssetInfo.kreskoAsset.address, burnAmount, kreskoAssetIndex);
+
+                    // Get the balances after the fee has been charged.
+                    const collateralAssetBalancesAfter = await getCollateralAssetBalances();
+
+                    const events = await extractEventFromTxReceipt(burnReceipt, "BurnFeePaid");
+
+                    // Burn fees are charged against collateral assets in reverse order of the user's
+                    // deposited collateral assets array. In other words, collateral assets will be tried
+                    // in order of the most recently deposited for the first time -> oldest.
+                    // We expect 3 BurnFeePaid events because the first 2 collateral deposits have a value
+                    // of $1 and will be taken in their entirety, and the remainder of the fee will be taken
+                    // from the large deposit amount of the the very first collateral asset.
+                    expect(events!.length).to.equal(3);
+
+                    const expectFeePaid = (
+                        eventArgs: Result,
+                        collateralAssetInfoIndex: number,
+                        paymentAmount: BigNumber,
+                        paymentValue: BigNumber,
+                    ) => {
+                        // Ensure the amount gained / lost by the kresko contract and the fee recipient are as expected.
+                        const feeRecipientBalanceBefore =
+                            collateralAssetBalancesBefore[collateralAssetInfoIndex].feeRecipientBalance;
+                        const kreskoBalanceBefore =
+                            collateralAssetBalancesBefore[collateralAssetInfoIndex].kreskoBalance;
+                        const feeRecipientBalanceAfter =
+                            collateralAssetBalancesAfter[collateralAssetInfoIndex].feeRecipientBalance;
+                        const kreskoBalanceAfter = collateralAssetBalancesAfter[collateralAssetInfoIndex].kreskoBalance;
+
+                        const feeRecipientBalanceIncrease = feeRecipientBalanceAfter.sub(feeRecipientBalanceBefore);
+                        expect(kreskoBalanceBefore.sub(kreskoBalanceAfter)).to.equal(feeRecipientBalanceIncrease);
+                        expect(feeRecipientBalanceIncrease).to.equal(paymentAmount);
+
+                        expect(eventArgs.account).to.equal(this.userOne.address);
+                        expect(eventArgs.paymentAsset).to.equal(
+                            allCollateralAssetInfos[collateralAssetInfoIndex].collateralAsset.address,
+                        );
+                        expect(eventArgs.paymentAmount).to.equal(paymentAmount);
+                        expect(eventArgs.paymentValue).to.equal(paymentValue);
+                    };
+
+                    // Small deposit of the most recently deposited collateral asset
+                    expectFeePaid(events![0].args!, 2, smallDepositAmount, smallDepositValue);
+
+                    // Small deposit of the second most recently deposited collateral asset
+                    expectFeePaid(events![1].args!, 1, smallDepositAmount, smallDepositValue);
+
+                    // The remainder from the initial large deposit
+                    const expectedPaymentValue = expectedFeeValue.sub(smallDepositValue.mul(2));
+                    const expectedPaymentAmount = fixedPointDiv(
+                        expectedPaymentValue,
+                        this.collateralAssetInfo.oraclePrice,
+                    );
+                    expectFeePaid(events![2].args!, 0, expectedPaymentAmount, expectedPaymentValue);
+                });
+            });
+        });
+    });
+
+    describe.only("#setBurnFee", function () {
+        const validNewBurnFee = toFixedPoint(0.042);
+        it("Sets the burn fee", async function () {
+            // Ensure it has the expected initial value
+            expect(await this.kresko.burnFee()).to.equal(BURN_FEE);
+
+            await this.kresko.connect(this.signers.admin).setBurnFee(validNewBurnFee);
+
+            expect(await this.kresko.burnFee()).to.equal(validNewBurnFee);
+        });
+
+        it("Emits the UpdateBurnFee event", async function () {
+            const receipt = await this.kresko.connect(this.signers.admin).setBurnFee(validNewBurnFee);
+
+            const event = (await extractEventFromTxReceipt(receipt, "UpdateBurnFee"))![0].args!;
+            expect(event.burnFee).to.equal(validNewBurnFee);
+        });
+
+        it("Reverts if the burn fee exceeds MAX_BURN_FEE", async function () {
+            const newBurnFee = (await this.kresko.MAX_BURN_FEE()).add(1);
+            await expect(this.kresko.connect(this.signers.admin).setBurnFee(newBurnFee)).to.be.revertedWith(
+                "BURN_FEE_TOO_HIGH",
+            );
+        });
+
+        it("Reverts if called by a non-owner", async function () {
+            await expect(this.kresko.connect(this.userOne).setBurnFee(validNewBurnFee)).to.be.revertedWith(
+                "Ownable: caller is not the owner",
+            );
+        });
+    });
+
+    describe.only("#setFeeRecipient", function () {
+        const validFeeRecipient = "0xF00D000000000000000000000000000000000000";
+        it("Sets the fee recipient", async function () {
+            // Ensure it has the expected initial value
+            expect(await this.kresko.feeRecipient()).to.equal(FEE_RECIPIENT_ADDRESS);
+
+            await this.kresko.connect(this.signers.admin).setFeeRecipient(validFeeRecipient);
+
+            expect(await this.kresko.feeRecipient()).to.equal(validFeeRecipient);
+        });
+
+        it("Emits the UpdateFeeRecipient event", async function () {
+            const receipt = await this.kresko.connect(this.signers.admin).setFeeRecipient(validFeeRecipient);
+
+            const event = (await extractEventFromTxReceipt(receipt, "UpdateFeeRecipient"))![0].args!;
+            expect(event.feeRecipient).to.equal(validFeeRecipient);
+        });
+
+        it("Reverts if the fee recipient is the zero address", async function () {
+            await expect(this.kresko.connect(this.signers.admin).setFeeRecipient(ADDRESS_ZERO)).to.be.revertedWith(
+                "ZERO_ADDRESS",
+            );
+        });
+
+        it("Reverts if called by a non-owner", async function () {
+            await expect(this.kresko.connect(this.userOne).setFeeRecipient(validFeeRecipient)).to.be.revertedWith(
+                "Ownable: caller is not the owner",
+            );
         });
     });
 });

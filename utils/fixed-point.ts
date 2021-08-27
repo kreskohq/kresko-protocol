@@ -1,4 +1,5 @@
 import { BigNumber } from "ethers";
+import { namehash } from "ethers/lib/utils";
 
 const FIXED_POINT_SCALING_FACTOR_DECIMALS = 18;
 // In other words, the raw value of 1e18 is equal to a FixedPoint of 1
@@ -21,4 +22,8 @@ export function fromFixedPoint(fixedPoint: any) {
 // Multiplies two fixed point numbers together
 export function fixedPointMul(a: BigNumber, b: any) {
     return a.mul(b).div(FIXED_POINT_SCALING_FACTOR);
+}
+
+export function fixedPointDiv(a: BigNumber, b: any) {
+    return a.mul(FIXED_POINT_SCALING_FACTOR).div(b);
 }

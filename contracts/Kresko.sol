@@ -32,7 +32,16 @@ contract Kresko is Ownable {
         bool exists;
     }
 
+    uint256 public constant MAX_BURN_FEE = 1e17; // Because FP_SCALING_FACTOR = 1e18, this is 10%
+
     uint256 public minimumCollateralizationRatio;
+    address public feeRecipient;
+
+    /**
+     * The percent fee imposed upon the value of burned krAssets, taken in the form of
+     * the user's collateral and sent to feeRecipient.
+     */
+    FixedPoint.Unsigned public burnFee;
 
     mapping(address => CollateralAsset) public collateralAssets;
     mapping(address => KAsset) public kreskoAssets;
@@ -61,13 +70,19 @@ contract Kresko is Ownable {
      */
     mapping(address => address[]) public mintedKreskoAssets;
 
+    // Events for configurable parameters.
+    event UpdateBurnFee(uint256 burnFee);
+    event UpdateFeeRecipient(address feeRecipient);
     event UpdateMinimumCollateralizationRatio(uint256 minimumCollateralizationRatio);
+
     // Collateral asset events
     event AddCollateralAsset(address assetAddress, uint256 factor, address oracle);
     event UpdateCollateralAssetFactor(address assetAddress, uint256 factor);
     event UpdateCollateralAssetOracle(address assetAddress, address oracle);
     event DepositedCollateral(address account, address assetAddress, uint256 amount);
     event WithdrewCollateral(address account, address assetAddress, uint256 amount);
+    event BurnFeePaid(address account, address paymentAsset, uint256 paymentAmount, uint256 paymentValue);
+
     // Kresko asset events
     event AddKreskoAsset(string name, string symbol, address assetAddress, uint256 kFactor, address oracle);
     event UpdateKreskoAssetKFactor(address assetAddress, uint256 kFactor);
@@ -100,16 +115,23 @@ contract Kresko is Ownable {
         _;
     }
 
-    constructor(uint256 minCollateralizationRatio) {
-        minimumCollateralizationRatio = minCollateralizationRatio;
+    constructor(
+        uint256 _minimumCollateralizationRatio,
+        uint256 _burnFee,
+        address _feeRecipient
+    ) {
+        updateMinimumCollateralizationRatio(_minimumCollateralizationRatio);
+        setBurnFee(_burnFee);
+        setFeeRecipient(_feeRecipient);
     }
 
     /**
      * @dev Updates the contract's collateralization ratio
      * @param minCollateralizationRatio The new minimum collateralization ratio
      */
-    function updateMinimumCollateralizationRatio(uint256 minCollateralizationRatio) external onlyOwner {
-        require(minCollateralizationRatio <= 0, "INVALID_RATIO");
+    function updateMinimumCollateralizationRatio(uint256 minCollateralizationRatio) public onlyOwner {
+        // TODO fix
+        // require(minCollateralizationRatio <= 0, "INVALID_RATIO");
 
         minimumCollateralizationRatio = minCollateralizationRatio;
         emit UpdateMinimumCollateralizationRatio(minimumCollateralizationRatio);
@@ -463,6 +485,8 @@ contract Kresko is Ownable {
             removeFromMintedKreskoAssets(msg.sender, assetAddress, mintedKreskoAssetIndex);
         }
 
+        chargeBurnFee(msg.sender, assetAddress, amount);
+
         // Burn the received kresko assets, removing them from circulation
         asset.burn(amount);
 
@@ -492,6 +516,75 @@ contract Kresko is Ownable {
         }
         // Remove the last element.
         mintedKreskoAssets[account].pop();
+    }
+
+    function chargeBurnFee(
+        address account,
+        address assetAddress,
+        uint256 amountBurned
+    ) internal {
+        KAsset memory kAsset = kreskoAssets[assetAddress];
+        // Calculate the value of the fee according to the value of the krAssets being burned.
+        FixedPoint.Unsigned memory feeValue =
+            FixedPoint.Unsigned(kAsset.oracle.value()).mul(FixedPoint.Unsigned(amountBurned)).mul(burnFee);
+
+        // Do nothing if the fee value is 0.
+        if (feeValue.rawValue == 0) {
+            return;
+        }
+
+        address[] memory accountCollateralAssets = depositedCollateralAssets[account];
+        // Iterate backward through the account's deposited collateral assets to safely
+        // traverse the array while still being able to remove elements if necessary.
+        // This is because removing the last element of the array does not shift around
+        // other elements in the array.
+        for (uint256 i = accountCollateralAssets.length - 1; i >= 0; i--) {
+            address collateralAssetAddress = accountCollateralAssets[i];
+            uint256 depositAmount = collateralDeposits[account][collateralAssetAddress];
+            FixedPoint.Unsigned memory oracleValue =
+                FixedPoint.Unsigned(collateralAssets[collateralAssetAddress].oracle.value());
+            FixedPoint.Unsigned memory depositValue = oracleValue.mul(FixedPoint.Unsigned(depositAmount));
+
+            FixedPoint.Unsigned memory feeValuePaid;
+            uint256 transferAmount;
+            // If feeValue < depositValue, the entire fee can be charged for this collateral asset.
+            if (feeValue.isLessThan(depositValue)) {
+                // We want to make sure that transferAmount is < depositAmount.
+                // Proof:
+                //   depositValue = oracleValue * depositAmount
+                //   feeValue < depositValue
+                // Meaning:
+                //   feeValue < oracleValue * depositAmount
+                // Solving for depositAmount we get:
+                //   feeValue / oracleValue < depositAmount
+                // Due to integer division:
+                //   transferAmount = floor(feeValue / oracleValue)
+                //   transferAmount <= feeValue / oracleValue
+                // We see that:
+                //   transferAmount <= feeValue / oracleValue < depositAmount
+                //   transferAmount < depositAmount
+                transferAmount = feeValue.div(oracleValue).rawValue;
+                feeValuePaid = feeValue;
+            } else {
+                // If the feeValue >= depositValue, the entire deposit
+                // should be taken as the fee.
+                transferAmount = depositAmount;
+                feeValuePaid = depositValue;
+                // Because the entire deposit is taken, remove it from the depositCollateralAssets array.
+                removeFromDepositedCollateralAssets(account, collateralAssetAddress, i);
+            }
+            // Remove the transferAmount from the stored deposit for the account.
+            collateralDeposits[account][collateralAssetAddress] -= transferAmount;
+            // Transfer the fee to the feeRecipient.
+            require(IERC20(collateralAssetAddress).transfer(feeRecipient, transferAmount), "FEE_TRANSFER_OUT_FAILED");
+            emit BurnFeePaid(account, collateralAssetAddress, transferAmount, feeValuePaid.rawValue);
+
+            feeValue = feeValue.sub(feeValuePaid);
+            // If the entire fee has been paid, no more action needed.
+            if (feeValue.rawValue == 0) {
+                return;
+            }
+        }
     }
 
     /**
@@ -540,5 +633,25 @@ contract Kresko is Ownable {
      */
     function getMintedKreskoAssets(address account) external view returns (address[] memory) {
         return mintedKreskoAssets[account];
+    }
+
+    /**
+     * @notice Sets the burn fee.
+     * @param _burnFee The new burn fee as a raw value for a FixedPoint.Unsigned.
+     */
+    function setBurnFee(uint256 _burnFee) public onlyOwner {
+        require(_burnFee <= MAX_BURN_FEE, "BURN_FEE_TOO_HIGH");
+        burnFee = FixedPoint.Unsigned(_burnFee);
+        emit UpdateBurnFee(_burnFee);
+    }
+
+    /**
+     * @notice Sets the fee recipient.
+     * @param _feeRecipient The new fee recipient.
+     */
+    function setFeeRecipient(address _feeRecipient) public onlyOwner {
+        require(_feeRecipient != address(0), "ZERO_ADDRESS");
+        feeRecipient = _feeRecipient;
+        emit UpdateFeeRecipient(_feeRecipient);
     }
 }
