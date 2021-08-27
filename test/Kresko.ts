@@ -67,6 +67,7 @@ async function addNewKreskoAsset(kresko: Contract, name: string, symbol: string,
 
     const fixedPointKFactor = toFixedPoint(kFactor);
     const tx: ContractTransaction = await kresko.addKreskoAsset(name, symbol, fixedPointKFactor, oracle.address);
+
     let events: any = await extractEventFromTxReceipt(tx, "AddKreskoAsset");
     const krAssetAddress = events[0].args.assetAddress;
     const KreskoAssetContract = await hre.ethers.getContractFactory("KreskoAsset");
@@ -946,7 +947,7 @@ describe("Kresko", function () {
             it("should not allow users to return more kresko assets than they hold as debt", async function () {
                 const kreskoAssetAddress = this.kreskoAssetInfos[0].kreskoAsset.address;
                 const kreskoAssetIndex = 0;
-                const burnAmount = this.mintAmount + 1;
+                const burnAmount = this.mintAmount.add(1);
 
                 await expect(
                     this.kresko.connect(this.userOne).burnKreskoAsset(kreskoAssetAddress, burnAmount, kreskoAssetIndex),
@@ -955,10 +956,10 @@ describe("Kresko", function () {
 
             it("should not allow users to return Kresko assets they have not approved", async function () {
                 const secondMintAmount = 1;
-                const burnAmount = this.mintAmount + secondMintAmount;
+                const burnAmount = this.mintAmount.add(secondMintAmount);
                 const kreskoAssetAddress = this.kreskoAssetInfos[0].kreskoAsset.address;
 
-                await this.kresko.connect(this.userOne).mintKreskoAsset(kreskoAssetAddress, burnAmount);
+                await this.kresko.connect(this.userOne).mintKreskoAsset(kreskoAssetAddress, secondMintAmount);
 
                 const kreskoAssetIndex = 0;
                 await expect(
@@ -1122,7 +1123,7 @@ describe("Kresko", function () {
         });
     });
 
-    describe.only("#setBurnFee", function () {
+    describe("#setBurnFee", function () {
         const validNewBurnFee = toFixedPoint(0.042);
         it("Sets the burn fee", async function () {
             // Ensure it has the expected initial value
@@ -1154,7 +1155,7 @@ describe("Kresko", function () {
         });
     });
 
-    describe.only("#setFeeRecipient", function () {
+    describe("#setFeeRecipient", function () {
         const validFeeRecipient = "0xF00D000000000000000000000000000000000000";
         it("Sets the fee recipient", async function () {
             // Ensure it has the expected initial value

@@ -462,7 +462,6 @@ contract Kresko is Ownable {
 
     /**
      * @notice Burns existing Kresko assets.
-     * @dev
      * @param assetAddress The address of the Kresko asset.
      * @param amount The amount of the Kresko asset to be burned.
      * @param mintedKreskoAssetIndex The index of the Kresko asset in the user's minted assets array.
