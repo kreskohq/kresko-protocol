@@ -24,15 +24,6 @@ library FixedPoint {
     }
 
     /**
-     * @notice Returns the raw value of an `Unsigned` FixedPoint
-     * @param a FixedPoint to convert into a uint256
-     * @return the converted uint256.
-     */
-    function rawValueUnsigned(Unsigned memory a) internal pure returns (uint256) {
-        return a.rawValue;
-    }
-
-    /**
      * @notice Constructs an `Unsigned` from an unscaled uint, e.g., `b=5` gets stored internally as `5*(10**18)`.
      * @param a uint to convert into a FixedPoint.
      * @return the converted FixedPoint.
@@ -400,15 +391,6 @@ library FixedPoint {
 
     struct Signed {
         int256 rawValue;
-    }
-
-    /**
-     * @notice Returns the raw value of an `Signed` FixedPoint
-     * @param a FixedPoint to convert into an int256
-     * @return the converted int256.
-     */
-    function rawValueSigned(Signed memory a) internal pure returns (int256) {
-        return a.rawValue;
     }
 
     function fromSigned(Signed memory a) internal pure returns (Unsigned memory) {

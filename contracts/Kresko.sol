@@ -625,7 +625,7 @@ contract Kresko is Ownable {
         require(FixedPoint.Unsigned(repayAmount).isLessThanOrEqual(maxLiquidation), "REPAY_AMOUNT_TOO_LARGE");
 
         // max liquidation USD = total debt value in USD * close factor
-        FixedPoint.Unsigned memory maxLiquidationUSD = getKrAssetValue(repayKRAsset, maxLiquidation.rawValueUnsigned());
+        FixedPoint.Unsigned memory maxLiquidationUSD = getKrAssetValue(repayKRAsset, maxLiquidation.rawValue);
         // seize amount = max liquidation USD * liquidation incentive * exchange rate of collateral to USD
         FixedPoint.Unsigned memory seizeAmount = maxLiquidationUSD.
             mul(liquidationIncentive).
@@ -640,10 +640,9 @@ contract Kresko is Ownable {
 
         // Substract seized collateral from liquidated user's recorded collateral
         uint256 collateralDeposit = collateralDeposits[account][collateralToSeize];
-        uint256 seizeAmountRaw = seizeAmount.rawValueUnsigned();
-        collateralDeposits[account][collateralToSeize] = collateralDeposit - seizeAmountRaw;
+        collateralDeposits[account][collateralToSeize] = collateralDeposit - seizeAmount.rawValue;
         // If the liquidation seizes the user's entire collateral asset balance, remove it from collateral assets array
-        if (seizeAmount.isEqual(FixedPoint.Unsigned(collateralDeposit))) {
+        if (seizeAmount.rawValue == collateralDeposit) {
             removeFromDepositedCollateralAssets(account, collateralToSeize, depositedCollateralAssetIndex);
         }
 
@@ -656,9 +655,9 @@ contract Kresko is Ownable {
 
         // Send liquidator the seized collateral
         IERC20 collateralAsset = IERC20(collateralToSeize);
-        require(collateralAsset.transfer(msg.sender, seizeAmountRaw), "TRANSFER_OUT_FAILED");
+        require(collateralAsset.transfer(msg.sender, seizeAmount.rawValue), "TRANSFER_OUT_FAILED");
 
-        emit Liquidation(account, msg.sender, repayKRAsset, repayAmount, collateralToSeize, seizeAmountRaw);
+        emit Liquidation(account, msg.sender, repayKRAsset, repayAmount, collateralToSeize, seizeAmount.rawValue);
     }
 
     /**
