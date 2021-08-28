@@ -848,13 +848,6 @@ describe("Kresko", function () {
                 );
             });
 
-            // it("should not allow users to mint Kresko assets over their collateralization ratio limit", async function() {
-            //     const mintAmount = parseEther("1500")
-            //     // Attempt to mint amount greater than allowed
-            //     await expect(this.kresko.connect(this.userOne).mintKreskoAsset(
-            //         this.kreskoAssetAddresses[0],
-            //         mintAmount
-            //     )).to.be.revertedWith("INSUFFICIENT_COLLATERAL");
             it("should not allow users to mint Kresko assets over their collateralization ratio limit", async function () {
                 // The account collateral value is 9,876
                 // Attempt to mint an amount that would put the account's min collateral value
