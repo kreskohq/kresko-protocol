@@ -200,7 +200,12 @@ contract Kresko is Ownable {
         // Get the account's current collateral value.
         FixedPoint.Unsigned memory accountCollateralValue = getAccountCollateralValue(msg.sender);
         // Get the collateral value that the account will lose as a result of this withdrawal.
-        FixedPoint.Unsigned memory withdrawnCollateralValue = getCollateralValue(assetAddress, amount);
+        (FixedPoint.Unsigned memory withdrawnCollateralValue, ) =
+            getCollateralValueAndOraclePrice(
+                assetAddress,
+                amount,
+                false // Take the collateral factor into consideration.
+            );
         // Get the account's minimum collateral value.
         FixedPoint.Unsigned memory accountMinCollateralValue = getAccountMinimumCollateralValue(msg.sender);
         // Require accountCollateralValue - withdrawnCollateralValue >= accountMinCollateralValue
@@ -347,14 +352,20 @@ contract Kresko is Ownable {
      * @return The collateral value of a particular account.
      */
     function getAccountCollateralValue(address account) public view returns (FixedPoint.Unsigned memory) {
-        FixedPoint.Unsigned memory collateralValue = FixedPoint.Unsigned(0);
+        FixedPoint.Unsigned memory totalCollateralValue = FixedPoint.Unsigned(0);
 
         address[] memory assets = depositedCollateralAssets[account];
         for (uint256 i = 0; i < assets.length; i++) {
             address asset = assets[i];
-            collateralValue = collateralValue.add(getCollateralValue(asset, collateralDeposits[account][asset]));
+            (FixedPoint.Unsigned memory collateralValue, ) =
+                getCollateralValueAndOraclePrice(
+                    asset,
+                    collateralDeposits[account][asset],
+                    false // Take the collateral factor into consideration.
+                );
+            totalCollateralValue = totalCollateralValue.add(collateralValue);
         }
-        return collateralValue;
+        return totalCollateralValue;
     }
 
     /**
@@ -363,31 +374,97 @@ contract Kresko is Ownable {
      * @param amount The amount of the collateral asset to calculate the collateral value for.
      * @return The collateral value for the provided amount of the collateral asset.
      */
-    function getCollateralValue(address assetAddress, uint256 amount) public view returns (FixedPoint.Unsigned memory) {
+    function getCollateralValueAndOraclePrice(
+        address assetAddress,
+        uint256 amount,
+        bool ignoreCollateralFactor
+    ) public view returns (FixedPoint.Unsigned memory, FixedPoint.Unsigned memory) {
         CollateralAsset memory collateralAsset = collateralAssets[assetAddress];
-        // Initially, use the stored amount from collateralDeposits as the
-        // raw value for the FixedPoint.Unsigned, which internally uses
-        // FixedPoint.FP_DECIMALS (18) decimals. Most collateral assets
-        // will have 18 decimals.
-        FixedPoint.Unsigned memory depositAmount = FixedPoint.Unsigned(amount);
+
+        FixedPoint.Unsigned memory fixedPointAmount = getCollateralFixedPointAmount(assetAddress, amount);
+        FixedPoint.Unsigned memory oraclePrice = FixedPoint.Unsigned(collateralAsset.oracle.value());
+        FixedPoint.Unsigned memory value = fixedPointAmount.mul(oraclePrice);
+
+        if (!ignoreCollateralFactor) {
+            value = value.mul(collateralAsset.factor);
+        }
+        return (value, oraclePrice);
+    }
+
+    /**
+     * @notice For a given collateral asset and amount, returns a FixedPoint.Unsigned representation.
+     * @dev If the collateral asset has decimals other than 18, the amount is scaled appropriately.
+     *   If decimals > 18, there may be a loss of precision.
+     * @param assetAddress The address of the collateral asset.
+     * @param amount The amount of the collateral asset.
+     * @return A FixedPoint.Unsigned of amount scaled according to the collateral asset's decimals.
+     */
+    function getCollateralFixedPointAmount(address assetAddress, uint256 amount)
+        internal
+        view
+        returns (FixedPoint.Unsigned memory)
+    {
+        CollateralAsset memory collateralAsset = collateralAssets[assetAddress];
+        // Initially, use the amount as the raw value for the FixedPoint.Unsigned,
+        // which internally uses FixedPoint.FP_DECIMALS (18) decimals. Most collateral
+        // assets will have 18 decimals.
+        FixedPoint.Unsigned memory fixedPointAmount = FixedPoint.Unsigned(amount);
         // Handle cases where the collateral asset's decimal amount is not 18.
         if (collateralAsset.decimals < FixedPoint.FP_DECIMALS) {
-            // If the decimals are less than 18, multiply the depositAmount
+            // If the decimals are less than 18, multiply the amount
             // to get the correct fixed point value.
-            // E.g. having deposited 1 full token of a 17 decimal token will
-            // cause the initial setting of depositAmount to be 0.1, so we multiply
+            // E.g. 1 full token of a 17 decimal token will  cause the
+            // initial setting of amount to be 0.1, so we multiply
             // by 10 ** (18 - 17) = 10 to get it to 0.1 * 10 = 1.
-            depositAmount = depositAmount.mul(10**(FixedPoint.FP_DECIMALS - collateralAsset.decimals));
+            return fixedPointAmount.mul(10**(FixedPoint.FP_DECIMALS - collateralAsset.decimals));
         } else if (collateralAsset.decimals > FixedPoint.FP_DECIMALS) {
-            // If the decimals are greater than 18, divide the depositAmount
+            // If the decimals are greater than 18, divide the amount
             // to get the correct fixed point value.
             // Note because FixedPoint numbers are 18 decimals, this results
             // in loss of precision. E.g. if the cocllateral asset has 19
-            // decimals and the deposit amount is only 1 uint, this will divide
+            // decimals and the amount is only 1 uint, this will divide
             // 1 by 10 ** (19 - 18), resulting in 1 / 10 = 0
-            depositAmount = depositAmount.div(10**(collateralAsset.decimals - FixedPoint.FP_DECIMALS));
+            return fixedPointAmount.div(10**(collateralAsset.decimals - FixedPoint.FP_DECIMALS));
         }
-        return depositAmount.mul(FixedPoint.Unsigned(collateralAsset.oracle.value())).mul(collateralAsset.factor);
+        return fixedPointAmount;
+    }
+
+    /**
+     * @notice For a given collateral asset and fixed point amount, i.e. where a rawValue of 1e18 is equal to 1
+     *   whole token, returns the amount according to the collateral asset's decimals.
+     * @dev If the collateral asset has decimals other than 18, the amount is scaled appropriately.
+     *   If decimals < 18, there may be a loss of precision.
+     * @param assetAddress The address of the collateral asset.
+     * @param fixedPointAmount The fixed point amount of the collateral asset.
+     * @return An amount that is compatible with the collateral asset's decimals.
+     */
+    function fromCollateralFixedPointAmount(address assetAddress, FixedPoint.Unsigned memory fixedPointAmount)
+        internal
+        view
+        returns (uint256)
+    {
+        CollateralAsset memory collateralAsset = collateralAssets[assetAddress];
+        // Initially, use the rawValue, which internally uses FixedPoint.FP_DECIMALS (18) decimals
+        // Most collateral assets will have 18 decimals.
+        uint256 amount = fixedPointAmount.rawValue;
+        // Handle cases where the collateral asset's decimal amount is not 18.
+        if (collateralAsset.decimals < FixedPoint.FP_DECIMALS) {
+            // If the decimals are less than 18, divide the depositAmount
+            // to get the correct fixed point value.
+            // E.g. 1 full token will result in amount being 1e18 at this point,
+            // so if the token has 17 decimals, divide by 10 ** (18 - 17) = 10
+            // to get a value of 1e17.
+            // This may result in a loss of precision.
+            return amount / (10**(FixedPoint.FP_DECIMALS - collateralAsset.decimals));
+        } else if (collateralAsset.decimals > FixedPoint.FP_DECIMALS) {
+            // If the decimals are greater than 18, multiply the depositAmount
+            // to get the correct fixed point value.
+            // E.g. 1 full token will result in amount being 1e18 at this point,
+            // so if the token has 19 decimals, multiply by 10 ** (19 - 18) = 10
+            // to get a value of 1e19.
+            return amount * (10**(collateralAsset.decimals - FixedPoint.FP_DECIMALS));
+        }
+        return amount;
     }
 
     /**
@@ -552,9 +629,13 @@ contract Kresko is Ownable {
         for (uint256 i = accountCollateralAssets.length - 1; i >= 0; i--) {
             address collateralAssetAddress = accountCollateralAssets[i];
             uint256 depositAmount = collateralDeposits[account][collateralAssetAddress];
-            FixedPoint.Unsigned memory oracleValue =
-                FixedPoint.Unsigned(collateralAssets[collateralAssetAddress].oracle.value());
-            FixedPoint.Unsigned memory depositValue = oracleValue.mul(FixedPoint.Unsigned(depositAmount));
+
+            (FixedPoint.Unsigned memory depositValue, FixedPoint.Unsigned memory oraclePrice) =
+                getCollateralValueAndOraclePrice(
+                    collateralAssetAddress,
+                    depositAmount,
+                    true // Don't take the collateral asset's collateral factor into consideration.
+                );
 
             FixedPoint.Unsigned memory feeValuePaid;
             uint256 transferAmount;
@@ -562,19 +643,19 @@ contract Kresko is Ownable {
             if (feeValue.isLessThan(depositValue)) {
                 // We want to make sure that transferAmount is < depositAmount.
                 // Proof:
-                //   depositValue = oracleValue * depositAmount
+                //   depositValue <= oraclePrice * depositAmount (<= due to a potential loss of precision)
                 //   feeValue < depositValue
                 // Meaning:
-                //   feeValue < oracleValue * depositAmount
+                //   feeValue < oraclePrice * depositAmount
                 // Solving for depositAmount we get:
-                //   feeValue / oracleValue < depositAmount
+                //   feeValue / oraclePrice < depositAmount
                 // Due to integer division:
                 //   transferAmount = floor(feeValue / oracleValue)
-                //   transferAmount <= feeValue / oracleValue
+                //   transferAmount <= feeValue / oraclePrice
                 // We see that:
-                //   transferAmount <= feeValue / oracleValue < depositAmount
+                //   transferAmount <= feeValue / oraclePrice < depositAmount
                 //   transferAmount < depositAmount
-                transferAmount = feeValue.div(oracleValue).rawValue;
+                transferAmount = fromCollateralFixedPointAmount(collateralAssetAddress, feeValue.div(oraclePrice));
                 feeValuePaid = feeValue;
             } else {
                 // If the feeValue >= depositValue, the entire deposit

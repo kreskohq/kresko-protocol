@@ -55,6 +55,15 @@ async function deployAndWhitelistCollateralAsset(
         oraclePrice: fixedPointOraclePrice,
         decimals,
         fromDecimal: (decimalValue: any) => toFixedPoint(decimalValue, decimals),
+        fromFixedPoint: (fixedPointValue: BigNumber) => {
+            // Converts a fixed point value (ie a number with 18 decimals) to `decimals` decimals
+            if (decimals > 18) {
+                return fixedPointValue.mul(10 ** (decimals - 18));
+            } else if (decimals < 18) {
+                return fixedPointValue.div(10 ** (18 - decimals));
+            }
+            return fixedPointValue;
+        },
     };
 }
 
@@ -419,9 +428,10 @@ describe("Kresko", function () {
                         this.userOne.address,
                     );
                     const accountCollateralValue = await this.kresko.getAccountCollateralValue(this.userOne.address);
-                    const withdrawnCollateralValue = await this.kresko.getCollateralValue(
+                    const [withdrawnCollateralValue] = await this.kresko.getCollateralValueAndOraclePrice(
                         collateralAsset.address,
                         amountToWithdraw,
+                        false,
                     );
                     expect(
                         accountCollateralValue.rawValue
@@ -484,9 +494,10 @@ describe("Kresko", function () {
                         this.userOne.address,
                     );
                     const accountCollateralValue = await this.kresko.getAccountCollateralValue(this.userOne.address);
-                    const withdrawnCollateralValue = await this.kresko.getCollateralValue(
+                    const [withdrawnCollateralValue] = await this.kresko.getCollateralValueAndOraclePrice(
                         collateralAsset.address,
                         amountToWithdraw,
+                        false,
                     );
                     expect(
                         accountCollateralValue.rawValue
@@ -968,7 +979,7 @@ describe("Kresko", function () {
             });
 
             describe("Protocol burn fee", async function () {
-                it("should charge the protocol burn fee with a single collateral asset if the deposit amount is sufficient", async function () {
+                const singleFeePaymentTest = async function (this: any, collateralAssetInfo: any) {
                     const kreskoAssetIndex = 0;
                     const kreskoAssetInfo = this.kreskoAssetInfos[kreskoAssetIndex];
 
@@ -976,25 +987,28 @@ describe("Kresko", function () {
                     const burnValue = fixedPointMul(kreskoAssetInfo.oraclePrice, burnAmount);
 
                     const expectedFeeValue = fixedPointMul(burnValue, BURN_FEE);
-                    const expectedCollateralFee = fixedPointDiv(expectedFeeValue, this.collateralAssetInfo.oraclePrice);
+                    let expectedCollateralFeeAmount = collateralAssetInfo.fromFixedPoint(
+                        fixedPointDiv(expectedFeeValue, collateralAssetInfo.oraclePrice),
+                    );
 
                     // Get the balances prior to the fee being charged.
-                    const kreskoCollateralAssetBalanceBefore = await this.collateralAssetInfo.collateralAsset.balanceOf(
+                    const kreskoCollateralAssetBalanceBefore = await collateralAssetInfo.collateralAsset.balanceOf(
                         this.kresko.address,
                     );
                     const feeRecipientCollateralAssetBalanceBefore =
-                        await this.collateralAssetInfo.collateralAsset.balanceOf(FEE_RECIPIENT_ADDRESS);
+                        await collateralAssetInfo.collateralAsset.balanceOf(FEE_RECIPIENT_ADDRESS);
 
                     const burnReceipt = await this.kresko
                         .connect(this.userOne)
                         .burnKreskoAsset(kreskoAssetInfo.kreskoAsset.address, burnAmount, kreskoAssetIndex);
 
                     // Get the balances after the fees have been charged.
-                    const kreskoCollateralAssetBalanceAfter = await this.collateralAssetInfo.collateralAsset.balanceOf(
+                    const kreskoCollateralAssetBalanceAfter = await collateralAssetInfo.collateralAsset.balanceOf(
                         this.kresko.address,
                     );
-                    const feeRecipientCollateralAssetBalanceAfter =
-                        await this.collateralAssetInfo.collateralAsset.balanceOf(FEE_RECIPIENT_ADDRESS);
+                    const feeRecipientCollateralAssetBalanceAfter = await collateralAssetInfo.collateralAsset.balanceOf(
+                        FEE_RECIPIENT_ADDRESS,
+                    );
 
                     // Ensure the amount gained / lost by the kresko contract and the fee recipient are as expected.
                     const feeRecipientBalanceIncrease = feeRecipientCollateralAssetBalanceAfter.sub(
@@ -1003,16 +1017,37 @@ describe("Kresko", function () {
                     expect(kreskoCollateralAssetBalanceBefore.sub(kreskoCollateralAssetBalanceAfter)).to.equal(
                         feeRecipientBalanceIncrease,
                     );
-                    expect(feeRecipientBalanceIncrease).to.equal(expectedCollateralFee);
+                    expect(feeRecipientBalanceIncrease).to.equal(expectedCollateralFeeAmount);
 
                     // Ensure the emitted event is as expected.
                     const events = await extractEventFromTxReceipt(burnReceipt, "BurnFeePaid");
                     expect(events!.length).to.equal(1);
                     const eventArgs = events![0].args!;
                     expect(eventArgs.account).to.equal(this.userOne.address);
-                    expect(eventArgs.paymentAsset).to.equal(this.collateralAssetInfo.collateralAsset.address);
-                    expect(eventArgs.paymentAmount).to.equal(expectedCollateralFee);
+                    expect(eventArgs.paymentAsset).to.equal(collateralAssetInfo.collateralAsset.address);
+                    expect(eventArgs.paymentAmount).to.equal(expectedCollateralFeeAmount);
                     expect(eventArgs.paymentValue).to.equal(expectedFeeValue);
+                };
+
+                const atypicalCollateralDecimalsTest = async function (this: any, decimals: number) {
+                    const collateralAssetInfo = await deployAndWhitelistCollateralAsset(this.kresko, 0.8, 10, decimals);
+                    // Give userOne a balance for the collateral asset.
+                    await collateralAssetInfo.collateralAsset.setBalanceOf(
+                        this.userOne.address,
+                        collateralAssetInfo.fromDecimal(1000),
+                    );
+                    await this.kresko
+                        .connect(this.userOne)
+                        .depositCollateral(
+                            collateralAssetInfo.collateralAsset.address,
+                            collateralAssetInfo.fromDecimal(100),
+                        );
+
+                    await singleFeePaymentTest.bind(this)(collateralAssetInfo);
+                };
+
+                it("should charge the protocol burn fee with a single collateral asset if the deposit amount is sufficient", async function () {
+                    await singleFeePaymentTest.bind(this)(this.collateralAssetInfo);
                 });
 
                 it("should charge the protocol burn fee across multiple collateral assets if needed", async function () {
@@ -1118,6 +1153,14 @@ describe("Kresko", function () {
                         this.collateralAssetInfo.oraclePrice,
                     );
                     expectFeePaid(events![2].args!, 0, expectedPaymentAmount, expectedPaymentValue);
+                });
+
+                it("should charge fees as expected against collateral assets with decimals < 18", async function () {
+                    await atypicalCollateralDecimalsTest.bind(this)(8);
+                });
+
+                it("should charge fees as expected against collateral assets with decimals > 18", async function () {
+                    await atypicalCollateralDecimalsTest.bind(this)(24);
                 });
             });
         });
