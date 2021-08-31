@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
+import "hardhat/console.sol";
+
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "./KreskoAsset.sol";
@@ -32,9 +34,10 @@ contract Kresko is Ownable {
         bool exists;
     }
 
-    uint256 public constant MAX_CLOSE_FACTOR = 3e17;              // 30%
-    uint256 public constant MIN_LIQUIDATION_INCENTIVE = 1e16;     // 1%
-    uint256 public constant MAX_LIQUIDATION_INCENTIVE = 1e17;     // 10%
+    uint256 public constant MIN_CLOSE_FACTOR = 0.05e18;           // 5%
+    uint256 public constant MAX_CLOSE_FACTOR = 0.9e18;            // 90%
+    uint256 public constant MIN_LIQUIDATION_INCENTIVE = 1e18;     // 100%
+    uint256 public constant MAX_LIQUIDATION_INCENTIVE = 1.5e18;   // 150% // TODO: consider implications
 
     uint256 public minimumCollateralizationRatio;
     FixedPoint.Unsigned public closeFactor;
@@ -595,7 +598,7 @@ contract Kresko is Ownable {
         // Get the account's current minimum collateral value required to maintain current debts
         FixedPoint.Unsigned memory minAccountCollateralValue = getAccountMinimumCollateralValue(account);
 
-        return minAccountCollateralValue.isLessThan(accountCollateralValue);
+        return accountCollateralValue.isLessThan(minAccountCollateralValue);
     }
 
     /**
@@ -621,15 +624,17 @@ contract Kresko is Ownable {
 
         // Liquidator may not repay more than what is allowed by the close factor
         uint256 krAssetDebt = kreskoAssetDebt[account][repayKRAsset];
+        // max liquidation = total debt * close factor
         FixedPoint.Unsigned memory maxLiquidation = FixedPoint.Unsigned(krAssetDebt).mul(closeFactor);
         require(FixedPoint.Unsigned(repayAmount).isLessThanOrEqual(maxLiquidation), "REPAY_AMOUNT_TOO_LARGE");
 
-        // max liquidation USD = total debt value in USD * close factor
-        FixedPoint.Unsigned memory maxLiquidationUSD = getKrAssetValue(repayKRAsset, maxLiquidation.rawValue);
-        // seize amount = max liquidation USD * liquidation incentive * exchange rate of collateral to USD
-        FixedPoint.Unsigned memory seizeAmount = maxLiquidationUSD.
-            mul(liquidationIncentive).
-            mul(getCollateralValue(collateralToSeize, 1));
+        // repay amount USD = repay amount * KR asset USD exchange rate
+        FixedPoint.Unsigned memory repayAmountUSD = getKrAssetValue(repayKRAsset, repayAmount);
+
+        // seize amount = (repay amount USD / exchange rate of collateral asset) * liquidation incentive
+        FixedPoint.Unsigned memory seizeAmount = repayAmountUSD.
+            div(getCollateralValue(collateralToSeize, 1).rawValue). // Denominate seize amount in collateral type
+            mul(liquidationIncentive);                              // Apply liquidation percentage
 
         // Subtract repaid Kresko assets from liquidated user's recorded debt
         kreskoAssetDebt[account][repayKRAsset] = krAssetDebt - repayAmount;
@@ -665,6 +670,7 @@ contract Kresko is Ownable {
      * @param _closeFactor The new close factor as a raw value for a FixedPoint.Unsigned.
      */
     function setCloseFactor(uint256 _closeFactor) public onlyOwner {
+        require(_closeFactor >= MIN_CLOSE_FACTOR, "CLOSE_FACTOR_TOO_LOW");
         require(_closeFactor <= MAX_CLOSE_FACTOR, "CLOSE_FACTOR_TOO_HIGH");
         closeFactor = FixedPoint.Unsigned(_closeFactor);
         emit UpdateCloseFactor(_closeFactor);
