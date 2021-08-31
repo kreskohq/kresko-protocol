@@ -1080,6 +1080,9 @@ describe("Kresko", function () {
             // Fetch contract's collateral balance
             const beforeKreskoCollateralBalance = Number(await collateralAsset.balanceOf(this.kresko.address));
 
+            // Fetch the Kresko asset's total supply
+            const beforeKreskoAssetTotalSupply = Number(await this.kreskoAssets[0].totalSupply());
+
             // userTwo holds Kresko assets that can be used to repay userOne's loan
             const repayAmount = 100;
             await this.kreskoAssets[0].connect(this.userTwo).approve(this.kresko.address, repayAmount);
@@ -1113,6 +1116,68 @@ describe("Kresko", function () {
             // Confirm that Kresko contract's collateral balance has decreased.
             const afterKreskoCollateralBalance = Number(await collateralAsset.balanceOf(this.kresko.address));
             expect(afterKreskoCollateralBalance).to.be.lessThan(beforeKreskoCollateralBalance);
+
+            // Confirm that Kresko asset's total supply has decreased.
+            const afterKreskoAssetTotalSupply = Number(await this.kreskoAssets[0].totalSupply());
+            expect(afterKreskoAssetTotalSupply).to.equal(beforeKreskoAssetTotalSupply-repayAmount);
+        });
+
+        it("should not allow the liquidations of healthy accounts", async function () {
+            const repayAmount = 100;
+            await this.kreskoAssets[0].connect(this.userTwo).approve(this.kresko.address, repayAmount);
+
+            const mintedKreskoAssetIndex = 0;
+            const depositedCollateralAssetIndex = 0;
+            await expect(this.kresko.connect(this.userTwo).liquidate(
+                this.userOne.address,
+                this.kreskoAssetAddresses[0],
+                repayAmount,
+                this.collateralAssetInfos[0].collateralAsset.address,
+                mintedKreskoAssetIndex,
+                depositedCollateralAssetIndex
+            )).to.be.revertedWith("NOT_LIQUIDATABLE");
+        });
+
+        it("should not allow repayments over the max repay amount", async function () {
+            // Change collateral asset's USD value from $20 to $11
+            const updatedCollateralPrice = 11;
+            const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
+            await this.collateralAssetInfos[0].oracle.setValue(fixedPointOraclePrice);
+
+            // userTwo holds Kresko assets that can be used to repay userOne's loan
+            const repayAmount = 1000;
+            await this.kreskoAssets[0].connect(this.userTwo).approve(this.kresko.address, repayAmount);
+
+            const mintedKreskoAssetIndex = 0;
+            const depositedCollateralAssetIndex = 0;
+            await expect(this.kresko.connect(this.userTwo).liquidate(
+                this.userOne.address,
+                this.kreskoAssetAddresses[0],
+                repayAmount,
+                this.collateralAssetInfos[0].collateralAsset.address,
+                mintedKreskoAssetIndex,
+                depositedCollateralAssetIndex
+            )).to.be.revertedWith("REPAY_AMOUNT_TOO_LARGE");
+        });
+
+        it("should not allow liquidations if liquidator hasn't approved Kresko assets to the contract", async function () {
+            // Change collateral asset's USD value from $20 to $11
+            const updatedCollateralPrice = 11;
+            const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
+            await this.collateralAssetInfos[0].oracle.setValue(fixedPointOraclePrice);
+
+            const repayAmount = 100;
+
+            const mintedKreskoAssetIndex = 0;
+            const depositedCollateralAssetIndex = 0;
+            await expect(this.kresko.connect(this.userTwo).liquidate(
+                this.userOne.address,
+                this.kreskoAssetAddresses[0],
+                repayAmount,
+                this.collateralAssetInfos[0].collateralAsset.address,
+                mintedKreskoAssetIndex,
+                depositedCollateralAssetIndex
+            )).to.be.revertedWith("revert ERC20: transfer amount exceeds allowance");
         });
     });
 });
