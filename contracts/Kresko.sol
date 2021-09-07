@@ -798,7 +798,9 @@ contract Kresko is Ownable {
         address collateralToSeize,
         uint256 mintedKreskoAssetIndex,
         uint256 depositedCollateralAssetIndex
-    ) public {
+    ) public collateralAssetExists(collateralToSeize) kreskoAssetExists(repayKRAsset) {
+        require(repayAmount > 0, "REPAY_AMOUNT_TOO_SMALL");
+
         // Check that this account is below its minimum collateralization ratio and can be liquidated
         require(isAccountLiquidatable(account), "NOT_LIQUIDATABLE");
 
@@ -810,23 +812,9 @@ contract Kresko is Ownable {
 
         // repay amount USD = repay amount * KR asset USD exchange rate
         FixedPoint.Unsigned memory repayAmountUSD = getKrAssetValue(repayKRAsset, repayAmount);
-
-        // Fetch collateral asset's oracle price
+        // Calculate amount of collateral to seize
         uint256 collateralDeposit = collateralDeposits[account][collateralToSeize];
-        (, FixedPoint.Unsigned memory oraclePrice) =
-            getCollateralValueAndOraclePrice(
-                collateralToSeize,
-                collateralDeposit,
-                false
-            );
-
-        // seize amount = (repay amount USD / exchange rate of collateral asset) * liquidation incentive
-        uint256 sizeAmountUint = fromCollateralFixedPointAmount(
-            collateralToSeize,
-            repayAmountUSD.
-                div(oraclePrice).           // Denominate seize amount in collateral type
-                mul(liquidationIncentive)  // Apply liquidation percentage
-        );
+        uint256 seizeAmount = calculateAmountToSeize(collateralToSeize, collateralDeposit, repayAmountUSD);
 
         // Subtract repaid Kresko assets from liquidated user's recorded debt
         kreskoAssetDebt[account][repayKRAsset] = krAssetDebt - repayAmount;
@@ -836,9 +824,9 @@ contract Kresko is Ownable {
         }
 
         // Subtract seized collateral from liquidated user's recorded collateral
-        collateralDeposits[account][collateralToSeize] = collateralDeposit - sizeAmountUint;
+        collateralDeposits[account][collateralToSeize] = collateralDeposit - seizeAmount;
         // If the liquidation seizes the user's entire collateral asset balance, remove it from collateral assets array
-        if (sizeAmountUint == collateralDeposit) {
+        if (seizeAmount == collateralDeposit) {
             removeFromDepositedCollateralAssets(account, collateralToSeize, depositedCollateralAssetIndex);
         }
 
@@ -849,10 +837,36 @@ contract Kresko is Ownable {
         kAsset.burn(repayAmount);
 
         // Send liquidator the seized collateral
-        IERC20 collateralAsset = IERC20(collateralToSeize);
-        require(collateralAsset.transfer(msg.sender, sizeAmountUint), "TRANSFER_OUT_FAILED");
+        require(IERC20(collateralToSeize).transfer(msg.sender, seizeAmount), "TRANSFER_OUT_FAILED");
 
-        emit Liquidation(account, msg.sender, repayKRAsset, repayAmount, collateralToSeize, sizeAmountUint);
+        emit Liquidation(account, msg.sender, repayKRAsset, repayAmount, collateralToSeize, seizeAmount);
+    }
+
+    /**
+     * @notice Calculate amount of collateral to seize during the liquidation process.
+     * @param collateralToSeize Address of the collateral asset.
+     * @param collateralDeposit Maximum amount of collateral available to be seized.
+     * @param repayAmountUSD Kresko asset amount being repaid in exchange for the seized collateral.
+     */
+    function calculateAmountToSeize(
+        address collateralToSeize,
+        uint256 collateralDeposit,
+        FixedPoint.Unsigned memory repayAmountUSD
+    ) internal view returns (uint256) {
+        // Fetch collateral asset's oracle price
+        (, FixedPoint.Unsigned memory oraclePrice) =
+            getCollateralValueAndOraclePrice(
+                collateralToSeize,
+                collateralDeposit,
+                false
+            );
+
+        // seize amount = (repay amount USD / exchange rate of collateral asset) * liquidation incentive
+        FixedPoint.Unsigned memory seizeAmount = repayAmountUSD.
+            div(oraclePrice).           // Denominate seize amount in collateral type
+            mul(liquidationIncentive);  // Apply liquidation percentage
+
+        return fromCollateralFixedPointAmount(collateralToSeize, seizeAmount);
     }
 
     /**

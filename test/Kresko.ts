@@ -1422,6 +1422,29 @@ describe("Kresko", function () {
             )).to.be.revertedWith("NOT_LIQUIDATABLE");
         });
 
+        it("should not allow repayments of 0", async function () {
+            // Change collateral asset's USD value from $20 to $11
+            const updatedCollateralPrice = 11;
+            const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
+            await this.collateralAssetInfos[0].oracle.setValue(fixedPointOraclePrice);
+
+            // userTwo holds Kresko assets that can be used to repay userOne's loan
+            const approveAmount = 1000;
+            await this.kreskoAssetInfo[0].kreskoAsset.connect(this.userTwo).approve(this.kresko.address, approveAmount);
+
+            const repayAmount = 0;
+            const mintedKreskoAssetIndex = 0;
+            const depositedCollateralAssetIndex = 0;
+            await expect(this.kresko.connect(this.userTwo).liquidate(
+                this.userOne.address,
+                this.kreskoAssetInfo[0].kreskoAsset.address,
+                repayAmount,
+                this.collateralAssetInfos[0].collateralAsset.address,
+                mintedKreskoAssetIndex,
+                depositedCollateralAssetIndex
+            )).to.be.revertedWith("REPAY_AMOUNT_TOO_SMALL");
+        });
+
         it("should not allow repayments over the max repay amount", async function () {
             // Change collateral asset's USD value from $20 to $11
             const updatedCollateralPrice = 11;
