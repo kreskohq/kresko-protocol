@@ -22,3 +22,7 @@ export function fromFixedPoint(fixedPoint: any) {
 export function fixedPointMul(a: BigNumber, b: any) {
     return a.mul(b).div(FIXED_POINT_SCALING_FACTOR);
 }
+
+export function fixedPointDiv(a: BigNumber, b: any) {
+    return a.mul(FIXED_POINT_SCALING_FACTOR).div(b);
+}
