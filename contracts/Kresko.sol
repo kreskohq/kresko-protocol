@@ -652,7 +652,6 @@ contract Kresko is Ownable {
         require(kAsset.transferFrom(msg.sender, address(this), repayAmount), "TRANSFER_IN_FAILED");
         // Burn the received Kresko assets, removing them from circulation
         kAsset.burn(repayAmount);
-        emit KreskoAssetBurned(account, repayKRAsset, repayAmount);
 
         // Send liquidator the seized collateral
         IERC20 collateralAsset = IERC20(collateralToSeize);
