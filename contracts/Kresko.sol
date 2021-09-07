@@ -540,12 +540,8 @@ contract Kresko is Ownable {
         kreskoAssetExists(assetAddr)
         returns (FixedPoint.Unsigned memory minCollateralValue)
     {
-        KAsset memory kAsset = kreskoAssets[assetAddr];
-
         // Calculate the Kresko asset's value weighted by kFactor
-        FixedPoint.Unsigned memory weightedKreskoAssetValue =
-            FixedPoint.Unsigned(kAsset.oracle.value()).mul(FixedPoint.Unsigned(amount)).mul(kAsset.kFactor);
-
+        FixedPoint.Unsigned memory weightedKreskoAssetValue = getKrAssetValue(assetAddr, amount);
         // Calculate the minimum collateral required to back this Kresko asset amount
         return weightedKreskoAssetValue.mul(minimumCollateralizationRatio).div(100);
     }
@@ -587,7 +583,7 @@ contract Kresko is Ownable {
         return value;
     }
 
-      /**
+    /**
      * @notice Calculates if an account is currently liquidatable
      * @param account The account to check.
      * @return A boolean indicating if the account can be liquidated.
@@ -626,7 +622,7 @@ contract Kresko is Ownable {
         uint256 krAssetDebt = kreskoAssetDebt[account][repayKRAsset];
         // max liquidation = total debt * close factor
         FixedPoint.Unsigned memory maxLiquidation = FixedPoint.Unsigned(krAssetDebt).mul(closeFactor);
-        require(FixedPoint.Unsigned(repayAmount).isLessThanOrEqual(maxLiquidation), "REPAY_AMOUNT_TOO_LARGE");
+        require(repayAmount <= maxLiquidation.rawValue, "REPAY_AMOUNT_TOO_LARGE");
 
         // repay amount USD = repay amount * KR asset USD exchange rate
         FixedPoint.Unsigned memory repayAmountUSD = getKrAssetValue(repayKRAsset, repayAmount);
@@ -643,7 +639,7 @@ contract Kresko is Ownable {
             removeFromMintedKreskoAssets(account, repayKRAsset, mintedKreskoAssetIndex);
         }
 
-        // Substract seized collateral from liquidated user's recorded collateral
+        // Subtract seized collateral from liquidated user's recorded collateral
         uint256 collateralDeposit = collateralDeposits[account][collateralToSeize];
         collateralDeposits[account][collateralToSeize] = collateralDeposit - seizeAmount.rawValue;
         // If the liquidation seizes the user's entire collateral asset balance, remove it from collateral assets array
