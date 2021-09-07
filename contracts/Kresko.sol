@@ -88,7 +88,6 @@ contract Kresko is Ownable {
     event UpdateMinimumCollateralizationRatio(uint256 minimumCollateralizationRatio);
     event UpdateCloseFactor(uint256 closeFactor);
     event UpdateLiquidationIncentive(uint256 liquidationIncentive);
-    event UpdateMinimumCollateralizationRatio(uint256 minimumCollateralizationRatio);
 
     // Collateral asset events
     event AddCollateralAsset(address assetAddress, uint256 factor, address oracle);
@@ -812,10 +811,22 @@ contract Kresko is Ownable {
         // repay amount USD = repay amount * KR asset USD exchange rate
         FixedPoint.Unsigned memory repayAmountUSD = getKrAssetValue(repayKRAsset, repayAmount);
 
+        // Fetch collateral asset's oracle price
+        uint256 collateralDeposit = collateralDeposits[account][collateralToSeize];
+        (, FixedPoint.Unsigned memory oraclePrice) =
+            getCollateralValueAndOraclePrice(
+                collateralToSeize,
+                collateralDeposit,
+                false
+            );
+
         // seize amount = (repay amount USD / exchange rate of collateral asset) * liquidation incentive
-        FixedPoint.Unsigned memory seizeAmount = repayAmountUSD.
-            div(getCollateralValue(collateralToSeize, 1).rawValue). // Denominate seize amount in collateral type
-            mul(liquidationIncentive);                              // Apply liquidation percentage
+        uint256 sizeAmountUint = fromCollateralFixedPointAmount(
+            collateralToSeize,
+            repayAmountUSD.
+                div(oraclePrice).           // Denominate seize amount in collateral type
+                mul(liquidationIncentive)  // Apply liquidation percentage
+        );
 
         // Subtract repaid Kresko assets from liquidated user's recorded debt
         kreskoAssetDebt[account][repayKRAsset] = krAssetDebt - repayAmount;
@@ -825,10 +836,9 @@ contract Kresko is Ownable {
         }
 
         // Subtract seized collateral from liquidated user's recorded collateral
-        uint256 collateralDeposit = collateralDeposits[account][collateralToSeize];
-        collateralDeposits[account][collateralToSeize] = collateralDeposit - seizeAmount.rawValue;
+        collateralDeposits[account][collateralToSeize] = collateralDeposit - sizeAmountUint;
         // If the liquidation seizes the user's entire collateral asset balance, remove it from collateral assets array
-        if (seizeAmount.rawValue == collateralDeposit) {
+        if (sizeAmountUint == collateralDeposit) {
             removeFromDepositedCollateralAssets(account, collateralToSeize, depositedCollateralAssetIndex);
         }
 
@@ -840,9 +850,9 @@ contract Kresko is Ownable {
 
         // Send liquidator the seized collateral
         IERC20 collateralAsset = IERC20(collateralToSeize);
-        require(collateralAsset.transfer(msg.sender, seizeAmount.rawValue), "TRANSFER_OUT_FAILED");
+        require(collateralAsset.transfer(msg.sender, sizeAmountUint), "TRANSFER_OUT_FAILED");
 
-        emit Liquidation(account, msg.sender, repayKRAsset, repayAmount, collateralToSeize, seizeAmount.rawValue);
+        emit Liquidation(account, msg.sender, repayKRAsset, repayAmount, collateralToSeize, sizeAmountUint);
     }
 
     /**
