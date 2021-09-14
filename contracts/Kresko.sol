@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "hardhat/console.sol";
-
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "./KreskoAsset.sol";
@@ -34,10 +32,10 @@ contract Kresko is Ownable {
         bool exists;
     }
 
-    uint256 public constant MIN_CLOSE_FACTOR = 0.05e18;           // 5%
-    uint256 public constant MAX_CLOSE_FACTOR = 0.9e18;            // 90%
-    uint256 public constant MIN_LIQUIDATION_INCENTIVE = 1e18;     // 100%
-    uint256 public constant MAX_LIQUIDATION_INCENTIVE = 1.5e18;   // 150% // TODO: consider implications
+    uint256 public constant MIN_CLOSE_FACTOR = 0.05e18; // 5%
+    uint256 public constant MAX_CLOSE_FACTOR = 0.9e18; // 90%
+    uint256 public constant MIN_LIQUIDATION_INCENTIVE = 1e18; // 100%
+    uint256 public constant MAX_LIQUIDATION_INCENTIVE = 1.5e18; // 150% // TODO: consider implications
     uint256 public constant MAX_BURN_FEE = 1e17; // Because FP_SCALING_FACTOR = 1e18, this is 10%
 
     uint256 public minimumCollateralizationRatio;
@@ -103,8 +101,14 @@ contract Kresko is Ownable {
     event UpdateKreskoAssetOracle(address assetAddress, address oracle);
     event KreskoAssetMinted(address account, address assetAddress, uint256 amount);
     event KreskoAssetBurned(address account, address assetAddress, uint256 amount);
-    event Liquidation(address account, address liquidator, address repayKRAsset,
-        uint256 repayAmount, address seizedCollateral, uint256 seizedAmount);
+    event Liquidation(
+        address account,
+        address liquidator,
+        address repayKRAsset,
+        uint256 repayAmount,
+        address seizedCollateral,
+        uint256 seizedAmount
+    );
 
     modifier collateralAssetExists(address assetAddress) {
         require(collateralAssets[assetAddress].exists, "ASSET_NOT_VALID");
@@ -141,8 +145,8 @@ contract Kresko is Ownable {
         updateMinimumCollateralizationRatio(_minimumCollateralizationRatio);
         setBurnFee(_burnFee);
         setFeeRecipient(_feeRecipient);
-         setCloseFactor(_closeFactor);
-         setLiquidationIncentive(_liquidationIncentive);
+        setCloseFactor(_closeFactor);
+        setLiquidationIncentive(_liquidationIncentive);
     }
 
     /**
@@ -811,10 +815,11 @@ contract Kresko is Ownable {
         require(repayAmount <= maxLiquidation.rawValue, "REPAY_AMOUNT_TOO_LARGE");
 
         // repay amount USD = repay amount * KR asset USD exchange rate
-        FixedPoint.Unsigned memory repayAmountUSD = getKrAssetValue(repayKRAsset, repayAmount);
+        FixedPoint.Unsigned memory repayAmountUSD =
+            FixedPoint.Unsigned(repayAmount).mul(FixedPoint.Unsigned(kreskoAssets[repayKRAsset].oracle.value()));
+
         // Calculate amount of collateral to seize
-        uint256 collateralDeposit = collateralDeposits[account][collateralToSeize];
-        uint256 seizeAmount = calculateAmountToSeize(collateralToSeize, collateralDeposit, repayAmountUSD);
+        uint256 seizeAmount = calculateAmountToSeize(collateralToSeize, repayAmountUSD);
 
         // Subtract repaid Kresko assets from liquidated user's recorded debt
         kreskoAssetDebt[account][repayKRAsset] = krAssetDebt - repayAmount;
@@ -824,6 +829,7 @@ contract Kresko is Ownable {
         }
 
         // Subtract seized collateral from liquidated user's recorded collateral
+        uint256 collateralDeposit = collateralDeposits[account][collateralToSeize];
         collateralDeposits[account][collateralToSeize] = collateralDeposit - seizeAmount;
         // If the liquidation seizes the user's entire collateral asset balance, remove it from collateral assets array
         if (seizeAmount == collateralDeposit) {
@@ -845,26 +851,22 @@ contract Kresko is Ownable {
     /**
      * @notice Calculate amount of collateral to seize during the liquidation process.
      * @param collateralToSeize Address of the collateral asset.
-     * @param collateralDeposit Maximum amount of collateral available to be seized.
      * @param repayAmountUSD Kresko asset amount being repaid in exchange for the seized collateral.
      */
-    function calculateAmountToSeize(
-        address collateralToSeize,
-        uint256 collateralDeposit,
-        FixedPoint.Unsigned memory repayAmountUSD
-    ) internal view returns (uint256) {
+    function calculateAmountToSeize(address collateralToSeize, FixedPoint.Unsigned memory repayAmountUSD)
+        internal
+        view
+        returns (uint256)
+    {
         // Fetch collateral asset's oracle price
-        (, FixedPoint.Unsigned memory oraclePrice) =
-            getCollateralValueAndOraclePrice(
-                collateralToSeize,
-                collateralDeposit,
-                false
-            );
+        FixedPoint.Unsigned memory oraclePrice =
+            FixedPoint.Unsigned(collateralAssets[collateralToSeize].oracle.value());
 
         // seize amount = (repay amount USD / exchange rate of collateral asset) * liquidation incentive
-        FixedPoint.Unsigned memory seizeAmount = repayAmountUSD.
-            div(oraclePrice).           // Denominate seize amount in collateral type
-            mul(liquidationIncentive);  // Apply liquidation percentage
+        FixedPoint.Unsigned memory seizeAmount =
+            repayAmountUSD
+                .div(oraclePrice) // Denominate seize amount in collateral type
+                .mul(liquidationIncentive); // Apply liquidation percentage
 
         return fromCollateralFixedPointAmount(collateralToSeize, seizeAmount);
     }
