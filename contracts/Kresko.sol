@@ -32,9 +32,15 @@ contract Kresko is Ownable {
         bool exists;
     }
 
+    uint256 public constant MIN_CLOSE_FACTOR = 0.05e18; // 5%
+    uint256 public constant MAX_CLOSE_FACTOR = 0.9e18; // 90%
+    uint256 public constant MIN_LIQUIDATION_INCENTIVE = 1e18; // 100%
+    uint256 public constant MAX_LIQUIDATION_INCENTIVE = 1.5e18; // 150% // TODO: consider implications
     uint256 public constant MAX_BURN_FEE = 1e17; // Because FP_SCALING_FACTOR = 1e18, this is 10%
 
     uint256 public minimumCollateralizationRatio;
+    FixedPoint.Unsigned public closeFactor;
+    FixedPoint.Unsigned public liquidationIncentive;
 
     /**
      * The percent fee imposed upon the value of burned krAssets, taken in the form of
@@ -78,6 +84,8 @@ contract Kresko is Ownable {
     event UpdateBurnFee(uint256 burnFee);
     event UpdateFeeRecipient(address feeRecipient);
     event UpdateMinimumCollateralizationRatio(uint256 minimumCollateralizationRatio);
+    event UpdateCloseFactor(uint256 closeFactor);
+    event UpdateLiquidationIncentive(uint256 liquidationIncentive);
 
     // Collateral asset events
     event AddCollateralAsset(address assetAddress, uint256 factor, address oracle);
@@ -93,6 +101,14 @@ contract Kresko is Ownable {
     event UpdateKreskoAssetOracle(address assetAddress, address oracle);
     event KreskoAssetMinted(address account, address assetAddress, uint256 amount);
     event KreskoAssetBurned(address account, address assetAddress, uint256 amount);
+    event Liquidation(
+        address account,
+        address liquidator,
+        address repayKRAsset,
+        uint256 repayAmount,
+        address seizedCollateral,
+        uint256 seizedAmount
+    );
 
     modifier collateralAssetExists(address assetAddress) {
         require(collateralAssets[assetAddress].exists, "ASSET_NOT_VALID");
@@ -122,11 +138,15 @@ contract Kresko is Ownable {
     constructor(
         uint256 _minimumCollateralizationRatio,
         uint256 _burnFee,
-        address _feeRecipient
+        address _feeRecipient,
+        uint256 _closeFactor,
+        uint256 _liquidationIncentive
     ) {
         updateMinimumCollateralizationRatio(_minimumCollateralizationRatio);
         setBurnFee(_burnFee);
         setFeeRecipient(_feeRecipient);
+        setCloseFactor(_closeFactor);
+        setLiquidationIncentive(_liquidationIncentive);
     }
 
     /**
@@ -421,8 +441,8 @@ contract Kresko is Ownable {
             // If the decimals are greater than 18, divide the amount
             // to get the correct fixed point value.
             // Note because FixedPoint numbers are 18 decimals, this results
-            // in loss of precision. E.g. if the cocllateral asset has 19
-            // decimals and the amount is only 1 uint, this will divide
+            // in loss of precision. E.g. if the collateral asset has 19
+            // decimals and the deposit amount is only 1 uint, this will divide
             // 1 by 10 ** (19 - 18), resulting in 1 / 10 = 0
             return fixedPointAmount.div(10**(collateralAsset.decimals - FixedPoint.FP_DECIMALS));
         }
@@ -708,12 +728,8 @@ contract Kresko is Ownable {
         kreskoAssetExists(assetAddr)
         returns (FixedPoint.Unsigned memory minCollateralValue)
     {
-        KAsset memory kAsset = kreskoAssets[assetAddr];
-
         // Calculate the Kresko asset's value weighted by kFactor
-        FixedPoint.Unsigned memory weightedKreskoAssetValue =
-            FixedPoint.Unsigned(kAsset.oracle.value()).mul(FixedPoint.Unsigned(amount)).mul(kAsset.kFactor);
-
+        FixedPoint.Unsigned memory weightedKreskoAssetValue = getKrAssetValue(assetAddr, amount);
         // Calculate the minimum collateral required to back this Kresko asset amount
         return weightedKreskoAssetValue.mul(minimumCollateralizationRatio).div(100);
     }
@@ -725,6 +741,156 @@ contract Kresko is Ownable {
      */
     function getMintedKreskoAssets(address account) external view returns (address[] memory) {
         return mintedKreskoAssets[account];
+    }
+
+    /**
+     * @notice Gets the USD value for a single Kresko asset and amount.
+     * @param assetAddress The address of the Kresko asset.
+     * @param amount The amount of the Kresko asset to calculate the value for.
+     * @return The value for the provided amount of the Kresko asset.
+     */
+    function getKrAssetValue(address assetAddress, uint256 amount) public view returns (FixedPoint.Unsigned memory) {
+        KAsset memory krAsset = kreskoAssets[assetAddress];
+        FixedPoint.Unsigned memory amt = FixedPoint.Unsigned(amount);
+        return amt.mul(FixedPoint.Unsigned(krAsset.oracle.value())).mul(krAsset.kFactor);
+    }
+
+    /**
+     * @notice Gets the Kresko asset value in USD of a particular account.
+     * @param account The account to calculate the Kresko asset value for.
+     * @return The Kresko asset value of a particular account.
+     */
+    function getAccountKrAssetValue(address account) public view returns (FixedPoint.Unsigned memory) {
+        FixedPoint.Unsigned memory value = FixedPoint.Unsigned(0);
+
+        address[] memory assets = mintedKreskoAssets[account];
+        for (uint256 i = 0; i < assets.length; i++) {
+            address asset = assets[i];
+            value = value.add(getKrAssetValue(asset, kreskoAssetDebt[account][asset]));
+        }
+        return value;
+    }
+
+    /**
+     * @notice Calculates if an account is currently liquidatable
+     * @param account The account to check.
+     * @return A boolean indicating if the account can be liquidated.
+     */
+    function isAccountLiquidatable(address account) public view returns (bool) {
+        // Get the value of the account's current deposited collateral
+        FixedPoint.Unsigned memory accountCollateralValue = getAccountCollateralValue(account);
+        // Get the account's current minimum collateral value required to maintain current debts
+        FixedPoint.Unsigned memory minAccountCollateralValue = getAccountMinimumCollateralValue(account);
+
+        return accountCollateralValue.isLessThan(minAccountCollateralValue);
+    }
+
+    /**
+     * @notice Attempts to liquidate an account by repaying the portion of the account's Kresko asset
+     *         debt, receiving in return a portion of the account's collateral at a discounted rate.
+     * @param account The account to attempt to liquidate.
+     * @param repayKRAsset The Kresko asset type to be repaid.
+     * @param repayAmount The amount of the Kresko asset to be repaid.
+     * @param collateralToSeize The collateral asset type to be seized.
+     * @param mintedKreskoAssetIndex The index of the Kresko asset in the account's minted assets array.
+     * @param depositedCollateralAssetIndex The index of the collateral asset in the account's collateral assets array.
+     */
+    function liquidate(
+        address account,
+        address repayKRAsset,
+        uint256 repayAmount,
+        address collateralToSeize,
+        uint256 mintedKreskoAssetIndex,
+        uint256 depositedCollateralAssetIndex
+    ) public collateralAssetExists(collateralToSeize) kreskoAssetExists(repayKRAsset) {
+        require(repayAmount > 0, "REPAY_AMOUNT_TOO_SMALL");
+
+        // Check that this account is below its minimum collateralization ratio and can be liquidated
+        require(isAccountLiquidatable(account), "NOT_LIQUIDATABLE");
+
+        // Liquidator may not repay more than what is allowed by the close factor
+        uint256 krAssetDebt = kreskoAssetDebt[account][repayKRAsset];
+        // max liquidation = total debt * close factor
+        FixedPoint.Unsigned memory maxLiquidation = FixedPoint.Unsigned(krAssetDebt).mul(closeFactor);
+        require(repayAmount <= maxLiquidation.rawValue, "REPAY_AMOUNT_TOO_LARGE");
+
+        // repay amount USD = repay amount * KR asset USD exchange rate
+        FixedPoint.Unsigned memory repayAmountUSD =
+            FixedPoint.Unsigned(repayAmount).mul(FixedPoint.Unsigned(kreskoAssets[repayKRAsset].oracle.value()));
+
+        // Calculate amount of collateral to seize
+        uint256 seizeAmount = calculateAmountToSeize(collateralToSeize, repayAmountUSD);
+
+        // Subtract repaid Kresko assets from liquidated user's recorded debt
+        kreskoAssetDebt[account][repayKRAsset] = krAssetDebt - repayAmount;
+        // If the liquidation repays the user's entire Kresko asset balance, remove it from minted assets array
+        if (repayAmount == krAssetDebt) {
+            removeFromMintedKreskoAssets(account, repayKRAsset, mintedKreskoAssetIndex);
+        }
+
+        // Subtract seized collateral from liquidated user's recorded collateral
+        uint256 collateralDeposit = collateralDeposits[account][collateralToSeize];
+        collateralDeposits[account][collateralToSeize] = collateralDeposit - seizeAmount;
+        // If the liquidation seizes the user's entire collateral asset balance, remove it from collateral assets array
+        if (seizeAmount == collateralDeposit) {
+            removeFromDepositedCollateralAssets(account, collateralToSeize, depositedCollateralAssetIndex);
+        }
+
+        // Transfer Kresko asset repay amount from liquidator to contract
+        KreskoAsset kAsset = KreskoAsset(repayKRAsset);
+        require(kAsset.transferFrom(msg.sender, address(this), repayAmount), "TRANSFER_IN_FAILED");
+        // Burn the received Kresko assets, removing them from circulation
+        kAsset.burn(repayAmount);
+
+        // Send liquidator the seized collateral
+        require(IERC20(collateralToSeize).transfer(msg.sender, seizeAmount), "TRANSFER_OUT_FAILED");
+
+        emit Liquidation(account, msg.sender, repayKRAsset, repayAmount, collateralToSeize, seizeAmount);
+    }
+
+    /**
+     * @notice Calculate amount of collateral to seize during the liquidation process.
+     * @param collateralToSeize Address of the collateral asset.
+     * @param repayAmountUSD Kresko asset amount being repaid in exchange for the seized collateral.
+     */
+    function calculateAmountToSeize(address collateralToSeize, FixedPoint.Unsigned memory repayAmountUSD)
+        internal
+        view
+        returns (uint256)
+    {
+        // Fetch collateral asset's oracle price
+        FixedPoint.Unsigned memory oraclePrice =
+            FixedPoint.Unsigned(collateralAssets[collateralToSeize].oracle.value());
+
+        // seize amount = (repay amount USD / exchange rate of collateral asset) * liquidation incentive
+        FixedPoint.Unsigned memory seizeAmount =
+            repayAmountUSD
+                .div(oraclePrice) // Denominate seize amount in collateral type
+                .mul(liquidationIncentive); // Apply liquidation percentage
+
+        return fromCollateralFixedPointAmount(collateralToSeize, seizeAmount);
+    }
+
+    /**
+     * @notice Sets the close factor.
+     * @param _closeFactor The new close factor as a raw value for a FixedPoint.Unsigned.
+     */
+    function setCloseFactor(uint256 _closeFactor) public onlyOwner {
+        require(_closeFactor >= MIN_CLOSE_FACTOR, "CLOSE_FACTOR_TOO_LOW");
+        require(_closeFactor <= MAX_CLOSE_FACTOR, "CLOSE_FACTOR_TOO_HIGH");
+        closeFactor = FixedPoint.Unsigned(_closeFactor);
+        emit UpdateCloseFactor(_closeFactor);
+    }
+
+    /**
+     * @notice Sets the liquidation incentive.
+     * @param _liquidationIncentive The new liquidation incentive as a raw value for a FixedPoint.Unsigned.
+     */
+    function setLiquidationIncentive(uint256 _liquidationIncentive) public onlyOwner {
+        require(_liquidationIncentive >= MIN_LIQUIDATION_INCENTIVE, "LIQUIDATION_INCENTIVE_TOO_LOW");
+        require(_liquidationIncentive <= MAX_LIQUIDATION_INCENTIVE, "LIQUIDATION_INCENTIVE_TOO_HIGH");
+        liquidationIncentive = FixedPoint.Unsigned(_liquidationIncentive);
+        emit UpdateLiquidationIncentive(_liquidationIncentive);
     }
 
     /**
