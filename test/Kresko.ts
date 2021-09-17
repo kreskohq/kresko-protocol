@@ -21,8 +21,8 @@ const SYMBOL_TWO = "TWO";
 const NAME_ONE = "One Kresko Asset";
 const NAME_TWO = "Two Kresko Asset";
 const BURN_FEE = toFixedPoint(0.01); // 1%
-const COLLATERALIZATION_RATIO: number = 150;
-const CLOSE_FACTOR = toFixedPoint(0.20); // 20%
+const MINIMUM_COLLATERALIZATION_RATIO: number = 150;
+const CLOSE_FACTOR = toFixedPoint(0.2); // 20%
 const LIQUIDATION_INCENTIVE = toFixedPoint(1.1); // 110% -> liquidators make 10% on liquidations
 const FEE_RECIPIENT_ADDRESS = "0x0000000000000000000000000000000000000FEE";
 
@@ -79,10 +79,10 @@ async function addNewKreskoAsset(kresko: Contract, name: string, symbol: string,
     const fixedPointKFactor = toFixedPoint(kFactor);
     const tx: ContractTransaction = await kresko.addKreskoAsset(name, symbol, fixedPointKFactor, oracle.address);
 
-    let events: any = await extractEventFromTxReceipt(tx, "AddKreskoAsset");
+    let events: any = await extractEventFromTxReceipt(tx, "KreskoAssetAdded");
     const krAssetAddress = events[0].args.assetAddress;
     const KreskoAssetContract = await hre.ethers.getContractFactory("KreskoAsset");
-    const kreskoAsset = await KreskoAssetContract.attach(krAssetAddress);
+    const kreskoAsset = KreskoAssetContract.attach(krAssetAddress);
     return {
         kreskoAsset,
         oracle,
@@ -103,11 +103,11 @@ describe("Kresko", function () {
         const kreskoArtifact: Artifact = await hre.artifacts.readArtifact("Kresko");
         this.kresko = <Kresko>(
             await deployContract(this.signers.admin, kreskoArtifact, [
-                COLLATERALIZATION_RATIO,
                 BURN_FEE,
-                FEE_RECIPIENT_ADDRESS,
                 CLOSE_FACTOR,
-                LIQUIDATION_INCENTIVE
+                FEE_RECIPIENT_ADDRESS,
+                LIQUIDATION_INCENTIVE,
+                MINIMUM_COLLATERALIZATION_RATIO,
             ])
         );
     });
@@ -596,16 +596,16 @@ describe("Kresko", function () {
             const kreskoArtifact: Artifact = await hre.artifacts.readArtifact("Kresko");
             this.kresko = <Kresko>(
                 await deployContract(this.signers.admin, kreskoArtifact, [
-                    COLLATERALIZATION_RATIO,
                     BURN_FEE,
-                    FEE_RECIPIENT_ADDRESS,
                     CLOSE_FACTOR,
-                    LIQUIDATION_INCENTIVE
+                    FEE_RECIPIENT_ADDRESS,
+                    LIQUIDATION_INCENTIVE,
+                    MINIMUM_COLLATERALIZATION_RATIO,
                 ])
             );
 
             const tx: ContractTransaction = await this.kresko.addKreskoAsset(NAME_ONE, SYMBOL_ONE, ONE, ADDRESS_ONE);
-            let events: any = await extractEventFromTxReceipt(tx, "AddKreskoAsset");
+            let events: any = await extractEventFromTxReceipt(tx, "KreskoAssetAdded");
             this.deployedAssetAddress = events[0].args.assetAddress;
         });
 
@@ -653,7 +653,7 @@ describe("Kresko", function () {
 
         it("should allow owner to add new kresko assets", async function () {
             const tx: any = await this.kresko.addKreskoAsset(NAME_TWO, SYMBOL_TWO, ONE, ADDRESS_TWO);
-            let events: any = await extractEventFromTxReceipt(tx, "AddKreskoAsset");
+            let events: any = await extractEventFromTxReceipt(tx, "KreskoAssetAdded");
 
             const asset = await this.kresko.kreskoAssets(events[0].args.assetAddress);
             expect(asset.kFactor.rawValue).to.equal(ONE.toString());
@@ -696,11 +696,11 @@ describe("Kresko", function () {
             const kreskoArtifact: Artifact = await hre.artifacts.readArtifact("Kresko");
             this.kresko = <Kresko>(
                 await deployContract(this.signers.admin, kreskoArtifact, [
-                    COLLATERALIZATION_RATIO,
                     BURN_FEE,
-                    FEE_RECIPIENT_ADDRESS,
                     CLOSE_FACTOR,
-                    LIQUIDATION_INCENTIVE
+                    FEE_RECIPIENT_ADDRESS,
+                    LIQUIDATION_INCENTIVE,
+                    MINIMUM_COLLATERALIZATION_RATIO,
                 ])
             );
 
@@ -1204,10 +1204,10 @@ describe("Kresko", function () {
             expect(await this.kresko.burnFee()).to.equal(validNewBurnFee);
         });
 
-        it("Emits the UpdateBurnFee event", async function () {
+        it("Emits the BurnFeeUpdated event", async function () {
             const receipt = await this.kresko.connect(this.signers.admin).setBurnFee(validNewBurnFee);
 
-            const event = (await extractEventFromTxReceipt(receipt, "UpdateBurnFee"))![0].args!;
+            const event = (await extractEventFromTxReceipt(receipt, "BurnFeeUpdated"))![0].args!;
             expect(event.burnFee).to.equal(validNewBurnFee);
         });
 
@@ -1239,7 +1239,7 @@ describe("Kresko", function () {
         it("Emits the UpdateFeeRecipient event", async function () {
             const receipt = await this.kresko.connect(this.signers.admin).setFeeRecipient(validFeeRecipient);
 
-            const event = (await extractEventFromTxReceipt(receipt, "UpdateFeeRecipient"))![0].args!;
+            const event = (await extractEventFromTxReceipt(receipt, "FeeRecipientUpdated"))![0].args!;
             expect(event.feeRecipient).to.equal(validFeeRecipient);
         });
 
@@ -1257,17 +1257,18 @@ describe("Kresko", function () {
     });
 
     describe("Liquidations", function () {
-
         beforeEach(async function () {
             // Deploy primary Kresko contract
             const kreskoArtifact: Artifact = await hre.artifacts.readArtifact("Kresko");
-            this.kresko = <Kresko>await deployContract(this.signers.admin, kreskoArtifact, [
-                COLLATERALIZATION_RATIO,
-                BURN_FEE,
-                FEE_RECIPIENT_ADDRESS,
-                CLOSE_FACTOR,
-                LIQUIDATION_INCENTIVE
-            ]);
+            this.kresko = <Kresko>(
+                await deployContract(this.signers.admin, kreskoArtifact, [
+                    BURN_FEE,
+                    CLOSE_FACTOR,
+                    FEE_RECIPIENT_ADDRESS,
+                    LIQUIDATION_INCENTIVE,
+                    MINIMUM_COLLATERALIZATION_RATIO,
+                ])
+            );
 
             // Deploy Kresko assets, adding them to the whitelist
             this.kreskoAssetInfo = await Promise.all([
@@ -1284,10 +1285,7 @@ describe("Kresko", function () {
             const initialUserCollateralBalance = parseEther("0.00001");
             for (const collateralAssetInfo of this.collateralAssetInfos) {
                 for (const userAddress of userAddresses) {
-                    await collateralAssetInfo.collateralAsset.setBalanceOf(
-                        userAddress,
-                        initialUserCollateralBalance,
-                    );
+                    await collateralAssetInfo.collateralAsset.setBalanceOf(userAddress, initialUserCollateralBalance);
                 }
             }
 
@@ -1333,7 +1331,7 @@ describe("Kresko", function () {
 
             // Updated collateral value: (1000 * $11) = $11,000
             const userCollateralAmountInUSD = await this.kresko.getAccountCollateralValue(this.userOne.address);
-            expect(userCollateralAmountInUSD.rawValue).to.equal(11000)
+            expect(userCollateralAmountInUSD.rawValue).to.equal(11000);
 
             // The account should be liquidatable as collateral value ($10,000) < min collateral value ($15,000)
             const canLiquidate = await this.kresko.isAccountLiquidatable(this.userOne.address);
@@ -1353,9 +1351,15 @@ describe("Kresko", function () {
 
             // Fetch userOne's debt and collateral balances prior to liquidation
             const collateralAsset = this.collateralAssetInfos[0].collateralAsset;
-            const beforeUserOneCollateralAmount = await this.kresko.collateralDeposits(this.userOne.address, collateralAsset.address);
+            const beforeUserOneCollateralAmount = await this.kresko.collateralDeposits(
+                this.userOne.address,
+                collateralAsset.address,
+            );
             const kreskoAsset = this.kreskoAssetInfo[0].kreskoAsset;
-            const beforeUserOneDebtAmount = await this.kresko.kreskoAssetDebt(this.userOne.address, kreskoAsset.address);
+            const beforeUserOneDebtAmount = await this.kresko.kreskoAssetDebt(
+                this.userOne.address,
+                kreskoAsset.address,
+            );
 
             // Fetch userTwo's collateral and kresko asset balance
             const beforeUserTwoCollateralBalance = await collateralAsset.balanceOf(this.userTwo.address);
@@ -1373,25 +1377,30 @@ describe("Kresko", function () {
 
             const mintedKreskoAssetIndex = 0;
             const depositedCollateralAssetIndex = 0;
-            await this.kresko.connect(this.userTwo).liquidate(
-                this.userOne.address,
-                kreskoAsset.address,
-                repayAmount,
-                collateralAsset.address,
-                mintedKreskoAssetIndex,
-                depositedCollateralAssetIndex
-            );
+            await this.kresko
+                .connect(this.userTwo)
+                .liquidate(
+                    this.userOne.address,
+                    kreskoAsset.address,
+                    repayAmount,
+                    collateralAsset.address,
+                    mintedKreskoAssetIndex,
+                    depositedCollateralAssetIndex,
+                );
 
             // Confirm that the liquidated user's debt amount has decreased by the repaid amount
             const afterUserOneDebtAmount = await this.kresko.kreskoAssetDebt(this.userOne.address, kreskoAsset.address);
-            expect(afterUserOneDebtAmount).to.equal(beforeUserOneDebtAmount-repayAmount);
+            expect(afterUserOneDebtAmount).to.equal(beforeUserOneDebtAmount - repayAmount);
             // Confirm that some of the liquidated user's collateral has been seized
-            const afterUserOneCollateralAmount = await this.kresko.collateralDeposits(this.userOne.address, collateralAsset.address);
+            const afterUserOneCollateralAmount = await this.kresko.collateralDeposits(
+                this.userOne.address,
+                collateralAsset.address,
+            );
             expect(Number(afterUserOneCollateralAmount)).to.be.lessThan(Number(beforeUserOneCollateralAmount));
 
             // Confirm that userTwo's kresko asset balance has decreased by the repaid amount
             const afterUserTwoKreskoAssetBalance = await kreskoAsset.balanceOf(this.userTwo.address);
-            expect(afterUserTwoKreskoAssetBalance).to.equal(beforeUserTwoKreskoAssetBalance-repayAmount);
+            expect(afterUserTwoKreskoAssetBalance).to.equal(beforeUserTwoKreskoAssetBalance - repayAmount);
 
             // Confirm that userTwo has received some collateral from the contract
             const afterUserTwoCollateralBalance = await collateralAsset.balanceOf(this.userTwo.address);
@@ -1403,7 +1412,7 @@ describe("Kresko", function () {
 
             // Confirm that Kresko asset's total supply has decreased.
             const afterKreskoAssetTotalSupply = await kreskoAsset.totalSupply();
-            expect(afterKreskoAssetTotalSupply).to.equal(beforeKreskoAssetTotalSupply-repayAmount);
+            expect(afterKreskoAssetTotalSupply).to.equal(beforeKreskoAssetTotalSupply - repayAmount);
         });
 
         it("should not allow the liquidations of healthy accounts", async function () {
@@ -1412,14 +1421,18 @@ describe("Kresko", function () {
 
             const mintedKreskoAssetIndex = 0;
             const depositedCollateralAssetIndex = 0;
-            await expect(this.kresko.connect(this.userTwo).liquidate(
-                this.userOne.address,
-                this.kreskoAssetInfo[0].kreskoAsset.address,
-                repayAmount,
-                this.collateralAssetInfos[0].collateralAsset.address,
-                mintedKreskoAssetIndex,
-                depositedCollateralAssetIndex
-            )).to.be.revertedWith("NOT_LIQUIDATABLE");
+            await expect(
+                this.kresko
+                    .connect(this.userTwo)
+                    .liquidate(
+                        this.userOne.address,
+                        this.kreskoAssetInfo[0].kreskoAsset.address,
+                        repayAmount,
+                        this.collateralAssetInfos[0].collateralAsset.address,
+                        mintedKreskoAssetIndex,
+                        depositedCollateralAssetIndex,
+                    ),
+            ).to.be.revertedWith("NOT_LIQUIDATABLE");
         });
 
         it("should not allow repayments of 0", async function () {
@@ -1435,14 +1448,18 @@ describe("Kresko", function () {
             const repayAmount = 0;
             const mintedKreskoAssetIndex = 0;
             const depositedCollateralAssetIndex = 0;
-            await expect(this.kresko.connect(this.userTwo).liquidate(
-                this.userOne.address,
-                this.kreskoAssetInfo[0].kreskoAsset.address,
-                repayAmount,
-                this.collateralAssetInfos[0].collateralAsset.address,
-                mintedKreskoAssetIndex,
-                depositedCollateralAssetIndex
-            )).to.be.revertedWith("REPAY_AMOUNT_TOO_SMALL");
+            await expect(
+                this.kresko
+                    .connect(this.userTwo)
+                    .liquidate(
+                        this.userOne.address,
+                        this.kreskoAssetInfo[0].kreskoAsset.address,
+                        repayAmount,
+                        this.collateralAssetInfos[0].collateralAsset.address,
+                        mintedKreskoAssetIndex,
+                        depositedCollateralAssetIndex,
+                    ),
+            ).to.be.revertedWith("REPAY_AMOUNT_TOO_SMALL");
         });
 
         it("should not allow repayments over the max repay amount", async function () {
@@ -1457,14 +1474,18 @@ describe("Kresko", function () {
 
             const mintedKreskoAssetIndex = 0;
             const depositedCollateralAssetIndex = 0;
-            await expect(this.kresko.connect(this.userTwo).liquidate(
-                this.userOne.address,
-                this.kreskoAssetInfo[0].kreskoAsset.address,
-                repayAmount,
-                this.collateralAssetInfos[0].collateralAsset.address,
-                mintedKreskoAssetIndex,
-                depositedCollateralAssetIndex
-            )).to.be.revertedWith("REPAY_AMOUNT_TOO_LARGE");
+            await expect(
+                this.kresko
+                    .connect(this.userTwo)
+                    .liquidate(
+                        this.userOne.address,
+                        this.kreskoAssetInfo[0].kreskoAsset.address,
+                        repayAmount,
+                        this.collateralAssetInfos[0].collateralAsset.address,
+                        mintedKreskoAssetIndex,
+                        depositedCollateralAssetIndex,
+                    ),
+            ).to.be.revertedWith("REPAY_AMOUNT_TOO_LARGE");
         });
 
         it("should not allow liquidations if liquidator hasn't approved Kresko assets to the contract", async function () {
@@ -1477,14 +1498,18 @@ describe("Kresko", function () {
 
             const mintedKreskoAssetIndex = 0;
             const depositedCollateralAssetIndex = 0;
-            await expect(this.kresko.connect(this.userTwo).liquidate(
-                this.userOne.address,
-                this.kreskoAssetInfo[0].kreskoAsset.address,
-                repayAmount,
-                this.collateralAssetInfos[0].collateralAsset.address,
-                mintedKreskoAssetIndex,
-                depositedCollateralAssetIndex
-            )).to.be.revertedWith("ERC20: transfer amount exceeds allowance");
+            await expect(
+                this.kresko
+                    .connect(this.userTwo)
+                    .liquidate(
+                        this.userOne.address,
+                        this.kreskoAssetInfo[0].kreskoAsset.address,
+                        repayAmount,
+                        this.collateralAssetInfos[0].collateralAsset.address,
+                        mintedKreskoAssetIndex,
+                        depositedCollateralAssetIndex,
+                    ),
+            ).to.be.revertedWith("ERC20: transfer amount exceeds allowance");
         });
     });
 });
