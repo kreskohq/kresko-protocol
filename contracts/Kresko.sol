@@ -80,13 +80,6 @@ contract Kresko is Ownable {
      */
     mapping(address => address[]) public mintedKreskoAssets;
 
-    // Events for configurable parameters.
-    event BurnFeeUpdated(uint256 burnFee);
-    event CloseFactorUpdated(uint256 closeFactor);
-    event FeeRecipientUpdated(address feeRecipient);
-    event MinimumCollateralizationRatioUpdated(uint256 minimumCollateralizationRatio);
-    event LiquidationIncentiveUpdated(uint256 liquidationIncentive);
-
     // Collateral asset events
     event CollateralAssetAdded(address assetAddress, uint256 factor, address oracle);
     event CollateralAssetFactorUpdated(address assetAddress, uint256 factor);
@@ -109,6 +102,13 @@ contract Kresko is Ownable {
         address seizedCollateral,
         uint256 seizedAmount
     );
+
+    // Events for configurable parameters.
+    event BurnFeeUpdated(uint256 burnFee);
+    event CloseFactorUpdated(uint256 closeFactor);
+    event FeeRecipientUpdated(address feeRecipient);
+    event MinimumCollateralizationRatioUpdated(uint256 minimumCollateralizationRatio);
+    event LiquidationIncentiveUpdated(uint256 liquidationIncentive);
 
     modifier collateralAssetExists(address assetAddress) {
         require(collateralAssets[assetAddress].exists, "ASSET_NOT_VALID");
@@ -510,7 +510,7 @@ contract Kresko is Ownable {
         emit KreskoAssetOracleUpdated(assetAddress, oracle);
     }
 
-    /* ===== Assorted configurable values ===== */
+    /* ===== Configurable parameters ===== */
 
     /**
      * @notice Sets the burn fee.
