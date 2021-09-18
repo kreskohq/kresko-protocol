@@ -12,19 +12,33 @@ contract Kresko is Ownable {
     using FixedPoint for FixedPoint.Unsigned;
 
     /**
-     * Whitelist of assets that can be used as collateral
-     * with their respective collateral factor and oracle address
+     * ==================================================
+     * ==================== Structs =====================
+     * ==================================================
+     */
+
+    /**
+     * @notice Information on a token that can be used as collateral.
+     * @dev Setting the factor to zero effectively makes the asset useless as collateral while still allowing
+     * it to be deposited and withdrawn.
+     * @param factor The collateral factor used for calculating the value of the collateral.
+     * @param oracle The oracle that provides the USD price of one collateral asset.
+     * @param decimals The decimals for the token, stored here to avoid repetitive external calls.
+     * @param exists Whether the collateral asset exists within the protocol.
      */
     struct CollateralAsset {
         FixedPoint.Unsigned factor;
         IOracle oracle;
-        bool exists;
         uint8 decimals;
+        bool exists;
     }
 
     /**
-     * Whitelist of kresko assets with their respective name,
-     * deployed address, k factor, and oracle address
+     * @notice Informtion on a token that is a Kresko asset.
+     * @dev Each Kresko asset has 18 decimals.
+     * @param kFactor The k-factor used for calculating the required collateral value for Kresko asset debt.
+     * @param oracle The oracle that provides the USD price of one Kresko asset.
+     * @param exists Whether the Kresko asset exists within the protocol.
      */
     struct KAsset {
         FixedPoint.Unsigned kFactor;
@@ -32,68 +46,190 @@ contract Kresko is Ownable {
         bool exists;
     }
 
-    uint256 public constant MIN_CLOSE_FACTOR = 0.05e18; // 5%
-    uint256 public constant MAX_CLOSE_FACTOR = 0.9e18; // 90%
-    uint256 public constant MIN_LIQUIDATION_INCENTIVE = 1e18; // 100%
-    uint256 public constant MAX_LIQUIDATION_INCENTIVE = 1.5e18; // 150% // TODO: consider implications
+    /**
+     * ==================================================
+     * =================== Constants ====================
+     * ==================================================
+     */
+
+    /// @notice The maximum configurable burn fee.
     uint256 public constant MAX_BURN_FEE = 0.1e18; // 10%
 
-    uint256 public minimumCollateralizationRatio;
-    FixedPoint.Unsigned public closeFactor;
-    FixedPoint.Unsigned public liquidationIncentive;
+    /// @notice The minimum configurable close factor.
+    uint256 public constant MIN_CLOSE_FACTOR = 0.05e18; // 5%
+
+    /// @notice The maximum configurable close factor.
+    uint256 public constant MAX_CLOSE_FACTOR = 0.9e18; // 90%
+
+    /// @notice The minimum configurable liquidation incentive multiplier.
+    uint256 public constant MIN_LIQUIDATION_INCENTIVE = 1e18; // 100%
+
+    /// @notice The maximum configurable liquidation incentive multiplier.
+    uint256 public constant MAX_LIQUIDATION_INCENTIVE = 1.5e18; // 150% // TODO: consider implications
 
     /**
-     * The percent fee imposed upon the value of burned krAssets, taken in the form of
-     * the user's collateral and sent to feeRecipient.
+     * ==================================================
+     * ===================== State ======================
+     * ==================================================
      */
+
+    /* ===== Configurable parameters ===== */
+
+    /// @notice The percent fee imposed upon the value of burned krAssets, taken as collateral and sent to feeRecipient.
     FixedPoint.Unsigned public burnFee;
 
-    /**
-     * The recipient of burn fees.
-     */
+    /// @notice The factor used to calculate the maximum amount of Kresko asset debt that can be liquidated at a time.
+    FixedPoint.Unsigned public closeFactor;
+
+    /// @notice The recipient of burn fees.
     address public feeRecipient;
 
+    /// @notice The factor used to calculate the incentive a liquidator receives in the form of seized collateral.
+    FixedPoint.Unsigned public liquidationIncentive;
+
+    /// @notice The absolute minimum ratio of collateral value to debt value. 3 decimals. TODO: move to FixedPoint.
+    uint256 public minimumCollateralizationRatio;
+
+    /* ===== General state - Collateral Assets ===== */
+
+    /// @notice Mapping of collateral asset token address to information on the collateral asset.
     mapping(address => CollateralAsset) public collateralAssets;
-    mapping(address => KAsset) public kreskoAssets;
-    mapping(string => bool) public kreskoAssetSymbols; // Prevents duplicate KreskoAsset symbols
+
     /**
-     * Maps each account to a mapping of collateral asset address to the amount
-     * the user has deposited into this contract. Requires the collateral to not rebase.
+     * @notice Mapping of account address to a mapping of collateral asset token address to the amount of the collateral
+     * asset the account has deposited.
+     * @dev Collateral assets must not rebase.
      */
     mapping(address => mapping(address => uint256)) public collateralDeposits;
 
-    /**
-     * Maps each account to an array of the addresses of each collateral asset the account
-     * has deposited. Used for calculating an account's CV.
-     */
+    /// @notice Mapping of account address to an array of the addresses of each collateral asset the account
+    /// has deposited.
     mapping(address => address[]) public depositedCollateralAssets;
 
-    /**
-     * Maps each account to a mapping of Kresko asset address to the amount
-     * the user has currently minted.
-     */
+    /* ===== General state - Kresko Assets ===== */
+
+    /// @notice Mapping of Kresko asset token address to information on the Kresko asset.
+    mapping(address => KAsset) public kreskoAssets;
+
+    /// @notice Mapping of Kresko asset symbols to whether the symbol is used by an existing Kresko asset.
+    mapping(string => bool) public kreskoAssetSymbols;
+
+    /// @notice Mapping of account address to a mapping of Kresko asset token address to the amount of the Kresko asset
+    /// the account has minted and therefore owes to the protocol.
     mapping(address => mapping(address => uint256)) public kreskoAssetDebt;
 
-    /**
-     * Maps each account to an array of the addresses of each Kresko asset the account
-     * has minted. Used for calculating an account's MCV.
-     */
+    /// @notice Mapping of account address to an array of the addresses of each Kresko asset the account has minted.
     mapping(address => address[]) public mintedKreskoAssets;
 
-    // Collateral asset events
+    /**
+     * ==================================================
+     * ===================== Events =====================
+     * ==================================================
+     */
+
+    /* ===== Collateral ===== */
+
+    /**
+     * @notice Emitted when a collateral asset is added to the protocol.
+     * @dev Can only be emitted once for a given collateral asset.
+     * @param collateralAsset The address of the collateral asset.
+     * @param factor The collateral factor.
+     * @param oracle The address of the oracle.
+     */
     event CollateralAssetAdded(address collateralAsset, uint256 factor, address oracle);
+
+    /**
+     * @notice Emitted when a collateral asset's collateral factor is updated.
+     * @param collateralAsset The address of the collateral asset.
+     * @param factor The collateral factor.
+     */
     event CollateralAssetFactorUpdated(address collateralAsset, uint256 factor);
+
+    /**
+     * @notice Emitted when a collateral asset's oracle is updated.
+     * @param collateralAsset The address of the collateral asset.
+     * @param oracle The address of the oracle.
+     */
     event CollateralAssetOracleUpdated(address collateralAsset, address oracle);
+
+    /**
+     * @notice Emitted when an account deposits collateral.
+     * @param account The address of the account depositing collateral.
+     * @param collateralAsset The address of the collateral asset.
+     * @param amount The amount of the collateral asset that was deposited.
+     */
     event CollateralDeposited(address account, address collateralAsset, uint256 amount);
+
+    /**
+     * @notice Emitted when an account withdraws collateral.
+     * @param account The address of the account withdrawing collateral.
+     * @param collateralAsset The address of the collateral asset.
+     * @param amount The amount of the collateral asset that was withdrawn.
+     */
     event CollateralWithdrawn(address account, address collateralAsset, uint256 amount);
 
-    // Kresko asset events
+    /* ===== Kresko Assets ===== */
+
+    /**
+     * @notice Emitted when a Kresko asset is added to the protocol.
+     * @dev Can only be emitted once for a given Kresko asset.
+     * @param name The name of the Kresko asset.
+     * @param symbol The symbol of the Kresko asset.
+     * @param kreskoAsset The address of the Kresko asset.
+     * @param kFactor The k-factor.
+     * @param oracle The address of the oracle.
+     */
     event KreskoAssetAdded(string name, string symbol, address kreskoAsset, uint256 kFactor, address oracle);
+
+    /**
+     * @notice Emitted when a Kresko asset's k-factor is updated.
+     * @param kreskoAsset The address of the Kresko asset.
+     * @param kFactor The k-factor.
+     */
     event KreskoAssetKFactorUpdated(address kreskoAsset, uint256 kFactor);
+
+    /**
+     * @notice Emitted when a Kresko asset's oracle is updated.
+     * @param kreskoAsset The address of the Kresko asset.
+     * @param oracle The address of the oracle.
+     */
     event KreskoAssetOracleUpdated(address kreskoAsset, address oracle);
+
+    /**
+     * @notice Emitted when an account mints a Kresko asset.
+     * @param account The address of the account minting the Kresko asset.
+     * @param kreskoAsset The address of the Kresko asset.
+     * @param amount The amount of the Kresko asset that was minted.
+     */
     event KreskoAssetMinted(address account, address kreskoAsset, uint256 amount);
+
+    /**
+     * @notice Emitted when an account burns a Kresko asset.
+     * @param account The address of the account burning the Kresko asset.
+     * @param kreskoAsset The address of the Kresko asset.
+     * @param amount The amount of the Kresko asset that was burned.
+     */
     event KreskoAssetBurned(address account, address kreskoAsset, uint256 amount);
+
+    /**
+     * @notice Emitted when an account pays a burn fee with a collateral asset upon burning a Kresko asset.
+     * @dev This can be emitted multiple times for a single Kresko asset burn.
+     * @param account The address of the account burning the Kresko asset.
+     * @param paymentCollateralAsset The address of the collateral asset used to pay the burn fee.
+     * @param paymentAmount The amount of the payment collateral asset that was paid.
+     * @param paymentValue The USD value of the payment.
+     */
     event BurnFeePaid(address account, address paymentCollateralAsset, uint256 paymentAmount, uint256 paymentValue);
+
+    /**
+     * @notice Emitted when a liquidation occurs.
+     * @param account The address of the account being liquidated.
+     * @param liquidator The account performing the liquidation.
+     * @param repayKreskoAsset The address of the Kresko asset being paid back to the protocol by the liquidator.
+     * @param repayAmount The amount of the repay Kresko asset being paid back to the protocol by the liquidator.
+     * @param seizedCollateralAsset The address of the collateral asset being seized from the account by the liquidator.
+     * @param seizedAmount The amount of the seized collateral asset being seized from the account by the liquidator.
+     */
     event LiquidationOccurred(
         address account,
         address liquidator,
@@ -103,33 +239,84 @@ contract Kresko is Ownable {
         uint256 seizedAmount
     );
 
-    // Events for configurable parameters.
+    /* ===== Configurable Parameters ===== */
+
+    /**
+     * @notice Emitted when the burn fee is updated.
+     * @param burnFee The new burn fee raw value.
+     */
     event BurnFeeUpdated(uint256 burnFee);
+
+    /**
+     * @notice Emitted when the close factor is updated.
+     * @param closeFactor The new close factor raw value.
+     */
     event CloseFactorUpdated(uint256 closeFactor);
+
+    /**
+     * @notice Emitted when the fee recipient is updated.
+     * @param feeRecipient The new fee recipient.
+     */
     event FeeRecipientUpdated(address feeRecipient);
+
+    /**
+     * @notice Emitted when the liquidation incentive is updated.
+     * @param liquidationIncentive The new liquidation incentive raw value.
+     */
     event LiquidationIncentiveUpdated(uint256 liquidationIncentive);
+
+    /**
+     * @notice Emitted when the minimum collateralization ratio is updated.
+     * @param minimumCollateralizationRatio The new minimum collateralization ratio raw value.
+     */
     event MinimumCollateralizationRatioUpdated(uint256 minimumCollateralizationRatio);
 
+    /**
+     * ==================================================
+     * =================== Modifiers ====================
+     * ==================================================
+     */
+
+    /**
+     * @notice Reverts if a collateral asset does not exist within the protocol.
+     * @param _collateralAsset The address of the collateral asset.
+     */
     modifier collateralAssetExists(address _collateralAsset) {
         require(collateralAssets[_collateralAsset].exists, "ASSET_NOT_VALID");
         _;
     }
 
+    /**
+     * @notice Reverts if a collateral asset already exists within the protocol.
+     * @param _collateralAsset The address of the collateral asset.
+     */
     modifier collateralAssetDoesNotExist(address _collateralAsset) {
         require(!collateralAssets[_collateralAsset].exists, "ASSET_EXISTS");
         _;
     }
 
+    /**
+     * @notice Reverts if a Kresko asset does not exist within the protocol.
+     * @param _kreskoAsset The address of the Kresko asset.
+     */
     modifier kreskoAssetExists(address _kreskoAsset) {
         require(kreskoAssets[_kreskoAsset].exists, "ASSET_NOT_VALID");
         _;
     }
 
+    /**
+     * @notice Reverts if the symbol of a Kresko asset already exists within the protocol.
+     * @param _symbol The symbol of the Kresko asset.
+     */
     modifier kreskoAssetDoesNotExist(string calldata _symbol) {
         require(!kreskoAssetSymbols[_symbol], "SYMBOL_NOT_VALID");
         _;
     }
 
+    /**
+     * @notice Reverts if provided string is empty.
+     * @param _str The string to ensure is not empty.
+     */
     modifier nonNullString(string calldata _str) {
         require(bytes(_str).length > 0, "NULL_STRING");
         _;
