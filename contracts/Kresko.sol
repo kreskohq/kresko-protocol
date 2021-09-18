@@ -110,13 +110,13 @@ contract Kresko is Ownable {
     event MinimumCollateralizationRatioUpdated(uint256 minimumCollateralizationRatio);
     event LiquidationIncentiveUpdated(uint256 liquidationIncentive);
 
-    modifier collateralAssetExists(address assetAddress) {
-        require(collateralAssets[assetAddress].exists, "ASSET_NOT_VALID");
+    modifier collateralAssetExists(address _collateralAsset) {
+        require(collateralAssets[_collateralAsset].exists, "ASSET_NOT_VALID");
         _;
     }
 
-    modifier collateralAssetDoesNotExist(address assetAddress) {
-        require(!collateralAssets[assetAddress].exists, "ASSET_EXISTS");
+    modifier collateralAssetDoesNotExist(address _collateralAsset) {
+        require(!collateralAssets[_collateralAsset].exists, "ASSET_EXISTS");
         _;
     }
 
@@ -160,55 +160,56 @@ contract Kresko is Ownable {
     /**
      * @notice Deposits collateral into the protocol.
      * @dev The collateral asset must be whitelisted.
-     * @param assetAddress The address of the collateral asset.
-     * @param amount The amount of the collateral asset to deposit.
+     * @param _collateralAsset The address of the collateral asset.
+     * @param _amount The amount of the collateral asset to deposit.
      */
-    function depositCollateral(address assetAddress, uint256 amount) external collateralAssetExists(assetAddress) {
+    function depositCollateral(address _collateralAsset, uint256 _amount)
+        external
+        collateralAssetExists(_collateralAsset)
+    {
         // Because the depositedCollateralAssets[msg.sender] is pushed to if the existing
         // deposit amount is 0, require the amount to be > 0. Otherwise, the depositedCollateralAssets[msg.sender]
         // could be filled with duplicates, causing collateral to be double-counted in the collateral value.
-        require(amount > 0, "AMOUNT_ZERO");
+        require(_amount > 0, "AMOUNT_ZERO");
 
-        IERC20 asset = IERC20(assetAddress);
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
-        require(asset.transferFrom(msg.sender, address(this), amount), "TRANSFER_IN_FAILED");
+        require(IERC20(_collateralAsset).transferFrom(msg.sender, address(this), _amount), "TRANSFER_IN_FAILED");
 
         // If the account does not have an existing deposit for this collateral asset,
         // push it to the list of the account's deposited collateral assets.
-        uint256 existingDepositAmount = collateralDeposits[msg.sender][assetAddress];
+        uint256 existingDepositAmount = collateralDeposits[msg.sender][_collateralAsset];
         if (existingDepositAmount == 0) {
-            depositedCollateralAssets[msg.sender].push(assetAddress);
+            depositedCollateralAssets[msg.sender].push(_collateralAsset);
         }
         // Record the deposit.
-        collateralDeposits[msg.sender][assetAddress] = existingDepositAmount + amount;
+        collateralDeposits[msg.sender][_collateralAsset] = existingDepositAmount + _amount;
 
-        emit CollateralDeposited(msg.sender, assetAddress, amount);
+        emit CollateralDeposited(msg.sender, _collateralAsset, _amount);
     }
 
     /**
      * @notice Withdraws collateral from the protocol.
      * @dev The collateral asset must be whitelisted.
-     * @param assetAddress The address of the collateral asset.
-     * @param amount The amount of the collateral asset to withdraw.
-     * @param depositedCollateralAssetIndex The index of the collateral asset in the sender's
+     * @param _collateralAsset The address of the collateral asset.
+     * @param _amount The amount of the collateral asset to withdraw.
+     * @param _depositedCollateralAssetIndex The index of the collateral asset in the sender's
      * deposited collateral assets array. Only needed if withdrawing the entire deposit of a particular
      * collateral asset.
      */
     function withdrawCollateral(
-        address assetAddress,
-        uint256 amount,
-        uint256 depositedCollateralAssetIndex
-    ) external collateralAssetExists(assetAddress) {
+        address _collateralAsset,
+        uint256 _amount,
+        uint256 _depositedCollateralAssetIndex
+    ) external collateralAssetExists(_collateralAsset) {
         // Require the amount to be over 0, otherwise someone could attempt to withdraw 0 collateral
         // for an asset they have not deposited. This would fail further down, but we require here
         // to be explicit.
-        require(amount > 0, "AMOUNT_ZERO");
+        require(_amount > 0, "AMOUNT_ZERO");
 
-        IERC20 asset = IERC20(assetAddress);
         // Ensure the amount being withdrawn is not greater than the amount of the collateral asset
         // the sender has deposited.
-        uint256 depositAmount = collateralDeposits[msg.sender][assetAddress];
-        require(amount <= depositAmount, "AMOUNT_TOO_HIGH");
+        uint256 depositAmount = collateralDeposits[msg.sender][_collateralAsset];
+        require(_amount <= depositAmount, "AMOUNT_TOO_HIGH");
 
         // Ensure the withdrawal does not result in the account having a health factor < 1.
         // I.e. the new account's collateral value must still exceed the account's minimum
@@ -218,8 +219,8 @@ contract Kresko is Ownable {
         // Get the collateral value that the account will lose as a result of this withdrawal.
         (FixedPoint.Unsigned memory withdrawnCollateralValue, ) =
             getCollateralValueAndOraclePrice(
-                assetAddress,
-                amount,
+                _collateralAsset,
+                _amount,
                 false // Take the collateral factor into consideration.
             );
         // Get the account's minimum collateral value.
@@ -231,15 +232,15 @@ contract Kresko is Ownable {
         );
 
         // Record the withdrawal.
-        collateralDeposits[msg.sender][assetAddress] = depositAmount - amount;
+        collateralDeposits[msg.sender][_collateralAsset] = depositAmount - _amount;
         // If the sender is withdrawing all of the collateral asset, remove the collateral asset
         // from the sender's deposited collateral assets array.
-        if (amount == depositAmount) {
-            removeFromDepositedCollateralAssets(msg.sender, assetAddress, depositedCollateralAssetIndex);
+        if (_amount == depositAmount) {
+            removeFromDepositedCollateralAssets(msg.sender, _collateralAsset, _depositedCollateralAssetIndex);
         }
-        require(asset.transfer(msg.sender, amount), "TRANSFER_OUT_FAILED");
+        require(IERC20(_collateralAsset).transfer(msg.sender, _amount), "TRANSFER_OUT_FAILED");
 
-        emit CollateralWithdrawn(msg.sender, assetAddress, amount);
+        emit CollateralWithdrawn(msg.sender, _collateralAsset, _amount);
     }
 
     /* ===== Kresko Assets ===== */
@@ -391,60 +392,60 @@ contract Kresko is Ownable {
 
     /**
      * @dev Whitelists a collateral asset
-     * @param assetAddress The on chain address of the collateral asset
-     * @param factor The collateral factor of the collateral asset. Must be <= 1e18.
-     * @param oracle The oracle address for the collateral asset
+     * @param _collateralAsset The on chain address of the collateral asset
+     * @param _factor The collateral factor of the collateral asset. Must be <= 1e18.
+     * @param _oracle The oracle address for the collateral asset
      */
     function addCollateralAsset(
-        address assetAddress,
-        uint256 factor,
-        address oracle
-    ) external onlyOwner collateralAssetDoesNotExist(assetAddress) {
-        require(assetAddress != address(0), "ZERO_ADDRESS");
-        require(factor <= FixedPoint.FP_SCALING_FACTOR, "INVALID_FACTOR");
-        require(oracle != address(0), "ZERO_ADDRESS");
+        address _collateralAsset,
+        uint256 _factor,
+        address _oracle
+    ) external onlyOwner collateralAssetDoesNotExist(_collateralAsset) {
+        require(_collateralAsset != address(0), "ZERO_ADDRESS");
+        require(_factor <= FixedPoint.FP_SCALING_FACTOR, "INVALID_FACTOR");
+        require(_oracle != address(0), "ZERO_ADDRESS");
 
-        collateralAssets[assetAddress] = CollateralAsset({
-            factor: FixedPoint.Unsigned(factor),
-            oracle: IOracle(oracle),
+        collateralAssets[_collateralAsset] = CollateralAsset({
+            factor: FixedPoint.Unsigned(_factor),
+            oracle: IOracle(_oracle),
             exists: true,
-            decimals: IERC20Metadata(assetAddress).decimals()
+            decimals: IERC20Metadata(_collateralAsset).decimals()
         });
-        emit CollateralAssetAdded(assetAddress, factor, oracle);
+        emit CollateralAssetAdded(_collateralAsset, _factor, _oracle);
     }
 
     /**
      * @dev Updates the collateral factor of a previously whitelisted collateral asset
-     * @param assetAddress The on chain address of the collateral asset
-     * @param factor The new collateral factor of the collateral asset. Must be <= 1e18.
+     * @param _collateralAsset The on chain address of the collateral asset
+     * @param _factor The new collateral factor of the collateral asset. Must be <= 1e18.
      */
-    function updateCollateralFactor(address assetAddress, uint256 factor)
+    function updateCollateralFactor(address _collateralAsset, uint256 _factor)
         external
         onlyOwner
-        collateralAssetExists(assetAddress)
+        collateralAssetExists(_collateralAsset)
     {
         // Setting the factor to 0 effectively sunsets a collateral asset, which
         // is intentionally allowed.
-        require(factor <= FixedPoint.FP_SCALING_FACTOR, "INVALID_FACTOR");
+        require(_factor <= FixedPoint.FP_SCALING_FACTOR, "INVALID_FACTOR");
 
-        collateralAssets[assetAddress].factor = FixedPoint.Unsigned(factor);
-        emit CollateralAssetFactorUpdated(assetAddress, factor);
+        collateralAssets[_collateralAsset].factor = FixedPoint.Unsigned(_factor);
+        emit CollateralAssetFactorUpdated(_collateralAsset, _factor);
     }
 
     /**
      * @dev Updates the oracle address of a previously whitelisted collateral asset
-     * @param assetAddress The on chain address of the collateral asset
-     * @param oracle The new oracle address for the collateral asset
+     * @param _collateralAsset The on chain address of the collateral asset
+     * @param _oracle The new oracle address for the collateral asset
      */
-    function updateCollateralOracle(address assetAddress, address oracle)
+    function updateCollateralOracle(address _collateralAsset, address _oracle)
         external
         onlyOwner
-        collateralAssetExists(assetAddress)
+        collateralAssetExists(_collateralAsset)
     {
-        require(oracle != address(0), "ZERO_ADDRESS");
+        require(_oracle != address(0), "ZERO_ADDRESS");
 
-        collateralAssets[assetAddress].oracle = IOracle(oracle);
-        emit CollateralAssetOracleUpdated(assetAddress, oracle);
+        collateralAssets[_collateralAsset].oracle = IOracle(_oracle);
+        emit CollateralAssetOracleUpdated(_collateralAsset, _oracle);
     }
 
     /* ===== Kresko Assets ===== */
@@ -578,45 +579,48 @@ contract Kresko is Ownable {
      * @notice Removes a particular collateral asset from an account's deposited collateral assets array.
      * @dev Removes an element by copying the last element to the element to remove's place and removing
      * the last element.
-     * @param account The account whose deposited collateral asset array is being affected.
-     * @param assetAddress The collateral asset to remove from the array.
-     * @param index The index of the assetAddress in the deposited collateral assets array.
+     * @param _account The account whose deposited collateral asset array is being affected.
+     * @param _collateralAsset The collateral asset to remove from the array.
+     * @param _index The index of the assetAddress in the deposited collateral assets array.
      */
     function removeFromDepositedCollateralAssets(
-        address account,
-        address assetAddress,
-        uint256 index
+        address _account,
+        address _collateralAsset,
+        uint256 _index
     ) internal {
         // Ensure that the provided index corresponds to the provided assetAddress.
-        require(depositedCollateralAssets[account][index] == assetAddress, "WRONG_DEPOSITED_COLLATERAL_ASSETS_INDEX");
-        uint256 lastIndex = depositedCollateralAssets[account].length - 1;
+        require(
+            depositedCollateralAssets[_account][_index] == _collateralAsset,
+            "WRONG_DEPOSITED_COLLATERAL_ASSETS_INDEX"
+        );
+        uint256 lastIndex = depositedCollateralAssets[_account].length - 1;
         // If the index to remove is not the last one, overwrite the element at the index
         // with the last element.
-        if (index != lastIndex) {
-            depositedCollateralAssets[account][index] = depositedCollateralAssets[account][lastIndex];
+        if (_index != lastIndex) {
+            depositedCollateralAssets[_account][_index] = depositedCollateralAssets[_account][lastIndex];
         }
         // Remove the last element.
-        depositedCollateralAssets[account].pop();
+        depositedCollateralAssets[_account].pop();
     }
 
     /**
      * @notice For a given collateral asset and amount, returns a FixedPoint.Unsigned representation.
      * @dev If the collateral asset has decimals other than 18, the amount is scaled appropriately.
      *   If decimals > 18, there may be a loss of precision.
-     * @param assetAddress The address of the collateral asset.
-     * @param amount The amount of the collateral asset.
+     * @param _collateralAsset The address of the collateral asset.
+     * @param _amount The amount of the collateral asset.
      * @return A FixedPoint.Unsigned of amount scaled according to the collateral asset's decimals.
      */
-    function toCollateralFixedPointAmount(address assetAddress, uint256 amount)
+    function toCollateralFixedPointAmount(address _collateralAsset, uint256 _amount)
         internal
         view
         returns (FixedPoint.Unsigned memory)
     {
-        CollateralAsset memory collateralAsset = collateralAssets[assetAddress];
+        CollateralAsset memory collateralAsset = collateralAssets[_collateralAsset];
         // Initially, use the amount as the raw value for the FixedPoint.Unsigned,
         // which internally uses FixedPoint.FP_DECIMALS (18) decimals. Most collateral
         // assets will have 18 decimals.
-        FixedPoint.Unsigned memory fixedPointAmount = FixedPoint.Unsigned(amount);
+        FixedPoint.Unsigned memory fixedPointAmount = FixedPoint.Unsigned(_amount);
         // Handle cases where the collateral asset's decimal amount is not 18.
         if (collateralAsset.decimals < FixedPoint.FP_DECIMALS) {
             // If the decimals are less than 18, multiply the amount
@@ -642,19 +646,19 @@ contract Kresko is Ownable {
      *   whole token, returns the amount according to the collateral asset's decimals.
      * @dev If the collateral asset has decimals other than 18, the amount is scaled appropriately.
      *   If decimals < 18, there may be a loss of precision.
-     * @param assetAddress The address of the collateral asset.
-     * @param fixedPointAmount The fixed point amount of the collateral asset.
+     * @param _collateralAsset The address of the collateral asset.
+     * @param _fixedPointAmount The fixed point amount of the collateral asset.
      * @return An amount that is compatible with the collateral asset's decimals.
      */
-    function fromCollateralFixedPointAmount(address assetAddress, FixedPoint.Unsigned memory fixedPointAmount)
+    function fromCollateralFixedPointAmount(address _collateralAsset, FixedPoint.Unsigned memory _fixedPointAmount)
         internal
         view
         returns (uint256)
     {
-        CollateralAsset memory collateralAsset = collateralAssets[assetAddress];
+        CollateralAsset memory collateralAsset = collateralAssets[_collateralAsset];
         // Initially, use the rawValue, which internally uses FixedPoint.FP_DECIMALS (18) decimals
         // Most collateral assets will have 18 decimals.
-        uint256 amount = fixedPointAmount.rawValue;
+        uint256 amount = _fixedPointAmount.rawValue;
         // Handle cases where the collateral asset's decimal amount is not 18.
         if (collateralAsset.decimals < FixedPoint.FP_DECIMALS) {
             // If the decimals are less than 18, divide the depositAmount
@@ -818,29 +822,29 @@ contract Kresko is Ownable {
 
     /**
      * @notice Gets an array of collateral assets the account has deposited.
-     * @param account The account to get the deposited collateral assets for.
+     * @param _account The account to get the deposited collateral assets for.
      * @return An array of addresses of collateral assets the account has deposited.
      */
-    function getDepositedCollateralAssets(address account) external view returns (address[] memory) {
-        return depositedCollateralAssets[account];
+    function getDepositedCollateralAssets(address _account) external view returns (address[] memory) {
+        return depositedCollateralAssets[_account];
     }
 
     /**
      * @notice Gets the collateral value of a particular account.
      * @dev O(# of different deposited collateral assets by account) complexity.
-     * @param account The account to calculate the collateral value for.
+     * @param _account The account to calculate the collateral value for.
      * @return The collateral value of a particular account.
      */
-    function getAccountCollateralValue(address account) public view returns (FixedPoint.Unsigned memory) {
+    function getAccountCollateralValue(address _account) public view returns (FixedPoint.Unsigned memory) {
         FixedPoint.Unsigned memory totalCollateralValue = FixedPoint.Unsigned(0);
 
-        address[] memory assets = depositedCollateralAssets[account];
+        address[] memory assets = depositedCollateralAssets[_account];
         for (uint256 i = 0; i < assets.length; i++) {
             address asset = assets[i];
             (FixedPoint.Unsigned memory collateralValue, ) =
                 getCollateralValueAndOraclePrice(
                     asset,
-                    collateralDeposits[account][asset],
+                    collateralDeposits[_account][asset],
                     false // Take the collateral factor into consideration.
                 );
             totalCollateralValue = totalCollateralValue.add(collateralValue);
@@ -850,16 +854,16 @@ contract Kresko is Ownable {
 
     /**
      * @notice Gets an account's minimum collateral value for its Kresko Asset debts.
-     * @param account The account to calculate the minimum collateral value for.
+     * @param _account The account to calculate the minimum collateral value for.
      * @return The minimum collateral value of a particular account.
      */
-    function getAccountMinimumCollateralValue(address account) public view returns (FixedPoint.Unsigned memory) {
+    function getAccountMinimumCollateralValue(address _account) public view returns (FixedPoint.Unsigned memory) {
         FixedPoint.Unsigned memory minCollateralValue = FixedPoint.Unsigned(0);
 
-        address[] memory assets = mintedKreskoAssets[account];
+        address[] memory assets = mintedKreskoAssets[_account];
         for (uint256 i = 0; i < assets.length; i++) {
             address asset = assets[i];
-            uint256 amount = kreskoAssetDebt[account][asset];
+            uint256 amount = kreskoAssetDebt[_account][asset];
             minCollateralValue = minCollateralValue.add(getMinimumCollateralValue(asset, amount));
         }
         return minCollateralValue;
@@ -867,40 +871,40 @@ contract Kresko is Ownable {
 
     /**
      * @notice Get the minimum collateral value required to keep a individual debt position healthy.
-     * @param assetAddr The address of the Kresko Asset.
-     * @param amount The Kresko Asset debt amount.
+     * @param _collateralAsset The address of the Kresko Asset.
+     * @param _amount The Kresko Asset debt amount.
      * @return minCollateralValue is the minimum collateral value required for this Kresko Asset amount.
      */
-    function getMinimumCollateralValue(address assetAddr, uint256 amount)
+    function getMinimumCollateralValue(address _collateralAsset, uint256 _amount)
         public
         view
-        kreskoAssetExists(assetAddr)
+        kreskoAssetExists(_collateralAsset)
         returns (FixedPoint.Unsigned memory minCollateralValue)
     {
         // Calculate the Kresko asset's value weighted by kFactor
-        FixedPoint.Unsigned memory weightedKreskoAssetValue = getKrAssetValue(assetAddr, amount);
+        FixedPoint.Unsigned memory weightedKreskoAssetValue = getKrAssetValue(_collateralAsset, _amount);
         // Calculate the minimum collateral required to back this Kresko asset amount
         return weightedKreskoAssetValue.mul(minimumCollateralizationRatio).div(100);
     }
 
     /**
      * @notice Gets the collateral value for a single collateral asset and amount.
-     * @param assetAddress The address of the collateral asset.
-     * @param amount The amount of the collateral asset to calculate the collateral value for.
+     * @param _collateralAsset The address of the collateral asset.
+     * @param _amount The amount of the collateral asset to calculate the collateral value for.
      * @return The collateral value for the provided amount of the collateral asset.
      */
     function getCollateralValueAndOraclePrice(
-        address assetAddress,
-        uint256 amount,
-        bool ignoreCollateralFactor
+        address _collateralAsset,
+        uint256 _amount,
+        bool _ignoreCollateralFactor
     ) public view returns (FixedPoint.Unsigned memory, FixedPoint.Unsigned memory) {
-        CollateralAsset memory collateralAsset = collateralAssets[assetAddress];
+        CollateralAsset memory collateralAsset = collateralAssets[_collateralAsset];
 
-        FixedPoint.Unsigned memory fixedPointAmount = toCollateralFixedPointAmount(assetAddress, amount);
+        FixedPoint.Unsigned memory fixedPointAmount = toCollateralFixedPointAmount(_collateralAsset, _amount);
         FixedPoint.Unsigned memory oraclePrice = FixedPoint.Unsigned(collateralAsset.oracle.value());
         FixedPoint.Unsigned memory value = fixedPointAmount.mul(oraclePrice);
 
-        if (!ignoreCollateralFactor) {
+        if (!_ignoreCollateralFactor) {
             value = value.mul(collateralAsset.factor);
         }
         return (value, oraclePrice);
