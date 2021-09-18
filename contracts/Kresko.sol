@@ -36,7 +36,7 @@ contract Kresko is Ownable {
     uint256 public constant MAX_CLOSE_FACTOR = 0.9e18; // 90%
     uint256 public constant MIN_LIQUIDATION_INCENTIVE = 1e18; // 100%
     uint256 public constant MAX_LIQUIDATION_INCENTIVE = 1.5e18; // 150% // TODO: consider implications
-    uint256 public constant MAX_BURN_FEE = 1e17; // Because FP_SCALING_FACTOR = 1e18, this is 10%
+    uint256 public constant MAX_BURN_FEE = 0.1e18; // 10%
 
     uint256 public minimumCollateralizationRatio;
     FixedPoint.Unsigned public closeFactor;
@@ -81,25 +81,25 @@ contract Kresko is Ownable {
     mapping(address => address[]) public mintedKreskoAssets;
 
     // Collateral asset events
-    event CollateralAssetAdded(address assetAddress, uint256 factor, address oracle);
-    event CollateralAssetFactorUpdated(address assetAddress, uint256 factor);
-    event CollateralAssetOracleUpdated(address assetAddress, address oracle);
-    event CollateralDeposited(address account, address assetAddress, uint256 amount);
-    event CollateralWithdrawn(address account, address assetAddress, uint256 amount);
+    event CollateralAssetAdded(address collateralAsset, uint256 factor, address oracle);
+    event CollateralAssetFactorUpdated(address collateralAsset, uint256 factor);
+    event CollateralAssetOracleUpdated(address collateralAsset, address oracle);
+    event CollateralDeposited(address account, address collateralAsset, uint256 amount);
+    event CollateralWithdrawn(address account, address collateralAsset, uint256 amount);
 
     // Kresko asset events
-    event KreskoAssetAdded(string name, string symbol, address assetAddress, uint256 kFactor, address oracle);
-    event KreskoAssetKFactorUpdated(address assetAddress, uint256 kFactor);
-    event KreskoAssetOracleUpdated(address assetAddress, address oracle);
-    event KreskoAssetMinted(address account, address assetAddress, uint256 amount);
-    event KreskoAssetBurned(address account, address assetAddress, uint256 amount);
-    event BurnFeePaid(address account, address paymentAsset, uint256 paymentAmount, uint256 paymentValue);
+    event KreskoAssetAdded(string name, string symbol, address kreskoAsset, uint256 kFactor, address oracle);
+    event KreskoAssetKFactorUpdated(address kreskoAsset, uint256 kFactor);
+    event KreskoAssetOracleUpdated(address kreskoAsset, address oracle);
+    event KreskoAssetMinted(address account, address kreskoAsset, uint256 amount);
+    event KreskoAssetBurned(address account, address kreskoAsset, uint256 amount);
+    event BurnFeePaid(address account, address paymentCollateralAsset, uint256 paymentAmount, uint256 paymentValue);
     event LiquidationOccurred(
         address account,
         address liquidator,
-        address repayKRAsset,
+        address repayKreskoAsset,
         uint256 repayAmount,
-        address seizedCollateral,
+        address seizedCollateralAsset,
         uint256 seizedAmount
     );
 
@@ -107,8 +107,8 @@ contract Kresko is Ownable {
     event BurnFeeUpdated(uint256 burnFee);
     event CloseFactorUpdated(uint256 closeFactor);
     event FeeRecipientUpdated(address feeRecipient);
-    event MinimumCollateralizationRatioUpdated(uint256 minimumCollateralizationRatio);
     event LiquidationIncentiveUpdated(uint256 liquidationIncentive);
+    event MinimumCollateralizationRatioUpdated(uint256 minimumCollateralizationRatio);
 
     modifier collateralAssetExists(address _collateralAsset) {
         require(collateralAssets[_collateralAsset].exists, "ASSET_NOT_VALID");

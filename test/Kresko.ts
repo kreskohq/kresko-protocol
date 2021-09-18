@@ -80,7 +80,7 @@ async function addNewKreskoAsset(kresko: Contract, name: string, symbol: string,
     const tx: ContractTransaction = await kresko.addKreskoAsset(name, symbol, fixedPointKFactor, oracle.address);
 
     let events: any = await extractEventFromTxReceipt(tx, "KreskoAssetAdded");
-    const krAssetAddress = events[0].args.assetAddress;
+    const krAssetAddress = events[0].args.kreskoAsset;
     const KreskoAssetContract = await hre.ethers.getContractFactory("KreskoAsset");
     const kreskoAsset = KreskoAssetContract.attach(krAssetAddress);
     return {
@@ -606,7 +606,7 @@ describe("Kresko", function () {
 
             const tx: ContractTransaction = await this.kresko.addKreskoAsset(NAME_ONE, SYMBOL_ONE, ONE, ADDRESS_ONE);
             let events: any = await extractEventFromTxReceipt(tx, "KreskoAssetAdded");
-            this.deployedAssetAddress = events[0].args.assetAddress;
+            this.deployedAssetAddress = events[0].args.kreskoAsset;
         });
 
         it("Cannot add kresko assets that have the same symbol as an existing kresko asset", async function () {
@@ -655,7 +655,7 @@ describe("Kresko", function () {
             const tx: any = await this.kresko.addKreskoAsset(NAME_TWO, SYMBOL_TWO, ONE, ADDRESS_TWO);
             let events: any = await extractEventFromTxReceipt(tx, "KreskoAssetAdded");
 
-            const asset = await this.kresko.kreskoAssets(events[0].args.assetAddress);
+            const asset = await this.kresko.kreskoAssets(events[0].args.kreskoAsset);
             expect(asset.kFactor.rawValue).to.equal(ONE.toString());
             expect(asset.oracle).to.equal(ADDRESS_TWO);
         });
@@ -1051,7 +1051,7 @@ describe("Kresko", function () {
                     expect(events!.length).to.equal(1);
                     const eventArgs = events![0].args!;
                     expect(eventArgs.account).to.equal(this.userOne.address);
-                    expect(eventArgs.paymentAsset).to.equal(collateralAssetInfo.collateralAsset.address);
+                    expect(eventArgs.paymentCollateralAsset).to.equal(collateralAssetInfo.collateralAsset.address);
                     expect(eventArgs.paymentAmount).to.equal(expectedCollateralFeeAmount);
                     expect(eventArgs.paymentValue).to.equal(expectedFeeValue);
                 };
@@ -1160,7 +1160,7 @@ describe("Kresko", function () {
                         expect(feeRecipientBalanceIncrease).to.equal(paymentAmount);
 
                         expect(eventArgs.account).to.equal(this.userOne.address);
-                        expect(eventArgs.paymentAsset).to.equal(
+                        expect(eventArgs.paymentCollateralAsset).to.equal(
                             allCollateralAssetInfos[collateralAssetInfoIndex].collateralAsset.address,
                         );
                         expect(eventArgs.paymentAmount).to.equal(paymentAmount);
