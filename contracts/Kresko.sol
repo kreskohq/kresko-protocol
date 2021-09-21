@@ -26,7 +26,7 @@ contract Kresko is Ownable {
      * Whitelist of kresko assets with their respective name,
      * deployed address, k factor, and oracle address
      */
-    struct KAsset {
+    struct KrAsset {
         FixedPoint.Unsigned kFactor;
         IOracle oracle;
         bool exists;
@@ -54,7 +54,7 @@ contract Kresko is Ownable {
     address public feeRecipient;
 
     mapping(address => CollateralAsset) public collateralAssets;
-    mapping(address => KAsset) public kreskoAssets;
+    mapping(address => KrAsset) public kreskoAssets;
     mapping(string => bool) public kreskoAssetSymbols; // Prevents duplicate KreskoAsset symbols
     /**
      * Maps each account to a mapping of collateral asset address to the amount
@@ -370,10 +370,10 @@ contract Kresko is Ownable {
         }
 
         // Transfer Kresko asset repay amount from liquidator to contract
-        KreskoAsset kAsset = KreskoAsset(repayKRAsset);
-        require(kAsset.transferFrom(msg.sender, address(this), repayAmount), "TRANSFER_IN_FAILED");
+        KreskoAsset krAsset = KreskoAsset(repayKRAsset);
+        require(krAsset.transferFrom(msg.sender, address(this), repayAmount), "TRANSFER_IN_FAILED");
         // Burn the received Kresko assets, removing them from circulation
-        kAsset.burn(repayAmount);
+        krAsset.burn(repayAmount);
 
         // Send liquidator the seized collateral
         require(IERC20(collateralToSeize).transfer(msg.sender, seizeAmount), "TRANSFER_OUT_FAILED");
@@ -470,7 +470,7 @@ contract Kresko is Ownable {
 
         // Deploy KreskoAsset contract and store its details
         KreskoAsset asset = new KreskoAsset(name, symbol);
-        kreskoAssets[address(asset)] = KAsset({
+        kreskoAssets[address(asset)] = KrAsset({
             kFactor: FixedPoint.Unsigned(kFactor),
             oracle: IOracle(oracle),
             exists: true
@@ -715,10 +715,10 @@ contract Kresko is Ownable {
         address assetAddress,
         uint256 amountBurned
     ) internal {
-        KAsset memory kAsset = kreskoAssets[assetAddress];
+        KrAsset memory krAsset = kreskoAssets[assetAddress];
         // Calculate the value of the fee according to the value of the krAssets being burned.
         FixedPoint.Unsigned memory feeValue =
-            FixedPoint.Unsigned(kAsset.oracle.value()).mul(FixedPoint.Unsigned(amountBurned)).mul(burnFee);
+            FixedPoint.Unsigned(krAsset.oracle.value()).mul(FixedPoint.Unsigned(amountBurned)).mul(burnFee);
 
         // Do nothing if the fee value is 0.
         if (feeValue.rawValue == 0) {
@@ -940,7 +940,7 @@ contract Kresko is Ownable {
      * @return The value for the provided amount of the Kresko asset.
      */
     function getKrAssetValue(address assetAddress, uint256 amount) public view returns (FixedPoint.Unsigned memory) {
-        KAsset memory krAsset = kreskoAssets[assetAddress];
+        KrAsset memory krAsset = kreskoAssets[assetAddress];
         FixedPoint.Unsigned memory amt = FixedPoint.Unsigned(amount);
         return amt.mul(FixedPoint.Unsigned(krAsset.oracle.value())).mul(krAsset.kFactor);
     }
