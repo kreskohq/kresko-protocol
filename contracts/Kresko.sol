@@ -346,7 +346,6 @@ contract Kresko is Ownable {
 
     /**
      * @notice Deposits collateral into the protocol.
-     * @dev The collateral asset must be whitelisted.
      * @param _collateralAsset The address of the collateral asset.
      * @param _amount The amount of the collateral asset to deposit.
      */
@@ -375,22 +374,18 @@ contract Kresko is Ownable {
     }
 
     /**
-     * @notice Withdraws collateral from the protocol.
-     * @dev The collateral asset must be whitelisted.
+     * @notice Withdraws sender's collateral from the protocol.
+     * @dev Requires the post-withdrawal state to not violate the sender's health factor.
      * @param _collateralAsset The address of the collateral asset.
      * @param _amount The amount of the collateral asset to withdraw.
-     * @param _depositedCollateralAssetIndex The index of the collateral asset in the sender's
-     * deposited collateral assets array. Only needed if withdrawing the entire deposit of a particular
-     * collateral asset.
+     * @param _depositedCollateralAssetIndex The index of the collateral asset in the sender's deposited collateral
+     * assets array. Only needed if withdrawing the entire deposit of a particular collateral asset.
      */
     function withdrawCollateral(
         address _collateralAsset,
         uint256 _amount,
         uint256 _depositedCollateralAssetIndex
     ) external collateralAssetExists(_collateralAsset) {
-        // Require the amount to be over 0, otherwise someone could attempt to withdraw 0 collateral
-        // for an asset they have not deposited. This would fail further down, but we require here
-        // to be explicit.
         require(_amount > 0, "AMOUNT_ZERO");
 
         // Ensure the amount being withdrawn is not greater than the amount of the collateral asset
@@ -412,7 +407,7 @@ contract Kresko is Ownable {
             );
         // Get the account's minimum collateral value.
         FixedPoint.Unsigned memory accountMinCollateralValue = getAccountMinimumCollateralValue(msg.sender);
-        // Require accountCollateralValue - withdrawnCollateralValue >= accountMinCollateralValue
+        // Require accountCollateralValue - withdrawnCollateralValue >= accountMinCollateralValue.
         require(
             accountCollateralValue.sub(withdrawnCollateralValue).isGreaterThanOrEqual(accountMinCollateralValue),
             "HEALTH_FACTOR_VIOLATED"
@@ -434,33 +429,32 @@ contract Kresko is Ownable {
 
     /**
      * @notice Mints new Kresko assets.
-     * @dev
-     * @param _assetAddress The address of the Kresko asset.
+     * @param _kreskoAsset The address of the Kresko asset.
      * @param _amount The amount of the Kresko asset to be minted.
      */
     function mintKreskoAsset(address _kreskoAsset, uint256 _amount) external kreskoAssetExists(_kreskoAsset) {
         require(_amount > 0, "AMOUNT_ZERO");
 
-        // Get the value of the minter's current deposited collateral
+        // Get the value of the minter's current deposited collateral.
         FixedPoint.Unsigned memory accountCollateralValue = getAccountCollateralValue(msg.sender);
-        // Get the account's current minimum collateral value required to maintain current debts
+        // Get the account's current minimum collateral value required to maintain current debts.
         FixedPoint.Unsigned memory minAccountCollateralValue = getAccountMinimumCollateralValue(msg.sender);
-        // Calculate additional collateral amount required to back requested additional mint
+        // Calculate additional collateral amount required to back requested additional mint.
         FixedPoint.Unsigned memory additionalCollateralValue = getMinimumCollateralValue(_kreskoAsset, _amount);
 
-        // Verify that minter has sufficient collateral to back current debt + new requested debt
+        // Verify that minter has sufficient collateral to back current debt + new requested debt.
         require(
             minAccountCollateralValue.add(additionalCollateralValue).isLessThanOrEqual(accountCollateralValue),
             "INSUFFICIENT_COLLATERAL"
         );
 
-        // If the account does not have an existing debt for this Kresko Asset
-        // push it to the list of the account's minted Kresko Assets
+        // If the account does not have an existing debt for this Kresko Asset,
+        // push it to the list of the account's minted Kresko Assets.
         uint256 existingDebtAmount = kreskoAssetDebt[msg.sender][_kreskoAsset];
         if (existingDebtAmount == 0) {
             mintedKreskoAssets[msg.sender].push(_kreskoAsset);
         }
-        // Record the mint
+        // Record the mint.
         kreskoAssetDebt[msg.sender][_kreskoAsset] = existingDebtAmount + _amount;
 
         KreskoAsset(_kreskoAsset).mint(msg.sender, _amount);
@@ -469,10 +463,11 @@ contract Kresko is Ownable {
     }
 
     /**
-     * @notice Burns existing Kresko assets.
+     * @notice Burns sender's existing Kresko assets.
      * @param _kreskoAsset The address of the Kresko asset.
      * @param _amount The amount of the Kresko asset to be burned.
-     * @param _mintedKreskoAssetIndex The index of the Kresko asset in the user's minted assets array.
+     * @param _mintedKreskoAssetIndex The index of the collateral asset in the sender's minted assets array.
+     * Only needed if withdrawing the entire deposit of a particular collateral asset.
      */
     function burnKreskoAsset(
         address _kreskoAsset,
@@ -481,24 +476,24 @@ contract Kresko is Ownable {
     ) external kreskoAssetExists(_kreskoAsset) {
         require(_amount > 0, "AMOUNT_ZERO");
 
-        // Ensure the amount being burned is not greater than the sender's debt
+        // Ensure the amount being burned is not greater than the sender's debt.
         uint256 debtAmount = kreskoAssetDebt[msg.sender][_kreskoAsset];
         require(_amount <= debtAmount, "AMOUNT_TOO_HIGH");
 
-        // Transfer kresko assets from the user to Kresko contract
+        // Transfer kresko assets from the user to Kresko contract.
         KreskoAsset asset = KreskoAsset(_kreskoAsset);
         require(asset.transferFrom(msg.sender, address(this), _amount), "TRANSFER_IN_FAILED");
 
-        // Record the burn
+        // Record the burn.
         kreskoAssetDebt[msg.sender][_kreskoAsset] = debtAmount - _amount;
-        // If the sender is burning all of the kresko asset, remove it from minted assets array
+        // If the sender is burning all of the kresko asset, remove it from minted assets array.
         if (_amount == debtAmount) {
             removeFromMintedKreskoAssets(msg.sender, _kreskoAsset, _mintedKreskoAssetIndex);
         }
 
         chargeBurnFee(msg.sender, _kreskoAsset, _amount);
 
-        // Burn the received kresko assets, removing them from circulation
+        // Burn the received kresko assets, removing them from circulation.
         asset.burn(_amount);
 
         emit KreskoAssetBurned(msg.sender, _kreskoAsset, _amount);
@@ -510,9 +505,9 @@ contract Kresko is Ownable {
      * @notice Attempts to liquidate an account by repaying the portion of the account's Kresko asset
      *         debt, receiving in return a portion of the account's collateral at a discounted rate.
      * @param _account The account to attempt to liquidate.
-     * @param _repayKreskoAsset The Kresko asset type to be repaid.
+     * @param _repayKreskoAsset The address of the Kresko asset to be repaid.
      * @param _repayAmount The amount of the Kresko asset to be repaid.
-     * @param _collateralAssetToSeize The collateral asset type to be seized.
+     * @param _collateralAssetToSeize The address of the collateral asset to be seized.
      * @param _mintedKreskoAssetIndex The index of the Kresko asset in the account's minted assets array.
      * @param _depositedCollateralAssetIndex The index of the collateral asset in the account's collateral assets array.
      */
@@ -526,44 +521,44 @@ contract Kresko is Ownable {
     ) public collateralAssetExists(_collateralAssetToSeize) kreskoAssetExists(_repayKreskoAsset) {
         require(_repayAmount > 0, "REPAY_AMOUNT_TOO_SMALL");
 
-        // Check that this account is below its minimum collateralization ratio and can be liquidated
+        // Check that this account is below its minimum collateralization ratio and can be liquidated.
         require(isAccountLiquidatable(_account), "NOT_LIQUIDATABLE");
 
-        // Liquidator may not repay more than what is allowed by the close factor
+        // Liquidator may not repay more than what is allowed by the close factor.
         uint256 krAssetDebt = kreskoAssetDebt[_account][_repayKreskoAsset];
-        // max liquidation = total debt * close factor
+        // Max liquidation = total debt * close factor.
         FixedPoint.Unsigned memory maxLiquidation = FixedPoint.Unsigned(krAssetDebt).mul(closeFactor);
         require(_repayAmount <= maxLiquidation.rawValue, "REPAY_AMOUNT_TOO_LARGE");
 
-        // repay amount USD = repay amount * KR asset USD exchange rate
+        // Repay amount USD = repay amount * KR asset USD exchange rate.
         FixedPoint.Unsigned memory repayAmountUSD =
             FixedPoint.Unsigned(_repayAmount).mul(FixedPoint.Unsigned(kreskoAssets[_repayKreskoAsset].oracle.value()));
 
-        // Calculate amount of collateral to seize
+        // Calculate amount of collateral to seize.
         uint256 seizeAmount = calculateAmountToSeize(_collateralAssetToSeize, repayAmountUSD);
 
-        // Subtract repaid Kresko assets from liquidated user's recorded debt
+        // Subtract repaid Kresko assets from liquidated user's recorded debt.
         kreskoAssetDebt[_account][_repayKreskoAsset] = krAssetDebt - _repayAmount;
-        // If the liquidation repays the user's entire Kresko asset balance, remove it from minted assets array
+        // If the liquidation repays the user's entire Kresko asset balance, remove it from minted assets array.
         if (_repayAmount == krAssetDebt) {
             removeFromMintedKreskoAssets(_account, _repayKreskoAsset, _mintedKreskoAssetIndex);
         }
 
-        // Subtract seized collateral from liquidated user's recorded collateral
+        // Subtract seized collateral from liquidated user's recorded collateral.
         uint256 collateralDeposit = collateralDeposits[_account][_collateralAssetToSeize];
         collateralDeposits[_account][_collateralAssetToSeize] = collateralDeposit - seizeAmount;
-        // If the liquidation seizes the user's entire collateral asset balance, remove it from collateral assets array
+        // If the liquidation seizes the user's entire collateral asset balance, remove it from collateral assets array.
         if (seizeAmount == collateralDeposit) {
             removeFromDepositedCollateralAssets(_account, _collateralAssetToSeize, _depositedCollateralAssetIndex);
         }
 
-        // Transfer Kresko asset repay amount from liquidator to contract
+        // Transfer Kresko asset repay amount from liquidator to contract.
         KreskoAsset kAsset = KreskoAsset(_repayKreskoAsset);
         require(kAsset.transferFrom(msg.sender, address(this), _repayAmount), "TRANSFER_IN_FAILED");
-        // Burn the received Kresko assets, removing them from circulation
+        // Burn the received Kresko assets, removing them from circulation.
         kAsset.burn(_repayAmount);
 
-        // Send liquidator the seized collateral
+        // Send liquidator the seized collateral.
         require(IERC20(_collateralAssetToSeize).transfer(msg.sender, seizeAmount), "TRANSFER_OUT_FAILED");
 
         emit LiquidationOccurred(
@@ -585,10 +580,12 @@ contract Kresko is Ownable {
     /* ===== Collateral ===== */
 
     /**
-     * @dev Whitelists a collateral asset
-     * @param _collateralAsset The on chain address of the collateral asset
-     * @param _factor The collateral factor of the collateral asset. Must be <= 1e18.
-     * @param _oracle The oracle address for the collateral asset
+     * @notice Adds a collateral asset to the protocol.
+     * @dev Only callable by the owner and cannot be called more than once for an asset.
+     * @param _collateralAsset The address of the collateral asset.
+     * @param _factor The collateral factor of the collateral asset as a raw value for a FixedPoint.Unsigned.
+     * Must be <= 1e18.
+     * @param _oracle The oracle address for the collateral asset's USD value.
      */
     function addCollateralAsset(
         address _collateralAsset,
@@ -609,17 +606,17 @@ contract Kresko is Ownable {
     }
 
     /**
-     * @dev Updates the collateral factor of a previously whitelisted collateral asset
-     * @param _collateralAsset The on chain address of the collateral asset
-     * @param _factor The new collateral factor of the collateral asset. Must be <= 1e18.
+     * @notice Updates the collateral factor of a previously added collateral asset.
+     * @dev Only callable by the owner.
+     * @param _collateralAsset The address of the collateral asset.
+     * @param _factor The new collateral factor as a raw value for a FixedPoint.Unsigned. Must be <= 1e18.
      */
     function updateCollateralFactor(address _collateralAsset, uint256 _factor)
         external
         onlyOwner
         collateralAssetExists(_collateralAsset)
     {
-        // Setting the factor to 0 effectively sunsets a collateral asset, which
-        // is intentionally allowed.
+        // Setting the factor to 0 effectively sunsets a collateral asset, which is intentionally allowed.
         require(_factor <= FixedPoint.FP_SCALING_FACTOR, "INVALID_FACTOR");
 
         collateralAssets[_collateralAsset].factor = FixedPoint.Unsigned(_factor);
@@ -627,9 +624,10 @@ contract Kresko is Ownable {
     }
 
     /**
-     * @dev Updates the oracle address of a previously whitelisted collateral asset
-     * @param _collateralAsset The on chain address of the collateral asset
-     * @param _oracle The new oracle address for the collateral asset
+     * @notice Updates the oracle address of a previously added collateral asset.
+     * @dev Only callable by the owner.
+     * @param _collateralAsset The address of the collateral asset.
+     * @param _oracle The new oracle address for the collateral asset.
      */
     function updateCollateralOracle(address _collateralAsset, address _oracle)
         external
@@ -645,11 +643,12 @@ contract Kresko is Ownable {
     /* ===== Kresko Assets ===== */
 
     /**
-     * @dev Whitelists a kresko asset
-     * @param _name The name of the kresko asset
-     * @param _symbol The symbol of the kresko asset
-     * @param _kFactor The k factor of the kresko asset. Must be >= 1e18.
-     * @param _oracle The oracle address for the kresko asset
+     * @notice Adds a Kresko asset to the protocol.
+     * @dev Only callable by the owner and cannot be called more than once for a given symbol.
+     * @param _name The name of the Kresko asset.
+     * @param _symbol The symbol of the Kresko asset.
+     * @param _kFactor The k-factor of the Kresko asset as a raw value for a FixedPoint.Unsigned. Must be >= 1e18.
+     * @param _oracle The oracle address for the Kresko asset.
      */
     function addKreskoAsset(
         string calldata _name,
@@ -660,10 +659,10 @@ contract Kresko is Ownable {
         require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, "INVALID_FACTOR");
         require(_oracle != address(0), "ZERO_ADDRESS");
 
-        // Store symbol to prevent duplicate KreskoAsset symbols
+        // Store symbol to prevent duplicate KreskoAsset symbols.
         kreskoAssetSymbols[_symbol] = true;
 
-        // Deploy KreskoAsset contract and store its details
+        // Deploy KreskoAsset contract and store its details.
         KreskoAsset asset = new KreskoAsset(_name, _symbol);
         kreskoAssets[address(asset)] = KAsset({
             kFactor: FixedPoint.Unsigned(_kFactor),
@@ -674,9 +673,10 @@ contract Kresko is Ownable {
     }
 
     /**
-     * @dev Updates the k factor of a previously whitelisted kresko asset
-     * @param _kreskoAsset The address of the kresko asset
-     * @param _kFactor The new k factor of the kresko asset
+     * @notice Updates the k-factor of a previously added Kresko asset.
+     * @dev Only callable by the owner.
+     * @param _kreskoAsset The address of the Kresko asset.
+     * @param _kFactor The new k-factor as a raw value for a FixedPoint.Unsigned. Must be >= 1e18.
      */
     function updateKreskoAssetFactor(address _kreskoAsset, uint256 _kFactor)
         external
@@ -690,9 +690,10 @@ contract Kresko is Ownable {
     }
 
     /**
-     * @dev Updates the oracle address of a previously whitelisted kresko asset
-     * @param _kreskoAsset The address of the kresko asset
-     * @param _oracle The new oracle address for the kresko asset
+     * @dev Updates the oracle address of a previously added Kresko asset.
+     * @dev Only callable by the owner.
+     * @param _kreskoAsset The address of the Kresko asset.
+     * @param _oracle The new oracle address for the Kresko asset's USD value.
      */
     function updateKreskoAssetOracle(address _kreskoAsset, address _oracle)
         external
@@ -750,8 +751,8 @@ contract Kresko is Ownable {
     }
 
     /**
-     * @dev Updates the contract's collateralization ratio
-     * @param _minimumCollateralizationRatio The new minimum collateralization ratio
+     * @dev Updates the contract's collateralization ratio.
+     * @param _minimumCollateralizationRatio The new minimum collateralization ratio.
      */
     function setMinimumCollateralizationRatio(uint256 _minimumCollateralizationRatio) public onlyOwner {
         // TODO fix
@@ -876,12 +877,12 @@ contract Kresko is Ownable {
     /* ==== Kresko Assets ==== */
 
     /**
-     * @notice Removes a particular kresko asset from an account's minted kresko assets array.
+     * @notice Removes a particular Kresko asset from an account's minted Kresko assets array.
      * @dev Removes an element by copying the last element to the element to remove's place and removing
      * the last element.
-     * @param _account The account whose minted kresko asset array is being affected.
-     * @param _kreskoAsset The kresko asset to remove from the array.
-     * @param _index The index of the assetAddress in the minted kresko assets array.
+     * @param _account The account whose minted Kresko asset array is being affected.
+     * @param _kreskoAsset The address of the Kresko asset to remove from the array.
+     * @param _index The index of the _kreskoAsset in the minted kresko assets array.
      */
     function removeFromMintedKreskoAssets(
         address _account,
@@ -985,18 +986,18 @@ contract Kresko is Ownable {
 
     /**
      * @notice Calculate amount of collateral to seize during the liquidation process.
-     * @param _collateralAssetToSeize Address of the collateral asset.
+     * @param _collateralAssetToSeize The address of the collateral asset.
      * @param _kreskoAssetRepayAmountUSD Kresko asset amount being repaid in exchange for the seized collateral.
      */
     function calculateAmountToSeize(
         address _collateralAssetToSeize,
         FixedPoint.Unsigned memory _kreskoAssetRepayAmountUSD
     ) internal view returns (uint256) {
-        // Fetch collateral asset's oracle price
+        // Fetch collateral asset's oracle price.
         FixedPoint.Unsigned memory oraclePrice =
             FixedPoint.Unsigned(collateralAssets[_collateralAssetToSeize].oracle.value());
 
-        // seize amount = (repay amount USD / exchange rate of collateral asset) * liquidation incentive
+        // Seize amount = (repay amount USD / exchange rate of collateral asset) * liquidation incentive.
         FixedPoint.Unsigned memory seizeAmount =
             _kreskoAssetRepayAmountUSD
                 .div(oraclePrice) // Denominate seize amount in collateral type
@@ -1064,7 +1065,7 @@ contract Kresko is Ownable {
 
     /**
      * @notice Get the minimum collateral value required to keep a individual debt position healthy.
-     * @param _collateralAsset The address of the Kresko Asset.
+     * @param _collateralAsset The address of the Kresko asset.
      * @param _amount The Kresko Asset debt amount.
      * @return minCollateralValue is the minimum collateral value required for this Kresko Asset amount.
      */
@@ -1074,9 +1075,9 @@ contract Kresko is Ownable {
         kreskoAssetExists(_collateralAsset)
         returns (FixedPoint.Unsigned memory minCollateralValue)
     {
-        // Calculate the Kresko asset's value weighted by kFactor
+        // Calculate the Kresko asset's value weighted by its k-factor.
         FixedPoint.Unsigned memory weightedKreskoAssetValue = getKrAssetValue(_collateralAsset, _amount);
-        // Calculate the minimum collateral required to back this Kresko asset amount
+        // Calculate the minimum collateral required to back this Kresko asset amount.
         return weightedKreskoAssetValue.mul(minimumCollateralizationRatio).div(100);
     }
 
@@ -1145,14 +1146,15 @@ contract Kresko is Ownable {
     /* ==== Liquidation ==== */
 
     /**
-     * @notice Calculates if an account is currently liquidatable
+     * @notice Calculates if an account is currently liquidatable.
+     * @dev Returns true if the health factor is < 1.
      * @param _account The account to check.
      * @return A boolean indicating if the account can be liquidated.
      */
     function isAccountLiquidatable(address _account) public view returns (bool) {
-        // Get the value of the account's current deposited collateral
+        // Get the value of the account's current deposited collateral.
         FixedPoint.Unsigned memory accountCollateralValue = getAccountCollateralValue(_account);
-        // Get the account's current minimum collateral value required to maintain current debts
+        // Get the account's current minimum collateral value required to maintain current debts.
         FixedPoint.Unsigned memory minAccountCollateralValue = getAccountMinimumCollateralValue(_account);
 
         return accountCollateralValue.isLessThan(minAccountCollateralValue);
