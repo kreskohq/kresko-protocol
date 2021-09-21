@@ -43,12 +43,12 @@ contract NonRebasingWrapperToken is ERC20 {
         uint256 underlyingBalanceBefore = underlyingToken.balanceOf(address(this));
         require(
             underlyingToken.transferFrom(msg.sender, address(this), underlyingDepositAmount),
-            "UNDERLYING_TRANSFER_IN_FAILED"
+            "NRWToken: underlying transfer in failed"
         );
         uint256 underlyingBalanceAfter = underlyingToken.balanceOf(address(this));
         uint256 depositAmount = underlyingBalanceAfter - underlyingBalanceBefore;
 
-        require(depositAmount > 0, "DEPOSIT_AMOUNT_ZERO");
+        require(depositAmount > 0, "NRWToken: deposit amount is zero");
 
         uint256 _totalSupply = totalSupply();
         // If this contract has a total supply of 0 or no prior underlying balance, mint at a 1:1 rate.
@@ -83,14 +83,14 @@ contract NonRebasingWrapperToken is ERC20 {
      *   to burn. Used to calculate the amount of underlying tokens that are withdrawn as a result.
      */
     function withdrawUnderlying(uint256 nonRebasingWithdrawalAmount) external {
-        require(nonRebasingWithdrawalAmount > 0, "WITHDRAW_AMOUNT_ZERO");
-        require(nonRebasingWithdrawalAmount <= balanceOf(msg.sender), "WITHDRAW_AMOUNT_TOO_HIGH");
+        require(nonRebasingWithdrawalAmount > 0, "NRWToken: withdraw amount is zero");
+        require(nonRebasingWithdrawalAmount <= balanceOf(msg.sender), "NRWToken: withdraw amount exceeds balance");
 
         // Withdraw the underlying tokens. underlyingAmount will never be
         // greater than this contract's balance of the underlying token due
         // to the way getUnderlyingAmount works.
         uint256 underlyingAmount = getUnderlyingAmount(nonRebasingWithdrawalAmount);
-        require(underlyingToken.transfer(msg.sender, underlyingAmount), "UNDERLYING_TRANSFER_OUT_FAILED");
+        require(underlyingToken.transfer(msg.sender, underlyingAmount), "NRWToken: underlying transfer out failed");
 
         // Burn the balance of non-rebasing tokens.
         // It's important to do this after the above call to getUnderlyingAmount,
@@ -127,7 +127,7 @@ contract NonRebasingWrapperToken is ERC20 {
         if (_totalSupply == 0 || nonRebasingAmount == 0) {
             return 0;
         }
-        require(nonRebasingAmount <= _totalSupply, "NON_REBASING_AMOUNT_TOO_HIGH");
+        require(nonRebasingAmount <= _totalSupply, "NRWToken: amount exceeds total supply");
         FixedPoint.Unsigned memory shareOfToken =
             FixedPoint.Unsigned(nonRebasingAmount).div(FixedPoint.Unsigned(_totalSupply));
         uint256 underlyingBalance = underlyingToken.balanceOf(address(this));

@@ -599,7 +599,7 @@ contract Kresko is Ownable {
         address _oracle
     ) external onlyOwner collateralAssetDoesNotExist(_collateralAsset) {
         require(_collateralAsset != address(0), "Kresko: collateral is zero address");
-        require(_factor <= FixedPoint.FP_SCALING_FACTOR, "Kresko: collateral factor too high");
+        require(_factor <= FixedPoint.FP_SCALING_FACTOR, "Kresko: collateral factor exceeds 1 FixedPoint");
         require(_oracle != address(0), "Kresko: oracle is zero address");
 
         collateralAssets[_collateralAsset] = CollateralAsset({
@@ -623,7 +623,7 @@ contract Kresko is Ownable {
         collateralAssetExists(_collateralAsset)
     {
         // Setting the factor to 0 effectively sunsets a collateral asset, which is intentionally allowed.
-        require(_factor <= FixedPoint.FP_SCALING_FACTOR, "Kresko: collateral factor too high");
+        require(_factor <= FixedPoint.FP_SCALING_FACTOR, "Kresko: collateral factor exceeds 1 FixedPoint");
 
         collateralAssets[_collateralAsset].factor = FixedPoint.Unsigned(_factor);
         emit CollateralAssetFactorUpdated(_collateralAsset, _factor);
@@ -662,7 +662,7 @@ contract Kresko is Ownable {
         uint256 _kFactor,
         address _oracle
     ) external onlyOwner nonNullString(_symbol) nonNullString(_name) kreskoAssetDoesNotExist(_symbol) {
-        require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, "Kresko: k-factor too low");
+        require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, "Kresko: k-factor less than 1 FixedPoint");
         require(_oracle != address(0), "Kresko: oracle is zero address");
 
         // Store symbol to prevent duplicate KreskoAsset symbols.
@@ -689,7 +689,7 @@ contract Kresko is Ownable {
         onlyOwner
         kreskoAssetExists(_kreskoAsset)
     {
-        require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, "Kresko: k-factor too low");
+        require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, "Kresko: k-factor less than 1 FixedPoint");
 
         kreskoAssets[_kreskoAsset].kFactor = FixedPoint.Unsigned(_kFactor);
         emit KreskoAssetKFactorUpdated(_kreskoAsset, _kFactor);
@@ -719,7 +719,7 @@ contract Kresko is Ownable {
      * @param _burnFee The new burn fee as a raw value for a FixedPoint.Unsigned.
      */
     function setBurnFee(uint256 _burnFee) public onlyOwner {
-        require(_burnFee <= MAX_BURN_FEE, "Kresko: burn fee too high");
+        require(_burnFee <= MAX_BURN_FEE, "Kresko: burn fee exceeds max");
         burnFee = FixedPoint.Unsigned(_burnFee);
         emit BurnFeeUpdated(_burnFee);
     }
@@ -729,8 +729,8 @@ contract Kresko is Ownable {
      * @param _closeFactor The new close factor as a raw value for a FixedPoint.Unsigned.
      */
     function setCloseFactor(uint256 _closeFactor) public onlyOwner {
-        require(_closeFactor >= MIN_CLOSE_FACTOR, "Kresko: close factor too low");
-        require(_closeFactor <= MAX_CLOSE_FACTOR, "Kresko: close factor too high");
+        require(_closeFactor >= MIN_CLOSE_FACTOR, "Kresko: close factor less than min");
+        require(_closeFactor <= MAX_CLOSE_FACTOR, "Kresko: close factor exceeds max");
         closeFactor = FixedPoint.Unsigned(_closeFactor);
         emit CloseFactorUpdated(_closeFactor);
     }
@@ -750,8 +750,8 @@ contract Kresko is Ownable {
      * @param _liquidationIncentive The new liquidation incentive as a raw value for a FixedPoint.Unsigned.
      */
     function setLiquidationIncentive(uint256 _liquidationIncentive) public onlyOwner {
-        require(_liquidationIncentive >= MIN_LIQUIDATION_INCENTIVE, "Kresko: liquidation incentive too low");
-        require(_liquidationIncentive <= MAX_LIQUIDATION_INCENTIVE, "Kresko: liquidation incentive too high");
+        require(_liquidationIncentive >= MIN_LIQUIDATION_INCENTIVE, "Kresko: liquidation incentive less than min");
+        require(_liquidationIncentive <= MAX_LIQUIDATION_INCENTIVE, "Kresko: liquidation incentive exceeds max");
         liquidationIncentive = FixedPoint.Unsigned(_liquidationIncentive);
         emit LiquidationIncentiveUpdated(_liquidationIncentive);
     }
