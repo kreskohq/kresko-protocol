@@ -282,7 +282,7 @@ contract Kresko is Ownable {
      * @param _collateralAsset The address of the collateral asset.
      */
     modifier collateralAssetExists(address _collateralAsset) {
-        require(collateralAssets[_collateralAsset].exists, "ASSET_NOT_VALID");
+        require(collateralAssets[_collateralAsset].exists, "Kresko: collateral doesn't exist");
         _;
     }
 
@@ -291,7 +291,7 @@ contract Kresko is Ownable {
      * @param _collateralAsset The address of the collateral asset.
      */
     modifier collateralAssetDoesNotExist(address _collateralAsset) {
-        require(!collateralAssets[_collateralAsset].exists, "ASSET_EXISTS");
+        require(!collateralAssets[_collateralAsset].exists, "Kresko: collateral exists");
         _;
     }
 
@@ -300,7 +300,7 @@ contract Kresko is Ownable {
      * @param _kreskoAsset The address of the Kresko asset.
      */
     modifier kreskoAssetExists(address _kreskoAsset) {
-        require(kreskoAssets[_kreskoAsset].exists, "ASSET_NOT_VALID");
+        require(kreskoAssets[_kreskoAsset].exists, "Kresko: krAsset doesn't exist");
         _;
     }
 
@@ -309,7 +309,7 @@ contract Kresko is Ownable {
      * @param _symbol The symbol of the Kresko asset.
      */
     modifier kreskoAssetDoesNotExist(string calldata _symbol) {
-        require(!kreskoAssetSymbols[_symbol], "SYMBOL_NOT_VALID");
+        require(!kreskoAssetSymbols[_symbol], "Kresko: symbol exists");
         _;
     }
 
@@ -318,7 +318,7 @@ contract Kresko is Ownable {
      * @param _str The string to ensure is not empty.
      */
     modifier nonNullString(string calldata _str) {
-        require(bytes(_str).length > 0, "NULL_STRING");
+        require(bytes(_str).length > 0, "Kresko: string is null");
         _;
     }
 
@@ -356,10 +356,13 @@ contract Kresko is Ownable {
         // Because the depositedCollateralAssets[msg.sender] is pushed to if the existing
         // deposit amount is 0, require the amount to be > 0. Otherwise, the depositedCollateralAssets[msg.sender]
         // could be filled with duplicates, causing collateral to be double-counted in the collateral value.
-        require(_amount > 0, "AMOUNT_ZERO");
+        require(_amount > 0, "Kresko: amount is zero");
 
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
-        require(IERC20(_collateralAsset).transferFrom(msg.sender, address(this), _amount), "TRANSFER_IN_FAILED");
+        require(
+            IERC20(_collateralAsset).transferFrom(msg.sender, address(this), _amount),
+            "Kresko: collateral transfer in failed"
+        );
 
         // If the account does not have an existing deposit for this collateral asset,
         // push it to the list of the account's deposited collateral assets.
@@ -386,12 +389,12 @@ contract Kresko is Ownable {
         uint256 _amount,
         uint256 _depositedCollateralAssetIndex
     ) external collateralAssetExists(_collateralAsset) {
-        require(_amount > 0, "AMOUNT_ZERO");
+        require(_amount > 0, "Kresko: amount is zero");
 
         // Ensure the amount being withdrawn is not greater than the amount of the collateral asset
         // the sender has deposited.
         uint256 depositAmount = collateralDeposits[msg.sender][_collateralAsset];
-        require(_amount <= depositAmount, "AMOUNT_TOO_HIGH");
+        require(_amount <= depositAmount, "Kresko: amount exceeds deposit amount");
 
         // Ensure the withdrawal does not result in the account having a health factor < 1.
         // I.e. the new account's collateral value must still exceed the account's minimum
@@ -410,7 +413,7 @@ contract Kresko is Ownable {
         // Require accountCollateralValue - withdrawnCollateralValue >= accountMinCollateralValue.
         require(
             accountCollateralValue.sub(withdrawnCollateralValue).isGreaterThanOrEqual(accountMinCollateralValue),
-            "HEALTH_FACTOR_VIOLATED"
+            "Kresko: health factor violated"
         );
 
         // Record the withdrawal.
@@ -420,7 +423,7 @@ contract Kresko is Ownable {
         if (_amount == depositAmount) {
             removeFromDepositedCollateralAssets(msg.sender, _collateralAsset, _depositedCollateralAssetIndex);
         }
-        require(IERC20(_collateralAsset).transfer(msg.sender, _amount), "TRANSFER_OUT_FAILED");
+        require(IERC20(_collateralAsset).transfer(msg.sender, _amount), "Kresko: collateral transfer out failed");
 
         emit CollateralWithdrawn(msg.sender, _collateralAsset, _amount);
     }
@@ -433,7 +436,7 @@ contract Kresko is Ownable {
      * @param _amount The amount of the Kresko asset to be minted.
      */
     function mintKreskoAsset(address _kreskoAsset, uint256 _amount) external kreskoAssetExists(_kreskoAsset) {
-        require(_amount > 0, "AMOUNT_ZERO");
+        require(_amount > 0, "Kresko: amount is zero");
 
         // Get the value of the minter's current deposited collateral.
         FixedPoint.Unsigned memory accountCollateralValue = getAccountCollateralValue(msg.sender);
@@ -445,7 +448,7 @@ contract Kresko is Ownable {
         // Verify that minter has sufficient collateral to back current debt + new requested debt.
         require(
             minAccountCollateralValue.add(additionalCollateralValue).isLessThanOrEqual(accountCollateralValue),
-            "INSUFFICIENT_COLLATERAL"
+            "Kresko: insufficient collateral"
         );
 
         // If the account does not have an existing debt for this Kresko Asset,
@@ -474,15 +477,15 @@ contract Kresko is Ownable {
         uint256 _amount,
         uint256 _mintedKreskoAssetIndex
     ) external kreskoAssetExists(_kreskoAsset) {
-        require(_amount > 0, "AMOUNT_ZERO");
+        require(_amount > 0, "Kresko: amount is zero");
 
         // Ensure the amount being burned is not greater than the sender's debt.
         uint256 debtAmount = kreskoAssetDebt[msg.sender][_kreskoAsset];
-        require(_amount <= debtAmount, "AMOUNT_TOO_HIGH");
+        require(_amount <= debtAmount, "Kresko: amount exceeds debt amount");
 
         // Transfer kresko assets from the user to Kresko contract.
         KreskoAsset asset = KreskoAsset(_kreskoAsset);
-        require(asset.transferFrom(msg.sender, address(this), _amount), "TRANSFER_IN_FAILED");
+        require(asset.transferFrom(msg.sender, address(this), _amount), "Kresko: krAsset transfer in failed");
 
         // Record the burn.
         kreskoAssetDebt[msg.sender][_kreskoAsset] = debtAmount - _amount;
@@ -519,16 +522,16 @@ contract Kresko is Ownable {
         uint256 _mintedKreskoAssetIndex,
         uint256 _depositedCollateralAssetIndex
     ) public collateralAssetExists(_collateralAssetToSeize) kreskoAssetExists(_repayKreskoAsset) {
-        require(_repayAmount > 0, "REPAY_AMOUNT_TOO_SMALL");
+        require(_repayAmount > 0, "Kresko: repay amount zero");
 
         // Check that this account is below its minimum collateralization ratio and can be liquidated.
-        require(isAccountLiquidatable(_account), "NOT_LIQUIDATABLE");
+        require(isAccountLiquidatable(_account), "Kresko: account not liquidatable");
 
         // Liquidator may not repay more than what is allowed by the close factor.
         uint256 krAssetDebt = kreskoAssetDebt[_account][_repayKreskoAsset];
         // Max liquidation = total debt * close factor.
         FixedPoint.Unsigned memory maxLiquidation = FixedPoint.Unsigned(krAssetDebt).mul(closeFactor);
-        require(_repayAmount <= maxLiquidation.rawValue, "REPAY_AMOUNT_TOO_LARGE");
+        require(_repayAmount <= maxLiquidation.rawValue, "Kresko: repay amount exceeds max");
 
         // Repay amount USD = repay amount * KR asset USD exchange rate.
         FixedPoint.Unsigned memory repayAmountUSD =
@@ -554,12 +557,15 @@ contract Kresko is Ownable {
 
         // Transfer Kresko asset repay amount from liquidator to contract.
         KreskoAsset kAsset = KreskoAsset(_repayKreskoAsset);
-        require(kAsset.transferFrom(msg.sender, address(this), _repayAmount), "TRANSFER_IN_FAILED");
+        require(kAsset.transferFrom(msg.sender, address(this), _repayAmount), "Kresko: krAsset transfer in failed");
         // Burn the received Kresko assets, removing them from circulation.
         kAsset.burn(_repayAmount);
 
         // Send liquidator the seized collateral.
-        require(IERC20(_collateralAssetToSeize).transfer(msg.sender, seizeAmount), "TRANSFER_OUT_FAILED");
+        require(
+            IERC20(_collateralAssetToSeize).transfer(msg.sender, seizeAmount),
+            "Kresko: collateral transfer out failed"
+        );
 
         emit LiquidationOccurred(
             _account,
@@ -592,9 +598,9 @@ contract Kresko is Ownable {
         uint256 _factor,
         address _oracle
     ) external onlyOwner collateralAssetDoesNotExist(_collateralAsset) {
-        require(_collateralAsset != address(0), "ZERO_ADDRESS");
-        require(_factor <= FixedPoint.FP_SCALING_FACTOR, "INVALID_FACTOR");
-        require(_oracle != address(0), "ZERO_ADDRESS");
+        require(_collateralAsset != address(0), "Kresko: collateral is zero address");
+        require(_factor <= FixedPoint.FP_SCALING_FACTOR, "Kresko: collateral factor too high");
+        require(_oracle != address(0), "Kresko: oracle is zero address");
 
         collateralAssets[_collateralAsset] = CollateralAsset({
             factor: FixedPoint.Unsigned(_factor),
@@ -617,7 +623,7 @@ contract Kresko is Ownable {
         collateralAssetExists(_collateralAsset)
     {
         // Setting the factor to 0 effectively sunsets a collateral asset, which is intentionally allowed.
-        require(_factor <= FixedPoint.FP_SCALING_FACTOR, "INVALID_FACTOR");
+        require(_factor <= FixedPoint.FP_SCALING_FACTOR, "Kresko: collateral factor too high");
 
         collateralAssets[_collateralAsset].factor = FixedPoint.Unsigned(_factor);
         emit CollateralAssetFactorUpdated(_collateralAsset, _factor);
@@ -629,12 +635,12 @@ contract Kresko is Ownable {
      * @param _collateralAsset The address of the collateral asset.
      * @param _oracle The new oracle address for the collateral asset.
      */
-    function updateCollateralOracle(address _collateralAsset, address _oracle)
+    function updateCollateralAssetOracle(address _collateralAsset, address _oracle)
         external
         onlyOwner
         collateralAssetExists(_collateralAsset)
     {
-        require(_oracle != address(0), "ZERO_ADDRESS");
+        require(_oracle != address(0), "Kresko: oracle is zero address");
 
         collateralAssets[_collateralAsset].oracle = IOracle(_oracle);
         emit CollateralAssetOracleUpdated(_collateralAsset, _oracle);
@@ -656,8 +662,8 @@ contract Kresko is Ownable {
         uint256 _kFactor,
         address _oracle
     ) external onlyOwner nonNullString(_symbol) nonNullString(_name) kreskoAssetDoesNotExist(_symbol) {
-        require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, "INVALID_FACTOR");
-        require(_oracle != address(0), "ZERO_ADDRESS");
+        require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, "Kresko: k-factor too low");
+        require(_oracle != address(0), "Kresko: oracle is zero address");
 
         // Store symbol to prevent duplicate KreskoAsset symbols.
         kreskoAssetSymbols[_symbol] = true;
@@ -683,7 +689,7 @@ contract Kresko is Ownable {
         onlyOwner
         kreskoAssetExists(_kreskoAsset)
     {
-        require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, "INVALID_FACTOR");
+        require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, "Kresko: k-factor too low");
 
         kreskoAssets[_kreskoAsset].kFactor = FixedPoint.Unsigned(_kFactor);
         emit KreskoAssetKFactorUpdated(_kreskoAsset, _kFactor);
@@ -700,7 +706,7 @@ contract Kresko is Ownable {
         onlyOwner
         kreskoAssetExists(_kreskoAsset)
     {
-        require(_oracle != address(0), "ZERO_ADDRESS");
+        require(_oracle != address(0), "Kresko: oracle is zero address");
 
         kreskoAssets[_kreskoAsset].oracle = IOracle(_oracle);
         emit KreskoAssetOracleUpdated(_kreskoAsset, _oracle);
@@ -713,7 +719,7 @@ contract Kresko is Ownable {
      * @param _burnFee The new burn fee as a raw value for a FixedPoint.Unsigned.
      */
     function setBurnFee(uint256 _burnFee) public onlyOwner {
-        require(_burnFee <= MAX_BURN_FEE, "BURN_FEE_TOO_HIGH");
+        require(_burnFee <= MAX_BURN_FEE, "Kresko: burn fee too high");
         burnFee = FixedPoint.Unsigned(_burnFee);
         emit BurnFeeUpdated(_burnFee);
     }
@@ -723,8 +729,8 @@ contract Kresko is Ownable {
      * @param _closeFactor The new close factor as a raw value for a FixedPoint.Unsigned.
      */
     function setCloseFactor(uint256 _closeFactor) public onlyOwner {
-        require(_closeFactor >= MIN_CLOSE_FACTOR, "CLOSE_FACTOR_TOO_LOW");
-        require(_closeFactor <= MAX_CLOSE_FACTOR, "CLOSE_FACTOR_TOO_HIGH");
+        require(_closeFactor >= MIN_CLOSE_FACTOR, "Kresko: close factor too low");
+        require(_closeFactor <= MAX_CLOSE_FACTOR, "Kresko: close factor too high");
         closeFactor = FixedPoint.Unsigned(_closeFactor);
         emit CloseFactorUpdated(_closeFactor);
     }
@@ -734,7 +740,7 @@ contract Kresko is Ownable {
      * @param _feeRecipient The new fee recipient.
      */
     function setFeeRecipient(address _feeRecipient) public onlyOwner {
-        require(_feeRecipient != address(0), "ZERO_ADDRESS");
+        require(_feeRecipient != address(0), "Kresko: fee recipient is zero address");
         feeRecipient = _feeRecipient;
         emit FeeRecipientUpdated(_feeRecipient);
     }
@@ -744,8 +750,8 @@ contract Kresko is Ownable {
      * @param _liquidationIncentive The new liquidation incentive as a raw value for a FixedPoint.Unsigned.
      */
     function setLiquidationIncentive(uint256 _liquidationIncentive) public onlyOwner {
-        require(_liquidationIncentive >= MIN_LIQUIDATION_INCENTIVE, "LIQUIDATION_INCENTIVE_TOO_LOW");
-        require(_liquidationIncentive <= MAX_LIQUIDATION_INCENTIVE, "LIQUIDATION_INCENTIVE_TOO_HIGH");
+        require(_liquidationIncentive >= MIN_LIQUIDATION_INCENTIVE, "Kresko: liquidation incentive too low");
+        require(_liquidationIncentive <= MAX_LIQUIDATION_INCENTIVE, "Kresko: liquidation incentive too high");
         liquidationIncentive = FixedPoint.Unsigned(_liquidationIncentive);
         emit LiquidationIncentiveUpdated(_liquidationIncentive);
     }
@@ -756,7 +762,7 @@ contract Kresko is Ownable {
      */
     function setMinimumCollateralizationRatio(uint256 _minimumCollateralizationRatio) public onlyOwner {
         // TODO fix
-        // require(minCollateralizationRatio <= 0, "INVALID_RATIO");
+        // require(minCollateralizationRatio <= 0, "Kresko: <fill in>");
 
         minimumCollateralizationRatio = _minimumCollateralizationRatio;
         emit MinimumCollateralizationRatioUpdated(minimumCollateralizationRatio);
@@ -786,7 +792,7 @@ contract Kresko is Ownable {
         // Ensure that the provided index corresponds to the provided assetAddress.
         require(
             depositedCollateralAssets[_account][_index] == _collateralAsset,
-            "WRONG_DEPOSITED_COLLATERAL_ASSETS_INDEX"
+            "Kresko: incorrect collateral removal index"
         );
         uint256 lastIndex = depositedCollateralAssets[_account].length - 1;
         // If the index to remove is not the last one, overwrite the element at the index
@@ -890,7 +896,7 @@ contract Kresko is Ownable {
         uint256 _index
     ) internal {
         // Ensure that the provided index corresponds to the provided assetAddress.
-        require(mintedKreskoAssets[_account][_index] == _kreskoAsset, "WRONG_MINTED_KRESKO_ASSETS_INDEX");
+        require(mintedKreskoAssets[_account][_index] == _kreskoAsset, "Kresko: incorrect krAsset removal index");
         uint256 lastIndex = mintedKreskoAssets[_account].length - 1;
         // If the index to remove is not the last one, overwrite the element at the index
         // with the last element.
@@ -971,7 +977,10 @@ contract Kresko is Ownable {
             // Remove the transferAmount from the stored deposit for the account.
             collateralDeposits[_account][collateralAssetAddress] -= transferAmount;
             // Transfer the fee to the feeRecipient.
-            require(IERC20(collateralAssetAddress).transfer(feeRecipient, transferAmount), "FEE_TRANSFER_OUT_FAILED");
+            require(
+                IERC20(collateralAssetAddress).transfer(feeRecipient, transferAmount),
+                "Kresko: fee transfer out failed"
+            );
             emit BurnFeePaid(_account, collateralAssetAddress, transferAmount, feeValuePaid.rawValue);
 
             feeValue = feeValue.sub(feeValuePaid);
