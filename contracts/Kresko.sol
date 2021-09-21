@@ -37,8 +37,9 @@ contract Kresko is Ownable {
     uint256 public constant MIN_LIQUIDATION_INCENTIVE = 1e18; // 100%
     uint256 public constant MAX_LIQUIDATION_INCENTIVE = 1.5e18; // 150% // TODO: consider implications
     uint256 public constant MAX_BURN_FEE = 1e17; // Because FP_SCALING_FACTOR = 1e18, this is 10%
+    uint256 public constant MIN_COLLATERALIZATION_RATIO = 1e18; // 100%
 
-    uint256 public minimumCollateralizationRatio;
+    FixedPoint.Unsigned public minimumCollateralizationRatio;
     FixedPoint.Unsigned public closeFactor;
     FixedPoint.Unsigned public liquidationIncentive;
 
@@ -556,14 +557,12 @@ contract Kresko is Ownable {
 
     /**
      * @dev Updates the contract's collateralization ratio
-     * @param minCollateralizationRatio The new minimum collateralization ratio
+     * @param _minCollateralizationRatio The new minimum collateralization ratio
      */
-    function setMinimumCollateralizationRatio(uint256 minCollateralizationRatio) public onlyOwner {
-        // TODO fix
-        // require(minCollateralizationRatio <= 0, "INVALID_RATIO");
-
-        minimumCollateralizationRatio = minCollateralizationRatio;
-        emit MinimumCollateralizationRatioUpdated(minimumCollateralizationRatio);
+    function setMinimumCollateralizationRatio(uint256 _minCollateralizationRatio) public onlyOwner {
+        require(_minCollateralizationRatio >= MIN_COLLATERALIZATION_RATIO, "MINIMUM_COLLATERALIZATION_RATIO_TOO_LOW");
+        minimumCollateralizationRatio = FixedPoint.Unsigned(_minCollateralizationRatio);
+        emit MinimumCollateralizationRatioUpdated(_minCollateralizationRatio);
     }
 
     /**
@@ -880,7 +879,7 @@ contract Kresko is Ownable {
         // Calculate the Kresko asset's value weighted by kFactor
         FixedPoint.Unsigned memory weightedKreskoAssetValue = getKrAssetValue(assetAddr, amount);
         // Calculate the minimum collateral required to back this Kresko asset amount
-        return weightedKreskoAssetValue.mul(minimumCollateralizationRatio).div(100);
+        return weightedKreskoAssetValue.mul(minimumCollateralizationRatio);
     }
 
     /**
