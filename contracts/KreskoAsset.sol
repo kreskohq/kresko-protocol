@@ -17,6 +17,7 @@ contract KreskoAsset is ERC20, Ownable {
      * @param _symbol The symbol of the KreskoAsset.
      */
     constructor(string memory _name, string memory _symbol) ERC20(_name, _symbol) {
+        // solhint-disable-previous-line no-empty-blocks
         // Intentionally left blank
     }
 
