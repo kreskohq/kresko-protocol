@@ -10,17 +10,14 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  * can only be burned from the owner's address.
  */
 contract KreskoAsset is ERC20, Ownable {
-
     /**
      * @dev Constructor that instantiates an ERC20 token to back
-     * the KreskoAsset
-     * @param _name The name of the KreskoAsset
-     * @param _symbol The symbol of the KreskoAsset
+     * the KreskoAsset.
+     * @param _name The name of the KreskoAsset.
+     * @param _symbol The symbol of the KreskoAsset.
      */
-    constructor(string memory _name, string memory _symbol)
-        ERC20(_name, _symbol)
-    {
-      // Intentionally left blank
+    constructor(string memory _name, string memory _symbol) ERC20(_name, _symbol) {
+        // Intentionally left blank
     }
 
     /**
@@ -28,10 +25,7 @@ contract KreskoAsset is ERC20, Ownable {
      * @param _account The recipient address of the intended mint
      * @param _amount The amount of tokens to be minted
      */
-    function mint(address _account, uint256 _amount)
-        public
-        onlyOwner
-    {
+    function mint(address _account, uint256 _amount) public onlyOwner {
         _mint(_account, _amount);
     }
 
@@ -39,10 +33,7 @@ contract KreskoAsset is ERC20, Ownable {
      * @dev Burns tokens from the owner's address
      * @param _amount The amount of tokens to be burned
      */
-    function burn(uint256 _amount)
-        public
-        onlyOwner
-    {
+    function burn(uint256 _amount) public onlyOwner {
         _burn(owner(), _amount);
     }
 }

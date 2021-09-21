@@ -13,23 +13,23 @@ contract MockToken {
         decimals = _decimals;
     }
 
-    function setBalanceOf(address account, uint256 value) external {
-        balanceOf[account] = value;
+    function setBalanceOf(address _account, uint256 _value) external {
+        balanceOf[_account] = _value;
     }
 
     function transferFrom(
-        address from,
-        address to,
-        uint256 amount
+        address _from,
+        address _to,
+        uint256 _amount
     ) external returns (bool) {
-        balanceOf[from] -= amount;
-        balanceOf[to] += amount;
+        balanceOf[_from] -= _amount;
+        balanceOf[_to] += _amount;
         return true;
     }
 
-    function transfer(address to, uint256 amount) external returns (bool) {
-        balanceOf[msg.sender] -= amount;
-        balanceOf[to] += amount;
+    function transfer(address _to, uint256 _amount) external returns (bool) {
+        balanceOf[msg.sender] -= _amount;
+        balanceOf[_to] += _amount;
         return true;
     }
 }
