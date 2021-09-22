@@ -40,7 +40,7 @@ contract Kresko is Ownable {
      * @param oracle The oracle that provides the USD price of one Kresko asset.
      * @param exists Whether the Kresko asset exists within the protocol.
      */
-    struct KAsset {
+    struct KrAsset {
         FixedPoint.Unsigned kFactor;
         IOracle oracle;
         bool exists;
@@ -60,6 +60,9 @@ contract Kresko is Ownable {
 
     /// @notice The maximum configurable close factor.
     uint256 public constant MAX_CLOSE_FACTOR = 0.9e18; // 90%
+
+    /// @notice The minimum configurable minnimum collateralization ratio.
+    uint256 public constant MIN_MINIMUM_COLLATERALIZATION_RATIO = 1e18; // 100%
 
     /// @notice The minimum configurable liquidation incentive multiplier.
     uint256 public constant MIN_LIQUIDATION_INCENTIVE = 1e18; // 100%
@@ -87,8 +90,9 @@ contract Kresko is Ownable {
     /// @notice The factor used to calculate the incentive a liquidator receives in the form of seized collateral.
     FixedPoint.Unsigned public liquidationIncentive;
 
-    /// @notice The absolute minimum ratio of collateral value to debt value. 3 decimals. TODO: move to FixedPoint.
-    uint256 public minimumCollateralizationRatio;
+    /// @notice The absolute minimum ratio of collateral value to debt value that is used to calculate
+    /// collateral requirements.
+    FixedPoint.Unsigned public minimumCollateralizationRatio;
 
     /* ===== General state - Collateral Assets ===== */
 
@@ -109,7 +113,7 @@ contract Kresko is Ownable {
     /* ===== General state - Kresko Assets ===== */
 
     /// @notice Mapping of Kresko asset token address to information on the Kresko asset.
-    mapping(address => KAsset) public kreskoAssets;
+    mapping(address => KrAsset) public kreskoAssets;
 
     /// @notice Mapping of Kresko asset symbols to whether the symbol is used by an existing Kresko asset.
     mapping(string => bool) public kreskoAssetSymbols;
@@ -670,7 +674,7 @@ contract Kresko is Ownable {
 
         // Deploy KreskoAsset contract and store its details.
         KreskoAsset asset = new KreskoAsset(_name, _symbol);
-        kreskoAssets[address(asset)] = KAsset({
+        kreskoAssets[address(asset)] = KrAsset({
             kFactor: FixedPoint.Unsigned(_kFactor),
             oracle: IOracle(_oracle),
             exists: true
@@ -758,14 +762,16 @@ contract Kresko is Ownable {
 
     /**
      * @dev Updates the contract's collateralization ratio.
-     * @param _minimumCollateralizationRatio The new minimum collateralization ratio.
+     * @param _minimumCollateralizationRatio The new minimum collateralization ratio as a raw value
+     * for a FixedPoint.Unsigned.
      */
     function setMinimumCollateralizationRatio(uint256 _minimumCollateralizationRatio) public onlyOwner {
-        // TODO fix
-        // require(minCollateralizationRatio <= 0, "Kresko: <fill in>");
-
-        minimumCollateralizationRatio = _minimumCollateralizationRatio;
-        emit MinimumCollateralizationRatioUpdated(minimumCollateralizationRatio);
+        require(
+            _minimumCollateralizationRatio >= MIN_MINIMUM_COLLATERALIZATION_RATIO,
+            "Kresko: minimum collateralization ratio less than min"
+        );
+        minimumCollateralizationRatio = FixedPoint.Unsigned(_minimumCollateralizationRatio);
+        emit MinimumCollateralizationRatioUpdated(_minimumCollateralizationRatio);
     }
 
     /**
@@ -920,7 +926,7 @@ contract Kresko is Ownable {
         address _kreskoAsset,
         uint256 _kreskoAssetAmountBurned
     ) internal {
-        KAsset memory kAsset = kreskoAssets[_kreskoAsset];
+        KrAsset memory kAsset = kreskoAssets[_kreskoAsset];
         // Calculate the value of the fee according to the value of the krAssets being burned.
         FixedPoint.Unsigned memory feeValue =
             FixedPoint.Unsigned(kAsset.oracle.value()).mul(FixedPoint.Unsigned(_kreskoAssetAmountBurned)).mul(burnFee);
@@ -1087,7 +1093,7 @@ contract Kresko is Ownable {
         // Calculate the Kresko asset's value weighted by its k-factor.
         FixedPoint.Unsigned memory weightedKreskoAssetValue = getKrAssetValue(_collateralAsset, _amount);
         // Calculate the minimum collateral required to back this Kresko asset amount.
-        return weightedKreskoAssetValue.mul(minimumCollateralizationRatio).div(100);
+        return weightedKreskoAssetValue.mul(minimumCollateralizationRatio);
     }
 
     /**
@@ -1147,9 +1153,8 @@ contract Kresko is Ownable {
      * @return The value for the provided amount of the Kresko asset.
      */
     function getKrAssetValue(address _kreskoAsset, uint256 _amount) public view returns (FixedPoint.Unsigned memory) {
-        KAsset memory krAsset = kreskoAssets[_kreskoAsset];
-        FixedPoint.Unsigned memory amt = FixedPoint.Unsigned(_amount);
-        return amt.mul(FixedPoint.Unsigned(krAsset.oracle.value())).mul(krAsset.kFactor);
+        KrAsset memory krAsset = kreskoAssets[_kreskoAsset];
+        return FixedPoint.Unsigned(_amount).mul(FixedPoint.Unsigned(krAsset.oracle.value())).mul(krAsset.kFactor);
     }
 
     /* ==== Liquidation ==== */

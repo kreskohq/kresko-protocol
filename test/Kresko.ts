@@ -21,7 +21,7 @@ const SYMBOL_TWO = "TWO";
 const NAME_ONE = "One Kresko Asset";
 const NAME_TWO = "Two Kresko Asset";
 const BURN_FEE = toFixedPoint(0.01); // 1%
-const MINIMUM_COLLATERALIZATION_RATIO: number = 150;
+const MINIMUM_COLLATERALIZATION_RATIO = toFixedPoint(1.5); // 150%
 const CLOSE_FACTOR = toFixedPoint(0.2); // 20%
 const LIQUIDATION_INCENTIVE = toFixedPoint(1.1); // 110% -> liquidators make 10% on liquidations
 const FEE_RECIPIENT_ADDRESS = "0x0000000000000000000000000000000000000FEE";
@@ -115,6 +115,47 @@ describe("Kresko", function () {
     describe("Collateral Assets", function () {
         beforeEach(async function () {
             this.collateralAssetInfo = await deployAndWhitelistCollateralAsset(this.kresko, 0.8, 123.45, 18);
+        });
+
+        describe("#setMinimumCollateralizationRatio", function () {
+            const validMinimumCollateralizationRatio = toFixedPoint(1.51); // 151%
+            const invalidMinimumCollateralizationRatio = toFixedPoint(0.99); // 99%
+
+            it("Sets the minimum collateralization ratio", async function () {
+                expect(await this.kresko.minimumCollateralizationRatio()).to.equal(MINIMUM_COLLATERALIZATION_RATIO);
+
+                await this.kresko
+                    .connect(this.signers.admin)
+                    .setMinimumCollateralizationRatio(validMinimumCollateralizationRatio);
+
+                expect(await this.kresko.minimumCollateralizationRatio()).to.equal(validMinimumCollateralizationRatio);
+            });
+
+            it("Emits the MinimumCollateralizationRatioUpdated event", async function () {
+                const receipt = await this.kresko
+                    .connect(this.signers.admin)
+                    .setMinimumCollateralizationRatio(validMinimumCollateralizationRatio);
+
+                const event = (await extractEventFromTxReceipt(receipt, "MinimumCollateralizationRatioUpdated"))![0]
+                    .args!;
+                expect(event.minimumCollateralizationRatio).to.equal(validMinimumCollateralizationRatio);
+            });
+
+            it("Reverts if the minimum collateralization ratio is below MIN_MINIMUM_COLLATERALIZATION_RATIO", async function () {
+                await expect(
+                    this.kresko
+                        .connect(this.signers.admin)
+                        .setMinimumCollateralizationRatio(invalidMinimumCollateralizationRatio),
+                ).to.be.revertedWith("Kresko: minimum collateralization ratio less than min");
+            });
+
+            it("Reverts if called by a non-owner", async function () {
+                await expect(
+                    this.kresko
+                        .connect(this.userOne)
+                        .setMinimumCollateralizationRatio(validMinimumCollateralizationRatio),
+                ).to.be.revertedWith("Ownable: caller is not the owner");
+            });
         });
 
         it("Cannot add collateral assets more than once", async function () {
