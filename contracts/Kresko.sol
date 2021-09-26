@@ -768,7 +768,7 @@ contract Kresko is Ownable {
     function setMinimumCollateralizationRatio(uint256 _minimumCollateralizationRatio) public onlyOwner {
         require(
             _minimumCollateralizationRatio >= MIN_MINIMUM_COLLATERALIZATION_RATIO,
-            "Kresko: minimum collateralization ratio less than min"
+            "Kresko: proposed minimum collateralization ratio less than min"
         );
         minimumCollateralizationRatio = FixedPoint.Unsigned(_minimumCollateralizationRatio);
         emit MinimumCollateralizationRatioUpdated(_minimumCollateralizationRatio);
