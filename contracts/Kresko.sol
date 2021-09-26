@@ -926,7 +926,7 @@ contract Kresko is Ownable {
         address _kreskoAsset,
         uint256 _kreskoAssetAmountBurned
     ) internal {
-        KrAsset memory kAsset = kreskoAssets[_kreskoAsset];
+        KrAsset memory krAsset = kreskoAssets[_kreskoAsset];
         // Calculate the value of the fee according to the value of the krAssets being burned.
         FixedPoint.Unsigned memory feeValue =
             FixedPoint.Unsigned(kAsset.oracle.value()).mul(FixedPoint.Unsigned(_kreskoAssetAmountBurned)).mul(burnFee);
