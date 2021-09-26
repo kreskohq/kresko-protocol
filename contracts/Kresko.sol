@@ -1001,7 +1001,7 @@ contract Kresko is Ownable {
 
     /**
      * @notice Calculate amount of collateral to seize during the liquidation process.
-     * @param _collateralAssetToSeize The address of the collateral asset.
+     * @param _collateralAssetToSeize The address of the collateral asset to be seized.
      * @param _kreskoAssetRepayAmountUSD Kresko asset amount being repaid in exchange for the seized collateral.
      */
     function calculateAmountToSeize(
