@@ -563,7 +563,7 @@ contract Kresko is Ownable {
         KreskoAsset krAsset = KreskoAsset(_repayKreskoAsset);
         require(krAsset.transferFrom(msg.sender, address(this), _repayAmount), "Kresko: krAsset transfer in failed");
         // Burn the received Kresko assets, removing them from circulation.
-        kAsset.burn(_repayAmount);
+        krAsset.burn(_repayAmount);
 
         // Send liquidator the seized collateral.
         require(
