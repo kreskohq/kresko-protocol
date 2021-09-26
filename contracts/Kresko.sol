@@ -61,7 +61,7 @@ contract Kresko is Ownable {
     /// @notice The maximum configurable close factor.
     uint256 public constant MAX_CLOSE_FACTOR = 0.9e18; // 90%
 
-    /// @notice The minimum configurable minnimum collateralization ratio.
+    /// @notice The minimum configurable minimum collateralization ratio.
     uint256 public constant MIN_MINIMUM_COLLATERALIZATION_RATIO = 1e18; // 100%
 
     /// @notice The minimum configurable liquidation incentive multiplier.
