@@ -929,7 +929,7 @@ contract Kresko is Ownable {
         KrAsset memory krAsset = kreskoAssets[_kreskoAsset];
         // Calculate the value of the fee according to the value of the krAssets being burned.
         FixedPoint.Unsigned memory feeValue =
-            FixedPoint.Unsigned(kAsset.oracle.value()).mul(FixedPoint.Unsigned(_kreskoAssetAmountBurned)).mul(burnFee);
+            FixedPoint.Unsigned(krAsset.oracle.value()).mul(FixedPoint.Unsigned(_kreskoAssetAmountBurned)).mul(burnFee);
 
         // Do nothing if the fee value is 0.
         if (feeValue.rawValue == 0) {
