@@ -602,9 +602,9 @@ contract Kresko is Ownable {
         uint256 _factor,
         address _oracle
     ) external onlyOwner collateralAssetDoesNotExist(_collateralAsset) {
-        require(_collateralAsset != address(0), "Kresko: collateral is zero address");
-        require(_factor <= FixedPoint.FP_SCALING_FACTOR, "Kresko: collateral factor exceeds 1 FixedPoint");
-        require(_oracle != address(0), "Kresko: oracle is zero address");
+        require(_collateralAsset != address(0), "Kresko: proposed collateral is zero address");
+        require(_factor <= FixedPoint.FP_SCALING_FACTOR, "Kresko: proposed collateral factor exceeds 1 FixedPoint");
+        require(_oracle != address(0), "Kresko: proposed oracle is zero address");
 
         collateralAssets[_collateralAsset] = CollateralAsset({
             factor: FixedPoint.Unsigned(_factor),
@@ -627,7 +627,7 @@ contract Kresko is Ownable {
         collateralAssetExists(_collateralAsset)
     {
         // Setting the factor to 0 effectively sunsets a collateral asset, which is intentionally allowed.
-        require(_factor <= FixedPoint.FP_SCALING_FACTOR, "Kresko: collateral factor exceeds 1 FixedPoint");
+        require(_factor <= FixedPoint.FP_SCALING_FACTOR, "Kresko: proposed collateral factor exceeds 1 FixedPoint");
 
         collateralAssets[_collateralAsset].factor = FixedPoint.Unsigned(_factor);
         emit CollateralAssetFactorUpdated(_collateralAsset, _factor);
@@ -644,7 +644,7 @@ contract Kresko is Ownable {
         onlyOwner
         collateralAssetExists(_collateralAsset)
     {
-        require(_oracle != address(0), "Kresko: oracle is zero address");
+        require(_oracle != address(0), "Kresko: proposed oracle is zero address");
 
         collateralAssets[_collateralAsset].oracle = IOracle(_oracle);
         emit CollateralAssetOracleUpdated(_collateralAsset, _oracle);
@@ -666,8 +666,8 @@ contract Kresko is Ownable {
         uint256 _kFactor,
         address _oracle
     ) external onlyOwner nonNullString(_symbol) nonNullString(_name) kreskoAssetDoesNotExist(_symbol) {
-        require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, "Kresko: k-factor less than 1 FixedPoint");
-        require(_oracle != address(0), "Kresko: oracle is zero address");
+        require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, "Kresko: proposed k-factor less than 1 FixedPoint");
+        require(_oracle != address(0), "Kresko: proposed oracle is zero address");
 
         // Store symbol to prevent duplicate KreskoAsset symbols.
         kreskoAssetSymbols[_symbol] = true;
@@ -693,7 +693,7 @@ contract Kresko is Ownable {
         onlyOwner
         kreskoAssetExists(_kreskoAsset)
     {
-        require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, "Kresko: k-factor less than 1 FixedPoint");
+        require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, "Kresko: proposed k-factor less than 1 FixedPoint");
 
         kreskoAssets[_kreskoAsset].kFactor = FixedPoint.Unsigned(_kFactor);
         emit KreskoAssetKFactorUpdated(_kreskoAsset, _kFactor);
@@ -710,7 +710,7 @@ contract Kresko is Ownable {
         onlyOwner
         kreskoAssetExists(_kreskoAsset)
     {
-        require(_oracle != address(0), "Kresko: oracle is zero address");
+        require(_oracle != address(0), "Kresko: proposed oracle is zero address");
 
         kreskoAssets[_kreskoAsset].oracle = IOracle(_oracle);
         emit KreskoAssetOracleUpdated(_kreskoAsset, _oracle);
@@ -723,7 +723,7 @@ contract Kresko is Ownable {
      * @param _burnFee The new burn fee as a raw value for a FixedPoint.Unsigned.
      */
     function setBurnFee(uint256 _burnFee) public onlyOwner {
-        require(_burnFee <= MAX_BURN_FEE, "Kresko: burn fee exceeds max");
+        require(_burnFee <= MAX_BURN_FEE, "Kresko: proposed burn fee exceeds max");
         burnFee = FixedPoint.Unsigned(_burnFee);
         emit BurnFeeUpdated(_burnFee);
     }
@@ -733,8 +733,8 @@ contract Kresko is Ownable {
      * @param _closeFactor The new close factor as a raw value for a FixedPoint.Unsigned.
      */
     function setCloseFactor(uint256 _closeFactor) public onlyOwner {
-        require(_closeFactor >= MIN_CLOSE_FACTOR, "Kresko: close factor less than min");
-        require(_closeFactor <= MAX_CLOSE_FACTOR, "Kresko: close factor exceeds max");
+        require(_closeFactor >= MIN_CLOSE_FACTOR, "Kresko: proposed close factor less than min");
+        require(_closeFactor <= MAX_CLOSE_FACTOR, "Kresko: proposed close factor exceeds max");
         closeFactor = FixedPoint.Unsigned(_closeFactor);
         emit CloseFactorUpdated(_closeFactor);
     }
@@ -744,7 +744,7 @@ contract Kresko is Ownable {
      * @param _feeRecipient The new fee recipient.
      */
     function setFeeRecipient(address _feeRecipient) public onlyOwner {
-        require(_feeRecipient != address(0), "Kresko: fee recipient is zero address");
+        require(_feeRecipient != address(0), "Kresko: proposed fee recipient is zero address");
         feeRecipient = _feeRecipient;
         emit FeeRecipientUpdated(_feeRecipient);
     }
@@ -754,8 +754,14 @@ contract Kresko is Ownable {
      * @param _liquidationIncentive The new liquidation incentive as a raw value for a FixedPoint.Unsigned.
      */
     function setLiquidationIncentive(uint256 _liquidationIncentive) public onlyOwner {
-        require(_liquidationIncentive >= MIN_LIQUIDATION_INCENTIVE, "Kresko: liquidation incentive less than min");
-        require(_liquidationIncentive <= MAX_LIQUIDATION_INCENTIVE, "Kresko: liquidation incentive exceeds max");
+        require(
+            _liquidationIncentive >= MIN_LIQUIDATION_INCENTIVE,
+            "Kresko: proposed liquidation incentive less than min"
+        );
+        require(
+            _liquidationIncentive <= MAX_LIQUIDATION_INCENTIVE,
+            "Kresko: proposed liquidation incentive exceeds max"
+        );
         liquidationIncentive = FixedPoint.Unsigned(_liquidationIncentive);
         emit LiquidationIncentiveUpdated(_liquidationIncentive);
     }

@@ -146,7 +146,7 @@ describe("Kresko", function () {
                     this.kresko
                         .connect(this.signers.admin)
                         .setMinimumCollateralizationRatio(invalidMinimumCollateralizationRatio),
-                ).to.be.revertedWith("Kresko: minimum collateralization ratio less than min");
+                ).to.be.revertedWith("Kresko: proposed minimum collateralization ratio less than min");
             });
 
             it("Reverts if called by a non-owner", async function () {
@@ -167,17 +167,17 @@ describe("Kresko", function () {
         describe("Cannot add collateral assets with invalid parameters", function () {
             it("invalid asset address", async function () {
                 await expect(this.kresko.addCollateralAsset(ADDRESS_ZERO, ONE, ADDRESS_ONE)).to.be.revertedWith(
-                    "Kresko: collateral is zero address",
+                    "Kresko: proposed collateral is zero address",
                 );
             });
             it("invalid factor", async function () {
                 await expect(this.kresko.addCollateralAsset(ADDRESS_TWO, ONE.add(1), ADDRESS_ONE)).to.be.revertedWith(
-                    "Kresko: collateral factor exceeds 1 FixedPoint",
+                    "Kresko: proposed collateral factor exceeds 1 FixedPoint",
                 );
             });
             it("invalid oracle address", async function () {
                 await expect(this.kresko.addCollateralAsset(ADDRESS_TWO, ONE, ADDRESS_ZERO)).to.be.revertedWith(
-                    "Kresko: oracle is zero address",
+                    "Kresko: proposed oracle is zero address",
                 );
             });
         });
@@ -186,7 +186,7 @@ describe("Kresko", function () {
             it("reverts when setting the collateral factor to greater than 1", async function () {
                 await expect(
                     this.kresko.updateCollateralFactor(this.collateralAssetInfo.collateralAsset.address, ONE.add(1)),
-                ).to.be.revertedWith("Kresko: collateral factor exceeds 1 FixedPoint");
+                ).to.be.revertedWith("Kresko: proposed collateral factor exceeds 1 FixedPoint");
             });
             it("reverts when setting the oracle address to the zero address", async function () {
                 await expect(
@@ -194,7 +194,7 @@ describe("Kresko", function () {
                         this.collateralAssetInfo.collateralAsset.address,
                         ADDRESS_ZERO,
                     ),
-                ).to.be.revertedWith("Kresko: oracle is zero address");
+                ).to.be.revertedWith("Kresko: proposed oracle is zero address");
             });
         });
 
@@ -673,11 +673,11 @@ describe("Kresko", function () {
             it("invalid k factor", async function () {
                 await expect(
                     this.kresko.addKreskoAsset(NAME_TWO, SYMBOL_TWO, ONE.sub(1), ADDRESS_ONE),
-                ).to.be.revertedWith("Kresko: k-factor less than 1 FixedPoint");
+                ).to.be.revertedWith("Kresko: proposed k-factor less than 1 FixedPoint");
             });
             it("invalid oracle address", async function () {
                 await expect(this.kresko.addKreskoAsset(NAME_TWO, SYMBOL_TWO, ONE, ADDRESS_ZERO)).to.be.revertedWith(
-                    "Kresko: oracle is zero address",
+                    "Kresko: proposed oracle is zero address",
                 );
             });
         });
@@ -686,12 +686,12 @@ describe("Kresko", function () {
             it("reverts when setting the k factor to less than 1", async function () {
                 await expect(
                     this.kresko.updateKreskoAssetFactor(this.deployedAssetAddress, ONE.sub(1)),
-                ).to.be.revertedWith("Kresko: k-factor less than 1 FixedPoint");
+                ).to.be.revertedWith("Kresko: proposed k-factor less than 1 FixedPoint");
             });
             it("reverts when setting the oracle address to the zero address", async function () {
                 await expect(
                     this.kresko.updateKreskoAssetOracle(this.deployedAssetAddress, ADDRESS_ZERO),
-                ).to.be.revertedWith("Kresko: oracle is zero address");
+                ).to.be.revertedWith("Kresko: proposed oracle is zero address");
             });
         });
 
@@ -1258,7 +1258,7 @@ describe("Kresko", function () {
         it("Reverts if the burn fee exceeds MAX_BURN_FEE", async function () {
             const newBurnFee = (await this.kresko.MAX_BURN_FEE()).add(1);
             await expect(this.kresko.connect(this.signers.admin).setBurnFee(newBurnFee)).to.be.revertedWith(
-                "Kresko: burn fee exceeds max",
+                "Kresko: proposed burn fee exceeds max",
             );
         });
 
@@ -1289,7 +1289,7 @@ describe("Kresko", function () {
 
         it("Reverts if the fee recipient is the zero address", async function () {
             await expect(this.kresko.connect(this.signers.admin).setFeeRecipient(ADDRESS_ZERO)).to.be.revertedWith(
-                "Kresko: fee recipient is zero address",
+                "Kresko: proposed fee recipient is zero address",
             );
         });
 
