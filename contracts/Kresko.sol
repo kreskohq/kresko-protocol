@@ -34,7 +34,7 @@ contract Kresko is Ownable {
     }
 
     /**
-     * @notice Informtion on a token that is a Kresko asset.
+     * @notice Information on a token that is a Kresko asset.
      * @dev Each Kresko asset has 18 decimals.
      * @param kFactor The k-factor used for calculating the required collateral value for Kresko asset debt.
      * @param oracle The oracle that provides the USD price of one Kresko asset.
