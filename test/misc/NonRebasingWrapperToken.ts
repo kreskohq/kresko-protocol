@@ -192,7 +192,7 @@ describe("NonRebasingWrapperToken", function () {
 
         it("Reverts when the non-rebasing withdrawal amount is zero", async function () {
             await expect(this.depositUnderlying(this.userOne, BigNumber.from(0))).to.be.revertedWith(
-                "DEPOSIT_AMOUNT_ZERO",
+                "NRWToken: deposit amount is zero",
             );
         });
 
@@ -417,13 +417,13 @@ describe("NonRebasingWrapperToken", function () {
 
         it("Reverts when the non-rebasing withdrawal amount is zero", async function () {
             await expect(this.withdrawUnderlying(this.userOne, BigNumber.from(0))).to.be.revertedWith(
-                "WITHDRAW_AMOUNT_ZERO",
+                "NRWToken: withdraw amount is zero",
             );
         });
 
         it("Reverts when the non-rebasing withdrawal amount exceeds the sender's balance", async function () {
             await expect(this.withdrawUnderlying(this.userOne, this.depositAmount.add(1))).to.be.revertedWith(
-                "WITHDRAW_AMOUNT_TOO_HIGH",
+                "NRWToken: withdraw amount exceeds balance",
             );
         });
     });
@@ -478,7 +478,7 @@ describe("NonRebasingWrapperToken", function () {
             // Assume 1:1 rate
             await this.depositUnderlying(this.userOne, depositAmount);
             await expect(this.nonRebasingWrapperToken.getUnderlyingAmount(depositAmount.add(1))).to.be.revertedWith(
-                "NON_REBASING_AMOUNT_TOO_HIGH",
+                "NRWToken: amount exceeds total supply",
             );
         });
     });

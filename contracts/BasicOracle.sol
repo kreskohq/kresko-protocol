@@ -11,7 +11,7 @@ contract BasicOracle is Ownable {
     event SetReporter(address oracle);
 
     modifier onlyReporter() {
-        require(msg.sender == reporter, "Sender not oracle");
+        require(msg.sender == reporter, "BasicOracle: sender not oracle");
         _;
     }
 
