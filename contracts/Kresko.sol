@@ -10,6 +10,11 @@ import "./KreskoAsset.sol";
 import "./interfaces/IOracle.sol";
 import "./libraries/FixedPoint.sol";
 
+/**
+ * @title The core of the Kresko protocol.
+ * @notice Reponsible for managing collateral and minting / burning overcollateralized synthetic
+ * assets called Kresko assets.
+ */
 contract Kresko is Ownable, ReentrancyGuard {
     using FixedPoint for FixedPoint.Unsigned;
 
@@ -328,6 +333,15 @@ contract Kresko is Ownable, ReentrancyGuard {
         _;
     }
 
+    /**
+     * @notice Constructs the core Kresko protocol.
+     * @param _burnFee The burn fee as a raw value for a FixedPoint.Unsigned.
+     * @param _closeFactor The close factor as a raw value for a FixedPoint.Unsigned.
+     * @param _feeRecipient The fee recipient.
+     * @param _liquidationIncentive The new liquidation incentive as a raw value for a FixedPoint.Unsigned.
+     * @param _minimumCollateralizationRatio The new minimum collateralization ratio as a raw value
+     * for a FixedPoint.Unsigned.
+     */
     constructor(
         uint256 _burnFee,
         uint256 _closeFactor,
