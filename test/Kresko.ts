@@ -117,47 +117,6 @@ describe("Kresko", function () {
             this.collateralAssetInfo = await deployAndWhitelistCollateralAsset(this.kresko, 0.8, 123.45, 18);
         });
 
-        describe("#setMinimumCollateralizationRatio", function () {
-            const validMinimumCollateralizationRatio = toFixedPoint(1.51); // 151%
-            const invalidMinimumCollateralizationRatio = toFixedPoint(0.99); // 99%
-
-            it("should allow the owner to set the minimum collateralization ratio", async function () {
-                expect(await this.kresko.minimumCollateralizationRatio()).to.equal(MINIMUM_COLLATERALIZATION_RATIO);
-
-                await this.kresko
-                    .connect(this.signers.admin)
-                    .setMinimumCollateralizationRatio(validMinimumCollateralizationRatio);
-
-                expect(await this.kresko.minimumCollateralizationRatio()).to.equal(validMinimumCollateralizationRatio);
-            });
-
-            it("should emit MinimumCollateralizationRatioUpdated event", async function () {
-                const receipt = await this.kresko
-                    .connect(this.signers.admin)
-                    .setMinimumCollateralizationRatio(validMinimumCollateralizationRatio);
-
-                const event = (await extractEventFromTxReceipt(receipt, "MinimumCollateralizationRatioUpdated"))![0]
-                    .args!;
-                expect(event.minimumCollateralizationRatio).to.equal(validMinimumCollateralizationRatio);
-            });
-
-            it("should not allow the minimum collateralization ratio to be below MIN_MINIMUM_COLLATERALIZATION_RATIO", async function () {
-                await expect(
-                    this.kresko
-                        .connect(this.signers.admin)
-                        .setMinimumCollateralizationRatio(invalidMinimumCollateralizationRatio),
-                ).to.be.revertedWith("Kresko: proposed minimum collateralization ratio less than min");
-            });
-
-            it("should not allow minimum collateralization ratio to be set by non-owner", async function () {
-                await expect(
-                    this.kresko
-                        .connect(this.userOne)
-                        .setMinimumCollateralizationRatio(validMinimumCollateralizationRatio),
-                ).to.be.revertedWith("Ownable: caller is not the owner");
-            });
-        });
-
         describe("#addCollateralAsset", function () {
             it("should allow owner to add assets", async function () {
                 const collateralAssetInfo = await deployAndWhitelistCollateralAsset(this.kresko, 0.8, 123.45, 18);
@@ -1354,6 +1313,47 @@ describe("Kresko", function () {
     });
 
     describe("Updating global variables", function () {
+        describe("#setMinimumCollateralizationRatio", function () {
+            const validMinimumCollateralizationRatio = toFixedPoint(1.51); // 151%
+            const invalidMinimumCollateralizationRatio = toFixedPoint(0.99); // 99%
+
+            it("should allow the owner to set the minimum collateralization ratio", async function () {
+                expect(await this.kresko.minimumCollateralizationRatio()).to.equal(MINIMUM_COLLATERALIZATION_RATIO);
+
+                await this.kresko
+                    .connect(this.signers.admin)
+                    .setMinimumCollateralizationRatio(validMinimumCollateralizationRatio);
+
+                expect(await this.kresko.minimumCollateralizationRatio()).to.equal(validMinimumCollateralizationRatio);
+            });
+
+            it("should emit MinimumCollateralizationRatioUpdated event", async function () {
+                const receipt = await this.kresko
+                    .connect(this.signers.admin)
+                    .setMinimumCollateralizationRatio(validMinimumCollateralizationRatio);
+
+                const event = (await extractEventFromTxReceipt(receipt, "MinimumCollateralizationRatioUpdated"))![0]
+                    .args!;
+                expect(event.minimumCollateralizationRatio).to.equal(validMinimumCollateralizationRatio);
+            });
+
+            it("should not allow the minimum collateralization ratio to be below MIN_MINIMUM_COLLATERALIZATION_RATIO", async function () {
+                await expect(
+                    this.kresko
+                        .connect(this.signers.admin)
+                        .setMinimumCollateralizationRatio(invalidMinimumCollateralizationRatio),
+                ).to.be.revertedWith("Kresko: proposed minimum collateralization ratio less than min");
+            });
+
+            it("should not allow minimum collateralization ratio to be set by non-owner", async function () {
+                await expect(
+                    this.kresko
+                        .connect(this.userOne)
+                        .setMinimumCollateralizationRatio(validMinimumCollateralizationRatio),
+                ).to.be.revertedWith("Ownable: caller is not the owner");
+            });
+        });
+
         describe("#setBurnFee", function () {
             const validNewBurnFee = toFixedPoint(0.042);
             it("should allow the owner to update the burn fee", async function () {
@@ -1451,6 +1451,45 @@ describe("Kresko", function () {
 
             it("should not allow the close factor to be updated by non-owner", async function () {
                 await expect(this.kresko.connect(this.userOne).setCloseFactor(validCloseFactor)).to.be.revertedWith(
+                    "Ownable: caller is not the owner",
+                );
+            });
+        });
+
+        describe("#setLiquidationIncentive", function () {
+            const validLiquidationIncentive = toFixedPoint(1.15);
+            it("should allow the owner to update the liquidation incentive", async function () {
+                // Ensure it has the expected initial value
+                expect(await this.kresko.liquidationIncentive()).to.equal(LIQUIDATION_INCENTIVE);
+
+                await this.kresko.connect(this.signers.admin).setLiquidationIncentive(validLiquidationIncentive);
+
+                expect(await this.kresko.liquidationIncentive()).to.equal(validLiquidationIncentive);
+            });
+
+            it("should emit LiquidationIncentiveUpdated event", async function () {
+                const receipt = await this.kresko.connect(this.signers.admin).setLiquidationIncentive(validLiquidationIncentive);
+
+                const event = (await extractEventFromTxReceipt(receipt, "LiquidationIncentiveUpdated"))![0].args!;
+                expect(event.liquidationIncentive).to.equal(validLiquidationIncentive);
+            });
+
+            it("should not allow the liquidation incentive to be less than the MIN_LIQUIDATION_INCENTIVE", async function () {
+                const newLiquidationIncentive = (await this.kresko.MIN_LIQUIDATION_INCENTIVE()).sub(1);
+                await expect(this.kresko.connect(this.signers.admin).setLiquidationIncentive(newLiquidationIncentive)).to.be.revertedWith(
+                    "Kresko: proposed liquidation incentive less than min",
+                );
+            });
+
+            it("should not allow the liquidation incentive to exceed MAX_LIQUIDATION_INCENTIVE", async function () {
+                const newLiquidationIncentive = (await this.kresko.MAX_LIQUIDATION_INCENTIVE()).add(1);
+                await expect(this.kresko.connect(this.signers.admin).setLiquidationIncentive(newLiquidationIncentive)).to.be.revertedWith(
+                    "Kresko: proposed liquidation incentive exceeds max",
+                );
+            });
+
+            it("should not allow the liquidation incentive to be updated by non-owner", async function () {
+                await expect(this.kresko.connect(this.userOne).setLiquidationIncentive(validLiquidationIncentive)).to.be.revertedWith(
                     "Ownable: caller is not the owner",
                 );
             });
