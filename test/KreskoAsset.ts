@@ -34,7 +34,7 @@ describe("KreskoAsset", function () {
         });
     });
 
-    describe("Minting", function () {
+    describe("#mint", function () {
         beforeEach(async function () {
             this.mintAmount = 125;
         });
@@ -75,7 +75,7 @@ describe("KreskoAsset", function () {
         });
     });
 
-    describe("Burning", function () {
+    describe("#burn", function () {
         beforeEach(async function () {
             this.mintAmount = 250;
             await this.kreskoAsset.connect(this.signers.admin).mint(this.userOne.address, this.mintAmount);
