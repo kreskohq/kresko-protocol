@@ -208,6 +208,15 @@ describe("Kresko", function () {
                 expect(asset.factor.rawValue).to.equal(ZERO_POINT_FIVE);
             });
 
+            it("should emit CollateralAssetFactorUpdated event", async function () {
+                const collateralAssetAddress = this.collateralAssetInfo.collateralAsset.address;
+                const receipt = await this.kresko.updateCollateralFactor(collateralAssetAddress, ZERO_POINT_FIVE);
+
+                const event = (await extractEventFromTxReceipt(receipt, "CollateralAssetFactorUpdated"))![0].args!;
+                expect(event.collateralAsset).to.equal(collateralAssetAddress);
+                expect(event.factor).to.equal(ZERO_POINT_FIVE);
+            });
+
             it("should not allow the collateral factor to be greater than 1", async function () {
                 await expect(
                     this.kresko.updateCollateralFactor(this.collateralAssetInfo.collateralAsset.address, ONE.add(1)),
@@ -228,6 +237,15 @@ describe("Kresko", function () {
 
                 const asset = await this.kresko.collateralAssets(collateralAssetAddress);
                 expect(asset.oracle).to.equal(ADDRESS_TWO);
+            });
+
+            it("should emit CollateralAssetOracleUpdated event", async function () {
+                const collateralAssetAddress = this.collateralAssetInfo.collateralAsset.address;
+                const receipt = await this.kresko.updateCollateralAssetOracle(collateralAssetAddress, ADDRESS_TWO);
+
+                const event = (await extractEventFromTxReceipt(receipt, "CollateralAssetOracleUpdated"))![0].args!;
+                expect(event.collateralAsset).to.equal(collateralAssetAddress);
+                expect(event.oracle).to.equal(ADDRESS_TWO);
             });
 
             it("should not allow the oracle address to be the zero address", async function () {
@@ -351,6 +369,18 @@ describe("Kresko", function () {
                 ]);
             });
 
+            it("should emit CollateralDeposited event", async function () {
+                const collateralAssetInfo = this.collateralAssetInfos[0];
+                const collateralAsset = collateralAssetInfo.collateralAsset;
+                const depositAmount = collateralAssetInfo.fromDecimal(123.321);
+                const receipt = await this.kresko.connect(this.userOne).depositCollateral(collateralAsset.address, depositAmount)
+
+                const event = (await extractEventFromTxReceipt(receipt, "CollateralDeposited"))![0].args!;
+                expect(event.account).to.equal(this.userOne.address);
+                expect(event.collateralAsset).to.equal(collateralAsset.address);
+                expect(event.amount).to.equal(depositAmount);
+            });
+
             it("should revert if depositing collateral that has not been whitelisted", async function () {
                 await expect(
                     this.kresko.connect(this.userOne).depositCollateral(ADDRESS_ONE, parseEther("123")),
@@ -455,6 +485,23 @@ describe("Kresko", function () {
                             .sub(initialDepositAmount)
                             .add(amountToWithdraw),
                     );
+                });
+
+                it("should emit CollateralWithdrawn event", async function () {
+                    const amountToWithdraw = parseEther("49.43");
+                    const collateralAssetInfo = this.collateralAssetInfos[0];
+                    const collateralAsset = collateralAssetInfo.collateralAsset;
+
+                    const receipt = await this.kresko.connect(this.userOne).withdrawCollateral(
+                        collateralAsset.address,
+                        amountToWithdraw,
+                        0, // The index of collateralAsset.address in the account's depositedCollateralAssets
+                    );
+
+                    const event = (await extractEventFromTxReceipt(receipt, "CollateralWithdrawn"))![0].args!;
+                    expect(event.account).to.equal(this.userOne.address);
+                    expect(event.collateralAsset).to.equal(collateralAsset.address);
+                    expect(event.amount).to.equal(amountToWithdraw);
                 });
             });
 
@@ -663,7 +710,7 @@ describe("Kresko", function () {
 
 
         describe("#addKreskoAsset", function () {
-            it("should allow owner to add new kresko assets", async function () {
+            it("should allow owner to add new kresko assets and emit event KreskoAssetAdded", async function () {
                 const tx: any = await this.kresko.addKreskoAsset(NAME_TWO, SYMBOL_TWO, ONE, ADDRESS_TWO);
                 let events: any = await extractEventFromTxReceipt(tx, "KreskoAssetAdded");
 
@@ -711,10 +758,23 @@ describe("Kresko", function () {
 
         describe("#updateKreskoAssetFactor", function () {
             it("should allow owner to update factor", async function () {
-                await this.kresko.updateKreskoAssetFactor(this.deployedAssetAddress, ONE);
+                await this.kresko
+                .connect(this.signers.admin)
+                .updateKreskoAssetFactor(this.deployedAssetAddress, ONE);
 
                 const asset = await this.kresko.kreskoAssets(this.deployedAssetAddress);
                 expect(asset.kFactor.rawValue).to.equal(ONE.toString());
+            });
+
+            it("should emit KreskoAssetKFactorUpdated event", async function () {
+                const receipt = await this.kresko
+                    .connect(this.signers.admin)
+                    .updateKreskoAssetFactor(this.deployedAssetAddress, ONE);
+
+                const event = (await extractEventFromTxReceipt(receipt, "KreskoAssetKFactorUpdated"))![0]
+                    .args!;
+                expect(event.kreskoAsset).to.equal(this.deployedAssetAddress);
+                expect(event.kFactor).to.equal(ONE);
             });
 
             it("should not allow a kresko asset's k-factor to be less than 1", async function () {
@@ -731,12 +791,25 @@ describe("Kresko", function () {
             });
         });
 
-        describe("#updateKreskoAssetFactor", function () {
+        describe("#updateKreskoAssetOracle", function () {
             it("should allow owner to update oracle address", async function () {
-                await this.kresko.updateKreskoAssetOracle(this.deployedAssetAddress, ADDRESS_TWO);
+                await this.kresko
+                .connect(this.signers.admin)
+                .updateKreskoAssetOracle(this.deployedAssetAddress, ADDRESS_TWO);
 
                 const asset = await this.kresko.kreskoAssets(this.deployedAssetAddress);
                 expect(asset.oracle).to.equal(ADDRESS_TWO);
+            });
+
+            it("should emit KreskoAssetOracleUpdated event", async function () {
+                const receipt = await this.kresko
+                    .connect(this.signers.admin)
+                    .updateKreskoAssetOracle(this.deployedAssetAddress, ADDRESS_TWO);
+
+                const event = (await extractEventFromTxReceipt(receipt, "KreskoAssetOracleUpdated"))![0]
+                    .args!;
+                expect(event.kreskoAsset).to.equal(this.deployedAssetAddress);
+                expect(event.oracle).to.equal(ADDRESS_TWO);
             });
 
             it("should not allow a kresko asset's oracle address to be the zero address", async function () {
@@ -941,6 +1014,17 @@ describe("Kresko", function () {
                 expect(secondKreskoAssetTotalSupply).to.equal(secondMintAmount);
             });
 
+            it("should emit KreskoAssetMinted event", async function () {
+                const kreskoAssetAddress = this.kreskoAssetInfos[0].kreskoAsset.address;
+                const mintAmount = 500;
+                const receipt = await this.kresko.connect(this.userOne).mintKreskoAsset(kreskoAssetAddress, mintAmount);
+
+                const event = (await extractEventFromTxReceipt(receipt, "KreskoAssetMinted"))![0].args!;
+                expect(event.account).to.equal(this.userOne.address);
+                expect(event.kreskoAsset).to.equal(kreskoAssetAddress);
+                expect(event.amount).to.equal(mintAmount);
+            });
+
             it("should not allow users to mint non-whitelisted Kresko assets", async function () {
                 // Attempt to mint a non-deployed, non-whitelisted Kresko asset
                 await expect(this.kresko.connect(this.userOne).mintKreskoAsset(ADDRESS_TWO, 5)).to.be.revertedWith(
@@ -1034,6 +1118,19 @@ describe("Kresko", function () {
                 // Confirm the user's minted kresko asset amount has been updated
                 const userDebt = await this.kresko.kreskoAssetDebt(this.userOne.address, kreskoAssetAddress);
                 expect(userDebt).to.equal(0);
+            });
+
+            it("should emit KreskoAssetBurned event", async function () {
+                const kreskoAssetAddress = this.kreskoAssetInfos[0].kreskoAsset.address;
+                const kreskoAssetIndex = 0;
+                const receipt = await this.kresko
+                    .connect(this.userOne)
+                    .burnKreskoAsset(kreskoAssetAddress, this.mintAmount, kreskoAssetIndex);
+
+                const event = (await extractEventFromTxReceipt(receipt, "KreskoAssetBurned"))![0].args!;
+                expect(event.account).to.equal(this.userOne.address);
+                expect(event.kreskoAsset).to.equal(kreskoAssetAddress);
+                expect(event.amount).to.equal(this.mintAmount);
             });
 
             it("should not allow users to burn an amount of 0", async function () {
@@ -1136,7 +1233,7 @@ describe("Kresko", function () {
                     await singleFeePaymentTest.bind(this)(collateralAssetInfo);
                 };
 
-                it("should charge the protocol burn fee with a single collateral asset if the deposit amount is sufficient", async function () {
+                it("should charge the protocol burn fee with a single collateral asset if the deposit amount is sufficient and emit BurnFeePaid event", async function () {
                     await singleFeePaymentTest.bind(this)(this.collateralAssetInfo);
                 });
 
