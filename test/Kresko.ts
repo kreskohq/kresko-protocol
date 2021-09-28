@@ -1312,7 +1312,7 @@ describe("Kresko", function () {
         });
     });
 
-    describe("Updating global variables", function () {
+    describe("Global variables", function () {
         describe("#setMinimumCollateralizationRatio", function () {
             const validMinimumCollateralizationRatio = toFixedPoint(1.51); // 151%
             const invalidMinimumCollateralizationRatio = toFixedPoint(0.99); // 99%
@@ -1495,7 +1495,6 @@ describe("Kresko", function () {
             });
         });
     });
-
 
     describe("Liquidations", function () {
         beforeEach(async function () {
