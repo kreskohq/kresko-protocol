@@ -1353,68 +1353,110 @@ describe("Kresko", function () {
         });
     });
 
-    describe("#setBurnFee", function () {
-        const validNewBurnFee = toFixedPoint(0.042);
-        it("should allow the burn fee to be updated", async function () {
-            // Ensure it has the expected initial value
-            expect(await this.kresko.burnFee()).to.equal(BURN_FEE);
+    describe("Updating global variables", function () {
+        describe("#setBurnFee", function () {
+            const validNewBurnFee = toFixedPoint(0.042);
+            it("should allow the owner to update the burn fee", async function () {
+                // Ensure it has the expected initial value
+                expect(await this.kresko.burnFee()).to.equal(BURN_FEE);
 
-            await this.kresko.connect(this.signers.admin).setBurnFee(validNewBurnFee);
+                await this.kresko.connect(this.signers.admin).setBurnFee(validNewBurnFee);
 
-            expect(await this.kresko.burnFee()).to.equal(validNewBurnFee);
+                expect(await this.kresko.burnFee()).to.equal(validNewBurnFee);
+            });
+
+            it("should emit BurnFeeUpdated event", async function () {
+                const receipt = await this.kresko.connect(this.signers.admin).setBurnFee(validNewBurnFee);
+
+                const event = (await extractEventFromTxReceipt(receipt, "BurnFeeUpdated"))![0].args!;
+                expect(event.burnFee).to.equal(validNewBurnFee);
+            });
+
+            it("should not allow the burn fee to exceed MAX_BURN_FEE", async function () {
+                const newBurnFee = (await this.kresko.MAX_BURN_FEE()).add(1);
+                await expect(this.kresko.connect(this.signers.admin).setBurnFee(newBurnFee)).to.be.revertedWith(
+                    "Kresko: proposed burn fee exceeds max",
+                );
+            });
+
+            it("should not allow the burn fee to be updated by non-owner", async function () {
+                await expect(this.kresko.connect(this.userOne).setBurnFee(validNewBurnFee)).to.be.revertedWith(
+                    "Ownable: caller is not the owner",
+                );
+            });
         });
 
-        it("should emit BurnFeeUpdated event", async function () {
-            const receipt = await this.kresko.connect(this.signers.admin).setBurnFee(validNewBurnFee);
+        describe("#setFeeRecipient", function () {
+            const validFeeRecipient = "0xF00D000000000000000000000000000000000000";
+            it("should allow the owner to update the fee recipient", async function () {
+                // Ensure it has the expected initial value
+                expect(await this.kresko.feeRecipient()).to.equal(FEE_RECIPIENT_ADDRESS);
 
-            const event = (await extractEventFromTxReceipt(receipt, "BurnFeeUpdated"))![0].args!;
-            expect(event.burnFee).to.equal(validNewBurnFee);
+                await this.kresko.connect(this.signers.admin).setFeeRecipient(validFeeRecipient);
+
+                expect(await this.kresko.feeRecipient()).to.equal(validFeeRecipient);
+            });
+
+            it("should emit UpdateFeeRecipient event", async function () {
+                const receipt = await this.kresko.connect(this.signers.admin).setFeeRecipient(validFeeRecipient);
+
+                const event = (await extractEventFromTxReceipt(receipt, "FeeRecipientUpdated"))![0].args!;
+                expect(event.feeRecipient).to.equal(validFeeRecipient);
+            });
+
+            it("should not allow the fee recipient to be the zero address", async function () {
+                await expect(this.kresko.connect(this.signers.admin).setFeeRecipient(ADDRESS_ZERO)).to.be.revertedWith(
+                    "Kresko: proposed fee recipient is zero address",
+                );
+            });
+
+            it("should not allow the fee recipient to be updated by non-owner", async function () {
+                await expect(this.kresko.connect(this.userOne).setFeeRecipient(validFeeRecipient)).to.be.revertedWith(
+                    "Ownable: caller is not the owner",
+                );
+            });
         });
 
-        it("should not allow the burn fee to exceed MAX_BURN_FEE", async function () {
-            const newBurnFee = (await this.kresko.MAX_BURN_FEE()).add(1);
-            await expect(this.kresko.connect(this.signers.admin).setBurnFee(newBurnFee)).to.be.revertedWith(
-                "Kresko: proposed burn fee exceeds max",
-            );
-        });
+        describe("#setCloseFactor", function () {
+            const validCloseFactor = toFixedPoint(0.25);
+            it("should allow the owner to update the close factor", async function () {
+                // Ensure it has the expected initial value
+                expect(await this.kresko.closeFactor()).to.equal(CLOSE_FACTOR);
 
-        it("should not allow the burn fee to be updated by non-owner", async function () {
-            await expect(this.kresko.connect(this.userOne).setBurnFee(validNewBurnFee)).to.be.revertedWith(
-                "Ownable: caller is not the owner",
-            );
+                await this.kresko.connect(this.signers.admin).setCloseFactor(validCloseFactor);
+
+                expect(await this.kresko.closeFactor()).to.equal(validCloseFactor);
+            });
+
+            it("should emit CloseFactorUpdated event", async function () {
+                const receipt = await this.kresko.connect(this.signers.admin).setCloseFactor(validCloseFactor);
+
+                const event = (await extractEventFromTxReceipt(receipt, "CloseFactorUpdated"))![0].args!;
+                expect(event.closeFactor).to.equal(validCloseFactor);
+            });
+
+            it("should not allow the close factor fee to be less than the MIN_CLOSE_FACTOR", async function () {
+                const newCloseFactor = (await this.kresko.MIN_CLOSE_FACTOR()).sub(1);
+                await expect(this.kresko.connect(this.signers.admin).setCloseFactor(newCloseFactor)).to.be.revertedWith(
+                    "Kresko: proposed close factor less than min",
+                );
+            });
+
+            it("should not allow the close factor fee to exceed MAX_CLOSE_FACTOR", async function () {
+                const newCloseFactor = (await this.kresko.MAX_CLOSE_FACTOR()).add(1);
+                await expect(this.kresko.connect(this.signers.admin).setCloseFactor(newCloseFactor)).to.be.revertedWith(
+                    "Kresko: proposed close factor exceeds max",
+                );
+            });
+
+            it("should not allow the close factor to be updated by non-owner", async function () {
+                await expect(this.kresko.connect(this.userOne).setCloseFactor(validCloseFactor)).to.be.revertedWith(
+                    "Ownable: caller is not the owner",
+                );
+            });
         });
     });
 
-    describe("#setFeeRecipient", function () {
-        const validFeeRecipient = "0xF00D000000000000000000000000000000000000";
-        it("should allow the fee recipient to be updated", async function () {
-            // Ensure it has the expected initial value
-            expect(await this.kresko.feeRecipient()).to.equal(FEE_RECIPIENT_ADDRESS);
-
-            await this.kresko.connect(this.signers.admin).setFeeRecipient(validFeeRecipient);
-
-            expect(await this.kresko.feeRecipient()).to.equal(validFeeRecipient);
-        });
-
-        it("should emit UpdateFeeRecipient event", async function () {
-            const receipt = await this.kresko.connect(this.signers.admin).setFeeRecipient(validFeeRecipient);
-
-            const event = (await extractEventFromTxReceipt(receipt, "FeeRecipientUpdated"))![0].args!;
-            expect(event.feeRecipient).to.equal(validFeeRecipient);
-        });
-
-        it("should not allow the fee recipient to be the zero address", async function () {
-            await expect(this.kresko.connect(this.signers.admin).setFeeRecipient(ADDRESS_ZERO)).to.be.revertedWith(
-                "Kresko: proposed fee recipient is zero address",
-            );
-        });
-
-        it("should not allow the fee recipient to be updated by non-owner", async function () {
-            await expect(this.kresko.connect(this.userOne).setFeeRecipient(validFeeRecipient)).to.be.revertedWith(
-                "Ownable: caller is not the owner",
-            );
-        });
-    });
 
     describe("Liquidations", function () {
         beforeEach(async function () {
