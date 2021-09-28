@@ -2,13 +2,20 @@
 pragma solidity >=0.8.4;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+
 import "./KreskoAsset.sol";
 
 import "./interfaces/IOracle.sol";
 import "./libraries/FixedPoint.sol";
 
-contract Kresko is Ownable {
+/**
+ * @title The core of the Kresko protocol.
+ * @notice Reponsible for managing collateral and minting / burning overcollateralized synthetic
+ * assets called Kresko assets.
+ */
+contract Kresko is Ownable, ReentrancyGuard {
     using FixedPoint for FixedPoint.Unsigned;
 
     /**
@@ -326,6 +333,15 @@ contract Kresko is Ownable {
         _;
     }
 
+    /**
+     * @notice Constructs the core Kresko protocol.
+     * @param _burnFee The burn fee as a raw value for a FixedPoint.Unsigned.
+     * @param _closeFactor The close factor as a raw value for a FixedPoint.Unsigned.
+     * @param _feeRecipient The fee recipient.
+     * @param _liquidationIncentive The new liquidation incentive as a raw value for a FixedPoint.Unsigned.
+     * @param _minimumCollateralizationRatio The new minimum collateralization ratio as a raw value
+     * for a FixedPoint.Unsigned.
+     */
     constructor(
         uint256 _burnFee,
         uint256 _closeFactor,
@@ -355,6 +371,7 @@ contract Kresko is Ownable {
      */
     function depositCollateral(address _collateralAsset, uint256 _amount)
         external
+        nonReentrant
         collateralAssetExists(_collateralAsset)
     {
         // Because the depositedCollateralAssets[msg.sender] is pushed to if the existing
@@ -392,7 +409,7 @@ contract Kresko is Ownable {
         address _collateralAsset,
         uint256 _amount,
         uint256 _depositedCollateralAssetIndex
-    ) external collateralAssetExists(_collateralAsset) {
+    ) external nonReentrant collateralAssetExists(_collateralAsset) {
         require(_amount > 0, "Kresko: amount is zero");
 
         // Ensure the amount being withdrawn is not greater than the amount of the collateral asset
@@ -439,7 +456,11 @@ contract Kresko is Ownable {
      * @param _kreskoAsset The address of the Kresko asset.
      * @param _amount The amount of the Kresko asset to be minted.
      */
-    function mintKreskoAsset(address _kreskoAsset, uint256 _amount) external kreskoAssetExists(_kreskoAsset) {
+    function mintKreskoAsset(address _kreskoAsset, uint256 _amount)
+        external
+        nonReentrant
+        kreskoAssetExists(_kreskoAsset)
+    {
         require(_amount > 0, "Kresko: amount is zero");
 
         // Get the value of the minter's current deposited collateral.
@@ -480,7 +501,7 @@ contract Kresko is Ownable {
         address _kreskoAsset,
         uint256 _amount,
         uint256 _mintedKreskoAssetIndex
-    ) external kreskoAssetExists(_kreskoAsset) {
+    ) external nonReentrant kreskoAssetExists(_kreskoAsset) {
         require(_amount > 0, "Kresko: amount is zero");
 
         // Ensure the amount being burned is not greater than the sender's debt.
@@ -525,7 +546,7 @@ contract Kresko is Ownable {
         address _collateralAssetToSeize,
         uint256 _mintedKreskoAssetIndex,
         uint256 _depositedCollateralAssetIndex
-    ) public collateralAssetExists(_collateralAssetToSeize) kreskoAssetExists(_repayKreskoAsset) {
+    ) public nonReentrant collateralAssetExists(_collateralAssetToSeize) kreskoAssetExists(_repayKreskoAsset) {
         require(_repayAmount > 0, "Kresko: repay amount zero");
 
         // Check that this account is below its minimum collateralization ratio and can be liquidated.
@@ -601,7 +622,7 @@ contract Kresko is Ownable {
         address _collateralAsset,
         uint256 _factor,
         address _oracle
-    ) external onlyOwner collateralAssetDoesNotExist(_collateralAsset) {
+    ) external nonReentrant onlyOwner collateralAssetDoesNotExist(_collateralAsset) {
         require(_collateralAsset != address(0), "Kresko: proposed collateral is zero address");
         require(_factor <= FixedPoint.FP_SCALING_FACTOR, "Kresko: proposed collateral factor exceeds 1 FixedPoint");
         require(_oracle != address(0), "Kresko: proposed oracle is zero address");
