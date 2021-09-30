@@ -4,6 +4,7 @@ pragma solidity >=0.8.4;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 import "./KreskoAsset.sol";
 
@@ -15,7 +16,7 @@ import "./libraries/FixedPoint.sol";
  * @notice Reponsible for managing collateral and minting / burning overcollateralized synthetic
  * assets called Kresko assets.
  */
-contract Kresko is Ownable, ReentrancyGuard {
+contract Kresko is Initializable, Ownable, ReentrancyGuard {
     using FixedPoint for FixedPoint.Unsigned;
 
     /**
@@ -334,7 +335,7 @@ contract Kresko is Ownable, ReentrancyGuard {
     }
 
     /**
-     * @notice Constructs the core Kresko protocol.
+     * @notice Initializes the core Kresko protocol.
      * @param _burnFee The burn fee as a raw value for a FixedPoint.Unsigned.
      * @param _closeFactor The close factor as a raw value for a FixedPoint.Unsigned.
      * @param _feeRecipient The fee recipient.
@@ -342,13 +343,13 @@ contract Kresko is Ownable, ReentrancyGuard {
      * @param _minimumCollateralizationRatio The new minimum collateralization ratio as a raw value
      * for a FixedPoint.Unsigned.
      */
-    constructor(
+    function initialize(
         uint256 _burnFee,
         uint256 _closeFactor,
         address _feeRecipient,
         uint256 _liquidationIncentive,
         uint256 _minimumCollateralizationRatio
-    ) {
+    ) external initializer {
         setBurnFee(_burnFee);
         setCloseFactor(_closeFactor);
         setFeeRecipient(_feeRecipient);
