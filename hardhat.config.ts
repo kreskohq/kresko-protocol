@@ -64,6 +64,7 @@ const config: HardhatUserConfig = {
                 mnemonic,
             },
             chainId: 31337,
+            initialBaseFeePerGas: 0,
         },
         alfajores: createTestnetConfig(networks.alfajores),
         mainnet: createTestnetConfig(networks.mainnet),
