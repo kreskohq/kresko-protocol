@@ -65,6 +65,8 @@ const config: HardhatUserConfig = {
             },
             chainId: 31337,
             initialBaseFeePerGas: 0,
+            allowUnlimitedContractSize: true,
+            blockGasLimit: 12000000,
         },
         alfajores: createTestnetConfig(networks.alfajores),
         mainnet: createTestnetConfig(networks.mainnet),
