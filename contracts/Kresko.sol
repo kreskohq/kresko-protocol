@@ -508,10 +508,6 @@ contract Kresko is Ownable, ReentrancyGuard {
         uint256 debtAmount = kreskoAssetDebt[msg.sender][_kreskoAsset];
         require(_amount <= debtAmount, "Kresko: amount exceeds debt amount");
 
-        // Transfer kresko assets from the user to Kresko contract.
-        KreskoAsset asset = KreskoAsset(_kreskoAsset);
-        require(asset.transferFrom(msg.sender, address(this), _amount), "Kresko: krAsset transfer in failed");
-
         // Record the burn.
         kreskoAssetDebt[msg.sender][_kreskoAsset] = debtAmount - _amount;
         // If the sender is burning all of the kresko asset, remove it from minted assets array.
@@ -522,7 +518,8 @@ contract Kresko is Ownable, ReentrancyGuard {
         chargeBurnFee(msg.sender, _kreskoAsset, _amount);
 
         // Burn the received kresko assets, removing them from circulation.
-        asset.burn(_amount);
+        KreskoAsset asset = KreskoAsset(_kreskoAsset);
+        asset.burn(msg.sender, _amount);
 
         emit KreskoAssetBurned(msg.sender, _kreskoAsset, _amount);
     }
@@ -580,11 +577,9 @@ contract Kresko is Ownable, ReentrancyGuard {
             removeFromDepositedCollateralAssets(_account, _collateralAssetToSeize, _depositedCollateralAssetIndex);
         }
 
-        // Transfer Kresko asset repay amount from liquidator to contract.
-        KreskoAsset krAsset = KreskoAsset(_repayKreskoAsset);
-        require(krAsset.transferFrom(msg.sender, address(this), _repayAmount), "Kresko: krAsset transfer in failed");
         // Burn the received Kresko assets, removing them from circulation.
-        krAsset.burn(_repayAmount);
+        KreskoAsset krAsset = KreskoAsset(_repayKreskoAsset);
+        krAsset.burn(msg.sender, _repayAmount);
 
         // Send liquidator the seized collateral.
         require(

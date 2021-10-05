@@ -1121,7 +1121,7 @@ describe("Kresko", function () {
                 const kreskoAssetIndex = 0;
                 await expect(
                     this.kresko.connect(this.userOne).burnKreskoAsset(kreskoAssetAddress, burnAmount, kreskoAssetIndex),
-                ).to.be.revertedWith("ERC20: transfer amount exceeds allowance");
+                ).to.be.revertedWith("ERC20: burn amount exceeds allowance");
             });
 
             describe("Protocol burn fee", async function () {
@@ -1799,7 +1799,7 @@ describe("Kresko", function () {
                             mintedKreskoAssetIndex,
                             depositedCollateralAssetIndex,
                         ),
-                ).to.be.revertedWith("ERC20: transfer amount exceeds allowance");
+                ).to.be.revertedWith("ERC20: burn amount exceeds allowance");
             });
         });
     });
