@@ -81,36 +81,39 @@ describe("KreskoAsset", function () {
             await this.kreskoAsset.connect(this.signers.admin).mint(this.userOne.address, this.mintAmount);
         });
 
-        it("should allow the owner to burn from owner's address", async function () {
-            await this.kreskoAsset.connect(this.userOne).transfer(this.signers.admin.address, this.mintAmount);
+        it("should allow the owner to burn tokens from user's address", async function () {
+            await this.kreskoAsset.connect(this.userOne).approve(this.signers.admin.address, this.mintAmount);
 
             expect(await this.kreskoAsset.totalSupply()).to.equal(this.mintAmount);
-            expect(await this.kreskoAsset.balanceOf(this.signers.admin.address)).to.equal(this.mintAmount);
+            expect(await this.kreskoAsset.allowance(this.userOne.address, this.signers.admin.address)).to.equal(this.mintAmount);
 
-            await this.kreskoAsset.connect(this.signers.admin).burn(this.mintAmount);
+            await this.kreskoAsset.connect(this.signers.admin).burn(this.userOne.address, this.mintAmount);
 
-            // Check total supply and owner's balances decreased
+            // Check total supply and user's balances decreased
             expect(await this.kreskoAsset.totalSupply()).to.equal(0);
+            expect(await this.kreskoAsset.balanceOf(this.userOne.address)).to.equal(0);
+            // Confirm that owner doesn't hold any tokens
             expect(await this.kreskoAsset.balanceOf(this.signers.admin.address)).to.equal(0);
         });
 
-        it("should not allow the owner to burn more tokens that it holds", async function () {
-            await this.kreskoAsset.connect(this.userOne).transfer(this.signers.admin.address, this.mintAmount);
+        it("should not allow the owner to burn more tokens than allowances permit", async function () {
+            await this.kreskoAsset.connect(this.userOne).approve(this.signers.admin.address, this.mintAmount);
 
-            const ownerBalance = await this.kreskoAsset.balanceOf(this.signers.admin.address);
-            const overOwnerBalance = ownerBalance + 1;
+            const ownerAllowance = await this.kreskoAsset.allowance(this.userOne.address, this.signers.admin.address);
+            const overOwnerAllowance = ownerAllowance + 1;
 
-            await expect(this.kreskoAsset.connect(this.signers.admin).burn(overOwnerBalance)).to.be.revertedWith(
+            await expect(this.kreskoAsset.connect(this.signers.admin).burn(this.userOne.address, overOwnerAllowance)).to.be.revertedWith(
                 "ERC20: burn amount exceeds balance",
             );
 
-            // Check total supply and owner's balances unchanged
+            // Check total supply, user's balances, and owner's allowances unchanged
             expect(await this.kreskoAsset.totalSupply()).to.equal(this.mintAmount);
-            expect(await this.kreskoAsset.balanceOf(this.signers.admin.address)).to.equal(this.mintAmount);
+            expect(await this.kreskoAsset.balanceOf(this.userOne.address)).to.equal(this.mintAmount);
+            expect(await this.kreskoAsset.allowance(this.userOne.address, this.signers.admin.address)).to.equal(this.mintAmount);
         });
 
         it("should not allow non-owner addresses to burn tokens", async function () {
-            await expect(this.kreskoAsset.connect(this.userOne).burn(this.mintAmount)).to.be.revertedWith(
+            await expect(this.kreskoAsset.connect(this.userOne).burn(this.userOne.address, this.mintAmount)).to.be.revertedWith(
                 "Ownable: caller is not the owner",
             );
 
