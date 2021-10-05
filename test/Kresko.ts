@@ -332,7 +332,9 @@ describe("Kresko", function () {
                 const collateralAssetInfo = this.collateralAssetInfos[0];
                 const collateralAsset = collateralAssetInfo.collateralAsset;
                 const depositAmount = collateralAssetInfo.fromDecimal(123.321);
-                const receipt = await this.kresko.connect(this.userOne).depositCollateral(collateralAsset.address, depositAmount)
+                const receipt = await this.kresko
+                    .connect(this.userOne)
+                    .depositCollateral(collateralAsset.address, depositAmount);
 
                 const event = (await extractEventFromTxReceipt(receipt, "CollateralDeposited"))![0].args!;
                 expect(event.account).to.equal(this.userOne.address);
@@ -667,7 +669,6 @@ describe("Kresko", function () {
             this.deployedAssetAddress = events[0].args.kreskoAsset;
         });
 
-
         describe("#addKreskoAsset", function () {
             it("should allow owner to add new kresko assets and emit event KreskoAssetAdded", async function () {
                 const tx: any = await this.kresko.addKreskoAsset(NAME_TWO, SYMBOL_TWO, ONE, ADDRESS_TWO);
@@ -717,9 +718,7 @@ describe("Kresko", function () {
 
         describe("#updateKreskoAssetFactor", function () {
             it("should allow owner to update factor", async function () {
-                await this.kresko
-                .connect(this.signers.admin)
-                .updateKreskoAssetFactor(this.deployedAssetAddress, ONE);
+                await this.kresko.connect(this.signers.admin).updateKreskoAssetFactor(this.deployedAssetAddress, ONE);
 
                 const asset = await this.kresko.kreskoAssets(this.deployedAssetAddress);
                 expect(asset.kFactor.rawValue).to.equal(ONE.toString());
@@ -730,8 +729,7 @@ describe("Kresko", function () {
                     .connect(this.signers.admin)
                     .updateKreskoAssetFactor(this.deployedAssetAddress, ONE);
 
-                const event = (await extractEventFromTxReceipt(receipt, "KreskoAssetKFactorUpdated"))![0]
-                    .args!;
+                const event = (await extractEventFromTxReceipt(receipt, "KreskoAssetKFactorUpdated"))![0].args!;
                 expect(event.kreskoAsset).to.equal(this.deployedAssetAddress);
                 expect(event.kFactor).to.equal(ONE);
             });
@@ -744,17 +742,52 @@ describe("Kresko", function () {
 
             it("should not allow non-owner to update kresko asset's k-factor", async function () {
                 await expect(
-                    this.kresko.connect(this.userOne).updateKreskoAssetFactor(this.deployedAssetAddress, ZERO_POINT_FIVE),
+                    this.kresko
+                        .connect(this.userOne)
+                        .updateKreskoAssetFactor(this.deployedAssetAddress, ZERO_POINT_FIVE),
                 ).to.be.revertedWith("Ownable: caller is not the owner");
+            });
+        });
 
+        describe("#updateKreskoAssetMintable", function () {
+            it("should allow owner to update the mintable property", async function () {
+                // Expect mintable to be true first
+                expect((await this.kresko.kreskoAssets(this.deployedAssetAddress)).mintable).to.equal(true);
+                // Set it to false
+                await this.kresko
+                    .connect(this.signers.admin)
+                    .updateKreskoAssetMintable(this.deployedAssetAddress, false);
+                // Expect mintable to be false now
+                expect((await this.kresko.kreskoAssets(this.deployedAssetAddress)).mintable).to.equal(false);
+                // Set it to true
+                await this.kresko
+                    .connect(this.signers.admin)
+                    .updateKreskoAssetMintable(this.deployedAssetAddress, true);
+                // Expect mintable to be true now
+                expect((await this.kresko.kreskoAssets(this.deployedAssetAddress)).mintable).to.equal(true);
+            });
+
+            it("should emit KreskoAssetMintableUpdated event", async function () {
+                const receipt = await this.kresko
+                    .connect(this.signers.admin)
+                    .updateKreskoAssetMintable(this.deployedAssetAddress, false);
+                const event = (await extractEventFromTxReceipt(receipt, "KreskoAssetMintableUpdated"))![0].args!;
+                expect(event.kreskoAsset).to.equal(this.deployedAssetAddress);
+                expect(event.mintable).to.equal(false);
+            });
+
+            it("should ont allow non-owner to update the mintable property", async function () {
+                await expect(
+                    this.kresko.connect(this.userOne).updateKreskoAssetMintable(this.deployedAssetAddress, false),
+                ).to.be.revertedWith("Ownable: caller is not the owner");
             });
         });
 
         describe("#updateKreskoAssetOracle", function () {
             it("should allow owner to update oracle address", async function () {
                 await this.kresko
-                .connect(this.signers.admin)
-                .updateKreskoAssetOracle(this.deployedAssetAddress, ADDRESS_TWO);
+                    .connect(this.signers.admin)
+                    .updateKreskoAssetOracle(this.deployedAssetAddress, ADDRESS_TWO);
 
                 const asset = await this.kresko.kreskoAssets(this.deployedAssetAddress);
                 expect(asset.oracle).to.equal(ADDRESS_TWO);
@@ -765,8 +798,7 @@ describe("Kresko", function () {
                     .connect(this.signers.admin)
                     .updateKreskoAssetOracle(this.deployedAssetAddress, ADDRESS_TWO);
 
-                const event = (await extractEventFromTxReceipt(receipt, "KreskoAssetOracleUpdated"))![0]
-                    .args!;
+                const event = (await extractEventFromTxReceipt(receipt, "KreskoAssetOracleUpdated"))![0].args!;
                 expect(event.kreskoAsset).to.equal(this.deployedAssetAddress);
                 expect(event.oracle).to.equal(ADDRESS_TWO);
             });
@@ -1468,7 +1500,9 @@ describe("Kresko", function () {
             });
 
             it("should emit LiquidationIncentiveUpdated event", async function () {
-                const receipt = await this.kresko.connect(this.signers.admin).setLiquidationIncentive(validLiquidationIncentive);
+                const receipt = await this.kresko
+                    .connect(this.signers.admin)
+                    .setLiquidationIncentive(validLiquidationIncentive);
 
                 const event = (await extractEventFromTxReceipt(receipt, "LiquidationIncentiveUpdated"))![0].args!;
                 expect(event.liquidationIncentive).to.equal(validLiquidationIncentive);
@@ -1476,22 +1510,22 @@ describe("Kresko", function () {
 
             it("should not allow the liquidation incentive to be less than the MIN_LIQUIDATION_INCENTIVE", async function () {
                 const newLiquidationIncentive = (await this.kresko.MIN_LIQUIDATION_INCENTIVE()).sub(1);
-                await expect(this.kresko.connect(this.signers.admin).setLiquidationIncentive(newLiquidationIncentive)).to.be.revertedWith(
-                    "Kresko: proposed liquidation incentive less than min",
-                );
+                await expect(
+                    this.kresko.connect(this.signers.admin).setLiquidationIncentive(newLiquidationIncentive),
+                ).to.be.revertedWith("Kresko: proposed liquidation incentive less than min");
             });
 
             it("should not allow the liquidation incentive to exceed MAX_LIQUIDATION_INCENTIVE", async function () {
                 const newLiquidationIncentive = (await this.kresko.MAX_LIQUIDATION_INCENTIVE()).add(1);
-                await expect(this.kresko.connect(this.signers.admin).setLiquidationIncentive(newLiquidationIncentive)).to.be.revertedWith(
-                    "Kresko: proposed liquidation incentive exceeds max",
-                );
+                await expect(
+                    this.kresko.connect(this.signers.admin).setLiquidationIncentive(newLiquidationIncentive),
+                ).to.be.revertedWith("Kresko: proposed liquidation incentive exceeds max");
             });
 
             it("should not allow the liquidation incentive to be updated by non-owner", async function () {
-                await expect(this.kresko.connect(this.userOne).setLiquidationIncentive(validLiquidationIncentive)).to.be.revertedWith(
-                    "Ownable: caller is not the owner",
-                );
+                await expect(
+                    this.kresko.connect(this.userOne).setLiquidationIncentive(validLiquidationIncentive),
+                ).to.be.revertedWith("Ownable: caller is not the owner");
             });
         });
     });
@@ -1557,7 +1591,9 @@ describe("Kresko", function () {
                 expect(userDebtAmountInUSD.rawValue).to.equal(10000);
 
                 // Initial collateral value: (1000 * $20) = $20,000
-                const initialUserCollateralAmountInUSD = await this.kresko.getAccountCollateralValue(this.userOne.address);
+                const initialUserCollateralAmountInUSD = await this.kresko.getAccountCollateralValue(
+                    this.userOne.address,
+                );
                 expect(initialUserCollateralAmountInUSD.rawValue).to.equal(20000);
 
                 // The account should be NOT liquidatable as collateral value ($20,000) >= min collateral value ($15,000)
@@ -1632,7 +1668,10 @@ describe("Kresko", function () {
                     );
 
                 // Confirm that the liquidated user's debt amount has decreased by the repaid amount
-                const afterUserOneDebtAmount = await this.kresko.kreskoAssetDebt(this.userOne.address, kreskoAsset.address);
+                const afterUserOneDebtAmount = await this.kresko.kreskoAssetDebt(
+                    this.userOne.address,
+                    kreskoAsset.address,
+                );
                 expect(afterUserOneDebtAmount).to.equal(beforeUserOneDebtAmount - repayAmount);
                 // Confirm that some of the liquidated user's collateral has been seized
                 const afterUserOneCollateralAmount = await this.kresko.collateralDeposits(
@@ -1704,10 +1743,11 @@ describe("Kresko", function () {
                 expect(Number(toFixedPoint(event.seizedAmount))).to.be.lessThanOrEqual(maxPossibleSeizedAmount);
             });
 
-
             it("should not allow the liquidations of healthy accounts", async function () {
                 const repayAmount = 100;
-                await this.kreskoAssetInfo[0].kreskoAsset.connect(this.userTwo).approve(this.kresko.address, repayAmount);
+                await this.kreskoAssetInfo[0].kreskoAsset
+                    .connect(this.userTwo)
+                    .approve(this.kresko.address, repayAmount);
 
                 const mintedKreskoAssetIndex = 0;
                 const depositedCollateralAssetIndex = 0;
@@ -1733,7 +1773,9 @@ describe("Kresko", function () {
 
                 // userTwo holds Kresko assets that can be used to repay userOne's loan
                 const approveAmount = 1000;
-                await this.kreskoAssetInfo[0].kreskoAsset.connect(this.userTwo).approve(this.kresko.address, approveAmount);
+                await this.kreskoAssetInfo[0].kreskoAsset
+                    .connect(this.userTwo)
+                    .approve(this.kresko.address, approveAmount);
 
                 const repayAmount = 0;
                 const mintedKreskoAssetIndex = 0;
@@ -1760,7 +1802,9 @@ describe("Kresko", function () {
 
                 // userTwo holds Kresko assets that can be used to repay userOne's loan
                 const repayAmount = 1000;
-                await this.kreskoAssetInfo[0].kreskoAsset.connect(this.userTwo).approve(this.kresko.address, repayAmount);
+                await this.kreskoAssetInfo[0].kreskoAsset
+                    .connect(this.userTwo)
+                    .approve(this.kresko.address, repayAmount);
 
                 const mintedKreskoAssetIndex = 0;
                 const depositedCollateralAssetIndex = 0;
