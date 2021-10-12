@@ -22,17 +22,19 @@ contract KreskoAsset is ERC20, Ownable {
     }
 
     /**
-     * @dev Mints tokens to any address
-     * @param _account The recipient address of the intended mint
-     * @param _amount The amount of tokens to be minted
+     * @notice Mints tokens to any address.
+     * @dev Only callable by owner.
+     * @param _account The recipient address of the mint.
+     * @param _amount The amount of tokens to mint.
      */
     function mint(address _account, uint256 _amount) public onlyOwner {
         _mint(_account, _amount);
     }
 
     /**
-     * @dev Burns tokens from the owner's address
-     * @param _amount The amount of tokens to be burned
+     * @notice Burns tokens from the owner's address.
+     * @dev Only callable by owner.
+     * @param _amount The amount of tokens to burn.
      */
     function burn(uint256 _amount) public onlyOwner {
         _burn(owner(), _amount);

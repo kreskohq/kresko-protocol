@@ -6,9 +6,9 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-import "./KreskoAsset.sol";
-
+import "./interfaces/IKreskoAsset.sol";
 import "./interfaces/IOracle.sol";
+
 import "./libraries/FixedPoint.sol";
 
 /**
@@ -187,13 +187,12 @@ contract Kresko is Initializable, Ownable, ReentrancyGuard {
     /**
      * @notice Emitted when a Kresko asset is added to the protocol.
      * @dev Can only be emitted once for a given Kresko asset.
-     * @param name The name of the Kresko asset.
-     * @param symbol The symbol of the Kresko asset.
      * @param kreskoAsset The address of the Kresko asset.
+     * @param symbol The symbol of the Kresko asset.
      * @param kFactor The k-factor.
      * @param oracle The address of the oracle.
      */
-    event KreskoAssetAdded(string name, string symbol, address kreskoAsset, uint256 kFactor, address oracle);
+    event KreskoAssetAdded(address kreskoAsset, string symbol, uint256 kFactor, address oracle);
 
     /**
      * @notice Emitted when a Kresko asset's k-factor is updated.
@@ -338,9 +337,11 @@ contract Kresko is Initializable, Ownable, ReentrancyGuard {
 
     /**
      * @notice Reverts if the symbol of a Kresko asset already exists within the protocol.
+     * @param _kreskoAsset The address of the Kresko asset.
      * @param _symbol The symbol of the Kresko asset.
      */
-    modifier kreskoAssetDoesNotExist(string calldata _symbol) {
+    modifier kreskoAssetDoesNotExist(address _kreskoAsset, string calldata _symbol) {
+        require(!kreskoAssets[_kreskoAsset].exists, "Kresko: krAsset exists");
         require(!kreskoAssetSymbols[_symbol], "Kresko: symbol exists");
         _;
     }
@@ -352,6 +353,16 @@ contract Kresko is Initializable, Ownable, ReentrancyGuard {
     modifier nonNullString(string calldata _str) {
         require(bytes(_str).length > 0, "Kresko: string is null");
         _;
+    }
+
+    /**
+     * @notice Empty constructor, see `initialize`.
+     * @dev Protects against a call to initialize when this contract is not used as a proxy
+     * implementation.
+     */
+    constructor() initializer {
+        // solhint-disable-previous-line no-empty-blocks
+        // Intentionally left blank
     }
 
     /**
@@ -506,7 +517,7 @@ contract Kresko is Initializable, Ownable, ReentrancyGuard {
         // Record the mint.
         kreskoAssetDebt[msg.sender][_kreskoAsset] = existingDebtAmount + _amount;
 
-        KreskoAsset(_kreskoAsset).mint(msg.sender, _amount);
+        IKreskoAsset(_kreskoAsset).mint(msg.sender, _amount);
 
         emit KreskoAssetMinted(msg.sender, _kreskoAsset, _amount);
     }
@@ -530,7 +541,7 @@ contract Kresko is Initializable, Ownable, ReentrancyGuard {
         require(_amount <= debtAmount, "Kresko: amount exceeds debt amount");
 
         // Transfer kresko assets from the user to Kresko contract.
-        KreskoAsset asset = KreskoAsset(_kreskoAsset);
+        IKreskoAsset asset = IKreskoAsset(_kreskoAsset);
         require(asset.transferFrom(msg.sender, address(this), _amount), "Kresko: krAsset transfer in failed");
 
         // Record the burn.
@@ -607,7 +618,7 @@ contract Kresko is Initializable, Ownable, ReentrancyGuard {
         }
 
         // Transfer Kresko asset repay amount from liquidator to contract.
-        KreskoAsset krAsset = KreskoAsset(_repayKreskoAsset);
+        IKreskoAsset krAsset = IKreskoAsset(_repayKreskoAsset);
         require(krAsset.transferFrom(msg.sender, address(this), _repayAmount), "Kresko: krAsset transfer in failed");
         // Burn the received Kresko assets, removing them from circulation.
         krAsset.burn(_repayAmount);
@@ -702,17 +713,17 @@ contract Kresko is Initializable, Ownable, ReentrancyGuard {
     /**
      * @notice Adds a Kresko asset to the protocol.
      * @dev Only callable by the owner and cannot be called more than once for a given symbol.
-     * @param _name The name of the Kresko asset.
+     * @param _kreskoAsset The address of the Kresko asset.
      * @param _symbol The symbol of the Kresko asset.
      * @param _kFactor The k-factor of the Kresko asset as a raw value for a FixedPoint.Unsigned. Must be >= 1e18.
      * @param _oracle The oracle address for the Kresko asset.
      */
     function addKreskoAsset(
-        string calldata _name,
+        address _kreskoAsset,
         string calldata _symbol,
         uint256 _kFactor,
         address _oracle
-    ) external onlyOwner nonNullString(_symbol) nonNullString(_name) kreskoAssetDoesNotExist(_symbol) {
+    ) external onlyOwner nonNullString(_symbol) kreskoAssetDoesNotExist(_kreskoAsset, _symbol) {
         require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, "Kresko: proposed k-factor less than 1 FixedPoint");
         require(_oracle != address(0), "Kresko: proposed oracle is zero address");
 
@@ -720,14 +731,13 @@ contract Kresko is Initializable, Ownable, ReentrancyGuard {
         kreskoAssetSymbols[_symbol] = true;
 
         // Deploy KreskoAsset contract and store its details.
-        KreskoAsset asset = new KreskoAsset(_name, _symbol);
-        kreskoAssets[address(asset)] = KrAsset({
+        kreskoAssets[_kreskoAsset] = KrAsset({
             kFactor: FixedPoint.Unsigned(_kFactor),
             oracle: IOracle(_oracle),
             exists: true,
             mintable: true
         });
-        emit KreskoAssetAdded(_name, _symbol, address(asset), _kFactor, _oracle);
+        emit KreskoAssetAdded(_kreskoAsset, _symbol, _kFactor, _oracle);
     }
 
     /**
