@@ -9,6 +9,7 @@ import "./KreskoAsset.sol";
 
 import "./interfaces/IOracle.sol";
 import "./libraries/FixedPoint.sol";
+import "./libraries/Arrays.sol";
 
 /**
  * @title The core of the Kresko protocol.
@@ -17,6 +18,7 @@ import "./libraries/FixedPoint.sol";
  */
 contract Kresko is Ownable, ReentrancyGuard {
     using FixedPoint for FixedPoint.Unsigned;
+    using Arrays for address[];
 
     /**
      * ==================================================
@@ -442,7 +444,10 @@ contract Kresko is Ownable, ReentrancyGuard {
         // If the sender is withdrawing all of the collateral asset, remove the collateral asset
         // from the sender's deposited collateral assets array.
         if (_amount == depositAmount) {
-            removeFromDepositedCollateralAssets(msg.sender, _collateralAsset, _depositedCollateralAssetIndex);
+            require(
+                depositedCollateralAssets[msg.sender].removeAddress(_collateralAsset, _depositedCollateralAssetIndex),
+                "Kresko: invalid collateral asset index"
+            );
         }
         require(IERC20(_collateralAsset).transfer(msg.sender, _amount), "Kresko: collateral transfer out failed");
 
@@ -516,7 +521,7 @@ contract Kresko is Ownable, ReentrancyGuard {
         kreskoAssetDebt[msg.sender][_kreskoAsset] = debtAmount - _amount;
         // If the sender is burning all of the kresko asset, remove it from minted assets array.
         if (_amount == debtAmount) {
-            removeFromMintedKreskoAssets(msg.sender, _kreskoAsset, _mintedKreskoAssetIndex);
+            mintedKreskoAssets[msg.sender].removeAddress(_kreskoAsset, _mintedKreskoAssetIndex);
         }
 
         chargeBurnFee(msg.sender, _kreskoAsset, _amount);
@@ -565,20 +570,16 @@ contract Kresko is Ownable, ReentrancyGuard {
         // Calculate amount of collateral to seize.
         uint256 seizeAmount = calculateAmountToSeize(_collateralAssetToSeize, repayAmountUSD);
 
-        // Subtract repaid Kresko assets from liquidated user's recorded debt.
-        kreskoAssetDebt[_account][_repayKreskoAsset] = krAssetDebt - _repayAmount;
-        // If the liquidation repays the user's entire Kresko asset balance, remove it from minted assets array.
-        if (_repayAmount == krAssetDebt) {
-            removeFromMintedKreskoAssets(_account, _repayKreskoAsset, _mintedKreskoAssetIndex);
-        }
-
-        // Subtract seized collateral from liquidated user's recorded collateral.
-        uint256 collateralDeposit = collateralDeposits[_account][_collateralAssetToSeize];
-        collateralDeposits[_account][_collateralAssetToSeize] = collateralDeposit - seizeAmount;
-        // If the liquidation seizes the user's entire collateral asset balance, remove it from collateral assets array.
-        if (seizeAmount == collateralDeposit) {
-            removeFromDepositedCollateralAssets(_account, _collateralAssetToSeize, _depositedCollateralAssetIndex);
-        }
+        liquidateAssets(
+            _account,
+            krAssetDebt,
+            _repayAmount,
+            seizeAmount,
+            _repayKreskoAsset,
+            _mintedKreskoAssetIndex,
+            _collateralAssetToSeize,
+            _depositedCollateralAssetIndex
+        );
 
         // Transfer Kresko asset repay amount from liquidator to contract.
         KreskoAsset krAsset = KreskoAsset(_repayKreskoAsset);
@@ -810,34 +811,6 @@ contract Kresko is Ownable, ReentrancyGuard {
     /* ==== Collateral ==== */
 
     /**
-     * @notice Removes a particular collateral asset from an account's deposited collateral assets array.
-     * @dev Removes an element by copying the last element to the element to remove's place and removing
-     * the last element.
-     * @param _account The account whose deposited collateral asset array is being affected.
-     * @param _collateralAsset The collateral asset to remove from the array.
-     * @param _index The index of the assetAddress in the deposited collateral assets array.
-     */
-    function removeFromDepositedCollateralAssets(
-        address _account,
-        address _collateralAsset,
-        uint256 _index
-    ) internal {
-        // Ensure that the provided index corresponds to the provided assetAddress.
-        require(
-            depositedCollateralAssets[_account][_index] == _collateralAsset,
-            "Kresko: incorrect collateral removal index"
-        );
-        uint256 lastIndex = depositedCollateralAssets[_account].length - 1;
-        // If the index to remove is not the last one, overwrite the element at the index
-        // with the last element.
-        if (_index != lastIndex) {
-            depositedCollateralAssets[_account][_index] = depositedCollateralAssets[_account][lastIndex];
-        }
-        // Remove the last element.
-        depositedCollateralAssets[_account].pop();
-    }
-
-    /**
      * @notice For a given collateral asset and amount, returns a FixedPoint.Unsigned representation.
      * @dev If the collateral asset has decimals other than 18, the amount is scaled appropriately.
      *   If decimals > 18, there may be a loss of precision.
@@ -916,31 +889,6 @@ contract Kresko is Ownable, ReentrancyGuard {
     /* ==== Kresko Assets ==== */
 
     /**
-     * @notice Removes a particular Kresko asset from an account's minted Kresko assets array.
-     * @dev Removes an element by copying the last element to the element to remove's place and removing
-     * the last element.
-     * @param _account The account whose minted Kresko asset array is being affected.
-     * @param _kreskoAsset The address of the Kresko asset to remove from the array.
-     * @param _index The index of the _kreskoAsset in the minted kresko assets array.
-     */
-    function removeFromMintedKreskoAssets(
-        address _account,
-        address _kreskoAsset,
-        uint256 _index
-    ) internal {
-        // Ensure that the provided index corresponds to the provided assetAddress.
-        require(mintedKreskoAssets[_account][_index] == _kreskoAsset, "Kresko: incorrect krAsset removal index");
-        uint256 lastIndex = mintedKreskoAssets[_account].length - 1;
-        // If the index to remove is not the last one, overwrite the element at the index
-        // with the last element.
-        if (_index != lastIndex) {
-            mintedKreskoAssets[_account][_index] = mintedKreskoAssets[_account][lastIndex];
-        }
-        // Remove the last element.
-        mintedKreskoAssets[_account].pop();
-    }
-
-    /**
      * @notice Charges the protocol burn fee based off the value of the burned asset.
      * @dev Takes the fee from the account's collateral assets. Attempts collateral assets
      *   in reverse order of the account's deposited collateral assets array.
@@ -970,43 +918,14 @@ contract Kresko is Ownable, ReentrancyGuard {
         // other elements in the array.
         for (uint256 i = accountCollateralAssets.length - 1; i >= 0; i--) {
             address collateralAssetAddress = accountCollateralAssets[i];
-            uint256 depositAmount = collateralDeposits[_account][collateralAssetAddress];
 
-            (FixedPoint.Unsigned memory depositValue, FixedPoint.Unsigned memory oraclePrice) =
-                getCollateralValueAndOraclePrice(
-                    collateralAssetAddress,
-                    depositAmount,
-                    true // Don't take the collateral asset's collateral factor into consideration.
-                );
+            (uint256 transferAmount, FixedPoint.Unsigned memory feeValuePaid) = calcBurnFee(
+                collateralAssetAddress,
+                _account,
+                feeValue,
+                i
+            );
 
-            FixedPoint.Unsigned memory feeValuePaid;
-            uint256 transferAmount;
-            // If feeValue < depositValue, the entire fee can be charged for this collateral asset.
-            if (feeValue.isLessThan(depositValue)) {
-                // We want to make sure that transferAmount is < depositAmount.
-                // Proof:
-                //   depositValue <= oraclePrice * depositAmount (<= due to a potential loss of precision)
-                //   feeValue < depositValue
-                // Meaning:
-                //   feeValue < oraclePrice * depositAmount
-                // Solving for depositAmount we get:
-                //   feeValue / oraclePrice < depositAmount
-                // Due to integer division:
-                //   transferAmount = floor(feeValue / oracleValue)
-                //   transferAmount <= feeValue / oraclePrice
-                // We see that:
-                //   transferAmount <= feeValue / oraclePrice < depositAmount
-                //   transferAmount < depositAmount
-                transferAmount = fromCollateralFixedPointAmount(collateralAssetAddress, feeValue.div(oraclePrice));
-                feeValuePaid = feeValue;
-            } else {
-                // If the feeValue >= depositValue, the entire deposit
-                // should be taken as the fee.
-                transferAmount = depositAmount;
-                feeValuePaid = depositValue;
-                // Because the entire deposit is taken, remove it from the depositCollateralAssets array.
-                removeFromDepositedCollateralAssets(_account, collateralAssetAddress, i);
-            }
             // Remove the transferAmount from the stored deposit for the account.
             collateralDeposits[_account][collateralAssetAddress] -= transferAmount;
             // Transfer the fee to the feeRecipient.
@@ -1022,6 +941,59 @@ contract Kresko is Ownable, ReentrancyGuard {
                 return;
             }
         }
+    }
+
+     /**
+     * @notice Calculates the burn fee for a burned asset
+     * @param _collateralAssetAddress The collateral asset from which to take to the fee
+     * @param _account The owner of the collateral
+     * @param _feeValue The original value of the fee
+     * @param _collateralAssetIndex The collateral asset's index in the user's depositedCollateralAssets array
+     */
+    function calcBurnFee(
+        address _collateralAssetAddress,
+        address _account,
+        FixedPoint.Unsigned memory _feeValue,
+        uint256 _collateralAssetIndex
+    ) internal returns (uint256, FixedPoint.Unsigned memory) {
+        uint256 depositAmount = collateralDeposits[_account][_collateralAssetAddress];
+
+        (FixedPoint.Unsigned memory depositValue, FixedPoint.Unsigned memory oraclePrice) =
+            getCollateralValueAndOraclePrice(
+                _collateralAssetAddress,
+                depositAmount,
+                true // Don't take the collateral asset's collateral factor into consideration.
+            );
+
+        FixedPoint.Unsigned memory feeValuePaid;
+        uint256 transferAmount;
+        // If feeValue < depositValue, the entire fee can be charged for this collateral asset.
+        if (_feeValue.isLessThan(depositValue)) {
+            // We want to make sure that transferAmount is < depositAmount.
+            // Proof:
+            //   depositValue <= oraclePrice * depositAmount (<= due to a potential loss of precision)
+            //   feeValue < depositValue
+            // Meaning:
+            //   feeValue < oraclePrice * depositAmount
+            // Solving for depositAmount we get:
+            //   feeValue / oraclePrice < depositAmount
+            // Due to integer division:
+            //   transferAmount = floor(feeValue / oracleValue)
+            //   transferAmount <= feeValue / oraclePrice
+            // We see that:
+            //   transferAmount <= feeValue / oraclePrice < depositAmount
+            //   transferAmount < depositAmount
+            transferAmount = fromCollateralFixedPointAmount(_collateralAssetAddress, _feeValue.div(oraclePrice));
+            feeValuePaid = _feeValue;
+        } else {
+            // If the feeValue >= depositValue, the entire deposit
+            // should be taken as the fee.
+            transferAmount = depositAmount;
+            feeValuePaid = depositValue;
+            // Because the entire deposit is taken, remove it from the depositCollateralAssets array.
+            depositedCollateralAssets[_account].removeAddress(_collateralAssetAddress, _collateralAssetIndex);
+        }
+        return (transferAmount, feeValuePaid);
     }
 
     /* ==== Liquidation ==== */
@@ -1046,6 +1018,43 @@ contract Kresko is Ownable, ReentrancyGuard {
                 .mul(liquidationIncentive); // Apply liquidation percentage
 
         return fromCollateralFixedPointAmount(_collateralAssetToSeize, seizeAmount);
+    }
+
+    /**
+     * @notice Remove Kresko assets and collateral assets from the liquidated user's holdings
+     * @param _account The account to attempt to liquidate.
+     * @param _krAssetDebt The amount of Kresko assets that the liquidated user owes.
+     * @param _repayAmount The amount of the Kresko asset to be repaid.
+     * @param _seizeAmount The calculated amount of collateral assets to be seized.
+     * @param _repayKreskoAsset The address of the Kresko asset to be repaid.
+     * @param _mintedKreskoAssetIndex The index of the Kresko asset in the user's minted assets array.
+     * @param _collateralAssetToSeize The address of the collateral asset to be seized.
+     * @param _depositedCollateralAssetIndex The index of the collateral asset in the account's collateral assets array.
+     */
+    function liquidateAssets(
+        address _account,
+        uint256 _krAssetDebt,
+        uint256 _repayAmount,
+        uint256 _seizeAmount,
+        address _repayKreskoAsset,
+        uint256 _mintedKreskoAssetIndex,
+        address _collateralAssetToSeize,
+        uint256 _depositedCollateralAssetIndex
+    ) internal {
+        // Subtract repaid Kresko assets from liquidated user's recorded debt.
+        kreskoAssetDebt[_account][_repayKreskoAsset] = _krAssetDebt - _repayAmount;
+        // If the liquidation repays the user's entire Kresko asset balance, remove it from minted assets array.
+        if (_repayAmount == _krAssetDebt) {
+            mintedKreskoAssets[msg.sender].removeAddress(_repayKreskoAsset, _mintedKreskoAssetIndex);
+        }
+
+        // Subtract seized collateral from liquidated user's recorded collateral.
+        uint256 collateralDeposit = collateralDeposits[_account][_collateralAssetToSeize];
+        collateralDeposits[_account][_collateralAssetToSeize] = collateralDeposit - _seizeAmount;
+        // If the liquidation seizes the user's entire collateral asset balance, remove it from collateral assets array.
+        if (_seizeAmount == collateralDeposit) {
+            depositedCollateralAssets[_account].removeAddress(_collateralAssetToSeize, _depositedCollateralAssetIndex);
+        }
     }
 
     /**

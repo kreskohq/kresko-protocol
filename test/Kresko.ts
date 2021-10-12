@@ -587,7 +587,7 @@ describe("Kresko", function () {
                         collateralAssetInfo.fromDecimal(this.initialDepositAmount),
                         1, // Incorrect index
                     ),
-                ).to.be.revertedWith("Kresko: incorrect collateral removal index");
+                ).to.be.revertedWith("Arrays: incorrect removal index");
             });
 
             it("should revert if withdrawing more than the user's deposit", async function () {
