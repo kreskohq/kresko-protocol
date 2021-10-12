@@ -47,11 +47,13 @@ contract Kresko is Initializable, Ownable, ReentrancyGuard {
      * @param kFactor The k-factor used for calculating the required collateral value for Kresko asset debt.
      * @param oracle The oracle that provides the USD price of one Kresko asset.
      * @param exists Whether the Kresko asset exists within the protocol.
+     * @param mintable Whether the Kresko asset can be minted.
      */
     struct KrAsset {
         FixedPoint.Unsigned kFactor;
         IOracle oracle;
         bool exists;
+        bool mintable;
     }
 
     /**
@@ -201,6 +203,13 @@ contract Kresko is Initializable, Ownable, ReentrancyGuard {
     event KreskoAssetKFactorUpdated(address kreskoAsset, uint256 kFactor);
 
     /**
+     * @notice Emitted when a Kresko asset's mintable property is updated.
+     * @param kreskoAsset The address of the Kresko asset.
+     * @param mintable The mintable value.
+     */
+    event KreskoAssetMintableUpdated(address kreskoAsset, bool mintable);
+
+    /**
      * @notice Emitted when a Kresko asset's oracle is updated.
      * @param kreskoAsset The address of the Kresko asset.
      * @param oracle The address of the oracle.
@@ -308,10 +317,21 @@ contract Kresko is Initializable, Ownable, ReentrancyGuard {
     }
 
     /**
-     * @notice Reverts if a Kresko asset does not exist within the protocol.
+     * @notice Reverts if a Kresko asset does not exist within the protocol or is not mintable.
      * @param _kreskoAsset The address of the Kresko asset.
      */
-    modifier kreskoAssetExists(address _kreskoAsset) {
+    modifier kreskoAssetExistsAndMintable(address _kreskoAsset) {
+        require(kreskoAssets[_kreskoAsset].exists, "Kresko: krAsset doesn't exist");
+        require(kreskoAssets[_kreskoAsset].mintable, "Kresko: krAsset isn't mintable");
+        _;
+    }
+
+    /**
+     * @notice Reverts if a Kresko asset does not exist within the protocol. Does not revert if
+     * the Kresko asset is not mintable.
+     * @param _kreskoAsset The address of the Kresko asset.
+     */
+    modifier kreskoAssetExistsMaybeNotMintable(address _kreskoAsset) {
         require(kreskoAssets[_kreskoAsset].exists, "Kresko: krAsset doesn't exist");
         _;
     }
@@ -460,7 +480,7 @@ contract Kresko is Initializable, Ownable, ReentrancyGuard {
     function mintKreskoAsset(address _kreskoAsset, uint256 _amount)
         external
         nonReentrant
-        kreskoAssetExists(_kreskoAsset)
+        kreskoAssetExistsAndMintable(_kreskoAsset)
     {
         require(_amount > 0, "Kresko: amount is zero");
 
@@ -502,7 +522,7 @@ contract Kresko is Initializable, Ownable, ReentrancyGuard {
         address _kreskoAsset,
         uint256 _amount,
         uint256 _mintedKreskoAssetIndex
-    ) external nonReentrant kreskoAssetExists(_kreskoAsset) {
+    ) external nonReentrant kreskoAssetExistsMaybeNotMintable(_kreskoAsset) {
         require(_amount > 0, "Kresko: amount is zero");
 
         // Ensure the amount being burned is not greater than the sender's debt.
@@ -547,7 +567,12 @@ contract Kresko is Initializable, Ownable, ReentrancyGuard {
         address _collateralAssetToSeize,
         uint256 _mintedKreskoAssetIndex,
         uint256 _depositedCollateralAssetIndex
-    ) public nonReentrant collateralAssetExists(_collateralAssetToSeize) kreskoAssetExists(_repayKreskoAsset) {
+    )
+        public
+        nonReentrant
+        collateralAssetExists(_collateralAssetToSeize)
+        kreskoAssetExistsMaybeNotMintable(_repayKreskoAsset)
+    {
         require(_repayAmount > 0, "Kresko: repay amount zero");
 
         // Check that this account is below its minimum collateralization ratio and can be liquidated.
@@ -699,7 +724,8 @@ contract Kresko is Initializable, Ownable, ReentrancyGuard {
         kreskoAssets[address(asset)] = KrAsset({
             kFactor: FixedPoint.Unsigned(_kFactor),
             oracle: IOracle(_oracle),
-            exists: true
+            exists: true,
+            mintable: true
         });
         emit KreskoAssetAdded(_name, _symbol, address(asset), _kFactor, _oracle);
     }
@@ -713,12 +739,27 @@ contract Kresko is Initializable, Ownable, ReentrancyGuard {
     function updateKreskoAssetFactor(address _kreskoAsset, uint256 _kFactor)
         external
         onlyOwner
-        kreskoAssetExists(_kreskoAsset)
+        kreskoAssetExistsMaybeNotMintable(_kreskoAsset)
     {
         require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, "Kresko: proposed k-factor less than 1 FixedPoint");
 
         kreskoAssets[_kreskoAsset].kFactor = FixedPoint.Unsigned(_kFactor);
         emit KreskoAssetKFactorUpdated(_kreskoAsset, _kFactor);
+    }
+
+    /**
+     * @dev Updates the mintable property of a previously added Kresko asset.
+     * @dev Only callable by the owner.
+     * @param _kreskoAsset The address of the Kresko asset.
+     * @param _mintable The new mintable value.
+     */
+    function updateKreskoAssetMintable(address _kreskoAsset, bool _mintable)
+        external
+        onlyOwner
+        kreskoAssetExistsMaybeNotMintable(_kreskoAsset)
+    {
+        kreskoAssets[_kreskoAsset].mintable = _mintable;
+        emit KreskoAssetMintableUpdated(_kreskoAsset, _mintable);
     }
 
     /**
@@ -730,7 +771,7 @@ contract Kresko is Initializable, Ownable, ReentrancyGuard {
     function updateKreskoAssetOracle(address _kreskoAsset, address _oracle)
         external
         onlyOwner
-        kreskoAssetExists(_kreskoAsset)
+        kreskoAssetExistsMaybeNotMintable(_kreskoAsset)
     {
         require(_oracle != address(0), "Kresko: proposed oracle is zero address");
 
@@ -1115,7 +1156,7 @@ contract Kresko is Initializable, Ownable, ReentrancyGuard {
     function getMinimumCollateralValue(address _collateralAsset, uint256 _amount)
         public
         view
-        kreskoAssetExists(_collateralAsset)
+        kreskoAssetExistsMaybeNotMintable(_collateralAsset)
         returns (FixedPoint.Unsigned memory minCollateralValue)
     {
         // Calculate the Kresko asset's value weighted by its k-factor.
