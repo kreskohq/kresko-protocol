@@ -122,6 +122,28 @@ describe("Kresko", function () {
         );
     });
 
+    describe("#initialize", function () {
+        it("should initialize the contract with the correct parameters", async function () {
+            expect(await this.kresko.burnFee()).to.equal(BURN_FEE);
+            expect(await this.kresko.closeFactor()).to.equal(CLOSE_FACTOR);
+            expect(await this.kresko.feeRecipient()).to.equal(FEE_RECIPIENT_ADDRESS);
+            expect(await this.kresko.liquidationIncentive()).to.equal(LIQUIDATION_INCENTIVE);
+            expect(await this.kresko.minimumCollateralizationRatio()).to.equal(MINIMUM_COLLATERALIZATION_RATIO);
+        });
+
+        it("should not allow being called more than once", async function () {
+            await expect(
+                this.kresko.initialize(
+                    BURN_FEE,
+                    CLOSE_FACTOR,
+                    FEE_RECIPIENT_ADDRESS,
+                    LIQUIDATION_INCENTIVE,
+                    MINIMUM_COLLATERALIZATION_RATIO,
+                ),
+            ).to.be.revertedWith("Initializable: contract is already initialized");
+        });
+    });
+
     describe("Collateral Assets", function () {
         beforeEach(async function () {
             this.collateralAssetInfo = await deployAndWhitelistCollateralAsset(this.kresko, 0.8, 123.45, 18);

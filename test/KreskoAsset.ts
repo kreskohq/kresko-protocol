@@ -31,11 +31,17 @@ describe("KreskoAsset", function () {
         );
     });
 
-    describe("Deployment", function () {
+    describe("#initialize", function () {
         it("should initialize the contract with the correct parameters", async function () {
             expect(await this.kreskoAsset.name()).to.equal("Test Asset");
             expect(await this.kreskoAsset.symbol()).to.equal("TEST");
             expect(await this.kreskoAsset.owner()).to.equal(this.signers.admin.address);
+        });
+
+        it("should not allow being called more than once", async function () {
+            expect(this.kreskoAsset.initialize("foo", "bar", this.signers.admin.address)).to.be.revertedWith(
+                "Initializable: contract is already initialized",
+            );
         });
     });
 

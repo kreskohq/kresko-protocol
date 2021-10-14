@@ -371,6 +371,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         uint256 _liquidationIncentive,
         uint256 _minimumCollateralizationRatio
     ) external initializer {
+        // Set msg.sender as the owner.
         __Ownable_init();
         setBurnFee(_burnFee);
         setCloseFactor(_closeFactor);
