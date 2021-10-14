@@ -8,6 +8,8 @@ import { Signers } from "../types";
 
 const { deployContract } = hre.waffle;
 
+const ADDRESS_ONE = "0x0000000000000000000000000000000000000001";
+
 describe("KreskoAsset", function () {
     before(async function () {
         this.signers = {} as Signers;
@@ -23,7 +25,9 @@ describe("KreskoAsset", function () {
         const symbol: string = "TEST";
         const kreskoAssetArtifact: Artifact = await hre.artifacts.readArtifact("KreskoAsset");
 
-        this.kreskoAsset = <KreskoAsset>await deployContract(this.signers.admin, kreskoAssetArtifact, [name, symbol]);
+        this.kreskoAsset = <KreskoAsset>(
+            await deployContract(this.signers.admin, kreskoAssetArtifact, [name, symbol, this.signers.admin.address])
+        );
     });
 
     describe("Deployment", function () {

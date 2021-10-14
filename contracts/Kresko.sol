@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "./interfaces/IKreskoAsset.sol";
 import "./interfaces/IOracle.sol";
 
@@ -16,7 +16,7 @@ import "./libraries/FixedPoint.sol";
  * @notice Reponsible for managing collateral and minting / burning overcollateralized synthetic
  * assets called Kresko assets.
  */
-contract Kresko is Initializable, Ownable, ReentrancyGuard {
+contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     using FixedPoint for FixedPoint.Unsigned;
 
     /**
@@ -355,15 +355,15 @@ contract Kresko is Initializable, Ownable, ReentrancyGuard {
         _;
     }
 
-    /**
-     * @notice Empty constructor, see `initialize`.
-     * @dev Protects against a call to initialize when this contract is not used as a proxy
-     * implementation.
-     */
-    constructor() initializer {
-        // solhint-disable-previous-line no-empty-blocks
-        // Intentionally left blank
-    }
+    // /**
+    //  * @notice Empty constructor, see `initialize`.
+    //  * @dev Protects against a call to initialize when this contract is not used as a proxy
+    //  * implementation.
+    //  */
+    // constructor() initializer {
+    //     // solhint-disable-previous-line no-empty-blocks
+    //     // Intentionally left blank
+    // }
 
     /**
      * @notice Initializes the core Kresko protocol.
@@ -381,6 +381,7 @@ contract Kresko is Initializable, Ownable, ReentrancyGuard {
         uint256 _liquidationIncentive,
         uint256 _minimumCollateralizationRatio
     ) external initializer {
+        __Ownable_init();
         setBurnFee(_burnFee);
         setCloseFactor(_closeFactor);
         setFeeRecipient(_feeRecipient);

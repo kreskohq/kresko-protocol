@@ -9,6 +9,7 @@ import { extractEventFromTxReceipt } from "../utils/events";
 
 import { BasicOracle } from "../typechain/BasicOracle";
 import { Kresko } from "../typechain/Kresko";
+import { KreskoAsset } from "../typechain/KreskoAsset";
 import { MockToken } from "../typechain/MockToken";
 import { Signers } from "../types";
 import { Result } from "@ethersproject/abi";
@@ -69,20 +70,27 @@ async function deployAndWhitelistCollateralAsset(
     };
 }
 
-async function addNewKreskoAsset(kresko: Contract, name: string, symbol: string, kFactor: number, oraclePrice: number) {
+async function addNewKreskoAssetWithOraclePrice(
+    kresko: Contract,
+    name: string,
+    symbol: string,
+    kFactor: number,
+    oraclePrice: number,
+) {
     const signerAddress = await kresko.signer.getAddress();
     const basicOracleArtifact: Artifact = await hre.artifacts.readArtifact("BasicOracle");
     const oracle = <BasicOracle>await deployContract(kresko.signer, basicOracleArtifact, [signerAddress]);
     const fixedPointOraclePrice = toFixedPoint(oraclePrice);
     await oracle.setValue(fixedPointOraclePrice);
-
     const fixedPointKFactor = toFixedPoint(kFactor);
-    const tx: ContractTransaction = await kresko.addKreskoAsset(name, symbol, fixedPointKFactor, oracle.address);
 
-    let events: any = await extractEventFromTxReceipt(tx, "KreskoAssetAdded");
-    const krAssetAddress = events[0].args.kreskoAsset;
-    const KreskoAssetContract = await hre.ethers.getContractFactory("KreskoAsset");
-    const kreskoAsset = KreskoAssetContract.attach(krAssetAddress);
+    const kreskoAssetArtifact: Artifact = await hre.artifacts.readArtifact("KreskoAsset");
+    const kreskoAsset = <KreskoAsset>(
+        await deployContract(kresko.signer, kreskoAssetArtifact, [name, symbol, kresko.address])
+    );
+
+    await kresko.addKreskoAsset(kreskoAsset.address, symbol, fixedPointKFactor, oracle.address);
+
     return {
         kreskoAsset,
         oracle,
@@ -100,16 +108,16 @@ describe("Kresko", function () {
         this.userOne = signers[1];
         this.userTwo = signers[2];
 
-        const kreskoArtifact: Artifact = await hre.artifacts.readArtifact("Kresko");
-        this.kresko = <Kresko>(
-            await deployContract(this.signers.admin, kreskoArtifact, [
+        const KreskoFactory = await hre.ethers.getContractFactory("Kresko");
+        this.kresko = await (
+            await hre.upgrades.deployProxy(KreskoFactory, [
                 BURN_FEE,
                 CLOSE_FACTOR,
                 FEE_RECIPIENT_ADDRESS,
                 LIQUIDATION_INCENTIVE,
                 MINIMUM_COLLATERALIZATION_RATIO,
             ])
-        );
+        ).deployed();
     });
 
     describe("Collateral Assets", function () {
@@ -469,7 +477,13 @@ describe("Kresko", function () {
             describe("when the account's minimum collateral value is > 0", function () {
                 beforeEach(async function () {
                     // Deploy Kresko assets, adding them to the whitelist
-                    const kreskoAssetInfo = await addNewKreskoAsset(this.kresko, NAME_TWO, SYMBOL_TWO, 1, 250); // kFactor = 1, price = $250
+                    const kreskoAssetInfo = await addNewKreskoAssetWithOraclePrice(
+                        this.kresko,
+                        NAME_TWO,
+                        SYMBOL_TWO,
+                        1,
+                        250,
+                    ); // kFactor = 1, price = $250
 
                     // Mint 100 of the kreskoAsset. This puts the minimum collateral value of userOne as
                     // 250 * 1.5 * 100 = 37,500, which is close to userOne's account collateral value
@@ -652,66 +666,74 @@ describe("Kresko", function () {
     });
 
     describe("Kresko Assets", function () {
+        async function deployAndAddKreskoAsset(
+            this: any,
+            name: string,
+            symbol: string,
+            kFactor: BigNumber,
+            oracleAddress: string,
+        ) {
+            const kreskoAssetArtifact: Artifact = await hre.artifacts.readArtifact("KreskoAsset");
+            const kreskoAsset = <KreskoAsset>(
+                await deployContract(this.kresko.signer, kreskoAssetArtifact, [name, symbol, this.kresko.address])
+            );
+            await this.kresko.addKreskoAsset(kreskoAsset.address, symbol, kFactor, oracleAddress);
+            return kreskoAsset;
+        }
+
         beforeEach(async function () {
-            const kreskoArtifact: Artifact = await hre.artifacts.readArtifact("Kresko");
-            this.kresko = <Kresko>(
-                await deployContract(this.signers.admin, kreskoArtifact, [
+            const KreskoFactory = await hre.ethers.getContractFactory("Kresko");
+            this.kresko = await (
+                await hre.upgrades.deployProxy(KreskoFactory, [
                     BURN_FEE,
                     CLOSE_FACTOR,
                     FEE_RECIPIENT_ADDRESS,
                     LIQUIDATION_INCENTIVE,
                     MINIMUM_COLLATERALIZATION_RATIO,
                 ])
-            );
+            ).deployed();
 
-            const tx: ContractTransaction = await this.kresko.addKreskoAsset(NAME_ONE, SYMBOL_ONE, ONE, ADDRESS_ONE);
-            let events: any = await extractEventFromTxReceipt(tx, "KreskoAssetAdded");
-            this.deployedAssetAddress = events[0].args.kreskoAsset;
+            this.deployAndAddKreskoAsset = deployAndAddKreskoAsset.bind(this);
+
+            const kreskoAssetInfo = await addNewKreskoAssetWithOraclePrice(this.kresko, NAME_ONE, SYMBOL_ONE, 1, 1);
+            this.deployedAssetAddress = kreskoAssetInfo.kreskoAsset.address;
         });
 
         describe("#addKreskoAsset", function () {
             it("should allow owner to add new kresko assets and emit event KreskoAssetAdded", async function () {
-                const tx: any = await this.kresko.addKreskoAsset(NAME_TWO, SYMBOL_TWO, ONE, ADDRESS_TWO);
-                let events: any = await extractEventFromTxReceipt(tx, "KreskoAssetAdded");
-
-                const asset = await this.kresko.kreskoAssets(events[0].args.kreskoAsset);
-                expect(asset.kFactor.rawValue).to.equal(ONE.toString());
-                expect(asset.oracle).to.equal(ADDRESS_TWO);
+                const deployedKreskoAsset = await this.deployAndAddKreskoAsset(NAME_TWO, SYMBOL_TWO, ONE, ADDRESS_TWO);
+                const kreskoAssetInfo = await this.kresko.kreskoAssets(deployedKreskoAsset.address);
+                expect(kreskoAssetInfo.kFactor.rawValue).to.equal(ONE.toString());
+                expect(kreskoAssetInfo.oracle).to.equal(ADDRESS_TWO);
             });
 
             it("should not allow kresko assets that have the same symbol as an existing kresko asset", async function () {
-                await expect(this.kresko.addKreskoAsset(NAME_ONE, SYMBOL_ONE, ONE, ADDRESS_ONE)).to.be.revertedWith(
+                await expect(this.kresko.addKreskoAsset(ADDRESS_ONE, SYMBOL_ONE, ONE, ADDRESS_TWO)).to.be.revertedWith(
                     "Kresko: symbol exists",
                 );
             });
 
-            it("should not allow kresko assets with an invalid asset name", async function () {
-                await expect(this.kresko.addKreskoAsset("", SYMBOL_TWO, ONE, ADDRESS_ONE)).to.be.revertedWith(
-                    "Kresko: string is null",
-                );
-            });
-
             it("should not allow kresko assets with invalid asset symbol", async function () {
-                await expect(this.kresko.addKreskoAsset(NAME_TWO, "", ONE, ADDRESS_ONE)).to.be.revertedWith(
+                await expect(this.kresko.addKreskoAsset(ADDRESS_ONE, "", ONE, ADDRESS_TWO)).to.be.revertedWith(
                     "Kresko: string is null",
                 );
             });
 
             it("should not allow kresko assets with an invalid k factor", async function () {
                 await expect(
-                    this.kresko.addKreskoAsset(NAME_TWO, SYMBOL_TWO, ONE.sub(1), ADDRESS_ONE),
+                    this.kresko.addKreskoAsset(ADDRESS_ONE, SYMBOL_TWO, ONE.sub(1), ADDRESS_TWO),
                 ).to.be.revertedWith("Kresko: proposed k-factor less than 1 FixedPoint");
             });
 
             it("should not allow kresko assets with an invalid oracle address", async function () {
-                await expect(this.kresko.addKreskoAsset(NAME_TWO, SYMBOL_TWO, ONE, ADDRESS_ZERO)).to.be.revertedWith(
+                await expect(this.kresko.addKreskoAsset(ADDRESS_ONE, SYMBOL_TWO, ONE, ADDRESS_ZERO)).to.be.revertedWith(
                     "Kresko: proposed oracle is zero address",
                 );
             });
 
             it("should not allow non-owner to add assets", async function () {
                 await expect(
-                    this.kresko.connect(this.userOne).addKreskoAsset(NAME_TWO, SYMBOL_TWO, ONE, ADDRESS_TWO),
+                    this.kresko.connect(this.userOne).addKreskoAsset(ADDRESS_ONE, SYMBOL_TWO, ONE, ADDRESS_TWO),
                 ).to.be.revertedWith("Ownable: caller is not the owner");
             });
         });
@@ -820,21 +842,21 @@ describe("Kresko", function () {
     describe("Kresko asset minting and burning", function () {
         beforeEach(async function () {
             // Deploy primary Kresko contract
-            const kreskoArtifact: Artifact = await hre.artifacts.readArtifact("Kresko");
-            this.kresko = <Kresko>(
-                await deployContract(this.signers.admin, kreskoArtifact, [
+            const KreskoFactory = await hre.ethers.getContractFactory("Kresko");
+            this.kresko = await (
+                await hre.upgrades.deployProxy(KreskoFactory, [
                     BURN_FEE,
                     CLOSE_FACTOR,
                     FEE_RECIPIENT_ADDRESS,
                     LIQUIDATION_INCENTIVE,
                     MINIMUM_COLLATERALIZATION_RATIO,
                 ])
-            );
+            ).deployed();
 
             // Deploy Kresko assets, adding them to the whitelist
             this.kreskoAssetInfos = await Promise.all([
-                addNewKreskoAsset(this.kresko, NAME_ONE, SYMBOL_ONE, 1, 5), // kFactor = 1, price = $5.00
-                addNewKreskoAsset(this.kresko, NAME_TWO, SYMBOL_TWO, 1.1, 500), // kFactor = 1.1, price = $500
+                addNewKreskoAssetWithOraclePrice(this.kresko, NAME_ONE, SYMBOL_ONE, 1, 5), // kFactor = 1, price = $5.00
+                addNewKreskoAssetWithOraclePrice(this.kresko, NAME_TWO, SYMBOL_TWO, 1.1, 500), // kFactor = 1.1, price = $500
             ]);
 
             // Deploy and whitelist collateral assets
@@ -1533,20 +1555,20 @@ describe("Kresko", function () {
     describe("Liquidations", function () {
         beforeEach(async function () {
             // Deploy primary Kresko contract
-            const kreskoArtifact: Artifact = await hre.artifacts.readArtifact("Kresko");
-            this.kresko = <Kresko>(
-                await deployContract(this.signers.admin, kreskoArtifact, [
+            const KreskoFactory = await hre.ethers.getContractFactory("Kresko");
+            this.kresko = await (
+                await hre.upgrades.deployProxy(KreskoFactory, [
                     BURN_FEE,
                     CLOSE_FACTOR,
                     FEE_RECIPIENT_ADDRESS,
                     LIQUIDATION_INCENTIVE,
                     MINIMUM_COLLATERALIZATION_RATIO,
                 ])
-            );
+            ).deployed();
 
             // Deploy Kresko assets, adding them to the whitelist
             this.kreskoAssetInfo = await Promise.all([
-                addNewKreskoAsset(this.kresko, NAME_ONE, SYMBOL_ONE, 1, 10), // kFactor = 1, price = $10.00
+                addNewKreskoAssetWithOraclePrice(this.kresko, NAME_ONE, SYMBOL_ONE, 1, 10), // kFactor = 1, price = $10.00
             ]);
 
             // Deploy and whitelist collateral assets
