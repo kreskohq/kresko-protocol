@@ -23,10 +23,11 @@ describe("KreskoAsset", function () {
     beforeEach(async function () {
         const name: string = "Test Asset";
         const symbol: string = "TEST";
-        const kreskoAssetArtifact: Artifact = await hre.artifacts.readArtifact("KreskoAsset");
-
+        const kreskoAssetFactory = await hre.ethers.getContractFactory("KreskoAsset");
         this.kreskoAsset = <KreskoAsset>(
-            await deployContract(this.signers.admin, kreskoAssetArtifact, [name, symbol, this.signers.admin.address])
+            await (
+                await hre.upgrades.deployProxy(kreskoAssetFactory, [name, symbol, this.signers.admin.address])
+            ).deployed()
         );
     });
 

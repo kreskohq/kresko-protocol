@@ -84,9 +84,9 @@ async function addNewKreskoAssetWithOraclePrice(
     await oracle.setValue(fixedPointOraclePrice);
     const fixedPointKFactor = toFixedPoint(kFactor);
 
-    const kreskoAssetArtifact: Artifact = await hre.artifacts.readArtifact("KreskoAsset");
+    const kreskoAssetFactory = await hre.ethers.getContractFactory("KreskoAsset");
     const kreskoAsset = <KreskoAsset>(
-        await deployContract(kresko.signer, kreskoAssetArtifact, [name, symbol, kresko.address])
+        await (await hre.upgrades.deployProxy(kreskoAssetFactory, [name, symbol, kresko.address])).deployed()
     );
 
     await kresko.addKreskoAsset(kreskoAsset.address, symbol, fixedPointKFactor, oracle.address);
@@ -108,16 +108,18 @@ describe("Kresko", function () {
         this.userOne = signers[1];
         this.userTwo = signers[2];
 
-        const KreskoFactory = await hre.ethers.getContractFactory("Kresko");
-        this.kresko = await (
-            await hre.upgrades.deployProxy(KreskoFactory, [
-                BURN_FEE,
-                CLOSE_FACTOR,
-                FEE_RECIPIENT_ADDRESS,
-                LIQUIDATION_INCENTIVE,
-                MINIMUM_COLLATERALIZATION_RATIO,
-            ])
-        ).deployed();
+        const kreskoFactory = await hre.ethers.getContractFactory("Kresko");
+        this.kresko = <Kresko>(
+            await (
+                await hre.upgrades.deployProxy(kreskoFactory, [
+                    BURN_FEE,
+                    CLOSE_FACTOR,
+                    FEE_RECIPIENT_ADDRESS,
+                    LIQUIDATION_INCENTIVE,
+                    MINIMUM_COLLATERALIZATION_RATIO,
+                ])
+            ).deployed()
+        );
     });
 
     describe("Collateral Assets", function () {
@@ -673,25 +675,29 @@ describe("Kresko", function () {
             kFactor: BigNumber,
             oracleAddress: string,
         ) {
-            const kreskoAssetArtifact: Artifact = await hre.artifacts.readArtifact("KreskoAsset");
+            const kreskoAssetFactory = await hre.ethers.getContractFactory("KreskoAsset");
             const kreskoAsset = <KreskoAsset>(
-                await deployContract(this.kresko.signer, kreskoAssetArtifact, [name, symbol, this.kresko.address])
+                await (
+                    await hre.upgrades.deployProxy(kreskoAssetFactory, [name, symbol, this.kresko.address])
+                ).deployed()
             );
             await this.kresko.addKreskoAsset(kreskoAsset.address, symbol, kFactor, oracleAddress);
             return kreskoAsset;
         }
 
         beforeEach(async function () {
-            const KreskoFactory = await hre.ethers.getContractFactory("Kresko");
-            this.kresko = await (
-                await hre.upgrades.deployProxy(KreskoFactory, [
-                    BURN_FEE,
-                    CLOSE_FACTOR,
-                    FEE_RECIPIENT_ADDRESS,
-                    LIQUIDATION_INCENTIVE,
-                    MINIMUM_COLLATERALIZATION_RATIO,
-                ])
-            ).deployed();
+            const kreskoFactory = await hre.ethers.getContractFactory("Kresko");
+            this.kresko = <Kresko>(
+                await (
+                    await hre.upgrades.deployProxy(kreskoFactory, [
+                        BURN_FEE,
+                        CLOSE_FACTOR,
+                        FEE_RECIPIENT_ADDRESS,
+                        LIQUIDATION_INCENTIVE,
+                        MINIMUM_COLLATERALIZATION_RATIO,
+                    ])
+                ).deployed()
+            );
 
             this.deployAndAddKreskoAsset = deployAndAddKreskoAsset.bind(this);
 
@@ -842,16 +848,18 @@ describe("Kresko", function () {
     describe("Kresko asset minting and burning", function () {
         beforeEach(async function () {
             // Deploy primary Kresko contract
-            const KreskoFactory = await hre.ethers.getContractFactory("Kresko");
-            this.kresko = await (
-                await hre.upgrades.deployProxy(KreskoFactory, [
-                    BURN_FEE,
-                    CLOSE_FACTOR,
-                    FEE_RECIPIENT_ADDRESS,
-                    LIQUIDATION_INCENTIVE,
-                    MINIMUM_COLLATERALIZATION_RATIO,
-                ])
-            ).deployed();
+            const kreskoFactory = await hre.ethers.getContractFactory("Kresko");
+            this.kresko = <Kresko>(
+                await (
+                    await hre.upgrades.deployProxy(kreskoFactory, [
+                        BURN_FEE,
+                        CLOSE_FACTOR,
+                        FEE_RECIPIENT_ADDRESS,
+                        LIQUIDATION_INCENTIVE,
+                        MINIMUM_COLLATERALIZATION_RATIO,
+                    ])
+                ).deployed()
+            );
 
             // Deploy Kresko assets, adding them to the whitelist
             this.kreskoAssetInfos = await Promise.all([
@@ -1555,16 +1563,18 @@ describe("Kresko", function () {
     describe("Liquidations", function () {
         beforeEach(async function () {
             // Deploy primary Kresko contract
-            const KreskoFactory = await hre.ethers.getContractFactory("Kresko");
-            this.kresko = await (
-                await hre.upgrades.deployProxy(KreskoFactory, [
-                    BURN_FEE,
-                    CLOSE_FACTOR,
-                    FEE_RECIPIENT_ADDRESS,
-                    LIQUIDATION_INCENTIVE,
-                    MINIMUM_COLLATERALIZATION_RATIO,
-                ])
-            ).deployed();
+            const kreskoFactory = await hre.ethers.getContractFactory("Kresko");
+            this.kresko = <Kresko>(
+                await (
+                    await hre.upgrades.deployProxy(kreskoFactory, [
+                        BURN_FEE,
+                        CLOSE_FACTOR,
+                        FEE_RECIPIENT_ADDRESS,
+                        LIQUIDATION_INCENTIVE,
+                        MINIMUM_COLLATERALIZATION_RATIO,
+                    ])
+                ).deployed()
+            );
 
             // Deploy Kresko assets, adding them to the whitelist
             this.kreskoAssetInfo = await Promise.all([
