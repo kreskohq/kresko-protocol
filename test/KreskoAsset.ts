@@ -6,10 +6,6 @@ import { expect } from "chai";
 import { KreskoAsset } from "../typechain/KreskoAsset";
 import { Signers } from "../types";
 
-const { deployContract } = hre.waffle;
-
-const ADDRESS_ONE = "0x0000000000000000000000000000000000000001";
-
 describe("KreskoAsset", function () {
     before(async function () {
         this.signers = {} as Signers;
@@ -18,17 +14,24 @@ describe("KreskoAsset", function () {
         this.signers.admin = signers[0];
         this.userOne = signers[1];
         this.userTwo = signers[2];
+
+        // We intentionally allow constructor that calls the initializer
+        // modifier and explicitly allow this in calls to `deployProxy`.
+        // The upgrades library will still print warnings, so to avoid clutter
+        // we just silence those here.
+        console.log("Intentionally silencing Upgrades warnings");
+        hre.upgrades.silenceWarnings();
     });
 
     beforeEach(async function () {
         const name: string = "Test Asset";
         const symbol: string = "TEST";
         const kreskoAssetFactory = await hre.ethers.getContractFactory("KreskoAsset");
-        this.kreskoAsset = <KreskoAsset>(
-            await (
-                await hre.upgrades.deployProxy(kreskoAssetFactory, [name, symbol, this.signers.admin.address])
-            ).deployed()
-        );
+        this.kreskoAsset = <KreskoAsset>await (
+            await hre.upgrades.deployProxy(kreskoAssetFactory, [name, symbol, this.signers.admin.address], {
+                unsafeAllow: ["constructor"],
+            })
+        ).deployed();
     });
 
     describe("#initialize", function () {

@@ -356,6 +356,15 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
     }
 
     /**
+     * @notice Empty constructor, see `initialize`.
+     * @dev Protects against a call to initialize when this contract is called directly without a proxy.
+     */
+    constructor() initializer {
+        // solhint-disable-previous-line no-empty-blocks
+        // Intentionally left blank
+    }
+
+    /**
      * @notice Initializes the core Kresko protocol.
      * @param _burnFee The burn fee as a raw value for a FixedPoint.Unsigned.
      * @param _closeFactor The close factor as a raw value for a FixedPoint.Unsigned.

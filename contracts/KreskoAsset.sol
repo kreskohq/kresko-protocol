@@ -12,6 +12,15 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
  */
 contract KreskoAsset is Initializable, ERC20Upgradeable, OwnableUpgradeable {
     /**
+     * @notice Empty constructor, see `initialize`.
+     * @dev Protects against a call to initialize when this contract is called directly without a proxy.
+     */
+    constructor() initializer {
+        // solhint-disable-previous-line no-empty-blocks
+        // Intentionally left blank
+    }
+
+    /**
      * @notice Initializes a KreskoAsset ERC20 token.
      * @dev Intended to be owned by the Kresko smart contract.
      * @param _name The name of the KreskoAsset.
