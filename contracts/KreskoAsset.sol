@@ -17,7 +17,7 @@ contract KreskoAsset is Initializable, ERC20Upgradeable, OwnableUpgradeable {
      */
     constructor() initializer {
         // solhint-disable-previous-line no-empty-blocks
-        // Intentionally left blank
+        // Intentionally left blank.
     }
 
     /**

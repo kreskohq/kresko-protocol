@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "../libraries/FixedPoint.sol";
@@ -11,7 +14,7 @@ import "../libraries/FixedPoint.sol";
  * @notice A non-rebasing token that wraps rebasing tokens to present a balance for each user that
  *   does not change from exogenous events.
  */
-contract NonRebasingWrapperToken is ERC20 {
+contract NonRebasingWrapperToken is Initializable, ERC20Upgradeable {
     using FixedPoint for FixedPoint.Unsigned;
 
     // The underlying token that this contract wraps.
@@ -23,16 +26,26 @@ contract NonRebasingWrapperToken is ERC20 {
     event WithdrewUnderlying(address indexed account, uint256 underlyingWithdrawAmount, uint256 burnAmount);
 
     /**
+     * @notice Empty constructor, see `initialize`.
+     * @dev Protects against a call to initialize when this contract is called directly without a proxy.
+     */
+    constructor() initializer {
+        // solhint-disable-previous-line no-empty-blocks
+        // Intentionally left blank.
+    }
+
+    /**
      * @notice Constructs a non-rebasing wrapper token.
      * @param _underlyingToken The address of the underlying token this contract wraps.
      * @param _name The name of this wrapper token.
      * @param _symbol The symbol of this wrapper token.
      */
-    constructor(
+    function initialize(
         address _underlyingToken,
         string memory _name,
         string memory _symbol
-    ) ERC20(_name, _symbol) {
+    ) external initializer {
+        __ERC20_init(_name, _symbol);
         underlyingToken = IERC20(_underlyingToken);
     }
 

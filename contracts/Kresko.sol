@@ -361,7 +361,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      */
     constructor() initializer {
         // solhint-disable-previous-line no-empty-blocks
-        // Intentionally left blank
+        // Intentionally left blank.
     }
 
     /**
