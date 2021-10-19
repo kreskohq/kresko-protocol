@@ -444,10 +444,7 @@ contract Kresko is Ownable, ReentrancyGuard {
         // If the sender is withdrawing all of the collateral asset, remove the collateral asset
         // from the sender's deposited collateral assets array.
         if (_amount == depositAmount) {
-            require(
-                depositedCollateralAssets[msg.sender].removeAddress(_collateralAsset, _depositedCollateralAssetIndex),
-                "Kresko: invalid collateral asset index"
-            );
+            depositedCollateralAssets[msg.sender].removeAddress(_collateralAsset, _depositedCollateralAssetIndex);
         }
         require(IERC20(_collateralAsset).transfer(msg.sender, _amount), "Kresko: collateral transfer out failed");
 
@@ -944,11 +941,12 @@ contract Kresko is Ownable, ReentrancyGuard {
     }
 
      /**
-     * @notice Calculates the burn fee for a burned asset
-     * @param _collateralAssetAddress The collateral asset from which to take to the fee
-     * @param _account The owner of the collateral
-     * @param _feeValue The original value of the fee
-     * @param _collateralAssetIndex The collateral asset's index in the user's depositedCollateralAssets array
+     * @notice Calculates the burn fee for a burned asset.
+     * @param _collateralAssetAddress The collateral asset from which to take to the fee.
+     * @param _account The owner of the collateral.
+     * @param _feeValue The original value of the fee.
+     * @param _collateralAssetIndex The collateral asset's index in the user's depositedCollateralAssets array.
+     * @return The transfer amount to be received as a uint256 and a FixedPoint.Unsigned representing the fee value paid.
      */
     function calcBurnFee(
         address _collateralAssetAddress,

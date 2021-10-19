@@ -17,7 +17,7 @@ library Arrays {
         address[] storage _addresses,
         address _elementToRemove,
         uint256 _elementIndex
-    ) internal returns(bool) {
+    ) internal {
         require(
             _addresses[_elementIndex] == _elementToRemove,
             "Arrays: incorrect removal index"
@@ -31,6 +31,5 @@ library Arrays {
         }
         // Remove the last element.
         _addresses.pop();
-        return true;
     }
 }
