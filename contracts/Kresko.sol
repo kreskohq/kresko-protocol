@@ -518,8 +518,7 @@ contract Kresko is Ownable, ReentrancyGuard {
         chargeBurnFee(msg.sender, _kreskoAsset, _amount);
 
         // Burn the received kresko assets, removing them from circulation.
-        KreskoAsset asset = KreskoAsset(_kreskoAsset);
-        asset.burn(msg.sender, _amount);
+        KreskoAsset(_kreskoAsset).burn(msg.sender, _amount);
 
         emit KreskoAssetBurned(msg.sender, _kreskoAsset, _amount);
     }
@@ -578,8 +577,7 @@ contract Kresko is Ownable, ReentrancyGuard {
         }
 
         // Burn the received Kresko assets, removing them from circulation.
-        KreskoAsset krAsset = KreskoAsset(_repayKreskoAsset);
-        krAsset.burn(msg.sender, _repayAmount);
+        KreskoAsset(_repayKreskoAsset).burn(msg.sender, _repayAmount);
 
         // Send liquidator the seized collateral.
         require(
