@@ -34,7 +34,14 @@ contract KreskoAsset is ERC20, Ownable {
      * @dev Burns tokens from the owner's address
      * @param _amount The amount of tokens to be burned
      */
-    function burn(uint256 _amount) public onlyOwner {
-        _burn(owner(), _amount);
+    function burn(address account, uint256 _amount) public onlyOwner {
+
+        _burn(account, _amount);
+
+        uint256 currentAllowance = allowance(account, _msgSender());
+        require(currentAllowance >= _amount, "ERC20: burn amount exceeds allowance");
+        unchecked {
+            _approve(account, _msgSender(), currentAllowance - _amount);
+        }
     }
 }
