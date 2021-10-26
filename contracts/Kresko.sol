@@ -916,12 +916,8 @@ contract Kresko is Ownable, ReentrancyGuard {
         for (uint256 i = accountCollateralAssets.length - 1; i >= 0; i--) {
             address collateralAssetAddress = accountCollateralAssets[i];
 
-            (uint256 transferAmount, FixedPoint.Unsigned memory feeValuePaid) = calcBurnFee(
-                collateralAssetAddress,
-                _account,
-                feeValue,
-                i
-            );
+            (uint256 transferAmount, FixedPoint.Unsigned memory feeValuePaid) =
+                calcBurnFee(collateralAssetAddress, _account, feeValue, i);
 
             // Remove the transferAmount from the stored deposit for the account.
             collateralDeposits[_account][collateralAssetAddress] -= transferAmount;
@@ -940,7 +936,7 @@ contract Kresko is Ownable, ReentrancyGuard {
         }
     }
 
-     /**
+    /**
      * @notice Calculates the burn fee for a burned asset.
      * @param _collateralAssetAddress The collateral asset from which to take to the fee.
      * @param _account The owner of the collateral.
@@ -1019,7 +1015,7 @@ contract Kresko is Ownable, ReentrancyGuard {
     }
 
     /**
-     * @notice Remove Kresko assets and collateral assets from the liquidated user's holdings
+     * @notice Remove Kresko assets and collateral assets from the liquidated user's holdings.
      * @param _account The account to attempt to liquidate.
      * @param _krAssetDebt The amount of Kresko assets that the liquidated user owes.
      * @param _repayAmount The amount of the Kresko asset to be repaid.
