@@ -5,7 +5,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
-import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import "./interfaces/IKreskoAsset.sol";
 import "./interfaces/IOracle.sol";
 
@@ -414,7 +414,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
 
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
         require(
-            IERC20(_collateralAsset).transferFrom(msg.sender, address(this), _amount),
+            IERC20MetadataUpgradeable(_collateralAsset).transferFrom(msg.sender, address(this), _amount),
             "Kresko: collateral transfer in failed"
         );
 
@@ -477,7 +477,10 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         if (_amount == depositAmount) {
             removeFromDepositedCollateralAssets(msg.sender, _collateralAsset, _depositedCollateralAssetIndex);
         }
-        require(IERC20(_collateralAsset).transfer(msg.sender, _amount), "Kresko: collateral transfer out failed");
+        require(
+            IERC20MetadataUpgradeable(_collateralAsset).transfer(msg.sender, _amount),
+            "Kresko: collateral transfer out failed"
+        );
 
         emit CollateralWithdrawn(msg.sender, _collateralAsset, _amount);
     }
@@ -626,7 +629,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
 
         // Send liquidator the seized collateral.
         require(
-            IERC20(_collateralAssetToSeize).transfer(msg.sender, seizeAmount),
+            IERC20MetadataUpgradeable(_collateralAssetToSeize).transfer(msg.sender, seizeAmount),
             "Kresko: collateral transfer out failed"
         );
 
@@ -669,7 +672,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
             factor: FixedPoint.Unsigned(_factor),
             oracle: IOracle(_oracle),
             exists: true,
-            decimals: IERC20Metadata(_collateralAsset).decimals()
+            decimals: IERC20MetadataUpgradeable(_collateralAsset).decimals()
         });
         emit CollateralAssetAdded(_collateralAsset, _factor, _oracle);
     }
@@ -1064,7 +1067,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
             collateralDeposits[_account][collateralAssetAddress] -= transferAmount;
             // Transfer the fee to the feeRecipient.
             require(
-                IERC20(collateralAssetAddress).transfer(feeRecipient, transferAmount),
+                IERC20MetadataUpgradeable(collateralAssetAddress).transfer(feeRecipient, transferAmount),
                 "Kresko: fee transfer out failed"
             );
             emit BurnFeePaid(_account, collateralAssetAddress, transferAmount, feeValuePaid.rawValue);

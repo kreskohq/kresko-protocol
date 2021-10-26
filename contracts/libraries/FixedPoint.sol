@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.4;
 
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/utils/math/SignedSafeMath.sol";
+import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/math/SignedSafeMathUpgradeable.sol";
 
 /**
  * @title Library for fixed point arithmetic on uints
  */
 library FixedPoint {
-    using SafeMath for uint256;
-    using SignedSafeMath for int256;
+    using SafeMathUpgradeable for uint256;
+    using SignedSafeMathUpgradeable for int256;
 
     uint256 internal constant FP_DECIMALS = 18;
 

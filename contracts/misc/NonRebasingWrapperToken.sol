@@ -5,7 +5,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
 import "../libraries/FixedPoint.sol";
 
@@ -18,7 +18,7 @@ contract NonRebasingWrapperToken is Initializable, ERC20Upgradeable {
     using FixedPoint for FixedPoint.Unsigned;
 
     // The underlying token that this contract wraps.
-    IERC20 public underlyingToken;
+    IERC20Upgradeable public underlyingToken;
 
     // Emitted when underlying tokens have been deposited, minting this token.
     event DepositedUnderlying(address indexed account, uint256 underlyingDepositAmount, uint256 mintAmount);
@@ -46,7 +46,7 @@ contract NonRebasingWrapperToken is Initializable, ERC20Upgradeable {
         string memory _symbol
     ) external initializer {
         __ERC20_init(_name, _symbol);
-        underlyingToken = IERC20(_underlyingToken);
+        underlyingToken = IERC20Upgradeable(_underlyingToken);
     }
 
     /**
