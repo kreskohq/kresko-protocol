@@ -556,7 +556,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         chargeBurnFee(msg.sender, _kreskoAsset, _amount);
 
         // Burn the received kresko assets, removing them from circulation.
-        KreskoAsset(_kreskoAsset).burn(msg.sender, _amount);
+        IKreskoAsset(_kreskoAsset).burn(msg.sender, _amount);
 
         emit KreskoAssetBurned(msg.sender, _kreskoAsset, _amount);
     }
@@ -616,7 +616,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         );
 
         // Burn the received Kresko assets, removing them from circulation.
-        KreskoAsset(_repayKreskoAsset).burn(msg.sender, _repayAmount);
+        IKreskoAsset(_repayKreskoAsset).burn(msg.sender, _repayAmount);
 
         // Send liquidator the seized collateral.
         require(
@@ -991,7 +991,8 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * @param _account The owner of the collateral.
      * @param _feeValue The original value of the fee.
      * @param _collateralAssetIndex The collateral asset's index in the user's depositedCollateralAssets array.
-     * @return The transfer amount to be received as a uint256 and a FixedPoint.Unsigned representing the fee value paid.
+     * @return The transfer amount to be received as a uint256 and a FixedPoint.Unsigned
+     * representing the fee value paid.
      */
     function calcBurnFee(
         address _collateralAssetAddress,

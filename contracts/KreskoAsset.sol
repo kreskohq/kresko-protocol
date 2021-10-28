@@ -39,25 +39,26 @@ contract KreskoAsset is Initializable, ERC20Upgradeable, OwnableUpgradeable {
     }
 
     /**
-     * @notice Mints tokens to any address.
+     * @notice Mints tokens to an address.
      * @dev Only callable by owner.
      * @param _account The recipient address of the mint.
      * @param _amount The amount of tokens to mint.
      */
-    function mint(address _account, uint256 _amount) public onlyOwner {
+    function mint(address _account, uint256 _amount) external onlyOwner {
         _mint(_account, _amount);
     }
 
     /**
-     * @notice Burns tokens from the owner's address.
-     * @dev Only callable by owner.
+     * @notice Burns tokens from an address that have been approved to the sender.
+     * @dev Only callable by owner which must have the appropriate allowance for _account.
+     * @param _account The address to burn tokens from.
      * @param _amount The amount of tokens to burn.
      */
-    function burn(address account, uint256 _amount) public onlyOwner {
-        _burn(account, _amount);
+    function burn(address _account, uint256 _amount) external onlyOwner {
+        _burn(_account, _amount);
 
-        uint256 currentAllowance = allowance(account, _msgSender());
+        uint256 currentAllowance = allowance(_account, _msgSender());
         require(currentAllowance >= _amount, "ERC20: burn amount exceeds allowance");
-        unchecked {_approve(account, _msgSender(), currentAllowance - _amount);}
+        unchecked {_approve(_account, _msgSender(), currentAllowance - _amount);}
     }
 }
