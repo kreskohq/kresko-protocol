@@ -7,6 +7,7 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import "./interfaces/IKreskoAsset.sol";
+import "./interfaces/INonRebasingWrapperToken.sol";
 import "./interfaces/IOracle.sol";
 
 import "./libraries/FixedPoint.sol";
@@ -33,12 +34,16 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * it to be deposited and withdrawn.
      * @param factor The collateral factor used for calculating the value of the collateral.
      * @param oracle The oracle that provides the USD price of one collateral asset.
+     * @param underlyingRebasingToken If the collateral asset is an instance of NonRebasingWrapperToken,
+     * this is set to the underlying token that rebases. Otherwise, this is the zero address.
+     * Added so that Kresko.sol can handle NonRebasingWrapperTokens with fewer transactions.
      * @param decimals The decimals for the token, stored here to avoid repetitive external calls.
      * @param exists Whether the collateral asset exists within the protocol.
      */
     struct CollateralAsset {
         FixedPoint.Unsigned factor;
         IOracle oracle;
+        address underlyingRebasingToken;
         uint8 decimals;
         bool exists;
     }
@@ -409,27 +414,47 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         nonReentrant
         collateralAssetExists(_collateralAsset)
     {
-        // Because the depositedCollateralAssets[msg.sender] is pushed to if the existing
-        // deposit amount is 0, require the amount to be > 0. Otherwise, the depositedCollateralAssets[msg.sender]
-        // could be filled with duplicates, causing collateral to be double-counted in the collateral value.
-        require(_amount > 0, "Kresko: amount is zero");
-
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
         require(
             IERC20MetadataUpgradeable(_collateralAsset).transferFrom(msg.sender, address(this), _amount),
             "Kresko: collateral transfer in failed"
         );
 
-        // If the account does not have an existing deposit for this collateral asset,
-        // push it to the list of the account's deposited collateral assets.
-        uint256 existingDepositAmount = collateralDeposits[msg.sender][_collateralAsset];
-        if (existingDepositAmount == 0) {
-            depositedCollateralAssets[msg.sender].push(_collateralAsset);
-        }
-        // Record the deposit.
-        collateralDeposits[msg.sender][_collateralAsset] = existingDepositAmount + _amount;
+        // Record the collateral deposit.
+        recordCollateralDeposit(_collateralAsset, _amount);
+    }
 
-        emit CollateralDeposited(msg.sender, _collateralAsset, _amount);
+    /**
+     * @notice Deposits a rebasing collateral into the protocol by wrapping the underlying
+     * rebasing token.
+     * @param _collateralAsset The address of the NonRebasingWrapperToken collateral asset.
+     * @param _rebasingAmount The amount of the underlying rebasing token to deposit.
+     */
+    function depositRebasingCollateral(address _collateralAsset, uint256 _rebasingAmount)
+        external
+        nonReentrant
+        collateralAssetExists(_collateralAsset)
+    {
+        require(_rebasingAmount > 0, "Kresko: amount is zero");
+
+        address underlyingRebasingToken = collateralAssets[_collateralAsset].underlyingRebasingToken;
+        require(underlyingRebasingToken != address(0), "Kresko: collateral asset not NonRebasingWrapperToken");
+
+        // Transfer underlying rebasing token in.
+        require(
+            IERC20Upgradeable(underlyingRebasingToken).transferFrom(msg.sender, address(this), _rebasingAmount),
+            "Kresko: rebasing collateral transfer in failed"
+        );
+
+        // Approve the newly received rebasing token to the NonRebasingWrapperToken in preparation
+        // for calling depositUnderlying.
+        IERC20Upgradeable(underlyingRebasingToken).approve(_collateralAsset, _rebasingAmount);
+
+        // Wrap into NonRebasingWrapperToken.
+        uint256 nonRebasingAmount = INonRebasingWrapperToken(_collateralAsset).depositUnderlying(_rebasingAmount);
+
+        // Record the collateral deposit.
+        recordCollateralDeposit(_collateralAsset, nonRebasingAmount);
     }
 
     /**
@@ -653,15 +678,22 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
     function addCollateralAsset(
         address _collateralAsset,
         uint256 _factor,
-        address _oracle
+        address _oracle,
+        bool isNonRebasingWrapperToken
     ) external nonReentrant onlyOwner collateralAssetDoesNotExist(_collateralAsset) {
         require(_collateralAsset != address(0), "Kresko: proposed collateral is zero address");
         require(_factor <= FixedPoint.FP_SCALING_FACTOR, "Kresko: proposed collateral factor exceeds 1 FixedPoint");
         require(_oracle != address(0), "Kresko: proposed oracle is zero address");
 
+        // Set as the rebasing underlying token if the collateral asset is a
+        // NonRebasingWrapperToken, otherwise set as address(0).
+        address underlyingRebasingToken =
+            isNonRebasingWrapperToken ? INonRebasingWrapperToken(_collateralAsset).underlyingToken() : address(0);
+
         collateralAssets[_collateralAsset] = CollateralAsset({
             factor: FixedPoint.Unsigned(_factor),
             oracle: IOracle(_oracle),
+            underlyingRebasingToken: underlyingRebasingToken,
             exists: true,
             decimals: IERC20MetadataUpgradeable(_collateralAsset).decimals()
         });
@@ -855,6 +887,30 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      */
 
     /* ==== Collateral ==== */
+
+    /**
+     * @notice Records msg.sender as having deposited an amount of a collateral asset.
+     * @dev Token transfers are expected to be done by the caller.
+     * @param _collateralAsset The address of the collateral asset.
+     * @param _amount The amount of the collateral asset deposited.
+     */
+    function recordCollateralDeposit(address _collateralAsset, uint256 _amount) internal {
+        // Because the depositedCollateralAssets[msg.sender] is pushed to if the existing
+        // deposit amount is 0, require the amount to be > 0. Otherwise, the depositedCollateralAssets[msg.sender]
+        // could be filled with duplicates, causing collateral to be double-counted in the collateral value.
+        require(_amount > 0, "Kresko: amount is zero");
+
+        // If the account does not have an existing deposit for this collateral asset,
+        // push it to the list of the account's deposited collateral assets.
+        uint256 existingDepositAmount = collateralDeposits[msg.sender][_collateralAsset];
+        if (existingDepositAmount == 0) {
+            depositedCollateralAssets[msg.sender].push(_collateralAsset);
+        }
+        // Record the deposit.
+        collateralDeposits[msg.sender][_collateralAsset] = existingDepositAmount + _amount;
+
+        emit CollateralDeposited(msg.sender, _collateralAsset, _amount);
+    }
 
     /**
      * @notice For a given collateral asset and amount, returns a FixedPoint.Unsigned representation.

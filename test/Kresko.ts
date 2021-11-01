@@ -49,7 +49,7 @@ async function deployAndWhitelistCollateralAsset(
     await oracle.setValue(fixedPointOraclePrice);
 
     const fixedPointCollateralFactor = toFixedPoint(collateralFactor);
-    await kresko.addCollateralAsset(collateralAsset.address, fixedPointCollateralFactor, oracle.address);
+    await kresko.addCollateralAsset(collateralAsset.address, fixedPointCollateralFactor, oracle.address, false);
 
     return {
         collateralAsset,
@@ -170,31 +170,36 @@ describe("Kresko", function () {
 
             it("should not allow collateral assets to be added more than once", async function () {
                 await expect(
-                    this.kresko.addCollateralAsset(this.collateralAssetInfo.collateralAsset.address, ONE, ADDRESS_ONE),
+                    this.kresko.addCollateralAsset(
+                        this.collateralAssetInfo.collateralAsset.address,
+                        ONE,
+                        ADDRESS_ONE,
+                        false,
+                    ),
                 ).to.be.revertedWith("Kresko: collateral exists");
             });
 
             it("should not allow collateral assets with invalid asset address", async function () {
-                await expect(this.kresko.addCollateralAsset(ADDRESS_ZERO, ONE, ADDRESS_ONE)).to.be.revertedWith(
+                await expect(this.kresko.addCollateralAsset(ADDRESS_ZERO, ONE, ADDRESS_ONE, false)).to.be.revertedWith(
                     "Kresko: proposed collateral is zero address",
                 );
             });
 
             it("should not allow collateral assets with collateral factor", async function () {
-                await expect(this.kresko.addCollateralAsset(ADDRESS_TWO, ONE.add(1), ADDRESS_ONE)).to.be.revertedWith(
-                    "Kresko: proposed collateral factor exceeds 1 FixedPoint",
-                );
+                await expect(
+                    this.kresko.addCollateralAsset(ADDRESS_TWO, ONE.add(1), ADDRESS_ONE, false),
+                ).to.be.revertedWith("Kresko: proposed collateral factor exceeds 1 FixedPoint");
             });
 
             it("should not allow collateral assets with invalid oracle address", async function () {
-                await expect(this.kresko.addCollateralAsset(ADDRESS_TWO, ONE, ADDRESS_ZERO)).to.be.revertedWith(
+                await expect(this.kresko.addCollateralAsset(ADDRESS_TWO, ONE, ADDRESS_ZERO, false)).to.be.revertedWith(
                     "Kresko: proposed oracle is zero address",
                 );
             });
 
             it("should not allow non-owner to add assets", async function () {
                 await expect(
-                    this.kresko.connect(this.userOne).addCollateralAsset(ADDRESS_TWO, 1, ADDRESS_TWO),
+                    this.kresko.connect(this.userOne).addCollateralAsset(ADDRESS_TWO, 1, ADDRESS_TWO, false),
                 ).to.be.revertedWith("Ownable: caller is not the owner");
             });
         });
@@ -822,7 +827,7 @@ describe("Kresko", function () {
                 expect(event.mintable).to.equal(false);
             });
 
-            it("should ont allow non-owner to update the mintable property", async function () {
+            it("should not allow non-owner to update the mintable property", async function () {
                 await expect(
                     this.kresko.connect(this.userOne).updateKreskoAssetMintable(this.deployedAssetAddress, false),
                 ).to.be.revertedWith("Ownable: caller is not the owner");

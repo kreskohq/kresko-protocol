@@ -17,7 +17,7 @@ import "../libraries/FixedPoint.sol";
 contract NonRebasingWrapperToken is Initializable, ERC20Upgradeable {
     using FixedPoint for FixedPoint.Unsigned;
 
-    // The underlying token that this contract wraps.
+    /// @notice The underlying token that this contract wraps.
     IERC20Upgradeable public underlyingToken;
 
     // Emitted when underlying tokens have been deposited, minting this token.
@@ -55,8 +55,9 @@ contract NonRebasingWrapperToken is Initializable, ERC20Upgradeable {
      * @dev The amount of the underlying deposited that's used in any calculations is
      *   the difference in this contract's balance after transferring in underlyingDepositAmount.
      * @param _underlyingDepositAmount The amount of the underlying token to transfer in as a deposit.
+     * @return The amount of this token that was minted for the deposit.
      */
-    function depositUnderlying(uint256 _underlyingDepositAmount) external {
+    function depositUnderlying(uint256 _underlyingDepositAmount) external returns (uint256) {
         // Calculate the actual difference in balance of this contract instead of using amount.
         // This handles cases where a token transfer has a fee.
         uint256 underlyingBalanceBefore = underlyingToken.balanceOf(address(this));
@@ -93,6 +94,8 @@ contract NonRebasingWrapperToken is Initializable, ERC20Upgradeable {
         _mint(msg.sender, mintAmount);
 
         emit DepositedUnderlying(msg.sender, depositAmount, mintAmount);
+
+        return mintAmount;
     }
 
     /**
@@ -100,8 +103,9 @@ contract NonRebasingWrapperToken is Initializable, ERC20Upgradeable {
      *   amount of this token, burning the tokens.
      * @param _nonRebasingWithdrawalAmount Denominated in this token, the amount
      *   to burn. Used to calculate the amount of underlying tokens that are withdrawn as a result.
+     * @return The amount of the rebasing underlying token withdrawn.
      */
-    function withdrawUnderlying(uint256 _nonRebasingWithdrawalAmount) external {
+    function withdrawUnderlying(uint256 _nonRebasingWithdrawalAmount) external returns (uint256) {
         require(_nonRebasingWithdrawalAmount > 0, "NRWToken: withdraw amount is zero");
         require(_nonRebasingWithdrawalAmount <= balanceOf(msg.sender), "NRWToken: withdraw amount exceeds balance");
 
@@ -121,6 +125,8 @@ contract NonRebasingWrapperToken is Initializable, ERC20Upgradeable {
         _burn(msg.sender, _nonRebasingWithdrawalAmount);
 
         emit WithdrewUnderlying(msg.sender, underlyingAmount, _nonRebasingWithdrawalAmount);
+
+        return underlyingAmount;
     }
 
     /**
