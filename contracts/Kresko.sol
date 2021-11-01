@@ -473,46 +473,39 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         uint256 _amount,
         uint256 _depositedCollateralAssetIndex
     ) external nonReentrant collateralAssetExists(_collateralAsset) {
-        require(_amount > 0, "Kresko: amount is zero");
+        verifyAndRecordCollateralWithdrawal(_collateralAsset, _amount, _depositedCollateralAssetIndex);
 
-        // Ensure the amount being withdrawn is not greater than the amount of the collateral asset
-        // the sender has deposited.
-        uint256 depositAmount = collateralDeposits[msg.sender][_collateralAsset];
-        require(_amount <= depositAmount, "Kresko: amount exceeds deposit amount");
-
-        // Ensure the withdrawal does not result in the account having a health factor < 1.
-        // I.e. the new account's collateral value must still exceed the account's minimum
-        // collateral value.
-        // Get the account's current collateral value.
-        FixedPoint.Unsigned memory accountCollateralValue = getAccountCollateralValue(msg.sender);
-        // Get the collateral value that the account will lose as a result of this withdrawal.
-        (FixedPoint.Unsigned memory withdrawnCollateralValue, ) =
-            getCollateralValueAndOraclePrice(
-                _collateralAsset,
-                _amount,
-                false // Take the collateral factor into consideration.
-            );
-        // Get the account's minimum collateral value.
-        FixedPoint.Unsigned memory accountMinCollateralValue = getAccountMinimumCollateralValue(msg.sender);
-        // Require accountCollateralValue - withdrawnCollateralValue >= accountMinCollateralValue.
-        require(
-            accountCollateralValue.sub(withdrawnCollateralValue).isGreaterThanOrEqual(accountMinCollateralValue),
-            "Kresko: health factor violated"
-        );
-
-        // Record the withdrawal.
-        collateralDeposits[msg.sender][_collateralAsset] = depositAmount - _amount;
-        // If the sender is withdrawing all of the collateral asset, remove the collateral asset
-        // from the sender's deposited collateral assets array.
-        if (_amount == depositAmount) {
-            depositedCollateralAssets[msg.sender].removeAddress(_collateralAsset, _depositedCollateralAssetIndex);
-        }
         require(
             IERC20MetadataUpgradeable(_collateralAsset).transfer(msg.sender, _amount),
             "Kresko: collateral transfer out failed"
         );
+    }
 
-        emit CollateralWithdrawn(msg.sender, _collateralAsset, _amount);
+    /**
+     * @notice Withdraws sender's NonRebasingWrapperToken collateral from the protocol and unwraps it.
+     * @param _collateralAsset The address of the NonRebasingWrapperToken collateral asset.
+     * @param _amount The amount of the NonRebasingWrapperToken collateral asset to withdraw.
+     * @param _depositedCollateralAssetIndex The index of the collateral asset in the sender's deposited collateral
+     * assets array. Only needed if withdrawing the entire deposit of a particular collateral asset.
+     */
+    function withdrawRebasingCollateral(
+        address _collateralAsset,
+        uint256 _amount,
+        uint256 _depositedCollateralAssetIndex
+    ) external nonReentrant collateralAssetExists(_collateralAsset) {
+        verifyAndRecordCollateralWithdrawal(_collateralAsset, _amount, _depositedCollateralAssetIndex);
+
+        address underlyingRebasingToken = collateralAssets[_collateralAsset].underlyingRebasingToken;
+        require(underlyingRebasingToken != address(0), "Kresko: collateral asset not NonRebasingWrapperToken");
+
+        // Unwrap the NonRebasingWrapperToken into the rebasing underlying.
+        uint256 underlyingAmountWithdrawn = INonRebasingWrapperToken(_collateralAsset).withdrawUnderlying(_amount);
+
+        // Transfer the sender the rebasing underlying.
+        require(
+            IERC20MetadataUpgradeable(underlyingRebasingToken).transfer(msg.sender, underlyingAmountWithdrawn),
+            "Kresko: rebasing collateral transfer out failed"
+        );
     }
 
     /* ===== Kresko Assets ===== */
@@ -913,6 +906,49 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         collateralDeposits[msg.sender][_collateralAsset] = existingDepositAmount + _amount;
 
         emit CollateralDeposited(msg.sender, _collateralAsset, _amount);
+    }
+
+    function verifyAndRecordCollateralWithdrawal(
+        address _collateralAsset,
+        uint256 _amount,
+        uint256 _depositedCollateralAssetIndex
+    ) internal {
+        require(_amount > 0, "Kresko: amount is zero");
+
+        // Ensure the amount being withdrawn is not greater than the amount of the collateral asset
+        // the sender has deposited.
+        uint256 depositAmount = collateralDeposits[msg.sender][_collateralAsset];
+        require(_amount <= depositAmount, "Kresko: amount exceeds deposit amount");
+
+        // Ensure the withdrawal does not result in the account having a health factor < 1.
+        // I.e. the new account's collateral value must still exceed the account's minimum
+        // collateral value.
+        // Get the account's current collateral value.
+        FixedPoint.Unsigned memory accountCollateralValue = getAccountCollateralValue(msg.sender);
+        // Get the collateral value that the account will lose as a result of this withdrawal.
+        (FixedPoint.Unsigned memory withdrawnCollateralValue, ) =
+            getCollateralValueAndOraclePrice(
+                _collateralAsset,
+                _amount,
+                false // Take the collateral factor into consideration.
+            );
+        // Get the account's minimum collateral value.
+        FixedPoint.Unsigned memory accountMinCollateralValue = getAccountMinimumCollateralValue(msg.sender);
+        // Require accountCollateralValue - withdrawnCollateralValue >= accountMinCollateralValue.
+        require(
+            accountCollateralValue.sub(withdrawnCollateralValue).isGreaterThanOrEqual(accountMinCollateralValue),
+            "Kresko: health factor violated"
+        );
+
+        // Record the withdrawal.
+        collateralDeposits[msg.sender][_collateralAsset] = depositAmount - _amount;
+        // If the sender is withdrawing all of the collateral asset, remove the collateral asset
+        // from the sender's deposited collateral assets array.
+        if (_amount == depositAmount) {
+            depositedCollateralAssets[msg.sender].removeAddress(_collateralAsset, _depositedCollateralAssetIndex);
+        }
+
+        emit CollateralWithdrawn(msg.sender, _collateralAsset, _amount);
     }
 
     /**
