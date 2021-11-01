@@ -384,11 +384,11 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
     ) external initializer {
         // Set msg.sender as the owner.
         __Ownable_init();
-        setBurnFee(_burnFee);
-        setCloseFactor(_closeFactor);
-        setFeeRecipient(_feeRecipient);
-        setLiquidationIncentive(_liquidationIncentive);
-        setMinimumCollateralizationRatio(_minimumCollateralizationRatio);
+        updateBurnFee(_burnFee);
+        updateCloseFactor(_closeFactor);
+        updateFeeRecipient(_feeRecipient);
+        updateLiquidationIncentive(_liquidationIncentive);
+        updateMinimumCollateralizationRatio(_minimumCollateralizationRatio);
     }
 
     /**
@@ -787,41 +787,41 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
     /* ===== Configurable parameters ===== */
 
     /**
-     * @notice Sets the burn fee.
+     * @notice Updates the burn fee.
      * @param _burnFee The new burn fee as a raw value for a FixedPoint.Unsigned.
      */
-    function setBurnFee(uint256 _burnFee) public onlyOwner {
+    function updateBurnFee(uint256 _burnFee) public onlyOwner {
         require(_burnFee <= MAX_BURN_FEE, "Kresko: proposed burn fee exceeds max");
         burnFee = FixedPoint.Unsigned(_burnFee);
         emit BurnFeeUpdated(_burnFee);
     }
 
     /**
-     * @notice Sets the close factor.
+     * @notice Updates the close factor.
      * @param _closeFactor The new close factor as a raw value for a FixedPoint.Unsigned.
      */
-    function setCloseFactor(uint256 _closeFactor) public onlyOwner {
+    function updateCloseFactor(uint256 _closeFactor) public onlyOwner {
         require(_closeFactor >= MIN_CLOSE_FACTOR, "Kresko: proposed close factor less than min");
         require(_closeFactor <= MAX_CLOSE_FACTOR, "Kresko: proposed close factor exceeds max");
         closeFactor = FixedPoint.Unsigned(_closeFactor);
         emit CloseFactorUpdated(_closeFactor);
     }
 
-    /**
-     * @notice Sets the fee recipient.
+    /**s
+     * @notice Updates the fee recipient.
      * @param _feeRecipient The new fee recipient.
      */
-    function setFeeRecipient(address _feeRecipient) public onlyOwner {
+    function updateFeeRecipient(address _feeRecipient) public onlyOwner {
         require(_feeRecipient != address(0), "Kresko: proposed fee recipient is zero address");
         feeRecipient = _feeRecipient;
         emit FeeRecipientUpdated(_feeRecipient);
     }
 
     /**
-     * @notice Sets the liquidation incentive.
+     * @notice Updates the liquidation incentive.
      * @param _liquidationIncentive The new liquidation incentive as a raw value for a FixedPoint.Unsigned.
      */
-    function setLiquidationIncentive(uint256 _liquidationIncentive) public onlyOwner {
+    function updateLiquidationIncentive(uint256 _liquidationIncentive) public onlyOwner {
         require(
             _liquidationIncentive >= MIN_LIQUIDATION_INCENTIVE,
             "Kresko: proposed liquidation incentive less than min"
@@ -839,7 +839,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * @param _minimumCollateralizationRatio The new minimum collateralization ratio as a raw value
      * for a FixedPoint.Unsigned.
      */
-    function setMinimumCollateralizationRatio(uint256 _minimumCollateralizationRatio) public onlyOwner {
+    function updateMinimumCollateralizationRatio(uint256 _minimumCollateralizationRatio) public onlyOwner {
         require(
             _minimumCollateralizationRatio >= MIN_MINIMUM_COLLATERALIZATION_RATIO,
             "Kresko: proposed minimum collateralization ratio less than min"

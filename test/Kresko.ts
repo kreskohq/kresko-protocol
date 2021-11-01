@@ -1379,7 +1379,7 @@ describe("Kresko", function () {
     });
 
     describe("Global variables", function () {
-        describe("#setMinimumCollateralizationRatio", function () {
+        describe("#updateMinimumCollateralizationRatio", function () {
             const validMinimumCollateralizationRatio = toFixedPoint(1.51); // 151%
             const invalidMinimumCollateralizationRatio = toFixedPoint(0.99); // 99%
 
@@ -1388,7 +1388,7 @@ describe("Kresko", function () {
 
                 await this.kresko
                     .connect(this.signers.admin)
-                    .setMinimumCollateralizationRatio(validMinimumCollateralizationRatio);
+                    .updateMinimumCollateralizationRatio(validMinimumCollateralizationRatio);
 
                 expect(await this.kresko.minimumCollateralizationRatio()).to.equal(validMinimumCollateralizationRatio);
             });
@@ -1396,7 +1396,7 @@ describe("Kresko", function () {
             it("should emit MinimumCollateralizationRatioUpdated event", async function () {
                 const receipt = await this.kresko
                     .connect(this.signers.admin)
-                    .setMinimumCollateralizationRatio(validMinimumCollateralizationRatio);
+                    .updateMinimumCollateralizationRatio(validMinimumCollateralizationRatio);
 
                 const event = (await extractEventFromTxReceipt(receipt, "MinimumCollateralizationRatioUpdated"))![0]
                     .args!;
@@ -1407,7 +1407,7 @@ describe("Kresko", function () {
                 await expect(
                     this.kresko
                         .connect(this.signers.admin)
-                        .setMinimumCollateralizationRatio(invalidMinimumCollateralizationRatio),
+                        .updateMinimumCollateralizationRatio(invalidMinimumCollateralizationRatio),
                 ).to.be.revertedWith("Kresko: proposed minimum collateralization ratio less than min");
             });
 
@@ -1415,24 +1415,24 @@ describe("Kresko", function () {
                 await expect(
                     this.kresko
                         .connect(this.userOne)
-                        .setMinimumCollateralizationRatio(validMinimumCollateralizationRatio),
+                        .updateMinimumCollateralizationRatio(validMinimumCollateralizationRatio),
                 ).to.be.revertedWith("Ownable: caller is not the owner");
             });
         });
 
-        describe("#setBurnFee", function () {
+        describe("#updateBurnFee", function () {
             const validNewBurnFee = toFixedPoint(0.042);
             it("should allow the owner to update the burn fee", async function () {
                 // Ensure it has the expected initial value
                 expect(await this.kresko.burnFee()).to.equal(BURN_FEE);
 
-                await this.kresko.connect(this.signers.admin).setBurnFee(validNewBurnFee);
+                await this.kresko.connect(this.signers.admin).updateBurnFee(validNewBurnFee);
 
                 expect(await this.kresko.burnFee()).to.equal(validNewBurnFee);
             });
 
             it("should emit BurnFeeUpdated event", async function () {
-                const receipt = await this.kresko.connect(this.signers.admin).setBurnFee(validNewBurnFee);
+                const receipt = await this.kresko.connect(this.signers.admin).updateBurnFee(validNewBurnFee);
 
                 const event = (await extractEventFromTxReceipt(receipt, "BurnFeeUpdated"))![0].args!;
                 expect(event.burnFee).to.equal(validNewBurnFee);
@@ -1440,62 +1440,62 @@ describe("Kresko", function () {
 
             it("should not allow the burn fee to exceed MAX_BURN_FEE", async function () {
                 const newBurnFee = (await this.kresko.MAX_BURN_FEE()).add(1);
-                await expect(this.kresko.connect(this.signers.admin).setBurnFee(newBurnFee)).to.be.revertedWith(
+                await expect(this.kresko.connect(this.signers.admin).updateBurnFee(newBurnFee)).to.be.revertedWith(
                     "Kresko: proposed burn fee exceeds max",
                 );
             });
 
             it("should not allow the burn fee to be updated by non-owner", async function () {
-                await expect(this.kresko.connect(this.userOne).setBurnFee(validNewBurnFee)).to.be.revertedWith(
+                await expect(this.kresko.connect(this.userOne).updateBurnFee(validNewBurnFee)).to.be.revertedWith(
                     "Ownable: caller is not the owner",
                 );
             });
         });
 
-        describe("#setFeeRecipient", function () {
+        describe("#updateFeeRecipient", function () {
             const validFeeRecipient = "0xF00D000000000000000000000000000000000000";
             it("should allow the owner to update the fee recipient", async function () {
                 // Ensure it has the expected initial value
                 expect(await this.kresko.feeRecipient()).to.equal(FEE_RECIPIENT_ADDRESS);
 
-                await this.kresko.connect(this.signers.admin).setFeeRecipient(validFeeRecipient);
+                await this.kresko.connect(this.signers.admin).updateFeeRecipient(validFeeRecipient);
 
                 expect(await this.kresko.feeRecipient()).to.equal(validFeeRecipient);
             });
 
             it("should emit UpdateFeeRecipient event", async function () {
-                const receipt = await this.kresko.connect(this.signers.admin).setFeeRecipient(validFeeRecipient);
+                const receipt = await this.kresko.connect(this.signers.admin).updateFeeRecipient(validFeeRecipient);
 
                 const event = (await extractEventFromTxReceipt(receipt, "FeeRecipientUpdated"))![0].args!;
                 expect(event.feeRecipient).to.equal(validFeeRecipient);
             });
 
             it("should not allow the fee recipient to be the zero address", async function () {
-                await expect(this.kresko.connect(this.signers.admin).setFeeRecipient(ADDRESS_ZERO)).to.be.revertedWith(
-                    "Kresko: proposed fee recipient is zero address",
-                );
+                await expect(
+                    this.kresko.connect(this.signers.admin).updateFeeRecipient(ADDRESS_ZERO),
+                ).to.be.revertedWith("Kresko: proposed fee recipient is zero address");
             });
 
             it("should not allow the fee recipient to be updated by non-owner", async function () {
-                await expect(this.kresko.connect(this.userOne).setFeeRecipient(validFeeRecipient)).to.be.revertedWith(
-                    "Ownable: caller is not the owner",
-                );
+                await expect(
+                    this.kresko.connect(this.userOne).updateFeeRecipient(validFeeRecipient),
+                ).to.be.revertedWith("Ownable: caller is not the owner");
             });
         });
 
-        describe("#setCloseFactor", function () {
+        describe("#updateCloseFactor", function () {
             const validCloseFactor = toFixedPoint(0.25);
             it("should allow the owner to update the close factor", async function () {
                 // Ensure it has the expected initial value
                 expect(await this.kresko.closeFactor()).to.equal(CLOSE_FACTOR);
 
-                await this.kresko.connect(this.signers.admin).setCloseFactor(validCloseFactor);
+                await this.kresko.connect(this.signers.admin).updateCloseFactor(validCloseFactor);
 
                 expect(await this.kresko.closeFactor()).to.equal(validCloseFactor);
             });
 
             it("should emit CloseFactorUpdated event", async function () {
-                const receipt = await this.kresko.connect(this.signers.admin).setCloseFactor(validCloseFactor);
+                const receipt = await this.kresko.connect(this.signers.admin).updateCloseFactor(validCloseFactor);
 
                 const event = (await extractEventFromTxReceipt(receipt, "CloseFactorUpdated"))![0].args!;
                 expect(event.closeFactor).to.equal(validCloseFactor);
@@ -1503,32 +1503,32 @@ describe("Kresko", function () {
 
             it("should not allow the close factor fee to be less than the MIN_CLOSE_FACTOR", async function () {
                 const newCloseFactor = (await this.kresko.MIN_CLOSE_FACTOR()).sub(1);
-                await expect(this.kresko.connect(this.signers.admin).setCloseFactor(newCloseFactor)).to.be.revertedWith(
-                    "Kresko: proposed close factor less than min",
-                );
+                await expect(
+                    this.kresko.connect(this.signers.admin).updateCloseFactor(newCloseFactor),
+                ).to.be.revertedWith("Kresko: proposed close factor less than min");
             });
 
             it("should not allow the close factor fee to exceed MAX_CLOSE_FACTOR", async function () {
                 const newCloseFactor = (await this.kresko.MAX_CLOSE_FACTOR()).add(1);
-                await expect(this.kresko.connect(this.signers.admin).setCloseFactor(newCloseFactor)).to.be.revertedWith(
-                    "Kresko: proposed close factor exceeds max",
-                );
+                await expect(
+                    this.kresko.connect(this.signers.admin).updateCloseFactor(newCloseFactor),
+                ).to.be.revertedWith("Kresko: proposed close factor exceeds max");
             });
 
             it("should not allow the close factor to be updated by non-owner", async function () {
-                await expect(this.kresko.connect(this.userOne).setCloseFactor(validCloseFactor)).to.be.revertedWith(
+                await expect(this.kresko.connect(this.userOne).updateCloseFactor(validCloseFactor)).to.be.revertedWith(
                     "Ownable: caller is not the owner",
                 );
             });
         });
 
-        describe("#setLiquidationIncentive", function () {
+        describe("#updateLiquidationIncentive", function () {
             const validLiquidationIncentive = toFixedPoint(1.15);
             it("should allow the owner to update the liquidation incentive", async function () {
                 // Ensure it has the expected initial value
                 expect(await this.kresko.liquidationIncentive()).to.equal(LIQUIDATION_INCENTIVE);
 
-                await this.kresko.connect(this.signers.admin).setLiquidationIncentive(validLiquidationIncentive);
+                await this.kresko.connect(this.signers.admin).updateLiquidationIncentive(validLiquidationIncentive);
 
                 expect(await this.kresko.liquidationIncentive()).to.equal(validLiquidationIncentive);
             });
@@ -1536,7 +1536,7 @@ describe("Kresko", function () {
             it("should emit LiquidationIncentiveUpdated event", async function () {
                 const receipt = await this.kresko
                     .connect(this.signers.admin)
-                    .setLiquidationIncentive(validLiquidationIncentive);
+                    .updateLiquidationIncentive(validLiquidationIncentive);
 
                 const event = (await extractEventFromTxReceipt(receipt, "LiquidationIncentiveUpdated"))![0].args!;
                 expect(event.liquidationIncentive).to.equal(validLiquidationIncentive);
@@ -1545,20 +1545,20 @@ describe("Kresko", function () {
             it("should not allow the liquidation incentive to be less than the MIN_LIQUIDATION_INCENTIVE", async function () {
                 const newLiquidationIncentive = (await this.kresko.MIN_LIQUIDATION_INCENTIVE()).sub(1);
                 await expect(
-                    this.kresko.connect(this.signers.admin).setLiquidationIncentive(newLiquidationIncentive),
+                    this.kresko.connect(this.signers.admin).updateLiquidationIncentive(newLiquidationIncentive),
                 ).to.be.revertedWith("Kresko: proposed liquidation incentive less than min");
             });
 
             it("should not allow the liquidation incentive to exceed MAX_LIQUIDATION_INCENTIVE", async function () {
                 const newLiquidationIncentive = (await this.kresko.MAX_LIQUIDATION_INCENTIVE()).add(1);
                 await expect(
-                    this.kresko.connect(this.signers.admin).setLiquidationIncentive(newLiquidationIncentive),
+                    this.kresko.connect(this.signers.admin).updateLiquidationIncentive(newLiquidationIncentive),
                 ).to.be.revertedWith("Kresko: proposed liquidation incentive exceeds max");
             });
 
             it("should not allow the liquidation incentive to be updated by non-owner", async function () {
                 await expect(
-                    this.kresko.connect(this.userOne).setLiquidationIncentive(validLiquidationIncentive),
+                    this.kresko.connect(this.userOne).updateLiquidationIncentive(validLiquidationIncentive),
                 ).to.be.revertedWith("Ownable: caller is not the owner");
             });
         });
