@@ -435,7 +435,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         nonReentrant
         collateralAssetExists(_collateralAsset)
     {
-        require(_rebasingAmount > 0, "Kresko: amount is zero");
+        require(_rebasingAmount > 0, "Kresko: rebasing amount is zero");
 
         address underlyingRebasingToken = collateralAssets[_collateralAsset].underlyingRebasingToken;
         require(underlyingRebasingToken != address(0), "Kresko: collateral asset not NonRebasingWrapperToken");
@@ -448,7 +448,10 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
 
         // Approve the newly received rebasing token to the NonRebasingWrapperToken in preparation
         // for calling depositUnderlying.
-        IERC20Upgradeable(underlyingRebasingToken).approve(_collateralAsset, _rebasingAmount);
+        require(
+            IERC20Upgradeable(underlyingRebasingToken).approve(_collateralAsset, _rebasingAmount),
+            "Kresko: rebasing approval failed"
+        );
 
         // Wrap into NonRebasingWrapperToken.
         uint256 nonRebasingAmount = INonRebasingWrapperToken(_collateralAsset).depositUnderlying(_rebasingAmount);
