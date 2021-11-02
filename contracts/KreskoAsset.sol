@@ -1,47 +1,64 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 
 /**
  * @dev Extension of {ERC20} that restricts token minting and burning
  * to the contract's owner. Tokens can be minted to any address, but
  * can only be burned from the owner's address.
  */
-contract KreskoAsset is ERC20, Ownable {
+contract KreskoAsset is Initializable, ERC20Upgradeable, OwnableUpgradeable {
     /**
-     * @dev Constructor that instantiates an ERC20 token to back
-     * the KreskoAsset.
-     * @param _name The name of the KreskoAsset.
-     * @param _symbol The symbol of the KreskoAsset.
+     * @notice Empty constructor, see `initialize`.
+     * @dev Protects against a call to initialize when this contract is called directly without a proxy.
      */
-    constructor(string memory _name, string memory _symbol) ERC20(_name, _symbol) {
+    constructor() initializer {
         // solhint-disable-previous-line no-empty-blocks
-        // Intentionally left blank
+        // Intentionally left blank.
     }
 
     /**
-     * @dev Mints tokens to any address
-     * @param _account The recipient address of the intended mint
-     * @param _amount The amount of tokens to be minted
+     * @notice Initializes a KreskoAsset ERC20 token.
+     * @dev Intended to be owned by the Kresko smart contract.
+     * @param _name The name of the KreskoAsset.
+     * @param _symbol The symbol of the KreskoAsset.
+     * @param _owner The owner of this contract.
      */
-    function mint(address _account, uint256 _amount) public onlyOwner {
+    function initialize(
+        string memory _name,
+        string memory _symbol,
+        address _owner
+    ) external initializer {
+        __ERC20_init(_name, _symbol);
+        // Set msg.sender as owner so that transferOwnership can be called.
+        __Ownable_init();
+        transferOwnership(_owner);
+    }
+
+    /**
+     * @notice Mints tokens to an address.
+     * @dev Only callable by owner.
+     * @param _account The recipient address of the mint.
+     * @param _amount The amount of tokens to mint.
+     */
+    function mint(address _account, uint256 _amount) external onlyOwner {
         _mint(_account, _amount);
     }
 
     /**
-     * @dev Burns tokens from the owner's address
-     * @param _amount The amount of tokens to be burned
+     * @notice Burns tokens from an address that have been approved to the sender.
+     * @dev Only callable by owner which must have the appropriate allowance for _account.
+     * @param _account The address to burn tokens from.
+     * @param _amount The amount of tokens to burn.
      */
-    function burn(address account, uint256 _amount) public onlyOwner {
+    function burn(address _account, uint256 _amount) external onlyOwner {
+        _burn(_account, _amount);
 
-        _burn(account, _amount);
-
-        uint256 currentAllowance = allowance(account, _msgSender());
+        uint256 currentAllowance = allowance(_account, _msgSender());
         require(currentAllowance >= _amount, "ERC20: burn amount exceeds allowance");
-        unchecked {
-            _approve(account, _msgSender(), currentAllowance - _amount);
-        }
+        unchecked {_approve(_account, _msgSender(), currentAllowance - _amount);}
     }
 }

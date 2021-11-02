@@ -23,6 +23,13 @@ describe("NonRebasingWrapperToken", function () {
         this.signers.admin = signers[0];
         this.userOne = signers[1];
         this.userTwo = signers[2];
+
+        // We intentionally allow constructor that calls the initializer
+        // modifier and explicitly allow this in calls to `deployProxy`.
+        // The upgrades library will still print warnings, so to avoid clutter
+        // we just silence those here.
+        console.log("Intentionally silencing Upgrades warnings");
+        hre.upgrades.silenceWarnings();
     });
 
     beforeEach(async function () {
@@ -30,21 +37,18 @@ describe("NonRebasingWrapperToken", function () {
         const symbol: string = "TEST";
 
         const rebasingTokenArtifact: Artifact = await hre.artifacts.readArtifact("RebasingToken");
-        const nonRebasingWrapperTokenArtifact: Artifact = await hre.artifacts.readArtifact("NonRebasingWrapperToken");
-
         this.rebasingToken = <RebasingToken>(
             await deployContract(this.signers.admin, rebasingTokenArtifact, [toFixedPoint(1)])
         );
         await this.rebasingToken.mint(this.userOne.address, parseEther("1000"));
         await this.rebasingToken.mint(this.userTwo.address, parseEther("1000"));
 
-        this.nonRebasingWrapperToken = <NonRebasingWrapperToken>(
-            await deployContract(this.signers.admin, nonRebasingWrapperTokenArtifact, [
-                this.rebasingToken.address,
-                name,
-                symbol,
-            ])
-        );
+        const nonRebasingWrapperTokenFactory = await hre.ethers.getContractFactory("NonRebasingWrapperToken");
+        this.nonRebasingWrapperToken = <NonRebasingWrapperToken>await (
+            await hre.upgrades.deployProxy(nonRebasingWrapperTokenFactory, [this.rebasingToken.address, name, symbol], {
+                unsafeAllow: ["constructor"],
+            })
+        ).deployed();
 
         this.depositUnderlying = async (account: any, amount: BigNumber) => {
             await this.rebasingToken.connect(account).approve(this.nonRebasingWrapperToken.address, amount);
@@ -56,9 +60,15 @@ describe("NonRebasingWrapperToken", function () {
         };
     });
 
-    describe("Deployment", function () {
-        it("Initializes the contract with the correct parameters", async function () {
+    describe("#initialize", function () {
+        it("should initialize the contract with the correct parameters", async function () {
             expect(await this.nonRebasingWrapperToken.underlyingToken()).to.equal(this.rebasingToken.address);
+        });
+
+        it("should not allow being called more than once", async function () {
+            await expect(
+                this.nonRebasingWrapperToken.initialize(this.rebasingToken.address, "foo", "bar"),
+            ).to.be.revertedWith("Initializable: contract is already initialized");
         });
     });
 

@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
-import "./KreskoAsset.sol";
-
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
+import "./interfaces/IKreskoAsset.sol";
 import "./interfaces/IOracle.sol";
+
 import "./libraries/FixedPoint.sol";
 import "./libraries/Arrays.sol";
 
@@ -16,7 +17,7 @@ import "./libraries/Arrays.sol";
  * @notice Reponsible for managing collateral and minting / burning overcollateralized synthetic
  * assets called Kresko assets.
  */
-contract Kresko is Ownable, ReentrancyGuard {
+contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     using FixedPoint for FixedPoint.Unsigned;
     using Arrays for address[];
 
@@ -188,13 +189,12 @@ contract Kresko is Ownable, ReentrancyGuard {
     /**
      * @notice Emitted when a Kresko asset is added to the protocol.
      * @dev Can only be emitted once for a given Kresko asset.
-     * @param name The name of the Kresko asset.
-     * @param symbol The symbol of the Kresko asset.
      * @param kreskoAsset The address of the Kresko asset.
+     * @param symbol The symbol of the Kresko asset.
      * @param kFactor The k-factor.
      * @param oracle The address of the oracle.
      */
-    event KreskoAssetAdded(string name, string symbol, address kreskoAsset, uint256 kFactor, address oracle);
+    event KreskoAssetAdded(address kreskoAsset, string symbol, uint256 kFactor, address oracle);
 
     /**
      * @notice Emitted when a Kresko asset's k-factor is updated.
@@ -339,9 +339,11 @@ contract Kresko is Ownable, ReentrancyGuard {
 
     /**
      * @notice Reverts if the symbol of a Kresko asset already exists within the protocol.
+     * @param _kreskoAsset The address of the Kresko asset.
      * @param _symbol The symbol of the Kresko asset.
      */
-    modifier kreskoAssetDoesNotExist(string calldata _symbol) {
+    modifier kreskoAssetDoesNotExist(address _kreskoAsset, string calldata _symbol) {
+        require(!kreskoAssets[_kreskoAsset].exists, "Kresko: krAsset exists");
         require(!kreskoAssetSymbols[_symbol], "Kresko: symbol exists");
         _;
     }
@@ -356,7 +358,16 @@ contract Kresko is Ownable, ReentrancyGuard {
     }
 
     /**
-     * @notice Constructs the core Kresko protocol.
+     * @notice Empty constructor, see `initialize`.
+     * @dev Protects against a call to initialize when this contract is called directly without a proxy.
+     */
+    constructor() initializer {
+        // solhint-disable-previous-line no-empty-blocks
+        // Intentionally left blank.
+    }
+
+    /**
+     * @notice Initializes the core Kresko protocol.
      * @param _burnFee The burn fee as a raw value for a FixedPoint.Unsigned.
      * @param _closeFactor The close factor as a raw value for a FixedPoint.Unsigned.
      * @param _feeRecipient The fee recipient.
@@ -364,13 +375,15 @@ contract Kresko is Ownable, ReentrancyGuard {
      * @param _minimumCollateralizationRatio The new minimum collateralization ratio as a raw value
      * for a FixedPoint.Unsigned.
      */
-    constructor(
+    function initialize(
         uint256 _burnFee,
         uint256 _closeFactor,
         address _feeRecipient,
         uint256 _liquidationIncentive,
         uint256 _minimumCollateralizationRatio
-    ) {
+    ) external initializer {
+        // Set msg.sender as the owner.
+        __Ownable_init();
         setBurnFee(_burnFee);
         setCloseFactor(_closeFactor);
         setFeeRecipient(_feeRecipient);
@@ -403,7 +416,7 @@ contract Kresko is Ownable, ReentrancyGuard {
 
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
         require(
-            IERC20(_collateralAsset).transferFrom(msg.sender, address(this), _amount),
+            IERC20MetadataUpgradeable(_collateralAsset).transferFrom(msg.sender, address(this), _amount),
             "Kresko: collateral transfer in failed"
         );
 
@@ -466,7 +479,10 @@ contract Kresko is Ownable, ReentrancyGuard {
         if (_amount == depositAmount) {
             depositedCollateralAssets[msg.sender].removeAddress(_collateralAsset, _depositedCollateralAssetIndex);
         }
-        require(IERC20(_collateralAsset).transfer(msg.sender, _amount), "Kresko: collateral transfer out failed");
+        require(
+            IERC20MetadataUpgradeable(_collateralAsset).transfer(msg.sender, _amount),
+            "Kresko: collateral transfer out failed"
+        );
 
         emit CollateralWithdrawn(msg.sender, _collateralAsset, _amount);
     }
@@ -507,7 +523,7 @@ contract Kresko is Ownable, ReentrancyGuard {
         // Record the mint.
         kreskoAssetDebt[msg.sender][_kreskoAsset] = existingDebtAmount + _amount;
 
-        KreskoAsset(_kreskoAsset).mint(msg.sender, _amount);
+        IKreskoAsset(_kreskoAsset).mint(msg.sender, _amount);
 
         emit KreskoAssetMinted(msg.sender, _kreskoAsset, _amount);
     }
@@ -540,7 +556,7 @@ contract Kresko is Ownable, ReentrancyGuard {
         chargeBurnFee(msg.sender, _kreskoAsset, _amount);
 
         // Burn the received kresko assets, removing them from circulation.
-        KreskoAsset(_kreskoAsset).burn(msg.sender, _amount);
+        IKreskoAsset(_kreskoAsset).burn(msg.sender, _amount);
 
         emit KreskoAssetBurned(msg.sender, _kreskoAsset, _amount);
     }
@@ -600,11 +616,11 @@ contract Kresko is Ownable, ReentrancyGuard {
         );
 
         // Burn the received Kresko assets, removing them from circulation.
-        KreskoAsset(_repayKreskoAsset).burn(msg.sender, _repayAmount);
+        IKreskoAsset(_repayKreskoAsset).burn(msg.sender, _repayAmount);
 
         // Send liquidator the seized collateral.
         require(
-            IERC20(_collateralAssetToSeize).transfer(msg.sender, seizeAmount),
+            IERC20MetadataUpgradeable(_collateralAssetToSeize).transfer(msg.sender, seizeAmount),
             "Kresko: collateral transfer out failed"
         );
 
@@ -647,7 +663,7 @@ contract Kresko is Ownable, ReentrancyGuard {
             factor: FixedPoint.Unsigned(_factor),
             oracle: IOracle(_oracle),
             exists: true,
-            decimals: IERC20Metadata(_collateralAsset).decimals()
+            decimals: IERC20MetadataUpgradeable(_collateralAsset).decimals()
         });
         emit CollateralAssetAdded(_collateralAsset, _factor, _oracle);
     }
@@ -692,17 +708,17 @@ contract Kresko is Ownable, ReentrancyGuard {
     /**
      * @notice Adds a Kresko asset to the protocol.
      * @dev Only callable by the owner and cannot be called more than once for a given symbol.
-     * @param _name The name of the Kresko asset.
+     * @param _kreskoAsset The address of the Kresko asset.
      * @param _symbol The symbol of the Kresko asset.
      * @param _kFactor The k-factor of the Kresko asset as a raw value for a FixedPoint.Unsigned. Must be >= 1e18.
      * @param _oracle The oracle address for the Kresko asset.
      */
     function addKreskoAsset(
-        string calldata _name,
+        address _kreskoAsset,
         string calldata _symbol,
         uint256 _kFactor,
         address _oracle
-    ) external onlyOwner nonNullString(_symbol) nonNullString(_name) kreskoAssetDoesNotExist(_symbol) {
+    ) external onlyOwner nonNullString(_symbol) kreskoAssetDoesNotExist(_kreskoAsset, _symbol) {
         require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, "Kresko: proposed k-factor less than 1 FixedPoint");
         require(_oracle != address(0), "Kresko: proposed oracle is zero address");
 
@@ -710,14 +726,13 @@ contract Kresko is Ownable, ReentrancyGuard {
         kreskoAssetSymbols[_symbol] = true;
 
         // Deploy KreskoAsset contract and store its details.
-        KreskoAsset asset = new KreskoAsset(_name, _symbol);
-        kreskoAssets[address(asset)] = KrAsset({
+        kreskoAssets[_kreskoAsset] = KrAsset({
             kFactor: FixedPoint.Unsigned(_kFactor),
             oracle: IOracle(_oracle),
             exists: true,
             mintable: true
         });
-        emit KreskoAssetAdded(_name, _symbol, address(asset), _kFactor, _oracle);
+        emit KreskoAssetAdded(_kreskoAsset, _symbol, _kFactor, _oracle);
     }
 
     /**
@@ -957,7 +972,7 @@ contract Kresko is Ownable, ReentrancyGuard {
             collateralDeposits[_account][collateralAssetAddress] -= transferAmount;
             // Transfer the fee to the feeRecipient.
             require(
-                IERC20(collateralAssetAddress).transfer(feeRecipient, transferAmount),
+                IERC20MetadataUpgradeable(collateralAssetAddress).transfer(feeRecipient, transferAmount),
                 "Kresko: fee transfer out failed"
             );
             emit BurnFeePaid(_account, collateralAssetAddress, transferAmount, feeValuePaid.rawValue);
@@ -976,7 +991,8 @@ contract Kresko is Ownable, ReentrancyGuard {
      * @param _account The owner of the collateral.
      * @param _feeValue The original value of the fee.
      * @param _collateralAssetIndex The collateral asset's index in the user's depositedCollateralAssets array.
-     * @return The transfer amount to be received as a uint256 and a FixedPoint.Unsigned representing the fee value paid.
+     * @return The transfer amount to be received as a uint256 and a FixedPoint.Unsigned
+     * representing the fee value paid.
      */
     function calcBurnFee(
         address _collateralAssetAddress,

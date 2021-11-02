@@ -6,8 +6,6 @@ import { expect } from "chai";
 import { KreskoAsset } from "../typechain/KreskoAsset";
 import { Signers } from "../types";
 
-const { deployContract } = hre.waffle;
-
 describe("KreskoAsset", function () {
     before(async function () {
         this.signers = {} as Signers;
@@ -16,21 +14,37 @@ describe("KreskoAsset", function () {
         this.signers.admin = signers[0];
         this.userOne = signers[1];
         this.userTwo = signers[2];
+
+        // We intentionally allow constructor that calls the initializer
+        // modifier and explicitly allow this in calls to `deployProxy`.
+        // The upgrades library will still print warnings, so to avoid clutter
+        // we just silence those here.
+        console.log("Intentionally silencing Upgrades warnings");
+        hre.upgrades.silenceWarnings();
     });
 
     beforeEach(async function () {
         const name: string = "Test Asset";
         const symbol: string = "TEST";
-        const kreskoAssetArtifact: Artifact = await hre.artifacts.readArtifact("KreskoAsset");
-
-        this.kreskoAsset = <KreskoAsset>await deployContract(this.signers.admin, kreskoAssetArtifact, [name, symbol]);
+        const kreskoAssetFactory = await hre.ethers.getContractFactory("KreskoAsset");
+        this.kreskoAsset = <KreskoAsset>await (
+            await hre.upgrades.deployProxy(kreskoAssetFactory, [name, symbol, this.signers.admin.address], {
+                unsafeAllow: ["constructor"],
+            })
+        ).deployed();
     });
 
-    describe("Deployment", function () {
+    describe("#initialize", function () {
         it("should initialize the contract with the correct parameters", async function () {
             expect(await this.kreskoAsset.name()).to.equal("Test Asset");
             expect(await this.kreskoAsset.symbol()).to.equal("TEST");
             expect(await this.kreskoAsset.owner()).to.equal(this.signers.admin.address);
+        });
+
+        it("should not allow being called more than once", async function () {
+            expect(this.kreskoAsset.initialize("foo", "bar", this.signers.admin.address)).to.be.revertedWith(
+                "Initializable: contract is already initialized",
+            );
         });
     });
 
@@ -85,7 +99,9 @@ describe("KreskoAsset", function () {
             await this.kreskoAsset.connect(this.userOne).approve(this.signers.admin.address, this.mintAmount);
 
             expect(await this.kreskoAsset.totalSupply()).to.equal(this.mintAmount);
-            expect(await this.kreskoAsset.allowance(this.userOne.address, this.signers.admin.address)).to.equal(this.mintAmount);
+            expect(await this.kreskoAsset.allowance(this.userOne.address, this.signers.admin.address)).to.equal(
+                this.mintAmount,
+            );
 
             await this.kreskoAsset.connect(this.signers.admin).burn(this.userOne.address, this.mintAmount);
 
@@ -102,20 +118,22 @@ describe("KreskoAsset", function () {
             const ownerAllowance = await this.kreskoAsset.allowance(this.userOne.address, this.signers.admin.address);
             const overOwnerAllowance = ownerAllowance + 1;
 
-            await expect(this.kreskoAsset.connect(this.signers.admin).burn(this.userOne.address, overOwnerAllowance)).to.be.revertedWith(
-                "ERC20: burn amount exceeds balance",
-            );
+            await expect(
+                this.kreskoAsset.connect(this.signers.admin).burn(this.userOne.address, overOwnerAllowance),
+            ).to.be.revertedWith("ERC20: burn amount exceeds balance");
 
             // Check total supply, user's balances, and owner's allowances unchanged
             expect(await this.kreskoAsset.totalSupply()).to.equal(this.mintAmount);
             expect(await this.kreskoAsset.balanceOf(this.userOne.address)).to.equal(this.mintAmount);
-            expect(await this.kreskoAsset.allowance(this.userOne.address, this.signers.admin.address)).to.equal(this.mintAmount);
+            expect(await this.kreskoAsset.allowance(this.userOne.address, this.signers.admin.address)).to.equal(
+                this.mintAmount,
+            );
         });
 
         it("should not allow non-owner addresses to burn tokens", async function () {
-            await expect(this.kreskoAsset.connect(this.userOne).burn(this.userOne.address, this.mintAmount)).to.be.revertedWith(
-                "Ownable: caller is not the owner",
-            );
+            await expect(
+                this.kreskoAsset.connect(this.userOne).burn(this.userOne.address, this.mintAmount),
+            ).to.be.revertedWith("Ownable: caller is not the owner");
 
             // Check total supply and user's balances unchanged
             expect(await this.kreskoAsset.totalSupply()).to.equal(this.mintAmount);

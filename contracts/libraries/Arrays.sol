@@ -5,7 +5,6 @@ pragma solidity ^0.8.4;
  * @title Library for operations on arrays
  */
 library Arrays {
-
     /**
      * @dev Removes an element by copying the last element to the element to remove's place and removing
      * the last element.
@@ -18,10 +17,7 @@ library Arrays {
         address _elementToRemove,
         uint256 _elementIndex
     ) internal {
-        require(
-            _addresses[_elementIndex] == _elementToRemove,
-            "Arrays: incorrect removal index"
-        );
+        require(_addresses[_elementIndex] == _elementToRemove, "Arrays: incorrect removal index");
 
         uint256 lastIndex = _addresses.length - 1;
         // If the index to remove is not the last one, overwrite the element at the index
