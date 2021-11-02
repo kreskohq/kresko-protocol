@@ -807,7 +807,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         emit CloseFactorUpdated(_closeFactor);
     }
 
-    /**s
+    /**
      * @notice Updates the fee recipient.
      * @param _feeRecipient The new fee recipient.
      */
