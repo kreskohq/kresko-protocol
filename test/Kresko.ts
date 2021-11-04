@@ -2,7 +2,7 @@ import hre from "hardhat";
 import { Artifact } from "hardhat/types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { expect } from "chai";
-import { BigNumber, Contract } from "ethers";
+import { BigNumber, Contract, ethers } from "ethers";
 
 import { toFixedPoint, fixedPointDiv, fixedPointMul } from "../utils/fixed-point";
 import { extractEventFromTxReceipt } from "../utils/events";
@@ -11,6 +11,8 @@ import { BasicOracle } from "../typechain/BasicOracle";
 import { Kresko } from "../typechain/Kresko";
 import { KreskoAsset } from "../typechain/KreskoAsset";
 import { MockToken } from "../typechain/MockToken";
+import { NonRebasingWrapperToken } from "../typechain/NonRebasingWrapperToken";
+import { RebasingToken } from "../typechain/RebasingToken";
 import { Signers } from "../types";
 import { Result } from "@ethersproject/abi";
 
@@ -33,14 +35,37 @@ const { deployContract } = hre.waffle;
 const ONE = toFixedPoint(1);
 const ZERO_POINT_FIVE = toFixedPoint(0.5);
 
+interface CollateralAssetInfo {
+    collateralAsset: any;
+    oracle: BasicOracle;
+    factor: BigNumber;
+    oraclePrice: BigNumber;
+    decimals: number;
+    fromDecimal: (decimalValue: any) => BigNumber;
+    fromFixedPoint: (fixedPointValue: BigNumber) => BigNumber;
+    rebasingToken: RebasingToken | undefined;
+}
+
 async function deployAndWhitelistCollateralAsset(
     kresko: Contract,
     collateralFactor: number,
     oraclePrice: number,
     decimals: number,
-) {
-    const mockTokenArtifact: Artifact = await hre.artifacts.readArtifact("MockToken");
-    const collateralAsset = <MockToken>await deployContract(kresko.signer, mockTokenArtifact, [decimals]);
+    isNonRebasingWrapperToken: boolean = false,
+): Promise<CollateralAssetInfo> {
+    // Really this is MockToken | NonRebasingWrapperToken, but to avoid type pains
+    // just using any.
+    let collateralAsset: any;
+    let rebasingToken: RebasingToken | undefined;
+
+    if (isNonRebasingWrapperToken) {
+        const nwrtInfo = await deployNonRebasingWrapperToken(kresko.signer);
+        collateralAsset = nwrtInfo.nonRebasingWrapperToken;
+        rebasingToken = nwrtInfo.rebasingToken;
+    } else {
+        const mockTokenArtifact: Artifact = await hre.artifacts.readArtifact("MockToken");
+        collateralAsset = <MockToken>await deployContract(kresko.signer, mockTokenArtifact, [decimals]);
+    }
 
     const signerAddress = await kresko.signer.getAddress();
     const basicOracleArtifact: Artifact = await hre.artifacts.readArtifact("BasicOracle");
@@ -49,7 +74,12 @@ async function deployAndWhitelistCollateralAsset(
     await oracle.setValue(fixedPointOraclePrice);
 
     const fixedPointCollateralFactor = toFixedPoint(collateralFactor);
-    await kresko.addCollateralAsset(collateralAsset.address, fixedPointCollateralFactor, oracle.address, false);
+    await kresko.addCollateralAsset(
+        collateralAsset.address,
+        fixedPointCollateralFactor,
+        oracle.address,
+        isNonRebasingWrapperToken,
+    );
 
     return {
         collateralAsset,
@@ -67,6 +97,7 @@ async function deployAndWhitelistCollateralAsset(
             }
             return fixedPointValue;
         },
+        rebasingToken,
     };
 }
 
@@ -98,6 +129,27 @@ async function addNewKreskoAssetWithOraclePrice(
         oracle,
         oraclePrice: fixedPointOraclePrice,
         kFactor: fixedPointKFactor,
+    };
+}
+
+async function deployNonRebasingWrapperToken(signer: ethers.Signer) {
+    const rebasingTokenArtifact: Artifact = await hre.artifacts.readArtifact("RebasingToken");
+    const rebasingToken = <RebasingToken>await deployContract(signer, rebasingTokenArtifact, [toFixedPoint(1)]);
+
+    const nonRebasingWrapperTokenFactory = await hre.ethers.getContractFactory("NonRebasingWrapperToken");
+    const nonRebasingWrapperToken = <NonRebasingWrapperToken>await (
+        await hre.upgrades.deployProxy(
+            nonRebasingWrapperTokenFactory,
+            [rebasingToken.address, "NonRebasingWrapperToken", "NRWT"],
+            {
+                unsafeAllow: ["constructor"],
+            },
+        )
+    ).deployed();
+
+    return {
+        rebasingToken,
+        nonRebasingWrapperToken,
     };
 }
 
@@ -291,117 +343,274 @@ describe("Kresko", function () {
             }
         });
 
-        describe("#depositCollateral", function () {
-            it("should allow an account to deposit whitelisted collateral", async function () {
-                // Initially, the array of the user's deposited collateral assets should be empty.
-                const depositedCollateralAssetsBefore = await this.kresko.getDepositedCollateralAssets(
-                    this.userOne.address,
-                );
-                expect(depositedCollateralAssetsBefore).to.deep.equal([]);
+        describe("Depositing collateral", function () {
+            describe("#depositCollateral", function () {
+                it("should allow an account to deposit whitelisted collateral", async function () {
+                    // Initially, the array of the user's deposited collateral assets should be empty.
+                    const depositedCollateralAssetsBefore = await this.kresko.getDepositedCollateralAssets(
+                        this.userOne.address,
+                    );
+                    expect(depositedCollateralAssetsBefore).to.deep.equal([]);
 
-                const collateralAssetInfo = this.collateralAssetInfos[0];
-                const collateralAsset = collateralAssetInfo.collateralAsset;
+                    const collateralAssetInfo = this.collateralAssetInfos[0];
+                    const collateralAsset = collateralAssetInfo.collateralAsset;
 
-                // Deposit it
-                const depositAmount = collateralAssetInfo.fromDecimal(123.321);
-                await this.kresko.connect(this.userOne).depositCollateral(collateralAsset.address, depositAmount);
+                    // Deposit it
+                    const depositAmount = collateralAssetInfo.fromDecimal(123.321);
+                    await this.kresko.connect(this.userOne).depositCollateral(collateralAsset.address, depositAmount);
 
-                // Confirm the array of the user's deposited collateral assets has been pushed to.
-                const depositedCollateralAssetsAfter = await this.kresko.getDepositedCollateralAssets(
-                    this.userOne.address,
-                );
-                expect(depositedCollateralAssetsAfter).to.deep.equal([collateralAsset.address]);
+                    // Confirm the array of the user's deposited collateral assets has been pushed to.
+                    const depositedCollateralAssetsAfter = await this.kresko.getDepositedCollateralAssets(
+                        this.userOne.address,
+                    );
+                    expect(depositedCollateralAssetsAfter).to.deep.equal([collateralAsset.address]);
 
-                // Confirm the amount deposited is recorded for the user.
-                const amountDeposited = await this.kresko.collateralDeposits(
-                    this.userOne.address,
-                    collateralAsset.address,
-                );
-                expect(amountDeposited).to.equal(depositAmount);
+                    // Confirm the amount deposited is recorded for the user.
+                    const amountDeposited = await this.kresko.collateralDeposits(
+                        this.userOne.address,
+                        collateralAsset.address,
+                    );
+                    expect(amountDeposited).to.equal(depositAmount);
 
-                // Confirm the amount as been transferred from the user into Kresko.sol
-                const kreskoBalance = await collateralAsset.balanceOf(this.kresko.address);
-                expect(kreskoBalance).to.equal(depositAmount);
-                const userOneBalance = await collateralAsset.balanceOf(this.userOne.address);
-                expect(userOneBalance).to.equal(
-                    collateralAssetInfo.fromDecimal(this.initialUserCollateralBalance).sub(depositAmount),
-                );
+                    // Confirm the amount as been transferred from the user into Kresko.sol
+                    const kreskoBalance = await collateralAsset.balanceOf(this.kresko.address);
+                    expect(kreskoBalance).to.equal(depositAmount);
+                    const userOneBalance = await collateralAsset.balanceOf(this.userOne.address);
+                    expect(userOneBalance).to.equal(
+                        collateralAssetInfo.fromDecimal(this.initialUserCollateralBalance).sub(depositAmount),
+                    );
+                });
+
+                it("should allow an account to deposit more collateral to an existing deposit", async function () {
+                    const collateralAssetInfo = this.collateralAssetInfos[0];
+                    const collateralAsset = collateralAssetInfo.collateralAsset;
+
+                    // Deposit an initial amount
+                    const depositAmount0 = collateralAssetInfo.fromDecimal(123.321);
+                    await this.kresko.connect(this.userOne).depositCollateral(collateralAsset.address, depositAmount0);
+
+                    // Deposit a secound amount
+                    const depositAmount1 = collateralAssetInfo.fromDecimal(321.123);
+                    await this.kresko.connect(this.userOne).depositCollateral(collateralAsset.address, depositAmount1);
+
+                    // Confirm the array of the user's deposited collateral assets hasn't been double-pushed to.
+                    const depositedCollateralAssetsAfter = await this.kresko.getDepositedCollateralAssets(
+                        this.userOne.address,
+                    );
+                    expect(depositedCollateralAssetsAfter).to.deep.equal([collateralAsset.address]);
+
+                    // Confirm the amount deposited is recorded for the user.
+                    const amountDeposited = await this.kresko.collateralDeposits(
+                        this.userOne.address,
+                        collateralAsset.address,
+                    );
+                    expect(amountDeposited).to.equal(depositAmount0.add(depositAmount1));
+                });
+
+                it("should allow an account to have deposited multiple collateral assets", async function () {
+                    const [collateralAssetInfo0, collateralAssetInfo1] = this.collateralAssetInfos;
+                    const collateralAsset0 = collateralAssetInfo0.collateralAsset;
+                    const collateralAsset1 = collateralAssetInfo1.collateralAsset;
+
+                    // Deposit a collateral asset.
+                    const depositAmount0 = collateralAssetInfo0.fromDecimal(123.321);
+                    await this.kresko.connect(this.userOne).depositCollateral(collateralAsset0.address, depositAmount0);
+
+                    // Deposit a different collateral asset.
+                    const depositAmount1 = collateralAssetInfo1.fromDecimal(321.123);
+                    await this.kresko.connect(this.userOne).depositCollateral(collateralAsset1.address, depositAmount1);
+
+                    // Confirm the array of the user's deposited collateral assets hasn't been double-pushed to.
+                    const depositedCollateralAssetsAfter = await this.kresko.getDepositedCollateralAssets(
+                        this.userOne.address,
+                    );
+                    expect(depositedCollateralAssetsAfter).to.deep.equal([
+                        collateralAsset0.address,
+                        collateralAsset1.address,
+                    ]);
+                });
+
+                it("should emit CollateralDeposited event", async function () {
+                    const collateralAssetInfo = this.collateralAssetInfos[0];
+                    const collateralAsset = collateralAssetInfo.collateralAsset;
+                    const depositAmount = collateralAssetInfo.fromDecimal(123.321);
+                    const receipt = await this.kresko
+                        .connect(this.userOne)
+                        .depositCollateral(collateralAsset.address, depositAmount);
+
+                    const event = (await extractEventFromTxReceipt(receipt, "CollateralDeposited"))![0].args!;
+                    expect(event.account).to.equal(this.userOne.address);
+                    expect(event.collateralAsset).to.equal(collateralAsset.address);
+                    expect(event.amount).to.equal(depositAmount);
+                });
+
+                it("should revert if depositing collateral that has not been whitelisted", async function () {
+                    await expect(
+                        this.kresko.connect(this.userOne).depositCollateral(ADDRESS_ONE, parseEther("123")),
+                    ).to.be.revertedWith("Kresko: collateral doesn't exist");
+                });
+
+                it("should revert if depositing an amount of 0", async function () {
+                    const collateralAsset = this.collateralAssetInfos[0].collateralAsset;
+                    await expect(
+                        this.kresko.connect(this.userOne).depositCollateral(collateralAsset.address, 0),
+                    ).to.be.revertedWith("Kresko: amount is zero");
+                });
             });
 
-            it("should allow an account to deposit more collateral to an existing deposit", async function () {
-                const collateralAssetInfo = this.collateralAssetInfos[0];
-                const collateralAsset = collateralAssetInfo.collateralAsset;
+            describe("#depositRebasingCollateral", function () {
+                beforeEach(async function () {
+                    this.collateralAssetInfos = await Promise.all([
+                        deployAndWhitelistCollateralAsset(this.kresko, 0.8, 123.45, 18, true),
+                        deployAndWhitelistCollateralAsset(this.kresko, 0.7, 420.123, 18, true),
+                    ]);
 
-                // Deposit an initial amount
-                const depositAmount0 = collateralAssetInfo.fromDecimal(123.321);
-                await this.kresko.connect(this.userOne).depositCollateral(collateralAsset.address, depositAmount0);
+                    // Give userOne a balance of 1000 for each rebasing (ie underlying) token.
+                    this.initialUserCollateralBalance = 1000;
+                    for (const collateralAssetInfo of this.collateralAssetInfos) {
+                        await collateralAssetInfo.rebasingToken!.setBalanceOf(
+                            this.userOne.address,
+                            collateralAssetInfo.fromDecimal(this.initialUserCollateralBalance),
+                        );
+                        // also set approval for Kresko.sol -- virtually infinite for ease of testing
+                        await collateralAssetInfo
+                            .rebasingToken!.connect(this.userOne)
+                            .approve(this.kresko.address, ethers.BigNumber.from(2).pow(256).sub(1));
+                    }
+                });
 
-                // Deposit a secound amount
-                const depositAmount1 = collateralAssetInfo.fromDecimal(321.123);
-                await this.kresko.connect(this.userOne).depositCollateral(collateralAsset.address, depositAmount1);
+                it("should allow an account to deposit whitelisted collateral", async function () {
+                    // Initially, the array of the user's deposited collateral assets should be empty.
+                    const depositedCollateralAssetsBefore = await this.kresko.getDepositedCollateralAssets(
+                        this.userOne.address,
+                    );
+                    expect(depositedCollateralAssetsBefore).to.deep.equal([]);
 
-                // Confirm the array of the user's deposited collateral assets hasn't been double-pushed to.
-                const depositedCollateralAssetsAfter = await this.kresko.getDepositedCollateralAssets(
-                    this.userOne.address,
-                );
-                expect(depositedCollateralAssetsAfter).to.deep.equal([collateralAsset.address]);
+                    const collateralAssetInfo = this.collateralAssetInfos[0];
+                    const collateralAsset = collateralAssetInfo.collateralAsset;
 
-                // Confirm the amount deposited is recorded for the user.
-                const amountDeposited = await this.kresko.collateralDeposits(
-                    this.userOne.address,
-                    collateralAsset.address,
-                );
-                expect(amountDeposited).to.equal(depositAmount0.add(depositAmount1));
-            });
+                    // Deposit it
+                    const depositAmount = collateralAssetInfo.fromDecimal(123.321);
+                    await this.kresko
+                        .connect(this.userOne)
+                        .depositRebasingCollateral(collateralAsset.address, depositAmount);
 
-            it("should allow an account to have deposited multiple collateral assets", async function () {
-                const [collateralAssetInfo0, collateralAssetInfo1] = this.collateralAssetInfos;
-                const collateralAsset0 = collateralAssetInfo0.collateralAsset;
-                const collateralAsset1 = collateralAssetInfo1.collateralAsset;
+                    // Confirm the array of the user's deposited collateral assets has been pushed to.
+                    const depositedCollateralAssetsAfter = await this.kresko.getDepositedCollateralAssets(
+                        this.userOne.address,
+                    );
+                    expect(depositedCollateralAssetsAfter).to.deep.equal([collateralAsset.address]);
 
-                // Deposit a collateral asset.
-                const depositAmount0 = collateralAssetInfo0.fromDecimal(123.321);
-                await this.kresko.connect(this.userOne).depositCollateral(collateralAsset0.address, depositAmount0);
+                    // Confirm the amount deposited is recorded for the user.
+                    const amountDeposited = await this.kresko.collateralDeposits(
+                        this.userOne.address,
+                        collateralAsset.address,
+                    );
+                    expect(amountDeposited).to.equal(depositAmount);
 
-                // Deposit a different collateral asset.
-                const depositAmount1 = collateralAssetInfo1.fromDecimal(321.123);
-                await this.kresko.connect(this.userOne).depositCollateral(collateralAsset1.address, depositAmount1);
+                    // Confirm the amount as been transferred from the user into Kresko.sol
+                    const kreskoNonRebasingTokenBalance = await collateralAsset.balanceOf(this.kresko.address);
+                    expect(kreskoNonRebasingTokenBalance).to.equal(depositAmount);
+                    const userOneRebasingTokenBalance = await collateralAssetInfo.rebasingToken.balanceOf(
+                        this.userOne.address,
+                    );
+                    expect(userOneRebasingTokenBalance).to.equal(
+                        collateralAssetInfo.fromDecimal(this.initialUserCollateralBalance).sub(depositAmount),
+                    );
+                });
 
-                // Confirm the array of the user's deposited collateral assets hasn't been double-pushed to.
-                const depositedCollateralAssetsAfter = await this.kresko.getDepositedCollateralAssets(
-                    this.userOne.address,
-                );
-                expect(depositedCollateralAssetsAfter).to.deep.equal([
-                    collateralAsset0.address,
-                    collateralAsset1.address,
-                ]);
-            });
+                it("should allow an account to deposit more collateral to an existing deposit", async function () {
+                    const collateralAssetInfo = this.collateralAssetInfos[0];
+                    const collateralAsset = collateralAssetInfo.collateralAsset;
 
-            it("should emit CollateralDeposited event", async function () {
-                const collateralAssetInfo = this.collateralAssetInfos[0];
-                const collateralAsset = collateralAssetInfo.collateralAsset;
-                const depositAmount = collateralAssetInfo.fromDecimal(123.321);
-                const receipt = await this.kresko
-                    .connect(this.userOne)
-                    .depositCollateral(collateralAsset.address, depositAmount);
+                    // Deposit an initial amount
+                    const depositAmount0 = collateralAssetInfo.fromDecimal(123.321);
+                    await this.kresko
+                        .connect(this.userOne)
+                        .depositRebasingCollateral(collateralAsset.address, depositAmount0);
 
-                const event = (await extractEventFromTxReceipt(receipt, "CollateralDeposited"))![0].args!;
-                expect(event.account).to.equal(this.userOne.address);
-                expect(event.collateralAsset).to.equal(collateralAsset.address);
-                expect(event.amount).to.equal(depositAmount);
-            });
+                    // Deposit a secound amount
+                    const depositAmount1 = collateralAssetInfo.fromDecimal(321.123);
+                    await this.kresko
+                        .connect(this.userOne)
+                        .depositRebasingCollateral(collateralAsset.address, depositAmount1);
 
-            it("should revert if depositing collateral that has not been whitelisted", async function () {
-                await expect(
-                    this.kresko.connect(this.userOne).depositCollateral(ADDRESS_ONE, parseEther("123")),
-                ).to.be.revertedWith("Kresko: collateral doesn't exist");
-            });
+                    // Confirm the array of the user's deposited collateral assets hasn't been double-pushed to.
+                    const depositedCollateralAssetsAfter = await this.kresko.getDepositedCollateralAssets(
+                        this.userOne.address,
+                    );
+                    expect(depositedCollateralAssetsAfter).to.deep.equal([collateralAsset.address]);
 
-            it("should revert if depositing an amount of 0", async function () {
-                const collateralAsset = this.collateralAssetInfos[0].collateralAsset;
-                await expect(
-                    this.kresko.connect(this.userOne).depositCollateral(collateralAsset.address, 0),
-                ).to.be.revertedWith("Kresko: amount is zero");
+                    // Confirm the amount deposited is recorded for the user.
+                    const amountDeposited = await this.kresko.collateralDeposits(
+                        this.userOne.address,
+                        collateralAsset.address,
+                    );
+                    expect(amountDeposited).to.equal(depositAmount0.add(depositAmount1));
+                });
+
+                it("should allow an account to have deposited multiple collateral assets", async function () {
+                    const [collateralAssetInfo0, collateralAssetInfo1] = this.collateralAssetInfos;
+                    const collateralAsset0 = collateralAssetInfo0.collateralAsset;
+                    const collateralAsset1 = collateralAssetInfo1.collateralAsset;
+
+                    // Deposit a collateral asset.
+                    const depositAmount0 = collateralAssetInfo0.fromDecimal(123.321);
+                    await this.kresko
+                        .connect(this.userOne)
+                        .depositRebasingCollateral(collateralAsset0.address, depositAmount0);
+
+                    // Deposit a different collateral asset.
+                    const depositAmount1 = collateralAssetInfo1.fromDecimal(321.123);
+                    await this.kresko
+                        .connect(this.userOne)
+                        .depositRebasingCollateral(collateralAsset1.address, depositAmount1);
+
+                    // Confirm the array of the user's deposited collateral assets hasn't been double-pushed to.
+                    const depositedCollateralAssetsAfter = await this.kresko.getDepositedCollateralAssets(
+                        this.userOne.address,
+                    );
+                    expect(depositedCollateralAssetsAfter).to.deep.equal([
+                        collateralAsset0.address,
+                        collateralAsset1.address,
+                    ]);
+                });
+
+                it("should emit CollateralDeposited event", async function () {
+                    const collateralAssetInfo = this.collateralAssetInfos[0];
+                    const collateralAsset = collateralAssetInfo.collateralAsset;
+                    const depositAmount = collateralAssetInfo.fromDecimal(123.321);
+                    const receipt = await this.kresko
+                        .connect(this.userOne)
+                        .depositRebasingCollateral(collateralAsset.address, depositAmount);
+
+                    const event = (await extractEventFromTxReceipt(receipt, "CollateralDeposited"))![0].args!;
+                    expect(event.account).to.equal(this.userOne.address);
+                    expect(event.collateralAsset).to.equal(collateralAsset.address);
+                    expect(event.amount).to.equal(depositAmount);
+                });
+
+                it("should revert if depositing collateral that has not been whitelisted", async function () {
+                    await expect(
+                        this.kresko.connect(this.userOne).depositRebasingCollateral(ADDRESS_ONE, parseEther("123")),
+                    ).to.be.revertedWith("Kresko: collateral doesn't exist");
+                });
+
+                it("should revert if depositing an amount of 0", async function () {
+                    const collateralAsset = this.collateralAssetInfos[0].collateralAsset;
+                    await expect(
+                        this.kresko.connect(this.userOne).depositRebasingCollateral(collateralAsset.address, 0),
+                    ).to.be.revertedWith("Kresko: rebasing amount is zero");
+                });
+
+                it("should revert if depositing collateral that is not a NonRebasingWrapperToken", async function () {
+                    const nonNRWTInfo = await deployAndWhitelistCollateralAsset(this.kresko, 0.8, 123.45, 18);
+                    await expect(
+                        this.kresko
+                            .connect(this.userOne)
+                            .depositRebasingCollateral(nonNRWTInfo.collateralAsset.address, 1),
+                    ).to.be.revertedWith("Kresko: collateral asset not NonRebasingWrapperToken");
+                });
             });
         });
 
