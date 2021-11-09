@@ -140,28 +140,6 @@ contract NonRebasingWrapperToken is Initializable, ERC20Upgradeable {
     }
 
     /**
-     * @notice Gets the amount of this token that corresponds to a provided amount of
-     * the underlying token using the current total supply of this token.
-     * @dev This value is NOT the amount of the non-rebasing token that would be minted
-     * upon a deposit as this function relies upon the existing total supply.
-     * @param _underlyingAmount The amount of the underlying rebasing token.
-     * @return The amount of this token using the current total supply that corresponds
-     * to the provided underlying token amount.
-     */
-    function getNonRebasingAmount(uint256 _underlyingAmount) public view returns (uint256) {
-        if (_underlyingAmount == 0) {
-            return 0;
-        }
-
-        uint256 underlyingBalance = underlyingToken.balanceOf(address(this));
-        require(_underlyingAmount <= underlyingBalance, "NRWToken: underlying amount exceeds wrapped amount");
-
-        FixedPoint.Unsigned memory shareOfUnderlying =
-            FixedPoint.Unsigned(_underlyingAmount).div(FixedPoint.Unsigned(underlyingBalance));
-        return shareOfUnderlying.mul(FixedPoint.Unsigned(totalSupply())).rawValue;
-    }
-
-    /**
      * @notice Gets the amount of underlying tokens corresponding to a provided amount of this contract's tokens.
      * @dev Loss of precision could result in a marginally lower amount returned, but should never
      *   result in a higher value than intended. Dust from any lower amounts that are withdrawn
