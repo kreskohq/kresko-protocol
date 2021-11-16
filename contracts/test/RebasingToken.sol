@@ -54,6 +54,10 @@ contract RebasingToken {
         _balances[_account] += fromRebasedAmount(_amount);
     }
 
+    function setBalanceOf(address _account, uint256 _amount) external {
+        _balances[_account] = fromRebasedAmount(_amount);
+    }
+
     function balanceOf(address _account) external view returns (uint256) {
         return toRebasedAmount(_balances[_account]);
     }
