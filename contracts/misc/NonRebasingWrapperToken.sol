@@ -90,7 +90,7 @@ contract NonRebasingWrapperToken is Initializable, ERC20Upgradeable {
         uint256 mintAmount =
             _totalSupply == 0 || underlyingBalanceBefore == 0
                 ? depositAmount
-                : (depositAmount * totalSupply()) / underlyingBalanceBefore;
+                : (depositAmount * _totalSupply) / underlyingBalanceBefore;
         _mint(msg.sender, mintAmount);
 
         emit DepositedUnderlying(msg.sender, depositAmount, mintAmount);

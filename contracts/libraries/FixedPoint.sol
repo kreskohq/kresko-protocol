@@ -290,7 +290,7 @@ library FixedPoint {
     /**
      * @notice Multiplies an `Unsigned` and an unscaled uint256 and "ceil's" the product, reverting on overflow.
      * @param a a FixedPoint.
-     * @param b a FixedPoint.
+     * @param b a uint256.
      * @return the product of `a` and `b`.
      */
     function mulCeil(Unsigned memory a, uint256 b) internal pure returns (Unsigned memory) {
@@ -673,7 +673,7 @@ library FixedPoint {
     /**
      * @notice Multiplies an `Signed` and an unscaled int256 and "ceil's" the product, reverting on overflow.
      * @param a a FixedPoint.Signed.
-     * @param b a FixedPoint.Signed.
+     * @param b an int256.
      * @return the product of `a` and `b`.
      */
     function mulAwayFromZero(Signed memory a, int256 b) internal pure returns (Signed memory) {
