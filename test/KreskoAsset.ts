@@ -123,6 +123,14 @@ describe("KreskoAsset", function () {
             expect(await this.kreskoAsset.balanceOf(this.signers.admin.address)).to.equal(0);
         });
 
+        it("should not allow admin to mint any tokens", async function () {
+            await expect(
+                this.kreskoAsset.connect(this.signers.admin).mint(this.signers.admin.address, this.mintAmount),
+            ).to.be.revertedWith(
+                `AccessControl: account ${this.signers.admin.address.toLowerCase()} is missing role 0x8952ae23cc3fea91b9dba0cefa16d18a26ca2bf124b54f42b5d04bce3aacecd2`,
+            );
+        });
+
         it("should not allow the operator to burn more tokens than allowances permit", async function () {
             await this.kreskoAsset.connect(this.signers.admin).approve(this.operator.address, this.mintAmount);
 
