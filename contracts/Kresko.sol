@@ -422,7 +422,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         );
 
         // Record the collateral deposit.
-        recordCollateralDeposit(_collateralAsset, _amount);
+        _recordCollateralDeposit(_collateralAsset, _amount);
     }
 
     /**
@@ -458,7 +458,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         uint256 nonRebasingAmount = INonRebasingWrapperToken(_collateralAsset).depositUnderlying(_rebasingAmount);
 
         // Record the collateral deposit.
-        recordCollateralDeposit(_collateralAsset, nonRebasingAmount);
+        _recordCollateralDeposit(_collateralAsset, nonRebasingAmount);
     }
 
     /**
@@ -474,7 +474,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         uint256 _amount,
         uint256 _depositedCollateralAssetIndex
     ) external nonReentrant collateralAssetExists(_collateralAsset) {
-        verifyAndRecordCollateralWithdrawal(_collateralAsset, _amount, _depositedCollateralAssetIndex);
+        _verifyAndRecordCollateralWithdrawal(_collateralAsset, _amount, _depositedCollateralAssetIndex);
 
         require(
             IERC20MetadataUpgradeable(_collateralAsset).transfer(msg.sender, _amount),
@@ -494,7 +494,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         uint256 _amount,
         uint256 _depositedCollateralAssetIndex
     ) external nonReentrant collateralAssetExists(_collateralAsset) {
-        verifyAndRecordCollateralWithdrawal(_collateralAsset, _amount, _depositedCollateralAssetIndex);
+        _verifyAndRecordCollateralWithdrawal(_collateralAsset, _amount, _depositedCollateralAssetIndex);
 
         address underlyingRebasingToken = collateralAssets[_collateralAsset].underlyingRebasingToken;
         require(underlyingRebasingToken != address(0), "Kresko: collateral asset not NonRebasingWrapperToken");
@@ -575,7 +575,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
             mintedKreskoAssets[msg.sender].removeAddress(_kreskoAsset, _mintedKreskoAssetIndex);
         }
 
-        chargeBurnFee(msg.sender, _kreskoAsset, _amount);
+        _chargeBurnFee(msg.sender, _kreskoAsset, _amount);
 
         // Burn the received kresko assets, removing them from circulation.
         IKreskoAsset(_kreskoAsset).burn(msg.sender, _amount);
@@ -624,9 +624,9 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
             FixedPoint.Unsigned(_repayAmount).mul(FixedPoint.Unsigned(kreskoAssets[_repayKreskoAsset].oracle.value()));
 
         // Calculate amount of collateral to seize.
-        uint256 seizeAmount = calculateAmountToSeize(_collateralAssetToSeize, repayAmountUSD);
+        uint256 seizeAmount = _calculateAmountToSeize(_collateralAssetToSeize, repayAmountUSD);
 
-        liquidateAssets(
+        _liquidateAssets(
             _account,
             krAssetDebt,
             _repayAmount,
@@ -893,7 +893,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * @param _collateralAsset The address of the collateral asset.
      * @param _amount The amount of the collateral asset deposited.
      */
-    function recordCollateralDeposit(address _collateralAsset, uint256 _amount) internal {
+    function _recordCollateralDeposit(address _collateralAsset, uint256 _amount) internal {
         // Because the depositedCollateralAssets[msg.sender] is pushed to if the existing
         // deposit amount is 0, require the amount to be > 0. Otherwise, the depositedCollateralAssets[msg.sender]
         // could be filled with duplicates, causing collateral to be double-counted in the collateral value.
@@ -911,7 +911,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         emit CollateralDeposited(msg.sender, _collateralAsset, _amount);
     }
 
-    function verifyAndRecordCollateralWithdrawal(
+    function _verifyAndRecordCollateralWithdrawal(
         address _collateralAsset,
         uint256 _amount,
         uint256 _depositedCollateralAssetIndex
@@ -962,7 +962,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * @param _amount The amount of the collateral asset.
      * @return A FixedPoint.Unsigned of amount scaled according to the collateral asset's decimals.
      */
-    function toCollateralFixedPointAmount(address _collateralAsset, uint256 _amount)
+    function _toCollateralFixedPointAmount(address _collateralAsset, uint256 _amount)
         internal
         view
         returns (FixedPoint.Unsigned memory)
@@ -1001,7 +1001,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * @param _fixedPointAmount The fixed point amount of the collateral asset.
      * @return An amount that is compatible with the collateral asset's decimals.
      */
-    function fromCollateralFixedPointAmount(address _collateralAsset, FixedPoint.Unsigned memory _fixedPointAmount)
+    function _fromCollateralFixedPointAmount(address _collateralAsset, FixedPoint.Unsigned memory _fixedPointAmount)
         internal
         view
         returns (uint256)
@@ -1040,7 +1040,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * @param _kreskoAsset The address of the kresko asset being burned.
      * @param _kreskoAssetAmountBurned The amount of the kresko asset being burned.
      */
-    function chargeBurnFee(
+    function _chargeBurnFee(
         address _account,
         address _kreskoAsset,
         uint256 _kreskoAssetAmountBurned
@@ -1064,7 +1064,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
             address collateralAssetAddress = accountCollateralAssets[i];
 
             (uint256 transferAmount, FixedPoint.Unsigned memory feeValuePaid) =
-                calcBurnFee(collateralAssetAddress, _account, feeValue, i);
+                _calcBurnFee(collateralAssetAddress, _account, feeValue, i);
 
             // Remove the transferAmount from the stored deposit for the account.
             collateralDeposits[_account][collateralAssetAddress] -= transferAmount;
@@ -1092,7 +1092,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * @return The transfer amount to be received as a uint256 and a FixedPoint.Unsigned
      * representing the fee value paid.
      */
-    function calcBurnFee(
+    function _calcBurnFee(
         address _collateralAssetAddress,
         address _account,
         FixedPoint.Unsigned memory _feeValue,
@@ -1125,7 +1125,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
             // We see that:
             //   transferAmount <= feeValue / oraclePrice < depositAmount
             //   transferAmount < depositAmount
-            transferAmount = fromCollateralFixedPointAmount(_collateralAssetAddress, _feeValue.div(oraclePrice));
+            transferAmount = _fromCollateralFixedPointAmount(_collateralAssetAddress, _feeValue.div(oraclePrice));
             feeValuePaid = _feeValue;
         } else {
             // If the feeValue >= depositValue, the entire deposit
@@ -1145,7 +1145,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * @param _collateralAssetToSeize The address of the collateral asset to be seized.
      * @param _kreskoAssetRepayAmountUSD Kresko asset amount being repaid in exchange for the seized collateral.
      */
-    function calculateAmountToSeize(
+    function _calculateAmountToSeize(
         address _collateralAssetToSeize,
         FixedPoint.Unsigned memory _kreskoAssetRepayAmountUSD
     ) internal view returns (uint256) {
@@ -1156,7 +1156,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         // Seize amount = (repay amount USD / exchange rate of collateral asset) * liquidation incentive.
         FixedPoint.Unsigned memory seizeAmount = _kreskoAssetRepayAmountUSD.div(oraclePrice).mul(liquidationIncentive); // Denominate seize amount in collateral type // Apply liquidation percentage
 
-        return fromCollateralFixedPointAmount(_collateralAssetToSeize, seizeAmount);
+        return _fromCollateralFixedPointAmount(_collateralAssetToSeize, seizeAmount);
     }
 
     /**
@@ -1170,7 +1170,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * @param _collateralAssetToSeize The address of the collateral asset to be seized.
      * @param _depositedCollateralAssetIndex The index of the collateral asset in the account's collateral assets array.
      */
-    function liquidateAssets(
+    function _liquidateAssets(
         address _account,
         uint256 _krAssetDebt,
         uint256 _repayAmount,
@@ -1284,7 +1284,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
     ) public view returns (FixedPoint.Unsigned memory, FixedPoint.Unsigned memory) {
         CollateralAsset memory collateralAsset = collateralAssets[_collateralAsset];
 
-        FixedPoint.Unsigned memory fixedPointAmount = toCollateralFixedPointAmount(_collateralAsset, _amount);
+        FixedPoint.Unsigned memory fixedPointAmount = _toCollateralFixedPointAmount(_collateralAsset, _amount);
         FixedPoint.Unsigned memory oraclePrice = FixedPoint.Unsigned(collateralAsset.oracle.value());
         FixedPoint.Unsigned memory value = fixedPointAmount.mul(oraclePrice);
 
