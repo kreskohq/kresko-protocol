@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 
@@ -10,7 +10,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
  * to the contract's owner. Tokens can be minted to any address, but
  * can only be burned from the owner's address.
  */
-contract KreskoAsset is Initializable, ERC20Upgradeable, OwnableUpgradeable {
+contract KreskoAsset is Initializable, ERC20Upgradeable, AccessControlEnumerableUpgradeable {
     /**
      * @notice Empty constructor, see `initialize`.
      * @dev Protects against a call to initialize when this contract is called directly without a proxy.
@@ -19,6 +19,9 @@ contract KreskoAsset is Initializable, ERC20Upgradeable, OwnableUpgradeable {
         // solhint-disable-previous-line no-empty-blocks
         // Intentionally left blank.
     }
+
+    // keccak256("kresko.operator.role")
+    bytes32 public constant OPERATOR_ROLE = 0x8952ae23cc3fea91b9dba0cefa16d18a26ca2bf124b54f42b5d04bce3aacecd2;
 
     /**
      * @notice Initializes a KreskoAsset ERC20 token.
@@ -30,12 +33,13 @@ contract KreskoAsset is Initializable, ERC20Upgradeable, OwnableUpgradeable {
     function initialize(
         string memory _name,
         string memory _symbol,
-        address _owner
+        address _owner,
+        address _operator
     ) external initializer {
         __ERC20_init(_name, _symbol);
-        // Set msg.sender as owner so that transferOwnership can be called.
-        __Ownable_init();
-        transferOwnership(_owner);
+        __AccessControlEnumerable_init();
+        _setupRole(DEFAULT_ADMIN_ROLE, _owner);
+        _setupRole(OPERATOR_ROLE, _operator);
     }
 
     /**
@@ -44,7 +48,7 @@ contract KreskoAsset is Initializable, ERC20Upgradeable, OwnableUpgradeable {
      * @param _account The recipient address of the mint.
      * @param _amount The amount of tokens to mint.
      */
-    function mint(address _account, uint256 _amount) external onlyOwner {
+    function mint(address _account, uint256 _amount) external onlyRole(OPERATOR_ROLE) {
         _mint(_account, _amount);
     }
 
@@ -54,7 +58,7 @@ contract KreskoAsset is Initializable, ERC20Upgradeable, OwnableUpgradeable {
      * @param _account The address to burn tokens from.
      * @param _amount The amount of tokens to burn.
      */
-    function burn(address _account, uint256 _amount) external onlyOwner {
+    function burn(address _account, uint256 _amount) external onlyRole(OPERATOR_ROLE) {
         _burn(_account, _amount);
 
         uint256 currentAllowance = allowance(_account, _msgSender());

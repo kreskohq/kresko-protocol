@@ -117,7 +117,7 @@ async function addNewKreskoAssetWithOraclePrice(
 
     const kreskoAssetFactory = await hre.ethers.getContractFactory("KreskoAsset");
     const kreskoAsset = <KreskoAsset>await (
-        await hre.upgrades.deployProxy(kreskoAssetFactory, [name, symbol, kresko.address], {
+        await hre.upgrades.deployProxy(kreskoAssetFactory, [name, symbol, signerAddress, kresko.address], {
             unsafeAllow: ["constructor"],
         })
     ).deployed();
@@ -895,9 +895,13 @@ describe("Kresko", function () {
         ) {
             const kreskoAssetFactory = await hre.ethers.getContractFactory("KreskoAsset");
             const kreskoAsset = <KreskoAsset>await (
-                await hre.upgrades.deployProxy(kreskoAssetFactory, [name, symbol, this.kresko.address], {
-                    unsafeAllow: ["constructor"],
-                })
+                await hre.upgrades.deployProxy(
+                    kreskoAssetFactory,
+                    [name, symbol, this.signers.admin.address, this.kresko.address],
+                    {
+                        unsafeAllow: ["constructor"],
+                    },
+                )
             ).deployed();
             await this.kresko.addKreskoAsset(kreskoAsset.address, symbol, kFactor, oracleAddress);
             return kreskoAsset;
@@ -916,6 +920,23 @@ describe("Kresko", function () {
                 const kreskoAssetInfo = await this.kresko.kreskoAssets(deployedKreskoAsset.address);
                 expect(kreskoAssetInfo.kFactor.rawValue).to.equal(ONE.toString());
                 expect(kreskoAssetInfo.oracle).to.equal(ADDRESS_TWO);
+            });
+
+            it("should not allow adding kresko asset that does not have Kresko as operator", async function () {
+                const kreskoAssetFactory = await hre.ethers.getContractFactory("KreskoAsset");
+                const kreskoAsset = <KreskoAsset>await (
+                    await hre.upgrades.deployProxy(
+                        kreskoAssetFactory,
+                        ["TEST", "TEST2", this.signers.admin.address, this.userTwo.address],
+                        {
+                            unsafeAllow: ["constructor"],
+                        },
+                    )
+                ).deployed();
+
+                await expect(
+                    this.kresko.addKreskoAsset(kreskoAsset.address, "TEST2", ONE, ADDRESS_TWO),
+                ).to.be.revertedWith("Kresko: Not set as operator");
             });
 
             it("should not allow kresko assets that have the same symbol as an existing kresko asset", async function () {

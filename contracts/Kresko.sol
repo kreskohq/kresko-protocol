@@ -750,6 +750,8 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
     ) external onlyOwner nonNullString(_symbol) kreskoAssetDoesNotExist(_kreskoAsset, _symbol) {
         require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, "Kresko: proposed k-factor less than 1 FixedPoint");
         require(_oracle != address(0), "Kresko: proposed oracle is zero address");
+        IKreskoAsset kreskoAsset = IKreskoAsset(_kreskoAsset);
+        require(kreskoAsset.hasRole(kreskoAsset.OPERATOR_ROLE(), address(this)), "Kresko: Not set as operator");
 
         // Store symbol to prevent duplicate KreskoAsset symbols.
         kreskoAssetSymbols[_symbol] = true;
@@ -1152,10 +1154,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
             FixedPoint.Unsigned(collateralAssets[_collateralAssetToSeize].oracle.value());
 
         // Seize amount = (repay amount USD / exchange rate of collateral asset) * liquidation incentive.
-        FixedPoint.Unsigned memory seizeAmount =
-            _kreskoAssetRepayAmountUSD
-                .div(oraclePrice) // Denominate seize amount in collateral type
-                .mul(liquidationIncentive); // Apply liquidation percentage
+        FixedPoint.Unsigned memory seizeAmount = _kreskoAssetRepayAmountUSD.div(oraclePrice).mul(liquidationIncentive); // Denominate seize amount in collateral type // Apply liquidation percentage
 
         return fromCollateralFixedPointAmount(_collateralAssetToSeize, seizeAmount);
     }
