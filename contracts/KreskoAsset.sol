@@ -25,10 +25,11 @@ contract KreskoAsset is Initializable, ERC20Upgradeable, AccessControlEnumerable
 
     /**
      * @notice Initializes a KreskoAsset ERC20 token.
-     * @dev Intended to be owned by the Kresko smart contract.
+     * @dev Intended to be operated by the Kresko smart contract.
      * @param _name The name of the KreskoAsset.
      * @param _symbol The symbol of the KreskoAsset.
      * @param _owner The owner of this contract.
+     * @param _operator The mint/burn operator.
      */
     function initialize(
         string memory _name,
@@ -44,7 +45,7 @@ contract KreskoAsset is Initializable, ERC20Upgradeable, AccessControlEnumerable
 
     /**
      * @notice Mints tokens to an address.
-     * @dev Only callable by owner.
+     * @dev Only callable by operator.
      * @param _account The recipient address of the mint.
      * @param _amount The amount of tokens to mint.
      */
@@ -54,7 +55,7 @@ contract KreskoAsset is Initializable, ERC20Upgradeable, AccessControlEnumerable
 
     /**
      * @notice Burns tokens from an address that have been approved to the sender.
-     * @dev Only callable by owner which must have the appropriate allowance for _account.
+     * @dev Only callable by operator which must have the appropriate allowance for _account.
      * @param _account The address to burn tokens from.
      * @param _amount The amount of tokens to burn.
      */
