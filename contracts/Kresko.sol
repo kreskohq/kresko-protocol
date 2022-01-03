@@ -16,8 +16,10 @@ import "./libraries/Arrays.sol";
 
 /**
  * @title The core of the Kresko protocol.
- * @notice Reponsible for managing collateral and minting / burning overcollateralized synthetic
- * assets called Kresko assets.
+ * @notice Responsible for managing collateral and minting / burning overcollateralized synthetic
+ * assets called Kresko assets. Management of critical features such as adding new collateral
+ * assets / Kresko assets and updating protocol constants such as the burn fee, close factor,
+ * minimum collateralization ratio, and liquidation incentive is restricted to the contract owner.
  */
 contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, BoringBatchable {
     using FixedPoint for FixedPoint.Unsigned;
