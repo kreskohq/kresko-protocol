@@ -14,6 +14,8 @@ import "./interfaces/IOracle.sol";
 import "./libraries/FixedPoint.sol";
 import "./libraries/Arrays.sol";
 
+import "hardhat/console.sol";
+
 /**
  * @title The core of the Kresko protocol.
  * @notice Reponsible for managing collateral and minting / burning overcollateralized synthetic
@@ -463,7 +465,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
 
     /**
      * @notice Withdraws sender's collateral from the protocol.
-     * @dev Requires the post-withdrawal state to not violate the sender's health factor.
+     * @dev Requires the post-withdrawal collateral value to violate minimum collateral requirement.
      * @param _collateralAsset The address of the collateral asset.
      * @param _amount The amount of the collateral asset to withdraw.
      * @param _depositedCollateralAssetIndex The index of the collateral asset in the sender's deposited collateral
@@ -474,7 +476,9 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         uint256 _amount,
         uint256 _depositedCollateralAssetIndex
     ) external nonReentrant collateralAssetExists(_collateralAsset) {
-        _verifyAndRecordCollateralWithdrawal(_collateralAsset, _amount, _depositedCollateralAssetIndex);
+        uint256 depositAmount = collateralDeposits[msg.sender][_collateralAsset];
+        _amount = (_amount <= depositAmount ? _amount : depositAmount);
+        _verifyAndRecordCollateralWithdrawal(_collateralAsset, _amount, depositAmount, _depositedCollateralAssetIndex);
 
         require(
             IERC20MetadataUpgradeable(_collateralAsset).transfer(msg.sender, _amount),
@@ -494,7 +498,9 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         uint256 _amount,
         uint256 _depositedCollateralAssetIndex
     ) external nonReentrant collateralAssetExists(_collateralAsset) {
-        _verifyAndRecordCollateralWithdrawal(_collateralAsset, _amount, _depositedCollateralAssetIndex);
+        uint256 depositAmount = collateralDeposits[msg.sender][_collateralAsset];
+        _amount = (_amount <= depositAmount ? _amount : depositAmount);
+        _verifyAndRecordCollateralWithdrawal(_collateralAsset, _amount, depositAmount, _depositedCollateralAssetIndex);
 
         address underlyingRebasingToken = collateralAssets[_collateralAsset].underlyingRebasingToken;
         require(underlyingRebasingToken != address(0), "Kresko: collateral asset not NonRebasingWrapperToken");
@@ -914,16 +920,13 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
     function _verifyAndRecordCollateralWithdrawal(
         address _collateralAsset,
         uint256 _amount,
+        uint256 _depositAmount,
         uint256 _depositedCollateralAssetIndex
     ) internal {
         require(_amount > 0, "Kresko: amount is zero");
 
-        // Ensure the amount being withdrawn is not greater than the amount of the collateral asset
-        // the sender has deposited.
-        uint256 depositAmount = collateralDeposits[msg.sender][_collateralAsset];
-        require(_amount <= depositAmount, "Kresko: amount exceeds deposit amount");
-
-        // Ensure the withdrawal does not result in the account having a health factor < 1.
+        // Ensure the withdrawal does not result in the account having a collateral value
+        // under the minimum collateral amount required to maintain a healthy position.
         // I.e. the new account's collateral value must still exceed the account's minimum
         // collateral value.
         // Get the account's current collateral value.
@@ -944,10 +947,10 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         );
 
         // Record the withdrawal.
-        collateralDeposits[msg.sender][_collateralAsset] = depositAmount - _amount;
+        collateralDeposits[msg.sender][_collateralAsset] = _depositAmount - _amount;
         // If the sender is withdrawing all of the collateral asset, remove the collateral asset
         // from the sender's deposited collateral assets array.
-        if (_amount == depositAmount) {
+        if (_amount == _depositAmount) {
             depositedCollateralAssets[msg.sender].removeAddress(_collateralAsset, _depositedCollateralAssetIndex);
         }
 

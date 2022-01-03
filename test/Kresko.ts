@@ -29,14 +29,15 @@ const CLOSE_FACTOR = toFixedPoint(0.2); // 20%
 const LIQUIDATION_INCENTIVE = toFixedPoint(1.1); // 110% -> liquidators make 10% on liquidations
 const FEE_RECIPIENT_ADDRESS = "0x0000000000000000000000000000000000000FEE";
 
-const { parseEther } = hre.ethers.utils;
+const { parseEther, formatUnits } = hre.ethers.utils;
+const fromBig = (amount: BigNumber, decimals = 18) => parseFloat(formatUnits(amount, decimals));
 const { deployContract } = hre.waffle;
 
 const ONE = toFixedPoint(1);
 const ZERO_POINT_FIVE = toFixedPoint(0.5);
 
 interface CollateralAssetInfo {
-    collateralAsset: any;
+    collateralAsset: MockToken;
     oracle: BasicOracle;
     factor: BigNumber;
     oraclePrice: BigNumber;
@@ -328,14 +329,14 @@ describe("Kresko", function () {
         beforeEach(async function () {
             this.initialUserCollateralBalance = 1000;
 
-            this.collateralAssetInfos = await Promise.all([
+            this.collateralAssetInfos = (await Promise.all<CollateralAssetInfo>([
                 deployAndWhitelistCollateralAsset(this.kresko, 0.8, 123.45, 18),
                 deployAndWhitelistCollateralAsset(this.kresko, 0.7, 420.123, 12),
                 deployAndWhitelistCollateralAsset(this.kresko, 0.6, 20.123, 24),
-            ]);
+            ])) as CollateralAssetInfo[];
 
             // Give userOne a balance of 1000 for each collateral asset.
-            for (const collateralAssetInfo of this.collateralAssetInfos) {
+            for (const collateralAssetInfo of this.collateralAssetInfos as CollateralAssetInfo[]) {
                 await collateralAssetInfo.collateralAsset.setBalanceOf(
                     this.userOne.address,
                     collateralAssetInfo.fromDecimal(this.initialUserCollateralBalance),
@@ -805,17 +806,75 @@ describe("Kresko", function () {
                         ).to.be.revertedWith("Arrays: incorrect removal index");
                     });
 
-                    it("should revert if withdrawing more than the user's deposit", async function () {
-                        const collateralAssetInfo = this.collateralAssetInfos[0];
+                    it("should allow withdraws that exceed deposits and only send the user total deposit available", async function () {
+                        const collateralAssetInfo: CollateralAssetInfo = this.collateralAssetInfos[0];
                         const collateralAsset = collateralAssetInfo.collateralAsset;
+                        const collateralAssetDecimals = collateralAssetInfo.decimals;
 
-                        await expect(
-                            this.withdrawalFunction(
-                                collateralAsset.address,
-                                collateralAssetInfo.fromDecimal(this.initialDepositAmount) + 1,
-                                0,
-                            ),
-                        ).to.be.revertedWith("Kresko: amount exceeds deposit amount");
+                        const overflowWithdrawAmount = collateralAssetInfo.fromDecimal(
+                            this.initialDepositAmount + 10000,
+                        );
+                        const balanceAfterDeposit = this.initialUserCollateralBalance - this.initialDepositAmount;
+
+                        const kreskoCollateralBalanceBeforeWithdraw = fromBig(
+                            await collateralAssetInfo.collateralAsset.balanceOf(this.kresko.address),
+                        );
+
+                        expect(kreskoCollateralBalanceBeforeWithdraw).to.equal(this.initialDepositAmount);
+
+                        if (rebasing) {
+                            const userOneNRWTBalance = await collateralAsset.balanceOf(this.userOne.address);
+                            expect(userOneNRWTBalance).to.equal(BigNumber.from(0));
+
+                            const rebasingTokenDecimals = Number(await collateralAsset.decimals());
+
+                            const userOneRebasingBalanceBeforeWithdraw = fromBig(
+                                await collateralAssetInfo.rebasingToken!.balanceOf(this.userOne.address),
+                                rebasingTokenDecimals,
+                            );
+
+                            expect(userOneRebasingBalanceBeforeWithdraw).to.equal(balanceAfterDeposit);
+
+                            await this.withdrawalFunction(collateralAsset.address, overflowWithdrawAmount, 0);
+
+                            const userOneRebasingBalanceAfterOverflowWithdraw = fromBig(
+                                await collateralAssetInfo.rebasingToken!.balanceOf(this.userOne.address),
+                                rebasingTokenDecimals,
+                            );
+
+                            expect(userOneRebasingBalanceAfterOverflowWithdraw).to.equal(
+                                this.initialUserCollateralBalance,
+                            );
+
+                            const kreskoNRWTbalanceAfterOverflowWithdraw = fromBig(
+                                await collateralAssetInfo.collateralAsset.balanceOf(this.kresko.address),
+                                collateralAssetDecimals,
+                            );
+                            expect(kreskoNRWTbalanceAfterOverflowWithdraw).to.equal(0);
+                        } else {
+                            const accountBalanceBeforeOverflowWithdrawal = fromBig(
+                                await collateralAsset.balanceOf(this.userOne.address),
+                                collateralAssetDecimals,
+                            );
+
+                            expect(accountBalanceBeforeOverflowWithdrawal).to.equal(balanceAfterDeposit);
+
+                            await this.withdrawalFunction(collateralAsset.address, overflowWithdrawAmount, 0);
+
+                            const userOneBalanceAfterOverflowWithdraw = fromBig(
+                                await collateralAsset.balanceOf(this.userOne.address),
+                                collateralAssetDecimals,
+                            );
+
+                            expect(userOneBalanceAfterOverflowWithdraw).to.equal(this.initialUserCollateralBalance);
+
+                            const kreskoCollateralBalanceAfterOverflowWithdraw = fromBig(
+                                await collateralAsset.balanceOf(this.kresko.address),
+                                collateralAssetDecimals,
+                            );
+
+                            expect(kreskoCollateralBalanceAfterOverflowWithdraw).to.equal(0);
+                        }
                     });
 
                     it("should revert if withdrawing an amount of 0", async function () {
