@@ -1050,7 +1050,7 @@ describe("Kresko", function () {
             it("should not allow a kresko asset's k-factor to be less than 1", async function () {
                 await expect(
                     this.kresko.updateKreskoAssetFactor(this.deployedAssetAddress, ONE.sub(1)),
-                ).to.be.revertedWith("KR: k-factor < 1FP");
+                ).to.be.revertedWith("KR: kFactor < 1FP");
             });
 
             it("should not allow non-owner to update kresko asset's k-factor", async function () {

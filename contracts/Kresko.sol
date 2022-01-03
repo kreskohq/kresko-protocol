@@ -778,7 +778,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         onlyOwner
         kreskoAssetExistsMaybeNotMintable(_kreskoAsset)
     {
-        require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, "KR: k-factor < 1FP");
+        require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, "KR: kFactor < 1FP");
 
         kreskoAssets[_kreskoAsset].kFactor = FixedPoint.Unsigned(_kFactor);
         emit KreskoAssetKFactorUpdated(_kreskoAsset, _kFactor);
