@@ -158,21 +158,21 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * @param factor The collateral factor.
      * @param oracle The address of the oracle.
      */
-    event CollateralAssetAdded(address collateralAsset, uint256 factor, address oracle);
+    event CollateralAssetAdded(address indexed collateralAsset, uint256 indexed factor, address indexed oracle);
 
     /**
      * @notice Emitted when a collateral asset's collateral factor is updated.
      * @param collateralAsset The address of the collateral asset.
      * @param factor The collateral factor.
      */
-    event CollateralAssetFactorUpdated(address collateralAsset, uint256 factor);
+    event CollateralAssetFactorUpdated(address indexed collateralAsset, uint256 indexed factor);
 
     /**
      * @notice Emitted when a collateral asset's oracle is updated.
      * @param collateralAsset The address of the collateral asset.
      * @param oracle The address of the oracle.
      */
-    event CollateralAssetOracleUpdated(address collateralAsset, address oracle);
+    event CollateralAssetOracleUpdated(address indexed collateralAsset, address indexed oracle);
 
     /**
      * @notice Emitted when an account deposits collateral.
@@ -180,7 +180,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * @param collateralAsset The address of the collateral asset.
      * @param amount The amount of the collateral asset that was deposited.
      */
-    event CollateralDeposited(address account, address collateralAsset, uint256 amount);
+    event CollateralDeposited(address indexed account, address indexed collateralAsset, uint256 indexed amount);
 
     /**
      * @notice Emitted when an account withdraws collateral.
@@ -188,7 +188,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * @param collateralAsset The address of the collateral asset.
      * @param amount The amount of the collateral asset that was withdrawn.
      */
-    event CollateralWithdrawn(address account, address collateralAsset, uint256 amount);
+    event CollateralWithdrawn(address indexed account, address indexed collateralAsset, uint256 indexed amount);
 
     /* ===== Kresko Assets ===== */
 
@@ -200,28 +200,28 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * @param kFactor The k-factor.
      * @param oracle The address of the oracle.
      */
-    event KreskoAssetAdded(address kreskoAsset, string symbol, uint256 kFactor, address oracle);
+    event KreskoAssetAdded(address indexed kreskoAsset, string indexed symbol, uint256 indexed kFactor, address oracle);
 
     /**
      * @notice Emitted when a Kresko asset's k-factor is updated.
      * @param kreskoAsset The address of the Kresko asset.
      * @param kFactor The k-factor.
      */
-    event KreskoAssetKFactorUpdated(address kreskoAsset, uint256 kFactor);
+    event KreskoAssetKFactorUpdated(address indexed kreskoAsset, uint256 indexed kFactor);
 
     /**
      * @notice Emitted when a Kresko asset's mintable property is updated.
      * @param kreskoAsset The address of the Kresko asset.
      * @param mintable The mintable value.
      */
-    event KreskoAssetMintableUpdated(address kreskoAsset, bool mintable);
+    event KreskoAssetMintableUpdated(address indexed kreskoAsset, bool indexed mintable);
 
     /**
      * @notice Emitted when a Kresko asset's oracle is updated.
      * @param kreskoAsset The address of the Kresko asset.
      * @param oracle The address of the oracle.
      */
-    event KreskoAssetOracleUpdated(address kreskoAsset, address oracle);
+    event KreskoAssetOracleUpdated(address indexed kreskoAsset, address indexed oracle);
 
     /**
      * @notice Emitted when an account mints a Kresko asset.
@@ -229,7 +229,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * @param kreskoAsset The address of the Kresko asset.
      * @param amount The amount of the Kresko asset that was minted.
      */
-    event KreskoAssetMinted(address account, address kreskoAsset, uint256 amount);
+    event KreskoAssetMinted(address indexed account, address indexed kreskoAsset, uint256 indexed amount);
 
     /**
      * @notice Emitted when an account burns a Kresko asset.
@@ -237,7 +237,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * @param kreskoAsset The address of the Kresko asset.
      * @param amount The amount of the Kresko asset that was burned.
      */
-    event KreskoAssetBurned(address account, address kreskoAsset, uint256 amount);
+    event KreskoAssetBurned(address indexed account, address indexed kreskoAsset, uint256 indexed amount);
 
     /**
      * @notice Emitted when an account pays a burn fee with a collateral asset upon burning a Kresko asset.
@@ -247,7 +247,12 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * @param paymentAmount The amount of the payment collateral asset that was paid.
      * @param paymentValue The USD value of the payment.
      */
-    event BurnFeePaid(address account, address paymentCollateralAsset, uint256 paymentAmount, uint256 paymentValue);
+    event BurnFeePaid(
+        address indexed account,
+        address indexed paymentCollateralAsset,
+        uint256 indexed paymentAmount,
+        uint256 paymentValue
+    );
 
     /**
      * @notice Emitted when a liquidation occurs.
@@ -259,9 +264,9 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * @param seizedAmount The amount of the seized collateral asset being seized from the account by the liquidator.
      */
     event LiquidationOccurred(
-        address account,
-        address liquidator,
-        address repayKreskoAsset,
+        address indexed account,
+        address indexed liquidator,
+        address indexed repayKreskoAsset,
         uint256 repayAmount,
         address seizedCollateralAsset,
         uint256 seizedAmount
@@ -273,31 +278,31 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * @notice Emitted when the burn fee is updated.
      * @param burnFee The new burn fee raw value.
      */
-    event BurnFeeUpdated(uint256 burnFee);
+    event BurnFeeUpdated(uint256 indexed burnFee);
 
     /**
      * @notice Emitted when the close factor is updated.
      * @param closeFactor The new close factor raw value.
      */
-    event CloseFactorUpdated(uint256 closeFactor);
+    event CloseFactorUpdated(uint256 indexed closeFactor);
 
     /**
      * @notice Emitted when the fee recipient is updated.
      * @param feeRecipient The new fee recipient.
      */
-    event FeeRecipientUpdated(address feeRecipient);
+    event FeeRecipientUpdated(address indexed feeRecipient);
 
     /**
      * @notice Emitted when the liquidation incentive is updated.
      * @param liquidationIncentive The new liquidation incentive raw value.
      */
-    event LiquidationIncentiveUpdated(uint256 liquidationIncentive);
+    event LiquidationIncentiveUpdated(uint256 indexed liquidationIncentive);
 
     /**
      * @notice Emitted when the minimum collateralization ratio is updated.
      * @param minimumCollateralizationRatio The new minimum collateralization ratio raw value.
      */
-    event MinimumCollateralizationRatioUpdated(uint256 minimumCollateralizationRatio);
+    event MinimumCollateralizationRatioUpdated(uint256 indexed minimumCollateralizationRatio);
 
     /**
      * ==================================================
