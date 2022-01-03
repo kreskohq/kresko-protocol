@@ -995,7 +995,7 @@ describe("Kresko", function () {
 
                 await expect(
                     this.kresko.addKreskoAsset(kreskoAsset.address, "TEST2", ONE, ADDRESS_TWO),
-                ).to.be.revertedWith("KR: !notAssetOperator");
+                ).to.be.revertedWith("KR: !assetOperator");
             });
 
             it("should not allow kresko assets that have the same symbol as an existing kresko asset", async function () {
