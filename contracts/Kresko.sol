@@ -929,7 +929,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         // Require accountCollateralValue - withdrawnCollateralValue >= accountMinCollateralValue.
         require(
             accountCollateralValue.sub(withdrawnCollateralValue).isGreaterThanOrEqual(accountMinCollateralValue),
-            "KR: !healthFactor"
+            "KR: collateralTooLow"
         );
 
         // Record the withdrawal.

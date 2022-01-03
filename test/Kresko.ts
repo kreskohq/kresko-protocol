@@ -789,7 +789,7 @@ describe("Kresko", function () {
                                     amountToWithdraw,
                                     0, // The index of collateralAsset.address in the account's depositedCollateralAssets
                                 ),
-                            ).to.be.revertedWith("KR: !healthFactor");
+                            ).to.be.revertedWith("KR: collateralTooLow");
                         });
                     });
 
