@@ -1241,6 +1241,8 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
 
     /**
      * @notice Gets an account's minimum collateral value for its Kresko Asset debts.
+     * @dev Accounts that have their colletaral value under the minimum collateral value are considered unhealthy
+     * and therefore to avoid liquidations users should maintaing a collateral value higher than the value returned.
      * @param _account The account to calculate the minimum collateral value for.
      * @return The minimum collateral value of a particular account.
      */
@@ -1338,8 +1340,9 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
     /* ==== Liquidation ==== */
 
     /**
-     * @notice Calculates if an account is currently liquidatable.
-     * @dev Returns true if the health factor is < 1.
+     * @notice Calculates if an accounts current collateral value is under its minimum collateral value
+     * @dev Returns true if the accounts current collateral value is below the minimum collateral value
+     * required to consider the position healthy.
      * @param _account The account to check.
      * @return A boolean indicating if the account can be liquidated.
      */
