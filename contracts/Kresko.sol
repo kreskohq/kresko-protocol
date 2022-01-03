@@ -14,8 +14,6 @@ import "./interfaces/IOracle.sol";
 import "./libraries/FixedPoint.sol";
 import "./libraries/Arrays.sol";
 
-import "hardhat/console.sol";
-
 /**
  * @title The core of the Kresko protocol.
  * @notice Reponsible for managing collateral and minting / burning overcollateralized synthetic
