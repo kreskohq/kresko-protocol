@@ -750,6 +750,8 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
     ) external onlyOwner nonNullString(_symbol) kreskoAssetDoesNotExist(_kreskoAsset, _symbol) {
         require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, "Kresko: proposed k-factor less than 1 FixedPoint");
         require(_oracle != address(0), "Kresko: proposed oracle is zero address");
+        IKreskoAsset kreskoAsset = IKreskoAsset(_kreskoAsset);
+        require(kreskoAsset.hasRole(kreskoAsset.OPERATOR_ROLE(), address(this)), "Kresko: Not set as operator");
 
         // Store symbol to prevent duplicate KreskoAsset symbols.
         kreskoAssetSymbols[_symbol] = true;
