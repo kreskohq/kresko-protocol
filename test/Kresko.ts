@@ -1441,7 +1441,7 @@ describe("Kresko", function () {
 
                 await expect(
                     this.kresko.connect(this.userOne).burnKreskoAsset(kreskoAssetAddress, burnAmount, kreskoAssetIndex),
-                ).to.be.revertedWith("KR: debt > amount");
+                ).to.be.revertedWith("KR: amount > debt");
             });
 
             it("should not allow users to burn Kresko assets they have not approved", async function () {

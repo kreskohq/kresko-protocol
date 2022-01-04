@@ -567,7 +567,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
 
         // Ensure the amount being burned is not greater than the sender's debt.
         uint256 debtAmount = kreskoAssetDebt[msg.sender][_kreskoAsset];
-        require(_amount <= debtAmount, "KR: debt > amount");
+        require(_amount <= debtAmount, "KR: amount > debt");
 
         // Record the burn.
         kreskoAssetDebt[msg.sender][_kreskoAsset] = debtAmount - _amount;
