@@ -350,7 +350,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      */
     modifier kreskoAssetDoesNotExist(address _kreskoAsset, string calldata _symbol) {
         require(!kreskoAssets[_kreskoAsset].exists, "Kresko: krAsset exists");
-        require(!kreskoAssetSymbols[_symbol], "Kresko: symbol exists");
+        require(!getKreskoAssetSymbol(_symbol), "Kresko: symbol exists");
         _;
     }
 
@@ -1331,6 +1331,15 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
     function getKrAssetValue(address _kreskoAsset, uint256 _amount) public view returns (FixedPoint.Unsigned memory) {
         KrAsset memory krAsset = kreskoAssets[_kreskoAsset];
         return FixedPoint.Unsigned(_amount).mul(FixedPoint.Unsigned(krAsset.oracle.value())).mul(krAsset.kFactor);
+    }
+
+    /**
+     * @notice View function that checks the validity of a given KreskoAsset symbol.
+     * @param _symbol The KreskoAsset symbol to check.
+     * @return A boolean indicating if the given symbol is valid.
+     */
+    function getKreskoAssetSymbol(string calldata _symbol) public view returns (bool) {
+        return kreskoAssetSymbols[_symbol];
     }
 
     /* ==== Liquidation ==== */
