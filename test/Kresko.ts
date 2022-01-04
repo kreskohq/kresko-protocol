@@ -250,7 +250,7 @@ describe("Kresko", function () {
             );
         });
 
-        it("should not allow old owner to call onlyOwner functions transfer to zero address", async function () {
+        it("should not allow old owner to call onlyOwner functions", async function () {
             await this.kresko.transferOwnership(this.userOne.address);
             const pendingOwner = await this.kresko.pendingOwner();
             expect(pendingOwner).to.equal(this.userOne.address);
