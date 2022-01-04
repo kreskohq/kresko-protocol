@@ -1053,7 +1053,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
             return;
         }
 
-        address[] memory accountCollateralAssets = depositedCollateralAssets[_account];
+        address[] memory accountCollateralAssets = getDepositedCollateralAssets(_account);
         // Iterate backward through the account's deposited collateral assets to safely
         // traverse the array while still being able to remove elements if necessary.
         // This is because removing the last element of the array does not shift around
@@ -1206,15 +1206,6 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
     /* ==== Collateral ==== */
 
     /**
-     * @notice Gets an array of collateral assets the account has deposited.
-     * @param _account The account to get the deposited collateral assets for.
-     * @return An array of addresses of collateral assets the account has deposited.
-     */
-    function getDepositedCollateralAssets(address _account) external view returns (address[] memory) {
-        return depositedCollateralAssets[_account];
-    }
-
-    /**
      * @notice Gets the collateral value of a particular account.
      * @dev O(# of different deposited collateral assets by account) complexity.
      * @param _account The account to calculate the collateral value for.
@@ -1223,7 +1214,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
     function getAccountCollateralValue(address _account) public view returns (FixedPoint.Unsigned memory) {
         FixedPoint.Unsigned memory totalCollateralValue = FixedPoint.Unsigned(0);
 
-        address[] memory assets = depositedCollateralAssets[_account];
+        address[] memory assets = getDepositedCollateralAssets(_account);
         for (uint256 i = 0; i < assets.length; i++) {
             address asset = assets[i];
             (FixedPoint.Unsigned memory collateralValue, ) =
@@ -1295,6 +1286,15 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         return (value, oraclePrice);
     }
 
+    /**
+     * @notice Gets an array of collateral asset addresses the account has deposited.
+     * @param _account The account to get the deposited collateral assets for.
+     * @return An array of addresses of collateral assets the account has deposited.
+     */
+    function getDepositedCollateralAssets(address _account) public view returns (address[] memory) {
+        return depositedCollateralAssets[_account];
+    }
+
     /* ==== Kresko Assets ==== */
 
     /**
@@ -1334,8 +1334,8 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
     }
 
     /**
-     * @notice Gets a boolean indicating if a given KreskoAsset symbol is valid.
-     * @param _symbol The KreskoAsset symbol to check.
+     * @notice Gets a boolean indicating if a given Kresko asset symbol is valid.
+     * @param _symbol The Kresko asset symbol to check.
      * @return A boolean indicating if the given symbol is valid.
      */
     function getKreskoAssetSymbol(string calldata _symbol) public view returns (bool) {
