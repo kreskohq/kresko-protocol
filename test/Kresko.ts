@@ -241,7 +241,7 @@ describe("Kresko", function () {
             expect(pendingOwnerAfterClaim).to.equal(ADDRESS_ZERO);
         });
 
-        it("should not allow not pending owner to claim pending ownership", async function () {
+        it("should not allow an address other than the pending owner to claim pending ownership", async function () {
             await this.kresko.transferOwnership(this.userOne.address);
             const pendingOwner = await this.kresko.pendingOwner();
             expect(pendingOwner).to.equal(this.userOne.address);
