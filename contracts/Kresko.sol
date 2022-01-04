@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "./utils/OwnableUpgradeable.sol";
 import "./utils/BoringBatchable.sol";
 
-import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import "./interfaces/IKreskoAsset.sol";
 import "./interfaces/INonRebasingWrapperToken.sol";
 import "./interfaces/IOracle.sol";
@@ -21,7 +20,7 @@ import "./libraries/Arrays.sol";
  * assets / Kresko assets and updating protocol constants such as the burn fee, close factor,
  * minimum collateralization ratio, and liquidation incentive is restricted to the contract owner.
  */
-contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, BoringBatchable {
+contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable, BoringBatchable {
     using FixedPoint for FixedPoint.Unsigned;
     using Arrays for address[];
 
