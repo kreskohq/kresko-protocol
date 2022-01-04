@@ -231,7 +231,7 @@ describe("Kresko", function () {
             expect(newBurnFee).to.equal(MAX_BURN_FEE);
         });
 
-        it("should set pending owner to address zero after claim", async function () {
+        it("should set pending owner to address zero after pending ownership is claimed", async function () {
             await this.kresko.transferOwnership(this.userOne.address);
             const pendingOwner = await this.kresko.pendingOwner();
             expect(pendingOwner).to.equal(this.userOne.address);
