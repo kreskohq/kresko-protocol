@@ -2056,37 +2056,4 @@ describe("Kresko", function () {
             });
         });
     });
-
-    describe("BoringBatchable", async function () {
-        it("Executes multiple functions in one transaction", async function () {
-            // First approve collateral to this.kresko
-            const collateralAssetInfo = await deployAndWhitelistCollateralAsset(this.kresko, 0.8, 100, 18);
-            const collateralAssetBalance = collateralAssetInfo.fromDecimal(100);
-            await collateralAssetInfo.collateralAsset.setBalanceOf(this.userOne.address, collateralAssetBalance);
-
-            const kreskoAssetInfo = await addNewKreskoAssetWithOraclePrice(this.kresko, NAME_TWO, SYMBOL_TWO, 1, 100); // kFactor = 1, price = 100
-
-            const depositCalldata = this.kresko.interface.encodeFunctionData("depositCollateral", [
-                collateralAssetInfo.collateralAsset.address,
-                collateralAssetBalance,
-            ]);
-
-            const mintAmount = toFixedPoint(10);
-
-            const mintCalldata = this.kresko.interface.encodeFunctionData("mintKreskoAsset", [
-                kreskoAssetInfo.kreskoAsset.address,
-                mintAmount,
-            ]);
-
-            // Expect a mint call without any collateral deposit to fail
-            await expect(this.kresko.connect(this.userOne).batch([mintCalldata], true)).to.be.revertedWith(
-                "Kresko: insufficient collateral",
-            );
-
-            // Now try depositing collateral and then minting
-            await this.kresko.connect(this.userOne).batch([depositCalldata, mintCalldata], true);
-            // Sanity check that it worked
-            expect(await kreskoAssetInfo.kreskoAsset.balanceOf(this.userOne.address)).to.equal(mintAmount);
-        });
-    });
 });

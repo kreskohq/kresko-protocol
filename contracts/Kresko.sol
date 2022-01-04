@@ -4,7 +4,6 @@ pragma solidity >=0.8.4;
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import "./utils/BoringBatchable.sol";
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import "./interfaces/IKreskoAsset.sol";
@@ -19,7 +18,7 @@ import "./libraries/Arrays.sol";
  * @notice Reponsible for managing collateral and minting / burning overcollateralized synthetic
  * assets called Kresko assets.
  */
-contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, BoringBatchable {
+contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     using FixedPoint for FixedPoint.Unsigned;
     using Arrays for address[];
 
