@@ -4,7 +4,6 @@ pragma solidity >=0.8.4;
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "./utils/OwnableUpgradeable.sol";
-import "./utils/BoringBatchable.sol";
 
 import "./interfaces/IKreskoAsset.sol";
 import "./interfaces/INonRebasingWrapperToken.sol";
@@ -20,7 +19,7 @@ import "./libraries/Arrays.sol";
  * assets / Kresko assets and updating protocol constants such as the burn fee, close factor,
  * minimum collateralization ratio, and liquidation incentive is restricted to the contract owner.
  */
-contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable, BoringBatchable {
+contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     using FixedPoint for FixedPoint.Unsigned;
     using Arrays for address[];
 
