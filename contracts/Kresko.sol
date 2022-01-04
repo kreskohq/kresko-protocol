@@ -1330,7 +1330,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
 
     /**
      * @notice Calculates if an accounts current collateral value is under its minimum collateral value
-     * @dev Returns true if the accounts current collateral value is below the minimum collateral value
+     * @dev Returns true if the account's current collateral value is below the minimum collateral value
      * required to consider the position healthy.
      * @param _account The account to check.
      * @return A boolean indicating if the account can be liquidated.
