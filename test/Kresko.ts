@@ -208,7 +208,7 @@ describe("Kresko", function () {
         });
     });
 
-    describe.only("#ownership", function () {
+    describe("#ownership", function () {
         it("should have the admin as owner", async function () {
             expect(await this.kresko.owner()).to.equal(this.signers.admin.address);
             expect(await this.kresko.pendingOwner()).to.equal(ADDRESS_ZERO);
@@ -239,6 +239,18 @@ describe("Kresko", function () {
 
             const pendingOwnerAfterClaim = await this.kresko.pendingOwner();
             expect(pendingOwnerAfterClaim).to.equal(ADDRESS_ZERO);
+        });
+
+        it("should not allow old owner to call onlyOwner functions transfer to zero address", async function () {
+            await this.kresko.transferOwnership(this.userOne.address);
+            const pendingOwner = await this.kresko.pendingOwner();
+            expect(pendingOwner).to.equal(this.userOne.address);
+            await this.kresko.connect(this.userOne).claimOwnership();
+
+            const MAX_BURN_FEE = await this.kresko.MAX_BURN_FEE();
+            await expect(this.kresko.connect(this.signers.admin).updateBurnFee(MAX_BURN_FEE)).to.be.revertedWith(
+                "Ownable: caller is not the owner",
+            );
         });
 
         it("should not allow ownership transfer to zero address", async function () {
