@@ -317,7 +317,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * @param _collateralAsset The address of the collateral asset.
      */
     modifier collateralAssetExists(address _collateralAsset) {
-        require(collateralAssets[_collateralAsset].exists, "Kresko: collateral doesn't exist");
+        require(collateralAssets[_collateralAsset].exists, "KR: !collateralExists");
         _;
     }
 
@@ -326,7 +326,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * @param _collateralAsset The address of the collateral asset.
      */
     modifier collateralAssetDoesNotExist(address _collateralAsset) {
-        require(!collateralAssets[_collateralAsset].exists, "Kresko: collateral exists");
+        require(!collateralAssets[_collateralAsset].exists, "KR: collateralExists");
         _;
     }
 
@@ -335,8 +335,8 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * @param _kreskoAsset The address of the Kresko asset.
      */
     modifier kreskoAssetExistsAndMintable(address _kreskoAsset) {
-        require(kreskoAssets[_kreskoAsset].exists, "Kresko: krAsset doesn't exist");
-        require(kreskoAssets[_kreskoAsset].mintable, "Kresko: krAsset isn't mintable");
+        require(kreskoAssets[_kreskoAsset].exists, "KR: !krAssetExist");
+        require(kreskoAssets[_kreskoAsset].mintable, "KR: !krAssetMintable");
         _;
     }
 
@@ -346,7 +346,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * @param _kreskoAsset The address of the Kresko asset.
      */
     modifier kreskoAssetExistsMaybeNotMintable(address _kreskoAsset) {
-        require(kreskoAssets[_kreskoAsset].exists, "Kresko: krAsset doesn't exist");
+        require(kreskoAssets[_kreskoAsset].exists, "KR: !krAssetExist");
         _;
     }
 
@@ -356,8 +356,8 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * @param _symbol The symbol of the Kresko asset.
      */
     modifier kreskoAssetDoesNotExist(address _kreskoAsset, string calldata _symbol) {
-        require(!kreskoAssets[_kreskoAsset].exists, "Kresko: krAsset exists");
-        require(!kreskoAssetSymbols[_symbol], "Kresko: symbol exists");
+        require(!kreskoAssets[_kreskoAsset].exists, "KR: krAssetExists");
+        require(!kreskoAssetSymbols[_symbol], "KR: symbolExists");
         _;
     }
 
@@ -366,7 +366,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * @param _str The string to ensure is not empty.
      */
     modifier nonNullString(string calldata _str) {
-        require(bytes(_str).length > 0, "Kresko: string is null");
+        require(bytes(_str).length > 0, "KR: !string");
         _;
     }
 
@@ -425,7 +425,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
         require(
             IERC20MetadataUpgradeable(_collateralAsset).transferFrom(msg.sender, address(this), _amount),
-            "Kresko: collateral transfer in failed"
+            "KR: DepositFailed"
         );
 
         // Record the collateral deposit.
@@ -443,22 +443,22 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         nonReentrant
         collateralAssetExists(_collateralAsset)
     {
-        require(_rebasingAmount > 0, "Kresko: rebasing amount is zero");
+        require(_rebasingAmount > 0, "KR: 0-deposit");
 
         address underlyingRebasingToken = collateralAssets[_collateralAsset].underlyingRebasingToken;
-        require(underlyingRebasingToken != address(0), "Kresko: collateral asset not NonRebasingWrapperToken");
+        require(underlyingRebasingToken != address(0), "KR: !NRWTCollateral");
 
         // Transfer underlying rebasing token in.
         require(
             IERC20Upgradeable(underlyingRebasingToken).transferFrom(msg.sender, address(this), _rebasingAmount),
-            "Kresko: rebasing collateral transfer in failed"
+            "KR: RebasingDepositFailed"
         );
 
         // Approve the newly received rebasing token to the NonRebasingWrapperToken in preparation
         // for calling depositUnderlying.
         require(
             IERC20Upgradeable(underlyingRebasingToken).approve(_collateralAsset, _rebasingAmount),
-            "Kresko: rebasing approval failed"
+            "KR: ApprovalFail"
         );
 
         // Wrap into NonRebasingWrapperToken.
@@ -470,7 +470,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
 
     /**
      * @notice Withdraws sender's collateral from the protocol.
-     * @dev Requires the post-withdrawal state to not violate the sender's health factor.
+     * @dev Requires the post-withdrawal collateral value to violate minimum collateral requirement.
      * @param _collateralAsset The address of the collateral asset.
      * @param _amount The amount of the collateral asset to withdraw.
      * @param _depositedCollateralAssetIndex The index of the collateral asset in the sender's deposited collateral
@@ -481,12 +481,11 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         uint256 _amount,
         uint256 _depositedCollateralAssetIndex
     ) external nonReentrant collateralAssetExists(_collateralAsset) {
-        _verifyAndRecordCollateralWithdrawal(_collateralAsset, _amount, _depositedCollateralAssetIndex);
+        uint256 depositAmount = collateralDeposits[msg.sender][_collateralAsset];
+        _amount = (_amount <= depositAmount ? _amount : depositAmount);
+        _verifyAndRecordCollateralWithdrawal(_collateralAsset, _amount, depositAmount, _depositedCollateralAssetIndex);
 
-        require(
-            IERC20MetadataUpgradeable(_collateralAsset).transfer(msg.sender, _amount),
-            "Kresko: collateral transfer out failed"
-        );
+        require(IERC20MetadataUpgradeable(_collateralAsset).transfer(msg.sender, _amount), "KR: WithdrawFail");
     }
 
     /**
@@ -501,10 +500,12 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         uint256 _amount,
         uint256 _depositedCollateralAssetIndex
     ) external nonReentrant collateralAssetExists(_collateralAsset) {
-        _verifyAndRecordCollateralWithdrawal(_collateralAsset, _amount, _depositedCollateralAssetIndex);
+        uint256 depositAmount = collateralDeposits[msg.sender][_collateralAsset];
+        _amount = (_amount <= depositAmount ? _amount : depositAmount);
+        _verifyAndRecordCollateralWithdrawal(_collateralAsset, _amount, depositAmount, _depositedCollateralAssetIndex);
 
         address underlyingRebasingToken = collateralAssets[_collateralAsset].underlyingRebasingToken;
-        require(underlyingRebasingToken != address(0), "Kresko: collateral asset not NonRebasingWrapperToken");
+        require(underlyingRebasingToken != address(0), "KR: !NRWTCollateral");
 
         // Unwrap the NonRebasingWrapperToken into the rebasing underlying.
         uint256 underlyingAmountWithdrawn = INonRebasingWrapperToken(_collateralAsset).withdrawUnderlying(_amount);
@@ -512,7 +513,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         // Transfer the sender the rebasing underlying.
         require(
             IERC20MetadataUpgradeable(underlyingRebasingToken).transfer(msg.sender, underlyingAmountWithdrawn),
-            "Kresko: rebasing collateral transfer out failed"
+            "KR: RebasingWithdrawFail"
         );
     }
 
@@ -528,7 +529,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         nonReentrant
         kreskoAssetExistsAndMintable(_kreskoAsset)
     {
-        require(_amount > 0, "Kresko: amount is zero");
+        require(_amount > 0, "KR: 0-mint");
 
         // Get the value of the minter's current deposited collateral.
         FixedPoint.Unsigned memory accountCollateralValue = getAccountCollateralValue(msg.sender);
@@ -540,7 +541,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         // Verify that minter has sufficient collateral to back current debt + new requested debt.
         require(
             minAccountCollateralValue.add(additionalCollateralValue).isLessThanOrEqual(accountCollateralValue),
-            "Kresko: insufficient collateral"
+            "KR: insufficientCollateral"
         );
 
         // If the account does not have an existing debt for this Kresko Asset,
@@ -569,11 +570,11 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         uint256 _amount,
         uint256 _mintedKreskoAssetIndex
     ) external nonReentrant kreskoAssetExistsMaybeNotMintable(_kreskoAsset) {
-        require(_amount > 0, "Kresko: amount is zero");
+        require(_amount > 0, "KR: 0-burn");
 
         // Ensure the amount being burned is not greater than the sender's debt.
         uint256 debtAmount = kreskoAssetDebt[msg.sender][_kreskoAsset];
-        require(_amount <= debtAmount, "Kresko: amount exceeds debt amount");
+        require(_amount <= debtAmount, "KR: amount > debt");
 
         // Record the burn.
         kreskoAssetDebt[msg.sender][_kreskoAsset] = debtAmount - _amount;
@@ -615,16 +616,16 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         collateralAssetExists(_collateralAssetToSeize)
         kreskoAssetExistsMaybeNotMintable(_repayKreskoAsset)
     {
-        require(_repayAmount > 0, "Kresko: repay amount zero");
+        require(_repayAmount > 0, "KR: 0-repay");
 
         // Check that this account is below its minimum collateralization ratio and can be liquidated.
-        require(isAccountLiquidatable(_account), "Kresko: account not liquidatable");
+        require(isAccountLiquidatable(_account), "KR: !accountLiquidatable");
 
         // Liquidator may not repay more than what is allowed by the close factor.
         uint256 krAssetDebt = kreskoAssetDebt[_account][_repayKreskoAsset];
         // Max liquidation = total debt * close factor.
         FixedPoint.Unsigned memory maxLiquidation = FixedPoint.Unsigned(krAssetDebt).mul(closeFactor);
-        require(_repayAmount <= maxLiquidation.rawValue, "Kresko: repay amount exceeds max");
+        require(_repayAmount <= maxLiquidation.rawValue, "KR: repay > max");
 
         // Repay amount USD = repay amount * KR asset USD exchange rate.
         FixedPoint.Unsigned memory repayAmountUSD =
@@ -650,7 +651,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         // Send liquidator the seized collateral.
         require(
             IERC20MetadataUpgradeable(_collateralAssetToSeize).transfer(msg.sender, seizeAmount),
-            "Kresko: collateral transfer out failed"
+            "KR: collateralTransferFailed"
         );
 
         emit LiquidationOccurred(
@@ -685,9 +686,9 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         address _oracle,
         bool isNonRebasingWrapperToken
     ) external nonReentrant onlyOwner collateralAssetDoesNotExist(_collateralAsset) {
-        require(_collateralAsset != address(0), "Kresko: proposed collateral is zero address");
-        require(_factor <= FixedPoint.FP_SCALING_FACTOR, "Kresko: proposed collateral factor exceeds 1 FixedPoint");
-        require(_oracle != address(0), "Kresko: proposed oracle is zero address");
+        require(_collateralAsset != address(0), "KR: !collateralAddr");
+        require(_factor <= FixedPoint.FP_SCALING_FACTOR, "KR: factor > 1FP");
+        require(_oracle != address(0), "KR: !oracleAddr");
 
         // Set as the rebasing underlying token if the collateral asset is a
         // NonRebasingWrapperToken, otherwise set as address(0).
@@ -716,7 +717,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         collateralAssetExists(_collateralAsset)
     {
         // Setting the factor to 0 effectively sunsets a collateral asset, which is intentionally allowed.
-        require(_factor <= FixedPoint.FP_SCALING_FACTOR, "Kresko: proposed collateral factor exceeds 1 FixedPoint");
+        require(_factor <= FixedPoint.FP_SCALING_FACTOR, "KR: factor > 1FP");
 
         collateralAssets[_collateralAsset].factor = FixedPoint.Unsigned(_factor);
         emit CollateralAssetFactorUpdated(_collateralAsset, _factor);
@@ -733,7 +734,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         onlyOwner
         collateralAssetExists(_collateralAsset)
     {
-        require(_oracle != address(0), "Kresko: proposed oracle is zero address");
+        require(_oracle != address(0), "KR: !oracleAddr");
 
         collateralAssets[_collateralAsset].oracle = IOracle(_oracle);
         emit CollateralAssetOracleUpdated(_collateralAsset, _oracle);
@@ -755,10 +756,10 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         uint256 _kFactor,
         address _oracle
     ) external onlyOwner nonNullString(_symbol) kreskoAssetDoesNotExist(_kreskoAsset, _symbol) {
-        require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, "Kresko: proposed k-factor less than 1 FixedPoint");
-        require(_oracle != address(0), "Kresko: proposed oracle is zero address");
+        require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, "KR: kFactor < 1FP");
+        require(_oracle != address(0), "KR: !oracleAddr");
         IKreskoAsset kreskoAsset = IKreskoAsset(_kreskoAsset);
-        require(kreskoAsset.hasRole(kreskoAsset.OPERATOR_ROLE(), address(this)), "Kresko: Not set as operator");
+        require(kreskoAsset.hasRole(kreskoAsset.OPERATOR_ROLE(), address(this)), "KR: !assetOperator");
 
         // Store symbol to prevent duplicate KreskoAsset symbols.
         kreskoAssetSymbols[_symbol] = true;
@@ -784,7 +785,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         onlyOwner
         kreskoAssetExistsMaybeNotMintable(_kreskoAsset)
     {
-        require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, "Kresko: proposed k-factor less than 1 FixedPoint");
+        require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, "KR: kFactor < 1FP");
 
         kreskoAssets[_kreskoAsset].kFactor = FixedPoint.Unsigned(_kFactor);
         emit KreskoAssetKFactorUpdated(_kreskoAsset, _kFactor);
@@ -816,7 +817,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         onlyOwner
         kreskoAssetExistsMaybeNotMintable(_kreskoAsset)
     {
-        require(_oracle != address(0), "Kresko: proposed oracle is zero address");
+        require(_oracle != address(0), "KR: !oracleAddr");
 
         kreskoAssets[_kreskoAsset].oracle = IOracle(_oracle);
         emit KreskoAssetOracleUpdated(_kreskoAsset, _oracle);
@@ -829,7 +830,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * @param _burnFee The new burn fee as a raw value for a FixedPoint.Unsigned.
      */
     function updateBurnFee(uint256 _burnFee) public onlyOwner {
-        require(_burnFee <= MAX_BURN_FEE, "Kresko: proposed burn fee exceeds max");
+        require(_burnFee <= MAX_BURN_FEE, "KR: burnFee > max");
         burnFee = FixedPoint.Unsigned(_burnFee);
         emit BurnFeeUpdated(_burnFee);
     }
@@ -839,8 +840,8 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * @param _closeFactor The new close factor as a raw value for a FixedPoint.Unsigned.
      */
     function updateCloseFactor(uint256 _closeFactor) public onlyOwner {
-        require(_closeFactor >= MIN_CLOSE_FACTOR, "Kresko: proposed close factor less than min");
-        require(_closeFactor <= MAX_CLOSE_FACTOR, "Kresko: proposed close factor exceeds max");
+        require(_closeFactor >= MIN_CLOSE_FACTOR, "KR: closeFactor < min");
+        require(_closeFactor <= MAX_CLOSE_FACTOR, "KR: closeFactor > max");
         closeFactor = FixedPoint.Unsigned(_closeFactor);
         emit CloseFactorUpdated(_closeFactor);
     }
@@ -850,7 +851,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * @param _feeRecipient The new fee recipient.
      */
     function updateFeeRecipient(address _feeRecipient) public onlyOwner {
-        require(_feeRecipient != address(0), "Kresko: proposed fee recipient is zero address");
+        require(_feeRecipient != address(0), "KR: !feeRecipient");
         feeRecipient = _feeRecipient;
         emit FeeRecipientUpdated(_feeRecipient);
     }
@@ -860,14 +861,8 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * @param _liquidationIncentive The new liquidation incentive as a raw value for a FixedPoint.Unsigned.
      */
     function updateLiquidationIncentive(uint256 _liquidationIncentive) public onlyOwner {
-        require(
-            _liquidationIncentive >= MIN_LIQUIDATION_INCENTIVE,
-            "Kresko: proposed liquidation incentive less than min"
-        );
-        require(
-            _liquidationIncentive <= MAX_LIQUIDATION_INCENTIVE,
-            "Kresko: proposed liquidation incentive exceeds max"
-        );
+        require(_liquidationIncentive >= MIN_LIQUIDATION_INCENTIVE, "KR: liqIncentive < min");
+        require(_liquidationIncentive <= MAX_LIQUIDATION_INCENTIVE, "KR: liqIncentive > max");
         liquidationIncentive = FixedPoint.Unsigned(_liquidationIncentive);
         emit LiquidationIncentiveUpdated(_liquidationIncentive);
     }
@@ -878,10 +873,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
      * for a FixedPoint.Unsigned.
      */
     function updateMinimumCollateralizationRatio(uint256 _minimumCollateralizationRatio) public onlyOwner {
-        require(
-            _minimumCollateralizationRatio >= MIN_MINIMUM_COLLATERALIZATION_RATIO,
-            "Kresko: proposed minimum collateralization ratio less than min"
-        );
+        require(_minimumCollateralizationRatio >= MIN_MINIMUM_COLLATERALIZATION_RATIO, "KR: minCollateralRatio < min");
         minimumCollateralizationRatio = FixedPoint.Unsigned(_minimumCollateralizationRatio);
         emit MinimumCollateralizationRatioUpdated(_minimumCollateralizationRatio);
     }
@@ -904,7 +896,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         // Because the depositedCollateralAssets[msg.sender] is pushed to if the existing
         // deposit amount is 0, require the amount to be > 0. Otherwise, the depositedCollateralAssets[msg.sender]
         // could be filled with duplicates, causing collateral to be double-counted in the collateral value.
-        require(_amount > 0, "Kresko: amount is zero");
+        require(_amount > 0, "KR: 0-deposit");
 
         // If the account does not have an existing deposit for this collateral asset,
         // push it to the list of the account's deposited collateral assets.
@@ -921,16 +913,13 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
     function _verifyAndRecordCollateralWithdrawal(
         address _collateralAsset,
         uint256 _amount,
+        uint256 _depositAmount,
         uint256 _depositedCollateralAssetIndex
     ) internal {
-        require(_amount > 0, "Kresko: amount is zero");
+        require(_amount > 0, "KR: 0-withdraw");
 
-        // Ensure the amount being withdrawn is not greater than the amount of the collateral asset
-        // the sender has deposited.
-        uint256 depositAmount = collateralDeposits[msg.sender][_collateralAsset];
-        require(_amount <= depositAmount, "Kresko: amount exceeds deposit amount");
-
-        // Ensure the withdrawal does not result in the account having a health factor < 1.
+        // Ensure the withdrawal does not result in the account having a collateral value
+        // under the minimum collateral amount required to maintain a healthy position.
         // I.e. the new account's collateral value must still exceed the account's minimum
         // collateral value.
         // Get the account's current collateral value.
@@ -947,14 +936,14 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         // Require accountCollateralValue - withdrawnCollateralValue >= accountMinCollateralValue.
         require(
             accountCollateralValue.sub(withdrawnCollateralValue).isGreaterThanOrEqual(accountMinCollateralValue),
-            "Kresko: health factor violated"
+            "KR: collateralTooLow"
         );
 
         // Record the withdrawal.
-        collateralDeposits[msg.sender][_collateralAsset] = depositAmount - _amount;
+        collateralDeposits[msg.sender][_collateralAsset] = _depositAmount - _amount;
         // If the sender is withdrawing all of the collateral asset, remove the collateral asset
         // from the sender's deposited collateral assets array.
-        if (_amount == depositAmount) {
+        if (_amount == _depositAmount) {
             depositedCollateralAssets[msg.sender].removeAddress(_collateralAsset, _depositedCollateralAssetIndex);
         }
 
@@ -1078,7 +1067,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
             // Transfer the fee to the feeRecipient.
             require(
                 IERC20MetadataUpgradeable(collateralAssetAddress).transfer(feeRecipient, transferAmount),
-                "Kresko: fee transfer out failed"
+                "KR: feeTransferFail"
             );
             emit BurnFeePaid(_account, collateralAssetAddress, transferAmount, feeValuePaid.rawValue);
 
@@ -1248,6 +1237,8 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
 
     /**
      * @notice Gets an account's minimum collateral value for its Kresko Asset debts.
+     * @dev Accounts that have their collateral value under the minimum collateral value are considered unhealthy
+     * and therefore to avoid liquidations users should maintain a collateral value higher than the value returned.
      * @param _account The account to calculate the minimum collateral value for.
      * @return The minimum collateral value of a particular account.
      */
@@ -1345,8 +1336,9 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
     /* ==== Liquidation ==== */
 
     /**
-     * @notice Calculates if an account is currently liquidatable.
-     * @dev Returns true if the health factor is < 1.
+     * @notice Calculates if an account's current collateral value is under its minimum collateral value
+     * @dev Returns true if the account's current collateral value is below the minimum collateral value
+     * required to consider the position healthy.
      * @param _account The account to check.
      * @return A boolean indicating if the account can be liquidated.
      */
