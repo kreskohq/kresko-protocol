@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "./utils/OwnableUpgradeable.sol";
 import "./utils/BoringBatchable.sol";
 
-import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import "./interfaces/IKreskoAsset.sol";
 import "./interfaces/INonRebasingWrapperToken.sol";
 import "./interfaces/IOracle.sol";
@@ -19,7 +18,7 @@ import "./libraries/Arrays.sol";
  * @notice Reponsible for managing collateral and minting / burning overcollateralized synthetic
  * assets called Kresko assets.
  */
-contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, BoringBatchable {
+contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable, BoringBatchable {
     using FixedPoint for FixedPoint.Unsigned;
     using Arrays for address[];
 
@@ -389,7 +388,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         uint256 _minimumCollateralizationRatio
     ) external initializer {
         // Set msg.sender as the owner.
-        __Ownable_init();
+        __Ownable_init_unchained();
         updateBurnFee(_burnFee);
         updateCloseFactor(_closeFactor);
         updateFeeRecipient(_feeRecipient);

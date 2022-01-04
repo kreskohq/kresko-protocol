@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
-
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
+import "../utils/OwnableUpgradeable.sol";
 import "../libraries/FixedPoint.sol";
 
 /**
@@ -14,7 +12,7 @@ import "../libraries/FixedPoint.sol";
  * @notice A non-rebasing token that wraps rebasing tokens to present a balance for each user that
  *   does not change from exogenous events.
  */
-contract NonRebasingWrapperToken is Initializable, ERC20Upgradeable {
+contract NonRebasingWrapperToken is OwnableUpgradeable, ERC20Upgradeable {
     using FixedPoint for FixedPoint.Unsigned;
 
     /// @notice The underlying token that this contract wraps.
@@ -46,6 +44,7 @@ contract NonRebasingWrapperToken is Initializable, ERC20Upgradeable {
         string memory _symbol
     ) external initializer {
         __ERC20_init(_name, _symbol);
+        __Ownable_init_unchained();
         underlyingToken = IERC20Upgradeable(_underlyingToken);
     }
 

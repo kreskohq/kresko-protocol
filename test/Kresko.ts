@@ -208,6 +208,46 @@ describe("Kresko", function () {
         });
     });
 
+    describe.only("#ownership", function () {
+        it("should have the admin as owner", async function () {
+            expect(await this.kresko.owner()).to.equal(this.signers.admin.address);
+            expect(await this.kresko.pendingOwner()).to.equal(ADDRESS_ZERO);
+        });
+
+        it("should allow ownership transfer through claim and call a onlyOwner function", async function () {
+            await this.kresko.transferOwnership(this.userOne.address);
+            const pendingOwner = await this.kresko.pendingOwner();
+
+            expect(pendingOwner).to.equal(this.userOne.address);
+            await this.kresko.connect(this.userOne).claimOwnership();
+
+            const newOwner = await this.kresko.owner();
+            expect(newOwner).to.equal(this.userOne.address);
+
+            const MAX_BURN_FEE = await this.kresko.MAX_BURN_FEE();
+            await expect(this.kresko.connect(this.userOne).updateBurnFee(MAX_BURN_FEE)).to.be.not.reverted;
+
+            const newBurnFee = await this.kresko.burnFee();
+            expect(newBurnFee).to.equal(MAX_BURN_FEE);
+        });
+
+        it("should set pending owner to address zero after claim", async function () {
+            await this.kresko.transferOwnership(this.userOne.address);
+            const pendingOwner = await this.kresko.pendingOwner();
+            expect(pendingOwner).to.equal(this.userOne.address);
+            await this.kresko.connect(this.userOne).claimOwnership();
+
+            const pendingOwnerAfterClaim = await this.kresko.pendingOwner();
+            expect(pendingOwnerAfterClaim).to.equal(ADDRESS_ZERO);
+        });
+
+        it("should not allow ownership transfer to zero address", async function () {
+            await expect(this.kresko.transferOwnership(ADDRESS_ZERO)).to.be.revertedWith(
+                "Ownable: new owner is the zero address",
+            );
+        });
+    });
+
     describe("Collateral Assets", function () {
         beforeEach(async function () {
             this.collateralAssetInfo = await deployAndWhitelistCollateralAsset(this.kresko, 0.8, 123.45, 18);
