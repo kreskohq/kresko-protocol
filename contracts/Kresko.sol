@@ -1334,7 +1334,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
     }
 
     /**
-     * @notice View function that checks the validity of a given KreskoAsset symbol.
+     * @notice Gets a boolean indicating if a given KreskoAsset symbol is valid.
      * @param _symbol The KreskoAsset symbol to check.
      * @return A boolean indicating if the given symbol is valid.
      */
