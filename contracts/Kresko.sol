@@ -1231,7 +1231,7 @@ contract Kresko is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
     /**
      * @notice Gets an account's minimum collateral value for its Kresko Asset debts.
      * @dev Accounts that have their collateral value under the minimum collateral value are considered unhealthy
-     * and therefore to avoid liquidations users should maintaing a collateral value higher than the value returned.
+     * and therefore to avoid liquidations users should maintain a collateral value higher than the value returned.
      * @param _account The account to calculate the minimum collateral value for.
      * @return The minimum collateral value of a particular account.
      */
