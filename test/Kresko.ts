@@ -214,7 +214,7 @@ describe("Kresko", function () {
             expect(await this.kresko.pendingOwner()).to.equal(ADDRESS_ZERO);
         });
 
-        it("should allow ownership transfer through claim and call a onlyOwner function", async function () {
+        it("should allow ownership transfer through claim and be able to call onlyOwner function", async function () {
             await this.kresko.transferOwnership(this.userOne.address);
             const pendingOwner = await this.kresko.pendingOwner();
 
@@ -239,6 +239,15 @@ describe("Kresko", function () {
 
             const pendingOwnerAfterClaim = await this.kresko.pendingOwner();
             expect(pendingOwnerAfterClaim).to.equal(ADDRESS_ZERO);
+        });
+
+        it("should not allow not pending owner to claim pending ownership", async function () {
+            await this.kresko.transferOwnership(this.userOne.address);
+            const pendingOwner = await this.kresko.pendingOwner();
+            expect(pendingOwner).to.equal(this.userOne.address);
+            await expect(this.kresko.connect(this.userTwo).claimOwnership()).to.be.revertedWith(
+                "Ownable: caller != pending owner",
+            );
         });
 
         it("should not allow old owner to call onlyOwner functions transfer to zero address", async function () {
