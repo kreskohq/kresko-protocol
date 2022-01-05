@@ -54,7 +54,6 @@ describe.skip(`loops and gas consumption - gasLimit: ${gasLimit}`, function () {
                 {
                     unsafeAllow: [
                         "constructor", // Intentionally preventing others from initializing.
-                        "delegatecall", // BoringBatchable -- only delegatecalls itself.
                     ],
                 },
             )
