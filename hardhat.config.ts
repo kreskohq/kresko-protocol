@@ -15,7 +15,6 @@ import { HardhatUserConfig } from "hardhat/config";
 import { NetworkUserConfig } from "hardhat/types";
 
 dotenvConfig({ path: resolve(__dirname, "./.env") });
-
 let mnemonic = process.env.MNEMONIC;
 if (!mnemonic) {
     console.log(`No mnemonic set, using default value.`);

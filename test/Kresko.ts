@@ -15,39 +15,28 @@ import { NonRebasingWrapperToken } from "../typechain/NonRebasingWrapperToken";
 import { RebasingToken } from "../typechain/RebasingToken";
 import { Signers } from "../types";
 import { Result } from "@ethersproject/abi";
+import {
+    ADDRESS_ONE,
+    ADDRESS_TWO,
+    ADDRESS_ZERO,
+    BURN_FEE,
+    CLOSE_FACTOR,
+    CollateralAssetInfo,
+    deployContract,
+    FEE_RECIPIENT_ADDRESS,
+    fromBig,
+    LIQUIDATION_INCENTIVE,
+    MINIMUM_COLLATERALIZATION_RATIO,
+    NAME_ONE,
+    NAME_TWO,
+    ONE,
+    parseEther,
+    SYMBOL_ONE,
+    SYMBOL_TWO,
+    ZERO_POINT_FIVE,
+} from "./helper";
 
-const ADDRESS_ZERO = hre.ethers.constants.AddressZero;
-const ADDRESS_ONE = "0x0000000000000000000000000000000000000001";
-const ADDRESS_TWO = "0x0000000000000000000000000000000000000002";
-const SYMBOL_ONE = "ONE";
-const SYMBOL_TWO = "TWO";
-const NAME_ONE = "One Kresko Asset";
-const NAME_TWO = "Two Kresko Asset";
-const BURN_FEE = toFixedPoint(0.01); // 1%
-const MINIMUM_COLLATERALIZATION_RATIO = toFixedPoint(1.5); // 150%
-const CLOSE_FACTOR = toFixedPoint(0.2); // 20%
-const LIQUIDATION_INCENTIVE = toFixedPoint(1.1); // 110% -> liquidators make 10% on liquidations
-const FEE_RECIPIENT_ADDRESS = "0x0000000000000000000000000000000000000FEE";
-
-const { parseEther, formatUnits } = hre.ethers.utils;
-const fromBig = (amount: BigNumber, decimals = 18) => parseFloat(formatUnits(amount, decimals));
-const { deployContract } = hre.waffle;
-
-const ONE = toFixedPoint(1);
-const ZERO_POINT_FIVE = toFixedPoint(0.5);
-
-interface CollateralAssetInfo {
-    collateralAsset: MockToken;
-    oracle: BasicOracle;
-    factor: BigNumber;
-    oraclePrice: BigNumber;
-    decimals: number;
-    fromDecimal: (decimalValue: any) => BigNumber;
-    fromFixedPoint: (fixedPointValue: BigNumber) => BigNumber;
-    rebasingToken: RebasingToken | undefined;
-}
-
-async function deployAndWhitelistCollateralAsset(
+export async function deployAndWhitelistCollateralAsset(
     kresko: Contract,
     collateralFactor: number,
     oraclePrice: number,
@@ -102,7 +91,7 @@ async function deployAndWhitelistCollateralAsset(
     };
 }
 
-async function addNewKreskoAssetWithOraclePrice(
+export async function addNewKreskoAssetWithOraclePrice(
     kresko: Contract,
     name: string,
     symbol: string,
@@ -133,7 +122,7 @@ async function addNewKreskoAssetWithOraclePrice(
     };
 }
 
-async function deployNonRebasingWrapperToken(signer: ethers.Signer) {
+export async function deployNonRebasingWrapperToken(signer: ethers.Signer) {
     const rebasingTokenArtifact: Artifact = await hre.artifacts.readArtifact("RebasingToken");
     const rebasingToken = <RebasingToken>await deployContract(signer, rebasingTokenArtifact, [toFixedPoint(1)]);
 
