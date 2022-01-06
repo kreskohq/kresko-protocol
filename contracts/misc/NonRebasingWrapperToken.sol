@@ -3,6 +3,7 @@ pragma solidity >=0.8.4;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import "../utils/OwnableUpgradeable.sol";
 import "../libraries/FixedPoint.sol";
@@ -12,7 +13,7 @@ import "../libraries/FixedPoint.sol";
  * @notice A non-rebasing token that wraps rebasing tokens to present a balance for each user that
  *   does not change from exogenous events.
  */
-contract NonRebasingWrapperToken is OwnableUpgradeable, ERC20Upgradeable {
+contract NonRebasingWrapperToken is OwnableUpgradeable, ERC20Upgradeable, ReentrancyGuardUpgradeable {
     using FixedPoint for FixedPoint.Unsigned;
 
     /// @notice The underlying token that this contract wraps.
@@ -104,10 +105,9 @@ contract NonRebasingWrapperToken is OwnableUpgradeable, ERC20Upgradeable {
      *   to burn. Used to calculate the amount of underlying tokens that are withdrawn as a result.
      * @return The amount of the rebasing underlying token withdrawn.
      */
-    function withdrawUnderlying(uint256 _nonRebasingWithdrawalAmount) external returns (uint256) {
+    function withdrawUnderlying(uint256 _nonRebasingWithdrawalAmount) external nonReentrant returns (uint256) {
         require(_nonRebasingWithdrawalAmount > 0, "NRWToken: withdraw amount is zero");
         require(_nonRebasingWithdrawalAmount <= balanceOf(msg.sender), "NRWToken: withdraw amount exceeds balance");
-
         // Withdraw the underlying tokens. underlyingAmount will never be
         // greater than this contract's balance of the underlying token due
         // to the way getUnderlyingAmount works.
