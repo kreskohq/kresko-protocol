@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
@@ -15,6 +16,7 @@ import "../libraries/FixedPoint.sol";
  */
 contract NonRebasingWrapperToken is OwnableUpgradeable, ERC20Upgradeable, ReentrancyGuardUpgradeable {
     using FixedPoint for FixedPoint.Unsigned;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     /// @notice The underlying token that this contract wraps.
     IERC20Upgradeable public underlyingToken;
@@ -91,10 +93,8 @@ contract NonRebasingWrapperToken is OwnableUpgradeable, ERC20Upgradeable, Reentr
         // Calculate the actual difference in balance of this contract instead of using amount.
         // This handles cases where a token transfer has a fee.
         uint256 underlyingBalanceBefore = underlyingToken.balanceOf(address(this));
-        require(
-            underlyingToken.transferFrom(msg.sender, address(this), _underlyingDepositAmount),
-            "NRWToken: underlying transfer in failed"
-        );
+        underlyingToken.safeTransferFrom(msg.sender, address(this), _underlyingDepositAmount);
+
         uint256 underlyingBalanceAfter = underlyingToken.balanceOf(address(this));
         uint256 depositAmount = underlyingBalanceAfter - underlyingBalanceBefore;
 
@@ -142,7 +142,7 @@ contract NonRebasingWrapperToken is OwnableUpgradeable, ERC20Upgradeable, Reentr
         // greater than this contract's balance of the underlying token due
         // to the way getUnderlyingAmount works.
         uint256 underlyingAmount = getUnderlyingAmount(_nonRebasingWithdrawalAmount);
-        require(underlyingToken.transfer(msg.sender, underlyingAmount), "NRWToken: underlying transfer out failed");
+        underlyingToken.safeTransfer(msg.sender, underlyingAmount);
 
         // Burn the balance of non-rebasing tokens.
         // It's important to do this after the above call to getUnderlyingAmount,
