@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "./utils/OwnableUpgradeable.sol";
@@ -22,6 +23,8 @@ import "./libraries/Arrays.sol";
 contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     using FixedPoint for FixedPoint.Unsigned;
     using Arrays for address[];
+    using SafeERC20Upgradeable for IERC20MetadataUpgradeable;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     /**
      * ==================================================
@@ -83,10 +86,12 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     uint256 public constant MIN_MINIMUM_COLLATERALIZATION_RATIO = 1e18; // 100%
 
     /// @notice The minimum configurable liquidation incentive multiplier.
-    uint256 public constant MIN_LIQUIDATION_INCENTIVE = 1e18; // 100%
+    /// This means liquidator only receives equal amount of collateral to debt repaid.
+    uint256 public constant MIN_LIQUIDATION_INCENTIVE_MULTIPLIER = 1e18; // 100%
 
     /// @notice The maximum configurable liquidation incentive multiplier.
-    uint256 public constant MAX_LIQUIDATION_INCENTIVE = 1.5e18; // 150% // TODO: consider implications
+    /// This means liquidator receives 50% bonus collateral compared to the debt repaid.
+    uint256 public constant MAX_LIQUIDATION_INCENTIVE_MULTIPLIER = 1.5e18; // 150%
 
     /**
      * ==================================================
@@ -106,7 +111,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     address public feeRecipient;
 
     /// @notice The factor used to calculate the incentive a liquidator receives in the form of seized collateral.
-    FixedPoint.Unsigned public liquidationIncentive;
+    FixedPoint.Unsigned public liquidationIncentiveMultiplier;
 
     /// @notice The absolute minimum ratio of collateral value to debt value that is used to calculate
     /// collateral requirements.
@@ -293,10 +298,10 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     event FeeRecipientUpdated(address indexed feeRecipient);
 
     /**
-     * @notice Emitted when the liquidation incentive is updated.
-     * @param liquidationIncentive The new liquidation incentive raw value.
+     * @notice Emitted when the liquidation incentive multiplier is updated.
+     * @param liquidationIncentiveMultiplier The new liquidation incentive multiplier raw value.
      */
-    event LiquidationIncentiveUpdated(uint256 indexed liquidationIncentive);
+    event LiquidationIncentiveMultiplierUpdated(uint256 indexed liquidationIncentiveMultiplier);
 
     /**
      * @notice Emitted when the minimum collateralization ratio is updated.
@@ -379,18 +384,17 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     /**
      * @notice Initializes the core Kresko protocol.
-     * @param _burnFee The burn fee as a raw value for a FixedPoint.Unsigned.
-     * @param _closeFactor The close factor as a raw value for a FixedPoint.Unsigned.
-     * @param _feeRecipient The fee recipient.
-     * @param _liquidationIncentive The new liquidation incentive as a raw value for a FixedPoint.Unsigned.
-     * @param _minimumCollateralizationRatio The new minimum collateralization ratio as a raw value
-     * for a FixedPoint.Unsigned.
+     * @param _burnFee Initial burn fee as a raw value for a FixedPoint.Unsigned.
+     * @param _closeFactor Initial close factor as a raw value for a FixedPoint.Unsigned.
+     * @param _feeRecipient Initial fee recipient.
+     * @param _liquidationIncentiveMultiplier Initial liquidation incentive multiplier.
+     * @param _minimumCollateralizationRatio Initial collateralization ratio as a raw valu for a FixedPoint.Unsigned.
      */
     function initialize(
         uint256 _burnFee,
         uint256 _closeFactor,
         address _feeRecipient,
-        uint256 _liquidationIncentive,
+        uint256 _liquidationIncentiveMultiplier,
         uint256 _minimumCollateralizationRatio
     ) external initializer {
         // Set msg.sender as the owner.
@@ -398,7 +402,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         updateBurnFee(_burnFee);
         updateCloseFactor(_closeFactor);
         updateFeeRecipient(_feeRecipient);
-        updateLiquidationIncentive(_liquidationIncentive);
+        updateLiquidationIncentiveMultiplier(_liquidationIncentiveMultiplier);
         updateMinimumCollateralizationRatio(_minimumCollateralizationRatio);
     }
 
@@ -421,10 +425,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         collateralAssetExists(_collateralAsset)
     {
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
-        require(
-            IERC20MetadataUpgradeable(_collateralAsset).transferFrom(msg.sender, address(this), _amount),
-            "KR: DepositFailed"
-        );
+        IERC20MetadataUpgradeable(_collateralAsset).safeTransferFrom(msg.sender, address(this), _amount);
 
         // Record the collateral deposit.
         _recordCollateralDeposit(_collateralAsset, _amount);
@@ -447,10 +448,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         require(underlyingRebasingToken != address(0), "KR: !NRWTCollateral");
 
         // Transfer underlying rebasing token in.
-        require(
-            IERC20Upgradeable(underlyingRebasingToken).transferFrom(msg.sender, address(this), _rebasingAmount),
-            "KR: RebasingDepositFailed"
-        );
+        IERC20Upgradeable(underlyingRebasingToken).safeTransferFrom(msg.sender, address(this), _rebasingAmount);
 
         // Approve the newly received rebasing token to the NonRebasingWrapperToken in preparation
         // for calling depositUnderlying.
@@ -483,7 +481,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         _amount = (_amount <= depositAmount ? _amount : depositAmount);
         _verifyAndRecordCollateralWithdrawal(_collateralAsset, _amount, depositAmount, _depositedCollateralAssetIndex);
 
-        require(IERC20MetadataUpgradeable(_collateralAsset).transfer(msg.sender, _amount), "KR: WithdrawFail");
+        IERC20MetadataUpgradeable(_collateralAsset).safeTransfer(msg.sender, _amount);
     }
 
     /**
@@ -509,10 +507,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 underlyingAmountWithdrawn = INonRebasingWrapperToken(_collateralAsset).withdrawUnderlying(_amount);
 
         // Transfer the sender the rebasing underlying.
-        require(
-            IERC20MetadataUpgradeable(underlyingRebasingToken).transfer(msg.sender, underlyingAmountWithdrawn),
-            "KR: RebasingWithdrawFail"
-        );
+        IERC20MetadataUpgradeable(underlyingRebasingToken).safeTransfer(msg.sender, underlyingAmountWithdrawn);
     }
 
     /* ===== Kresko Assets ===== */
@@ -643,14 +638,14 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             _depositedCollateralAssetIndex
         );
 
+        // Charge burn fee from the liquidated user
+        _chargeBurnFee(_account, _repayKreskoAsset, _repayAmount);
+
         // Burn the received Kresko assets, removing them from circulation.
         IKreskoAsset(_repayKreskoAsset).burn(msg.sender, _repayAmount);
 
         // Send liquidator the seized collateral.
-        require(
-            IERC20MetadataUpgradeable(_collateralAssetToSeize).transfer(msg.sender, seizeAmount),
-            "KR: collateralTransferFailed"
-        );
+        IERC20MetadataUpgradeable(_collateralAssetToSeize).safeTransfer(msg.sender, seizeAmount);
 
         emit LiquidationOccurred(
             _account,
@@ -855,14 +850,14 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     /**
-     * @notice Updates the liquidation incentive.
-     * @param _liquidationIncentive The new liquidation incentive as a raw value for a FixedPoint.Unsigned.
+     * @notice Updates the liquidation incentive multiplier.
+     * @param _liquidationIncentiveMultiplier The new liquidation incentive multiplie.
      */
-    function updateLiquidationIncentive(uint256 _liquidationIncentive) public onlyOwner {
-        require(_liquidationIncentive >= MIN_LIQUIDATION_INCENTIVE, "KR: liqIncentive < min");
-        require(_liquidationIncentive <= MAX_LIQUIDATION_INCENTIVE, "KR: liqIncentive > max");
-        liquidationIncentive = FixedPoint.Unsigned(_liquidationIncentive);
-        emit LiquidationIncentiveUpdated(_liquidationIncentive);
+    function updateLiquidationIncentiveMultiplier(uint256 _liquidationIncentiveMultiplier) public onlyOwner {
+        require(_liquidationIncentiveMultiplier >= MIN_LIQUIDATION_INCENTIVE_MULTIPLIER, "KR: liqIncentiveMulti < min");
+        require(_liquidationIncentiveMultiplier <= MAX_LIQUIDATION_INCENTIVE_MULTIPLIER, "KR: liqIncentiveMulti > max");
+        liquidationIncentiveMultiplier = FixedPoint.Unsigned(_liquidationIncentiveMultiplier);
+        emit LiquidationIncentiveMultiplierUpdated(_liquidationIncentiveMultiplier);
     }
 
     /**
@@ -1063,10 +1058,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             // Remove the transferAmount from the stored deposit for the account.
             collateralDeposits[_account][collateralAssetAddress] -= transferAmount;
             // Transfer the fee to the feeRecipient.
-            require(
-                IERC20MetadataUpgradeable(collateralAssetAddress).transfer(feeRecipient, transferAmount),
-                "KR: feeTransferFail"
-            );
+            IERC20MetadataUpgradeable(collateralAssetAddress).safeTransfer(feeRecipient, transferAmount);
             emit BurnFeePaid(_account, collateralAssetAddress, transferAmount, feeValuePaid.rawValue);
 
             feeValue = feeValue.sub(feeValuePaid);
@@ -1094,12 +1086,9 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     ) internal returns (uint256, FixedPoint.Unsigned memory) {
         uint256 depositAmount = collateralDeposits[_account][_collateralAssetAddress];
 
+        // Don't take the collateral asset's collateral factor into consideration.
         (FixedPoint.Unsigned memory depositValue, FixedPoint.Unsigned memory oraclePrice) =
-            getCollateralValueAndOraclePrice(
-                _collateralAssetAddress,
-                depositAmount,
-                true // Don't take the collateral asset's collateral factor into consideration.
-            );
+            getCollateralValueAndOraclePrice(_collateralAssetAddress, depositAmount, true);
 
         FixedPoint.Unsigned memory feeValuePaid;
         uint256 transferAmount;
@@ -1148,8 +1137,10 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             FixedPoint.Unsigned(collateralAssets[_collateralAssetToSeize].oracle.value());
 
         // Seize amount = (repay amount USD / exchange rate of collateral asset) * liquidation incentive.
-        FixedPoint.Unsigned memory seizeAmount = _kreskoAssetRepayAmountUSD.div(oraclePrice).mul(liquidationIncentive);
-        // Denominate seize amount in collateral type // Apply liquidation percentage
+        // Denominates seize amount in collateral type
+        // Apply liquidation incentive multiplier
+        FixedPoint.Unsigned memory seizeAmount =
+            _kreskoAssetRepayAmountUSD.div(oraclePrice).mul(liquidationIncentiveMultiplier);
 
         return _fromCollateralFixedPointAmount(_collateralAssetToSeize, seizeAmount);
     }
