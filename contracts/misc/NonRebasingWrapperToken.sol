@@ -3,6 +3,7 @@ pragma solidity >=0.8.4;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import "../utils/OwnableUpgradeable.sol";
 import "../libraries/FixedPoint.sol";
@@ -12,7 +13,7 @@ import "../libraries/FixedPoint.sol";
  * @notice A non-rebasing token that wraps rebasing tokens to present a balance for each user that
  *   does not change from exogenous events.
  */
-contract NonRebasingWrapperToken is OwnableUpgradeable, ERC20Upgradeable {
+contract NonRebasingWrapperToken is OwnableUpgradeable, ERC20Upgradeable, ReentrancyGuardUpgradeable {
     using FixedPoint for FixedPoint.Unsigned;
 
     /// @notice The underlying token that this contract wraps.
@@ -33,6 +34,35 @@ contract NonRebasingWrapperToken is OwnableUpgradeable, ERC20Upgradeable {
     }
 
     /**
+     * @dev Returns true if `account` is a contract.
+     *
+     * [IMPORTANT]
+     * ====
+     * It is unsafe to assume that an address for which this function returns
+     * false is an externally-owned account (EOA) and not a contract.
+     *
+     * Among others, `isContract` will return false for the following
+     * types of addresses:
+     *
+     *  - an externally-owned account
+     *  - a contract in construction
+     *  - an address where a contract will be created
+     *  - an address where a contract lived, but was destroyed
+     * ====
+     */
+    function isContract(address account) internal view returns (bool) {
+        // This method relies on extcodesize, which returns 0 for contracts in
+        // construction, since the code is only stored at the end of the
+        // constructor execution.
+
+        uint256 size;
+        assembly {
+            size := extcodesize(account)
+        }
+        return size > 0;
+    }
+
+    /**
      * @notice Constructs a non-rebasing wrapper token.
      * @param _underlyingToken The address of the underlying token this contract wraps.
      * @param _name The name of this wrapper token.
@@ -43,6 +73,7 @@ contract NonRebasingWrapperToken is OwnableUpgradeable, ERC20Upgradeable {
         string memory _name,
         string memory _symbol
     ) external initializer {
+        require(isContract(_underlyingToken), "NRWToken: underlying must be a contract");
         __ERC20_init(_name, _symbol);
         __Ownable_init_unchained();
         underlyingToken = IERC20Upgradeable(_underlyingToken);
@@ -104,10 +135,9 @@ contract NonRebasingWrapperToken is OwnableUpgradeable, ERC20Upgradeable {
      *   to burn. Used to calculate the amount of underlying tokens that are withdrawn as a result.
      * @return The amount of the rebasing underlying token withdrawn.
      */
-    function withdrawUnderlying(uint256 _nonRebasingWithdrawalAmount) external returns (uint256) {
+    function withdrawUnderlying(uint256 _nonRebasingWithdrawalAmount) external nonReentrant returns (uint256) {
         require(_nonRebasingWithdrawalAmount > 0, "NRWToken: withdraw amount is zero");
         require(_nonRebasingWithdrawalAmount <= balanceOf(msg.sender), "NRWToken: withdraw amount exceeds balance");
-
         // Withdraw the underlying tokens. underlyingAmount will never be
         // greater than this contract's balance of the underlying token due
         // to the way getUnderlyingAmount works.
