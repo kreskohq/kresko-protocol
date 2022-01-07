@@ -637,6 +637,9 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             _depositedCollateralAssetIndex
         );
 
+        // Charge burn fee from the liquidated user
+        _chargeBurnFee(_account, _repayKreskoAsset, _repayAmount);
+
         // Burn the received Kresko assets, removing them from circulation.
         IKreskoAsset(_repayKreskoAsset).burn(msg.sender, _repayAmount);
 
