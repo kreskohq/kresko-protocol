@@ -627,7 +627,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         // Calculate amount of collateral to seize.
         uint256 seizeAmount = _calculateAmountToSeize(_collateralAssetToSeize, repayAmountUSD);
 
-        _liquidateAssets(
+        seizeAmount = _liquidateAssets(
             _account,
             krAssetDebt,
             _repayAmount,
@@ -1165,7 +1165,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 _mintedKreskoAssetIndex,
         address _collateralAssetToSeize,
         uint256 _depositedCollateralAssetIndex
-    ) internal {
+    ) internal returns (uint256) {
         // Subtract repaid Kresko assets from liquidated user's recorded debt.
         kreskoAssetDebt[_account][_repayKreskoAsset] = _krAssetDebt - _repayAmount;
         // If the liquidation repays the user's entire Kresko asset balance, remove it from minted assets array.
@@ -1173,13 +1173,22 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             mintedKreskoAssets[msg.sender].removeAddress(_repayKreskoAsset, _mintedKreskoAssetIndex);
         }
 
-        // Subtract seized collateral from liquidated user's recorded collateral.
+        // Get users collateral deposit amount
         uint256 collateralDeposit = collateralDeposits[_account][_collateralAssetToSeize];
-        collateralDeposits[_account][_collateralAssetToSeize] = collateralDeposit - _seizeAmount;
-        // If the liquidation seizes the user's entire collateral asset balance, remove it from collateral assets array.
-        if (_seizeAmount == collateralDeposit) {
+
+        if (collateralDeposit > _seizeAmount) {
+            collateralDeposits[_account][_collateralAssetToSeize] = collateralDeposit - _seizeAmount;
+        } else {
+            // This clause means user either has collateralDeposits equal or less than the _seizeAmount
+            _seizeAmount = collateralDeposit;
+            // So we set the collateralDeposits to 0
+            collateralDeposits[_account][_collateralAssetToSeize] = 0;
+            // And remove the asset from the deposits array.
             depositedCollateralAssets[_account].removeAddress(_collateralAssetToSeize, _depositedCollateralAssetIndex);
         }
+
+        // Return the actual amount seized
+        return _seizeAmount;
     }
 
     /**
