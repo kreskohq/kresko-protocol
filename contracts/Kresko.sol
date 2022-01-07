@@ -632,7 +632,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         // Calculate amount of collateral to seize.
         uint256 seizeAmount = _calculateAmountToSeize(_collateralAssetToSeize, repayAmountUSD);
 
-        _liquidateAssets(
+        seizeAmount = _liquidateAssets(
             _account,
             krAssetDebt,
             _repayAmount,
@@ -1148,10 +1148,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             FixedPoint.Unsigned(collateralAssets[_collateralAssetToSeize].oracle.value());
 
         // Seize amount = (repay amount USD / exchange rate of collateral asset) * liquidation incentive.
-        FixedPoint.Unsigned memory seizeAmount =
-            _kreskoAssetRepayAmountUSD
-                .div(oraclePrice) // Denominate seize amount in collateral type
-                .mul(liquidationIncentive); // Apply liquidation percentage
+        FixedPoint.Unsigned memory seizeAmount = _kreskoAssetRepayAmountUSD.div(oraclePrice).mul(liquidationIncentive); // Denominate seize amount in collateral type // Apply liquidation percentage
 
         return _fromCollateralFixedPointAmount(_collateralAssetToSeize, seizeAmount);
     }
@@ -1176,7 +1173,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 _mintedKreskoAssetIndex,
         address _collateralAssetToSeize,
         uint256 _depositedCollateralAssetIndex
-    ) internal {
+    ) internal returns (uint256) {
         // Subtract repaid Kresko assets from liquidated user's recorded debt.
         kreskoAssetDebt[_account][_repayKreskoAsset] = _krAssetDebt - _repayAmount;
         // If the liquidation repays the user's entire Kresko asset balance, remove it from minted assets array.
@@ -1184,13 +1181,19 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             mintedKreskoAssets[msg.sender].removeAddress(_repayKreskoAsset, _mintedKreskoAssetIndex);
         }
 
-        // Subtract seized collateral from liquidated user's recorded collateral.
+        // Get users collateral deposit amount
         uint256 collateralDeposit = collateralDeposits[_account][_collateralAssetToSeize];
-        collateralDeposits[_account][_collateralAssetToSeize] = collateralDeposit - _seizeAmount;
-        // If the liquidation seizes the user's entire collateral asset balance, remove it from collateral assets array.
-        if (_seizeAmount == collateralDeposit) {
+
+        if (collateralDeposit > _seizeAmount) {
+            collateralDeposits[_account][_collateralAssetToSeize] = collateralDeposit - _seizeAmount;
+        } else {
+            _seizeAmount = collateralDeposit;
+            // If the liquidation seizes the user's entire collateral asset balance,
+            // remove it from collateral assets array.
+            collateralDeposits[_account][_collateralAssetToSeize] = 0;
             depositedCollateralAssets[_account].removeAddress(_collateralAssetToSeize, _depositedCollateralAssetIndex);
         }
+        return _seizeAmount;
     }
 
     /**
