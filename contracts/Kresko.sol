@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "./utils/OwnableUpgradeable.sol";
@@ -22,6 +23,8 @@ import "./libraries/Arrays.sol";
 contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     using FixedPoint for FixedPoint.Unsigned;
     using Arrays for address[];
+    using SafeERC20Upgradeable for IERC20MetadataUpgradeable;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     /**
      * ==================================================
@@ -421,10 +424,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         collateralAssetExists(_collateralAsset)
     {
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
-        require(
-            IERC20MetadataUpgradeable(_collateralAsset).transferFrom(msg.sender, address(this), _amount),
-            "KR: DepositFailed"
-        );
+        IERC20MetadataUpgradeable(_collateralAsset).safeTransferFrom(msg.sender, address(this), _amount);
 
         // Record the collateral deposit.
         _recordCollateralDeposit(_collateralAsset, _amount);
@@ -447,10 +447,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         require(underlyingRebasingToken != address(0), "KR: !NRWTCollateral");
 
         // Transfer underlying rebasing token in.
-        require(
-            IERC20Upgradeable(underlyingRebasingToken).transferFrom(msg.sender, address(this), _rebasingAmount),
-            "KR: RebasingDepositFailed"
-        );
+        IERC20Upgradeable(underlyingRebasingToken).safeTransferFrom(msg.sender, address(this), _rebasingAmount);
 
         // Approve the newly received rebasing token to the NonRebasingWrapperToken in preparation
         // for calling depositUnderlying.
@@ -483,7 +480,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         _amount = (_amount <= depositAmount ? _amount : depositAmount);
         _verifyAndRecordCollateralWithdrawal(_collateralAsset, _amount, depositAmount, _depositedCollateralAssetIndex);
 
-        require(IERC20MetadataUpgradeable(_collateralAsset).transfer(msg.sender, _amount), "KR: WithdrawFail");
+        IERC20MetadataUpgradeable(_collateralAsset).safeTransfer(msg.sender, _amount);
     }
 
     /**
@@ -509,10 +506,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 underlyingAmountWithdrawn = INonRebasingWrapperToken(_collateralAsset).withdrawUnderlying(_amount);
 
         // Transfer the sender the rebasing underlying.
-        require(
-            IERC20MetadataUpgradeable(underlyingRebasingToken).transfer(msg.sender, underlyingAmountWithdrawn),
-            "KR: RebasingWithdrawFail"
-        );
+        IERC20MetadataUpgradeable(underlyingRebasingToken).safeTransfer(msg.sender, underlyingAmountWithdrawn);
     }
 
     /* ===== Kresko Assets ===== */
@@ -647,10 +641,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         IKreskoAsset(_repayKreskoAsset).burn(msg.sender, _repayAmount);
 
         // Send liquidator the seized collateral.
-        require(
-            IERC20MetadataUpgradeable(_collateralAssetToSeize).transfer(msg.sender, seizeAmount),
-            "KR: collateralTransferFailed"
-        );
+        IERC20MetadataUpgradeable(_collateralAssetToSeize).safeTransfer(msg.sender, seizeAmount);
 
         emit LiquidationOccurred(
             _account,
@@ -1063,10 +1054,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             // Remove the transferAmount from the stored deposit for the account.
             collateralDeposits[_account][collateralAssetAddress] -= transferAmount;
             // Transfer the fee to the feeRecipient.
-            require(
-                IERC20MetadataUpgradeable(collateralAssetAddress).transfer(feeRecipient, transferAmount),
-                "KR: feeTransferFail"
-            );
+            IERC20MetadataUpgradeable(collateralAssetAddress).safeTransfer(feeRecipient, transferAmount);
             emit BurnFeePaid(_account, collateralAssetAddress, transferAmount, feeValuePaid.rawValue);
 
             feeValue = feeValue.sub(feeValuePaid);
@@ -1148,10 +1136,8 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             FixedPoint.Unsigned(collateralAssets[_collateralAssetToSeize].oracle.value());
 
         // Seize amount = (repay amount USD / exchange rate of collateral asset) * liquidation incentive.
-        FixedPoint.Unsigned memory seizeAmount =
-            _kreskoAssetRepayAmountUSD
-                .div(oraclePrice) // Denominate seize amount in collateral type
-                .mul(liquidationIncentive); // Apply liquidation percentage
+        FixedPoint.Unsigned memory seizeAmount = _kreskoAssetRepayAmountUSD.div(oraclePrice).mul(liquidationIncentive);
+        // Denominate seize amount in collateral type // Apply liquidation percentage
 
         return _fromCollateralFixedPointAmount(_collateralAssetToSeize, seizeAmount);
     }
