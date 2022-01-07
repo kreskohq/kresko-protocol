@@ -4,7 +4,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { expect } from "chai";
 import { BigNumber, Contract, ethers } from "ethers";
 
-import { toFixedPoint, fixedPointDiv, fixedPointMul } from "../utils/fixed-point";
+import { toFixedPoint, fixedPointDiv, fixedPointMul, fromFixedPoint } from "../utils/fixed-point";
 import { extractEventFromTxReceipt } from "../utils/events";
 
 import { BasicOracle } from "../typechain/BasicOracle";
@@ -35,6 +35,7 @@ import {
     SYMBOL_TWO,
     ZERO_POINT_FIVE,
 } from "./helper";
+import { formatEther } from "@ethersproject/units";
 
 export async function deployAndWhitelistCollateralAsset(
     kresko: Contract,
@@ -1979,6 +1980,8 @@ describe("Kresko", function () {
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
                 await oracle.setValue(fixedPointOraclePrice);
 
+                const krAssetOracle = this.kr;
+
                 // Confirm we can liquidate this account
                 const canLiquidate = await this.kresko.isAccountLiquidatable(this.userOne.address);
                 expect(canLiquidate).to.equal(true);
@@ -2099,23 +2102,65 @@ describe("Kresko", function () {
             });
 
             it.only("should make liquidator a profit", async function () {
+                const userAddresses = [this.userOne.address, this.userTwo.address];
+                const initialUserCollateralBalance = parseEther("100000");
+                for (const collateralAssetInfo of this.collateralAssetInfos) {
+                    for (const userAddress of userAddresses) {
+                        await collateralAssetInfo.collateralAsset.setBalanceOf(
+                            userAddress,
+                            initialUserCollateralBalance,
+                        );
+                    }
+                }
+                // userOne deposits 1000 of the collateral asset
+                const collateralAsset = this.collateralAssetInfos[0].collateralAsset;
+                const userOneDepositAmount = parseEther("1000"); // 1000 * $20 = $20,000 in collateral value
+                await this.kresko
+                    .connect(this.userOne)
+                    .depositCollateral(collateralAsset.address, userOneDepositAmount);
+
+                // userOne mints 1000 of the Kresko asset
+                const kreskoAsset = this.kreskoAssetInfo[0].kreskoAsset;
+                const useOneMintAmount = parseEther("1000"); // 1000 * $10 = $10,000 in debt value
+                await this.kresko.connect(this.userOne).mintKreskoAsset(kreskoAsset.address, useOneMintAmount);
+
+                // userTwo deposits 10,000 of the collateral asset
+                const userTwoDepositAmount = parseEther("1000"); // 10,000 * $20 = $200,000 in collateral value
+                await this.kresko
+                    .connect(this.userTwo)
+                    .depositCollateral(collateralAsset.address, userTwoDepositAmount);
+
+                // userTwo mints 1000 of the Kresko asset
+                const userTwoMintAmount = parseEther("1000"); // 1000 * $10 = $10,000 in debt value
+                await this.kresko.connect(this.userTwo).mintKreskoAsset(kreskoAsset.address, userTwoMintAmount);
                 // Change collateral asset's USD value from $20 to $11
                 const oracle = this.collateralAssetInfos[0].oracle;
                 const updatedCollateralPrice = 11;
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
                 await oracle.setValue(fixedPointOraclePrice);
 
+                const userCollateralAmountBefore = fromBig(
+                    await this.kresko.collateralDeposits(
+                        this.userOne.address,
+                        this.collateralAssetInfos[0].collateralAsset.address,
+                    ),
+                );
+
                 // Fetch user's debt amount prior to liquidation
-                const kreskoAsset = this.kreskoAssetInfo[0].kreskoAsset;
-                let userDebtAmount = await this.kresko.kreskoAssetDebt(this.userOne.address, kreskoAsset.address);
-                console.log(Number(userDebtAmount));
+                const userDebtAmountBeforeLiquidation = Number(
+                    formatEther(await this.kresko.kreskoAssetDebt(this.userOne.address, kreskoAsset.address)),
+                );
 
                 // userTwo holds Kresko assets that can be used to repay userOne's loan
-                const repayAmount = 100;
+                const repayAmount = parseEther("100");
                 await kreskoAsset.connect(this.userTwo).approve(this.kresko.address, repayAmount);
 
-                const liquidatorKrAssetBalanceBeforeLiquidation = Number(
-                    await kreskoAsset.balanceOf(this.userTwo.address),
+                const liquidatorKrAssetDebtBeforeLiquidation = fromBig(
+                    await this.kresko.kreskoAssetDebt(this.userTwo.address, kreskoAsset.address),
+                );
+
+                const liquidatorBalanceBefore = fromBig(
+                    await this.collateralAssetInfos[0].collateralAsset.balanceOf(this.userTwo.address),
                 );
 
                 const userOneKrAssetValueBeforeLiq = Number(
@@ -2123,11 +2168,10 @@ describe("Kresko", function () {
                 );
 
                 const liquidatorDebtBefore = Number(
-                    await this.kresko.kreskoAssetDebt(this.userTwo.address, kreskoAsset.address),
+                    formatEther(await this.kresko.kreskoAssetDebt(this.userTwo.address, kreskoAsset.address)),
                 );
 
                 // Liquidation
-                const collateralAsset = this.collateralAssetInfos[0].collateralAsset;
                 const mintedKreskoAssetIndex = 0;
                 const depositedCollateralAssetIndex = 0;
                 const receipt = await this.kresko
@@ -2139,6 +2183,7 @@ describe("Kresko", function () {
                         collateralAsset.address,
                         mintedKreskoAssetIndex,
                         depositedCollateralAssetIndex,
+                        false,
                     );
 
                 const event = (await extractEventFromTxReceipt(receipt, "LiquidationOccurred"))![0].args!;
@@ -2147,34 +2192,50 @@ describe("Kresko", function () {
                 expect(event.repayKreskoAsset).to.equal(kreskoAsset.address);
                 expect(event.repayAmount).to.equal(repayAmount);
                 expect(event.seizedCollateralAsset).to.equal(collateralAsset.address);
+                expect(Number(event.collateralSent)).to.be.greaterThan(0);
 
-                const liquidatorDebtAfter = Number(
+                const liquidatorDebtAfter = fromBig(
                     await this.kresko.kreskoAssetDebt(this.userTwo.address, event.repayKreskoAsset),
                 );
 
                 expect(liquidatorDebtAfter).to.be.lessThan(liquidatorDebtBefore);
 
-                userDebtAmount = await this.kresko.kreskoAssetDebt(this.userOne.address, kreskoAsset.address);
-                console.log(Number(userDebtAmount));
+                const userDebtAmountAfterLiquidation = fromBig(
+                    await this.kresko.kreskoAssetDebt(this.userOne.address, kreskoAsset.address),
+                );
 
                 const userOneKrAssetValueAfterLiq = Number(
                     await this.kresko.getAccountKrAssetValue(this.userOne.address),
                 );
 
-                const liquidatorKrAssetBalanceAfterLiquidation = Number(
-                    await kreskoAsset.balanceOf(this.userTwo.address),
+                const liquidatorKrAssetDebtAfterLiquidation = fromBig(
+                    await this.kresko.kreskoAssetDebt(this.userTwo.address, kreskoAsset.address),
                 );
 
+                const userCollateralAmountAfter = fromBig(
+                    await this.kresko.collateralDeposits(
+                        this.userOne.address,
+                        this.collateralAssetInfos[0].collateralAsset.address,
+                    ),
+                );
+
+                const liquidatorBalanceAfter = fromBig(
+                    await this.collateralAssetInfos[0].collateralAsset.balanceOf(this.userTwo.address),
+                );
+
+                console.log("CollateralUserOne", userCollateralAmountBefore, userCollateralAmountAfter);
+                console.log("Liquidator", liquidatorBalanceBefore, liquidatorBalanceAfter);
                 console.log(
-                    liquidatorKrAssetBalanceBeforeLiquidation,
-                    liquidatorKrAssetBalanceAfterLiquidation,
-                    userOneKrAssetValueBeforeLiq,
-                    userOneKrAssetValueAfterLiq,
+                    "Liquidator",
+                    liquidatorKrAssetDebtBeforeLiquidation,
+                    liquidatorKrAssetDebtAfterLiquidation,
                 );
 
-                expect(liquidatorKrAssetBalanceBeforeLiquidation).to.be.greaterThan(
-                    liquidatorKrAssetBalanceAfterLiquidation,
-                );
+                expect(userDebtAmountBeforeLiquidation).to.be.greaterThan(userDebtAmountAfterLiquidation);
+
+                expect(userOneKrAssetValueAfterLiq).to.be.lessThan(userOneKrAssetValueBeforeLiq);
+
+                expect(liquidatorKrAssetDebtBeforeLiquidation).to.be.greaterThan(liquidatorKrAssetDebtAfterLiquidation);
             });
 
             it("should not allow the liquidations of healthy accounts", async function () {
