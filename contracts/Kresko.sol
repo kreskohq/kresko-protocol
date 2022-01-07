@@ -83,10 +83,10 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     uint256 public constant MIN_MINIMUM_COLLATERALIZATION_RATIO = 1e18; // 100%
 
     /// @notice The minimum configurable liquidation incentive multiplier.
-    uint256 public constant MIN_LIQUIDATION_INCENTIVE = 1e18; // 100%
+    uint256 public constant MIN_LIQUIDATION_INCENTIVE_MULTIPLIER = 1e18; // 100%
 
     /// @notice The maximum configurable liquidation incentive multiplier.
-    uint256 public constant MAX_LIQUIDATION_INCENTIVE = 1.5e18; // 150% // TODO: consider implications
+    uint256 public constant MAX_LIQUIDATION_INCENTIVE_MULTIPLIER = 1.5e18; // 150%
 
     /**
      * ==================================================
@@ -106,7 +106,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     address public feeRecipient;
 
     /// @notice The factor used to calculate the incentive a liquidator receives in the form of seized collateral.
-    FixedPoint.Unsigned public liquidationIncentive;
+    FixedPoint.Unsigned public liquidationIncentiveMultiplier;
 
     /// @notice The absolute minimum ratio of collateral value to debt value that is used to calculate
     /// collateral requirements.
@@ -293,10 +293,10 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     event FeeRecipientUpdated(address indexed feeRecipient);
 
     /**
-     * @notice Emitted when the liquidation incentive is updated.
-     * @param liquidationIncentive The new liquidation incentive raw value.
+     * @notice Emitted when the liquidation incentive multiplier is updated.
+     * @param liquidationIncentiveMultiplier The new liquidation incentive multiplier raw value.
      */
-    event LiquidationIncentiveUpdated(uint256 indexed liquidationIncentive);
+    event LiquidationIncentiveMultiplierUpdated(uint256 indexed liquidationIncentiveMultiplier);
 
     /**
      * @notice Emitted when the minimum collateralization ratio is updated.
@@ -379,18 +379,17 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     /**
      * @notice Initializes the core Kresko protocol.
-     * @param _burnFee The burn fee as a raw value for a FixedPoint.Unsigned.
-     * @param _closeFactor The close factor as a raw value for a FixedPoint.Unsigned.
-     * @param _feeRecipient The fee recipient.
-     * @param _liquidationIncentive The new liquidation incentive as a raw value for a FixedPoint.Unsigned.
-     * @param _minimumCollateralizationRatio The new minimum collateralization ratio as a raw value
-     * for a FixedPoint.Unsigned.
+     * @param _burnFee Initial burn fee as a raw value for a FixedPoint.Unsigned.
+     * @param _closeFactor Initial close factor as a raw value for a FixedPoint.Unsigned.
+     * @param _feeRecipient Initial fee recipient.
+     * @param _liquidationIncentiveMultiplier Initial liquidation incentive multiplier.
+     * @param _minimumCollateralizationRatio Initial collateralization ratio as a raw valu for a FixedPoint.Unsigned.
      */
     function initialize(
         uint256 _burnFee,
         uint256 _closeFactor,
         address _feeRecipient,
-        uint256 _liquidationIncentive,
+        uint256 _liquidationIncentiveMultiplier,
         uint256 _minimumCollateralizationRatio
     ) external initializer {
         // Set msg.sender as the owner.
@@ -398,7 +397,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         updateBurnFee(_burnFee);
         updateCloseFactor(_closeFactor);
         updateFeeRecipient(_feeRecipient);
-        updateLiquidationIncentive(_liquidationIncentive);
+        updateLiquidationIncentiveMultiplier(_liquidationIncentiveMultiplier);
         updateMinimumCollateralizationRatio(_minimumCollateralizationRatio);
     }
 
@@ -855,14 +854,14 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     /**
-     * @notice Updates the liquidation incentive.
-     * @param _liquidationIncentive The new liquidation incentive as a raw value for a FixedPoint.Unsigned.
+     * @notice Updates the liquidation incentive multiplier.
+     * @param _liquidationIncentiveMultiplier The new liquidation incentive multiplie.
      */
-    function updateLiquidationIncentive(uint256 _liquidationIncentive) public onlyOwner {
-        require(_liquidationIncentive >= MIN_LIQUIDATION_INCENTIVE, "KR: liqIncentive < min");
-        require(_liquidationIncentive <= MAX_LIQUIDATION_INCENTIVE, "KR: liqIncentive > max");
-        liquidationIncentive = FixedPoint.Unsigned(_liquidationIncentive);
-        emit LiquidationIncentiveUpdated(_liquidationIncentive);
+    function updateLiquidationIncentiveMultiplier(uint256 _liquidationIncentiveMultiplier) public onlyOwner {
+        require(_liquidationIncentiveMultiplier >= MIN_LIQUIDATION_INCENTIVE_MULTIPLIER, "KR: liqIncentiveMulti < min");
+        require(_liquidationIncentiveMultiplier <= MAX_LIQUIDATION_INCENTIVE_MULTIPLIER, "KR: liqIncentiveMulti > max");
+        liquidationIncentiveMultiplier = FixedPoint.Unsigned(_liquidationIncentiveMultiplier);
+        emit LiquidationIncentiveMultiplierUpdated(_liquidationIncentiveMultiplier);
     }
 
     /**
@@ -1094,12 +1093,9 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     ) internal returns (uint256, FixedPoint.Unsigned memory) {
         uint256 depositAmount = collateralDeposits[_account][_collateralAssetAddress];
 
+        // Don't take the collateral asset's collateral factor into consideration.
         (FixedPoint.Unsigned memory depositValue, FixedPoint.Unsigned memory oraclePrice) =
-            getCollateralValueAndOraclePrice(
-                _collateralAssetAddress,
-                depositAmount,
-                true // Don't take the collateral asset's collateral factor into consideration.
-            );
+            getCollateralValueAndOraclePrice(_collateralAssetAddress, depositAmount, true);
 
         FixedPoint.Unsigned memory feeValuePaid;
         uint256 transferAmount;
@@ -1148,10 +1144,10 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             FixedPoint.Unsigned(collateralAssets[_collateralAssetToSeize].oracle.value());
 
         // Seize amount = (repay amount USD / exchange rate of collateral asset) * liquidation incentive.
+        // Denominates seize amount in collateral type
+        // Apply liquidation incentive multiplier
         FixedPoint.Unsigned memory seizeAmount =
-            _kreskoAssetRepayAmountUSD
-                .div(oraclePrice) // Denominate seize amount in collateral type
-                .mul(liquidationIncentive); // Apply liquidation percentage
+            _kreskoAssetRepayAmountUSD.div(oraclePrice).mul(liquidationIncentiveMultiplier);
 
         return _fromCollateralFixedPointAmount(_collateralAssetToSeize, seizeAmount);
     }

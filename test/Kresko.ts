@@ -181,7 +181,7 @@ describe("Kresko", function () {
             expect(await this.kresko.burnFee()).to.equal(BURN_FEE);
             expect(await this.kresko.closeFactor()).to.equal(CLOSE_FACTOR);
             expect(await this.kresko.feeRecipient()).to.equal(FEE_RECIPIENT_ADDRESS);
-            expect(await this.kresko.liquidationIncentive()).to.equal(LIQUIDATION_INCENTIVE);
+            expect(await this.kresko.liquidationIncentiveMultiplier()).to.equal(LIQUIDATION_INCENTIVE);
             expect(await this.kresko.minimumCollateralizationRatio()).to.equal(MINIMUM_COLLATERALIZATION_RATIO);
         });
 
@@ -1840,42 +1840,58 @@ describe("Kresko", function () {
         });
 
         describe("#updateLiquidationIncentive", function () {
-            const validLiquidationIncentive = toFixedPoint(1.15);
+            const validLiquidationIncentiveMultiplier = toFixedPoint(1.15);
             it("should allow the owner to update the liquidation incentive", async function () {
                 // Ensure it has the expected initial value
-                expect(await this.kresko.liquidationIncentive()).to.equal(LIQUIDATION_INCENTIVE);
+                expect(await this.kresko.liquidationIncentiveMultiplier()).to.equal(LIQUIDATION_INCENTIVE);
 
-                await this.kresko.connect(this.signers.admin).updateLiquidationIncentive(validLiquidationIncentive);
+                await this.kresko
+                    .connect(this.signers.admin)
+                    .updateLiquidationIncentiveMultiplier(validLiquidationIncentiveMultiplier);
 
-                expect(await this.kresko.liquidationIncentive()).to.equal(validLiquidationIncentive);
+                expect(await this.kresko.liquidationIncentiveMultiplier()).to.equal(
+                    validLiquidationIncentiveMultiplier,
+                );
             });
 
-            it("should emit LiquidationIncentiveUpdated event", async function () {
+            it("should emit LiquidationIncentiveMultiplierUpdated event", async function () {
                 const receipt = await this.kresko
                     .connect(this.signers.admin)
-                    .updateLiquidationIncentive(validLiquidationIncentive);
+                    .updateLiquidationIncentiveMultiplier(validLiquidationIncentiveMultiplier);
 
-                const event = (await extractEventFromTxReceipt(receipt, "LiquidationIncentiveUpdated"))![0].args!;
-                expect(event.liquidationIncentive).to.equal(validLiquidationIncentive);
+                const event = (await extractEventFromTxReceipt(receipt, "LiquidationIncentiveMultiplierUpdated"))![0]
+                    .args!;
+
+                expect(event.liquidationIncentiveMultiplier).to.equal(validLiquidationIncentiveMultiplier);
             });
 
-            it("should not allow the liquidation incentive to be less than the MIN_LIQUIDATION_INCENTIVE", async function () {
-                const newLiquidationIncentive = (await this.kresko.MIN_LIQUIDATION_INCENTIVE()).sub(1);
+            it("should not allow the liquidation incentive to be less than the MIN_LIQUIDATION_INCENTIVE_MULTIPLIER", async function () {
+                const newLiquidationIncentiveMultiplier = (
+                    await this.kresko.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER()
+                ).sub(1);
                 await expect(
-                    this.kresko.connect(this.signers.admin).updateLiquidationIncentive(newLiquidationIncentive),
-                ).to.be.revertedWith("KR: liqIncentive < min");
+                    this.kresko
+                        .connect(this.signers.admin)
+                        .updateLiquidationIncentiveMultiplier(newLiquidationIncentiveMultiplier),
+                ).to.be.revertedWith("KR: liqIncentiveMulti < min");
             });
 
-            it("should not allow the liquidation incentive to exceed MAX_LIQUIDATION_INCENTIVE", async function () {
-                const newLiquidationIncentive = (await this.kresko.MAX_LIQUIDATION_INCENTIVE()).add(1);
+            it("should not allow the liquidation incentive multiplier to exceed MAX_LIQUIDATION_INCENTIVE_MULTIPLIER", async function () {
+                const newLiquidationIncentiveMultiplier = (
+                    await this.kresko.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER()
+                ).add(1);
                 await expect(
-                    this.kresko.connect(this.signers.admin).updateLiquidationIncentive(newLiquidationIncentive),
-                ).to.be.revertedWith("KR: liqIncentive > max");
+                    this.kresko
+                        .connect(this.signers.admin)
+                        .updateLiquidationIncentiveMultiplier(newLiquidationIncentiveMultiplier),
+                ).to.be.revertedWith("KR: liqIncentiveMulti > max");
             });
 
-            it("should not allow the liquidation incentive to be updated by non-owner", async function () {
+            it("should not allow the liquidation incentive multiplier to be updated by non-owner", async function () {
                 await expect(
-                    this.kresko.connect(this.userOne).updateLiquidationIncentive(validLiquidationIncentive),
+                    this.kresko
+                        .connect(this.userOne)
+                        .updateLiquidationIncentiveMultiplier(validLiquidationIncentiveMultiplier),
                 ).to.be.revertedWith("Ownable: caller is not the owner");
             });
         });
@@ -1962,6 +1978,8 @@ describe("Kresko", function () {
                 const updatedCollateralPrice = 11;
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
                 await oracle.setValue(fixedPointOraclePrice);
+
+                const krAssetOracle = this.kr;
 
                 // Confirm we can liquidate this account
                 const canLiquidate = await this.kresko.isAccountLiquidatable(this.userOne.address);
