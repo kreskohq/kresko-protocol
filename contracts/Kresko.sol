@@ -83,9 +83,11 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     uint256 public constant MIN_MINIMUM_COLLATERALIZATION_RATIO = 1e18; // 100%
 
     /// @notice The minimum configurable liquidation incentive multiplier.
+    /// This means liquidator only receives equal amount of collateral to debt repaid.
     uint256 public constant MIN_LIQUIDATION_INCENTIVE_MULTIPLIER = 1e18; // 100%
 
     /// @notice The maximum configurable liquidation incentive multiplier.
+    /// This means liquidator receives 50% bonus collateral compared to the debt repaid.
     uint256 public constant MAX_LIQUIDATION_INCENTIVE_MULTIPLIER = 1.5e18; // 150%
 
     /**
