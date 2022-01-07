@@ -1188,12 +1188,15 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         if (collateralDeposit > _seizeAmount) {
             collateralDeposits[_account][_collateralAssetToSeize] = collateralDeposit - _seizeAmount;
         } else {
+            // This clause means user either has collateralDeposits equal or less than the _seizeAmount
             _seizeAmount = collateralDeposit;
-            // If the liquidation seizes the user's entire collateral asset balance,
-            // remove it from collateral assets array.
+            // So we set the collateralDeposits to 0
             collateralDeposits[_account][_collateralAssetToSeize] = 0;
+            // And remove the asset from the deposits array.
             depositedCollateralAssets[_account].removeAddress(_collateralAssetToSeize, _depositedCollateralAssetIndex);
         }
+
+        // Return the actual amount seized
         return _seizeAmount;
     }
 
