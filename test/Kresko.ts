@@ -1840,7 +1840,7 @@ describe("Kresko", function () {
             });
         });
 
-        describe.only("#updateLiquidationIncentive", function () {
+        describe("#updateLiquidationIncentive", function () {
             const validLiquidationIncentiveMultiplier = toFixedPoint(1.15);
             it("should allow the owner to update the liquidation incentive", async function () {
                 // Ensure it has the expected initial value

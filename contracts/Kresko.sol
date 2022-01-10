@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "./utils/OwnableUpgradeable.sol";
@@ -23,6 +24,8 @@ import "hardhat/console.sol";
 contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     using FixedPoint for FixedPoint.Unsigned;
     using Arrays for address[];
+    using SafeERC20Upgradeable for IERC20MetadataUpgradeable;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     /**
      * ==================================================
@@ -84,10 +87,12 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     uint256 public constant MIN_MINIMUM_COLLATERALIZATION_RATIO = 1e18; // 100%
 
     /// @notice The minimum configurable liquidation incentive multiplier.
+    /// This means liquidator only receives equal amount of collateral to debt repaid.
     uint256 public constant MIN_LIQUIDATION_INCENTIVE_MULTIPLIER = 1e18; // 100%
 
     /// @notice The maximum configurable liquidation incentive multiplier.
-    uint256 public constant MAX_LIQUIDATION_INCENTIVE_MULTIPLIER = 1.5e18; // 150% // TODO: consider implications
+    /// This means liquidator receives 50% bonus collateral compared to the debt repaid.
+    uint256 public constant MAX_LIQUIDATION_INCENTIVE_MULTIPLIER = 1.5e18; // 150%
 
     /**
      * ==================================================
@@ -421,10 +426,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         collateralAssetExists(_collateralAsset)
     {
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
-        require(
-            IERC20MetadataUpgradeable(_collateralAsset).transferFrom(msg.sender, address(this), _amount),
-            "KR: DepositFailed"
-        );
+        IERC20MetadataUpgradeable(_collateralAsset).safeTransferFrom(msg.sender, address(this), _amount);
 
         // Record the collateral deposit.
         _recordCollateralDeposit(_collateralAsset, _amount);
@@ -447,10 +449,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         require(underlyingRebasingToken != address(0), "KR: !NRWTCollateral");
 
         // Transfer underlying rebasing token in.
-        require(
-            IERC20Upgradeable(underlyingRebasingToken).transferFrom(msg.sender, address(this), _rebasingAmount),
-            "KR: RebasingDepositFailed"
-        );
+        IERC20Upgradeable(underlyingRebasingToken).safeTransferFrom(msg.sender, address(this), _rebasingAmount);
 
         // Approve the newly received rebasing token to the NonRebasingWrapperToken in preparation
         // for calling depositUnderlying.
@@ -483,7 +482,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         _amount = (_amount <= depositAmount ? _amount : depositAmount);
         _verifyAndRecordCollateralWithdrawal(_collateralAsset, _amount, depositAmount, _depositedCollateralAssetIndex);
 
-        require(IERC20MetadataUpgradeable(_collateralAsset).transfer(msg.sender, _amount), "KR: WithdrawFail");
+        IERC20MetadataUpgradeable(_collateralAsset).safeTransfer(msg.sender, _amount);
     }
 
     /**
@@ -509,10 +508,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 underlyingAmountWithdrawn = INonRebasingWrapperToken(_collateralAsset).withdrawUnderlying(_amount);
 
         // Transfer the sender the rebasing underlying.
-        require(
-            IERC20MetadataUpgradeable(underlyingRebasingToken).transfer(msg.sender, underlyingAmountWithdrawn),
-            "KR: RebasingWithdrawFail"
-        );
+        IERC20MetadataUpgradeable(underlyingRebasingToken).safeTransfer(msg.sender, underlyingAmountWithdrawn);
     }
 
     /* ===== Kresko Assets ===== */
@@ -631,17 +627,19 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             require(_repayAmount <= maxLiquidation.rawValue, "KR: repay > max");
         }
 
-        FixedPoint.Unsigned memory collateralPriceUSD =
-            FixedPoint.Unsigned(collateralAssets[_collateralAssetToSeize].oracle.value());
+        FixedPoint.Unsigned memory collateralPriceUSD = FixedPoint.Unsigned(
+            collateralAssets[_collateralAssetToSeize].oracle.value()
+        );
 
         // Repay amount USD = repay amount * KR asset USD exchange rate.
-        FixedPoint.Unsigned memory repayAmountUSD =
-            FixedPoint.Unsigned(_repayAmount).mul(FixedPoint.Unsigned(kreskoAssets[_repayKreskoAsset].oracle.value()));
+        FixedPoint.Unsigned memory repayAmountUSD = FixedPoint.Unsigned(_repayAmount).mul(
+            FixedPoint.Unsigned(kreskoAssets[_repayKreskoAsset].oracle.value())
+        );
 
         // Calculate amount of collateral to seize.
         FixedPoint.Unsigned memory seizeAmount = _calculateAmountToSeize(collateralPriceUSD, repayAmountUSD);
 
-        _liquidateAssets(
+        seizeAmount = _liquidateAssets(
             _account,
             krAssetDebt,
             _repayAmount,
@@ -651,6 +649,9 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             _collateralAssetToSeize,
             _depositedCollateralAssetIndex
         );
+
+        // Charge burn fee from the liquidated user
+        _chargeBurnFee(_account, _repayKreskoAsset, _repayAmount);
 
         // Burn the received Kresko assets, removing them from circulation.
         IKreskoAsset(_repayKreskoAsset).burn(msg.sender, _repayAmount);
@@ -670,10 +671,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         }
 
         // Send liquidator the seized collateral.
-        require(
-            IERC20MetadataUpgradeable(_collateralAssetToSeize).transfer(msg.sender, collateralToSend),
-            "KR: collateralTransferFailed"
-        );
+        IERC20MetadataUpgradeable(_collateralAssetToSeize).safeTransfer(msg.sender, collateralToSend);
 
         emit LiquidationOccurred(
             _account,
@@ -713,8 +711,9 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
         // Set as the rebasing underlying token if the collateral asset is a
         // NonRebasingWrapperToken, otherwise set as address(0).
-        address underlyingRebasingToken =
-            isNonRebasingWrapperToken ? INonRebasingWrapperToken(_collateralAsset).underlyingToken() : address(0);
+        address underlyingRebasingToken = isNonRebasingWrapperToken
+            ? INonRebasingWrapperToken(_collateralAsset).underlyingToken()
+            : address(0);
 
         collateralAssets[_collateralAsset] = CollateralAsset({
             factor: FixedPoint.Unsigned(_factor),
@@ -946,12 +945,11 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         // Get the account's current collateral value.
         FixedPoint.Unsigned memory accountCollateralValue = getAccountCollateralValue(msg.sender);
         // Get the collateral value that the account will lose as a result of this withdrawal.
-        (FixedPoint.Unsigned memory withdrawnCollateralValue, ) =
-            getCollateralValueAndOraclePrice(
-                _collateralAsset,
-                _amount,
-                false // Take the collateral factor into consideration.
-            );
+        (FixedPoint.Unsigned memory withdrawnCollateralValue, ) = getCollateralValueAndOraclePrice(
+            _collateralAsset,
+            _amount,
+            false // Take the collateral factor into consideration.
+        );
         // Get the account's minimum collateral value.
         FixedPoint.Unsigned memory accountMinCollateralValue = getAccountMinimumCollateralValue(msg.sender);
         // Require accountCollateralValue - withdrawnCollateralValue >= accountMinCollateralValue.
@@ -1064,8 +1062,10 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     ) internal {
         KrAsset memory krAsset = kreskoAssets[_kreskoAsset];
         // Calculate the value of the fee according to the value of the krAssets being burned.
-        FixedPoint.Unsigned memory feeValue =
-            FixedPoint.Unsigned(krAsset.oracle.value()).mul(FixedPoint.Unsigned(_kreskoAssetAmountBurned)).mul(burnFee);
+        FixedPoint.Unsigned memory feeValue = FixedPoint
+            .Unsigned(krAsset.oracle.value())
+            .mul(FixedPoint.Unsigned(_kreskoAssetAmountBurned))
+            .mul(burnFee);
 
         // Do nothing if the fee value is 0.
         if (feeValue.rawValue == 0) {
@@ -1080,16 +1080,17 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         for (uint256 i = accountCollateralAssets.length - 1; i >= 0; i--) {
             address collateralAssetAddress = accountCollateralAssets[i];
 
-            (uint256 transferAmount, FixedPoint.Unsigned memory feeValuePaid) =
-                _calcBurnFee(collateralAssetAddress, _account, feeValue, i);
+            (uint256 transferAmount, FixedPoint.Unsigned memory feeValuePaid) = _calcBurnFee(
+                collateralAssetAddress,
+                _account,
+                feeValue,
+                i
+            );
 
             // Remove the transferAmount from the stored deposit for the account.
             collateralDeposits[_account][collateralAssetAddress] -= transferAmount;
             // Transfer the fee to the feeRecipient.
-            require(
-                IERC20MetadataUpgradeable(collateralAssetAddress).transfer(feeRecipient, transferAmount),
-                "KR: feeTransferFail"
-            );
+            IERC20MetadataUpgradeable(collateralAssetAddress).safeTransfer(feeRecipient, transferAmount);
             emit BurnFeePaid(_account, collateralAssetAddress, transferAmount, feeValuePaid.rawValue);
 
             feeValue = feeValue.sub(feeValuePaid);
@@ -1118,8 +1119,10 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 depositAmount = collateralDeposits[_account][_collateralAssetAddress];
 
         // Don't take the collateral asset's collateral factor into consideration.
-        (FixedPoint.Unsigned memory depositValue, FixedPoint.Unsigned memory oraclePrice) =
-            getCollateralValueAndOraclePrice(_collateralAssetAddress, depositAmount, true);
+        (
+            FixedPoint.Unsigned memory depositValue,
+            FixedPoint.Unsigned memory oraclePrice
+        ) = getCollateralValueAndOraclePrice(_collateralAssetAddress, depositAmount, true);
 
         FixedPoint.Unsigned memory feeValuePaid;
         uint256 transferAmount;
@@ -1189,8 +1192,9 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 liquidatorDebtBeforeRepay = kreskoAssetDebt[msg.sender][_repayKreskoAsset];
 
         // If liquidator has no debt remaining set the debt to 0
-        uint256 liquidatorDebtAfterRepay =
-            liquidatorDebtBeforeRepay > _repayAmount ? liquidatorDebtBeforeRepay - _repayAmount : 0;
+        uint256 liquidatorDebtAfterRepay = liquidatorDebtBeforeRepay > _repayAmount
+            ? liquidatorDebtBeforeRepay - _repayAmount
+            : 0;
 
         kreskoAssetDebt[msg.sender][_repayKreskoAsset] = liquidatorDebtAfterRepay;
 
@@ -1223,7 +1227,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 _mintedKreskoAssetIndex,
         address _collateralAssetToSeize,
         uint256 _depositedCollateralAssetIndex
-    ) internal {
+    ) internal returns (FixedPoint.Unsigned memory) {
         // Subtract repaid Kresko assets from liquidated user's recorded debt.
         kreskoAssetDebt[_account][_repayKreskoAsset] = _krAssetDebt - _repayAmount;
         // If the liquidation repays the user's entire Kresko asset balance, remove it from minted assets array.
@@ -1231,13 +1235,22 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             mintedKreskoAssets[msg.sender].removeAddress(_repayKreskoAsset, _mintedKreskoAssetIndex);
         }
 
-        // Subtract seized collateral from liquidated user's recorded collateral.
+        // Get users collateral deposit amount
         uint256 collateralDeposit = collateralDeposits[_account][_collateralAssetToSeize];
-        collateralDeposits[_account][_collateralAssetToSeize] = collateralDeposit - _seizeAmount;
-        // If the liquidation seizes the user's entire collateral asset balance, remove it from collateral assets array.
-        if (_seizeAmount == collateralDeposit) {
+
+        if (collateralDeposit > _seizeAmount) {
+            collateralDeposits[_account][_collateralAssetToSeize] = collateralDeposit - _seizeAmount;
+        } else {
+            // This clause means user either has collateralDeposits equal or less than the _seizeAmount
+            _seizeAmount = collateralDeposit;
+            // So we set the collateralDeposits to 0
+            collateralDeposits[_account][_collateralAssetToSeize] = 0;
+            // And remove the asset from the deposits array.
             depositedCollateralAssets[_account].removeAddress(_collateralAssetToSeize, _depositedCollateralAssetIndex);
         }
+
+        // Return the actual amount seized
+        return _toCollateralFixedPointAmount(_collateralAssetToSeize, _seizeAmount);
     }
 
     /**
@@ -1269,12 +1282,11 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         address[] memory assets = depositedCollateralAssets[_account];
         for (uint256 i = 0; i < assets.length; i++) {
             address asset = assets[i];
-            (FixedPoint.Unsigned memory collateralValue, ) =
-                getCollateralValueAndOraclePrice(
-                    asset,
-                    collateralDeposits[_account][asset],
-                    false // Take the collateral factor into consideration.
-                );
+            (FixedPoint.Unsigned memory collateralValue, ) = getCollateralValueAndOraclePrice(
+                asset,
+                collateralDeposits[_account][asset],
+                false // Take the collateral factor into consideration.
+            );
             totalCollateralValue = totalCollateralValue.add(collateralValue);
         }
         return totalCollateralValue;

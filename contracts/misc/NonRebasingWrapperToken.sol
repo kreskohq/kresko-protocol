@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import "../utils/OwnableUpgradeable.sol";
 import "../libraries/FixedPoint.sol";
@@ -12,8 +14,9 @@ import "../libraries/FixedPoint.sol";
  * @notice A non-rebasing token that wraps rebasing tokens to present a balance for each user that
  *   does not change from exogenous events.
  */
-contract NonRebasingWrapperToken is OwnableUpgradeable, ERC20Upgradeable {
+contract NonRebasingWrapperToken is OwnableUpgradeable, ERC20Upgradeable, ReentrancyGuardUpgradeable {
     using FixedPoint for FixedPoint.Unsigned;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     /// @notice The underlying token that this contract wraps.
     IERC20Upgradeable public underlyingToken;
@@ -33,6 +36,35 @@ contract NonRebasingWrapperToken is OwnableUpgradeable, ERC20Upgradeable {
     }
 
     /**
+     * @dev Returns true if `account` is a contract.
+     *
+     * [IMPORTANT]
+     * ====
+     * It is unsafe to assume that an address for which this function returns
+     * false is an externally-owned account (EOA) and not a contract.
+     *
+     * Among others, `isContract` will return false for the following
+     * types of addresses:
+     *
+     *  - an externally-owned account
+     *  - a contract in construction
+     *  - an address where a contract will be created
+     *  - an address where a contract lived, but was destroyed
+     * ====
+     */
+    function isContract(address account) internal view returns (bool) {
+        // This method relies on extcodesize, which returns 0 for contracts in
+        // construction, since the code is only stored at the end of the
+        // constructor execution.
+
+        uint256 size;
+        assembly {
+            size := extcodesize(account)
+        }
+        return size > 0;
+    }
+
+    /**
      * @notice Constructs a non-rebasing wrapper token.
      * @param _underlyingToken The address of the underlying token this contract wraps.
      * @param _name The name of this wrapper token.
@@ -43,6 +75,7 @@ contract NonRebasingWrapperToken is OwnableUpgradeable, ERC20Upgradeable {
         string memory _name,
         string memory _symbol
     ) external initializer {
+        require(isContract(_underlyingToken), "NRWToken: underlying must be a contract");
         __ERC20_init(_name, _symbol);
         __Ownable_init_unchained();
         underlyingToken = IERC20Upgradeable(_underlyingToken);
@@ -60,10 +93,8 @@ contract NonRebasingWrapperToken is OwnableUpgradeable, ERC20Upgradeable {
         // Calculate the actual difference in balance of this contract instead of using amount.
         // This handles cases where a token transfer has a fee.
         uint256 underlyingBalanceBefore = underlyingToken.balanceOf(address(this));
-        require(
-            underlyingToken.transferFrom(msg.sender, address(this), _underlyingDepositAmount),
-            "NRWToken: underlying transfer in failed"
-        );
+        underlyingToken.safeTransferFrom(msg.sender, address(this), _underlyingDepositAmount);
+
         uint256 underlyingBalanceAfter = underlyingToken.balanceOf(address(this));
         uint256 depositAmount = underlyingBalanceAfter - underlyingBalanceBefore;
 
@@ -86,10 +117,9 @@ contract NonRebasingWrapperToken is OwnableUpgradeable, ERC20Upgradeable {
         //     (contractUnderlyingBalanceAfter - underlyingDeposited)
         //
         //   tokensMinted = (underlyingDeposited * totalSupplyBefore) / contractUnderlyingBalanceBefore
-        uint256 mintAmount =
-            _totalSupply == 0 || underlyingBalanceBefore == 0
-                ? depositAmount
-                : (depositAmount * _totalSupply) / underlyingBalanceBefore;
+        uint256 mintAmount = _totalSupply == 0 || underlyingBalanceBefore == 0
+            ? depositAmount
+            : (depositAmount * _totalSupply) / underlyingBalanceBefore;
         _mint(msg.sender, mintAmount);
 
         emit DepositedUnderlying(msg.sender, depositAmount, mintAmount);
@@ -104,15 +134,14 @@ contract NonRebasingWrapperToken is OwnableUpgradeable, ERC20Upgradeable {
      *   to burn. Used to calculate the amount of underlying tokens that are withdrawn as a result.
      * @return The amount of the rebasing underlying token withdrawn.
      */
-    function withdrawUnderlying(uint256 _nonRebasingWithdrawalAmount) external returns (uint256) {
+    function withdrawUnderlying(uint256 _nonRebasingWithdrawalAmount) external nonReentrant returns (uint256) {
         require(_nonRebasingWithdrawalAmount > 0, "NRWToken: withdraw amount is zero");
         require(_nonRebasingWithdrawalAmount <= balanceOf(msg.sender), "NRWToken: withdraw amount exceeds balance");
-
         // Withdraw the underlying tokens. underlyingAmount will never be
         // greater than this contract's balance of the underlying token due
         // to the way getUnderlyingAmount works.
         uint256 underlyingAmount = getUnderlyingAmount(_nonRebasingWithdrawalAmount);
-        require(underlyingToken.transfer(msg.sender, underlyingAmount), "NRWToken: underlying transfer out failed");
+        underlyingToken.safeTransfer(msg.sender, underlyingAmount);
 
         // Burn the balance of non-rebasing tokens.
         // It's important to do this after the above call to getUnderlyingAmount,
@@ -152,8 +181,9 @@ contract NonRebasingWrapperToken is OwnableUpgradeable, ERC20Upgradeable {
             return 0;
         }
         require(_nonRebasingAmount <= _totalSupply, "NRWToken: amount exceeds total supply");
-        FixedPoint.Unsigned memory shareOfToken =
-            FixedPoint.Unsigned(_nonRebasingAmount).div(FixedPoint.Unsigned(_totalSupply));
+        FixedPoint.Unsigned memory shareOfToken = FixedPoint.Unsigned(_nonRebasingAmount).div(
+            FixedPoint.Unsigned(_totalSupply)
+        );
         uint256 underlyingBalance = underlyingToken.balanceOf(address(this));
         // Because shareOfToken has a max rawValue of 1e18, this calculation can overflow
         // if underlyingBalance has a value of ((2^256) - 1) / 1e18. For an underlying
