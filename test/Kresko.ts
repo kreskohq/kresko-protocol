@@ -2103,7 +2103,7 @@ describe("Kresko", function () {
                 expect(Number(toFixedPoint(event.collateralSent))).to.be.lessThanOrEqual(maxPossibleSeizedAmount);
             });
 
-            it("should send liquidator collateral profit and reduce debt accordingly _keepDebtPosition = false", async function () {
+            it("should send liquidator collateral profit and reduce debt accordingly _keepKrAssetDebt = false", async function () {
                 await this.kresko.updateBurnFee(toFixedPoint(0.1)); // 10%
 
                 const userAddresses = [this.userOne.address, this.userTwo.address];
@@ -2301,7 +2301,7 @@ describe("Kresko", function () {
                         ),
                 ).to.be.reverted;
             });
-            it("should send the liquidator whole collateral and keep debt position when _keepDebtPosition = true", async function () {
+            it("should send the liquidator whole collateral and keep debt position when _keepKrAssetDebt = true", async function () {
                 await this.kresko.updateBurnFee(toFixedPoint(0.1)); // 10%
 
                 const userAddresses = [this.userOne.address, this.userTwo.address];
