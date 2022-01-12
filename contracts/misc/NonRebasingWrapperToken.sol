@@ -199,15 +199,13 @@ contract NonRebasingWrapperToken is OwnableUpgradeable, ERC20Upgradeable, Reentr
             return 0;
         }
         require(_nonRebasingAmount <= _totalSupply, "NRWToken: amount exceeds total supply");
-        FixedPoint.Unsigned memory shareOfToken =
-            FixedPoint.Unsigned(_nonRebasingAmount).div(FixedPoint.Unsigned(_totalSupply));
         uint256 underlyingBalance = underlyingToken.balanceOf(address(this));
-        // Because shareOfToken has a max rawValue of 1e18, this calculation can overflow
-        // if underlyingBalance has a value of ((2^256) - 1) / 1e18. For an underlying
-        // token with 18 decimals, this means this contract can at most tolerate an underlying
-        // balance of ((2^256) - 1) / 1e18 / 1e18 = 115792089237316195423570985008687907853269
-        // whole tokens. This is more than enough for any reasonable token, though
-        // keep this in mind if the underlying has many decimals or a very low value.
-        return shareOfToken.mul(FixedPoint.Unsigned(underlyingBalance)).rawValue;
+        // Note there is some risk of overflow if _nonRebasingAmount and underlyingBalance
+        // are extremely high - this is only likely to happen if the underlying token
+        // has a very high decimal count.
+        return FixedPoint.Unsigned(_nonRebasingAmount)
+            .mul(FixedPoint.Unsigned(underlyingBalance))
+            .div(FixedPoint.Unsigned(_totalSupply))
+            .rawValue;
     }
 }
