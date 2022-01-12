@@ -2105,6 +2105,19 @@ describe("Kresko", function () {
 
             it("should send liquidator collateral profit and reduce debt accordingly _keepKrAssetDebt = false", async function () {
                 await this.kresko.updateBurnFee(toFixedPoint(0.1)); // 10% BURN FEE
+                const kreskoAsset = this.kreskoAssetInfo[0].kreskoAsset;
+
+                const krAssetDebt = await this.kresko.kreskoAssetDebt(this.userTwo.address, kreskoAsset.address);
+
+                // remove all debt
+                await kreskoAsset.connect(this.userTwo).approve(this.kresko.address, ethers.constants.MaxUint256);
+                await this.kresko.connect(this.userTwo).burnKreskoAsset(kreskoAsset.address, Number(krAssetDebt), 0);
+
+                const liquidatorKrAssetValueBefore = Number(
+                    await this.kresko.getAccountKrAssetValue(this.userTwo.address),
+                );
+
+                expect(liquidatorKrAssetValueBefore).to.equal(0);
 
                 const userAddresses = [this.userOne.address, this.userTwo.address];
                 const initialUserCollateralBalance = parseEther("10000");
@@ -2125,7 +2138,7 @@ describe("Kresko", function () {
                     .depositCollateral(collateralAsset.address, userOneDepositAmount);
 
                 // userOne mints 100 of the Kresko asset
-                const kreskoAsset = this.kreskoAssetInfo[0].kreskoAsset;
+
                 const useOneMintAmount = parseEther("1000"); // 1000 * $10 = $10,000 in debt value
                 await this.kresko.connect(this.userOne).mintKreskoAsset(kreskoAsset.address, useOneMintAmount);
 
@@ -2136,7 +2149,7 @@ describe("Kresko", function () {
                     .depositCollateral(collateralAsset.address, userTwoDepositAmount);
 
                 // userTwo mints 100 of the Kresko asset
-                const userTwoMintAmount = parseEther("500"); // 500 * $10 = $10,000 in debt value
+                const userTwoMintAmount = parseEther("200"); // 200 * $10 = $2,000 in debt value
                 await this.kresko.connect(this.userTwo).mintKreskoAsset(kreskoAsset.address, userTwoMintAmount);
 
                 // Change collateral asset's USD value from $20 to $5
@@ -2152,7 +2165,6 @@ describe("Kresko", function () {
 
                 // userTwo holds Kresko assets that can be used to repay userOne's underwater loan
                 const repayAmount = parseEther("200");
-                await kreskoAsset.connect(this.userTwo).approve(this.kresko.address, ethers.constants.MaxUint256);
 
                 // Get liquidators krAssetDebt before liquidation
                 const liquidatorKrAssetDebtBeforeLiquidation = fromBig(
