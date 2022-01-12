@@ -12,7 +12,24 @@ import "../libraries/FixedPoint.sol";
 /**
  * @title A non-rebasing wrapper token.
  * @notice A non-rebasing token that wraps rebasing tokens to present a balance for each user that
- *   does not change from exogenous events.
+ *   does not change from exogenous events. The logic in Kresko.sol assumes that collateral token
+ *   balances do not rebase. This contract is intended to allow Kresko.sol to support rebasing tokens
+ *   as collateral, but it can be used in any setting just as a normal token.
+ *   Rebasing tokens are tokens whose balances across all holders change due to exogenous reasons
+ *   (i.e. not just token transfers, for example Aave's aTokens that adjust balances as they accrue
+ *   interest). Such rebasing tokens can be wrapped in this contract, instead representing them as
+ *   a token whose balances do not rebase but have an internal exchange rate between the underlying
+ *   rebasing token and this non-rebasing wrapper token (e.g. how Compound's cTokens do not rebase but
+ *   use an internal exchange rate to represent accrued interest). This is useful to allow protocols
+ *   (like Kresko) that have accounting rules that assume deposited tokens are non-rebasing (e.g. so
+ *   that a user's collateral in a particular token can be kept track of as an exact quantity of deposited
+ *   tokens rather than a percent ownership of a pool of deposited tokens).
+ *
+ *   Non-rebasing tokens (i.e. this contract) are minted and burned according to the internal exchange rate of
+ *   the non-rebasing token to the rebasing token (i.e. the underlying token). In pseudocode to illustrate:
+ *
+ *     exchangeRate = underlyingToken.balanceOf(address(this)) / totalSupply()
+ *     underlyingOwnedByNonRebasingTokenHolder = exchangeRate * balanceOf(nonRebasingTokenHolder)
  */
 contract NonRebasingWrapperToken is OwnableUpgradeable, ERC20Upgradeable, ReentrancyGuardUpgradeable {
     using FixedPoint for FixedPoint.Unsigned;
@@ -117,9 +134,10 @@ contract NonRebasingWrapperToken is OwnableUpgradeable, ERC20Upgradeable, Reentr
         //     (contractUnderlyingBalanceAfter - underlyingDeposited)
         //
         //   tokensMinted = (underlyingDeposited * totalSupplyBefore) / contractUnderlyingBalanceBefore
-        uint256 mintAmount = _totalSupply == 0 || underlyingBalanceBefore == 0
-            ? depositAmount
-            : (depositAmount * _totalSupply) / underlyingBalanceBefore;
+        uint256 mintAmount =
+            _totalSupply == 0 || underlyingBalanceBefore == 0
+                ? depositAmount
+                : (depositAmount * _totalSupply) / underlyingBalanceBefore;
         _mint(msg.sender, mintAmount);
 
         emit DepositedUnderlying(msg.sender, depositAmount, mintAmount);
@@ -181,16 +199,15 @@ contract NonRebasingWrapperToken is OwnableUpgradeable, ERC20Upgradeable, Reentr
             return 0;
         }
         require(_nonRebasingAmount <= _totalSupply, "NRWToken: amount exceeds total supply");
-        FixedPoint.Unsigned memory shareOfToken = FixedPoint.Unsigned(_nonRebasingAmount).div(
-            FixedPoint.Unsigned(_totalSupply)
-        );
         uint256 underlyingBalance = underlyingToken.balanceOf(address(this));
-        // Because shareOfToken has a max rawValue of 1e18, this calculation can overflow
-        // if underlyingBalance has a value of ((2^256) - 1) / 1e18. For an underlying
-        // token with 18 decimals, this means this contract can at most tolerate an underlying
-        // balance of ((2^256) - 1) / 1e18 / 1e18 = 115792089237316195423570985008687907853269
-        // whole tokens. This is more than enough for any reasonable token, though
-        // keep this in mind if the underlying has many decimals or a very low value.
-        return shareOfToken.mul(FixedPoint.Unsigned(underlyingBalance)).rawValue;
+        // Note there is some risk of overflow if _nonRebasingAmount and underlyingBalance
+        // are extremely high - this is only likely to happen if the underlying token
+        // has a very high decimal count.
+        return
+            FixedPoint
+                .Unsigned(_nonRebasingAmount)
+                .mul(FixedPoint.Unsigned(underlyingBalance))
+                .div(FixedPoint.Unsigned(_totalSupply))
+                .rawValue;
     }
 }
