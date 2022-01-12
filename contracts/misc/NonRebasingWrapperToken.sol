@@ -12,7 +12,24 @@ import "../libraries/FixedPoint.sol";
 /**
  * @title A non-rebasing wrapper token.
  * @notice A non-rebasing token that wraps rebasing tokens to present a balance for each user that
- *   does not change from exogenous events.
+ *   does not change from exogenous events. The logic in Kresko.sol assumes that collateral token
+ *   balances do not rebase. This contract is intended to allow Kresko.sol to support rebasing tokens
+ *   as collateral, but it can be used in any setting just as a normal token.
+ *   Rebasing tokens are tokens whose balances across all holders change due to exogenous reasons
+ *   (i.e. not just token transfers, for example Aave's aTokens that adjust balances as they accrue
+ *   interest). Such rebasing tokens can be wrapped in this contract, instead representing them as
+ *   a token whose balances do not rebase but have an internal exchange rate between the underlying
+ *   rebasing token and this non-rebasing wrapper token (e.g. how Compound's cTokens do not rebase but
+ *   use an internal exchange rate to represent accrued interest). This is useful to allow protocols
+ *   (like Kresko) that have accounting rules that assume deposited tokens are non-rebasing (e.g. so
+ *   that a user's collateral in a particular token can be kept track of as an exact quantity of deposited
+ *   tokens rather than a percent ownership of a pool of deposited tokens).
+ *
+ *   Non-rebasing tokens (i.e. this contract) are minted and burned according to the internal exchange rate of
+ *   the non-rebasing token to the rebasing token (i.e. the underlying token). In pseudocode to illustrate:
+ *
+ *     exchangeRate = underlyingToken.balanceOf(address(this)) / totalSupply()
+ *     underlyingOwnedByNonRebasingTokenHolder = exchangeRate * balanceOf(nonRebasingTokenHolder)
  */
 contract NonRebasingWrapperToken is OwnableUpgradeable, ERC20Upgradeable, ReentrancyGuardUpgradeable {
     using FixedPoint for FixedPoint.Unsigned;
