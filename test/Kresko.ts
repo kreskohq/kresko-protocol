@@ -2104,7 +2104,7 @@ describe("Kresko", function () {
             });
 
             it("should send liquidator collateral profit and reduce debt accordingly _keepKrAssetDebt = false", async function () {
-                await this.kresko.updateBurnFee(toFixedPoint(0.1)); // 10%
+                await this.kresko.updateBurnFee(toFixedPoint(0.1)); // 10% BURN FEE
 
                 const userAddresses = [this.userOne.address, this.userTwo.address];
                 const initialUserCollateralBalance = parseEther("10000");
@@ -2126,7 +2126,7 @@ describe("Kresko", function () {
 
                 // userOne mints 100 of the Kresko asset
                 const kreskoAsset = this.kreskoAssetInfo[0].kreskoAsset;
-                const useOneMintAmount = parseEther("1000"); // 100 * $10 = $10,000 in debt value
+                const useOneMintAmount = parseEther("1000"); // 1000 * $10 = $10,000 in debt value
                 await this.kresko.connect(this.userOne).mintKreskoAsset(kreskoAsset.address, useOneMintAmount);
 
                 // userTwo deposits 10,000 of the collateral asset
@@ -2136,10 +2136,10 @@ describe("Kresko", function () {
                     .depositCollateral(collateralAsset.address, userTwoDepositAmount);
 
                 // userTwo mints 100 of the Kresko asset
-                const userTwoMintAmount = parseEther("500"); // 1000 * $10 = $10,000 in debt value
+                const userTwoMintAmount = parseEther("500"); // 500 * $10 = $10,000 in debt value
                 await this.kresko.connect(this.userTwo).mintKreskoAsset(kreskoAsset.address, userTwoMintAmount);
 
-                // Change collateral asset's USD value from $20 to $11
+                // Change collateral asset's USD value from $20 to $5
                 const oracle = this.collateralAssetInfos[0].oracle;
                 const updatedCollateralPrice = 5;
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
@@ -2324,7 +2324,7 @@ describe("Kresko", function () {
 
                 // userOne mints 100 of the Kresko asset
                 const kreskoAsset = this.kreskoAssetInfo[0].kreskoAsset;
-                const useOneMintAmount = parseEther("1000"); // 100 * $10 = $10,000 in debt value
+                const useOneMintAmount = parseEther("1000"); // 1000 * $10 = $10,000 in debt value
                 await this.kresko.connect(this.userOne).mintKreskoAsset(kreskoAsset.address, useOneMintAmount);
 
                 // userTwo deposits 10,000 of the collateral asset
@@ -2334,10 +2334,10 @@ describe("Kresko", function () {
                     .depositCollateral(collateralAsset.address, userTwoDepositAmount);
 
                 // userTwo mints 100 of the Kresko asset
-                const userTwoMintAmount = parseEther("500"); // 1000 * $10 = $10,000 in debt value
+                const userTwoMintAmount = parseEther("500"); // 500 * $10 = $5,000 in debt value
                 await this.kresko.connect(this.userTwo).mintKreskoAsset(kreskoAsset.address, userTwoMintAmount);
 
-                // Change collateral asset's USD value from $20 to $11
+                // Change collateral asset's USD value from $20 to $5
                 const oracle = this.collateralAssetInfos[0].oracle;
                 const updatedCollateralPrice = 5;
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
