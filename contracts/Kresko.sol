@@ -1140,7 +1140,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         // Denominates seize amount in collateral type
         // Apply liquidation incentive multiplier
         FixedPoint.Unsigned memory seizeAmount =
-            _kreskoAssetRepayAmountUSD.div(oraclePrice).mul(liquidationIncentiveMultiplier);
+            _kreskoAssetRepayAmountUSD.mul(liquidationIncentiveMultiplier).div(oraclePrice);
 
         return _fromCollateralFixedPointAmount(_collateralAssetToSeize, seizeAmount);
     }
