@@ -584,9 +584,9 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         emit KreskoAssetBurned(msg.sender, _kreskoAsset, _amount);
     }
 
-    // /* ===== Liquidation ===== */
+    // * ===== Liquidation ===== */
 
-    // /**
+    /**
     //  * @notice Attempts to liquidate an account by repaying the portion of the account's Kresko asset
     //  *         debt, receiving in return a portion of the account's collateral at a discounted rate.
     //  * @param _account The account to attempt to liquidate.
@@ -1146,7 +1146,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     /* ==== Liquidation ==== */
 
-    // /**
+    /**
     //  * @notice Calculate amount of collateral to seize during the liquidation process.
     //  * @param _collateralOraclePriceUSD The address of the collateral asset to be seized.
     //  * @param _kreskoAssetRepayAmountUSD Kresko asset amount being repaid in exchange for the seized collateral.
