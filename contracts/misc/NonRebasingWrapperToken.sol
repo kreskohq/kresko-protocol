@@ -203,9 +203,11 @@ contract NonRebasingWrapperToken is OwnableUpgradeable, ERC20Upgradeable, Reentr
         // Note there is some risk of overflow if _nonRebasingAmount and underlyingBalance
         // are extremely high - this is only likely to happen if the underlying token
         // has a very high decimal count.
-        return FixedPoint.Unsigned(_nonRebasingAmount)
-            .mul(FixedPoint.Unsigned(underlyingBalance))
-            .div(FixedPoint.Unsigned(_totalSupply))
-            .rawValue;
+        return
+            FixedPoint
+                .Unsigned(_nonRebasingAmount)
+                .mul(FixedPoint.Unsigned(underlyingBalance))
+                .div(FixedPoint.Unsigned(_totalSupply))
+                .rawValue;
     }
 }
