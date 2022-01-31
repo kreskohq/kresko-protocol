@@ -1504,7 +1504,6 @@ describe("Kresko", function () {
 
                 const kreskoAssetIndex = 0;
 
-
                 const receipt = await this.kresko
                     .connect(this.userOne)
                     .burnKreskoAsset(kreskoAssetAddress, burnAmount, kreskoAssetIndex);
