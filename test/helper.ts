@@ -1,6 +1,6 @@
 import { waffle, ethers } from "hardhat";
 import { BigNumber } from "ethers";
-import { MockToken, BasicOracle, RebasingToken } from "../typechain";
+import { MockToken, AggregatorV2V3Interface, RebasingToken } from "../typechain";
 import { toFixedPoint } from "../utils/fixed-point";
 
 export const ADDRESS_ZERO = ethers.constants.AddressZero;
@@ -25,7 +25,7 @@ export const ZERO_POINT_FIVE = toFixedPoint(0.5);
 
 export interface CollateralAssetInfo {
     collateralAsset: MockToken;
-    oracle: BasicOracle;
+    oracle: AggregatorV2V3Interface;
     factor: BigNumber;
     oraclePrice: BigNumber;
     decimals: number;

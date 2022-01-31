@@ -8,7 +8,7 @@ import "./utils/OwnableUpgradeable.sol";
 
 import "./interfaces/IKreskoAsset.sol";
 import "./interfaces/INonRebasingWrapperToken.sol";
-import "./interfaces/IOracle.sol";
+import "./interfaces/AggregatorV2V3Interface.sol";
 
 import "./libraries/FixedPoint.sol";
 import "./libraries/Arrays.sol";
@@ -46,7 +46,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
      */
     struct CollateralAsset {
         FixedPoint.Unsigned factor;
-        IOracle oracle;
+        AggregatorV2V3Interface oracle;
         address underlyingRebasingToken;
         uint8 decimals;
         bool exists;
@@ -62,7 +62,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
      */
     struct KrAsset {
         FixedPoint.Unsigned kFactor;
-        IOracle oracle;
+        AggregatorV2V3Interface oracle;
         bool exists;
         bool mintable;
     }
@@ -627,11 +627,13 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         }
 
         FixedPoint.Unsigned memory collateralPriceUSD =
-            FixedPoint.Unsigned(collateralAssets[_collateralAssetToSeize].oracle.value());
+            FixedPoint.Unsigned(uint256(collateralAssets[_collateralAssetToSeize].oracle.latestAnswer()));
 
         // Repay amount USD = repay amount * KR asset USD exchange rate.
         FixedPoint.Unsigned memory repayAmountUSD =
-            FixedPoint.Unsigned(_repayAmount).mul(FixedPoint.Unsigned(kreskoAssets[_repayKreskoAsset].oracle.value()));
+            FixedPoint.Unsigned(_repayAmount).mul(
+                FixedPoint.Unsigned(uint256(kreskoAssets[_repayKreskoAsset].oracle.latestAnswer()))
+            );
 
         // Calculate amount of collateral to seize.
         FixedPoint.Unsigned memory seizeAmount = _calculateAmountToSeize(collateralPriceUSD, repayAmountUSD);
@@ -713,7 +715,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
         collateralAssets[_collateralAsset] = CollateralAsset({
             factor: FixedPoint.Unsigned(_factor),
-            oracle: IOracle(_oracle),
+            oracle: AggregatorV2V3Interface(_oracle),
             underlyingRebasingToken: underlyingRebasingToken,
             exists: true,
             decimals: IERC20MetadataUpgradeable(_collateralAsset).decimals()
@@ -752,7 +754,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     {
         require(_oracle != address(0), "KR: !oracleAddr");
 
-        collateralAssets[_collateralAsset].oracle = IOracle(_oracle);
+        collateralAssets[_collateralAsset].oracle = AggregatorV2V3Interface(_oracle);
         emit CollateralAssetOracleUpdated(_collateralAsset, _oracle);
     }
 
@@ -783,7 +785,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         // Deploy KreskoAsset contract and store its details.
         kreskoAssets[_kreskoAsset] = KrAsset({
             kFactor: FixedPoint.Unsigned(_kFactor),
-            oracle: IOracle(_oracle),
+            oracle: AggregatorV2V3Interface(_oracle),
             exists: true,
             mintable: true
         });
@@ -835,7 +837,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     {
         require(_oracle != address(0), "KR: !oracleAddr");
 
-        kreskoAssets[_kreskoAsset].oracle = IOracle(_oracle);
+        kreskoAssets[_kreskoAsset].oracle = AggregatorV2V3Interface(_oracle);
         emit KreskoAssetOracleUpdated(_kreskoAsset, _oracle);
     }
 
@@ -1059,8 +1061,9 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     ) internal {
         KrAsset memory krAsset = kreskoAssets[_kreskoAsset];
         // Calculate the value of the fee according to the value of the krAssets being burned.
-        FixedPoint.Unsigned memory feeValue =
-            FixedPoint.Unsigned(krAsset.oracle.value()).mul(FixedPoint.Unsigned(_kreskoAssetAmountBurned)).mul(burnFee);
+        FixedPoint.Unsigned memory feeValue = FixedPoint.Unsigned(uint256(krAsset.oracle.latestAnswer()))
+            .mul(FixedPoint.Unsigned(_kreskoAssetAmountBurned))
+            .mul(burnFee);
 
         // Do nothing if the fee value is 0.
         if (feeValue.rawValue == 0) {
@@ -1332,7 +1335,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         CollateralAsset memory collateralAsset = collateralAssets[_collateralAsset];
 
         FixedPoint.Unsigned memory fixedPointAmount = _toCollateralFixedPointAmount(_collateralAsset, _amount);
-        FixedPoint.Unsigned memory oraclePrice = FixedPoint.Unsigned(collateralAsset.oracle.value());
+        FixedPoint.Unsigned memory oraclePrice = FixedPoint.Unsigned(uint256(collateralAsset.oracle.latestAnswer()));
         FixedPoint.Unsigned memory value = fixedPointAmount.mul(oraclePrice);
 
         if (!_ignoreCollateralFactor) {
@@ -1376,7 +1379,9 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
      */
     function getKrAssetValue(address _kreskoAsset, uint256 _amount) public view returns (FixedPoint.Unsigned memory) {
         KrAsset memory krAsset = kreskoAssets[_kreskoAsset];
-        return FixedPoint.Unsigned(_amount).mul(FixedPoint.Unsigned(krAsset.oracle.value())).mul(krAsset.kFactor);
+        return FixedPoint.Unsigned(_amount)
+            .mul(FixedPoint.Unsigned(uint256(krAsset.oracle.latestAnswer())))
+            .mul(krAsset.kFactor);
     }
 
     /* ==== Liquidation ==== */
