@@ -61,9 +61,11 @@ export async function deployAndWhitelistCollateralAsset(
     const signerAddress = await kresko.signer.getAddress();
     const description = "TEST/USD";
     const fluxPriceFeedArtifact: Artifact = await hre.artifacts.readArtifact("FluxPriceFeed");
-    const oracle = <FluxPriceFeed>await deployContract(kresko.signer, fluxPriceFeedArtifact, [signerAddress, decimals, description]);
+    const oracle = <FluxPriceFeed>(
+        await deployContract(kresko.signer, fluxPriceFeedArtifact, [signerAddress, decimals, description])
+    );
     const fixedPointOraclePrice = toFixedPoint(oraclePrice);
-    await oracle.transmit(fixedPointOraclePrice)
+    await oracle.transmit(fixedPointOraclePrice);
 
     const fixedPointCollateralFactor = toFixedPoint(collateralFactor);
     await kresko.addCollateralAsset(
@@ -104,9 +106,11 @@ export async function addNewKreskoAssetWithOraclePrice(
     const decimals = 8;
     const description = symbol.concat("/USD");
     const fluxPriceFeedArtifact: Artifact = await hre.artifacts.readArtifact("FluxPriceFeed");
-    const oracle = <FluxPriceFeed>await deployContract(kresko.signer, fluxPriceFeedArtifact, [signerAddress, decimals, description]);
+    const oracle = <FluxPriceFeed>(
+        await deployContract(kresko.signer, fluxPriceFeedArtifact, [signerAddress, decimals, description])
+    );
     const fixedPointOraclePrice = toFixedPoint(oraclePrice);
-    await oracle.transmit(fixedPointOraclePrice)
+    await oracle.transmit(fixedPointOraclePrice);
 
     const fixedPointKFactor = toFixedPoint(kFactor);
     const kreskoAssetFactory = await hre.ethers.getContractFactory("KreskoAsset");
@@ -1499,7 +1503,7 @@ describe("Kresko", function () {
                 ).to.be.revertedWith("KR: amount > debt");
             });
 
-            it("should not allow users to burn Kresko assets they have not approved", async function () {
+            it("should allow users to burn Kresko assets without giving token approval to Kresko.sol contract", async function () {
                 const secondMintAmount = 1;
                 const burnAmount = this.mintAmount.add(secondMintAmount);
                 const kreskoAssetAddress = this.kreskoAssetInfos[0].kreskoAsset.address;
@@ -1507,9 +1511,15 @@ describe("Kresko", function () {
                 await this.kresko.connect(this.userOne).mintKreskoAsset(kreskoAssetAddress, secondMintAmount);
 
                 const kreskoAssetIndex = 0;
-                await expect(
-                    this.kresko.connect(this.userOne).burnKreskoAsset(kreskoAssetAddress, burnAmount, kreskoAssetIndex),
-                ).to.be.revertedWith("ERC20: burn amount exceeds allowance");
+
+                const receipt = await this.kresko
+                    .connect(this.userOne)
+                    .burnKreskoAsset(kreskoAssetAddress, burnAmount, kreskoAssetIndex);
+
+                const event = (await extractEventFromTxReceipt(receipt, "KreskoAssetBurned"))![0].args!;
+                expect(event.account).to.equal(this.userOne.address);
+                expect(event.kreskoAsset).to.equal(kreskoAssetAddress);
+                expect(event.amount).to.equal(burnAmount);
             });
 
             describe("Protocol burn fee", async function () {
@@ -2012,8 +2022,6 @@ describe("Kresko", function () {
 
                 // userTwo holds Kresko assets that can be used to repay userOne's loan
                 const repayAmount = 100;
-                await kreskoAsset.connect(this.userTwo).approve(this.kresko.address, repayAmount);
-
                 const mintedKreskoAssetIndex = 0;
                 const depositedCollateralAssetIndex = 0;
                 await this.kresko
@@ -2072,11 +2080,8 @@ describe("Kresko", function () {
                     kreskoAsset.address,
                 );
 
-                // userTwo holds Kresko assets that can be used to repay userOne's loan
-                const repayAmount = 100;
-                await kreskoAsset.connect(this.userTwo).approve(this.kresko.address, repayAmount);
-
                 // Attempt liquidation
+                const repayAmount = 100; // userTwo holds Kresko assets that can be used to repay userOne's loan
                 const collateralAsset = this.collateralAssetInfos[0].collateralAsset;
                 const mintedKreskoAssetIndex = 0;
                 const depositedCollateralAssetIndex = 0;
@@ -2364,7 +2369,6 @@ describe("Kresko", function () {
 
                 // userTwo holds Kresko assets that can be used to repay userOne's underwater loan
                 const repayAmount = parseEther("200");
-                await kreskoAsset.connect(this.userTwo).approve(this.kresko.address, ethers.constants.MaxUint256);
 
                 // Get liquidators krAssetDebt before liquidation
                 const liquidatorKrAssetDebtBeforeLiquidation = fromBig(
@@ -2512,12 +2516,86 @@ describe("Kresko", function () {
                 ).to.be.reverted;
             });
 
+            it("should allow liquidations without liquidator approval of Kresko assets to Kresko.sol contract", async function () {
+                // Change collateral asset's USD value from $20 to $11
+                const updatedCollateralPrice = 11;
+                const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
+                await this.collateralAssetInfos[0].oracle.setValue(fixedPointOraclePrice);
+
+                const kreskoAsset = this.kreskoAssetInfo[0].kreskoAsset;
+                const collateralAsset = this.collateralAssetInfos[0].collateralAsset;
+
+                // Check that liquidator's token approval to Kresko.sol contract is 0
+                expect(await kreskoAsset.allowance(this.userTwo.address, this.kresko.address)).to.equal(0);
+
+                // Liquidation should succeed despite lack of token approval
+                const repayAmount = 100;
+                const mintedKreskoAssetIndex = 0;
+                const depositedCollateralAssetIndex = 0;
+                const receipt = await this.kresko
+                    .connect(this.userTwo)
+                    .liquidate(
+                        this.userOne.address,
+                        kreskoAsset.address,
+                        repayAmount,
+                        collateralAsset.address,
+                        mintedKreskoAssetIndex,
+                        depositedCollateralAssetIndex,
+                        true,
+                    );
+
+                const event = (await extractEventFromTxReceipt(receipt, "LiquidationOccurred"))![0].args!;
+                expect(event.account).to.equal(this.userOne.address);
+                expect(event.liquidator).to.equal(this.userTwo.address);
+                expect(event.repayKreskoAsset).to.equal(kreskoAsset.address);
+                expect(event.repayAmount).to.equal(repayAmount);
+                expect(event.seizedCollateralAsset).to.equal(collateralAsset.address);
+
+                // Confirm that liquidator's token approval is still 0
+                expect(await kreskoAsset.allowance(this.userTwo.address, this.kresko.address)).to.equal(0);
+            });
+
+            it("should not change liquidator's existing token approvals during a successful liquidation", async function () {
+                // Change collateral asset's USD value from $20 to $11
+                const updatedCollateralPrice = 11;
+                const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
+                await this.collateralAssetInfos[0].oracle.setValue(fixedPointOraclePrice);
+
+                const kreskoAsset = this.kreskoAssetInfo[0].kreskoAsset;
+                const collateralAsset = this.collateralAssetInfos[0].collateralAsset;
+
+                // Liquidator increases contract's token approval
+                const repayAmount = 100;
+                await kreskoAsset.connect(this.userTwo).approve(this.kresko.address, repayAmount);
+                expect(await kreskoAsset.allowance(this.userTwo.address, this.kresko.address)).to.equal(repayAmount);
+
+                const mintedKreskoAssetIndex = 0;
+                const depositedCollateralAssetIndex = 0;
+                const receipt = await this.kresko
+                    .connect(this.userTwo)
+                    .liquidate(
+                        this.userOne.address,
+                        kreskoAsset.address,
+                        repayAmount,
+                        collateralAsset.address,
+                        mintedKreskoAssetIndex,
+                        depositedCollateralAssetIndex,
+                        true,
+                    );
+
+                const event = (await extractEventFromTxReceipt(receipt, "LiquidationOccurred"))![0].args!;
+                expect(event.account).to.equal(this.userOne.address);
+                expect(event.liquidator).to.equal(this.userTwo.address);
+                expect(event.repayKreskoAsset).to.equal(kreskoAsset.address);
+                expect(event.repayAmount).to.equal(repayAmount);
+                expect(event.seizedCollateralAsset).to.equal(collateralAsset.address);
+
+                // Confirm that liquidator's token approval is unchanged
+                expect(await kreskoAsset.allowance(this.userTwo.address, this.kresko.address)).to.equal(repayAmount);
+            });
+
             it("should not allow the liquidations of healthy accounts", async function () {
                 const repayAmount = 100;
-                await this.kreskoAssetInfo[0].kreskoAsset
-                    .connect(this.userTwo)
-                    .approve(this.kresko.address, repayAmount);
-
                 const mintedKreskoAssetIndex = 0;
                 const depositedCollateralAssetIndex = 0;
                 await expect(
@@ -2542,11 +2620,6 @@ describe("Kresko", function () {
                 await this.collateralAssetInfos[0].oracle.transmit(fixedPointOraclePrice);
 
                 // userTwo holds Kresko assets that can be used to repay userOne's loan
-                const approveAmount = 1000;
-                await this.kreskoAssetInfo[0].kreskoAsset
-                    .connect(this.userTwo)
-                    .approve(this.kresko.address, approveAmount);
-
                 const repayAmount = 0;
                 const mintedKreskoAssetIndex = 0;
                 const depositedCollateralAssetIndex = 0;
@@ -2573,10 +2646,6 @@ describe("Kresko", function () {
 
                 // userTwo holds Kresko assets that can be used to repay userOne's loan
                 const repayAmount = 1000;
-                await this.kreskoAssetInfo[0].kreskoAsset
-                    .connect(this.userTwo)
-                    .approve(this.kresko.address, repayAmount);
-
                 const mintedKreskoAssetIndex = 0;
                 const depositedCollateralAssetIndex = 0;
                 await expect(
@@ -2592,31 +2661,6 @@ describe("Kresko", function () {
                             false,
                         ),
                 ).to.be.revertedWith("KR: repay > max");
-            });
-
-            it("should not allow liquidations if liquidator hasn't approved Kresko assets to the contract", async function () {
-                // Change collateral asset's USD value from $20 to $11
-                const updatedCollateralPrice = 11;
-                const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
-                await this.collateralAssetInfos[0].oracle.transmit(fixedPointOraclePrice);
-
-                const repayAmount = 100;
-
-                const mintedKreskoAssetIndex = 0;
-                const depositedCollateralAssetIndex = 0;
-                await expect(
-                    this.kresko
-                        .connect(this.userTwo)
-                        .liquidate(
-                            this.userOne.address,
-                            this.kreskoAssetInfo[0].kreskoAsset.address,
-                            repayAmount,
-                            this.collateralAssetInfos[0].collateralAsset.address,
-                            mintedKreskoAssetIndex,
-                            depositedCollateralAssetIndex,
-                            true,
-                        ),
-                ).to.be.revertedWith("ERC20: burn amount exceeds allowance");
             });
         });
     });
