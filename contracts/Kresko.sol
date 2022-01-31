@@ -587,17 +587,17 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     // * ===== Liquidation ===== */
 
     /**
-    //  * @notice Attempts to liquidate an account by repaying the portion of the account's Kresko asset
-    //  *         debt, receiving in return a portion of the account's collateral at a discounted rate.
-    //  * @param _account The account to attempt to liquidate.
-    //  * @param _repayKreskoAsset The address of the Kresko asset to be repaid.
-    //  * @param _repayAmount The amount of the Kresko asset to be repaid.
-    //  * @param _collateralAssetToSeize The address of the collateral asset to be seized.
-    //  * @param _mintedKreskoAssetIndex The index of the Kresko asset in the account's minted assets array.
-    //  * @param _depositedCollateralAssetIndex Index of the collateral asset in the account's collateral assets array.
-    //  * @param _keepKrAssetDebt Liquidator can choose to receive the whole seized amount keeping the krAsset debt.
-    //  * Setting _keepKrAssetDebt to false will instead only send the incentive and repay krAsset debt.
-    //  */
+     * @notice Attempts to liquidate an account by repaying the portion of the account's Kresko asset
+     *         debt, receiving in return a portion of the account's collateral at a discounted rate.
+     * @param _account The account to attempt to liquidate.
+     * @param _repayKreskoAsset The address of the Kresko asset to be repaid.
+     * @param _repayAmount The amount of the Kresko asset to be repaid.
+     * @param _collateralAssetToSeize The address of the collateral asset to be seized.
+     * @param _mintedKreskoAssetIndex The index of the Kresko asset in the account's minted assets array.
+     * @param _depositedCollateralAssetIndex Index of the collateral asset in the account's collateral assets array.
+     * @param _keepKrAssetDebt Liquidator can choose to receive the whole seized amount keeping the krAsset debt.
+     * Setting _keepKrAssetDebt to false will instead only send the incentive and repay krAsset debt.
+     */
 
     function liquidate(
         address _account,
