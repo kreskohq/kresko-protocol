@@ -11,6 +11,8 @@ The repo incorporates the following libraries/tools:
 -   [Solhint](https://github.com/protofire/solhint): linter
 -   [Solcover](https://github.com/sc-forks/solidity-coverage): code coverage
 -   [Prettier Plugin Solidity](https://github.com/prettier-solidity/prettier-plugin-solidity): code formatter
+-   [hardhat-deploy](https://github.com/wighawag/hardhat-deploy): hardhat plugin for deployments
+-   [hardhat-deploy-ethers](https://github.com/wighawag/hardhat-deploy-ethers): hardhat-ethers extension for hardhat-deploy
 
 ## Usage
 
@@ -19,7 +21,37 @@ The repo incorporates the following libraries/tools:
 Before running any command, make sure to install dependencies:
 
 ```sh
-yarn install
+yarn
+```
+
+Run typechain
+
+```sh
+yarn typechain
+```
+
+### Deploy
+
+Run local deployment setup dry (no local server started)
+
+```sh
+yarn deploy
+```
+
+Deploy the contracts to a specific network, such as Aurora testnet:
+
+```sh
+yarn deploy:auroratest
+```
+
+Look into package.json for networks
+
+### Updating the contracts addresses and abis for frontend after a new deployment to network
+
+Make sure you have `.npmrc` setup with publish rights (get it from LastPass)
+
+```sh
+yarn publish:contracts-frontend
 ```
 
 ### Compile
@@ -84,20 +116,6 @@ Delete the smart contract artifacts, the coverage reports and the Hardhat cache:
 
 ```sh
 yarn clean
-```
-
-### Deploy
-
-Deploy the contracts to Hardhat Network:
-
-```sh
-yarn deploy
-```
-
-Deploy the contracts to a specific network, such as the Ropsten testnet:
-
-```sh
-yarn deploy:network ropsten
 ```
 
 ## Syntax Highlighting
