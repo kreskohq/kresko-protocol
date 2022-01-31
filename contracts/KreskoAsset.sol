@@ -54,16 +54,12 @@ contract KreskoAsset is Initializable, ERC20Upgradeable, AccessControlEnumerable
     }
 
     /**
-     * @notice Burns tokens from an address that have been approved to the sender.
-     * @dev Only callable by operator which must have the appropriate allowance for _account.
+     * @notice Burns tokens from an address.
+     * @dev Only callable by operator.
      * @param _account The address to burn tokens from.
      * @param _amount The amount of tokens to burn.
      */
     function burn(address _account, uint256 _amount) external onlyRole(OPERATOR_ROLE) {
         _burn(_account, _amount);
-
-        uint256 currentAllowance = allowance(_account, _msgSender());
-        require(currentAllowance >= _amount, "ERC20: burn amount exceeds allowance");
-        unchecked {_approve(_account, _msgSender(), currentAllowance - _amount);}
     }
 }

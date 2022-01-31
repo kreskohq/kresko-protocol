@@ -83,6 +83,14 @@ describe("KreskoAsset", function () {
             expect(await this.kreskoAsset.balanceOf(this.signers.admin.address)).to.equal(this.mintAmount);
         });
 
+        it("should not allow admin to mint any tokens", async function () {
+            await expect(
+                this.kreskoAsset.connect(this.signers.admin).mint(this.signers.admin.address, this.mintAmount),
+            ).to.be.revertedWith(
+                `AccessControl: account ${this.signers.admin.address.toLowerCase()} is missing role 0x8952ae23cc3fea91b9dba0cefa16d18a26ca2bf124b54f42b5d04bce3aacecd2`,
+            );
+        });
+
         it("should not allow non-operator addresses to mint tokens", async function () {
             expect(await this.kreskoAsset.totalSupply()).to.equal(0);
             expect(await this.kreskoAsset.balanceOf(this.operator.address)).to.equal(0);
@@ -105,7 +113,19 @@ describe("KreskoAsset", function () {
             await this.kreskoAsset.connect(this.operator).mint(this.signers.admin.address, this.mintAmount);
         });
 
-        it("should allow the operator to burn tokens from user's address", async function () {
+        it("should allow the operator to burn tokens from user's address (without token allowance)", async function () {
+            expect(await this.kreskoAsset.totalSupply()).to.equal(this.mintAmount);
+
+            await this.kreskoAsset.connect(this.operator).burn(this.signers.admin.address, this.mintAmount);
+
+            // Check total supply and user's balances decreased
+            expect(await this.kreskoAsset.totalSupply()).to.equal(0);
+            expect(await this.kreskoAsset.balanceOf(this.operator.address)).to.equal(0);
+            // Confirm that owner doesn't hold any tokens
+            expect(await this.kreskoAsset.balanceOf(this.signers.admin.address)).to.equal(0);
+        });
+
+        it("should allow the operator to burn tokens from user's address without changing existing allowances", async function () {
             await this.kreskoAsset.connect(this.signers.admin).approve(this.operator.address, this.mintAmount);
 
             expect(await this.kreskoAsset.totalSupply()).to.equal(this.mintAmount);
@@ -120,32 +140,23 @@ describe("KreskoAsset", function () {
             expect(await this.kreskoAsset.balanceOf(this.operator.address)).to.equal(0);
             // Confirm that owner doesn't hold any tokens
             expect(await this.kreskoAsset.balanceOf(this.signers.admin.address)).to.equal(0);
-        });
-
-        it("should not allow admin to mint any tokens", async function () {
-            await expect(
-                this.kreskoAsset.connect(this.signers.admin).mint(this.signers.admin.address, this.mintAmount),
-            ).to.be.revertedWith(
-                `AccessControl: account ${this.signers.admin.address.toLowerCase()} is missing role 0x8952ae23cc3fea91b9dba0cefa16d18a26ca2bf124b54f42b5d04bce3aacecd2`,
-            );
-        });
-
-        it("should not allow the operator to burn more tokens than allowances permit", async function () {
-            await this.kreskoAsset.connect(this.signers.admin).approve(this.operator.address, this.mintAmount);
-
-            const ownerAllowance = await this.kreskoAsset.allowance(this.signers.admin.address, this.operator.address);
-            const overOwnerAllowance = ownerAllowance + 1;
-
-            await expect(
-                this.kreskoAsset.connect(this.operator).burn(this.signers.admin.address, overOwnerAllowance),
-            ).to.be.revertedWith("ERC20: burn amount exceeds balance");
-
-            // Check total supply, user's balances, and owner's allowances unchanged
-            expect(await this.kreskoAsset.totalSupply()).to.equal(this.mintAmount);
-            expect(await this.kreskoAsset.balanceOf(this.signers.admin.address)).to.equal(this.mintAmount);
+            // Confirm that token allowances are unchanged
             expect(await this.kreskoAsset.allowance(this.signers.admin.address, this.operator.address)).to.equal(
                 this.mintAmount,
             );
+        });
+
+        it("should not allow the operator to burn more tokens than user holds", async function () {
+            const userBalance = await this.kreskoAsset.balanceOf(this.signers.admin.address);
+            const overUserBalance = userBalance + 1;
+
+            await expect(
+                this.kreskoAsset.connect(this.operator).burn(this.signers.admin.address, overUserBalance),
+            ).to.be.revertedWith("ERC20: burn amount exceeds balance");
+
+            // Check total supply and user's balances are unchanged
+            expect(await this.kreskoAsset.totalSupply()).to.equal(this.mintAmount);
+            expect(await this.kreskoAsset.balanceOf(this.signers.admin.address)).to.equal(this.mintAmount);
         });
 
         it("should not allow non-operator addresses to burn tokens", async function () {
