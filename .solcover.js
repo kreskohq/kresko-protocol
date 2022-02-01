@@ -13,8 +13,8 @@ module.exports = {
     },
     onIstanbulComplete: async function (_config) {
         // We need to do this because solcover generates bespoke artifacts.
-        shell.rm("-rf", "./artifacts");
-        shell.rm("-rf", "./typechain");
+        shell.rm("-rf", "./build/artifacts");
+        shell.rm("-rf", "./types/contracts");
     },
     providerOptions: {
         mnemonic,
