@@ -1,0 +1,5 @@
+typechain
+contracts
+deployments
+index.ts
+.npmrc
