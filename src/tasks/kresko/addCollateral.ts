@@ -18,7 +18,7 @@ task("kresko:addcollateral")
             return;
         }
 
-        const Collateral = await ethers.getContract<IERC20>(name);
+        const Collateral = await ethers.getContract<Token>(name);
 
         console.log("Dollar address", Collateral.address);
 

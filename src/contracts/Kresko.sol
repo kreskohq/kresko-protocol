@@ -8,7 +8,7 @@ import "./utils/OwnableUpgradeable.sol";
 
 import "./interfaces/IKreskoAsset.sol";
 import "./interfaces/INonRebasingWrapperToken.sol";
-import "./interfaces/AggregatorV2V3Interface.sol";
+import "./flux/interfaces/AggregatorV2V3Interface.sol";
 
 import "./libraries/FixedPoint.sol";
 import "./libraries/Arrays.sol";

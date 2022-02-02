@@ -9,7 +9,6 @@ async function main() {
     const Dollar = await ethers.getContract<Token>("Dollar");
     const Kresko = await ethers.getContract<Kresko>("Kresko");
 
-
     let tx = await Kresko.depositCollateral(Dollar.address, toBig(4000));
     await tx.wait(2);
 
