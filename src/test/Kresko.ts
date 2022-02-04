@@ -14,6 +14,7 @@ import {
     fromBig,
     LIQUIDATION_INCENTIVE,
     MINIMUM_COLLATERALIZATION_RATIO,
+    MINIMUM_DEBT_VALUE,
     NAME_ONE,
     NAME_TWO,
     ONE,
@@ -64,6 +65,7 @@ describe("Kresko", function () {
             expect(await this.Kresko.feeRecipient()).to.equal(FEE_RECIPIENT_ADDRESS);
             expect(await this.Kresko.liquidationIncentiveMultiplier()).to.equal(LIQUIDATION_INCENTIVE);
             expect(await this.Kresko.minimumCollateralizationRatio()).to.equal(MINIMUM_COLLATERALIZATION_RATIO);
+            expect(await this.Kresko.minimumDebtValue()).to.equal(MINIMUM_DEBT_VALUE);
         });
 
         it("should not allow being called more than once", async function () {
@@ -74,6 +76,7 @@ describe("Kresko", function () {
                     FEE_RECIPIENT_ADDRESS,
                     LIQUIDATION_INCENTIVE,
                     MINIMUM_COLLATERALIZATION_RATIO,
+                    MINIMUM_DEBT_VALUE,
                 ),
             ).to.be.revertedWith("Initializable: contract is already initialized");
         });
