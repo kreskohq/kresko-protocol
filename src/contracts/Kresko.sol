@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "hardhat/console.sol";
-
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
@@ -594,11 +592,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
         // If the requested burn would put the user's debt position below the minimum
         // debt value, close the position entirely instead.
-        console.log("asset value:", getKrAssetValue(_kreskoAsset, debtAmount - _amount).rawValue);
-        console.log("minimumDebtValue:", minimumDebtValue.rawValue);
-
         if(getKrAssetValue(_kreskoAsset, debtAmount - _amount).isLessThan(minimumDebtValue)) {
-            console.log("true");
             _amount = debtAmount;
         }
 
