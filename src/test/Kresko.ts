@@ -1121,7 +1121,7 @@ describe("Kresko", function () {
                 expect(mintedKreskoAssetsBefore).to.deep.equal([]);
 
                 // Mint Kresko asset
-                const mintAmount = 500;
+                const mintAmount = toFixedPoint(500)
                 await this.Kresko.connect(this.signers.userOne).mintKreskoAsset(kreskoAssetAddress, mintAmount);
 
                 // Confirm the array of the user's minted Kresko assets has been pushed to.
@@ -1157,7 +1157,7 @@ describe("Kresko", function () {
                 expect(mintedKreskoAssetsInitial).to.deep.equal([]);
 
                 // Mint Kresko asset
-                const firstMintAmount = 50;
+                const firstMintAmount = toFixedPoint(50);
                 await this.Kresko.connect(this.signers.userOne).mintKreskoAsset(kreskoAssetAddress, firstMintAmount);
 
                 // Confirm the array of the user's minted Kresko assets has been pushed to.
@@ -1181,7 +1181,7 @@ describe("Kresko", function () {
 
                 // ------------------------ Second mint ------------------------
                 // Mint Kresko asset
-                const secondMintAmount = 70;
+                const secondMintAmount = toFixedPoint(70);
                 await this.Kresko.connect(this.signers.userOne).mintKreskoAsset(kreskoAssetAddress, secondMintAmount);
 
                 // Confirm the array of the user's minted Kresko assets is unchanged
@@ -1193,7 +1193,7 @@ describe("Kresko", function () {
                     this.signers.userOne.address,
                     kreskoAssetAddress,
                 );
-                expect(amountMintedFinal).to.equal(firstMintAmount + secondMintAmount);
+                expect(amountMintedFinal).to.equal(firstMintAmount.add(secondMintAmount));
 
                 // Confirm the Kresko Asset as been minted to the user from Kresko.sol
                 const userBalanceFinal = await kreskoAsset.balanceOf(this.signers.userOne.address);
@@ -1217,7 +1217,7 @@ describe("Kresko", function () {
                 expect(mintedKreskoAssetsInitial).to.deep.equal([]);
 
                 // Mint Kresko asset
-                const firstMintAmount = 10;
+                const firstMintAmount = toFixedPoint(10);
                 await this.Kresko.connect(this.signers.userOne).mintKreskoAsset(
                     firstKreskoAssetAddress,
                     firstMintAmount,
@@ -1247,7 +1247,7 @@ describe("Kresko", function () {
                 const secondKreskoAssetAddress = secondKreskoAsset.address;
 
                 // Mint Kresko asset
-                const secondMintAmount = 1;
+                const secondMintAmount = toFixedPoint(5);
                 await this.Kresko.connect(this.signers.userOne).mintKreskoAsset(
                     secondKreskoAssetAddress,
                     secondMintAmount,
@@ -1273,9 +1273,36 @@ describe("Kresko", function () {
                 expect(secondKreskoAssetTotalSupply).to.equal(secondMintAmount);
             });
 
+            it("should allow users to mint Kresko assets with USD value equal to the minimum debt value", async function () {
+                const kreskoAsset = this.kreskoAssetInfos[0].kreskoAsset;
+                const kreskoAssetAddress = kreskoAsset.address;
+
+                // Confirm that the user does not have an existing debt position for this Kresko asset
+                const initialKreskoAssetDebt = await this.Kresko.kreskoAssetDebt(
+                    this.signers.userOne.address,
+                    kreskoAssetAddress,
+                );
+                expect(initialKreskoAssetDebt).to.equal(0);
+
+                // Confirm that the mint amount's USD value is equal to the contract's current minimum debt value
+                const mintAmount = toFixedPoint(2);
+                const mintAmountUSDValue = await this.Kresko.getKrAssetValue(kreskoAssetAddress, String(mintAmount));
+                const currMinimumDebtValue = await this.Kresko.minimumDebtValue();
+                expect(Number(mintAmountUSDValue)).to.be.equal(Number(currMinimumDebtValue));
+
+                await this.Kresko.connect(this.signers.userOne).mintKreskoAsset(kreskoAssetAddress, mintAmount);
+
+                // Confirm that the mint was successful and user's balances have increased
+                const finalKreskoAssetDebt = await this.Kresko.kreskoAssetDebt(
+                    this.signers.userOne.address,
+                    kreskoAssetAddress,
+                );
+                expect(finalKreskoAssetDebt).to.equal(mintAmount);
+            });
+
             it("should emit KreskoAssetMinted event", async function () {
                 const kreskoAssetAddress = this.kreskoAssetInfos[0].kreskoAsset.address;
-                const mintAmount = 500;
+                const mintAmount = toFixedPoint(500);
                 const receipt = await this.Kresko.connect(this.signers.userOne).mintKreskoAsset(
                     kreskoAssetAddress,
                     mintAmount,
@@ -1287,10 +1314,32 @@ describe("Kresko", function () {
                 expect(args.amount).to.equal(mintAmount);
             });
 
+            it("should not allow users to mint Kresko assets if the resulting position's USD value is less than the minimum debt value", async function () {
+                const kreskoAsset = this.kreskoAssetInfos[0].kreskoAsset;
+                const kreskoAssetAddress = kreskoAsset.address;
+
+                // Confirm that the user does not have an existing debt position for this Kresko asset
+                const initialKreskoAssetDebt = await this.Kresko.kreskoAssetDebt(
+                    this.signers.userOne.address,
+                    kreskoAssetAddress,
+                );
+                expect(initialKreskoAssetDebt).to.equal(0);
+
+                // Confirm that the mint amount's USD value is below the contract's current minimum debt value
+                const mintAmount = toFixedPoint(1);
+                const mintAmountUSDValue = await this.Kresko.getKrAssetValue(kreskoAssetAddress, String(mintAmount));
+                const currMinimumDebtValue = await this.Kresko.minimumDebtValue();
+                expect(Number(mintAmountUSDValue)).to.be.lessThan(Number(currMinimumDebtValue));
+
+                await expect(
+                    this.Kresko.connect(this.signers.userOne).mintKreskoAsset(kreskoAssetAddress, mintAmount),
+                ).to.be.revertedWith("KR: belowMinDebtValue");
+            });
+
             it("should not allow users to mint non-whitelisted Kresko assets", async function () {
                 // Attempt to mint a non-deployed, non-whitelisted Kresko asset
                 await expect(
-                    this.Kresko.connect(this.signers.userOne).mintKreskoAsset(ADDRESS_TWO, 5),
+                    this.Kresko.connect(this.signers.userOne).mintKreskoAsset(ADDRESS_TWO, toFixedPoint(50)),
                 ).to.be.revertedWith("KR: !krAssetExist");
             });
 
@@ -1368,6 +1417,38 @@ describe("Kresko", function () {
                 await this.Kresko.connect(this.signers.userOne).burnKreskoAsset(
                     kreskoAssetAddress,
                     this.mintAmount,
+                    kreskoAssetIndex,
+                );
+
+                // Confirm the user no long holds the burned Kresko asset amount
+                const userBalance = await kreskoAsset.balanceOf(this.signers.userOne.address);
+                expect(userBalance).to.equal(0);
+
+                // Confirm that the Kresko asset's total supply decreased as expected
+                const kreskoAssetTotalSupplyAfter = await kreskoAsset.totalSupply();
+                expect(kreskoAssetTotalSupplyAfter).to.equal(kreskoAssetTotalSupplyBefore.sub(this.mintAmount));
+
+                // Confirm the array of the user's minted Kresko assets no longer contains the asset's address
+                const mintedKreskoAssetsAfter = await this.Kresko.getMintedKreskoAssets(this.signers.userOne.address);
+                expect(mintedKreskoAssetsAfter).to.deep.equal([]);
+
+                // Confirm the user's minted kresko asset amount has been updated
+                const userDebt = await this.Kresko.kreskoAssetDebt(this.signers.userOne.address, kreskoAssetAddress);
+                expect(userDebt).to.equal(0);
+            });
+
+            it("should burn the users full Kresko asset balance if the requested burn would result in a position under min debt value", async function () {
+                const kreskoAsset = this.kreskoAssetInfos[0].kreskoAsset;
+                const kreskoAssetAddress = kreskoAsset.address;
+
+                const kreskoAssetTotalSupplyBefore = await kreskoAsset.totalSupply();
+
+                const requestedBurnAmount = this.mintAmount.sub(toFixedPoint(1));
+                // Burn Kresko asset
+                const kreskoAssetIndex = 0;
+                await this.Kresko.connect(this.signers.userOne).burnKreskoAsset(
+                    kreskoAssetAddress,
+                    requestedBurnAmount,
                     kreskoAssetIndex,
                 );
 
@@ -1845,6 +1926,45 @@ describe("Kresko", function () {
                     this.Kresko.connect(this.signers.userOne).updateLiquidationIncentiveMultiplier(
                         validLiquidationIncentiveMultiplier,
                     ),
+                ).to.be.revertedWith("Ownable: caller is not the owner");
+            });
+        });
+
+        describe("#updateMinimumDebtValue", function () {
+            it("should allow owner to update the minimum debt value", async function () {
+                const newMinDebtValue = toFixedPoint(5);
+                await this.Kresko.updateMinimumDebtValue(newMinDebtValue);
+
+                const minDebtValue = await this.Kresko.minimumDebtValue();
+                expect(minDebtValue).to.equal(newMinDebtValue);
+            });
+
+            it("should allow owner to update the minimum debt value to the exact limit", async function () {
+                const newMinDebtValue = toFixedPoint(1000);
+                await this.Kresko.updateMinimumDebtValue(newMinDebtValue);
+
+                const minDebtValue = await this.Kresko.minimumDebtValue();
+                expect(minDebtValue).to.equal(newMinDebtValue);
+            });
+
+            it("should emit MinimumDebtValueUpdated event", async function () {
+                const newMinDebtValue = toFixedPoint(5);
+                const receipt =  await this.Kresko.updateMinimumDebtValue(newMinDebtValue);
+                const { args } = await extractEventFromTxReceipt(receipt, "MinimumDebtValueUpdated");
+                expect(args.minimumDebtValue).to.equal(newMinDebtValue);
+            });
+
+            it("should not allow the minimum debt value to be greater than $1,000", async function () {
+                const overlimitDebtValue = toFixedPoint(1001)
+                await expect(
+                    this.Kresko.updateMinimumDebtValue(overlimitDebtValue),
+                ).to.be.revertedWith("KR: debtValue > max");
+            });
+
+            it("should not allow non-owner to update the minimum debt value factor", async function () {
+                const newMinDebtValue = toFixedPoint(5);
+                await expect(
+                    this.Kresko.connect(this.signers.userOne).updateMinimumDebtValue(newMinDebtValue),
                 ).to.be.revertedWith("Ownable: caller is not the owner");
             });
         });
