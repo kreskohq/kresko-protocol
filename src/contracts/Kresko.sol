@@ -555,7 +555,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         // The synthetic asset debt position must be greater than the minimum debt position value
         uint256 existingDebtAmount = kreskoAssetDebt[msg.sender][_kreskoAsset];
         require(
-            getKrAssetValue(asset, existingDebtAmount + _amount).isGreaterThanOrEqual(minimumDebtValue),
+            getKrAssetValue(_kreskoAsset, existingDebtAmount + _amount).isGreaterThanOrEqual(minimumDebtValue),
             "KR: belowMinDebtValue"
         );
 
@@ -592,7 +592,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
         // If the requested burn would put the user's debt position below the minimum
         // debt value, close the position entirely instead.
-        if(getKrAssetValue(asset, debtAmount - _amount).isLessThan(minimumDebtValue)) {
+        if(getKrAssetValue(_kreskoAsset, debtAmount - _amount).isLessThan(minimumDebtValue)) {
             _amount = debtAmount;
         }
 
