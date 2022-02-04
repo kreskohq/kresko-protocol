@@ -93,6 +93,9 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     /// This means liquidator receives 50% bonus collateral compared to the debt repaid.
     uint256 public constant MAX_LIQUIDATION_INCENTIVE_MULTIPLIER = 1.5e18; // 150%
 
+    /// @notice The maximum configurable minimum debt USD value.
+    uint256 public constant MAX_DEBT_VALUE = 10e18; // $1,000 // TODO: is this accurate
+
     /**
      * ==================================================
      * ===================== State ======================
@@ -116,6 +119,9 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     /// @notice The absolute minimum ratio of collateral value to debt value that is used to calculate
     /// collateral requirements.
     FixedPoint.Unsigned public minimumCollateralizationRatio;
+
+    /// @notice The minimum USD value of an individual synthetic asset debt position.
+    FixedPoint.Unsigned public minimumDebtValue;
 
     /* ===== General state - Collateral Assets ===== */
 
@@ -310,6 +316,12 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     event MinimumCollateralizationRatioUpdated(uint256 indexed minimumCollateralizationRatio);
 
     /**
+     * @notice Emitted when the minimum debt value updated.
+     * @param minimumDebtValue The new minimum debt value.
+     */
+    event MinimumDebtValueUpdated(uint256 indexed minimumDebtValue);
+
+    /**
      * ==================================================
      * =================== Modifiers ====================
      * ==================================================
@@ -388,14 +400,16 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
      * @param _closeFactor Initial close factor as a raw value for a FixedPoint.Unsigned.
      * @param _feeRecipient Initial fee recipient.
      * @param _liquidationIncentiveMultiplier Initial liquidation incentive multiplier.
-     * @param _minimumCollateralizationRatio Initial collateralization ratio as a raw valu for a FixedPoint.Unsigned.
+     * @param _minimumCollateralizationRatio Initial collateralization ratio as a raw value for a FixedPoint.Unsigned.
+     * @param _minimumDebtValue Initial minimum debt value denominated in USD.
      */
     function initialize(
         uint256 _burnFee,
         uint256 _closeFactor,
         address _feeRecipient,
         uint256 _liquidationIncentiveMultiplier,
-        uint256 _minimumCollateralizationRatio
+        uint256 _minimumCollateralizationRatio,
+        uint256 _minimumDebtValue
     ) external initializer {
         // Set msg.sender as the owner.
         __Ownable_init();
@@ -404,6 +418,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         updateFeeRecipient(_feeRecipient);
         updateLiquidationIncentiveMultiplier(_liquidationIncentiveMultiplier);
         updateMinimumCollateralizationRatio(_minimumCollateralizationRatio);
+        updateMinimumDebtValue(_minimumDebtValue);
     }
 
     /**
@@ -537,9 +552,15 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             "KR: insufficientCollateral"
         );
 
+        // The synthetic asset debt position must be greater than the minimum debt position value
+        uint256 existingDebtAmount = kreskoAssetDebt[msg.sender][_kreskoAsset];
+        require(
+            getKrAssetValue(asset, existingDebtAmount + _amount).isGreaterThanOrEqual(minimumDebtValue),
+            "KR: belowMinDebtValue"
+        );
+
         // If the account does not have an existing debt for this Kresko Asset,
         // push it to the list of the account's minted Kresko Assets.
-        uint256 existingDebtAmount = kreskoAssetDebt[msg.sender][_kreskoAsset];
         if (existingDebtAmount == 0) {
             mintedKreskoAssets[msg.sender].push(_kreskoAsset);
         }
@@ -568,6 +589,12 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         // Ensure the amount being burned is not greater than the sender's debt.
         uint256 debtAmount = kreskoAssetDebt[msg.sender][_kreskoAsset];
         require(_amount <= debtAmount, "KR: amount > debt");
+
+        // If the requested burn would put the user's debt position below the minimum
+        // debt value, close the position entirely instead.
+        if(getKrAssetValue(asset, debtAmount - _amount).isLessThan(minimumDebtValue)) {
+            _amount = debtAmount;
+        }
 
         // Record the burn.
         kreskoAssetDebt[msg.sender][_kreskoAsset] = debtAmount - _amount;
@@ -895,6 +922,16 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         require(_minimumCollateralizationRatio >= MIN_MINIMUM_COLLATERALIZATION_RATIO, "KR: minCollateralRatio < min");
         minimumCollateralizationRatio = FixedPoint.Unsigned(_minimumCollateralizationRatio);
         emit MinimumCollateralizationRatioUpdated(_minimumCollateralizationRatio);
+    }
+
+    /**
+     * @dev Updates the contract's minimum debt value.
+     * @param _minimumDebtValue The new minimum debt value as a raw value for a FixedPoint.Unsigned.
+     */
+    function updateMinimumDebtValue(uint256 _minimumDebtValue) public onlyOwner {
+        require(_minimumDebtValue <= MAX_DEBT_VALUE, "KR: debtValue > max");
+        minimumDebtValue = FixedPoint.Unsigned(_minimumDebtValue);
+        emit MinimumDebtValueUpdated(_minimumDebtValue);
     }
 
     /**
