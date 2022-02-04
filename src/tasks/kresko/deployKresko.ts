@@ -17,12 +17,13 @@ task("deploy:kresko")
         "Minimum collateralization ratio",
         process.env.MINIMUM_COLLATERALIZATION_RATIO,
     )
+    .addOptionalParam("minDebtValue", "Minimum debt value", process.env.MINIMUM_DEBT_VALUE)
     .setAction(async function (taskArgs: TaskArguments, hre) {
         const { getNamedAccounts, ethers, deployments } = hre;
         const { admin } = await getNamedAccounts();
         const deploy = deployWithSignatures(hre);
         const { formatEther } = ethers.utils;
-        const { burnFee, closeFactor, feeRecipient, liquidationIncentiveMultiplier, minCollaterRatio } = taskArgs;
+        const { burnFee, closeFactor, feeRecipient, liquidationIncentiveMultiplier, minCollaterRatio, minDebtValue } = taskArgs;
 
         const [Kresko, , deployment] = await deploy<Kresko>("Kresko", {
             from: admin,
@@ -37,6 +38,7 @@ task("deploy:kresko")
                         feeRecipient,
                         toFixedPoint(liquidationIncentiveMultiplier),
                         toFixedPoint(minCollaterRatio),
+                        toFixedPoint(minDebtValue),
                     ],
                 },
             },
@@ -50,6 +52,7 @@ task("deploy:kresko")
             feeRecipient: await Kresko.feeRecipient(),
             minimumCollateralizationRatio: formatEther(await Kresko.minimumCollateralizationRatio()),
             closeFactor: formatEther(await Kresko.closeFactor()),
+            minimumDebtValue: formatEther(await Kresko.minimumDebtValue()),
         };
         const contracts = {
             ProxyAdmin: ProxyAdmin.address,

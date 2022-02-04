@@ -41,6 +41,7 @@ declare global {
         feeRecipient: string;
         liquidationIncentive: BigNumberish;
         minimumCollateralizationRatio: BigNumberish;
+        minimumDebtValue: BigNumberish;
     }
     interface KreskoAssetConstructor {
         name: string;
