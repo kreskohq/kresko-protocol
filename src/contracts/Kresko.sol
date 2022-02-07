@@ -555,7 +555,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         // The synthetic asset debt position must be greater than the minimum debt position value
         uint256 existingDebtAmount = kreskoAssetDebt[msg.sender][_kreskoAsset];
         require(
-            getKrAssetValue(_kreskoAsset, existingDebtAmount + _amount).isGreaterThanOrEqual(minimumDebtValue),
+            getKrAssetValue(_kreskoAsset, existingDebtAmount + _amount, true).isGreaterThanOrEqual(minimumDebtValue),
             "KR: belowMinDebtValue"
         );
 
@@ -592,7 +592,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
         // If the requested burn would put the user's debt position below the minimum
         // debt value, close the position entirely instead.
-        if(getKrAssetValue(_kreskoAsset, debtAmount - _amount).isLessThan(minimumDebtValue)) {
+        if(getKrAssetValue(_kreskoAsset, debtAmount - _amount, true).isLessThan(minimumDebtValue)) {
             _amount = debtAmount;
         }
 
@@ -1360,7 +1360,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         returns (FixedPoint.Unsigned memory minCollateralValue)
     {
         // Calculate the Kresko asset's value weighted by its k-factor.
-        FixedPoint.Unsigned memory weightedKreskoAssetValue = getKrAssetValue(_collateralAsset, _amount);
+        FixedPoint.Unsigned memory weightedKreskoAssetValue = getKrAssetValue(_collateralAsset, _amount, false);
         // Calculate the minimum collateral required to back this Kresko asset amount.
         return weightedKreskoAssetValue.mul(minimumCollateralizationRatio);
     }
@@ -1369,6 +1369,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
      * @notice Gets the collateral value for a single collateral asset and amount.
      * @param _collateralAsset The address of the collateral asset.
      * @param _amount The amount of the collateral asset to calculate the collateral value for.
+     * @param _ignoreCollateralFactor Boolean indicating if the asset's collateral factor should be ignored.
      * @return The collateral value for the provided amount of the collateral asset.
      */
     function getCollateralValueAndOraclePrice(
@@ -1410,7 +1411,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         address[] memory assets = mintedKreskoAssets[_account];
         for (uint256 i = 0; i < assets.length; i++) {
             address asset = assets[i];
-            value = value.add(getKrAssetValue(asset, kreskoAssetDebt[_account][asset]));
+            value = value.add(getKrAssetValue(asset, kreskoAssetDebt[_account][asset], false));
         }
         return value;
     }
@@ -1419,14 +1420,24 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
      * @notice Gets the USD value for a single Kresko asset and amount.
      * @param _kreskoAsset The address of the Kresko asset.
      * @param _amount The amount of the Kresko asset to calculate the value for.
+     * @param _ignoreKFactor Boolean indicating if the asset's k-factor should be ignored.
      * @return The value for the provided amount of the Kresko asset.
      */
-    function getKrAssetValue(address _kreskoAsset, uint256 _amount) public view returns (FixedPoint.Unsigned memory) {
+    function getKrAssetValue(
+        address _kreskoAsset,
+        uint256 _amount,
+        bool _ignoreKFactor
+    ) public view returns (FixedPoint.Unsigned memory) {
         KrAsset memory krAsset = kreskoAssets[_kreskoAsset];
-        return
-            FixedPoint.Unsigned(_amount).mul(FixedPoint.Unsigned(uint256(krAsset.oracle.latestAnswer()))).mul(
-                krAsset.kFactor
-            );
+
+        FixedPoint.Unsigned memory oraclePrice = FixedPoint.Unsigned(uint256(krAsset.oracle.latestAnswer()));
+        FixedPoint.Unsigned memory value = FixedPoint.Unsigned(_amount).mul(oraclePrice);
+
+        if (!_ignoreKFactor) {
+            value = value.mul(krAsset.kFactor);
+        }
+
+        return value;
     }
 
     /* ==== Liquidation ==== */
