@@ -1286,7 +1286,7 @@ describe("Kresko", function () {
 
                 // Confirm that the mint amount's USD value is equal to the contract's current minimum debt value
                 const mintAmount = toFixedPoint(2);
-                const mintAmountUSDValue = await this.Kresko.getKrAssetValue(kreskoAssetAddress, String(mintAmount));
+                const mintAmountUSDValue = await this.Kresko.getKrAssetValue(kreskoAssetAddress, String(mintAmount), false);
                 const currMinimumDebtValue = await this.Kresko.minimumDebtValue();
                 expect(Number(mintAmountUSDValue)).to.be.equal(Number(currMinimumDebtValue));
 
@@ -1327,7 +1327,7 @@ describe("Kresko", function () {
 
                 // Confirm that the mint amount's USD value is below the contract's current minimum debt value
                 const mintAmount = toFixedPoint(1);
-                const mintAmountUSDValue = await this.Kresko.getKrAssetValue(kreskoAssetAddress, String(mintAmount));
+                const mintAmountUSDValue = await this.Kresko.getKrAssetValue(kreskoAssetAddress, String(mintAmount), false);
                 const currMinimumDebtValue = await this.Kresko.minimumDebtValue();
                 expect(Number(mintAmountUSDValue)).to.be.lessThan(Number(currMinimumDebtValue));
 
@@ -1982,58 +1982,58 @@ describe("Kresko", function () {
                 deployAndWhitelistCollateralAsset(this.Kresko, 1, 20, 18), // factor = 1, price = $20.00
             ]);
 
-            // Give userOne and userTwo a balance of 1000 for each collateral asset.
+            // Give userOne and userTwo a balance of 100*10^18 for each collateral asset.
             const userAddresses = [this.signers.userOne.address, this.signers.userTwo.address];
-            const initialUserCollateralBalance = parseEther("0.00001");
+            const initialUserCollateralBalance = parseEther("100");
             for (const collateralAssetInfo of this.collateralAssetInfos) {
                 for (const userAddress of userAddresses) {
                     await collateralAssetInfo.collateralAsset.setBalanceOf(userAddress, initialUserCollateralBalance);
                 }
             }
 
-            // userOne deposits 1000 of the collateral asset
+            // userOne deposits 10 of the collateral asset
             const collateralAsset = this.collateralAssetInfos[0].collateralAsset;
-            const userOneDepositAmount = 1000; // 1000 * $20 = $20,000 in collateral value
+            const userOneDepositAmount = toFixedPoint(10); // 10 * $20 = $200 in collateral value
             await this.Kresko.connect(this.signers.userOne).depositCollateral(
                 collateralAsset.address,
-                userOneDepositAmount,
+                String(userOneDepositAmount),
             );
 
-            // userOne mints 1000 of the Kresko asset
+            // userOne mints 10 of the Kresko asset
             const kreskoAsset = this.kreskoAssetInfo[0].kreskoAsset;
-            const useOneMintAmount = 1000; // 1000 * $10 = $10,000 in debt value
-            await this.Kresko.connect(this.signers.userOne).mintKreskoAsset(kreskoAsset.address, useOneMintAmount);
+            const useOneMintAmount = toFixedPoint(10); // 10 * $10 = $100 in debt value
+            await this.Kresko.connect(this.signers.userOne).mintKreskoAsset(kreskoAsset.address, String(useOneMintAmount));
 
-            // userTwo deposits 10,000 of the collateral asset
-            const userTwoDepositAmount = 10000; // 10,000 * $20 = $200,000 in collateral value
+            // userTwo deposits 100 of the collateral asset
+            const userTwoDepositAmount = toFixedPoint(100); // 100 * $20 = $2,000 in collateral value
             await this.Kresko.connect(this.signers.userTwo).depositCollateral(
                 collateralAsset.address,
-                userTwoDepositAmount,
+                String(userTwoDepositAmount),
             );
 
-            // userTwo mints 1000 of the Kresko asset
-            const userTwoMintAmount = 1000; // 1000 * $10 = $10,000 in debt value
-            await this.Kresko.connect(this.signers.userTwo).mintKreskoAsset(kreskoAsset.address, userTwoMintAmount);
+            // userTwo mints 10 of the Kresko asset
+            const userTwoMintAmount = toFixedPoint(10); // 10 * $10 = $100 in debt value
+            await this.Kresko.connect(this.signers.userTwo).mintKreskoAsset(kreskoAsset.address, String(userTwoMintAmount));
         });
 
         describe("#isAccountLiquidatable", function () {
             it("should identify accounts below their minimum collateralization ratio", async function () {
-                // Initial debt value: (1000 * $10) = $10,000
+                // Initial debt value: (10 * $10) = $100
                 const kreskoAsset = this.kreskoAssetInfo[0].kreskoAsset;
                 const userDebtAmount = await this.Kresko.kreskoAssetDebt(
                     this.signers.userOne.address,
                     kreskoAsset.address,
                 );
-                const userDebtAmountInUSD = await this.Kresko.getKrAssetValue(kreskoAsset.address, userDebtAmount);
-                expect(userDebtAmountInUSD.rawValue).to.equal(10000);
+                const userDebtAmountInUSD = await this.Kresko.getKrAssetValue(kreskoAsset.address, userDebtAmount, false);
+                expect(userDebtAmountInUSD.rawValue).to.equal(String(toFixedPoint(100)));
 
-                // Initial collateral value: (1000 * $20) = $20,000
+                // Initial collateral value: (10 * $20) = $200
                 const initialUserCollateralAmountInUSD = await this.Kresko.getAccountCollateralValue(
                     this.signers.userOne.address,
                 );
-                expect(initialUserCollateralAmountInUSD.rawValue).to.equal(20000);
+                expect(initialUserCollateralAmountInUSD.rawValue).to.equal(String(toFixedPoint(200)));
 
-                // The account should be NOT liquidatable as collateral value ($20,000) >= min collateral value ($15,000)
+                // The account should be NOT liquidatable as collateral value ($200) >= min collateral value ($150)
                 const initialCanLiquidate = await this.Kresko.isAccountLiquidatable(this.signers.userOne.address);
                 expect(initialCanLiquidate).to.equal(false);
 
@@ -2043,13 +2043,13 @@ describe("Kresko", function () {
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
                 await oracle.transmit(fixedPointOraclePrice);
 
-                // Updated collateral value: (1000 * $11) = $11,000
+                // Updated collateral value: (10 * $11) = $110
                 const userCollateralAmountInUSD = await this.Kresko.getAccountCollateralValue(
                     this.signers.userOne.address,
                 );
-                expect(userCollateralAmountInUSD.rawValue).to.equal(11000);
+                expect(userCollateralAmountInUSD.rawValue).to.equal(String(toFixedPoint(110)));
 
-                // The account should be liquidatable as collateral value ($10,000) < min collateral value ($15,000)
+                // The account should be liquidatable as collateral value ($110) < min collateral value ($150)
                 const canLiquidate = await this.Kresko.isAccountLiquidatable(this.signers.userOne.address);
                 expect(canLiquidate).to.equal(true);
             });
@@ -2090,13 +2090,13 @@ describe("Kresko", function () {
                 const beforeKreskoAssetTotalSupply = await kreskoAsset.totalSupply();
 
                 // userTwo holds Kresko assets that can be used to repay userOne's loan
-                const repayAmount = 100;
+                const repayAmount = toFixedPoint(1);
                 const mintedKreskoAssetIndex = 0;
                 const depositedCollateralAssetIndex = 0;
                 await this.Kresko.connect(this.signers.userTwo).liquidate(
                     this.signers.userOne.address,
                     kreskoAsset.address,
-                    repayAmount,
+                    String(repayAmount),
                     collateralAsset.address,
                     mintedKreskoAssetIndex,
                     depositedCollateralAssetIndex,
@@ -2118,7 +2118,7 @@ describe("Kresko", function () {
 
                 // Confirm that userTwo's kresko asset balance has decreased by the repaid amount
                 const afterUserTwoKreskoAssetBalance = await kreskoAsset.balanceOf(this.signers.userTwo.address);
-                expect(afterUserTwoKreskoAssetBalance).to.equal(beforeUserTwoKreskoAssetBalance - repayAmount);
+                expect(afterUserTwoKreskoAssetBalance).to.equal(String(Number(beforeUserTwoKreskoAssetBalance)-Number(repayAmount)));
 
                 // Confirm that userTwo has received some collateral from the contract
                 const afterUserTwoCollateralBalance = await collateralAsset.balanceOf(this.signers.userTwo.address);
@@ -2130,7 +2130,7 @@ describe("Kresko", function () {
 
                 // Confirm that Kresko asset's total supply has decreased.
                 const afterKreskoAssetTotalSupply = await kreskoAsset.totalSupply();
-                expect(afterKreskoAssetTotalSupply).to.equal(beforeKreskoAssetTotalSupply - repayAmount);
+                expect(afterKreskoAssetTotalSupply).to.equal(String(beforeKreskoAssetTotalSupply - Number(repayAmount)));
             });
 
             it("should emit LiquidationOccurred event", async function () {
@@ -2148,14 +2148,14 @@ describe("Kresko", function () {
                 );
 
                 // Attempt liquidation
-                const repayAmount = 100; // userTwo holds Kresko assets that can be used to repay userOne's loan
+                const repayAmount = toFixedPoint(1); // userTwo holds Kresko assets that can be used to repay userOne's loan
                 const collateralAsset = this.collateralAssetInfos[0].collateralAsset;
                 const mintedKreskoAssetIndex = 0;
                 const depositedCollateralAssetIndex = 0;
                 const receipt = await this.Kresko.connect(this.signers.userTwo).liquidate(
                     this.signers.userOne.address,
                     kreskoAsset.address,
-                    repayAmount,
+                    String(repayAmount),
                     collateralAsset.address,
                     mintedKreskoAssetIndex,
                     depositedCollateralAssetIndex,
@@ -2169,7 +2169,7 @@ describe("Kresko", function () {
                 expect(args.account).to.equal(this.signers.userOne.address);
                 expect(args.liquidator).to.equal(this.signers.userTwo.address);
                 expect(args.repayKreskoAsset).to.equal(kreskoAsset.address);
-                expect(args.repayAmount).to.equal(repayAmount);
+                expect(args.repayAmount).to.equal(String(repayAmount));
                 expect(args.seizedCollateralAsset).to.equal(collateralAsset.address);
 
                 // Seized amount is calculated internally on contract, here we're just doing a sanity max check
@@ -2191,15 +2191,24 @@ describe("Kresko", function () {
                 await kreskoAsset.connect(this.signers.userTwo).approve(this.Kresko.address, MaxUint256);
                 await this.Kresko.connect(this.signers.userTwo).burnKreskoAsset(
                     kreskoAsset.address,
-                    Number(krAssetDebt),
+                    String(krAssetDebt),
                     0,
                 );
 
                 const liquidatorKrAssetValueBefore = Number(
                     await this.Kresko.getAccountKrAssetValue(this.signers.userTwo.address),
                 );
-
                 expect(liquidatorKrAssetValueBefore).to.equal(0);
+
+                const collateralAsset = this.collateralAssetInfos[0].collateralAsset;
+                const liquidatorCollateralBalanceBefore =  fromBig(
+                    await this.Kresko.collateralDeposits(
+                        this.signers.userTwo.address,
+                        collateralAsset.address
+                    ),
+                );
+
+                const feeRecipientBalanceAfterFirstBurn = fromBig(await collateralAsset.balanceOf(FEE_RECIPIENT_ADDRESS));
 
                 const userAddresses = [this.signers.userOne.address, this.signers.userTwo.address];
                 const initialUserCollateralBalance = parseEther("10000");
@@ -2213,15 +2222,13 @@ describe("Kresko", function () {
                 }
 
                 // userOne deposits 1001e18 of the collateral asset
-                const collateralAsset = this.collateralAssetInfos[0].collateralAsset;
                 const userOneDepositAmount = parseEther("1000"); // 1000 * $20 = $20,000 in collateral value
                 await this.Kresko.connect(this.signers.userOne).depositCollateral(
                     collateralAsset.address,
                     userOneDepositAmount,
                 );
 
-                // userOne mints 100 of the Kresko asset
-
+                // userOne mints 1000 of the Kresko asset
                 const useOneMintAmount = parseEther("1000"); // 1000 * $10 = $10,000 in debt value
                 await this.Kresko.connect(this.signers.userOne).mintKreskoAsset(kreskoAsset.address, useOneMintAmount);
 
@@ -2270,8 +2277,7 @@ describe("Kresko", function () {
                         this.collateralAssetInfos[0].collateralAsset.address,
                     ),
                 );
-
-                expect(liquidatorBalanceInProtocolBeforeLiquidation).to.equal(fromBig(userTwoDepositAmount));
+                expect(liquidatorBalanceInProtocolBeforeLiquidation).to.equal(fromBig(userTwoDepositAmount)+liquidatorCollateralBalanceBefore);
 
                 // Get underwater users collateral deposits before liquidation
                 const userOneCollateralDepositAmountBeforeLiquidation = fromBig(
@@ -2381,7 +2387,7 @@ describe("Kresko", function () {
                 const feeRecipientBalance = fromBig(await collateralAsset.balanceOf(FEE_RECIPIENT_ADDRESS));
 
                 // Protocol should receive 10% (MAX_BURN_FEE) from the liquidation
-                expect(feeRecipientBalance).to.equal(liquidatorProfit);
+                expect(feeRecipientBalance-feeRecipientBalanceAfterFirstBurn).to.equal(liquidatorProfit);
 
                 // Shouldn't be able to liquidate a healthy position anymore
                 await expect(
@@ -2396,6 +2402,7 @@ describe("Kresko", function () {
                     ),
                 ).to.be.reverted;
             });
+
             it("should send the liquidator whole collateral and keep debt position when _keepKrAssetDebt = true", async function () {
                 await this.Kresko.updateBurnFee(toFixedPoint(0.1)); // 10%
 
@@ -2469,7 +2476,8 @@ describe("Kresko", function () {
                     ),
                 );
 
-                expect(liquidatorBalanceInProtocolBeforeLiquidation).to.equal(fromBig(userTwoDepositAmount));
+                const originalUserTwoDeposit = 100;
+                expect(liquidatorBalanceInProtocolBeforeLiquidation).to.equal(fromBig(userTwoDepositAmount) + originalUserTwoDeposit);
 
                 // Get underwater users collateral deposits before liquidation
                 const userOneCollateralDepositAmountBeforeLiquidation = fromBig(
@@ -2721,14 +2729,14 @@ describe("Kresko", function () {
                 await this.collateralAssetInfos[0].oracle.transmit(fixedPointOraclePrice);
 
                 // userTwo holds Kresko assets that can be used to repay userOne's loan
-                const repayAmount = 1000;
+                const repayAmount = toFixedPoint(1000);
                 const mintedKreskoAssetIndex = 0;
                 const depositedCollateralAssetIndex = 0;
                 await expect(
                     this.Kresko.connect(this.signers.userTwo).liquidate(
                         this.signers.userOne.address,
                         this.kreskoAssetInfo[0].kreskoAsset.address,
-                        repayAmount,
+                        String(repayAmount),
                         this.collateralAssetInfos[0].collateralAsset.address,
                         mintedKreskoAssetIndex,
                         depositedCollateralAssetIndex,
