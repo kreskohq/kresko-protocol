@@ -16,6 +16,8 @@ export const SYMBOL_ONE = "ONE";
 export const SYMBOL_TWO = "TWO";
 export const NAME_ONE = "One Kresko Asset";
 export const NAME_TWO = "Two Kresko Asset";
+export const MARKET_CAP_ONE_MILLION = toFixedPoint(1000000);
+export const MARKET_CAP_FIVE_MILLION = toFixedPoint(5000000);
 export const BURN_FEE = toFixedPoint(0.01); // 1%
 export const MINIMUM_COLLATERALIZATION_RATIO = toFixedPoint(1.5); // 150%
 export const CLOSE_FACTOR = toFixedPoint(0.2); // 20%
@@ -187,6 +189,7 @@ export async function addNewKreskoAssetWithOraclePrice(
     symbol: string,
     kFactor: number,
     oraclePrice: number,
+    marketCapUSDLimit: BigNumber,
 ) {
     const signerAddress = await kresko.signer.getAddress();
     const decimals = 8;
@@ -206,13 +209,14 @@ export async function addNewKreskoAssetWithOraclePrice(
         })
     ).deployed();
 
-    await kresko.addKreskoAsset(kreskoAsset.address, symbol, fixedPointKFactor, oracle.address);
+    await kresko.addKreskoAsset(kreskoAsset.address, symbol, fixedPointKFactor, oracle.address, marketCapUSDLimit);
 
     return {
         kreskoAsset,
         oracle,
         oraclePrice: fixedPointOraclePrice,
         kFactor: fixedPointKFactor,
+        marketCapUSDLimit: marketCapUSDLimit,
     };
 }
 
