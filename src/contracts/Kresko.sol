@@ -634,6 +634,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
         // Ensure the amount being burned is not greater than the user's debt.
         uint256 debtAmount = kreskoAssetDebt[_account][_kreskoAsset];
+        require(_amount <= debtAmount, "KR: amount > debt");
 
         // If the requested burn would put the user's debt position below the minimum
         // debt value, close the position entirely instead.
