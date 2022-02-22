@@ -1,4 +1,4 @@
-import { fromBig, toFixedPoint } from "@utils";
+import { fromFixedPoint, toFixedPoint } from "@utils";
 import { DeployFunction } from "hardhat-deploy/types";
 
 const func: DeployFunction = async function (hre) {
@@ -14,9 +14,9 @@ const func: DeployFunction = async function (hre) {
         wait: 2,
     });
 
-    await priceFeeds["/USD"].transmit(toFixedPoint(1));
+    await priceFeeds["/USD"].transmit(toFixedPoint(1, 8));
 
-    const usdPrice = fromBig(await priceFeeds["/USD"].latestAnswer());
+    const usdPrice = fromFixedPoint(await priceFeeds["/USD"].latestAnswer(), 8);
     console.log("USD price set at: ", usdPrice);
 
     // ETH

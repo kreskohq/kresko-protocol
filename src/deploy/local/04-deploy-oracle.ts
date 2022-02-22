@@ -13,9 +13,9 @@ const func: DeployFunction = async function (hre) {
         validator: priceFeedValidator,
     });
 
-    await priceFeeds["/USD"].transmit(toFixedPoint(1));
+    await priceFeeds["/USD"].transmit(toFixedPoint("1", 8));
 
-    const usdPrice = fromBig(await priceFeeds["/USD"].latestAnswer());
+    const usdPrice = fromBig(await priceFeeds["/USD"].latestAnswer(), 8);
     console.log("USD price set at: ", usdPrice);
 
     // ETH
@@ -25,6 +25,10 @@ const func: DeployFunction = async function (hre) {
         description: "ETH/USD",
         validator: priceFeedValidator,
     });
+    await priceFeeds["ETH/USD"].transmit(toFixedPoint("2600", 8));
+
+    const ethPrice = fromBig(await priceFeeds["ETH/USD"].latestAnswer(), 8);
+    console.log("ETH price set at: ", ethPrice);
 
     // GOLD
     await hre.run("deployone:fluxpricefeed", {
@@ -33,6 +37,9 @@ const func: DeployFunction = async function (hre) {
         description: "GOLD/USD",
         validator: priceFeedValidator,
     });
+    await priceFeeds["GOLD/USD"].transmit(toFixedPoint("1898.2", 8));
+    const goldPrice = fromBig(await priceFeeds["GOLD/USD"].latestAnswer(), 8);
+    console.log("GOLD price set at: ", goldPrice);
 
     // TSLA
     await hre.run("deployone:fluxpricefeed", {
@@ -41,6 +48,9 @@ const func: DeployFunction = async function (hre) {
         description: "TSLA/USD",
         validator: priceFeedValidator,
     });
+    await priceFeeds["TSLA/USD"].transmit(toFixedPoint("852.2", 8));
+    const tslaPrice = fromBig(await priceFeeds["TSLA/USD"].latestAnswer(), 8);
+    console.log("TSLA price set at: ", tslaPrice);
 
     // AURORA
     await hre.run("deployone:fluxpricefeed", {
@@ -49,6 +59,9 @@ const func: DeployFunction = async function (hre) {
         description: "AURORA/USD",
         validator: priceFeedValidator,
     });
+    await priceFeeds["AURORA/USD"].transmit(toFixedPoint("10.2", 8));
+    const auroraPrice = fromBig(await priceFeeds["AURORA/USD"].latestAnswer(), 8);
+    console.log("AURORA price set at: ", auroraPrice);
 
     // NEAR
     await hre.run("deployone:fluxpricefeed", {
@@ -57,6 +70,9 @@ const func: DeployFunction = async function (hre) {
         description: "NEAR/USD",
         validator: priceFeedValidator,
     });
+    await priceFeeds["NEAR/USD"].transmit(toFixedPoint("8.8", 8));
+    const nearPrice = fromBig(await priceFeeds["NEAR/USD"].latestAnswer(), 8);
+    console.log("NEAR price set at: ", nearPrice);
 };
 export default func;
 

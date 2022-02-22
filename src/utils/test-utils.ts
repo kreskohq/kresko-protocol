@@ -8,6 +8,7 @@ import { Artifact } from "hardhat/types";
 import { constructors } from "../utils/constuctors";
 import { DeployOptions } from "hardhat-deploy/types";
 import { toBig } from "./numbers";
+import { UniswapV2Factory, UniswapV2Router02 } from "types";
 
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 export const ADDRESS_ONE = "0x0000000000000000000000000000000000000001";
@@ -227,3 +228,31 @@ export async function deployKreskoAsset(name: string, amountToDeployer: number, 
 
     return token;
 }
+
+export const deployUniswap = deployments.createFixture(async ({ deployments, deploy }) => {
+    await deployments.fixture("test"); // ensure you start from a fresh deployments
+    const { getNamedAccounts } = hre;
+    const { admin, treasury } = await getNamedAccounts();
+
+    const [UniFactory] = await deploy<UniswapV2Factory>("UniswapV2Factory", {
+        from: admin,
+        args: [admin],
+    });
+
+    await UniFactory.setFeeTo(treasury);
+
+    const [WETH] = await deploy<WETH9>("WETH9", {
+        from: admin,
+    });
+
+    const [UniRouter] = await deploy<UniswapV2Router02>("UniswapV2Router02", {
+        from: admin,
+        args: [UniFactory.address, WETH.address],
+    });
+
+    return {
+        UniFactory,
+        UniRouter,
+        WETH,
+    };
+});
