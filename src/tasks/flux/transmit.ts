@@ -1,4 +1,3 @@
-import { Signer } from "@ethersproject/abstract-signer";
 import { task } from "hardhat/config";
 
 task("transmit", "Submits an answer to a price feed")

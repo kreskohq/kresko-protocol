@@ -14,7 +14,16 @@ export const users = {
     userTwo: {
         default: 3,
     },
-    treasury: {
+    userThree: {
         default: 4,
+    },
+    nonadmin: {
+        default: 5,
+    },
+    treasury: {
+        default: 6,
+    },
+    priceFeedValidator: {
+        default: 7,
     },
 };

@@ -1,7 +1,7 @@
 import { task } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
 
-task("deploy:FeedsRegistry")
+task("deployone:feedsregistry")
     .addOptionalParam("admin", "The admin allowed to modify the oracles and minimum update time")
     .setAction(async function (taskArgs: TaskArguments, { ethers, deploy, priceFeedsRegistry }) {
         const { deployer } = await ethers.getNamedSigners();

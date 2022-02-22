@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "./interfaces/AggregatorV2V3Interface.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
+import "./interfaces/AggregatorV2V3Interface.sol";
 
 /**
  * @title Flux first-party price feed oracle aggregator

@@ -9,12 +9,12 @@ async function main() {
     const Dollar = await ethers.getContract<Token>("Dollar");
     const Kresko = await ethers.getContract<Kresko>("Kresko");
 
-    let tx = await Kresko.depositCollateral(Dollar.address, toBig(4000));
+    let tx = await Kresko.depositCollateral(admin, Dollar.address, toBig(4000));
     await tx.wait(2);
 
     const KrGold = await ethers.getContract<KreskoAsset>("KrGold");
 
-    tx = await Kresko.mintKreskoAsset(KrGold.address, toBig(2.2));
+    tx = await Kresko.mintKreskoAsset(admin, KrGold.address, toBig(2.2));
     await tx.wait(2);
 
     console.log("succesfully deposited collateral and minted kreskoAsset");
@@ -27,7 +27,7 @@ async function main() {
     const factor = min / coll;
     console.log(Number(factor));
 
-    tx = await Kresko.burnKreskoAsset(KrGold.address, toBig("1.2"), 0);
+    tx = await Kresko.burnKreskoAsset(admin, KrGold.address, toBig("1.2"), 0);
 
     await tx.wait(2);
     console.log("Burned");

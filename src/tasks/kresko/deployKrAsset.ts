@@ -1,5 +1,5 @@
 import { deployWithSignatures } from "@utils/deployment";
-import { task } from "hardhat/config";
+import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
 
 task("deploy:krasset")
@@ -7,12 +7,14 @@ task("deploy:krasset")
     .addParam("symbol", "Symbol for the asset")
     .addOptionalParam("owner", "Specify a different owner than deployer")
     .addOptionalParam("operator", "Operator of the asset")
+    .addOptionalParam("log", "Log outputs", false, types.boolean)
+    .addOptionalParam("wait", "wait confirmations", 1, types.int)
     .setAction(async function (taskArgs: TaskArguments, hre) {
         const { krAssets, getNamedAccounts, deployments } = hre;
         const { deployer } = await getNamedAccounts();
         const deploy = deployWithSignatures(hre);
 
-        const { name, symbol, owner, operator } = taskArgs;
+        const { name, symbol, owner, operator, log, wait } = taskArgs;
 
         const contractOwner = owner ? owner : deployer;
         let contractOperator: string;
@@ -23,10 +25,10 @@ task("deploy:krasset")
             contractOperator = operator ? operator : (await deployments.get("Kresko")).address;
         }
 
-        console.log("Deploying", name);
         const [KreskoAsset, , deployment] = await deploy<KreskoAsset>(name, {
             from: deployer,
-            log: true,
+            waitConfirmations: wait,
+            log,
             contract: "KreskoAsset",
             proxy: {
                 owner: deployer,
@@ -38,15 +40,17 @@ task("deploy:krasset")
             },
         });
 
-        const ProxyAdmin = await deployments.get("DefaultProxyAdmin");
+        if (log) {
+            const ProxyAdmin = await deployments.get("DefaultProxyAdmin");
 
-        const contracts = {
-            ProxyAdmin: ProxyAdmin.address,
-            [`${name} (Proxy)`]: KreskoAsset.address,
-            [`${name} Implementation`]: deployment.implementation,
-            txHash: deployment.transactionHash,
-        };
-        console.table(contracts);
+            const contracts = {
+                ProxyAdmin: ProxyAdmin.address,
+                [`${name} (Proxy)`]: KreskoAsset.address,
+                [`${name} Implementation`]: deployment.implementation,
+                txHash: deployment.transactionHash,
+            };
+            console.table(contracts);
+        }
 
         krAssets[name] = KreskoAsset;
     });

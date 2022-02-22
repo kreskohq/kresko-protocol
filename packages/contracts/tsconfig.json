@@ -9,6 +9,6 @@
         "esModuleInterop": true,
         "resolveJsonModule": true
     },
-    "include": ["./contracts", "./deployments"],
+    "include": ["./types", "./deployments", "./index.ts"],
     "exclude": ["./node_modules", "./dist"]
 }

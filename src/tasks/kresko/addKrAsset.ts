@@ -6,9 +6,11 @@ task("kresko:addkrasset")
     .addParam("name", "Name of the asset")
     .addParam("kFactor", "kFactor for the asset", 1000, types.float)
     .addParam("oracleAddr", "Price feed address")
+    .addOptionalParam("log", "Log outputs", false, types.boolean)
+    .addOptionalParam("wait", "Log outputs", 1, types.int)
     .setAction(async function (taskArgs: TaskArguments, hre) {
         const { ethers, kresko } = hre;
-        const { name, kFactor, oracleAddr } = taskArgs;
+        const { name, kFactor, oracleAddr, log, wait } = taskArgs;
         if (kFactor == 1000) {
             console.error("Invalid kFactor for", name);
             return;
@@ -16,9 +18,17 @@ task("kresko:addkrasset")
         const KrAsset = await ethers.getContract<KreskoAsset>(name);
 
         const KrAssetSymbol = await KrAsset.symbol();
+        const krAssetInfo = await kresko.kreskoAssets(KrAsset.address);
+        const exists = krAssetInfo.exists;
 
-        const tx = await kresko.addKreskoAsset(KrAsset.address, KrAssetSymbol, toFixedPoint(kFactor), oracleAddr);
-        await tx.wait(1);
-        console.log("Added KrGold as mintable in Kresko with kFactor of", kFactor);
-        console.log("txHash", tx.hash);
+        if (exists) {
+            console.log("KrAsset already exists..");
+        } else {
+            const tx = await kresko.addKreskoAsset(KrAsset.address, KrAssetSymbol, toFixedPoint(kFactor), oracleAddr);
+            await tx.wait(wait);
+            if (log) {
+                console.log("Added KrGold as mintable in Kresko with kFactor of", kFactor);
+                console.log("txHash", tx.hash);
+            }
+        }
     });

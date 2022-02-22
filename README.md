@@ -1,60 +1,22 @@
 # Kresko Protocol
 
-## Dependencies
-
-The repo incorporates the following libraries/tools:
-
--   [Hardhat](https://github.com/nomiclabs/hardhat): compile and run the smart contracts on a local development network
--   [TypeChain](https://github.com/ethereum-ts/TypeChain): generate TypeScript types for smart contracts
--   [Ethers](https://github.com/ethers-io/ethers.js/): renowned Ethereum library and wallet implementation
--   [Waffle](https://github.com/EthWorks/Waffle): tooling for writing comprehensive smart contract tests
--   [Solhint](https://github.com/protofire/solhint): linter
--   [Solcover](https://github.com/sc-forks/solidity-coverage): code coverage
--   [Prettier Plugin Solidity](https://github.com/prettier-solidity/prettier-plugin-solidity): code formatter
--   [hardhat-deploy](https://github.com/wighawag/hardhat-deploy): hardhat plugin for deployments
--   [hardhat-deploy-ethers](https://github.com/wighawag/hardhat-deploy-ethers): hardhat-ethers extension for hardhat-deploy
+This repository contains the core smart contract code for Kresko protocol, which supports the creation and management of crypto-backed synthetic assets. Prices for synthetic assets are committed on chain by trusted oracles. Kresko uses a proxy system so that contract upgrades are not disruptive to protocol functionality. This is a usage and integration guide that assumes familiarity with the basic economic mechanics as described in the litepaper.
 
 ## Usage
 
-### Pre Requisites
+### Setup
 
-Before running any command, make sure to install dependencies:
+Install dependencies:
 
 ```sh
 yarn
 ```
 
-Run typechain
+Run typechain:
 
 ```sh
 yarn typechain
 ```
-
-### Deploy
-
-Run local deployment setup dry (no local server started)
-
-```sh
-yarn deploy
-```
-
-Deploy the contracts to a specific network, such as Aurora testnet:
-
-```sh
-yarn deploy:auroratest
-```
-
-Look into package.json for networks
-
-### Updating the contracts addresses and abis for frontend after a new deployment to network
-
-Make sure you have `.npmrc` setup with publish rights (get it from LastPass)
-
-```sh
-yarn publish:contracts-frontend
-```
-
-### Compile
 
 Compile the smart contracts with Hardhat:
 
@@ -62,73 +24,30 @@ Compile the smart contracts with Hardhat:
 yarn compile
 ```
 
-### TypeChain
+### Testing
 
-Compile the smart contracts and generate TypeChain artifacts:
-
-```sh
-yarn typechain
-```
-
-### Lint Solidity
-
-Lint the Solidity code:
-
-```sh
-yarn lint:sol
-```
-
-### Lint TypeScript
-
-Lint the TypeScript code:
-
-```sh
-yarn lint:ts
-```
-
-### Test
-
-Run the Mocha tests:
+Run the test suite with:
 
 ```sh
 yarn test
 ```
 
-### Coverage
+### Deployment
 
-Generate the code coverage report:
-
-```sh
-yarn coverage
-```
-
-### Report Gas
-
-See the gas usage per unit test and average gas per method call:
+It's possible to run the local deployment setup without a local server started with:
 
 ```sh
-REPORT_GAS=true yarn test
+yarn deploy
 ```
 
-### Clean
-
-Delete the smart contract artifacts, the coverage reports and the Hardhat cache:
+The contracts are deployable to a variety of blockchain networks (full list in package.json). For example, deploy the contracts to the Aurora testnet with:
 
 ```sh
-yarn clean
+yarn deploy:auroratest
 ```
 
-## Syntax Highlighting
+After a proxy upgrade or deployment to a new network the contract addresses and ABIs can be updated with:
 
-If you use VSCode, you can enjoy syntax highlighting for your Solidity code via the
-[vscode-solidity](https://github.com/juanfranblanco/vscode-solidity) extension. The recommended approach to set the
-compiler version is to add the following fields to your VSCode user settings:
-
-```json
-{
-    "solidity.compileUsingRemoteVersion": "v0.8.4+commit.c7e474f2",
-    "solidity.defaultCompiler": "remote"
-}
+```sh
+yarn publish:contracts-frontend
 ```
-
-Where of course `v0.8.4+commit.c7e474f2` can be replaced with any other version.
