@@ -8,7 +8,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const USDC = await ethers.getContract<Token>("USDC");
     /** === USDC/KRTSLA ===  */
     const krTSLA = await ethers.getContract<KreskoAsset>("krTSLA");
-    const TSLAValue = fromFixedPoint(await priceFeeds["TSLA/USD"].latestAnswer());
+    const TSLAValue = fromFixedPoint(await priceFeeds["TSLA/USD"].latestAnswer(), 8);
     const TSLADepositAmount = 100;
 
     // Add initial LP (also creates the pair) according to oracle price
@@ -27,7 +27,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     /** === USDC/krETH ===  */
     const krETH = await ethers.getContract<KreskoAsset>("krETH");
-    const ETHValue = fromFixedPoint(await priceFeeds["ETH/USD"].latestAnswer());
+    const ETHValue = fromFixedPoint(await priceFeeds["ETH/USD"].latestAnswer(), 8);
     const ETHDepositAmount = 100;
 
     // Add initial LP (also creates the pair) according to oracle price
@@ -46,7 +46,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     /** === USDC/krGOLD ===  */
     const krGOLD = await ethers.getContract<KreskoAsset>("krGOLD");
-    const GOLDValue = fromFixedPoint(await priceFeeds["GOLD/USD"].latestAnswer());
+    const GOLDValue = fromFixedPoint(await priceFeeds["GOLD/USD"].latestAnswer(), 8);
     const GOLDDepositAmount = 100;
     // Add initial LP (also creates the pair) according to oracle price
     const USDCKRGOLDPair: UniswapV2Pair = await hre.run("uniswap:addliquidity", {

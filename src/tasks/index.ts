@@ -5,3 +5,4 @@ export * from "./kresko";
 export * from "./test";
 export * from "./flux";
 export * from "./uniswap/addLiquidity";
+export * from "./staking/deployStaking";

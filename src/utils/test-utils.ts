@@ -207,8 +207,9 @@ export async function deploySimpleToken(name: string, amountToDeployer: number, 
     return token;
 }
 
-export async function deployOracle(description: string, oraclePrice: number, params?: DeployOptions) {
-    const Oracle: FluxPriceFeed = await hre.run("deploy:FluxPriceFeed", {
+export async function deployOracle(name: string, description: string, oraclePrice: number, params?: DeployOptions) {
+    const Oracle: FluxPriceFeed = await hre.run("deployone:fluxpricefeed", {
+        name,
         decimals: 8,
         description,
     });
@@ -256,3 +257,32 @@ export const deployUniswap = deployments.createFixture(async ({ deployments, dep
         WETH,
     };
 });
+
+export const setupTestsStaking = (stakingTokenAddr: string, uniFactoryAddr: string, uniRouterAddr: string) =>
+    deployments.createFixture(async ({ deployments, ethers }) => {
+        await deployments.fixture("staking-zap");
+        const { admin, userOne, userTwo, userThree, nonadmin, operator } = await ethers.getNamedSigners();
+
+        const [RewardTKN1] = await deploySimpleToken("RewardTKN1", 0);
+        const [RewardTKN2] = await deploySimpleToken("RewardTKN2", 0);
+
+        const KrStaking = await hre.run("deploy:staking", {
+            stakingToken: stakingTokenAddr,
+            rewardTokens: `${RewardTKN1.address},${RewardTKN2.address}`,
+            rewardPerBlocks: "0.1,0.2",
+        });
+
+        return {
+            KrStaking,
+            RewardTKN1,
+            RewardTKN2,
+            signers: {
+                admin,
+                userOne,
+                userTwo,
+                userThree,
+                nonadmin,
+                operator,
+            },
+        };
+    });
