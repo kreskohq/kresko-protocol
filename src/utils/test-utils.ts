@@ -81,46 +81,6 @@ export const setupTests = deployments.createFixture(async ({ deployments, ethers
     };
 });
 
-export const setupTestsStaking = (stakingTokenAddr: string, uniFactoryAddr: string, uniRouterAddr: string) =>
-    deployments.createFixture(async ({ deployments, ethers }) => {
-        await deployments.fixture("staking-zap");
-        const { admin, userOne, userTwo, userThree, nonadmin, operator } = await ethers.getNamedSigners();
-
-        const [RewardTKN1] = await deploySimpleToken("RewardTKN1", 0);
-        const [RewardTKN2] = await deploySimpleToken("RewardTKN2", 0);
-
-        const KrStaking: KrStaking = await hre.run("deploy:staking", {
-            stakingToken: stakingTokenAddr,
-            rewardTokens: `${RewardTKN1.address},${RewardTKN2.address}`,
-            rewardPerBlocks: "0.1,0.2",
-        });
-
-        const [Zapper] = await hre.deploy<KreskoZapperUniswap>("KreskoZapperUniswap", {
-            from: admin.address,
-            args: [uniFactoryAddr, uniRouterAddr, KrStaking.address],
-        });
-
-        const OPERATOR_ROLE = await KrStaking.OPERATOR_ROLE();
-
-        // Give zapper operator role in the staking contract.
-        await KrStaking.grantRole(OPERATOR_ROLE, Zapper.address);
-
-        return {
-            Zapper,
-            KrStaking,
-            RewardTKN1,
-            RewardTKN2,
-            signers: {
-                admin,
-                userOne,
-                userTwo,
-                userThree,
-                nonadmin,
-                operator,
-            },
-        };
-    });
-
 export async function deployAndWhitelistCollateralAsset(
     kresko: Contract,
     collateralFactor: number,
@@ -267,31 +227,3 @@ export async function deployKreskoAsset(name: string, amountToDeployer: number, 
 
     return token;
 }
-
-export const deployUniswap = deployments.createFixture(async ({ deployments, deploy }) => {
-    await deployments.fixture("test"); // ensure you start from a fresh deployments
-    const { getNamedAccounts } = hre;
-    const { admin, treasury } = await getNamedAccounts();
-
-    const [UniFactory] = await deploy<UniswapV2Factory>("UniswapV2Factory", {
-        from: admin,
-        args: [admin],
-    });
-
-    await UniFactory.setFeeTo(treasury);
-
-    const [WETH] = await deploy<WETH9>("WETH9", {
-        from: admin,
-    });
-
-    const [UniRouter] = await deploy<UniswapV2Router02>("UniswapV2Router02", {
-        from: admin,
-        args: [UniFactory.address, WETH.address],
-    });
-
-    return {
-        UniFactory,
-        UniRouter,
-        WETH,
-    };
-});
