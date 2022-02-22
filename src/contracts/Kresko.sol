@@ -641,6 +641,12 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             _amount = debtAmount;
         }
 
+        // If the requested burn would put the user's debt position below the minimum
+        // debt value, close the position entirely instead.
+        if (getKrAssetValue(_kreskoAsset, debtAmount - _amount, true).isLessThan(minimumDebtValue)) {
+            _amount = debtAmount;
+        }
+
         // Record the burn.
         kreskoAssetDebt[_account][_kreskoAsset] -= _amount;
 
