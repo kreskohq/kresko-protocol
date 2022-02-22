@@ -42,7 +42,7 @@ import {
     MinimumCollateralizationRatioUpdatedEvent,
 } from "types/contracts/Kresko";
 
-describe.only("Kresko", function () {
+describe("Kresko", function () {
     before(async function () {
         // We intentionally allow constructor that calls the initializer
         // modifier and explicitly allow this in calls to `deployProxy`.
