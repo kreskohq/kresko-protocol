@@ -28,7 +28,7 @@ task("kresko:addcollateral")
         const exists = collateralAsset.exists;
 
         if (exists) {
-            console.log("Collateral already exists..");
+            console.log(`Collateral ${name} already exists!`);
         } else {
             const tx = await kresko.addCollateralAsset(Collateral.address, toFixedPoint(cFactor), oracleAddr, !!nrwt);
 
@@ -45,6 +45,7 @@ task("kresko:addcollateral")
 
                 console.log(`Added ${name} as collateral with a cFctor of:`, cFactor);
                 console.log(`1 ${name} has value: ${fromBig(value.toString())}`);
+                console.log(`1 ${name} has price of: $ ${fromBig(value.toString())}`);
                 console.log("txHash", tx.hash);
             }
         }

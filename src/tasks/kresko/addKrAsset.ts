@@ -22,12 +22,12 @@ task("kresko:addkrasset")
         const exists = krAssetInfo.exists;
 
         if (exists) {
-            console.log("KrAsset already exists..");
+            console.log(`KrAsset ${name} already exists!`);
         } else {
             const tx = await kresko.addKreskoAsset(KrAsset.address, KrAssetSymbol, toFixedPoint(kFactor), oracleAddr);
             await tx.wait(wait);
             if (log) {
-                console.log("Added KrGold as mintable in Kresko with kFactor of", kFactor);
+                console.log(`Added ${name} as mintable in Kresko with kFactor of ${kFactor}`);
                 console.log("txHash", tx.hash);
             }
         }
