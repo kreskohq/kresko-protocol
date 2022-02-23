@@ -2659,5 +2659,35 @@ describe("Kresko", function () {
                 ).to.be.revertedWith("KR: repay > max");
             });
         });
+
+        it("should not allow borrowers to liquidate themselves", async function () {
+            // Change collateral asset's USD value from $20 to $11
+            const updatedCollateralPrice = 11;
+            const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
+            await this.collateralAssetInfos[0].oracle.setValue(fixedPointOraclePrice);
+
+            // Transfer user two's synthetic assets to user one so they can repay their loan in full
+            const userTwoSynthBalance = Number(await this.kreskoAssetInfo[0].kreskoAsset.balanceOf(this.userTwo.address));
+            await this.kreskoAssetInfo[0].kreskoAsset
+                .connect(this.userTwo)
+                .transfer(this.userOne.address, userTwoSynthBalance);
+
+            const repayAmount = 100;
+            const mintedKreskoAssetIndex = 0;
+            const depositedCollateralAssetIndex = 0;
+            await expect(
+                this.kresko
+                    .connect(this.userOne)
+                    .liquidate(
+                        this.userOne.address,
+                        this.kreskoAssetInfo[0].kreskoAsset.address,
+                        repayAmount,
+                        this.collateralAssetInfos[0].collateralAsset.address,
+                        mintedKreskoAssetIndex,
+                        depositedCollateralAssetIndex,
+                        false,
+                    ),
+            ).to.be.revertedWith("KR: self liquidation");
+        });
     });
 });
