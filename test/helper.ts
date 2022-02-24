@@ -2,6 +2,7 @@ import { waffle, ethers } from "hardhat";
 import { BigNumber } from "ethers";
 import { MockToken, BasicOracle, RebasingToken } from "../typechain";
 import { toFixedPoint } from "../utils/fixed-point";
+import { parseUnits } from "ethers/lib/utils";
 
 export const ADDRESS_ZERO = ethers.constants.AddressZero;
 export const ADDRESS_ONE = "0x0000000000000000000000000000000000000001";
@@ -18,6 +19,7 @@ export const FEE_RECIPIENT_ADDRESS = "0x0000000000000000000000000000000000000FEE
 
 export const { parseEther, formatUnits } = ethers.utils;
 export const fromBig = (amount: BigNumber, decimals = 18) => parseFloat(formatUnits(amount, decimals));
+export const toBig = (amount: number | string, decimals = 18) => parseUnits(amount.toString(), decimals);
 export const { deployContract } = waffle;
 
 export const ONE = toFixedPoint(1);
