@@ -2614,7 +2614,7 @@ describe("Kresko", function () {
                 const kreskoAsset = this.kreskoAssetInfo[0].kreskoAsset;
 
                 // Change collateral asset's USD value from $20 to $11
-                const updatedCollateralPrice = 12;
+                const updatedCollateralPrice = 11;
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
                 await this.collateralAssetInfos[0].oracle.setValue(fixedPointOraclePrice);
 
@@ -2648,6 +2648,9 @@ describe("Kresko", function () {
                 ).to.be.revertedWith("KR: repayAmount > debtAmount");
             });
             it("should not allow a liquidation USD value greater than the USD value required for the user being liquidated to regain a healthy position", async function () {
+                const collateralAsset = this.collateralAssetInfos[0].collateralAsset;
+                const kreskoAsset = this.kreskoAssetInfo[0].kreskoAsset;
+
                 // Change collateral asset's USD value from $20 to $11
                 const updatedCollateralPrice = 11;
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
@@ -2676,9 +2679,9 @@ describe("Kresko", function () {
                         .connect(this.userTwo)
                         .liquidate(
                             this.userOne.address,
-                            this.kreskoAssetInfo[0].kreskoAsset.address,
+                            kreskoAsset.address,
                             repayAmount,
-                            this.collateralAssetInfos[0].collateralAsset.address,
+                            collateralAsset.address,
                             mintedKreskoAssetIndex,
                             depositedCollateralAssetIndex,
                             false,
