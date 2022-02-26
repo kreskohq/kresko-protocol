@@ -613,6 +613,9 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         require(collateralAssets[_collateralAssetToSeize].exists, "KR: !collateralExists");
         require(_repayAmount > 0, "KR: 0-repay");
 
+        // Borrower cannot liquidate themselves
+        require(msg.sender != _account, "KR: self liquidation");
+
         // Check that this account is below its minimum collateralization ratio and can be liquidated.
         require(isAccountLiquidatable(_account), "KR: !accountLiquidatable");
 
