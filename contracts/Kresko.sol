@@ -1134,7 +1134,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     /**
-     * @notice Calculates the amount of incentive to send as chosen collateral to the liquidated
+     * @notice Calculates the liquidation incentive collateral amount to be sent to the liquidator
      * @param _repayKreskoAsset krAsset debt to be repaid.
      * @param _repayAmount krAsset amount to be repaid.
      * @param _seizeAmount The calculated amount of collateral assets to be seized.
