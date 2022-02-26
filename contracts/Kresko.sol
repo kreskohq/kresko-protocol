@@ -610,7 +610,8 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             // Nor repay more tokens than the account holds debt for the asset
 
             FixedPoint.Unsigned memory maxLiquidation = calculateMaxLiquidatableValueFor(_account);
-            require(repayAmountUSD.isLessThanOrEqual(maxLiquidation) && krAssetDebt >= _repayAmount, "KR: repay > max");
+            require(krAssetDebt >= _repayAmount, "KR: repayAmount > debtAmount");
+            require(repayAmountUSD.isLessThanOrEqual(maxLiquidation), "KR: repayUSD > maxUSD");
         }
 
         FixedPoint.Unsigned memory collateralPriceUSD =

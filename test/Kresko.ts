@@ -2609,16 +2609,68 @@ describe("Kresko", function () {
                 ).to.be.revertedWith("KR: 0-repay");
             });
 
-            it("should not allow liquidations if the repayment amount is over the max repay amount", async function () {
+            it("should not allow the liquidation krAsset amount to be greater than the same krAssets debt of user being liquidated", async function () {
+                const collateralAsset = this.collateralAssetInfos[0].collateralAsset;
+                const kreskoAsset = this.kreskoAssetInfo[0].kreskoAsset;
+
+                // Change collateral asset's USD value from $20 to $11
+                const updatedCollateralPrice = 12;
+                const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
+                await this.collateralAssetInfos[0].oracle.setValue(fixedPointOraclePrice);
+
+                // Get the debt for this kresko asset
+                const krAssetDebtUserOne = Number(
+                    await this.kresko.kreskoAssetDebt(this.userOne.address, kreskoAsset.address),
+                );
+
+                const repayAmount = 1001;
+                // Ensure we are repaying more than debt
+                expect(repayAmount).to.be.greaterThan(krAssetDebtUserOne);
+
+                // Set the indexes required
+                const mintedKreskoAssetIndex = 0;
+                const depositedCollateralAssetIndex = 0;
+
+                // userTwo holds Kresko assets that can be used to repay userOne's loan
+                // Ensure userTwo cannot repay more than debt
+                await expect(
+                    this.kresko
+                        .connect(this.userTwo)
+                        .liquidate(
+                            this.userOne.address,
+                            kreskoAsset.address,
+                            repayAmount,
+                            collateralAsset.address,
+                            mintedKreskoAssetIndex,
+                            depositedCollateralAssetIndex,
+                            false,
+                        ),
+                ).to.be.revertedWith("KR: repayAmount > debtAmount");
+            });
+            it("should not allow a liquidation USD value greater than the USD value required for the user being liquidated to regain a healthy position", async function () {
                 // Change collateral asset's USD value from $20 to $11
                 const updatedCollateralPrice = 11;
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
                 await this.collateralAssetInfos[0].oracle.setValue(fixedPointOraclePrice);
 
-                // userTwo holds Kresko assets that can be used to repay userOne's loan
+                // Get the max liquidatable value for the user
+                const maxUSDValue = Number(
+                    (await this.kresko.calculateMaxLiquidatableValueFor(this.userOne.address)).rawValue,
+                );
+
+                // Ensure oracle prices match what was set
+                const oraclePrice = fromBig(await this.collateralAssetInfos[0].oracle.value());
+                expect(oraclePrice).to.equal(updatedCollateralPrice);
+
                 const repayAmount = 1000;
+                const repayUSD = repayAmount * oraclePrice;
+                // Ensure repayment amount is greater than the maxUSDValue that can be repaid
+                expect(repayUSD).to.be.greaterThan(maxUSDValue);
+
                 const mintedKreskoAssetIndex = 0;
                 const depositedCollateralAssetIndex = 0;
+
+                // Ensure liquidation cannot happen
                 await expect(
                     this.kresko
                         .connect(this.userTwo)
@@ -2631,7 +2683,7 @@ describe("Kresko", function () {
                             depositedCollateralAssetIndex,
                             false,
                         ),
-                ).to.be.revertedWith("KR: repay > max");
+                ).to.be.revertedWith("KR: repayUSD > maxUSD");
             });
         });
     });
