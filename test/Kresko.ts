@@ -2097,7 +2097,7 @@ describe("Kresko", function () {
             });
 
             it("should send liquidator collateral profit and reduce debt accordingly _keepKrAssetDebt = false", async function () {
-                await this.kresko.updateBurnFee(toFixedPoint(0.1)); // 10% BURN FEE
+                await this.kresko.updateBurnFee(toFixedPoint(0.05)); // 5% burnFee
                 const kreskoAsset = this.kreskoAssetInfo[0].kreskoAsset;
 
                 const krAssetDebt = await this.kresko.kreskoAssetDebt(this.userTwo.address, kreskoAsset.address);
@@ -2288,8 +2288,8 @@ describe("Kresko", function () {
 
                 const feeRecipientBalance = fromBig(await collateralAsset.balanceOf(FEE_RECIPIENT_ADDRESS));
 
-                // Protocol should receive 10% (MAX_BURN_FEE) from the liquidation
-                expect(feeRecipientBalance).to.equal(liquidatorProfit);
+                // Protocol should receive 5% (MAX_BURN_FEE) from the liquidation
+                expect(feeRecipientBalance).to.equal(liquidatorProfit / 2);
 
                 // Shouldn't be able to liquidate a healthy position anymore
                 await expect(
@@ -2307,7 +2307,7 @@ describe("Kresko", function () {
                 ).to.be.reverted;
             });
             it("should send the liquidator whole collateral and keep debt position when _keepKrAssetDebt = true", async function () {
-                await this.kresko.updateBurnFee(toFixedPoint(0.1)); // 10%
+                await this.kresko.updateBurnFee(toFixedPoint(0.05)); // 5% burnFee
 
                 const userAddresses = [this.userOne.address, this.userTwo.address];
                 const initialUserCollateralBalance = parseEther("10000");
@@ -2565,7 +2565,7 @@ describe("Kresko", function () {
                 expect(await kreskoAsset.allowance(this.userTwo.address, this.kresko.address)).to.equal(repayAmount);
             });
 
-            it("should not allow the liquidations of healthy accounts", async function () {
+            it("should not allow liquidations of healthy accounts", async function () {
                 const repayAmount = 100;
                 const mintedKreskoAssetIndex = 0;
                 const depositedCollateralAssetIndex = 0;
@@ -2609,7 +2609,7 @@ describe("Kresko", function () {
                 ).to.be.revertedWith("KR: 0-repay");
             });
 
-            it("should not allow the liquidation krAsset amount to be greater than the same krAssets debt of user being liquidated", async function () {
+            it("should not allow liquidations with krAsset amount greater than krAsset debt of user", async function () {
                 const collateralAsset = this.collateralAssetInfos[0].collateralAsset;
                 const kreskoAsset = this.kreskoAssetInfo[0].kreskoAsset;
 
@@ -2647,24 +2647,29 @@ describe("Kresko", function () {
                         ),
                 ).to.be.revertedWith("KR: repayAmount > debtAmount");
             });
-            it("should not allow a liquidation USD value greater than the USD value required for the user being liquidated to regain a healthy position", async function () {
+            it("should not allow liquidations with USD value greater than the USD value required for regaining healthy position", async function () {
                 const collateralAsset = this.collateralAssetInfos[0].collateralAsset;
                 const kreskoAsset = this.kreskoAssetInfo[0].kreskoAsset;
 
-                // Change collateral asset's USD value from $20 to $11
-                const updatedCollateralPrice = 11;
+                // Change krAsset's USD value from $20 to $15
+                const updatedCollateralPrice = 15;
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
-                await this.collateralAssetInfos[0].oracle.setValue(fixedPointOraclePrice);
+                await this.kreskoAssetInfo[0].oracle.setValue(fixedPointOraclePrice);
 
                 // Get the max liquidatable value for the user
                 const maxUSDValue = Number(
-                    (await this.kresko.calculateMaxLiquidatableValueFor(this.userOne.address)).rawValue,
+                    (
+                        await this.kresko.calculateMaxLiquidatableValueForAssets(
+                            this.userOne.address,
+                            kreskoAsset.address,
+                            collateralAsset.address,
+                        )
+                    ).rawValue,
                 );
 
                 // Ensure oracle prices match what was set
-                const oraclePrice = fromBig(await this.collateralAssetInfos[0].oracle.value());
+                const oraclePrice = fromBig(await this.kreskoAssetInfo[0].oracle.value());
                 expect(oraclePrice).to.equal(updatedCollateralPrice);
-
                 const repayAmount = 1000;
                 const repayUSD = repayAmount * oraclePrice;
                 // Ensure repayment amount is greater than the maxUSDValue that can be repaid

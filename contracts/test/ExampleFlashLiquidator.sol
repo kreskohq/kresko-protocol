@@ -31,7 +31,8 @@ contract ExampleFlashLiquidator is IERC3156FlashBorrower {
         require(kresko.isAccountLiquidatable(_kreskoUser), "!liquidatable");
 
         // Calculate amount to repay and amount to flashloan
-        (uint256 flashAmount, uint256 repayAmount) = calculateAmountToFlashLoan(_kreskoUser, _kreskoAssetToRepay);
+        (uint256 flashAmount, uint256 repayAmount) =
+            calculateAmountToFlashLoan(_kreskoUser, _kreskoAssetToRepay, _rewardCollateral);
 
         // Encode data for `onFlashLoan` callback
         bytes memory data = abi.encode(_kreskoUser, _kreskoAssetToRepay, _rewardCollateral, repayAmount);
@@ -40,12 +41,13 @@ contract ExampleFlashLiquidator is IERC3156FlashBorrower {
 
     /// @dev Calculates the amount to flash weth
     /// @dev This amount will allow us to mint the exact amount of kresko asset to repay
-    function calculateAmountToFlashLoan(address _kreskoUser, address _kreskoAssetToRepay)
-        public
-        view
-        returns (uint256 amountToFlashLoan, uint256 amountToRepay)
-    {
-        FixedPoint.Unsigned memory maxLiquidationValue = kresko.calculateMaxLiquidatableValueFor(_kreskoUser);
+    function calculateAmountToFlashLoan(
+        address _kreskoUser,
+        address _kreskoAssetToRepay,
+        address _rewardCollateral
+    ) public view returns (uint256 amountToFlashLoan, uint256 amountToRepay) {
+        FixedPoint.Unsigned memory maxLiquidationValue =
+            kresko.calculateMaxLiquidatableValueForAssets(_kreskoUser, _kreskoAssetToRepay, _rewardCollateral);
 
         (FixedPoint.Unsigned memory oneWeth, ) =
             kresko.getCollateralValueAndOraclePrice(address(weth10), 1 ether, false);
@@ -55,11 +57,11 @@ contract ExampleFlashLiquidator is IERC3156FlashBorrower {
         FixedPoint.Unsigned memory cFactor = kresko.collateralAssets(address(weth10)).factor;
         FixedPoint.Unsigned memory MCR = kresko.minimumCollateralizationRatio();
 
-        amountToFlashLoan = maxLiquidationValue.div(oneWeth).div(cFactor).mul(MCR).rawValue;
+        amountToFlashLoan = maxLiquidationValue.div(oneWeth.mul(cFactor)).mul(MCR).rawValue;
         uint256 kreskoUserDebtAmount = kresko.kreskoAssetDebt(_kreskoUser, _kreskoAssetToRepay);
-        uint256 maxPayableAmountByValue = maxLiquidationValue.div(krAssetValue).mul(kFactor).rawValue;
+        uint256 maxKrAssetRepayAmount = maxLiquidationValue.mul(kFactor).div(krAssetValue).rawValue;
 
-        amountToRepay = kreskoUserDebtAmount > maxPayableAmountByValue ? maxPayableAmountByValue : kreskoUserDebtAmount;
+        amountToRepay = kreskoUserDebtAmount > maxKrAssetRepayAmount ? maxKrAssetRepayAmount : kreskoUserDebtAmount;
     }
 
     /// @dev Helper to get the asset indexes for the user
@@ -136,6 +138,7 @@ contract ExampleFlashLiquidator is IERC3156FlashBorrower {
         kresko.withdrawCollateral(address(weth10), flashBalance, 0);
 
         uint256 rewardTokenBalAfter = IERC20(_rewardCollateral).balanceOf(address(this));
+
         require(rewardTokenBalAfter > rewardTokenBalBefore, "FAIL: No profits");
         return CALLBACK_SUCCESS;
     }

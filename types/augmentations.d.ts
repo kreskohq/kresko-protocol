@@ -9,6 +9,9 @@ declare module "mocha" {
         loadFixture: <T>(fixture: Fixture<T>) => Promise<T>;
         signers: Signers;
         Kresko: Kresko;
+        getMostProfitableLiquidation: (
+            userAddress: string,
+        ) => Promise<{ maxUSD: number; collateralAsset: string; krAsset: string }>;
         getUserValues: () => Promise<
             {
                 actualCollateralUSD: number;

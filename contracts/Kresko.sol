@@ -73,19 +73,21 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
      * ==================================================
      */
 
+    uint256 public constant ONE_HUNDRED_PERCENT = 1e18;
+
     /// @notice The maximum configurable burn fee.
-    uint256 public constant MAX_BURN_FEE = 0.1e18; // 10%
+    uint256 public constant MAX_BURN_FEE = 5e16; // 5%
 
     /// @notice The minimum configurable minimum collateralization ratio.
-    uint256 public constant MIN_MINIMUM_COLLATERALIZATION_RATIO = 1e18; // 100%
+    uint256 public constant MIN_COLLATERALIZATION_RATIO = 1e18; // 100%
 
     /// @notice The minimum configurable liquidation incentive multiplier.
     /// This means liquidator only receives equal amount of collateral to debt repaid.
     uint256 public constant MIN_LIQUIDATION_INCENTIVE_MULTIPLIER = 1e18; // 100%
 
     /// @notice The maximum configurable liquidation incentive multiplier.
-    /// This means liquidator receives 50% bonus collateral compared to the debt repaid.
-    uint256 public constant MAX_LIQUIDATION_INCENTIVE_MULTIPLIER = 1.5e18; // 150%
+    /// This means liquidator receives 25% bonus collateral compared to the debt repaid.
+    uint256 public constant MAX_LIQUIDATION_INCENTIVE_MULTIPLIER = 1.25e18; // 125%
 
     /**
      * ==================================================
@@ -606,10 +608,10 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 krAssetDebt = kreskoAssetDebt[_account][_repayKreskoAsset];
         // Avoid stack too deep error
         {
-            // Liquidator may not repay more than what the account requires to regain a healthy position
+            // Liquidator may not repay more value than what the liquidation pair allows
             // Nor repay more tokens than the account holds debt for the asset
-
-            FixedPoint.Unsigned memory maxLiquidation = calculateMaxLiquidatableValueFor(_account);
+            FixedPoint.Unsigned memory maxLiquidation =
+                calculateMaxLiquidatableValueForAssets(_account, _repayKreskoAsset, _collateralAssetToSeize);
             require(krAssetDebt >= _repayAmount, "KR: repayAmount > debtAmount");
             require(repayAmountUSD.isLessThanOrEqual(maxLiquidation), "KR: repayUSD > maxUSD");
         }
@@ -861,7 +863,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
      * for a FixedPoint.Unsigned.
      */
     function updateMinimumCollateralizationRatio(uint256 _minimumCollateralizationRatio) public onlyOwner {
-        require(_minimumCollateralizationRatio >= MIN_MINIMUM_COLLATERALIZATION_RATIO, "KR: minCollateralRatio < min");
+        require(_minimumCollateralizationRatio >= MIN_COLLATERALIZATION_RATIO, "KR: minCollateralRatio < min");
         minimumCollateralizationRatio = FixedPoint.Unsigned(_minimumCollateralizationRatio);
         emit MinimumCollateralizationRatioUpdated(_minimumCollateralizationRatio);
     }
@@ -1278,18 +1280,18 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     /**
      * @notice Get the minimum collateral value required to keep a individual debt position healthy.
-     * @param _collateralAsset The address of the Kresko asset.
+     * @param _krAsset The address of the Kresko asset.
      * @param _amount The Kresko Asset debt amount.
      * @return minCollateralValue is the minimum collateral value required for this Kresko Asset amount.
      */
-    function getMinimumCollateralValue(address _collateralAsset, uint256 _amount)
+    function getMinimumCollateralValue(address _krAsset, uint256 _amount)
         public
         view
-        kreskoAssetExistsMaybeNotMintable(_collateralAsset)
+        kreskoAssetExistsMaybeNotMintable(_krAsset)
         returns (FixedPoint.Unsigned memory minCollateralValue)
     {
         // Calculate the Kresko asset's value weighted by its k-factor.
-        FixedPoint.Unsigned memory weightedKreskoAssetValue = getKrAssetValue(_collateralAsset, _amount);
+        FixedPoint.Unsigned memory weightedKreskoAssetValue = getKrAssetValue(_krAsset, _amount);
         // Calculate the minimum collateral required to back this Kresko asset amount.
         return weightedKreskoAssetValue.mul(minimumCollateralizationRatio);
     }
@@ -1374,17 +1376,77 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     /**
-     * @dev Calculates the total value that can be liquidated to regain a healthy position.
-     * @return USD value that can be liquidated, 0 if user is not liquidatable
+     * @dev Calculates the total value that can be liquidated for a liquidation pair
+     * @param _account address to liquidate
+     * @param _repayKreskoAsset address of the kreskoAsset being repaid on behalf of the liquidatee
+     * @param _collateralAssetToSeize address of the collateral asset being seized from the liquidatee
+     * @return maxLiquidatableUSD USD value that can be liquidated, 0 if the pair has no liquidatable value
      */
-    function calculateMaxLiquidatableValueFor(address _account) public view returns (FixedPoint.Unsigned memory) {
-        FixedPoint.Unsigned memory minAccountCollateralValue = getAccountMinimumCollateralValue(_account);
-        FixedPoint.Unsigned memory accountCollateralValue = getAccountCollateralValue(_account);
+    function calculateMaxLiquidatableValueForAssets(
+        address _account,
+        address _repayKreskoAsset,
+        address _collateralAssetToSeize
+    ) public view returns (FixedPoint.Unsigned memory maxLiquidatableUSD) {
+        // Minimum collateral value required for the krAsset position
+        FixedPoint.Unsigned memory minCollateralValue =
+            getMinimumCollateralValue(_repayKreskoAsset, kreskoAssetDebt[_account][_repayKreskoAsset]);
 
-        if (accountCollateralValue.isGreaterThanOrEqual(minAccountCollateralValue)) {
+        // Collateral value for this position
+        (FixedPoint.Unsigned memory collateralValueAvailable, ) =
+            getCollateralValueAndOraclePrice(
+                _collateralAssetToSeize,
+                collateralDeposits[_account][_collateralAssetToSeize],
+                false // take cFactor into consideration
+            );
+        if (collateralValueAvailable.isGreaterThanOrEqual(minCollateralValue)) {
             return FixedPoint.Unsigned(0);
         } else {
-            return minAccountCollateralValue.sub(accountCollateralValue);
+            // Get the factors of the assets
+            FixedPoint.Unsigned memory kFactor = kreskoAssets[_repayKreskoAsset].kFactor;
+            FixedPoint.Unsigned memory cFactor = collateralAssets[_collateralAssetToSeize].factor;
+
+            // Calculate how much value is under
+            FixedPoint.Unsigned memory valueUnderMin = minCollateralValue.sub(collateralValueAvailable);
+
+            // Get the divisor which calculates the max repayment from the underwater value
+            FixedPoint.Unsigned memory repayDivisor =
+                kFactor.mul(minimumCollateralizationRatio).sub(
+                    liquidationIncentiveMultiplier.sub(burnFee).mul(cFactor)
+                );
+
+            // Max repayment value for this pair
+            maxLiquidatableUSD = valueUnderMin.div(repayDivisor);
+
+            // Get the future collateral value that is being used for the liquidation
+            FixedPoint.Unsigned memory collateralValueRepaid =
+                maxLiquidatableUSD.div(kFactor.mul(liquidationIncentiveMultiplier.add(burnFee)));
+
+            // If it's more than whats available get the max value from how much value is available instead.
+            if (collateralValueRepaid.isGreaterThan(collateralValueAvailable)) {
+                // Reverse the divisor formula to achieve the max repayment from available collateral.
+                // We end up here if the user has multiple positions with different risk profiles.
+                maxLiquidatableUSD = collateralValueAvailable.div(collateralValueRepaid.div(valueUnderMin));
+            }
+
+            // Cascade the liquidations if user has multiple assets.
+            if (mintedKreskoAssets[_account].length + depositedCollateralAssets[_account].length > 2) {
+                // This is desired because assets with lower cFactor and higher kFactor have a higher solvency margin
+                // than positions with higher cFactor and lower kFactor.
+
+                // The side effect here is lowwer the cFactor, the higher the amount of liquidations needed
+                // to ensure liquidations do not only target the riskiest pairs.
+
+                // Include a burnFee surplus in the liquidation
+                // so the users can repay their debt.
+                return
+                    maxLiquidatableUSD.div(maxLiquidatableUSD.div(collateralValueAvailable.mul(cFactor.pow(4)))).mul(
+                        FixedPoint.Unsigned(ONE_HUNDRED_PERCENT).add(burnFee.mul(1))
+                    );
+            } else {
+                // For an account holding a single market position
+                // the debt is just repaid in full with a single transaction
+                return maxLiquidatableUSD.mul(FixedPoint.Unsigned(ONE_HUNDRED_PERCENT).add(burnFee.mul(1)));
+            }
         }
     }
 }

@@ -48,7 +48,11 @@ interface IKresko {
         bool _ignoreCollateralFactor
     ) external view returns (FixedPoint.Unsigned memory, FixedPoint.Unsigned memory);
 
-    function calculateMaxLiquidatableValueFor(address _account) external view returns (FixedPoint.Unsigned memory);
+    function calculateMaxLiquidatableValueForAssets(
+        address _account,
+        address _repayKreskoAsset,
+        address _collateralAssetToSeize
+    ) external view returns (FixedPoint.Unsigned memory);
 
     function minimumCollateralizationRatio() external view returns (FixedPoint.Unsigned memory);
 
