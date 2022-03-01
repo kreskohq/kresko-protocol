@@ -2,12 +2,36 @@
 import { Fixture } from "ethereum-waffle";
 
 import { Signers } from "./";
-import { Greeter } from "../typechain/Greeter";
+import { BasicOracle, ExampleFlashLiquidator, Kresko, MockWETH10 } from "../typechain";
 
 declare module "mocha" {
-  export interface Context {
-    greeter: Greeter;
-    loadFixture: <T>(fixture: Fixture<T>) => Promise<T>;
-    signers: Signers;
-  }
+    export interface Context {
+        loadFixture: <T>(fixture: Fixture<T>) => Promise<T>;
+        signers: Signers;
+        Kresko: Kresko;
+        getMostProfitableLiquidation: (
+            userAddress: string,
+        ) => Promise<{ maxUSD: number; collateralAsset: string; krAsset: string }>;
+        getUserValues: () => Promise<
+            {
+                actualCollateralUSD: number;
+                actualDebtUSD: number;
+                isUserSolvent: boolean;
+                collateralAmountVolative: number;
+                collateralAmountStable: number;
+                krAssetAmountVolative: number;
+                krAssetAmountStable: number;
+                debtUSDProtocol: number;
+                collateralUSDProtocol: number;
+                minCollateralUSD: number;
+                isLiquidatable: boolean;
+                userAddress: string;
+            }[]
+        >;
+        isProtocolSolvent: () => Promise<Boolean>;
+        FlashLiquidator: ExampleFlashLiquidator;
+        WETH10: MockWETH10;
+        WETH10OraclePrice: number;
+        WETH10Oracle: BasicOracle;
+    }
 }
