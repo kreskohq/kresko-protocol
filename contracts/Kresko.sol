@@ -1451,12 +1451,12 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
                     maxLiquidatableUSD.div(maxLiquidatableUSD.div(collateralValueAvailable.mul(cFactor.pow(4)))).mul(
                         // Include a burnFee surplus in the liquidation
                         // so the users can repay their debt.
-                        FixedPoint.Unsigned(ONE_HUNDRED_PERCENT).add(burnFee.mul(1))
+                        FixedPoint.Unsigned(ONE_HUNDRED_PERCENT).add(burnFee)
                     );
             } else {
                 // For an account holding a single market position
                 // the debt is just repaid in full with a single transaction
-                return maxLiquidatableUSD.mul(FixedPoint.Unsigned(ONE_HUNDRED_PERCENT).add(burnFee.mul(1)));
+                return maxLiquidatableUSD.mul(FixedPoint.Unsigned(ONE_HUNDRED_PERCENT).add(burnFee));
             }
         }
     }
