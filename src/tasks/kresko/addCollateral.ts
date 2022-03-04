@@ -1,5 +1,4 @@
 import { fromFixedPoint, toFixedPoint } from "@utils/fixed-point";
-import { fromBig } from "@utils/numbers";
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
 
@@ -28,7 +27,7 @@ task("kresko:addcollateral")
         const exists = collateralAsset.exists;
 
         if (exists) {
-            console.log("Collateral already exists..");
+            console.log(`Collateral ${name} already exists!`);
         } else {
             const tx = await kresko.addCollateralAsset(Collateral.address, toFixedPoint(cFactor), oracleAddr, !!nrwt);
 

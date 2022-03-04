@@ -23,6 +23,8 @@ import {
     setupTests,
     SYMBOL_ONE,
     SYMBOL_TWO,
+    MARKET_CAP_ONE_MILLION,
+    MARKET_CAP_FIVE_MILLION,
     ZERO_POINT_FIVE,
     formatEther,
     toFixedPoint,
@@ -738,6 +740,7 @@ describe("Kresko", function () {
                                 SYMBOL_TWO,
                                 1,
                                 250,
+                                MARKET_CAP_ONE_MILLION,
                             ); // kFactor = 1, price = $250
 
                             // Mint 100 of the kreskoAsset. This puts the minimum collateral value of userOne as
@@ -1048,6 +1051,7 @@ describe("Kresko", function () {
             symbol: string,
             kFactor: BigNumber,
             oracleAddress: string,
+            marketCapUSDLimit: BigNumber,
         ) {
             const kreskoAssetFactory = await hre.ethers.getContractFactory("KreskoAsset");
             const kreskoAsset = <KreskoAsset>await (
@@ -1059,23 +1063,37 @@ describe("Kresko", function () {
                     },
                 )
             ).deployed();
-            await this.Kresko.addKreskoAsset(kreskoAsset.address, symbol, kFactor, oracleAddress);
+            await this.Kresko.addKreskoAsset(kreskoAsset.address, symbol, kFactor, oracleAddress, marketCapUSDLimit);
             return kreskoAsset;
         }
 
         beforeEach(async function () {
             this.deployAndAddKreskoAsset = deployAndAddKreskoAsset.bind(this);
 
-            const kreskoAssetInfo = await addNewKreskoAssetWithOraclePrice(this.Kresko, NAME_ONE, SYMBOL_ONE, 1, 1);
+            const kreskoAssetInfo = await addNewKreskoAssetWithOraclePrice(
+                this.Kresko,
+                NAME_ONE,
+                SYMBOL_ONE,
+                1,
+                1,
+                MARKET_CAP_ONE_MILLION,
+            );
             this.deployedAssetAddress = kreskoAssetInfo.kreskoAsset.address;
         });
 
         describe("#addKreskoAsset", function () {
             it("should allow owner to add new kresko assets and emit event KreskoAssetAdded", async function () {
-                const deployedKreskoAsset = await this.deployAndAddKreskoAsset(NAME_TWO, SYMBOL_TWO, ONE, ADDRESS_TWO);
+                const deployedKreskoAsset = await this.deployAndAddKreskoAsset(
+                    NAME_TWO,
+                    SYMBOL_TWO,
+                    ONE,
+                    ADDRESS_TWO,
+                    MARKET_CAP_ONE_MILLION,
+                );
                 const kreskoAssetInfo = await this.Kresko.kreskoAssets(deployedKreskoAsset.address);
                 expect(kreskoAssetInfo.kFactor.rawValue).to.equal(ONE.toString());
                 expect(kreskoAssetInfo.oracle).to.equal(ADDRESS_TWO);
+                expect(kreskoAssetInfo.marketCapUSDLimit).to.equal(MARKET_CAP_ONE_MILLION);
             });
 
             it("should not allow adding kresko asset that does not have Kresko as operator", async function () {
@@ -1091,37 +1109,49 @@ describe("Kresko", function () {
                 ).deployed();
 
                 await expect(
-                    this.Kresko.addKreskoAsset(kreskoAsset.address, "TEST2", ONE, ADDRESS_TWO),
+                    this.Kresko.addKreskoAsset(kreskoAsset.address, "TEST2", ONE, ADDRESS_TWO, MARKET_CAP_ONE_MILLION),
                 ).to.be.revertedWith("KR: !assetOperator");
             });
 
             it("should not allow kresko assets that have the same symbol as an existing kresko asset", async function () {
-                await expect(this.Kresko.addKreskoAsset(ADDRESS_ONE, SYMBOL_ONE, ONE, ADDRESS_TWO)).to.be.revertedWith(
-                    "KR: symbolExists",
-                );
+                await expect(
+                    this.Kresko.addKreskoAsset(ADDRESS_ONE, SYMBOL_ONE, ONE, ADDRESS_TWO, MARKET_CAP_ONE_MILLION),
+                ).to.be.revertedWith("KR: symbolExists");
             });
 
             it("should not allow kresko assets with invalid asset symbol", async function () {
-                await expect(this.Kresko.addKreskoAsset(ADDRESS_ONE, "", ONE, ADDRESS_TWO)).to.be.revertedWith(
-                    "KR: !string",
-                );
+                await expect(
+                    this.Kresko.addKreskoAsset(ADDRESS_ONE, "", ONE, ADDRESS_TWO, MARKET_CAP_ONE_MILLION),
+                ).to.be.revertedWith("KR: !string");
             });
 
             it("should not allow kresko assets with an invalid k factor", async function () {
                 await expect(
-                    this.Kresko.addKreskoAsset(ADDRESS_ONE, SYMBOL_TWO, ONE.sub(1), ADDRESS_TWO),
+                    this.Kresko.addKreskoAsset(
+                        ADDRESS_ONE,
+                        SYMBOL_TWO,
+                        ONE.sub(1),
+                        ADDRESS_TWO,
+                        MARKET_CAP_ONE_MILLION,
+                    ),
                 ).to.be.revertedWith("KR: kFactor < 1FP");
             });
 
             it("should not allow kresko assets with an invalid oracle address", async function () {
-                await expect(this.Kresko.addKreskoAsset(ADDRESS_ONE, SYMBOL_TWO, ONE, ADDRESS_ZERO)).to.be.revertedWith(
-                    "KR: !oracleAddr",
-                );
+                await expect(
+                    this.Kresko.addKreskoAsset(ADDRESS_ONE, SYMBOL_TWO, ONE, ADDRESS_ZERO, MARKET_CAP_ONE_MILLION),
+                ).to.be.revertedWith("KR: !oracleAddr");
             });
 
             it("should not allow non-owner to add assets", async function () {
                 await expect(
-                    this.Kresko.connect(this.signers.userOne).addKreskoAsset(ADDRESS_ONE, SYMBOL_TWO, ONE, ADDRESS_TWO),
+                    this.Kresko.connect(this.signers.userOne).addKreskoAsset(
+                        ADDRESS_ONE,
+                        SYMBOL_TWO,
+                        ONE,
+                        ADDRESS_TWO,
+                        MARKET_CAP_ONE_MILLION,
+                    ),
                 ).to.be.revertedWith("Ownable: caller is not the owner");
             });
         });
@@ -1238,14 +1268,46 @@ describe("Kresko", function () {
                 ).to.be.revertedWith("Ownable: caller is not the owner");
             });
         });
+
+        describe("#updateKreskoAssetMarketCapitalizationUSDLimit", function () {
+            it("should allow owner to update market capitalization USD limit", async function () {
+                await this.Kresko.connect(this.signers.admin).updateKreskoAssetMarketCapUSDLimit(
+                    this.deployedAssetAddress,
+                    MARKET_CAP_FIVE_MILLION,
+                );
+
+                const asset = await this.Kresko.kreskoAssets(this.deployedAssetAddress);
+                expect(asset.marketCapUSDLimit).to.equal(MARKET_CAP_FIVE_MILLION);
+            });
+
+            it("should emit KreskoAssetMarketCapLimitUpdated event", async function () {
+                const receipt = await this.Kresko.connect(this.signers.admin).updateKreskoAssetMarketCapUSDLimit(
+                    this.deployedAssetAddress,
+                    MARKET_CAP_FIVE_MILLION,
+                );
+
+                const { args } = await extractEventFromTxReceipt(receipt, "KreskoAssetMarketCapLimitUpdated");
+                expect(args.kreskoAsset).to.equal(this.deployedAssetAddress);
+                expect(args.limit).to.equal(MARKET_CAP_FIVE_MILLION);
+            });
+
+            it("should not allow non-owner to update kresko asset's market capitalization USD limit", async function () {
+                await expect(
+                    this.Kresko.connect(this.signers.userOne).updateKreskoAssetMarketCapUSDLimit(
+                        this.deployedAssetAddress,
+                        MARKET_CAP_FIVE_MILLION,
+                    ),
+                ).to.be.revertedWith("Ownable: caller is not the owner");
+            });
+        });
     });
 
     describe("Kresko asset minting and burning", function () {
         beforeEach(async function () {
             // Deploy Kresko assets, adding them to the whitelist
             this.kreskoAssetInfos = await Promise.all([
-                addNewKreskoAssetWithOraclePrice(this.Kresko, NAME_ONE, SYMBOL_ONE, 1, 5), // kFactor = 1, price = $5.00
-                addNewKreskoAssetWithOraclePrice(this.Kresko, NAME_TWO, SYMBOL_TWO, 1.1, 500), // kFactor = 1.1, price = $500
+                addNewKreskoAssetWithOraclePrice(this.Kresko, NAME_ONE, SYMBOL_ONE, 1, 5, MARKET_CAP_ONE_MILLION), // kFactor = 1, price = $5.00
+                addNewKreskoAssetWithOraclePrice(this.Kresko, NAME_TWO, SYMBOL_TWO, 1.1, 500, MARKET_CAP_ONE_MILLION), // kFactor = 1.1, price = $500
             ]);
 
             // Deploy and whitelist collateral assets
@@ -1619,6 +1681,33 @@ describe("Kresko", function () {
                         mintAmount,
                     ),
                 ).to.be.revertedWith("KR: insufficientCollateral");
+            });
+
+            it("should not allow the minting of a Kresko assets over its maximum market capitalization USD limit", async function () {
+                // Load userTwo's account with 10 million collateral tokens
+                const initialUserCollateralBalance = parseEther("10000000");
+                await this.collateralAssetInfo.collateralAsset.setBalanceOf(
+                    this.signers.userTwo.address,
+                    initialUserCollateralBalance,
+                );
+
+                // userTwo deposits 1,000,000 of the collateral asset.
+                // This gives an account collateral value of:
+                // 1,000,000 * 0.8 * $123.45 = $98,760,000
+                const collateralDepositAmount = parseEther("1000000");
+                await this.Kresko.connect(this.signers.userTwo).depositCollateral(
+                    this.collateralAssetInfo.collateralAsset.address,
+                    collateralDepositAmount,
+                );
+
+                // Limit = $1 million USD. At $5 each, 200,000 of this synthetic can be minted
+                const mintAmount = parseEther("200001");
+                await expect(
+                    this.Kresko.connect(this.signers.userTwo).mintKreskoAsset(
+                        this.kreskoAssetInfos[0].kreskoAsset.address,
+                        mintAmount,
+                    ),
+                ).to.be.revertedWith("KR: MC limit");
             });
         });
 
@@ -2353,7 +2442,7 @@ describe("Kresko", function () {
         beforeEach(async function () {
             // Deploy Kresko assets, adding them to the whitelist
             this.kreskoAssetInfo = await Promise.all([
-                addNewKreskoAssetWithOraclePrice(this.Kresko, NAME_ONE, SYMBOL_ONE, 1, 10), // kFactor = 1, price = $10.00
+                addNewKreskoAssetWithOraclePrice(this.Kresko, NAME_ONE, SYMBOL_ONE, 1, 10, MARKET_CAP_ONE_MILLION), // kFactor = 1, price = $10.00
             ]);
 
             // Deploy and whitelist collateral assets
