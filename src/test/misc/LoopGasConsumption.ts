@@ -1,6 +1,7 @@
 import hre from "hardhat";
 import {
     addNewKreskoAssetWithOraclePrice,
+    MARKET_CAP_ONE_MILLION,
     BURN_FEE,
     CLOSE_FACTOR,
     deployAndWhitelistCollateralAsset,
@@ -109,7 +110,7 @@ describe.skip(`loops and gas consumption - gasLimit: ${gasLimit}`, function () {
         for (round; round < targetRound; round++) {
             const [{ collateralAsset }, kreskoAssetInfo] = await Promise.all([
                 deployAndWhitelistCollateralAsset(this.kresko, 0.7, 420.123, 12),
-                addNewKreskoAssetWithOraclePrice(this.kresko, "krAsset", round.toString(), 1, 250),
+                addNewKreskoAssetWithOraclePrice(this.kresko, "krAsset", round.toString(), 1, 250, MARKET_CAP_ONE_MILLION),
             ]);
 
             await collateralAsset.setBalanceOf(this.signers.userOne.address, depositValue);
