@@ -8,13 +8,12 @@ import { fromBig, toBig } from "@utils/numbers";
 declare module "mocha" {
     export interface Context {
         loadFixture: <T>(fixture: Fixture<T>) => Promise<T>;
-        UniFactory: UniswapV2Factory;
-        UniRouter: UniswapV2Router02;
         signers: {
             admin: SignerWithAddress;
             operator?: SignerWithAddress;
             userOne: SignerWithAddress;
             userTwo: SignerWithAddress;
+            userThree?: SignerWithAddress;
             nonadmin?: SignerWithAddress;
         };
         admin: string;
@@ -22,12 +21,10 @@ declare module "mocha" {
         userTwo: string;
         treasury: string;
         pricefeed: FluxPriceFeed;
-        Zapper: KreskoZapperUniswap;
         Kresko: Kresko;
         TKN1: Token;
         TKN2: Token;
-        lpPair: UniswapV2Pair;
-        Staking: Staking;
+        krTSLA: KreskoAsset;
     }
 }
 export {};

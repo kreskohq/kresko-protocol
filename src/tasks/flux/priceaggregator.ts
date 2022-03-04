@@ -1,7 +1,7 @@
 import { task } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
 
-task("deploy:FluxPriceAggregator")
+task("deployone:fluxpriceaggregator")
     .addParam("oracles", "Initial oracle addresses, separated by a single comma")
     .addParam("decimals", "The number of decimals in the value posted")
     .addParam("description", "The description of the contract")

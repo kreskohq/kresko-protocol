@@ -2,23 +2,24 @@ import { task } from "hardhat/config";
 import { formatUnits, toBig } from "@utils/numbers";
 import { toFixedPoint } from "@utils/fixed-point";
 
-task("gastest", "Creates collaterals and krAssets, deposits and mints them", async (params, hre) => {
-    const { admin, userOne } = await hre.getNamedAccounts();
+task("gastestaurora", "Creates collaterals and krAssets, deposits and mints them and repays", async (params, hre) => {
+    const { admin } = await hre.getNamedAccounts();
     const { deploy, ethers } = hre;
     const depositAmount = ethers.utils.parseEther("20");
-    const withdrawCollateralAmount = ethers.utils.parseEther("5");
+    const mintAmount = ethers.utils.parseEther("4");
+    const withdrawCollateralAmount = ethers.utils.parseEther("1");
 
     let kresko = await hre.ethers.getContract<Kresko>("Kresko");
 
-    const wait = 3;
-    for (let i = 100; i < 125; i++) {
+    const wait = 4;
+    for (let i = 0; i < 71; i++) {
         console.log("Deploying token", "Symbol:", "Mocking" + i.toString() + "A");
         const [Token] = await deploy<Token>("Token" + i.toString() + "A", {
             contract: "Token",
             waitConfirmations: wait,
-            from: userOne,
+            from: admin,
             log: true,
-            args: ["MockToken" + i.toString(), "Mocking" + i.toString() + "A", toBig("100")],
+            args: ["MockToken" + i.toString(), "Mocking" + i.toString() + "A", toBig("1000000000")],
         });
         console.log("Approving token");
         let tx = await Token.approve(kresko.address, hre.ethers.constants.MaxUint256);
@@ -28,7 +29,7 @@ task("gastest", "Creates collaterals and krAssets, deposits and mints them", asy
         tx = await kresko.addCollateralAsset(
             Token.address,
             toFixedPoint(1),
-            "0x2Aa59626B22C4Fbe94edC1A36EA33b7AE7837035",
+            "0x276fc8818D229Aa557dDB05219973d80445eFdd8",
             false,
         );
         await tx.wait(wait);
@@ -43,11 +44,16 @@ task("gastest", "Creates collaterals and krAssets, deposits and mints them", asy
             waitConfirmations: wait,
             contract: "KreskoAsset",
             proxy: {
-                owner: admin,
-                proxyContract: "OptimizedTransparentProxy",
                 execute: {
-                    methodName: "initialize",
-                    args: ["MockAsset" + i.toString() + "A", "MockAsset" + i.toString() + "A", admin, kresko.address],
+                    init: {
+                        methodName: "initialize",
+                        args: [
+                            "MockAsset" + i.toString() + "A",
+                            "MockAsset" + i.toString() + "A",
+                            admin,
+                            kresko.address,
+                        ],
+                    },
                 },
             },
         });
@@ -57,12 +63,12 @@ task("gastest", "Creates collaterals and krAssets, deposits and mints them", asy
             KrAsset.address,
             "MockAsset" + i.toString() + "A",
             toFixedPoint(1),
-            "0x2Aa59626B22C4Fbe94edC1A36EA33b7AE7837035",
+            "0x276fc8818D229Aa557dDB05219973d80445eFdd8",
         );
         await tx.wait(wait);
 
         console.log("Minting kreskoAsset");
-        tx = await kresko.mintKreskoAsset(admin, KrAsset.address, depositAmount);
+        tx = await kresko.mintKreskoAsset(admin, KrAsset.address, mintAmount);
         const mintReceipt = await tx.wait(wait);
         const gasUsedForMint = Number(formatUnits(mintReceipt.gasUsed, "wei"));
 

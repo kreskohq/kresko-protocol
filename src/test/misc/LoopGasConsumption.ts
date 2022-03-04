@@ -71,9 +71,14 @@ describe.skip(`loops and gas consumption - gasLimit: ${gasLimit}`, function () {
             const { collateralAsset } = await deployAndWhitelistCollateralAsset(this.kresko, 0.7, 420.123, 12);
 
             await collateralAsset.setBalanceOf(this.signers.userOne.address, depositValue);
-            await userOneKresko.depositCollateral(collateralAsset.address, depositValue);
+            await userOneKresko.depositCollateral(this.signers.userOne.address, collateralAsset.address, depositValue);
 
-            const withdrawTx = await userOneKresko.withdrawCollateral(collateralAsset.address, withdrawValue, round);
+            const withdrawTx = await userOneKresko.withdrawCollateral(
+                this.signers.userOne.address,
+                collateralAsset.address,
+                withdrawValue,
+                round,
+            );
             const withdrawReceipt = await withdrawTx.wait();
             const gasUsedByWithdraw = Number(formatUnits(withdrawReceipt.gasUsed, "wei"));
             expect(gasUsedByWithdraw).to.be.lessThan(gasLimit);
@@ -109,16 +114,29 @@ describe.skip(`loops and gas consumption - gasLimit: ${gasLimit}`, function () {
             ]);
 
             await collateralAsset.setBalanceOf(this.signers.userOne.address, depositValue);
-            const depositTx = await userOneKresko.depositCollateral(collateralAsset.address, depositValue);
+            const depositTx = await userOneKresko.depositCollateral(
+                this.signers.userOne.address,
+                collateralAsset.address,
+                depositValue,
+            );
             const depositReceipt = await depositTx.wait();
             const gasUsedByDeposit = Number(formatUnits(depositReceipt.gasUsed, "wei"));
 
-            const mintKrAssetTx = await userOneKresko.mintKreskoAsset(kreskoAssetInfo.kreskoAsset.address, 100);
+            const mintKrAssetTx = await userOneKresko.mintKreskoAsset(
+                this.signers.userOne.address,
+                kreskoAssetInfo.kreskoAsset.address,
+                100,
+            );
             const mintReceipt = await mintKrAssetTx.wait();
             const gasUsedByMintKreskoAsset = Number(formatUnits(mintReceipt.gasUsed, "wei"));
             expect(gasUsedByMintKreskoAsset).to.be.lessThan(gasLimit);
 
-            const withdrawTx = await userOneKresko.withdrawCollateral(collateralAsset.address, withdrawValue, round);
+            const withdrawTx = await userOneKresko.withdrawCollateral(
+                this.signers.userOne.address,
+                collateralAsset.address,
+                withdrawValue,
+                round,
+            );
             const withdrawReceipt = await withdrawTx.wait();
             const gasUsedByWithdraw = Number(formatUnits(withdrawReceipt.gasUsed, "wei"));
             expect(gasUsedByWithdraw).to.be.lessThan(gasLimit);
@@ -165,9 +183,14 @@ describe.skip(`loops and gas consumption - gasLimit: ${gasLimit}`, function () {
 
             await collateralAsset.setBalanceOf(this.signers.userOne.address, depositValue);
             await collateralAsset.setBalanceOf(this.signers.userTwo.address, depositValue);
-            await userOneKresko.depositCollateral(collateralAsset.address, depositValue);
+            await userOneKresko.depositCollateral(this.signers.userOne.address, collateralAsset.address, depositValue);
 
-            const withdrawTx = await userOneKresko.withdrawCollateral(collateralAsset.address, withdrawValue, round);
+            const withdrawTx = await userOneKresko.withdrawCollateral(
+                this.signers.userOne.address,
+                collateralAsset.address,
+                withdrawValue,
+                round,
+            );
             const withdrawReceipt = await withdrawTx.wait();
             const gasUsedByWithdraw = Number(formatUnits(withdrawReceipt.gasUsed, "wei"));
             expect(gasUsedByWithdraw).to.be.lessThan(gasLimit);
@@ -187,8 +210,17 @@ describe.skip(`loops and gas consumption - gasLimit: ${gasLimit}`, function () {
 
         // user two
         for (round; round < targetRound; round++) {
-            await userTwoKresko.depositCollateral(collateralDeposits[round], depositValue);
-            const withdrawTx = await userTwoKresko.withdrawCollateral(collateralDeposits[round], withdrawValue, round);
+            await userTwoKresko.depositCollateral(
+                this.signers.userTwo.address,
+                collateralDeposits[round],
+                depositValue,
+            );
+            const withdrawTx = await userTwoKresko.withdrawCollateral(
+                this.signers.userTwo.address,
+                collateralDeposits[round],
+                withdrawValue,
+                round,
+            );
             const withdrawReceipt = await withdrawTx.wait();
             const gasUsedByWithdraw = Number(formatUnits(withdrawReceipt.gasUsed, "wei"));
             expect(gasUsedByWithdraw).to.be.lessThan(gasLimit);
@@ -218,10 +250,19 @@ describe.skip(`loops and gas consumption - gasLimit: ${gasLimit}`, function () {
 
             const tx = await collateralAsset.setBalanceOf(this.signers.userOne.address, depositValue);
             await tx.wait();
-            const depositTx = await userOneKresko.depositCollateral(collateralAsset.address, depositValue);
+            const depositTx = await userOneKresko.depositCollateral(
+                this.signers.userOne.address,
+                collateralAsset.address,
+                depositValue,
+            );
             await depositTx.wait();
 
-            const withdrawTx = await userOneKresko.withdrawCollateral(collateralAsset.address, depositValue, 0);
+            const withdrawTx = await userOneKresko.withdrawCollateral(
+                this.signers.userOne.address,
+                collateralAsset.address,
+                depositValue,
+                0,
+            );
             const withdrawReceipt = await withdrawTx.wait();
             const gasUsedByWithdraw = Number(formatUnits(withdrawReceipt.gasUsed, "wei"));
             if (lastTxCost) {

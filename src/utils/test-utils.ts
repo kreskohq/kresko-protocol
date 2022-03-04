@@ -55,7 +55,7 @@ export function expectBigNumberToBeWithinTolerance(
 export const setupTests = deployments.createFixture(async ({ deployments, ethers, deploy }) => {
     const deploymentTag = "kresko-sol";
     await deployments.fixture(deploymentTag); // ensure you start from fresh deployments
-    const { admin, userOne, userTwo, nonadmin, operator } = await ethers.getNamedSigners();
+    const { admin, userOne, userTwo, userThree, nonadmin, operator } = await ethers.getNamedSigners();
     const constructor = constructors.Kresko();
 
     const [kresko] = await deploy<Kresko>("Kresko", {
@@ -76,54 +76,12 @@ export const setupTests = deployments.createFixture(async ({ deployments, ethers
             admin,
             userOne,
             userTwo,
+            userThree,
             nonadmin,
             operator,
         },
     };
 });
-
-export const setupTestsStaking = (
-    stakingTokenAddr: string,
-    uniFactoryAddr: string,
-    uniRouterAddr: string,
-    wethAddr: string,
-) =>
-    deployments.createFixture(async ({ deployments, deploy }) => {
-        await deployments.fixture("staking-zap");
-        const { admin } = await getNamedAccounts();
-        const [LibStaking] = await deploy("LibStaking");
-
-        const [RewardTKN1] = await deploySimpleToken("RewardTKN1", 0);
-        const [RewardTKN2] = await deploySimpleToken("RewardTKN2", 0);
-
-        const [Staking] = await deploy<Staking>("Staking", {
-            from: admin,
-            log: false,
-            libraries: {
-                LibStaking: LibStaking.address,
-            },
-            proxy: {
-                owner: admin,
-                proxyContract: "OptimizedTransparentProxy",
-                execute: {
-                    methodName: "initialize",
-                    args: [[RewardTKN1.address, RewardTKN2.address], [toBig(0.1), toBig(0.2)], stakingTokenAddr, 1000],
-                },
-            },
-        });
-
-        const [Zapper] = await hre.deploy<KreskoZapperUniswap>("KreskoZapperUniswap", {
-            from: admin,
-            args: [uniFactoryAddr, uniRouterAddr, wethAddr, Staking.address],
-        });
-
-        return {
-            Zapper,
-            Staking,
-            RewardTKN1,
-            RewardTKN2,
-        };
-    });
 
 export async function deployAndWhitelistCollateralAsset(
     kresko: Contract,
@@ -252,30 +210,24 @@ export async function deploySimpleToken(name: string, amountToDeployer: number, 
     return token;
 }
 
-export const deployUniswap = deployments.createFixture(async ({ deployments, deploy }) => {
-    await deployments.fixture("test"); // ensure you start from a fresh deployments
-    const { getNamedAccounts } = hre;
-    const { admin, treasury } = await getNamedAccounts();
-
-    const [UniFactory] = await deploy<UniswapV2Factory>("UniswapV2Factory", {
-        from: admin,
-        args: [admin],
+export async function deployOracle(description: string, oraclePrice: number, params?: DeployOptions) {
+    const Oracle: FluxPriceFeed = await hre.run("deploy:FluxPriceFeed", {
+        decimals: 8,
+        description,
     });
 
-    await UniFactory.setFeeTo(treasury);
+    await Oracle.transmit(toFixedPoint(oraclePrice));
 
-    const [WETH] = await deploy<WETH9>("WETH9", {
+    return Oracle;
+}
+
+export async function deployKreskoAsset(name: string, amountToDeployer: number, params?: DeployOptions) {
+    const { admin } = await hre.getNamedAccounts();
+
+    const token = await hre.deploy<Token>("Token", {
         from: admin,
+        args: [name, name, toBig(amountToDeployer)],
     });
 
-    const [UniRouter] = await deploy<UniswapV2Router02>("UniswapV2Router02", {
-        from: admin,
-        args: [UniFactory.address, WETH.address],
-    });
-
-    return {
-        UniFactory,
-        UniRouter,
-        WETH,
-    };
-});
+    return token;
+}

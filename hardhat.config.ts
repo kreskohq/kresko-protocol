@@ -1,7 +1,6 @@
 // Deployment
 import "tsconfig-paths/register";
 
-import "@nomiclabs/hardhat-web3";
 import "hardhat-deploy";
 
 // HRE extensions
@@ -14,6 +13,7 @@ import "@openzeppelin/hardhat-upgrades";
 import "@typechain/hardhat";
 import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
+
 import "hardhat-gas-reporter";
 import "solidity-coverage";
 
@@ -28,25 +28,21 @@ if (!mnemonic) {
     // Just a random word chosen from the BIP 39 list. Not sensitive.
     mnemonic = "wealth";
 }
-
 // All tasks
 import "@tasks";
-
-// Configurations
+// Get configs
 import { compilers, networks, users } from "@configs";
 
-// Config
-
-export default {
-    defaultNetwork: "hardhat",
+// Set config
+const config = {
     gasReporter: {
         currency: "USD",
         enabled: process.env.REPORT_GAS ? true : false,
-        excludeContracts: [],
         src: "./src/contracts",
     },
     namedAccounts: users,
     networks: networks(mnemonic),
+    defaultNetwork: "hardhat",
     paths: {
         artifacts: "./build/artifacts",
         cache: "./build/cache",
@@ -62,3 +58,5 @@ export default {
         target: "ethers-v5",
     },
 };
+
+export default config;

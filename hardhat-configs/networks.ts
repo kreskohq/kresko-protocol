@@ -37,14 +37,19 @@ export const networks = (mnemonic: string) => ({
         },
         gasPrice: 0,
         chainId: chainIds.aurora,
-        url: "https://mainnet.aurora.dev",
-        tags: ["aurora"],
+        url: `https://mainnet.aurora.dev/${process.env.AURORA_API_KEY}`,
+        deploy: ["./src/deploy/aurora"],
+        live: true,
     },
     auroratest: {
+        accounts: {
+            mnemonic,
+        },
         chainId: chainIds.auroratest,
         gasPrice: 0,
         url: "https://testnet.aurora.dev",
-        tags: ["auroratest"],
+        deploy: ["./src/deploy/auroratest"],
+        live: true,
     },
     arbitrum: {
         accounts: { mnemonic },
@@ -96,9 +101,9 @@ export const networks = (mnemonic: string) => ({
         accounts: {
             mnemonic,
         },
-        saveDeployments: false,
         chainId: chainIds.hardhat,
-        tags: ["test"],
+        saveDeployments: false,
+        deploy: ["./src/deploy/local"],
     },
     localhost: {
         accounts: {
@@ -106,7 +111,7 @@ export const networks = (mnemonic: string) => ({
         },
         saveDeployments: true,
         chainId: chainIds.hardhat,
-        tags: ["test", "local"],
+        deploy: ["./src/deploy/local"],
     },
     ethereum: {
         accounts: { mnemonic },
@@ -118,7 +123,8 @@ export const networks = (mnemonic: string) => ({
         chainId: chainIds.kovan,
         url: `https://eth-kovan.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY_KOVAN}`,
         gasPrice: Number(parseUnits("10", "gwei")),
-        tags: ["kovan"],
+        deploy: ["./src/deploy/kovan"],
+        live: true,
     },
     moonbeam: {
         chainId: chainIds.moonbeam,

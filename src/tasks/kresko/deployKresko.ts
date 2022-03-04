@@ -17,17 +17,29 @@ task("deploy:kresko")
         "Minimum collateralization ratio",
         process.env.MINIMUM_COLLATERALIZATION_RATIO,
     )
+    .addOptionalParam("wait", "wait confirmations", 1, types.int)
+    .addOptionalParam("log", "Log outputs", false, types.boolean)
     .addOptionalParam("minDebtValue", "Minimum debt value", process.env.MINIMUM_DEBT_VALUE)
     .setAction(async function (taskArgs: TaskArguments, hre) {
         const { getNamedAccounts, ethers, deployments } = hre;
         const { admin } = await getNamedAccounts();
         const deploy = deployWithSignatures(hre);
         const { formatEther } = ethers.utils;
-        const { burnFee, closeFactor, feeRecipient, liquidationIncentiveMultiplier, minCollaterRatio, minDebtValue } = taskArgs;
+        const {
+            burnFee,
+            closeFactor,
+            feeRecipient,
+            liquidationIncentiveMultiplier,
+            minCollaterRatio,
+            minDebtValue,
+            wait,
+            log,
+        } = taskArgs;
 
         const [Kresko, , deployment] = await deploy<Kresko>("Kresko", {
             from: admin,
-            log: true,
+            waitConfirmations: wait,
+            log,
             proxy: {
                 proxyContract: "OptimizedTransparentProxy",
                 execute: {
@@ -44,25 +56,26 @@ task("deploy:kresko")
             },
         });
 
-        const ProxyAdmin = await deployments.get("DefaultProxyAdmin");
-
-        const initValuesOnChain: KreskoConstructor = {
-            burnFee: formatEther(await Kresko.burnFee()),
-            liquidationIncentive: formatEther(await Kresko.liquidationIncentiveMultiplier()),
-            feeRecipient: await Kresko.feeRecipient(),
-            minimumCollateralizationRatio: formatEther(await Kresko.minimumCollateralizationRatio()),
-            closeFactor: formatEther(await Kresko.closeFactor()),
-            minimumDebtValue: formatEther(await Kresko.minimumDebtValue()),
-        };
-        const contracts = {
-            ProxyAdmin: ProxyAdmin.address,
-            "Kresko (Proxy)": Kresko.address,
-            "Kresko Implementation": deployment.implementation,
-            txHash: deployment.transactionHash,
-        };
-        console.table(contracts);
+        if (log) {
+            const ProxyAdmin = await deployments.get("DefaultProxyAdmin");
+            const initValuesOnChain: KreskoConstructor = {
+                burnFee: formatEther(await Kresko.burnFee()),
+                liquidationIncentive: formatEther(await Kresko.liquidationIncentiveMultiplier()),
+                feeRecipient: await Kresko.feeRecipient(),
+                minimumCollateralizationRatio: formatEther(await Kresko.minimumCollateralizationRatio()),
+                closeFactor: formatEther(await Kresko.closeFactor()),
+                minimumDebtValue: formatEther(await Kresko.minimumDebtValue()),
+            };
+            const contracts = {
+                ProxyAdmin: ProxyAdmin.address,
+                "Kresko (Proxy)": Kresko.address,
+                "Kresko Implementation": deployment.implementation,
+                txHash: deployment.transactionHash,
+            };
+            console.table(contracts);
+            console.table(initValuesOnChain);
+        }
 
         hre.kresko = Kresko;
-
-        console.table(initValuesOnChain);
+        return Kresko;
     });

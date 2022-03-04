@@ -20,7 +20,6 @@
         "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@^0.3.0-beta.13",
         "@nomiclabs/hardhat-etherscan": "^2.1.8",
         "@nomiclabs/hardhat-waffle": "^2.0.1",
-        "@nomiclabs/hardhat-web3": "^2.0.0",
         "@openzeppelin/contracts": "^4.2.0",
         "@openzeppelin/contracts-upgradeable": "^4.3.2",
         "@openzeppelin/hardhat-upgrades": "^1.10.0",
@@ -64,7 +63,6 @@
         "tsconfig-paths": "^3.12.0",
         "typechain": "latest",
         "typescript": "^4.4.4",
-        "web3": "^1.7.0",
         "yarn-upgrade-all": "^0.5.4"
     },
     "keywords": [
@@ -85,16 +83,16 @@
         "recompile": "hardhat clean && hardhat compile",
         "compile": "hardhat compile",
         "coverage": "hardhat coverage --solcoverjs ./.solcover.js --temp artifacts --testfiles \"./test/**/*.ts\"",
-        "dev": "hardhat node --tags local",
-        "deploy": "hardhat deploy --tags local",
-        "deploy:kovan": "hardhat deploy --tags kovan",
-        "deploy:auroratest": "hardhat deploy --tags auroratest",
-        "deploy:aurora": "hardhat deploy --tags aurora",
+        "dev": "hardhat node",
+        "deploy": "hardhat deploy",
+        "deploy:kovan": "hardhat deploy --network kovan",
+        "deploy:auroratest": "hardhat deploy --network auroratest",
+        "deploy:aurora": "hardhat deploy --network aurora",
         "deployone:kresko": "hardhat deploy:kresko",
         "deployone:krasset": "hardhat deploy:kresko",
-        "deployone:fluxpricefeed": "hardhat deploy:FluxPriceFeed",
-        "deployone:fluxaggregator": "hardhat deploy:FluxPriceAggregator",
-        "deployone:fluxregistry": "hardhat deploy:FeedsRegistry",
+        "deployone:fluxpricefeed": "hardhat deployone:fluxpricefeed",
+        "deployone:fluxaggregator": "hardhat deployone:fluxpriceaggregator",
+        "deployone:fluxregistry": "hardhat deployone:feedsregistry",
         "upgrade:kresko": "hardhat upgrade:kresko",
         "upgrade:krasset": "hardhat upgrade:krasset",
         "kresko:addkrasset": "hardhat kresko:addkrasset",
@@ -107,7 +105,7 @@
         "prettier:check": "prettier --check --config ./.prettierrc \"**/*.{js,json,md,sol,ts}\"",
         "test": "hardhat test",
         "typechain": "hardhat typechain",
-        "publish:contracts": "hardhat export --export-all packages/contracts/deployments/deployments.json && cp -R types/contracts packages/contracts && cd packages/contracts && npm run build && npm publish"
+        "publish:contracts": "hardhat export --export-all packages/contracts/deployments/deployments.json && cp -a types/contracts packages/contracts/types && cd packages/contracts && npm run build && npm publish"
     },
     "workspaces": [
         "packages/contracts"

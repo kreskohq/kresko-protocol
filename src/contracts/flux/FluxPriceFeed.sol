@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "./interfaces/AggregatorV2V3Interface.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "./interfaces/AggregatorV2V3Interface.sol";
 
 /**
  * @notice Simple data posting on chain of a scalar value, compatible with Chainlink V2 and V3 aggregator interface
@@ -30,6 +30,7 @@ contract FluxPriceFeed is AccessControl, AggregatorV2V3Interface {
         uint8 _decimals,
         string memory _description
     ) {
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(VALIDATOR_ROLE, _validator);
         decimals = _decimals;
         s_description = _description;
