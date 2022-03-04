@@ -1,10 +1,10 @@
+import { FunctionFragment } from "@ethersproject/abi";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { fromBig, toBig } from "@utils";
 import { Fixture } from "ethereum-waffle";
+import { ABI, DeployOptions } from "hardhat-deploy/types";
 
-import { DeployResult, DeployOptions, ABI } from "hardhat-deploy/types";
-import { FunctionFragment } from "ethers/lib/utils";
-import { fromBig, toBig } from "@utils/numbers";
-import { KrStaking, UniswapV2Pair } from "./contracts";
+import { FluxPriceFeed, ExampleFlashLiquidator, Kresko, MockWETH10, KrStaking, UniswapV2Pair } from "types";
 
 declare module "mocha" {
     export interface Context {
@@ -23,10 +23,34 @@ declare module "mocha" {
         userTwo: string;
         treasury: string;
         pricefeed: FluxPriceFeed;
-        Kresko: Kresko;
         TKN1: Token;
         TKN2: Token;
         krTSLA: KreskoAsset;
+        Kresko: Kresko;
+        getMostProfitableLiquidation: (
+            userAddress: string,
+        ) => Promise<{ maxUSD: number; collateralAsset: string; krAsset: string }>;
+        getUserValues: () => Promise<
+            {
+                actualCollateralUSD: number;
+                actualDebtUSD: number;
+                isUserSolvent: boolean;
+                collateralAmountVolative: number;
+                collateralAmountStable: number;
+                krAssetAmountVolative: number;
+                krAssetAmountStable: number;
+                debtUSDProtocol: number;
+                collateralUSDProtocol: number;
+                minCollateralUSD: number;
+                isLiquidatable: boolean;
+                userAddress: string;
+            }[]
+        >;
+        isProtocolSolvent: () => Promise<boolean>;
+        FlashLiquidator: ExampleFlashLiquidator;
+        WETH10: MockWETH10;
+        WETH10OraclePrice: number;
+        WETH10Oracle: FluxPriceFeed;
     }
 }
 export {};
