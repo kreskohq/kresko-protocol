@@ -4,7 +4,7 @@ import { Fixture } from "ethereum-waffle";
 import { DeployResult, DeployOptions, ABI } from "hardhat-deploy/types";
 import { FunctionFragment } from "ethers/lib/utils";
 import { fromBig, toBig } from "@utils/numbers";
-import { UniswapV2Pair } from "./contracts";
+import { KrStaking, UniswapV2Pair } from "./contracts";
 
 declare module "mocha" {
     export interface Context {
@@ -19,6 +19,7 @@ declare module "mocha" {
         };
         admin: string;
         userOne: string;
+        KrStaking: KrStaking;
         userTwo: string;
         treasury: string;
         pricefeed: FluxPriceFeed;

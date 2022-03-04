@@ -62,5 +62,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     console.log("Minting done");
 };
-func.tags = ["local", "mint", "mint-test"];
+
 export default func;
+
+func.tags = ["local", "mint", "mint-test"];

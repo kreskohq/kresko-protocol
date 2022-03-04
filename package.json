@@ -20,6 +20,7 @@
         "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@^0.3.0-beta.13",
         "@nomiclabs/hardhat-etherscan": "^2.1.8",
         "@nomiclabs/hardhat-waffle": "^2.0.1",
+        "@nomiclabs/hardhat-web3": "^2.0.0",
         "@openzeppelin/contracts": "^4.2.0",
         "@openzeppelin/contracts-upgradeable": "^4.3.2",
         "@openzeppelin/hardhat-upgrades": "^1.10.0",
@@ -63,6 +64,7 @@
         "tsconfig-paths": "^3.12.0",
         "typechain": "latest",
         "typescript": "^4.4.4",
+        "web3": "^1.7.0",
         "yarn-upgrade-all": "^0.5.4"
     },
     "keywords": [
