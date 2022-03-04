@@ -595,10 +595,9 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         require(_amount > 0, "KR: 0-mint");
 
         // Enforce synthetic asset's maximum market capitalization limit
-         require(
-            getKrAssetValue(
-                _kreskoAsset, IKreskoAsset(_kreskoAsset).totalSupply() + _amount, true
-            ).rawValue <= kreskoAssets[_kreskoAsset].marketCapUSDLimit,
+        require(
+            getKrAssetValue(_kreskoAsset, IKreskoAsset(_kreskoAsset).totalSupply() + _amount, true).rawValue <=
+                kreskoAssets[_kreskoAsset].marketCapUSDLimit,
             "KR: MC limit"
         );
 
@@ -954,6 +953,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         kreskoAssets[_kreskoAsset].marketCapUSDLimit = _marketCapUSDLimit;
         emit KreskoAssetMarketCapLimitUpdated(_kreskoAsset, _marketCapUSDLimit);
     }
+
     /* ===== Configurable parameters ===== */
     /**
      * @notice Toggles a trusted contract to perform actions on behalf of user (eg. Kresko Zapper).

@@ -50,7 +50,7 @@ task("deploy:kresko")
                         feeRecipient,
                         toFixedPoint(liquidationIncentiveMultiplier),
                         toFixedPoint(minCollaterRatio),
-                        toFixedPoint(minDebtValue),
+                        toFixedPoint(minDebtValue, 8),
                     ],
                 },
             },

@@ -1,5 +1,4 @@
-import { toFixedPoint } from "@utils/fixed-point";
-import { fromBig } from "@utils/numbers";
+import { fromFixedPoint, toFixedPoint } from "@utils/fixed-point";
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
 
@@ -22,7 +21,7 @@ task("kresko:addcollateral")
 
         const Collateral = await ethers.getContract<Token>(name);
 
-        log && console.log("Dollar address", Collateral.address);
+        log && console.log("Collateral address", Collateral.address);
 
         const collateralAsset = await kresko.collateralAssets(Collateral.address);
         const exists = collateralAsset.exists;
@@ -44,8 +43,8 @@ task("kresko:addcollateral")
                 );
 
                 console.log(`Added ${name} as collateral with a cFctor of:`, cFactor);
-                console.log(`1 ${name} has value: ${fromBig(value.toString())}`);
-                console.log(`1 ${name} has price of: $ ${fromBig(value.toString())}`);
+                console.log(`1 ${name} has value: ${fromFixedPoint(value.toString())}`);
+                console.log(`1 ${name} has oracle price of: ${fromFixedPoint(oraclePrice.toString())}`);
                 console.log("txHash", tx.hash);
             }
         }

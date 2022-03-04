@@ -14,6 +14,7 @@ extendEnvironment(async function (hre) {
     hre.priceFeeds = {};
     hre.priceFeedsRegistry;
     hre.priceAggregators = {};
+    hre.uniPairs = {};
     hre.constructors = constructors;
     hre.getSignatures = abi => new hre.utils.Interface(abi).fragments.map(hre.utils.Interface.getSighash);
 });

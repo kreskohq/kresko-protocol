@@ -14,8 +14,9 @@ export function toFixedPoint(num: any, scalingFactorDecimals = FIXED_POINT_SCALI
         .div(1000);
 }
 
-export function fromFixedPoint(fixedPoint: any) {
-    return BigNumber.from(fixedPoint).div(FIXED_POINT_SCALING_FACTOR);
+export function fromFixedPoint(fixedPoint: any, scalingFactorDecimals = FIXED_POINT_SCALING_FACTOR_DECIMALS) {
+    const scalingFactor = BigNumber.from(10).pow(scalingFactorDecimals);
+    return BigNumber.from(fixedPoint).div(scalingFactor);
 }
 
 // Multiplies two fixed point numbers together
