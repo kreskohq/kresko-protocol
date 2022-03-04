@@ -1,4 +1,4 @@
-import hre, { ethers } from "hardhat";
+import hre from "hardhat";
 import { expect } from "chai";
 import {
     addNewKreskoAssetWithOraclePrice,
@@ -17,7 +17,7 @@ import {
 import { time } from "@openzeppelin/test-helpers";
 import { ClaimRewardsEvent, DepositEvent, WithdrawEvent } from "types/contracts/KrStaking";
 
-describe.only("Staking", function () {
+describe("Staking", function () {
     before(async function () {
         const { admin, userOne, userTwo } = await hre.getNamedAccounts();
         this.admin = admin;
@@ -48,7 +48,14 @@ describe.only("Staking", function () {
         await Kresko.depositCollateral(admin, USDC.address, toBig(this.collateralDeposit));
 
         // Create krTSLA with oracle
-        const { kreskoAsset: krTSLA } = await addNewKreskoAssetWithOraclePrice(Kresko, "krTSLA", "krTSLA", 1.2, 902.5);
+        const { kreskoAsset: krTSLA } = await addNewKreskoAssetWithOraclePrice(
+            Kresko,
+            "krTSLA",
+            "krTSLA",
+            1.2,
+            902.5,
+            toBig(10_000_000),
+        );
 
         // Mint 10 krTSLA to admin
         await Kresko.mintKreskoAsset(admin, krTSLA.address, toBig(1000));
@@ -80,11 +87,7 @@ describe.only("Staking", function () {
 
     beforeEach(async function () {
         // Create fresh contracts for each test
-        const { KrStaking, RewardTKN1, RewardTKN2, signers } = await setupTestsStaking(
-            this.lpPair.address,
-            this.UniFactory.address,
-            this.UniRouter.address,
-        )();
+        const { KrStaking, RewardTKN1, RewardTKN2, signers } = await setupTestsStaking(this.lpPair.address)();
 
         this.signers = signers;
         // Setup some state
@@ -167,7 +170,7 @@ describe.only("Staking", function () {
             await this.KrStaking.withdraw(0, 0, true, this.admin);
 
             // Get total blocks spent earning
-            let blocksSpentEarning = (await time.latestBlock()) - startBlock;
+            const blocksSpentEarning = (await time.latestBlock()) - startBlock;
 
             // Get balances of rewards claimed
             reward1Bal = await this.RewardTKN1.balanceOf(this.admin);
@@ -302,7 +305,7 @@ describe.only("Staking", function () {
             const rewardPerBlockTKN2 = await this.KrStaking.rewardPerBlockFor(this.RewardTKN2.address);
 
             // Approve the token usage for Staking contract
-            let lpBalance = await this.lpPair.balanceOf(this.admin);
+            const lpBalance = await this.lpPair.balanceOf(this.admin);
             await this.lpPair.approve(this.KrStaking.address, MaxUint256);
 
             // Deposit the whole balance
@@ -331,8 +334,8 @@ describe.only("Staking", function () {
             await this.KrStaking.withdraw(0, 0, true, this.admin);
 
             // Get reward token balances
-            let rewardTKN1Bal = await this.RewardTKN1.balanceOf(this.admin);
-            let rewardTKN2Bal = await this.RewardTKN2.balanceOf(this.admin);
+            const rewardTKN1Bal = await this.RewardTKN1.balanceOf(this.admin);
+            const rewardTKN2Bal = await this.RewardTKN2.balanceOf(this.admin);
 
             // Get block difference
             let blocksSpentEarning = (await time.latestBlock()) - startBlock;
@@ -434,6 +437,7 @@ describe.only("Staking", function () {
                 factoryAddr: this.UniFactory.address,
                 routerAddr: this.UniRouter.address,
                 log: false,
+                wait: 0,
             });
 
             // Reassign LP balance since we added more
@@ -457,8 +461,8 @@ describe.only("Staking", function () {
             blocksSpentEarning = (await time.latestBlock()) - startBlock;
 
             // Get reward token balances
-            let rewardTKN1Bal = await this.RewardTKN1.balanceOf(this.admin);
-            let rewardTKN2Bal = await this.RewardTKN2.balanceOf(this.admin);
+            const rewardTKN1Bal = await this.RewardTKN1.balanceOf(this.admin);
+            const rewardTKN2Bal = await this.RewardTKN2.balanceOf(this.admin);
 
             // Ensure they match the time spent earning
             expect(rewardTKN1Bal).to.be.closeTo(rewardPerBlockTKN1.mul(blocksSpentEarning), 1e12);

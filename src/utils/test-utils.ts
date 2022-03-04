@@ -1,6 +1,6 @@
 /* tslint:disable */
 
-import hre, { waffle, deployments, getNamedAccounts } from "hardhat";
+import hre, { waffle, deployments } from "hardhat";
 import { BigNumber, Contract, Signer } from "ethers";
 import { toFixedPoint } from "../utils/fixed-point";
 import { expect } from "chai";
@@ -8,7 +8,7 @@ import { Artifact } from "hardhat/types";
 import { constructors } from "../utils/constuctors";
 import { DeployOptions } from "hardhat-deploy/types";
 import { toBig } from "./numbers";
-import { UniswapV2Factory, UniswapV2Router02 } from "types";
+import { ExampleFlashLiquidator, MockWETH10, UniswapV2Factory, UniswapV2Router02 } from "types";
 
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 export const ADDRESS_ONE = "0x0000000000000000000000000000000000000001";
@@ -83,6 +83,38 @@ export const setupTests = deployments.createFixture(async ({ deployments, ethers
         },
     };
 });
+
+export async function deployWETH10AsCollateralWithLiquidator(
+    Kresko: Kresko,
+    signer: SignerWithAddress,
+    factor: number,
+    oraclePrice: number,
+) {
+    const oracleArtifact: Artifact = await hre.artifacts.readArtifact("FluxPriceFeed");
+    const oracle = <FluxPriceFeed>await deployContract(signer, oracleArtifact, [signer.address, 18, "ETH/USD"]);
+    const fixedPointOraclePrice = toFixedPoint(oraclePrice);
+    await oracle.transmit(fixedPointOraclePrice);
+
+    const WETH10Artifact: Artifact = await hre.artifacts.readArtifact("MockWETH10");
+    const WETH10 = <MockWETH10>await deployContract(signer, WETH10Artifact);
+
+    const FlashLiquidatorArtifact: Artifact = await hre.artifacts.readArtifact("ExampleFlashLiquidator");
+
+    const FlashLiquidator = <ExampleFlashLiquidator>(
+        await deployContract(signer, FlashLiquidatorArtifact, [WETH10.address, Kresko.address])
+    );
+
+    const fixedPointFactor = toFixedPoint(factor);
+
+    await Kresko.addCollateralAsset(WETH10.address, fixedPointFactor, oracle.address, false);
+
+    return {
+        WETH10,
+        oracle,
+        factor: fixedPointFactor,
+        FlashLiquidator,
+    };
+}
 
 export async function deployAndWhitelistCollateralAsset(
     kresko: Contract,
@@ -206,12 +238,13 @@ export async function deploySimpleToken(name: string, amountToDeployer: number, 
     const token = await hre.deploy<Token>("Token", {
         from: admin,
         args: [name, name, toBig(amountToDeployer)],
+        ...params,
     });
 
     return token;
 }
 
-export async function deployOracle(name: string, description: string, oraclePrice: number, params?: DeployOptions) {
+export async function deployOracle(name: string, description: string, oraclePrice: number) {
     const Oracle: FluxPriceFeed = await hre.run("deployone:fluxpricefeed", {
         name,
         decimals: 8,
@@ -223,7 +256,7 @@ export async function deployOracle(name: string, description: string, oraclePric
     return Oracle;
 }
 
-export async function deployKreskoAsset(name: string, amountToDeployer: number, params?: DeployOptions) {
+export async function deployKreskoAsset(name: string, amountToDeployer: number) {
     const { admin } = await hre.getNamedAccounts();
 
     const token = await hre.deploy<Token>("Token", {
@@ -262,7 +295,7 @@ export const deployUniswap = deployments.createFixture(async ({ deployments, dep
     };
 });
 
-export const setupTestsStaking = (stakingTokenAddr: string, uniFactoryAddr: string, uniRouterAddr: string) =>
+export const setupTestsStaking = (stakingTokenAddr: string) =>
     deployments.createFixture(async ({ deployments, ethers }) => {
         await deployments.fixture("staking-zap");
         const { admin, userOne, userTwo, userThree, nonadmin, operator } = await ethers.getNamedSigners();

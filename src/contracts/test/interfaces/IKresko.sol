@@ -56,17 +56,30 @@ interface IKresko {
 
     function minimumCollateralizationRatio() external view returns (FixedPoint.Unsigned memory);
 
-    function depositCollateral(address _collateralAsset, uint256 _amount) external;
+    function depositCollateral(
+        address to,
+        address _collateralAsset,
+        uint256 _amount
+    ) external;
 
-    function mintKreskoAsset(address _kreskoAsset, uint256 _amount) external;
+    function mintKreskoAsset(
+        address to,
+        address _kreskoAsset,
+        uint256 _amount
+    ) external;
 
-    function getKrAssetValue(address _kreskoAsset, uint256 _amount) external view returns (FixedPoint.Unsigned memory);
+    function getKrAssetValue(
+        address _kreskoAsset,
+        uint256 _amount,
+        bool _ignoreKfactor
+    ) external view returns (FixedPoint.Unsigned memory);
 
     function kreskoAssets(address _kreskoAsset) external view returns (KrAsset memory);
 
     function collateralAssets(address _collateralAsset) external view returns (CollateralAsset memory);
 
     function withdrawCollateral(
+        address from,
         address _collateralAsset,
         uint256 _amount,
         uint256 _depositedCollateralAssetIndex

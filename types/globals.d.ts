@@ -30,7 +30,6 @@ declare global {
 
     interface KreskoConstructor {
         burnFee: BigNumberish;
-        closeFactor: BigNumberish;
         feeRecipient: string;
         liquidationIncentive: BigNumberish;
         minimumCollateralizationRatio: BigNumberish;

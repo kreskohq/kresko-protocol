@@ -56,7 +56,7 @@ task("uniswap:addliquidity")
             "0",
             "0",
             deployer,
-            (Date.now() / 1000 + 180).toFixed(0),
+            (Date.now() / 1000 + 9000).toFixed(0),
         );
         await tx.wait(wait);
 

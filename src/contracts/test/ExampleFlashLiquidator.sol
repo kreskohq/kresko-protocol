@@ -61,7 +61,7 @@ contract ExampleFlashLiquidator is IERC3156FlashBorrower {
             false
         );
 
-        FixedPoint.Unsigned memory krAssetValue = kresko.getKrAssetValue(_kreskoAssetToRepay, 1 ether);
+        FixedPoint.Unsigned memory krAssetValue = kresko.getKrAssetValue(_kreskoAssetToRepay, 1 ether, false);
         FixedPoint.Unsigned memory kFactor = kresko.kreskoAssets(_kreskoAssetToRepay).kFactor;
         FixedPoint.Unsigned memory cFactor = kresko.collateralAssets(address(weth10)).factor;
         FixedPoint.Unsigned memory MCR = kresko.minimumCollateralizationRatio();
@@ -131,11 +131,11 @@ contract ExampleFlashLiquidator is IERC3156FlashBorrower {
         );
 
         // Deposit our flash balance to Kresko as Collateral
-        kresko.depositCollateral(address(weth10), flashBalance);
+        kresko.depositCollateral(address(this), address(weth10), flashBalance);
         // Ensure we are not repaying more than the debt
 
         // Mint the repayment asset
-        kresko.mintKreskoAsset(_repayKreskoAsset, _repayAmount);
+        kresko.mintKreskoAsset(address(this), _repayKreskoAsset, _repayAmount);
 
         // Liqudate the user
         kresko.liquidate(
@@ -149,7 +149,7 @@ contract ExampleFlashLiquidator is IERC3156FlashBorrower {
         );
 
         // Withdraw our collateral back = flashloan amount
-        kresko.withdrawCollateral(address(weth10), flashBalance, 0);
+        kresko.withdrawCollateral(address(this), address(weth10), flashBalance, 0);
 
         uint256 rewardTokenBalAfter = IERC20(_rewardCollateral).balanceOf(address(this));
 

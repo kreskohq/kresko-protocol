@@ -16,6 +16,7 @@ declare module "mocha" {
             userTwo: SignerWithAddress;
             userThree?: SignerWithAddress;
             nonadmin?: SignerWithAddress;
+            liquidator?: SignerWithAddress;
         };
         admin: string;
         userOne: string;
