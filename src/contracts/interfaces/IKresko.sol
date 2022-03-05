@@ -63,11 +63,50 @@ interface IKresko {
 
     function krAssetExists(address) external view returns (bool);
 
-    function kreskoAssets(address) external returns (KrAsset memory);
+    function kreskoAssets(address) external view returns (KrAsset memory);
 
-    function collateralAssets(address) external returns (CollateralAsset memory);
+    function collateralAssets(address) external view returns (CollateralAsset memory);
 
-    function getDepositedCollateralAssetIndex(address, address) external returns (uint256 i);
+    function getDepositedCollateralAssetIndex(address, address) external view returns (uint256 i);
 
-    function getMintedKreskoAssetsIndex(address, address) external returns (uint256 i);
+    function getMintedKreskoAssetsIndex(address, address) external view returns (uint256 i);
+
+    function getMintedKreskoAssets(address user) external view returns (address[] memory);
+
+    function getDepositedCollateralAssets(address user) external view returns (address[] memory);
+
+    function getCollateralValueAndOraclePrice(
+        address _collateralAsset,
+        uint256 _amount,
+        bool _ignoreCollateralFactor
+    ) external view returns (FixedPoint.Unsigned memory, FixedPoint.Unsigned memory);
+
+    function calculateMaxLiquidatableValueForAssets(
+        address _account,
+        address _repayKreskoAsset,
+        address _collateralAssetToSeize
+    ) external view returns (FixedPoint.Unsigned memory);
+
+    function minimumCollateralizationRatio() external view returns (FixedPoint.Unsigned memory);
+
+    function kreskoAssetDebt(address, address) external view returns (uint256);
+
+    function collateralDeposits(address, address) external view returns (uint256);
+
+    function getMinimumCollateralValue(address _krAsset, uint256 _amount)
+        external
+        view
+        returns (FixedPoint.Unsigned memory);
+
+    function getAccountCollateralValue(address _account) external view returns (FixedPoint.Unsigned memory);
+
+    function getAccountMinimumCollateralValue(address _account) external view returns (FixedPoint.Unsigned memory);
+
+    function getAccountKrAssetValue(address _account) external view returns (FixedPoint.Unsigned memory);
+
+    function getKrAssetValue(
+        address _kreskoAsset,
+        uint256 _amount,
+        bool _ignoreKfactor
+    ) external view returns (FixedPoint.Unsigned memory);
 }

@@ -1,16 +1,18 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { UniswapV2Pair } from "types";
-import { fromFixedPoint } from "@utils";
+import { fromBig } from "@utils";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+    const { deployer } = await hre.getNamedAccounts();
     const { ethers, priceFeeds } = hre;
     const USDC = await ethers.getContract<Token>("USDC");
     /** === USDC/KRTSLA ===  */
     const krTSLA = await ethers.getContract<KreskoAsset>("krTSLA");
-    const TSLAValue = fromFixedPoint(await priceFeeds["TSLA/USD"].latestAnswer(), 8);
+    const TSLAValue = fromBig(await priceFeeds["TSLA/USD"].latestAnswer(), 8);
     const TSLADepositAmount = 100;
 
+    const usdcDec = await USDC.decimals();
     // Add initial LP (also creates the pair) according to oracle price
     const USDCKRTSLApair: UniswapV2Pair = await hre.run("uniswap:addliquidity", {
         tkn0: {
@@ -23,11 +25,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         },
     });
     hre.uniPairs["USDC/KRTSLA"] = USDCKRTSLApair;
+
+    console.log("USDC AMOUNT", fromBig(await USDC.balanceOf(deployer), usdcDec));
     console.log("Liquidity added for pair @ ", USDCKRTSLApair.address);
 
     /** === USDC/krETH ===  */
     const krETH = await ethers.getContract<KreskoAsset>("krETH");
-    const ETHValue = fromFixedPoint(await priceFeeds["ETH/USD"].latestAnswer(), 8);
+    const ETHValue = fromBig(await priceFeeds["ETH/USD"].latestAnswer(), 8);
     const ETHDepositAmount = 100;
 
     // Add initial LP (also creates the pair) according to oracle price
@@ -46,8 +50,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     /** === USDC/krGOLD ===  */
     const krGOLD = await ethers.getContract<KreskoAsset>("krGOLD");
-    const GOLDValue = fromFixedPoint(await priceFeeds["GOLD/USD"].latestAnswer(), 8);
+    const GOLDValue = fromBig(await priceFeeds["GOLD/USD"].latestAnswer(), 8);
     const GOLDDepositAmount = 100;
+
     // Add initial LP (also creates the pair) according to oracle price
     const USDCKRGOLDPair: UniswapV2Pair = await hre.run("uniswap:addliquidity", {
         tkn0: {

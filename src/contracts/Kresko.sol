@@ -724,14 +724,16 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             uint256(collateralAssets[_collateralAssetToSeize].oracle.latestAnswer())
         );
 
-        // Calculate amount of collateral to seize.
-        FixedPoint.Unsigned memory seizeAmount = _calculateAmountToSeize(collateralPriceUSD, repayAmountUSD);
-
-        seizeAmount = _liquidateAssets(
+        // Get the actual seized amount
+        uint256 seizeAmount = _liquidateAssets(
             _account,
             krAssetDebt,
             _repayAmount,
-            seizeAmount.rawValue,
+            _fromCollateralFixedPointAmount(
+                _collateralAssetToSeize,
+                // Calculate amount of collateral to seize.
+                _calculateAmountToSeize(collateralPriceUSD, repayAmountUSD)
+            ),
             _repayKreskoAsset,
             _mintedKreskoAssetIndex,
             _collateralAssetToSeize,
@@ -745,8 +747,9 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         IKreskoAsset(_repayKreskoAsset).burn(msg.sender, _repayAmount);
 
         uint256 collateralToSend = _keepKrAssetDebt
-            ? seizeAmount.rawValue
+            ? seizeAmount
             : _calculateCollateralToSendAndAdjustDebt(
+                _collateralAssetToSeize,
                 _repayKreskoAsset,
                 _repayAmount,
                 seizeAmount,
@@ -1302,9 +1305,10 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
      * @param _collateralPriceUSD Single collateral units USD price.
      */
     function _calculateCollateralToSendAndAdjustDebt(
+        address _collateralSeized,
         address _repayKreskoAsset,
         uint256 _repayAmount,
-        FixedPoint.Unsigned memory _seizeAmount,
+        uint256 _seizeAmount,
         FixedPoint.Unsigned memory _repayAmountUSD,
         FixedPoint.Unsigned memory _collateralPriceUSD
     ) internal returns (uint256) {
@@ -1326,9 +1330,15 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             mintedKreskoAssets[msg.sender].removeAddress(_repayKreskoAsset, liquidatorRepayIndex);
         }
 
-        FixedPoint.Unsigned memory seizedAmountUSD = _seizeAmount.mul(_collateralPriceUSD);
+        FixedPoint.Unsigned memory seizedAmountUSD = _toCollateralFixedPointAmount(_collateralSeized, _seizeAmount).mul(
+            _collateralPriceUSD
+        );
 
-        return seizedAmountUSD.sub(_repayAmountUSD).div(_collateralPriceUSD).rawValue;
+        return
+            _fromCollateralFixedPointAmount(
+                _collateralSeized,
+                seizedAmountUSD.sub(_repayAmountUSD).div(_collateralPriceUSD)
+            );
     }
 
     /**
@@ -1351,7 +1361,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 _mintedKreskoAssetIndex,
         address _collateralAssetToSeize,
         uint256 _depositedCollateralAssetIndex
-    ) internal returns (FixedPoint.Unsigned memory) {
+    ) internal returns (uint256) {
         // Subtract repaid Kresko assets from liquidated user's recorded debt.
         kreskoAssetDebt[_account][_repayKreskoAsset] = _krAssetDebt - _repayAmount;
         // If the liquidation repays the user's entire Kresko asset balance, remove it from minted assets array.
@@ -1374,7 +1384,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         }
 
         // Return the actual amount seized
-        return _toCollateralFixedPointAmount(_collateralAssetToSeize, _seizeAmount);
+        return _seizeAmount;
     }
 
     /**
@@ -1457,6 +1467,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             uint256 amount = kreskoAssetDebt[_account][asset];
             minCollateralValue = minCollateralValue.add(getMinimumCollateralValue(asset, amount));
         }
+
         return minCollateralValue;
     }
 
@@ -1565,6 +1576,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         KrAsset memory krAsset = kreskoAssets[_kreskoAsset];
 
         FixedPoint.Unsigned memory oraclePrice = FixedPoint.Unsigned(uint256(krAsset.oracle.latestAnswer()));
+
         FixedPoint.Unsigned memory value = FixedPoint.Unsigned(_amount).mul(oraclePrice);
 
         if (!_ignoreKFactor) {

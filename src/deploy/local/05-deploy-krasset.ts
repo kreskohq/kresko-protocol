@@ -23,6 +23,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         operator: kresko.address,
         log: true,
     });
+
+    await hre.run("deploy:krasset", {
+        name: "krQQQ",
+        symbol: "krQQQ",
+        operator: kresko.address,
+        log: true,
+    });
 };
 export default func;
 func.tags = ["local"];

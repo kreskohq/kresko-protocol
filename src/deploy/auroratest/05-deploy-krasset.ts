@@ -8,7 +8,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         name: "krETH",
         symbol: "krETH",
         operator: kresko.address,
-        wait: 3,
+        wait: 2,
         log: true,
     });
 
@@ -16,14 +16,21 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         name: "krGOLD",
         symbol: "KrGold",
         operator: kresko.address,
-        wait: 3,
+        wait: 2,
         log: true,
     });
     await hre.run("deploy:krasset", {
         name: "krTSLA",
         symbol: "krTSLA",
         operator: kresko.address,
-        wait: 3,
+        wait: 2,
+        log: true,
+    });
+    await hre.run("deploy:krasset", {
+        name: "krQQQ",
+        symbol: "krQQQ",
+        operator: kresko.address,
+        wait: 2,
         log: true,
     });
 };

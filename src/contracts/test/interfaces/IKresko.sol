@@ -86,4 +86,15 @@ interface IKresko {
     ) external;
 
     function kreskoAssetDebt(address, address) external view returns (uint256);
+
+    function getAccountMinimumCollateralValue(address _account) external view returns (FixedPoint.Unsigned memory);
+
+    function getMinimumCollateralValue(address _krAsset, uint256 _amount)
+        external
+        view
+        returns (FixedPoint.Unsigned memory);
+
+    function getMintedKreskoAssetsIndex(address _account, address _kreskoAsset) external view returns (uint256 i);
+
+    function getAccountKrAssetValue(address _account) external view returns (FixedPoint.Unsigned memory);
 }

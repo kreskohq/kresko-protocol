@@ -52,6 +52,17 @@ const func: DeployFunction = async function (hre) {
     const tslaPrice = fromBig(await priceFeeds["TSLA/USD"].latestAnswer(), 8);
     console.log("TSLA price set at: ", tslaPrice);
 
+    // QQQ
+    await hre.run("deployone:fluxpricefeed", {
+        name: "QQQUSD",
+        decimals: 8,
+        description: "QQQ/USD",
+        validator: priceFeedValidator,
+    });
+    await priceFeeds["QQQ/USD"].transmit(toFixedPoint("339.09", 8));
+    const qqqPrice = fromBig(await priceFeeds["QQQ/USD"].latestAnswer(), 8);
+    console.log("QQQ price set at: ", qqqPrice);
+
     // AURORA
     await hre.run("deployone:fluxpricefeed", {
         name: "AURORAUSD",

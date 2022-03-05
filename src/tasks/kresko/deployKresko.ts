@@ -5,7 +5,6 @@ import { TaskArguments } from "hardhat/types";
 
 task("deploy:kresko")
     .addOptionalParam("burnFee", "Burn fee", process.env.BURN_FEE)
-    .addOptionalParam("closeFactor", "Close factor", process.env.CLOSE_FACTOR)
     .addOptionalParam("feeRecipient", "Burn fee recipient", process.env.FEE_RECIPIENT_ADDRESS, types.string)
     .addOptionalParam(
         "liquidationIncentiveMultiplier",
@@ -28,8 +27,6 @@ task("deploy:kresko")
         const { burnFee, feeRecipient, liquidationIncentiveMultiplier, minCollaterRatio, minDebtValue, wait, log } =
             taskArgs;
 
-        console.log(taskArgs);
-
         const [Kresko, , deployment] = await deploy<Kresko>("Kresko", {
             from: admin,
             waitConfirmations: wait,
@@ -48,6 +45,13 @@ task("deploy:kresko")
                 },
             },
         });
+        // Deploy kresko viewer
+        const [KreskoViewer] = await deploy("KreskoViewer", {
+            from: admin,
+            waitConfirmations: wait,
+            log,
+            args: [Kresko.address],
+        });
 
         if (log) {
             const ProxyAdmin = await deployments.get("DefaultProxyAdmin");
@@ -62,6 +66,7 @@ task("deploy:kresko")
                 ProxyAdmin: ProxyAdmin.address,
                 "Kresko (Proxy)": Kresko.address,
                 "Kresko Implementation": deployment.implementation,
+                KreskoViewer: KreskoViewer.address,
                 txHash: deployment.transactionHash,
             };
             console.table(contracts);

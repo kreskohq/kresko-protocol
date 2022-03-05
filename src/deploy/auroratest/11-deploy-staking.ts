@@ -17,21 +17,21 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         stakingToken: USDCKRTSLA,
         rewardTokens: `${RewardToken1.address},${RewardToken2.address}`,
         rewardPerBlocks: "0.2,0.4",
-        wait: 4,
+        wait: 3,
     });
 
     const RewardTokens = [RewardToken1.address, RewardToken2.address];
 
     let tx = await Staking.addPool(RewardTokens, USDCKRGOLD, 500);
-    await tx.wait(3);
+    await tx.wait(2);
 
     tx = await Staking.addPool(RewardTokens, USDCKRETH, 500);
-    await tx.wait(3);
+    await tx.wait(2);
 
     tx = await RewardToken1.mint(Staking.address, toBig(5_000_000));
-    await tx.wait(3);
+    await tx.wait(2);
     tx = await RewardToken2.mint(Staking.address, toBig(5_000_000));
-    await tx.wait(3);
+    await tx.wait(2);
 
     const Reward1Bal = await RewardToken1.balanceOf(Staking.address);
     const Reward2Bal = await RewardToken2.balanceOf(Staking.address);

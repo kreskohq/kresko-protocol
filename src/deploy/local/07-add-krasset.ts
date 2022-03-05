@@ -23,6 +23,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         oracleAddr: priceFeeds["ETH/USD"].address,
         log: true,
     });
+
+    await hre.run("kresko:addkrasset", {
+        name: "krQQQ",
+        kFactor: 1.15,
+        oracleAddr: priceFeeds["QQQ/USD"].address,
+        log: true,
+    });
 };
 export default func;
 

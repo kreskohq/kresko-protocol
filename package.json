@@ -107,12 +107,14 @@
         "prettier:check": "prettier --check --config ./.prettierrc \"**/*.{js,json,md,sol,ts}\"",
         "test": "hardhat test",
         "typechain": "hardhat typechain",
-        "publish:contracts": "hardhat export --export-all packages/contracts/deployments/deployments.json && cp -a types/contracts packages/contracts/types && cd packages/contracts && npm run build && npm publish"
+        "publish:contracts": "cd packages/contracts && npm run clean && cd ../.. && hardhat export --export-all packages/contracts/deployments/deployments.json && cp -a types/contracts packages/contracts/types && cd packages/contracts && npm run build && npm publish"
     },
     "workspaces": [
         "packages/contracts"
     ],
     "dependencies": {
-        "@types/keyv": "^3.1.3"
+        "@types/keyv": "^3.1.3",
+        "global": "^4.4.0",
+        "near-cli": "^3.2.0"
     }
 }

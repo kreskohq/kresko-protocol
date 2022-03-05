@@ -6,7 +6,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     await hre.run("kresko:addcollateral", {
         name: "USDC",
-        cFactor: 0.9,
+        cFactor: 0.95,
         oracleAddr: priceFeeds["/USD"].address,
         log: true,
     });
@@ -22,6 +22,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         name: "Wrapped Near",
         cFactor: 0.75,
         oracleAddr: priceFeeds["NEAR/USD"].address,
+        log: true,
+    });
+
+    await hre.run("kresko:addcollateral", {
+        name: "Wrapped Ether",
+        cFactor: 0.85,
+        oracleAddr: priceFeeds["ETH/USD"].address,
         log: true,
     });
 };
