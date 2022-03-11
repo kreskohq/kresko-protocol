@@ -1,7 +1,7 @@
 {
     "name": "@kreskolabs/contracts",
     "description": "Typechain and contract deployments for front-end",
-    "version": "1.0.18",
+    "version": "1.0.20",
     "author": {
         "name": "Kresko Labs",
         "url": "https://www.kresko.fi"

@@ -68,5 +68,5 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log("Liquidity added for pair @ ", USDCKRGOLDPair.address);
 };
 
-func.tags = ["local"];
+func.tags = ["local", "liquidity", "uniswap"];
 export default func;

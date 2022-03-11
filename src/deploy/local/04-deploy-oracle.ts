@@ -70,7 +70,7 @@ const func: DeployFunction = async function (hre) {
         description: "AURORA/USD",
         validator: priceFeedValidator,
     });
-    await priceFeeds["AURORA/USD"].transmit(toFixedPoint("10.2", 8));
+    await priceFeeds["AURORA/USD"].transmit(toFixedPoint("8.8", 8));
     const auroraPrice = fromBig(await priceFeeds["AURORA/USD"].latestAnswer(), 8);
     console.log("AURORA price set at: ", auroraPrice);
 
@@ -81,7 +81,7 @@ const func: DeployFunction = async function (hre) {
         description: "NEAR/USD",
         validator: priceFeedValidator,
     });
-    await priceFeeds["NEAR/USD"].transmit(toFixedPoint("8.8", 8));
+    await priceFeeds["NEAR/USD"].transmit(toFixedPoint("10.2", 8));
     const nearPrice = fromBig(await priceFeeds["NEAR/USD"].latestAnswer(), 8);
     console.log("NEAR price set at: ", nearPrice);
 };
