@@ -1,11 +1,14 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
+import { MockWETH10 } from "types";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+    const { deployer } = await hre.getNamedAccounts();
     const USDC: Token = await hre.run("deploy:token", {
         name: "USDC",
         symbol: "USDC",
         log: true,
+        decimals: 6,
     });
 
     const AURORA: Token = await hre.run("deploy:token", {
@@ -20,10 +23,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         log: true,
     });
 
+    const [WETH] = await hre.deploy<MockWETH10>("Wrapped Ether", {
+        contract: "MockWETH10",
+        from: deployer,
+        log: true,
+    });
+
     const contracts = {
         USDC: USDC.address,
         NEAR: NEAR.address,
         AURORA: AURORA.address,
+        WETH: WETH.address,
     };
     console.table(contracts);
 };

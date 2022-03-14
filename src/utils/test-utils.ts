@@ -141,7 +141,7 @@ export async function deployAndWhitelistCollateralAsset(
     const description = "TEST/USD";
     const fluxPriceFeedArtifact: Artifact = await hre.artifacts.readArtifact("FluxPriceFeed");
     const oracle = <FluxPriceFeed>(
-        await deployContract(kresko.signer, fluxPriceFeedArtifact, [signerAddress, decimals, description])
+        await deployContract(kresko.signer, fluxPriceFeedArtifact, [signerAddress, 8, description])
     );
     const fixedPointOraclePrice = toFixedPoint(oraclePrice);
     await oracle.transmit(fixedPointOraclePrice);
@@ -237,7 +237,7 @@ export async function deploySimpleToken(name: string, amountToDeployer: number, 
 
     const token = await hre.deploy<Token>("Token", {
         from: admin,
-        args: [name, name, toBig(amountToDeployer)],
+        args: [name, name, toBig(amountToDeployer), 18],
         ...params,
     });
 

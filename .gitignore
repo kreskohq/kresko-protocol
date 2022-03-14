@@ -14,7 +14,7 @@ lib/
 node_modules/
 types/contracts
 deployments/hardhat
-deployments/localhost
+bin
 
 # files
 *.env

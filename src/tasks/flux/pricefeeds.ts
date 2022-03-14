@@ -1,4 +1,3 @@
-import { toFixedPoint } from "@utils/fixed-point";
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
 
@@ -25,13 +24,11 @@ task("deployone:fluxpricefeed")
         const hasValidatorRole = await PriceFeed.hasRole(VALIDATOR_ROLE, deployer);
 
         if (!hasValidatorRole) {
-            let tx = await PriceFeed.grantRole(VALIDATOR_ROLE, deployer);
+            const tx = await PriceFeed.grantRole(VALIDATOR_ROLE, deployer);
             await tx.wait(wait);
 
             console.log("FluxPriceFeed deployed FOR:", description, "deployed at:", PriceFeed.address);
         }
-
-        await PriceFeed.transmit(toFixedPoint(1));
 
         priceFeeds[description] = PriceFeed;
         return PriceFeed;

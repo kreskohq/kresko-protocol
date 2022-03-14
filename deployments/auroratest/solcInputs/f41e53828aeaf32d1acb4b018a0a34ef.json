@@ -1,0 +1,33 @@
+{
+    "language": "Solidity",
+    "sources": {
+        "src/contracts/uniswap/v2-periphery/test/WETH9.sol": {
+            "content": "// Copyright (C) 2015, 2016, 2017 Dapphub\n\n// This program is free software: you can redistribute it and/or modify\n// it under the terms of the GNU General Public License as published by\n// the Free Software Foundation, either version 3 of the License, or\n// (at your option) any later version.\n\n// This program is distributed in the hope that it will be useful,\n// but WITHOUT ANY WARRANTY; without even the implied warranty of\n// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n// GNU General Public License for more details.\n\n// You should have received a copy of the GNU General Public License\n// along with this program.  If not, see <http://www.gnu.org/licenses/>.\n\npragma solidity =0.6.6;\n\ncontract WETH9 {\n    string public name = \"Wrapped Ether\";\n    string public symbol = \"WETH\";\n    uint8 public decimals = 18;\n\n    event Approval(address indexed src, address indexed guy, uint256 wad);\n    event Transfer(address indexed src, address indexed dst, uint256 wad);\n    event Deposit(address indexed dst, uint256 wad);\n    event Withdrawal(address indexed src, uint256 wad);\n\n    mapping(address => uint256) public balanceOf;\n    mapping(address => mapping(address => uint256)) public allowance;\n\n    // function() public payable {\n    //     deposit();\n    // }\n    function deposit() public payable {\n        balanceOf[msg.sender] += msg.value;\n        emit Deposit(msg.sender, msg.value);\n    }\n\n    function withdraw(uint256 wad) public {\n        require(balanceOf[msg.sender] >= wad, \"\");\n        balanceOf[msg.sender] -= wad;\n        msg.sender.transfer(wad);\n        emit Withdrawal(msg.sender, wad);\n    }\n\n    function totalSupply() public view returns (uint256) {\n        return address(this).balance;\n    }\n\n    function approve(address guy, uint256 wad) public returns (bool) {\n        allowance[msg.sender][guy] = wad;\n        emit Approval(msg.sender, guy, wad);\n        return true;\n    }\n\n    function transfer(address dst, uint256 wad) public returns (bool) {\n        return transferFrom(msg.sender, dst, wad);\n    }\n\n    function transferFrom(\n        address src,\n        address dst,\n        uint256 wad\n    ) public returns (bool) {\n        require(balanceOf[src] >= wad, \"\");\n\n        if (src != msg.sender && allowance[src][msg.sender] != uint256(-1)) {\n            require(allowance[src][msg.sender] >= wad, \"\");\n            allowance[src][msg.sender] -= wad;\n        }\n\n        balanceOf[src] -= wad;\n        balanceOf[dst] += wad;\n\n        emit Transfer(src, dst, wad);\n\n        return true;\n    }\n}\n"
+        }
+    },
+    "settings": {
+        "optimizer": {
+            "enabled": true,
+            "runs": 800
+        },
+        "outputSelection": {
+            "*": {
+                "*": [
+                    "abi",
+                    "evm.bytecode",
+                    "evm.deployedBytecode",
+                    "evm.methodIdentifiers",
+                    "metadata",
+                    "devdoc",
+                    "userdoc",
+                    "storageLayout",
+                    "evm.gasEstimates"
+                ],
+                "": ["ast"]
+            }
+        },
+        "metadata": {
+            "useLiteralContent": true
+        }
+    }
+}

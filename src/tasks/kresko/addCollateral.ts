@@ -1,4 +1,5 @@
-import { fromFixedPoint, toFixedPoint } from "@utils/fixed-point";
+import { fromBig } from "@utils/numbers";
+import { toFixedPoint } from "@utils/fixed-point";
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
 
@@ -43,8 +44,8 @@ task("kresko:addcollateral")
                 );
 
                 console.log(`Added ${name} as collateral with a cFctor of:`, cFactor);
-                console.log(`1 ${name} has value: ${fromFixedPoint(value.toString())}`);
-                console.log(`1 ${name} has oracle price of: ${fromFixedPoint(oraclePrice.toString())}`);
+                console.log(`1 ${name} has value: ${fromBig(value.rawValue, 8)}`);
+                console.log(`1 ${name} has oracle price of: ${fromBig(oraclePrice.rawValue, 8)}`);
                 console.log("txHash", tx.hash);
             }
         }

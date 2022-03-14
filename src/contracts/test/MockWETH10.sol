@@ -5,14 +5,15 @@ import "./interfaces/IERC3156FlashBorrower.sol";
 
 contract MockWETH10 {
     uint8 public constant decimals = 18;
-    string public constant name = "Wrapped Ether v10";
-    string public constant symbol = "WETH10";
+    string public constant name = "Wrapped Ether";
+    string public constant symbol = "WETH";
     bytes32 public immutable CALLBACK_SUCCESS = keccak256("ERC3156FlashBorrower.onFlashLoan");
 
     /// @dev Current amount of flash-minted WETH10 token.
     uint256 public flashMinted;
 
     mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) private _allowances;
 
     /// @dev Returns the total supply of WETH10 token as the ETH held in this contract.
     function totalSupply() external view returns (uint256) {
@@ -76,5 +77,39 @@ contract MockWETH10 {
     // allow arbitrary values
     function deposit(uint256 _amount) external {
         balanceOf[msg.sender] += _amount;
+    }
+
+    function withdraw(uint256 _amount) external {
+        balanceOf[msg.sender] -= _amount;
+    }
+
+    /**
+     * @dev See {IERC20-allowance}.
+     */
+    function allowance(address owner, address spender) public view returns (uint256) {
+        return _allowances[owner][spender];
+    }
+
+    /**
+     * @dev See {IERC20-approve}.
+     *
+     * Requirements:
+     *
+     * - `spender` cannot be the zero address.
+     */
+    function approve(address spender, uint256 amount) public returns (bool) {
+        _approve(msg.sender, spender, amount);
+        return true;
+    }
+
+    function _approve(
+        address owner,
+        address spender,
+        uint256 amount
+    ) internal virtual {
+        require(owner != address(0), "ERC20: approve from the zero address");
+        require(spender != address(0), "ERC20: approve to the zero address");
+
+        _allowances[owner][spender] = amount;
     }
 }

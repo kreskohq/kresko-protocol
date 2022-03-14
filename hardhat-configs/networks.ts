@@ -47,7 +47,7 @@ export const networks = (mnemonic: string) => ({
         },
         chainId: chainIds.auroratest,
         gasPrice: 0,
-        url: "https://testnet.aurora.dev",
+        url: "http://54.72.121.191/rpc",
         deploy: ["./src/deploy/auroratest"],
         live: true,
     },
@@ -102,7 +102,7 @@ export const networks = (mnemonic: string) => ({
             mnemonic,
         },
         chainId: chainIds.hardhat,
-        saveDeployments: false,
+        saveDeployments: true,
         deploy: ["./src/deploy/local"],
     },
     localhost: {
