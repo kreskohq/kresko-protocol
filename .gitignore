@@ -12,16 +12,21 @@ coverage/
 dist/
 lib/
 node_modules/
-typechain/
+types/contracts
+deployments/hardhat
+bin
 
 # files
 *.env
-*.log
+*.logs
 *.tsbuildinfo
+.npmrc*
 coverage.json
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+.npmrc
 
 # OpenZeppelin
 .openzeppelin/dev-*.json

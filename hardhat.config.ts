@@ -1,103 +1,65 @@
+// Deployment
+import "tsconfig-paths/register";
+
+import "hardhat-deploy";
+
+// HRE extensions
+import "@configs/extensions";
+
+// OZ Contracts
+import "@openzeppelin/hardhat-upgrades";
+
+// Plugins
+import "@typechain/hardhat";
 import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
-import "@openzeppelin/hardhat-upgrades";
-import "@typechain/hardhat";
+import "@nomiclabs/hardhat-web3";
+
 import "hardhat-gas-reporter";
 import "solidity-coverage";
 
-import "./tasks/accounts";
-import "./tasks/clean";
-
+// Environment variables
 import { resolve } from "path";
-
 import { config as dotenvConfig } from "dotenv";
-import { HardhatUserConfig } from "hardhat/config";
-import { NetworkUserConfig } from "hardhat/types";
 
 dotenvConfig({ path: resolve(__dirname, "./.env") });
-
 let mnemonic = process.env.MNEMONIC;
 if (!mnemonic) {
     console.log(`No mnemonic set, using default value.`);
     // Just a random word chosen from the BIP 39 list. Not sensitive.
     mnemonic = "wealth";
 }
+// All tasks
+import "@tasks";
+// Get configs
+import { compilers, networks, users } from "@configs";
 
-interface Network {
-    rpcUrl: string;
-    chainId: number;
-}
-
-const networks = {
-    alfajores: {
-        rpcUrl: "https://alfajores-forno.celo-testnet.org",
-        chainId: 44787,
-    },
-    mainnet: {
-        rpcUrl: "https://forno.celo.org",
-        chainId: 42220,
-    },
-};
-
-function createTestnetConfig(network: Network): NetworkUserConfig {
-    return {
-        accounts: {
-            count: 10,
-            initialIndex: 0,
-            mnemonic,
-            path: "m/44'/60'/0'/0",
-        },
-        chainId: network.chainId,
-        url: network.rpcUrl,
-    };
-}
-
-const config: HardhatUserConfig = {
-    defaultNetwork: "hardhat",
+// Set config
+const config = {
     gasReporter: {
         currency: "USD",
         enabled: process.env.REPORT_GAS ? true : false,
-        excludeContracts: [],
-        src: "./contracts",
+        src: "./src/contracts",
     },
-    networks: {
-        hardhat: {
-            accounts: {
-                mnemonic,
-            },
-            chainId: 31337,
-            initialBaseFeePerGas: 0,
-            allowUnlimitedContractSize: true,
-            blockGasLimit: 12000000,
-        },
-        alfajores: createTestnetConfig(networks.alfajores),
-        mainnet: createTestnetConfig(networks.mainnet),
-    },
+    namedAccounts: users,
+    networks: networks(mnemonic),
+    defaultNetwork: "hardhat",
     paths: {
-        artifacts: "./artifacts",
-        cache: "./cache",
-        sources: "./contracts",
-        tests: "./test",
+        artifacts: "./build/artifacts",
+        cache: "./build/cache",
+        sources: "./src/contracts",
+        tests: "./src/test",
+        deploy: "./src/deploy",
+        deployments: "./deployments",
+        imports: "./imports",
     },
-    solidity: {
-        version: "0.8.4",
-        settings: {
-            metadata: {
-                // Not including the metadata hash
-                // https://github.com/paulrberg/solidity-template/issues/31
-                bytecodeHash: "none",
-            },
-            // You should disable the optimizer when debugging
-            // https://hardhat.org/hardhat-network/#solidity-optimizer-support
-            optimizer: {
-                enabled: true,
-                runs: 800,
-            },
-        },
-    },
+    solidity: compilers,
     typechain: {
-        outDir: "typechain",
+        outDir: "./types/contracts",
         target: "ethers-v5",
+    },
+    mocha: {
+        timeout: 120000,
     },
 };
 

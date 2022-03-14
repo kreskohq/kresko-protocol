@@ -1,0 +1,30 @@
+{
+    "name": "@kreskolabs/contracts",
+    "description": "Typechain and contract deployments for front-end",
+    "version": "1.0.20",
+    "author": {
+        "name": "Kresko Labs",
+        "url": "https://www.kresko.fi"
+    },
+    "keywords": [
+        "blockchain",
+        "ethereum",
+        "hardhat",
+        "smart-contracts",
+        "solidity",
+        "typechain"
+    ],
+    "scripts": {
+        "build": "npx tsc && npm version patch",
+        "clean": "rm -rf deployments && rm -rf types && rm -rf deployments"
+    },
+    "files": [
+        "dist"
+    ],
+    "license": "ISC",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "dependencies": {
+        "typescript": "^4.5.2"
+    }
+}
