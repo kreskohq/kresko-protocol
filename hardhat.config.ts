@@ -58,6 +58,9 @@ const config = {
         outDir: "./types/contracts",
         target: "ethers-v5",
     },
+    mocha: {
+        timeout: 120000,
+    },
 };
 
 export default config;

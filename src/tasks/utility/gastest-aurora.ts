@@ -9,7 +9,7 @@ task("gastestaurora", "Creates collaterals and krAssets, deposits and mints them
     const mintAmount = ethers.utils.parseEther("4");
     const withdrawCollateralAmount = ethers.utils.parseEther("1");
 
-    let kresko = await hre.ethers.getContract<Kresko>("Kresko");
+    const kresko = await hre.ethers.getContract<Kresko>("Kresko");
 
     const wait = 4;
     for (let i = 0; i < 71; i++) {
@@ -64,6 +64,7 @@ task("gastestaurora", "Creates collaterals and krAssets, deposits and mints them
             "MockAsset" + i.toString() + "A",
             toFixedPoint(1),
             "0x276fc8818D229Aa557dDB05219973d80445eFdd8",
+            toBig("100_000_000"),
         );
         await tx.wait(wait);
 

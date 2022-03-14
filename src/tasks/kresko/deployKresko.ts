@@ -17,24 +17,18 @@ task("deploy:kresko")
         "Minimum collateralization ratio",
         process.env.MINIMUM_COLLATERALIZATION_RATIO,
     )
+    .addOptionalParam("minDebtValue", "Minimum debt value", process.env.MINIMUM_DEBT_VALUE)
     .addOptionalParam("wait", "wait confirmations", 1, types.int)
     .addOptionalParam("log", "Log outputs", false, types.boolean)
-    .addOptionalParam("minDebtValue", "Minimum debt value", process.env.MINIMUM_DEBT_VALUE)
     .setAction(async function (taskArgs: TaskArguments, hre) {
         const { getNamedAccounts, ethers, deployments } = hre;
         const { admin } = await getNamedAccounts();
         const deploy = deployWithSignatures(hre);
         const { formatEther } = ethers.utils;
-        const {
-            burnFee,
-            closeFactor,
-            feeRecipient,
-            liquidationIncentiveMultiplier,
-            minCollaterRatio,
-            minDebtValue,
-            wait,
-            log,
-        } = taskArgs;
+        const { burnFee, feeRecipient, liquidationIncentiveMultiplier, minCollaterRatio, minDebtValue, wait, log } =
+            taskArgs;
+
+        console.log(taskArgs);
 
         const [Kresko, , deployment] = await deploy<Kresko>("Kresko", {
             from: admin,
@@ -46,7 +40,6 @@ task("deploy:kresko")
                     methodName: "initialize",
                     args: [
                         toFixedPoint(burnFee),
-                        toFixedPoint(closeFactor),
                         feeRecipient,
                         toFixedPoint(liquidationIncentiveMultiplier),
                         toFixedPoint(minCollaterRatio),
@@ -63,7 +56,6 @@ task("deploy:kresko")
                 liquidationIncentive: formatEther(await Kresko.liquidationIncentiveMultiplier()),
                 feeRecipient: await Kresko.feeRecipient(),
                 minimumCollateralizationRatio: formatEther(await Kresko.minimumCollateralizationRatio()),
-                closeFactor: formatEther(await Kresko.closeFactor()),
                 minimumDebtValue: formatEther(await Kresko.minimumDebtValue()),
             };
             const contracts = {
