@@ -47,7 +47,6 @@ export const networks = (mnemonic: string) => ({
         },
         chainId: chainIds.auroratest,
         gasPrice: 0,
-        // url: `https://testnet.aurora.dev/GAMQAqBSGuGqNfyucgtGgy2DP61A4rVCfpCWfAeXr3es`,
         url: "http://54.72.121.191/rpc",
         deploy: ["./src/deploy/auroratest"],
         live: true,
