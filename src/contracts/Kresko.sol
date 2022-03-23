@@ -1658,18 +1658,14 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
                 maxLiquidatableUSD = collateralValueAvailable.div(collateralValueRepaid.div(valueUnderMin));
             }
 
-            // Cascade the liquidations if user has multiple assets.
-            // This is desired because pairs with low cFactor and high kFactor have a
-            // higher collateral requirement than positions with high cFactor and low kFactor.
+            // Cascade the liquidations if user has multiple collaterals and cFactor < 1.
+            // This is desired because pairs with low cFactor have higher collateral requirement
+            // than positions with high cFactor.
 
             // Main reason here is keep the liquidations from happening only on pairs that have a high risk profile.
             if (depositedCollateralAssets[_account].length > 1 && cFactor.isLessThan(ONE_HUNDRED_PERCENT)) {
-                // A liquidator can abuse this by only liquidating high risk positions
-                // gaining way more of the users collateral than required if the user has a lower risk pair available.
-
-                // To mitigate this practically to zero:
+                // To mitigate:
                 // cFactor^4 the collateral available (cFactor = 1 == nothing happens)
-                // Return:
                 // Get the ratio between max liquidatable USD and diminished collateral available
                 // = (higher value -> higher the risk ratio of this pair)
                 // Divide the maxValue by this ratio and a diminishing max value is returned.
