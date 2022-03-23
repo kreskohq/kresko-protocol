@@ -71,8 +71,20 @@ contract KreskoViewer {
     }
 
     struct Allowance {
+        address owner;
         address spender;
         uint256 allowance;
+    }
+
+    struct Balance {
+        address account;
+        uint256 balance;
+    }
+
+    struct TokenMetadata {
+        uint8 decimals;
+        string symbol;
+        string name;
     }
 
     constructor(IKresko _kresko) {
@@ -265,13 +277,29 @@ contract KreskoViewer {
         }
     }
 
+    function getTokenMetadatas(IERC20MetadataUpgradeable[] memory _tokens)
+        external
+        view
+        returns (TokenMetadata[] memory metadatas)
+    {
+        metadatas = new TokenMetadata[](_tokens.length);
+        for (uint256 i; i < _tokens.length; i++) {
+            metadatas[i] = TokenMetadata({
+                decimals: _tokens[i].decimals(),
+                name: _tokens[i].name(),
+                symbol: _tokens[i].symbol()
+            });
+        }
+    }
+
     function getBalances(IERC20Upgradeable[] memory _tokens, address account)
         external
         view
-        returns (uint256[] memory balances)
+        returns (Balance[] memory balances)
     {
+        balances = new Balance[](_tokens.length);
         for (uint256 i; i < _tokens.length; i++) {
-            balances[i] = _tokens[i].balanceOf(account);
+            balances[i] = Balance({account: account, balance: _tokens[i].balanceOf(account)});
         }
     }
 
@@ -280,8 +308,13 @@ contract KreskoViewer {
         address owner,
         address spender
     ) external view returns (Allowance[] memory allowances) {
+        allowances = new Allowance[](_tokens.length);
         for (uint256 i; i < _tokens.length; i++) {
-            allowances[i] = Allowance({allowance: _tokens[i].allowance(owner, spender), spender: spender});
+            allowances[i] = Allowance({
+                allowance: _tokens[i].allowance(owner, spender),
+                spender: spender,
+                owner: owner
+            });
         }
     }
 }
