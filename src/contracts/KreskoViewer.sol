@@ -70,6 +70,11 @@ contract KreskoViewer {
         uint256 borrowingPowerUSD;
     }
 
+    struct Allowance {
+        address spender;
+        uint256 allowance;
+    }
+
     constructor(IKresko _kresko) {
         Kresko = _kresko;
     }
@@ -257,6 +262,26 @@ contract KreskoViewer {
             return 0;
         } else {
             return collateral.sub(minCollateral).rawValue;
+        }
+    }
+
+    function getBalances(IERC20Upgradeable[] memory _tokens, address account)
+        external
+        view
+        returns (uint256[] memory balances)
+    {
+        for (uint256 i; i < _tokens.length; i++) {
+            balances[i] = _tokens[i].balanceOf(account);
+        }
+    }
+
+    function getAllowances(
+        IERC20Upgradeable[] memory _tokens,
+        address owner,
+        address spender
+    ) external view returns (Allowance[] memory allowances) {
+        for (uint256 i; i < _tokens.length; i++) {
+            allowances[i] = Allowance({allowance: _tokens[i].allowance(owner, spender), spender: spender});
         }
     }
 }
