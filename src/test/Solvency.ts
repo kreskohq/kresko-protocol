@@ -820,7 +820,7 @@ describe("Solvency", function () {
         expect(userThreeAfterLiquidation.debtUSDProtocol).to.be.greaterThan(0);
     });
 
-    it("should cascade liquidations for users with with multiple positions", async function () {
+    it.only("should cascade liquidations for users with with multiple positions", async function () {
         // Deposit $100,000 worth of volative collateral for userTwo
         await this.Kresko.connect(this.signers.userTwo).depositCollateral(
             this.signers.userTwo.address,

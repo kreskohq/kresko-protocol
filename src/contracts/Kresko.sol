@@ -1663,7 +1663,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             // higher collateral requirement than positions with high cFactor and low kFactor.
 
             // Main reason here is keep the liquidations from happening only on pairs that have a high risk profile.
-            if (mintedKreskoAssets[_account].length + depositedCollateralAssets[_account].length > 2) {
+            if (depositedCollateralAssets[_account].length > 1 && cFactor.isLessThan(ONE_HUNDRED_PERCENT)) {
                 // A liquidator can abuse this by only liquidating high risk positions
                 // gaining way more of the users collateral than required if the user has a lower risk pair available.
 
@@ -1684,7 +1684,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
                         FixedPoint.Unsigned(ONE_HUNDRED_PERCENT).add(burnFee)
                     );
             } else {
-                // For an account holding a single market position
+                // For collaterals with cFactor = 1 / accounts with only single collateral
                 // the debt is just repaid in full with a single transaction
                 return maxLiquidatableUSD.mul(FixedPoint.Unsigned(ONE_HUNDRED_PERCENT).add(burnFee));
             }
