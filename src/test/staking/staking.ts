@@ -7,7 +7,7 @@ import {
     deployUniswap,
     extractEventFromTxReceipt,
     extractEventsFromTxReceipt,
-    extractInternalEventFromTxReceipt,
+    extractInternalIndexedEventFromTxReceipt,
     fromBig,
     MaxUint256,
     setupTestsStaking,
@@ -17,7 +17,7 @@ import {
 //@ts-ignore
 import { time } from "@openzeppelin/test-helpers";
 import { ClaimRewardsEvent, DepositEvent, WithdrawEvent } from "types/contracts/KrStaking";
-import { LiquidityAndStakeAddedEvent } from "types/contracts/KrStakingUniHelper";
+import { LiquidityAndStakeAddedEvent, LiquidityAndStakeRemovedEvent } from "types/contracts/KrStakingUniHelper";
 
 describe("Staking", function () {
     before(async function () {
@@ -648,6 +648,9 @@ describe("Staking", function () {
             const [usdcReserve, krTSLAreserve] =
                 tkn0.address === this.USDC.address ? [reserves[0], reserves[1]] : [reserves[1], reserves[0]];
 
+            this.krTSLAReserve = krTSLAreserve;
+            this.USDCReserve = usdcReserve;
+
             this.krTSLAAmt = await this.UniRouter.quote(this.USDCAmt, usdcReserve, krTSLAreserve);
             this.expectedLiquidity = this.krTSLAAmt.mul(await this.lpPair.totalSupply()).div(krTSLAreserve);
             this.deadline = (Date.now() / 1000 + 60).toFixed(0);
@@ -671,43 +674,86 @@ describe("Staking", function () {
 
         it("should add liquidity and deposit", async function () {
             const addTx = await this.addLiquidityAndStake();
-            const helperEvent = await extractEventFromTxReceipt<LiquidityAndStakeAddedEvent>(
+            const addEvent = await extractEventFromTxReceipt<LiquidityAndStakeAddedEvent>(
                 addTx,
                 "LiquidityAndStakeAdded",
             );
-            expect(this.expectedLiquidity).to.equal(helperEvent.args.amount);
-            expect(helperEvent.args.to).to.equal(this.admin);
-            expect(helperEvent.args.pid).to.equal(0);
+            expect(this.expectedLiquidity).to.equal(addEvent.args.amount);
+            expect(addEvent.args.to).to.equal(this.admin);
+            expect(addEvent.args.pid).to.equal(0);
 
-            const [depositEvent] = await extractInternalEventFromTxReceipt<DepositEvent["args"]>(
+            const [depositEvent] = await extractInternalIndexedEventFromTxReceipt<DepositEvent["args"]>(
                 addTx,
                 this.KrStaking,
                 "Deposit",
             );
 
-            expect(depositEvent.amount).to.equal(helperEvent.args.amount);
+            expect(depositEvent.amount).to.equal(addEvent.args.amount);
             expect(depositEvent.user).to.equal(this.admin);
-            expect(depositEvent.pid).to.equal(helperEvent.args.pid);
+            expect(depositEvent.pid).to.equal(addEvent.args.pid);
 
             const deposited = await this.KrStaking.getDepositAmount(0);
-            expect(deposited).to.equal(helperEvent.args.amount);
+            expect(deposited).to.equal(addEvent.args.amount);
         });
         it("should remove liquidity and withdraw", async function () {
             const addTx = await this.addLiquidityAndStake();
-            const helperEvent = await extractEventFromTxReceipt<LiquidityAndStakeAddedEvent>(
+
+            await this.USDC.burn(await this.USDC.balanceOf(this.admin));
+            await this.krTSLA.transfer(this.userTwo, await this.krTSLA.balanceOf(this.admin));
+            const addEvent = await extractEventFromTxReceipt<LiquidityAndStakeAddedEvent>(
                 addTx,
                 "LiquidityAndStakeAdded",
             );
+            let deposited = await this.KrStaking.getDepositAmount(0);
+            expect(deposited).to.equal(addEvent.args.amount);
+            // clear tokens
+
+            const USDCAmt = addEvent.args.amount
+                .mul(await this.USDC.balanceOf(this.lpPair.address))
+                .div(await this.lpPair.totalSupply());
+            const krTSLAAmt = addEvent.args.amount
+                .mul(await this.krTSLA.balanceOf(this.lpPair.address))
+                .div(await this.lpPair.totalSupply());
 
             const removeTx = await this.KrStakingUniHelper.withdrawAndRemoveLiquidity(
                 this.USDC.address,
                 this.krTSLA.address,
-                helperEvent.args.amount,
-                this.USDCAmt,
-                this.krTSLAAmt,
+                addEvent.args.amount,
+                USDCAmt,
+                krTSLAAmt,
                 this.admin,
                 this.deadline,
             );
+
+            const removeEvent = await extractEventFromTxReceipt<LiquidityAndStakeRemovedEvent>(
+                removeTx,
+                "LiquidityAndStakeRemoved",
+            );
+
+            expect(removeEvent.args.amount).to.equal(addEvent.args.amount);
+            expect(removeEvent.args.pid).to.equal(0);
+            expect(removeEvent.args.to).to.equal(this.admin);
+
+            const [withdrawEvent] = await extractInternalIndexedEventFromTxReceipt<WithdrawEvent["args"]>(
+                removeTx,
+                this.KrStaking,
+                "Withdraw",
+            );
+
+            console.log(withdrawEvent);
+
+            expect(withdrawEvent.amount).to.equal(removeEvent.args.amount);
+            expect(withdrawEvent.pid).to.equal(removeEvent.args.pid);
+            expect(withdrawEvent.user).to.equal(removeEvent.args.to);
+
+            deposited = await this.KrStaking.getDepositAmount(0);
+            expect(deposited).to.equal(0);
+
+            const USDCbalance = await this.USDC.balanceOf(this.admin);
+            const krTSLAbalance = await this.krTSLA.balanceOf(this.admin);
+
+            expect(USDCbalance).to.equal(USDCAmt);
+            expect(krTSLAbalance).to.equal(krTSLAAmt);
         });
     });
 });

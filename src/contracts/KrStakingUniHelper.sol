@@ -6,6 +6,8 @@ import "./uniswap/v2-periphery/interfaces/IUniswapV2Router02.sol";
 import "./uniswap/v2-core/interfaces/IUniswapV2Factory.sol";
 import "./interfaces/IKrStaking.sol";
 
+import "hardhat/console.sol";
+
 contract KrStakingUniHelper {
     using SafeERC20 for IERC20;
 
@@ -82,9 +84,9 @@ contract KrStakingUniHelper {
 
         require(found, "KR: !poolExists");
 
-        IERC20(pair).approve(pair, liquidity);
-
         staking.withdrawFor(to, pid, liquidity, true, to);
+
+        IERC20(pair).approve(address(router), liquidity);
         router.removeLiquidity(tokenA, tokenB, liquidity, amountAMin, amountBMin, to, deadline);
 
         emit LiquidityAndStakeRemoved(to, liquidity, pid);
