@@ -23,11 +23,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (TSLAPair == AddressZero) {
         // Add initial LP (also creates the pair) according to oracle price
         USDCKRTSLApair = await hre.run("uniswap:addliquidity", {
-            tkn0: {
+            tknA: {
                 address: USDC.address,
                 amount: Number(TSLAValue) * TSLADepositAmount,
             },
-            tkn1: {
+            tknB: {
                 address: krTSLA.address,
                 amount: TSLADepositAmount,
             },
@@ -53,11 +53,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     // Add initial LP (also creates the pair) according to oracle price
     if (krETHPAIR == AddressZero) {
         USDCKRETHPair = await hre.run("uniswap:addliquidity", {
-            tkn0: {
+            tknA: {
                 address: USDC.address,
                 amount: Number(ETHValue) * ETHDepositAmount,
             },
-            tkn1: {
+            tknB: {
                 address: krETH.address,
                 amount: ETHDepositAmount,
             },
@@ -80,11 +80,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (krGOLDPair == AddressZero) {
         // Add initial LP (also creates the pair) according to oracle price
         USDCKRGOLDPair = await hre.run("uniswap:addliquidity", {
-            tkn0: {
+            tknA: {
                 address: USDC.address,
                 amount: Number(GOLDValue) * GOLDDepositAmount,
             },
-            tkn1: {
+            tknB: {
                 address: krGOLD.address,
                 amount: GOLDDepositAmount,
             },

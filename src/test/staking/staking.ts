@@ -7,6 +7,7 @@ import {
     deployUniswap,
     extractEventFromTxReceipt,
     extractEventsFromTxReceipt,
+    extractInternalEventFromTxReceipt,
     fromBig,
     MaxUint256,
     setupTestsStaking,
@@ -16,6 +17,7 @@ import {
 //@ts-ignore
 import { time } from "@openzeppelin/test-helpers";
 import { ClaimRewardsEvent, DepositEvent, WithdrawEvent } from "types/contracts/KrStaking";
+import { LiquidityAndStakeAddedEvent } from "types/contracts/KrStakingUniHelper";
 
 describe("Staking", function () {
     before(async function () {
@@ -57,8 +59,8 @@ describe("Staking", function () {
             toBig(10_000_000),
         );
 
-        // Mint 10 krTSLA to admin
-        await Kresko.mintKreskoAsset(admin, krTSLA.address, toBig(1000));
+        // Mint 2000 krTSLA to admin
+        await Kresko.mintKreskoAsset(admin, krTSLA.address, toBig(2000));
 
         // Set variables
         this.USDC = USDC;
@@ -71,11 +73,11 @@ describe("Staking", function () {
         await this.krTSLA.approve(this.UniRouter.address, MaxUint256);
 
         this.lpPair = await hre.run("uniswap:addliquidity", {
-            tkn0: {
+            tknA: {
                 address: this.USDC.address,
                 amount: this.USDCLiquidity,
             },
-            tkn1: {
+            tknB: {
                 address: this.krTSLA.address,
                 amount: this.TSLALiquidity,
             },
@@ -87,13 +89,18 @@ describe("Staking", function () {
 
     beforeEach(async function () {
         // Create fresh contracts for each test
-        const { KrStaking, RewardTKN1, RewardTKN2, signers } = await setupTestsStaking(this.lpPair.address)();
+        const { KrStaking, KrStakingUniHelper, RewardTKN1, RewardTKN2, signers } = await setupTestsStaking(
+            this.lpPair.address,
+            this.UniRouter.address,
+            this.UniFactory.address,
+        )();
 
         this.signers = signers;
         // Setup some state
         this.RewardTKN1 = RewardTKN1;
         this.RewardTKN2 = RewardTKN2;
         this.KrStaking = KrStaking;
+        this.KrStakingUniHelper = KrStakingUniHelper;
 
         // // Add Zapper as a trusted contract in Kresko
         // this.Zapper = Zapper;
@@ -626,6 +633,81 @@ describe("Staking", function () {
             expect(userTwoBalances.reward2Bal).to.be.greaterThan(0);
             expect(userTwoBalances.token1Bal).to.equal(0);
             expect(userTwoBalances.token2Bal).to.equal(1000);
+        });
+    });
+
+    describe.only("#StakingUniHelper", function () {
+        beforeEach(async function () {
+            // Get LP balance
+            this.USDCAmt = toBig(1000);
+
+            const tkn0 = this.USDC.address < this.krTSLA.address ? this.USDC : this.krTSLA;
+
+            const reserves = await this.lpPair.getReserves();
+
+            const [usdcReserve, krTSLAreserve] =
+                tkn0.address === this.USDC.address ? [reserves[0], reserves[1]] : [reserves[1], reserves[0]];
+
+            this.krTSLAAmt = await this.UniRouter.quote(this.USDCAmt, usdcReserve, krTSLAreserve);
+            this.expectedLiquidity = this.krTSLAAmt.mul(await this.lpPair.totalSupply()).div(krTSLAreserve);
+            this.deadline = (Date.now() / 1000 + 60).toFixed(0);
+
+            await this.USDC.approve(this.KrStakingUniHelper.address, this.USDCAmt);
+            await this.krTSLA.approve(this.KrStakingUniHelper.address, this.krTSLAAmt);
+
+            this.addLiquidityAndStake = async () => {
+                return await this.KrStakingUniHelper.addLiquidityAndStake(
+                    this.USDC.address,
+                    this.krTSLA.address,
+                    this.USDCAmt,
+                    this.krTSLAAmt,
+                    this.USDCAmt,
+                    this.krTSLAAmt,
+                    this.admin,
+                    this.deadline,
+                );
+            };
+        });
+
+        it("should add liquidity and deposit", async function () {
+            const addTx = await this.addLiquidityAndStake();
+            const helperEvent = await extractEventFromTxReceipt<LiquidityAndStakeAddedEvent>(
+                addTx,
+                "LiquidityAndStakeAdded",
+            );
+            expect(this.expectedLiquidity).to.equal(helperEvent.args.amount);
+            expect(helperEvent.args.to).to.equal(this.admin);
+            expect(helperEvent.args.pid).to.equal(0);
+
+            const [depositEvent] = await extractInternalEventFromTxReceipt<DepositEvent["args"]>(
+                addTx,
+                this.KrStaking,
+                "Deposit",
+            );
+
+            expect(depositEvent.amount).to.equal(helperEvent.args.amount);
+            expect(depositEvent.user).to.equal(this.admin);
+            expect(depositEvent.pid).to.equal(helperEvent.args.pid);
+
+            const deposited = await this.KrStaking.getDepositAmount(0);
+            expect(deposited).to.equal(helperEvent.args.amount);
+        });
+        it("should remove liquidity and withdraw", async function () {
+            const addTx = await this.addLiquidityAndStake();
+            const helperEvent = await extractEventFromTxReceipt<LiquidityAndStakeAddedEvent>(
+                addTx,
+                "LiquidityAndStakeAdded",
+            );
+
+            const removeTx = await this.KrStakingUniHelper.withdrawAndRemoveLiquidity(
+                this.USDC.address,
+                this.krTSLA.address,
+                helperEvent.args.amount,
+                this.USDCAmt,
+                this.krTSLAAmt,
+                this.admin,
+                this.deadline,
+            );
         });
     });
 });

@@ -20,11 +20,11 @@ task("addliquidity:external").setAction(async (taskArgs, hre) => {
     console.log("Aurora amount", Number(AuroraValue) * AURORADepositAmount);
 
     const AURORAUSDCPair: UniswapV2Pair = await hre.run("uniswap:addliquidity", {
-        tkn0: {
+        tknA: {
             address: USDC.address,
             amount: Number((Number(AuroraValue) * AURORADepositAmount).toFixed(0)),
         },
-        tkn1: {
+        tknB: {
             address: Aurora.address,
             amount: AURORADepositAmount,
         },
@@ -42,11 +42,11 @@ task("addliquidity:external").setAction(async (taskArgs, hre) => {
     const NearDepositAmount = 32500;
 
     const NEARUSDCPair: UniswapV2Pair = await hre.run("uniswap:addliquidity", {
-        tkn0: {
+        tknA: {
             address: USDC.address,
             amount: Number((Number(NearValue) * AURORADepositAmount).toFixed(0)),
         },
-        tkn1: {
+        tknB: {
             address: wNEAR.address,
             amount: NearDepositAmount,
         },
