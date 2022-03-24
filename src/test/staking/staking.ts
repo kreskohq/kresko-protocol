@@ -682,7 +682,7 @@ describe("Staking", function () {
             expect(addEvent.args.to).to.equal(this.admin);
             expect(addEvent.args.pid).to.equal(0);
 
-            const [depositEvent] = await extractInternalIndexedEventFromTxReceipt<DepositEvent["args"]>(
+            const depositEvent = await extractInternalIndexedEventFromTxReceipt<DepositEvent["args"]>(
                 addTx,
                 this.KrStaking,
                 "Deposit",
@@ -734,13 +734,11 @@ describe("Staking", function () {
             expect(removeEvent.args.pid).to.equal(0);
             expect(removeEvent.args.to).to.equal(this.admin);
 
-            const [withdrawEvent] = await extractInternalIndexedEventFromTxReceipt<WithdrawEvent["args"]>(
+            const withdrawEvent = await extractInternalIndexedEventFromTxReceipt<WithdrawEvent["args"]>(
                 removeTx,
                 this.KrStaking,
                 "Withdraw",
             );
-
-            console.log(withdrawEvent);
 
             expect(withdrawEvent.amount).to.equal(removeEvent.args.amount);
             expect(withdrawEvent.pid).to.equal(removeEvent.args.pid);

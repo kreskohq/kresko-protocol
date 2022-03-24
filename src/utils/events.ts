@@ -1,6 +1,4 @@
-import { ParamType } from "@ethersproject/abi";
-import { concat } from "@ethersproject/bytes";
-import { ContractTransaction, ContractReceipt, Event, Contract, BigNumber } from "ethers";
+import { ContractTransaction, ContractReceipt, Event, Contract } from "ethers";
 
 // Extracts named event from a transaction receipt
 export async function extractEventFromTxReceipt<T extends Event = Event>(
@@ -20,40 +18,21 @@ export async function extractInternalIndexedEventFromTxReceipt<T extends typeof 
     tx: ContractTransaction,
     contract: Contract,
     eventName: string,
-): Promise<T[]> {
+): Promise<T> {
     const receipt: ContractReceipt = await tx.wait();
 
     const events = receipt.events.filter(e => e.address === contract.address);
-    return events.map(e => {
-        const eventFragment = contract.interface.getEvent(eventName);
-        const indexed: Array<ParamType> = [];
-        const nonIndexed: Array<ParamType> = [];
-        const dynamic: Array<boolean> = [];
+    return events
+        .map(e => {
+            const eventFragment = contract.interface.getEvent(eventName);
+            const topicHash = contract.interface.getEventTopic(eventFragment);
 
-        eventFragment.inputs.forEach(param => {
-            if (param.indexed) {
-                if (
-                    param.type === "string" ||
-                    param.type === "bytes" ||
-                    param.baseType === "tuple" ||
-                    param.baseType === "array"
-                ) {
-                    indexed.push(ParamType.fromObject({ type: "bytes32", name: param.name }));
-                    dynamic.push(true);
-                } else {
-                    indexed.push(param);
-                    dynamic.push(false);
-                }
-            } else {
-                nonIndexed.push(param);
-                dynamic.push(false);
+            if (e.topics[0] === topicHash) {
+                console.log(e.topics[0] === topicHash);
+                return contract.interface.decodeEventLog(eventName, e.data, e.topics) as unknown as T;
             }
-        });
-
-        const topics = e.topics;
-        const resultIndexed = topics != null ? contract.interface._abiCoder.decode(indexed, concat(topics)) : null;
-        return resultIndexed as unknown as T;
-    });
+        })
+        .filter(Boolean)[0];
 }
 
 // Extracts named events from a transaction receipt
