@@ -77,7 +77,7 @@ contract KreskoViewer {
     }
 
     struct Balance {
-        address account;
+        address token;
         uint256 balance;
     }
 
@@ -299,7 +299,7 @@ contract KreskoViewer {
     {
         balances = new Balance[](_tokens.length);
         for (uint256 i; i < _tokens.length; i++) {
-            balances[i] = Balance({account: account, balance: _tokens[i].balanceOf(account)});
+            balances[i] = Balance({token: address(_tokens[i]), balance: _tokens[i].balanceOf(account)});
         }
     }
 
