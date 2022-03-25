@@ -1,4 +1,4 @@
-import { deployWithSignatures } from "@utils/deployment";
+import { deployWithSignatures, getLogger } from "@utils/deployment";
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
 import { KrStaking, UniswapV2Factory, UniswapV2Router02, KrStakingUniHelper } from "types";
@@ -14,7 +14,7 @@ task("deploy:stakingunihelper")
         const { deployer } = await getNamedAccounts();
         const deploy = deployWithSignatures(hre);
         const { routerAddr, factoryAddr, stakingAddr, wait, log } = taskArgs;
-
+        const logger = getLogger("deploy:stakingunihelper");
         let Router: UniswapV2Router02;
         let Factory: UniswapV2Factory;
         let KrStaking: KrStaking;
@@ -52,14 +52,12 @@ task("deploy:stakingunihelper")
             from: deployer,
         });
 
-        if (log) {
-            console.log("KrStakingUniHelper deployed @ ", KrStakingUniHelper.address);
-        }
-
         const OPERATOR_ROLE = await KrStaking.OPERATOR_ROLE();
         if (!(await KrStaking.hasRole(OPERATOR_ROLE, KrStakingUniHelper.address))) {
+            logger.log("Granting operator role for", KrStakingUniHelper.address);
             await KrStaking.grantRole(OPERATOR_ROLE, KrStakingUniHelper.address);
         }
 
+        logger.success("Succesfully deployed KrStakingUniHelper @", KrStakingUniHelper.address);
         return KrStakingUniHelper;
     });
