@@ -309,7 +309,7 @@ export const setupTestsStaking = (stakingTokenAddr: string, routerAddr: string, 
             rewardPerBlocks: "0.1,0.2",
         });
 
-        const KrStakingUniHelper = await hre.run("deploy:stakingunihelper", { routerAddr, factoryAddr });
+        const KrStakingUniHelper = await hre.run("deploy:stakingunihelper", { routerAddr, factoryAddr, log: false });
 
         return {
             KrStaking,

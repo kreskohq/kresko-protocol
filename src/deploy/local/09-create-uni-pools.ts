@@ -2,11 +2,13 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { UniswapV2Pair } from "types";
 import { fromBig } from "@utils";
+import { getLogger } from "@utils/deployment";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const { deployer } = await hre.getNamedAccounts();
     const { ethers, priceFeeds } = hre;
     const USDC = await ethers.getContract<Token>("USDC");
+    const logger = getLogger("create-uni-pools");
     /** === USDC/KRTSLA ===  */
     const krTSLA = await ethers.getContract<KreskoAsset>("krTSLA");
     const TSLAValue = fromBig(await priceFeeds["TSLA/USD"].latestAnswer(), 8);
@@ -26,8 +28,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     });
     hre.uniPairs["USDC/KRTSLA"] = USDCKRTSLApair;
 
-    console.log("USDC AMOUNT", fromBig(await USDC.balanceOf(deployer), usdcDec));
-    console.log("Liquidity added for pair @ ", USDCKRTSLApair.address);
+    logger.log("USDC AMOUNT", fromBig(await USDC.balanceOf(deployer), usdcDec));
 
     /** === USDC/krETH ===  */
     const krETH = await ethers.getContract<KreskoAsset>("krETH");
@@ -46,7 +47,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         },
     });
     hre.uniPairs["USDC/KRETH"] = USDCKRETHPair;
-    console.log("Liquidity added for pair @ ", USDCKRETHPair.address);
 
     /** === USDC/krGOLD ===  */
     const krGOLD = await ethers.getContract<KreskoAsset>("krGOLD");
@@ -65,7 +65,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         },
     });
     hre.uniPairs["USDC/KRGOLD"] = USDCKRGOLDPair;
-    console.log("Liquidity added for pair @ ", USDCKRGOLDPair.address);
+    logger.success("Succesfully added all liquidity");
 };
 
 func.tags = ["local", "liquidity", "uniswap"];

@@ -2,8 +2,10 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { KrStaking, RewardToken } from "types";
 import { fromBig, toBig } from "@utils/numbers";
+import { getLogger } from "@utils/deployment";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+    const logger = getLogger("deploy-staking");
     const { ethers, uniPairs } = hre;
 
     const RewardToken1 = await ethers.getContract<RewardToken>("RewardToken1");
@@ -34,9 +36,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const Reward1Bal = await RewardToken1.balanceOf(Staking.address);
     const Reward2Bal = await RewardToken2.balanceOf(Staking.address);
-    console.log("Staking contract deployed @", Staking.address);
-    console.log("Pools total", Number(await Staking.poolLength()));
-    console.log("R1", fromBig(Reward1Bal), "R2", fromBig(Reward2Bal));
+    logger.log("Pools total", Number(await Staking.poolLength()));
+    logger.log("Reward tokens in staking: ", fromBig(Reward1Bal), "R2", fromBig(Reward2Bal));
+    logger.success("Succesfully deployed staking @", Staking.address);
 };
 export default func;
 

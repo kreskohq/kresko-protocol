@@ -2,6 +2,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { UniswapV2Factory, UniswapV2Pair } from "types";
 import { AddressZero, fromBig } from "@utils";
+import { getLogger } from "@utils/deployment";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const { deployer } = await hre.getNamedAccounts();
@@ -11,6 +12,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const krTSLA = await ethers.getContract<KreskoAsset>("krTSLA");
     const TSLAValue = fromBig(await priceFeeds["TSLA/USD"].latestAnswer(), 8);
     const TSLADepositAmount = 100;
+
+    const logger = getLogger("create-uni-pools");
 
     const usdcDec = await USDC.decimals();
 
@@ -32,10 +35,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
                 amount: TSLADepositAmount,
             },
         });
-        console.log("Liquidity added for pair @ ", USDCKRTSLApair.address);
     } else {
         USDCKRTSLApair = await ethers.getContractAt("UniswapV2Pair", TSLAPair);
-        console.log("pair already found @ ", USDCKRTSLApair.address);
+        logger.log("Pair already found @ ", USDCKRTSLApair.address);
     }
 
     hre.uniPairs["USDC/KRTSLA"] = USDCKRTSLApair;
@@ -62,10 +64,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
                 amount: ETHDepositAmount,
             },
         });
-        console.log("Liquidity added for pair @ ", USDCKRETHPair.address);
     } else {
         USDCKRETHPair = await ethers.getContractAt("UniswapV2Pair", krETHPAIR);
-        console.log("pair already found @ ", USDCKRETHPair.address);
+        logger.log("Pair already found @ ", USDCKRETHPair.address);
     }
     hre.uniPairs["USDC/KRETH"] = USDCKRETHPair;
 
@@ -89,7 +90,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
                 amount: GOLDDepositAmount,
             },
         });
-        console.log("Liquidity added for pair @ ", USDCKRGOLDPair.address);
     } else {
         USDCKRGOLDPair = await ethers.getContractAt("UniswapV2Pair", krGOLDPair);
         console.log("pair already found @ ", USDCKRGOLDPair.address);

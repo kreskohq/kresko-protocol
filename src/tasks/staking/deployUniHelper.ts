@@ -8,11 +8,12 @@ task("deploy:stakingunihelper")
     .addOptionalParam("factoryAddr", "Address of uni factory")
     .addOptionalParam("stakingAddr", "Address of staking")
     .addOptionalParam("wait", "wait confirmations", 1, types.int)
+    .addOptionalParam("log", "log deploy information", true, types.boolean)
     .setAction(async function (taskArgs: TaskArguments, hre) {
         const { getNamedAccounts, ethers } = hre;
         const { deployer } = await getNamedAccounts();
         const deploy = deployWithSignatures(hre);
-        const { routerAddr, factoryAddr, stakingAddr, wait } = taskArgs;
+        const { routerAddr, factoryAddr, stakingAddr, wait, log } = taskArgs;
 
         let Router: UniswapV2Router02;
         let Factory: UniswapV2Factory;
@@ -46,12 +47,14 @@ task("deploy:stakingunihelper")
 
         const [KrStakingUniHelper] = await deploy<KrStakingUniHelper>("KrStakingUniHelper", {
             args: [Router.address, Factory.address, KrStaking.address],
-            log: true,
+            log,
             waitConfirmations: wait,
             from: deployer,
         });
 
-        console.log("KrStakingUniHelper deployed @ ", KrStakingUniHelper.address);
+        if (log) {
+            console.log("KrStakingUniHelper deployed @ ", KrStakingUniHelper.address);
+        }
 
         const OPERATOR_ROLE = await KrStaking.OPERATOR_ROLE();
         if (!(await KrStaking.hasRole(OPERATOR_ROLE, KrStakingUniHelper.address))) {

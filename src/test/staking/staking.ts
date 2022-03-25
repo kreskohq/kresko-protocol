@@ -1,13 +1,15 @@
-import hre from "hardhat";
+import hre, { ethers } from "hardhat";
 import { expect } from "chai";
 import {
     addNewKreskoAssetWithOraclePrice,
+    BigNumber,
     deployOracle,
     deploySimpleToken,
     deployUniswap,
     extractEventFromTxReceipt,
     extractEventsFromTxReceipt,
     extractInternalIndexedEventFromTxReceipt,
+    extractInternalIndexedEventsFromTxReceipt,
     fromBig,
     MaxUint256,
     setupTestsStaking,
@@ -18,8 +20,9 @@ import {
 import { time } from "@openzeppelin/test-helpers";
 import { ClaimRewardsEvent, DepositEvent, WithdrawEvent } from "types/contracts/KrStaking";
 import { LiquidityAndStakeAddedEvent, LiquidityAndStakeRemovedEvent } from "types/contracts/KrStakingUniHelper";
+import { UniswapV2Pair } from "types";
 
-describe("Staking", function () {
+describe.only("Staking", function () {
     before(async function () {
         const { admin, userOne, userTwo } = await hre.getNamedAccounts();
         this.admin = admin;
@@ -50,12 +53,35 @@ describe("Staking", function () {
         await Kresko.depositCollateral(admin, USDC.address, toBig(this.collateralDeposit));
 
         // Create krTSLA with oracle
+        const TSLAPrice = 902.5;
         const { kreskoAsset: krTSLA } = await addNewKreskoAssetWithOraclePrice(
             Kresko,
             "krTSLA",
             "krTSLA",
             1.2,
-            902.5,
+            TSLAPrice,
+            toBig(10_000_000),
+        );
+
+        // Create krTSLA with oracle
+        const BABAPrice = 115.5;
+        const { kreskoAsset: krBABA } = await addNewKreskoAssetWithOraclePrice(
+            Kresko,
+            "krBABA",
+            "krBABA",
+            1.2,
+            BABAPrice,
+            toBig(10_000_000),
+        );
+
+        // Create krTSLA with oracle
+        const GOLDPrice = 1800.9;
+        const { kreskoAsset: krGOLD } = await addNewKreskoAssetWithOraclePrice(
+            Kresko,
+            "krGOLD",
+            "krGOLD",
+            1.2,
+            GOLDPrice,
             toBig(10_000_000),
         );
 
@@ -64,22 +90,61 @@ describe("Staking", function () {
 
         // Set variables
         this.USDC = USDC;
+        this.krBABA = krBABA;
+        this.krGOLD = krGOLD;
         this.krTSLA = krTSLA;
 
-        this.USDCLiquidity = 902500;
-        this.TSLALiquidity = 1000;
+        this.TSLAUSDCLiquidity = 902500;
+        this.TSLALiquidity = this.TSLAUSDCLiquidity / TSLAPrice;
 
-        await this.USDC.approve(this.UniRouter.address, MaxUint256);
-        await this.krTSLA.approve(this.UniRouter.address, MaxUint256);
+        this.BABAUSDCLiquidity = 115500;
+        this.BABALiquidity = this.BABAUSDCLiquidity / BABAPrice;
+
+        // Mint 2000 krTSLA to admin
+        await Kresko.mintKreskoAsset(admin, krBABA.address, toBig(this.BABALiquidity));
+
+        this.GOLDUSDCLiquidity = 1800090;
+        this.GOLDLiquidity = this.GOLDUSDCLiquidity / GOLDPrice;
+
+        // Mint 2000 krTSLA to admin
+        await Kresko.mintKreskoAsset(admin, krGOLD.address, toBig(this.GOLDLiquidity));
 
         this.lpPair = await hre.run("uniswap:addliquidity", {
             tknA: {
                 address: this.USDC.address,
-                amount: this.USDCLiquidity,
+                amount: this.TSLAUSDCLiquidity,
             },
             tknB: {
                 address: this.krTSLA.address,
                 amount: this.TSLALiquidity,
+            },
+            factoryAddr: this.UniFactory.address,
+            routerAddr: this.UniRouter.address,
+            log: false,
+        });
+
+        this.lpPairBABA = await hre.run("uniswap:addliquidity", {
+            tknA: {
+                address: this.USDC.address,
+                amount: this.BABAUSDCLiquidity,
+            },
+            tknB: {
+                address: this.krBABA.address,
+                amount: this.BABALiquidity,
+            },
+            factoryAddr: this.UniFactory.address,
+            routerAddr: this.UniRouter.address,
+            log: false,
+        });
+
+        this.lpPairGOLD = await hre.run("uniswap:addliquidity", {
+            tknA: {
+                address: this.USDC.address,
+                amount: this.GOLDUSDCLiquidity,
+            },
+            tknB: {
+                address: this.krGOLD.address,
+                amount: this.GOLDLiquidity,
             },
             factoryAddr: this.UniFactory.address,
             routerAddr: this.UniRouter.address,
@@ -118,7 +183,7 @@ describe("Staking", function () {
         await this.RewardTKN2.mint(KrStaking.address, toBig(2000000));
     });
 
-    describe("#Staking", function () {
+    describe("#KrStaking", function () {
         it("should record user deposit", async function () {
             // Get LP balance
             const lpBalance = await this.lpPair.balanceOf(this.admin);
@@ -433,11 +498,11 @@ describe("Staking", function () {
             await this.Kresko.mintKreskoAsset(this.admin, this.krTSLA.address, toBig(10));
             // Add more liquidity to the LP pair
             await hre.run("uniswap:addliquidity", {
-                tkn0: {
+                tknA: {
                     address: this.USDC.address,
                     amount: 9025,
                 },
-                tkn1: {
+                tknB: {
                     address: this.krTSLA.address,
                     amount: 10,
                 },
@@ -636,27 +701,13 @@ describe("Staking", function () {
         });
     });
 
-    describe.only("#StakingUniHelper", function () {
+    describe("#KrStakingUniHelper", function () {
         beforeEach(async function () {
-            // Get LP balance
-            this.USDCAmt = toBig(1000);
-
-            const tkn0 = this.USDC.address < this.krTSLA.address ? this.USDC : this.krTSLA;
-
-            const reserves = await this.lpPair.getReserves();
-
-            const [usdcReserve, krTSLAreserve] =
-                tkn0.address === this.USDC.address ? [reserves[0], reserves[1]] : [reserves[1], reserves[0]];
-
-            this.krTSLAReserve = krTSLAreserve;
-            this.USDCReserve = usdcReserve;
-
-            this.krTSLAAmt = await this.UniRouter.quote(this.USDCAmt, usdcReserve, krTSLAreserve);
-            this.expectedLiquidity = this.krTSLAAmt.mul(await this.lpPair.totalSupply()).div(krTSLAreserve);
-            this.deadline = (Date.now() / 1000 + 60).toFixed(0);
-
-            await this.USDC.approve(this.KrStakingUniHelper.address, this.USDCAmt);
-            await this.krTSLA.approve(this.KrStakingUniHelper.address, this.krTSLAAmt);
+            this.calculateAmountB = async (amountA: BigNumber, tokenA: string, tokenB: string, pair: UniswapV2Pair) => {
+                const reserves = await pair.getReserves();
+                const [reserveA, reserveB] = tokenA < tokenB ? [reserves[0], reserves[1]] : [reserves[1], reserves[0]];
+                return await this.UniRouter.quote(amountA, reserveA, reserveB);
+            };
 
             this.addLiquidityAndStake = async () => {
                 return await this.KrStakingUniHelper.addLiquidityAndStake(
@@ -670,6 +721,34 @@ describe("Staking", function () {
                     this.deadline,
                 );
             };
+
+            // Get LP balance
+            this.USDCAmt = toBig(1000);
+
+            const tkn0 = this.USDC.address < this.krTSLA.address ? this.USDC : this.krTSLA;
+
+            const reserves = await this.lpPair.getReserves();
+
+            const [usdcReserve, krTSLAreserve] =
+                tkn0.address === this.USDC.address ? [reserves[0], reserves[1]] : [reserves[1], reserves[0]];
+
+            this.krTSLAReserve = krTSLAreserve;
+            this.USDCReserve = usdcReserve;
+
+            this.krTSLAAmt = await this.calculateAmountB(
+                this.USDCAmt,
+                this.USDC.address,
+                this.krTSLA.address,
+                this.lpPair,
+            );
+
+            this.expectedLiquidity = this.krTSLAAmt.mul(await this.lpPair.totalSupply()).div(krTSLAreserve);
+            this.deadline = (Date.now() / 1000 + 6000).toFixed(0);
+
+            await this.USDC.approve(this.KrStakingUniHelper.address, this.USDCAmt);
+            await this.krTSLA.approve(this.KrStakingUniHelper.address, this.krTSLAAmt);
+            await this.krBABA.approve(this.KrStakingUniHelper.address, ethers.constants.MaxUint256);
+            await this.krGOLD.approve(this.KrStakingUniHelper.address, ethers.constants.MaxUint256);
         });
 
         it("should add liquidity and deposit", async function () {
@@ -695,6 +774,7 @@ describe("Staking", function () {
             const deposited = await this.KrStaking.getDepositAmount(0);
             expect(deposited).to.equal(addEvent.args.amount);
         });
+
         it("should remove liquidity and withdraw", async function () {
             const addTx = await this.addLiquidityAndStake();
 
@@ -734,11 +814,11 @@ describe("Staking", function () {
             expect(removeEvent.args.pid).to.equal(0);
             expect(removeEvent.args.to).to.equal(this.admin);
 
-            const withdrawEvent = await extractInternalIndexedEventFromTxReceipt<WithdrawEvent["args"]>(
+            const withdrawEvent = (await extractInternalIndexedEventFromTxReceipt<WithdrawEvent["args"]>(
                 removeTx,
                 this.KrStaking,
                 "Withdraw",
-            );
+            )) as WithdrawEvent["args"];
 
             expect(withdrawEvent.amount).to.equal(removeEvent.args.amount);
             expect(withdrawEvent.pid).to.equal(removeEvent.args.pid);
@@ -752,6 +832,197 @@ describe("Staking", function () {
 
             expect(USDCbalance).to.equal(USDCAmt);
             expect(krTSLAbalance).to.equal(krTSLAAmt);
+        });
+
+        it("should be able to claim all rewards in a single tx", async function () {
+            await this.KrStaking.addPool(
+                [this.RewardTKN1.address, this.RewardTKN2.address],
+                this.lpPairBABA.address,
+                50,
+            );
+
+            await this.KrStaking.addPool(
+                [this.RewardTKN1.address, this.RewardTKN2.address],
+                this.lpPairGOLD.address,
+                75,
+            );
+
+            const USDCMintAmount = toBig(10_000_000);
+            const USDCDepositAmount = toBig(5_000_000);
+            const krAssetMintAmount = toBig(10);
+            const users = [this.signers.userOne, this.signers.userTwo, this.signers.userThree];
+
+            // Mint USDCMintAmount
+            await Promise.all(
+                users.map(async user => await this.USDC.connect(user).mint(user.address, USDCMintAmount)),
+            );
+
+            // Approve USDC
+            await Promise.all(
+                users.map(async user => await this.USDC.connect(user).approve(this.Kresko.address, MaxUint256)),
+            );
+
+            // Deposit USDC collateral
+            await Promise.all(
+                users.map(
+                    async user =>
+                        await this.Kresko.connect(user).depositCollateral(
+                            user.address,
+                            this.USDC.address,
+                            USDCDepositAmount,
+                        ),
+                ),
+            );
+
+            // Mint krAssets
+            await Promise.all(
+                users.map(async user => {
+                    await this.Kresko.connect(user).mintKreskoAsset(
+                        user.address,
+                        this.krTSLA.address,
+                        krAssetMintAmount,
+                    );
+                    await this.Kresko.connect(user).mintKreskoAsset(
+                        user.address,
+                        this.krBABA.address,
+                        krAssetMintAmount,
+                    );
+                    await this.Kresko.connect(user).mintKreskoAsset(
+                        user.address,
+                        this.krGOLD.address,
+                        krAssetMintAmount,
+                    );
+                }),
+            );
+
+            // Approve, provide liquidity and deposit through helper
+            await Promise.all(
+                users.map(async user => {
+                    await this.USDC.connect(user).approve(this.KrStakingUniHelper.address, ethers.constants.MaxUint256);
+                    await this.krTSLA
+                        .connect(user)
+                        .approve(this.KrStakingUniHelper.address, ethers.constants.MaxUint256);
+                    await this.krBABA
+                        .connect(user)
+                        .approve(this.KrStakingUniHelper.address, ethers.constants.MaxUint256);
+                    await this.krGOLD
+                        .connect(user)
+                        .approve(this.KrStakingUniHelper.address, ethers.constants.MaxUint256);
+
+                    const amountTSLAUSDC = await this.calculateAmountB(
+                        krAssetMintAmount,
+                        this.krTSLA.address,
+                        this.USDC.address,
+                        this.lpPair,
+                    );
+
+                    const amountBABAUSDC = await this.calculateAmountB(
+                        krAssetMintAmount,
+                        this.krBABA.address,
+                        this.USDC.address,
+                        this.lpPairBABA,
+                    );
+
+                    const amountGOLDUSDC = await this.calculateAmountB(
+                        krAssetMintAmount,
+                        this.krGOLD.address,
+                        this.USDC.address,
+                        this.lpPairGOLD,
+                    );
+
+                    // const balUSDC = fromBig(await this.USDC.balanceOf(user.address));
+                    // const balTSLA = fromBig(await this.krTSLA.balanceOf(user.address));
+                    // const balBABA = fromBig(await this.krBABA.balanceOf(user.address));
+                    // const balGOLD = fromBig(await this.krGOLD.balanceOf(user.address));
+                    // console.log({
+                    //     balUSDC,
+                    //     balTSLA,
+                    //     balBABA,
+                    //     balGOLD,
+                    //     amtGOLDUSDC: fromBig(amountGOLDUSDC),
+                    //     amtTSLAUSDC: fromBig(amountTSLAUSDC),
+                    //     amtBABAUSDC: fromBig(amountBABAUSDC),
+                    // });
+
+                    // tsla
+                    await this.KrStakingUniHelper.connect(user).addLiquidityAndStake(
+                        this.krTSLA.address,
+                        this.USDC.address,
+                        krAssetMintAmount,
+                        amountTSLAUSDC,
+                        krAssetMintAmount,
+                        amountTSLAUSDC,
+                        user.address,
+                        this.deadline,
+                    );
+
+                    // baba
+                    await this.KrStakingUniHelper.connect(user).addLiquidityAndStake(
+                        this.krBABA.address,
+                        this.USDC.address,
+                        krAssetMintAmount,
+                        amountBABAUSDC,
+                        krAssetMintAmount,
+                        amountBABAUSDC,
+                        user.address,
+                        this.deadline,
+                    );
+
+                    // gold
+                    await this.KrStakingUniHelper.connect(user).addLiquidityAndStake(
+                        this.krGOLD.address,
+                        this.USDC.address,
+                        krAssetMintAmount,
+                        amountGOLDUSDC,
+                        krAssetMintAmount,
+                        amountGOLDUSDC,
+                        user.address,
+                        this.deadline,
+                    );
+                }),
+            );
+
+            // Accumulate rewards
+            await time.advanceBlock();
+            await time.advanceBlock();
+            await time.advanceBlock();
+            await time.advanceBlock();
+            await time.advanceBlock();
+
+            // Checks
+            for (const user of users) {
+                const claimTx = await this.KrStakingUniHelper.connect(user).claimRewardsMulti(user.address);
+
+                const events = await extractInternalIndexedEventsFromTxReceipt<ClaimRewardsEvent["args"]>(
+                    claimTx,
+                    this.KrStaking,
+                    "ClaimRewards",
+                );
+                // 2 reward tokens * 3 pools
+                expect(events.length).to.equal(6);
+
+                // eslint-disable-next-line prefer-const
+                let totalRewardsFromEvents = BigNumber.from(0);
+                events.map(e => {
+                    // got rewards
+                    expect(e.amount.isZero()).to.be.false;
+                    totalRewardsFromEvents = totalRewardsFromEvents.add(e.amount);
+                    expect(e.user).to.equal(user.address);
+                });
+
+                const reward1Bal = await this.RewardTKN1.balanceOf(user.address);
+                const reward2Bal = await this.RewardTKN2.balanceOf(user.address);
+
+                const totalRewards = reward1Bal.add(reward2Bal);
+
+                expect(totalRewardsFromEvents).to.equal(totalRewards);
+
+                const [pendingRewards] = await this.KrStaking.allPendingRewards(user.address);
+
+                const totalPending = pendingRewards.amounts.reduce((a, b) => fromBig(b) + a, 0);
+
+                expect(totalPending).to.equal(0);
+            }
         });
     });
 });

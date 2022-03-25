@@ -6,8 +6,6 @@ import "./uniswap/v2-periphery/interfaces/IUniswapV2Router02.sol";
 import "./uniswap/v2-core/interfaces/IUniswapV2Factory.sol";
 import "./interfaces/IKrStaking.sol";
 
-import "hardhat/console.sol";
-
 contract KrStakingUniHelper {
     using SafeERC20 for IERC20;
 
@@ -27,8 +25,19 @@ contract KrStakingUniHelper {
 
     event LiquidityAndStakeAdded(address indexed to, uint256 indexed amount, uint256 indexed pid);
     event LiquidityAndStakeRemoved(address indexed to, uint256 indexed amount, uint256 indexed pid);
-    event RewardsClaimed(address indexed to);
+    event ClaimRewardsMulti(address indexed to);
 
+    /**
+     * @notice Add liquidity to a pair, deposit liquidity tokens to staking
+     * @param tokenA address of tokenA
+     * @param tokenB address of tokenB
+     * @param amountADesired optimal amount of token A
+     * @param amountBDesired optimal amount of token B
+     * @param amountAMin min amountA (slippage)
+     * @param amountBMin min amountB (slippage)
+     * @param to address to deposit for
+     * @param deadline transaction deadline (used by router)
+     */
     function addLiquidityAndStake(
         address tokenA,
         address tokenB,
@@ -69,6 +78,16 @@ contract KrStakingUniHelper {
         return liquidity;
     }
 
+    /**
+     * @notice Withdraw liquidity tokens from staking, remove the underlying
+     * @param tokenA address of tokenA
+     * @param tokenB address of tokenB
+     * @param liquidity liquidity token amount to remove
+     * @param amountAMin min amountA to receive (slippage)
+     * @param amountBMin min amountB to receive (slippage)
+     * @param to address that receives the underlying
+     * @param deadline transaction deadline (used by router)
+     */
     function withdrawAndRemoveLiquidity(
         address tokenA,
         address tokenB,
@@ -92,13 +111,19 @@ contract KrStakingUniHelper {
         emit LiquidityAndStakeRemoved(to, liquidity, pid);
     }
 
+    /**
+     * @notice Claim rewards from each pool
+     * @param to address that receives the rewards
+     */
     function claimRewardsMulti(address to) external {
         require(to != address(0), "KR: !address");
+
         uint256 length = staking.poolLength();
+
         for (uint256 i; i < length; i++) {
             staking.withdrawFor(msg.sender, i, 0, true, to);
         }
 
-        emit RewardsClaimed(to);
+        emit ClaimRewardsMulti(to);
     }
 }

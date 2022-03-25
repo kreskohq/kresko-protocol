@@ -42,6 +42,12 @@ declare module "mocha" {
         USDC: Token;
         krTSLA: KreskoAsset;
         Kresko: Kresko;
+        calculateAmountB: (
+            amountA: BigNumber,
+            tokenA: string,
+            tokenB: string,
+            pair: UniswapV2Pair,
+        ) => Promise<BigNumber>;
         getMostProfitableLiquidation: (
             userAddress: string,
         ) => Promise<{ maxUSD: number; collateralAsset: string; krAsset: string }>;

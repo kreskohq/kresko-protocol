@@ -1,3 +1,4 @@
+import { getLogger } from "@utils/deployment";
 import { fromBig, toBig } from "@utils/numbers";
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
@@ -14,6 +15,8 @@ task("uniswap:addliquidity")
         const { ethers, getNamedAccounts } = hre;
         const { deployer } = await getNamedAccounts();
         const { tknA, tknB, factoryAddr, routerAddr, log, wait } = taskArgs;
+
+        const logger = getLogger("addLiquidity", log);
 
         const TknA = await ethers.getContractAt<Token>("Token", tknA.address);
         const TknB = await ethers.getContractAt<Token>("Token", tknB.address);
@@ -35,22 +38,23 @@ task("uniswap:addliquidity")
         const approvalTknB = fromBig(await TknB.allowance(deployer, UniRouter.address), tknBDec);
 
         if (approvalTknA < tknA.amount) {
-            console.log("TknA allowance too low, approving UniRouter..");
+            logger.log("TknA allowance too low, approving router @", UniRouter.address);
             const tx = await TknA.approve(UniRouter.address, ethers.constants.MaxUint256);
             await tx.wait(wait);
-            console.log("Approval success");
+            logger.log("Approval success");
         }
 
         if (approvalTknB < tknB.amount) {
-            console.log("TknB allowance too low, approving UniRouter..");
+            logger.log("TknB allowance too low, approving router @", UniRouter.address);
             const tx = await TknB.approve(UniRouter.address, ethers.constants.MaxUint256);
             await tx.wait(wait);
-            console.log("Approval success");
+            logger.log("Approval success");
         }
 
         const tknAName = await TknA.name();
         const tknBName = await TknB.name();
-        console.log("Adding LP for", tknAName, tknBName);
+
+        logger.log("Adding liquidity for", tknAName, tknBName);
 
         // Add initial LP (also creates the pair) according to oracle price
         const tx = await UniRouter.addLiquidity(
@@ -71,11 +75,11 @@ task("uniswap:addliquidity")
         );
 
         const LPBalanceOfDeployer = await Pair.balanceOf(deployer);
-        if (log) {
-            console.log("Deployer has", fromBig(LPBalanceOfDeployer).toFixed(2), "LP tokens");
-            console.log("Unipair has", fromBig(await TknA.balanceOf(Pair.address), tknADec), tknAName);
-            console.log("Unipair has", fromBig(await TknB.balanceOf(Pair.address), tknBDec), tknBName);
-        }
 
+        logger.log("Deployer balance LP", fromBig(LPBalanceOfDeployer).toFixed(2), "LP tokens");
+        logger.log("Pair balance tknA", fromBig(await TknA.balanceOf(Pair.address), tknADec), tknAName);
+        logger.log("Pair balance tknB", fromBig(await TknB.balanceOf(Pair.address), tknBDec), tknBName);
+
+        logger.success("Succesfully added liquidity @", Pair.address);
         return Pair;
     });
