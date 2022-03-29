@@ -227,7 +227,7 @@ describe.only("Staking", function () {
             const startBlock = await time.latestBlock();
 
             // Claim rewards
-            await this.KrStaking.withdraw(0, 0, true, this.admin);
+            await this.KrStaking.withdraw(0, 0, this.admin);
             let reward1Bal = await this.RewardTKN1.balanceOf(this.admin);
             let reward2Bal = await this.RewardTKN2.balanceOf(this.admin);
 
@@ -239,7 +239,7 @@ describe.only("Staking", function () {
             expect(Number(reward2Bal)).to.not.be.greaterThan(Number(rewardPerBlockTKN2));
 
             // Claim rewards again
-            await this.KrStaking.withdraw(0, 0, true, this.admin);
+            await this.KrStaking.withdraw(0, 0, this.admin);
 
             // Get total blocks spent earning
             const blocksSpentEarning = (await time.latestBlock()) - startBlock;
@@ -341,7 +341,7 @@ describe.only("Staking", function () {
 
             // Claim rewards and all deposits (claiming more than user amount just sends the whole deposit balance)
             await Promise.all(
-                users.map(async user => await this.KrStaking.connect(user).withdraw(0, MaxUint256, true, user.address)),
+                users.map(async user => await this.KrStaking.connect(user).withdraw(0, MaxUint256, user.address)),
             );
 
             // Get reward balances for each user
@@ -403,7 +403,7 @@ describe.only("Staking", function () {
             expect(pendingRewards.amounts[1]).to.be.closeTo(rewardPerBlockTKN2, 1e12);
 
             // Claim rewards
-            await this.KrStaking.withdraw(0, 0, true, this.admin);
+            await this.KrStaking.withdraw(0, 0, this.admin);
 
             // Get reward token balances
             const rewardTKN1Bal = await this.RewardTKN1.balanceOf(this.admin);
@@ -417,7 +417,7 @@ describe.only("Staking", function () {
             expect(rewardTKN2Bal).to.be.closeTo(rewardPerBlockTKN2.mul(blocksSpentEarning), 1e12);
 
             // Withdraw whole deposit and rewards
-            const res = await this.KrStaking.withdraw(0, lpBalance, true, this.admin);
+            const res = await this.KrStaking.withdraw(0, lpBalance, this.admin);
 
             const { args } = await extractEventFromTxReceipt<WithdrawEvent>(res, "Withdraw");
 
@@ -457,7 +457,7 @@ describe.only("Staking", function () {
             expect(rewardTKN2BalanceAfterFullWithdraw).to.be.closeTo(rewardPerBlockTKN2.mul(blocksSpentEarning), 1e12);
 
             // Withdraw and claim everything again
-            await this.KrStaking.withdraw(0, lpBalance, true, this.admin);
+            await this.KrStaking.withdraw(0, lpBalance, this.admin);
 
             const rewardTKN1BalAfterRepeatFullWithdraw = await this.RewardTKN1.balanceOf(this.admin);
             const rewardTKN2BalAfterRepeatFullWithdraw = await this.RewardTKN2.balanceOf(this.admin);
@@ -465,6 +465,93 @@ describe.only("Staking", function () {
             // No further rewards should be claimed
             expect(rewardTKN1BalAfterRepeatFullWithdraw).to.equal(rewardTKN1BalanceAfterFullWithdraw);
             expect(rewardTKN2BalAfterRepeatFullWithdraw).to.equal(rewardTKN2BalanceAfterFullWithdraw);
+        });
+
+        it("should be able to withdraw without claiming rewards", async function () {
+            // Reward per blocks per reward token
+            const rewardPerBlockTKN1 = await this.KrStaking.rewardPerBlockFor(this.RewardTKN1.address);
+            const rewardPerBlockTKN2 = await this.KrStaking.rewardPerBlockFor(this.RewardTKN2.address);
+
+            // Approve the token usage for Staking contract
+            const lpBalance = await this.lpPair.balanceOf(this.admin);
+            await this.lpPair.approve(this.KrStaking.address, MaxUint256);
+
+            // Deposit the whole balance
+            await this.KrStaking.deposit(this.admin, 0, lpBalance);
+
+            // Get deposited amount for poolId 0 (initial pool)
+            const depositAmount = await this.KrStaking.getDepositAmount(0);
+
+            // Ensure it equals the balance deposited
+            expect(lpBalance).to.equal(depositAmount);
+
+            // Advance blocks
+            await time.advanceBlock();
+
+            const [pendingRewardsBeforeWithdraw] = await this.KrStaking.allPendingRewards(this.admin);
+
+            // Rewards should equal the drip per block (delta precision factor of 1e12)
+            expect(pendingRewardsBeforeWithdraw.amounts[0]).to.be.closeTo(rewardPerBlockTKN1, 1e12);
+            expect(pendingRewardsBeforeWithdraw.amounts[1]).to.be.closeTo(rewardPerBlockTKN2, 1e12);
+            // Withdraw tokens
+            await this.KrStaking.withdraw(0, depositAmount.div(2), this.admin);
+
+            // Advance one block
+            await time.advanceBlock();
+
+            // Get pending rewards for the user
+            const [pendingRewardsAfterWithdraw] = await this.KrStaking.allPendingRewards(this.admin);
+
+            expect(pendingRewardsAfterWithdraw.amounts[0]).to.be.closeTo(
+                pendingRewardsBeforeWithdraw.amounts[0].add(rewardPerBlockTKN1),
+                1e12,
+            );
+            expect(pendingRewardsAfterWithdraw.amounts[1]).to.be.closeTo(
+                pendingRewardsBeforeWithdraw.amounts[1].add(rewardPerBlockTKN2),
+                1e12,
+            );
+
+            // Withdraw rewards
+            const claimTx = await this.KrStaking.withdraw(0, 0, this.admin);
+
+            const claimEvents = await extractInternalIndexedEventsFromTxReceipt<ClaimRewardsEvent["args"]>(
+                claimTx,
+                this.KrStaking,
+                "ClaimRewards",
+            );
+            const [pendingRewardsAfterClaim] = await this.KrStaking.allPendingRewards(this.admin);
+
+            // No further rewards should be claimed
+            expect(pendingRewardsAfterClaim.amounts[0]).to.equal(0);
+            expect(pendingRewardsAfterClaim.amounts[1]).to.equal(0);
+
+            const rewardTKN1Bal = await this.RewardTKN1.balanceOf(this.admin);
+            const rewardTKN2Bal = await this.RewardTKN2.balanceOf(this.admin);
+
+            // No further rewards should be available
+            expect(claimEvents[0].amount).to.equal(rewardTKN1Bal);
+            expect(claimEvents[1].amount).to.equal(rewardTKN2Bal);
+
+            // Claim more than remaining balance to send whole balance + claim rewards
+            const exitTx = await this.KrStaking.withdraw(0, lpBalance, this.admin);
+
+            const exitEvents = await extractInternalIndexedEventsFromTxReceipt<ClaimRewardsEvent["args"]>(
+                exitTx,
+                this.KrStaking,
+                "ClaimRewards",
+            );
+
+            const depositAfter = await this.KrStaking.getDepositAmount(0);
+
+            expect(depositAfter).to.equal(0);
+            // No further rewards should be available
+            expect(exitEvents[0].amount).to.be.gt(0);
+            expect(exitEvents[1].amount).to.be.gt(0);
+
+            // Get pending rewards for the user
+            const [pendingRewardsAfterExit] = await this.KrStaking.allPendingRewards(this.admin);
+            expect(pendingRewardsAfterExit.amounts[0]).to.equal(0);
+            expect(pendingRewardsAfterExit.amounts[1]).to.equal(0);
         });
 
         it("should be able to deposit and claim without withdrawing any tokens", async function () {
@@ -529,7 +616,7 @@ describe.only("Staking", function () {
             expect(pendingRewards.amounts[1]).to.be.closeTo(rewardPerBlockTKN2.mul(blocksSpentEarning), 1e12);
 
             // Claim rewards
-            await this.KrStaking.withdraw(0, 0, true, this.admin);
+            await this.KrStaking.withdraw(0, 0, this.admin);
             blocksSpentEarning = (await time.latestBlock()) - startBlock;
 
             // Get reward token balances
@@ -548,7 +635,7 @@ describe.only("Staking", function () {
             expect(pendingRewards.amounts[1]).to.equal(0);
 
             // Claim rewards
-            await this.KrStaking.withdraw(0, 0, true, this.admin);
+            await this.KrStaking.withdraw(0, 0, this.admin);
             blocksSpentEarning = (await time.latestBlock()) - startBlock;
 
             // Get balances after second claim
@@ -646,15 +733,10 @@ describe.only("Staking", function () {
             await Promise.all(
                 depositors.map(
                     async depositor =>
-                        await this.KrStaking.connect(depositor).withdraw(2, MaxUint256, true, depositor.address),
+                        await this.KrStaking.connect(depositor).withdraw(2, MaxUint256, depositor.address),
                 ),
             );
-            await this.KrStaking.connect(this.signers.userOne).withdraw(
-                1,
-                MaxUint256,
-                true,
-                this.signers.userOne.address,
-            );
+            await this.KrStaking.connect(this.signers.userOne).withdraw(1, MaxUint256, this.signers.userOne.address);
 
             // Advance block for ensure we are not gaining rewards
             await time.advanceBlock();

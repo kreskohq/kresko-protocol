@@ -35,7 +35,6 @@ interface IKrStaking {
         address _for,
         uint256 _pid,
         uint256 _amount,
-        bool _claimRewards,
         address _claimRewardsTo
     ) external;
 

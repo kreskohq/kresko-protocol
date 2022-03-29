@@ -297,22 +297,23 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
      * @notice IF @param _claimRewards = true && @param _amount = 0 will claim only
      * @param _pid id in `poolInfo`
      * @param _amount amount to withdraw
-     * @param _claimRewards does claim rewards
      * @param _claimRewardsTo address to send rewards to
      */
     function withdraw(
         uint256 _pid,
         uint256 _amount,
-        bool _claimRewards,
         address _claimRewardsTo
     ) external payable nonReentrant {
         PoolInfo memory pool = updatePool(_pid);
         UserInfo storage user = userInfo[_pid][msg.sender];
 
+        bool claim = _amount == 0 || _amount >= user.amount;
+
         // Send rewards to user
-        if (_claimRewards) {
+        if (claim) {
             claimRewards(pool, user, _claimRewardsTo);
         }
+
         if (_amount > 0) {
             // If user tries to withdraw amount > balance, just send the whole balance
             if (_amount > user.amount) {
@@ -327,9 +328,11 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
             emit Withdraw(msg.sender, _pid, _amount);
         }
 
-        // Update reward debts
-        for (uint256 rewardIndex; rewardIndex < pool.rewardTokens.length; rewardIndex++) {
-            user.rewardDebts[rewardIndex] = (user.amount * (pool.accRewardPerShares[rewardIndex])) / 1e12;
+        // Update reward debts if claimed
+        if (claim) {
+            for (uint256 rewardIndex; rewardIndex < pool.rewardTokens.length; rewardIndex++) {
+                user.rewardDebts[rewardIndex] = (user.amount * (pool.accRewardPerShares[rewardIndex])) / 1e12;
+            }
         }
     }
 
@@ -339,23 +342,24 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
      * @param _for user to withdraw from
      * @param _pid id in `poolInfo`
      * @param _amount amount to withdraw
-     * @param _claimRewards does claim rewards
      * @param _claimRewardsTo address to send rewards to
      */
     function withdrawFor(
         address _for,
         uint256 _pid,
         uint256 _amount,
-        bool _claimRewards,
         address _claimRewardsTo
     ) external payable nonReentrant onlyRole(OPERATOR_ROLE) {
         PoolInfo memory pool = updatePool(_pid);
         UserInfo storage user = userInfo[_pid][_for];
 
+        bool claim = _amount == 0 || _amount >= user.amount;
+
         // Send rewards to user
-        if (_claimRewards) {
+        if (claim) {
             claimRewards(pool, user, _claimRewardsTo);
         }
+
         if (_amount > 0) {
             // If user tries to withdraw amount > balance, just send the whole balance
             if (_amount > user.amount) {
@@ -370,9 +374,11 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
             emit Withdraw(_for, _pid, _amount);
         }
 
-        // Update reward debts
-        for (uint256 rewardIndex; rewardIndex < pool.rewardTokens.length; rewardIndex++) {
-            user.rewardDebts[rewardIndex] = (user.amount * (pool.accRewardPerShares[rewardIndex])) / 1e12;
+        // Update reward debts if claimed
+        if (claim) {
+            for (uint256 rewardIndex; rewardIndex < pool.rewardTokens.length; rewardIndex++) {
+                user.rewardDebts[rewardIndex] = (user.amount * (pool.accRewardPerShares[rewardIndex])) / 1e12;
+            }
         }
     }
 

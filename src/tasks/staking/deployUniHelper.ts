@@ -14,7 +14,7 @@ task("deploy:stakingunihelper")
         const { deployer } = await getNamedAccounts();
         const deploy = deployWithSignatures(hre);
         const { routerAddr, factoryAddr, stakingAddr, wait, log } = taskArgs;
-        const logger = getLogger("deploy:stakingunihelper");
+        const logger = getLogger("deploy:stakingunihelper", log);
         let Router: UniswapV2Router02;
         let Factory: UniswapV2Factory;
         let KrStaking: KrStaking;

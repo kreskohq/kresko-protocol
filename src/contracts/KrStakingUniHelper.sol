@@ -103,7 +103,7 @@ contract KrStakingUniHelper {
 
         require(found, "KR: !poolExists");
 
-        staking.withdrawFor(to, pid, liquidity, true, to);
+        staking.withdrawFor(to, pid, liquidity, to);
 
         IERC20(pair).approve(address(router), liquidity);
         router.removeLiquidity(tokenA, tokenB, liquidity, amountAMin, amountBMin, to, deadline);
@@ -121,7 +121,7 @@ contract KrStakingUniHelper {
         uint256 length = staking.poolLength();
 
         for (uint256 i; i < length; i++) {
-            staking.withdrawFor(msg.sender, i, 0, true, to);
+            staking.withdrawFor(msg.sender, i, 0, to);
         }
 
         emit ClaimRewardsMulti(to);
