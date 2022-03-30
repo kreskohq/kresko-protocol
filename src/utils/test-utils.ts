@@ -24,6 +24,7 @@ export const MINIMUM_COLLATERALIZATION_RATIO = toFixedPoint(1.5); // 150%
 export const CLOSE_FACTOR = toFixedPoint(0.2); // 20%
 export const LIQUIDATION_INCENTIVE = toFixedPoint(1.1); // 110% -> liquidators make 10% on liquidations
 export const MINIMUM_DEBT_VALUE = toFixedPoint(10); // $10
+export const SECONDS_UNTIL_PRICE_STALE = 60;
 export const FEE_RECIPIENT_ADDRESS = "0x0000000000000000000000000000000000000FEE";
 
 export const { deployContract } = waffle;
