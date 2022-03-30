@@ -50,7 +50,6 @@ describe("Time", function () {
         ); // kFactor = 1, price = $250
     });
 
-
     it("should not allow minting of Kresko assets when price is stale", async function () {
         // Attempt initial mint with fresh price
         const kreskoAssetAddress = this.kreskoAssetInfo.kreskoAsset.address;

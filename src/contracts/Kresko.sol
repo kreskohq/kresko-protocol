@@ -721,6 +721,9 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         require(collateralAssets[_collateralAssetToSeize].exists, "KR: !collateralExists");
         require(_repayAmount > 0, "KR: 0-repay");
 
+        uint256 priceTimestamp = uint256(kreskoAssets[_repayKreskoAsset].oracle.latestTimestamp());
+        require(block.timestamp < priceTimestamp+secondsUntilStalePrice, "KR: stale price");
+
         // Borrower cannot liquidate themselves
         require(msg.sender != _account, "KR: self liquidation");
 
