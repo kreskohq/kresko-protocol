@@ -8,13 +8,14 @@ task("deploy:staking")
     .addParam("stakingToken", "Address of the token to be staked")
     .addParam("rewardTokens", "Addresses of the tokens to be rewarded, separate by ,")
     .addParam("rewardPerBlocks", "Tokens rewarded per block, separate by ,")
+    .addOptionalParam("startBlock", "Block to start reward drip, current block if not supplied", 0, types.int)
     .addOptionalParam("wait", "wait confirmations", 1, types.int)
     .addOptionalParam("log", "log information", true, types.boolean)
     .setAction(async function (taskArgs: TaskArguments, hre) {
         const { getNamedAccounts } = hre;
         const { deployer } = await getNamedAccounts();
         const deploy = deployWithSignatures(hre);
-        const { stakingToken, rewardTokens, rewardPerBlocks, wait, log } = taskArgs;
+        const { stakingToken, rewardTokens, rewardPerBlocks, startBlock, wait, log } = taskArgs;
         const logger = getLogger("latestAnswer", log);
         const rewardTokenArr = rewardTokens.split(",");
         const rewardPerBlocksArr = rewardPerBlocks.split(",");
@@ -37,6 +38,7 @@ task("deploy:staking")
                             rewardPerBlocksArr.map((val: string) => toBig(Number(val))),
                             stakingToken,
                             1000,
+                            startBlock,
                         ],
                     },
                 },

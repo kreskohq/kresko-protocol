@@ -23,9 +23,21 @@ contract KrStakingUniHelper {
         staking = _staking;
     }
 
+    /**
+     * ==================================================
+     * ============ Events ==============================
+     * ==================================================
+     */
+
     event LiquidityAndStakeAdded(address indexed to, uint256 indexed amount, uint256 indexed pid);
     event LiquidityAndStakeRemoved(address indexed to, uint256 indexed amount, uint256 indexed pid);
     event ClaimRewardsMulti(address indexed to);
+
+    /**
+     * ==================================================
+     * ============ Public functions ====================
+     * ==================================================
+     */
 
     /**
      * @notice Add liquidity to a pair, deposit liquidity tokens to staking
@@ -103,7 +115,7 @@ contract KrStakingUniHelper {
 
         require(found, "KR: !poolExists");
 
-        staking.withdrawFor(to, pid, liquidity, to);
+        staking.withdrawFor(msg.sender, pid, liquidity, to);
 
         IERC20(pair).approve(address(router), liquidity);
         router.removeLiquidity(tokenA, tokenB, liquidity, amountAMin, amountBMin, to, deadline);
@@ -121,7 +133,7 @@ contract KrStakingUniHelper {
         uint256 length = staking.poolLength();
 
         for (uint256 i; i < length; i++) {
-            staking.withdrawFor(msg.sender, i, 0, to);
+            staking.claimFor(msg.sender, i, to);
         }
 
         emit ClaimRewardsMulti(to);
