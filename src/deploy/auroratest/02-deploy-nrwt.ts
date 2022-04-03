@@ -35,7 +35,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         NRTWImplementation: deployment.implementation,
     };
 
-    console.log(contracts);
+    logger.log(contracts);
     logger.success("Succesfully deployed nrwts");
 };
 

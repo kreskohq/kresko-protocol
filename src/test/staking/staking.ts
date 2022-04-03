@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import hre, { ethers } from "hardhat";
 import { expect } from "chai";
 import {

@@ -26,4 +26,13 @@ export const users = {
     priceFeedValidator: {
         default: 7,
     },
+    userFour: {
+        default: 8,
+    },
+    userFive: {
+        default: 9,
+    },
+    userSix: {
+        default: 10,
+    },
 };

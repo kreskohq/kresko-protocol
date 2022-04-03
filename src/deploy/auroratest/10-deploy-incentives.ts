@@ -8,13 +8,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const RewardToken1: RewardToken = await hre.run("deploy:token", {
         name: "RewardToken1",
         symbol: "Reward2",
-        amount: 50000,
+        amount: 50_000_000,
         wait: 2,
     });
     const RewardToken2: RewardToken = await hre.run("deploy:token", {
         name: "RewardToken2",
         symbol: "Reward2",
-        amount: 50000,
+        amount: 50_000_000,
         wait: 2,
     });
     const contracts = {
