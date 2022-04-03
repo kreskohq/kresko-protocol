@@ -1,0 +1,891 @@
+{
+    "address": "0xCa6F358Ca1AD93f13a7385a32B704E7DA47f4bc9",
+    "abi": [
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "_validator",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint8",
+                    "name": "_decimals",
+                    "type": "uint8"
+                },
+                {
+                    "internalType": "string",
+                    "name": "_description",
+                    "type": "string"
+                }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "constructor"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "int256",
+                    "name": "current",
+                    "type": "int256"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "uint256",
+                    "name": "roundId",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "updatedAt",
+                    "type": "uint256"
+                }
+            ],
+            "name": "AnswerUpdated",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "uint256",
+                    "name": "roundId",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "startedBy",
+                    "type": "address"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "startedAt",
+                    "type": "uint256"
+                }
+            ],
+            "name": "NewRound",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "uint32",
+                    "name": "aggregatorRoundId",
+                    "type": "uint32"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "int192",
+                    "name": "answer",
+                    "type": "int192"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "transmitter",
+                    "type": "address"
+                }
+            ],
+            "name": "NewTransmission",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "previousAdminRole",
+                    "type": "bytes32"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "newAdminRole",
+                    "type": "bytes32"
+                }
+            ],
+            "name": "RoleAdminChanged",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                }
+            ],
+            "name": "RoleGranted",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                }
+            ],
+            "name": "RoleRevoked",
+            "type": "event"
+        },
+        {
+            "inputs": [],
+            "name": "DEFAULT_ADMIN_ROLE",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "VALIDATOR_ROLE",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "decimals",
+            "outputs": [
+                {
+                    "internalType": "uint8",
+                    "name": "",
+                    "type": "uint8"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "description",
+            "outputs": [
+                {
+                    "internalType": "string",
+                    "name": "",
+                    "type": "string"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "_roundId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "getAnswer",
+            "outputs": [
+                {
+                    "internalType": "int256",
+                    "name": "",
+                    "type": "int256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                }
+            ],
+            "name": "getRoleAdmin",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint80",
+                    "name": "_roundId",
+                    "type": "uint80"
+                }
+            ],
+            "name": "getRoundData",
+            "outputs": [
+                {
+                    "internalType": "uint80",
+                    "name": "roundId",
+                    "type": "uint80"
+                },
+                {
+                    "internalType": "int256",
+                    "name": "answer",
+                    "type": "int256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "startedAt",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "updatedAt",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint80",
+                    "name": "answeredInRound",
+                    "type": "uint80"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "_roundId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "getTimestamp",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                }
+            ],
+            "name": "grantRole",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                }
+            ],
+            "name": "hasRole",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "latestAggregatorRoundId",
+            "outputs": [
+                {
+                    "internalType": "uint32",
+                    "name": "",
+                    "type": "uint32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "latestAnswer",
+            "outputs": [
+                {
+                    "internalType": "int256",
+                    "name": "",
+                    "type": "int256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "latestRound",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "latestRoundData",
+            "outputs": [
+                {
+                    "internalType": "uint80",
+                    "name": "roundId",
+                    "type": "uint80"
+                },
+                {
+                    "internalType": "int256",
+                    "name": "answer",
+                    "type": "int256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "startedAt",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "updatedAt",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint80",
+                    "name": "answeredInRound",
+                    "type": "uint80"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "latestTimestamp",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "latestTransmissionDetails",
+            "outputs": [
+                {
+                    "internalType": "int192",
+                    "name": "_latestAnswer",
+                    "type": "int192"
+                },
+                {
+                    "internalType": "uint64",
+                    "name": "_latestTimestamp",
+                    "type": "uint64"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                }
+            ],
+            "name": "renounceRole",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                }
+            ],
+            "name": "revokeRole",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "bytes4",
+                    "name": "interfaceId",
+                    "type": "bytes4"
+                }
+            ],
+            "name": "supportsInterface",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "int192",
+                    "name": "_answer",
+                    "type": "int192"
+                }
+            ],
+            "name": "transmit",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "typeAndVersion",
+            "outputs": [
+                {
+                    "internalType": "string",
+                    "name": "",
+                    "type": "string"
+                }
+            ],
+            "stateMutability": "pure",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "version",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        }
+    ],
+    "transactionHash": "0xc3e687d385a4911f1a359ad095468c3c9fcac9c7a6063501f8c64a2b98d6e929",
+    "receipt": {
+        "to": null,
+        "from": "0x600F7085d1a4f5a9890C36EfE67c32F5ad7050b7",
+        "contractAddress": "0xCa6F358Ca1AD93f13a7385a32B704E7DA47f4bc9",
+        "transactionIndex": 0,
+        "gasUsed": "982200",
+        "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "blockHash": "0xf6804c9cdc2dbea0bacfc70d7530c472cda51dc15a240158f1d3d483431f5702",
+        "transactionHash": "0xc3e687d385a4911f1a359ad095468c3c9fcac9c7a6063501f8c64a2b98d6e929",
+        "logs": [
+            {
+                "transactionIndex": 0,
+                "blockNumber": 86653816,
+                "transactionHash": "0xc3e687d385a4911f1a359ad095468c3c9fcac9c7a6063501f8c64a2b98d6e929",
+                "address": "0xCa6F358Ca1AD93f13a7385a32B704E7DA47f4bc9",
+                "topics": [
+                    "0x2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d",
+                    "0x0000000000000000000000000000000000000000000000000000000000000000",
+                    "0x000000000000000000000000600f7085d1a4f5a9890c36efe67c32f5ad7050b7",
+                    "0x000000000000000000000000600f7085d1a4f5a9890c36efe67c32f5ad7050b7"
+                ],
+                "data": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                "logIndex": 0,
+                "blockHash": "0xf6804c9cdc2dbea0bacfc70d7530c472cda51dc15a240158f1d3d483431f5702"
+            },
+            {
+                "transactionIndex": 0,
+                "blockNumber": 86653816,
+                "transactionHash": "0xc3e687d385a4911f1a359ad095468c3c9fcac9c7a6063501f8c64a2b98d6e929",
+                "address": "0xCa6F358Ca1AD93f13a7385a32B704E7DA47f4bc9",
+                "topics": [
+                    "0x2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d",
+                    "0x21702c8af46127c7fa207f89d0b0a8441bb32959a0ac7df790e9ab1a25c98926",
+                    "0x000000000000000000000000223e8302583461041087bd7718f43f50b1f77fa1",
+                    "0x000000000000000000000000600f7085d1a4f5a9890c36efe67c32f5ad7050b7"
+                ],
+                "data": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                "logIndex": 1,
+                "blockHash": "0xf6804c9cdc2dbea0bacfc70d7530c472cda51dc15a240158f1d3d483431f5702"
+            }
+        ],
+        "blockNumber": 86653816,
+        "cumulativeGasUsed": "0",
+        "status": 1,
+        "byzantium": true
+    },
+    "args": ["0x223E8302583461041087bD7718f43F50b1F77fA1", 8, "QQQ/USD"],
+    "numDeployments": 1,
+    "solcInputHash": "2aafaed9b8bd0478c07754209a9062a6",
+    "metadata": "{\"compiler\":{\"version\":\"0.8.10+commit.fc410830\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_validator\",\"type\":\"address\"},{\"internalType\":\"uint8\",\"name\":\"_decimals\",\"type\":\"uint8\"},{\"internalType\":\"string\",\"name\":\"_description\",\"type\":\"string\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"int256\",\"name\":\"current\",\"type\":\"int256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"roundId\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"updatedAt\",\"type\":\"uint256\"}],\"name\":\"AnswerUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"roundId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"startedBy\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"startedAt\",\"type\":\"uint256\"}],\"name\":\"NewRound\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint32\",\"name\":\"aggregatorRoundId\",\"type\":\"uint32\"},{\"indexed\":false,\"internalType\":\"int192\",\"name\":\"answer\",\"type\":\"int192\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"transmitter\",\"type\":\"address\"}],\"name\":\"NewTransmission\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"previousAdminRole\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"newAdminRole\",\"type\":\"bytes32\"}],\"name\":\"RoleAdminChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"}],\"name\":\"RoleGranted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"}],\"name\":\"RoleRevoked\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"DEFAULT_ADMIN_ROLE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"VALIDATOR_ROLE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"description\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_roundId\",\"type\":\"uint256\"}],\"name\":\"getAnswer\",\"outputs\":[{\"internalType\":\"int256\",\"name\":\"\",\"type\":\"int256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"}],\"name\":\"getRoleAdmin\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint80\",\"name\":\"_roundId\",\"type\":\"uint80\"}],\"name\":\"getRoundData\",\"outputs\":[{\"internalType\":\"uint80\",\"name\":\"roundId\",\"type\":\"uint80\"},{\"internalType\":\"int256\",\"name\":\"answer\",\"type\":\"int256\"},{\"internalType\":\"uint256\",\"name\":\"startedAt\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"updatedAt\",\"type\":\"uint256\"},{\"internalType\":\"uint80\",\"name\":\"answeredInRound\",\"type\":\"uint80\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_roundId\",\"type\":\"uint256\"}],\"name\":\"getTimestamp\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"grantRole\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"hasRole\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestAggregatorRoundId\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestAnswer\",\"outputs\":[{\"internalType\":\"int256\",\"name\":\"\",\"type\":\"int256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestRound\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestRoundData\",\"outputs\":[{\"internalType\":\"uint80\",\"name\":\"roundId\",\"type\":\"uint80\"},{\"internalType\":\"int256\",\"name\":\"answer\",\"type\":\"int256\"},{\"internalType\":\"uint256\",\"name\":\"startedAt\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"updatedAt\",\"type\":\"uint256\"},{\"internalType\":\"uint80\",\"name\":\"answeredInRound\",\"type\":\"uint80\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestTimestamp\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestTransmissionDetails\",\"outputs\":[{\"internalType\":\"int192\",\"name\":\"_latestAnswer\",\"type\":\"int192\"},{\"internalType\":\"uint64\",\"name\":\"_latestTimestamp\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"renounceRole\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"revokeRole\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"interfaceId\",\"type\":\"bytes4\"}],\"name\":\"supportsInterface\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"int192\",\"name\":\"_answer\",\"type\":\"int192\"}],\"name\":\"transmit\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"typeAndVersion\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"version\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"events\":{\"NewTransmission(uint32,int192,address)\":{\"params\":{\"aggregatorRoundId\":\"the round to which this report was assigned\",\"answer\":\"value posted by validator\",\"transmitter\":\"address from which the report was transmitted\"}}},\"kind\":\"dev\",\"methods\":{\"constructor\":{\"params\":{\"_decimals\":\"answers are stored in fixed-point format, with this many digits of precision\",\"_description\":\"short human-readable description of observable this contract's answers pertain to\",\"_validator\":\"the initial validator that can post data to this contract\"}},\"getAnswer(uint256)\":{\"params\":{\"_roundId\":\"the aggregator round of the target report\"}},\"getRoleAdmin(bytes32)\":{\"details\":\"Returns the admin role that controls `role`. See {grantRole} and {revokeRole}. To change a role's admin, use {_setRoleAdmin}.\"},\"getRoundData(uint80)\":{\"params\":{\"_roundId\":\"target aggregator round. Must fit in uint32\"},\"returns\":{\"answer\":\"answer of report from given _roundId\",\"answeredInRound\":\"_roundId\",\"roundId\":\"_roundId\",\"startedAt\":\"timestamp of block in which report from given _roundId was transmitted\",\"updatedAt\":\"timestamp of block in which report from given _roundId was transmitted\"}},\"getTimestamp(uint256)\":{\"params\":{\"_roundId\":\"aggregator round of target report\"}},\"grantRole(bytes32,address)\":{\"details\":\"Grants `role` to `account`. If `account` had not been already granted `role`, emits a {RoleGranted} event. Requirements: - the caller must have ``role``'s admin role.\"},\"hasRole(bytes32,address)\":{\"details\":\"Returns `true` if `account` has been granted `role`.\"},\"latestRoundData()\":{\"returns\":{\"answer\":\"answer of latest report\",\"answeredInRound\":\"aggregator round of latest report\",\"roundId\":\"aggregator round of latest report\",\"startedAt\":\"timestamp of block containing latest report\",\"updatedAt\":\"timestamp of block containing latest report\"}},\"latestTransmissionDetails()\":{\"returns\":{\"_latestAnswer\":\"value from latest report\",\"_latestTimestamp\":\"when the latest report was transmitted\"}},\"renounceRole(bytes32,address)\":{\"details\":\"Revokes `role` from the calling account. Roles are often managed via {grantRole} and {revokeRole}: this function's purpose is to provide a mechanism for accounts to lose their privileges if they are compromised (such as when a trusted device is misplaced). If the calling account had been revoked `role`, emits a {RoleRevoked} event. Requirements: - the caller must be `account`.\"},\"revokeRole(bytes32,address)\":{\"details\":\"Revokes `role` from `account`. If `account` had been granted `role`, emits a {RoleRevoked} event. Requirements: - the caller must have ``role``'s admin role.\"},\"supportsInterface(bytes4)\":{\"details\":\"See {IERC165-supportsInterface}.\"},\"transmit(int192)\":{\"params\":{\"_answer\":\"latest answer\"}}},\"stateVariables\":{\"decimals\":{\"return\":\"answers are stored in fixed-point format, with this many digits of precision\",\"returns\":{\"_0\":\"answers are stored in fixed-point format, with this many digits of precision\"}}},\"version\":1},\"userdoc\":{\"events\":{\"NewTransmission(uint32,int192,address)\":{\"notice\":\"indicates that a new report was transmitted\"}},\"kind\":\"user\",\"methods\":{\"description()\":{\"notice\":\"human-readable description of observable this contract is reporting on\"},\"getAnswer(uint256)\":{\"notice\":\"answer of report from given aggregator round\"},\"getRoundData(uint80)\":{\"notice\":\"details for the given aggregator round\"},\"getTimestamp(uint256)\":{\"notice\":\"timestamp of block in which report from given aggregator round was transmitted\"},\"latestAnswer()\":{\"notice\":\"answer from the most recent report\"},\"latestRound()\":{\"notice\":\"Aggregator round in which last report was transmitted\"},\"latestRoundData()\":{\"notice\":\"aggregator details for the most recently transmitted report\"},\"latestTimestamp()\":{\"notice\":\"timestamp of block in which last report was transmitted\"},\"latestTransmissionDetails()\":{\"notice\":\"details about the most recent report\"},\"transmit(int192)\":{\"notice\":\"transmit is called to post a new report to the contract\"},\"version()\":{\"notice\":\"aggregator contract version\"}},\"notice\":\"Simple data posting on chain of a scalar value, compatible with Chainlink V2 and V3 aggregator interface\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"src/contracts/flux/FluxPriceFeed.sol\":\"FluxPriceFeed\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"none\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":800},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/access/AccessControl.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.1 (access/AccessControl.sol)\\n\\npragma solidity ^0.8.0;\\n\\nimport \\\"./IAccessControl.sol\\\";\\nimport \\\"../utils/Context.sol\\\";\\nimport \\\"../utils/Strings.sol\\\";\\nimport \\\"../utils/introspection/ERC165.sol\\\";\\n\\n/**\\n * @dev Contract module that allows children to implement role-based access\\n * control mechanisms. This is a lightweight version that doesn't allow enumerating role\\n * members except through off-chain means by accessing the contract event logs. Some\\n * applications may benefit from on-chain enumerability, for those cases see\\n * {AccessControlEnumerable}.\\n *\\n * Roles are referred to by their `bytes32` identifier. These should be exposed\\n * in the external API and be unique. The best way to achieve this is by\\n * using `public constant` hash digests:\\n *\\n * ```\\n * bytes32 public constant MY_ROLE = keccak256(\\\"MY_ROLE\\\");\\n * ```\\n *\\n * Roles can be used to represent a set of permissions. To restrict access to a\\n * function call, use {hasRole}:\\n *\\n * ```\\n * function foo() public {\\n *     require(hasRole(MY_ROLE, msg.sender));\\n *     ...\\n * }\\n * ```\\n *\\n * Roles can be granted and revoked dynamically via the {grantRole} and\\n * {revokeRole} functions. Each role has an associated admin role, and only\\n * accounts that have a role's admin role can call {grantRole} and {revokeRole}.\\n *\\n * By default, the admin role for all roles is `DEFAULT_ADMIN_ROLE`, which means\\n * that only accounts with this role will be able to grant or revoke other\\n * roles. More complex role relationships can be created by using\\n * {_setRoleAdmin}.\\n *\\n * WARNING: The `DEFAULT_ADMIN_ROLE` is also its own admin: it has permission to\\n * grant and revoke this role. Extra precautions should be taken to secure\\n * accounts that have been granted it.\\n */\\nabstract contract AccessControl is Context, IAccessControl, ERC165 {\\n    struct RoleData {\\n        mapping(address => bool) members;\\n        bytes32 adminRole;\\n    }\\n\\n    mapping(bytes32 => RoleData) private _roles;\\n\\n    bytes32 public constant DEFAULT_ADMIN_ROLE = 0x00;\\n\\n    /**\\n     * @dev Modifier that checks that an account has a specific role. Reverts\\n     * with a standardized message including the required role.\\n     *\\n     * The format of the revert reason is given by the following regular expression:\\n     *\\n     *  /^AccessControl: account (0x[0-9a-f]{40}) is missing role (0x[0-9a-f]{64})$/\\n     *\\n     * _Available since v4.1._\\n     */\\n    modifier onlyRole(bytes32 role) {\\n        _checkRole(role, _msgSender());\\n        _;\\n    }\\n\\n    /**\\n     * @dev See {IERC165-supportsInterface}.\\n     */\\n    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {\\n        return interfaceId == type(IAccessControl).interfaceId || super.supportsInterface(interfaceId);\\n    }\\n\\n    /**\\n     * @dev Returns `true` if `account` has been granted `role`.\\n     */\\n    function hasRole(bytes32 role, address account) public view override returns (bool) {\\n        return _roles[role].members[account];\\n    }\\n\\n    /**\\n     * @dev Revert with a standard message if `account` is missing `role`.\\n     *\\n     * The format of the revert reason is given by the following regular expression:\\n     *\\n     *  /^AccessControl: account (0x[0-9a-f]{40}) is missing role (0x[0-9a-f]{64})$/\\n     */\\n    function _checkRole(bytes32 role, address account) internal view {\\n        if (!hasRole(role, account)) {\\n            revert(\\n                string(\\n                    abi.encodePacked(\\n                        \\\"AccessControl: account \\\",\\n                        Strings.toHexString(uint160(account), 20),\\n                        \\\" is missing role \\\",\\n                        Strings.toHexString(uint256(role), 32)\\n                    )\\n                )\\n            );\\n        }\\n    }\\n\\n    /**\\n     * @dev Returns the admin role that controls `role`. See {grantRole} and\\n     * {revokeRole}.\\n     *\\n     * To change a role's admin, use {_setRoleAdmin}.\\n     */\\n    function getRoleAdmin(bytes32 role) public view override returns (bytes32) {\\n        return _roles[role].adminRole;\\n    }\\n\\n    /**\\n     * @dev Grants `role` to `account`.\\n     *\\n     * If `account` had not been already granted `role`, emits a {RoleGranted}\\n     * event.\\n     *\\n     * Requirements:\\n     *\\n     * - the caller must have ``role``'s admin role.\\n     */\\n    function grantRole(bytes32 role, address account) public virtual override onlyRole(getRoleAdmin(role)) {\\n        _grantRole(role, account);\\n    }\\n\\n    /**\\n     * @dev Revokes `role` from `account`.\\n     *\\n     * If `account` had been granted `role`, emits a {RoleRevoked} event.\\n     *\\n     * Requirements:\\n     *\\n     * - the caller must have ``role``'s admin role.\\n     */\\n    function revokeRole(bytes32 role, address account) public virtual override onlyRole(getRoleAdmin(role)) {\\n        _revokeRole(role, account);\\n    }\\n\\n    /**\\n     * @dev Revokes `role` from the calling account.\\n     *\\n     * Roles are often managed via {grantRole} and {revokeRole}: this function's\\n     * purpose is to provide a mechanism for accounts to lose their privileges\\n     * if they are compromised (such as when a trusted device is misplaced).\\n     *\\n     * If the calling account had been revoked `role`, emits a {RoleRevoked}\\n     * event.\\n     *\\n     * Requirements:\\n     *\\n     * - the caller must be `account`.\\n     */\\n    function renounceRole(bytes32 role, address account) public virtual override {\\n        require(account == _msgSender(), \\\"AccessControl: can only renounce roles for self\\\");\\n\\n        _revokeRole(role, account);\\n    }\\n\\n    /**\\n     * @dev Grants `role` to `account`.\\n     *\\n     * If `account` had not been already granted `role`, emits a {RoleGranted}\\n     * event. Note that unlike {grantRole}, this function doesn't perform any\\n     * checks on the calling account.\\n     *\\n     * [WARNING]\\n     * ====\\n     * This function should only be called from the constructor when setting\\n     * up the initial roles for the system.\\n     *\\n     * Using this function in any other way is effectively circumventing the admin\\n     * system imposed by {AccessControl}.\\n     * ====\\n     *\\n     * NOTE: This function is deprecated in favor of {_grantRole}.\\n     */\\n    function _setupRole(bytes32 role, address account) internal virtual {\\n        _grantRole(role, account);\\n    }\\n\\n    /**\\n     * @dev Sets `adminRole` as ``role``'s admin role.\\n     *\\n     * Emits a {RoleAdminChanged} event.\\n     */\\n    function _setRoleAdmin(bytes32 role, bytes32 adminRole) internal virtual {\\n        bytes32 previousAdminRole = getRoleAdmin(role);\\n        _roles[role].adminRole = adminRole;\\n        emit RoleAdminChanged(role, previousAdminRole, adminRole);\\n    }\\n\\n    /**\\n     * @dev Grants `role` to `account`.\\n     *\\n     * Internal function without access restriction.\\n     */\\n    function _grantRole(bytes32 role, address account) internal virtual {\\n        if (!hasRole(role, account)) {\\n            _roles[role].members[account] = true;\\n            emit RoleGranted(role, account, _msgSender());\\n        }\\n    }\\n\\n    /**\\n     * @dev Revokes `role` from `account`.\\n     *\\n     * Internal function without access restriction.\\n     */\\n    function _revokeRole(bytes32 role, address account) internal virtual {\\n        if (hasRole(role, account)) {\\n            _roles[role].members[account] = false;\\n            emit RoleRevoked(role, account, _msgSender());\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0xb9a137b317dc4806805f2259686186c0c053c32d80fe9c15ecdbf2eb1cf52849\",\"license\":\"MIT\"},\"@openzeppelin/contracts/access/IAccessControl.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.1 (access/IAccessControl.sol)\\n\\npragma solidity ^0.8.0;\\n\\n/**\\n * @dev External interface of AccessControl declared to support ERC165 detection.\\n */\\ninterface IAccessControl {\\n    /**\\n     * @dev Emitted when `newAdminRole` is set as ``role``'s admin role, replacing `previousAdminRole`\\n     *\\n     * `DEFAULT_ADMIN_ROLE` is the starting admin for all roles, despite\\n     * {RoleAdminChanged} not being emitted signaling this.\\n     *\\n     * _Available since v3.1._\\n     */\\n    event RoleAdminChanged(bytes32 indexed role, bytes32 indexed previousAdminRole, bytes32 indexed newAdminRole);\\n\\n    /**\\n     * @dev Emitted when `account` is granted `role`.\\n     *\\n     * `sender` is the account that originated the contract call, an admin role\\n     * bearer except when using {AccessControl-_setupRole}.\\n     */\\n    event RoleGranted(bytes32 indexed role, address indexed account, address indexed sender);\\n\\n    /**\\n     * @dev Emitted when `account` is revoked `role`.\\n     *\\n     * `sender` is the account that originated the contract call:\\n     *   - if using `revokeRole`, it is the admin role bearer\\n     *   - if using `renounceRole`, it is the role bearer (i.e. `account`)\\n     */\\n    event RoleRevoked(bytes32 indexed role, address indexed account, address indexed sender);\\n\\n    /**\\n     * @dev Returns `true` if `account` has been granted `role`.\\n     */\\n    function hasRole(bytes32 role, address account) external view returns (bool);\\n\\n    /**\\n     * @dev Returns the admin role that controls `role`. See {grantRole} and\\n     * {revokeRole}.\\n     *\\n     * To change a role's admin, use {AccessControl-_setRoleAdmin}.\\n     */\\n    function getRoleAdmin(bytes32 role) external view returns (bytes32);\\n\\n    /**\\n     * @dev Grants `role` to `account`.\\n     *\\n     * If `account` had not been already granted `role`, emits a {RoleGranted}\\n     * event.\\n     *\\n     * Requirements:\\n     *\\n     * - the caller must have ``role``'s admin role.\\n     */\\n    function grantRole(bytes32 role, address account) external;\\n\\n    /**\\n     * @dev Revokes `role` from `account`.\\n     *\\n     * If `account` had been granted `role`, emits a {RoleRevoked} event.\\n     *\\n     * Requirements:\\n     *\\n     * - the caller must have ``role``'s admin role.\\n     */\\n    function revokeRole(bytes32 role, address account) external;\\n\\n    /**\\n     * @dev Revokes `role` from the calling account.\\n     *\\n     * Roles are often managed via {grantRole} and {revokeRole}: this function's\\n     * purpose is to provide a mechanism for accounts to lose their privileges\\n     * if they are compromised (such as when a trusted device is misplaced).\\n     *\\n     * If the calling account had been granted `role`, emits a {RoleRevoked}\\n     * event.\\n     *\\n     * Requirements:\\n     *\\n     * - the caller must be `account`.\\n     */\\n    function renounceRole(bytes32 role, address account) external;\\n}\\n\",\"keccak256\":\"0x59ce320a585d7e1f163cd70390a0ef2ff9cec832e2aa544293a00692465a7a57\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/Context.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.1 (utils/Context.sol)\\n\\npragma solidity ^0.8.0;\\n\\n/**\\n * @dev Provides information about the current execution context, including the\\n * sender of the transaction and its data. While these are generally available\\n * via msg.sender and msg.data, they should not be accessed in such a direct\\n * manner, since when dealing with meta-transactions the account sending and\\n * paying for execution may not be the actual sender (as far as an application\\n * is concerned).\\n *\\n * This contract is only required for intermediate, library-like contracts.\\n */\\nabstract contract Context {\\n    function _msgSender() internal view virtual returns (address) {\\n        return msg.sender;\\n    }\\n\\n    function _msgData() internal view virtual returns (bytes calldata) {\\n        return msg.data;\\n    }\\n}\\n\",\"keccak256\":\"0xe2e337e6dde9ef6b680e07338c493ebea1b5fd09b43424112868e9cc1706bca7\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/Strings.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.1 (utils/Strings.sol)\\n\\npragma solidity ^0.8.0;\\n\\n/**\\n * @dev String operations.\\n */\\nlibrary Strings {\\n    bytes16 private constant _HEX_SYMBOLS = \\\"0123456789abcdef\\\";\\n\\n    /**\\n     * @dev Converts a `uint256` to its ASCII `string` decimal representation.\\n     */\\n    function toString(uint256 value) internal pure returns (string memory) {\\n        // Inspired by OraclizeAPI's implementation - MIT licence\\n        // https://github.com/oraclize/ethereum-api/blob/b42146b063c7d6ee1358846c198246239e9360e8/oraclizeAPI_0.4.25.sol\\n\\n        if (value == 0) {\\n            return \\\"0\\\";\\n        }\\n        uint256 temp = value;\\n        uint256 digits;\\n        while (temp != 0) {\\n            digits++;\\n            temp /= 10;\\n        }\\n        bytes memory buffer = new bytes(digits);\\n        while (value != 0) {\\n            digits -= 1;\\n            buffer[digits] = bytes1(uint8(48 + uint256(value % 10)));\\n            value /= 10;\\n        }\\n        return string(buffer);\\n    }\\n\\n    /**\\n     * @dev Converts a `uint256` to its ASCII `string` hexadecimal representation.\\n     */\\n    function toHexString(uint256 value) internal pure returns (string memory) {\\n        if (value == 0) {\\n            return \\\"0x00\\\";\\n        }\\n        uint256 temp = value;\\n        uint256 length = 0;\\n        while (temp != 0) {\\n            length++;\\n            temp >>= 8;\\n        }\\n        return toHexString(value, length);\\n    }\\n\\n    /**\\n     * @dev Converts a `uint256` to its ASCII `string` hexadecimal representation with fixed length.\\n     */\\n    function toHexString(uint256 value, uint256 length) internal pure returns (string memory) {\\n        bytes memory buffer = new bytes(2 * length + 2);\\n        buffer[0] = \\\"0\\\";\\n        buffer[1] = \\\"x\\\";\\n        for (uint256 i = 2 * length + 1; i > 1; --i) {\\n            buffer[i] = _HEX_SYMBOLS[value & 0xf];\\n            value >>= 4;\\n        }\\n        require(value == 0, \\\"Strings: hex length insufficient\\\");\\n        return string(buffer);\\n    }\\n}\\n\",\"keccak256\":\"0x32c202bd28995dd20c4347b7c6467a6d3241c74c8ad3edcbb610cd9205916c45\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/introspection/ERC165.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.1 (utils/introspection/ERC165.sol)\\n\\npragma solidity ^0.8.0;\\n\\nimport \\\"./IERC165.sol\\\";\\n\\n/**\\n * @dev Implementation of the {IERC165} interface.\\n *\\n * Contracts that want to implement ERC165 should inherit from this contract and override {supportsInterface} to check\\n * for the additional interface id that will be supported. For example:\\n *\\n * ```solidity\\n * function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {\\n *     return interfaceId == type(MyInterface).interfaceId || super.supportsInterface(interfaceId);\\n * }\\n * ```\\n *\\n * Alternatively, {ERC165Storage} provides an easier to use but more expensive implementation.\\n */\\nabstract contract ERC165 is IERC165 {\\n    /**\\n     * @dev See {IERC165-supportsInterface}.\\n     */\\n    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {\\n        return interfaceId == type(IERC165).interfaceId;\\n    }\\n}\\n\",\"keccak256\":\"0xd10975de010d89fd1c78dc5e8a9a7e7f496198085c151648f20cba166b32582b\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/introspection/IERC165.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.1 (utils/introspection/IERC165.sol)\\n\\npragma solidity ^0.8.0;\\n\\n/**\\n * @dev Interface of the ERC165 standard, as defined in the\\n * https://eips.ethereum.org/EIPS/eip-165[EIP].\\n *\\n * Implementers can declare support of contract interfaces, which can then be\\n * queried by others ({ERC165Checker}).\\n *\\n * For an implementation, see {ERC165}.\\n */\\ninterface IERC165 {\\n    /**\\n     * @dev Returns true if this contract implements the interface defined by\\n     * `interfaceId`. See the corresponding\\n     * https://eips.ethereum.org/EIPS/eip-165#how-interfaces-are-identified[EIP section]\\n     * to learn more about how these ids are created.\\n     *\\n     * This function call must use less than 30 000 gas.\\n     */\\n    function supportsInterface(bytes4 interfaceId) external view returns (bool);\\n}\\n\",\"keccak256\":\"0x447a5f3ddc18419d41ff92b3773fb86471b1db25773e07f877f548918a185bf1\",\"license\":\"MIT\"},\"src/contracts/flux/FluxPriceFeed.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity >=0.8.4;\\n\\nimport \\\"@openzeppelin/contracts/access/AccessControl.sol\\\";\\nimport \\\"./interfaces/AggregatorV2V3Interface.sol\\\";\\n\\n/**\\n * @notice Simple data posting on chain of a scalar value, compatible with Chainlink V2 and V3 aggregator interface\\n */\\ncontract FluxPriceFeed is AccessControl, AggregatorV2V3Interface {\\n    bytes32 public constant VALIDATOR_ROLE = keccak256(\\\"VALIDATOR_ROLE\\\");\\n    uint32 public latestAggregatorRoundId;\\n\\n    // Transmission records the answer from the transmit transaction at\\n    // time timestamp\\n    struct Transmission {\\n        int192 answer; // 192 bits ought to be enough for anyone\\n        uint64 timestamp;\\n    }\\n    mapping(uint32 => Transmission) /* aggregator round ID */\\n        internal s_transmissions;\\n\\n    /**\\n     * @param _validator the initial validator that can post data to this contract\\n     * @param _decimals answers are stored in fixed-point format, with this many digits of precision\\n     * @param _description short human-readable description of observable this contract's answers pertain to\\n     */\\n    constructor(\\n        address _validator,\\n        uint8 _decimals,\\n        string memory _description\\n    ) {\\n        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);\\n        _setupRole(VALIDATOR_ROLE, _validator);\\n        decimals = _decimals;\\n        s_description = _description;\\n    }\\n\\n    /*\\n     * Versioning\\n     */\\n    function typeAndVersion() external pure virtual returns (string memory) {\\n        return \\\"FluxPriceFeed 1.0.0\\\";\\n    }\\n\\n    /*\\n     * Transmission logic\\n     */\\n\\n    /**\\n     * @notice indicates that a new report was transmitted\\n     * @param aggregatorRoundId the round to which this report was assigned\\n     * @param answer value posted by validator\\n     * @param transmitter address from which the report was transmitted\\n     */\\n    event NewTransmission(uint32 indexed aggregatorRoundId, int192 answer, address transmitter);\\n\\n    /**\\n     * @notice details about the most recent report\\n     * @return _latestAnswer value from latest report\\n     * @return _latestTimestamp when the latest report was transmitted\\n     */\\n    function latestTransmissionDetails() external view returns (int192 _latestAnswer, uint64 _latestTimestamp) {\\n        require(msg.sender == tx.origin, \\\"Only callable by EOA\\\");\\n        return (s_transmissions[latestAggregatorRoundId].answer, s_transmissions[latestAggregatorRoundId].timestamp);\\n    }\\n\\n    /**\\n     * @notice transmit is called to post a new report to the contract\\n     * @param _answer latest answer\\n     */\\n    function transmit(int192 _answer) external {\\n        require(hasRole(VALIDATOR_ROLE, msg.sender), \\\"Caller is not a validator\\\");\\n\\n        // Check the report contents, and record the result\\n        latestAggregatorRoundId++;\\n        s_transmissions[latestAggregatorRoundId] = Transmission(_answer, uint64(block.timestamp));\\n\\n        emit NewTransmission(latestAggregatorRoundId, _answer, msg.sender);\\n    }\\n\\n    /*\\n     * v2 Aggregator interface\\n     */\\n\\n    /**\\n     * @notice answer from the most recent report\\n     */\\n    function latestAnswer() public view virtual override returns (int256) {\\n        return s_transmissions[latestAggregatorRoundId].answer;\\n    }\\n\\n    /**\\n     * @notice timestamp of block in which last report was transmitted\\n     */\\n    function latestTimestamp() public view virtual override returns (uint256) {\\n        return s_transmissions[latestAggregatorRoundId].timestamp;\\n    }\\n\\n    /**\\n     * @notice Aggregator round in which last report was transmitted\\n     */\\n    function latestRound() public view virtual override returns (uint256) {\\n        return latestAggregatorRoundId;\\n    }\\n\\n    /**\\n     * @notice answer of report from given aggregator round\\n     * @param _roundId the aggregator round of the target report\\n     */\\n    function getAnswer(uint256 _roundId) public view virtual override returns (int256) {\\n        if (_roundId > 0xFFFFFFFF) {\\n            return 0;\\n        }\\n        return s_transmissions[uint32(_roundId)].answer;\\n    }\\n\\n    /**\\n     * @notice timestamp of block in which report from given aggregator round was transmitted\\n     * @param _roundId aggregator round of target report\\n     */\\n    function getTimestamp(uint256 _roundId) public view virtual override returns (uint256) {\\n        if (_roundId > 0xFFFFFFFF) {\\n            return 0;\\n        }\\n        return s_transmissions[uint32(_roundId)].timestamp;\\n    }\\n\\n    /*\\n     * v3 Aggregator interface\\n     */\\n\\n    string private constant V3_NO_DATA_ERROR = \\\"No data present\\\";\\n\\n    /**\\n     * @return answers are stored in fixed-point format, with this many digits of precision\\n     */\\n    uint8 public immutable override decimals;\\n\\n    /**\\n     * @notice aggregator contract version\\n     */\\n    uint256 public constant override version = 1;\\n\\n    string internal s_description;\\n\\n    /**\\n     * @notice human-readable description of observable this contract is reporting on\\n     */\\n    function description() public view virtual override returns (string memory) {\\n        return s_description;\\n    }\\n\\n    /**\\n     * @notice details for the given aggregator round\\n     * @param _roundId target aggregator round. Must fit in uint32\\n     * @return roundId _roundId\\n     * @return answer answer of report from given _roundId\\n     * @return startedAt timestamp of block in which report from given _roundId was transmitted\\n     * @return updatedAt timestamp of block in which report from given _roundId was transmitted\\n     * @return answeredInRound _roundId\\n     */\\n    function getRoundData(uint80 _roundId)\\n        public\\n        view\\n        virtual\\n        override\\n        returns (\\n            uint80 roundId,\\n            int256 answer,\\n            uint256 startedAt,\\n            uint256 updatedAt,\\n            uint80 answeredInRound\\n        )\\n    {\\n        require(_roundId <= 0xFFFFFFFF, V3_NO_DATA_ERROR);\\n        Transmission memory transmission = s_transmissions[uint32(_roundId)];\\n        return (_roundId, transmission.answer, transmission.timestamp, transmission.timestamp, _roundId);\\n    }\\n\\n    /**\\n     * @notice aggregator details for the most recently transmitted report\\n     * @return roundId aggregator round of latest report\\n     * @return answer answer of latest report\\n     * @return startedAt timestamp of block containing latest report\\n     * @return updatedAt timestamp of block containing latest report\\n     * @return answeredInRound aggregator round of latest report\\n     */\\n    function latestRoundData()\\n        public\\n        view\\n        virtual\\n        override\\n        returns (\\n            uint80 roundId,\\n            int256 answer,\\n            uint256 startedAt,\\n            uint256 updatedAt,\\n            uint80 answeredInRound\\n        )\\n    {\\n        roundId = latestAggregatorRoundId;\\n\\n        // Skipped for compatability with existing FluxAggregator in which latestRoundData never reverts.\\n        // require(roundId != 0, V3_NO_DATA_ERROR);\\n\\n        Transmission memory transmission = s_transmissions[uint32(roundId)];\\n        return (roundId, transmission.answer, transmission.timestamp, transmission.timestamp, roundId);\\n    }\\n}\\n\",\"keccak256\":\"0x7fd09235f06ecb9adfd9be0a8b99de01ae43418b18251ba494fc935fd1171169\",\"license\":\"MIT\"},\"src/contracts/flux/interfaces/AggregatorInterface.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity >=0.8.4;\\n\\ninterface AggregatorInterface {\\n    function latestAnswer() external view returns (int256);\\n\\n    function latestTimestamp() external view returns (uint256);\\n\\n    function latestRound() external view returns (uint256);\\n\\n    function getAnswer(uint256 roundId) external view returns (int256);\\n\\n    function getTimestamp(uint256 roundId) external view returns (uint256);\\n\\n    event AnswerUpdated(int256 indexed current, uint256 indexed roundId, uint256 updatedAt);\\n    event NewRound(uint256 indexed roundId, address indexed startedBy, uint256 startedAt);\\n}\\n\",\"keccak256\":\"0xf5d053ccdcb838a44b17af1f8b5b2b60f890108effcec69377cb81796fe9278c\",\"license\":\"MIT\"},\"src/contracts/flux/interfaces/AggregatorV2V3Interface.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity >=0.8.4;\\n\\nimport \\\"./AggregatorInterface.sol\\\";\\nimport \\\"./AggregatorV3Interface.sol\\\";\\n\\ninterface AggregatorV2V3Interface is AggregatorInterface, AggregatorV3Interface {}\\n\",\"keccak256\":\"0x70df2712dd3b85c753ff4cee292af93e81c5bf616983e4cbc94f692555362393\",\"license\":\"MIT\"},\"src/contracts/flux/interfaces/AggregatorV3Interface.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity >=0.8.4;\\n\\ninterface AggregatorV3Interface {\\n    function decimals() external view returns (uint8);\\n\\n    function description() external view returns (string memory);\\n\\n    function version() external view returns (uint256);\\n\\n    // getRoundData and latestRoundData should both raise \\\"No data present\\\"\\n    // if they do not have data to report, instead of returning unset values\\n    // which could be misinterpreted as actual reported values.\\n    function getRoundData(uint80 _roundId)\\n        external\\n        view\\n        returns (\\n            uint80 roundId,\\n            int256 answer,\\n            uint256 startedAt,\\n            uint256 updatedAt,\\n            uint80 answeredInRound\\n        );\\n\\n    function latestRoundData()\\n        external\\n        view\\n        returns (\\n            uint80 roundId,\\n            int256 answer,\\n            uint256 startedAt,\\n            uint256 updatedAt,\\n            uint80 answeredInRound\\n        );\\n}\\n\",\"keccak256\":\"0x710f75b7d73282a87a60c5a9d1e6d1cfdd6cdf80ccf6a22982d20a1d6a24c7ce\",\"license\":\"MIT\"}},\"version\":1}",
+    "bytecode": "0x60a06040523480156200001157600080fd5b50604051620012b8380380620012b88339810160408190526200003491620001ff565b6200004160003362000093565b6200006d7f21702c8af46127c7fa207f89d0b0a8441bb32959a0ac7df790e9ab1a25c989268462000093565b60ff821660805280516200008990600390602084019062000143565b5050505062000356565b6200009f8282620000a3565b5050565b6000828152602081815260408083206001600160a01b038516845290915290205460ff166200009f576000828152602081815260408083206001600160a01b03851684529091529020805460ff19166001179055620000ff3390565b6001600160a01b0316816001600160a01b0316837f2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d60405160405180910390a45050565b828054620001519062000319565b90600052602060002090601f016020900481019282620001755760008555620001c0565b82601f106200019057805160ff1916838001178555620001c0565b82800160010185558215620001c0579182015b82811115620001c0578251825591602001919060010190620001a3565b50620001ce929150620001d2565b5090565b5b80821115620001ce5760008155600101620001d3565b634e487b7160e01b600052604160045260246000fd5b6000806000606084860312156200021557600080fd5b83516001600160a01b03811681146200022d57600080fd5b8093505060208085015160ff811681146200024757600080fd5b60408601519093506001600160401b03808211156200026557600080fd5b818701915087601f8301126200027a57600080fd5b8151818111156200028f576200028f620001e9565b604051601f8201601f19908116603f01168101908382118183101715620002ba57620002ba620001e9565b816040528281528a86848701011115620002d357600080fd5b600093505b82841015620002f75784840186015181850187015292850192620002d8565b82841115620003095760008684830101525b8096505050505050509250925092565b600181811c908216806200032e57607f821691505b602082108114156200035057634e487b7160e01b600052602260045260246000fd5b50919050565b608051610f4662000372600039600061023c0152610f466000f3fe608060405234801561001057600080fd5b50600436106101825760003560e01c80638205bf6a116100d8578063b5ab58dc1161008c578063d547741f11610066578063d547741f146103fd578063e5fe457714610410578063feaf968c1461043b57600080fd5b8063b5ab58dc146103b0578063b633620c146103c3578063c49baebe146103d657600080fd5b806391d14854116100bd57806391d14854146103275780639a6fc8f51461035e578063a217fddf146103a857600080fd5b80638205bf6a146102e657806382b8ebc71461031457600080fd5b806336568abe1161013a5780635ed63b40116101145780635ed63b40146102ab578063668a0f02146102d05780637284e416146102de57600080fd5b806336568abe1461027057806350d25bcd1461028357806354fd4d50146102a357600080fd5b8063248a9ca31161016b578063248a9ca3146101f15780632f2ff15d14610222578063313ce5671461023757600080fd5b806301ffc9a714610187578063181f5a77146101af575b600080fd5b61019a610195366004610c98565b61048b565b60405190151581526020015b60405180910390f35b60408051808201909152601381527f466c757850726963654665656420312e302e300000000000000000000000000060208201525b6040516101a69190610cf2565b6102146101ff366004610d25565b60009081526020819052604090206001015490565b6040519081526020016101a6565b610235610230366004610d3e565b6104c2565b005b61025e7f000000000000000000000000000000000000000000000000000000000000000081565b60405160ff90911681526020016101a6565b61023561027e366004610d3e565b6104ed565b60015463ffffffff1660009081526002602052604090205460170b610214565b610214600181565b6001546102bb9063ffffffff1681565b60405163ffffffff90911681526020016101a6565b60015463ffffffff16610214565b6101e461057e565b60015463ffffffff16600090815260026020526040902054600160c01b900467ffffffffffffffff16610214565b610235610322366004610d7a565b610610565b61019a610335366004610d3e565b6000918252602082815260408084206001600160a01b0393909316845291905290205460ff1690565b61037161036c366004610d9d565b61076b565b6040805169ffffffffffffffffffff968716815260208101959095528401929092526060830152909116608082015260a0016101a6565b610214600081565b6102146103be366004610d25565b61082e565b6102146103d1366004610d25565b610860565b6102147f21702c8af46127c7fa207f89d0b0a8441bb32959a0ac7df790e9ab1a25c9892681565b61023561040b366004610d3e565b6108a0565b6104186108c6565b6040805160179390930b835267ffffffffffffffff9091166020830152016101a6565b61037160015463ffffffff16600081815260026020908152604091829020825180840190935254601781900b808452600160c01b90910467ffffffffffffffff1692909101829052919281908490565b60006001600160e01b03198216637965db0b60e01b14806104bc57506301ffc9a760e01b6001600160e01b03198316145b92915050565b6000828152602081905260409020600101546104de813361094d565b6104e883836109cb565b505050565b6001600160a01b03811633146105705760405162461bcd60e51b815260206004820152602f60248201527f416363657373436f6e74726f6c3a2063616e206f6e6c792072656e6f756e636560448201527f20726f6c657320666f722073656c66000000000000000000000000000000000060648201526084015b60405180910390fd5b61057a8282610a69565b5050565b60606003805461058d90610dc9565b80601f01602080910402602001604051908101604052809291908181526020018280546105b990610dc9565b80156106065780601f106105db57610100808354040283529160200191610606565b820191906000526020600020905b8154815290600101906020018083116105e957829003601f168201915b5050505050905090565b3360009081527f5111aeae4aa79889928e72f88b5872109754de9d419ea9a4e3df5fba21d4d46f602052604090205460ff1661068e5760405162461bcd60e51b815260206004820152601960248201527f43616c6c6572206973206e6f7420612076616c696461746f72000000000000006044820152606401610567565b6001805463ffffffff169060006106a483610e1a565b825463ffffffff9182166101009390930a928302928202191691909117909155604080518082018252601785900b80825267ffffffffffffffff428116602080850191825260018054881660009081526002835287902095519251909316600160c01b0277ffffffffffffffffffffffffffffffffffffffffffffffff909216919091179093555483519182523392820192909252921692507f17eabd0a66fa631f7537cefdd5df6aa25d5ac904cf7596e958d43a75a00d0d68910160405180910390a250565b600080600080600063ffffffff8669ffffffffffffffffffff1611156040518060400160405280600f81526020017f4e6f20646174612070726573656e740000000000000000000000000000000000815250906107db5760405162461bcd60e51b81526004016105679190610cf2565b5050505063ffffffff8316600090815260026020908152604091829020825180840190935254601781900b808452600160c01b90910467ffffffffffffffff169290910182905293949092508291508490565b600063ffffffff82111561084457506000919050565b5063ffffffff1660009081526002602052604090205460170b90565b600063ffffffff82111561087657506000919050565b5063ffffffff16600090815260026020526040902054600160c01b900467ffffffffffffffff1690565b6000828152602081905260409020600101546108bc813361094d565b6104e88383610a69565b6000803332146109185760405162461bcd60e51b815260206004820152601460248201527f4f6e6c792063616c6c61626c6520627920454f410000000000000000000000006044820152606401610567565b505060015463ffffffff16600090815260026020526040902054601781900b91600160c01b90910467ffffffffffffffff1690565b6000828152602081815260408083206001600160a01b038516845290915290205460ff1661057a57610989816001600160a01b03166014610ae8565b610994836020610ae8565b6040516020016109a5929190610e3e565b60408051601f198184030181529082905262461bcd60e51b825261056791600401610cf2565b6000828152602081815260408083206001600160a01b038516845290915290205460ff1661057a576000828152602081815260408083206001600160a01b03851684529091529020805460ff19166001179055610a253390565b6001600160a01b0316816001600160a01b0316837f2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d60405160405180910390a45050565b6000828152602081815260408083206001600160a01b038516845290915290205460ff161561057a576000828152602081815260408083206001600160a01b0385168085529252808320805460ff1916905551339285917ff6391f5c32d9c69d2a47ea670b442974b53935d1edc7fd64eb21e047a839171b9190a45050565b60606000610af7836002610ebf565b610b02906002610ede565b67ffffffffffffffff811115610b1a57610b1a610ef6565b6040519080825280601f01601f191660200182016040528015610b44576020820181803683370190505b509050600360fc1b81600081518110610b5f57610b5f610f0c565b60200101906001600160f81b031916908160001a905350600f60fb1b81600181518110610b8e57610b8e610f0c565b60200101906001600160f81b031916908160001a9053506000610bb2846002610ebf565b610bbd906001610ede565b90505b6001811115610c42577f303132333435363738396162636465660000000000000000000000000000000085600f1660108110610bfe57610bfe610f0c565b1a60f81b828281518110610c1457610c14610f0c565b60200101906001600160f81b031916908160001a90535060049490941c93610c3b81610f22565b9050610bc0565b508315610c915760405162461bcd60e51b815260206004820181905260248201527f537472696e67733a20686578206c656e67746820696e73756666696369656e746044820152606401610567565b9392505050565b600060208284031215610caa57600080fd5b81356001600160e01b031981168114610c9157600080fd5b60005b83811015610cdd578181015183820152602001610cc5565b83811115610cec576000848401525b50505050565b6020815260008251806020840152610d11816040850160208701610cc2565b601f01601f19169190910160400192915050565b600060208284031215610d3757600080fd5b5035919050565b60008060408385031215610d5157600080fd5b8235915060208301356001600160a01b0381168114610d6f57600080fd5b809150509250929050565b600060208284031215610d8c57600080fd5b81358060170b8114610c9157600080fd5b600060208284031215610daf57600080fd5b813569ffffffffffffffffffff81168114610c9157600080fd5b600181811c90821680610ddd57607f821691505b60208210811415610dfe57634e487b7160e01b600052602260045260246000fd5b50919050565b634e487b7160e01b600052601160045260246000fd5b600063ffffffff80831681811415610e3457610e34610e04565b6001019392505050565b7f416363657373436f6e74726f6c3a206163636f756e7420000000000000000000815260008351610e76816017850160208801610cc2565b7f206973206d697373696e6720726f6c65200000000000000000000000000000006017918401918201528351610eb3816028840160208801610cc2565b01602801949350505050565b6000816000190483118215151615610ed957610ed9610e04565b500290565b60008219821115610ef157610ef1610e04565b500190565b634e487b7160e01b600052604160045260246000fd5b634e487b7160e01b600052603260045260246000fd5b600081610f3157610f31610e04565b50600019019056fea164736f6c634300080a000a",
+    "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106101825760003560e01c80638205bf6a116100d8578063b5ab58dc1161008c578063d547741f11610066578063d547741f146103fd578063e5fe457714610410578063feaf968c1461043b57600080fd5b8063b5ab58dc146103b0578063b633620c146103c3578063c49baebe146103d657600080fd5b806391d14854116100bd57806391d14854146103275780639a6fc8f51461035e578063a217fddf146103a857600080fd5b80638205bf6a146102e657806382b8ebc71461031457600080fd5b806336568abe1161013a5780635ed63b40116101145780635ed63b40146102ab578063668a0f02146102d05780637284e416146102de57600080fd5b806336568abe1461027057806350d25bcd1461028357806354fd4d50146102a357600080fd5b8063248a9ca31161016b578063248a9ca3146101f15780632f2ff15d14610222578063313ce5671461023757600080fd5b806301ffc9a714610187578063181f5a77146101af575b600080fd5b61019a610195366004610c98565b61048b565b60405190151581526020015b60405180910390f35b60408051808201909152601381527f466c757850726963654665656420312e302e300000000000000000000000000060208201525b6040516101a69190610cf2565b6102146101ff366004610d25565b60009081526020819052604090206001015490565b6040519081526020016101a6565b610235610230366004610d3e565b6104c2565b005b61025e7f000000000000000000000000000000000000000000000000000000000000000081565b60405160ff90911681526020016101a6565b61023561027e366004610d3e565b6104ed565b60015463ffffffff1660009081526002602052604090205460170b610214565b610214600181565b6001546102bb9063ffffffff1681565b60405163ffffffff90911681526020016101a6565b60015463ffffffff16610214565b6101e461057e565b60015463ffffffff16600090815260026020526040902054600160c01b900467ffffffffffffffff16610214565b610235610322366004610d7a565b610610565b61019a610335366004610d3e565b6000918252602082815260408084206001600160a01b0393909316845291905290205460ff1690565b61037161036c366004610d9d565b61076b565b6040805169ffffffffffffffffffff968716815260208101959095528401929092526060830152909116608082015260a0016101a6565b610214600081565b6102146103be366004610d25565b61082e565b6102146103d1366004610d25565b610860565b6102147f21702c8af46127c7fa207f89d0b0a8441bb32959a0ac7df790e9ab1a25c9892681565b61023561040b366004610d3e565b6108a0565b6104186108c6565b6040805160179390930b835267ffffffffffffffff9091166020830152016101a6565b61037160015463ffffffff16600081815260026020908152604091829020825180840190935254601781900b808452600160c01b90910467ffffffffffffffff1692909101829052919281908490565b60006001600160e01b03198216637965db0b60e01b14806104bc57506301ffc9a760e01b6001600160e01b03198316145b92915050565b6000828152602081905260409020600101546104de813361094d565b6104e883836109cb565b505050565b6001600160a01b03811633146105705760405162461bcd60e51b815260206004820152602f60248201527f416363657373436f6e74726f6c3a2063616e206f6e6c792072656e6f756e636560448201527f20726f6c657320666f722073656c66000000000000000000000000000000000060648201526084015b60405180910390fd5b61057a8282610a69565b5050565b60606003805461058d90610dc9565b80601f01602080910402602001604051908101604052809291908181526020018280546105b990610dc9565b80156106065780601f106105db57610100808354040283529160200191610606565b820191906000526020600020905b8154815290600101906020018083116105e957829003601f168201915b5050505050905090565b3360009081527f5111aeae4aa79889928e72f88b5872109754de9d419ea9a4e3df5fba21d4d46f602052604090205460ff1661068e5760405162461bcd60e51b815260206004820152601960248201527f43616c6c6572206973206e6f7420612076616c696461746f72000000000000006044820152606401610567565b6001805463ffffffff169060006106a483610e1a565b825463ffffffff9182166101009390930a928302928202191691909117909155604080518082018252601785900b80825267ffffffffffffffff428116602080850191825260018054881660009081526002835287902095519251909316600160c01b0277ffffffffffffffffffffffffffffffffffffffffffffffff909216919091179093555483519182523392820192909252921692507f17eabd0a66fa631f7537cefdd5df6aa25d5ac904cf7596e958d43a75a00d0d68910160405180910390a250565b600080600080600063ffffffff8669ffffffffffffffffffff1611156040518060400160405280600f81526020017f4e6f20646174612070726573656e740000000000000000000000000000000000815250906107db5760405162461bcd60e51b81526004016105679190610cf2565b5050505063ffffffff8316600090815260026020908152604091829020825180840190935254601781900b808452600160c01b90910467ffffffffffffffff169290910182905293949092508291508490565b600063ffffffff82111561084457506000919050565b5063ffffffff1660009081526002602052604090205460170b90565b600063ffffffff82111561087657506000919050565b5063ffffffff16600090815260026020526040902054600160c01b900467ffffffffffffffff1690565b6000828152602081905260409020600101546108bc813361094d565b6104e88383610a69565b6000803332146109185760405162461bcd60e51b815260206004820152601460248201527f4f6e6c792063616c6c61626c6520627920454f410000000000000000000000006044820152606401610567565b505060015463ffffffff16600090815260026020526040902054601781900b91600160c01b90910467ffffffffffffffff1690565b6000828152602081815260408083206001600160a01b038516845290915290205460ff1661057a57610989816001600160a01b03166014610ae8565b610994836020610ae8565b6040516020016109a5929190610e3e565b60408051601f198184030181529082905262461bcd60e51b825261056791600401610cf2565b6000828152602081815260408083206001600160a01b038516845290915290205460ff1661057a576000828152602081815260408083206001600160a01b03851684529091529020805460ff19166001179055610a253390565b6001600160a01b0316816001600160a01b0316837f2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d60405160405180910390a45050565b6000828152602081815260408083206001600160a01b038516845290915290205460ff161561057a576000828152602081815260408083206001600160a01b0385168085529252808320805460ff1916905551339285917ff6391f5c32d9c69d2a47ea670b442974b53935d1edc7fd64eb21e047a839171b9190a45050565b60606000610af7836002610ebf565b610b02906002610ede565b67ffffffffffffffff811115610b1a57610b1a610ef6565b6040519080825280601f01601f191660200182016040528015610b44576020820181803683370190505b509050600360fc1b81600081518110610b5f57610b5f610f0c565b60200101906001600160f81b031916908160001a905350600f60fb1b81600181518110610b8e57610b8e610f0c565b60200101906001600160f81b031916908160001a9053506000610bb2846002610ebf565b610bbd906001610ede565b90505b6001811115610c42577f303132333435363738396162636465660000000000000000000000000000000085600f1660108110610bfe57610bfe610f0c565b1a60f81b828281518110610c1457610c14610f0c565b60200101906001600160f81b031916908160001a90535060049490941c93610c3b81610f22565b9050610bc0565b508315610c915760405162461bcd60e51b815260206004820181905260248201527f537472696e67733a20686578206c656e67746820696e73756666696369656e746044820152606401610567565b9392505050565b600060208284031215610caa57600080fd5b81356001600160e01b031981168114610c9157600080fd5b60005b83811015610cdd578181015183820152602001610cc5565b83811115610cec576000848401525b50505050565b6020815260008251806020840152610d11816040850160208701610cc2565b601f01601f19169190910160400192915050565b600060208284031215610d3757600080fd5b5035919050565b60008060408385031215610d5157600080fd5b8235915060208301356001600160a01b0381168114610d6f57600080fd5b809150509250929050565b600060208284031215610d8c57600080fd5b81358060170b8114610c9157600080fd5b600060208284031215610daf57600080fd5b813569ffffffffffffffffffff81168114610c9157600080fd5b600181811c90821680610ddd57607f821691505b60208210811415610dfe57634e487b7160e01b600052602260045260246000fd5b50919050565b634e487b7160e01b600052601160045260246000fd5b600063ffffffff80831681811415610e3457610e34610e04565b6001019392505050565b7f416363657373436f6e74726f6c3a206163636f756e7420000000000000000000815260008351610e76816017850160208801610cc2565b7f206973206d697373696e6720726f6c65200000000000000000000000000000006017918401918201528351610eb3816028840160208801610cc2565b01602801949350505050565b6000816000190483118215151615610ed957610ed9610e04565b500290565b60008219821115610ef157610ef1610e04565b500190565b634e487b7160e01b600052604160045260246000fd5b634e487b7160e01b600052603260045260246000fd5b600081610f3157610f31610e04565b50600019019056fea164736f6c634300080a000a",
+    "devdoc": {
+        "events": {
+            "NewTransmission(uint32,int192,address)": {
+                "params": {
+                    "aggregatorRoundId": "the round to which this report was assigned",
+                    "answer": "value posted by validator",
+                    "transmitter": "address from which the report was transmitted"
+                }
+            }
+        },
+        "kind": "dev",
+        "methods": {
+            "constructor": {
+                "params": {
+                    "_decimals": "answers are stored in fixed-point format, with this many digits of precision",
+                    "_description": "short human-readable description of observable this contract's answers pertain to",
+                    "_validator": "the initial validator that can post data to this contract"
+                }
+            },
+            "getAnswer(uint256)": {
+                "params": {
+                    "_roundId": "the aggregator round of the target report"
+                }
+            },
+            "getRoleAdmin(bytes32)": {
+                "details": "Returns the admin role that controls `role`. See {grantRole} and {revokeRole}. To change a role's admin, use {_setRoleAdmin}."
+            },
+            "getRoundData(uint80)": {
+                "params": {
+                    "_roundId": "target aggregator round. Must fit in uint32"
+                },
+                "returns": {
+                    "answer": "answer of report from given _roundId",
+                    "answeredInRound": "_roundId",
+                    "roundId": "_roundId",
+                    "startedAt": "timestamp of block in which report from given _roundId was transmitted",
+                    "updatedAt": "timestamp of block in which report from given _roundId was transmitted"
+                }
+            },
+            "getTimestamp(uint256)": {
+                "params": {
+                    "_roundId": "aggregator round of target report"
+                }
+            },
+            "grantRole(bytes32,address)": {
+                "details": "Grants `role` to `account`. If `account` had not been already granted `role`, emits a {RoleGranted} event. Requirements: - the caller must have ``role``'s admin role."
+            },
+            "hasRole(bytes32,address)": {
+                "details": "Returns `true` if `account` has been granted `role`."
+            },
+            "latestRoundData()": {
+                "returns": {
+                    "answer": "answer of latest report",
+                    "answeredInRound": "aggregator round of latest report",
+                    "roundId": "aggregator round of latest report",
+                    "startedAt": "timestamp of block containing latest report",
+                    "updatedAt": "timestamp of block containing latest report"
+                }
+            },
+            "latestTransmissionDetails()": {
+                "returns": {
+                    "_latestAnswer": "value from latest report",
+                    "_latestTimestamp": "when the latest report was transmitted"
+                }
+            },
+            "renounceRole(bytes32,address)": {
+                "details": "Revokes `role` from the calling account. Roles are often managed via {grantRole} and {revokeRole}: this function's purpose is to provide a mechanism for accounts to lose their privileges if they are compromised (such as when a trusted device is misplaced). If the calling account had been revoked `role`, emits a {RoleRevoked} event. Requirements: - the caller must be `account`."
+            },
+            "revokeRole(bytes32,address)": {
+                "details": "Revokes `role` from `account`. If `account` had been granted `role`, emits a {RoleRevoked} event. Requirements: - the caller must have ``role``'s admin role."
+            },
+            "supportsInterface(bytes4)": {
+                "details": "See {IERC165-supportsInterface}."
+            },
+            "transmit(int192)": {
+                "params": {
+                    "_answer": "latest answer"
+                }
+            }
+        },
+        "stateVariables": {
+            "decimals": {
+                "return": "answers are stored in fixed-point format, with this many digits of precision",
+                "returns": {
+                    "_0": "answers are stored in fixed-point format, with this many digits of precision"
+                }
+            }
+        },
+        "version": 1
+    },
+    "userdoc": {
+        "events": {
+            "NewTransmission(uint32,int192,address)": {
+                "notice": "indicates that a new report was transmitted"
+            }
+        },
+        "kind": "user",
+        "methods": {
+            "description()": {
+                "notice": "human-readable description of observable this contract is reporting on"
+            },
+            "getAnswer(uint256)": {
+                "notice": "answer of report from given aggregator round"
+            },
+            "getRoundData(uint80)": {
+                "notice": "details for the given aggregator round"
+            },
+            "getTimestamp(uint256)": {
+                "notice": "timestamp of block in which report from given aggregator round was transmitted"
+            },
+            "latestAnswer()": {
+                "notice": "answer from the most recent report"
+            },
+            "latestRound()": {
+                "notice": "Aggregator round in which last report was transmitted"
+            },
+            "latestRoundData()": {
+                "notice": "aggregator details for the most recently transmitted report"
+            },
+            "latestTimestamp()": {
+                "notice": "timestamp of block in which last report was transmitted"
+            },
+            "latestTransmissionDetails()": {
+                "notice": "details about the most recent report"
+            },
+            "transmit(int192)": {
+                "notice": "transmit is called to post a new report to the contract"
+            },
+            "version()": {
+                "notice": "aggregator contract version"
+            }
+        },
+        "notice": "Simple data posting on chain of a scalar value, compatible with Chainlink V2 and V3 aggregator interface",
+        "version": 1
+    },
+    "storageLayout": {
+        "storage": [
+            {
+                "astId": 3172,
+                "contract": "src/contracts/flux/FluxPriceFeed.sol:FluxPriceFeed",
+                "label": "_roles",
+                "offset": 0,
+                "slot": "0",
+                "type": "t_mapping(t_bytes32,t_struct(RoleData)3167_storage)"
+            },
+            {
+                "astId": 21973,
+                "contract": "src/contracts/flux/FluxPriceFeed.sol:FluxPriceFeed",
+                "label": "latestAggregatorRoundId",
+                "offset": 0,
+                "slot": "1",
+                "type": "t_uint32"
+            },
+            {
+                "astId": 21983,
+                "contract": "src/contracts/flux/FluxPriceFeed.sol:FluxPriceFeed",
+                "label": "s_transmissions",
+                "offset": 0,
+                "slot": "2",
+                "type": "t_mapping(t_uint32,t_struct(Transmission)21978_storage)"
+            },
+            {
+                "astId": 22197,
+                "contract": "src/contracts/flux/FluxPriceFeed.sol:FluxPriceFeed",
+                "label": "s_description",
+                "offset": 0,
+                "slot": "3",
+                "type": "t_string_storage"
+            }
+        ],
+        "types": {
+            "t_address": {
+                "encoding": "inplace",
+                "label": "address",
+                "numberOfBytes": "20"
+            },
+            "t_bool": {
+                "encoding": "inplace",
+                "label": "bool",
+                "numberOfBytes": "1"
+            },
+            "t_bytes32": {
+                "encoding": "inplace",
+                "label": "bytes32",
+                "numberOfBytes": "32"
+            },
+            "t_int192": {
+                "encoding": "inplace",
+                "label": "int192",
+                "numberOfBytes": "24"
+            },
+            "t_mapping(t_address,t_bool)": {
+                "encoding": "mapping",
+                "key": "t_address",
+                "label": "mapping(address => bool)",
+                "numberOfBytes": "32",
+                "value": "t_bool"
+            },
+            "t_mapping(t_bytes32,t_struct(RoleData)3167_storage)": {
+                "encoding": "mapping",
+                "key": "t_bytes32",
+                "label": "mapping(bytes32 => struct AccessControl.RoleData)",
+                "numberOfBytes": "32",
+                "value": "t_struct(RoleData)3167_storage"
+            },
+            "t_mapping(t_uint32,t_struct(Transmission)21978_storage)": {
+                "encoding": "mapping",
+                "key": "t_uint32",
+                "label": "mapping(uint32 => struct FluxPriceFeed.Transmission)",
+                "numberOfBytes": "32",
+                "value": "t_struct(Transmission)21978_storage"
+            },
+            "t_string_storage": {
+                "encoding": "bytes",
+                "label": "string",
+                "numberOfBytes": "32"
+            },
+            "t_struct(RoleData)3167_storage": {
+                "encoding": "inplace",
+                "label": "struct AccessControl.RoleData",
+                "members": [
+                    {
+                        "astId": 3164,
+                        "contract": "src/contracts/flux/FluxPriceFeed.sol:FluxPriceFeed",
+                        "label": "members",
+                        "offset": 0,
+                        "slot": "0",
+                        "type": "t_mapping(t_address,t_bool)"
+                    },
+                    {
+                        "astId": 3166,
+                        "contract": "src/contracts/flux/FluxPriceFeed.sol:FluxPriceFeed",
+                        "label": "adminRole",
+                        "offset": 0,
+                        "slot": "1",
+                        "type": "t_bytes32"
+                    }
+                ],
+                "numberOfBytes": "64"
+            },
+            "t_struct(Transmission)21978_storage": {
+                "encoding": "inplace",
+                "label": "struct FluxPriceFeed.Transmission",
+                "members": [
+                    {
+                        "astId": 21975,
+                        "contract": "src/contracts/flux/FluxPriceFeed.sol:FluxPriceFeed",
+                        "label": "answer",
+                        "offset": 0,
+                        "slot": "0",
+                        "type": "t_int192"
+                    },
+                    {
+                        "astId": 21977,
+                        "contract": "src/contracts/flux/FluxPriceFeed.sol:FluxPriceFeed",
+                        "label": "timestamp",
+                        "offset": 24,
+                        "slot": "0",
+                        "type": "t_uint64"
+                    }
+                ],
+                "numberOfBytes": "32"
+            },
+            "t_uint32": {
+                "encoding": "inplace",
+                "label": "uint32",
+                "numberOfBytes": "4"
+            },
+            "t_uint64": {
+                "encoding": "inplace",
+                "label": "uint64",
+                "numberOfBytes": "8"
+            }
+        }
+    }
+}

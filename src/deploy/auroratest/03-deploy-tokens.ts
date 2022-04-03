@@ -48,4 +48,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 func.tags = ["auroratest"];
 
+func.skip = async hre => {
+    const logger = getLogger("deploy-tokens");
+
+    const isFinished = await hre.deployments.getOrNull("Wrapped Ether");
+    isFinished && logger.log("Skipping deploying mock tokens");
+    return !!isFinished;
+};
+
 export default func;

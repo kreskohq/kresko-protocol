@@ -31,6 +31,7 @@ task("addliquidity:external")
                 address: Aurora.address,
                 amount: AURORADepositAmount,
             },
+            wait: 4,
         });
 
         hre.uniPairs["AURORA/USDC"] = AURORAUSDCPair;

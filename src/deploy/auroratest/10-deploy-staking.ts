@@ -44,4 +44,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 export default func;
 
+func.skip = async hre => {
+    const Staking = await hre.deployments.getOrNull("KrStaking");
+    if (!Staking) {
+        return false;
+    }
+    const logger = getLogger("deploy-staking");
+
+    const RewardToken2 = await hre.ethers.getContract<Token>("Wrapped Near");
+    const Reward2Bal = fromBig(await RewardToken2.balanceOf(Staking.address));
+    Reward2Bal > 0 && logger.log("Skipping deploying staking");
+    return true;
+};
+
 func.tags = ["auroratest", "auroratest-staking"];

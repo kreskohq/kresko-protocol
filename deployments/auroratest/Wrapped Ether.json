@@ -1,0 +1,367 @@
+{
+    "address": "0xB1504e44CB408C4b37Af849d3AB384487c7Ed5AE",
+    "abi": [
+        {
+            "inputs": [],
+            "name": "CALLBACK_SUCCESS",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "owner",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "spender",
+                    "type": "address"
+                }
+            ],
+            "name": "allowance",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "spender",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "amount",
+                    "type": "uint256"
+                }
+            ],
+            "name": "approve",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "balanceOf",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "decimals",
+            "outputs": [
+                {
+                    "internalType": "uint8",
+                    "name": "",
+                    "type": "uint8"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "_amount",
+                    "type": "uint256"
+                }
+            ],
+            "name": "deposit",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "contract IERC3156FlashBorrower",
+                    "name": "receiver",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "token",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "value",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "bytes",
+                    "name": "data",
+                    "type": "bytes"
+                }
+            ],
+            "name": "flashLoan",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "flashMinted",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "name",
+            "outputs": [
+                {
+                    "internalType": "string",
+                    "name": "",
+                    "type": "string"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "symbol",
+            "outputs": [
+                {
+                    "internalType": "string",
+                    "name": "",
+                    "type": "string"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "totalSupply",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "to",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "value",
+                    "type": "uint256"
+                }
+            ],
+            "name": "transfer",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "from",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "to",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "value",
+                    "type": "uint256"
+                }
+            ],
+            "name": "transferFrom",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "_amount",
+                    "type": "uint256"
+                }
+            ],
+            "name": "withdraw",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        }
+    ],
+    "transactionHash": "0x7a484a5e7235cb605c659d03bef22714c4cb0aaf7c32e3ea5b8e5ad50b5bf342",
+    "receipt": {
+        "to": null,
+        "from": "0x600F7085d1a4f5a9890C36EfE67c32F5ad7050b7",
+        "contractAddress": "0xB1504e44CB408C4b37Af849d3AB384487c7Ed5AE",
+        "transactionIndex": 0,
+        "gasUsed": "646567",
+        "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "blockHash": "0x0a6f9c6b31e329841127080f6af4351135d7477bcdc53ff5dd489140f680ee63",
+        "transactionHash": "0x7a484a5e7235cb605c659d03bef22714c4cb0aaf7c32e3ea5b8e5ad50b5bf342",
+        "logs": [],
+        "blockNumber": 86653400,
+        "cumulativeGasUsed": "0",
+        "status": 1,
+        "byzantium": true
+    },
+    "args": [],
+    "numDeployments": 1,
+    "solcInputHash": "2aafaed9b8bd0478c07754209a9062a6",
+    "metadata": "{\"compiler\":{\"version\":\"0.8.10+commit.fc410830\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"CALLBACK_SUCCESS\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"}],\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"deposit\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"contract IERC3156FlashBorrower\",\"name\":\"receiver\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"flashLoan\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"flashMinted\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"withdraw\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"allowance(address,address)\":{\"details\":\"See {IERC20-allowance}.\"},\"approve(address,uint256)\":{\"details\":\"See {IERC20-approve}. Requirements: - `spender` cannot be the zero address.\"},\"flashLoan(address,address,uint256,bytes)\":{\"details\":\"Flash lends `value` WETH10 token to the receiver address. By the end of the transaction, `value` WETH10 token will be burned from the receiver. The flash-minted WETH10 token is not backed by real ETH but can be withdrawn as such up to the ETH balance of this contract. Arbitrary data can be passed as a bytes calldata parameter. Emits {Approval} event to reflect reduced allowance `value` for this contract to spend from receiver account (`receiver`), unless allowance is set to `type(uint256).max` Returns boolean value indicating whether operation succeeded. Requirements:   - `value` must be less or equal to type(uint112).max.\"},\"totalSupply()\":{\"details\":\"Returns the total supply of WETH10 token as the ETH held in this contract.\"}},\"stateVariables\":{\"flashMinted\":{\"details\":\"Current amount of flash-minted WETH10 token.\"}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"src/contracts/test/MockWETH10.sol\":\"MockWETH10\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"none\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":800},\"remappings\":[]},\"sources\":{\"src/contracts/test/MockWETH10.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity >=0.8.4;\\n\\nimport \\\"./interfaces/IERC3156FlashBorrower.sol\\\";\\n\\ncontract MockWETH10 {\\n    uint8 public constant decimals = 18;\\n    string public constant name = \\\"Wrapped Ether\\\";\\n    string public constant symbol = \\\"WETH\\\";\\n    bytes32 public immutable CALLBACK_SUCCESS = keccak256(\\\"ERC3156FlashBorrower.onFlashLoan\\\");\\n\\n    /// @dev Current amount of flash-minted WETH10 token.\\n    uint256 public flashMinted;\\n\\n    mapping(address => uint256) public balanceOf;\\n    mapping(address => mapping(address => uint256)) private _allowances;\\n\\n    /// @dev Returns the total supply of WETH10 token as the ETH held in this contract.\\n    function totalSupply() external view returns (uint256) {\\n        return address(this).balance + flashMinted;\\n    }\\n\\n    /// @dev Flash lends `value` WETH10 token to the receiver address.\\n    /// By the end of the transaction, `value` WETH10 token will be burned from the receiver.\\n    /// The flash-minted WETH10 token is not backed by real ETH\\n    /// but can be withdrawn as such up to the ETH balance of this contract.\\n    /// Arbitrary data can be passed as a bytes calldata parameter.\\n    /// Emits {Approval} event to reflect reduced allowance `value`\\n    /// for this contract to spend from receiver account (`receiver`),\\n    /// unless allowance is set to `type(uint256).max`\\n    /// Returns boolean value indicating whether operation succeeded.\\n    /// Requirements:\\n    ///   - `value` must be less or equal to type(uint112).max.\\n    function flashLoan(\\n        IERC3156FlashBorrower receiver,\\n        address token,\\n        uint256 value,\\n        bytes calldata data\\n    ) external returns (bool) {\\n        require(token == address(this), \\\"WETH: flash mint only WETH10\\\");\\n        require(value <= type(uint112).max, \\\"WETH: individual loan limit exceeded\\\");\\n\\n        balanceOf[address(receiver)] += value;\\n        require(\\n            receiver.onFlashLoan(msg.sender, address(this), value, 0, data) == CALLBACK_SUCCESS,\\n            \\\"WETH: flash loan failed\\\"\\n        );\\n\\n        uint256 balance = balanceOf[address(receiver)];\\n        require(balance >= value, \\\"WETH: burn amount exceeds balance\\\");\\n        balanceOf[address(receiver)] = balance - value;\\n        return true;\\n    }\\n\\n    function transfer(address to, uint256 value) external returns (bool) {\\n        uint256 balance = balanceOf[msg.sender];\\n        require(balance >= value, \\\"WETH: transfer amount exceeds balance\\\");\\n\\n        balanceOf[msg.sender] = balance - value;\\n        balanceOf[to] += value;\\n        return true;\\n    }\\n\\n    function transferFrom(\\n        address from,\\n        address to,\\n        uint256 value\\n    ) external returns (bool) {\\n        uint256 balance = balanceOf[from];\\n        require(balance >= value, \\\"WETH: transfer amount exceeds balance\\\");\\n\\n        balanceOf[from] = balance - value;\\n        balanceOf[to] += value;\\n        return true;\\n    }\\n\\n    // allow arbitrary values\\n    function deposit(uint256 _amount) external {\\n        balanceOf[msg.sender] += _amount;\\n    }\\n\\n    function withdraw(uint256 _amount) external {\\n        balanceOf[msg.sender] -= _amount;\\n    }\\n\\n    /**\\n     * @dev See {IERC20-allowance}.\\n     */\\n    function allowance(address owner, address spender) public view returns (uint256) {\\n        return _allowances[owner][spender];\\n    }\\n\\n    /**\\n     * @dev See {IERC20-approve}.\\n     *\\n     * Requirements:\\n     *\\n     * - `spender` cannot be the zero address.\\n     */\\n    function approve(address spender, uint256 amount) public returns (bool) {\\n        _approve(msg.sender, spender, amount);\\n        return true;\\n    }\\n\\n    function _approve(\\n        address owner,\\n        address spender,\\n        uint256 amount\\n    ) internal virtual {\\n        require(owner != address(0), \\\"ERC20: approve from the zero address\\\");\\n        require(spender != address(0), \\\"ERC20: approve to the zero address\\\");\\n\\n        _allowances[owner][spender] = amount;\\n    }\\n}\\n\",\"keccak256\":\"0x0d61b17f992d3b36842d369ff47525826d77ed87479d106a0a6fb57576dc074e\",\"license\":\"MIT\"},\"src/contracts/test/interfaces/IERC3156FlashBorrower.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity >=0.8.4;\\n\\ninterface IERC3156FlashBorrower {\\n    /**\\n     * @dev Receive a flash loan.\\n     * @param initiator The initiator of the loan.\\n     * @param token The loan currency.\\n     * @param amount The amount of tokens lent.\\n     * @param fee The additional amount of tokens to repay.\\n     * @param data Arbitrary data structure, intended to contain user-defined parameters.\\n     * @return The keccak256 hash of \\\"ERC3156FlashBorrower.onFlashLoan\\\"\\n     */\\n    function onFlashLoan(\\n        address initiator,\\n        address token,\\n        uint256 amount,\\n        uint256 fee,\\n        bytes calldata data\\n    ) external returns (bytes32);\\n}\\n\",\"keccak256\":\"0x9f9f47478cd9cc42e580ed36caeda7d88ab001114124d0f05c7a93329799a28f\",\"license\":\"MIT\"}},\"version\":1}",
+    "bytecode": "0x60a06040527f439148f0bbc682ca079e46d6e2c2f0c1e3b820f1a291b069d8882abf8cf18dd960805234801561003457600080fd5b50608051610abc610057600039600081816101f401526104bd0152610abc6000f3fe608060405234801561001057600080fd5b50600436106100ea5760003560e01c806370a082311161008c57806395d89b411161006657806395d89b411461021f578063a9059cbb14610242578063b6b55f2514610255578063dd62ed3e1461026857600080fd5b806370a08231146101cf5780638237e538146101ef5780638b28d32f1461021657600080fd5b806323b872dd116100c857806323b872dd1461017a5780632e1a7d4d1461018d578063313ce567146101a25780635cffe9de146101bc57600080fd5b806306fdde03146100ef578063095ea7b31461014157806318160ddd14610164575b600080fd5b61012b6040518060400160405280600d81526020017f577261707065642045746865720000000000000000000000000000000000000081525081565b6040516101389190610807565b60405180910390f35b61015461014f366004610874565b6102a1565b6040519015158152602001610138565b61016c6102b7565b604051908152602001610138565b6101546101883660046108a0565b6102ca565b6101a061019b3660046108e1565b610396565b005b6101aa601281565b60405160ff9091168152602001610138565b6101546101ca3660046108fa565b6103bd565b61016c6101dd366004610999565b60016020526000908152604090205481565b61016c7f000000000000000000000000000000000000000000000000000000000000000081565b61016c60005481565b61012b604051806040016040528060048152602001630ae8aa8960e31b81525081565b610154610250366004610874565b61063f565b6101a06102633660046108e1565b6106f9565b61016c6102763660046109bd565b6001600160a01b03918216600090815260026020908152604080832093909416825291909152205490565b60006102ae338484610718565b50600192915050565b600080546102c59047610a0c565b905090565b6001600160a01b038316600090815260016020526040812054828110156103465760405162461bcd60e51b815260206004820152602560248201527f574554483a207472616e7366657220616d6f756e7420657863656564732062616044820152646c616e636560d81b60648201526084015b60405180910390fd5b6103508382610a24565b6001600160a01b038087166000908152600160205260408082209390935590861681529081208054859290610386908490610a0c565b9091555060019695505050505050565b33600090815260016020526040812080548392906103b5908490610a24565b909155505050565b60006001600160a01b03851630146104175760405162461bcd60e51b815260206004820152601c60248201527f574554483a20666c617368206d696e74206f6e6c792057455448313000000000604482015260640161033d565b6dffffffffffffffffffffffffffff8411156104815760405162461bcd60e51b8152602060048201526024808201527f574554483a20696e646976696475616c206c6f616e206c696d697420657863656044820152631959195960e21b606482015260840161033d565b6001600160a01b038616600090815260016020526040812080548692906104a9908490610a0c565b90915550506040516323e30c8b60e01b81527f0000000000000000000000000000000000000000000000000000000000000000906001600160a01b038816906323e30c8b9061050790339030908a906000908b908b90600401610a3b565b6020604051808303816000875af1158015610526573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061054a9190610a96565b146105975760405162461bcd60e51b815260206004820152601760248201527f574554483a20666c617368206c6f616e206661696c6564000000000000000000604482015260640161033d565b6001600160a01b0386166000908152600160205260409020548481101561060a5760405162461bcd60e51b815260206004820152602160248201527f574554483a206275726e20616d6f756e7420657863656564732062616c616e636044820152606560f81b606482015260840161033d565b6106148582610a24565b6001600160a01b03881660009081526001602081905260409091209190915591505095945050505050565b33600090815260016020526040812054828110156106ad5760405162461bcd60e51b815260206004820152602560248201527f574554483a207472616e7366657220616d6f756e7420657863656564732062616044820152646c616e636560d81b606482015260840161033d565b6106b78382610a24565b33600090815260016020526040808220929092556001600160a01b038616815290812080548592906106ea908490610a0c565b90915550600195945050505050565b33600090815260016020526040812080548392906103b5908490610a0c565b6001600160a01b03831661077a5760405162461bcd60e51b8152602060048201526024808201527f45524332303a20617070726f76652066726f6d20746865207a65726f206164646044820152637265737360e01b606482015260840161033d565b6001600160a01b0382166107db5760405162461bcd60e51b815260206004820152602260248201527f45524332303a20617070726f766520746f20746865207a65726f206164647265604482015261737360f01b606482015260840161033d565b6001600160a01b0392831660009081526002602090815260408083209490951682529290925291902055565b600060208083528351808285015260005b8181101561083457858101830151858201604001528201610818565b81811115610846576000604083870101525b50601f01601f1916929092016040019392505050565b6001600160a01b038116811461087157600080fd5b50565b6000806040838503121561088757600080fd5b82356108928161085c565b946020939093013593505050565b6000806000606084860312156108b557600080fd5b83356108c08161085c565b925060208401356108d08161085c565b929592945050506040919091013590565b6000602082840312156108f357600080fd5b5035919050565b60008060008060006080868803121561091257600080fd5b853561091d8161085c565b9450602086013561092d8161085c565b935060408601359250606086013567ffffffffffffffff8082111561095157600080fd5b818801915088601f83011261096557600080fd5b81358181111561097457600080fd5b89602082850101111561098657600080fd5b9699959850939650602001949392505050565b6000602082840312156109ab57600080fd5b81356109b68161085c565b9392505050565b600080604083850312156109d057600080fd5b82356109db8161085c565b915060208301356109eb8161085c565b809150509250929050565b634e487b7160e01b600052601160045260246000fd5b60008219821115610a1f57610a1f6109f6565b500190565b600082821015610a3657610a366109f6565b500390565b60006001600160a01b03808916835280881660208401525085604083015284606083015260a060808301528260a0830152828460c0840137600060c0848401015260c0601f19601f8501168301019050979650505050505050565b600060208284031215610aa857600080fd5b505191905056fea164736f6c634300080a000a",
+    "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100ea5760003560e01c806370a082311161008c57806395d89b411161006657806395d89b411461021f578063a9059cbb14610242578063b6b55f2514610255578063dd62ed3e1461026857600080fd5b806370a08231146101cf5780638237e538146101ef5780638b28d32f1461021657600080fd5b806323b872dd116100c857806323b872dd1461017a5780632e1a7d4d1461018d578063313ce567146101a25780635cffe9de146101bc57600080fd5b806306fdde03146100ef578063095ea7b31461014157806318160ddd14610164575b600080fd5b61012b6040518060400160405280600d81526020017f577261707065642045746865720000000000000000000000000000000000000081525081565b6040516101389190610807565b60405180910390f35b61015461014f366004610874565b6102a1565b6040519015158152602001610138565b61016c6102b7565b604051908152602001610138565b6101546101883660046108a0565b6102ca565b6101a061019b3660046108e1565b610396565b005b6101aa601281565b60405160ff9091168152602001610138565b6101546101ca3660046108fa565b6103bd565b61016c6101dd366004610999565b60016020526000908152604090205481565b61016c7f000000000000000000000000000000000000000000000000000000000000000081565b61016c60005481565b61012b604051806040016040528060048152602001630ae8aa8960e31b81525081565b610154610250366004610874565b61063f565b6101a06102633660046108e1565b6106f9565b61016c6102763660046109bd565b6001600160a01b03918216600090815260026020908152604080832093909416825291909152205490565b60006102ae338484610718565b50600192915050565b600080546102c59047610a0c565b905090565b6001600160a01b038316600090815260016020526040812054828110156103465760405162461bcd60e51b815260206004820152602560248201527f574554483a207472616e7366657220616d6f756e7420657863656564732062616044820152646c616e636560d81b60648201526084015b60405180910390fd5b6103508382610a24565b6001600160a01b038087166000908152600160205260408082209390935590861681529081208054859290610386908490610a0c565b9091555060019695505050505050565b33600090815260016020526040812080548392906103b5908490610a24565b909155505050565b60006001600160a01b03851630146104175760405162461bcd60e51b815260206004820152601c60248201527f574554483a20666c617368206d696e74206f6e6c792057455448313000000000604482015260640161033d565b6dffffffffffffffffffffffffffff8411156104815760405162461bcd60e51b8152602060048201526024808201527f574554483a20696e646976696475616c206c6f616e206c696d697420657863656044820152631959195960e21b606482015260840161033d565b6001600160a01b038616600090815260016020526040812080548692906104a9908490610a0c565b90915550506040516323e30c8b60e01b81527f0000000000000000000000000000000000000000000000000000000000000000906001600160a01b038816906323e30c8b9061050790339030908a906000908b908b90600401610a3b565b6020604051808303816000875af1158015610526573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061054a9190610a96565b146105975760405162461bcd60e51b815260206004820152601760248201527f574554483a20666c617368206c6f616e206661696c6564000000000000000000604482015260640161033d565b6001600160a01b0386166000908152600160205260409020548481101561060a5760405162461bcd60e51b815260206004820152602160248201527f574554483a206275726e20616d6f756e7420657863656564732062616c616e636044820152606560f81b606482015260840161033d565b6106148582610a24565b6001600160a01b03881660009081526001602081905260409091209190915591505095945050505050565b33600090815260016020526040812054828110156106ad5760405162461bcd60e51b815260206004820152602560248201527f574554483a207472616e7366657220616d6f756e7420657863656564732062616044820152646c616e636560d81b606482015260840161033d565b6106b78382610a24565b33600090815260016020526040808220929092556001600160a01b038616815290812080548592906106ea908490610a0c565b90915550600195945050505050565b33600090815260016020526040812080548392906103b5908490610a0c565b6001600160a01b03831661077a5760405162461bcd60e51b8152602060048201526024808201527f45524332303a20617070726f76652066726f6d20746865207a65726f206164646044820152637265737360e01b606482015260840161033d565b6001600160a01b0382166107db5760405162461bcd60e51b815260206004820152602260248201527f45524332303a20617070726f766520746f20746865207a65726f206164647265604482015261737360f01b606482015260840161033d565b6001600160a01b0392831660009081526002602090815260408083209490951682529290925291902055565b600060208083528351808285015260005b8181101561083457858101830151858201604001528201610818565b81811115610846576000604083870101525b50601f01601f1916929092016040019392505050565b6001600160a01b038116811461087157600080fd5b50565b6000806040838503121561088757600080fd5b82356108928161085c565b946020939093013593505050565b6000806000606084860312156108b557600080fd5b83356108c08161085c565b925060208401356108d08161085c565b929592945050506040919091013590565b6000602082840312156108f357600080fd5b5035919050565b60008060008060006080868803121561091257600080fd5b853561091d8161085c565b9450602086013561092d8161085c565b935060408601359250606086013567ffffffffffffffff8082111561095157600080fd5b818801915088601f83011261096557600080fd5b81358181111561097457600080fd5b89602082850101111561098657600080fd5b9699959850939650602001949392505050565b6000602082840312156109ab57600080fd5b81356109b68161085c565b9392505050565b600080604083850312156109d057600080fd5b82356109db8161085c565b915060208301356109eb8161085c565b809150509250929050565b634e487b7160e01b600052601160045260246000fd5b60008219821115610a1f57610a1f6109f6565b500190565b600082821015610a3657610a366109f6565b500390565b60006001600160a01b03808916835280881660208401525085604083015284606083015260a060808301528260a0830152828460c0840137600060c0848401015260c0601f19601f8501168301019050979650505050505050565b600060208284031215610aa857600080fd5b505191905056fea164736f6c634300080a000a",
+    "devdoc": {
+        "kind": "dev",
+        "methods": {
+            "allowance(address,address)": {
+                "details": "See {IERC20-allowance}."
+            },
+            "approve(address,uint256)": {
+                "details": "See {IERC20-approve}. Requirements: - `spender` cannot be the zero address."
+            },
+            "flashLoan(address,address,uint256,bytes)": {
+                "details": "Flash lends `value` WETH10 token to the receiver address. By the end of the transaction, `value` WETH10 token will be burned from the receiver. The flash-minted WETH10 token is not backed by real ETH but can be withdrawn as such up to the ETH balance of this contract. Arbitrary data can be passed as a bytes calldata parameter. Emits {Approval} event to reflect reduced allowance `value` for this contract to spend from receiver account (`receiver`), unless allowance is set to `type(uint256).max` Returns boolean value indicating whether operation succeeded. Requirements:   - `value` must be less or equal to type(uint112).max."
+            },
+            "totalSupply()": {
+                "details": "Returns the total supply of WETH10 token as the ETH held in this contract."
+            }
+        },
+        "stateVariables": {
+            "flashMinted": {
+                "details": "Current amount of flash-minted WETH10 token."
+            }
+        },
+        "version": 1
+    },
+    "userdoc": {
+        "kind": "user",
+        "methods": {},
+        "version": 1
+    },
+    "storageLayout": {
+        "storage": [
+            {
+                "astId": 25355,
+                "contract": "src/contracts/test/MockWETH10.sol:MockWETH10",
+                "label": "flashMinted",
+                "offset": 0,
+                "slot": "0",
+                "type": "t_uint256"
+            },
+            {
+                "astId": 25359,
+                "contract": "src/contracts/test/MockWETH10.sol:MockWETH10",
+                "label": "balanceOf",
+                "offset": 0,
+                "slot": "1",
+                "type": "t_mapping(t_address,t_uint256)"
+            },
+            {
+                "astId": 25365,
+                "contract": "src/contracts/test/MockWETH10.sol:MockWETH10",
+                "label": "_allowances",
+                "offset": 0,
+                "slot": "2",
+                "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))"
+            }
+        ],
+        "types": {
+            "t_address": {
+                "encoding": "inplace",
+                "label": "address",
+                "numberOfBytes": "20"
+            },
+            "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
+                "encoding": "mapping",
+                "key": "t_address",
+                "label": "mapping(address => mapping(address => uint256))",
+                "numberOfBytes": "32",
+                "value": "t_mapping(t_address,t_uint256)"
+            },
+            "t_mapping(t_address,t_uint256)": {
+                "encoding": "mapping",
+                "key": "t_address",
+                "label": "mapping(address => uint256)",
+                "numberOfBytes": "32",
+                "value": "t_uint256"
+            },
+            "t_uint256": {
+                "encoding": "inplace",
+                "label": "uint256",
+                "numberOfBytes": "32"
+            }
+        }
+    }
+}
