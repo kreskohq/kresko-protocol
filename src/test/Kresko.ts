@@ -14,6 +14,7 @@ import {
     LIQUIDATION_INCENTIVE,
     MINIMUM_COLLATERALIZATION_RATIO,
     MINIMUM_DEBT_VALUE,
+    SECONDS_UNTIL_PRICE_STALE,
     NAME_ONE,
     NAME_TWO,
     ONE,
@@ -74,6 +75,7 @@ describe("Kresko", function () {
                     LIQUIDATION_INCENTIVE,
                     MINIMUM_COLLATERALIZATION_RATIO,
                     MINIMUM_DEBT_VALUE,
+                    SECONDS_UNTIL_PRICE_STALE,
                 ),
             ).to.be.revertedWith("Initializable: contract is already initialized");
         });
