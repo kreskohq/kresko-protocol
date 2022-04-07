@@ -1,8 +1,10 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { UniswapV2Factory, UniswapV2Router02 } from "types";
+import { getLogger } from "@utils/deployment";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+    const logger = getLogger("deploy-uniswap");
     const { getNamedAccounts, deploy } = hre;
     const { admin } = await getNamedAccounts();
 
@@ -30,6 +32,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     };
 
     console.table(contracts);
+    logger.success("Succesfully deployed uniswap contracts");
 };
 
 export default func;

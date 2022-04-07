@@ -1,3 +1,4 @@
+import { getLogger } from "@utils/deployment";
 import { toFixedPoint } from "@utils/fixed-point";
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
@@ -12,6 +13,7 @@ task("kresko:addkrasset")
     .setAction(async function (taskArgs: TaskArguments, hre) {
         const { ethers, kresko } = hre;
         const { name, kFactor, oracleAddr, marketCapLimit, log, wait } = taskArgs;
+        const logger = getLogger("addCollateral", log);
         if (kFactor == 1000) {
             console.error("Invalid kFactor for", name);
             return;
@@ -23,7 +25,7 @@ task("kresko:addkrasset")
         const exists = krAssetInfo.exists;
 
         if (exists) {
-            console.log(`KrAsset ${name} already exists!`);
+            logger.warn(`KrAsset ${name} already exists!`);
         } else {
             const tx = await kresko.addKreskoAsset(
                 KrAsset.address,
@@ -33,9 +35,7 @@ task("kresko:addkrasset")
                 toFixedPoint(marketCapLimit),
             );
             await tx.wait(wait);
-            if (log) {
-                console.log(`Added ${name} as mintable in Kresko with kFactor of ${kFactor}`);
-                console.log("txHash", tx.hash);
-            }
+            logger.success(`Succesfully added ${name} in Kresko with kFactor of ${kFactor}`);
+            logger.success("txHash", tx.hash);
         }
     });

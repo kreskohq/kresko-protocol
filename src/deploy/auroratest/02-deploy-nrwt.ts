@@ -1,8 +1,10 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { toFixedPoint } from "@utils";
+import { getLogger } from "@utils/deployment";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+    const logger = getLogger("deploy-nrwt");
     const { getNamedAccounts, deploy } = hre;
     const { admin } = await getNamedAccounts();
 
@@ -34,6 +36,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     };
 
     console.log(contracts);
+    logger.success("Succesfully deployed nrwts");
 };
 
 func.tags = ["auroratest"];

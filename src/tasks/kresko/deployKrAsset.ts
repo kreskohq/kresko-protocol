@@ -1,4 +1,4 @@
-import { deployWithSignatures } from "@utils/deployment";
+import { deployWithSignatures, getLogger } from "@utils/deployment";
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
 
@@ -15,6 +15,7 @@ task("deploy:krasset")
         const deploy = deployWithSignatures(hre);
 
         const { name, symbol, owner, operator, log, wait } = taskArgs;
+        const logger = getLogger("deployKrAsset", log);
 
         const contractOwner = owner ? owner : deployer;
         let contractOperator: string;
@@ -24,6 +25,8 @@ task("deploy:krasset")
         } else {
             contractOperator = operator ? operator : (await deployments.get("Kresko")).address;
         }
+
+        logger.log("Asset operator is", contractOperator);
 
         const [KreskoAsset, , deployment] = await deploy<KreskoAsset>(name, {
             from: deployer,
@@ -40,17 +43,16 @@ task("deploy:krasset")
             },
         });
 
-        if (log) {
-            const ProxyAdmin = await deployments.get("DefaultProxyAdmin");
+        const ProxyAdmin = await deployments.get("DefaultProxyAdmin");
 
-            const contracts = {
-                ProxyAdmin: ProxyAdmin.address,
-                [`${name} (Proxy)`]: KreskoAsset.address,
-                [`${name} Implementation`]: deployment.implementation,
-                txHash: deployment.transactionHash,
-            };
-            console.table(contracts);
-        }
+        const contracts = {
+            ProxyAdmin: ProxyAdmin.address,
+            [`${name} (Proxy)`]: KreskoAsset.address,
+            [`${name} Implementation`]: deployment.implementation,
+            txHash: deployment.transactionHash,
+        };
+        logger.table(contracts);
+        logger.success("KrAsset succesfully deployed @ ", KreskoAsset.address);
 
         krAssets[name] = KreskoAsset;
     });

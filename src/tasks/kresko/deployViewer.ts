@@ -1,4 +1,4 @@
-import { deployWithSignatures } from "@utils/deployment";
+import { deployWithSignatures, getLogger } from "@utils/deployment";
 import { fromBig } from "@utils/numbers";
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
@@ -13,7 +13,7 @@ task("deploy:viewer")
         const { deployer } = await getNamedAccounts();
         const deploy = deployWithSignatures(hre);
         const { kreskoAddr, wait, log } = taskArgs;
-
+        const logger = getLogger("deployViewer", log);
         const Kresko = kreskoAddr
             ? await ethers.getContractAt<Kresko>("Kresko", kreskoAddr)
             : await ethers.getContract<Kresko>("Kresko");
@@ -30,7 +30,7 @@ task("deploy:viewer")
             const [krAssets, collaterals, healthFactor, debtUSD, collateralUSD, minCollateralUSD] =
                 await viewer.kreskoUser(deployer);
 
-            console.log({
+            logger.log({
                 collaterals: collaterals.map(collateral => ({
                     index: Number(collateral.index),
                     cFactor: fromBig(collateral.cFactor),
@@ -62,7 +62,7 @@ task("deploy:viewer")
                 krAssets.map(kr => kr.assetAddress),
             );
 
-            console.log({
+            logger.log({
                 collateralInfo: assetInfos.collateralAssets.map(coll => ({
                     cFactor: fromBig(coll.cFactor),
                     address: coll.assetAddress,
@@ -85,6 +85,6 @@ task("deploy:viewer")
                 })),
             });
 
-            console.log("Viewer deployed @ ", viewer.address);
+            logger.success("Viewer deployed @ ", viewer.address);
         }
     });

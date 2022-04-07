@@ -2,6 +2,7 @@ import { fromBig } from "@utils/numbers";
 import { toFixedPoint } from "@utils/fixed-point";
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
+import { getLogger } from "@utils/deployment";
 
 task("kresko:addcollateral")
     .addParam("name", "Name of the collateral")
@@ -15,6 +16,8 @@ task("kresko:addcollateral")
 
         const { name, cFactor, oracleAddr, nrwt, log, wait } = taskArgs;
 
+        const logger = getLogger("addCollateral", log);
+
         if (cFactor == 1000) {
             console.error("Invalid cFactor for", name);
             return;
@@ -22,13 +25,13 @@ task("kresko:addcollateral")
 
         const Collateral = await ethers.getContract<Token>(name);
 
-        log && console.log("Collateral address", Collateral.address);
+        logger.log("Collateral address", Collateral.address);
 
         const collateralAsset = await kresko.collateralAssets(Collateral.address);
         const exists = collateralAsset.exists;
 
         if (exists) {
-            console.log(`Collateral ${name} already exists!`);
+            logger.warn(`Collateral ${name} already exists!`);
         } else {
             const tx = await kresko.addCollateralAsset(Collateral.address, toFixedPoint(cFactor), oracleAddr, !!nrwt);
 
@@ -36,17 +39,17 @@ task("kresko:addcollateral")
 
             if (log) {
                 const collateralDecimals = await Collateral.decimals();
-                console.log("Decimals", collateralDecimals);
+                logger.log(name, "decimals", collateralDecimals);
                 const [value, oraclePrice] = await kresko.getCollateralValueAndOraclePrice(
                     Collateral.address,
                     ethers.utils.parseUnits("1", collateralDecimals),
                     true,
                 );
 
-                console.log(`Added ${name} as collateral with a cFctor of:`, cFactor);
-                console.log(`1 ${name} has value: ${fromBig(value.rawValue, 8)}`);
-                console.log(`1 ${name} has oracle price of: ${fromBig(oraclePrice.rawValue, 8)}`);
-                console.log("txHash", tx.hash);
+                logger.success(`Sucesfully added ${name} as collateral with a cFctor of:`, cFactor);
+                logger.log(`1 ${name} value: ${fromBig(value.rawValue, 8)}`);
+                logger.log(`1 ${name} oracle price: ${fromBig(oraclePrice.rawValue, 8)}`);
+                logger.log("txHash", tx.hash);
             }
         }
     });

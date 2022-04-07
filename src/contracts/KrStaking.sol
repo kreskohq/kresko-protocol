@@ -46,10 +46,10 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
     // The block when rewards start dripping.
     uint128 public startBlock;
 
-    event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
-    event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
-    event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
-    event ClaimRewards(address indexed user, address indexed rewardToken, uint256 amount);
+    event Deposit(address indexed user, uint256 indexed pid, uint256 indexed amount);
+    event Withdraw(address indexed user, uint256 indexed pid, uint256 indexed amount);
+    event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 indexed amount);
+    event ClaimRewards(address indexed user, address indexed rewardToken, uint256 indexed amount);
 
     function initialize(
         address[] calldata _rewardTokens,

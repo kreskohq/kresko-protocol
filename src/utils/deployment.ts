@@ -22,3 +22,29 @@ export const deployWithSignatures =
             deployment,
         ];
     };
+
+export const getLogger = (prefix?: string, log = true) => ({
+    warn: (...args: any[]) => log && console.warn(prefix, ...args),
+    error: (...args: any[]) => log && console.error(prefix, ...args),
+    log: (...args: any[]) =>
+        log &&
+        console.log(
+            "\x1b[35m",
+            "\x1b[1m",
+            `${prefix}:`.padEnd(24),
+            "\x1b[0m",
+            ...args.flatMap(a => ["\x1b[37m", a, ""]),
+            "\x1b[0m",
+        ),
+    success: (...args: any[]) =>
+        log &&
+        console.log(
+            "\x1b[32m",
+            "\x1b[1m",
+            `${prefix}:`.padEnd(24),
+            "\x1b[32m",
+            ...args.flatMap(a => ["\x1b[32m", a, ""]),
+            "\x1b[0m",
+        ),
+    table: (...args: any) => log && console.table(...args),
+});

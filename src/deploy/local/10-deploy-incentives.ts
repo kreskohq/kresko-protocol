@@ -1,8 +1,10 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { RewardToken } from "@typechain";
+import { getLogger } from "@utils/deployment";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+    const logger = getLogger("deploy-incentives");
     const RewardToken1: RewardToken = await hre.run("deploy:token", {
         name: "RewardToken1",
         symbol: "Reward2",
@@ -19,6 +21,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     };
 
     console.table(contracts);
+    logger.success("Succesfully deployed mock incentive tokens");
 };
 
 export default func;

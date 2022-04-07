@@ -268,8 +268,8 @@ export async function deployKreskoAsset(name: string, amountToDeployer: number) 
     return token;
 }
 
-export const deployUniswap = deployments.createFixture(async ({ deployments, deploy }) => {
-    await deployments.fixture("test"); // ensure you start from a fresh deployments
+export const deployUniswap = deployments.createFixture(async ({ deploy }) => {
+    await deployments.fixture("");
     const { getNamedAccounts } = hre;
     const { admin, treasury } = await getNamedAccounts();
 
@@ -296,7 +296,7 @@ export const deployUniswap = deployments.createFixture(async ({ deployments, dep
     };
 });
 
-export const setupTestsStaking = (stakingTokenAddr: string) =>
+export const setupTestsStaking = (stakingTokenAddr: string, routerAddr: string, factoryAddr: string) =>
     deployments.createFixture(async ({ deployments, ethers }) => {
         await deployments.fixture("staking-zap");
         const { admin, userOne, userTwo, userThree, nonadmin, operator } = await ethers.getNamedSigners();
@@ -310,8 +310,11 @@ export const setupTestsStaking = (stakingTokenAddr: string) =>
             rewardPerBlocks: "0.1,0.2",
         });
 
+        const KrStakingUniHelper = await hre.run("deploy:stakingunihelper", { routerAddr, factoryAddr, log: false });
+
         return {
             KrStaking,
+            KrStakingUniHelper,
             RewardTKN1,
             RewardTKN2,
             signers: {

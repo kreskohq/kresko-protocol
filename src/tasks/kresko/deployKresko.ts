@@ -1,4 +1,4 @@
-import { deployWithSignatures } from "@utils/deployment";
+import { deployWithSignatures, getLogger } from "@utils/deployment";
 import { toFixedPoint } from "@utils/fixed-point";
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
@@ -26,6 +26,8 @@ task("deploy:kresko")
         const { formatEther } = ethers.utils;
         const { burnFee, feeRecipient, liquidationIncentiveMultiplier, minCollaterRatio, minDebtValue, wait, log } =
             taskArgs;
+
+        const logger = getLogger("deployKresko", log);
 
         const [Kresko, , deployment] = await deploy<Kresko>("Kresko", {
             from: admin,
@@ -70,10 +72,11 @@ task("deploy:kresko")
                 KreskoViewer: KreskoViewer.address,
                 txHash: deployment.transactionHash,
             };
-            console.table(contracts);
-            console.table(initValuesOnChain);
+            logger.table(contracts);
+            logger.table(initValuesOnChain);
         }
 
+        logger.success("Kresko succesfully deployed");
         hre.kresko = Kresko;
         return Kresko;
     });

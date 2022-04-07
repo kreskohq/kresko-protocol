@@ -1,7 +1,9 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
+import { getLogger } from "@utils/deployment";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+    const logger = getLogger("deploy-krasset");
     const { kresko } = hre;
 
     await hre.run("deploy:krasset", {
@@ -30,6 +32,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         operator: kresko.address,
         log: true,
     });
+    logger.success("Succesfully deployed krAssets");
 };
 export default func;
 func.tags = ["local"];

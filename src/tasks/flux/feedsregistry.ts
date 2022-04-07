@@ -10,5 +10,6 @@ task("deployone:feedsregistry")
             from: deployer.address,
             args: [taskArgs.admin ? taskArgs.admin : deployer.address],
         });
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         priceFeedsRegistry = FeedsRegistry;
     });

@@ -1,7 +1,10 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
+import { getLogger } from "@utils/deployment";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+    const logger = getLogger("whitelist-collateral");
+
     const { priceFeeds } = hre;
 
     await hre.run("kresko:addcollateral", {
@@ -35,6 +38,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         log: true,
         wait: 2,
     });
+
+    logger.success("Succesfully whitelisted collaterals");
 };
 export default func;
 
