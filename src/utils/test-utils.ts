@@ -239,6 +239,7 @@ export async function deploySimpleToken(name: string, amountToDeployer: number, 
     const token = await hre.deploy<Token>("Token", {
         from: admin,
         args: [name, name, toBig(amountToDeployer), 18],
+        log: false,
         ...params,
     });
 
@@ -308,6 +309,7 @@ export const setupTestsStaking = (stakingTokenAddr: string, routerAddr: string, 
             stakingToken: stakingTokenAddr,
             rewardTokens: `${RewardTKN1.address},${RewardTKN2.address}`,
             rewardPerBlocks: "0.1,0.2",
+            log: false,
         });
 
         const KrStakingUniHelper = await hre.run("deploy:stakingunihelper", { routerAddr, factoryAddr, log: false });

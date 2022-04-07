@@ -7,4 +7,5 @@ export * from "./flux";
 export * from "./uniswap/addLiquidity";
 export * from "./uniswap/addLiquidityExternal";
 export * from "./staking/deployStaking";
+export * from "./staking/upgradeStaking";
 export * from "./staking/deployUniHelper";

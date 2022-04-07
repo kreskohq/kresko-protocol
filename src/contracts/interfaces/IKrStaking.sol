@@ -35,13 +35,12 @@ interface IKrStaking {
         address _for,
         uint256 _pid,
         uint256 _amount,
-        bool _claimRewards,
         address _claimRewardsTo
     ) external;
 
-    function claimRewards(
-        PoolInfo memory pool,
-        UserInfo memory user,
-        address to
+    function claimFor(
+        address _for,
+        uint256 _pid,
+        address _rewardRecipient
     ) external;
 }
