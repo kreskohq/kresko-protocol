@@ -47,7 +47,7 @@ export const networks = (mnemonic: string) => ({
         },
         chainId: chainIds.auroratest,
         gasPrice: 0,
-        url: "http://54.72.121.191/rpc",
+        url: `https://auroratest.kresko.link?key=${process.env.AURORATEST_API_KEY}`,
         deploy: ["./src/deploy/auroratest"],
         live: true,
     },
