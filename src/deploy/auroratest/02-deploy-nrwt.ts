@@ -35,10 +35,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         NRTWImplementation: deployment.implementation,
     };
 
-    console.log(contracts);
+    logger.log(contracts);
     logger.success("Succesfully deployed nrwts");
 };
 
 func.tags = ["auroratest"];
+func.skip = async hre => {
+    const logger = getLogger("deploy-nrwt");
+
+    const isFinished = await hre.deployments.getOrNull("NonRebasingWrapperToken");
+    isFinished && logger.log("Skipping deploying nrwt");
+    return !!isFinished;
+};
 
 export default func;

@@ -1,6 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { getLogger } from "@utils/deployment";
+import { fromBig } from "@utils/numbers";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("mint-krassets");
@@ -66,4 +67,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     logger.log("Minting done");
 };
 func.tags = ["auroratest", "mint", "mint-test"];
+
+func.skip = async hre => {
+    const logger = getLogger("mint-krassets");
+    const krQQQ = await hre.ethers.getContract<KreskoAsset>("krQQQ");
+    const { deployer } = await hre.getNamedAccounts();
+    const isFinished = fromBig(await hre.kresko.kreskoAssetDebt(deployer, krQQQ.address)) > 0;
+    isFinished && logger.log("Skipping minting krAssets");
+    return isFinished;
+};
+
 export default func;

@@ -5,17 +5,15 @@ import { AddressZero, fromBig } from "@utils";
 import { getLogger } from "@utils/deployment";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-    const { deployer } = await hre.getNamedAccounts();
     const { ethers, priceFeeds } = hre;
     const USDC = await ethers.getContract<Token>("USDC");
+
     /** === USDC/KRTSLA ===  */
     const krTSLA = await ethers.getContract<KreskoAsset>("krTSLA");
     const TSLAValue = fromBig(await priceFeeds["TSLA/USD"].latestAnswer(), 8);
     const TSLADepositAmount = 100;
 
     const logger = getLogger("create-uni-pools");
-
-    const usdcDec = await USDC.decimals();
 
     const Factory = await ethers.getContract<UniswapV2Factory>("UniswapV2Factory");
 
@@ -41,7 +39,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     }
 
     hre.uniPairs["USDC/KRTSLA"] = USDCKRTSLApair;
-    console.log("USDC AMOUNT", fromBig(await USDC.balanceOf(deployer), usdcDec));
 
     /** === USDC/krETH ===  */
     const krETH = await ethers.getContract<KreskoAsset>("krETH");
@@ -92,7 +89,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         });
     } else {
         USDCKRGOLDPair = await ethers.getContractAt("UniswapV2Pair", krGOLDPair);
-        console.log("pair already found @ ", USDCKRGOLDPair.address);
+        logger.log("pair already found @ ", USDCKRGOLDPair.address);
     }
     hre.uniPairs["USDC/KRGOLD"] = USDCKRGOLDPair;
 };
