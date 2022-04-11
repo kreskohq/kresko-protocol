@@ -43,7 +43,7 @@ import {
     MinimumCollateralizationRatioUpdatedEvent,
 } from "types/contracts/Kresko";
 
-describe("Kresko", function () {
+describe.only("Kresko", function () {
     before(async function () {
         // We intentionally allow constructor that calls the initializer
         // modifier and explicitly allow this in calls to `deployProxy`.
@@ -195,72 +195,72 @@ describe("Kresko", function () {
 
         describe("#updateCollateralAsset", function () {
             it("should allow owner to update collateral asset's factor", async function () {
-                let collateralAsset = this.collateralAssetInfo.collateralAsset;
+                let info = this.collateralAssetInfo;
                 await this.Kresko.updateCollateralAsset(
-                    collateralAsset.address,
+                    info.collateralAsset.address,
                     ZERO_POINT_FIVE,
-                    collateralAsset.oracle.address,
+                    info.oracle.address,
                 );
 
-                const asset = await this.Kresko.collateralAssets(collateralAsset.address);
+                const asset = await this.Kresko.collateralAssets(info.collateralAsset.address);
                 expect(asset.factor.rawValue).to.equal(ZERO_POINT_FIVE);
             });
 
             it("should allow owner to update collateral asset's oracle address", async function () {
-                let collateralAsset = this.collateralAssetInfo.collateralAsset;
+                let info = this.collateralAssetInfo;
                 await this.Kresko.updateCollateralAsset(
-                    collateralAsset.address,
-                    collateralAsset.factor,
+                    info.collateralAsset.address,
+                    info.factor,
                     ADDRESS_TWO,
                 );
 
-                const asset = await this.Kresko.collateralAssets(collateralAsset.address);
+                const asset = await this.Kresko.collateralAssets(info.collateralAsset.address);
                 expect(asset.oracle).to.equal(ADDRESS_TWO);
             });
 
             it("should emit CollateralAssetUpdated event", async function () {
-                let collateralAsset = this.collateralAssetInfo.collateralAsset;
+                let info = this.collateralAssetInfo;
                 const receipt = await this.Kresko.updateCollateralAsset(
-                    collateralAsset.address,
+                    info.collateralAsset.address,
                     ZERO_POINT_FIVE,
                     ADDRESS_TWO,
                 );
 
                 const { args } = await extractEventFromTxReceipt(receipt, "CollateralAssetUpdated");
-                expect(args.collateralAsset).to.equal(collateralAsset.address);
+                expect(args.collateralAsset).to.equal(info.collateralAsset.address);
                 expect(args.factor).to.equal(ZERO_POINT_FIVE);
                 expect(args.oracle).to.equal(ADDRESS_TWO);
             });
 
             it("should not allow the collateral factor to be greater than 1", async function () {
-                let collateralAsset = this.collateralAssetInfo.collateralAsset;
+                let info = this.collateralAssetInfo;
                 await expect(
                     this.Kresko.updateCollateralAsset(
-                        collateralAsset.address,
+                        info.collateralAsset.address,
                         ONE.add(1),
-                        collateralAsset.oracle.address,
+                        info.oracle.address,
                     ),
                 ).to.be.revertedWith("KR: factor > 1FP");
             });
 
             it("should not allow the oracle address to be the zero address", async function () {
-                let collateralAsset = this.collateralAssetInfo.collateralAsset;
+                let info = this.collateralAssetInfo;
                 await expect(
                     this.Kresko.updateCollateralAsset(
-                        collateralAsset.address,
-                        collateralAsset.factor,
+                        info.collateralAsset.address,
+                        info.factor,
                         ADDRESS_ZERO,
                     ),
                 ).to.be.revertedWith("KR: !oracleAddr");
             });
 
             it("should not allow non-owner to update collateral asset", async function () {
-                let collateralAsset = this.collateralAssetInfo.collateralAsset;
+                let info = this.collateralAssetInfo;
                 await expect(
                     this.Kresko.connect(this.signers.userOne).updateCollateralAsset(
-                        collateralAsset.address,
-                        collateralAsset.factor,
-                        collateralAsset.oracle,
+                        info.collateralAsset.address,
+                        info.factor,
+                        info.oracle.address,
                     ),
                 ).to.be.revertedWith("Ownable: caller is not the owner");
             });
