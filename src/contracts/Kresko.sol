@@ -172,18 +172,12 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     event CollateralAssetAdded(address indexed collateralAsset, uint256 indexed factor, address indexed oracle);
 
     /**
-     * @notice Emitted when a collateral asset's collateral factor is updated.
+     * @notice Emitted when a collateral asset is updated.
      * @param collateralAsset The address of the collateral asset.
      * @param factor The collateral factor.
+     * @param oracle The oracle address.
      */
-    event CollateralAssetFactorUpdated(address indexed collateralAsset, uint256 indexed factor);
-
-    /**
-     * @notice Emitted when a collateral asset's oracle is updated.
-     * @param collateralAsset The address of the collateral asset.
-     * @param oracle The address of the oracle.
-     */
-    event CollateralAssetOracleUpdated(address indexed collateralAsset, address indexed oracle);
+    event CollateralAssetUpdated(address indexed collateralAsset, uint256 indexed factor, address indexed oracle);
 
     /**
      * @notice Emitted when an account deposits collateral.
@@ -842,39 +836,25 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         emit CollateralAssetAdded(_collateralAsset, _factor, _oracle);
     }
 
-    /**
-     * @notice Updates the collateral factor of a previously added collateral asset.
+     /**
+     * @notice Updates a previously added collateral asset.
      * @dev Only callable by the owner.
      * @param _collateralAsset The address of the collateral asset.
      * @param _factor The new collateral factor as a raw value for a FixedPoint.Unsigned. Must be <= 1e18.
-     */
-    function updateCollateralFactor(address _collateralAsset, uint256 _factor)
-        external
-        onlyOwner
-        collateralAssetExists(_collateralAsset)
-    {
-        // Setting the factor to 0 effectively sunsets a collateral asset, which is intentionally allowed.
-        require(_factor <= FixedPoint.FP_SCALING_FACTOR, "KR: factor > 1FP");
-
-        collateralAssets[_collateralAsset].factor = FixedPoint.Unsigned(_factor);
-        emit CollateralAssetFactorUpdated(_collateralAsset, _factor);
-    }
-
-    /**
-     * @notice Updates the oracle address of a previously added collateral asset.
-     * @dev Only callable by the owner.
-     * @param _collateralAsset The address of the collateral asset.
      * @param _oracle The new oracle address for the collateral asset.
      */
-    function updateCollateralAssetOracle(address _collateralAsset, address _oracle)
+    function updateCollateralAsset(address _collateralAsset, uint256 _factor, address _oracle)
         external
         onlyOwner
         collateralAssetExists(_collateralAsset)
     {
         require(_oracle != address(0), "KR: !oracleAddr");
+        // Setting the factor to 0 effectively sunsets a collateral asset, which is intentionally allowed.
+        require(_factor <= FixedPoint.FP_SCALING_FACTOR, "KR: factor > 1FP");
 
+        collateralAssets[_collateralAsset].factor = FixedPoint.Unsigned(_factor);
         collateralAssets[_collateralAsset].oracle = AggregatorV2V3Interface(_oracle);
-        emit CollateralAssetOracleUpdated(_collateralAsset, _oracle);
+        emit CollateralAssetUpdated(_collateralAsset, _factor, _oracle);
     }
 
     /* ===== Kresko Assets ===== */
