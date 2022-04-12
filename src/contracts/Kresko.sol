@@ -215,32 +215,20 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     );
 
     /**
-     * @notice Emitted when a Kresko asset's k-factor is updated.
-     * @param kreskoAsset The address of the Kresko asset.
-     * @param kFactor The k-factor.
-     */
-    event KreskoAssetKFactorUpdated(address indexed kreskoAsset, uint256 indexed kFactor);
-
-    /**
-     * @notice Emitted when a Kresko asset's mintable property is updated.
-     * @param kreskoAsset The address of the Kresko asset.
-     * @param mintable The mintable value.
-     */
-    event KreskoAssetMintableUpdated(address indexed kreskoAsset, bool indexed mintable);
-
-    /**
      * @notice Emitted when a Kresko asset's oracle is updated.
      * @param kreskoAsset The address of the Kresko asset.
+     * @param kFactor The k-factor.
      * @param oracle The address of the oracle.
-     */
-    event KreskoAssetOracleUpdated(address indexed kreskoAsset, address indexed oracle);
-
-    /**
-     * @notice Emitted when a Kresko asset's market capitalization USD limit is updated.
-     * @param kreskoAsset The address of the Kresko asset.
+     * @param mintable The mintable value.
      * @param limit The market capitalization USD limit.
      */
-    event KreskoAssetMarketCapLimitUpdated(address indexed kreskoAsset, uint256 indexed limit);
+    event KreskoAssetUpdated(
+        address indexed kreskoAsset,
+        uint256 indexed kFactor,
+        address indexed oracle,
+        bool mintable,
+        uint256 limit
+    );
 
     /**
      * @notice Emitted when an account mints a Kresko asset.
@@ -899,63 +887,32 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
      * @dev Only callable by the owner.
      * @param _kreskoAsset The address of the Kresko asset.
      * @param _kFactor The new k-factor as a raw value for a FixedPoint.Unsigned. Must be >= 1e18.
+     * @param _oracle The new oracle address for the Kresko asset's USD value.
+     * @param _mintable The new mintable value.
+     * @param _marketCapUSDLimit The new market capitalization USD limit.
      */
-    function updateKreskoAssetFactor(address _kreskoAsset, uint256 _kFactor)
+    function updateKreskoAsset(
+        address _kreskoAsset,
+        uint256 _kFactor,
+        address _oracle,
+        bool _mintable,
+        uint256 _marketCapUSDLimit
+    )
         external
         onlyOwner
         kreskoAssetExistsMaybeNotMintable(_kreskoAsset)
     {
         require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, "KR: kFactor < 1FP");
-
-        kreskoAssets[_kreskoAsset].kFactor = FixedPoint.Unsigned(_kFactor);
-        emit KreskoAssetKFactorUpdated(_kreskoAsset, _kFactor);
-    }
-
-    /**
-     * @dev Updates the mintable property of a previously added Kresko asset.
-     * @dev Only callable by the owner.
-     * @param _kreskoAsset The address of the Kresko asset.
-     * @param _mintable The new mintable value.
-     */
-    function updateKreskoAssetMintable(address _kreskoAsset, bool _mintable)
-        external
-        onlyOwner
-        kreskoAssetExistsMaybeNotMintable(_kreskoAsset)
-    {
-        kreskoAssets[_kreskoAsset].mintable = _mintable;
-        emit KreskoAssetMintableUpdated(_kreskoAsset, _mintable);
-    }
-
-    /**
-     * @dev Updates the oracle address of a previously added Kresko asset.
-     * @dev Only callable by the owner.
-     * @param _kreskoAsset The address of the Kresko asset.
-     * @param _oracle The new oracle address for the Kresko asset's USD value.
-     */
-    function updateKreskoAssetOracle(address _kreskoAsset, address _oracle)
-        external
-        onlyOwner
-        kreskoAssetExistsMaybeNotMintable(_kreskoAsset)
-    {
         require(_oracle != address(0), "KR: !oracleAddr");
 
-        kreskoAssets[_kreskoAsset].oracle = AggregatorV2V3Interface(_oracle);
-        emit KreskoAssetOracleUpdated(_kreskoAsset, _oracle);
-    }
+        KrAsset memory krAsset = kreskoAssets[_kreskoAsset];
+        krAsset.kFactor = FixedPoint.Unsigned(_kFactor);
+        krAsset.oracle = AggregatorV2V3Interface(_oracle);
+        krAsset.mintable = _mintable;
+        krAsset.marketCapUSDLimit = _marketCapUSDLimit;
+        kreskoAssets[_kreskoAsset] = krAsset;
 
-    /**
-     * @dev Updates the market capitalization USD limit property of a previously added Kresko asset.
-     * @dev Only callable by the owner.
-     * @param _kreskoAsset The address of the Kresko asset.
-     * @param _marketCapUSDLimit The new market capitalization USD limit.
-     */
-    function updateKreskoAssetMarketCapUSDLimit(address _kreskoAsset, uint256 _marketCapUSDLimit)
-        external
-        onlyOwner
-        kreskoAssetExistsMaybeNotMintable(_kreskoAsset)
-    {
-        kreskoAssets[_kreskoAsset].marketCapUSDLimit = _marketCapUSDLimit;
-        emit KreskoAssetMarketCapLimitUpdated(_kreskoAsset, _marketCapUSDLimit);
+        emit KreskoAssetUpdated(_kreskoAsset, _kFactor, _oracle, _mintable, _marketCapUSDLimit);
     }
 
     /* ===== Configurable parameters ===== */
