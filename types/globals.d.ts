@@ -5,6 +5,7 @@ export {};
 declare global {
     type Kresko = import("./contracts/Kresko").Kresko;
     type KreskoAsset = import("./contracts/KreskoAsset").KreskoAsset;
+    type KreskoWorker = import("./contracts/KreskoWorker").KreskoWorker;
     type NonRebasingWrapperToken = import("./contracts/NonRebasingWrapperToken").NonRebasingWrapperToken;
     type RebasingToken = import("./contracts/RebasingToken").RebasingToken;
 
