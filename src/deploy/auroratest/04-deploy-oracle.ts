@@ -17,7 +17,7 @@ const func: DeployFunction = async function (hre) {
     });
 
     let tx;
-    tx = await priceFeeds["/USD"].transmit(toFixedPoint("1", 8));
+    tx = await priceFeeds["/USD"].transmit(toFixedPoint("1", 8), true);
     await tx.wait(2);
     const usdPrice = fromBig(await priceFeeds["/USD"].latestAnswer(), 8);
     logger.log("USD price set at: ", usdPrice);
@@ -30,7 +30,7 @@ const func: DeployFunction = async function (hre) {
         validator: priceFeedValidator,
         wait: 2,
     });
-    tx = await priceFeeds["ETH/USD"].transmit(toFixedPoint("3104.4", 8));
+    tx = await priceFeeds["ETH/USD"].transmit(toFixedPoint("3104.4", 8), true);
     await tx.wait(2);
     logger.log("eth price set");
 
@@ -42,7 +42,7 @@ const func: DeployFunction = async function (hre) {
         validator: priceFeedValidator,
         wait: 2,
     });
-    tx = await priceFeeds["GOLD/USD"].transmit(toFixedPoint("1864", 8));
+    tx = await priceFeeds["GOLD/USD"].transmit(toFixedPoint("1864", 8), true);
     await tx.wait(2);
 
     const goldPrice = await priceFeeds["GOLD/USD"].latestAnswer();
@@ -56,7 +56,7 @@ const func: DeployFunction = async function (hre) {
         validator: priceFeedValidator,
         wait: 1,
     });
-    tx = await priceFeeds["TSLA/USD"].transmit(toFixedPoint("1020.4", 8));
+    tx = await priceFeeds["TSLA/USD"].transmit(toFixedPoint("1020.4", 8), true);
     await tx.wait(2);
 
     const tslaprice = await priceFeeds["TSLA/USD"].latestAnswer();
@@ -69,7 +69,7 @@ const func: DeployFunction = async function (hre) {
         description: "QQQ/USD",
         validator: priceFeedValidator,
     });
-    tx = await priceFeeds["QQQ/USD"].transmit(toFixedPoint("390.09", 8));
+    tx = await priceFeeds["QQQ/USD"].transmit(toFixedPoint("390.09", 8), true);
     await tx.wait(2);
 
     const qqqPrice = await priceFeeds["QQQ/USD"].latestAnswer();
@@ -83,7 +83,7 @@ const func: DeployFunction = async function (hre) {
         validator: priceFeedValidator,
         wait: 2,
     });
-    tx = await priceFeeds["AURORA/USD"].transmit(toFixedPoint("9.41", 8));
+    tx = await priceFeeds["AURORA/USD"].transmit(toFixedPoint("9.41", 8), true);
     await tx.wait(2);
 
     const auroraPrice = await priceFeeds["AURORA/USD"].latestAnswer();
@@ -97,7 +97,7 @@ const func: DeployFunction = async function (hre) {
         validator: priceFeedValidator,
         wait: 2,
     });
-    tx = await priceFeeds["NEAR/USD"].transmit(toFixedPoint("15.41", 8));
+    tx = await priceFeeds["NEAR/USD"].transmit(toFixedPoint("15.41", 8), true);
     await tx.wait(2);
     logger.log("near price set");
     logger.success("Succesfully deployed oracles and set prices");
