@@ -14,7 +14,6 @@ import {
     LIQUIDATION_INCENTIVE,
     MINIMUM_COLLATERALIZATION_RATIO,
     MINIMUM_DEBT_VALUE,
-    SECONDS_UNTIL_PRICE_STALE,
     NAME_ONE,
     NAME_TWO,
     ONE,
@@ -75,7 +74,6 @@ describe("Kresko", function () {
                     LIQUIDATION_INCENTIVE,
                     MINIMUM_COLLATERALIZATION_RATIO,
                     MINIMUM_DEBT_VALUE,
-                    SECONDS_UNTIL_PRICE_STALE,
                 ),
             ).to.be.revertedWith("Initializable: contract is already initialized");
         });
@@ -2480,7 +2478,7 @@ describe("Kresko", function () {
                 const oracle = this.collateralAssetInfos[0].oracle;
                 const updatedCollateralPrice = 11;
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
-                await oracle.transmit(fixedPointOraclePrice);
+                await oracle.transmit(fixedPointOraclePrice, true);
 
                 // Updated collateral value: (10 * $11) = $110
                 const userCollateralAmountInUSD = await this.Kresko.getAccountCollateralValue(
@@ -2500,7 +2498,7 @@ describe("Kresko", function () {
                 const oracle = this.collateralAssetInfos[0].oracle;
                 const updatedCollateralPrice = 11;
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
-                await oracle.transmit(fixedPointOraclePrice);
+                await oracle.transmit(fixedPointOraclePrice, true);
 
                 // Confirm we can liquidate this account
                 const canLiquidate = await this.Kresko.isAccountLiquidatable(this.signers.userOne.address);
@@ -2581,7 +2579,7 @@ describe("Kresko", function () {
                 const oracle = this.collateralAssetInfos[0].oracle;
                 const updatedCollateralPrice = 11;
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
-                await oracle.transmit(fixedPointOraclePrice);
+                await oracle.transmit(fixedPointOraclePrice, true);
 
                 // Fetch user's debt amount prior to liquidation
                 const kreskoAsset = this.kreskoAssetInfo[0].kreskoAsset;
@@ -2695,7 +2693,7 @@ describe("Kresko", function () {
                 const oracle = this.collateralAssetInfos[0].oracle;
                 const updatedCollateralPrice = 5;
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
-                await oracle.transmit(fixedPointOraclePrice);
+                await oracle.transmit(fixedPointOraclePrice, true);
 
                 // Fetch user's debt amount prior to liquidation
                 const userOneDebtAmountBeforeLiquidation = Number(
@@ -2914,7 +2912,7 @@ describe("Kresko", function () {
                 const oracle = this.collateralAssetInfos[0].oracle;
                 const updatedCollateralPrice = 5;
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
-                await oracle.transmit(fixedPointOraclePrice);
+                await oracle.transmit(fixedPointOraclePrice, true);
 
                 // Fetch user's debt amount prior to liquidation
                 const userOneDebtAmountBeforeLiquidation = Number(
@@ -3075,7 +3073,7 @@ describe("Kresko", function () {
                 const updatedCollateralPrice = 11;
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
                 const oracle = this.collateralAssetInfos[0].oracle;
-                await oracle.transmit(fixedPointOraclePrice);
+                await oracle.transmit(fixedPointOraclePrice, true);
 
                 const kreskoAsset = this.kreskoAssetInfo[0].kreskoAsset;
                 const collateralAsset = this.collateralAssetInfos[0].collateralAsset;
@@ -3113,7 +3111,7 @@ describe("Kresko", function () {
                 const updatedCollateralPrice = 11;
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
                 const oracle = this.collateralAssetInfos[0].oracle;
-                await oracle.transmit(fixedPointOraclePrice);
+                await oracle.transmit(fixedPointOraclePrice, true);
 
                 const kreskoAsset = this.kreskoAssetInfo[0].kreskoAsset;
                 const collateralAsset = this.collateralAssetInfos[0].collateralAsset;
@@ -3172,7 +3170,7 @@ describe("Kresko", function () {
                 const updatedCollateralPrice = 11;
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
                 const oracle = this.collateralAssetInfos[0].oracle;
-                await oracle.transmit(fixedPointOraclePrice);
+                await oracle.transmit(fixedPointOraclePrice, true);
 
                 // userTwo holds Kresko assets that can be used to repay userOne's loan
                 const repayAmount = 0;
@@ -3198,7 +3196,7 @@ describe("Kresko", function () {
                 // Change collateral asset's USD value from $20 to $11
                 const updatedCollateralPrice = 11;
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
-                await this.collateralAssetInfos[0].oracle.transmit(fixedPointOraclePrice);
+                await this.collateralAssetInfos[0].oracle.transmit(fixedPointOraclePrice, true);
 
                 // Get the debt for this kresko asset
                 const krAssetDebtUserOne = await this.Kresko.kreskoAssetDebt(
@@ -3235,7 +3233,7 @@ describe("Kresko", function () {
                 // Change krAsset's USD value from $20 to $15
                 const updatedCollateralPrice = 15;
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
-                await this.kreskoAssetInfo[0].oracle.transmit(fixedPointOraclePrice);
+                await this.kreskoAssetInfo[0].oracle.transmit(fixedPointOraclePrice, true);
 
                 // Get the max liquidatable value for the user
                 const maxUSDValue = fromBig(
@@ -3279,7 +3277,7 @@ describe("Kresko", function () {
             // Change collateral asset's USD value from $20 to $11
             const updatedCollateralPrice = 11;
             const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
-            await this.collateralAssetInfos[0].oracle.transmit(fixedPointOraclePrice);
+            await this.collateralAssetInfos[0].oracle.transmit(fixedPointOraclePrice, true);
 
             // Transfer user two's synthetic assets to user one so they can repay their loan in full
             const userTwoSynthBalance = await this.kreskoAssetInfo[0].kreskoAsset.balanceOf(

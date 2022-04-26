@@ -202,24 +202,28 @@ describe("Solvency", function () {
             const currentPrice = await this.getStableKrAssetPrice();
             await this.volativeKrAssetInfo.oracle.transmit(
                 toFixedPoint(currentPrice * (percentage >= 1 ? percentage : Math.abs(1 - percentage))),
+                true,
             );
         };
         this.swingStableKrAssetPriceBy = async function (percentage: number) {
             const currentPrice = await this.getVolativeKrAssetPrice();
             await this.stableKrAssetInfo.oracle.transmit(
                 toFixedPoint(currentPrice * (percentage >= 1 ? percentage : Math.abs(1 - percentage))),
+                true,
             );
         };
         this.swingStableCollateralPriceBy = async function (percentage: number) {
             const currentPrice = await this.getStableCollateralPrice();
             await this.stableCollateralAssetInfo.oracle.transmit(
                 toFixedPoint(currentPrice * (percentage >= 1 ? percentage : Math.abs(1 - percentage))),
+                true,
             );
         };
         this.swingVolativeCollateralPriceBy = async function (percentage: number) {
             const currentPrice = await this.getVolativeCollateralPrice();
             await this.volativeCollateralAssetInfo.oracle.transmit(
                 toFixedPoint(currentPrice * (percentage >= 1 ? percentage : Math.abs(1 - percentage))),
+                true,
             );
         };
     });

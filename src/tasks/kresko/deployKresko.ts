@@ -63,7 +63,6 @@ task("deploy:kresko")
                 feeRecipient: await Kresko.feeRecipient(),
                 minimumCollateralizationRatio: formatEther(await Kresko.minimumCollateralizationRatio()),
                 minimumDebtValue: formatEther(await Kresko.minimumDebtValue()),
-                secondsUntilPriceStale: await Kresko.secondsUntilStalePrice(),
             };
             const contracts = {
                 ProxyAdmin: ProxyAdmin.address,
