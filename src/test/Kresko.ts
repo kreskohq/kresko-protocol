@@ -1039,6 +1039,9 @@ describe("Kresko", function () {
         });
     });
 
+    // TODO: Once Kresko.sol is deployable (reduced bytesize) add tests for
+    //       - Mints paused on closed market
+    //       - Burns paused on closed market
     describe("Kresko Assets", function () {
         async function deployAndAddKreskoAsset(
             this: any,
