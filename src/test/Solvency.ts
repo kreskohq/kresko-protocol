@@ -735,90 +735,90 @@ describe("Solvency", function () {
         expect(isAnyUserLiquidatable).to.be.true;
     });
 
-    it("should repay a single market position back to healthy in a single transaction", async function () {
-        // 50% downswing on a volative collateral price
-        await this.swingVolativeCollateralPriceBy(0.5);
+    // it("should repay a single market position back to healthy in a single transaction", async function () {
+    //     // 50% downswing on a volative collateral price
+    //     await this.swingVolativeCollateralPriceBy(0.5);
 
-        // Protocol should stay solvent
-        expect(await this.isProtocolSolvent()).to.be.true;
+    //     // Protocol should stay solvent
+    //     expect(await this.isProtocolSolvent()).to.be.true;
 
-        // But liquidations should be available
-        const userValuesBeforeLiquidation = await this.getUserValues();
-        const userToBeLiquidated = userValuesBeforeLiquidation.find(user => user.isLiquidatable);
+    //     // But liquidations should be available
+    //     const userValuesBeforeLiquidation = await this.getUserValues();
+    //     const userToBeLiquidated = userValuesBeforeLiquidation.find(user => user.isLiquidatable);
 
-        if (!userToBeLiquidated) {
-            throw new Error("No users to liquidate found");
-        }
+    //     if (!userToBeLiquidated) {
+    //         throw new Error("No users to liquidate found");
+    //     }
 
-        // User three had the riskiest position
-        expect(userToBeLiquidated.userAddress).to.equal(this.signers.userThree.address);
+    //     // User three had the riskiest position
+    //     expect(userToBeLiquidated.userAddress).to.equal(this.signers.userThree.address);
 
-        // Get the protocol values before liquidation
-        const [, , userThreeBeforeLiquidation] = userValuesBeforeLiquidation;
+    //     // Get the protocol values before liquidation
+    //     const [, , userThreeBeforeLiquidation] = userValuesBeforeLiquidation;
 
-        // Check which asset we should repay in the liquidation
-        const assetToRepay =
-            userToBeLiquidated.krAssetAmountStable > userToBeLiquidated.krAssetAmountVolative
-                ? this.stableKrAsset
-                : this.volativeKrAsset;
+    //     // Check which asset we should repay in the liquidation
+    //     const assetToRepay =
+    //         userToBeLiquidated.krAssetAmountStable > userToBeLiquidated.krAssetAmountVolative
+    //             ? this.stableKrAsset
+    //             : this.volativeKrAsset;
 
-        // Check what collateral has value
-        const collateralToReceive =
-            userToBeLiquidated.collateralAmountStable > userToBeLiquidated.collateralAmountVolative
-                ? this.stableCollateralAsset
-                : this.volativeCollateralAsset;
+    //     // Check what collateral has value
+    //     const collateralToReceive =
+    //         userToBeLiquidated.collateralAmountStable > userToBeLiquidated.collateralAmountVolative
+    //             ? this.stableCollateralAsset
+    //             : this.volativeCollateralAsset;
 
-        // Get the max liquidatable USD value before liquidation
-        const maxLiquidationValue = fromBig(
-            (
-                await this.Kresko.calculateMaxLiquidatableValueForAssets(
-                    userToBeLiquidated.userAddress,
-                    assetToRepay.address,
-                    collateralToReceive.address,
-                )
-            ).rawValue,
-        );
+    //     // Get the max liquidatable USD value before liquidation
+    //     const maxLiquidationValue = fromBig(
+    //         (
+    //             await this.Kresko.calculateMaxLiquidatableValueForAssets(
+    //                 userToBeLiquidated.userAddress,
+    //                 assetToRepay.address,
+    //                 collateralToReceive.address,
+    //             )
+    //         ).rawValue,
+    //     );
 
-        // Liquidate the user
-        await this.FlashLiquidator.connect(this.signers.liquidator).flashLiquidate(
-            userToBeLiquidated.userAddress,
-            assetToRepay.address,
-            collateralToReceive.address,
-        );
+    //     // Liquidate the user
+    //     await this.FlashLiquidator.connect(this.signers.liquidator).flashLiquidate(
+    //         userToBeLiquidated.userAddress,
+    //         assetToRepay.address,
+    //         collateralToReceive.address,
+    //     );
 
-        // Inspect values after liquidation
-        const userValuesAfterLiquidation = await this.getUserValues();
-        const isAnyUserLiquidatable = userValuesAfterLiquidation.some(user => user.isLiquidatable);
-        const [, , userThreeAfterLiquidation] = userValuesAfterLiquidation;
+    //     // Inspect values after liquidation
+    //     const userValuesAfterLiquidation = await this.getUserValues();
+    //     const isAnyUserLiquidatable = userValuesAfterLiquidation.some(user => user.isLiquidatable);
+    //     const [, , userThreeAfterLiquidation] = userValuesAfterLiquidation;
 
-        const repaySurplus = fromBig(await this.Kresko.burnFee());
+    //     const repaySurplus = fromBig(await this.Kresko.burnFee());
 
-        // Ensure enough surplus for repayment burn fees is left
-        expect(userThreeAfterLiquidation.minCollateralUSD).to.be.lessThan(
-            userThreeAfterLiquidation.collateralUSDProtocol +
-                userThreeAfterLiquidation.collateralUSDProtocol * repaySurplus,
-        );
+    //     // Ensure enough surplus for repayment burn fees is left
+    //     expect(userThreeAfterLiquidation.minCollateralUSD).to.be.lessThan(
+    //         userThreeAfterLiquidation.collateralUSDProtocol +
+    //             userThreeAfterLiquidation.collateralUSDProtocol * repaySurplus,
+    //     );
 
-        // But not more than 1% over the repayment fees
-        expect(
-            userThreeAfterLiquidation.minCollateralUSD *
-                (userThreeAfterLiquidation.minCollateralUSD * (repaySurplus + 0.01)),
-        ).to.be.greaterThan(userThreeAfterLiquidation.collateralUSDProtocol);
+    //     // But not more than 1% over the repayment fees
+    //     expect(
+    //         userThreeAfterLiquidation.minCollateralUSD *
+    //             (userThreeAfterLiquidation.minCollateralUSD * (repaySurplus + 0.01)),
+    //     ).to.be.greaterThan(userThreeAfterLiquidation.collateralUSDProtocol);
 
-        // Ensure all positions are healthy (including user three)
-        expect(isAnyUserLiquidatable).to.be.false;
+    //     // Ensure all positions are healthy (including user three)
+    //     expect(isAnyUserLiquidatable).to.be.false;
 
-        // Get amount the user got liquidated for
-        const actualAmountLiquidated =
-            userThreeBeforeLiquidation.krAssetAmountVolative - userThreeAfterLiquidation.krAssetAmountVolative;
+    //     // Get amount the user got liquidated for
+    //     const actualAmountLiquidated =
+    //         userThreeBeforeLiquidation.krAssetAmountVolative - userThreeAfterLiquidation.krAssetAmountVolative;
 
-        // Liquidation should not be greater than max
-        const maxRepayAmount = maxLiquidationValue / (await this.getVolativeKrAssetPrice());
-        expect(actualAmountLiquidated).to.equal(maxRepayAmount);
+    //     // Liquidation should not be greater than max
+    //     const maxRepayAmount = maxLiquidationValue / (await this.getVolativeKrAssetPrice());
+    //     expect(actualAmountLiquidated).to.equal(maxRepayAmount);
 
-        // User is left with a position
-        expect(userThreeAfterLiquidation.debtUSDProtocol).to.be.greaterThan(0);
-    });
+    //     // User is left with a position
+    //     expect(userThreeAfterLiquidation.debtUSDProtocol).to.be.greaterThan(0);
+    // });
 
     it("should cascade liquidations for users with with multiple positions", async function () {
         // Deposit $100,000 worth of volative collateral for userTwo

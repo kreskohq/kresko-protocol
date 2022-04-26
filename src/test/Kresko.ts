@@ -34,6 +34,7 @@ import {
     extractEventFromTxReceipt,
     extractEventsFromTxReceipt,
     toBig,
+    AddressZero,
 } from "@utils";
 import {
     BurnFeePaidEvent,
@@ -57,6 +58,7 @@ describe.only("Kresko", function () {
         const { signers, kresko } = await setupTests();
         this.signers = signers;
         this.Kresko = kresko;
+        // this.Worker = worker;
     });
 
     describe("#initialize", function () {
@@ -76,6 +78,7 @@ describe.only("Kresko", function () {
                     MINIMUM_COLLATERALIZATION_RATIO,
                     MINIMUM_DEBT_VALUE,
                     SECONDS_UNTIL_PRICE_STALE,
+                    AddressZero,
                 ),
             ).to.be.revertedWith("Initializable: contract is already initialized");
         });
@@ -3232,9 +3235,10 @@ describe.only("Kresko", function () {
                 await this.kreskoAssetInfo[0].oracle.transmit(fixedPointOraclePrice);
 
                 // Get the max liquidatable value for the user
+                // TODO: I think this may fail
                 const maxUSDValue = fromBig(
                     (
-                        await this.Kresko.calculateMaxLiquidatableValueForAssets(
+                        await this.Worker.calculateMaxLiquidatableValueForAssets(
                             this.signers.userOne.address,
                             kreskoAsset.address,
                             collateralAsset.address,

@@ -14,6 +14,10 @@ import "./libraries/FixedPoint.sol";
 import "./libraries/FixedPointMath.sol";
 import "./libraries/Arrays.sol";
 
+import "./KreskoWorker.sol";
+import "./Storage1.sol";
+
+
 /**
  * @title The core of the Kresko protocol.
  * @notice Responsible for managing collateral and minting / burning overcollateralized synthetic
@@ -21,7 +25,7 @@ import "./libraries/Arrays.sol";
  * assets / Kresko assets and updating protocol constants such as the burn fee
  * minimum collateralization ratio, and liquidation incentive is restricted to the contract owner.
  */
-contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
+contract Kresko is Storage1, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     using FixedPoint for FixedPoint.Unsigned;
     using FixedPointMath for uint8;
     using FixedPointMath for uint256;
@@ -29,133 +33,135 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     using SafeERC20Upgradeable for IERC20MetadataUpgradeable;
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
-    /**
-     * ==================================================
-     * ==================== Structs =====================
-     * ==================================================
-     */
+    // /**
+    //  * ==================================================
+    //  * ==================== Structs =====================
+    //  * ==================================================
+    //  */
 
-    /**
-     * @notice Information on a token that can be used as collateral.
-     * @dev Setting the factor to zero effectively makes the asset useless as collateral while still allowing
-     * it to be deposited and withdrawn.
-     * @param factor The collateral factor used for calculating the value of the collateral.
-     * @param oracle The oracle that provides the USD price of one collateral asset.
-     * @param underlyingRebasingToken If the collateral asset is an instance of NonRebasingWrapperToken,
-     * this is set to the underlying token that rebases. Otherwise, this is the zero address.
-     * Added so that Kresko.sol can handle NonRebasingWrapperTokens with fewer transactions.
-     * @param decimals The decimals for the token, stored here to avoid repetitive external calls.
-     * @param exists Whether the collateral asset exists within the protocol.
-     */
-    struct CollateralAsset {
-        FixedPoint.Unsigned factor;
-        AggregatorV2V3Interface oracle;
-        address underlyingRebasingToken;
-        uint8 decimals;
-        bool exists;
-    }
+    // /**
+    //  * @notice Information on a token that can be used as collateral.
+    //  * @dev Setting the factor to zero effectively makes the asset useless as collateral while still allowing
+    //  * it to be deposited and withdrawn.
+    //  * @param factor The collateral factor used for calculating the value of the collateral.
+    //  * @param oracle The oracle that provides the USD price of one collateral asset.
+    //  * @param underlyingRebasingToken If the collateral asset is an instance of NonRebasingWrapperToken,
+    //  * this is set to the underlying token that rebases. Otherwise, this is the zero address.
+    //  * Added so that Kresko.sol can handle NonRebasingWrapperTokens with fewer transactions.
+    //  * @param decimals The decimals for the token, stored here to avoid repetitive external calls.
+    //  * @param exists Whether the collateral asset exists within the protocol.
+    //  */
+    // struct CollateralAsset {
+    //     FixedPoint.Unsigned factor;
+    //     AggregatorV2V3Interface oracle;
+    //     address underlyingRebasingToken;
+    //     uint8 decimals;
+    //     bool exists;
+    // }
 
-    /**
-     * @notice Information on a token that is a Kresko asset.
-     * @dev Each Kresko asset has 18 decimals.
-     * @param kFactor The k-factor used for calculating the required collateral value for Kresko asset debt.
-     * @param oracle The oracle that provides the USD price of one Kresko asset.
-     * @param exists Whether the Kresko asset exists within the protocol.
-     * @param mintable Whether the Kresko asset can be minted.
-     * @param marketCapUSDLimit The market capitalization limit in USD of the Kresko asset.
-     */
-    struct KrAsset {
-        FixedPoint.Unsigned kFactor;
-        AggregatorV2V3Interface oracle;
-        bool exists;
-        bool mintable;
-        uint256 marketCapUSDLimit;
-    }
+    // /**
+    //  * @notice Information on a token that is a Kresko asset.
+    //  * @dev Each Kresko asset has 18 decimals.
+    //  * @param kFactor The k-factor used for calculating the required collateral value for Kresko asset debt.
+    //  * @param oracle The oracle that provides the USD price of one Kresko asset.
+    //  * @param exists Whether the Kresko asset exists within the protocol.
+    //  * @param mintable Whether the Kresko asset can be minted.
+    //  * @param marketCapUSDLimit The market capitalization limit in USD of the Kresko asset.
+    //  */
+    // struct KrAsset {
+    //     FixedPoint.Unsigned kFactor;
+    //     AggregatorV2V3Interface oracle;
+    //     bool exists;
+    //     bool mintable;
+    //     uint256 marketCapUSDLimit;
+    // }
 
-    /**
-     * ==================================================
-     * =================== Constants ====================
-     * ==================================================
-     */
+    // /**
+    //  * ==================================================
+    //  * =================== Constants ====================
+    //  * ==================================================
+    //  */
 
-    uint256 public constant ONE_HUNDRED_PERCENT = 1e18;
+    // uint256 public constant ONE_HUNDRED_PERCENT = 1e18;
 
-    /// @notice The maximum configurable burn fee.
-    uint256 public constant MAX_BURN_FEE = 5e16; // 5%
+    // /// @notice The maximum configurable burn fee.
+    // uint256 public constant MAX_BURN_FEE = 5e16; // 5%
 
-    /// @notice The minimum configurable minimum collateralization ratio.
-    uint256 public constant MIN_COLLATERALIZATION_RATIO = 1e18; // 100%
+    // /// @notice The minimum configurable minimum collateralization ratio.
+    // uint256 public constant MIN_COLLATERALIZATION_RATIO = 1e18; // 100%
 
-    /// @notice The minimum configurable liquidation incentive multiplier.
-    /// This means liquidator only receives equal amount of collateral to debt repaid.
-    uint256 public constant MIN_LIQUIDATION_INCENTIVE_MULTIPLIER = 1e18; // 100%
+    // /// @notice The minimum configurable liquidation incentive multiplier.
+    // /// This means liquidator only receives equal amount of collateral to debt repaid.
+    // uint256 public constant MIN_LIQUIDATION_INCENTIVE_MULTIPLIER = 1e18; // 100%
 
-    /// @notice The maximum configurable liquidation incentive multiplier.
-    /// This means liquidator receives 25% bonus collateral compared to the debt repaid.
-    uint256 public constant MAX_LIQUIDATION_INCENTIVE_MULTIPLIER = 1.25e18; // 125%
+    // /// @notice The maximum configurable liquidation incentive multiplier.
+    // /// This means liquidator receives 25% bonus collateral compared to the debt repaid.
+    // uint256 public constant MAX_LIQUIDATION_INCENTIVE_MULTIPLIER = 1.25e18; // 125%
 
-    /// @notice The maximum configurable minimum debt USD value.
-    uint256 public constant MAX_DEBT_VALUE = 1000e18; // $1,000
+    // /// @notice The maximum configurable minimum debt USD value.
+    // uint256 public constant MAX_DEBT_VALUE = 1000e18; // $1,000
 
-    /**
-     * ==================================================
-     * ===================== State ======================
-     * ==================================================
-     */
+    // /**
+    //  * ==================================================
+    //  * ===================== State ======================
+    //  * ==================================================
+    //  */
 
-    /* ===== Configurable parameters ===== */
+    // /* ===== Configurable parameters ===== */
 
-    mapping(address => bool) public trustedContracts;
+    // mapping(address => bool) public trustedContracts;
 
-    /// @notice The percent fee imposed upon the value of burned krAssets, taken as collateral and sent to feeRecipient.
-    FixedPoint.Unsigned public burnFee;
+    // /// @notice The percent fee imposed upon the value of burned krAssets, taken as collateral and sent to feeRecipient.
+    // FixedPoint.Unsigned public burnFee;
 
-    /// @notice The recipient of burn fees.
-    address public feeRecipient;
+    // /// @notice The recipient of burn fees.
+    // address public feeRecipient;
 
-    /// @notice The factor used to calculate the incentive a liquidator receives in the form of seized collateral.
-    FixedPoint.Unsigned public liquidationIncentiveMultiplier;
+    // /// @notice The factor used to calculate the incentive a liquidator receives in the form of seized collateral.
+    // FixedPoint.Unsigned public liquidationIncentiveMultiplier;
 
-    /// @notice The absolute minimum ratio of collateral value to debt value that is used to calculate
-    /// collateral requirements.
-    FixedPoint.Unsigned public minimumCollateralizationRatio;
+    // /// @notice The absolute minimum ratio of collateral value to debt value that is used to calculate
+    // /// collateral requirements.
+    // FixedPoint.Unsigned public minimumCollateralizationRatio;
 
-    /// @notice The minimum USD value of an individual synthetic asset debt position.
-    FixedPoint.Unsigned public minimumDebtValue;
+    // /// @notice The minimum USD value of an individual synthetic asset debt position.
+    // FixedPoint.Unsigned public minimumDebtValue;
 
-    /// @notice The number of seconds until a price is considered stale
-    uint256 public secondsUntilStalePrice;
+    // /// @notice The number of seconds until a price is considered stale
+    // uint256 public secondsUntilStalePrice;
 
-    /* ===== General state - Collateral Assets ===== */
+    // /* ===== General state - Collateral Assets ===== */
 
-    /// @notice Mapping of collateral asset token address to information on the collateral asset.
-    mapping(address => CollateralAsset) public collateralAssets;
+    // /// @notice Mapping of collateral asset token address to information on the collateral asset.
+    // mapping(address => CollateralAsset) public collateralAssets;
 
-    /**
-     * @notice Mapping of account address to a mapping of collateral asset token address to the amount of the collateral
-     * asset the account has deposited.
-     * @dev Collateral assets must not rebase.
-     */
-    mapping(address => mapping(address => uint256)) public collateralDeposits;
+    // /**
+    //  * @notice Mapping of account address to a mapping of collateral asset token address to the amount of the collateral
+    //  * asset the account has deposited.
+    //  * @dev Collateral assets must not rebase.
+    //  */
+    // mapping(address => mapping(address => uint256)) public collateralDeposits;
 
-    /// @notice Mapping of account address to an array of the addresses of each collateral asset the account
-    /// has deposited.
-    mapping(address => address[]) public depositedCollateralAssets;
+    // /// @notice Mapping of account address to an array of the addresses of each collateral asset the account
+    // /// has deposited.
+    // mapping(address => address[]) public depositedCollateralAssets;
 
-    /* ===== General state - Kresko Assets ===== */
+    // /* ===== General state - Kresko Assets ===== */
 
-    /// @notice Mapping of Kresko asset token address to information on the Kresko asset.
-    mapping(address => KrAsset) public kreskoAssets;
+    // /// @notice Mapping of Kresko asset token address to information on the Kresko asset.
+    // mapping(address => KrAsset) public kreskoAssets;
 
-    /// @notice Mapping of Kresko asset symbols to whether the symbol is used by an existing Kresko asset.
-    mapping(string => bool) public kreskoAssetSymbols;
+    // /// @notice Mapping of Kresko asset symbols to whether the symbol is used by an existing Kresko asset.
+    // mapping(string => bool) public kreskoAssetSymbols;
 
-    /// @notice Mapping of account address to a mapping of Kresko asset token address to the amount of the Kresko asset
-    /// the account has minted and therefore owes to the protocol.
-    mapping(address => mapping(address => uint256)) public kreskoAssetDebt;
+    // /// @notice Mapping of account address to a mapping of Kresko asset token address to the amount of the Kresko asset
+    // /// the account has minted and therefore owes to the protocol.
+    // mapping(address => mapping(address => uint256)) public kreskoAssetDebt;
 
-    /// @notice Mapping of account address to an array of the addresses of each Kresko asset the account has minted.
-    mapping(address => address[]) public mintedKreskoAssets;
+    // /// @notice Mapping of account address to an array of the addresses of each Kresko asset the account has minted.
+    // mapping(address => address[]) public mintedKreskoAssets;
+
+    address public worker;
 
     /**
      * ==================================================
@@ -436,7 +442,8 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 _liquidationIncentiveMultiplier,
         uint256 _minimumCollateralizationRatio,
         uint256 _minimumDebtValue,
-        uint256 _secondsUntilStalePrice
+        uint256 _secondsUntilStalePrice,
+        address _kreskoWorker
     ) external initializer {
         // Set msg.sender as the owner.
         __Ownable_init();
@@ -446,6 +453,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         updateMinimumCollateralizationRatio(_minimumCollateralizationRatio);
         updateMinimumDebtValue(_minimumDebtValue);
         updateSecondsUntilStalePrice(_secondsUntilStalePrice);
+        worker = _kreskoWorker;
     }
 
     /**
@@ -728,11 +736,23 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         {
             // Liquidator may not repay more value than what the liquidation pair allows
             // Nor repay more tokens than the account holds debt for the asset
-            FixedPoint.Unsigned memory maxLiquidation = calculateMaxLiquidatableValueForAssets(
-                _account,
-                _repayKreskoAsset,
-                _collateralAssetToSeize
+            (bool success, bytes memory result) = worker.delegatecall(
+                abi.encodeWithSignature(
+                     "calculateMaxLiquidatableValueForAssets(address, address, address)",
+                    _account,
+                    _repayKreskoAsset,
+                    _collateralAssetToSeize
+                )
             );
+
+            require(success, "delegatecall");
+            FixedPoint.Unsigned memory maxLiquidation = abi.decode(result, (FixedPoint.Unsigned));
+
+            // FixedPoint.Unsigned memory maxLiquidation = calculateMaxLiquidatableValueForAssets(
+            //     _account,
+            //     _repayKreskoAsset,
+            //     _collateralAssetToSeize
+            // );
             require(krAssetDebt >= _repayAmount, "KR: repayAmount > debtAmount");
             require(repayAmountUSD.isLessThanOrEqual(maxLiquidation), "KR: repayUSD > maxUSD");
         }
@@ -1492,88 +1512,5 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         FixedPoint.Unsigned memory minAccountCollateralValue = getAccountMinimumCollateralValue(_account);
 
         return accountCollateralValue.isLessThan(minAccountCollateralValue);
-    }
-
-    /**
-     * @dev Calculates the total value that can be liquidated for a liquidation pair
-     * @param _account address to liquidate
-     * @param _repayKreskoAsset address of the kreskoAsset being repaid on behalf of the liquidatee
-     * @param _collateralAssetToSeize address of the collateral asset being seized from the liquidatee
-     * @return maxLiquidatableUSD USD value that can be liquidated, 0 if the pair has no liquidatable value
-     */
-    function calculateMaxLiquidatableValueForAssets(
-        address _account,
-        address _repayKreskoAsset,
-        address _collateralAssetToSeize
-    ) public view returns (FixedPoint.Unsigned memory maxLiquidatableUSD) {
-        // Minimum collateral value required for the krAsset position
-        FixedPoint.Unsigned memory minCollateralValue = getMinimumCollateralValue(
-            _repayKreskoAsset,
-            kreskoAssetDebt[_account][_repayKreskoAsset]
-        );
-
-        // Collateral value for this position
-        (FixedPoint.Unsigned memory collateralValueAvailable, ) = getCollateralValueAndOraclePrice(
-            _collateralAssetToSeize,
-            collateralDeposits[_account][_collateralAssetToSeize],
-            false // take cFactor into consideration
-        );
-        if (collateralValueAvailable.isGreaterThanOrEqual(minCollateralValue)) {
-            return FixedPoint.Unsigned(0);
-        } else {
-            // Get the factors of the assets
-            FixedPoint.Unsigned memory kFactor = kreskoAssets[_repayKreskoAsset].kFactor;
-            FixedPoint.Unsigned memory cFactor = collateralAssets[_collateralAssetToSeize].factor;
-
-            // Calculate how much value is under
-            FixedPoint.Unsigned memory valueUnderMin = minCollateralValue.sub(collateralValueAvailable);
-
-            // Get the divisor which calculates the max repayment from the underwater value
-            FixedPoint.Unsigned memory repayDivisor = kFactor.mul(minimumCollateralizationRatio).sub(
-                liquidationIncentiveMultiplier.sub(burnFee).mul(cFactor)
-            );
-
-            // Max repayment value for this pair
-            maxLiquidatableUSD = valueUnderMin.div(repayDivisor);
-
-            // Get the future collateral value that is being used for the liquidation
-            FixedPoint.Unsigned memory collateralValueRepaid = maxLiquidatableUSD.div(
-                kFactor.mul(liquidationIncentiveMultiplier.add(burnFee))
-            );
-
-            // If it's more than whats available get the max value from how much value is available instead.
-            if (collateralValueRepaid.isGreaterThan(collateralValueAvailable)) {
-                // Reverse the divisor formula to achieve the max repayment from available collateral.
-                // We end up here if the user has multiple positions with different risk profiles.
-                maxLiquidatableUSD = collateralValueAvailable.div(collateralValueRepaid.div(valueUnderMin));
-            }
-
-            // Cascade the liquidations if user has multiple collaterals and cFactor < 1.
-            // This is desired because pairs with low cFactor have higher collateral requirement
-            // than positions with high cFactor.
-
-            // Main reason here is keep the liquidations from happening only on pairs that have a high risk profile.
-            if (depositedCollateralAssets[_account].length > 1 && cFactor.isLessThan(ONE_HUNDRED_PERCENT)) {
-                // To mitigate:
-                // cFactor^4 the collateral available (cFactor = 1 == nothing happens)
-                // Get the ratio between max liquidatable USD and diminished collateral available
-                // = (higher value -> higher the risk ratio of this pair)
-                // Divide the maxValue by this ratio and a diminishing max value is returned.
-
-                // For a max profit liquidation strategy jumps to other pairs must happen before
-                // the liquidation value of the risky position becomes the most profitable again.
-
-                return
-                    maxLiquidatableUSD.div(maxLiquidatableUSD.div(collateralValueAvailable.mul(cFactor.pow(4)))).mul(
-                        // Include a burnFee surplus in the liquidation
-                        // so the users can repay their debt.
-                        FixedPoint.Unsigned(ONE_HUNDRED_PERCENT).add(burnFee)
-                    );
-            } else {
-                // For collaterals with cFactor = 1 / accounts with only single collateral
-                // the debt is just repaid in full with a single transaction
-                return maxLiquidatableUSD.mul(FixedPoint.Unsigned(ONE_HUNDRED_PERCENT).add(burnFee));
-            }
-        }
     }
 }
