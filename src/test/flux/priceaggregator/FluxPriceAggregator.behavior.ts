@@ -2,17 +2,17 @@ import { expect } from "chai";
 
 export function shouldBehaveLikeFluxPriceAggregator(): void {
     it("should aggregate latest prices from oracles", async function () {
-        await this.oracles[0].connect(this.signers.admin).transmit(100);
-        await this.oracles[1].connect(this.signers.admin).transmit(150);
-        await this.oracles[2].connect(this.signers.admin).transmit(300);
+        await this.oracles[0].connect(this.signers.admin).transmit(100, true);
+        await this.oracles[1].connect(this.signers.admin).transmit(150, true);
+        await this.oracles[2].connect(this.signers.admin).transmit(300, true);
         expect(await this.priceaggregator.connect(this.signers.admin).latestTimestamp()).to.equal(0);
         await this.priceaggregator.connect(this.signers.admin).updatePrices();
         expect(await this.priceaggregator.connect(this.signers.admin).latestAnswer()).to.equal(183);
         expect((await this.priceaggregator.connect(this.signers.admin).latestTimestamp()).toNumber()).to.greaterThan(0);
     });
     it("should count uninitialized prices as zero", async function () {
-        await this.oracles[0].connect(this.signers.admin).transmit(100);
-        await this.oracles[1].connect(this.signers.admin).transmit(75);
+        await this.oracles[0].connect(this.signers.admin).transmit(100, true);
+        await this.oracles[1].connect(this.signers.admin).transmit(75, true);
         await this.priceaggregator.connect(this.signers.admin).updatePrices();
         expect(await this.priceaggregator.connect(this.signers.admin).latestAnswer()).to.equal(58);
     });
