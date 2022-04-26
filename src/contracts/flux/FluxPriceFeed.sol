@@ -16,6 +16,7 @@ contract FluxPriceFeed is AccessControl, AggregatorV2V3Interface {
     struct Transmission {
         int192 answer; // 192 bits ought to be enough for anyone
         uint64 timestamp;
+        bool marketOpen;
     }
     mapping(uint32 => Transmission) /* aggregator round ID */
         internal s_transmissions;
@@ -51,32 +52,37 @@ contract FluxPriceFeed is AccessControl, AggregatorV2V3Interface {
      * @notice indicates that a new report was transmitted
      * @param aggregatorRoundId the round to which this report was assigned
      * @param answer value posted by validator
+     * @param marketOpen bool indicating if the market is open
      * @param transmitter address from which the report was transmitted
      */
-    event NewTransmission(uint32 indexed aggregatorRoundId, int192 answer, address transmitter);
+    event NewTransmission(uint32 indexed aggregatorRoundId, int192 answer, bool marketOpen, address transmitter);
 
     /**
      * @notice details about the most recent report
      * @return _latestAnswer value from latest report
      * @return _latestTimestamp when the latest report was transmitted
      */
-    function latestTransmissionDetails() external view returns (int192 _latestAnswer, uint64 _latestTimestamp) {
+    function latestTransmissionDetails() external view returns (int192 _latestAnswer, uint64 _latestTimestamp, bool _marketOpen) {
         require(msg.sender == tx.origin, "Only callable by EOA");
-        return (s_transmissions[latestAggregatorRoundId].answer, s_transmissions[latestAggregatorRoundId].timestamp);
+        return (
+            s_transmissions[latestAggregatorRoundId].answer,
+            s_transmissions[latestAggregatorRoundId].timestamp,
+            s_transmissions[latestAggregatorRoundId].marketOpen
+        );
     }
 
     /**
      * @notice transmit is called to post a new report to the contract
      * @param _answer latest answer
      */
-    function transmit(int192 _answer) external {
+    function transmit(int192 _answer, bool _marketOpen) external {
         require(hasRole(VALIDATOR_ROLE, msg.sender), "Caller is not a validator");
 
         // Check the report contents, and record the result
         latestAggregatorRoundId++;
-        s_transmissions[latestAggregatorRoundId] = Transmission(_answer, uint64(block.timestamp));
+        s_transmissions[latestAggregatorRoundId] = Transmission(_answer, uint64(block.timestamp), _marketOpen);
 
-        emit NewTransmission(latestAggregatorRoundId, _answer, msg.sender);
+        emit NewTransmission(latestAggregatorRoundId, _answer, _marketOpen, msg.sender);
     }
 
     /*
@@ -95,6 +101,13 @@ contract FluxPriceFeed is AccessControl, AggregatorV2V3Interface {
      */
     function latestTimestamp() public view virtual override returns (uint256) {
         return s_transmissions[latestAggregatorRoundId].timestamp;
+    }
+
+    /**
+     * @notice market open indicator from the most recent report
+     */
+    function latestMarketOpen() public view virtual override returns (bool) {
+        return s_transmissions[latestAggregatorRoundId].marketOpen;
     }
 
     /**
@@ -124,6 +137,15 @@ contract FluxPriceFeed is AccessControl, AggregatorV2V3Interface {
             return 0;
         }
         return s_transmissions[uint32(_roundId)].timestamp;
+    }
+
+    /**
+     * @notice market open of report from given aggregator round
+     * @param _roundId the aggregator round of the target report
+     */
+    function getMarketOpen(uint256 _roundId) public view virtual override returns (bool) {
+        require(_roundId <= 0xFFFFFFFF, "FluxPriceFeed: round ID");
+        return s_transmissions[uint32(_roundId)].marketOpen;
     }
 
     /*
@@ -156,6 +178,7 @@ contract FluxPriceFeed is AccessControl, AggregatorV2V3Interface {
      * @param _roundId target aggregator round. Must fit in uint32
      * @return roundId _roundId
      * @return answer answer of report from given _roundId
+     * @return marketOpen of report from given _roundId
      * @return startedAt timestamp of block in which report from given _roundId was transmitted
      * @return updatedAt timestamp of block in which report from given _roundId was transmitted
      * @return answeredInRound _roundId
@@ -168,6 +191,7 @@ contract FluxPriceFeed is AccessControl, AggregatorV2V3Interface {
         returns (
             uint80 roundId,
             int256 answer,
+            bool marketOpen,
             uint256 startedAt,
             uint256 updatedAt,
             uint80 answeredInRound
@@ -175,13 +199,14 @@ contract FluxPriceFeed is AccessControl, AggregatorV2V3Interface {
     {
         require(_roundId <= 0xFFFFFFFF, V3_NO_DATA_ERROR);
         Transmission memory transmission = s_transmissions[uint32(_roundId)];
-        return (_roundId, transmission.answer, transmission.timestamp, transmission.timestamp, _roundId);
+        return (_roundId, transmission.answer, transmission.marketOpen, transmission.timestamp, transmission.timestamp, _roundId);
     }
 
     /**
      * @notice aggregator details for the most recently transmitted report
      * @return roundId aggregator round of latest report
      * @return answer answer of latest report
+     * @return marketOpen of latest report
      * @return startedAt timestamp of block containing latest report
      * @return updatedAt timestamp of block containing latest report
      * @return answeredInRound aggregator round of latest report
@@ -194,6 +219,7 @@ contract FluxPriceFeed is AccessControl, AggregatorV2V3Interface {
         returns (
             uint80 roundId,
             int256 answer,
+            bool marketOpen,
             uint256 startedAt,
             uint256 updatedAt,
             uint80 answeredInRound
@@ -205,6 +231,6 @@ contract FluxPriceFeed is AccessControl, AggregatorV2V3Interface {
         // require(roundId != 0, V3_NO_DATA_ERROR);
 
         Transmission memory transmission = s_transmissions[uint32(roundId)];
-        return (roundId, transmission.answer, transmission.timestamp, transmission.timestamp, roundId);
+        return (roundId, transmission.answer, transmission.marketOpen, transmission.timestamp, transmission.timestamp, roundId);
     }
 }
