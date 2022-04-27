@@ -18,7 +18,7 @@ Compile the smart contracts with Hardhat:
 yarn compile
 ```
 
-Generate types:
+Run typechain:
 
 ```sh
 yarn typechain
