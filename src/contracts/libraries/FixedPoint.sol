@@ -766,4 +766,22 @@ library FixedPoint {
             output = mul(output, a);
         }
     }
+
+    // ------------------- Additional Fixed Point math functions specific to Kresko protocol -------------------
+
+    /**
+    //  * @notice Calculate amount of collateral to seize during the liquidation process.
+    //  * @param _collateralOraclePriceUSD The address of the collateral asset to be seized.
+    //  * @param _kreskoAssetRepayAmountUSD Kresko asset amount being repaid in exchange for the seized collateral.
+    //  */
+    function _calculateAmountToSeize(
+        Unsigned memory _liquidationIncentiveMultiplier,
+        Unsigned memory _collateralOraclePriceUSD,
+        Unsigned memory _kreskoAssetRepayAmountUSD
+    ) internal pure returns (Unsigned memory) {
+        // Seize amount = (repay amount USD * liquidation incentive / collateral price USD).
+        // Denominate seize amount in collateral type
+        // Apply liquidation incentive multiplier
+        return div(mul(_kreskoAssetRepayAmountUSD, _liquidationIncentiveMultiplier), _collateralOraclePriceUSD);
+    }
 }
