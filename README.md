@@ -12,16 +12,16 @@ Install dependencies:
 yarn
 ```
 
-Run typechain:
-
-```sh
-yarn typechain
-```
-
 Compile the smart contracts with Hardhat:
 
 ```sh
 yarn compile
+```
+
+Generate types:
+
+```sh
+yarn typechain
 ```
 
 ### Testing
