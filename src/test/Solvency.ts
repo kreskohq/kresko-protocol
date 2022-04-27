@@ -12,6 +12,7 @@ import {
     LIQUIDATION_INCENTIVE,
     MINIMUM_COLLATERALIZATION_RATIO,
     MINIMUM_DEBT_VALUE,
+    SECONDS_UNTIL_PRICE_STALE,
 } from "@utils";
 
 /****** INFORMATION  *******
@@ -234,6 +235,7 @@ describe("Solvency", function () {
                 LIQUIDATION_INCENTIVE,
                 MINIMUM_COLLATERALIZATION_RATIO,
                 MINIMUM_DEBT_VALUE,
+                SECONDS_UNTIL_PRICE_STALE,
             ],
             {
                 unsafeAllow: [
