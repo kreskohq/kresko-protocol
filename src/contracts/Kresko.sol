@@ -11,6 +11,7 @@ import "./interfaces/INonRebasingWrapperToken.sol";
 import "./flux/interfaces/AggregatorV2V3Interface.sol";
 
 import "./libraries/FixedPoint.sol";
+import "./libraries/FixedPointMath.sol";
 import "./libraries/Arrays.sol";
 
 /**
@@ -22,6 +23,8 @@ import "./libraries/Arrays.sol";
  */
 contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     using FixedPoint for FixedPoint.Unsigned;
+    using FixedPointMath for uint8;
+    using FixedPointMath for uint256;
     using Arrays for address[];
     using SafeERC20Upgradeable for IERC20MetadataUpgradeable;
     using SafeERC20Upgradeable for IERC20Upgradeable;
@@ -120,6 +123,9 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     /// @notice The minimum USD value of an individual synthetic asset debt position.
     FixedPoint.Unsigned public minimumDebtValue;
 
+    /// @notice The number of seconds until a price is considered stale
+    uint256 public secondsUntilStalePrice;
+
     /* ===== General state - Collateral Assets ===== */
 
     /// @notice Mapping of collateral asset token address to information on the collateral asset.
@@ -169,18 +175,12 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     event CollateralAssetAdded(address indexed collateralAsset, uint256 indexed factor, address indexed oracle);
 
     /**
-     * @notice Emitted when a collateral asset's collateral factor is updated.
+     * @notice Emitted when a collateral asset is updated.
      * @param collateralAsset The address of the collateral asset.
      * @param factor The collateral factor.
+     * @param oracle The oracle address.
      */
-    event CollateralAssetFactorUpdated(address indexed collateralAsset, uint256 indexed factor);
-
-    /**
-     * @notice Emitted when a collateral asset's oracle is updated.
-     * @param collateralAsset The address of the collateral asset.
-     * @param oracle The address of the oracle.
-     */
-    event CollateralAssetOracleUpdated(address indexed collateralAsset, address indexed oracle);
+    event CollateralAssetUpdated(address indexed collateralAsset, uint256 indexed factor, address indexed oracle);
 
     /**
      * @notice Emitted when an account deposits collateral.
@@ -218,32 +218,20 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     );
 
     /**
-     * @notice Emitted when a Kresko asset's k-factor is updated.
-     * @param kreskoAsset The address of the Kresko asset.
-     * @param kFactor The k-factor.
-     */
-    event KreskoAssetKFactorUpdated(address indexed kreskoAsset, uint256 indexed kFactor);
-
-    /**
-     * @notice Emitted when a Kresko asset's mintable property is updated.
-     * @param kreskoAsset The address of the Kresko asset.
-     * @param mintable The mintable value.
-     */
-    event KreskoAssetMintableUpdated(address indexed kreskoAsset, bool indexed mintable);
-
-    /**
      * @notice Emitted when a Kresko asset's oracle is updated.
      * @param kreskoAsset The address of the Kresko asset.
+     * @param kFactor The k-factor.
      * @param oracle The address of the oracle.
-     */
-    event KreskoAssetOracleUpdated(address indexed kreskoAsset, address indexed oracle);
-
-    /**
-     * @notice Emitted when a Kresko asset's market capitalization USD limit is updated.
-     * @param kreskoAsset The address of the Kresko asset.
+     * @param mintable The mintable value.
      * @param limit The market capitalization USD limit.
      */
-    event KreskoAssetMarketCapLimitUpdated(address indexed kreskoAsset, uint256 indexed limit);
+    event KreskoAssetUpdated(
+        address indexed kreskoAsset,
+        uint256 indexed kFactor,
+        address indexed oracle,
+        bool mintable,
+        uint256 limit
+    );
 
     /**
      * @notice Emitted when an account mints a Kresko asset.
@@ -334,6 +322,12 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     event MinimumDebtValueUpdated(uint256 indexed minimumDebtValue);
 
     /**
+     * @notice Emitted when the seconds until stale price value is updated.
+     * @param secondsUntilStalePrice The new seconds until stale price value.
+     */
+    event SecondsUntilStalePriceUpdated(uint256 indexed secondsUntilStalePrice);
+
+    /**
      * ==================================================
      * =================== Modifiers ====================
      * ==================================================
@@ -389,6 +383,17 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     /**
+     * @notice Reverts if a Kresko asset's price is stale
+     * @param _kreskoAsset The address of the Kresko asset.
+     */
+    modifier kreskoAssetPriceNotStale(address _kreskoAsset) {
+        uint256 priceTimestamp = uint256(kreskoAssets[_kreskoAsset].oracle.latestTimestamp());
+        // Include a buffer as block.timestamp can be manipulated up to 15 seconds.
+        require(block.timestamp < priceTimestamp+secondsUntilStalePrice, "KR: stale price");
+        _;
+    }
+
+    /**
      * @notice Reverts if the symbol of a Kresko asset already exists within the protocol.
      * @param _kreskoAsset The address of the Kresko asset.
      * @param _symbol The symbol of the Kresko asset.
@@ -430,7 +435,8 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         address _feeRecipient,
         uint256 _liquidationIncentiveMultiplier,
         uint256 _minimumCollateralizationRatio,
-        uint256 _minimumDebtValue
+        uint256 _minimumDebtValue,
+        uint256 _secondsUntilStalePrice
     ) external initializer {
         // Set msg.sender as the owner.
         __Ownable_init();
@@ -439,6 +445,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         updateLiquidationIncentiveMultiplier(_liquidationIncentiveMultiplier);
         updateMinimumCollateralizationRatio(_minimumCollateralizationRatio);
         updateMinimumDebtValue(_minimumDebtValue);
+        updateSecondsUntilStalePrice(_secondsUntilStalePrice);
     }
 
     /**
@@ -575,7 +582,12 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         address _account,
         address _kreskoAsset,
         uint256 _amount
-    ) external nonReentrant kreskoAssetExistsAndMintable(_kreskoAsset) ensureTrustedCallerWhen(_account != msg.sender) {
+    ) external
+        nonReentrant
+        kreskoAssetExistsAndMintable(_kreskoAsset)
+        kreskoAssetPriceNotStale(_kreskoAsset)
+        ensureTrustedCallerWhen(_account != msg.sender)
+    {
         require(_amount > 0, "KR: 0-mint");
 
         // Enforce synthetic asset's maximum market capitalization limit
@@ -689,16 +701,21 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 _depositedCollateralAssetIndex,
         bool _keepKrAssetDebt
     ) external nonReentrant {
-        // Not used with modifiers due to stack too deep errors
-        require(kreskoAssets[_repayKreskoAsset].exists, "KR: !krAssetExist");
-        require(collateralAssets[_collateralAssetToSeize].exists, "KR: !collateralExists");
-        require(_repayAmount > 0, "KR: 0-repay");
+        // Require checks not used with modifiers to avoid stack too deep errors
+        {
+            require(kreskoAssets[_repayKreskoAsset].exists, "KR: !krAssetExist");
+            require(collateralAssets[_collateralAssetToSeize].exists, "KR: !collateralExists");
+            require(_repayAmount > 0, "KR: 0-repay");
 
-        // Borrower cannot liquidate themselves
-        require(msg.sender != _account, "KR: self liquidation");
+            uint256 priceTimestamp = uint256(kreskoAssets[_repayKreskoAsset].oracle.latestTimestamp());
+            require(block.timestamp < priceTimestamp+secondsUntilStalePrice, "KR: stale price");
 
-        // Check that this account is below its minimum collateralization ratio and can be liquidated.
-        require(isAccountLiquidatable(_account), "KR: !accountLiquidatable");
+            // Borrower cannot liquidate themselves
+            require(msg.sender != _account, "KR: self liquidation");
+
+            // Check that this account is below its minimum collateralization ratio and can be liquidated.
+            require(isAccountLiquidatable(_account), "KR: !accountLiquidatable");
+        }
 
         // Repay amount USD = repay amount * KR asset USD exchange rate.
         FixedPoint.Unsigned memory repayAmountUSD = FixedPoint.Unsigned(_repayAmount).mul(
@@ -729,10 +746,9 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             _account,
             krAssetDebt,
             _repayAmount,
-            _fromCollateralFixedPointAmount(
-                _collateralAssetToSeize,
-                // Calculate amount of collateral to seize.
-                _calculateAmountToSeize(collateralPriceUSD, repayAmountUSD)
+            collateralAssets[_collateralAssetToSeize].decimals
+                ._fromCollateralFixedPointAmount(
+                    liquidationIncentiveMultiplier._calculateAmountToSeize(collateralPriceUSD, repayAmountUSD)
             ),
             _repayKreskoAsset,
             _mintedKreskoAssetIndex,
@@ -812,39 +828,25 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         emit CollateralAssetAdded(_collateralAsset, _factor, _oracle);
     }
 
-    /**
-     * @notice Updates the collateral factor of a previously added collateral asset.
+     /**
+     * @notice Updates a previously added collateral asset.
      * @dev Only callable by the owner.
      * @param _collateralAsset The address of the collateral asset.
      * @param _factor The new collateral factor as a raw value for a FixedPoint.Unsigned. Must be <= 1e18.
-     */
-    function updateCollateralFactor(address _collateralAsset, uint256 _factor)
-        external
-        onlyOwner
-        collateralAssetExists(_collateralAsset)
-    {
-        // Setting the factor to 0 effectively sunsets a collateral asset, which is intentionally allowed.
-        require(_factor <= FixedPoint.FP_SCALING_FACTOR, "KR: factor > 1FP");
-
-        collateralAssets[_collateralAsset].factor = FixedPoint.Unsigned(_factor);
-        emit CollateralAssetFactorUpdated(_collateralAsset, _factor);
-    }
-
-    /**
-     * @notice Updates the oracle address of a previously added collateral asset.
-     * @dev Only callable by the owner.
-     * @param _collateralAsset The address of the collateral asset.
      * @param _oracle The new oracle address for the collateral asset.
      */
-    function updateCollateralAssetOracle(address _collateralAsset, address _oracle)
+    function updateCollateralAsset(address _collateralAsset, uint256 _factor, address _oracle)
         external
         onlyOwner
         collateralAssetExists(_collateralAsset)
     {
         require(_oracle != address(0), "KR: !oracleAddr");
+        // Setting the factor to 0 effectively sunsets a collateral asset, which is intentionally allowed.
+        require(_factor <= FixedPoint.FP_SCALING_FACTOR, "KR: factor > 1FP");
 
+        collateralAssets[_collateralAsset].factor = FixedPoint.Unsigned(_factor);
         collateralAssets[_collateralAsset].oracle = AggregatorV2V3Interface(_oracle);
-        emit CollateralAssetOracleUpdated(_collateralAsset, _oracle);
+        emit CollateralAssetUpdated(_collateralAsset, _factor, _oracle);
     }
 
     /* ===== Kresko Assets ===== */
@@ -889,63 +891,32 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
      * @dev Only callable by the owner.
      * @param _kreskoAsset The address of the Kresko asset.
      * @param _kFactor The new k-factor as a raw value for a FixedPoint.Unsigned. Must be >= 1e18.
+     * @param _oracle The new oracle address for the Kresko asset's USD value.
+     * @param _mintable The new mintable value.
+     * @param _marketCapUSDLimit The new market capitalization USD limit.
      */
-    function updateKreskoAssetFactor(address _kreskoAsset, uint256 _kFactor)
+    function updateKreskoAsset(
+        address _kreskoAsset,
+        uint256 _kFactor,
+        address _oracle,
+        bool _mintable,
+        uint256 _marketCapUSDLimit
+    )
         external
         onlyOwner
         kreskoAssetExistsMaybeNotMintable(_kreskoAsset)
     {
         require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, "KR: kFactor < 1FP");
-
-        kreskoAssets[_kreskoAsset].kFactor = FixedPoint.Unsigned(_kFactor);
-        emit KreskoAssetKFactorUpdated(_kreskoAsset, _kFactor);
-    }
-
-    /**
-     * @dev Updates the mintable property of a previously added Kresko asset.
-     * @dev Only callable by the owner.
-     * @param _kreskoAsset The address of the Kresko asset.
-     * @param _mintable The new mintable value.
-     */
-    function updateKreskoAssetMintable(address _kreskoAsset, bool _mintable)
-        external
-        onlyOwner
-        kreskoAssetExistsMaybeNotMintable(_kreskoAsset)
-    {
-        kreskoAssets[_kreskoAsset].mintable = _mintable;
-        emit KreskoAssetMintableUpdated(_kreskoAsset, _mintable);
-    }
-
-    /**
-     * @dev Updates the oracle address of a previously added Kresko asset.
-     * @dev Only callable by the owner.
-     * @param _kreskoAsset The address of the Kresko asset.
-     * @param _oracle The new oracle address for the Kresko asset's USD value.
-     */
-    function updateKreskoAssetOracle(address _kreskoAsset, address _oracle)
-        external
-        onlyOwner
-        kreskoAssetExistsMaybeNotMintable(_kreskoAsset)
-    {
         require(_oracle != address(0), "KR: !oracleAddr");
 
-        kreskoAssets[_kreskoAsset].oracle = AggregatorV2V3Interface(_oracle);
-        emit KreskoAssetOracleUpdated(_kreskoAsset, _oracle);
-    }
+        KrAsset memory krAsset = kreskoAssets[_kreskoAsset];
+        krAsset.kFactor = FixedPoint.Unsigned(_kFactor);
+        krAsset.oracle = AggregatorV2V3Interface(_oracle);
+        krAsset.mintable = _mintable;
+        krAsset.marketCapUSDLimit = _marketCapUSDLimit;
+        kreskoAssets[_kreskoAsset] = krAsset;
 
-    /**
-     * @dev Updates the market capitalization USD limit property of a previously added Kresko asset.
-     * @dev Only callable by the owner.
-     * @param _kreskoAsset The address of the Kresko asset.
-     * @param _marketCapUSDLimit The new market capitalization USD limit.
-     */
-    function updateKreskoAssetMarketCapUSDLimit(address _kreskoAsset, uint256 _marketCapUSDLimit)
-        external
-        onlyOwner
-        kreskoAssetExistsMaybeNotMintable(_kreskoAsset)
-    {
-        kreskoAssets[_kreskoAsset].marketCapUSDLimit = _marketCapUSDLimit;
-        emit KreskoAssetMarketCapLimitUpdated(_kreskoAsset, _marketCapUSDLimit);
+        emit KreskoAssetUpdated(_kreskoAsset, _kFactor, _oracle, _mintable, _marketCapUSDLimit);
     }
 
     /* ===== Configurable parameters ===== */
@@ -1011,6 +982,15 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         require(_minimumDebtValue <= MAX_DEBT_VALUE, "KR: debtValue > max");
         minimumDebtValue = FixedPoint.Unsigned(_minimumDebtValue);
         emit MinimumDebtValueUpdated(_minimumDebtValue);
+    }
+
+    /**
+     * @dev Updates the contract's seconds until stale price value
+     * @param _secondsUntilStalePrice The new seconds until stale price.
+     */
+    function updateSecondsUntilStalePrice(uint256 _secondsUntilStalePrice) public onlyOwner {
+        secondsUntilStalePrice = _secondsUntilStalePrice;
+        emit SecondsUntilStalePriceUpdated(_secondsUntilStalePrice);
     }
 
     /**
@@ -1091,82 +1071,6 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         }
 
         emit CollateralWithdrawn(_account, _collateralAsset, _amount);
-    }
-
-    /**
-     * @notice For a given collateral asset and amount, returns a FixedPoint.Unsigned representation.
-     * @dev If the collateral asset has decimals other than 18, the amount is scaled appropriately.
-     *   If decimals > 18, there may be a loss of precision.
-     * @param _collateralAsset The address of the collateral asset.
-     * @param _amount The amount of the collateral asset.
-     * @return A FixedPoint.Unsigned of amount scaled according to the collateral asset's decimals.
-     */
-    function _toCollateralFixedPointAmount(address _collateralAsset, uint256 _amount)
-        internal
-        view
-        returns (FixedPoint.Unsigned memory)
-    {
-        CollateralAsset memory collateralAsset = collateralAssets[_collateralAsset];
-        // Initially, use the amount as the raw value for the FixedPoint.Unsigned,
-        // which internally uses FixedPoint.FP_DECIMALS (18) decimals. Most collateral
-        // assets will have 18 decimals.
-        FixedPoint.Unsigned memory fixedPointAmount = FixedPoint.Unsigned(_amount);
-        // Handle cases where the collateral asset's decimal amount is not 18.
-        if (collateralAsset.decimals < FixedPoint.FP_DECIMALS) {
-            // If the decimals are less than 18, multiply the amount
-            // to get the correct fixed point value.
-            // E.g. 1 full token of a 17 decimal token will  cause the
-            // initial setting of amount to be 0.1, so we multiply
-            // by 10 ** (18 - 17) = 10 to get it to 0.1 * 10 = 1.
-            return fixedPointAmount.mul(10**(FixedPoint.FP_DECIMALS - collateralAsset.decimals));
-        } else if (collateralAsset.decimals > FixedPoint.FP_DECIMALS) {
-            // If the decimals are greater than 18, divide the amount
-            // to get the correct fixed point value.
-            // Note because FixedPoint numbers are 18 decimals, this results
-            // in loss of precision. E.g. if the collateral asset has 19
-            // decimals and the deposit amount is only 1 uint, this will divide
-            // 1 by 10 ** (19 - 18), resulting in 1 / 10 = 0
-            return fixedPointAmount.div(10**(collateralAsset.decimals - FixedPoint.FP_DECIMALS));
-        }
-        return fixedPointAmount;
-    }
-
-    /**
-     * @notice For a given collateral asset and fixed point amount, i.e. where a rawValue of 1e18 is equal to 1
-     *   whole token, returns the amount according to the collateral asset's decimals.
-     * @dev If the collateral asset has decimals other than 18, the amount is scaled appropriately.
-     *   If decimals < 18, there may be a loss of precision.
-     * @param _collateralAsset The address of the collateral asset.
-     * @param _fixedPointAmount The fixed point amount of the collateral asset.
-     * @return An amount that is compatible with the collateral asset's decimals.
-     */
-    function _fromCollateralFixedPointAmount(address _collateralAsset, FixedPoint.Unsigned memory _fixedPointAmount)
-        internal
-        view
-        returns (uint256)
-    {
-        CollateralAsset memory collateralAsset = collateralAssets[_collateralAsset];
-        // Initially, use the rawValue, which internally uses FixedPoint.FP_DECIMALS (18) decimals
-        // Most collateral assets will have 18 decimals.
-        uint256 amount = _fixedPointAmount.rawValue;
-        // Handle cases where the collateral asset's decimal amount is not 18.
-        if (collateralAsset.decimals < FixedPoint.FP_DECIMALS) {
-            // If the decimals are less than 18, divide the depositAmount
-            // to get the correct fixed point value.
-            // E.g. 1 full token will result in amount being 1e18 at this point,
-            // so if the token has 17 decimals, divide by 10 ** (18 - 17) = 10
-            // to get a value of 1e17.
-            // This may result in a loss of precision.
-            return amount / (10**(FixedPoint.FP_DECIMALS - collateralAsset.decimals));
-        } else if (collateralAsset.decimals > FixedPoint.FP_DECIMALS) {
-            // If the decimals are greater than 18, multiply the depositAmount
-            // to get the correct fixed point value.
-            // E.g. 1 full token will result in amount being 1e18 at this point,
-            // so if the token has 19 decimals, multiply by 10 ** (19 - 18) = 10
-            // to get a value of 1e19.
-            return amount * (10**(collateralAsset.decimals - FixedPoint.FP_DECIMALS));
-        }
-        return amount;
     }
 
     /* ==== Kresko Assets ==== */
@@ -1266,7 +1170,9 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             // We see that:
             //   transferAmount <= feeValue / oraclePrice < depositAmount
             //   transferAmount < depositAmount
-            transferAmount = _fromCollateralFixedPointAmount(_collateralAssetAddress, _feeValue.div(oraclePrice));
+            transferAmount = collateralAssets[_collateralAssetAddress].decimals._fromCollateralFixedPointAmount(
+                _feeValue.div(oraclePrice)
+            );
             feeValuePaid = _feeValue;
         } else {
             // If the feeValue >= depositValue, the entire deposit
@@ -1280,21 +1186,6 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     /* ==== Liquidation ==== */
-
-    /**
-    //  * @notice Calculate amount of collateral to seize during the liquidation process.
-    //  * @param _collateralOraclePriceUSD The address of the collateral asset to be seized.
-    //  * @param _kreskoAssetRepayAmountUSD Kresko asset amount being repaid in exchange for the seized collateral.
-    //  */
-    function _calculateAmountToSeize(
-        FixedPoint.Unsigned memory _collateralOraclePriceUSD,
-        FixedPoint.Unsigned memory _kreskoAssetRepayAmountUSD
-    ) internal view returns (FixedPoint.Unsigned memory) {
-        // Seize amount = (repay amount USD * liquidation incentive / collateral price USD).
-        // Denominate seize amount in collateral type
-        // Apply liquidation incentive multiplier
-        return _kreskoAssetRepayAmountUSD.mul(liquidationIncentiveMultiplier).div(_collateralOraclePriceUSD);
-    }
 
     /**
      * @notice Calculates the liquidation incentive collateral amount to be sent to the liquidator
@@ -1330,15 +1221,14 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             mintedKreskoAssets[msg.sender].removeAddress(_repayKreskoAsset, liquidatorRepayIndex);
         }
 
-        FixedPoint.Unsigned memory seizedAmountUSD = _toCollateralFixedPointAmount(_collateralSeized, _seizeAmount).mul(
-            _collateralPriceUSD
-        );
+        uint256 decimals = collateralAssets[_collateralSeized].decimals;
+        FixedPoint.Unsigned memory seizedAmountUSD = decimals
+            ._toCollateralFixedPointAmount(_seizeAmount)
+            .mul( _collateralPriceUSD);
 
-        return
-            _fromCollateralFixedPointAmount(
-                _collateralSeized,
-                seizedAmountUSD.sub(_repayAmountUSD).div(_collateralPriceUSD)
-            );
+        return decimals
+            ._fromCollateralFixedPointAmount(seizedAmountUSD.sub(_repayAmountUSD).div(_collateralPriceUSD)
+        );
     }
 
     /**
@@ -1503,7 +1393,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     ) public view returns (FixedPoint.Unsigned memory, FixedPoint.Unsigned memory) {
         CollateralAsset memory collateralAsset = collateralAssets[_collateralAsset];
 
-        FixedPoint.Unsigned memory fixedPointAmount = _toCollateralFixedPointAmount(_collateralAsset, _amount);
+        FixedPoint.Unsigned memory fixedPointAmount = collateralAsset.decimals._toCollateralFixedPointAmount(_amount);
         FixedPoint.Unsigned memory oraclePrice = FixedPoint.Unsigned(uint256(collateralAsset.oracle.latestAnswer()));
         FixedPoint.Unsigned memory value = fixedPointAmount.mul(oraclePrice);
 
@@ -1658,18 +1548,14 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
                 maxLiquidatableUSD = collateralValueAvailable.div(collateralValueRepaid.div(valueUnderMin));
             }
 
-            // Cascade the liquidations if user has multiple assets.
-            // This is desired because pairs with low cFactor and high kFactor have a
-            // higher collateral requirement than positions with high cFactor and low kFactor.
+            // Cascade the liquidations if user has multiple collaterals and cFactor < 1.
+            // This is desired because pairs with low cFactor have higher collateral requirement
+            // than positions with high cFactor.
 
             // Main reason here is keep the liquidations from happening only on pairs that have a high risk profile.
-            if (mintedKreskoAssets[_account].length + depositedCollateralAssets[_account].length > 2) {
-                // A liquidator can abuse this by only liquidating high risk positions
-                // gaining way more of the users collateral than required if the user has a lower risk pair available.
-
-                // To mitigate this practically to zero:
+            if (depositedCollateralAssets[_account].length > 1 && cFactor.isLessThan(ONE_HUNDRED_PERCENT)) {
+                // To mitigate:
                 // cFactor^4 the collateral available (cFactor = 1 == nothing happens)
-                // Return:
                 // Get the ratio between max liquidatable USD and diminished collateral available
                 // = (higher value -> higher the risk ratio of this pair)
                 // Divide the maxValue by this ratio and a diminishing max value is returned.
@@ -1684,7 +1570,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
                         FixedPoint.Unsigned(ONE_HUNDRED_PERCENT).add(burnFee)
                     );
             } else {
-                // For an account holding a single market position
+                // For collaterals with cFactor = 1 / accounts with only single collateral
                 // the debt is just repaid in full with a single transaction
                 return maxLiquidatableUSD.mul(FixedPoint.Unsigned(ONE_HUNDRED_PERCENT).add(burnFee));
             }

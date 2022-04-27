@@ -1,8 +1,10 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { toFixedPoint } from "@utils";
+import { getLogger } from "@utils/deployment";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+    const logger = getLogger("deploy-nrwt");
     const { getNamedAccounts, deploy } = hre;
     const { admin } = await getNamedAccounts();
 
@@ -33,9 +35,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         NRTWImplementation: deployment.implementation,
     };
 
-    console.log(contracts);
+    logger.log(contracts);
+    logger.success("Succesfully deployed nrwts");
 };
 
 func.tags = ["auroratest"];
+func.skip = async hre => {
+    const logger = getLogger("deploy-nrwt");
+
+    const isFinished = await hre.deployments.getOrNull("NonRebasingWrapperToken");
+    isFinished && logger.log("Skipping deploying nrwt");
+    return !!isFinished;
+};
 
 export default func;

@@ -1,7 +1,9 @@
 import { fromBig, toFixedPoint } from "@utils";
+import { getLogger } from "@utils/deployment";
 import { DeployFunction } from "hardhat-deploy/types";
 
 const func: DeployFunction = async function (hre) {
+    const logger = getLogger("deploy-oracle");
     const { priceFeeds, getNamedAccounts } = hre;
 
     const { priceFeedValidator } = await getNamedAccounts();
@@ -16,7 +18,7 @@ const func: DeployFunction = async function (hre) {
     await priceFeeds["/USD"].transmit(toFixedPoint("1", 8));
 
     const usdPrice = fromBig(await priceFeeds["/USD"].latestAnswer(), 8);
-    console.log("USD price set at: ", usdPrice);
+    logger.log("USD price set at: ", usdPrice);
 
     // ETH
     await hre.run("deployone:fluxpricefeed", {
@@ -28,7 +30,7 @@ const func: DeployFunction = async function (hre) {
     await priceFeeds["ETH/USD"].transmit(toFixedPoint("2600", 8));
 
     const ethPrice = fromBig(await priceFeeds["ETH/USD"].latestAnswer(), 8);
-    console.log("ETH price set at: ", ethPrice);
+    logger.log("ETH price set at: ", ethPrice);
 
     // GOLD
     await hre.run("deployone:fluxpricefeed", {
@@ -39,7 +41,7 @@ const func: DeployFunction = async function (hre) {
     });
     await priceFeeds["GOLD/USD"].transmit(toFixedPoint("1898.2", 8));
     const goldPrice = fromBig(await priceFeeds["GOLD/USD"].latestAnswer(), 8);
-    console.log("GOLD price set at: ", goldPrice);
+    logger.log("GOLD price set at: ", goldPrice);
 
     // TSLA
     await hre.run("deployone:fluxpricefeed", {
@@ -50,7 +52,7 @@ const func: DeployFunction = async function (hre) {
     });
     await priceFeeds["TSLA/USD"].transmit(toFixedPoint("852.2", 8));
     const tslaPrice = fromBig(await priceFeeds["TSLA/USD"].latestAnswer(), 8);
-    console.log("TSLA price set at: ", tslaPrice);
+    logger.log("TSLA price set at: ", tslaPrice);
 
     // QQQ
     await hre.run("deployone:fluxpricefeed", {
@@ -61,7 +63,7 @@ const func: DeployFunction = async function (hre) {
     });
     await priceFeeds["QQQ/USD"].transmit(toFixedPoint("339.09", 8));
     const qqqPrice = fromBig(await priceFeeds["QQQ/USD"].latestAnswer(), 8);
-    console.log("QQQ price set at: ", qqqPrice);
+    logger.log("QQQ price set at: ", qqqPrice);
 
     // AURORA
     await hre.run("deployone:fluxpricefeed", {
@@ -72,7 +74,7 @@ const func: DeployFunction = async function (hre) {
     });
     await priceFeeds["AURORA/USD"].transmit(toFixedPoint("8.8", 8));
     const auroraPrice = fromBig(await priceFeeds["AURORA/USD"].latestAnswer(), 8);
-    console.log("AURORA price set at: ", auroraPrice);
+    logger.log("AURORA price set at: ", auroraPrice);
 
     // NEAR
     await hre.run("deployone:fluxpricefeed", {
@@ -83,7 +85,9 @@ const func: DeployFunction = async function (hre) {
     });
     await priceFeeds["NEAR/USD"].transmit(toFixedPoint("10.2", 8));
     const nearPrice = fromBig(await priceFeeds["NEAR/USD"].latestAnswer(), 8);
-    console.log("NEAR price set at: ", nearPrice);
+    logger.log("NEAR price set at: ", nearPrice);
+
+    logger.success("Succesfully deployeed oracles and set prices");
 };
 export default func;
 

@@ -1,5 +1,5 @@
 {
-    "address": "0x2Eb18FDc545F238F553D36746639c5587976D7f5",
+    "address": "0x714130A498b53392315849052720Bcd7628831E4",
     "abi": [
         {
             "anonymous": false,
@@ -95,7 +95,7 @@
                     "type": "address"
                 },
                 {
-                    "indexed": false,
+                    "indexed": true,
                     "internalType": "uint256",
                     "name": "amount",
                     "type": "uint256"
@@ -120,7 +120,7 @@
                     "type": "uint256"
                 },
                 {
-                    "indexed": false,
+                    "indexed": true,
                     "internalType": "uint256",
                     "name": "amount",
                     "type": "uint256"
@@ -145,7 +145,7 @@
                     "type": "uint256"
                 },
                 {
-                    "indexed": false,
+                    "indexed": true,
                     "internalType": "uint256",
                     "name": "amount",
                     "type": "uint256"
@@ -245,7 +245,7 @@
                     "type": "uint256"
                 },
                 {
-                    "indexed": false,
+                    "indexed": true,
                     "internalType": "uint256",
                     "name": "amount",
                     "type": "uint256"
@@ -296,6 +296,11 @@
                     "internalType": "uint128",
                     "name": "_allocPoint",
                     "type": "uint128"
+                },
+                {
+                    "internalType": "uint128",
+                    "name": "_startBlock",
+                    "type": "uint128"
                 }
             ],
             "name": "addPool",
@@ -307,7 +312,7 @@
             "inputs": [
                 {
                     "internalType": "address",
-                    "name": "_user",
+                    "name": "_account",
                     "type": "address"
                 }
             ],
@@ -337,6 +342,47 @@
                 }
             ],
             "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "_pid",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "address",
+                    "name": "_rewardRecipient",
+                    "type": "address"
+                }
+            ],
+            "name": "claim",
+            "outputs": [],
+            "stateMutability": "payable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "_for",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "_pid",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "address",
+                    "name": "_rewardRecipient",
+                    "type": "address"
+                }
+            ],
+            "name": "claimFor",
+            "outputs": [],
+            "stateMutability": "payable",
             "type": "function"
         },
         {
@@ -378,27 +424,8 @@
         {
             "inputs": [
                 {
-                    "internalType": "uint256",
-                    "name": "_pid",
-                    "type": "uint256"
-                }
-            ],
-            "name": "getDepositAmount",
-            "outputs": [
-                {
-                    "internalType": "uint256",
-                    "name": "",
-                    "type": "uint256"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
                     "internalType": "address",
-                    "name": "_token",
+                    "name": "_depositToken",
                     "type": "address"
                 }
             ],
@@ -500,6 +527,11 @@
                     "internalType": "uint128",
                     "name": "_allocPoint",
                     "type": "uint128"
+                },
+                {
+                    "internalType": "uint128",
+                    "name": "_startBlock",
+                    "type": "uint128"
                 }
             ],
             "name": "initialize",
@@ -559,26 +591,43 @@
             "inputs": [
                 {
                     "internalType": "uint256",
-                    "name": "",
+                    "name": "_pid",
                     "type": "uint256"
                 }
             ],
             "name": "poolInfo",
             "outputs": [
                 {
-                    "internalType": "contract IERC20",
-                    "name": "depositToken",
-                    "type": "address"
-                },
-                {
-                    "internalType": "uint128",
-                    "name": "allocPoint",
-                    "type": "uint128"
-                },
-                {
-                    "internalType": "uint128",
-                    "name": "lastRewardBlock",
-                    "type": "uint128"
+                    "components": [
+                        {
+                            "internalType": "contract IERC20",
+                            "name": "depositToken",
+                            "type": "address"
+                        },
+                        {
+                            "internalType": "uint128",
+                            "name": "allocPoint",
+                            "type": "uint128"
+                        },
+                        {
+                            "internalType": "uint128",
+                            "name": "lastRewardBlock",
+                            "type": "uint128"
+                        },
+                        {
+                            "internalType": "uint256[]",
+                            "name": "accRewardPerShares",
+                            "type": "uint256[]"
+                        },
+                        {
+                            "internalType": "address[]",
+                            "name": "rewardTokens",
+                            "type": "address[]"
+                        }
+                    ],
+                    "internalType": "struct KrStaking.PoolInfo",
+                    "name": "",
+                    "type": "tuple"
                 }
             ],
             "stateMutability": "view",
@@ -688,11 +737,6 @@
                     "internalType": "uint128",
                     "name": "_newAllocPoint",
                     "type": "uint128"
-                },
-                {
-                    "internalType": "address[]",
-                    "name": "_rewardTokens",
-                    "type": "address[]"
                 }
             ],
             "name": "setPool",
@@ -716,19 +760,6 @@
             "name": "setRewardPerBlockFor",
             "outputs": [],
             "stateMutability": "payable",
-            "type": "function"
-        },
-        {
-            "inputs": [],
-            "name": "startBlock",
-            "outputs": [
-                {
-                    "internalType": "uint128",
-                    "name": "",
-                    "type": "uint128"
-                }
-            ],
-            "stateMutability": "view",
             "type": "function"
         },
         {
@@ -813,21 +844,33 @@
             "inputs": [
                 {
                     "internalType": "uint256",
-                    "name": "",
+                    "name": "_pid",
                     "type": "uint256"
                 },
                 {
                     "internalType": "address",
-                    "name": "",
+                    "name": "_account",
                     "type": "address"
                 }
             ],
             "name": "userInfo",
             "outputs": [
                 {
-                    "internalType": "uint256",
-                    "name": "amount",
-                    "type": "uint256"
+                    "components": [
+                        {
+                            "internalType": "uint256",
+                            "name": "amount",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256[]",
+                            "name": "rewardDebts",
+                            "type": "uint256[]"
+                        }
+                    ],
+                    "internalType": "struct KrStaking.UserInfo",
+                    "name": "",
+                    "type": "tuple"
                 }
             ],
             "stateMutability": "view",
@@ -846,13 +889,8 @@
                     "type": "uint256"
                 },
                 {
-                    "internalType": "bool",
-                    "name": "_claimRewards",
-                    "type": "bool"
-                },
-                {
                     "internalType": "address",
-                    "name": "_claimRewardsTo",
+                    "name": "_rewardRecipient",
                     "type": "address"
                 }
             ],
@@ -879,13 +917,8 @@
                     "type": "uint256"
                 },
                 {
-                    "internalType": "bool",
-                    "name": "_claimRewards",
-                    "type": "bool"
-                },
-                {
                     "internalType": "address",
-                    "name": "_claimRewardsTo",
+                    "name": "_rewardRecipient",
                     "type": "address"
                 }
             ],
@@ -916,22 +949,22 @@
             "type": "constructor"
         }
     ],
-    "transactionHash": "0xa34d36446811c7c8027dc691461487d67302fe4a45ea17635d166d47f315a2b1",
+    "transactionHash": "0x463c2ed0c40cbe16b65f082931a77500ddc270fe0e966215880e061aff364b5b",
     "receipt": {
         "to": null,
         "from": "0x600F7085d1a4f5a9890C36EfE67c32F5ad7050b7",
-        "contractAddress": "0x2Eb18FDc545F238F553D36746639c5587976D7f5",
-        "transactionIndex": 0,
-        "gasUsed": "751747",
+        "contractAddress": "0x714130A498b53392315849052720Bcd7628831E4",
+        "transactionIndex": 2,
+        "gasUsed": "729783",
         "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-        "blockHash": "0x8dfaaa37805619de464666ebfce07f6116d87a0bfcb56d8cbea719392b2aa432",
-        "transactionHash": "0xa34d36446811c7c8027dc691461487d67302fe4a45ea17635d166d47f315a2b1",
+        "blockHash": "0xfa4aee5eaa8fd5ff6362c1203a119ad568eb6cc41068db34e94ce6b841fd4bf5",
+        "transactionHash": "0x463c2ed0c40cbe16b65f082931a77500ddc270fe0e966215880e061aff364b5b",
         "logs": [
             {
-                "transactionIndex": 0,
-                "blockNumber": 84232757,
-                "transactionHash": "0xa34d36446811c7c8027dc691461487d67302fe4a45ea17635d166d47f315a2b1",
-                "address": "0x2Eb18FDc545F238F553D36746639c5587976D7f5",
+                "transactionIndex": 2,
+                "blockNumber": 86655338,
+                "transactionHash": "0x463c2ed0c40cbe16b65f082931a77500ddc270fe0e966215880e061aff364b5b",
+                "address": "0x714130A498b53392315849052720Bcd7628831E4",
                 "topics": [
                     "0x2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d",
                     "0x0000000000000000000000000000000000000000000000000000000000000000",
@@ -940,18 +973,18 @@
                 ],
                 "data": "0x0000000000000000000000000000000000000000000000000000000000000000",
                 "logIndex": 0,
-                "blockHash": "0x8dfaaa37805619de464666ebfce07f6116d87a0bfcb56d8cbea719392b2aa432"
+                "blockHash": "0xfa4aee5eaa8fd5ff6362c1203a119ad568eb6cc41068db34e94ce6b841fd4bf5"
             }
         ],
-        "blockNumber": 84232757,
+        "blockNumber": 86655338,
         "cumulativeGasUsed": "0",
         "status": 1,
         "byzantium": true
     },
     "args": [
-        "0x0642806b8F12D15Cbe8b445A0E428C8c07EDA7Cc",
-        "0x19cC7e3aBF120e8D53E5FD3b7A87585C52901696",
-        "0x1068f454000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000e00000000000000000000000004fad3c9d337af79291882f8ae582b016d54740c600000000000000000000000000000000000000000000000000000000000003e80000000000000000000000000000000000000000000000000000000000000002000000000000000000000000dc689f8afca5eb12b4944c70dade0aebbdc1beba0000000000000000000000000eb242626398f1ff3e300e448b6e4b5156e84924000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000002c68af0bb140000000000000000000000000000000000000000000000000000058d15e176280000"
+        "0xC2c165F6C0bc9c2D3B1E2574f1f901d5a9c32837",
+        "0x39b430EB8C35B5092C30E15916B5675349ae367b",
+        "0xf619753d00000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000100000000000000000000000000e683630bd1bcc7253377379e88a303932c3340e600000000000000000000000000000000000000000000000000000000000003e800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000000000000000db98c9b60f4bea56db2aed24675dc7f594d618a4000000000000000000000000a031f89e7a99a55b847c91508b355bfe4fafbf2a000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000002c68af0bb140000000000000000000000000000000000000000000000000000058d15e176280000"
     ],
     "numDeployments": 1,
     "solcInputHash": "1635d55d57a0a2552952c0d22586ed23",
@@ -961,7 +994,7 @@
     "execute": {
         "methodName": "initialize",
         "args": [
-            ["0xDC689f8aFca5eb12b4944C70DAdE0AEbBdc1bEba", "0x0Eb242626398F1FF3e300e448B6E4b5156E84924"],
+            ["0xDb98c9B60f4bEa56DB2aeD24675Dc7F594d618A4", "0xa031F89E7a99a55b847c91508b355bfE4FAFbF2a"],
             [
                 {
                     "type": "BigNumber",
@@ -972,11 +1005,12 @@
                     "hex": "0x058d15e176280000"
                 }
             ],
-            "0x4fAd3C9d337af79291882F8Ae582b016d54740C6",
-            1000
+            "0xe683630bD1BcC7253377379E88a303932C3340e6",
+            1000,
+            0
         ]
     },
-    "implementation": "0x0642806b8F12D15Cbe8b445A0E428C8c07EDA7Cc",
+    "implementation": "0xC2c165F6C0bc9c2D3B1E2574f1f901d5a9c32837",
     "devdoc": {
         "details": "This contract implements a proxy that is upgradeable by an admin. To avoid https://medium.com/nomic-labs-blog/malicious-backdoors-in-ethereum-proxies-62629adf3357[proxy selector clashing], which can potentially be used in an attack, this contract uses the https://blog.openzeppelin.com/the-transparent-proxy-pattern/[transparent proxy pattern]. This pattern implies two things that go hand in hand: 1. If any account other than the admin calls the proxy, the call will be forwarded to the implementation, even if that call matches one of the admin functions exposed by the proxy itself. 2. If the admin calls the proxy, it can access the admin functions, but its calls will never be forwarded to the implementation. If the admin tries to call a function on the implementation it will fail with an error that says \"admin cannot fallback to proxy target\". These properties mean that the admin account can only be used for admin actions like upgrading the proxy or changing the admin, so it's best if it's a dedicated account that is not used for anything else. This will avoid headaches due to sudden errors when trying to call a function from the proxy implementation. Our recommendation is for the dedicated account to be an instance of the {ProxyAdmin} contract. If set up this way, you should think of the `ProxyAdmin` instance as the real administrative inerface of your proxy.",
         "kind": "dev",

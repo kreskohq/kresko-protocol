@@ -1,7 +1,9 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
+import { getLogger } from "@utils/deployment";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+    const logger = getLogger("deploy-krasset");
     const { kresko } = hre;
 
     await hre.run("deploy:krasset", {
@@ -14,7 +16,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     await hre.run("deploy:krasset", {
         name: "krGOLD",
-        symbol: "KrGold",
+        symbol: "KrGOLD",
         operator: kresko.address,
         wait: 2,
         log: true,
@@ -33,6 +35,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         wait: 2,
         log: true,
     });
+
+    logger.success("Succesfully deployed krAssets");
 };
 export default func;
 func.tags = ["auroratest"];

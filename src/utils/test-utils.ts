@@ -24,6 +24,7 @@ export const MINIMUM_COLLATERALIZATION_RATIO = toFixedPoint(1.5); // 150%
 export const CLOSE_FACTOR = toFixedPoint(0.2); // 20%
 export const LIQUIDATION_INCENTIVE = toFixedPoint(1.1); // 110% -> liquidators make 10% on liquidations
 export const MINIMUM_DEBT_VALUE = toFixedPoint(10); // $10
+export const SECONDS_UNTIL_PRICE_STALE = 60;
 export const FEE_RECIPIENT_ADDRESS = "0x0000000000000000000000000000000000000FEE";
 
 export const { deployContract } = waffle;
@@ -238,6 +239,7 @@ export async function deploySimpleToken(name: string, amountToDeployer: number, 
     const token = await hre.deploy<Token>("Token", {
         from: admin,
         args: [name, name, toBig(amountToDeployer), 18],
+        log: false,
         ...params,
     });
 
@@ -267,8 +269,8 @@ export async function deployKreskoAsset(name: string, amountToDeployer: number) 
     return token;
 }
 
-export const deployUniswap = deployments.createFixture(async ({ deployments, deploy }) => {
-    await deployments.fixture("test"); // ensure you start from a fresh deployments
+export const deployUniswap = deployments.createFixture(async ({ deploy }) => {
+    await deployments.fixture("");
     const { getNamedAccounts } = hre;
     const { admin, treasury } = await getNamedAccounts();
 
@@ -295,7 +297,7 @@ export const deployUniswap = deployments.createFixture(async ({ deployments, dep
     };
 });
 
-export const setupTestsStaking = (stakingTokenAddr: string) =>
+export const setupTestsStaking = (stakingTokenAddr: string, routerAddr: string, factoryAddr: string) =>
     deployments.createFixture(async ({ deployments, ethers }) => {
         await deployments.fixture("staking-zap");
         const { admin, userOne, userTwo, userThree, nonadmin, operator } = await ethers.getNamedSigners();
@@ -307,10 +309,14 @@ export const setupTestsStaking = (stakingTokenAddr: string) =>
             stakingToken: stakingTokenAddr,
             rewardTokens: `${RewardTKN1.address},${RewardTKN2.address}`,
             rewardPerBlocks: "0.1,0.2",
+            log: false,
         });
+
+        const KrStakingUniHelper = await hre.run("deploy:stakingunihelper", { routerAddr, factoryAddr, log: false });
 
         return {
             KrStaking,
+            KrStakingUniHelper,
             RewardTKN1,
             RewardTKN2,
             signers: {

@@ -1,10 +1,11 @@
-import { deployWithSignatures } from "@utils/deployment";
-import { task } from "hardhat/config";
+import { deployWithSignatures, getLogger } from "@utils/deployment";
+import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
 
 task("upgrade:kresko")
     .addOptionalParam("upgradeFn", "Function to execute after upgrade")
     .addOptionalParam("upgradeArgs", "Specify upgrade function arguments")
+    .addOptionalParam("log", "log information", true, types.boolean)
     .setAction(async function (taskArgs: TaskArguments, hre) {
         if (hre.network.name === "hardhat") {
             console.error("Cannot upgrade when network is hardhat");
@@ -15,11 +16,12 @@ task("upgrade:kresko")
         const { deployer } = await getNamedAccounts();
         const deploy = deployWithSignatures(hre);
 
-        const { upgradeFn, upgradeArgs } = taskArgs;
+        const { upgradeFn, upgradeArgs, log } = taskArgs;
+        const logger = getLogger("upgradeKresko", log);
 
         const currentKresko = await ethers.getContract<Kresko>("Kresko");
         if (!currentKresko) {
-            console.error("No kresko found in this network");
+            logger.error("No kresko found in this network");
             return;
         }
 
@@ -38,13 +40,13 @@ task("upgrade:kresko")
             },
         });
 
-        console.log(`Succesfully upgraded implementation for Kresko @ ${oldImplementation.implementation}`);
+        logger.log(`Succesfully upgraded implementation for Kresko @ ${oldImplementation.implementation}`);
         const contracts = {
             ProxyAdmin: proxyOwner.address,
             [`Kresko (Proxy)`]: Kresko.address,
             [`Kresko (Implementation)`]: deployment.implementation,
         };
-        console.table(contracts);
+        logger.table(contracts);
 
         hre.kresko = Kresko;
     });

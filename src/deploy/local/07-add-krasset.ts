@@ -1,7 +1,9 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
+import { getLogger } from "@utils/deployment";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+    const logger = getLogger("add-krasset");
     const { priceFeeds } = hre;
 
     await hre.run("kresko:addkrasset", {
@@ -30,6 +32,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         oracleAddr: priceFeeds["QQQ/USD"].address,
         log: true,
     });
+    logger.log("Succesfully added kr-assets");
 };
 export default func;
 

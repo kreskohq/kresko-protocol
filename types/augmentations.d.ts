@@ -4,7 +4,16 @@ import { fromBig, toBig } from "@utils";
 import { Fixture } from "ethereum-waffle";
 import { ABI, DeployOptions } from "hardhat-deploy/types";
 
-import { FluxPriceFeed, ExampleFlashLiquidator, Kresko, MockWETH10, KrStaking, UniswapV2Pair } from "types";
+import {
+    FluxPriceFeed,
+    ExampleFlashLiquidator,
+    Kresko,
+    MockWETH10,
+    KrStaking,
+    UniswapV2Pair,
+    KrStakingUniHelper,
+} from "types";
+import { UniswapV2Factory, UniswapV2Router02 } from "./contracts";
 
 declare module "mocha" {
     export interface Context {
@@ -20,14 +29,25 @@ declare module "mocha" {
         };
         admin: string;
         userOne: string;
+        UniFactory: UniswapV2Factory;
+        UniRouter: UniswapV2Router02;
+        lpPair: UniswapV2Pair;
         KrStaking: KrStaking;
+        KrStakingUniHelper: KrStakingUniHelper;
         userTwo: string;
         treasury: string;
         pricefeed: FluxPriceFeed;
         TKN1: Token;
         TKN2: Token;
+        USDC: Token;
         krTSLA: KreskoAsset;
         Kresko: Kresko;
+        calculateAmountB: (
+            amountA: BigNumber,
+            tokenA: string,
+            tokenB: string,
+            pair: UniswapV2Pair,
+        ) => Promise<BigNumber>;
         getMostProfitableLiquidation: (
             userAddress: string,
         ) => Promise<{ maxUSD: number; collateralAsset: string; krAsset: string }>;
