@@ -22,7 +22,7 @@ import type { ClaimRewardsEvent, DepositEvent, WithdrawEvent } from "types/contr
 import type { LiquidityAndStakeAddedEvent, LiquidityAndStakeRemovedEvent } from "types/contracts/KrStakingUniHelper";
 import type { UniswapV2Pair } from "types";
 
-describe.only("Staking", function () {
+describe("Staking", function () {
     before(async function () {
         const { admin, userOne, userTwo } = await hre.getNamedAccounts();
         this.admin = admin;
