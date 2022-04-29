@@ -21,6 +21,7 @@ export const MARKET_CAP_ONE_MILLION = toFixedPoint(1000000);
 export const MARKET_CAP_FIVE_MILLION = toFixedPoint(5000000);
 export const BURN_FEE = toFixedPoint(0.01); // 1%
 export const MINIMUM_COLLATERALIZATION_RATIO = toFixedPoint(1.5); // 150%
+export const LIQUIDATION_THRESHOLD = toFixedPoint(1.4); // 140%
 export const CLOSE_FACTOR = toFixedPoint(0.2); // 20%
 export const LIQUIDATION_INCENTIVE = toFixedPoint(1.1); // 110% -> liquidators make 10% on liquidations
 export const MINIMUM_DEBT_VALUE = toFixedPoint(10); // $10

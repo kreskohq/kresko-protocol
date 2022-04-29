@@ -120,6 +120,9 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     /// collateral requirements.
     FixedPoint.Unsigned public minimumCollateralizationRatio;
 
+    /// @notice The collateralization ratio at which positions may be liquidated.
+     FixedPoint.Unsigned public liquidationThreshold;
+
     /// @notice The minimum USD value of an individual synthetic asset debt position.
     FixedPoint.Unsigned public minimumDebtValue;
 
@@ -328,6 +331,12 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     event SecondsUntilStalePriceUpdated(uint256 indexed secondsUntilStalePrice);
 
     /**
+     * @notice Emitted when the liquidation threshold value is updated
+     * @param liquidationThreshold The new liquidation threshold value.
+     */
+    event LiquidationThresholdUpdated(uint256 indexed liquidationThreshold);
+
+    /**
      * ==================================================
      * =================== Modifiers ====================
      * ==================================================
@@ -429,6 +438,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
      * @param _liquidationIncentiveMultiplier Initial liquidation incentive multiplier.
      * @param _minimumCollateralizationRatio Initial collateralization ratio as a raw value for a FixedPoint.Unsigned.
      * @param _minimumDebtValue Initial minimum debt value denominated in USD.
+     * @param _liquidationThreshold Initial liquidation threshold as a raw value for a FixedPoint.Unsigned.
      */
     function initialize(
         uint256 _burnFee,
@@ -436,7 +446,8 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 _liquidationIncentiveMultiplier,
         uint256 _minimumCollateralizationRatio,
         uint256 _minimumDebtValue,
-        uint256 _secondsUntilStalePrice
+        uint256 _secondsUntilStalePrice,
+        uint256 _liquidationThreshold
     ) external initializer {
         // Set msg.sender as the owner.
         __Ownable_init();
@@ -446,6 +457,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         updateMinimumCollateralizationRatio(_minimumCollateralizationRatio);
         updateMinimumDebtValue(_minimumDebtValue);
         updateSecondsUntilStalePrice(_secondsUntilStalePrice);
+        updateLiquidationThreshold(_liquidationThreshold);
     }
 
     /**
@@ -600,9 +612,16 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         // Get the value of the minter's current deposited collateral.
         FixedPoint.Unsigned memory accountCollateralValue = getAccountCollateralValue(_account);
         // Get the account's current minimum collateral value required to maintain current debts.
-        FixedPoint.Unsigned memory minAccountCollateralValue = getAccountMinimumCollateralValue(_account);
+        FixedPoint.Unsigned memory minAccountCollateralValue = getAccountMinimumCollateralValueAtRatio(
+            _account,
+            minimumCollateralizationRatio.rawValue
+        );
         // Calculate additional collateral amount required to back requested additional mint.
-        FixedPoint.Unsigned memory additionalCollateralValue = getMinimumCollateralValue(_kreskoAsset, _amount);
+        FixedPoint.Unsigned memory additionalCollateralValue = getMinimumCollateralValueAtRatio(
+            _kreskoAsset,
+            _amount,
+            minimumCollateralizationRatio.rawValue
+        );
 
         // Verify that minter has sufficient collateral to back current debt + new requested debt.
         require(
@@ -713,7 +732,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             // Borrower cannot liquidate themselves
             require(msg.sender != _account, "KR: self liquidation");
 
-            // Check that this account is below its minimum collateralization ratio and can be liquidated.
+            // Check that this account is below liquidation threshold and can be liquidated.
             require(isAccountLiquidatable(_account), "KR: !accountLiquidatable");
         }
 
@@ -994,6 +1013,17 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     /**
+     * @dev Updates the contract's liquidation threshold value
+     * @param _liquidationThreshold The new liquidation threshold value
+     */
+    function updateLiquidationThreshold(uint256 _liquidationThreshold) public onlyOwner {
+        // Liquidation threshold cannot be greater than minimum collateralization ratio
+        require(minimumCollateralizationRatio.isGreaterThanOrEqual(_liquidationThreshold), "KR: LT > MCR");
+        minimumCollateralizationRatio = FixedPoint.Unsigned(_liquidationThreshold);
+        emit LiquidationThresholdUpdated(_liquidationThreshold);
+    }
+
+    /**
      * ==================================================
      * ============= Core internal functions ============
      * ==================================================
@@ -1054,7 +1084,10 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             false // Take the collateral factor into consideration.
         );
         // Get the account's minimum collateral value.
-        FixedPoint.Unsigned memory accountMinCollateralValue = getAccountMinimumCollateralValue(_account);
+        FixedPoint.Unsigned memory accountMinCollateralValue = getAccountMinimumCollateralValueAtRatio(
+            _account,
+            minimumCollateralizationRatio.rawValue
+        );
         // Require accountCollateralValue - withdrawnCollateralValue >= accountMinCollateralValue.
         require(
             accountCollateralValue.sub(withdrawnCollateralValue).isGreaterThanOrEqual(accountMinCollateralValue),
@@ -1342,32 +1375,41 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     /**
-     * @notice Gets an account's minimum collateral value for its Kresko Asset debts.
-     * @dev Accounts that have their collateral value under the minimum collateral value are considered unhealthy
-     * and therefore to avoid liquidations users should maintain a collateral value higher than the value returned.
+     * @notice Get an account's minimum collateral value required to back a Kresko asset amount at a given collateralization ratio.
+     * @dev Accounts that have their collateral value under the minimum collateral value are considered unhealthy,
+     *      accounts with their collateral value under the liquidation threshold are considered liquidatable.
      * @param _account The account to calculate the minimum collateral value for.
-     * @return The minimum collateral value of a particular account.
+     * @param _ratio The collateralization ratio required: higher ratio = more collateral required
+     * @return The minimum collateral value at a given collateralization ratio for a given account.
      */
-    function getAccountMinimumCollateralValue(address _account) public view returns (FixedPoint.Unsigned memory) {
+    function getAccountMinimumCollateralValueAtRatio(
+        address _account,
+        uint256 _ratio
+    ) public view returns (FixedPoint.Unsigned memory) {
         FixedPoint.Unsigned memory minCollateralValue = FixedPoint.Unsigned(0);
 
         address[] memory assets = mintedKreskoAssets[_account];
         for (uint256 i = 0; i < assets.length; i++) {
             address asset = assets[i];
             uint256 amount = kreskoAssetDebt[_account][asset];
-            minCollateralValue = minCollateralValue.add(getMinimumCollateralValue(asset, amount));
+            minCollateralValue = minCollateralValue.add(getMinimumCollateralValueAtRatio(asset, amount, _ratio));
         }
 
         return minCollateralValue;
     }
 
     /**
-     * @notice Get the minimum collateral value required to keep a individual debt position healthy.
+     * @notice Get the minimum collateral value required to back a Kresko asset amount at a given collateralization ratio.
      * @param _krAsset The address of the Kresko asset.
      * @param _amount The Kresko Asset debt amount.
+     * @param _ratio The collateralization ratio required: higher ratio = more collateral required
      * @return minCollateralValue is the minimum collateral value required for this Kresko Asset amount.
      */
-    function getMinimumCollateralValue(address _krAsset, uint256 _amount)
+    function getMinimumCollateralValueAtRatio(
+        address _krAsset,
+        uint256 _amount,
+        uint256 _ratio
+    )
         public
         view
         kreskoAssetExistsMaybeNotMintable(_krAsset)
@@ -1375,8 +1417,8 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     {
         // Calculate the Kresko asset's value weighted by its k-factor.
         FixedPoint.Unsigned memory weightedKreskoAssetValue = getKrAssetValue(_krAsset, _amount, false);
-        // Calculate the minimum collateral required to back this Kresko asset amount.
-        return weightedKreskoAssetValue.mul(minimumCollateralizationRatio);
+        // Calculate the collateral value required to back this Kresko asset amount at the given ratio
+        return weightedKreskoAssetValue.mul(_ratio);
     }
 
     /**
@@ -1489,7 +1531,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         // Get the value of the account's current deposited collateral.
         FixedPoint.Unsigned memory accountCollateralValue = getAccountCollateralValue(_account);
         // Get the account's current minimum collateral value required to maintain current debts.
-        FixedPoint.Unsigned memory minAccountCollateralValue = getAccountMinimumCollateralValue(_account);
+        FixedPoint.Unsigned memory minAccountCollateralValue = getAccountMinimumCollateralValueAtRatio(_account, liquidationThreshold.rawValue);
 
         return accountCollateralValue.isLessThan(minAccountCollateralValue);
     }
@@ -1507,9 +1549,10 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         address _collateralAssetToSeize
     ) public view returns (FixedPoint.Unsigned memory maxLiquidatableUSD) {
         // Minimum collateral value required for the krAsset position
-        FixedPoint.Unsigned memory minCollateralValue = getMinimumCollateralValue(
+        FixedPoint.Unsigned memory minCollateralValue = getMinimumCollateralValueAtRatio(
             _repayKreskoAsset,
-            kreskoAssetDebt[_account][_repayKreskoAsset]
+            kreskoAssetDebt[_account][_repayKreskoAsset],
+            liquidationThreshold.rawValue
         );
 
         // Collateral value for this position

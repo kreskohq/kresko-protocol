@@ -15,6 +15,7 @@ import {
     MINIMUM_COLLATERALIZATION_RATIO,
     MINIMUM_DEBT_VALUE,
     SECONDS_UNTIL_PRICE_STALE,
+    LIQUIDATION_THRESHOLD,
     NAME_ONE,
     NAME_TWO,
     ONE,
@@ -76,6 +77,7 @@ describe.only("Kresko", function () {
                     MINIMUM_COLLATERALIZATION_RATIO,
                     MINIMUM_DEBT_VALUE,
                     SECONDS_UNTIL_PRICE_STALE,
+                    LIQUIDATION_THRESHOLD,
                 ),
             ).to.be.revertedWith("Initializable: contract is already initialized");
         });
@@ -767,8 +769,9 @@ describe.only("Kresko", function () {
 
                             // Ensure that the withdrawal would not put the account's collateral value
                             // less than the account's minimum collateral value:
-                            const accountMinCollateralValue = await this.Kresko.getAccountMinimumCollateralValue(
+                            const accountMinCollateralValue = await this.Kresko.getAccountMinimumCollateralValueAtRatio(
                                 this.signers.userOne.address,
+                                await this.Kresko.minimumCollateralizationRatio()
                             );
                             const accountCollateralValue = await this.Kresko.getAccountCollateralValue(
                                 this.signers.userOne.address,
@@ -838,8 +841,9 @@ describe.only("Kresko", function () {
 
                             // Ensure the account's minimum collateral value is <= the account collateral value
                             // These are FixedPoint.Unsigned, be sure to use `rawValue` when appropriate!
-                            const accountMinCollateralValueAfter = await this.Kresko.getAccountMinimumCollateralValue(
+                            const accountMinCollateralValueAfter = await this.Kresko.getAccountMinimumCollateralValueAtRatio(
                                 this.signers.userOne.address,
+                                await this.Kresko.minimumCollateralizationRatio()
                             );
                             const accountCollateralValueAfter = await this.Kresko.getAccountCollateralValue(
                                 this.signers.userOne.address,
@@ -856,8 +860,9 @@ describe.only("Kresko", function () {
 
                             // Ensure that the withdrawal would in fact put the account's collateral value
                             // less than the account's minimum collateral value:
-                            const accountMinCollateralValue = await this.Kresko.getAccountMinimumCollateralValue(
+                            const accountMinCollateralValue = await this.Kresko.getAccountMinimumCollateralValueAtRatio(
                                 this.signers.userOne.address,
+                                await this.Kresko.minimumCollateralizationRatio()
                             );
                             const accountCollateralValue = await this.Kresko.getAccountCollateralValue(
                                 this.signers.userOne.address,

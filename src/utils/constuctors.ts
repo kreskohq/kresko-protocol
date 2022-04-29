@@ -17,6 +17,10 @@ export const constructors = {
         const feeRecipientAddress = ethers.utils.getAddress(feeRecipientAddressStr);
         const secondsUntilPriceStale = overrides?.secondsUntilPriceStale || process.env.SECONDS_UNTIL_PRICE_STALE;
 
+        const liquidationThreshold = toFixedPoint(
+            overrides?.liquidationThreshold || process.env.LIQUIDATION_THRESHOLD,
+        );
+
         return {
             burnFee,
             feeRecipient: feeRecipientAddress,
@@ -24,6 +28,7 @@ export const constructors = {
             minimumCollateralizationRatio,
             minimumDebtValue,
             secondsUntilPriceStale,
+            liquidationThreshold,
         };
     },
 };
