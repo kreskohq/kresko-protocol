@@ -72,4 +72,4 @@ Open source contributions to Kresko Protocol are encouraged, feel free to open a
 
 ### Contact
 
-Inquiries or partnership requests should be directed to: </br> ![contact](https://user-images.githubusercontent.com/15370712/167091756-d69aedf4-ab00-4af5-adc4-1f7e2d3adb54.png)
+Inquiries or partnership requests should be directed to: ![contact_2](https://user-images.githubusercontent.com/15370712/167093578-d6c0acd8-f32c-4ca3-b22e-76c2eef7f0e3.png)
