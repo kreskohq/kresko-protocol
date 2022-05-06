@@ -70,6 +70,4 @@ yarn publish:contracts-frontend
 
 Open source contributions to Kresko Protocol are encouraged, feel free to open an issue or pull request.
 
-Inquiries or partnership requests should be directed to:
-   
-![contact](https://user-images.githubusercontent.com/15370712/167091756-d69aedf4-ab00-4af5-adc4-1f7e2d3adb54.png)
+Inquiries or partnership requests should be directed to: ![contact](https://user-images.githubusercontent.com/15370712/167091756-d69aedf4-ab00-4af5-adc4-1f7e2d3adb54.png)
