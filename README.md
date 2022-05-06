@@ -66,8 +66,10 @@ After a proxy upgrade or deployment to a new network the contract addresses and 
 yarn publish:contracts-frontend
 ```
 
-### Contributions and Contact
+### Contributions
 
 Open source contributions to Kresko Protocol are encouraged, feel free to open an issue or pull request.
+
+### Contact
 
 Inquiries or partnership requests should be directed to: </br> ![contact](https://user-images.githubusercontent.com/15370712/167091756-d69aedf4-ab00-4af5-adc4-1f7e2d3adb54.png)
