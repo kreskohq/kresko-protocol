@@ -17,6 +17,7 @@ task("deploy:kresko")
         process.env.MINIMUM_COLLATERALIZATION_RATIO,
     )
     .addOptionalParam("minDebtValue", "Minimum debt value", process.env.MINIMUM_DEBT_VALUE)
+    .addOptionalParam("secondsUntilStalePrice", "Minimum debt value", process.env.SECONDS_UNTIL_PRICE_STALE)
     .addOptionalParam("wait", "wait confirmations", 1, types.int)
     .addOptionalParam("log", "Log outputs", false, types.boolean)
     .setAction(async function (taskArgs: TaskArguments, hre) {
@@ -24,7 +25,7 @@ task("deploy:kresko")
         const { admin } = await getNamedAccounts();
         const deploy = deployWithSignatures(hre);
         const { formatEther } = ethers.utils;
-        const { burnFee, feeRecipient, liquidationIncentiveMultiplier, minCollaterRatio, minDebtValue, wait, log } =
+        const { burnFee, feeRecipient, liquidationIncentiveMultiplier, minCollaterRatio, minDebtValue, secondsUntilStalePrice, wait, log } =
             taskArgs;
 
         const logger = getLogger("deployKresko", log);
@@ -43,6 +44,7 @@ task("deploy:kresko")
                         toFixedPoint(liquidationIncentiveMultiplier),
                         toFixedPoint(minCollaterRatio),
                         toFixedPoint(minDebtValue, 8),
+                        secondsUntilStalePrice,
                     ],
                 },
             },
