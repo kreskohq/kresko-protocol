@@ -5,9 +5,10 @@ import { UniswapV2Pair } from "types";
 
 task("addliquidity:external")
     .addOptionalParam("log", "log information", true, types.boolean)
+    .addOptionalParam("wait", "wait confirmations", 1, types.int)
     .setAction(async (taskArgs, hre) => {
         const { ethers, deployments } = hre;
-        const { log } = taskArgs;
+        const { log, wait } = taskArgs;
         const USDC = await ethers.getContract<Token>("USDC");
 
         const logger = getLogger("addLiquidityExternal", log);
@@ -20,7 +21,7 @@ task("addliquidity:external")
             auroraFeedDeployment.address,
         );
         const AuroraValue = fromBig(await auroraFeed.latestAnswer(), 8);
-        const AURORADepositAmount = 45000;
+        const AURORADepositAmount = 75000;
 
         const AURORAUSDCPair: UniswapV2Pair = await hre.run("uniswap:addliquidity", {
             tknA: {
@@ -31,7 +32,7 @@ task("addliquidity:external")
                 address: Aurora.address,
                 amount: AURORADepositAmount,
             },
-            wait: 4,
+            wait,
         });
 
         hre.uniPairs["AURORA/USDC"] = AURORAUSDCPair;
@@ -41,7 +42,7 @@ task("addliquidity:external")
         const nearFeedDeployment = await deployments.get("NEARUSD");
         const nearFeed = await ethers.getContractAt<FluxPriceFeed>(nearFeedDeployment.abi, nearFeedDeployment.address);
         const NearValue = fromBig(await nearFeed.latestAnswer(), 8);
-        const NearDepositAmount = 32500;
+        const NearDepositAmount = 52500;
 
         const NEARUSDCPair: UniswapV2Pair = await hre.run("uniswap:addliquidity", {
             tknA: {
@@ -52,6 +53,7 @@ task("addliquidity:external")
                 address: wNEAR.address,
                 amount: NearDepositAmount,
             },
+            wait,
         });
 
         hre.uniPairs["wNEAR/USDC"] = NEARUSDCPair;
