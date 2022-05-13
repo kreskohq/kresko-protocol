@@ -1704,7 +1704,7 @@ describe.only("Kresko", function () {
             });
         });
 
-        describe("#burnKreskoAsset", function () {
+        describe.only("#burnKreskoAsset", function () {
             beforeEach(async function () {
                 // Mint Kresko asset
                 this.mintAmount = toFixedPoint(500);
@@ -1806,7 +1806,7 @@ describe.only("Kresko", function () {
                 const kreskoAssetTotalSupplyBefore = await kreskoAsset.totalSupply();
                 await this.Kresko.connect(this.signers.admin).toggleTrustedContract(this.signers.userThree.address);
 
-                // User three burns the whole mintAmount of Kresko asset to repay userOnes debt
+                // User three burns the whole mintAmount of Kresko asset to repay userOne's debt
                 const kreskoAssetIndex = 0;
                 await this.Kresko.connect(this.signers.userThree).burnKreskoAsset(
                     this.signers.userOne.address,
@@ -1850,6 +1850,7 @@ describe.only("Kresko", function () {
                     kreskoAssetIndex,
                 );
 
+                
                 // Confirm the user no long holds the burned Kresko asset amount
                 const userBalance = await kreskoAsset.balanceOf(this.signers.userOne.address);
                 expect(userBalance).to.equal(0);
@@ -1867,13 +1868,26 @@ describe.only("Kresko", function () {
                 expect(userDebt).to.equal(0);
             });
 
-            it("should burn the users full Kresko asset balance if the requested burn would result in a position under min debt value", async function () {
+            it("should burn up to the minimum debt position amount if the requested burn would result in a position under the minimum debt value", async function () {
                 const kreskoAsset = this.kreskoAssetInfos[0].kreskoAsset;
                 const kreskoAssetAddress = kreskoAsset.address;
 
+                const userBalanceBefore = await kreskoAsset.balanceOf(this.signers.userOne.address);
                 const kreskoAssetTotalSupplyBefore = await kreskoAsset.totalSupply();
 
-                const requestedBurnAmount = this.mintAmount.sub(toFixedPoint(1));
+                // Calculate actual burn amount
+                const requestedBurnAmount: number = this.mintAmount.sub(toFixedPoint(1));
+                const userOneDebt = Number(await this.Kresko.kreskoAssetDebt(this.signers.userOne.address, kreskoAssetAddress));
+                const krAssetValue = await this.Kresko.getKrAssetValue(kreskoAssetAddress, String(userOneDebt - requestedBurnAmount), true);
+
+                let burnAmount = requestedBurnAmount;
+                const krAssetValueNum = Number(krAssetValue.rawValue);
+                const minDebtValue = Number(await this.Kresko.minimumDebtValue());
+                if (krAssetValueNum > 0 && krAssetValueNum < minDebtValue) {
+                    const oraclePrice =  Number(await this.kreskoAssetInfos[0].oracle.latestAnswer());
+                    burnAmount = userOneDebt-(minDebtValue*oraclePrice);
+                }
+
                 // Burn Kresko asset
                 const kreskoAssetIndex = 0;
                 await this.Kresko.connect(this.signers.userOne).burnKreskoAsset(
@@ -1883,21 +1897,22 @@ describe.only("Kresko", function () {
                     kreskoAssetIndex,
                 );
 
-                // Confirm the user no long holds the burned Kresko asset amount
+                // Confirm the user holds the expected Kresko asset amount
                 const userBalance = await kreskoAsset.balanceOf(this.signers.userOne.address);
-                expect(userBalance).to.equal(0);
+                expect(userBalance).to.equal(userBalanceBefore - burnAmount);
 
                 // Confirm that the Kresko asset's total supply decreased as expected
-                const kreskoAssetTotalSupplyAfter = await kreskoAsset.totalSupply();
-                expect(kreskoAssetTotalSupplyAfter).to.equal(kreskoAssetTotalSupplyBefore.sub(this.mintAmount));
+                const kreskoAssetTotalSupplyAfter = Number(await kreskoAsset.totalSupply());
+                expect(kreskoAssetTotalSupplyAfter).to.equal(kreskoAssetTotalSupplyBefore.sub(burnAmount));
 
-                // Confirm the array of the user's minted Kresko assets no longer contains the asset's address
+                // Confirm the array of the user's minted Kresko assets still contains the asset's address
                 const mintedKreskoAssetsAfter = await this.Kresko.getMintedKreskoAssets(this.signers.userOne.address);
-                expect(mintedKreskoAssetsAfter).to.deep.equal([]);
+                expect(mintedKreskoAssetsAfter).to.deep.equal([kreskoAssetAddress]);
 
                 // Confirm the user's minted kresko asset amount has been updated
-                const userDebt = await this.Kresko.kreskoAssetDebt(this.signers.userOne.address, kreskoAssetAddress);
-                expect(userDebt).to.equal(0);
+                const userDebt = await Number(this.Kresko.kreskoAssetDebt(this.signers.userOne.address, kreskoAssetAddress));
+                expect(userDebt).to.equal(userOneDebt - burnAmount);
+
             });
 
             it("should emit KreskoAssetBurned event", async function () {
