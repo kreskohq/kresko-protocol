@@ -32,6 +32,7 @@ task("addliquidity:external")
                 address: Aurora.address,
                 amount: AURORADepositAmount,
             },
+            skipIfLiqExists: true,
         });
 
         hre.uniPairs["AURORA/USDC"] = AURORAUSDCPair;
@@ -54,6 +55,7 @@ task("addliquidity:external")
                 address: wNEAR.address,
                 amount: NearDepositAmount,
             },
+            skipIfLiqExists: true,
         });
 
         hre.uniPairs["wNEAR/USDC"] = NEARUSDCPair;
@@ -76,6 +78,7 @@ task("addliquidity:external")
                 address: WETH.address,
                 amount: wethDepositAmount,
             },
+            skipIfLiqExists: true,
         });
 
         hre.uniPairs["WETH/USDC"] = WETHUSDCPair;

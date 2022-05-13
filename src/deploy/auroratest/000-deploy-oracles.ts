@@ -1,10 +1,9 @@
-import { toFixedPoint } from "@utils";
 import { getLogger } from "@utils/deployment";
 import { DeployFunction } from "hardhat-deploy/types";
 
 const func: DeployFunction = async function (hre) {
     const logger = getLogger("deploy-oracle");
-    const { priceFeeds, getNamedAccounts } = hre;
+    const { getNamedAccounts } = hre;
 
     const { priceFeedValidator } = await getNamedAccounts();
     // USD
@@ -15,9 +14,6 @@ const func: DeployFunction = async function (hre) {
         validator: priceFeedValidator,
     });
 
-    // await priceFeeds["/USD"].transmit(toFixedPoint("1", 8));
-    logger.log("USD price set");
-
     // ETH
     await hre.run("deployone:fluxpricefeed", {
         name: "ETHUSD",
@@ -25,8 +21,6 @@ const func: DeployFunction = async function (hre) {
         description: "ETH/USD",
         validator: priceFeedValidator,
     });
-    // await priceFeeds["ETH/USD"].transmit(toFixedPoint("1930.3", 8));
-    logger.log("eth price set");
 
     // GOLD
     await hre.run("deployone:fluxpricefeed", {
@@ -35,8 +29,6 @@ const func: DeployFunction = async function (hre) {
         description: "GOLD/USD",
         validator: priceFeedValidator,
     });
-    // await priceFeeds["GOLD/USD"].transmit(toFixedPoint("1864", 8));
-    logger.log("Gold price set");
 
     // TSLA
     await hre.run("deployone:fluxpricefeed", {
@@ -45,9 +37,6 @@ const func: DeployFunction = async function (hre) {
         description: "TSLA/USD",
         validator: priceFeedValidator,
     });
-    // await priceFeeds["TSLA/USD"].transmit(toFixedPoint("737.4", 8));
-
-    logger.log("tsla price set");
 
     // QQQ
     await hre.run("deployone:fluxpricefeed", {
@@ -56,8 +45,6 @@ const func: DeployFunction = async function (hre) {
         description: "QQQ/USD",
         validator: priceFeedValidator,
     });
-    // await priceFeeds["QQQ/USD"].transmit(toFixedPoint("291.02", 8));
-    logger.log("qqq price set");
 
     // GME
     await hre.run("deployone:fluxpricefeed", {
@@ -66,8 +53,6 @@ const func: DeployFunction = async function (hre) {
         description: "GME/USD",
         validator: priceFeedValidator,
     });
-    // await priceFeeds["GME/USD"].transmit(toFixedPoint("91.81", 8));
-    logger.log("gme price set");
 
     // AURORA
     await hre.run("deployone:fluxpricefeed", {
@@ -76,8 +61,6 @@ const func: DeployFunction = async function (hre) {
         description: "AURORA/USD",
         validator: priceFeedValidator,
     });
-    // await priceFeeds["AURORA/USD"].transmit(toFixedPoint("3.67", 8));
-    logger.log("aurora price set");
 
     // NEAR
     await hre.run("deployone:fluxpricefeed", {
@@ -86,9 +69,8 @@ const func: DeployFunction = async function (hre) {
         description: "NEAR/USD",
         validator: priceFeedValidator,
     });
-    // await priceFeeds["NEAR/USD"].transmit(toFixedPoint("6.93", 8));
-    logger.log("near price set");
-    logger.success("Succesfully deployed oracles and set prices");
+
+    logger.success("All price feeds deployed");
 };
 
 export default func;

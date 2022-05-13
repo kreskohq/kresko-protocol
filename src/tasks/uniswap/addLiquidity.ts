@@ -1,5 +1,6 @@
 import { getLogger } from "@utils/deployment";
 import { fromBig, toBig } from "@utils/numbers";
+import { constants } from "ethers";
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
 import { UniswapV2Factory, UniswapV2Pair, UniswapV2Router02 } from "types";
@@ -11,10 +12,11 @@ task("uniswap:addliquidity")
     .addOptionalParam("routerAddr", "Router address")
     .addOptionalParam("log", "Log balances", true, types.boolean)
     .addOptionalParam("wait", "wait confirmations", 1, types.int)
+    .addOptionalParam("skipIfLiqExists", "skip if pair exists and has balances", false, types.boolean)
     .setAction(async function (taskArgs: TaskArguments, hre) {
         const { ethers, getNamedAccounts } = hre;
         const { deployer } = await getNamedAccounts();
-        const { tknA, tknB, factoryAddr, routerAddr, log } = taskArgs;
+        const { tknA, tknB, factoryAddr, routerAddr, log, skipIfLiqExists } = taskArgs;
 
         const logger = getLogger("addLiquidity", log);
 
@@ -32,6 +34,22 @@ task("uniswap:addliquidity")
         } else {
             UniFactory = await ethers.getContract<UniswapV2Factory>("UniswapV2Factory");
             UniRouter = await ethers.getContract<UniswapV2Router02>("UniswapV2Router02");
+        }
+
+        if (skipIfLiqExists) {
+            const pairAddress = await UniFactory.getPair(TknA.address, tknB.address);
+            if (pairAddress !== constants.AddressZero) {
+                const balanceA = await TknA.balanceOf(pairAddress);
+                if (balanceA.gt(0)) {
+                    logger.log(
+                        "Skipping adding liquidity for",
+                        tknA.name,
+                        tknB.name,
+                        "since pair is created and has liquidity",
+                    );
+                    return await ethers.getContractAt<UniswapV2Pair>("UniswapV2Pair", pairAddress);
+                }
+            }
         }
 
         const approvalTknA = fromBig(await TknA.allowance(deployer, UniRouter.address), tknADec);
@@ -66,7 +84,7 @@ task("uniswap:addliquidity")
             (Date.now() / 1000 + 9000).toFixed(0),
         );
 
-        await tx.wait(2);
+        await tx.wait();
 
         const Pair = await ethers.getContractAt<UniswapV2Pair>(
             "UniswapV2Pair",
