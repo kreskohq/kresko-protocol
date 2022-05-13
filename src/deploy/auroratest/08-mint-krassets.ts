@@ -11,58 +11,58 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const USDC = await ethers.getContract<Token>("USDC");
 
     /** === krTSLA ===  */
-    const krTSLA = await ethers.getContract<KreskoAsset>("krTSLA");
-    logger.log("Approving USDC");
+    // const krTSLA = await ethers.getContract<KreskoAsset>("krTSLA");
+    // logger.log("Approving USDC");
 
-    // Approve USDC token to be deposited to Kresko
-    tx = await USDC.approve(kresko.address, ethers.constants.MaxUint256);
-    await tx.wait(2);
-    logger.log("Depositing USDC");
+    // // Approve USDC token to be deposited to Kresko
+    // tx = await USDC.approve(kresko.address, ethers.constants.MaxUint256);
+    // // await tx.wait(2);
+    // logger.log("Depositing USDC");
+
+    // // Deposit collateral to mint
+    // tx = await kresko.depositCollateral(deployer, USDC.address, ethers.utils.parseUnits("10000000", 6));
+    // // await tx.wait(2);
+
+    // // Mint 100 krTSLA
+    // logger.log("Minting KRTSLA");
+    // tx = await kresko.mintKreskoAsset(deployer, krTSLA.address, ethers.utils.parseEther("1000"));
+    // // await tx.wait(2);
+
+    // /** === krGME ===  */
+    // const krGME = await ethers.getContract<KreskoAsset>("krGME");
+
+    // logger.log("Depositing USDC for krGME");
+
+    // // Deposit collateral to mint
+    // tx = await kresko.depositCollateral(deployer, USDC.address, ethers.utils.parseUnits("5000000", 6));
+    // // await tx.wait(2);
+
+    // // Mint 1000 krGME
+    // logger.log("Minting krGME");
+    // tx = await kresko.mintKreskoAsset(deployer, krGME.address, ethers.utils.parseEther("10000"));
+    // await tx.wait(2);
+
+    /** === krIAU ===  */
+    const krIAU = await ethers.getContract<KreskoAsset>("krIAU");
+
+    logger.log("Depositing USDC for krIAU");
 
     // Deposit collateral to mint
-    tx = await kresko.depositCollateral(deployer, USDC.address, ethers.utils.parseUnits("10_000_000", 6));
-    await tx.wait(2);
+    await kresko.depositCollateral(deployer, USDC.address, ethers.utils.parseUnits("2500000", 6));
+    // await tx.wait(2);
 
-    // Mint 100 krTSLA
-    logger.log("Minting KRTSLA");
-    tx = await kresko.mintKreskoAsset(deployer, krTSLA.address, ethers.utils.parseEther("1000"));
-    await tx.wait(2);
-
-    /** === krETH ===  */
-    const krETH = await ethers.getContract<KreskoAsset>("krETH");
-
-    logger.log("Depositing USDC for krETH");
-
-    // Deposit collateral to mint
-    tx = await kresko.depositCollateral(deployer, USDC.address, ethers.utils.parseUnits("5_000_000", 6));
-    await tx.wait(2);
-
-    // Mint 100 krETH
-    logger.log("Minting krETH");
-    tx = await kresko.mintKreskoAsset(deployer, krETH.address, ethers.utils.parseEther("1000"));
-    await tx.wait(2);
-
-    /** === krGOLD ===  */
-    const krGOLD = await ethers.getContract<KreskoAsset>("krGOLD");
-
-    logger.log("Depositing USDC for krGOLD");
-
-    // Deposit collateral to mint
-    tx = await kresko.depositCollateral(deployer, USDC.address, ethers.utils.parseUnits("2_500_000", 6));
-    await tx.wait(2);
-
-    // Mint 100 krGOLD
-    logger.log("Minting krGOLD");
-    tx = await kresko.mintKreskoAsset(deployer, krGOLD.address, ethers.utils.parseEther("1000"));
-    await tx.wait(2);
+    // Mint 1000 krIAU
+    logger.log("Minting krIAU");
+    await kresko.mintKreskoAsset(deployer, krIAU.address, ethers.utils.parseEther("1000"));
+    // await tx.wait(2);
 
     logger.log("Minting done");
 
-    // Mint 100 krQQQ
+    // Mint 1000 krQQQ
     const krQQQ = await ethers.getContract<KreskoAsset>("krQQQ");
     logger.log("Minting krQQQ");
-    tx = await kresko.mintKreskoAsset(deployer, krQQQ.address, ethers.utils.parseEther("1000"));
-    await tx.wait(2);
+    await kresko.mintKreskoAsset(deployer, krQQQ.address, ethers.utils.parseEther("1000"));
+    // await tx.wait(2);
 
     logger.log("Minting done");
 };

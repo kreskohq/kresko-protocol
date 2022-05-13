@@ -15,7 +15,6 @@ task("gastest", "Creates collaterals and krAssets, deposits and mints them", asy
         console.log("Deploying token", "Symbol:", "Mocking" + i.toString() + "A");
         const [Token] = await deploy<Token>("Token" + i.toString() + "A", {
             contract: "Token",
-            waitConfirmations: wait,
             from: userOne,
             log: true,
             args: ["MockToken" + i.toString(), "Mocking" + i.toString() + "A", toBig("100")],

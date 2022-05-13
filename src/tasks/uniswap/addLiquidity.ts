@@ -14,7 +14,7 @@ task("uniswap:addliquidity")
     .setAction(async function (taskArgs: TaskArguments, hre) {
         const { ethers, getNamedAccounts } = hre;
         const { deployer } = await getNamedAccounts();
-        const { tknA, tknB, factoryAddr, routerAddr, log, wait } = taskArgs;
+        const { tknA, tknB, factoryAddr, routerAddr, log } = taskArgs;
 
         const logger = getLogger("addLiquidity", log);
 
@@ -39,15 +39,13 @@ task("uniswap:addliquidity")
 
         if (approvalTknA < tknA.amount) {
             logger.log("TknA allowance too low, approving router @", UniRouter.address);
-            const tx = await TknA.approve(UniRouter.address, ethers.constants.MaxUint256);
-            await tx.wait(wait);
+            await TknA.approve(UniRouter.address, ethers.constants.MaxUint256);
             logger.log("Approval success");
         }
 
         if (approvalTknB < tknB.amount) {
             logger.log("TknB allowance too low, approving router @", UniRouter.address);
-            const tx = await TknB.approve(UniRouter.address, ethers.constants.MaxUint256);
-            await tx.wait(wait);
+            await TknB.approve(UniRouter.address, ethers.constants.MaxUint256);
             logger.log("Approval success");
         }
 
@@ -67,7 +65,8 @@ task("uniswap:addliquidity")
             deployer,
             (Date.now() / 1000 + 9000).toFixed(0),
         );
-        await tx.wait(wait);
+
+        await tx.wait(2);
 
         const Pair = await ethers.getContractAt<UniswapV2Pair>(
             "UniswapV2Pair",

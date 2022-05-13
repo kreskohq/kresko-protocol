@@ -11,14 +11,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const [rebasingToken] = await deploy<RebasingToken>("RebasingToken", {
         from: admin,
         log: true,
-        waitConfirmations: 3,
         args: [toFixedPoint(1)],
     });
 
     const [nonRebasingTokenWrapper, , deployment] = await deploy("NonRebasingWrapperToken", {
         from: admin,
         log: true,
-        waitConfirmations: 3,
         proxy: {
             owner: admin,
             proxyContract: "OptimizedTransparentProxy",

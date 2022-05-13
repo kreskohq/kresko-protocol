@@ -8,13 +8,13 @@ task("addliquidity:external")
     .addOptionalParam("wait", "wait confirmations", 1, types.int)
     .setAction(async (taskArgs, hre) => {
         const { ethers, deployments } = hre;
-        const { log, wait } = taskArgs;
+        const { log } = taskArgs;
         const USDC = await ethers.getContract<Token>("USDC");
 
         const logger = getLogger("addLiquidityExternal", log);
 
         /**  Aurora/USDC */
-        const Aurora = await ethers.getContract<Token>("Aurora");
+        const Aurora = await ethers.getContract<Token>("AURORA");
         const auroraFeedDeployment = await deployments.get("AURORAUSD");
         const auroraFeed = await ethers.getContractAt<FluxPriceFeed>(
             auroraFeedDeployment.abi,
@@ -32,13 +32,14 @@ task("addliquidity:external")
                 address: Aurora.address,
                 amount: AURORADepositAmount,
             },
-            wait,
         });
 
         hre.uniPairs["AURORA/USDC"] = AURORAUSDCPair;
 
+        logger.success("Succesfully added AURORA/USDC liquidity @ ", AURORAUSDCPair.address);
+
         /**  wNEAR/USDC */
-        const wNEAR = await ethers.getContract<Token>("Wrapped Near");
+        const wNEAR = await ethers.getContract<Token>("wNEAR");
         const nearFeedDeployment = await deployments.get("NEARUSD");
         const nearFeed = await ethers.getContractAt<FluxPriceFeed>(nearFeedDeployment.abi, nearFeedDeployment.address);
         const NearValue = fromBig(await nearFeed.latestAnswer(), 8);
@@ -53,10 +54,31 @@ task("addliquidity:external")
                 address: wNEAR.address,
                 amount: NearDepositAmount,
             },
-            wait,
         });
 
         hre.uniPairs["wNEAR/USDC"] = NEARUSDCPair;
 
-        logger.success("Succesfully added external liquidity @ ", NEARUSDCPair.address);
+        logger.success("Succesfully added wNEAR/USDC liquidity @ ", NEARUSDCPair.address);
+
+        /**  WETH/USDC */
+        const WETH = await ethers.getContract<Token>("WETH");
+        const wethFeedDeployment = await deployments.get("ETHUSD");
+        const wethFeed = await ethers.getContractAt<FluxPriceFeed>(wethFeedDeployment.abi, wethFeedDeployment.address);
+        const ethValue = fromBig(await wethFeed.latestAnswer(), 8);
+        const wethDepositAmount = 250;
+
+        const WETHUSDCPair: UniswapV2Pair = await hre.run("uniswap:addliquidity", {
+            tknA: {
+                address: USDC.address,
+                amount: Number((Number(ethValue) * wethDepositAmount).toFixed(0)),
+            },
+            tknB: {
+                address: WETH.address,
+                amount: wethDepositAmount,
+            },
+        });
+
+        hre.uniPairs["WETH/USDC"] = WETHUSDCPair;
+
+        logger.success("Succesfully added WETH/USDC liquidity @ ", WETHUSDCPair.address);
     });

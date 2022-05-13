@@ -15,7 +15,6 @@ task("upgrade:staking")
 
         const [Staking, , deployment] = await deploy<KrStaking>("KrStaking", {
             from: deployer,
-            waitConfirmations: wait,
             log: true,
             proxy: {
                 owner: deployer,

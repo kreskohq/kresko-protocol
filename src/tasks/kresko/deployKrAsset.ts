@@ -28,9 +28,8 @@ task("deploy:krasset")
 
         logger.log("Asset operator is", contractOperator);
 
-        const [KreskoAsset, , deployment] = await deploy<KreskoAsset>(name, {
+        const [KreskoAsset, , deployment] = await deploy<KreskoAsset>(symbol, {
             from: deployer,
-            waitConfirmations: wait,
             log,
             contract: "KreskoAsset",
             proxy: {

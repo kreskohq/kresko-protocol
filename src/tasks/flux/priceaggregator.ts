@@ -25,7 +25,6 @@ task("deployone:fluxpriceaggregator")
 
         const [PriceAggregator] = await deploy<FluxPriceAggregator>("FluxPriceAggregator", {
             from: deployer.address,
-            waitConfirmations: wait,
             args: [contractAdmin, oraclesArray, decimals, description],
         });
 

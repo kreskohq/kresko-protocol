@@ -25,14 +25,20 @@ task("deploy:kresko")
         const { admin } = await getNamedAccounts();
         const deploy = deployWithSignatures(hre);
         const { formatEther } = ethers.utils;
-        const { burnFee, feeRecipient, liquidationIncentiveMultiplier, minCollaterRatio, minDebtValue, secondsUntilStalePrice, wait, log } =
-            taskArgs;
+        const {
+            burnFee,
+            feeRecipient,
+            liquidationIncentiveMultiplier,
+            minCollaterRatio,
+            minDebtValue,
+            secondsUntilStalePrice,
+            log,
+        } = taskArgs;
 
         const logger = getLogger("deployKresko", log);
 
         const [Kresko, , deployment] = await deploy<Kresko>("Kresko", {
             from: admin,
-            waitConfirmations: wait,
             log,
             proxy: {
                 proxyContract: "OptimizedTransparentProxy",
@@ -52,8 +58,6 @@ task("deploy:kresko")
         // Deploy kresko viewer
         const [KreskoViewer] = await deploy("KreskoViewer", {
             from: admin,
-            waitConfirmations: wait,
-            log,
             args: [Kresko.address],
         });
 

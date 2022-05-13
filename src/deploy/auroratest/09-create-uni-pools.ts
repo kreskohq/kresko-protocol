@@ -11,17 +11,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     /** === USDC/KRTSLA ===  */
     const krTSLA = await ethers.getContract<KreskoAsset>("krTSLA");
     const TSLAValue = fromBig(await priceFeeds["TSLA/USD"].latestAnswer(), 8);
-    const TSLADepositAmount = 250;
+    const TSLADepositAmount = 750;
 
     const logger = getLogger("create-uni-pools");
 
     const Factory = await ethers.getContract<UniswapV2Factory>("UniswapV2Factory");
 
-    const TSLAPair = await Factory.getPair(USDC.address, krTSLA.address);
+    const TSLAPairAddress = await Factory.getPair(USDC.address, krTSLA.address);
 
     let USDCKRTSLApair: UniswapV2Pair;
 
-    if (TSLAPair == AddressZero) {
+    if (TSLAPairAddress == AddressZero) {
         // Add initial LP (also creates the pair) according to oracle price
         USDCKRTSLApair = await hre.run("uniswap:addliquidity", {
             tknA: {
@@ -34,64 +34,90 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             },
         });
     } else {
-        USDCKRTSLApair = await ethers.getContractAt("UniswapV2Pair", TSLAPair);
+        USDCKRTSLApair = await ethers.getContractAt("UniswapV2Pair", TSLAPairAddress);
         logger.log("Pair already found @ ", USDCKRTSLApair.address);
     }
 
     hre.uniPairs["USDC/KRTSLA"] = USDCKRTSLApair;
 
-    /** === USDC/krETH ===  */
-    const krETH = await ethers.getContract<KreskoAsset>("krETH");
-    const ETHValue = fromBig(await priceFeeds["ETH/USD"].latestAnswer(), 8);
-    const ETHDepositAmount = 250;
+    /** === USDC/krGME ===  */
+    const krGME = await ethers.getContract<KreskoAsset>("krGME");
+    const GMEValue = fromBig(await priceFeeds["GME/USD"].latestAnswer(), 8);
+    const GMEDepositAmount = 8500;
 
-    const krETHPAIR = await Factory.getPair(USDC.address, krETH.address);
+    const krGMEPAIRAddress = await Factory.getPair(USDC.address, krGME.address);
 
-    let USDCKRETHPair: UniswapV2Pair;
+    let USDCKRGMEPair: UniswapV2Pair;
 
     // Add initial LP (also creates the pair) according to oracle price
-    if (krETHPAIR == AddressZero) {
-        USDCKRETHPair = await hre.run("uniswap:addliquidity", {
+    if (krGMEPAIRAddress == AddressZero) {
+        USDCKRGMEPair = await hre.run("uniswap:addliquidity", {
             tknA: {
                 address: USDC.address,
-                amount: Number(ETHValue) * ETHDepositAmount,
+                amount: (Number(GMEValue) * GMEDepositAmount).toFixed(6),
             },
             tknB: {
-                address: krETH.address,
-                amount: ETHDepositAmount,
+                address: krGME.address,
+                amount: GMEDepositAmount,
             },
         });
     } else {
-        USDCKRETHPair = await ethers.getContractAt("UniswapV2Pair", krETHPAIR);
-        logger.log("Pair already found @ ", USDCKRETHPair.address);
+        USDCKRGMEPair = await ethers.getContractAt("UniswapV2Pair", krGMEPAIRAddress);
+        logger.log("Pair already found @ ", USDCKRGMEPair.address);
     }
-    hre.uniPairs["USDC/KRETH"] = USDCKRETHPair;
+    hre.uniPairs["USDC/KRGME"] = USDCKRGMEPair;
 
-    /** === USDC/krGOLD ===  */
-    const krGOLD = await ethers.getContract<KreskoAsset>("krGOLD");
+    /** === USDC/krIAU ===  */
+    const krIAU = await ethers.getContract<KreskoAsset>("krIAU");
     const GOLDValue = fromBig(await priceFeeds["GOLD/USD"].latestAnswer(), 8);
-    const GOLDDepositAmount = 250;
-    const krGOLDPair = await Factory.getPair(USDC.address, krGOLD.address);
+    const GOLDDepositAmount = 800;
+    const krIAUPair = await Factory.getPair(USDC.address, krIAU.address);
 
-    let USDCKRGOLDPair: UniswapV2Pair;
+    let USDCKRIAUPair: UniswapV2Pair;
 
-    if (krGOLDPair == AddressZero) {
+    if (krIAUPair == AddressZero) {
         // Add initial LP (also creates the pair) according to oracle price
-        USDCKRGOLDPair = await hre.run("uniswap:addliquidity", {
+        USDCKRIAUPair = await hre.run("uniswap:addliquidity", {
             tknA: {
                 address: USDC.address,
-                amount: Number(GOLDValue) * GOLDDepositAmount,
+                amount: (Number(GOLDValue) * GOLDDepositAmount).toFixed(6),
             },
             tknB: {
-                address: krGOLD.address,
+                address: krIAU.address,
                 amount: GOLDDepositAmount,
             },
         });
     } else {
-        USDCKRGOLDPair = await ethers.getContractAt("UniswapV2Pair", krGOLDPair);
-        logger.log("pair already found @ ", USDCKRGOLDPair.address);
+        USDCKRIAUPair = await ethers.getContractAt("UniswapV2Pair", krIAUPair);
+        logger.log("pair already found @ ", USDCKRIAUPair.address);
     }
-    hre.uniPairs["USDC/KRGOLD"] = USDCKRGOLDPair;
+    hre.uniPairs["USDC/KRIAU"] = USDCKRIAUPair;
+
+    /** === USDC/krQQQ ===  */
+    const krQQQ = await ethers.getContract<KreskoAsset>("krQQQ");
+    const QQQValue = fromBig(await priceFeeds["QQQ/USD"].latestAnswer(), 8);
+    const QQQDepositAmount = 900;
+    const krQQQPairAddress = await Factory.getPair(USDC.address, krQQQ.address);
+
+    let USDCKRQQQPair: UniswapV2Pair;
+
+    if (krQQQPairAddress == AddressZero) {
+        // Add initial LP (also creates the pair) according to oracle price
+        USDCKRQQQPair = await hre.run("uniswap:addliquidity", {
+            tknA: {
+                address: USDC.address,
+                amount: (Number(QQQValue) * QQQDepositAmount).toFixed(6),
+            },
+            tknB: {
+                address: krQQQ.address,
+                amount: QQQDepositAmount,
+            },
+        });
+    } else {
+        USDCKRQQQPair = await ethers.getContractAt("UniswapV2Pair", krQQQPairAddress);
+        logger.log("pair already found @ ", USDCKRQQQPair.address);
+    }
+    hre.uniPairs["USDC/KRQQQ"] = USDCKRQQQPair;
 };
 
 func.tags = ["local"];

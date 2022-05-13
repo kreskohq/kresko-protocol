@@ -41,7 +41,6 @@ task("gastestaurora", "Creates collaterals and krAssets, deposits and mints them
         const [KrAsset] = await deploy<KreskoAsset>("MockAsset" + i.toString() + "A", {
             from: admin,
             log: true,
-            waitConfirmations: wait,
             contract: "KreskoAsset",
             proxy: {
                 execute: {

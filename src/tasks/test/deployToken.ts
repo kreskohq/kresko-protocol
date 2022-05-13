@@ -13,11 +13,10 @@ task("deploy:token")
         const { deployer } = await getNamedAccounts();
         const deploy = deployWithSignatures(hre);
 
-        const { name, symbol, amount, wait, decimals } = taskArgs;
+        const { name, symbol, amount, decimals } = taskArgs;
 
-        const [Token] = await deploy<Token>(name, {
+        const [Token] = await deploy<Token>(symbol, {
             from: deployer,
-            waitConfirmations: wait,
             contract: "Token",
             args: [name, symbol, hre.toBig(amount, decimals), decimals],
         });

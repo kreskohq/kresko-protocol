@@ -22,8 +22,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     } = await hre.ethers.getNamedSigners();
 
     const USDC = await hre.ethers.getContract<Token>("USDC");
-    const Aurora = await hre.ethers.getContract<Token>("Aurora");
-    const WETH = await hre.ethers.getContract<MockWETH10>("Wrapped Ether");
+    const Aurora = await hre.ethers.getContract<Token>("AURORA");
+    const WETH = await hre.ethers.getContract<MockWETH10>("WETH");
 
     await Promise.all(
         [
@@ -38,12 +38,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             testUserNine,
             testUserTen,
         ].map(async user => {
-            let tx = await USDC.connect(user).mint(user.address, toBig(100_000, 6));
-            await tx.wait(2);
-            tx = await Aurora.connect(user).mint(user.address, toBig(15_000, 18));
-            await tx.wait(2);
-            tx = await WETH.connect(user).deposit(toBig(50, 18));
-            await tx.wait(2);
+            await USDC.connect(user).mint(user.address, toBig(100_000, 6));
+            // await tx.wait(2);
+            await Aurora.connect(user).mint(user.address, toBig(15_000, 18));
+            // await tx.wait(2);
+            await WETH.connect(user).deposit(toBig(20, 18));
+            // await tx.wait(2);
 
             logger.log(fromBig(await USDC.balanceOf(user.address), 6));
             logger.log(fromBig(await Aurora.balanceOf(user.address)));

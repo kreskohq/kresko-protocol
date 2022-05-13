@@ -255,8 +255,7 @@ describe.skip(`loops and gas consumption - gasLimit: ${gasLimit}`, function () {
         for (round; round < targetRound; round++) {
             const { collateralAsset } = await deployAndWhitelistCollateralAsset(this.kresko, 0.7, 420.123, 12);
 
-            const tx = await collateralAsset.setBalanceOf(this.signers.userOne.address, depositValue);
-            await tx.wait();
+            await collateralAsset.setBalanceOf(this.signers.userOne.address, depositValue);
             const depositTx = await userOneKresko.depositCollateral(
                 this.signers.userOne.address,
                 collateralAsset.address,

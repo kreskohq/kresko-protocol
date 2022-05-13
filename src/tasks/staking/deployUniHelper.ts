@@ -48,7 +48,6 @@ task("deploy:stakingunihelper")
         const [KrStakingUniHelper] = await deploy<KrStakingUniHelper>("KrStakingUniHelper", {
             args: [Router.address, Factory.address, KrStaking.address],
             log,
-            waitConfirmations: wait,
             from: deployer,
         });
 

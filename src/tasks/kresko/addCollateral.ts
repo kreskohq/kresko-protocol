@@ -5,7 +5,7 @@ import { TaskArguments } from "hardhat/types";
 import { getLogger } from "@utils/deployment";
 
 task("kresko:addcollateral")
-    .addParam("name", "Name of the collateral")
+    .addParam("symbol", "Name of the collateral")
     .addParam("cFactor", "cFactor for the collateral", 1000, types.float)
     .addParam("oracleAddr", "Price feed address")
     .addOptionalParam("nrwt", "Non rebasing wrapper token?")
@@ -14,16 +14,16 @@ task("kresko:addcollateral")
     .setAction(async function (taskArgs: TaskArguments, hre) {
         const { ethers, kresko } = hre;
 
-        const { name, cFactor, oracleAddr, nrwt, log, wait } = taskArgs;
+        const { symbol, cFactor, oracleAddr, nrwt, log } = taskArgs;
 
         const logger = getLogger("addCollateral", log);
 
         if (cFactor == 1000) {
-            console.error("Invalid cFactor for", name);
+            console.error("Invalid cFactor for", symbol);
             return;
         }
 
-        const Collateral = await ethers.getContract<Token>(name);
+        const Collateral = await ethers.getContract<Token>(symbol);
 
         logger.log("Collateral address", Collateral.address);
 
@@ -31,24 +31,22 @@ task("kresko:addcollateral")
         const exists = collateralAsset.exists;
 
         if (exists) {
-            logger.warn(`Collateral ${name} already exists!`);
+            logger.warn(`Collateral ${symbol} already exists!`);
         } else {
             const tx = await kresko.addCollateralAsset(Collateral.address, toFixedPoint(cFactor), oracleAddr, !!nrwt);
 
-            await tx.wait(wait);
-
             if (log) {
                 const collateralDecimals = await Collateral.decimals();
-                logger.log(name, "decimals", collateralDecimals);
+                logger.log(symbol, "decimals", collateralDecimals);
                 const [value, oraclePrice] = await kresko.getCollateralValueAndOraclePrice(
                     Collateral.address,
                     ethers.utils.parseUnits("1", collateralDecimals),
                     true,
                 );
 
-                logger.success(`Sucesfully added ${name} as collateral with a cFctor of:`, cFactor);
-                logger.log(`1 ${name} value: ${fromBig(value.rawValue, 8)}`);
-                logger.log(`1 ${name} oracle price: ${fromBig(oraclePrice.rawValue, 8)}`);
+                logger.success(`Sucesfully added ${symbol} as collateral with a cFctor of:`, cFactor);
+                logger.log(`1 ${symbol} value: ${fromBig(value.rawValue, 8)}`);
+                logger.log(`1 ${symbol} oracle price: ${fromBig(oraclePrice.rawValue, 8)}`);
                 logger.log("txHash", tx.hash);
             }
         }

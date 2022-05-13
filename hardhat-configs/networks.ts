@@ -46,9 +46,9 @@ export const networks = (mnemonic: string) => ({
             mnemonic,
         },
         chainId: chainIds.auroratest,
-        gasPrice: 0,
-        url: `https://auroratest.kresko.link?key=${process.env.AURORATEST_API_KEY}`,
+        url: "https://aurora-testnet.infura.io/v3/49b8b68abcc1484abfcb0f9e24a0c4c9",
         deploy: ["./src/deploy/auroratest"],
+        gasPrice: 0,
         live: true,
     },
     arbitrum: {

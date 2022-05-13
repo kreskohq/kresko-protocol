@@ -389,7 +389,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     modifier kreskoAssetPriceNotStale(address _kreskoAsset) {
         uint256 priceTimestamp = uint256(kreskoAssets[_kreskoAsset].oracle.latestTimestamp());
         // Include a buffer as block.timestamp can be manipulated up to 15 seconds.
-        require(block.timestamp < priceTimestamp+secondsUntilStalePrice, "KR: stale price");
+        require(block.timestamp < priceTimestamp + secondsUntilStalePrice, "KR: stale price");
         _;
     }
 
@@ -582,7 +582,8 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         address _account,
         address _kreskoAsset,
         uint256 _amount
-    ) external
+    )
+        external
         nonReentrant
         kreskoAssetExistsAndMintable(_kreskoAsset)
         kreskoAssetPriceNotStale(_kreskoAsset)
@@ -708,7 +709,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             require(_repayAmount > 0, "KR: 0-repay");
 
             uint256 priceTimestamp = uint256(kreskoAssets[_repayKreskoAsset].oracle.latestTimestamp());
-            require(block.timestamp < priceTimestamp+secondsUntilStalePrice, "KR: stale price");
+            require(block.timestamp < priceTimestamp + secondsUntilStalePrice, "KR: stale price");
 
             // Borrower cannot liquidate themselves
             require(msg.sender != _account, "KR: self liquidation");
@@ -746,9 +747,8 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             _account,
             krAssetDebt,
             _repayAmount,
-            collateralAssets[_collateralAssetToSeize].decimals
-                ._fromCollateralFixedPointAmount(
-                    liquidationIncentiveMultiplier._calculateAmountToSeize(collateralPriceUSD, repayAmountUSD)
+            collateralAssets[_collateralAssetToSeize].decimals._fromCollateralFixedPointAmount(
+                liquidationIncentiveMultiplier._calculateAmountToSeize(collateralPriceUSD, repayAmountUSD)
             ),
             _repayKreskoAsset,
             _mintedKreskoAssetIndex,
@@ -828,18 +828,18 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         emit CollateralAssetAdded(_collateralAsset, _factor, _oracle);
     }
 
-     /**
+    /**
      * @notice Updates a previously added collateral asset.
      * @dev Only callable by the owner.
      * @param _collateralAsset The address of the collateral asset.
      * @param _factor The new collateral factor as a raw value for a FixedPoint.Unsigned. Must be <= 1e18.
      * @param _oracle The new oracle address for the collateral asset.
      */
-    function updateCollateralAsset(address _collateralAsset, uint256 _factor, address _oracle)
-        external
-        onlyOwner
-        collateralAssetExists(_collateralAsset)
-    {
+    function updateCollateralAsset(
+        address _collateralAsset,
+        uint256 _factor,
+        address _oracle
+    ) external onlyOwner collateralAssetExists(_collateralAsset) {
         require(_oracle != address(0), "KR: !oracleAddr");
         // Setting the factor to 0 effectively sunsets a collateral asset, which is intentionally allowed.
         require(_factor <= FixedPoint.FP_SCALING_FACTOR, "KR: factor > 1FP");
@@ -901,11 +901,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         address _oracle,
         bool _mintable,
         uint256 _marketCapUSDLimit
-    )
-        external
-        onlyOwner
-        kreskoAssetExistsMaybeNotMintable(_kreskoAsset)
-    {
+    ) external onlyOwner kreskoAssetExistsMaybeNotMintable(_kreskoAsset) {
         require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, "KR: kFactor < 1FP");
         require(_oracle != address(0), "KR: !oracleAddr");
 
@@ -1222,13 +1218,11 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         }
 
         uint256 decimals = collateralAssets[_collateralSeized].decimals;
-        FixedPoint.Unsigned memory seizedAmountUSD = decimals
-            ._toCollateralFixedPointAmount(_seizeAmount)
-            .mul( _collateralPriceUSD);
-
-        return decimals
-            ._fromCollateralFixedPointAmount(seizedAmountUSD.sub(_repayAmountUSD).div(_collateralPriceUSD)
+        FixedPoint.Unsigned memory seizedAmountUSD = decimals._toCollateralFixedPointAmount(_seizeAmount).mul(
+            _collateralPriceUSD
         );
+
+        return decimals._fromCollateralFixedPointAmount(seizedAmountUSD.sub(_repayAmountUSD).div(_collateralPriceUSD));
     }
 
     /**

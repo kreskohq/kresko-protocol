@@ -1,12 +1,14 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
+import { getLogger } from "@utils/deployment";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const { treasury } = await hre.getNamedAccounts();
     await hre.run("deploy:kresko", {
-        wait: 2,
         feeRecipient: treasury,
     });
+    const logger = getLogger("deploy-kresko");
+    logger.log("kresko deployed");
 };
 
 func.tags = ["auroratest"];

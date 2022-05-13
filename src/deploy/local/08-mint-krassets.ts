@@ -16,17 +16,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     // Approve USDC token to be deposited to Kresko
     tx = await USDC.approve(kresko.address, ethers.constants.MaxUint256);
-    await tx.wait();
+    // await tx.wait();
     logger.log("Depositing USDC");
 
     // Deposit collateral to mint
     tx = await kresko.depositCollateral(deployer, USDC.address, ethers.utils.parseUnits("1000000", collateralDec));
-    await tx.wait();
+    // await tx.wait();
 
     // Mint 100 krTSLA
     logger.log("Minting KRTSLA");
     tx = await kresko.mintKreskoAsset(deployer, krTSLA.address, ethers.utils.parseEther("100"));
-    await tx.wait();
+    // await tx.wait();
 
     /** === krETH ===  */
     const krETH = await ethers.getContract<KreskoAsset>("krETH");
@@ -35,12 +35,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     // Deposit collateral to mint
     tx = await kresko.depositCollateral(deployer, USDC.address, ethers.utils.parseUnits("1000000", collateralDec));
-    await tx.wait();
+    // await tx.wait();
 
     // Mint 100 krETH
     logger.log("Minting krETH");
     tx = await kresko.mintKreskoAsset(deployer, krETH.address, ethers.utils.parseEther("100"));
-    await tx.wait();
+    // await tx.wait();
 
     /** === krGOLD ===  */
     const krGOLD = await ethers.getContract<KreskoAsset>("krGOLD");
@@ -49,18 +49,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     // Deposit collateral to mint
     tx = await kresko.depositCollateral(deployer, USDC.address, ethers.utils.parseUnits("1000000", collateralDec));
-    await tx.wait();
+    // await tx.wait();
 
     // Mint 100 krGOLD
     logger.log("Minting krGOLD");
     tx = await kresko.mintKreskoAsset(deployer, krGOLD.address, ethers.utils.parseEther("100"));
-    await tx.wait();
+    // await tx.wait();
 
     // Mint 100 krQQQ
     const krQQQ = await ethers.getContract<KreskoAsset>("krQQQ");
     logger.log("Minting krQQQ");
     tx = await kresko.mintKreskoAsset(deployer, krQQQ.address, ethers.utils.parseEther("100"));
-    await tx.wait();
+    // await tx.wait();
 
     logger.success("Succesfully minted krAssets");
 };

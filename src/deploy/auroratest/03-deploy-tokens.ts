@@ -1,6 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { getLogger } from "@utils/deployment";
+import { toBig } from "@utils/numbers";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("deploy-tokens");
@@ -8,7 +9,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const USDC: Token = await hre.run("deploy:token", {
         name: "USDC",
         symbol: "USDC",
-        wait: 2,
         log: true,
         decimals: 6,
     });
@@ -16,18 +16,20 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const AURORA: Token = await hre.run("deploy:token", {
         name: "Aurora",
         symbol: "AURORA",
-        wait: 2,
         log: true,
     });
 
     const NEAR: Token = await hre.run("deploy:token", {
         name: "Wrapped Near",
         symbol: "wNEAR",
-        wait: 2,
         log: true,
     });
 
-    const WETH = await hre.ethers.getContract("Wrapped Ether");
+    const WETH = await hre.ethers.getContract("WETH");
+
+    // Give deployer some WETH
+    await WETH.deposit(toBig(500, 18));
+    logger.log("deposited weth for deployer");
 
     const contracts = {
         USDC: USDC.address,
@@ -45,7 +47,7 @@ func.tags = ["auroratest"];
 func.skip = async hre => {
     const logger = getLogger("deploy-tokens");
 
-    const isFinished = await hre.deployments.getOrNull("Wrapped Ether");
+    const isFinished = await hre.deployments.getOrNull("wNEAR");
     isFinished && logger.log("Skipping deploying mock tokens");
     return !!isFinished;
 };

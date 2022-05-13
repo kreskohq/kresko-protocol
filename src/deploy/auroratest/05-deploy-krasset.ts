@@ -7,32 +7,28 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const { kresko } = hre;
 
     await hre.run("deploy:krasset", {
-        name: "krETH",
-        symbol: "krETH",
+        name: "GameStop Corp.",
+        symbol: "krGME",
         operator: kresko.address,
-        wait: 2,
         log: true,
     });
 
     await hre.run("deploy:krasset", {
-        name: "krGOLD",
-        symbol: "krGOLD",
+        name: "iShares Gold Trust",
+        symbol: "krIAU",
         operator: kresko.address,
-        wait: 2,
         log: true,
     });
     await hre.run("deploy:krasset", {
-        name: "krTSLA",
+        name: "Tesla, Inc.",
         symbol: "krTSLA",
         operator: kresko.address,
-        wait: 2,
         log: true,
     });
     await hre.run("deploy:krasset", {
-        name: "krQQQ",
+        name: "Invesco QQQ Trust",
         symbol: "krQQQ",
         operator: kresko.address,
-        wait: 2,
         log: true,
     });
 

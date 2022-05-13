@@ -6,10 +6,9 @@ task("updatePrices", "Fetches latest answers on oracles")
     .addOptionalParam("wait", "wait confirmations", 1, types.int)
     .addOptionalParam("log", "log information", true, types.boolean)
     .setAction(async (taskArgs, hre) => {
-        const { log, wait } = taskArgs;
+        const { log } = taskArgs;
         const logger = getLogger("updatePrices", log);
         const FluxPriceAggregator = await hre.ethers.getContract<FluxPriceAggregator>("FluxPriceAggregator");
-        const tx = await FluxPriceAggregator.updatePrices();
-        await tx.wait(wait);
+        await FluxPriceAggregator.updatePrices();
         logger.log("Update prices for", FluxPriceAggregator.address);
     });

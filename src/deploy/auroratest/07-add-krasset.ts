@@ -6,31 +6,29 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const { priceFeeds } = hre;
     const logger = getLogger("add-krasset");
     await hre.run("kresko:addkrasset", {
-        name: "krGOLD",
+        symbol: "krIAU",
         kFactor: 1.1,
         oracleAddr: priceFeeds["GOLD/USD"].address,
-        wait: 2,
     });
     await hre.run("kresko:addkrasset", {
-        name: "krTSLA",
-        kFactor: 1.2,
+        symbol: "krTSLA",
+        kFactor: 1.25,
         oracleAddr: priceFeeds["TSLA/USD"].address,
-        wait: 2,
     });
 
     await hre.run("kresko:addkrasset", {
-        name: "krETH",
+        symbol: "krGME",
         kFactor: 1.25,
-        oracleAddr: priceFeeds["ETH/USD"].address,
-        wait: 2,
+        oracleAddr: priceFeeds["GME/USD"].address,
+
         log: true,
     });
 
     await hre.run("kresko:addkrasset", {
-        name: "krQQQ",
-        kFactor: 1.1,
+        symbol: "krQQQ",
+        kFactor: 1.2,
         oracleAddr: priceFeeds["QQQ/USD"].address,
-        wait: 2,
+
         log: true,
     });
 

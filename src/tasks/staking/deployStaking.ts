@@ -26,7 +26,6 @@ task("deploy:staking")
         } else {
             const [Staking] = await deploy<KrStaking>("KrStaking", {
                 from: deployer,
-                waitConfirmations: wait,
                 log: true,
                 proxy: {
                     owner: deployer,

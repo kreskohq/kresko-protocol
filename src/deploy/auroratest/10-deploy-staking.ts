@@ -8,32 +8,31 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("deploy-staking");
     const { ethers, uniPairs } = hre;
 
-    const RewardToken1 = await ethers.getContract<Token>("Aurora");
-    const RewardToken2 = await ethers.getContract<Token>("Wrapped Near");
+    const RewardToken1 = await ethers.getContract<Token>("AURORA");
+    const RewardToken2 = await ethers.getContract<Token>("wNEAR");
 
     const USDCKRTSLA = uniPairs["USDC/KRTSLA"].address;
-    const USDCKRGOLD = uniPairs["USDC/KRGOLD"].address;
-    const USDCKRETH = uniPairs["USDC/KRETH"].address;
+    const USDCKRIAU = uniPairs["USDC/KRIAU"].address;
+    const USDCKRGME = uniPairs["USDC/KRGME"].address;
 
     const Staking: KrStaking = await hre.run("deploy:staking", {
         stakingToken: USDCKRTSLA,
         rewardTokens: `${RewardToken1.address},${RewardToken2.address}`,
-        rewardPerBlocks: "0.2,0.4",
-        wait: 2,
+        rewardPerBlocks: "0.004,0.002",
     });
 
     const RewardTokens = [RewardToken1.address, RewardToken2.address];
 
-    let tx = await Staking.addPool(RewardTokens, USDCKRGOLD, 500, 0);
-    await tx.wait(2);
+    await Staking.addPool(RewardTokens, USDCKRIAU, 500, 0);
+    // await tx.wait(2);
 
-    tx = await Staking.addPool(RewardTokens, USDCKRETH, 500, 0);
-    await tx.wait(2);
+    await Staking.addPool(RewardTokens, USDCKRGME, 500, 0);
+    // await tx.wait(2);
 
-    tx = await RewardToken1.mint(Staking.address, toBig(50_000_000));
-    await tx.wait(2);
-    tx = await RewardToken2.mint(Staking.address, toBig(50_000_000));
-    await tx.wait(2);
+    await RewardToken1.mint(Staking.address, toBig(50_000_000));
+    // await tx.wait(2);
+    await RewardToken2.mint(Staking.address, toBig(50_000_000));
+    // await tx.wait(2);
 
     const Reward1Bal = await RewardToken1.balanceOf(Staking.address);
     const Reward2Bal = await RewardToken2.balanceOf(Staking.address);
@@ -51,7 +50,7 @@ func.skip = async hre => {
     }
     const logger = getLogger("deploy-staking");
 
-    const RewardToken2 = await hre.ethers.getContract<Token>("Wrapped Near");
+    const RewardToken2 = await hre.ethers.getContract<Token>("wNEAR");
     const Reward2Bal = fromBig(await RewardToken2.balanceOf(Staking.address));
     Reward2Bal > 0 && logger.log("Skipping deploying staking");
     return true;

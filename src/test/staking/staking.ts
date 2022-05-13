@@ -283,7 +283,6 @@ describe("Staking", function () {
                 factoryAddr: this.UniFactory.address,
                 routerAddr: this.UniRouter.address,
                 log: false,
-                wait: 0,
             });
 
             // Reassign LP balance since we added more

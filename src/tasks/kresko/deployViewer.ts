@@ -12,7 +12,7 @@ task("deploy:viewer")
         const { getNamedAccounts, ethers } = hre;
         const { deployer } = await getNamedAccounts();
         const deploy = deployWithSignatures(hre);
-        const { kreskoAddr, wait, log } = taskArgs;
+        const { kreskoAddr, log } = taskArgs;
         const logger = getLogger("deployViewer", log);
         const Kresko = kreskoAddr
             ? await ethers.getContractAt<Kresko>("Kresko", kreskoAddr)
@@ -21,7 +21,6 @@ task("deploy:viewer")
         // Deploy kresko viewer
         const [viewer] = await deploy<KreskoViewer>("KreskoViewer", {
             from: deployer,
-            waitConfirmations: wait,
             log,
             args: [Kresko.address],
         });

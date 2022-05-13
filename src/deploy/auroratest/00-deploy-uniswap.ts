@@ -10,19 +10,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const [UniFactory] = await deploy<UniswapV2Factory>("UniswapV2Factory", {
         from: admin,
-        waitConfirmations: 2,
         args: [admin],
     });
 
-    const [WETH] = await hre.deploy<MockWETH10>("Wrapped Ether", {
+    const [WETH] = await hre.deploy<MockWETH10>("WETH", {
         contract: "MockWETH10",
         from: admin,
-        waitConfirmations: 2,
         log: true,
     });
     const [UniRouter] = await deploy<UniswapV2Router02>("UniswapV2Router02", {
         from: admin,
-        waitConfirmations: 2,
         args: [UniFactory.address, WETH.address],
     });
 
