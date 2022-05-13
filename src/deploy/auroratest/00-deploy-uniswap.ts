@@ -18,6 +18,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         from: admin,
         log: true,
     });
+
     const [UniRouter] = await deploy<UniswapV2Router02>("UniswapV2Router02", {
         from: admin,
         args: [UniFactory.address, WETH.address],
@@ -32,7 +33,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     logger.table(contracts);
     logger.success("Succesfully deployed uniswap contracts");
 };
+func.tags = ["auroratest"];
 
 export default func;
-
-func.tags = ["auroratest"];

@@ -86,4 +86,6 @@ task("deploy:viewer")
 
             logger.success("Viewer deployed @ ", viewer.address);
         }
+
+        return;
     });

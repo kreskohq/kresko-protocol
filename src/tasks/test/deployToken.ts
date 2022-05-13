@@ -14,7 +14,6 @@ task("deploy:token")
         const deploy = deployWithSignatures(hre);
 
         const { name, symbol, amount, decimals } = taskArgs;
-
         const [Token] = await deploy<Token>(symbol, {
             from: deployer,
             contract: "Token",

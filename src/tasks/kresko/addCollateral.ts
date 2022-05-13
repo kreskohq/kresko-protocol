@@ -2,7 +2,7 @@ import { fromBig } from "@utils/numbers";
 import { toFixedPoint } from "@utils/fixed-point";
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
-import { getLogger } from "@utils/deployment";
+import { getLogger, sleep } from "@utils/deployment";
 
 task("kresko:addcollateral")
     .addParam("symbol", "Name of the collateral")
@@ -34,7 +34,8 @@ task("kresko:addcollateral")
             logger.warn(`Collateral ${symbol} already exists!`);
         } else {
             const tx = await kresko.addCollateralAsset(Collateral.address, toFixedPoint(cFactor), oracleAddr, !!nrwt);
-
+            await tx.wait();
+            sleep(1500);
             if (log) {
                 const collateralDecimals = await Collateral.decimals();
                 logger.log(symbol, "decimals", collateralDecimals);
@@ -50,4 +51,5 @@ task("kresko:addcollateral")
                 logger.log("txHash", tx.hash);
             }
         }
+        return;
     });

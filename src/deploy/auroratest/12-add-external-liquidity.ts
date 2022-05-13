@@ -12,5 +12,4 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 func.tags = ["auroratest", "liquidity", "uniswap"];
 
-func.skip = async () => true;
 export default func;

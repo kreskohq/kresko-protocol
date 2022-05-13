@@ -5,26 +5,43 @@ import { toBig } from "@utils/numbers";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("deploy-tokens");
+    const USDCDeployed = await hre.deployments.getOrNull("USDC");
+    let USDC: Token | undefined;
+    if (!USDCDeployed) {
+        USDC = await hre.run("deploy:token", {
+            name: "USDC",
+            symbol: "USDC",
+            log: true,
+            decimals: 6,
+        });
+    } else {
+        logger.log("Skipping deploying USDC");
+    }
+    const AuroraDeployed = await hre.deployments.getOrNull("AURORA");
 
-    const USDC: Token = await hre.run("deploy:token", {
-        name: "USDC",
-        symbol: "USDC",
-        log: true,
-        decimals: 6,
-    });
+    let AURORA: Token | undefined;
+    if (!AuroraDeployed) {
+        AURORA = await hre.run("deploy:token", {
+            name: "Aurora",
+            symbol: "AURORA",
+            log: true,
+        });
+    } else {
+        logger.log("Skipping deploying Aurora");
+    }
 
-    const AURORA: Token = await hre.run("deploy:token", {
-        name: "Aurora",
-        symbol: "AURORA",
-        log: true,
-    });
+    const NearDeployed = await hre.deployments.getOrNull("wNEAR");
 
-    const NEAR: Token = await hre.run("deploy:token", {
-        name: "Wrapped Near",
-        symbol: "wNEAR",
-        log: true,
-    });
-
+    let NEAR: Token | undefined;
+    if (!NearDeployed) {
+        NEAR = await hre.run("deploy:token", {
+            name: "Wrapped Near",
+            symbol: "wNEAR",
+            log: true,
+        });
+    } else {
+        logger.log("Skipping deploying wNEAR");
+    }
     const WETH = await hre.ethers.getContract("WETH");
 
     // Give deployer some WETH
@@ -32,9 +49,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     logger.log("deposited weth for deployer");
 
     const contracts = {
-        USDC: USDC.address,
-        wNEAR: NEAR.address,
-        AURORA: AURORA.address,
+        USDC: USDC ? USDC.address : USDCDeployed.address,
+        wNEAR: NEAR ? NEAR.address : NearDeployed.address,
+        AURORA: AURORA ? AURORA.address : AuroraDeployed.address,
         WETH: WETH.address,
     };
 

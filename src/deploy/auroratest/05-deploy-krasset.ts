@@ -1,6 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { getLogger } from "@utils/deployment";
+import { getLogger, sleep } from "@utils/deployment";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("deploy-krasset");
@@ -13,26 +13,35 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         log: true,
     });
 
+    sleep(1500);
+
     await hre.run("deploy:krasset", {
         name: "iShares Gold Trust",
         symbol: "krIAU",
         operator: kresko.address,
         log: true,
     });
+
+    sleep(1500);
+
     await hre.run("deploy:krasset", {
         name: "Tesla, Inc.",
         symbol: "krTSLA",
         operator: kresko.address,
         log: true,
     });
+    sleep(1500);
+
     await hre.run("deploy:krasset", {
         name: "Invesco QQQ Trust",
         symbol: "krQQQ",
         operator: kresko.address,
         log: true,
     });
+    sleep(1500);
 
     logger.success("Succesfully deployed krAssets");
 };
 export default func;
+
 func.tags = ["auroratest"];

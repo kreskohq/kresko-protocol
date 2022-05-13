@@ -1,18 +1,26 @@
+import { toFixedPoint } from "@utils";
 import { getLogger } from "@utils/deployment";
 import { DeployFunction } from "hardhat-deploy/types";
 
 const func: DeployFunction = async function (hre) {
+    const loggerGeneral = getLogger("general");
     const logger = getLogger("deploy-oracle");
+    loggerGeneral.log("Starting deployment to Aurora Testnet");
     const { getNamedAccounts } = hre;
 
     const { priceFeedValidator } = await getNamedAccounts();
     // USD
-    await hre.run("deployone:fluxpricefeed", {
+    const USDCFeed = await hre.run("deployone:fluxpricefeed", {
         name: "USD",
         decimals: 8,
         description: "/USD",
         validator: priceFeedValidator,
     });
+    const latestAnswer = await USDCFeed.latestAnswer();
+    if (!latestAnswer.gt(0)) {
+        const tx = await USDCFeed.transmit(toFixedPoint("1", 8));
+        await tx.wait();
+    }
 
     // ETH
     await hre.run("deployone:fluxpricefeed", {
@@ -73,6 +81,5 @@ const func: DeployFunction = async function (hre) {
     logger.success("All price feeds deployed");
 };
 
-export default func;
-
 func.tags = ["auroratest", "auroratest-oracles"];
+export default func;

@@ -8,7 +8,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         feeRecipient: treasury,
     });
     const logger = getLogger("deploy-kresko");
-    logger.log("kresko deployed");
+    logger.log("Kresko deployed");
 };
 
 func.tags = ["auroratest"];

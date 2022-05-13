@@ -70,7 +70,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     /** === USDC/krIAU ===  */
     const krIAU = await ethers.getContract<KreskoAsset>("krIAU");
     const GOLDValue = fromBig(await priceFeeds["GOLD/USD"].latestAnswer(), 8);
-    const GOLDDepositAmount = 800;
+    const GOLDDepositAmount = 4000;
     const krIAUPair = await Factory.getPair(USDC.address, krIAU.address);
 
     let USDCKRIAUPair: UniswapV2Pair;

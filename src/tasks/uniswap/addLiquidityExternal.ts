@@ -1,13 +1,14 @@
-import { getLogger } from "@utils/deployment";
-import { fromBig } from "@utils/numbers";
+import { getLogger, getPriceFeeds, sleep } from "@utils/deployment";
+import { fromBig, toBig } from "@utils/numbers";
 import { task, types } from "hardhat/config";
-import { UniswapV2Pair } from "types";
+import { MockWETH10, UniswapV2Pair } from "types";
 
 task("addliquidity:external")
     .addOptionalParam("log", "log information", true, types.boolean)
     .addOptionalParam("wait", "wait confirmations", 1, types.int)
     .setAction(async (taskArgs, hre) => {
         const { ethers, deployments } = hre;
+        const priceFeeds = await getPriceFeeds(hre);
         const { log } = taskArgs;
         const USDC = await ethers.getContract<Token>("USDC");
 
@@ -63,12 +64,13 @@ task("addliquidity:external")
         logger.success("Succesfully added wNEAR/USDC liquidity @ ", NEARUSDCPair.address);
 
         /**  WETH/USDC */
-        const WETH = await ethers.getContract<Token>("WETH");
-        const wethFeedDeployment = await deployments.get("ETHUSD");
-        const wethFeed = await ethers.getContractAt<FluxPriceFeed>(wethFeedDeployment.abi, wethFeedDeployment.address);
-        const ethValue = fromBig(await wethFeed.latestAnswer(), 8);
+        const WETH = await ethers.getContract<MockWETH10>("WETH");
+        const ethValue = fromBig(await priceFeeds["ETH/USD"].latestAnswer(), 8);
         const wethDepositAmount = 250;
 
+        const tx = await WETH.deposit(toBig(250));
+        await tx.wait();
+        sleep(1500);
         const WETHUSDCPair: UniswapV2Pair = await hre.run("uniswap:addliquidity", {
             tknA: {
                 address: USDC.address,
@@ -84,4 +86,5 @@ task("addliquidity:external")
         hre.uniPairs["WETH/USDC"] = WETHUSDCPair;
 
         logger.success("Succesfully added WETH/USDC liquidity @ ", WETHUSDCPair.address);
+        return;
     });

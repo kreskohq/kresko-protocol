@@ -31,6 +31,7 @@ task("deploy:krasset")
         const [KreskoAsset, , deployment] = await deploy<KreskoAsset>(symbol, {
             from: deployer,
             log,
+            waitConfirmations: 1,
             contract: "KreskoAsset",
             proxy: {
                 owner: deployer,
@@ -54,4 +55,5 @@ task("deploy:krasset")
         logger.success("KrAsset succesfully deployed @ ", KreskoAsset.address);
 
         krAssets[name] = KreskoAsset;
+        return;
     });

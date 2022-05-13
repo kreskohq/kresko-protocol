@@ -34,7 +34,9 @@ task("kresko:addkrasset")
                 oracleAddr,
                 toFixedPoint(marketCapLimit),
             );
+            await tx.wait();
             logger.success(`Succesfully added ${symbol} in Kresko with kFactor of ${kFactor}`);
             logger.success("txHash", tx.hash);
         }
+        return;
     });

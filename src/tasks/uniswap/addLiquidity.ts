@@ -1,4 +1,4 @@
-import { getLogger } from "@utils/deployment";
+import { getLogger, sleep } from "@utils/deployment";
 import { fromBig, toBig } from "@utils/numbers";
 import { constants } from "ethers";
 import { task, types } from "hardhat/config";
@@ -50,53 +50,59 @@ task("uniswap:addliquidity")
                     return await ethers.getContractAt<UniswapV2Pair>("UniswapV2Pair", pairAddress);
                 }
             }
+        } else {
+            const approvalTknA = fromBig(await TknA.allowance(deployer, UniRouter.address), tknADec);
+            const approvalTknB = fromBig(await TknB.allowance(deployer, UniRouter.address), tknBDec);
+
+            if (approvalTknA < tknA.amount) {
+                logger.log("TknA allowance too low, approving router @", UniRouter.address);
+                const tx = await TknA.approve(UniRouter.address, ethers.constants.MaxUint256);
+                await tx.wait();
+                sleep(1500);
+                logger.log("Approval success");
+            }
+
+            if (approvalTknB < tknB.amount) {
+                logger.log("TknB allowance too low, approving router @", UniRouter.address);
+                const tx = await TknB.approve(UniRouter.address, ethers.constants.MaxUint256);
+                await tx.wait();
+                sleep(1500);
+                logger.log("Approval success");
+            }
+
+            const tknAName = await TknA.name();
+            const tknBName = await TknB.name();
+
+            logger.log("Adding liquidity for", tknAName, tknBName);
+
+            // Add initial LP (also creates the pair) according to oracle price
+            const tx = await UniRouter.addLiquidity(
+                TknA.address,
+                TknB.address,
+                toBig(tknA.amount, tknADec),
+                toBig(tknB.amount, tknBDec),
+                "0",
+                "0",
+                deployer,
+                (Date.now() / 1000 + 9000).toFixed(0),
+            );
+
+            await tx.wait();
+
+            sleep(1500);
+
+            const Pair = await ethers.getContractAt<UniswapV2Pair>(
+                "UniswapV2Pair",
+                await UniFactory.getPair(TknA.address, TknB.address),
+            );
+
+            const LPBalanceOfDeployer = await Pair.balanceOf(deployer);
+
+            logger.log("Deployer balance LP", fromBig(LPBalanceOfDeployer).toFixed(2), "LP tokens");
+            logger.log("Pair balance tknA", fromBig(await TknA.balanceOf(Pair.address), tknADec), tknAName);
+            logger.log("Pair balance tknB", fromBig(await TknB.balanceOf(Pair.address), tknBDec), tknBName);
+
+            logger.success("Succesfully added liquidity @", Pair.address);
+            return Pair;
         }
-
-        const approvalTknA = fromBig(await TknA.allowance(deployer, UniRouter.address), tknADec);
-        const approvalTknB = fromBig(await TknB.allowance(deployer, UniRouter.address), tknBDec);
-
-        if (approvalTknA < tknA.amount) {
-            logger.log("TknA allowance too low, approving router @", UniRouter.address);
-            await TknA.approve(UniRouter.address, ethers.constants.MaxUint256);
-            logger.log("Approval success");
-        }
-
-        if (approvalTknB < tknB.amount) {
-            logger.log("TknB allowance too low, approving router @", UniRouter.address);
-            await TknB.approve(UniRouter.address, ethers.constants.MaxUint256);
-            logger.log("Approval success");
-        }
-
-        const tknAName = await TknA.name();
-        const tknBName = await TknB.name();
-
-        logger.log("Adding liquidity for", tknAName, tknBName);
-
-        // Add initial LP (also creates the pair) according to oracle price
-        const tx = await UniRouter.addLiquidity(
-            TknA.address,
-            TknB.address,
-            toBig(tknA.amount, tknADec),
-            toBig(tknB.amount, tknBDec),
-            "0",
-            "0",
-            deployer,
-            (Date.now() / 1000 + 9000).toFixed(0),
-        );
-
-        await tx.wait();
-
-        const Pair = await ethers.getContractAt<UniswapV2Pair>(
-            "UniswapV2Pair",
-            await UniFactory.getPair(TknA.address, TknB.address),
-        );
-
-        const LPBalanceOfDeployer = await Pair.balanceOf(deployer);
-
-        logger.log("Deployer balance LP", fromBig(LPBalanceOfDeployer).toFixed(2), "LP tokens");
-        logger.log("Pair balance tknA", fromBig(await TknA.balanceOf(Pair.address), tknADec), tknAName);
-        logger.log("Pair balance tknB", fromBig(await TknB.balanceOf(Pair.address), tknBDec), tknBName);
-
-        logger.success("Succesfully added liquidity @", Pair.address);
-        return Pair;
     });

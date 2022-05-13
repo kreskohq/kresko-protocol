@@ -1,4 +1,4 @@
-import { deployWithSignatures, getLogger } from "@utils/deployment";
+import { deployWithSignatures, getLogger, sleep } from "@utils/deployment";
 import { toFixedPoint } from "@utils/fixed-point";
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
@@ -55,6 +55,7 @@ task("deploy:kresko")
                 },
             },
         });
+        sleep(1500);
         // Deploy kresko viewer
         const [KreskoViewer] = await deploy("KreskoViewer", {
             from: admin,

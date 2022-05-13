@@ -1,6 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { getLogger } from "@utils/deployment";
+import { Console } from "console";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const { priceFeeds } = hre;
@@ -20,7 +21,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         symbol: "krGME",
         kFactor: 1.25,
         oracleAddr: priceFeeds["GME/USD"].address,
-
         log: true,
     });
 

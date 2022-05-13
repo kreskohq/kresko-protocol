@@ -49,4 +49,6 @@ task("upgrade:krasset")
         logger.table(contracts);
 
         krAssets[name] = KreskoAsset;
+
+        return;
     });
