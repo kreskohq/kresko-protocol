@@ -42,6 +42,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     logger.success("Succesfully deployed krAssets");
 };
-export default func;
 
 func.tags = ["auroratest"];
+
+export default func;

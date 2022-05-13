@@ -82,4 +82,5 @@ const func: DeployFunction = async function (hre) {
 };
 
 func.tags = ["auroratest", "auroratest-oracles"];
+
 export default func;

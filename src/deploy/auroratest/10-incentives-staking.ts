@@ -46,7 +46,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     logger.success("R1", fromBig(Reward1Bal), "R2", fromBig(Reward2Bal));
     logger.success("Incentives added");
 };
-export default func;
 
 func.skip = async hre => {
     const Staking = await hre.ethers.getContract<KrStaking>("KrStaking");
@@ -64,3 +63,5 @@ func.skip = async hre => {
 };
 
 func.tags = ["auroratest", "auroratest-staking"];
+
+export default func;

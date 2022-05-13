@@ -20,7 +20,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     logger.success("Succesfully deployed Staking contract @", Staking.address);
 };
-export default func;
 
 func.skip = async hre => {
     const Staking = await hre.deployments.getOrNull("KrStaking");
@@ -30,3 +29,5 @@ func.skip = async hre => {
 };
 
 func.tags = ["auroratest", "auroratest-staking"];
+
+export default func;

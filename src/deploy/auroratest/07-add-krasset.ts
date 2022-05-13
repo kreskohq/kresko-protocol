@@ -34,6 +34,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     logger.log("All krassets added");
 };
-export default func;
 
 func.tags = ["auroratest"];
+
+export default func;

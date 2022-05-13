@@ -48,6 +48,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     logger.success("Succesfully whitelisted collaterals");
 };
-export default func;
 
 func.tags = ["auroratest"];
+
+export default func;
