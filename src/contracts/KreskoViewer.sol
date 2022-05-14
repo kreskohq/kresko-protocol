@@ -2,10 +2,13 @@
 pragma solidity >=0.8.4;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
+import "./libraries/FixedPointMath.sol";
+import "./libraries/FixedPoint.sol";
 import "./interfaces/IKresko.sol";
 
 contract KreskoViewer {
     using FixedPoint for FixedPoint.Unsigned;
+    using FixedPointMath for uint256;
 
     IKresko public Kresko;
 
@@ -13,7 +16,7 @@ contract KreskoViewer {
         address assetAddress;
         address oracleAddress;
         uint256 amount;
-        uint256 amountUSD;
+        FixedPoint.Unsigned amountUSD;
         uint256 index;
         FixedPoint.Unsigned kFactor;
         bool mintable;
@@ -27,7 +30,7 @@ contract KreskoViewer {
         address oracleAddress;
         address underlyingRebasingToken;
         uint256 amount;
-        uint256 amountUSD;
+        FixedPoint.Unsigned amountUSD;
         FixedPoint.Unsigned cFactor;
         uint8 decimals;
         uint256 index;
@@ -61,13 +64,13 @@ contract KreskoViewer {
     struct KreskoUser {
         krAssetInfoUser[] krAssets;
         CollateralAssetInfoUser[] collateralAssets;
-        uint256 healthFactor;
-        uint256 debtActualUSD;
-        uint256 debtUSD;
-        uint256 collateralActualUSD;
-        uint256 collateralUSD;
-        uint256 minCollateralUSD;
-        uint256 borrowingPowerUSD;
+        FixedPoint.Unsigned healthFactor;
+        FixedPoint.Unsigned debtActualUSD;
+        FixedPoint.Unsigned debtUSD;
+        FixedPoint.Unsigned collateralActualUSD;
+        FixedPoint.Unsigned collateralUSD;
+        FixedPoint.Unsigned minCollateralUSD;
+        FixedPoint.Unsigned borrowingPowerUSD;
     }
 
     struct Allowance {
@@ -91,22 +94,24 @@ contract KreskoViewer {
         Kresko = _kresko;
     }
 
-    function healthFactorFor(address _account) public view returns (uint256) {
-        uint256 minCollateral = Kresko.getAccountMinimumCollateralValue(_account).rawValue;
-        uint256 userCollateral = Kresko.getAccountCollateralValue(_account).rawValue;
+    function healthFactorFor(address _account) public view returns (FixedPoint.Unsigned memory) {
+        FixedPoint.Unsigned memory userDebt = Kresko.getAccountKrAssetValue(_account);
+        FixedPoint.Unsigned memory userCollateral = Kresko.getAccountCollateralValue(_account);
 
-        if (minCollateral > 0) {
-            return (userCollateral * 10**18) / minCollateral;
+        if (userDebt.isGreaterThan(0)) {
+            return userCollateral.div(userDebt);
         } else {
-            return 0;
+            return FixedPoint.Unsigned(0);
         }
     }
 
     function kreskoUser(address _account) external view returns (KreskoUser memory user) {
-        (krAssetInfoUser[] memory krInfos, uint256 totalDebtUSD) = krAssetInfoFor(_account);
-        (CollateralAssetInfoUser[] memory collateralInfos, uint256 totalCollateralUSD) = collateralAssetInfoFor(
-            _account
-        );
+        (krAssetInfoUser[] memory krInfos, FixedPoint.Unsigned memory totalDebtUSD) = krAssetInfoFor(_account);
+        (
+            CollateralAssetInfoUser[] memory collateralInfos,
+            FixedPoint.Unsigned memory totalCollateralUSD
+        ) = collateralAssetInfoFor(_account);
+
         if (krInfos.length > 0 || collateralInfos.length > 0) {
             user = KreskoUser({
                 collateralAssets: collateralInfos,
@@ -114,10 +119,10 @@ contract KreskoViewer {
                 borrowingPowerUSD: borrowingPowerUSD(_account),
                 healthFactor: healthFactorFor(_account),
                 debtActualUSD: totalDebtUSD,
-                debtUSD: Kresko.getAccountKrAssetValue(_account).rawValue,
+                debtUSD: Kresko.getAccountKrAssetValue(_account),
                 collateralActualUSD: totalCollateralUSD,
-                collateralUSD: Kresko.getAccountCollateralValue(_account).rawValue,
-                minCollateralUSD: Kresko.getAccountMinimumCollateralValue(_account).rawValue
+                collateralUSD: Kresko.getAccountCollateralValue(_account),
+                minCollateralUSD: Kresko.getAccountMinimumCollateralValue(_account)
             });
         }
     }
@@ -125,7 +130,7 @@ contract KreskoViewer {
     function krAssetInfoFor(address _account)
         public
         view
-        returns (krAssetInfoUser[] memory result, uint256 totalDebtUSD)
+        returns (krAssetInfoUser[] memory result, FixedPoint.Unsigned memory totalDebtUSD)
     {
         address[] memory krAssetAddresses = Kresko.getMintedKreskoAssets(_account);
         if (krAssetAddresses.length > 0) {
@@ -136,7 +141,7 @@ contract KreskoViewer {
                 uint256 amount = Kresko.kreskoAssetDebt(_account, assetAddress);
 
                 uint256 price = uint256(krAsset.oracle.latestAnswer());
-                uint256 amountUSD = Kresko.getKrAssetValue(assetAddress, amount, true).rawValue;
+                FixedPoint.Unsigned memory amountUSD = Kresko.getKrAssetValue(assetAddress, amount, true);
 
                 string memory symbol = IERC20MetadataUpgradeable(assetAddress).symbol();
                 string memory name = IERC20MetadataUpgradeable(assetAddress).name();
@@ -154,7 +159,7 @@ contract KreskoViewer {
                     name: name
                 });
 
-                totalDebtUSD += amountUSD;
+                totalDebtUSD.add(amountUSD);
                 result[i] = assetInfo;
             }
         }
@@ -163,7 +168,7 @@ contract KreskoViewer {
     function collateralAssetInfoFor(address _account)
         public
         view
-        returns (CollateralAssetInfoUser[] memory result, uint256 totalCollateralUSD)
+        returns (CollateralAssetInfoUser[] memory result, FixedPoint.Unsigned memory totalCollateralUSD)
     {
         address[] memory collateralAssetAddresses = Kresko.getDepositedCollateralAssets(_account);
         if (collateralAssetAddresses.length > 0) {
@@ -183,7 +188,7 @@ contract KreskoViewer {
 
                 CollateralAssetInfoUser memory assetInfo = CollateralAssetInfoUser({
                     amount: amount,
-                    amountUSD: amountUSD.rawValue,
+                    amountUSD: amountUSD,
                     oracleAddress: address(collateralAsset.oracle),
                     underlyingRebasingToken: collateralAsset.underlyingRebasingToken,
                     assetAddress: assetAddress,
@@ -195,7 +200,7 @@ contract KreskoViewer {
                     name: name
                 });
 
-                totalCollateralUSD += amountUSD.rawValue;
+                totalCollateralUSD.add(amountUSD);
                 result[i] = assetInfo;
             }
         }
@@ -270,14 +275,14 @@ contract KreskoViewer {
         }
     }
 
-    function borrowingPowerUSD(address _account) public view returns (uint256) {
+    function borrowingPowerUSD(address _account) public view returns (FixedPoint.Unsigned memory) {
         FixedPoint.Unsigned memory minCollateral = Kresko.getAccountMinimumCollateralValue(_account);
         FixedPoint.Unsigned memory collateral = Kresko.getAccountCollateralValue(_account);
 
         if (collateral.isLessThan(minCollateral)) {
-            return 0;
+            return FixedPoint.Unsigned(0);
         } else {
-            return collateral.sub(minCollateral).rawValue;
+            return collateral.sub(minCollateral);
         }
     }
 
