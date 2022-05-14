@@ -660,7 +660,9 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         // debt value, close up to the minimum debt value instead.
         FixedPoint.Unsigned memory krAssetValue = getKrAssetValue(_kreskoAsset, debtAmount - _amount, true);
         if (krAssetValue.isGreaterThan(0) && krAssetValue.isLessThan(minimumDebtValue)) {
-            FixedPoint.Unsigned memory oraclePrice = FixedPoint.Unsigned(uint256(kreskoAssets[_kreskoAsset].oracle.latestAnswer()));
+            FixedPoint.Unsigned memory oraclePrice = FixedPoint.Unsigned(
+                uint256(kreskoAssets[_kreskoAsset].oracle.latestAnswer())
+            );
             FixedPoint.Unsigned memory minDebtAmount = minimumDebtValue.div(oraclePrice);
             _amount = debtAmount - minDebtAmount.rawValue;
         }
