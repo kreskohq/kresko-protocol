@@ -95,7 +95,11 @@ contract KreskoViewer {
         uint256 minCollateral = Kresko.getAccountMinimumCollateralValue(_account).rawValue;
         uint256 userCollateral = Kresko.getAccountCollateralValue(_account).rawValue;
 
-        return (userCollateral * 10**18) / minCollateral;
+        if (minCollateral > 0) {
+            return (userCollateral * 10**18) / minCollateral;
+        } else {
+            return 0;
+        }
     }
 
     function kreskoUser(address _account) external view returns (KreskoUser memory user) {

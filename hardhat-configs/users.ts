@@ -62,4 +62,7 @@ export const users = {
     testUserTen: {
         default: 19,
     },
+    testUserExtra: {
+        default: 20,
+    },
 };

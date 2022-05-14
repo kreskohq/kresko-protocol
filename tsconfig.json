@@ -32,7 +32,7 @@
     "ts-node": {
         "require": ["./node_modules/tsconfig-paths/register"]
     },
-    "include": ["hardhat-configs", "src", "types", "hardhat.config.ts"],
+    "include": ["hardhat.config.ts", "hardhat-configs", "src", "types"],
     "exclude": ["node_modules", "build/ts"],
     "files": ["hardhat.config.ts"]
 }

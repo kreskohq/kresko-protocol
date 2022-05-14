@@ -1,19 +1,18 @@
 import { task } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
-import { Token__factory } from "../../../types";
+import { toBig } from "@utils/numbers";
+import { sleep } from "@utils/deployment";
+import { KreskoViewer } from "types";
 
 task("sandbox").setAction(async function (_taskArgs: TaskArguments, _hre) {
     const { getNamedAccounts, ethers } = _hre;
-    const { deployer } = await getNamedAccounts();
+    const { userFive } = await getNamedAccounts();
+    const { userFive: userFiveSigner } = await ethers.getNamedSigners();
+
+    const KreskoViewer = await ethers.getContract<KreskoViewer>("KreskoViewer");
     const Kresko = await ethers.getContract<Kresko>("Kresko");
+    const user = await Kresko.getAccountCollateralValue(userFive);
+    // const user = await KreskoViewer.healthFactorFor(userFive);
 
-    const tx = await Kresko.burnKreskoAsset(
-        deployer,
-        "0xd2c8834280d9891B3DF3e606865e2d1660Cb7B0d",
-        ethers.utils.parseEther("0.003"),
-        2,
-    );
-    const res = await tx.wait(2);
-
-    console.log(res);
+    console.log(user);
 });
