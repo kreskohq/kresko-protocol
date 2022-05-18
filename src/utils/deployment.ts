@@ -1,4 +1,4 @@
-import { DeployOptions } from "hardhat-deploy/types";
+import { DeployOptions } from "@kreskolabs/hardhat-deploy/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 export const deployWithSignatures =
@@ -21,6 +21,21 @@ export const deployWithSignatures =
                 .map(frag => ethers.utils.Interface.getSighash(frag)),
             deployment,
         ];
+    };
+
+export const getSignatures =
+    (hre: HardhatRuntimeEnvironment) =>
+    async <T extends Contract>(name: string) => {
+        const implementation = await hre.ethers.getContract<T>(name);
+
+        const fragments = implementation.interface.fragments
+            .filter(frag => frag.type !== "constructor")
+            .reduce<{ [key: string]: string }>((result, frag) => {
+                result[frag.name] = hre.ethers.utils.Interface.getSighash(frag);
+                return result;
+            }, {});
+
+        return fragments;
     };
 
 export const getLogger = (prefix?: string, log = true) => ({

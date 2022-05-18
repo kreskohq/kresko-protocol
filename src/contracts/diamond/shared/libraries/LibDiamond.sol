@@ -17,6 +17,7 @@ import {IDiamondCut} from "../interfaces/IDiamondCut.sol";
  * - ERC-165 compliant mapping of all supported selectors.
  * - Ownership logic for the diamond itself.
  */
+import "hardhat/console.sol";
 
 library LibDiamond {
     /* -------------------------------------------------------------------------- */
@@ -72,10 +73,12 @@ library LibDiamond {
         DiamondStorage storage ds = diamondStorage();
         require(ds.contractOwner == address(0), "LibDiamond: Owner already initialized");
         emit OwnershipTransferred(address(0), _owner);
+        console.log("Initialized", _owner);
         ds.contractOwner = _owner;
     }
 
     function initiateOwnershipTransfer(address _newOwner) internal {
+        require(_newOwner != address(0), "LibDiamond: Owner cannot be 0-address");
         DiamondStorage storage ds = diamondStorage();
         ds.pendingOwner = _newOwner;
         emit PendingOwnershipTransfer(ds.contractOwner, _newOwner);
@@ -119,6 +122,7 @@ library LibDiamond {
         for (uint256 facetIndex; facetIndex < _diamondCut.length; facetIndex++) {
             IDiamondCut.FacetCutAction action = _diamondCut[facetIndex].action;
             if (action == IDiamondCut.FacetCutAction.Add) {
+                console.log(_diamondCut[facetIndex].facetAddress);
                 addFunctions(_diamondCut[facetIndex].facetAddress, _diamondCut[facetIndex].functionSelectors);
             } else if (action == IDiamondCut.FacetCutAction.Replace) {
                 replaceFunctions(_diamondCut[facetIndex].facetAddress, _diamondCut[facetIndex].functionSelectors);

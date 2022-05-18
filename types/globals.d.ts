@@ -1,4 +1,4 @@
-import { DeployResult } from "hardhat-deploy/types";
+import { DeployResult } from "@kreskolabs/hardhat-deploy/types";
 
 export {};
 

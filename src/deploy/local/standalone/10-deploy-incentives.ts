@@ -1,5 +1,5 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { DeployFunction } from "hardhat-deploy/types";
+import { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import { RewardToken } from "@typechain";
 import { getLogger } from "@utils/deployment";
 

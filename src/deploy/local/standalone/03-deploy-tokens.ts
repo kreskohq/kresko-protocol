@@ -1,5 +1,5 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { DeployFunction } from "hardhat-deploy/types";
+import { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import { MockWETH10 } from "types";
 import { getLogger } from "@utils/deployment";
 

@@ -3,6 +3,7 @@ pragma solidity >=0.8.4;
 
 import {IDiamondCut} from "../interfaces/IDiamondCut.sol";
 import {LibDiamond} from "../libraries/LibDiamond.sol";
+import "hardhat/console.sol";
 
 contract DiamondCutFacet is IDiamondCut {
     /// @notice Add/replace/remove any number of functions and optionally execute
@@ -16,6 +17,7 @@ contract DiamondCutFacet is IDiamondCut {
         address _init,
         bytes calldata _calldata
     ) external override {
+        console.log(_diamondCut[0].facetAddress);
         LibDiamond.enforceIsContractOwner();
         LibDiamond.diamondCut(_diamondCut, _init, _calldata);
     }

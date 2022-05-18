@@ -6,7 +6,7 @@ import { toFixedPoint } from "../utils/fixed-point";
 import { expect } from "chai";
 import { Artifact } from "hardhat/types";
 import { constructors } from "../utils/constuctors";
-import { DeployOptions } from "hardhat-deploy/types";
+import { DeployOptions } from "@kreskolabs/hardhat-deploy/types";
 import { toBig } from "./numbers";
 import { ExampleFlashLiquidator, MockWETH10, UniswapV2Factory, UniswapV2Router02 } from "types";
 

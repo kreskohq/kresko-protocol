@@ -1,6 +1,6 @@
 import { fromBig, toFixedPoint } from "@utils";
 import { getLogger } from "@utils/deployment";
-import { DeployFunction } from "hardhat-deploy/types";
+import { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 
 const func: DeployFunction = async function (hre) {
     const logger = getLogger("deploy-oracle");

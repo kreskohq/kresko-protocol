@@ -1,5 +1,5 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { DeployFunction } from "hardhat-deploy/types";
+import { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import { UniswapV2Factory, UniswapV2Pair } from "types";
 import { AddressZero, fromBig } from "@utils";
 import { getLogger } from "@utils/deployment";

@@ -1,7 +1,7 @@
 // Deployment
 import "tsconfig-paths/register";
 
-import "hardhat-deploy";
+import "@kreskolabs/hardhat-deploy";
 
 // HRE extensions
 import "@configs/extensions";

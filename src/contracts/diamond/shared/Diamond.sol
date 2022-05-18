@@ -35,7 +35,6 @@ contract Diamond {
         LibDiamond.DiamondStorage storage ds;
         bytes32 position = LibDiamond.DIAMOND_STORAGE_POSITION;
         // get diamond storage
-        // solhint-disable-next-line no-inline-assembly
         assembly {
             ds.slot := position
         }

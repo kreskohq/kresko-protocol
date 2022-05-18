@@ -1,5 +1,5 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { DeployFunction } from "hardhat-deploy/types";
+import { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import { getLogger, sleep } from "@utils/deployment";
 import { fromBig, toBig } from "@utils/numbers";
 import { MockWETH10 } from "types";

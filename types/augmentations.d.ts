@@ -2,7 +2,7 @@ import { FunctionFragment } from "@ethersproject/abi";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { fromBig, toBig } from "@utils";
 import { Fixture } from "ethereum-waffle";
-import { ABI, DeployOptions } from "hardhat-deploy/types";
+import { ABI, DeployOptions } from "@kreskolabs/hardhat-deploy/types";
 
 import {
     FluxPriceFeed,

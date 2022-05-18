@@ -17,12 +17,5 @@ contract DiamondInit {
         require(msg.sender == ds.contractOwner, "LibDiamond: !owner");
 
         ds.initialized = true;
-        ds.contractOwner = msg.sender;
-
-        /* ERC-165 */
-        ds.supportedInterfaces[type(IERC165).interfaceId] = true;
-        ds.supportedInterfaces[type(IDiamondCut).interfaceId] = true;
-        ds.supportedInterfaces[type(IDiamondLoupe).interfaceId] = true;
-        ds.supportedInterfaces[type(IOwnership).interfaceId] = true;
     }
 }
