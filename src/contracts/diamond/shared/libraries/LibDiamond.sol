@@ -8,7 +8,7 @@ import {IDiamondCut} from "../interfaces/IDiamondCut.sol";
 /* solhint-disable avoid-low-level-calls */
 
 /**
- * @title Storage for the Diamond.
+ * @title Storage for the main diamond.
  * @notice Core purpose is to store the following:
  *
  * - Mapping of selector to a facet adddress.
@@ -17,14 +17,13 @@ import {IDiamondCut} from "../interfaces/IDiamondCut.sol";
  * - ERC-165 compliant mapping of all supported selectors.
  * - Ownership logic for the diamond itself.
  */
-import "hardhat/console.sol";
 
 library LibDiamond {
     /* -------------------------------------------------------------------------- */
     /*                                   Storage                                  */
     /* -------------------------------------------------------------------------- */
 
-    bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("kresko.diamond.self.storage");
+    bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("kresko.diamond.storage");
 
     struct FacetAddressAndPosition {
         address facetAddress;
@@ -73,7 +72,6 @@ library LibDiamond {
         DiamondStorage storage ds = diamondStorage();
         require(ds.contractOwner == address(0), "LibDiamond: Owner already initialized");
         emit OwnershipTransferred(address(0), _owner);
-        console.log("Initialized", _owner);
         ds.contractOwner = _owner;
     }
 
@@ -122,7 +120,6 @@ library LibDiamond {
         for (uint256 facetIndex; facetIndex < _diamondCut.length; facetIndex++) {
             IDiamondCut.FacetCutAction action = _diamondCut[facetIndex].action;
             if (action == IDiamondCut.FacetCutAction.Add) {
-                console.log(_diamondCut[facetIndex].facetAddress);
                 addFunctions(_diamondCut[facetIndex].facetAddress, _diamondCut[facetIndex].functionSelectors);
             } else if (action == IDiamondCut.FacetCutAction.Replace) {
                 replaceFunctions(_diamondCut[facetIndex].facetAddress, _diamondCut[facetIndex].functionSelectors);
