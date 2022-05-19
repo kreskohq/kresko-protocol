@@ -1,6 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { UniswapV2Factory, UniswapV2Router02 } from "types";
+import { MockWETH10, UniswapV2Factory, UniswapV2Router02 } from "types";
 import { getLogger } from "@utils/deployment";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -14,11 +14,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         args: [admin],
     });
 
-    const [WETH] = await deploy<WETH9>("WETH9", {
+    const [WETH] = await hre.deploy<MockWETH10>("Wrapped Ether", {
+        contract: "MockWETH10",
         from: admin,
         waitConfirmations: 2,
+        log: true,
     });
-
     const [UniRouter] = await deploy<UniswapV2Router02>("UniswapV2Router02", {
         from: admin,
         waitConfirmations: 2,

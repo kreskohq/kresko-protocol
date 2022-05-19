@@ -644,9 +644,12 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         require(_amount <= debtAmount, "KR: amount > debt");
 
         // If the requested burn would put the user's debt position below the minimum
-        // debt value, close the position entirely instead.
-        if (getKrAssetValue(_kreskoAsset, debtAmount - _amount, true).isLessThan(minimumDebtValue)) {
-            _amount = debtAmount;
+        // debt value, close up to the minimum debt value instead.
+        FixedPoint.Unsigned memory krAssetValue = getKrAssetValue(_kreskoAsset, debtAmount - _amount, true);
+        if (krAssetValue.isGreaterThan(0) && krAssetValue.isLessThan(minimumDebtValue)) {
+            FixedPoint.Unsigned memory oraclePrice = FixedPoint.Unsigned(uint256(kreskoAssets[_kreskoAsset].oracle.latestAnswer()));
+            FixedPoint.Unsigned memory minDebtAmount = minimumDebtValue.div(oraclePrice);
+            _amount = debtAmount - minDebtAmount.rawValue;
         }
 
         // Record the burn.
