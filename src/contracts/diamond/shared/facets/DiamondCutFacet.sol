@@ -2,10 +2,11 @@
 pragma solidity >=0.8.4;
 
 import {IDiamondCut} from "../interfaces/IDiamondCut.sol";
-import {LibDiamond} from "../libraries/LibDiamond.sol";
+import {DS} from "../storage/DS.sol";
+import {DSModifiers} from "../storage/DSModifiers.sol";
 import "hardhat/console.sol";
 
-contract DiamondCutFacet is IDiamondCut {
+contract DiamondCutFacet is DSModifiers, IDiamondCut {
     /// @notice Add/replace/remove any number of functions and optionally execute
     ///         a function with delegatecall
     /// @param _diamondCut Contains the facet addresses and function selectors
@@ -16,9 +17,7 @@ contract DiamondCutFacet is IDiamondCut {
         FacetCut[] calldata _diamondCut,
         address _init,
         bytes calldata _calldata
-    ) external override {
-        console.log(_diamondCut[0].facetAddress);
-        LibDiamond.enforceIsContractOwner();
-        LibDiamond.diamondCut(_diamondCut, _init, _calldata);
+    ) external override onlyDSOwner {
+        DS.diamondCut(_diamondCut, _init, _calldata);
     }
 }

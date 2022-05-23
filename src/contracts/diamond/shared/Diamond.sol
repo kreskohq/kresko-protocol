@@ -6,10 +6,10 @@
 
 pragma solidity >=0.8.4;
 
-import {LibDiamond} from "./libraries/LibDiamond.sol";
+import {DsStorage, DS} from "./storage/DS.sol";
 import {IDiamondCut} from "./interfaces/IDiamondCut.sol";
 
-contract Diamond {
+contract MainDiamond {
     struct Initialization {
         address initContract;
         bytes initData;
@@ -20,20 +20,19 @@ contract Diamond {
         IDiamondCut.FacetCut[] memory _diamondCut,
         Initialization[] memory _initializations
     ) {
-        LibDiamond.initializeOwner(_owner);
-
-        LibDiamond.diamondCut(_diamondCut, address(0), "");
+        DS.initialize(_owner);
+        DS.diamondCut(_diamondCut, address(0), "");
 
         for (uint256 i = 0; i < _initializations.length; i++) {
-            LibDiamond.initializeDiamondCut(_initializations[i].initContract, _initializations[i].initData);
+            DS.initializeDiamondCut(_initializations[i].initContract, _initializations[i].initData);
         }
     }
 
     // Find facet for function that is called and execute the
     // function if a facet is found and return any value.
     fallback() external payable {
-        LibDiamond.DiamondStorage storage ds;
-        bytes32 position = LibDiamond.DIAMOND_STORAGE_POSITION;
+        DsStorage storage ds;
+        bytes32 position = DS.DIAMOND_STORAGE_POSITION;
         // get diamond storage
         assembly {
             ds.slot := position

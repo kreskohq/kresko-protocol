@@ -21,7 +21,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     logger.success("Succesfully deployed Staking contract @", Staking.address);
 };
 
-func.skip = async hre => {
+func.skip = async (hre: HardhatRuntimeEnvironment) => {
     const Staking = await hre.deployments.getOrNull("KrStaking");
     const logger = getLogger("deploy-staking");
     !!Staking && logger.log("Skipping deploying staking");

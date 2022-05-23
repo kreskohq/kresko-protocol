@@ -2,7 +2,9 @@
 
 pragma solidity >=0.8.4;
 
-import {LibDiamond} from "./libraries/LibDiamond.sol";
+import {DS} from "./storage/DS.sol";
+import {LibMeta} from "./libraries/LibMeta.sol";
+
 import {IDiamondLoupe} from "./interfaces/IDiamondLoupe.sol";
 import {IDiamondCut} from "./interfaces/IDiamondCut.sol";
 import {IOwnership} from "./interfaces/IOwnership.sol";
@@ -10,12 +12,13 @@ import {IERC165} from "./interfaces/IERC165.sol";
 
 import "hardhat/console.sol";
 
-contract DiamondInit {
+contract MainDiamondInit {
     function initialize() external {
-        LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
-        require(!ds.initialized, "LibDiamond: Already initialized");
-        require(msg.sender == ds.contractOwner, "LibDiamond: !owner");
+        DS.DsStorage storage s = DS.ds();
+        require(!s.initialized, "DS: Already initialized");
+        require(msg.sender == s.contractOwner, "DS: !Owner");
 
-        ds.initialized = true;
+        s.domainSeparator = LibMeta.domainSeparator("Kresko Diamond", "V1");
+        s.initialized = true;
     }
 }
