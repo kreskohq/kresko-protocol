@@ -6,7 +6,7 @@
 
 pragma solidity >=0.8.4;
 
-import {DsStorage, DS} from "./storage/DS.sol";
+import {DiamondStorage, DS} from "./storage/DS.sol";
 import {IDiamondCut} from "./interfaces/IDiamondCut.sol";
 
 contract MainDiamond {
@@ -31,7 +31,7 @@ contract MainDiamond {
     // Find facet for function that is called and execute the
     // function if a facet is found and return any value.
     fallback() external payable {
-        DsStorage storage ds;
+        DiamondStorage storage ds;
         bytes32 position = DS.DIAMOND_STORAGE_POSITION;
         // get diamond storage
         assembly {

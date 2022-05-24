@@ -2,7 +2,7 @@
 pragma solidity >=0.8.4;
 
 import {IDiamondCut} from "../interfaces/IDiamondCut.sol";
-import {AccessEvent} from "../libraries/LibEvents.sol";
+import {AccessEvent} from "../libraries/Events.sol";
 import {LibMeta} from "../libraries/LibMeta.sol";
 
 /* solhint-disable no-inline-assembly */
@@ -30,7 +30,7 @@ struct FacetFunctionSelectors {
     uint256 facetAddressPosition; // position of facetAddress in facetAddresses array
 }
 
-struct DsStorage {
+struct DiamondStorage {
     // maps function selector to the facet address and
     // the position of the selector in the facetFunctionSelectors.selectors array
     mapping(bytes4 => FacetAddressAndPosition) selectorToFacetAndPosition;
@@ -58,7 +58,7 @@ library DS {
 
     bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("kresko.diamond.storage");
 
-    function ds() internal pure returns (DsStorage storage ds_) {
+    function ds() internal pure returns (DiamondStorage storage ds_) {
         bytes32 position = DIAMOND_STORAGE_POSITION;
         assembly {
             ds_.slot := position
@@ -70,11 +70,19 @@ library DS {
     /* -------------------------------------------------------------------------- */
 
     function initialize(address _owner) internal {
-        DsStorage storage s = ds();
+        DiamondStorage storage s = ds();
         require(s.contractOwner == address(0), "LibDiamond: Owner already initialized");
         s.contractOwner = _owner;
 
         emit AccessEvent.OwnershipTransferred(address(0), _owner);
+    }
+
+    function contractOwner() internal view returns (address) {
+        return ds().contractOwner;
+    }
+
+    function pendingOwner() internal view returns (address) {
+        return ds().contractOwner;
     }
 
     /* -------------------------------------------------------------------------- */
@@ -106,7 +114,7 @@ library DS {
 
     function addFunctions(address _facetAddress, bytes4[] memory _functionSelectors) internal {
         require(_functionSelectors.length > 0, "LibDiamondCut: No selectors in facet to cut");
-        DsStorage storage s = ds();
+        DiamondStorage storage s = ds();
         require(_facetAddress != address(0), "LibDiamondCut: Add facet can't be address(0)");
         uint96 selectorPosition = uint96(s.facetFunctionSelectors[_facetAddress].functionSelectors.length);
         // add new facet address if it does not exist
@@ -124,7 +132,7 @@ library DS {
 
     function replaceFunctions(address _facetAddress, bytes4[] memory _functionSelectors) internal {
         require(_functionSelectors.length > 0, "LibDiamondCut: No selectors in facet to cut");
-        DsStorage storage s = ds();
+        DiamondStorage storage s = ds();
         require(_facetAddress != address(0), "LibDiamondCut: Add facet can't be address(0)");
         uint96 selectorPosition = uint96(s.facetFunctionSelectors[_facetAddress].functionSelectors.length);
         // add new facet address if it does not exist
@@ -143,7 +151,7 @@ library DS {
 
     function removeFunctions(address _facetAddress, bytes4[] memory _functionSelectors) internal {
         require(_functionSelectors.length > 0, "LibDiamondCut: No selectors in facet to cut");
-        DsStorage storage s = ds();
+        DiamondStorage storage s = ds();
         // if function does not exist then do nothing and return
         require(_facetAddress == address(0), "LibDiamondCut: Remove facet address must be address(0)");
         for (uint256 selectorIndex; selectorIndex < _functionSelectors.length; selectorIndex++) {
@@ -153,14 +161,14 @@ library DS {
         }
     }
 
-    function addFacet(DsStorage storage s, address _facetAddress) internal {
+    function addFacet(DiamondStorage storage s, address _facetAddress) internal {
         enforceHasContractCode(_facetAddress, "LibDiamondCut: New facet has no code");
         s.facetFunctionSelectors[_facetAddress].facetAddressPosition = s.facetAddresses.length;
         s.facetAddresses.push(_facetAddress);
     }
 
     function addFunction(
-        DsStorage storage s,
+        DiamondStorage storage s,
         bytes4 _selector,
         uint96 _selectorPosition,
         address _facetAddress
@@ -171,7 +179,7 @@ library DS {
     }
 
     function removeFunction(
-        DsStorage storage s,
+        DiamondStorage storage s,
         address _facetAddress,
         bytes4 _selector
     ) internal {
@@ -245,12 +253,12 @@ library DS {
 
 contract DSModifiers {
     modifier onlyOwner() {
-        require(LibMeta.msgSender() == DS.ds().contractOwner, "DS: Must be contract owner");
+        require(Meta.msgSender() == DS.ds().contractOwner, "DS: Must be contract owner");
         _;
     }
 
     modifier onlyPendingOwner() {
-        require(LibMeta.msgSender() == DS.ds().pendingOwner, "DS: Must be pending contract owner");
+        require(Meta.msgSender() == DS.ds().pendingOwner, "DS: Must be pending contract owner");
         _;
     }
 }

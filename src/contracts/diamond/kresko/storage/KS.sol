@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
+import {DS} from "../../shared/storage/DS.sol";
+import {AccessEvent} from "../../shared/libraries/LibEvents.sol";
+import {LibMeta} from "../../shared/libraries/LibMeta.sol";
 import "../../../libraries/FixedPoint.sol";
 import "../../../libraries/FixedPointMath.sol";
 import "../../../libraries/Arrays.sol";
-import {AccessEvent} from "../../shared/libraries/LibEvents.sol";
 
 /* solhint-disable no-inline-assembly */
 /* solhint-disable state-visibility */
@@ -12,7 +14,7 @@ import {AccessEvent} from "../../shared/libraries/LibEvents.sol";
 /*
  * General kresko diamond storage
  */
-struct KrStorage {
+struct KreskoStorage {
     // access control: sender -> facet contract -> bool
     mapping(address => mapping(address => bool)) operators;
     // owner of the contract
@@ -32,7 +34,7 @@ library KS {
 
     bytes32 constant KRESKO_STORAGE_POSITION = keccak256("kresko.general.storage");
 
-    function s() internal pure returns (KrStorage storage s_) {
+    function s() internal pure returns (KreskoStorage storage s_) {
         bytes32 position = KRESKO_STORAGE_POSITION;
         assembly {
             s_.slot := position
@@ -59,14 +61,6 @@ library KS {
 
 contract KSModifiers {
     /**
-     * @notice Ensure caller is owner of storage
-     */
-    modifier onlyKrOwner() {
-        require(msg.sender == KS.s().owner, "KR: Must be owner to call this function");
-        _;
-    }
-
-    /**
      * @notice Ensure caller is an operator if a condition is true
      * @param _condition triggers the check
      * @param _target triggers the check
@@ -83,7 +77,11 @@ contract KSModifiers {
      * @param _target triggers the check
      */
     modifier onlyOperator(address _target) {
-        require(KS.s().operators[msg.sender][_target], "KR: Must be operator to call this function");
+        address sender = LibMeta.msgSender();
+        require(
+            KS.s().operators[sender][_target] || DS.contractOwner() == sender,
+            "KR: Must be operator to call this function"
+        );
         _;
     }
 }

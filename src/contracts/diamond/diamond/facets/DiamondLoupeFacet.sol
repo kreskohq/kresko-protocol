@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import {DsStorage, DS} from "../storage/DS.sol";
+import {DiamondStorage, DS} from "../storage/DS.sol";
 import {IDiamondLoupe} from "../interfaces/IDiamondLoupe.sol";
 import {IERC165} from "../interfaces/IERC165.sol";
 
@@ -9,7 +9,7 @@ contract DiamondLoupeFacet is IDiamondLoupe, IERC165 {
     /// @notice Gets all facets and their selectors.
     /// @return facets_ Facet
     function facets() external view override returns (Facet[] memory facets_) {
-        DsStorage storage s = DS.ds();
+        DiamondStorage storage s = DS.ds();
         uint256 numFacets = s.facetAddresses.length;
         facets_ = new Facet[](numFacets);
         for (uint256 i; i < numFacets; i++) {

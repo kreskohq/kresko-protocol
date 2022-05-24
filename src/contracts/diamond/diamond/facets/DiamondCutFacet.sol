@@ -2,8 +2,7 @@
 pragma solidity >=0.8.4;
 
 import {IDiamondCut} from "../interfaces/IDiamondCut.sol";
-import {DS} from "../storage/DS.sol";
-import {DSModifiers} from "../storage/DSModifiers.sol";
+import {DS, DSModifiers} from "../storage/DS.sol";
 import "hardhat/console.sol";
 
 contract DiamondCutFacet is DSModifiers, IDiamondCut {
@@ -17,7 +16,7 @@ contract DiamondCutFacet is DSModifiers, IDiamondCut {
         FacetCut[] calldata _diamondCut,
         address _init,
         bytes calldata _calldata
-    ) external override onlyDSOwner {
+    ) external override onlyOwner {
         DS.diamondCut(_diamondCut, _init, _calldata);
     }
 }

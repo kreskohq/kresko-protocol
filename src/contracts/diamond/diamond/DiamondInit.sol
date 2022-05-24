@@ -2,7 +2,7 @@
 
 pragma solidity >=0.8.4;
 
-import {DS} from "./storage/DS.sol";
+import {DS, DiamondStorage} from "./storage/DS.sol";
 import {LibMeta} from "./libraries/LibMeta.sol";
 
 import {IDiamondLoupe} from "./interfaces/IDiamondLoupe.sol";
@@ -14,9 +14,9 @@ import "hardhat/console.sol";
 
 contract MainDiamondInit {
     function initialize() external {
-        DS.DsStorage storage s = DS.ds();
+        DiamondStorage storage s = DS.ds();
         require(!s.initialized, "DS: Already initialized");
-        require(msg.sender == s.contractOwner, "DS: !Owner");
+        require(msg.sender == s.contractOwner, "DS: Only owner can call this function");
 
         s.domainSeparator = LibMeta.domainSeparator("Kresko Diamond", "V1");
         s.initialized = true;
