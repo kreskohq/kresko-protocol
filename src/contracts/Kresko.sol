@@ -47,6 +47,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
      * @param decimals The decimals for the token, stored here to avoid repetitive external calls.
      * @param exists Whether the collateral asset exists within the protocol.
      */
+
     struct CollateralAsset {
         FixedPoint.Unsigned factor;
         AggregatorV2V3Interface oracle;

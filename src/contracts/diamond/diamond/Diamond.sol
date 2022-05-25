@@ -7,7 +7,7 @@ pragma solidity 0.8.14;
 
 import {DiamondStorage, DS} from "./storage/DS.sol";
 import {IDiamondCut} from "./interfaces/IDiamondCut.sol";
-import {LibMeta} from "helpers/LibMeta.sol";
+import {LibMeta} from "../helpers/LibMeta.sol";
 
 contract Diamond {
     struct Initialization {
