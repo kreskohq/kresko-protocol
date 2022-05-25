@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import {DSModifiers} from "../../shared/storage/DS.sol";
-import {AccessEvent} from "../../shared/libraries/LibEvents.sol";
-import {IOwnership} from "../../shared/interfaces/IOwnership.sol";
+import {DSModifiers} from "../../diamond/storage/DS.sol";
+import {AccessEvent} from "../../events/Events.sol";
+import {IOwnership} from "../../diamond/interfaces/IOwnership.sol";
 import {KS} from "../storage/KS.sol";
 
 contract OperatorFacet is DSModifiers {

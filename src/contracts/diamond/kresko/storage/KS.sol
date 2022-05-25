@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import {DS} from "../../shared/storage/DS.sol";
-import {AccessEvent} from "../../shared/libraries/LibEvents.sol";
-import {LibMeta} from "../../shared/libraries/LibMeta.sol";
+import {DS} from "../../diamond/storage/DS.sol";
+import {AccessEvent} from "../../events/Events.sol";
+import {LibMeta} from "../../helpers/LibMeta.sol";
 import "../../../libraries/FixedPoint.sol";
 import "../../../libraries/FixedPointMath.sol";
 import "../../../libraries/Arrays.sol";

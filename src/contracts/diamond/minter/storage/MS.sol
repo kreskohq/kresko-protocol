@@ -10,21 +10,20 @@ import {CollateralAsset, KrAsset} from "./MinterTypes.sol";
 /* solhint-disable no-inline-assembly */
 /* solhint-disable state-visibility */
 
-/* ========================================================================== */
-/*                                    STATE                                   */
-/* ========================================================================== */
-
 struct MinterStorage {
     /* -------------------------------------------------------------------------- */
     /*                               Initialization                               */
     /* -------------------------------------------------------------------------- */
 
     /// @notice Is initialized to the main diamond
+
     bool initialized;
     /// @notice Current version
     uint8 version;
     /// @notice Domain field separator
     bytes32 domainSeparator;
+    /* -------------------------------------------------------------------------- */
+
     /* -------------------------------------------------------------------------- */
     /*                           Configurable Parameters                          */
     /* -------------------------------------------------------------------------- */
@@ -39,9 +38,13 @@ struct MinterStorage {
     FixedPoint.Unsigned minimumCollateralizationRatio;
     /// @notice The minimum USD value of an individual synthetic asset debt position.
     FixedPoint.Unsigned minimumDebtValue;
-    /// @dev Old mapping for trusted addresses
-    mapping(address => bool) trustedContracts; /// TODO: ********** remove after tests passing **********
-    /* ---------------------------- Collateral Asset ----
+    /** @dev Old mapping for trusted addresses */
+    mapping(address => bool) trustedContracts;
+    /* -------------------------------------------------------------------------- */
+
+    /* -------------------------------------------------------------------------- */
+    /*                              Collateral Assets                             */
+    /* -------------------------------------------------------------------------- */
 
     /// @notice Mapping of collateral asset token address to information on the collateral asset.
     mapping(address => CollateralAsset) collateralAssets;
@@ -50,12 +53,13 @@ struct MinterStorage {
      * asset the account has deposited.
      * @dev Collateral assets must not rebase.
      */
-
     mapping(address => mapping(address => uint256)) collateralDeposits;
     /// @notice Mapping of account address to an array of the addresses of each collateral asset the account
     /// has deposited.
     mapping(address => address[]) depositedCollateralAssets;
-    /* ===== General state - Kresko Assets ===== */
+    /* -------------------------------------------------------------------------- */
+    /*                                Kresko Assets                               */
+    /* -------------------------------------------------------------------------- */
 
     /// @notice Mapping of Kresko asset token address to information on the Kresko asset.
     mapping(address => KrAsset) kreskoAssets;
@@ -81,22 +85,11 @@ library MS {
 
 contract MSModifiers {
     /**
-     * @notice Ensure only trusted contracts can act on behalf of `_account`
-     * @param _accountIsNotMsgSender The address of the collateral asset.
-     */
-    modifier ensureTrustedCallerWhen(bool _accountIsNotMsgSender) {
-        if (_accountIsNotMsgSender) {
-            require(trustedContracts[msg.sender], "KR: Unauthorized caller");
-        }
-        _;
-    }
-
-    /**
      * @notice Reverts if a collateral asset does not exist within the protocol.
      * @param _collateralAsset The address of the collateral asset.
      */
     modifier collateralAssetExists(address _collateralAsset) {
-        require(collateralAssets[_collateralAsset].exists, "KR: !collateralExists");
+        require(MS.s().collateralAssets[_collateralAsset].exists, "KR: !collateralExists");
         _;
     }
 
@@ -105,7 +98,7 @@ contract MSModifiers {
      * @param _collateralAsset The address of the collateral asset.
      */
     modifier collateralAssetDoesNotExist(address _collateralAsset) {
-        require(!collateralAssets[_collateralAsset].exists, "KR: collateralExists");
+        require(!MS.s().collateralAssets[_collateralAsset].exists, "KR: collateralExists");
         _;
     }
 
@@ -114,8 +107,9 @@ contract MSModifiers {
      * @param _kreskoAsset The address of the Kresko asset.
      */
     modifier kreskoAssetExistsAndMintable(address _kreskoAsset) {
-        require(kreskoAssets[_kreskoAsset].exists, "KR: !krAssetExist");
-        require(kreskoAssets[_kreskoAsset].mintable, "KR: !krAssetMintable");
+        MinterStorage storage ms = MS.s();
+        require(ms.kreskoAssets[_kreskoAsset].exists, "KR: !krAssetExist");
+        require(ms.kreskoAssets[_kreskoAsset].mintable, "KR: !krAssetMintable");
         _;
     }
 
@@ -125,18 +119,7 @@ contract MSModifiers {
      * @param _kreskoAsset The address of the Kresko asset.
      */
     modifier kreskoAssetExistsMaybeNotMintable(address _kreskoAsset) {
-        require(kreskoAssets[_kreskoAsset].exists, "KR: !krAssetExist");
-        _;
-    }
-
-    /**
-     * @notice Reverts if a Kresko asset's price is stale
-     * @param _kreskoAsset The address of the Kresko asset.
-     */
-    modifier kreskoAssetPriceNotStale(address _kreskoAsset) {
-        uint256 priceTimestamp = uint256(kreskoAssets[_kreskoAsset].oracle.latestTimestamp());
-        // Include a buffer as block.timestamp can be manipulated up to 15 seconds.
-        require(block.timestamp < priceTimestamp + secondsUntilStalePrice, "KR: stale price");
+        require(MS.s().kreskoAssets[_kreskoAsset].exists, "KR: !krAssetExist");
         _;
     }
 
@@ -146,8 +129,9 @@ contract MSModifiers {
      * @param _symbol The symbol of the Kresko asset.
      */
     modifier kreskoAssetDoesNotExist(address _kreskoAsset, string calldata _symbol) {
-        require(!kreskoAssets[_kreskoAsset].exists, "KR: krAssetExists");
-        require(!kreskoAssetSymbols[_symbol], "KR: symbolExists");
+        MinterStorage storage ms = MS.s();
+        require(!ms.kreskoAssets[_kreskoAsset].exists, "KR: krAssetExists");
+        require(!ms.kreskoAssetSymbols[_symbol], "KR: symbolExists");
         _;
     }
 

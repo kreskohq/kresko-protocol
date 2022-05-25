@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
-
 /* solhint-disable no-complex-fallback  */
 /* solhint-disable no-inline-assembly */
 /* solhint-disable no-empty-blocks */
 
-pragma solidity >=0.8.4;
+pragma solidity 0.8.14;
 
 import {DiamondStorage, DS} from "./storage/DS.sol";
 import {IDiamondCut} from "./interfaces/IDiamondCut.sol";
+import {LibMeta} from "helpers/LibMeta.sol";
 
-contract MainDiamond {
+contract Diamond {
     struct Initialization {
         address initContract;
         bytes initData;
@@ -37,7 +37,7 @@ contract MainDiamond {
         assembly {
             ds.slot := position
         }
-        // get facet from function selector
+        // get facet from function selectorsad
         address facet = ds.selectorToFacetAndPosition[msg.sig].facetAddress;
         require(facet != address(0), "Diamond: Function does not exist");
         // Execute external function from facet using delegatecall and return any value.

@@ -1,0 +1,10 @@
+[default]
+src = "src/contracts"
+out = "build/artifacts"
+libs = ["node_modules"]
+optimizer = true
+optimizer_runs = 800
+[default.optimizer_details]
+yul = true
+[default.optimizer_details.yulDetails]
+stackAllocation = true

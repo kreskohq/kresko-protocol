@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+import {LibMeta} from "./LibMeta.sol";
 
 pragma solidity >=0.8.4;
 
@@ -9,21 +10,11 @@ struct VersionInfo {
 }
 
 library Versions {
-    function increment(uint8 _version) internal {
-        unchecked {
-            _version._value += 1;
-        }
-    }
-
-    function decrement(Counter storage counter) internal {
-        uint256 value = counter._value;
-        require(value > 0, "Counter: decrement overflow");
-        unchecked {
-            counter._value = value - 1;
-        }
-    }
-
-    function reset(Counter storage counter) internal {
-        counter._value = 0;
+    function increment(uint8 _currentVersion) internal returns (VersionInfo memory nextVersion) {
+        nextVersion = VersionInfo({
+            version: _currentVersion++,
+            blocknumber: block.number,
+            updater: LibMeta.msgSender()
+        });
     }
 }

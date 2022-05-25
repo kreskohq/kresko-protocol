@@ -10,14 +10,14 @@ import "@configs/extensions";
 import "@openzeppelin/hardhat-upgrades";
 
 // Plugins
-import "@typechain/hardhat";
 import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-web3";
 import "@nomiclabs/hardhat-solhint";
+import "@typechain/hardhat";
 
-import "hardhat-gas-reporter";
-import "solidity-coverage";
+// import "hardhat-gas-reporter";
+// import "solidity-coverage";
 
 // Environment variables
 import { resolve } from "path";
@@ -32,6 +32,7 @@ if (!mnemonic) {
 }
 // All tasks
 import "@tasks";
+import "@foundry-rs/hardhat-forge";
 // Get configs
 import { compilers, networks, users } from "@configs";
 

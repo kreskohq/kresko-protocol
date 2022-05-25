@@ -93,7 +93,6 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
         for (uint256 i; i < _rewardTokens.length; i++) {
             rewardPerBlockFor[_rewardTokens[i]] = _rewardPerBlocks[i];
         }
-
         // Push the initial pool in.
         _poolInfo.push(
             PoolInfo({

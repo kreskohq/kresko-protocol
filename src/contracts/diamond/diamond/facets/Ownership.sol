@@ -2,51 +2,46 @@
 pragma solidity >=0.8.4;
 
 import {DiamondStorage, DSModifiers, DS} from "../storage/DS.sol";
-import {AccessEvent} from "../libraries/Events.sol";
+import {AccessEvent} from "../../events/Events.sol";
 import {IOwnership} from "../interfaces/IOwnership.sol";
 
 contract DSOwnership is DSModifiers, IOwnership {
-    /* -------------------------------------------------------------------------- */
-    /*                                    Write                                   */
-    /* -------------------------------------------------------------------------- */
+    /* ========================================================================== */
+    /*                                    WRITE                                   */
+    /* ========================================================================== */
 
     /**
-     * @dev Initiate ownership transfer to a new address
+     * @notice Initiate ownership transfer to a new address
+     * - caller must be the current contract owner
+     * - the new owner cannot be address(0)
+     * - emits a {AccessEvent.PendingOwnershipTransfer} event
      * @param _newOwner address that is set as the pending new owner
-     * @notice caller must be the current contract owner
      */
     function transferOwnership(address _newOwner) external override onlyOwner {
-        require(_newOwner != address(0), "DS: Owner cannot be 0-address");
-
-        DiamondStorage storage s = DS.ds();
-        s.pendingOwner = _newOwner;
-
-        emit AccessEvent.PendingOwnershipTransfer(s.contractOwner, _newOwner);
+        DS.initiateOwnershipTransfer(_newOwner);
     }
 
     /**
-     * @dev Transfer the ownership to the new pending owner
-     * @notice caller must be the pending owner
+     * @notice Transfer the ownership to the new pending owner
+     * - caller must be the pending owner
+     * - emits a {AccessEvent.OwnershipTransferred} event
      */
     function acceptOwnership() external override onlyPendingOwner {
-        DiamondStorage storage s = DS.ds();
-        s.contractOwner = s.pendingOwner;
-        s.pendingOwner = address(0);
-
-        emit AccessEvent.OwnershipTransferred(s.contractOwner, msg.sender);
+        DS.finalizeOwnershipTransfer();
     }
 
-    /* -------------------------------------------------------------------------- */
-    /*                                    Read                                    */
-    /* -------------------------------------------------------------------------- */
+    /* ========================================================================== */
+    /*                                    READ                                    */
+    /* ========================================================================== */
 
-    /// @dev Getter for the current owner
-    function owner() external view override returns (address contractOwner_) {
-        DS.contractOwner();
+    /// @notice Getter for the current owner
+    function owner() external view override returns (address) {
+        return DS.contractOwner();
     }
 
-    /// @dev Getter for the pending owner
-    function pendingOwner() external view override returns (address contractOwner_) {
-        DS.pendingOwner();
+    /// @notice Getter for the pending owner
+    /// @return address
+    function pendingOwner() external view override returns (address) {
+        return DS.pendingContractOwner();
     }
 }
