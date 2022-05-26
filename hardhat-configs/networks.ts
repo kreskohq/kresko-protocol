@@ -44,6 +44,7 @@ export const networks = (mnemonic: string) => ({
     auroratest: {
         accounts: {
             mnemonic,
+            count: 50,
         },
         chainId: chainIds.auroratest,
         url: "https://aurora-testnet.infura.io/v3/49b8b68abcc1484abfcb0f9e24a0c4c9",
