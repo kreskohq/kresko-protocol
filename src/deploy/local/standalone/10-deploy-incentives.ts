@@ -1,6 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
-import { RewardToken } from "@typechain";
+import { RewardToken } from "@types-contracts";
 import { getLogger } from "@utils/deployment";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {

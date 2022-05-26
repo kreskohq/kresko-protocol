@@ -8,7 +8,7 @@ import { Artifact } from "hardhat/types";
 import { constructors } from "../utils/constuctors";
 import { DeployOptions } from "@kreskolabs/hardhat-deploy/types";
 import { toBig } from "./numbers";
-import { ExampleFlashLiquidator, MockWETH10, UniswapV2Factory, UniswapV2Router02 } from "types";
+import type { ExampleFlashLiquidator, MockWETH10, UniswapV2Factory, UniswapV2Router02 } from "@types-contracts";
 
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 export const ADDRESS_ONE = "0x0000000000000000000000000000000000000001";
@@ -53,37 +53,6 @@ export function expectBigNumberToBeWithinTolerance(
     const maxExpected = expected.add(greaterThanTolerance);
     expect(value.gte(minExpected) && value.lte(maxExpected)).to.be.true;
 }
-
-export const setupTests = deployments.createFixture(async ({ deployments, ethers, deploy }) => {
-    const deploymentTag = "kresko-sol";
-    await deployments.fixture(deploymentTag); // ensure you start from fresh deployments
-    const { admin, userOne, userTwo, userThree, nonadmin, operator } = await ethers.getNamedSigners();
-    const constructor = constructors.Kresko();
-
-    const [kresko] = await deploy<Kresko>("Kresko", {
-        from: admin.address,
-        log: true,
-        proxy: {
-            owner: admin.address,
-            proxyContract: "OptimizedTransparentProxy",
-            execute: {
-                methodName: "initialize",
-                args: Object.values(constructor),
-            },
-        },
-    });
-    return {
-        kresko,
-        signers: {
-            admin,
-            userOne,
-            userTwo,
-            userThree,
-            nonadmin,
-            operator,
-        },
-    };
-});
 
 export async function deployWETH10AsCollateralWithLiquidator(
     Kresko: Kresko,
@@ -299,7 +268,7 @@ export const deployUniswap = deployments.createFixture(async ({ deploy }) => {
 
 export const setupTestsStaking = (stakingTokenAddr: string, routerAddr: string, factoryAddr: string) =>
     deployments.createFixture(async ({ deployments, ethers }) => {
-        await deployments.fixture("staking-zap");
+        await deployments.fixture("staking-test");
         const { admin, userOne, userTwo, userThree, nonadmin, operator } = await ethers.getNamedSigners();
 
         const [RewardTKN1] = await deploySimpleToken("RewardTKN1", 0);
@@ -319,6 +288,55 @@ export const setupTestsStaking = (stakingTokenAddr: string, routerAddr: string, 
             KrStakingUniHelper,
             RewardTKN1,
             RewardTKN2,
+            signers: {
+                admin,
+                userOne,
+                userTwo,
+                userThree,
+                nonadmin,
+                operator,
+            },
+        };
+    });
+
+export const setupTests = deployments.createFixture(async ({ deployments, ethers, deploy }) => {
+    const deploymentTag = "kresko-test";
+    await deployments.fixture(deploymentTag); // ensure you start from fresh deployments
+    const { admin, userOne, userTwo, userThree, nonadmin, operator } = await ethers.getNamedSigners();
+    const constructor = constructors.Kresko();
+
+    const [kresko] = await deploy<Kresko>("Kresko", {
+        from: admin.address,
+        log: true,
+        proxy: {
+            owner: admin.address,
+            proxyContract: "OptimizedTransparentProxy",
+            execute: {
+                methodName: "initialize",
+                args: Object.values(constructor),
+            },
+        },
+    });
+    return {
+        kresko,
+        signers: {
+            admin,
+            userOne,
+            userTwo,
+            userThree,
+            nonadmin,
+            operator,
+        },
+    };
+});
+
+export const useDeployment = async (tags: string | string[]) =>
+    deployments.createFixture(async ({ deployments, ethers }) => {
+        await deployments.fixture(tags); // Use only the deployment tags supplied
+        const Diamond = await ethers.getContract("Diamond");
+        const { admin, userOne, userTwo, userThree, nonadmin, operator } = await ethers.getNamedSigners();
+        return {
+            Diamond: Diamond,
             signers: {
                 admin,
                 userOne,

@@ -2,7 +2,7 @@
 pragma solidity >=0.8.4;
 
 import {DS, DiamondStorage} from "./storage/DS.sol";
-import {LibMeta} from "../helpers/LibMeta.sol";
+import {LibMeta} from "helpers/LibMeta.sol";
 
 import {IDiamondLoupe} from "./interfaces/IDiamondLoupe.sol";
 import {IDiamondCut} from "./interfaces/IDiamondCut.sol";

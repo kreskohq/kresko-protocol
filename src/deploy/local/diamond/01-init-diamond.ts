@@ -12,21 +12,22 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     } = hre;
     const { admin } = await getNamedAccounts();
 
-    const result = await diamond.deploy("krDiamond", {
+    const result = await diamond.deploy("Diamond", {
         diamondContract: "Diamond",
         defaultCutFacet: false,
         defaultOwnershipFacet: false,
+        defaultLoupeFacet: false,
         from: admin,
         owner: admin,
         log: true,
         facets: [
             { name: "DiamondCutFacet", contract: "DiamondCutFacet" },
+            { name: "DiamondLoupeFacet", contract: "DiamondLoupeFacet" },
             { name: "DiamondOwnershipFacet", contract: "DiamondOwnershipFacet" },
-            { name: "ERC165Facet", contract: "ERC165Facet" },
         ],
     });
 
-    const krDiamond = await ethers.getContract<DiamondOwnershipFacet>("krDiamond");
+    const krDiamond = await ethers.getContract<DiamondOwnershipFacet>("Diamond");
     logger.log("Initiated diamond with", result.facets.length, "facets");
 
     const owner = await krDiamond.owner();

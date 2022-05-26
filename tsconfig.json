@@ -16,7 +16,7 @@
         "resolveJsonModule": true,
         "strict": false,
         "esModuleInterop": true,
-        "baseUrl": ".",
+        "baseUrl": "",
         "paths": {
             "@configs": ["./hardhat-configs"],
             "@configs/*": ["./hardhat-configs/*"],
@@ -24,12 +24,11 @@
             "@utils/*": ["./src/utils/*"],
             "@tasks": ["./src/tasks"],
             "types": ["./types"],
-            "types/*": ["./types/*"],
-            "@typechain": ["./types/contracts"],
-            "@typechain/*": ["./types/contracts/*"]
+            "@types-contracts": ["./types/contracts"],
+            "@types-contracts/*": ["./types/contracts/src/contracts/*"]
         }
     },
-    "include": ["./hardhat-configs", "./src/**/*", "./types"],
-    "exclude": ["./node_modules", "./build/ts"],
+    "include": ["./hardhat-configs", "./src", "./types"],
+    "exclude": ["./node_modules", "./build"],
     "files": ["./hardhat.config.ts"]
 }

@@ -3,7 +3,6 @@ pragma solidity >=0.8.4;
 
 import {IDiamondCut} from "../interfaces/IDiamondCut.sol";
 import {DS, DSModifiers} from "../storage/DS.sol";
-import "hardhat/console.sol";
 
 contract DiamondCutFacet is DSModifiers, IDiamondCut {
     /// @notice Add/replace/remove any number of functions and optionally execute

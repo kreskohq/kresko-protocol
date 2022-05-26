@@ -101,9 +101,8 @@ export const networks = (mnemonic: string) => ({
         accounts: {
             mnemonic,
         },
-        chainId: chainIds.hardhat,
         saveDeployments: true,
-        deploy: ["./src/deploy/local"],
+        chainId: chainIds.hardhat,
     },
     localhost: {
         accounts: {
@@ -111,7 +110,6 @@ export const networks = (mnemonic: string) => ({
         },
         saveDeployments: true,
         chainId: chainIds.hardhat,
-        deploy: ["./src/deploy/local"],
     },
     ethereum: {
         accounts: { mnemonic },

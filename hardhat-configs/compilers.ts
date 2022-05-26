@@ -1,6 +1,17 @@
 export const compilers = {
     compilers: [
         {
+            version: "0.5.16",
+            settings: {
+                // You should disable the optimizer when debugging
+                // https://hardhat.org/hardhat-network/#solidity-optimizer-support
+                optimizer: {
+                    enabled: true,
+                    runs: 800,
+                },
+            },
+        },
+        {
             version: "0.6.6",
             settings: {
                 optimizer: {
@@ -12,6 +23,11 @@ export const compilers = {
         {
             version: "0.6.12",
             settings: {
+                metadata: {
+                    // Not including the metadata hash
+                    // https://github.com/paulrberg/solidity-template/issues/31
+                    bytecodeHash: "none",
+                },
                 optimizer: {
                     enabled: true,
                     runs: 800,
@@ -21,20 +37,6 @@ export const compilers = {
         {
             version: "0.8.4",
             settings: {
-                // You should disable the optimizer when debugging
-                // https://hardhat.org/hardhat-network/#solidity-optimizer-support
-                optimizer: {
-                    enabled: true,
-                    runs: 800,
-                    details: {
-                        yul: true,
-                    },
-                },
-            },
-        },
-        {
-            version: "0.8.10",
-            settings: {
                 metadata: {
                     // Not including the metadata hash
                     // https://github.com/paulrberg/solidity-template/issues/31
@@ -43,22 +45,17 @@ export const compilers = {
                 // You should disable the optimizer when debugging
                 // https://hardhat.org/hardhat-network/#solidity-optimizer-support
                 optimizer: {
-                    enabled: false,
+                    enabled: true,
                     runs: 800,
-                    details: {
-                        yul: true,
-                    },
                 },
             },
         },
         {
-            version: "0.5.16",
+            version: "0.8.11",
             settings: {
-                // You should disable the optimizer when debugging
-                // https://hardhat.org/hardhat-network/#solidity-optimizer-support
                 optimizer: {
-                    enabled: true,
                     runs: 800,
+                    enabled: true,
                 },
             },
         },

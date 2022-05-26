@@ -3,11 +3,11 @@
 /* solhint-disable no-inline-assembly */
 /* solhint-disable no-empty-blocks */
 
-pragma solidity 0.8.14;
+pragma solidity =0.8.11;
 
 import {DiamondStorage, DS} from "./storage/DS.sol";
 import {IDiamondCut} from "./interfaces/IDiamondCut.sol";
-import {LibMeta} from "../helpers/LibMeta.sol";
+import {LibMeta} from "helpers/LibMeta.sol";
 
 contract Diamond {
     struct Initialization {
@@ -37,7 +37,7 @@ contract Diamond {
         assembly {
             ds.slot := position
         }
-        // get facet from function selectorsad
+        // get facet from function selectors
         address facet = ds.selectorToFacetAndPosition[msg.sig].facetAddress;
         require(facet != address(0), "Diamond: Function does not exist");
         // Execute external function from facet using delegatecall and return any value.

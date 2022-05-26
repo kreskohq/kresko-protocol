@@ -6,8 +6,6 @@ import "./interfaces/IKresko.sol";
 import "../libraries/FixedPoint.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "hardhat/console.sol";
-
 contract ExampleFlashLiquidator is IERC3156FlashBorrower {
     using FixedPoint for FixedPoint.Unsigned;
     bytes32 public immutable CALLBACK_SUCCESS = keccak256("ERC3156FlashBorrower.onFlashLoan");
