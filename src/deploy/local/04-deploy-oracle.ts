@@ -7,6 +7,7 @@ const func: DeployFunction = async function (hre) {
     const { priceFeeds, getNamedAccounts } = hre;
 
     const { priceFeedValidator } = await getNamedAccounts();
+    logger.log("priceFeedValidator:", priceFeedValidator);
     // USD
     await hre.run("deployone:fluxpricefeed", {
         name: "USD",
