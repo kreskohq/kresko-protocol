@@ -18,9 +18,9 @@ import {
 } from "@utils";
 //@ts-ignore
 import { time } from "@openzeppelin/test-helpers";
-import type { ClaimRewardsEvent, DepositEvent, WithdrawEvent } from "types/contracts/KrStaking";
-import type { LiquidityAndStakeAddedEvent, LiquidityAndStakeRemovedEvent } from "types/contracts/KrStakingUniHelper";
-import type { UniswapV2Pair } from "types";
+import type { ClaimRewardsEvent, DepositEvent, WithdrawEvent } from "types/typechain/KrStaking";
+import type { LiquidityAndStakeAddedEvent, LiquidityAndStakeRemovedEvent } from "types/typechain/KrStakingUniHelper";
+import type { UniswapV2Pair } from "types/typechain";
 
 describe("Staking", function () {
     before(async function () {

@@ -16,7 +16,12 @@ extendEnvironment(async function (hre) {
     hre.priceAggregators = {};
     hre.uniPairs = {};
     hre.constructors = constructors;
-    hre.getSignatures = abi => new hre.utils.Interface(abi).fragments.map(hre.utils.Interface.getSighash);
+    hre.getSignatures = abi =>
+        new hre.utils.Interface(abi).fragments.filter(f => f.type === "function").map(hre.utils.Interface.getSighash);
+    hre.getSignaturesWithNames = abi =>
+        new hre.utils.Interface(abi).fragments
+            .filter(f => f.type === "function")
+            .map(fragment => ({ name: fragment.name, sig: hre.utils.Interface.getSighash(fragment) }));
 });
 
 export {};

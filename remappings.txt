@@ -1,2 +1,0 @@
-
-helpers/=src/contracts/diamond/helpers/

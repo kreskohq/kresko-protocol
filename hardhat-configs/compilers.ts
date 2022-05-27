@@ -23,11 +23,6 @@ export const compilers = {
         {
             version: "0.6.12",
             settings: {
-                metadata: {
-                    // Not including the metadata hash
-                    // https://github.com/paulrberg/solidity-template/issues/31
-                    bytecodeHash: "none",
-                },
                 optimizer: {
                     enabled: true,
                     runs: 800,
@@ -52,6 +47,11 @@ export const compilers = {
         },
         {
             version: "0.8.11",
+            metadata: {
+                // Not including the metadata hash
+                // https://github.com/paulrberg/solidity-template/issues/31
+                bytecodeHash: "none",
+            },
             settings: {
                 optimizer: {
                     runs: 800,

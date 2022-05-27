@@ -8,7 +8,7 @@ import { Artifact } from "hardhat/types";
 import { constructors } from "../utils/constuctors";
 import { DeployOptions } from "@kreskolabs/hardhat-deploy/types";
 import { toBig } from "./numbers";
-import type { ExampleFlashLiquidator, MockWETH10, UniswapV2Factory, UniswapV2Router02 } from "@types-contracts";
+import type { ExampleFlashLiquidator, MockWETH10, UniswapV2Factory, UniswapV2Router02 } from "types";
 
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 export const ADDRESS_ONE = "0x0000000000000000000000000000000000000001";
@@ -329,21 +329,3 @@ export const setupTests = deployments.createFixture(async ({ deployments, ethers
         },
     };
 });
-
-export const useDeployment = async (tags: string | string[]) =>
-    deployments.createFixture(async ({ deployments, ethers }) => {
-        await deployments.fixture(tags); // Use only the deployment tags supplied
-        const Diamond = await ethers.getContract("Diamond");
-        const { admin, userOne, userTwo, userThree, nonadmin, operator } = await ethers.getNamedSigners();
-        return {
-            Diamond: Diamond,
-            signers: {
-                admin,
-                userOne,
-                userTwo,
-                userThree,
-                nonadmin,
-                operator,
-            },
-        };
-    });

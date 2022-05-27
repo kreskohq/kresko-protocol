@@ -2,7 +2,7 @@ import { FunctionFragment } from "@ethersproject/abi";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { fromBig, toBig } from "@utils";
 import { Fixture } from "ethereum-waffle";
-import { ABI, DeployOptions } from "@kreskolabs/hardhat-deploy/types";
+import { ABI, Deployment, DeployOptions } from "@kreskolabs/hardhat-deploy/types";
 
 import {
     FluxPriceFeed,
@@ -12,8 +12,11 @@ import {
     KrStaking,
     UniswapV2Pair,
     KrStakingUniHelper,
-} from "types";
-import { UniswapV2Factory, UniswapV2Router02 } from "./contracts";
+    UniswapV2Factory,
+    UniswapV2Router02,
+    FullDiamond,
+} from "types/typechain";
+import { getFacets } from "src/test/diamond/utils";
 
 declare module "mocha" {
     export interface Context {
@@ -26,6 +29,22 @@ declare module "mocha" {
             userThree?: SignerWithAddress;
             nonadmin?: SignerWithAddress;
             liquidator?: SignerWithAddress;
+        };
+        users: {
+            deployer: SignerWithAddress;
+            owner: SignerWithAddress;
+            operator: SignerWithAddress;
+            userOne: SignerWithAddress;
+            userTwo: SignerWithAddress;
+            userThree: SignerWithAddress;
+            nonadmin?: SignerWithAddress;
+            liquidator?: SignerWithAddress;
+        };
+        // Diamond additions
+        facets: Awaited<ReturnType<typeof getFacets>>;
+        Diamond: FullDiamond;
+        fixture: {
+            [name: string]: Deployment;
         };
         admin: string;
         userOne: string;
@@ -80,6 +99,7 @@ declare module "hardhat/types/runtime" {
     export interface HardhatRuntimeEnvironment {
         deploy: <T extends Contract>(name: string, options?: DeployOptions) => Promise<DeployResultWithSignatures<T>>;
         getSignatures: (abi: ABI) => string[];
+        getSignaturesWithNames: (abi: ABI) => { name: string; sig: string }[];
         utils: typeof import("ethers/lib/utils");
         bytesCall: <T>(func: FunctionFragment, params: T) => string;
         fromBig: typeof fromBig;

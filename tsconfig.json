@@ -2,33 +2,27 @@
     "compilerOptions": {
         "declaration": true,
         "declarationMap": true,
-        "sourceMap": true,
         "forceConsistentCasingInFileNames": true,
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
         "target": "es2018",
-        "lib": ["DOM", "DOM.Iterable", "es2020"],
+        "lib": ["ES2018", "DOM", "DOM.Iterable", "ES2019.Array", "ES2019.Object"],
         "module": "commonjs",
         "allowJs": true,
         "moduleResolution": "node",
         "noImplicitAny": true,
-        "outDir": "./build/ts",
         "resolveJsonModule": true,
         "strict": false,
         "esModuleInterop": true,
-        "baseUrl": "",
+        "baseUrl": "./",
         "paths": {
-            "@configs": ["./hardhat-configs"],
-            "@configs/*": ["./hardhat-configs/*"],
-            "@utils": ["./src/utils"],
-            "@utils/*": ["./src/utils/*"],
-            "@tasks": ["./src/tasks"],
-            "types": ["./types"],
-            "@types-contracts": ["./types/contracts"],
-            "@types-contracts/*": ["./types/contracts/src/contracts/*"]
+            "@configs": ["hardhat-configs"],
+            "@configs/*": ["hardhat-configs/*"],
+            "@utils": ["src/utils"],
+            "@utils/*": ["src/utils/*"],
+            "@tasks": ["src/tasks"]
         }
     },
-    "include": ["./hardhat-configs", "./src", "./types"],
-    "exclude": ["./node_modules", "./build"],
-    "files": ["./hardhat.config.ts"]
+    "include": ["hardhat.config.ts", "hardhat-configs/**/*", "src/**/*", "tasks/**/*", "types/**/*"],
+    "exclude": ["node_modules", "build", "packages"]
 }

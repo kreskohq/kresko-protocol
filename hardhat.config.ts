@@ -1,7 +1,5 @@
-import fs from "fs";
 // Deployment
 import "tsconfig-paths/register";
-import "@kreskolabs/hardhat-deploy";
 
 // HRE extensions
 import "@configs/extensions";
@@ -11,18 +9,19 @@ import "@configs/extensions";
 
 // OZ Contracts
 import "@openzeppelin/hardhat-upgrades";
+import "@kreskolabs/hardhat-deploy";
+import "@nomiclabs/hardhat-ethers";
 
 // Plugins
+// import "solidity-coverage";
 import "@typechain/hardhat";
-import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-web3";
 import "@nomiclabs/hardhat-solhint";
+import "hardhat-diamond-abi";
 
+// import "hardhat-preprocessor";
 import "hardhat-gas-reporter";
-import "hardhat-preprocessor";
-import "solidity-coverage";
-
 // Environment variables
 import { resolve } from "path";
 import { config as dotenvConfig } from "dotenv";
@@ -39,67 +38,55 @@ import "@tasks";
 // Get configs
 import { compilers, networks, users } from "@configs";
 import type { HardhatUserConfig } from "hardhat/types";
+import { facets } from "src/contracts/diamonds/diamond-config";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-function getRemappings() {
-    return (
-        fs
-            .readFileSync("remappings.txt", "utf8")
-            .split("\n")
-            .filter(Boolean) // remove empty lines
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            .map(line => line.trim().split("="))
-    );
-}
+// function getRemappings() {
+//     return (
+//         fs
+//             .readFileSync("remappings.txt", "utf8")
+//             .split("\n")
+//             .filter(Boolean) // remove empty lines
+//             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//             // @ts-ignore
+//             .map(line => line.trim().split("="))
+//     );
+// }
 // Set config
 const config: HardhatUserConfig = {
     gasReporter: {
         currency: "USD",
         enabled: process.env.REPORT_GAS ? true : false,
-        src: "./src/contracts",
+        src: "src/contracts",
     },
     namedAccounts: users,
     networks: networks(mnemonic),
     defaultNetwork: "hardhat",
-    preprocess: {
-        eachLine: () => ({
-            transform: (line: string) => {
-                if (line.match(/^\s*import /i)) {
-                    getRemappings().forEach(([find, replace]) => {
-                        if (line.match('"' + find)) {
-                            line = line.replace('"' + find, '"' + replace);
-                        }
-                    });
-                }
-                return line;
-            },
-        }),
-    },
     paths: {
-        artifacts: "./build/artifacts",
-        cache: "./build/cache",
-        sources: "./src/contracts",
-        tests: "./src/test",
-        deploy: "./src/deploy",
-        deployments: "./deployments",
-        imports: "./imports",
+        artifacts: "build/artifacts",
+        cache: "build/cache",
+        sources: "src/contracts",
+        tests: "src/test",
+        deploy: "src/deploy",
+        deployments: "deployments",
+        imports: "imports",
     },
     solidity: compilers,
     typechain: {
-        outDir: "./types/contracts",
+        outDir: "./types/typechain",
         target: "ethers-v5",
-        externalArtifacts: fs.existsSync("./deployments/localhost/Diamond.json")
-            ? [
-                  fs.existsSync("./deployments/auroratest/Diamond.json")
-                      ? "./deployments/localhost/Diamond.json"
-                      : "./deployments/auroratest/Diamond.json",
-              ]
-            : ["./abi/DiamondBase.json"],
+        tsNocheck: true,
+        externalArtifacts: ["./build/artifacts/hardhat-diamond-abi/FullDiamond.sol/FullDiamond.json"],
     },
     mocha: {
         timeout: 120000,
+    },
+    diamondAbi: {
+        // (required) The name of your Diamond ABI
+        name: "FullDiamond",
+        strict: true,
+        include: facets,
     },
 };
 

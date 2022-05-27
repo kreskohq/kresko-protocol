@@ -2,6 +2,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import { getLogger } from "@utils/deployment";
 import { DiamondOwnershipFacet } from "types";
+import { facets } from "src/contracts/diamonds/diamond-config";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("deploy-diamond");
@@ -20,11 +21,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         from: admin,
         owner: admin,
         log: true,
-        facets: [
-            { name: "DiamondCutFacet", contract: "DiamondCutFacet" },
-            { name: "DiamondLoupeFacet", contract: "DiamondLoupeFacet" },
-            { name: "DiamondOwnershipFacet", contract: "DiamondOwnershipFacet" },
-        ],
+        facets,
     });
 
     const krDiamond = await ethers.getContract<DiamondOwnershipFacet>("Diamond");

@@ -41,9 +41,9 @@ import {
     MinimumCollateralizationRatioUpdatedEvent,
     LiquidationIncentiveMultiplierUpdatedEvent,
     LiquidationOccurredEvent,
-} from "typechain/Kresko";
+} from "types/typechain/Kresko";
 
-describe.only("Kresko", function () {
+describe("Kresko", function () {
     before(async function () {
         // We intentionally allow constructor that calls the initializer
         // modifier and explicitly allow this in calls to `deployProxy`.
@@ -1692,7 +1692,7 @@ describe.only("Kresko", function () {
             });
         });
 
-        describe.only("#burnKreskoAsset", function () {
+        describe("#burnKreskoAsset", function () {
             beforeEach(async function () {
                 // Mint Kresko asset
                 this.mintAmount = toFixedPoint(500);

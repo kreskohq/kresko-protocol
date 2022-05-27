@@ -102,7 +102,6 @@ export const networks = (mnemonic: string) => ({
             mnemonic,
         },
         saveDeployments: true,
-        chainId: chainIds.hardhat,
     },
     localhost: {
         accounts: {
