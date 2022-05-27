@@ -64,62 +64,122 @@ describe.only("Diamond", function () {
             expect(DiamondOwnershipFacetSelectors).to.have.members(DiamondOwnershipFacet.signatures);
         });
 
-        it("should allow owner to remove a function from a facet", async function () {
-            const DiamondOwnershipFacet = this.facets.find(f => f.name === "DiamondOwnershipFacet")
-                .contract as DiamondOwnershipFacet;
+        describe("#diamondCut", function () {
+            it("should allow owner to add a new facet", async function () {
+                const DiamondOwnershipFacet = this.facets.find(f => f.name === "DiamondOwnershipFacet")
+                    .contract as DiamondOwnershipFacet;
 
-            // Remove the pendingOwner view function from the Ownership facet
-            const pendingOwner = await this.Diamond.pendingOwner();
-            expect(pendingOwner).to.equal(this.addresses.ZERO);
+                // Remove the pendingOwner view function from the Ownership facet
+                const pendingOwner = await this.Diamond.pendingOwner();
+                expect(pendingOwner).to.equal(this.addresses.ZERO);
 
-            // Get all _function_ signatures and their readable names
-            const signaturesWithNames = hre.getSignaturesWithNames(DiamondOwnershipFacet__factory.abi);
+                // Get all _function_ signatures and their readable names
+                const signaturesWithNames = hre.getSignaturesWithNames(DiamondOwnershipFacet__factory.abi);
 
-            // Function to remove
-            const pendingOwnerFuncFragment = DiamondOwnershipFacet.interface.functions["pendingOwner()"];
+                // Function to remove
+                const pendingOwnerFuncFragment = DiamondOwnershipFacet.interface.functions["pendingOwner()"];
 
-            // Save the desired result for later comparison
-            const functionsToKeep = signaturesWithNames
-                .filter(s => s.name !== pendingOwnerFuncFragment.name)
-                .map(s => s.sig);
+                // Save the desired result for later comparison
+                const functionsToKeep = signaturesWithNames
+                    .filter(s => s.name !== pendingOwnerFuncFragment.name)
+                    .map(s => s.sig);
 
-            const functionsToRemove = signaturesWithNames
-                .filter(s => s.name === pendingOwnerFuncFragment.name)
-                .map(f => f.sig);
+                const functionsToRemove = signaturesWithNames
+                    .filter(s => s.name === pendingOwnerFuncFragment.name)
+                    .map(f => f.sig);
 
-            expect(functionsToKeep.length).to.equal(signaturesWithNames.length - 1);
-            expect(functionsToRemove.length).to.equal(1);
+                expect(functionsToKeep.length).to.equal(signaturesWithNames.length - 1);
+                expect(functionsToRemove.length).to.equal(1);
 
-            // Single cut
-            const DiamondCuts: FacetCut[] = [
-                {
-                    facetAddress: this.addresses.ZERO,
-                    action: FacetCutAction.Remove,
-                    functionSelectors: functionsToRemove,
-                },
-            ];
+                // Single cut
+                const DiamondCuts: FacetCut[] = [
+                    {
+                        facetAddress: this.addresses.ZERO,
+                        action: FacetCutAction.Remove,
+                        functionSelectors: functionsToRemove,
+                    },
+                ];
 
-            // Do not initialize anything with this test scope
-            const initializer: DiamondCutInitializer = [this.addresses.ZERO, "0x"];
+                // Do not initialize anything with this test scope
+                const initializer: DiamondCutInitializer = [this.addresses.ZERO, "0x"];
 
-            // Perform
-            const tx = await this.Diamond.diamondCut(DiamondCuts, ...initializer);
-            const receipt = await extractEventFromTxReceipt<DiamondCutEvent>(tx, "DiamondCut");
+                // Perform
+                const tx = await this.Diamond.diamondCut(DiamondCuts, ...initializer);
+                const receipt = await extractEventFromTxReceipt<DiamondCutEvent>(tx, "DiamondCut");
 
-            // Validate event
-            const { _diamondCut, _init, _calldata } = receipt.args;
-            expect(_diamondCut.length).to.equal(DiamondCuts.length);
-            /// IDiamondCut.sol - Add=0, Replace=1, Remove=2
-            expect(_diamondCut[0].action).to.equal(2);
-            expect(_init).to.equal(initializer[0]);
-            expect(_calldata).to.equal(initializer[1]);
+                // Validate event
+                const { _diamondCut, _init, _calldata } = receipt.args;
+                expect(_diamondCut.length).to.equal(DiamondCuts.length);
+                /// IDiamondCut.sol - Add=0, Replace=1, Remove=2
+                expect(_diamondCut[0].action).to.equal(2);
+                expect(_init).to.equal(initializer[0]);
+                expect(_calldata).to.equal(initializer[1]);
 
-            // Validate existence
-            await expect(this.Diamond.pendingOwner()).to.be.revertedWith(Errors.INVALID_FUNCTION_SIGNATURE);
+                // Validate existence
+                await expect(this.Diamond.pendingOwner()).to.be.revertedWith(Errors.INVALID_FUNCTION_SIGNATURE);
 
-            const facetFunctionsAfterCut = await this.Diamond.facetFunctionSelectors(DiamondOwnershipFacet.address);
+                const facetFunctionsAfterCut = await this.Diamond.facetFunctionSelectors(DiamondOwnershipFacet.address);
 
-            expect(facetFunctionsAfterCut).to.have.members(functionsToKeep);
+                expect(facetFunctionsAfterCut).to.have.members(functionsToKeep);
+            });
+
+            it("should allow owner to remove a function from a facet", async function () {
+                const DiamondOwnershipFacet = this.facets.find(f => f.name === "DiamondOwnershipFacet")
+                    .contract as DiamondOwnershipFacet;
+
+                // Remove the pendingOwner view function from the Ownership facet
+                const pendingOwner = await this.Diamond.pendingOwner();
+                expect(pendingOwner).to.equal(this.addresses.ZERO);
+
+                // Get all _function_ signatures and their readable names
+                const signaturesWithNames = hre.getSignaturesWithNames(DiamondOwnershipFacet__factory.abi);
+
+                // Function to remove
+                const pendingOwnerFuncFragment = DiamondOwnershipFacet.interface.functions["pendingOwner()"];
+
+                // Save the desired result for later comparison
+                const functionsToKeep = signaturesWithNames
+                    .filter(s => s.name !== pendingOwnerFuncFragment.name)
+                    .map(s => s.sig);
+
+                const functionsToRemove = signaturesWithNames
+                    .filter(s => s.name === pendingOwnerFuncFragment.name)
+                    .map(f => f.sig);
+
+                expect(functionsToKeep.length).to.equal(signaturesWithNames.length - 1);
+                expect(functionsToRemove.length).to.equal(1);
+
+                // Single cut
+                const DiamondCuts: FacetCut[] = [
+                    {
+                        facetAddress: this.addresses.ZERO,
+                        action: FacetCutAction.Remove,
+                        functionSelectors: functionsToRemove,
+                    },
+                ];
+
+                // Do not initialize anything with this test scope
+                const initializer: DiamondCutInitializer = [this.addresses.ZERO, "0x"];
+
+                // Perform
+                const tx = await this.Diamond.diamondCut(DiamondCuts, ...initializer);
+                const receipt = await extractEventFromTxReceipt<DiamondCutEvent>(tx, "DiamondCut");
+
+                // Validate event
+                const { _diamondCut, _init, _calldata } = receipt.args;
+                expect(_diamondCut.length).to.equal(DiamondCuts.length);
+                /// IDiamondCut.sol - Add=0, Replace=1, Remove=2
+                expect(_diamondCut[0].action).to.equal(2);
+                expect(_init).to.equal(initializer[0]);
+                expect(_calldata).to.equal(initializer[1]);
+
+                // Validate existence
+                await expect(this.Diamond.pendingOwner()).to.be.revertedWith(Errors.INVALID_FUNCTION_SIGNATURE);
+
+                const facetFunctionsAfterCut = await this.Diamond.facetFunctionSelectors(DiamondOwnershipFacet.address);
+
+                expect(facetFunctionsAfterCut).to.have.members(functionsToKeep);
+            });
         });
     });
 });
