@@ -132,7 +132,6 @@ contract ExampleFlashLiquidator is IERC3156FlashBorrower {
 
         // Deposit our flash balance to Kresko as Collateral
         kresko.depositCollateral(address(this), address(weth10), flashBalance);
-        // Ensure we are not repaying more than the debt
 
         // Mint the repayment asset
         kresko.mintKreskoAsset(address(this), _repayKreskoAsset, _repayAmount);
@@ -148,8 +147,13 @@ contract ExampleFlashLiquidator is IERC3156FlashBorrower {
             false // do not keep debt - we want the profits after repaying this flashloan
         );
 
-        // Withdraw our collateral back = flashloan amount
-        kresko.withdrawCollateral(address(this), address(weth10), flashBalance, 0);
+        // Withdraw our collateral back = remaining deposited weth10 amount
+        uint256 weth10CollateralDepositAmount = kresko.collateralDeposits(address(this), address(weth10));
+        kresko.withdrawCollateral(address(this), address(weth10), weth10CollateralDepositAmount, 0);
+        
+        uint256 diff = flashBalance - weth10CollateralDepositAmount;
+        require(diff > 0, "revert");
+        weth10.deposit(diff);
 
         uint256 rewardTokenBalAfter = IERC20(_rewardCollateral).balanceOf(address(this));
 

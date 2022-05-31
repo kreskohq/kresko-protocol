@@ -11,4 +11,6 @@ interface IWETH10 {
     ) external returns (bool);
 
     function balanceOf(address) external view returns (uint256);
+
+    function deposit(uint256 _amount) external;
 }
