@@ -25,7 +25,7 @@ task("deploy:kresko")
         const { admin } = await getNamedAccounts();
         const deploy = deployWithSignatures(hre);
         const { formatEther } = ethers.utils;
-        const { burnFee, feeRecipient, liquidationIncentiveMultiplier, minCollaterRatio, minDebtValue, secondsUntilStalePrice, wait, log } =
+        const { burnFee, feeRecipient, liquidationIncentiveMultiplier, minCollaterRatio, minDebtValue, wait, log } =
             taskArgs;
 
         const logger = getLogger("deployKresko", log);
@@ -44,7 +44,6 @@ task("deploy:kresko")
                         toFixedPoint(liquidationIncentiveMultiplier),
                         toFixedPoint(minCollaterRatio),
                         toFixedPoint(minDebtValue, 8),
-                        secondsUntilStalePrice,
                     ],
                 },
             },
