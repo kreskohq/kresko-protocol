@@ -2,7 +2,7 @@ import { setupTests } from "@utils";
 import { artifacts, waffle } from "hardhat";
 import { shouldBehaveLikeFluxPriceFeed } from "./FluxPriceFeed.behavior";
 
-describe.only("FluxPriceFeed", function () {
+describe("FluxPriceFeed", function () {
     before(async function () {
         const { signers } = await setupTests();
         this.signers = signers;

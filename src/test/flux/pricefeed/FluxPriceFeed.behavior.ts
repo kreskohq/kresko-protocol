@@ -71,7 +71,7 @@ export function shouldBehaveLikeFluxPriceFeed(): void {
         await this.pricefeed.connect(this.signers.admin).transmit(TEST_VALUE, true);
         expect(await this.pricefeed.connect(this.signers.admin).getAnswer(1)).to.equal(TEST_VALUE);
     });
-    it("should return marketOpenb correctly", async function () {
+    it("should return marketOpen correctly", async function () {
         await this.pricefeed.connect(this.signers.admin).transmit(TEST_VALUE, true);
         expect(await this.pricefeed.connect(this.signers.admin).getMarketOpen(1)).to.equal(true);
     });
