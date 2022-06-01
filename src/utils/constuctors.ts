@@ -9,6 +9,9 @@ export const constructors = {
             overrides?.minimumCollateralizationRatio || process.env.MINIMUM_COLLATERALIZATION_RATIO,
         );
         const minimumDebtValue = toFixedPoint(overrides?.minimumDebtValue || process.env.MINIMUM_DEBT_VALUE);
+        const liquidationThreshold = toFixedPoint(
+            overrides?.liquidationThreshold || process.env.LIQUIDATION_THRESHOLD,
+        );
 
         const feeRecipientAddressStr = overrides?.feeRecipient || process.env.FEE_RECIPIENT_ADDRESS;
         if (!feeRecipientAddressStr) {
@@ -22,6 +25,7 @@ export const constructors = {
             liquidationIncentive,
             minimumCollateralizationRatio,
             minimumDebtValue,
+            liquidationThreshold,
         };
     },
 };

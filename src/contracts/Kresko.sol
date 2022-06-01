@@ -123,6 +123,9 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     /// @notice The minimum USD value of an individual synthetic asset debt position.
     FixedPoint.Unsigned public minimumDebtValue;
 
+    /// @notice The collateralization ratio at which positions may be liquidated.
+     FixedPoint.Unsigned public liquidationThreshold;
+
     /* ===== General state - Collateral Assets ===== */
 
     /// @notice Mapping of collateral asset token address to information on the collateral asset.
@@ -319,6 +322,12 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     event MinimumDebtValueUpdated(uint256 indexed minimumDebtValue);
 
     /**
+     * @notice Emitted when the liquidation threshold value is updated
+     * @param liquidationThreshold The new liquidation threshold value.
+     */
+    event LiquidationThresholdUpdated(uint256 indexed liquidationThreshold);
+
+    /**
      * ==================================================
      * =================== Modifiers ====================
      * ==================================================
@@ -418,13 +427,15 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
      * @param _liquidationIncentiveMultiplier Initial liquidation incentive multiplier.
      * @param _minimumCollateralizationRatio Initial collateralization ratio as a raw value for a FixedPoint.Unsigned.
      * @param _minimumDebtValue Initial minimum debt value denominated in USD.
+     * @param _liquidationThreshold Initial liquidation threshold as a raw value for a FixedPoint.Unsigned.
      */
     function initialize(
         uint256 _burnFee,
         address _feeRecipient,
         uint256 _liquidationIncentiveMultiplier,
         uint256 _minimumCollateralizationRatio,
-        uint256 _minimumDebtValue
+        uint256 _minimumDebtValue,
+        uint256 _liquidationThreshold
     ) external initializer {
         // Set msg.sender as the owner.
         __Ownable_init();
@@ -433,6 +444,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         updateLiquidationIncentiveMultiplier(_liquidationIncentiveMultiplier);
         updateMinimumCollateralizationRatio(_minimumCollateralizationRatio);
         updateMinimumDebtValue(_minimumDebtValue);
+        updateLiquidationThreshold(_liquidationThreshold);
     }
 
     /**
@@ -969,6 +981,17 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         require(_minimumDebtValue <= MAX_DEBT_VALUE, "KR: debtValue > max");
         minimumDebtValue = FixedPoint.Unsigned(_minimumDebtValue);
         emit MinimumDebtValueUpdated(_minimumDebtValue);
+    }
+
+    /**
+     * @dev Updates the contract's liquidation threshold value
+     * @param _liquidationThreshold The new liquidation threshold value
+     */
+    function updateLiquidationThreshold(uint256 _liquidationThreshold) public onlyOwner {
+        // Liquidation threshold cannot be greater than minimum collateralization ratio
+        require(FixedPoint.Unsigned(_liquidationThreshold).isLessThanOrEqual(minimumCollateralizationRatio), "KR: LT > MCR");
+        liquidationThreshold = FixedPoint.Unsigned(_liquidationThreshold);
+        emit LiquidationThresholdUpdated(_liquidationThreshold);
     }
 
     /**
