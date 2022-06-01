@@ -41,9 +41,10 @@ import {
     LiquidationIncentiveMultiplierUpdatedEvent,
     LiquidationOccurredEvent,
     MinimumCollateralizationRatioUpdatedEvent,
+    FixedPoint,
 } from "types/contracts/Kresko";
 
-describe.only("Kresko", function () {
+describe("Kresko", function () {
     before(async function () {
         // We intentionally allow constructor that calls the initializer
         // modifier and explicitly allow this in calls to `deployProxy`.
@@ -753,6 +754,7 @@ describe.only("Kresko", function () {
                             // Mint 100 of the kreskoAsset. This puts the minimum collateral value of userOne as
                             // 250 * 1.5 * 100 = 37,500, which is close to userOne's account collateral value
                             // of 40491.
+
                             const kreskoAssetMintAmount = parseEther("100");
                             await this.Kresko.connect(this.signers.userOne).mintKreskoAsset(
                                 this.signers.userOne.address,
@@ -769,8 +771,12 @@ describe.only("Kresko", function () {
 
                             // Ensure that the withdrawal would not put the account's collateral value
                             // less than the account's minimum collateral value:
-                            const accountMinCollateralValue = await this.Kresko.getAccountMinimumCollateralValue(
+                            const fpMinCollateralzationRatio: FixedPoint.UnsignedStruct = {
+                                rawValue: await this.Kresko.minimumCollateralizationRatio()
+                            }
+                            const accountMinCollateralValue = await this.Kresko.getAccountMinimumCollateralValueAtRatio(
                                 this.signers.userOne.address,
+                                fpMinCollateralzationRatio
                             );
                             const accountCollateralValue = await this.Kresko.getAccountCollateralValue(
                                 this.signers.userOne.address,
@@ -840,8 +846,9 @@ describe.only("Kresko", function () {
 
                             // Ensure the account's minimum collateral value is <= the account collateral value
                             // These are FixedPoint.Unsigned, be sure to use `rawValue` when appropriate!
-                            const accountMinCollateralValueAfter = await this.Kresko.getAccountMinimumCollateralValue(
+                            const accountMinCollateralValueAfter = await this.Kresko.getAccountMinimumCollateralValueAtRatio(
                                 this.signers.userOne.address,
+                                fpMinCollateralzationRatio
                             );
                             const accountCollateralValueAfter = await this.Kresko.getAccountCollateralValue(
                                 this.signers.userOne.address,
@@ -858,8 +865,12 @@ describe.only("Kresko", function () {
 
                             // Ensure that the withdrawal would in fact put the account's collateral value
                             // less than the account's minimum collateral value:
-                            const accountMinCollateralValue = await this.Kresko.getAccountMinimumCollateralValue(
+                            const fpMinCollateralzationRatio: FixedPoint.UnsignedStruct = {
+                                rawValue: await this.Kresko.minimumCollateralizationRatio()
+                            }
+                            const accountMinCollateralValue = await this.Kresko.getAccountMinimumCollateralValueAtRatio(
                                 this.signers.userOne.address,
+                                fpMinCollateralzationRatio
                             );
                             const accountCollateralValue = await this.Kresko.getAccountCollateralValue(
                                 this.signers.userOne.address,
@@ -2542,7 +2553,7 @@ describe.only("Kresko", function () {
         });
 
         describe("#isAccountLiquidatable", function () {
-            it("should identify accounts below their minimum collateralization ratio", async function () {
+            it("should identify accounts below their liquidation threshold", async function () {
                 // Initial debt value: (10 * $10) = $100
                 const kreskoAsset = this.kreskoAssetInfo[0].kreskoAsset;
                 const userDebtAmount = await this.Kresko.kreskoAssetDebt(
@@ -2562,7 +2573,7 @@ describe.only("Kresko", function () {
                 );
                 expect(initialUserCollateralAmountInUSD.rawValue).to.equal(String(toFixedPoint(200)));
 
-                // The account should be NOT liquidatable as collateral value ($200) >= min collateral value ($150)
+                // The account should be NOT liquidatable as collateral value ($200) >= min collateral value ($140)
                 const initialCanLiquidate = await this.Kresko.isAccountLiquidatable(this.signers.userOne.address);
                 expect(initialCanLiquidate).to.equal(false);
 
@@ -2578,7 +2589,7 @@ describe.only("Kresko", function () {
                 );
                 expect(userCollateralAmountInUSD.rawValue).to.equal(String(toFixedPoint(110)));
 
-                // The account should be liquidatable as collateral value ($110) < min collateral value ($150)
+                // The account should be liquidatable as collateral value ($110) < min collateral value ($140)
                 const canLiquidate = await this.Kresko.isAccountLiquidatable(this.signers.userOne.address);
                 expect(canLiquidate).to.equal(true);
             });

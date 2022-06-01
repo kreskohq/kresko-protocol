@@ -12,7 +12,9 @@ import {
     LIQUIDATION_INCENTIVE,
     MINIMUM_COLLATERALIZATION_RATIO,
     MINIMUM_DEBT_VALUE,
+    LIQUIDATION_THRESHOLD,
 } from "@utils";
+import { FixedPoint } from "types/contracts/Kresko";
 
 /****** INFORMATION  *******
  *
@@ -132,6 +134,9 @@ describe("Solvency", function () {
             return await Promise.all(
                 [this.signers.userOne.address, this.signers.userTwo.address, this.signers.userThree.address].map(
                     async userAddress => {
+                        const fpMinCollateralzationRatio: FixedPoint.UnsignedStruct = {
+                            rawValue: await this.Kresko.minimumCollateralizationRatio()
+                        };
                         // Get token amounts of each asset for the user
                         const protocol = {
                             collateralAmountStable: fromBig(
@@ -154,7 +159,7 @@ describe("Solvency", function () {
                             ),
                             // Get the minimum amount of collateral value needed for the user to be considered not liquidatable
                             minCollateralUSD: fromBig(
-                                (await this.Kresko.getAccountMinimumCollateralValue(userAddress)).rawValue,
+                                (await this.Kresko.getAccountMinimumCollateralValueAtRatio(userAddress, fpMinCollateralzationRatio)).rawValue,
                             ),
                             isLiquidatable: await this.Kresko.isAccountLiquidatable(userAddress),
                             userAddress,
@@ -238,6 +243,7 @@ describe("Solvency", function () {
                 LIQUIDATION_INCENTIVE,
                 MINIMUM_COLLATERALIZATION_RATIO,
                 MINIMUM_DEBT_VALUE,
+                LIQUIDATION_THRESHOLD,
             ],
             {
                 unsafeAllow: [
