@@ -42,7 +42,7 @@ import {
     MinimumCollateralizationRatioUpdatedEvent,
 } from "types/contracts/Kresko";
 
-describe("Kresko", function () {
+describe.only("Kresko", function () {
     before(async function () {
         // We intentionally allow constructor that calls the initializer
         // modifier and explicitly allow this in calls to `deployProxy`.
@@ -64,6 +64,7 @@ describe("Kresko", function () {
             expect(await this.Kresko.feeRecipient()).to.equal(FEE_RECIPIENT_ADDRESS);
             expect(await this.Kresko.liquidationIncentiveMultiplier()).to.equal(LIQUIDATION_INCENTIVE);
             expect(await this.Kresko.minimumCollateralizationRatio()).to.equal(MINIMUM_COLLATERALIZATION_RATIO);
+            expect(await this.Kresko.minimumDebtValue()).to.equal(MINIMUM_DEBT_VALUE);
         });
 
         it("should not allow being called more than once", async function () {
