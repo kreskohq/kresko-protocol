@@ -30,6 +30,7 @@ task("gastestaurora", "Creates collaterals and krAssets, deposits and mints them
             Token.address,
             toFixedPoint(1),
             "0x276fc8818D229Aa557dDB05219973d80445eFdd8",
+            true,
             false,
         );
         await tx.wait(wait);

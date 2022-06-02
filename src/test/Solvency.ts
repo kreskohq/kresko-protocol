@@ -334,6 +334,8 @@ describe("Solvency", function () {
             this.stableCollateralFactor,
             1,
             18,
+            true,
+            false,
         );
 
         // Deploy a volative collateral asset eg. a crypto like Near and whitelist it
@@ -348,6 +350,8 @@ describe("Solvency", function () {
             this.volativeCollateralAssetFactor,
             10,
             18,
+            true,
+            false,
         );
 
         const stableKrAsset = this.stableKrAssetInfo.kreskoAsset;

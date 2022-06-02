@@ -147,16 +147,17 @@ describe("Kresko", function () {
 
     describe("Collateral Assets", function () {
         beforeEach(async function () {
-            this.collateralAssetInfo = await deployAndWhitelistCollateralAsset(this.Kresko, 0.8, 123.45, 18);
+            this.collateralAssetInfo = await deployAndWhitelistCollateralAsset(this.Kresko, 0.8, 123.45, 18, true);
         });
 
         describe("#addCollateralAsset", function () {
             it("should allow owner to add assets", async function () {
-                const collateralAssetInfo = await deployAndWhitelistCollateralAsset(this.Kresko, 0.8, 123.45, 18);
+                const collateralAssetInfo = await deployAndWhitelistCollateralAsset(this.Kresko, 0.8, 123.45, 18, true);
 
                 const asset = await this.Kresko.collateralAssets(collateralAssetInfo.collateralAsset.address);
                 expect(asset.factor.rawValue).to.equal(collateralAssetInfo.factor);
                 expect(asset.oracle).to.equal(collateralAssetInfo.oracle.address);
+                expect(asset.depositable).to.be.true;
                 expect(asset.exists).to.be.true;
             });
 
@@ -166,32 +167,33 @@ describe("Kresko", function () {
                         this.collateralAssetInfo.collateralAsset.address,
                         ONE,
                         ADDRESS_ONE,
+                        true,
                         false,
                     ),
                 ).to.be.revertedWith("KR: collateralExists");
             });
 
             it("should not allow collateral assets with invalid asset address", async function () {
-                await expect(this.Kresko.addCollateralAsset(ADDRESS_ZERO, ONE, ADDRESS_ONE, false)).to.be.revertedWith(
+                await expect(this.Kresko.addCollateralAsset(ADDRESS_ZERO, ONE, ADDRESS_ONE, true, false)).to.be.revertedWith(
                     "KR: !collateralAddr",
                 );
             });
 
             it("should not allow collateral assets with collateral factor", async function () {
                 await expect(
-                    this.Kresko.addCollateralAsset(ADDRESS_TWO, ONE.add(1), ADDRESS_ONE, false),
+                    this.Kresko.addCollateralAsset(ADDRESS_TWO, ONE.add(1), ADDRESS_ONE, true, false),
                 ).to.be.revertedWith("KR: factor > 1FP");
             });
 
             it("should not allow collateral assets with invalid oracle address", async function () {
-                await expect(this.Kresko.addCollateralAsset(ADDRESS_TWO, ONE, ADDRESS_ZERO, false)).to.be.revertedWith(
+                await expect(this.Kresko.addCollateralAsset(ADDRESS_TWO, ONE, ADDRESS_ZERO, true, false)).to.be.revertedWith(
                     "KR: !oracleAddr",
                 );
             });
 
             it("should not allow non-owner to add assets", async function () {
                 await expect(
-                    this.Kresko.connect(this.signers.userOne).addCollateralAsset(ADDRESS_TWO, 1, ADDRESS_TWO, false),
+                    this.Kresko.connect(this.signers.userOne).addCollateralAsset(ADDRESS_TWO, 1, ADDRESS_TWO, true, false),
                 ).to.be.revertedWith("Ownable: caller is not the owner");
             });
         });
@@ -203,6 +205,7 @@ describe("Kresko", function () {
                     info.collateralAsset.address,
                     ZERO_POINT_FIVE,
                     info.oracle.address,
+                    true,
                 );
 
                 const asset = await this.Kresko.collateralAssets(info.collateralAsset.address);
@@ -215,6 +218,7 @@ describe("Kresko", function () {
                     info.collateralAsset.address,
                     info.factor,
                     ADDRESS_TWO,
+                    true,
                 );
 
                 const asset = await this.Kresko.collateralAssets(info.collateralAsset.address);
@@ -227,6 +231,7 @@ describe("Kresko", function () {
                     info.collateralAsset.address,
                     ZERO_POINT_FIVE,
                     ADDRESS_TWO,
+                    true,
                 );
 
                 const { args } = await extractEventFromTxReceipt(receipt, "CollateralAssetUpdated");
@@ -242,6 +247,7 @@ describe("Kresko", function () {
                         info.collateralAsset.address,
                         ONE.add(1),
                         info.oracle.address,
+                        true,
                     ),
                 ).to.be.revertedWith("KR: factor > 1FP");
             });
@@ -253,6 +259,7 @@ describe("Kresko", function () {
                         info.collateralAsset.address,
                         info.factor,
                         ADDRESS_ZERO,
+                        true,
                     ),
                 ).to.be.revertedWith("KR: !oracleAddr");
             });
@@ -264,6 +271,7 @@ describe("Kresko", function () {
                         info.collateralAsset.address,
                         info.factor,
                         info.oracle.address,
+                        true,
                     ),
                 ).to.be.revertedWith("Ownable: caller is not the owner");
             });
@@ -275,9 +283,9 @@ describe("Kresko", function () {
             this.initialUserCollateralBalance = 1000;
 
             this.collateralAssetInfos = (await Promise.all<CollateralAssetInfo>([
-                deployAndWhitelistCollateralAsset(this.Kresko, 0.8, 123.45, 18),
-                deployAndWhitelistCollateralAsset(this.Kresko, 0.7, 420.123, 12),
-                deployAndWhitelistCollateralAsset(this.Kresko, 0.6, 20.123, 24),
+                deployAndWhitelistCollateralAsset(this.Kresko, 0.8, 123.45, 18, true),
+                deployAndWhitelistCollateralAsset(this.Kresko, 0.7, 420.123, 12, true),
+                deployAndWhitelistCollateralAsset(this.Kresko, 0.6, 20.123, 24, true),
             ])) as CollateralAssetInfo[];
 
             // Give userOne a balance of 1000 for each collateral asset.
@@ -296,9 +304,9 @@ describe("Kresko", function () {
 
                     if (rebasing) {
                         this.collateralAssetInfos = await Promise.all([
-                            deployAndWhitelistCollateralAsset(this.Kresko, 0.8, 123.45, 18, true),
-                            deployAndWhitelistCollateralAsset(this.Kresko, 0.7, 420.123, 18, true),
-                            deployAndWhitelistCollateralAsset(this.Kresko, 0.6, 20.123, 18, true),
+                            deployAndWhitelistCollateralAsset(this.Kresko, 0.8, 123.45, 18, true, true),
+                            deployAndWhitelistCollateralAsset(this.Kresko, 0.7, 420.123, 18, true, true),
+                            deployAndWhitelistCollateralAsset(this.Kresko, 0.6, 20.123, 18, true, true),
                         ]);
 
                         // Give userOne a balance of 1000 for each rebasing (ie underlying) token.
@@ -510,7 +518,7 @@ describe("Kresko", function () {
 
                     if (rebasing) {
                         it("should revert if depositing collateral that is not a NonRebasingWrapperToken", async function () {
-                            const nonNRWTInfo = await deployAndWhitelistCollateralAsset(this.Kresko, 0.8, 123.45, 18);
+                            const nonNRWTInfo = await deployAndWhitelistCollateralAsset(this.Kresko, 0.8, 123.45, 18, true);
                             await expect(
                                 this.depositFunction(
                                     this.signers.userOne.address,
@@ -1001,7 +1009,7 @@ describe("Kresko", function () {
 
                     if (rebasing) {
                         it("should revert if depositing collateral that is not a NonRebasingWrapperToken", async function () {
-                            const nonNRWTInfo = await deployAndWhitelistCollateralAsset(this.Kresko, 0.8, 123.45, 18);
+                            const nonNRWTInfo = await deployAndWhitelistCollateralAsset(this.Kresko, 0.8, 123.45, 18, true);
                             // Give 1000 to userOne
                             await nonNRWTInfo.collateralAsset.setBalanceOf(
                                 this.signers.userOne.address,
@@ -1315,7 +1323,7 @@ describe("Kresko", function () {
             ]);
 
             // Deploy and whitelist collateral assets
-            this.collateralAssetInfo = await deployAndWhitelistCollateralAsset(this.Kresko, 0.8, 123.45, 18);
+            this.collateralAssetInfo = await deployAndWhitelistCollateralAsset(this.Kresko, 0.8, 123.45, 18, true);
             // Give userOne a balance of 1000 for the collateral asset.
             this.initialUserCollateralBalance = parseEther("1000");
             await this.collateralAssetInfo.collateralAsset.setBalanceOf(
@@ -2147,7 +2155,7 @@ describe("Kresko", function () {
                 };
 
                 const atypicalCollateralDecimalsTest = async function (this: Mocha.Context, decimals: number) {
-                    const collateralAssetInfo = await deployAndWhitelistCollateralAsset(this.Kresko, 0.8, 10, decimals);
+                    const collateralAssetInfo = await deployAndWhitelistCollateralAsset(this.Kresko, 0.8, 10, decimals, true);
                     // Give userOne a balance for the collateral asset.
                     await collateralAssetInfo.collateralAsset.setBalanceOf(
                         this.signers.userOne.address,
@@ -2170,8 +2178,8 @@ describe("Kresko", function () {
                     const price = 10;
                     // Deploy and whitelist collateral assets
                     const collateralAssetInfos = await Promise.all([
-                        deployAndWhitelistCollateralAsset(this.Kresko, 0.8, price, 18),
-                        deployAndWhitelistCollateralAsset(this.Kresko, 0.8, price, 18),
+                        deployAndWhitelistCollateralAsset(this.Kresko, 0.8, price, 18, true),
+                        deployAndWhitelistCollateralAsset(this.Kresko, 0.8, price, 18, true),
                     ]);
 
                     const smallDepositAmount = parseEther("0.1");
@@ -2502,7 +2510,7 @@ describe("Kresko", function () {
             this.collDecimals = 6;
             // Deploy and whitelist collateral assets
             this.collateralAssetInfos = await Promise.all([
-                deployAndWhitelistCollateralAsset(this.Kresko, 1, 20, this.collDecimals), // factor = 1, price = $20.00
+                deployAndWhitelistCollateralAsset(this.Kresko, 1, 20, this.collDecimals, true), // factor = 1, price = $20.00
             ]);
 
             // Give userOne and userTwo a balance of 100*10**decimals for each collateral asset.

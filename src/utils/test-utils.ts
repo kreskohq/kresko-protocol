@@ -107,7 +107,7 @@ export async function deployWETH10AsCollateralWithLiquidator(
 
     const fixedPointFactor = toFixedPoint(factor);
 
-    await Kresko.addCollateralAsset(WETH10.address, fixedPointFactor, oracle.address, false);
+    await Kresko.addCollateralAsset(WETH10.address, fixedPointFactor, oracle.address, true, false);
 
     return {
         WETH10,
@@ -122,6 +122,7 @@ export async function deployAndWhitelistCollateralAsset(
     collateralFactor: number,
     oraclePrice: number,
     decimals: number,
+    depositable: boolean,
     isNonRebasingWrapperToken: boolean = false,
 ): Promise<CollateralAssetInfo> {
     // Really this is MockToken | NonRebasingWrapperToken, but to avoid type pains
@@ -152,6 +153,7 @@ export async function deployAndWhitelistCollateralAsset(
         collateralAsset.address,
         fixedPointCollateralFactor,
         oracle.address,
+        depositable,
         isNonRebasingWrapperToken,
     );
 
