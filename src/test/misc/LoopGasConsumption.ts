@@ -1,7 +1,7 @@
 import hre from "hardhat";
 import {
     addNewKreskoAssetWithOraclePrice,
-    MARKET_CAP_ONE_MILLION,
+    TOTAL_SUPPLY_LIMIT_ONE_MILLION,
     BURN_FEE,
     CLOSE_FACTOR,
     deployAndWhitelistCollateralAsset,
@@ -116,7 +116,7 @@ describe.skip(`loops and gas consumption - gasLimit: ${gasLimit}`, function () {
                     round.toString(),
                     1,
                     250,
-                    MARKET_CAP_ONE_MILLION,
+                    TOTAL_SUPPLY_LIMIT_ONE_MILLION,
                 ),
             ]);
 
