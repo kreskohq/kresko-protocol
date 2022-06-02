@@ -62,14 +62,14 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
      * @param oracle The oracle that provides the USD price of one Kresko asset.
      * @param exists Whether the Kresko asset exists within the protocol.
      * @param mintable Whether the Kresko asset can be minted.
-     * @param marketCapUSDLimit The market capitalization limit in USD of the Kresko asset.
+     * @param totalSupplyLimit The total supply limit of the Kresko asset.
      */
     struct KrAsset {
         FixedPoint.Unsigned kFactor;
         AggregatorV2V3Interface oracle;
         bool exists;
         bool mintable;
-        uint256 marketCapUSDLimit;
+        uint256 totalSupplyLimit;
     }
 
     /**
@@ -207,14 +207,14 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
      * @param symbol The symbol of the Kresko asset.
      * @param kFactor The k-factor.
      * @param oracle The address of the oracle.
-     * @param marketCapLimit The initial market capitalization USD limit.
+     * @param totalSupplyLimit The total supply limit.
      */
     event KreskoAssetAdded(
         address indexed kreskoAsset,
         string indexed symbol,
         uint256 indexed kFactor,
         address oracle,
-        uint256 marketCapLimit
+        uint256 totalSupplyLimit
     );
 
     /**
@@ -223,14 +223,14 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
      * @param kFactor The k-factor.
      * @param oracle The address of the oracle.
      * @param mintable The mintable value.
-     * @param limit The market capitalization USD limit.
+     * @param totalSupplyLimit The total supply limit.
      */
     event KreskoAssetUpdated(
         address indexed kreskoAsset,
         uint256 indexed kFactor,
         address indexed oracle,
         bool mintable,
-        uint256 limit
+        uint256 totalSupplyLimit
     );
 
     /**
@@ -589,11 +589,11 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     {
         require(_amount > 0, "KR: 0-mint");
 
-        // Enforce synthetic asset's maximum market capitalization limit
+        // Enforce krAsset's total supply limit
         require(
             getKrAssetValue(_kreskoAsset, IKreskoAsset(_kreskoAsset).totalSupply() + _amount, true).rawValue <=
-                kreskoAssets[_kreskoAsset].marketCapUSDLimit,
-            "KR: MC limit"
+                kreskoAssets[_kreskoAsset].totalSupplyLimit,
+            "KR: supplyLimit"
         );
 
         // Get the value of the minter's current deposited collateral.
@@ -864,14 +864,14 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
      * @param _symbol The symbol of the Kresko asset.
      * @param _kFactor The k-factor of the Kresko asset as a raw value for a FixedPoint.Unsigned. Must be >= 1e18.
      * @param _oracle The oracle address for the Kresko asset.
-     * @param _marketCapUSDLimit The initial market capitalization USD limit for the Kresko asset.
+     * @param _totalSupplyLimit The initial total supply limit for the Kresko asset.
      */
     function addKreskoAsset(
         address _kreskoAsset,
         string calldata _symbol,
         uint256 _kFactor,
         address _oracle,
-        uint256 _marketCapUSDLimit
+        uint256 _totalSupplyLimit
     ) external onlyOwner nonNullString(_symbol) kreskoAssetDoesNotExist(_kreskoAsset, _symbol) {
         require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, "KR: kFactor < 1FP");
         require(_oracle != address(0), "KR: !oracleAddr");
@@ -887,9 +887,9 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             oracle: AggregatorV2V3Interface(_oracle),
             exists: true,
             mintable: true,
-            marketCapUSDLimit: _marketCapUSDLimit
+            totalSupplyLimit: _totalSupplyLimit
         });
-        emit KreskoAssetAdded(_kreskoAsset, _symbol, _kFactor, _oracle, _marketCapUSDLimit);
+        emit KreskoAssetAdded(_kreskoAsset, _symbol, _kFactor, _oracle, _totalSupplyLimit);
     }
 
     /**
@@ -899,14 +899,14 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
      * @param _kFactor The new k-factor as a raw value for a FixedPoint.Unsigned. Must be >= 1e18.
      * @param _oracle The new oracle address for the Kresko asset's USD value.
      * @param _mintable The new mintable value.
-     * @param _marketCapUSDLimit The new market capitalization USD limit.
+     * @param _totalSupplyLimit The new total supply limit.
      */
     function updateKreskoAsset(
         address _kreskoAsset,
         uint256 _kFactor,
         address _oracle,
         bool _mintable,
-        uint256 _marketCapUSDLimit
+        uint256 _totalSupplyLimit
     )
         external
         onlyOwner
@@ -919,10 +919,10 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         krAsset.kFactor = FixedPoint.Unsigned(_kFactor);
         krAsset.oracle = AggregatorV2V3Interface(_oracle);
         krAsset.mintable = _mintable;
-        krAsset.marketCapUSDLimit = _marketCapUSDLimit;
+        krAsset.totalSupplyLimit = _totalSupplyLimit;
         kreskoAssets[_kreskoAsset] = krAsset;
 
-        emit KreskoAssetUpdated(_kreskoAsset, _kFactor, _oracle, _mintable, _marketCapUSDLimit);
+        emit KreskoAssetUpdated(_kreskoAsset, _kFactor, _oracle, _mintable, _totalSupplyLimit);
     }
 
     /* ===== Configurable parameters ===== */
