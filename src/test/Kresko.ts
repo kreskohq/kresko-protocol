@@ -2595,7 +2595,7 @@ describe("Kresko", function () {
             });
         });
 
-        describe.only("#liquidate", function () {
+        describe("#liquidate", function () {
             it("should allow unhealthy accounts to be liquidated", async function () {
                 // Change collateral asset's USD value from $20 to $11
                 const oracle = this.collateralAssetInfos[0].oracle;
