@@ -1216,13 +1216,14 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     ) internal returns (uint256) {
         uint256 liquidatorDebtBeforeRepay = kreskoAssetDebt[msg.sender][_repayKreskoAsset];
 
-        // If liquidator has no debt remaining set the debt to 0
+        // Decrease liquidator's debt. If liquidator has no debt remaining set the debt to 0
         uint256 liquidatorDebtAfterRepay = liquidatorDebtBeforeRepay > _repayAmount
             ? liquidatorDebtBeforeRepay - _repayAmount
             : 0;
+        kreskoAssetDebt[msg.sender][_repayKreskoAsset] = liquidatorDebtAfterRepay;
 
+        // If liquidator's debt had debt of this krAsset before and now has 0 debt, remove the krAsset from their minted assets
         if (liquidatorDebtBeforeRepay > 0 && liquidatorDebtAfterRepay == 0) {
-            kreskoAssetDebt[msg.sender][_repayKreskoAsset] = liquidatorDebtAfterRepay;
             uint256 liquidatorRepayIndex;
             address[] memory liquidatorAssets = mintedKreskoAssets[msg.sender];
 
@@ -1236,6 +1237,9 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         FixedPoint.Unsigned memory seizedAmountUSD = decimals
             ._toCollateralFixedPointAmount(_seizeAmount)
             .mul( _collateralPriceUSD);
+
+        // Charge liquidator burn fee because we're closing their position
+        _chargeBurnFee(msg.sender, _repayKreskoAsset, _repayAmount);
 
         return decimals
             ._fromCollateralFixedPointAmount(seizedAmountUSD.sub(_repayAmountUSD).div(_collateralPriceUSD)
