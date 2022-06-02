@@ -591,8 +591,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
         // Enforce krAsset's total supply limit
         require(
-            getKrAssetValue(_kreskoAsset, IKreskoAsset(_kreskoAsset).totalSupply() + _amount, true).rawValue <=
-                kreskoAssets[_kreskoAsset].totalSupplyLimit,
+             IKreskoAsset(_kreskoAsset).totalSupply() + _amount <= kreskoAssets[_kreskoAsset].totalSupplyLimit,
             "KR: supplyLimit"
         );
 
