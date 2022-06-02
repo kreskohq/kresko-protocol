@@ -45,6 +45,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
      * this is set to the underlying token that rebases. Otherwise, this is the zero address.
      * Added so that Kresko.sol can handle NonRebasingWrapperTokens with fewer transactions.
      * @param decimals The decimals for the token, stored here to avoid repetitive external calls.
+     * @param depositable Whether the collateral asset can currently be deposited.
      * @param exists Whether the collateral asset exists within the protocol.
      */
     struct CollateralAsset {
@@ -53,6 +54,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         address underlyingRebasingToken;
         uint8 decimals;
         bool exists;
+        bool depositable;
     }
 
     /**
@@ -171,16 +173,18 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
      * @param collateralAsset The address of the collateral asset.
      * @param factor The collateral factor.
      * @param oracle The address of the oracle.
+     * @param depositable The depositability of the asset.
      */
-    event CollateralAssetAdded(address indexed collateralAsset, uint256 indexed factor, address indexed oracle);
+    event CollateralAssetAdded(address indexed collateralAsset, uint256 indexed factor, address indexed oracle, bool depositable);
 
     /**
      * @notice Emitted when a collateral asset is updated.
      * @param collateralAsset The address of the collateral asset.
      * @param factor The collateral factor.
      * @param oracle The oracle address.
+     * @param depositable The depositability of the asset.
      */
-    event CollateralAssetUpdated(address indexed collateralAsset, uint256 indexed factor, address indexed oracle);
+    event CollateralAssetUpdated(address indexed collateralAsset, uint256 indexed factor, address indexed oracle, bool depositable);
 
     /**
      * @notice Emitted when an account deposits collateral.
@@ -811,6 +815,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         address _collateralAsset,
         uint256 _factor,
         address _oracle,
+        bool _depositable,
         bool isNonRebasingWrapperToken
     ) external nonReentrant onlyOwner collateralAssetDoesNotExist(_collateralAsset) {
         require(_collateralAsset != address(0), "KR: !collateralAddr");
@@ -828,9 +833,10 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             oracle: AggregatorV2V3Interface(_oracle),
             underlyingRebasingToken: underlyingRebasingToken,
             exists: true,
+            depositable: _depositable,
             decimals: IERC20MetadataUpgradeable(_collateralAsset).decimals()
         });
-        emit CollateralAssetAdded(_collateralAsset, _factor, _oracle);
+        emit CollateralAssetAdded(_collateralAsset, _factor, _oracle, _depositable);
     }
 
      /**
@@ -839,8 +845,9 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
      * @param _collateralAsset The address of the collateral asset.
      * @param _factor The new collateral factor as a raw value for a FixedPoint.Unsigned. Must be <= 1e18.
      * @param _oracle The new oracle address for the collateral asset.
+     * @param _depositable The depositability of the collateral asset.
      */
-    function updateCollateralAsset(address _collateralAsset, uint256 _factor, address _oracle)
+    function updateCollateralAsset(address _collateralAsset, uint256 _factor, address _oracle, bool _depositable)
         external
         onlyOwner
         collateralAssetExists(_collateralAsset)
@@ -849,9 +856,13 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         // Setting the factor to 0 effectively sunsets a collateral asset, which is intentionally allowed.
         require(_factor <= FixedPoint.FP_SCALING_FACTOR, "KR: factor > 1FP");
 
-        collateralAssets[_collateralAsset].factor = FixedPoint.Unsigned(_factor);
-        collateralAssets[_collateralAsset].oracle = AggregatorV2V3Interface(_oracle);
-        emit CollateralAssetUpdated(_collateralAsset, _factor, _oracle);
+        CollateralAsset memory collateralAsset = collateralAssets[_collateralAsset];
+        collateralAsset.factor = FixedPoint.Unsigned(_factor);
+        collateralAsset.oracle = AggregatorV2V3Interface(_oracle);
+        collateralAsset.depositable = _depositable;
+        collateralAssets[_collateralAsset] = collateralAsset;
+
+        emit CollateralAssetUpdated(_collateralAsset, _factor, _oracle, _depositable);
     }
 
     /* ===== Kresko Assets ===== */
