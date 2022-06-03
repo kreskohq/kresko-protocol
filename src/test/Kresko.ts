@@ -225,6 +225,19 @@ describe("Kresko", function () {
                 expect(asset.oracle).to.equal(ADDRESS_TWO);
             });
 
+            it("should allow owner to update collateral asset's depositable bool", async function () {
+                let info = this.collateralAssetInfo;
+                await this.Kresko.updateCollateralAsset(
+                    info.collateralAsset.address,
+                    info.factor,
+                    info.oracle.address,
+                    false,
+                );
+
+                const asset = await this.Kresko.collateralAssets(info.collateralAsset.address);
+                expect(asset.depositable).to.equal(false);
+            });
+
             it("should emit CollateralAssetUpdated event", async function () {
                 let info = this.collateralAssetInfo;
                 const receipt = await this.Kresko.updateCollateralAsset(
@@ -238,6 +251,7 @@ describe("Kresko", function () {
                 expect(args.collateralAsset).to.equal(info.collateralAsset.address);
                 expect(args.factor).to.equal(ZERO_POINT_FIVE);
                 expect(args.oracle).to.equal(ADDRESS_TWO);
+                expect(args.depositable).to.equal(true);
             });
 
             it("should not allow the collateral factor to be greater than 1", async function () {
@@ -514,6 +528,24 @@ describe("Kresko", function () {
                         await expect(
                             this.depositFunction(this.signers.userOne.address, collateralAsset.address, 0),
                         ).to.be.revertedWith(`KR: 0-deposit`);
+                    });
+
+                    it("should revert if collateral asset is not depositable", async function () {
+                        // Update collateral asset depositability to false
+                        let info = this.collateralAssetInfos[0];
+                        await this.Kresko.updateCollateralAsset(
+                            info.collateralAsset.address,
+                            info.factor,
+                            info.oracle.address,
+                            false,
+                        );
+                        // Confirm depositability is false
+                        const asset = await this.Kresko.collateralAssets(info.collateralAsset.address);
+                        expect(asset.depositable).to.equal(false);
+                        
+                        await expect(
+                            this.depositFunction(this.signers.userOne.address, info.collateralAsset.address, parseEther("123")),
+                        ).to.be.revertedWith(`KR: !depositable`);
                     });
 
                     if (rebasing) {

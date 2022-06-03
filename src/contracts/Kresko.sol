@@ -367,6 +367,15 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     /**
+     * @notice Reverts if a collateral asset is not depositable
+     * @param _collateralAsset The address of the collateral asset.
+     */
+    modifier collateralAssetDepositable(address _collateralAsset) {
+        require(collateralAssets[_collateralAsset].depositable, "KR: !depositable");
+        _;
+    }
+
+    /**
      * @notice Reverts if a Kresko asset does not exist within the protocol or is not mintable.
      * @param _kreskoAsset The address of the Kresko asset.
      */
@@ -469,7 +478,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         address _account,
         address _collateralAsset,
         uint256 _amount
-    ) external nonReentrant collateralAssetExists(_collateralAsset) {
+    ) external nonReentrant collateralAssetExists(_collateralAsset) collateralAssetDepositable(_collateralAsset) {
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
         IERC20MetadataUpgradeable(_collateralAsset).safeTransferFrom(msg.sender, address(this), _amount);
 
@@ -488,7 +497,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         address _account,
         address _collateralAsset,
         uint256 _rebasingAmount
-    ) external nonReentrant collateralAssetExists(_collateralAsset) {
+    ) external nonReentrant collateralAssetExists(_collateralAsset) collateralAssetDepositable(_collateralAsset) {
         require(_rebasingAmount > 0, "KR: 0-deposit");
 
         address underlyingRebasingToken = collateralAssets[_collateralAsset].underlyingRebasingToken;
