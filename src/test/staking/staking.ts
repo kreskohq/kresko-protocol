@@ -46,7 +46,7 @@ describe("Staking", function () {
         const Oracle = await deployOracle("USD Oracle", "/USD", 1);
 
         // Whitelist it as collateral
-        await Kresko.addCollateralAsset(USDC.address, toFixedPoint(0.9), Oracle.address, false);
+        await Kresko.addCollateralAsset(USDC.address, toFixedPoint(0.9), Oracle.address, true, false);
 
         // Approve and deposit collateral
         await USDC.approve(Kresko.address, MaxUint256);

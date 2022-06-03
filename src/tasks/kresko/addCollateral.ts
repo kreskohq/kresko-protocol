@@ -8,13 +8,14 @@ task("kresko:addcollateral")
     .addParam("name", "Name of the collateral")
     .addParam("cFactor", "cFactor for the collateral", 1000, types.float)
     .addParam("oracleAddr", "Price feed address")
+    .addParam("depositable", "Depositability of the collateral")
     .addOptionalParam("nrwt", "Non rebasing wrapper token?")
     .addOptionalParam("log", "Log outputs", false, types.boolean)
     .addOptionalParam("wait", "wait confirmations", 1, types.int)
     .setAction(async function (taskArgs: TaskArguments, hre) {
         const { ethers, kresko } = hre;
 
-        const { name, cFactor, oracleAddr, nrwt, log, wait } = taskArgs;
+        const { name, cFactor, oracleAddr, depositable, nrwt, log, wait } = taskArgs;
 
         const logger = getLogger("addCollateral", log);
 
@@ -33,7 +34,7 @@ task("kresko:addcollateral")
         if (exists) {
             logger.warn(`Collateral ${name} already exists!`);
         } else {
-            const tx = await kresko.addCollateralAsset(Collateral.address, toFixedPoint(cFactor), oracleAddr, !!nrwt);
+            const tx = await kresko.addCollateralAsset(Collateral.address, toFixedPoint(cFactor), oracleAddr, depositable, !!nrwt);
 
             await tx.wait(wait);
 

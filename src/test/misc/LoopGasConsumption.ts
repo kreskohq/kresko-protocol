@@ -68,7 +68,7 @@ describe.skip(`loops and gas consumption - gasLimit: ${gasLimit}`, function () {
         let round = 0;
         let lastTxCost = 0;
         for (round; round < targetRound; round++) {
-            const { collateralAsset } = await deployAndWhitelistCollateralAsset(this.kresko, 0.7, 420.123, 12);
+            const { collateralAsset } = await deployAndWhitelistCollateralAsset(this.kresko, 0.7, 420.123, 12, true, false);
 
             await collateralAsset.setBalanceOf(this.signers.userOne.address, depositValue);
             await userOneKresko.depositCollateral(this.signers.userOne.address, collateralAsset.address, depositValue);
@@ -109,7 +109,7 @@ describe.skip(`loops and gas consumption - gasLimit: ${gasLimit}`, function () {
         let lastTxCostWithdraw = 0;
         for (round; round < targetRound; round++) {
             const [{ collateralAsset }, kreskoAssetInfo] = await Promise.all([
-                deployAndWhitelistCollateralAsset(this.kresko, 0.7, 420.123, 12),
+                deployAndWhitelistCollateralAsset(this.kresko, 0.7, 420.123, 12, true, false),
                 addNewKreskoAssetWithOraclePrice(
                     this.kresko,
                     "krAsset",
@@ -186,7 +186,7 @@ describe.skip(`loops and gas consumption - gasLimit: ${gasLimit}`, function () {
         let targetRound = 500;
         let round = 0;
         for (round; round < targetRound; round++) {
-            const { collateralAsset } = await deployAndWhitelistCollateralAsset(this.kresko, 0.7, 420.123, 12);
+            const { collateralAsset } = await deployAndWhitelistCollateralAsset(this.kresko, 0.7, 420.123, 12, true, false);
 
             await collateralAsset.setBalanceOf(this.signers.userOne.address, depositValue);
             await collateralAsset.setBalanceOf(this.signers.userTwo.address, depositValue);
@@ -253,7 +253,7 @@ describe.skip(`loops and gas consumption - gasLimit: ${gasLimit}`, function () {
         let round = 0;
         let lastTxCost;
         for (round; round < targetRound; round++) {
-            const { collateralAsset } = await deployAndWhitelistCollateralAsset(this.kresko, 0.7, 420.123, 12);
+            const { collateralAsset } = await deployAndWhitelistCollateralAsset(this.kresko, 0.7, 420.123, 12, true, false);
 
             const tx = await collateralAsset.setBalanceOf(this.signers.userOne.address, depositValue);
             await tx.wait();

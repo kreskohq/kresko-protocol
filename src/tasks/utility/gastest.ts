@@ -29,6 +29,7 @@ task("gastest", "Creates collaterals and krAssets, deposits and mints them", asy
             Token.address,
             toFixedPoint(1),
             "0x2Aa59626B22C4Fbe94edC1A36EA33b7AE7837035",
+            true,
             false,
         );
         await tx.wait(wait);
