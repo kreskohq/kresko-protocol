@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.13;
-import {DiamondStorage, DiamondState} from "../storage/DiamondStorage.sol";
+
+import {AccessControlEvent} from "../Events.sol";
 import {LibMeta} from "./LibMeta.sol";
 import {Strings} from "./Strings.sol";
-import {AccessControlEvent} from "../Events.sol";
 import {EnumerableSet} from "./EnumerableSet.sol";
-import "hardhat/console.sol";
+import {DiamondStorage, DiamondState} from "../storage/DiamondStorage.sol";
 
 bytes32 constant DEFAULT_ADMIN_ROLE = 0x00;
 bytes32 constant MINTER_OPERATOR_ROLE = keccak256("kresko.minter.operator");
