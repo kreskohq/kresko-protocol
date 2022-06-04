@@ -2,21 +2,10 @@ import { FunctionFragment } from "@ethersproject/abi";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { fromBig, toBig } from "@utils";
 import { Fixture } from "ethereum-waffle";
-import { ABI, Deployment, DeployOptions } from "@kreskolabs/hardhat-deploy/types";
+import { ABI, Deployment, DeployOptions, Facet, FacetCut } from "@kreskolabs/hardhat-deploy/dist/types";
 
-import {
-    FluxPriceFeed,
-    ExampleFlashLiquidator,
-    Kresko,
-    MockWETH10,
-    KrStaking,
-    UniswapV2Pair,
-    KrStakingUniHelper,
-    UniswapV2Factory,
-    UniswapV2Router02,
-    FullDiamond,
-} from "types/typechain";
-import { getFacets } from "src/test/diamond/utils";
+import { FluxPriceFeed, UniswapV2Pair, UniswapV2Factory, UniswapV2Router02, Kresko } from "types/typechain";
+import { BytesLike } from "ethers";
 
 declare module "mocha" {
     export interface Context {
@@ -41,18 +30,14 @@ declare module "mocha" {
             liquidator?: SignerWithAddress;
         };
         // Diamond additions
-        facets: Awaited<ReturnType<typeof getFacets>>;
-        Diamond: FullDiamond;
-        fixture: {
-            [name: string]: Deployment;
-        };
+        facets: Facet[];
+        Diamond: Kresko;
+        DiamondDeployment: Deployment;
         admin: string;
         userOne: string;
         UniFactory: UniswapV2Factory;
         UniRouter: UniswapV2Router02;
         lpPair: UniswapV2Pair;
-        KrStaking: KrStaking;
-        KrStakingUniHelper: KrStakingUniHelper;
         userTwo: string;
         treasury: string;
         pricefeed: FluxPriceFeed;
@@ -87,8 +72,6 @@ declare module "mocha" {
             }[]
         >;
         isProtocolSolvent: () => Promise<boolean>;
-        FlashLiquidator: ExampleFlashLiquidator;
-        WETH10: MockWETH10;
         WETH10OraclePrice: number;
         WETH10Oracle: FluxPriceFeed;
     }
@@ -98,6 +81,23 @@ export {};
 declare module "hardhat/types/runtime" {
     export interface HardhatRuntimeEnvironment {
         deploy: <T extends Contract>(name: string, options?: DeployOptions) => Promise<DeployResultWithSignatures<T>>;
+        Diamond: Kresko;
+        DiamondDeployment: Deployment;
+        getAddFacetArgs: <T extends Contract>(
+            facet: T,
+            signatures?: string[],
+            initializer?: {
+                contract: Contract;
+                functionName?: string;
+                args?: any[];
+            },
+        ) => {
+            facetCut: FacetCut;
+            initialization: {
+                _init: string;
+                _calldata: BytesLike;
+            };
+        };
         getSignatures: (abi: ABI) => string[];
         getSignaturesWithNames: (abi: ABI) => { name: string; sig: string }[];
         utils: typeof import("ethers/lib/utils");

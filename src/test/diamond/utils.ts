@@ -1,13 +1,16 @@
 import { deployments, getSignatures, ethers } from "hardhat";
 import {
+    AccessControlFacet,
+    AccessControlFacet__factory,
     DiamondCutFacet,
     DiamondCutFacet__factory,
     DiamondLoupeFacet,
     DiamondLoupeFacet__factory,
     DiamondOwnershipFacet,
     DiamondOwnershipFacet__factory,
-    Error__factory,
-    FullDiamond,
+    ERC165Facet,
+    ERC165Facet__factory,
+    Kresko,
 } from "types";
 
 export const getUsers = async (): Promise<Users> => {
@@ -42,31 +45,52 @@ export const getFacets = async () => [
         contract: await ethers.getContract<DiamondOwnershipFacet>("DiamondOwnershipFacet"),
         signatures: getSignatures(DiamondOwnershipFacet__factory.abi),
     },
+    {
+        name: "AccessControlFacet",
+        contract: await ethers.getContract<AccessControlFacet>("AccessControlFacet"),
+        signatures: getSignatures(AccessControlFacet__factory.abi),
+    },
+    {
+        name: "ERC165Facet",
+        contract: await ethers.getContract<ERC165Facet>("ERC165Facet"),
+        signatures: getSignatures(ERC165Facet__factory.abi),
+    },
 ];
 
 export const fixtures = {
     diamondInit: deployments.createFixture(async _hre => {
-        const fixture = await deployments.fixture("diamond-init");
+        await deployments.fixture(["diamond-init"]);
 
+        const DiamondDeployment = await _hre.deployments.get("Diamond");
+        const Diamond = await ethers.getContractAt<Kresko>("Kresko", DiamondDeployment.address);
         return {
-            contracts: {
-                Diamond: await ethers.getContract<FullDiamond>("Diamond"),
-                facets: await getFacets(),
-            },
+            DiamondDeployment,
+            Diamond,
+            facets: DiamondDeployment.facets,
             users: await getUsers(),
-            fixture,
         };
     }),
-    diamond: deployments.createFixture(async _hre => {
-        const fixture = await deployments.fixture("diamond");
+    minterInit: deployments.createFixture(async _hre => {
+        await deployments.fixture(["diamond", "minter"]);
+
+        const DiamondDeployment = await _hre.deployments.get("Diamond");
+        const Diamond = await ethers.getContractAt<Kresko>("Kresko", DiamondDeployment.address);
         return {
-            contracts: {
-                Diamond: await ethers.getContract<FullDiamond>("Diamond"),
-            },
+            DiamondDeployment,
+            Diamond,
+            facets: DiamondDeployment.facets,
             users: await getUsers(),
-            fixture,
         };
     }),
+};
+
+export const randomContractAddress = () => {
+    const pubKey = ethers.Wallet.createRandom().publicKey;
+
+    return ethers.utils.getContractAddress({
+        from: pubKey,
+        nonce: 0,
+    });
 };
 
 export enum Errors {
@@ -75,7 +99,9 @@ export enum Errors {
     /* -------------------------------------------------------------------------- */
 
     // Preserve readability for the diamond proxy
-    INVALID_FUNCTION_SIGNATURE = "krDiamond: function does not exist",
+    DIAMOND_INVALID_FUNCTION_SIGNATURE = "krDiamond: function does not exist",
+    DIAMOND_INVALID_PENDING_OWNER = "krDiamond: Must be pending contract owner",
+    DIAMOND_INVALID_OWNER = "krDiamond: Must be diamond owner",
 
     /* -------------------------------------------------------------------------- */
     /*                                   1. General                               */
@@ -109,7 +135,7 @@ export enum Errors {
     PARAM_LIQUIDATION_INCENTIVE_LOW = "214", // "Liquidation incentive less than MIN_LIQUIDATION_INCENTIVE_MULTIPLIER"
     PARAM_LIQUIDATION_INCENTIVE_HIGH = "215", // "Liquidation incentive greater than MAX_LIQUIDATION_INCENTIVE_MULTIPLIER"
     PARAM_MIN_COLLATERAL_RATIO_LOW = "216", // Minimum collateral ratio less than MIN_COLLATERALIZATION_RATIO
-    PARAM_MIN_DEBT_AMOUNT_LOW = "217", // Minimum debt amount less than MAX_DEBT_VALUE
+    PARAM_MIN_DEBT_AMOUNT_HIGH = "217", // Minimum debt param argument exceeds MAX_DEBT_VALUE
 
     /* -------------------------------------------------------------------------- */
     /*                                   3. Staking                               */

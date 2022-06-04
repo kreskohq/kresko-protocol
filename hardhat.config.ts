@@ -1,9 +1,6 @@
 // Deployment
 import "tsconfig-paths/register";
 
-// HRE extensions
-import "@configs/extensions";
-
 // Enable when typechain works seamlessly
 // import "@foundry-rs/hardhat";
 
@@ -17,11 +14,10 @@ import "@nomiclabs/hardhat-ethers";
 import "@typechain/hardhat";
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-web3";
-import "@nomiclabs/hardhat-solhint";
 import "hardhat-diamond-abi";
 
 // import "hardhat-preprocessor";
-import "hardhat-gas-reporter";
+// import "hardhat-gas-reporter";
 // Environment variables
 import { resolve } from "path";
 import { config as dotenvConfig } from "dotenv";
@@ -33,12 +29,16 @@ if (!mnemonic) {
     // Just a random word chosen from the BIP 39 list. Not sensitive.
     mnemonic = "wealth";
 }
+
+// HRE extensions
+import "hardhat-configs/extensions";
+
 // All tasks
-import "@tasks";
+import "hardhat-interface-generator";
+import "./src/tasks/diamond/addFacet.ts";
 // Get configs
-import { compilers, networks, users } from "@configs";
-import type { HardhatUserConfig } from "hardhat/types";
-import { facets } from "src/contracts/diamonds/diamond-config";
+import { compilers, networks, users } from "hardhat-configs";
+import type { HardhatUserConfig } from "hardhat/types/config";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -55,11 +55,11 @@ import { facets } from "src/contracts/diamonds/diamond-config";
 // }
 // Set config
 const config: HardhatUserConfig = {
-    gasReporter: {
-        currency: "USD",
-        enabled: process.env.REPORT_GAS ? true : false,
-        src: "src/contracts",
-    },
+    // gasReporter: {
+    //     currency: "USD",
+    //     enabled: process.env.REPORT_GAS ? true : false,
+    //     src: "src/contracts",
+    // },
     namedAccounts: users,
     networks: networks(mnemonic),
     defaultNetwork: "hardhat",
@@ -67,7 +67,7 @@ const config: HardhatUserConfig = {
         artifacts: "build/artifacts",
         cache: "build/cache",
         sources: "src/contracts",
-        tests: "src/test",
+        tests: "src/test/diamond",
         deploy: "src/deploy",
         deployments: "deployments",
         imports: "imports",
@@ -77,16 +77,17 @@ const config: HardhatUserConfig = {
         outDir: "./types/typechain",
         target: "ethers-v5",
         tsNocheck: true,
-        externalArtifacts: ["./build/artifacts/hardhat-diamond-abi/FullDiamond.sol/FullDiamond.json"],
+        externalArtifacts: ["./build/artifacts/hardhat-diamond-abi/Kresko.sol/Kresko.json"],
     },
     mocha: {
         timeout: 120000,
     },
     diamondAbi: {
         // (required) The name of your Diamond ABI
-        name: "FullDiamond",
+        name: "Kresko",
+        include: ["facets"],
+        exclude: ["vendor", "test"],
         strict: true,
-        include: facets,
     },
 };
 

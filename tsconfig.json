@@ -17,12 +17,11 @@
         "baseUrl": "./",
         "paths": {
             "@configs": ["hardhat-configs"],
-            "@configs/*": ["hardhat-configs/*"],
             "@utils": ["src/utils"],
             "@utils/*": ["src/utils/*"],
             "@tasks": ["src/tasks"]
         }
     },
     "include": ["hardhat.config.ts", "hardhat-configs/**/*", "src/**/*", "tasks/**/*", "types/**/*"],
-    "exclude": ["node_modules", "build", "packages"]
+    "exclude": ["node_modules", "packages"]
 }

@@ -8,7 +8,7 @@ import { Artifact } from "hardhat/types";
 import { constructors } from "../utils/constuctors";
 import { DeployOptions } from "@kreskolabs/hardhat-deploy/types";
 import { toBig } from "./numbers";
-import type { ExampleFlashLiquidator, MockWETH10, UniswapV2Factory, UniswapV2Router02 } from "types";
+import type { UniswapV2Factory, UniswapV2Router02 } from "types";
 
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 export const ADDRESS_ONE = "0x0000000000000000000000000000000000000001";
@@ -66,13 +66,11 @@ export async function deployWETH10AsCollateralWithLiquidator(
     await oracle.transmit(fixedPointOraclePrice);
 
     const WETH10Artifact: Artifact = await hre.artifacts.readArtifact("MockWETH10");
-    const WETH10 = <MockWETH10>await deployContract(signer, WETH10Artifact);
+    const WETH10 = await deployContract(signer, WETH10Artifact);
 
     const FlashLiquidatorArtifact: Artifact = await hre.artifacts.readArtifact("ExampleFlashLiquidator");
 
-    const FlashLiquidator = <ExampleFlashLiquidator>(
-        await deployContract(signer, FlashLiquidatorArtifact, [WETH10.address, Kresko.address])
-    );
+    const FlashLiquidator = await deployContract(signer, FlashLiquidatorArtifact, [WETH10.address, Kresko.address]);
 
     const fixedPointFactor = toFixedPoint(factor);
 
