@@ -17,7 +17,7 @@ import "@nomiclabs/hardhat-web3";
 import "hardhat-diamond-abi";
 
 // import "hardhat-preprocessor";
-// import "hardhat-gas-reporter";
+import "hardhat-gas-reporter";
 // Environment variables
 import { resolve } from "path";
 import { config as dotenvConfig } from "dotenv";
@@ -55,11 +55,11 @@ import type { HardhatUserConfig } from "hardhat/types/config";
 // }
 // Set config
 const config: HardhatUserConfig = {
-    // gasReporter: {
-    //     currency: "USD",
-    //     enabled: process.env.REPORT_GAS ? true : false,
-    //     src: "src/contracts",
-    // },
+    gasReporter: {
+        currency: "USD",
+        enabled: process.env.REPORT_GAS ? true : false,
+        src: "src/contracts",
+    },
     namedAccounts: users,
     networks: networks(mnemonic),
     defaultNetwork: "hardhat",
@@ -83,7 +83,6 @@ const config: HardhatUserConfig = {
         timeout: 120000,
     },
     diamondAbi: {
-        // (required) The name of your Diamond ABI
         name: "Kresko",
         include: ["facets"],
         exclude: ["vendor", "test"],

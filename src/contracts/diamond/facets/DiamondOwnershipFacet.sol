@@ -37,18 +37,18 @@ contract DiamondOwnershipFacet is DiamondModifiers, IOwnership {
 
     /// @notice Getter for the current owner
     function owner() external view override returns (address) {
-        return DiamondStorage.contractOwner();
+        return ds().contractOwner;
     }
 
     /// @notice Getter for the pending owner
     /// @return address
     function pendingOwner() external view override returns (address) {
-        return DiamondStorage.pendingContractOwner();
+        return ds().pendingOwner;
     }
 
     /// @notice Initialization status getter
     /// @return initialized status
     function initialized() external view returns (bool) {
-        return DiamondStorage.state().initialized;
+        return ds().initialized;
     }
 }

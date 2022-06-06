@@ -4,16 +4,16 @@
 
 pragma solidity 0.8.13;
 
+import "../Errors.sol";
 import {IDiamondCut} from "../interfaces/IDiamondCut.sol";
 import {LibMeta} from "../libraries/LibMeta.sol";
 import {AccessControlEvent, GeneralEvent} from "../Events.sol";
 import {DiamondState} from "./DiamondStructs.sol";
 
+// Storage position
 bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("kresko.diamond.storage");
 
 library DiamondStorage {
-    /// @notice Storage position
-
     /// @notice Storage accessor
     /// @return ds_ Current state of `DiamondState`
     function state() internal pure returns (DiamondState storage ds_) {
@@ -32,30 +32,12 @@ library DiamondStorage {
     /// @notice Only called on the first deployment
     function initialize(address _owner) internal {
         DiamondState storage s = state();
-        require(!s.initialized, "Diamond: Already initialized");
+        require(!s.initialized, Error.ALREADY_INITIALIZED);
         s.initialized = true;
         s.storageVersion++;
         s.contractOwner = _owner;
         emit GeneralEvent.Deployed(_owner, s.storageVersion);
         emit AccessControlEvent.OwnershipTransferred(address(0), _owner);
-    }
-
-    /// @notice Ownership initializer
-    /// @notice Only called on the first deployment
-    function _storageVersion() internal view returns (uint8) {
-        return state().storageVersion;
-    }
-
-    /// @notice Internal getter for the contract owner
-    /// @return Owner of the contract
-    function contractOwner() internal view returns (address) {
-        return state().contractOwner;
-    }
-
-    /// @notice Internal getter for the pending new contract owner
-    /// @return pendingOwner of the contract
-    function pendingContractOwner() internal view returns (address) {
-        return state().pendingOwner;
     }
 
     /**
@@ -64,10 +46,10 @@ library DiamondStorage {
      * @notice caller must be the current contract owner
      */
     function initiateOwnershipTransfer(address _newOwner) internal {
-        require(LibMeta.msgSender() == contractOwner(), "DS: Must be owner to initiate transfer");
+        DiamondState storage s = state();
+        require(LibMeta.msgSender() == s.contractOwner, Error.DIAMOND_INVALID_OWNER);
         require(_newOwner != address(0), "DS: Owner cannot be 0-address");
 
-        DiamondState storage s = state();
         s.pendingOwner = _newOwner;
 
         emit AccessControlEvent.PendingOwnershipTransfer(s.contractOwner, _newOwner);
@@ -79,6 +61,7 @@ library DiamondStorage {
      */
     function finalizeOwnershipTransfer() internal {
         DiamondState storage s = state();
+        require(LibMeta.msgSender() == s.contractOwner, Error.DIAMOND_INVALID_PENDING_OWNER);
         s.contractOwner = s.pendingOwner;
         s.pendingOwner = address(0);
 

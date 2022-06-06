@@ -19,7 +19,8 @@
             "@configs": ["hardhat-configs"],
             "@utils": ["src/utils"],
             "@utils/*": ["src/utils/*"],
-            "@tasks": ["src/tasks"]
+            "@tasks": ["src/tasks"],
+            "@scripts/*": ["src/scripts/*"]
         }
     },
     "include": ["hardhat.config.ts", "hardhat-configs/**/*", "src/**/*", "tasks/**/*", "types/**/*"],

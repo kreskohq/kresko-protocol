@@ -5,16 +5,25 @@ import {AccessControlEvent} from "../Events.sol";
 import {LibMeta} from "./LibMeta.sol";
 import {Strings} from "./Strings.sol";
 import {EnumerableSet} from "./EnumerableSet.sol";
-import {DiamondStorage, DiamondState} from "../storage/DiamondStorage.sol";
+import {DiamondStorage} from "../storage/DiamondStorage.sol";
 
 bytes32 constant DEFAULT_ADMIN_ROLE = 0x00;
 bytes32 constant MINTER_OPERATOR_ROLE = keccak256("kresko.minter.operator");
+
+/**
+ * @title Shared library for access control
+ * @author Kresko
+ */
 
 library AccessControl {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     function hasRole(bytes32 role, address account) internal view returns (bool) {
         return DiamondStorage.state()._roles[role].members[account];
+    }
+
+    function getRoleMemberCount(bytes32 role) internal view returns (uint256) {
+        return DiamondStorage.state()._roleMembers[role].length();
     }
 
     /**

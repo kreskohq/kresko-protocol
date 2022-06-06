@@ -5,6 +5,7 @@ import { deployWithSignatures } from "@utils/deployment";
 import { constants, ethers } from "ethers";
 import { FacetCut, FacetCutAction } from "@kreskolabs/hardhat-deploy/dist/types";
 import { FormatTypes } from "@ethersproject/abi";
+import { signatureFilters } from "src/contracts/diamond/diamond-config";
 
 // We can access these values from deploy scripts / hardhat run scripts
 extendEnvironment(async function (hre) {
@@ -53,10 +54,12 @@ extendEnvironment(async function (hre) {
         };
     };
     hre.getSignatures = abi =>
-        new hre.utils.Interface(abi).fragments.filter(f => f.type === "function").map(hre.utils.Interface.getSighash);
+        new hre.utils.Interface(abi).fragments
+            .filter(f => f.type === "function" && !signatureFilters.some(s => s.indexOf(f.name.toLowerCase()) > -1))
+            .map(hre.utils.Interface.getSighash);
     hre.getSignaturesWithNames = abi =>
         new hre.utils.Interface(abi).fragments
-            .filter(f => f.type === "function")
+            .filter(f => f.type === "function" && !signatureFilters.some(s => s.indexOf(f.name.toLowerCase()) > -1))
             .map(fragment => ({ name: fragment.name, sig: hre.utils.Interface.getSighash(fragment) }));
 });
 

@@ -1,5 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction, FacetCut } from "@kreskolabs/hardhat-deploy/types";
+import { mergeABIs } from "@kreskolabs/hardhat-deploy/dist/src/utils";
 import { getLogger } from "@utils/deployment";
 import { DiamondInit, Kresko } from "types/typechain";
 import { facets } from "src/contracts/diamond/diamond-config";
@@ -10,14 +11,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const { admin } = await getNamedAccounts();
 
     const Cuts: FacetCut[] = [];
+    const ABIs = [];
     for (const facet of facets) {
         const [FacetContract, sigs] = await deploy(facet);
         const args = hre.getAddFacetArgs(FacetContract, sigs);
-
+        const Artifact = await deployments.getArtifact(facet);
         Cuts.push(args.facetCut);
+        ABIs.push(Artifact.abi);
     }
 
-    const [DiamondInit] = await hre.deploy<DiamondInit>("DiamondInit");
+    const [DiamondInit] = await deploy<DiamondInit>("DiamondInit");
     const initializer = [DiamondInit.address, (await DiamondInit.populateTransaction.initialize(admin)).data];
     const [DiamondContract, _signatures, deployment] = await deploy("Diamond", {
         from: admin,
@@ -29,6 +32,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         facetAddress: f.facetAddress,
         functionSelectors: f.functionSelectors,
     }));
+
+    deployment.abi = mergeABIs([deployment.abi, ...ABIs], { check: true, skipSupportsInterface: false });
     await deployments.save("Diamond", deployment);
 
     logger.success("Diamond deployed @", DiamondContract.address, "with", deployment.facets.length, "facets");

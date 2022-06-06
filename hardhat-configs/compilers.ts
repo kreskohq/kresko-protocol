@@ -5,7 +5,8 @@ const oldCompilerSettings = {
     },
     outputSelection: {
         "*": {
-            "*": ["storageLayout"],
+            "*": ["storageLayout", "evm.methodIdentifiers", "devdoc", "userdoc", "evm.gasEstimates", "irOptimized"],
+            "": ["ast"],
         },
     },
 };
@@ -28,7 +29,7 @@ export const compilers = {
             version: "0.8.13",
             optimizer: {
                 enabled: true,
-                runs: 800,
+                runs: 1500,
                 details: {
                     yul: true,
                     yulDetails: {
@@ -36,9 +37,19 @@ export const compilers = {
                     },
                 },
             },
+            evmVersion: "istanbul",
+            viaIR: true,
             outputSelection: {
                 "*": {
-                    "*": ["storageLayout"],
+                    "*": [
+                        "storageLayout",
+                        "evm.methodIdentifiers",
+                        "devdoc",
+                        "userdoc",
+                        "evm.gasEstimates",
+                        "irOptimized",
+                    ],
+                    "": ["ast"],
                 },
             },
         },

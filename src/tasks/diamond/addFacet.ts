@@ -20,32 +20,15 @@ task(TASK_NAME)
         "",
         types.string,
     )
+    .addOptionalParam("internalInitializer", "facet has its own initializer", false, types.boolean)
     .addOptionalParam("initializerArgs", "Address to delegatecall to when adding the facet", "", types.json)
-    .setAction(async function ({ name, initializerName, initializerArgs }: TaskArguments, hre) {
+    .setAction(async function ({ name, initializerName, internalInitializer, initializerArgs }: TaskArguments, hre) {
         const logger = getLogger(TASK_NAME);
         const { ethers, deployments } = hre;
 
         const DiamondDeployment = await hre.deployments.getOrNull("Diamond");
         if (!DiamondDeployment) {
             throw new Error(`Trying to add facet but no diamond deployed @ ${hre.network.name}`);
-        }
-
-        let initializer: DiamondCutInitializer;
-        const InitializerArtifact = await hre.deployments.getOrNull(initializerName);
-
-        if (InitializerArtifact) {
-            if (!initializerArgs) {
-                logger.log("Adding facet with initializer but no parameters were supplied");
-                initializerArgs = "0x";
-            } else {
-                logger.log("Adding facet with initializer", initializerName, "params", initializerArgs);
-            }
-            const [InitializerContract] = await hre.deploy(initializerName);
-            const tx = await InitializerContract.populateTransaction.initialize(initializerArgs);
-            initializer = [tx.to, tx.data];
-        } else {
-            initializer = [constants.AddressZero, "0x"];
-            logger.log("Adding facet with no initializer");
         }
 
         const Diamond = await ethers.getContractAt<Kresko>("Kresko", DiamondDeployment.address);
@@ -58,6 +41,29 @@ task(TASK_NAME)
             functionSelectors: Signatures,
             action: FacetCutAction.Add,
         };
+
+        let initializer: DiamondCutInitializer;
+        if (!internalInitializer) {
+            const InitializerArtifact = await hre.deployments.getOrNull(initializerName);
+
+            if (InitializerArtifact) {
+                if (!initializerArgs) {
+                    logger.log("Adding facet with initializer but no parameters were supplied");
+                    initializerArgs = "0x";
+                } else {
+                    logger.log("Adding facet with initializer", initializerName, "params", initializerArgs);
+                }
+                const [InitializerContract] = await hre.deploy(initializerName);
+                const tx = await InitializerContract.populateTransaction.initialize(initializerArgs);
+                initializer = [tx.to, tx.data];
+            } else {
+                initializer = [constants.AddressZero, "0x"];
+                logger.log("Adding facet with no initializer");
+            }
+        } else {
+            const tx = await Facet.populateTransaction.initialize(initializerArgs);
+            initializer = [tx.to, tx.data];
+        }
 
         const tx = await Diamond.diamondCut([Cut], ...initializer);
 

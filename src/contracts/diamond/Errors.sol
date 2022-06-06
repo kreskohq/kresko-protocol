@@ -52,6 +52,10 @@ library Error {
     string public constant PARAM_LIQUIDATION_INCENTIVE_HIGH = "215"; // "Liquidation incentive greater than MAX_LIQUIDATION_INCENTIVE_MULTIPLIER"
     string public constant PARAM_MIN_COLLATERAL_RATIO_LOW = "216"; // Minimum collateral ratio less than MIN_COLLATERALIZATION_RATIO
     string public constant PARAM_MIN_DEBT_AMOUNT_HIGH = "217"; // Minimum debt param argument exceeds MAX_DEBT_VALUE
+    string public constant COLLATERAL_DOESNT_EXIST = "218"; // Collateral does not exist within the protocol
+    string public constant KRASSET_DOESNT_EXIST = "219"; // KrAsset does not exist within the protocol
+    string public constant KRASSET_NOT_MINTABLE = "220"; // KrAsset is not mintable
+    string public constant KRASSET_SYMBOL_EXISTS = "221"; // KrAsset with this symbol is already within the protocl
 
     /* -------------------------------------------------------------------------- */
     /*                                   3. Staking                               */

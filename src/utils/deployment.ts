@@ -1,5 +1,6 @@
 import { DeployOptions } from "@kreskolabs/hardhat-deploy/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { signatureFilters } from "src/contracts/diamond/diamond-config";
 
 export const deployWithSignatures =
     (hre: HardhatRuntimeEnvironment) =>
@@ -13,11 +14,19 @@ export const deployWithSignatures =
         };
         const deployment = await deploy(name, options ? { ...options } : defaultOptions);
 
+        if (name === "Diamond") {
+            console.log("GAS USED HERE", Number(deployment.receipt.gasUsed));
+        }
+
         const implementation = await ethers.getContract<T>(name);
         return [
             implementation,
             implementation.interface.fragments
-                .filter(frag => frag.type !== "constructor")
+                .filter(
+                    frag =>
+                        frag.type !== "constructor" &&
+                        !signatureFilters.some(f => f.indexOf(frag.name.toLowerCase()) > -1),
+                )
                 .map(frag => ethers.utils.Interface.getSighash(frag)),
             deployment,
         ];
@@ -29,7 +38,10 @@ export const getSignatures =
         const implementation = await hre.ethers.getContract<T>(name);
 
         const fragments = implementation.interface.fragments
-            .filter(frag => frag.type !== "constructor")
+            .filter(
+                frag =>
+                    frag.type !== "constructor" && !signatureFilters.some(f => f.indexOf(frag.name.toLowerCase()) > -1),
+            )
             .reduce<{ [key: string]: string }>((result, frag) => {
                 result[frag.name] = hre.ethers.utils.Interface.getSighash(frag);
                 return result;

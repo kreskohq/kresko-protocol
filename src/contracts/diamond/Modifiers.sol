@@ -39,7 +39,7 @@ abstract contract MinterModifiers is DiamondModifiers {
      * @param _collateralAsset The address of the collateral asset.
      */
     modifier collateralAssetExists(address _collateralAsset) {
-        require(ms().collateralAssets[_collateralAsset].exists, "KR: !collateralExists");
+        require(ms().collateralAssets[_collateralAsset].exists, Error.COLLATERAL_DOESNT_EXIST);
         _;
     }
 
@@ -48,7 +48,7 @@ abstract contract MinterModifiers is DiamondModifiers {
      * @param _collateralAsset The address of the collateral asset.
      */
     modifier collateralAssetDoesNotExist(address _collateralAsset) {
-        require(!ms().collateralAssets[_collateralAsset].exists, "KR: collateralExists");
+        require(!ms().collateralAssets[_collateralAsset].exists, Error.COLLATERAL_EXISTS);
         _;
     }
 
@@ -57,8 +57,8 @@ abstract contract MinterModifiers is DiamondModifiers {
      * @param _kreskoAsset The address of the Kresko asset.
      */
     modifier kreskoAssetExistsAndMintable(address _kreskoAsset) {
-        require(ms().kreskoAssets[_kreskoAsset].exists, "KR: !krAssetExist");
-        require(ms().kreskoAssets[_kreskoAsset].mintable, "KR: !krAssetMintable");
+        require(ms().kreskoAssets[_kreskoAsset].exists, Error.KRASSET_DOESNT_EXIST);
+        require(ms().kreskoAssets[_kreskoAsset].mintable, Error.KRASSET_NOT_MINTABLE);
         _;
     }
 
@@ -68,7 +68,7 @@ abstract contract MinterModifiers is DiamondModifiers {
      * @param _kreskoAsset The address of the Kresko asset.
      */
     modifier kreskoAssetExistsMaybeNotMintable(address _kreskoAsset) {
-        require(ms().kreskoAssets[_kreskoAsset].exists, "KR: !krAssetExist");
+        require(ms().kreskoAssets[_kreskoAsset].exists, Error.KRASSET_DOESNT_EXIST);
         _;
     }
 
@@ -78,8 +78,8 @@ abstract contract MinterModifiers is DiamondModifiers {
      * @param _symbol The symbol of the Kresko asset.
      */
     modifier kreskoAssetDoesNotExist(address _kreskoAsset, string calldata _symbol) {
-        require(!ms().kreskoAssets[_kreskoAsset].exists, "KR: krAssetExists");
-        require(!ms().kreskoAssetSymbols[_symbol], "KR: symbolExists");
+        require(!ms().kreskoAssets[_kreskoAsset].exists, Error.KRASSET_EXISTS);
+        require(!ms().kreskoAssetSymbols[_symbol], Error.KRASSET_SYMBOL_EXISTS);
         _;
     }
 

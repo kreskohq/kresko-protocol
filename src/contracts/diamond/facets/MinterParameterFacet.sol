@@ -3,38 +3,57 @@ pragma solidity 0.8.13;
 
 import {IMinterParameterFacet} from "../interfaces/IMinterParameterFacet.sol";
 
-import "../libraries/FixedPoint.sol";
-import "../libraries/FixedPointMath.sol";
-import "../libraries/Arrays.sol";
-import {MINTER_OPERATOR_ROLE} from "../libraries/AccessControl.sol";
+import {LibMeta} from "../libraries/LibMeta.sol";
+import {MINTER_OPERATOR_ROLE, AccessControl} from "../libraries/AccessControl.sol";
 import {Error} from "../Errors.sol";
-import {MinterEvent} from "../Events.sol";
-import {MinterInitParams} from "../storage/MinterStructs.sol";
+import {MinterEvent, GeneralEvent} from "../Events.sol";
 import {MinterModifiers} from "../Modifiers.sol";
+import {MinterInitParams} from "../storage/MinterStructs.sol";
+import {MinterStorage, MinterState} from "../storage/MinterStorage.sol";
 
 contract MinterParameterFacet is MinterModifiers, IMinterParameterFacet {
     /* -------------------------------------------------------------------------- */
     /*                                  Constants                                 */
     /* -------------------------------------------------------------------------- */
 
-    uint256 public constant ONE_HUNDRED_PERCENT = 1e18;
+    uint256 constant ONE_HUNDRED_PERCENT = 1e18;
 
     /// @notice The maximum configurable burn fee.
-    uint256 public constant MAX_BURN_FEE = 5e16; // 5%
+    uint256 constant MAX_BURN_FEE = 5e16; // 5%
 
     /// @notice The minimum configurable minimum collateralization ratio.
-    uint256 public constant MIN_COLLATERALIZATION_RATIO = 1e18; // 100%
+    uint256 constant MIN_COLLATERALIZATION_RATIO = 1e18; // 100%
 
     /// @notice The minimum configurable liquidation incentive multiplier.
     /// This means liquidator only receives equal amount of collateral to debt repaid.
-    uint256 public constant MIN_LIQUIDATION_INCENTIVE_MULTIPLIER = 1e18; // 100%
+    uint256 constant MIN_LIQUIDATION_INCENTIVE_MULTIPLIER = 1e18; // 100%
 
     /// @notice The maximum configurable liquidation incentive multiplier.
     /// This means liquidator receives 25% bonus collateral compared to the debt repaid.
-    uint256 public constant MAX_LIQUIDATION_INCENTIVE_MULTIPLIER = 1.25e18; // 125%
+    uint256 constant MAX_LIQUIDATION_INCENTIVE_MULTIPLIER = 1.25e18; // 125%
 
     /// @notice The maximum configurable minimum debt USD value.
-    uint256 public constant MAX_DEBT_VALUE = 1000e18; // $1,000
+    uint256 constant MAX_DEBT_VALUE = 1000e18; // $1,000
+
+    function initialize(MinterInitParams calldata params) external onlyOwner {
+        MinterState storage s = ms();
+        require(!s.initialized, Error.ALREADY_INITIALIZED);
+        MinterStorage.initialize();
+        AccessControl.grantRole(MINTER_OPERATOR_ROLE, params.operator);
+
+        // Minter protocol version domain
+        s.domainSeparator = LibMeta.domainSeparator("Kresko Minter", "V1");
+
+        // Set paramateres
+        s.feeRecipient = params.feeRecipient;
+        s.burnFee = FixedPoint.Unsigned(params.burnFee);
+        s.liquidationIncentiveMultiplier = FixedPoint.Unsigned(params.liquidationIncentiveMultiplier);
+        s.minimumCollateralizationRatio = FixedPoint.Unsigned(params.minimumCollateralizationRatio);
+        s.minimumDebtValue = FixedPoint.Unsigned(params.minimumDebtValue);
+
+        ds().supportedInterfaces[type(IMinterParameterFacet).interfaceId] = true;
+        emit GeneralEvent.Initialized(params.operator, s.storageVersion);
+    }
 
     /* -------------------------------------------------------------------------- */
     /*                                    Write                                   */

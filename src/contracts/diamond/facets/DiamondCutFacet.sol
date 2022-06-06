@@ -19,4 +19,12 @@ contract DiamondCutFacet is DiamondModifiers, IDiamondCut {
     ) external override onlyOwner {
         DiamondStorage.diamondCut(_diamondCut, _init, _calldata);
     }
+
+    /// @notice Use an initializer contract without doing modifications
+    /// @param _init The address of the contract or facet to execute _calldata
+    /// @param _calldata A function call, including function selector and arguments
+    /// - _calldata is executed with delegatecall on _init
+    function upgradeState(address _init, bytes calldata _calldata) external onlyOwner {
+        DiamondStorage.initializeDiamondCut(_init, _calldata);
+    }
 }
