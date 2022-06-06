@@ -4,10 +4,10 @@
 
 pragma solidity 0.8.13;
 
-import "../Errors.sol";
+import "../shared/Errors.sol";
+import "../shared/Events.sol";
+import "../shared/Meta.sol";
 import {IDiamondCut} from "../interfaces/IDiamondCut.sol";
-import {LibMeta} from "../libraries/LibMeta.sol";
-import {AccessControlEvent, GeneralEvent} from "../Events.sol";
 import {DiamondState} from "./DiamondStructs.sol";
 
 // Storage position
@@ -47,7 +47,7 @@ library DiamondStorage {
      */
     function initiateOwnershipTransfer(address _newOwner) internal {
         DiamondState storage s = state();
-        require(LibMeta.msgSender() == s.contractOwner, Error.DIAMOND_INVALID_OWNER);
+        require(Meta.msgSender() == s.contractOwner, Error.DIAMOND_INVALID_OWNER);
         require(_newOwner != address(0), "DS: Owner cannot be 0-address");
 
         s.pendingOwner = _newOwner;
@@ -61,7 +61,7 @@ library DiamondStorage {
      */
     function finalizeOwnershipTransfer() internal {
         DiamondState storage s = state();
-        require(LibMeta.msgSender() == s.contractOwner, Error.DIAMOND_INVALID_PENDING_OWNER);
+        require(Meta.msgSender() == s.contractOwner, Error.DIAMOND_INVALID_PENDING_OWNER);
         s.contractOwner = s.pendingOwner;
         s.pendingOwner = address(0);
 
@@ -71,8 +71,6 @@ library DiamondStorage {
     /* -------------------------------------------------------------------------- */
     /*                             Internal DiamondCut                            */
     /* -------------------------------------------------------------------------- */
-
-    event DiamondCut(IDiamondCut.FacetCut[] _diamondCut, address _init, bytes _calldata);
 
     function diamondCut(
         IDiamondCut.FacetCut[] memory _diamondCut,
@@ -91,7 +89,7 @@ library DiamondStorage {
                 revert("DiamondCut: Incorrect FacetCutAction");
             }
         }
-        emit DiamondCut(_diamondCut, _init, _calldata);
+        emit DiamondEvent.DiamondCut(_diamondCut, _init, _calldata);
         initializeDiamondCut(_init, _calldata);
     }
 

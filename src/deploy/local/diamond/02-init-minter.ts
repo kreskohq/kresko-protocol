@@ -1,10 +1,10 @@
 import { getLogger } from "@utils/deployment";
 import { toFixedPoint } from "@utils/fixed-point";
-import { minterFacets } from "src/contracts/diamond/diamond-config";
-import addFacet from "@scripts/add-facet";
+import { minterFacets } from "src/contracts/diamond/config/config";
+import { addFacet } from "@scripts/add-facet";
 import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
-import type { MinterInitParamsStruct } from "types/typechain/MinterInitV1";
+import type { MinterInitParamsStruct } from "types/typechain/MinterParameterFacet";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("init-minter");

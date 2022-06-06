@@ -3,7 +3,7 @@
 
 pragma solidity 0.8.13;
 
-library LibMeta {
+library Meta {
     bytes32 internal constant EIP712_DOMAIN_TYPEHASH =
         keccak256(bytes("EIP712Domain(string name,string version,uint256 salt,address verifyingContract)"));
 

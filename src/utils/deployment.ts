@@ -1,6 +1,6 @@
 import { DeployOptions } from "@kreskolabs/hardhat-deploy/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { signatureFilters } from "src/contracts/diamond/diamond-config";
+import { signatureFilters } from "src/contracts/diamond/config/config";
 
 export const deployWithSignatures =
     (hre: HardhatRuntimeEnvironment) =>

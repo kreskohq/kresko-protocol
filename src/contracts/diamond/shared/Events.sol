@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.13;
+import {IDiamondCut} from "../interfaces/IDiamondCut.sol";
 
 library GeneralEvent {
     /**
@@ -7,6 +8,10 @@ library GeneralEvent {
      */
     event Deployed(address indexed owner, uint8 version);
     event Initialized(address indexed operator, uint8 version);
+}
+
+library DiamondEvent {
+    event DiamondCut(IDiamondCut.FacetCut[] _diamondCut, address _init, bytes _calldata);
 }
 
 library MinterEvent {

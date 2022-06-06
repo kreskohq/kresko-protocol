@@ -5,7 +5,7 @@ import { deployWithSignatures } from "@utils/deployment";
 import { constants, ethers } from "ethers";
 import { FacetCut, FacetCutAction } from "@kreskolabs/hardhat-deploy/dist/types";
 import { FormatTypes } from "@ethersproject/abi";
-import { signatureFilters } from "src/contracts/diamond/diamond-config";
+import { signatureFilters } from "src/contracts/diamond/config/config";
 
 // We can access these values from deploy scripts / hardhat run scripts
 extendEnvironment(async function (hre) {
@@ -31,7 +31,8 @@ extendEnvironment(async function (hre) {
         selectors =
             selectors && selectors.length
                 ? selectors
-                : hre.getSignatures(facet.interface.format(FormatTypes.json) as any[]);
+                : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  hre.getSignatures(facet.interface.format(FormatTypes.json) as any[]);
 
         const facetCut: FacetCut = {
             facetAddress: facet.address,

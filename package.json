@@ -28,6 +28,7 @@
         "@openzeppelin/contracts-upgradeable": "^4.3.2",
         "@openzeppelin/hardhat-upgrades": "^1.10.0",
         "@openzeppelin/test-helpers": "^0.5.15",
+        "@solidity-parser/parser": "^0.14.1",
         "@solidstate/contracts": "^0.0.32",
         "@solidstate/hardhat-4byte-uploader": "^1.0.2",
         "@solidstate/library": "^0.0.32",
@@ -50,6 +51,7 @@
         "ethers": "^5.6.8",
         "fs-extra": "^10.0.0",
         "hardhat": "2.9.6",
+        "hardhat-diamond-abi": "^2.0.0",
         "hardhat-gas-reporter": "^1.0.8",
         "hardhat-interface-generator": "^0.0.6",
         "hardhat-preprocessor": "^0.1.4",
@@ -60,7 +62,7 @@
         "prettier": "^2.6.2",
         "prettier-plugin-solidity": "^1.0.0-beta.13",
         "shelljs": "^0.8.4",
-        "solhint": "^3.3.7",
+        "solhint": "3.3.7",
         "solhint-plugin-prettier": "^0.0.5",
         "solidity-coverage": "^0.7.21",
         "ts-generator": "^0.1.1",
@@ -104,7 +106,7 @@
         "kresko:addkrasset": "hardhat kresko:addkrasset",
         "kresko:addcollateral": "hardhat kresko:addcollateral",
         "lint": "yarn run lint:sol && yarn run lint:ts && yarn run prettier:check",
-        "lint:sol": "solhint --config ./.solhint.json --max-warnings 0 \"src/contracts/**/**/*.sol\"",
+        "lint:sol": "TS_NODE_TRANSPILE_ONLY=1 solhint --config .solhint.json --max-warnings 0 './src/contracts/**/**/*.sol'",
         "lint:ts": "eslint --config ./.eslintrc.yaml --ignore-path ./.eslintignore --ext .js,.ts .",
         "postinstall": "husky install",
         "prettier": "prettier --config ./.prettierrc --write \"**/*.{js,json,md,sol,ts}\"",
@@ -115,8 +117,5 @@
     },
     "workspaces": [
         "packages/contracts"
-    ],
-    "dependencies": {
-        "hardhat-diamond-abi": "^2.0.0"
-    }
+    ]
 }

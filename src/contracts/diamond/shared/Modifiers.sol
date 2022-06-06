@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.13;
 
-import {Error} from "./Errors.sol";
-import {LibMeta} from "./libraries/LibMeta.sol";
-import {WithStorage} from "./WithStorage.sol";
-import {AccessControl} from "./libraries/AccessControl.sol";
+import "./Meta.sol";
+import "./WithStorage.sol";
+import "./Errors.sol";
+import {AccessControl} from "./AccessControl.sol";
 
 abstract contract DiamondModifiers is WithStorage {
     /**
@@ -23,12 +23,12 @@ abstract contract DiamondModifiers is WithStorage {
     }
 
     modifier onlyOwner() {
-        require(LibMeta.msgSender() == ds().contractOwner, Error.DIAMOND_INVALID_OWNER);
+        require(Meta.msgSender() == ds().contractOwner, Error.DIAMOND_INVALID_OWNER);
         _;
     }
 
     modifier onlyPendingOwner() {
-        require(LibMeta.msgSender() == ds().pendingOwner, Error.DIAMOND_INVALID_PENDING_OWNER);
+        require(Meta.msgSender() == ds().pendingOwner, Error.DIAMOND_INVALID_PENDING_OWNER);
         _;
     }
 }

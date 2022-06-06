@@ -2,6 +2,7 @@
 pragma solidity 0.8.13;
 
 import "../libraries/FixedPoint.sol";
+import {AggregatorV2V3Interface} from "../vendor/flux/interfaces/AggregatorV2V3Interface.sol";
 
 /*
  * ==================================================
@@ -32,6 +33,7 @@ struct MinterInitParams {
  */
 struct CollateralAsset {
     FixedPoint.Unsigned factor;
+    AggregatorV2V3Interface oracle;
     address underlyingRebasingToken;
     uint8 decimals;
     bool exists;
@@ -48,6 +50,7 @@ struct CollateralAsset {
  */
 struct KrAsset {
     FixedPoint.Unsigned kFactor;
+    AggregatorV2V3Interface oracle;
     bool exists;
     bool mintable;
     uint256 marketCapUSDLimit;

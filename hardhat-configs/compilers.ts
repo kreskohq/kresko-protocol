@@ -37,7 +37,6 @@ export const compilers = {
                     },
                 },
             },
-            evmVersion: "istanbul",
             viaIR: true,
             outputSelection: {
                 "*": {
@@ -49,7 +48,6 @@ export const compilers = {
                         "evm.gasEstimates",
                         "irOptimized",
                     ],
-                    "": ["ast"],
                 },
             },
         },

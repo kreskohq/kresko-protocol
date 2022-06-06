@@ -3,11 +3,12 @@ pragma solidity 0.8.13;
 
 import {IMinterParameterFacet} from "../interfaces/IMinterParameterFacet.sol";
 
-import {LibMeta} from "../libraries/LibMeta.sol";
-import {MINTER_OPERATOR_ROLE, AccessControl} from "../libraries/AccessControl.sol";
-import {Error} from "../Errors.sol";
-import {MinterEvent, GeneralEvent} from "../Events.sol";
-import {MinterModifiers} from "../Modifiers.sol";
+import "../shared/Meta.sol";
+import "../shared/AccessControl.sol";
+import "../shared/Errors.sol";
+import "../shared/Events.sol";
+import "../libraries/FixedPoint.sol";
+import {MinterModifiers} from "../shared/Modifiers.sol";
 import {MinterInitParams} from "../storage/MinterStructs.sol";
 import {MinterStorage, MinterState} from "../storage/MinterStorage.sol";
 
@@ -42,7 +43,7 @@ contract MinterParameterFacet is MinterModifiers, IMinterParameterFacet {
         AccessControl.grantRole(MINTER_OPERATOR_ROLE, params.operator);
 
         // Minter protocol version domain
-        s.domainSeparator = LibMeta.domainSeparator("Kresko Minter", "V1");
+        s.domainSeparator = Meta.domainSeparator("Kresko Minter", "V1");
 
         // Set paramateres
         s.feeRecipient = params.feeRecipient;

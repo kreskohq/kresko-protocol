@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.13;
 
-import {AccessControlEvent} from "../Events.sol";
-import {LibMeta} from "./LibMeta.sol";
-import {Strings} from "./Strings.sol";
-import {EnumerableSet} from "./EnumerableSet.sol";
+import {Strings} from "../libraries/Strings.sol";
+import {EnumerableSet} from "../libraries/EnumerableSet.sol";
+import {AccessControlEvent} from "./Events.sol";
+import {Meta} from "./Meta.sol";
 import {DiamondStorage} from "../storage/DiamondStorage.sol";
 
 bytes32 constant DEFAULT_ADMIN_ROLE = 0x00;
@@ -27,7 +27,7 @@ library AccessControl {
     }
 
     /**
-     * @dev Revert with a standard message if `LibMeta.msgSender` is missing `role`.
+     * @dev Revert with a standard message if `Meta.msgSender` is missing `role`.
      * Overriding this function changes the behavior of the {onlyRole} modifier.
      *
      * Format of the revert message is described in {_checkRole}.
@@ -35,7 +35,7 @@ library AccessControl {
      * _Available since v4.6._
      */
     function checkRole(bytes32 role) internal view {
-        _checkRole(role, LibMeta.msgSender());
+        _checkRole(role, Meta.msgSender());
     }
 
     /**
@@ -119,7 +119,7 @@ library AccessControl {
      * - the caller must be `account`.
      */
     function _renounceRole(bytes32 role, address account) internal {
-        require(account == LibMeta.msgSender(), "AccessControl: can only renounce roles for self");
+        require(account == Meta.msgSender(), "AccessControl: can only renounce roles for self");
 
         _revokeRole(role, account);
     }
@@ -166,7 +166,7 @@ library AccessControl {
         if (!hasRole(role, account)) {
             DiamondStorage.state()._roles[role].members[account] = true;
             DiamondStorage.state()._roleMembers[role].add(account);
-            emit AccessControlEvent.RoleGranted(role, account, LibMeta.msgSender());
+            emit AccessControlEvent.RoleGranted(role, account, Meta.msgSender());
         }
     }
 
@@ -179,7 +179,7 @@ library AccessControl {
         if (hasRole(role, account)) {
             DiamondStorage.state()._roles[role].members[account] = false;
             DiamondStorage.state()._roleMembers[role].remove(account);
-            emit AccessControlEvent.RoleRevoked(role, account, LibMeta.msgSender());
+            emit AccessControlEvent.RoleRevoked(role, account, Meta.msgSender());
         }
     }
 }

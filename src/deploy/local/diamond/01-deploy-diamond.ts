@@ -3,7 +3,7 @@ import { DeployFunction, FacetCut } from "@kreskolabs/hardhat-deploy/types";
 import { mergeABIs } from "@kreskolabs/hardhat-deploy/dist/src/utils";
 import { getLogger } from "@utils/deployment";
 import { DiamondInit, Kresko } from "types/typechain";
-import { facets } from "src/contracts/diamond/diamond-config";
+import { facets } from "src/contracts/diamond/config/config";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("deploy-diamond");

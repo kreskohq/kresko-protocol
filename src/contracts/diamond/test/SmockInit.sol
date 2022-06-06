@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.13;
 
-import {AccessControl, DEFAULT_ADMIN_ROLE} from "../libraries/AccessControl.sol";
 import {IERC165} from "../interfaces/IERC165.sol";
 import {ISmockFacet} from "./interfaces/ISmockFacet.sol";
 
-import {AccessControlEvent, GeneralEvent} from "../Events.sol";
-import {DiamondModifiers} from "../Modifiers.sol";
-import {WithStorage} from "../WithStorage.sol";
+import {AccessControlEvent, GeneralEvent} from "../shared/Events.sol";
+import {AccessControl, DEFAULT_ADMIN_ROLE} from "../shared/AccessControl.sol";
+import {DiamondModifiers} from "../shared/Modifiers.sol";
+import {WithStorage} from "../shared/WithStorage.sol";
 import {TEST_OPERATOR_ROLE} from "./SmockFacet.sol";
 import {SmockStorage} from "./SmockStorage.sol";
 

@@ -2,5 +2,5 @@ export const facets = ["DiamondCutFacet", "DiamondLoupeFacet", "DiamondOwnership
 
 export const minterFacets = ["MinterParameterFacet"];
 
-// Initializers and other functions we dont want to include in the diamond proxy mapping
+// These function namings are ignored when generating ABI for the diamond
 export const signatureFilters = ["init", "initializer"];

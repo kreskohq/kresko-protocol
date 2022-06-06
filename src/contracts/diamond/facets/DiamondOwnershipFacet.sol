@@ -2,8 +2,8 @@
 pragma solidity 0.8.13;
 
 import {IOwnership} from "../interfaces/IOwnership.sol";
-import {AccessControlEvent} from "../Events.sol";
-import {DiamondModifiers} from "../Modifiers.sol";
+import {AccessControlEvent} from "../shared/Events.sol";
+import {DiamondModifiers} from "../shared/Modifiers.sol";
 import {DiamondStorage, DiamondState} from "../storage/DiamondStorage.sol";
 
 contract DiamondOwnershipFacet is DiamondModifiers, IOwnership {

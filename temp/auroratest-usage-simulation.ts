@@ -1,5 +1,5 @@
 import hre from "hardhat";
-import { KreskoAsset, Token, Kresko } from "types/contracts";
+import { KreskoAsset, Token, Kresko } from "types/typechain";
 import { fromBig, toBig } from "@utils/numbers";
 
 async function main() {

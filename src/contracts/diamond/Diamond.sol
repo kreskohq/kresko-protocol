@@ -5,11 +5,9 @@
 
 pragma solidity 0.8.13;
 
+import {Error} from "./shared/Errors.sol";
 import {IDiamondCut} from "./interfaces/IDiamondCut.sol";
-import {LibMeta} from "./libraries/LibMeta.sol";
-import {Error} from "./Errors.sol";
 import {DiamondState, DIAMOND_STORAGE_POSITION, DiamondStorage} from "./storage/DiamondStorage.sol";
-import "hardhat/console.sol";
 
 contract Diamond {
     struct Initialization {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 import hre from "hardhat";
 import { fromBig } from "@utils/numbers";
 

@@ -13,7 +13,6 @@ import {
 } from "@utils";
 
 describe("Time", function () {
-
     beforeEach(async function () {
         const { signers, kresko } = await setupTests();
         this.signers = signers;
@@ -61,19 +60,16 @@ describe("Time", function () {
         );
 
         // Confirm the amount minted is recorded for the user
-        const amountMinted = await this.Kresko.kreskoAssetDebt(
-            this.signers.userOne.address,
-            kreskoAssetAddress,
-        );
+        const amountMinted = await this.Kresko.kreskoAssetDebt(this.signers.userOne.address, kreskoAssetAddress);
         expect(amountMinted).to.equal(mintAmount);
 
         // Update the block time to be 1 second later than allowed
         const blockNumber = await hre.ethers.provider.getBlockNumber();
         const blockTimestamp = (await hre.ethers.provider.getBlock(blockNumber)).timestamp;
         const secsUntilStale = await this.Kresko.secondsUntilStalePrice();
-        const fastForwardSeconds =  Number(secsUntilStale) + 1;
+        const fastForwardSeconds = Number(secsUntilStale) + 1;
         const newTimestamp = blockTimestamp + fastForwardSeconds;
-        await hre.ethers.provider.send('evm_mine', [newTimestamp]);
+        await hre.ethers.provider.send("evm_mine", [newTimestamp]);
 
         // Confirm that the block time has been updated
         const secondBlockNumber = await hre.ethers.provider.getBlockNumber();
@@ -90,10 +86,7 @@ describe("Time", function () {
         ).to.be.revertedWith("KR: stale price");
 
         // Confirm no additional amount was minted
-        const newAmountMinted = await this.Kresko.kreskoAssetDebt(
-            this.signers.userOne.address,
-            kreskoAssetAddress,
-        );
+        const newAmountMinted = await this.Kresko.kreskoAssetDebt(this.signers.userOne.address, kreskoAssetAddress);
         expect(newAmountMinted).to.equal(amountMinted);
     });
 });

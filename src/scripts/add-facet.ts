@@ -10,7 +10,7 @@ type Args = {
     initializerArgs?: unknown;
 };
 
-export default async function addFacet<F extends Contract, I extends Contract>({
+export async function addFacet<F extends Contract, I extends Contract>({
     name,
     initializerName,
     internalInitializer,

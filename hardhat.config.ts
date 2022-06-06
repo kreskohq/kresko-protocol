@@ -74,10 +74,10 @@ const config: HardhatUserConfig = {
     },
     solidity: compilers,
     typechain: {
-        outDir: "./types/typechain",
+        outDir: "types/typechain",
         target: "ethers-v5",
         tsNocheck: true,
-        externalArtifacts: ["./build/artifacts/hardhat-diamond-abi/Kresko.sol/Kresko.json"],
+        externalArtifacts: ["build/artifacts/hardhat-diamond-abi/Kresko.sol/Kresko.json"],
     },
     mocha: {
         timeout: 120000,

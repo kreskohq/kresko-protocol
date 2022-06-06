@@ -3,8 +3,8 @@ pragma solidity 0.8.13;
 
 import {EnumerableSet} from "../libraries/EnumerableSet.sol";
 import {IAccessControlFacet} from "../interfaces/IAccessControlFacet.sol";
-import {AccessControl, LibMeta, DEFAULT_ADMIN_ROLE} from "../libraries/AccessControl.sol";
-import {DiamondModifiers} from "../Modifiers.sol";
+import {AccessControl, Meta, DEFAULT_ADMIN_ROLE} from "../shared/AccessControl.sol";
+import {DiamondModifiers} from "../shared/Modifiers.sol";
 import {DiamondStorage} from "../storage/DiamondStorage.sol";
 
 /**

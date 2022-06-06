@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.13;
-import "../WithStorage.sol";
+import "../shared/WithStorage.sol";
 import {CollateralAsset} from "../storage/MinterStructs.sol";
+import {Minter} from "../shared/Minter.sol";
 
 contract CollateralFacet is WithStorage {
     /* ==== Collateral ==== */
@@ -46,20 +47,7 @@ contract CollateralFacet is WithStorage {
      * @return The collateral value of a particular account.
      */
     function getAccountCollateralValue(address _account) external view returns (FixedPoint.Unsigned memory) {
-        FixedPoint.Unsigned memory totalCollateralValue = FixedPoint.Unsigned(0);
-
-        address[] memory assets = depositedCollateralAssets[_account];
-        for (uint256 i = 0; i < assets.length; i++) {
-            address asset = assets[i];
-            (FixedPoint.Unsigned memory collateralValue, ) = getCollateralValueAndOraclePrice(
-                asset,
-                collateralDeposits[_account][asset],
-                false // Take the collateral factor into consideration.
-            );
-            totalCollateralValue = totalCollateralValue.add(collateralValue);
-        }
-
-        return totalCollateralValue;
+        return Minter.getAccountCollateralValue(_account);
     }
 
     /**
@@ -70,17 +58,7 @@ contract CollateralFacet is WithStorage {
      * @return The minimum collateral value of a particular account.
      */
     function getAccountMinimumCollateralValue(address _account) external view returns (FixedPoint.Unsigned memory) {
-        MinterState s = ms();
-        FixedPoint.Unsigned memory minCollateralValue = FixedPoint.Unsigned(0);
-
-        address[] memory assets = s.mintedKreskoAssets[_account];
-        for (uint256 i = 0; i < assets.length; i++) {
-            address asset = assets[i];
-            uint256 amount = kreskoAssetDebt[_account][asset];
-            minCollateralValue = minCollateralValue.add(getMinimumCollateralValue(asset, amount));
-        }
-
-        return minCollateralValue;
+        return Minter.getAccountMinimumCollateralValue(_account);
     }
 
     /**
@@ -94,20 +72,7 @@ contract CollateralFacet is WithStorage {
         address _collateralAsset,
         uint256 _amount,
         bool _ignoreCollateralFactor
-    )
-        view
-        ___ /** TODO: SHARED ORACLE LIB */
-        returns (FixedPoint.Unsigned memory, FixedPoint.Unsigned memory)
-    {
-        CollateralAsset memory collateralAsset = collateralAssets[_collateralAsset];
-
-        FixedPoint.Unsigned memory fixedPointAmount = collateralAsset.decimals._toCollateralFixedPointAmount(_amount);
-        FixedPoint.Unsigned memory oraclePrice = FixedPoint.Unsigned(uint256(collateralAsset.oracle.latestAnswer()));
-        FixedPoint.Unsigned memory value = fixedPointAmount.mul(oraclePrice);
-
-        if (!_ignoreCollateralFactor) {
-            value = value.mul(collateralAsset.factor);
-        }
-        return (value, oraclePrice);
+    ) external view returns (FixedPoint.Unsigned memory, FixedPoint.Unsigned memory) {
+        return Minter.getCollateralValueAndOraclePrice(_collateralAsset, _amount, _ignoreCollateralFactor);
     }
 }
