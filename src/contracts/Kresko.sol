@@ -710,8 +710,6 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
      * @param _collateralAssetToSeize The address of the collateral asset to be seized.
      * @param _mintedKreskoAssetIndex The index of the Kresko asset in the account's minted assets array.
      * @param _depositedCollateralAssetIndex Index of the collateral asset in the account's collateral assets array.
-     * @param _keepKrAssetDebt Liquidator can choose to receive the whole seized amount keeping the krAsset debt.
-     * Setting _keepKrAssetDebt to false will instead only send the incentive and repay krAsset debt.
      */
 
     function liquidate(
@@ -720,8 +718,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 _repayAmount,
         address _collateralAssetToSeize,
         uint256 _mintedKreskoAssetIndex,
-        uint256 _depositedCollateralAssetIndex,
-        bool _keepKrAssetDebt
+        uint256 _depositedCollateralAssetIndex
     ) external nonReentrant {
         // Require checks not used with modifiers to avoid stack too deep errors
         {
@@ -780,19 +777,8 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         // Burn the received Kresko assets, removing them from circulation.
         IKreskoAsset(_repayKreskoAsset).burn(msg.sender, _repayAmount);
 
-        uint256 collateralToSend = _keepKrAssetDebt
-            ? seizeAmount
-            : _calculateCollateralToSendAndAdjustDebt(
-                _collateralAssetToSeize,
-                _repayKreskoAsset,
-                _repayAmount,
-                seizeAmount,
-                repayAmountUSD,
-                collateralPriceUSD
-            );
-
         // Send liquidator the seized collateral.
-        IERC20MetadataUpgradeable(_collateralAssetToSeize).safeTransfer(msg.sender, collateralToSend);
+        IERC20MetadataUpgradeable(_collateralAssetToSeize).safeTransfer(msg.sender, seizeAmount);
 
         emit LiquidationOccurred(
             _account,
@@ -800,7 +786,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             _repayKreskoAsset,
             _repayAmount,
             _collateralAssetToSeize,
-            collateralToSend
+            seizeAmount
         );
     }
 
@@ -1216,54 +1202,6 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     /* ==== Liquidation ==== */
-
-    /**
-     * @notice Calculates the liquidation incentive collateral amount to be sent to the liquidator
-     * @param _repayKreskoAsset krAsset debt to be repaid.
-     * @param _repayAmount krAsset amount to be repaid.
-     * @param _seizeAmount The calculated amount of collateral assets to be seized.
-     * @param _repayAmountUSD Total USD value of krAsset repayment.
-     * @param _collateralPriceUSD Single collateral units USD price.
-     */
-    function _calculateCollateralToSendAndAdjustDebt(
-        address _collateralSeized,
-        address _repayKreskoAsset,
-        uint256 _repayAmount,
-        uint256 _seizeAmount,
-        FixedPoint.Unsigned memory _repayAmountUSD,
-        FixedPoint.Unsigned memory _collateralPriceUSD
-    ) internal returns (uint256) {
-        uint256 liquidatorDebtBeforeRepay = kreskoAssetDebt[msg.sender][_repayKreskoAsset];
-
-        // Decrease liquidator's debt. If liquidator has no debt remaining set the debt to 0
-        uint256 liquidatorDebtAfterRepay = liquidatorDebtBeforeRepay > _repayAmount
-            ? liquidatorDebtBeforeRepay - _repayAmount
-            : 0;
-        kreskoAssetDebt[msg.sender][_repayKreskoAsset] = liquidatorDebtAfterRepay;
-
-        // If liquidator's debt had debt of this krAsset before and now has 0 debt, remove the krAsset from their minted assets
-        if (liquidatorDebtBeforeRepay > 0 && liquidatorDebtAfterRepay == 0) {
-            uint256 liquidatorRepayIndex;
-            address[] memory liquidatorAssets = mintedKreskoAssets[msg.sender];
-
-            for (liquidatorRepayIndex; liquidatorRepayIndex < liquidatorAssets.length; liquidatorRepayIndex++) {
-                if (liquidatorAssets[liquidatorRepayIndex] == _repayKreskoAsset) break;
-            }
-            mintedKreskoAssets[msg.sender].removeAddress(_repayKreskoAsset, liquidatorRepayIndex);
-        }
-
-        uint256 decimals = collateralAssets[_collateralSeized].decimals;
-        FixedPoint.Unsigned memory seizedAmountUSD = decimals
-            ._toCollateralFixedPointAmount(_seizeAmount)
-            .mul( _collateralPriceUSD);
-
-        // Charge liquidator burn fee because we're closing their position
-        _chargeBurnFee(msg.sender, _repayKreskoAsset, _repayAmount);
-
-        return decimals
-            ._fromCollateralFixedPointAmount(seizedAmountUSD.sub(_repayAmountUSD).div(_collateralPriceUSD)
-        );
-    }
 
     /**
      * @notice Remove Kresko assets and collateral assets from the liquidated user's holdings.
