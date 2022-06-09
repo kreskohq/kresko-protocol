@@ -1534,28 +1534,30 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             // This is desired because pairs with low cFactor have higher collateral requirement
             // than positions with high cFactor.
 
-            // Main reason here is keep the liquidations from happening only on pairs that have a high risk profile.
-            if (depositedCollateralAssets[_account].length > 1 && cFactor.isLessThan(ONE_HUNDRED_PERCENT)) {
-                // To mitigate:
-                // cFactor^4 the collateral available (cFactor = 1 == nothing happens)
-                // Get the ratio between max liquidatable USD and diminished collateral available
-                // = (higher value -> higher the risk ratio of this pair)
-                // Divide the maxValue by this ratio and a diminishing max value is returned.
+            return maxLiquidatableUSD.mul(FixedPoint.Unsigned(ONE_HUNDRED_PERCENT).add(burnFee));
 
-                // For a max profit liquidation strategy jumps to other pairs must happen before
-                // the liquidation value of the risky position becomes the most profitable again.
+            // // Main reason here is keep the liquidations from happening only on pairs that have a high risk profile.
+            // if (depositedCollateralAssets[_account].length > 1 && cFactor.isLessThan(ONE_HUNDRED_PERCENT)) {
+            //     // To mitigate:
+            //     // cFactor^4 the collateral available (cFactor = 1 == nothing happens)
+            //     // Get the ratio between max liquidatable USD and diminished collateral available
+            //     // = (higher value -> higher the risk ratio of this pair)
+            //     // Divide the maxValue by this ratio and a diminishing max value is returned.
 
-                return
-                    maxLiquidatableUSD.div(maxLiquidatableUSD.div(collateralValueAvailable.mul(cFactor.pow(4)))).mul(
-                        // Include a burnFee surplus in the liquidation
-                        // so the users can repay their debt.
-                        FixedPoint.Unsigned(ONE_HUNDRED_PERCENT).add(burnFee)
-                    );
-            } else {
-                // For collaterals with cFactor = 1 / accounts with only single collateral
-                // the debt is just repaid in full with a single transaction
-                return maxLiquidatableUSD.mul(FixedPoint.Unsigned(ONE_HUNDRED_PERCENT).add(burnFee));
-            }
+            //     // For a max profit liquidation strategy jumps to other pairs must happen before
+            //     // the liquidation value of the risky position becomes the most profitable again.
+
+            //     return
+            //         maxLiquidatableUSD.div(maxLiquidatableUSD.div(collateralValueAvailable.mul(cFactor.pow(4)))).mul(
+            //             // Include a burnFee surplus in the liquidation
+            //             // so the users can repay their debt.
+            //             FixedPoint.Unsigned(ONE_HUNDRED_PERCENT).add(burnFee)
+            //         );
+            // } else {
+            //     // For collaterals with cFactor = 1 / accounts with only single collateral
+            //     // the debt is just repaid in full with a single transaction
+            //     return maxLiquidatableUSD.mul(FixedPoint.Unsigned(ONE_HUNDRED_PERCENT).add(burnFee));
+            // }
         }
     }
 }
