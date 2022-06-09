@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 import {IDiamondCut} from "../interfaces/IDiamondCut.sol";
 import {DiamondModifiers} from "../shared/Modifiers.sol";
-import {DiamondStorage} from "../storage/DiamondStorage.sol";
+import {ds, initializeDiamondCut} from "../storage/DiamondStorage.sol";
 
 contract DiamondCutFacet is DiamondModifiers, IDiamondCut {
     /// @notice Add/replace/remove any number of functions and optionally execute
@@ -17,7 +17,7 @@ contract DiamondCutFacet is DiamondModifiers, IDiamondCut {
         address _init,
         bytes calldata _calldata
     ) external override onlyOwner {
-        DiamondStorage.diamondCut(_diamondCut, _init, _calldata);
+        ds().diamondCut(_diamondCut, _init, _calldata);
     }
 
     /// @notice Use an initializer contract without doing modifications
@@ -25,6 +25,6 @@ contract DiamondCutFacet is DiamondModifiers, IDiamondCut {
     /// @param _calldata A function call, including function selector and arguments
     /// - _calldata is executed with delegatecall on _init
     function upgradeState(address _init, bytes calldata _calldata) external onlyOwner {
-        DiamondStorage.initializeDiamondCut(_init, _calldata);
+        initializeDiamondCut(_init, _calldata);
     }
 }

@@ -9,7 +9,7 @@ chai.use(smock.matchers);
 import { SmockFacet__factory, SmockInit } from "types";
 import { type FacetCut, FacetCutAction } from "@kreskolabs/hardhat-deploy/dist/types";
 
-describe.only("Diamond", function () {
+describe("Diamond", function () {
     before(async function () {
         this.users = await getUsers();
     });
@@ -206,7 +206,7 @@ describe.only("Diamond", function () {
                 expect(functionsOldFacet.length).to.equal(allOwnershipFacetSignatures.length - 1);
 
                 // Ensure correct owner can now accept the ownership
-                await expect(this.Diamond.connect(this.users.userOne).acceptOwnership()).to.not.be.reverted;
+                expect(this.Diamond.connect(this.users.userOne).acceptOwnership());
                 const currentOwner = await this.Diamond.owner();
                 expect(currentOwner).to.equal(correctOwner);
             });

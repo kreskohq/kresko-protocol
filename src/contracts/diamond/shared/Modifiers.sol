@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
-import "./Meta.sol";
-import "./WithStorage.sol";
-import "./Errors.sol";
-import {AccessControl} from "./AccessControl.sol";
+import {AccessControl, ds, MINTER_OPERATOR_ROLE, DEFAULT_ADMIN_ROLE} from "./AccessControl.sol";
+import {MinterState, ms, Meta, Error} from "../storage/MinterStorage.sol";
 
-abstract contract DiamondModifiers is WithStorage {
+abstract contract DiamondModifiers {
     /**
      * @dev Modifier that checks that an account has a specific role. Reverts
      * with a standardized message including the required role.

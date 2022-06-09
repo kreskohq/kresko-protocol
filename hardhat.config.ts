@@ -17,6 +17,7 @@ import "@nomiclabs/hardhat-web3";
 import "hardhat-diamond-abi";
 
 // import "hardhat-preprocessor";
+import "hardhat-watcher";
 import "hardhat-gas-reporter";
 // Environment variables
 import { resolve } from "path";
@@ -73,6 +74,12 @@ const config: HardhatUserConfig = {
         imports: "imports",
     },
     solidity: compilers,
+    diamondAbi: {
+        name: "Kresko",
+        include: ["facets"],
+        exclude: ["vendor", "test"],
+        strict: true,
+    },
     typechain: {
         outDir: "types/typechain",
         target: "ethers-v5",
@@ -82,11 +89,10 @@ const config: HardhatUserConfig = {
     mocha: {
         timeout: 120000,
     },
-    diamondAbi: {
-        name: "Kresko",
-        include: ["facets"],
-        exclude: ["vendor", "test"],
-        strict: true,
+    watcher: {
+        compilation: {
+            tasks: ["compile"],
+        },
     },
 };
 

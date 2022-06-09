@@ -1,29 +1,17 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
-import {DiamondStorage} from "./DiamondStorage.sol";
-import {EnumerableSet} from "../libraries/EnumerableSet.sol";
+import {EnumerableSet} from "../../libraries/EnumerableSet.sol";
+import "./Structs.sol";
+import "./Functions.sol";
 
-struct FacetAddressAndPosition {
-    address facetAddress;
-    // position in facetFunctionSelectors.functionSelectors array
-    uint96 functionSelectorPosition;
-}
-
-struct FacetFunctionSelectors {
-    bytes4[] functionSelectors;
-    // position of facetAddress in facetAddresses array
-    uint256 facetAddressPosition;
-}
-
-struct RoleData {
-    mapping(address => bool) members;
-    bytes32 adminRole;
-}
+/* -------------------------------------------------------------------------- */
+/*                                 Main Layout                                */
+/* -------------------------------------------------------------------------- */
 
 struct DiamondState {
     /* -------------------------------------------------------------------------- */
-    /*                                   Diamond                                  */
+    /*                                   Proxy                                    */
     /* -------------------------------------------------------------------------- */
     /// @notice Maps function selector to the facet address and
     /// the position of the selector in the facetFunctionSelectors.selectors array
@@ -50,10 +38,14 @@ struct DiamondState {
     address pendingOwner;
     /// @notice Storage version
     uint8 storageVersion;
+    /// @notice address(this) replacement for FF
+    address self;
     /* -------------------------------------------------------------------------- */
     /*                               Access Control                               */
     /* -------------------------------------------------------------------------- */
-
     mapping(bytes32 => RoleData) _roles;
     mapping(bytes32 => EnumerableSet.AddressSet) _roleMembers;
 }
+
+
+using { initialize, initiateOwnershipTransfer,finalizeOwnershipTransfer, diamondCut, addFunction, addFunctions, replaceFunctions, removeFunctions, addFacet, removeFunction} for DiamondState global;

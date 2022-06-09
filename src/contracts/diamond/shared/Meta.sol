@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 /* solhint-disable no-inline-assembly */
 
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 library Meta {
     bytes32 internal constant EIP712_DOMAIN_TYPEHASH =

@@ -1,11 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
-import {EnumerableSet} from "../libraries/EnumerableSet.sol";
 import {IAccessControlFacet} from "../interfaces/IAccessControlFacet.sol";
-import {AccessControl, Meta, DEFAULT_ADMIN_ROLE} from "../shared/AccessControl.sol";
-import {DiamondModifiers} from "../shared/Modifiers.sol";
-import {DiamondStorage} from "../storage/DiamondStorage.sol";
+import "../shared/AccessControl.sol";
 
 /**
  * @title Enumerable access control for the EIP2535-pattern following the OZ implementation.
@@ -14,9 +11,7 @@ import {DiamondStorage} from "../storage/DiamondStorage.sol";
  * @dev Difference here is the logic library that is shared and reused, there is no state here.
  */
 
-contract AccessControlFacet is DiamondModifiers, IAccessControlFacet {
-    using EnumerableSet for EnumerableSet.AddressSet;
-
+contract AccessControlFacet is IAccessControlFacet {
     /**
      * @dev OpenZeppelin
      * Returns one of the accounts that have `role`. `index` must be a

@@ -1110,11 +1110,12 @@ __metadata:
     ethereum-waffle: ^3.4.4
     ethers: ^5.6.8
     fs-extra: ^10.0.0
-    hardhat: 2.9.6
+    hardhat: 2.9.9
     hardhat-diamond-abi: ^2.0.0
     hardhat-gas-reporter: ^1.0.8
     hardhat-interface-generator: ^0.0.6
     hardhat-preprocessor: ^0.1.4
+    hardhat-watcher: ^2.3.0
     husky: ^6.0.0
     lint-staged: ^11.0.0
     mocha: ^8.4.0
@@ -4370,7 +4371,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chokidar@npm:3.5.3, chokidar@npm:^3.4.0, chokidar@npm:^3.5.2":
+"chokidar@npm:3.5.3, chokidar@npm:^3.4.0, chokidar@npm:^3.5.2, chokidar@npm:^3.5.3":
   version: 3.5.3
   resolution: "chokidar@npm:3.5.3"
   dependencies:
@@ -8231,9 +8232,20 @@ fsevents@~2.1.1:
   languageName: node
   linkType: hard
 
-"hardhat@npm:2.9.6":
-  version: 2.9.6
-  resolution: "hardhat@npm:2.9.6"
+"hardhat-watcher@npm:^2.3.0":
+  version: 2.3.0
+  resolution: "hardhat-watcher@npm:2.3.0"
+  dependencies:
+    chokidar: ^3.5.3
+  peerDependencies:
+    hardhat: ^2.0.0
+  checksum: 9c99c8f3f476990b4b8f452d5257d2060bc0bbe21e24cd4472c0f2eb63fd71c28ca054353ccdf27947198303be768b12185ffd902d470d7a8e750945a4249eb1
+  languageName: node
+  linkType: hard
+
+"hardhat@npm:2.9.9":
+  version: 2.9.9
+  resolution: "hardhat@npm:2.9.9"
   dependencies:
     "@ethereumjs/block": ^3.6.2
     "@ethereumjs/blockchain": ^5.5.2
@@ -8280,14 +8292,20 @@ fsevents@~2.1.1:
     stacktrace-parser: ^0.1.10
     true-case-path: ^2.2.1
     tsort: 0.0.1
-    undici: ^4.14.1
+    undici: ^5.4.0
     uuid: ^8.3.2
     ws: ^7.4.6
   peerDependencies:
-    chai: ^4.2.0
+    ts-node: "*"
+    typescript: "*"
+  peerDependenciesMeta:
+    ts-node:
+      optional: true
+    typescript:
+      optional: true
   bin:
     hardhat: internal/cli/cli.js
-  checksum: 479942921a4f1616fb40eec524044d027ef1114020b7a520d2fb764c32acce33e31ea141d20dfee7e1db1ca395af4121218aaf35a553488b45933bb44011cbb9
+  checksum: 1d30f4b5e56de82608e0fc8436b8338d5f6eb79125229236d65e32f4f0da39e9649c3a7138e743c62bb2fa1b00eac91e67cdb1775cd934fb8daedb1ede6eea01
   languageName: node
   linkType: hard
 
@@ -15314,6 +15332,13 @@ resolve@1.17.0:
   version: 4.16.0
   resolution: "undici@npm:4.16.0"
   checksum: 5e88c2b3381085e25ed1d1a308610ac7ee985f478ac705af7a8e03213536e10f73ef8dd8d85e6ed38948d1883fa0ae935e04357c317b0f5d3d3c0211d0c8c393
+  languageName: node
+  linkType: hard
+
+"undici@npm:^5.4.0":
+  version: 5.4.0
+  resolution: "undici@npm:5.4.0"
+  checksum: 2852397ee1dbb2b3ad58166520ec30f4f0143895f6e7b157dbedfac4e43b522a710a3927be61a67b2ae791190973f206d30785564ece7675e08133427cebaaa1
   languageName: node
   linkType: hard
 

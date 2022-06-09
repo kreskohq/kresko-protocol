@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.13;
-import "../shared/WithStorage.sol";
-import {CollateralAsset} from "../storage/MinterStructs.sol";
-import {Minter} from "../shared/Minter.sol";
+pragma solidity 0.8.14;
+import {ms, FixedPoint} from "../storage/MinterStorage.sol";
 
-contract CollateralFacet is WithStorage {
+contract CollateralFacet {
     /* ==== Collateral ==== */
     /**
      * @notice Returns true if the @param _collateralAsset exists in the protocol
@@ -47,7 +45,7 @@ contract CollateralFacet is WithStorage {
      * @return The collateral value of a particular account.
      */
     function getAccountCollateralValue(address _account) external view returns (FixedPoint.Unsigned memory) {
-        return Minter.getAccountCollateralValue(_account);
+        return ms().getAccountCollateralValue(_account);
     }
 
     /**
@@ -58,7 +56,7 @@ contract CollateralFacet is WithStorage {
      * @return The minimum collateral value of a particular account.
      */
     function getAccountMinimumCollateralValue(address _account) external view returns (FixedPoint.Unsigned memory) {
-        return Minter.getAccountMinimumCollateralValue(_account);
+        return ms().getAccountMinimumCollateralValue(_account);
     }
 
     /**
@@ -73,6 +71,6 @@ contract CollateralFacet is WithStorage {
         uint256 _amount,
         bool _ignoreCollateralFactor
     ) external view returns (FixedPoint.Unsigned memory, FixedPoint.Unsigned memory) {
-        return Minter.getCollateralValueAndOraclePrice(_collateralAsset, _amount, _ignoreCollateralFactor);
+        return ms().getCollateralValueAndOraclePrice(_collateralAsset, _amount, _ignoreCollateralFactor);
     }
 }

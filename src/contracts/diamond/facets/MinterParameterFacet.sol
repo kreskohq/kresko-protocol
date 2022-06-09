@@ -1,22 +1,20 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 import {IMinterParameterFacet} from "../interfaces/IMinterParameterFacet.sol";
+import {ICollateralFacet} from "../interfaces/ICollateralFacet.sol";
+import {GeneralEvent} from "../shared/Events.sol";
+import {Error} from "../shared/Errors.sol";
+import {AccessControl, MINTER_OPERATOR_ROLE} from "../shared/AccessControl.sol";
+import {ds, DiamondModifiers, Meta} from "../shared/Modifiers.sol";
 
-import "../shared/Meta.sol";
-import "../shared/AccessControl.sol";
-import "../shared/Errors.sol";
-import "../shared/Events.sol";
-import "../libraries/FixedPoint.sol";
-import {MinterModifiers} from "../shared/Modifiers.sol";
-import {MinterInitParams} from "../storage/MinterStructs.sol";
-import {MinterStorage, MinterState} from "../storage/MinterStorage.sol";
+import {MinterInitParams} from "../storage/minter/Structs.sol";
+import {ms, MinterState, MinterEvent, FixedPoint} from "../storage/MinterStorage.sol";
 
-contract MinterParameterFacet is MinterModifiers, IMinterParameterFacet {
+contract MinterParameterFacet is DiamondModifiers, IMinterParameterFacet {
     /* -------------------------------------------------------------------------- */
     /*                                  Constants                                 */
     /* -------------------------------------------------------------------------- */
-
     uint256 constant ONE_HUNDRED_PERCENT = 1e18;
 
     /// @notice The maximum configurable burn fee.
@@ -39,7 +37,7 @@ contract MinterParameterFacet is MinterModifiers, IMinterParameterFacet {
     function initialize(MinterInitParams calldata params) external onlyOwner {
         MinterState storage s = ms();
         require(!s.initialized, Error.ALREADY_INITIALIZED);
-        MinterStorage.initialize();
+        s.initialize(params.operator);
         AccessControl.grantRole(MINTER_OPERATOR_ROLE, params.operator);
 
         // Minter protocol version domain
@@ -53,7 +51,7 @@ contract MinterParameterFacet is MinterModifiers, IMinterParameterFacet {
         s.minimumDebtValue = FixedPoint.Unsigned(params.minimumDebtValue);
 
         ds().supportedInterfaces[type(IMinterParameterFacet).interfaceId] = true;
-        emit GeneralEvent.Initialized(params.operator, s.storageVersion);
+        ds().supportedInterfaces[type(ICollateralFacet).interfaceId] = true;
     }
 
     /* -------------------------------------------------------------------------- */

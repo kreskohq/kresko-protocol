@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 import {IOwnership} from "../interfaces/IOwnership.sol";
-import {AccessControlEvent} from "../shared/Events.sol";
-import {DiamondModifiers} from "../shared/Modifiers.sol";
-import {DiamondStorage, DiamondState} from "../storage/DiamondStorage.sol";
+import "../shared/Modifiers.sol";
 
 contract DiamondOwnershipFacet is DiamondModifiers, IOwnership {
     /* -------------------------------------------------------------------------- */
@@ -19,7 +17,7 @@ contract DiamondOwnershipFacet is DiamondModifiers, IOwnership {
      * @param _newOwner address that is set as the pending new owner
      */
     function transferOwnership(address _newOwner) external override onlyOwner {
-        DiamondStorage.initiateOwnershipTransfer(_newOwner);
+        ds().initiateOwnershipTransfer(_newOwner);
     }
 
     /**
@@ -28,7 +26,7 @@ contract DiamondOwnershipFacet is DiamondModifiers, IOwnership {
      * - emits a {AccessEvent.OwnershipTransferred} event
      */
     function acceptOwnership() external override onlyPendingOwner {
-        DiamondStorage.finalizeOwnershipTransfer();
+        ds().finalizeOwnershipTransfer();
     }
 
     /* -------------------------------------------------------------------------- */

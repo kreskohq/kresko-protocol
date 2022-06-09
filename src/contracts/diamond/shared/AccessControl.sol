@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
-import {Strings} from "../libraries/Strings.sol";
-import {EnumerableSet} from "../libraries/EnumerableSet.sol";
-import {AccessControlEvent} from "./Events.sol";
-import {Meta} from "./Meta.sol";
-import {DiamondStorage} from "../storage/DiamondStorage.sol";
+import "../libraries/Strings.sol";
+import {AccessControlEvent} from "../shared/Events.sol";
+import {ds, Meta, EnumerableSet} from "../storage/DiamondStorage.sol";
 
 bytes32 constant DEFAULT_ADMIN_ROLE = 0x00;
 bytes32 constant MINTER_OPERATOR_ROLE = keccak256("kresko.minter.operator");
@@ -14,16 +12,15 @@ bytes32 constant MINTER_OPERATOR_ROLE = keccak256("kresko.minter.operator");
  * @title Shared library for access control
  * @author Kresko
  */
-
 library AccessControl {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     function hasRole(bytes32 role, address account) internal view returns (bool) {
-        return DiamondStorage.state()._roles[role].members[account];
+        return ds()._roles[role].members[account];
     }
 
     function getRoleMemberCount(bytes32 role) internal view returns (uint256) {
-        return DiamondStorage.state()._roleMembers[role].length();
+        return ds()._roleMembers[role].length();
     }
 
     /**
@@ -67,11 +64,11 @@ library AccessControl {
      * To change a role's admin, use {_setRoleAdmin}.
      */
     function getRoleAdmin(bytes32 role) internal view returns (bytes32) {
-        return DiamondStorage.state()._roles[role].adminRole;
+        return ds()._roles[role].adminRole;
     }
 
     function getRoleMember(bytes32 role, uint256 index) internal view returns (address) {
-        return DiamondStorage.state()._roleMembers[role].at(index);
+        return ds()._roleMembers[role].at(index);
     }
 
     /**
@@ -101,7 +98,7 @@ library AccessControl {
     function revokeRole(bytes32 role, address account) internal {
         checkRole(getRoleAdmin(role));
         _revokeRole(role, account);
-        DiamondStorage.state()._roleMembers[role].remove(account);
+        ds()._roleMembers[role].remove(account);
     }
 
     /**
@@ -153,7 +150,7 @@ library AccessControl {
      */
     function _setRoleAdmin(bytes32 role, bytes32 adminRole) internal {
         bytes32 previousAdminRole = getRoleAdmin(role);
-        DiamondStorage.state()._roles[role].adminRole = adminRole;
+        ds()._roles[role].adminRole = adminRole;
         emit AccessControlEvent.RoleAdminChanged(role, previousAdminRole, adminRole);
     }
 
@@ -164,8 +161,8 @@ library AccessControl {
      */
     function _grantRole(bytes32 role, address account) internal {
         if (!hasRole(role, account)) {
-            DiamondStorage.state()._roles[role].members[account] = true;
-            DiamondStorage.state()._roleMembers[role].add(account);
+            ds()._roles[role].members[account] = true;
+            ds()._roleMembers[role].add(account);
             emit AccessControlEvent.RoleGranted(role, account, Meta.msgSender());
         }
     }
@@ -177,8 +174,8 @@ library AccessControl {
      */
     function _revokeRole(bytes32 role, address account) internal {
         if (hasRole(role, account)) {
-            DiamondStorage.state()._roles[role].members[account] = false;
-            DiamondStorage.state()._roleMembers[role].remove(account);
+            ds()._roles[role].members[account] = false;
+            ds()._roleMembers[role].remove(account);
             emit AccessControlEvent.RoleRevoked(role, account, Meta.msgSender());
         }
     }

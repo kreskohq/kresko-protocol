@@ -3,11 +3,10 @@
 /* solhint-disable no-inline-assembly */
 /* solhint-disable no-empty-blocks */
 
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
-import {Error} from "./shared/Errors.sol";
-import {IDiamondCut} from "./interfaces/IDiamondCut.sol";
-import {DiamondState, DIAMOND_STORAGE_POSITION, DiamondStorage} from "./storage/DiamondStorage.sol";
+import {AccessControl, DEFAULT_ADMIN_ROLE} from "./shared/AccessControl.sol";
+import {ds, Meta, Error, initializeDiamondCut, IDiamondCut, GeneralEvent} from "./storage/DiamondStorage.sol";
 
 contract Diamond {
     struct Initialization {
@@ -20,27 +19,24 @@ contract Diamond {
         IDiamondCut.FacetCut[] memory _diamondCut,
         Initialization[] memory _initializations
     ) {
-        DiamondStorage.initialize(_owner);
-        DiamondStorage.diamondCut(_diamondCut, address(0), "");
+        ds().initialize(_owner);
+        ds().diamondCut(_diamondCut, address(0), "");
+        AccessControl._grantRole(DEFAULT_ADMIN_ROLE, _owner);
+
+        ds().domainSeparator = Meta.domainSeparator("Kresko Protocol", "V1");
 
         for (uint256 i = 0; i < _initializations.length; i++) {
-            DiamondStorage.initializeDiamondCut(_initializations[i].initContract, _initializations[i].initData);
+            initializeDiamondCut(_initializations[i].initContract, _initializations[i].initData);
         }
+
+        emit GeneralEvent.Initialized(_owner, ds().storageVersion);
     }
 
     // Find facet for function that is called and execute the
     // function if a facet is found and return any value.
     fallback() external payable {
-        DiamondState storage ds;
-        bytes32 position = DIAMOND_STORAGE_POSITION;
-        // get diamond storage
-
-        /// @solidity memory-safe-assembly
-        assembly {
-            ds.slot := position
-        }
         // get facet from function selectors
-        address facet = ds.selectorToFacetAndPosition[msg.sig].facetAddress;
+        address facet = ds().selectorToFacetAndPosition[msg.sig].facetAddress;
         require(facet != address(0), Error.DIAMOND_INVALID_FUNCTION_SIGNATURE);
         // Execute external function from facet using delegatecall and return any value.
         assembly {

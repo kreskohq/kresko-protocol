@@ -3,9 +3,8 @@
     "plugins": ["prettier"],
     "rules": {
         "code-complexity": ["error", 7],
-        "compiler-version": ["error", "0.8.13"],
+        "compiler-version": ["error", ">=0.8.14"],
         "constructor-syntax": "error",
-        "func-visibility": ["error", { "ignoreConstructors": true }],
         "max-line-length": ["error", 120],
         "prettier/prettier": ["error"],
         "reason-string": ["warn", { "maxLength": 64 }]

@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
-import "./FixedPoint.sol";
+import "./FP.sol" as FixedPoint;
 
 /**
  * @title Library for Kresko specific math involving floating point arithmetic
  */
 
-library FixedPointMath {
-    using FixedPoint for FixedPoint.Unsigned;
-
+library FPConversions {
     /**
      * @notice For a given collateral asset and amount, returns a FixedPoint.Unsigned representation.
      * @dev If the collateral asset has decimals other than 18, the amount is scaled appropriately.

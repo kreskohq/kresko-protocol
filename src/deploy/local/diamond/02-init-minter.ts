@@ -1,10 +1,10 @@
 import { getLogger } from "@utils/deployment";
 import { toFixedPoint } from "@utils/fixed-point";
 import { minterFacets } from "src/contracts/diamond/config/config";
-import { addFacet } from "@scripts/add-facet";
 import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import type { MinterInitParamsStruct } from "types/typechain/MinterParameterFacet";
+import { addFacets } from "@scripts/add-facets";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("init-minter");
@@ -23,10 +23,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         minimumDebtValue: toFixedPoint(process.env.MINIMUM_DEBT_VALUE, 8),
     };
 
-    for (const facet of minterFacets) {
-        await addFacet({ name: facet, internalInitializer: true, initializerArgs });
+    const UpgradedDiamond = await addFacets({
+        names: minterFacets,
+        initializerName: "MinterParameterFacet",
+        initializerArgs,
+    });
+    const doesSupportFacets = await UpgradedDiamond.supportsInterface("0x5d630885");
+
+    if (doesSupportFacets) {
+        logger.success("Added minter facets and saved to diamond");
+    } else {
+        logger.warn("Added facets but ERC165 support for latest facet is missing");
     }
-    logger.success("Added minter facets and saved to diamond");
 };
 
 func.tags = ["local", "minter-init", "minter", "diamond"];

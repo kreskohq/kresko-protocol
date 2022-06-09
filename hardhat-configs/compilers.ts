@@ -26,10 +26,10 @@ export const compilers = {
             ...oldCompilerSettings,
         },
         {
-            version: "0.8.13",
+            version: "0.8.14",
             optimizer: {
                 enabled: true,
-                runs: 1500,
+                runs: 200,
                 details: {
                     yul: true,
                     yulDetails: {

@@ -1,27 +1,36 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SignedSafeMathUpgradeable.sol";
 
+struct Unsigned {
+    uint256 rawValue;
+}
+
+struct Signed {
+    int256 rawValue;
+}
+
+uint256 constant FP_DECIMALS = 18;
+    uint256 constant FP_SCALING_FACTOR = 10**FP_DECIMALS;
+    int256  constant SFP_SCALING_FACTOR = 10**18;
+
+using Math for Unsigned global;
+using Math for Signed global;
 /**
  * @title Library for fixed point arithmetic on uints
  */
-library FixedPoint {
+
+library Math {
     using SafeMathUpgradeable for uint256;
     using SignedSafeMathUpgradeable for int256;
-
-    uint256 internal constant FP_DECIMALS = 18;
 
     // Supports 18 decimals. E.g., 1e18 represents "1", 5e17 represents "0.5".
     // For unsigned values:
     //   This can represent a value up to (2^256 - 1)/10^18 = ~10^59. 10^59 will be stored internally as uint256 10^77.
-    uint256 internal constant FP_SCALING_FACTOR = 10**FP_DECIMALS;
 
     // --------------------------------------- UNSIGNED ---------------------------------------------------------------
-    struct Unsigned {
-        uint256 rawValue;
-    }
 
     /**
      * @notice Constructs an `Unsigned` from an unscaled uint, e.g., `b=5` gets stored internally as `5*(10**18)`.
@@ -387,11 +396,7 @@ library FixedPoint {
     // For signed values:
     //   This can represent a value up (or down) to +-(2^255 - 1)/10^18 = ~10^58. 10^58 will be stored
     //   internally as int256 10^76.
-    int256 private constant SFP_SCALING_FACTOR = 10**18;
-
-    struct Signed {
-        int256 rawValue;
-    }
+    
 
     function fromSigned(Signed memory a) internal pure returns (Unsigned memory) {
         require(a.rawValue >= 0, "Negative value provided");
