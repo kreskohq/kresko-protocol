@@ -44,7 +44,7 @@ import { FixedPoint } from "types/contracts/Kresko";
  *
  */
 
-describe("Solvency", function () {
+describe.only("Solvency", function () {
     before(async function () {
         hre.upgrades.silenceWarnings();
         const signers: SignerWithAddress[] = await hre.ethers.getSigners();
@@ -398,6 +398,15 @@ describe("Solvency", function () {
         for (const userAddress of userAddresses) {
             await this.volativeCollateralAsset.setBalanceOf(userAddress, initialVolativeUserCollateralWalletBalance);
         }
+
+        const initialStableLiquidatorCollateralWalletBalance = toBig(100_000_000_000);
+        await this.stableCollateralAsset.setBalanceOf(this.signers.liquidator.address, initialStableLiquidatorCollateralWalletBalance);
+
+        await this.Kresko.connect(this.signers.liquidator).depositCollateral(
+            this.signers.liquidator.address,
+            stableCollateralAsset.address,
+            initialStableLiquidatorCollateralWalletBalance,
+        );
 
         /** DEPOSIT AND MINT (BORROW) USER ONE */
 
@@ -759,7 +768,6 @@ describe("Solvency", function () {
     //     // But liquidations should be available
     //     const userValuesBeforeLiquidation = await this.getUserValues();
     //     const userToBeLiquidated = userValuesBeforeLiquidation.find(user => user.isLiquidatable);
-
     //     if (!userToBeLiquidated) {
     //         throw new Error("No users to liquidate found");
     //     }
@@ -834,117 +842,176 @@ describe("Solvency", function () {
     //     expect(userThreeAfterLiquidation.debtUSDProtocol).to.be.greaterThan(0);
     // });
 
-    // it("should cascade liquidations for users with with multiple positions", async function () {
-    //     // Deposit $100,000 worth of volative collateral for userTwo
-    //     await this.Kresko.connect(this.signers.userTwo).depositCollateral(
-    //         this.signers.userTwo.address,
-    //         this.volativeCollateralAsset.address,
-    //         toBig(10_000),
-    //     );
-    //     // Mint $24,000 worth of volative krAsset for userTwo
-    //     await this.Kresko.connect(this.signers.userTwo).mintKreskoAsset(
-    //         this.signers.userTwo.address,
-    //         this.volativeKrAsset.address,
-    //         toBig(2_400),
-    //     );
+    it.only("should cascade liquidations for users with with multiple positions", async function () {
+        // Deposit $100,000 worth of volative collateral for userTwo
+        await this.Kresko.connect(this.signers.userTwo).depositCollateral(
+            this.signers.userTwo.address,
+            this.volativeCollateralAsset.address,
+            toBig(10_000),
+        );
+        // Mint $24,000 worth of volative krAsset for userTwo
+        await this.Kresko.connect(this.signers.userTwo).mintKreskoAsset(
+            this.signers.userTwo.address,
+            this.volativeKrAsset.address,
+            toBig(2_400),
+        );
 
-    //     // $15,000 of stable collateral
-    //     const collateralDepositAmountStable = toBig(15_000);
-    //     // $250,000 of volative collateral
-    //     const collateralDepositAmountVolative = toBig(25_000);
+        // $15,000 of stable collateral
+        const collateralDepositAmountStable = toBig(15_000);
+        // $250,000 of volative collateral
+        const collateralDepositAmountVolative = toBig(25_000);
 
-    //     // User three deposits $15,000
-    //     await this.Kresko.connect(this.signers.userThree).depositCollateral(
-    //         this.signers.userThree.address,
-    //         this.stableCollateralAsset.address,
-    //         collateralDepositAmountStable,
-    //     );
+        // User three deposits $15,000
+        await this.Kresko.connect(this.signers.userThree).depositCollateral(
+            this.signers.userThree.address,
+            this.stableCollateralAsset.address,
+            collateralDepositAmountStable,
+        );
 
-    //     // User one deposits $15,000
-    //     await this.Kresko.connect(this.signers.userOne).depositCollateral(
-    //         this.signers.userOne.address,
-    //         this.volativeCollateralAsset.address,
-    //         collateralDepositAmountVolative,
-    //     );
+        // User one deposits $15,000
+        await this.Kresko.connect(this.signers.userOne).depositCollateral(
+            this.signers.userOne.address,
+            this.volativeCollateralAsset.address,
+            collateralDepositAmountVolative,
+        );
 
-    //     // Mint various values of stable KrAsset for each user
+        // Mint various values of stable KrAsset for each user
 
-    //     // $80,000
-    //     const mintAmountUserOne = toBig(8000);
-    //     // $10,000
-    //     const mintAmountUserTwo = toBig(1000);
-    //     // $7,500
-    //     const mintAmountUserThree = toBig(750);
-    //     const usersAndAmounts: [SignerWithAddress, BigNumber][] = [
-    //         [this.signers.userOne, mintAmountUserOne],
-    //         [this.signers.userTwo, mintAmountUserTwo],
-    //         [this.signers.userThree, mintAmountUserThree],
-    //     ];
-    //     await Promise.all(
-    //         usersAndAmounts.map(async ([user, mintAmount]) => {
-    //             await this.Kresko.connect(user).mintKreskoAsset(user.address, this.stableKrAsset.address, mintAmount);
-    //         }),
-    //     );
+        // $80,000
+        const mintAmountUserOne = toBig(8000);
+        // $10,000
+        const mintAmountUserTwo = toBig(1000);
+        // $7,500
+        const mintAmountUserThree = toBig(750);
+        const usersAndAmounts: [SignerWithAddress, BigNumber][] = [
+            [this.signers.userOne, mintAmountUserOne],
+            [this.signers.userTwo, mintAmountUserTwo],
+            [this.signers.userThree, mintAmountUserThree],
+        ];
+        await Promise.all(
+            usersAndAmounts.map(async ([user, mintAmount]) => {
+                await this.Kresko.connect(user).mintKreskoAsset(user.address, this.stableKrAsset.address, mintAmount);
+            }),
+        );
 
-    //     // 50% upswing on a volative KrAsset
-    //     await this.swingVolativeKrAssetPriceBy(1.5);
-    //     // 20% upswing on the stable KrAsset
-    //     await this.swingStableKrAssetPriceBy(1.2);
-    //     // 10% down for stable collateral
-    //     await this.swingStableCollateralPriceBy(0.1);
+        // 50% upswing on a volative KrAsset
+        await this.swingVolativeKrAssetPriceBy(1.4);  // +40%
+        // 20% upswing on the stable KrAsset
+        await this.swingStableKrAssetPriceBy(1.1); // +10%
+        // 10% down for stable collateral
+        await this.swingStableCollateralPriceBy(0.1); // -10%
 
-    //     const userValues = await this.getUserValues();
-    //     const usersToLiquidate = userValues.filter(user => user.isLiquidatable);
+        const userValuesBefore = await this.getUserValues();
+        const usersToLiquidate = userValuesBefore.filter(user => user.isLiquidatable);
 
-    //     // All users are under liquidation
-    //     expect(usersToLiquidate.length).to.be.equal(3);
+        // All users are under liquidation
+        expect(usersToLiquidate.length).to.be.equal(3);
 
-    //     // But protocol is still solvent
-    //     expect(await this.isProtocolSolvent()).to.be.true;
+        let i = 1;
+        console.log("----------------------- Before ---------------------------")
+        for (const user of userValuesBefore) {
+            console.log("User collateral", i, ":", user.actualCollateralUSD);
+            console.log("Protocol collateral", i, ":", user.collateralUSDProtocol);
+            // console.log("User risk level", i, ":", user.actualCollateralUSD/user.collateralUSDProtocol);
+            console.log("----------------------------------------------------------")
+            i++;
+        }
+        const initialActualCollateralProtocolTotalUSD = userValuesBefore.reduce((a, b) => a + b.actualCollateralUSD, 0);
+        console.log("Protocol collateral (actual):", initialActualCollateralProtocolTotalUSD);
+        const initialCollateralProtocolTotalUSD = userValuesBefore.reduce((a, b) => a + b.collateralUSDProtocol, 0);
+        console.log("Protocol collateral (factors):", initialCollateralProtocolTotalUSD);
 
-    //     // Liquidate users back to healthy positions
-    //     let liquidationsLeft = usersToLiquidate.length;
+        // But protocol is still solvent
+        expect(await this.isProtocolSolvent()).to.be.true;
 
-    //     while (liquidationsLeft > 0) {
-    //         for (const user of usersToLiquidate) {
-    //             const isStillLiquidatable = await this.Kresko.isAccountLiquidatable(user.userAddress);
-    //             if (isStillLiquidatable) {
-    //                 const mostProfitableLiquidation = await this.getMostProfitableLiquidation(user.userAddress);
-    //                 if (mostProfitableLiquidation) {
-    //                     // Gas usage with 4 assets + unoptimized liquidator: 481k - 532k wei
-    //                     await this.FlashLiquidator.connect(this.signers.liquidator).flashLiquidate(
-    //                         user.userAddress,
-    //                         mostProfitableLiquidation.krAsset,
-    //                         mostProfitableLiquidation.collateralAsset,
-    //                     );
-    //                 }
-    //             }
-    //         }
-    //         const values = await this.getUserValues();
-    //         liquidationsLeft = values.filter(user => user.isLiquidatable).length;
-    //     }
+        // Liquidate users back to healthy positions
+        let liquidationsLeft = usersToLiquidate.length;
 
-    //     const userValuesAfterLiquidation = await this.getUserValues();
+        while (liquidationsLeft > 0) {
+            for (const user of usersToLiquidate) {
+                const isStillLiquidatable = await this.Kresko.isAccountLiquidatable(user.userAddress);
+                if (isStillLiquidatable) {
+                    const mostProfitableLiquidation = await this.getMostProfitableLiquidation(user.userAddress);
+                    if (mostProfitableLiquidation) {
+                        const mintedKreskoAssetIndex = await this.Kresko.getMintedKreskoAssetsIndex(user.userAddress, mostProfitableLiquidation.krAsset);
+                        const depositedCollateralAssetIndex = await this.Kresko.getDepositedCollateralAssetIndex(user.userAddress, mostProfitableLiquidation.collateralAsset);
 
-    //     // Ensure no liqudations are left
-    //     expect(liquidationsLeft).to.equal(0);
+                        const krAssetPrice = await this.Kresko.getKrAssetValue(mostProfitableLiquidation.krAsset, toBig(1), true);
+                        const repayAmountRaw = mostProfitableLiquidation.maxUSD / fromBig(krAssetPrice.rawValue);
+                        const repayAmount = repayAmountRaw * .995;
 
-    //     // Protocol is solvent
-    //     expect(await this.isProtocolSolvent()).to.be.true;
+                        // Take out debt
+                        await this.Kresko.connect(this.signers.liquidator).mintKreskoAsset(
+                            this.signers.liquidator.address,
+                            mostProfitableLiquidation.krAsset,
+                            toBig(repayAmount),
+                        )
+                        
+                        // Send liquidate transaction
+                        await this.Kresko.connect(this.signers.liquidator).liquidate(
+                            user.userAddress,
+                            mostProfitableLiquidation.krAsset,
+                            toBig(repayAmount),
+                            mostProfitableLiquidation.collateralAsset,
+                            mintedKreskoAssetIndex,
+                            depositedCollateralAssetIndex,
+                        )
+                    }
+                }
+            }
+            const values = await this.getUserValues();
+            liquidationsLeft = values.filter(user => user.isLiquidatable).length;
+        }
 
-    //     // Inspect liquidations
-    //     const minCollateralTotalUSD = userValuesAfterLiquidation.reduce((a, b) => a + b.minCollateralUSD, 0);
-    //     const collateralProtocolTotalUSD = userValuesAfterLiquidation.reduce((a, b) => a + b.collateralUSDProtocol, 0);
+        const userValuesAfterLiquidation = await this.getUserValues();
 
-    //     const surplusRepay = fromBig(await this.Kresko.burnFee());
-    //     // Ensure all positions were repaid with a surplus.
-    //     expect(minCollateralTotalUSD).to.be.lessThanOrEqual(
-    //         collateralProtocolTotalUSD - collateralProtocolTotalUSD * surplusRepay,
-    //     );
+        console.log()
+        let n = 1;
+        console.log("----------------------- After ---------------------------")
+        for (const user of userValuesAfterLiquidation) {
+            console.log("User collateral", n, ":", user.actualCollateralUSD);
+            console.log("Protocol collateral", n, ":", user.collateralUSDProtocol);
+            console.log("----------------------------------------------------------")
+            n++;
+        }
+        const afterActualCollateralProtocolTotalUSD = userValuesAfterLiquidation.reduce((a, b) => a + b.actualCollateralUSD, 0);
+        console.log("Protocol collateral (actual):", afterActualCollateralProtocolTotalUSD);
+        const afterCollateralProtocolTotalUSD = userValuesAfterLiquidation.reduce((a, b) => a + b.collateralUSDProtocol, 0);
+        console.log("Protocol collateral (factors):", afterCollateralProtocolTotalUSD);
 
-    //     // But not more than 1%
-    //     expect(minCollateralTotalUSD + minCollateralTotalUSD * (surplusRepay + 0.01)).to.be.greaterThan(
-    //         collateralProtocolTotalUSD,
-    //     );
-    // });
+        // TODO: remove the normalization from the contracts and re-run the test
+
+        // Ensure no liqudations are left
+        expect(liquidationsLeft).to.equal(0);
+
+        console.log()
+        console.log("----------------------- Difference ---------------------------")
+        for (let z = 0; z < 3; z++) {
+            console.log("User collateral difference", z, ":", userValuesBefore[z].actualCollateralUSD-userValuesAfterLiquidation[z].actualCollateralUSD);
+            console.log("Protocol collateral difference", z, ":", userValuesBefore[z].collateralUSDProtocol-userValuesAfterLiquidation[z].collateralUSDProtocol);
+            console.log("----------------------------------------------------------")
+        }
+        console.log("Protocol collateral difference (actual):", initialActualCollateralProtocolTotalUSD - afterActualCollateralProtocolTotalUSD);
+        console.log("Protocol collateral difference (factor):", initialCollateralProtocolTotalUSD - afterCollateralProtocolTotalUSD);
+
+
+        // // Protocol is solvent
+        // expect(await this.isProtocolSolvent()).to.be.true;
+
+        // // Inspect liquidations
+        // const minCollateralTotalUSD = userValuesAfterLiquidation.reduce((a, b) => a + b.minCollateralUSD, 0);
+        // const collateralProtocolTotalUSD = userValuesAfterLiquidation.reduce((a, b) => a + b.collateralUSDProtocol, 0);
+        // // TODO: collateralProtocolTotalUSD call here after
+
+        // const surplusRepay = fromBig(await this.Kresko.burnFee());
+        // // Ensure all positions were repaid with a surplus.
+        // expect(minCollateralTotalUSD).to.be.lessThanOrEqual(
+        //     collateralProtocolTotalUSD - collateralProtocolTotalUSD * surplusRepay,
+        // );
+
+        // // But not more than 1%
+        // expect(minCollateralTotalUSD + minCollateralTotalUSD * (surplusRepay + 0.01)).to.be.greaterThan(
+        //     collateralProtocolTotalUSD,
+        // );
+    });
 });
