@@ -2677,7 +2677,6 @@ describe("Kresko", function () {
                     collateralAsset.address,
                     mintedKreskoAssetIndex,
                     depositedCollateralAssetIndex,
-                    true,
                 );
 
                 // Confirm that the liquidated user's debt amount has decreased by the repaid amount
@@ -2739,7 +2738,6 @@ describe("Kresko", function () {
                     collateralAsset.address,
                     mintedKreskoAssetIndex,
                     depositedCollateralAssetIndex,
-                    true,
                 );
 
                 const { args } = await extractEventFromTxReceipt<LiquidationOccurredEvent>(
@@ -2757,252 +2755,7 @@ describe("Kresko", function () {
                 expect(fromBig(args.collateralSent)).to.be.lessThanOrEqual(maxPossibleSeizedAmount);
             });
 
-            it("should send liquidator collateral profit and reduce debt accordingly _keepKrAssetDebt = false", async function () {
-                await this.Kresko.updateBurnFee(toFixedPoint(0.05)); // 5% burnFee
-                const kreskoAsset = this.kreskoAssetInfo[0].kreskoAsset;
-
-                const krAssetDebt = await this.Kresko.kreskoAssetDebt(
-                    this.signers.userTwo.address,
-                    kreskoAsset.address,
-                );
-
-                // remove all debt
-                await kreskoAsset.connect(this.signers.userTwo).approve(this.Kresko.address, MaxUint256);
-                await this.Kresko.connect(this.signers.userTwo).burnKreskoAsset(
-                    this.signers.userTwo.address,
-                    kreskoAsset.address,
-                    String(krAssetDebt),
-                    0,
-                );
-
-                const liquidatorKrAssetValueBefore = Number(
-                    await this.Kresko.getAccountKrAssetValue(this.signers.userTwo.address),
-                );
-                expect(liquidatorKrAssetValueBefore).to.equal(0);
-
-                const collateralAsset = this.collateralAssetInfos[0].collateralAsset;
-                const liquidatorCollateralBalanceBefore = fromBig(
-                    await this.Kresko.collateralDeposits(this.signers.userTwo.address, collateralAsset.address),
-                    this.collDecimals,
-                );
-
-                const userAddresses = [this.signers.userOne.address, this.signers.userTwo.address];
-                const initialUserCollateralBalance = toBig("10000", this.collDecimals);
-                for (const collateralAssetInfo of this.collateralAssetInfos) {
-                    for (const userAddress of userAddresses) {
-                        await collateralAssetInfo.collateralAsset.setBalanceOf(
-                            userAddress,
-                            initialUserCollateralBalance,
-                        );
-                    }
-                }
-
-                // userOne deposits 1001e18 of the collateral asset
-                const userOneDepositAmount = toBig("1000", this.collDecimals); // 1000 * $20 = $20,000 in collateral value
-                await this.Kresko.connect(this.signers.userOne).depositCollateral(
-                    this.signers.userOne.address,
-                    collateralAsset.address,
-                    userOneDepositAmount,
-                );
-
-                // userOne mints 1000 of the Kresko asset
-                const useOneMintAmount = parseEther("1000"); // 1000 * $10 = $10,000 in debt value
-                await this.Kresko.connect(this.signers.userOne).mintKreskoAsset(
-                    this.signers.userOne.address,
-                    kreskoAsset.address,
-                    useOneMintAmount,
-                );
-
-                // userTwo deposits 10,000 of the collateral asset
-                const userTwoDepositAmount = toBig("10000", this.collDecimals); // 10,000 * $20 = $200,000 in collateral value
-                await this.Kresko.connect(this.signers.userTwo).depositCollateral(
-                    this.signers.userTwo.address,
-                    collateralAsset.address,
-                    userTwoDepositAmount,
-                );
-
-                // userTwo mints 100 of the Kresko asset
-                const userTwoMintAmount = parseEther("200"); // 200 * $10 = $2,000 in debt value
-                await this.Kresko.connect(this.signers.userTwo).mintKreskoAsset(
-                    this.signers.userTwo.address,
-                    kreskoAsset.address,
-                    userTwoMintAmount,
-                );
-
-                // Change collateral asset's USD value from $20 to $5
-                const oracle = this.collateralAssetInfos[0].oracle;
-                const updatedCollateralPrice = 5;
-                const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
-                await oracle.transmit(fixedPointOraclePrice, true);
-
-                // Fetch user's debt amount prior to liquidation
-                const userOneDebtAmountBeforeLiquidation = Number(
-                    formatEther(await this.Kresko.kreskoAssetDebt(this.signers.userOne.address, kreskoAsset.address)),
-                );
-
-                // userTwo holds Kresko assets that can be used to repay userOne's underwater loan
-                const repayAmount = parseEther("200");
-
-                // Get liquidators krAssetDebt before liquidation
-                const liquidatorKrAssetDebtBeforeLiquidation = fromBig(
-                    await this.Kresko.kreskoAssetDebt(this.signers.userTwo.address, kreskoAsset.address),
-                );
-
-                // Check liquidators collateralTokens balance before liquidation
-                const liquidatorBalanceInWalletBeforeLiquidation = fromBig(
-                    await this.collateralAssetInfos[0].collateralAsset.balanceOf(this.signers.userTwo.address),
-                    this.collDecimals,
-                );
-
-                // Liquidator has 0 collateral tokens in wallet before liquidation
-                expect(liquidatorBalanceInWalletBeforeLiquidation).to.equal(0);
-
-                // Liquidator has collateral deposit in the protocol
-                const liquidatorBalanceInProtocolBeforeLiquidation = fromBig(
-                    await this.Kresko.collateralDeposits(
-                        this.signers.userTwo.address,
-                        this.collateralAssetInfos[0].collateralAsset.address,
-                    ),
-                    this.collDecimals,
-                );
-                expect(liquidatorBalanceInProtocolBeforeLiquidation).to.equal(
-                    fromBig(userTwoDepositAmount, this.collDecimals) + liquidatorCollateralBalanceBefore,
-                );
-
-                // Get underwater users collateral deposits before liquidation
-                const userOneCollateralDepositAmountBeforeLiquidation = fromBig(
-                    await this.Kresko.collateralDeposits(
-                        this.signers.userOne.address,
-                        this.collateralAssetInfos[0].collateralAsset.address,
-                    ),
-                    this.collDecimals,
-                );
-
-                const userOneKrAssetValueBeforeLiq = Number(
-                    await this.Kresko.getAccountKrAssetValue(this.signers.userOne.address),
-                );
-
-                const liquidatorDebtBefore = Number(
-                    formatEther(await this.Kresko.kreskoAssetDebt(this.signers.userTwo.address, kreskoAsset.address)),
-                );
-
-                // Liquidation
-                const mintedKreskoAssetIndex = 0;
-                const depositedCollateralAssetIndex = 0;
-                const receipt = await this.Kresko.connect(this.signers.userTwo).liquidate(
-                    this.signers.userOne.address,
-                    kreskoAsset.address,
-                    repayAmount,
-                    collateralAsset.address,
-                    mintedKreskoAssetIndex,
-                    depositedCollateralAssetIndex,
-                    false,
-                );
-
-                const { args } = await extractEventFromTxReceipt<LiquidationOccurredEvent>(
-                    receipt,
-                    "LiquidationOccurred",
-                );
-                expect(args.account).to.equal(this.signers.userOne.address);
-                expect(args.liquidator).to.equal(this.signers.userTwo.address);
-                expect(args.repayKreskoAsset).to.equal(kreskoAsset.address);
-                expect(args.repayAmount).to.equal(repayAmount);
-                expect(args.seizedCollateralAsset).to.equal(collateralAsset.address);
-                expect(Number(args.collateralSent)).to.be.greaterThan(0);
-
-                const liquidatorDebtAfter = fromBig(
-                    await this.Kresko.kreskoAssetDebt(this.signers.userTwo.address, args.repayKreskoAsset),
-                );
-
-                expect(liquidatorDebtAfter).to.be.lessThan(liquidatorDebtBefore);
-
-                const userOneDebtAmountAfterLiquidation = fromBig(
-                    await this.Kresko.kreskoAssetDebt(this.signers.userOne.address, kreskoAsset.address),
-                );
-
-                const userOneKrAssetValueAfterLiq = Number(
-                    await this.Kresko.getAccountKrAssetValue(this.signers.userOne.address),
-                );
-
-                const liquidatorKrAssetDebtAfterLiquidation = fromBig(
-                    await this.Kresko.kreskoAssetDebt(this.signers.userTwo.address, kreskoAsset.address),
-                );
-
-                const userOneCollateralDepositAmountAfterLiquidation = fromBig(
-                    await this.Kresko.collateralDeposits(
-                        this.signers.userOne.address,
-                        this.collateralAssetInfos[0].collateralAsset.address,
-                    ),
-                    this.collDecimals,
-                );
-
-                const liquidatorCollateralBalanceInWalletAfterLiquidation = fromBig(
-                    await this.collateralAssetInfos[0].collateralAsset.balanceOf(this.signers.userTwo.address),
-                    this.collDecimals,
-                );
-
-                const liquidatorBalanceInProtocolAfterLiquidation = fromBig(
-                    await this.Kresko.collateralDeposits(
-                        this.signers.userTwo.address,
-                        this.collateralAssetInfos[0].collateralAsset.address,
-                    ),
-                    this.collDecimals,
-                );
-
-                // Liquidator collateral deposits in the protocol is reduced because of the burn fee
-                expect(liquidatorBalanceInProtocolAfterLiquidation).to.be.lessThan(
-                    liquidatorBalanceInProtocolBeforeLiquidation,
-                );
-
-                // User one get his/hers collateral reduced
-                expect(userOneCollateralDepositAmountAfterLiquidation).to.be.lessThan(
-                    userOneCollateralDepositAmountBeforeLiquidation,
-                );
-
-                // User one get his/hers debt reduced
-                expect(userOneDebtAmountAfterLiquidation).to.be.lessThan(userOneDebtAmountBeforeLiquidation);
-
-                // User one get his/hers krAsset value reduced
-                expect(userOneKrAssetValueAfterLiq).to.be.lessThan(userOneKrAssetValueBeforeLiq);
-
-                // Liquidator does not retain the debt that was being used to pay for useOnes underwater position
-                expect(liquidatorKrAssetDebtBeforeLiquidation - fromBig(repayAmount)).to.be.equal(
-                    liquidatorKrAssetDebtAfterLiquidation,
-                );
-
-                // Liquidator gets pure profit in the wallet
-                expect(liquidatorBalanceInWalletBeforeLiquidation).to.be.lessThan(
-                    liquidatorCollateralBalanceInWalletAfterLiquidation,
-                );
-
-                const liquidatorProfit =
-                    liquidatorCollateralBalanceInWalletAfterLiquidation - liquidatorBalanceInWalletBeforeLiquidation;
-
-                const feeRecipientBalance = fromBig(
-                    await collateralAsset.balanceOf(FEE_RECIPIENT_ADDRESS),
-                    this.collDecimals,
-                );
-
-                // Protocol should receive 5% (MAX_BURN_FEE) twice from the liquidation as burn fee is paid twice
-                expect(feeRecipientBalance).to.be.closeTo(
-                    liquidatorProfit, feeRecipientBalance * 0.02
-                );
-
-                // Shouldn't be able to liquidate a healthy position anymore
-                await expect(
-                    this.Kresko.connect(this.signers.userTwo).liquidate(
-                        this.signers.userOne.address,
-                        kreskoAsset.address,
-                        repayAmount,
-                        collateralAsset.address,
-                        mintedKreskoAssetIndex,
-                        depositedCollateralAssetIndex,
-                        false,
-                    ),
-                ).to.be.reverted;
-            });
-
-            it("should send the liquidator whole collateral and keep debt position when _keepKrAssetDebt = true", async function () {
+            it("should send the liquidator whole collateral and maintain liquidatior's debt position", async function () {
                 await this.Kresko.updateBurnFee(toFixedPoint(0.05)); // 5% burnFee
 
                 const userAddresses = [this.signers.userOne.address, this.signers.userTwo.address];
@@ -3119,7 +2872,6 @@ describe("Kresko", function () {
                     collateralAsset.address,
                     mintedKreskoAssetIndex,
                     depositedCollateralAssetIndex,
-                    true,
                 );
 
                 const { args } = await extractEventFromTxReceipt<LiquidationOccurredEvent>(
@@ -3234,7 +2986,6 @@ describe("Kresko", function () {
                     collateralAsset.address,
                     mintedKreskoAssetIndex,
                     depositedCollateralAssetIndex,
-                    true,
                 );
 
                 const { args } = await extractEventFromTxReceipt(receipt, "LiquidationOccurred");
@@ -3274,7 +3025,6 @@ describe("Kresko", function () {
                     collateralAsset.address,
                     mintedKreskoAssetIndex,
                     depositedCollateralAssetIndex,
-                    true,
                 );
 
                 const { args } = await extractEventFromTxReceipt(receipt, "LiquidationOccurred");
@@ -3302,7 +3052,6 @@ describe("Kresko", function () {
                         this.collateralAssetInfos[0].collateralAsset.address,
                         mintedKreskoAssetIndex,
                         depositedCollateralAssetIndex,
-                        false,
                     ),
                 ).to.be.revertedWith("KR: !accountLiquidatable");
             });
@@ -3326,7 +3075,6 @@ describe("Kresko", function () {
                         this.collateralAssetInfos[0].collateralAsset.address,
                         mintedKreskoAssetIndex,
                         depositedCollateralAssetIndex,
-                        true,
                     ),
                 ).to.be.revertedWith("KR: 0-repay");
             });
@@ -3364,7 +3112,6 @@ describe("Kresko", function () {
                         collateralAsset.address,
                         mintedKreskoAssetIndex,
                         depositedCollateralAssetIndex,
-                        false,
                     ),
                 ).to.be.revertedWith("KR: repayAmount > debtAmount");
             });
@@ -3409,7 +3156,6 @@ describe("Kresko", function () {
                         collateralAsset.address,
                         mintedKreskoAssetIndex,
                         depositedCollateralAssetIndex,
-                        false,
                     ),
                 ).to.be.revertedWith("KR: repayUSD > maxUSD");
             });
@@ -3441,7 +3187,6 @@ describe("Kresko", function () {
                     this.collateralAssetInfos[0].collateralAsset.address,
                     mintedKreskoAssetIndex,
                     depositedCollateralAssetIndex,
-                    false,
                 ),
             ).to.be.revertedWith("KR: self liquidation");
         });
