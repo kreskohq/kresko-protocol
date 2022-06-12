@@ -11,7 +11,6 @@ bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("kresko.diamond.storage");
 
 function ds() pure returns (DiamondState storage state) {
     bytes32 position = DIAMOND_STORAGE_POSITION;
-    /// @solidity memory-safe-assembly
     assembly {
         state.slot := position
     }

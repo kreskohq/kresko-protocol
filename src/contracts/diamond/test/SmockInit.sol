@@ -9,7 +9,7 @@ import {TEST_OPERATOR_ROLE} from "./SmockFacet.sol";
 import {SmockStorage} from "./SmockStorage.sol";
 
 contract SmockInit is DiamondModifiers {
-    function initialize(address _operator) external onlyOwner onlyRole(DEFAULT_ADMIN_ROLE) {
+    function initialize(address _operator) external onlyOwner onlyRole(Roles.DEFAULT_ADMIN) {
         require(msg.sender == ds().contractOwner, "WithStorage: Not owner");
         SmockStorage.initialize(_operator);
 

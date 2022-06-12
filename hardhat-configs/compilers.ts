@@ -29,7 +29,7 @@ export const compilers = {
             version: "0.8.14",
             optimizer: {
                 enabled: true,
-                runs: 200,
+                runs: 2800,
                 details: {
                     yul: true,
                     yulDetails: {

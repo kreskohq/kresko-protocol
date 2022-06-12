@@ -172,6 +172,12 @@ library MinterEvent {
      * @param minimumDebtValue The new minimum debt value.
      */
     event MinimumDebtValueUpdated(uint256 indexed minimumDebtValue);
+
+    /**
+     * @notice Emitted when the seconds until stale price value is updated.
+     * @param secondsUntilStalePrice The new seconds until stale price value.
+     */
+    event SecondsUntilStalePriceUpdated(uint256 indexed secondsUntilStalePrice);
 }
 
 library StakingEvent {

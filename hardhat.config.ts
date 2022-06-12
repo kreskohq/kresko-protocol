@@ -15,10 +15,12 @@ import "@typechain/hardhat";
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-web3";
 import "hardhat-diamond-abi";
-
+import "hardhat-interface-generator";
+import "hardhat-contract-sizer";
 // import "hardhat-preprocessor";
 import "hardhat-watcher";
 import "hardhat-gas-reporter";
+
 // Environment variables
 import { resolve } from "path";
 import { config as dotenvConfig } from "dotenv";
@@ -31,13 +33,12 @@ if (!mnemonic) {
     mnemonic = "wealth";
 }
 
-// HRE extensions
+// Custom extensions
 import "hardhat-configs/extensions";
 
-// All tasks
-import "hardhat-interface-generator";
+// Tasks
 import "./src/tasks/diamond/addFacet.ts";
-// Get configs
+// Configurations
 import { compilers, networks, users } from "hardhat-configs";
 import type { HardhatUserConfig } from "hardhat/types/config";
 
@@ -58,8 +59,14 @@ import type { HardhatUserConfig } from "hardhat/types/config";
 const config: HardhatUserConfig = {
     gasReporter: {
         currency: "USD",
-        enabled: process.env.REPORT_GAS ? true : false,
+        enabled: true,
         src: "src/contracts",
+    },
+    contractSizer: {
+        alphaSort: true,
+        disambiguatePaths: false,
+        runOnCompile: true,
+        only: ["Facet", "Diamond"],
     },
     namedAccounts: users,
     networks: networks(mnemonic),
@@ -76,8 +83,8 @@ const config: HardhatUserConfig = {
     solidity: compilers,
     diamondAbi: {
         name: "Kresko",
-        include: ["facets"],
-        exclude: ["vendor", "test"],
+        include: ["facets/*"],
+        exclude: ["vendor", "test/*", "interfaces/*", "KreskoAsset", "hardhat-diamond-abi/.*"],
         strict: true,
     },
     typechain: {

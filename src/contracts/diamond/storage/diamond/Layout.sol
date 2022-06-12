@@ -45,7 +45,21 @@ struct DiamondState {
     /* -------------------------------------------------------------------------- */
     mapping(bytes32 => RoleData) _roles;
     mapping(bytes32 => EnumerableSet.AddressSet) _roleMembers;
+    /* -------------------------------------------------------------------------- */
+    /*                                 Reentrancy                                 */
+    /* -------------------------------------------------------------------------- */
+    uint256 entered;
 }
 
-
-using { initialize, initiateOwnershipTransfer,finalizeOwnershipTransfer, diamondCut, addFunction, addFunctions, replaceFunctions, removeFunctions, addFacet, removeFunction} for DiamondState global;
+using {
+    initialize,
+    initiateOwnershipTransfer,
+    finalizeOwnershipTransfer,
+    diamondCut,
+    addFunction,
+    addFunctions,
+    replaceFunctions,
+    removeFunctions,
+    addFacet,
+    removeFunction
+} for DiamondState global;

@@ -29,6 +29,7 @@ library Error {
     string public constant ZERO_DEPOSIT = "103"; // Deposit must be greater than 0
     string public constant ZERO_ADDRESS = "104"; // Address provided cannot be address(0)
     string public constant ALREADY_INITIALIZED = "105"; // Contract has already been initialized
+    string public constant RE_ENTRANCY = "106"; // Function does not allow re-entrant calls
 
     /* -------------------------------------------------------------------------- */
     /*                                   2. Minter                                 */

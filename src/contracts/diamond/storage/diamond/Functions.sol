@@ -7,9 +7,11 @@ import {IDiamondCut} from "../../interfaces/IDiamondCut.sol";
 import {IOwnership} from "../../interfaces/IOwnership.sol";
 import {IAccessControlFacet} from "../../interfaces/IAccessControlFacet.sol";
 import {FixedPoint} from "../../libraries/FPConversions.sol";
+
 import "../../shared/Errors.sol";
 import "../../shared/Events.sol";
 import "../../shared/Meta.sol";
+import "../../shared/Constants.sol";
 
 import {DiamondState} from "./Layout.sol";
 
@@ -21,6 +23,7 @@ import {DiamondState} from "./Layout.sol";
 /// @notice Only called on the first deployment
 function initialize(DiamondState storage self, address _owner) {
     require(!self.initialized, Error.ALREADY_INITIALIZED);
+    self.entered = NOT_ENTERED;
     self.initialized = true;
     self.storageVersion++;
     self.contractOwner = _owner;

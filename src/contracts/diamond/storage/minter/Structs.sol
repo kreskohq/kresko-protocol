@@ -15,6 +15,7 @@ struct MinterInitParams {
     uint256 liquidationIncentiveMultiplier;
     uint256 minimumCollateralizationRatio;
     uint256 minimumDebtValue;
+    uint256 secondsUntilStalePrice;
 }
 
 /**

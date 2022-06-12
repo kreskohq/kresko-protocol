@@ -1,11 +1,28 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.14;
 
+import "../../shared/Constants.sol";
 import {FixedPoint, CollateralAsset, KrAsset} from "./Structs.sol";
 import "./Functions.sol";
 
-
-using { initialize, getAccountMinimumCollateralValue, getAccountCollateralValue, getMinimumCollateralValue, getCollateralValueAndOraclePrice, krAssetExists, getMintedKreskoAssets,getMintedKreskoAssetsIndex,getAccountKrAssetValue, getKrAssetValue } for MinterState global;
+using {
+    initialize,
+    isAccountLiquidatable,
+    calculateMaxLiquidatableValueForAssets,
+    getAccountMinimumCollateralValue,
+    getAccountCollateralValue,
+    getMinimumCollateralValue,
+    getCollateralValueAndOraclePrice,
+    krAssetExists,
+    getMintedKreskoAssets,
+    getMintedKreskoAssetsIndex,
+    getAccountKrAssetValue,
+    getKrAssetValue,
+    chargeBurnFee,
+    calcBurnFee,
+    recordCollateralDeposit,
+    verifyAndRecordCollateralWithdrawal
+} for MinterState global;
 
 struct MinterState {
     /* -------------------------------------------------------------------------- */
@@ -13,7 +30,6 @@ struct MinterState {
     /* -------------------------------------------------------------------------- */
 
     /// @notice Is initialized to the main diamond
-
     bool initialized;
     /// @notice Current storage version
     uint8 storageVersion;
@@ -35,8 +51,8 @@ struct MinterState {
     FixedPoint.Unsigned minimumCollateralizationRatio;
     /// @notice The minimum USD value of an individual synthetic asset debt position.
     FixedPoint.Unsigned minimumDebtValue;
-    /** @dev Old mapping for trusted addresses */
-    mapping(address => bool) trustedContracts;
+    /// @notice The number of seconds until a price is considered stale
+    uint256 secondsUntilStalePrice;
     /* -------------------------------------------------------------------------- */
 
     /* -------------------------------------------------------------------------- */

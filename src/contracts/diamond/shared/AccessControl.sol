@@ -2,11 +2,9 @@
 pragma solidity 0.8.14;
 
 import "../libraries/Strings.sol";
-import {AccessControlEvent} from "../shared/Events.sol";
+import {AccessControlEvent} from "./Events.sol";
 import {ds, Meta, EnumerableSet} from "../storage/DiamondStorage.sol";
-
-bytes32 constant DEFAULT_ADMIN_ROLE = 0x00;
-bytes32 constant MINTER_OPERATOR_ROLE = keccak256("kresko.minter.operator");
+import {Roles} from "./Constants.sol";
 
 /**
  * @title Shared library for access control

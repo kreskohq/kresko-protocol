@@ -13,11 +13,12 @@ struct Signed {
 }
 
 uint256 constant FP_DECIMALS = 18;
-    uint256 constant FP_SCALING_FACTOR = 10**FP_DECIMALS;
-    int256  constant SFP_SCALING_FACTOR = 10**18;
+uint256 constant FP_SCALING_FACTOR = 10**FP_DECIMALS;
+int256 constant SFP_SCALING_FACTOR = 10**18;
 
 using Math for Unsigned global;
 using Math for Signed global;
+
 /**
  * @title Library for fixed point arithmetic on uints
  */
@@ -396,7 +397,6 @@ library Math {
     // For signed values:
     //   This can represent a value up (or down) to +-(2^255 - 1)/10^18 = ~10^58. 10^58 will be stored
     //   internally as int256 10^76.
-    
 
     function fromSigned(Signed memory a) internal pure returns (Unsigned memory) {
         require(a.rawValue >= 0, "Negative value provided");

@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.14;
+import {MinterEvent} from "../shared/Events.sol";
 
-interface IMinterParameterFacet {
+interface IMinterAdminFacet {
     /**
      * @notice Updates the burn fee.
      * @param _burnFee The new burn fee as a raw value for a FixedPoint.Unsigned.

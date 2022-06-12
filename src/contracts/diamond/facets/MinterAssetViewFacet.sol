@@ -2,7 +2,7 @@
 pragma solidity 0.8.14;
 import {ms, FixedPoint} from "../storage/MinterStorage.sol";
 
-contract CollateralFacet {
+contract MinterAssetViewFacet {
     /* ==== Collateral ==== */
     /**
      * @notice Returns true if the @param _collateralAsset exists in the protocol

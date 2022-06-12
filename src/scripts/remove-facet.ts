@@ -6,14 +6,6 @@ const { ethers } = hre;
 
 async function main() {
     const { deployer, userOne } = await ethers.getNamedSigners();
-
-    const tx = await deployer.sendTransaction({
-        to: await userOne.getAddress(),
-        value: ethers.utils.formatEther("1"),
-        data: "gg",
-    });
-
-    console.log(tx);
 }
 
 main()

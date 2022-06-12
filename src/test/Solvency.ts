@@ -874,6 +874,7 @@ describe("Solvency", function () {
             }),
         );
 
+        console.log(await this.getUserValues());
         // 50% upswing on a volative KrAsset
         await this.swingVolativeKrAssetPriceBy(1.5);
         // 20% upswing on the stable KrAsset
@@ -892,7 +893,6 @@ describe("Solvency", function () {
 
         // Liquidate users back to healthy positions
         let liquidationsLeft = usersToLiquidate.length;
-
         while (liquidationsLeft > 0) {
             for (const user of usersToLiquidate) {
                 const isStillLiquidatable = await this.Kresko.isAccountLiquidatable(user.userAddress);

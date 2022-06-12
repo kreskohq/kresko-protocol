@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.14;
 
-import {AccessControl, DEFAULT_ADMIN_ROLE} from "./shared/AccessControl.sol";
+import {AccessControl, Roles} from "./shared/AccessControl.sol";
 import {ds, Meta, Error, initializeDiamondCut, IDiamondCut, GeneralEvent} from "./storage/DiamondStorage.sol";
 
 contract Diamond {
@@ -21,7 +21,7 @@ contract Diamond {
     ) {
         ds().initialize(_owner);
         ds().diamondCut(_diamondCut, address(0), "");
-        AccessControl._grantRole(DEFAULT_ADMIN_ROLE, _owner);
+        AccessControl._grantRole(Roles.DEFAULT_ADMIN, _owner);
 
         ds().domainSeparator = Meta.domainSeparator("Kresko Protocol", "V1");
 

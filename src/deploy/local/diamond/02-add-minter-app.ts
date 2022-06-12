@@ -1,10 +1,10 @@
 import { getLogger } from "@utils/deployment";
 import { toFixedPoint } from "@utils/fixed-point";
 import { minterFacets } from "src/contracts/diamond/config/config";
+import { addFacets } from "@scripts/add-facets";
 import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
-import type { MinterInitParamsStruct } from "types/typechain/MinterParameterFacet";
-import { addFacets } from "@scripts/add-facets";
+import type { MinterInitParamsStruct } from "types/typechain/MinterAdminFacet";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("init-minter");
@@ -21,11 +21,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         liquidationIncentiveMultiplier: toFixedPoint(process.env.LIQUIDATION_INCENTIVE),
         minimumCollateralizationRatio: toFixedPoint(process.env.MINIMUM_COLLATERALIZATION_RATIO),
         minimumDebtValue: toFixedPoint(process.env.MINIMUM_DEBT_VALUE, 8),
+        secondsUntilStalePrice: toFixedPoint(process.env.MINIMUM_DEBT_VALUE, 8),
     };
 
     const UpgradedDiamond = await addFacets({
         names: minterFacets,
-        initializerName: "MinterParameterFacet",
+        initializerName: "MinterAdminFacet",
         initializerArgs,
     });
     const doesSupportFacets = await UpgradedDiamond.supportsInterface("0x5d630885");
