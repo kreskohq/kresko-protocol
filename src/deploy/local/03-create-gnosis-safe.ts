@@ -3,7 +3,6 @@ import { BigNumber, extractEventFromTxReceipt } from "@utils";
 import { getLogger } from "@utils/deployment";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { executeContractCallWithSigners } from "@utils/gnosis";
-import { GnosisSafeL2__factory } from "types/typechain/factories/GnosisSafeL2__factory";
 import { GnosisSafeL2 } from "types/typechain/GnosisSafeL2";
 import { GnosisSafeProxyFactory, ProxyCreationEvent } from "types/typechain/GnosisSafeProxyFactory";
 
@@ -43,9 +42,8 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const receipt = await tx.wait();
 
-    const SafeProxy = await ethers.getContractAt<GnosisSafeL2>(GnosisSafeL2__factory.abi, creationEvent.args.proxy);
-
     const SafeDeployment = await deployments.get("GnosisSafeL2");
+    const SafeProxy = await ethers.getContractAt<GnosisSafeL2>(SafeDeployment.abi, creationEvent.args.proxy);
 
     await deployments.save("Multisig", {
         abi: SafeDeployment.abi,
