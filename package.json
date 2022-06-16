@@ -92,6 +92,7 @@
         "commit": "git-cz",
         "recompile": "TS_NODE_TRANSPILE_ONLY=1 hardhat clean && TS_NODE_TRANSPILE_ONLY=1 hardhat compile",
         "compile": "TS_NODE_TRANSPILE_ONLY=1 hardhat compile",
+        "interface": "TS_NODE_TRANSPILE_ONLY=1 npx hardhat gen-interface",
         "coverage": "hardhat coverage --solcoverjs ./.solcover.js --temp artifacts --testfiles \"./test/**/*.ts\"",
         "dev": "hardhat node",
         "deploy": "hardhat deploy",

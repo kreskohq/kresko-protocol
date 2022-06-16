@@ -2,7 +2,7 @@
 pragma solidity 0.8.14;
 
 import {IOwnership} from "../interfaces/IOwnership.sol";
-import "../shared/Modifiers.sol";
+import "../../shared/Modifiers.sol";
 
 contract DiamondOwnershipFacet is DiamondModifiers, IOwnership {
     /* -------------------------------------------------------------------------- */

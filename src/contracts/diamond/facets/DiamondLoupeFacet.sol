@@ -2,7 +2,7 @@
 pragma solidity 0.8.14;
 
 import {IDiamondLoupe} from "../interfaces/IDiamondLoupe.sol";
-import {ds, DiamondState} from "../storage/DiamondStorage.sol";
+import {ds, DiamondState} from "../DiamondStorage.sol";
 
 contract DiamondLoupeFacet is IDiamondLoupe {
     /// @notice Gets all facets and their selectors.

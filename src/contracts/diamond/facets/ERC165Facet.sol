@@ -2,8 +2,8 @@
 pragma solidity 0.8.14;
 
 import {IERC165} from "../interfaces/IERC165.sol";
-import {DiamondModifiers} from "../shared/Modifiers.sol";
-import {ds, DiamondState, Error} from "../storage/DiamondStorage.sol";
+import {DiamondModifiers} from "../../shared/Modifiers.sol";
+import {ds, DiamondState, Error} from "../DiamondStorage.sol";
 
 contract ERC165Facet is DiamondModifiers, IERC165 {
     /* -------------------------------------------------------------------------- */

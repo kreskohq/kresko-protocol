@@ -2,7 +2,8 @@
 pragma solidity 0.8.14;
 
 import {IAccessControlFacet} from "../interfaces/IAccessControlFacet.sol";
-import "../shared/AccessControl.sol";
+
+import "../../shared/AccessControl.sol";
 
 /**
  * @title Enumerable access control for the EIP2535-pattern following the OZ implementation.

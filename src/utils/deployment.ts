@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { DeployOptions } from "@kreskolabs/hardhat-deploy/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { signatureFilters } from "src/contracts/diamond/config/config";
+import SharedConfig from "src/config/shared";
 
 export const deployWithSignatures =
     (hre: HardhatRuntimeEnvironment) =>
@@ -25,7 +26,7 @@ export const deployWithSignatures =
                 .filter(
                     frag =>
                         frag.type !== "constructor" &&
-                        !signatureFilters.some(f => f.indexOf(frag.name.toLowerCase()) > -1),
+                        !SharedConfig.signatureFilters.some(f => f.indexOf(frag.name.toLowerCase()) > -1),
                 )
                 .map(frag => ethers.utils.Interface.getSighash(frag)),
             deployment,
@@ -40,7 +41,8 @@ export const getSignatures =
         const fragments = implementation.interface.fragments
             .filter(
                 frag =>
-                    frag.type !== "constructor" && !signatureFilters.some(f => f.indexOf(frag.name.toLowerCase()) > -1),
+                    frag.type !== "constructor" &&
+                    !SharedConfig.signatureFilters.some(f => f.indexOf(frag.name.toLowerCase()) > -1),
             )
             .reduce<{ [key: string]: string }>((result, frag) => {
                 result[frag.name] = hre.ethers.utils.Interface.getSighash(frag);

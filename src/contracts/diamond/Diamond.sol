@@ -5,8 +5,8 @@
 
 pragma solidity 0.8.14;
 
-import {AccessControl, Roles} from "./shared/AccessControl.sol";
-import {ds, Meta, Error, initializeDiamondCut, IDiamondCut, GeneralEvent} from "./storage/DiamondStorage.sol";
+import {AccessControl, Role} from "../shared/AccessControl.sol";
+import {ds, Meta, Error, initializeDiamondCut, IDiamondCut, GeneralEvent} from "./DiamondStorage.sol";
 
 contract Diamond {
     struct Initialization {
@@ -21,9 +21,7 @@ contract Diamond {
     ) {
         ds().initialize(_owner);
         ds().diamondCut(_diamondCut, address(0), "");
-        AccessControl._grantRole(Roles.DEFAULT_ADMIN, _owner);
-
-        ds().domainSeparator = Meta.domainSeparator("Kresko Protocol", "V1");
+        AccessControl._grantRole(Role.ADMIN, _owner);
 
         for (uint256 i = 0; i < _initializations.length; i++) {
             initializeDiamondCut(_initializations[i].initContract, _initializations[i].initData);

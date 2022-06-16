@@ -2,8 +2,8 @@
 pragma solidity 0.8.14;
 
 import {IDiamondCut} from "../interfaces/IDiamondCut.sol";
-import {DiamondModifiers} from "../shared/Modifiers.sol";
-import {ds, initializeDiamondCut} from "../storage/DiamondStorage.sol";
+import {DiamondModifiers} from "../../shared/Modifiers.sol";
+import {ds, initializeDiamondCut} from "../DiamondStorage.sol";
 
 contract DiamondCutFacet is DiamondModifiers, IDiamondCut {
     /// @notice Add/replace/remove any number of functions and optionally execute

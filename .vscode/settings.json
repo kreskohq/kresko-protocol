@@ -1,0 +1,11 @@
+{
+    "solidity-va.parser.parseImports": true,
+    "solidity-va.outline.decorations": true,
+    "solidity-va.whatsNew.disabled": false,
+    "solidity-va.codelens.ftrace.enable": true,
+    "solidity-va.preview.markdown": true,
+    "solidity-va.preview.dot": false,
+    "solidity-va.diagnostics.cdili_json.import": true,
+    "solidity-va.deco.statevars": false,
+    "solidity-va.deco.arguments": false
+}
