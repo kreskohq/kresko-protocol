@@ -67,10 +67,17 @@ struct Pause {
     uint256 timestamp1;
 }
 
-/// @notice Protocol actions
+/**
+ * @dev Protocol user facing actions
+ *
+ * Deposit = 0
+ * Withdraw = 1,
+ * Repay = 2,
+ * Borrow = 3,
+ * Liquidate = 4
+ */
 enum Action {
     Deposit,
-    Pause,
     Withdraw,
     Repay,
     Borrow,

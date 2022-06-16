@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.14;
 
-import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
-
+import "../vendor/gnosis/IGnosisSafeL2.sol";
 import "./Strings.sol";
 import "./Errors.sol";
 import {AccessControlEvent} from "./Events.sol";
@@ -93,18 +92,23 @@ library AccessControl {
      */
     function setupSecurityCouncil(address _councilAddress) internal {
         require(getRoleMemberCount(Role.SAFETY_COUNCIL) == 0, Error.SAFETY_COUNCIL_EXISTS);
-        // Currently set as GnosisSafe's Guard interfaceId
-        require(ERC165Checker.supportsInterface(_councilAddress, 0xe6d7a83a), Error.ADDRESS_INVALID_SAFETY_COUNCIL);
+        require(IGnosisSafeL2(_councilAddress).isOwner(msg.sender), Error.ADDRESS_INVALID_SAFETY_COUNCIL);
+
         ds()._roles[Role.SAFETY_COUNCIL].members[_councilAddress] = true;
         ds()._roleMembers[Role.SAFETY_COUNCIL].add(_councilAddress);
+
         emit AccessControlEvent.RoleGranted(Role.SAFETY_COUNCIL, _councilAddress, Meta.msgSender());
     }
 
-    function transferSecurityCouncil(address _newContract) internal {
+    function transferSecurityCouncil(address _newCouncil) internal {
         hasRole(Role.SAFETY_COUNCIL, msg.sender);
-        // As this is called by the multisig - check that it's not an EOA
-        enforceHasContractCode(_newContract, Error.ADDRESS_INVALID_SAFETY_COUNCIL);
-        _grantRole(Role.SAFETY_COUNCIL, _newContract);
+
+        // As this is called by the multisig - just check that it's not an EOA
+        ds()._roles[Role.SAFETY_COUNCIL].members[msg.sender] = false;
+        ds()._roleMembers[Role.SAFETY_COUNCIL].remove(msg.sender);
+
+        ds()._roles[Role.SAFETY_COUNCIL].members[_newCouncil] = true;
+        ds()._roleMembers[Role.SAFETY_COUNCIL].add(_newCouncil);
     }
 
     /**
@@ -155,28 +159,6 @@ library AccessControl {
         require(account == Meta.msgSender(), "AccessControl: can only renounce roles for self");
 
         _revokeRole(role, account);
-    }
-
-    /**
-     * @dev Grants `role` to `account`.
-     *
-     * If `account` had not been already granted `role`, emits a {RoleGranted}
-     * event. Note that unlike {grantRole}, this function doesn't perform any
-     * checks on the calling account.
-     *
-     * [WARNING]
-     * ====
-     * This function should only be called from the constructor when setting
-     * up the initial roles for the system.
-     *
-     * Using this function in any other way is effectively circumventing the admin
-     * system imposed by {AccessControl}.
-     * ====
-     *
-     * NOTE: This function is deprecated in favor of {_grantRole}.
-     */
-    function _setupRole(bytes32 role, address account) internal {
-        _grantRole(role, account);
     }
 
     /**

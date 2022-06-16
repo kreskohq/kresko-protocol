@@ -65,4 +65,19 @@ export const users = {
     testUserExtra: {
         default: 20,
     },
+    devOne: {
+        default: 21,
+    },
+    devTwo: {
+        default: 22,
+    },
+    extOne: {
+        default: 23,
+    },
+    extTwo: {
+        default: 24,
+    },
+    extThree: {
+        default: 25,
+    },
 };

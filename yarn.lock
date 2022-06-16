@@ -1042,6 +1042,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@kreskolabs/gnosis-safe-contracts@npm:1.3.2":
+  version: 1.3.2
+  resolution: "@kreskolabs/gnosis-safe-contracts@npm:1.3.2"
+  peerDependencies:
+    ethers: ^5.1.4
+  checksum: c56d7dfd82e98af620f767f680afa4e316d420bb57a97029dd60f2290ac444c99cb7fe526143282e337bb626fc66a6049425d2d6eacb64fe0aafa63a82e176d5
+  languageName: node
+  linkType: hard
+
 "@kreskolabs/hardhat-deploy@npm:^2.2.0":
   version: 2.2.0
   resolution: "@kreskolabs/hardhat-deploy@npm:2.2.0"
@@ -1085,6 +1094,7 @@ __metadata:
     "@ethersproject/contracts": ^5.6.2
     "@ethersproject/providers": ^5.6.8
     "@ethersproject/solidity": ^5.6.1
+    "@kreskolabs/gnosis-safe-contracts": 1.3.2
     "@kreskolabs/hardhat-deploy": ^2.2.0
     "@kreskolabs/openzeppelin-diamond": ^2.0.0
     "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@^0.3.0-beta.13"

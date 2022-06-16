@@ -1,5 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.14;
+
+import {IAssetViewFacet} from "../interfaces/IAssetViewFacet.sol";
+import {ILiquidationFacet} from "../interfaces/ILiquidationFacet.sol";
+import {ISafetyCouncilFacet} from "../interfaces/ISafetyCouncilFacet.sol";
+import {IUserFacet} from "../interfaces/IUserFacet.sol";
+import {IKreskoAsset} from "../interfaces/IKreskoAsset.sol";
+import {INonRebasingWrapperToken} from "../interfaces/INonRebasingWrapperToken.sol";
+
 import {MinterInitArgs, KrAsset, CollateralAsset, AggregatorV2V3Interface} from "../state/Structs.sol";
 
 interface IOperatorFacet {

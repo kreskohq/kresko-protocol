@@ -1,6 +1,6 @@
 import hre from "hardhat";
 import { constants } from "ethers";
-import { fixtures, getUsers } from "./utils";
+import { fixtures, getUsers } from "../diamond/utils";
 import { smock } from "@defi-wonderland/smock";
 import chai, { expect } from "chai";
 
@@ -27,8 +27,8 @@ describe("Minter", function () {
             this.DiamondDeployment = fixture.DiamondDeployment;
         });
 
-        it("should initialize the diamond", async function () {
-            expect(await this.Diamond.initialized()).to.equal(true);
+        it("should initialize minter state", async function () {
+            expect(await this.Diamond.initializations).to.equal(true);
         });
 
         it("should have same facets in the deployment artifact and on-chain", async function () {

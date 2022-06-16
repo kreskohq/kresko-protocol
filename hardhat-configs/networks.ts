@@ -100,15 +100,19 @@ export const networks = (mnemonic: string) => ({
     hardhat: {
         accounts: {
             mnemonic,
+            count: 50,
         },
         saveDeployments: true,
+        allowUnlimitedContractSize: true,
     },
     localhost: {
         accounts: {
             mnemonic,
+            count: 50,
         },
         saveDeployments: true,
         chainId: chainIds.hardhat,
+        allowUnlimitedContractSize: true,
     },
     ethereum: {
         accounts: { mnemonic },

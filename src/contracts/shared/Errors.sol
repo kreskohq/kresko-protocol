@@ -68,6 +68,7 @@ library Error {
     string public constant SAFETY_COUNCIL_EXISTS = "230"; // Only one council role can exist
     string public constant NOT_SAFETY_COUNCIL = "231"; // Sender must have the role `Role.SAFETY_COUNCIL`
     string public constant ACTION_PAUSED_FOR_ASSET = "232"; // This action is currently paused for this asset
+    string public constant INVALID_ASSET_SUPPLIED = "233"; // Asset supplied is not a collateral nor a krAsset
 
     /* -------------------------------------------------------------------------- */
     /*                                   3. Staking                               */

@@ -9,11 +9,13 @@ type Args = {
     initializerName?: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     initializerArgs?: any;
+    log?: boolean;
 };
 
 const logger = getLogger("add-facet");
-export async function addFacets({ names, initializerName, initializerArgs }: Args) {
-    logger.log(names);
+export async function addFacets({ names, initializerName, initializerArgs, log = false }: Args) {
+    logger.log("Adding facets");
+    logger.table(names);
 
     const { ethers, deployments, deploy, getNamedAccounts } = hre;
     const { deployer } = await getNamedAccounts();
@@ -44,20 +46,22 @@ export async function addFacets({ names, initializerName, initializerArgs }: Arg
     /* -------------------------------------------------------------------------- */
     /*                              Deploy All Facets                             */
     /* -------------------------------------------------------------------------- */
+    const deploymentInfo = [];
     for (const facet of names) {
         // #4.3 Deploy each facet contract
-        const [FacetContract, sigs] = await deploy(facet, { log: true, from: deployer });
+        const [FacetContract, sigs, FacetDeployment] = await deploy(facet, { log, from: deployer });
 
         // #4.4 Convert the address and signatures into the required `FacetCut` type and push into the array.
         const { facetCut } = hre.getAddFacetArgs(FacetContract, sigs);
         FacetCuts.push(facetCut);
 
         // #4.5 Push their ABI into a separate array for deployment output later on.
-        const Artifact = await deployments.getArtifact(facet);
-        ABIs.push(Artifact.abi);
-        logger.success(facet, "succesfully deployed", "txHash:", FacetContract.deployTransaction.hash);
-        logger.success(facet, "address: ", FacetContract.address, "with", sigs.length, "functions");
+        ABIs.push(FacetDeployment.abi);
+
+        deploymentInfo.push({ name: facet, address: FacetDeployment.address, functions: sigs.length });
     }
+    logger.success("Facets deployed:");
+    logger.table(deploymentInfo);
 
     /* -------------------------------------------------------------------------- */
     /*                             Handle Initializer                             */
@@ -74,14 +78,14 @@ export async function addFacets({ names, initializerName, initializerArgs }: Arg
         // #5.3 Deploy the initializer contract if it does not exist
         if (!InitializerArtifact) {
             logger.log("Initializer deployment not found for", initializerName, "...deploying");
-            [InitializerContract] = await hre.deploy(initializerName, { from: deployer, log: true });
+            [InitializerContract] = await hre.deploy(initializerName, { from: deployer, log });
             logger.success(
                 initializerName,
                 "succesfully deployed",
                 "txHash:",
                 InitializerContract.deployTransaction.hash,
             );
-            logger.success(initializerName, "address: ", InitializerContract.address);
+            logger.success(initializerName, "address:", InitializerContract.address);
         }
         // #5.4 Get the contract instance
         InitializerContract = await hre.ethers.getContract(initializerName);
@@ -89,7 +93,8 @@ export async function addFacets({ names, initializerName, initializerArgs }: Arg
             // Ensure we know there are no parameters for the initializer supplied
             logger.warn("Adding diamondCut initializer with no arguments supplied");
         } else {
-            logger.log("Adding diamondCut initializer with arguments:", initializerArgs, InitializerContract.address);
+            logger.log("Initializer arguments:");
+            logger.table(initializerArgs);
         }
         // #5.5 Prepopulate the initialization tx - replacing the default set on #5.1.
         const tx = await InitializerContract.populateTransaction.initialize(initializerArgs || "0x");
@@ -152,7 +157,7 @@ export async function addFacets({ names, initializerName, initializerArgs }: Arg
         hre.DiamondDeployment = DiamondDeployment;
         hre.Diamond = await ethers.getContractAt<Kresko>("Kresko", DiamondDeployment.address);
 
-        logger.success(FacetCuts.length, " facets succesfully added", "txHash:", receipt.transactionHash);
+        logger.success(FacetCuts.length, "facets succesfully added", "txHash:", receipt.transactionHash);
     }
     return hre.Diamond;
 }

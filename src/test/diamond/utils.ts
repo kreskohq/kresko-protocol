@@ -71,7 +71,7 @@ export const fixtures = {
         };
     }),
     minterInit: deployments.createFixture(async _hre => {
-        await deployments.fixture(["diamond-init", "minter-init"]);
+        await deployments.fixture();
 
         const DiamondDeployment = await _hre.deployments.get("Diamond");
         const Diamond = await ethers.getContractAt<Kresko>("Kresko", DiamondDeployment.address);

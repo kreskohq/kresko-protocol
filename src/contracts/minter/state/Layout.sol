@@ -6,7 +6,6 @@ import {FixedPoint, CollateralAsset, KrAsset, Action, SafetyState} from "./Struc
 import "./Functions.sol";
 
 using {
-    initialize,
     isAccountLiquidatable,
     calculateMaxLiquidatableValueForAssets,
     getAccountMinimumCollateralValue,
@@ -29,10 +28,8 @@ struct MinterState {
     /*                               Initialization                               */
     /* -------------------------------------------------------------------------- */
 
-    /// @notice Is initialized to the main diamond
-    bool initialized;
-    /// @notice Current storage version
-    uint8 storageVersion;
+    /// @notice Initializations
+    uint256 initializations;
     /// @notice Domain field separator
     bytes32 domainSeparator;
     /* -------------------------------------------------------------------------- */

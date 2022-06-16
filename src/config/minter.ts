@@ -2,7 +2,14 @@
 /*                         KRESKO MINTER CONFIGURATION                        */
 /* ========================================================================== */
 
-const facets = ["AdminFacet", "AssetViewFacet", "LiquidationFacet", "UserFacet"];
+const facets = [
+    "OperatorFacet",
+    "SafetyCouncilFacet",
+    "UserFacet",
+    "LiquidationFacet",
+    "AssetViewFacet",
+    "GeneralViewFacet",
+];
 
 export default {
     facets,

@@ -17,12 +17,6 @@ using Arrays for address[];
 using FPConversions for uint8;
 using FPConversions for uint256;
 
-function initialize(MinterState storage self, address operator) {
-    self.storageVersion += 1;
-    self.initialized = true;
-    emit GeneralEvent.Initialized(operator, self.storageVersion);
-}
-
 /**
  * @notice Calculates if an account's current collateral value is under its minimum collateral value
  * @dev Returns true if the account's current collateral value is below the minimum collateral value

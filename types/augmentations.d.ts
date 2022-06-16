@@ -6,6 +6,7 @@ import { ABI, Deployment, DeployOptions, Facet, FacetCut } from "@kreskolabs/har
 
 import { FluxPriceFeed, UniswapV2Pair, UniswapV2Factory, UniswapV2Router02, Kresko } from "types/typechain";
 import { BytesLike } from "ethers";
+import { GnosisSafeL2 } from "./typechain/GnosisSafeL2";
 
 declare module "mocha" {
     export interface Context {
@@ -31,6 +32,7 @@ declare module "mocha" {
         };
         // Diamond additions
         facets: Facet[];
+        Multisig: GnosisSafeL2;
         Diamond: Kresko;
         DiamondDeployment: Deployment;
         admin: string;
@@ -82,6 +84,7 @@ declare module "hardhat/types/runtime" {
     export interface HardhatRuntimeEnvironment {
         deploy: <T extends Contract>(name: string, options?: DeployOptions) => Promise<DeployResultWithSignatures<T>>;
         Diamond: Kresko;
+        Multisig: GnosisSafeL2;
         DiamondDeployment: Deployment;
         getAddFacetArgs: <T extends Contract>(
             facet: T,

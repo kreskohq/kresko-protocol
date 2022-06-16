@@ -1,21 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.14;
 
-import {IOperatorFacet} from "../interfaces/IOperatorFacet.sol";
-import {IAssetViewFacet} from "../interfaces/IAssetViewFacet.sol";
-import {ILiquidationFacet} from "../interfaces/ILiquidationFacet.sol";
-import {ISafetyCouncilFacet} from "../interfaces/ISafetyCouncilFacet.sol";
-import {IUserFacet} from "../interfaces/IUserFacet.sol";
-import {IKreskoAsset} from "../interfaces/IKreskoAsset.sol";
-import {INonRebasingWrapperToken} from "../interfaces/INonRebasingWrapperToken.sol";
+import "../interfaces/IOperatorFacet.sol";
 
-import "../state/Constants.sol" as MinterConstant;
 import {Error} from "../../shared/Errors.sol";
+import {MinterEvent, GeneralEvent} from "../../shared/Events.sol";
 import {AccessControl, Role} from "../../shared/AccessControl.sol";
 import {ds, DiamondModifiers, MinterModifiers, Meta} from "../../shared/Modifiers.sol";
 
-import {MinterInitArgs, KrAsset, CollateralAsset, AggregatorV2V3Interface} from "../state/Structs.sol";
-import {ms, MinterState, MinterEvent, FixedPoint, IERC20MetadataUpgradeable} from "../MinterStorage.sol";
+import "../state/Constants.sol" as MinterConstant;
+import {ms, MinterState, FixedPoint, IERC20MetadataUpgradeable} from "../MinterStorage.sol";
 
 /**
  * @title Functionality for `Role.OPERATOR` level actions
@@ -28,9 +22,8 @@ contract OperatorFacet is DiamondModifiers, MinterModifiers, IOperatorFacet {
     /*                                 Initializer                                */
     /* -------------------------------------------------------------------------- */
     function initialize(MinterInitArgs calldata args) external onlyOwner {
-        require(!ms().initialized, Error.ALREADY_INITIALIZED);
-        ms().initialize(args.operator);
-        AccessControl.grantRole(Role.OPERATOR, args.operator);
+        require(ms().initializations == 0, Error.ALREADY_INITIALIZED);
+        AccessControl._grantRole(Role.OPERATOR, args.operator);
         /**
          * @notice Council can be set only by this specific function.
          * Requirements:
@@ -40,9 +33,10 @@ contract OperatorFacet is DiamondModifiers, MinterModifiers, IOperatorFacet {
          */
         AccessControl.setupSecurityCouncil(args.council);
         // Minter protocol version domain
-        ms().domainSeparator = Meta.domainSeparator("Kresko Minter", "V1");
 
-        // Set paramateres
+        /// @dev Needs temporary operator role for calling the update functions
+        AccessControl._grantRole(Role.OPERATOR, msg.sender);
+
         updateFeeRecipient(args.feeRecipient);
         updateBurnFee(args.burnFee);
         updateLiquidationIncentiveMultiplier(args.liquidationIncentiveMultiplier);
@@ -50,11 +44,20 @@ contract OperatorFacet is DiamondModifiers, MinterModifiers, IOperatorFacet {
         updateMinimumDebtValue(args.minimumDebtValue);
         updateSecondsUntilStalePrice(args.secondsUntilStalePrice);
 
+        // Revoke it after
+        AccessControl.revokeRole(Role.OPERATOR, msg.sender);
+
+        // Add IERC165 support for facets
         ds().supportedInterfaces[type(IOperatorFacet).interfaceId] = true;
         ds().supportedInterfaces[type(IAssetViewFacet).interfaceId] = true;
         ds().supportedInterfaces[type(ILiquidationFacet).interfaceId] = true;
         ds().supportedInterfaces[type(IUserFacet).interfaceId] = true;
+        // 0x52479a58
         ds().supportedInterfaces[type(ISafetyCouncilFacet).interfaceId] = true;
+
+        ms().initializations = 1;
+        ms().domainSeparator = Meta.domainSeparator("Kresko Minter", "V1");
+        emit GeneralEvent.Initialized(args.operator, 1);
     }
 
     /**

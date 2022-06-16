@@ -80,6 +80,13 @@ const config: HardhatUserConfig = {
         deployments: "deployments",
         imports: "imports",
     },
+    external: {
+        contracts: [
+            {
+                artifacts: "node_modules/@kreskolabs/gnosis-safe-contracts/build/artifacts",
+            },
+        ],
+    },
     solidity: compilers,
     diamondAbi: {
         name: "Kresko",

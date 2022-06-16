@@ -4,19 +4,25 @@ import minterConfig from "src/config/minter";
 import { addFacets } from "@scripts/add-facets";
 import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
-import type { MinterInitParamsStruct } from "types/typechain/OperatorFacet";
+import type { MinterInitArgsStruct } from "types/typechain/OperatorFacet";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("init-minter");
-    const { getNamedAccounts, Diamond } = hre;
+    const { getNamedAccounts, Diamond, deployments } = hre;
     const { operator, treasury } = await getNamedAccounts();
     if (!Diamond.address) {
         throw new Error("Diamond not deployed");
     }
+    const Safe = await deployments.get("Multisig");
 
-    const initializerArgs: MinterInitParamsStruct = {
+    if (!Safe.address) {
+        throw new Error("Safe not deployed");
+    }
+
+    const initializerArgs: MinterInitArgsStruct = {
         feeRecipient: treasury,
         operator,
+        council: Safe.address,
         burnFee: toFixedPoint(process.env.BURN_FEE),
         liquidationIncentiveMultiplier: toFixedPoint(process.env.LIQUIDATION_INCENTIVE),
         minimumCollateralizationRatio: toFixedPoint(process.env.MINIMUM_COLLATERALIZATION_RATIO),
@@ -24,21 +30,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         secondsUntilStalePrice: toFixedPoint(process.env.MINIMUM_DEBT_VALUE, 8),
     };
 
-    const UpgradedDiamond = await addFacets({
+    // Will save deployment
+    await addFacets({
         names: minterConfig.facets,
-        initializerName: "MinterAdminFacet",
+        initializerName: "OperatorFacet",
         initializerArgs,
     });
-    const doesSupportFacets = await UpgradedDiamond.supportsInterface("0x5d630885");
-
-    if (doesSupportFacets) {
-        logger.success("Added minter facets and saved to diamond");
-    } else {
-        logger.warn("Added facets but ERC165 support for latest facet is missing");
-    }
+    logger.success("Added minter facets and saved to diamond");
 };
 
 func.tags = ["local", "minter-init", "minter", "diamond"];
-func.dependencies = ["diamond-init"];
+func.dependencies = ["diamond-init", "gnosis-safe"];
 
 export default func;

@@ -15,10 +15,6 @@ export const deployWithSignatures =
         };
         const deployment = await deploy(name, options ? { ...options } : defaultOptions);
 
-        if (name === "Diamond") {
-            console.log("GAS USED HERE", Number(deployment.receipt.gasUsed));
-        }
-
         const implementation = await ethers.getContract<T>(name);
         return [
             implementation,
