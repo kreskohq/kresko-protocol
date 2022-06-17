@@ -6,8 +6,6 @@ export {};
 declare global {
     type Kresko = import("types/typechain").Kresko;
     type KreskoAsset = import("types/typechain").KreskoAsset;
-    type NonRebasingWrapperToken = import("types/typechain").NonRebasingWrapperToken;
-    type RebasingToken = import("types/typechain").RebasingToken;
 
     type FluxPriceFeed = import("types/typechain").FluxPriceFeed;
     type FluxPriceAggregator = import("types/typechain").FluxPriceAggregator;
@@ -15,8 +13,6 @@ declare global {
     type FeedsRegistry = import("types/typechain").FeedsRegistry;
     type WETH9 = import("types/typechain").WETH9;
 
-    type MockToken = import("types/typechain").MockToken;
-    type Token = import("types/typechain").Token;
     type IERC20 = import("types/typechain").IERC20;
     type Contract = import("ethers").Contract;
     type BigNumberish = import("ethers").BigNumberish;
@@ -34,6 +30,7 @@ declare global {
         nonadmin?: SignerWithAddress;
         liquidator?: SignerWithAddress;
         feedValidator?: SignerWithAddress;
+        treasury?: SignerWithAddress;
     };
 
     type Artifact = import("hardhat/types").Artifact;

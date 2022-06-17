@@ -2,8 +2,8 @@
 pragma solidity 0.8.14;
 
 import "../interfaces/IGeneralViewFacet.sol";
-
-import {ms} from "../MinterStorage.sol";
+import {MinterParams} from "../state/Structs.sol";
+import {MinterState, ms} from "../MinterStorage.sol";
 
 /**
  * @title View functions for protocol parameters
@@ -41,5 +41,18 @@ contract GeneralViewFacet is IGeneralViewFacet {
 
     function secondsUntilStalePrice() external view returns (uint256) {
         return ms().secondsUntilStalePrice;
+    }
+
+    function getAllParams() external view returns (MinterParams memory) {
+        MinterState storage s = ms();
+        return
+            MinterParams(
+                s.burnFee,
+                s.minimumCollateralizationRatio,
+                s.liquidationIncentiveMultiplier,
+                s.minimumDebtValue,
+                s.secondsUntilStalePrice,
+                s.feeRecipient
+            );
     }
 }

@@ -4,13 +4,24 @@ import { fromBig, toBig } from "@utils";
 import { Fixture } from "ethereum-waffle";
 import { ABI, Deployment, DeployOptions, Facet, FacetCut } from "@kreskolabs/hardhat-deploy/dist/types";
 
-import { FluxPriceFeed, UniswapV2Pair, UniswapV2Factory, UniswapV2Router02, Kresko } from "types/typechain";
+import {
+    FluxPriceFeed,
+    UniswapV2Pair,
+    UniswapV2Factory,
+    UniswapV2Router02,
+    Kresko,
+    IERC20MetadataUpgradeable,
+    ERC20Upgradeable,
+} from "types/typechain";
 import { BytesLike } from "ethers";
 import { GnosisSafeL2 } from "./typechain/GnosisSafeL2";
+import { FakeContract, MockContract } from "@defi-wonderland/smock";
 
 declare module "mocha" {
     export interface Context {
         loadFixture: <T>(fixture: Fixture<T>) => Promise<T>;
+        addCollateralAsset: (marketPrice: number, factor?: number) => Promise<MockContract<ERC20Upgradeable>>;
+        addKrAsset: (marketPrice: number) => Promise<MockContract<KreskoAsset>>;
         signers: {
             admin: SignerWithAddress;
             operator?: SignerWithAddress;
@@ -19,6 +30,7 @@ declare module "mocha" {
             userThree?: SignerWithAddress;
             nonadmin?: SignerWithAddress;
             liquidator?: SignerWithAddress;
+            treasury?: SignerWithAddress;
         };
         users: {
             deployer: SignerWithAddress;
@@ -29,6 +41,7 @@ declare module "mocha" {
             userThree: SignerWithAddress;
             nonadmin?: SignerWithAddress;
             liquidator?: SignerWithAddress;
+            treasury?: SignerWithAddress;
         };
         // Diamond additions
         facets: Facet[];
@@ -43,9 +56,11 @@ declare module "mocha" {
         userTwo: string;
         treasury: string;
         pricefeed: FluxPriceFeed;
-        TKN1: Token;
-        TKN2: Token;
-        USDC: Token;
+
+        Oracles: FakeContract<FluxPriceFeed>[];
+        TKN1: IERC20MetadataUpgradeable;
+        TKN2: IERC20MetadataUpgradeable;
+        USDC: IERC20MetadataUpgradeable;
         krTSLA: KreskoAsset;
         Kresko: Kresko;
         calculateAmountB: (

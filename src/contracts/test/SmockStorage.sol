@@ -10,6 +10,17 @@ struct SmockState {
     string message;
     uint256 lastMessageBlock;
 }
+// This is not how it has to be done in reality
+// We can just extend the original
+struct SmockState2 {
+    bool initialized;
+    bool isActive;
+    address operator;
+    mapping(address => bool) callers;
+    string message;
+    uint256 lastMessageBlock;
+    bool extended;
+}
 
 library SmockStorage {
     event Call(address indexed caller);
@@ -25,6 +36,14 @@ library SmockStorage {
     }
 
     function state() internal pure returns (SmockState storage ss) {
+        bytes32 position = SMOCK_STORAGE_POSITION;
+        assembly {
+            ss.slot := position
+        }
+    }
+
+    // This is not how it has to be done in reality
+    function stateExtended() internal pure returns (SmockState2 storage ss) {
         bytes32 position = SMOCK_STORAGE_POSITION;
         assembly {
             ss.slot := position

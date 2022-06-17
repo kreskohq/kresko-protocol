@@ -8,7 +8,7 @@ import { Artifact } from "hardhat/types";
 import { constructors } from "../utils/constuctors";
 import { DeployOptions } from "@kreskolabs/hardhat-deploy/types";
 import { toBig } from "./numbers";
-import type { UniswapV2Factory, UniswapV2Router02 } from "types";
+import type { IERC20MetadataUpgradeable, UniswapV2Factory, UniswapV2Router02 } from "types";
 
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 export const ADDRESS_ONE = "0x0000000000000000000000000000000000000001";
@@ -33,14 +33,14 @@ export const ONE = toFixedPoint(1);
 export const ZERO_POINT_FIVE = toFixedPoint(0.5);
 
 export interface CollateralAssetInfo {
-    collateralAsset: MockToken;
+    collateralAsset: IERC20MetadataUpgradeable;
     oracle: FluxPriceFeed;
     factor: BigNumber;
     oraclePrice: BigNumber;
     decimals: number;
     fromDecimal: (decimalValue: any) => BigNumber;
     fromFixedPoint: (fixedPointValue: BigNumber) => BigNumber;
-    rebasingToken: RebasingToken | undefined;
+    rebasingToken: IERC20;
 }
 
 export function expectBigNumberToBeWithinTolerance(
@@ -94,7 +94,7 @@ export async function deployAndWhitelistCollateralAsset(
     // Really this is MockToken | NonRebasingWrapperToken, but to avoid type pains
     // just using any.
     let collateralAsset: any;
-    let rebasingToken: RebasingToken | undefined;
+    let rebasingToken: IERC20 | undefined;
 
     if (isNonRebasingWrapperToken) {
         const nwrtInfo = await deployNonRebasingWrapperToken(kresko.signer);
@@ -102,7 +102,7 @@ export async function deployAndWhitelistCollateralAsset(
         rebasingToken = nwrtInfo.rebasingToken;
     } else {
         const mockTokenArtifact: Artifact = await hre.artifacts.readArtifact("MockToken");
-        collateralAsset = <MockToken>await deployContract(kresko.signer, mockTokenArtifact, [decimals]);
+        collateralAsset = <IERC20MetadataUpgradeable>await deployContract(kresko.signer, mockTokenArtifact, [decimals]);
     }
 
     const signerAddress = await kresko.signer.getAddress();
@@ -181,10 +181,10 @@ export async function addNewKreskoAssetWithOraclePrice(
 
 export async function deployNonRebasingWrapperToken(signer: Signer) {
     const rebasingTokenArtifact: Artifact = await hre.artifacts.readArtifact("RebasingToken");
-    const rebasingToken = <RebasingToken>await deployContract(signer, rebasingTokenArtifact, [toFixedPoint(1)]);
+    const rebasingToken = <IERC20>await deployContract(signer, rebasingTokenArtifact, [toFixedPoint(1)]);
 
     const nonRebasingWrapperTokenFactory = await hre.ethers.getContractFactory("NonRebasingWrapperToken");
-    const nonRebasingWrapperToken = <NonRebasingWrapperToken>await (
+    const nonRebasingWrapperToken = <IERC20MetadataUpgradeable>await (
         await hre.upgrades.deployProxy(
             nonRebasingWrapperTokenFactory,
             [rebasingToken.address, "NonRebasingWrapperToken", "NRWT"],
@@ -203,7 +203,7 @@ export async function deployNonRebasingWrapperToken(signer: Signer) {
 export async function deploySimpleToken(name: string, amountToDeployer: number, params?: DeployOptions) {
     const { admin } = await hre.getNamedAccounts();
 
-    const token = await hre.deploy<Token>("Token", {
+    const token = await hre.deploy<IERC20MetadataUpgradeable>("Token", {
         from: admin,
         args: [name, name, toBig(amountToDeployer), 18],
         log: false,
@@ -228,7 +228,7 @@ export async function deployOracle(name: string, description: string, oraclePric
 export async function deployKreskoAsset(name: string, amountToDeployer: number) {
     const { admin } = await hre.getNamedAccounts();
 
-    const token = await hre.deploy<Token>("Token", {
+    const token = await hre.deploy<IERC20MetadataUpgradeable>("Token", {
         from: admin,
         args: [name, name, toBig(amountToDeployer)],
     });

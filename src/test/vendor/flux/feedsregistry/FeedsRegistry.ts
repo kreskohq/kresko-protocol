@@ -2,7 +2,7 @@ import { setupTests } from "@utils";
 import { artifacts, waffle } from "hardhat";
 import { shouldBehaveLikeFeedsRegistry } from "./FeedsRegistry.behavior";
 
-describe("Flux - Feed Registry", function () {
+describe.skip("Flux - Feed Registry", function () {
     before(async function () {
         const { signers } = await setupTests();
         this.signers = signers;

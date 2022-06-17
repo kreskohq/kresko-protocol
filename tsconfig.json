@@ -20,7 +20,8 @@
             "@utils": ["src/utils"],
             "@utils/*": ["src/utils/*"],
             "@tasks": ["src/tasks"],
-            "@scripts/*": ["src/scripts/*"]
+            "@scripts/*": ["src/scripts/*"],
+            "@test-utils": ["src/test/utils"]
         }
     },
     "include": ["hardhat.config.ts", "hardhat-configs/**/*", "src/**/*", "tasks/**/*", "types/**/*"],

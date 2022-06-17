@@ -1,99 +1,10 @@
-import { deployments, getSignatures, ethers } from "hardhat";
-import {
-    AccessControlFacet,
-    AccessControlFacet__factory,
-    DiamondCutFacet,
-    DiamondCutFacet__factory,
-    DiamondLoupeFacet,
-    DiamondLoupeFacet__factory,
-    DiamondOwnershipFacet,
-    DiamondOwnershipFacet__factory,
-    ERC165Facet,
-    ERC165Facet__factory,
-    Kresko,
-} from "types";
-
-export const getUsers = async (): Promise<Users> => {
-    const { deployer, owner, operator, userOne, userTwo, userThree, nonadmin, liquidator, feedValidator } =
-        await ethers.getNamedSigners();
-    return {
-        deployer,
-        owner,
-        operator,
-        userOne,
-        userTwo,
-        userThree,
-        nonadmin,
-        liquidator,
-        feedValidator,
-    };
-};
-
-export const getFacets = async () => [
-    {
-        name: "DiamondCutFacet",
-        contract: await ethers.getContract<DiamondCutFacet>("DiamondCutFacet"),
-        signatures: getSignatures(DiamondCutFacet__factory.abi),
-    },
-    {
-        name: "DiamondLoupeFacet",
-        contract: await ethers.getContract<DiamondLoupeFacet>("DiamondLoupeFacet"),
-        signatures: getSignatures(DiamondLoupeFacet__factory.abi),
-    },
-    {
-        name: "DiamondOwnershipFacet",
-        contract: await ethers.getContract<DiamondOwnershipFacet>("DiamondOwnershipFacet"),
-        signatures: getSignatures(DiamondOwnershipFacet__factory.abi),
-    },
-    {
-        name: "AccessControlFacet",
-        contract: await ethers.getContract<AccessControlFacet>("AccessControlFacet"),
-        signatures: getSignatures(AccessControlFacet__factory.abi),
-    },
-    {
-        name: "ERC165Facet",
-        contract: await ethers.getContract<ERC165Facet>("ERC165Facet"),
-        signatures: getSignatures(ERC165Facet__factory.abi),
-    },
-];
-
-export const fixtures = {
-    diamondInit: deployments.createFixture(async _hre => {
-        await deployments.fixture(["diamond-init"]);
-
-        const DiamondDeployment = await _hre.deployments.get("Diamond");
-        const Diamond = await ethers.getContractAt<Kresko>("Kresko", DiamondDeployment.address);
-        return {
-            DiamondDeployment,
-            Diamond,
-            facets: DiamondDeployment.facets,
-            users: await getUsers(),
-        };
-    }),
-    minterInit: deployments.createFixture(async _hre => {
-        await deployments.fixture();
-
-        const DiamondDeployment = await _hre.deployments.get("Diamond");
-        const Diamond = await ethers.getContractAt<Kresko>("Kresko", DiamondDeployment.address);
-        return {
-            DiamondDeployment,
-            Diamond,
-            facets: DiamondDeployment.facets,
-            users: await getUsers(),
-        };
-    }),
-};
-
-export const randomContractAddress = () => {
-    const pubKey = ethers.Wallet.createRandom().publicKey;
-
-    return ethers.utils.getContractAddress({
-        from: pubKey,
-        nonce: 0,
-    });
-};
-
-export enum Errors {
+/**
+ * @author Kresko
+ * @title Error codes
+ * @notice Kresko-specific revert return values and their explanation
+ * @dev First number indicates the domain for the error
+ */
+export enum Error {
     /* -------------------------------------------------------------------------- */
     /*                                    Diamond                                 */
     /* -------------------------------------------------------------------------- */
@@ -112,13 +23,14 @@ export enum Errors {
     ZERO_WITHDRAW = "102", // Withdraw must be greater than 0
     ZERO_DEPOSIT = "103", // Deposit must be greater than 0
     ZERO_ADDRESS = "104", // Address provided cannot be address(0)
-    CONTRACT_ALREADY_INITIALIZED = "105", // Contract has already been initialized
+    ALREADY_INITIALIZED = "105", // Contract has already been initialized
+    RE_ENTRANCY = "106", // Function does not allow re-entrant calls
 
     /* -------------------------------------------------------------------------- */
     /*                                   2. Minter                                 */
     /* -------------------------------------------------------------------------- */
 
-    ACCOUNT_NOT_LIQUIDATABLE = "200", // Account has collateral deposits exceeding minCollateralValue
+    NOT_LIQUIDATABLE = "200", // Account has collateral deposits exceeding minCollateralValue
     ZERO_MINT = "201", // Mint amount must be greater than 0
     ZERO_BURN = "202", // Burn amount must be greater than 0
     ADDRESS_INVALID_ORACLE = "203", // Oracle address cant be set to address(0)
@@ -129,13 +41,29 @@ export enum Errors {
     COLLATERAL_INVALID_FACTOR = "208", // cFactor must be greater than 1FP
     COLLATERAL_WITHDRAW_OVERFLOW = "209", // Withdraw amount cannot reduce accounts collateral value under minCollateralValue
     KRASSET_INVALID_FACTOR = "210", // kFactor must be greater than 1FP
-    KRASSET_BURN_AMOUNT_OVERFLOW = "211", // Burn amount asset debt amount
+    KRASSET_BURN_AMOUNT_OVERFLOW = "211", // Repaying more than account has debt
     KRASSET_EXISTS = "212", // Asset is already added
     PARAM_BURN_FEE_TOO_HIGH = "213", // "Burn fee exceeds MAX_BURN_FEE"
     PARAM_LIQUIDATION_INCENTIVE_LOW = "214", // "Liquidation incentive less than MIN_LIQUIDATION_INCENTIVE_MULTIPLIER"
     PARAM_LIQUIDATION_INCENTIVE_HIGH = "215", // "Liquidation incentive greater than MAX_LIQUIDATION_INCENTIVE_MULTIPLIER"
     PARAM_MIN_COLLATERAL_RATIO_LOW = "216", // Minimum collateral ratio less than MIN_COLLATERALIZATION_RATIO
     PARAM_MIN_DEBT_AMOUNT_HIGH = "217", // Minimum debt param argument exceeds MAX_DEBT_VALUE
+    COLLATERAL_DOESNT_EXIST = "218", // Collateral does not exist within the protocol
+    KRASSET_DOESNT_EXIST = "219", // KrAsset does not exist within the protocol
+    KRASSET_NOT_MINTABLE = "220", // KrAsset is not mintable
+    KRASSET_SYMBOL_EXISTS = "221", // KrAsset with this symbol is already within the protocl
+    KRASSET_COLLATERAL_LOW = "222", // Collateral deposits do not cover the amount being minted
+    KRASSET_MINT_AMOUNT_LOW = "223", // Debt position must be greater than the minimum debt position value
+    KRASSET_MAX_SUPPLY_REACHED = "224", // Asset being minted has reached its current supply limit
+    SELF_LIQUIDATION = "225", // Account cannot liquidate itself
+    ZERO_REPAY = "226", // Account cannot liquidate itself
+    STALE_PRICE = "227", // Price for the asset is stale
+    LIQUIDATION_OVERFLOW = "228", // Repaying more USD value than allowed
+    ADDRESS_INVALID_SAFETY_COUNCIL = "229", // Account responsible for the safety council role must be a multisig
+    SAFETY_COUNCIL_EXISTS = "230", // Only one council role can exist
+    NOT_SAFETY_COUNCIL = "231", // Sender must have the role `Role.SAFETY_COUNCIL`
+    ACTION_PAUSED_FOR_ASSET = "232", // This action is currently paused for this asset
+    INVALID_ASSET_SUPPLIED = "233", // Asset supplied is not a collateral nor a krAsset
 
     /* -------------------------------------------------------------------------- */
     /*                                   3. Staking                               */

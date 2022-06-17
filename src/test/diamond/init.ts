@@ -1,13 +1,20 @@
 import hre from "hardhat";
 import { constants } from "ethers";
-import { Errors, fixtures, getUsers } from "./utils";
 import { smock } from "@defi-wonderland/smock";
 import chai, { expect } from "chai";
+import { Error, fixtures, getUsers } from "@test-utils";
 
 chai.use(smock.matchers);
 
-import { SmockFacet__factory, SmockInit } from "types";
 import { type FacetCut, FacetCutAction } from "@kreskolabs/hardhat-deploy/dist/types";
+import {
+    SmockFacet,
+    SmockFacet2,
+    SmockFacet2__factory,
+    SmockFacet__factory,
+    SmockInit,
+    SmockInit__factory,
+} from "types/typechain";
 
 describe("Diamond", function () {
     before(async function () {
@@ -147,7 +154,7 @@ describe("Diamond", function () {
 
                 // Ensure there is no function to accept the ownership
                 await expect(this.Diamond.connect(this.users.nonadmin).acceptOwnership()).to.be.revertedWith(
-                    Errors.DIAMOND_INVALID_FUNCTION_SIGNATURE,
+                    Error.DIAMOND_INVALID_FUNCTION_SIGNATURE,
                 );
             });
 
@@ -192,7 +199,7 @@ describe("Diamond", function () {
 
                 // Ensure function exists and revert is for invalid address instead of missing function
                 await expect(this.Diamond.connect(this.users.nonadmin).acceptOwnership()).to.be.revertedWith(
-                    Errors.DIAMOND_INVALID_PENDING_OWNER,
+                    Error.DIAMOND_INVALID_PENDING_OWNER,
                 );
 
                 // Ensure one function is contained in the new facet
@@ -209,6 +216,75 @@ describe("Diamond", function () {
                 expect(this.Diamond.connect(this.users.userOne).acceptOwnership());
                 const currentOwner = await this.Diamond.owner();
                 expect(currentOwner).to.equal(correctOwner);
+            });
+
+            it("should allow upgrading state", async function () {
+                expect(await this.Diamond.initialized()).to.equal(true);
+
+                const Factory = await smock.mock<SmockInit__factory>("SmockInit");
+                const SmockInit = await Factory.deploy();
+
+                const tx = await SmockInit.populateTransaction.upgradeState();
+
+                await this.Diamond.upgradeState(tx.to, tx.data);
+                expect(await this.Diamond.initialized()).to.equal(false);
+            });
+
+            it("should allow extending state", async function () {
+                expect(await this.Diamond.initialized()).to.equal(true);
+
+                // Add the first facet
+                const Factory = await smock.mock<SmockFacet__factory>("SmockFacet");
+                const SmockFacet = await Factory.deploy();
+
+                const [SmockInitializer] = await hre.deploy<SmockInit>("SmockInit");
+
+                const signatures = hre.getSignatures(SmockFacet__factory.abi);
+
+                const Cut: FacetCut = {
+                    facetAddress: SmockFacet.address,
+                    functionSelectors: signatures,
+                    action: FacetCutAction.Add,
+                };
+
+                const initData = await SmockInitializer.populateTransaction.initialize(this.addresses.userOne);
+                await this.Diamond.diamondCut([Cut], initData.to, initData.data);
+
+                const Diamond = await hre.ethers.getContractAt<SmockFacet>("SmockFacet", this.Diamond.address);
+                const isInitialized = await Diamond.smockInitialized();
+                expect(isInitialized).to.equal(true);
+
+                // Add facet with extended state
+                // Add the first facet
+                const Factory2 = await smock.mock<SmockFacet2__factory>("SmockFacet2");
+                const SmockFacet2 = await Factory2.deploy();
+
+                const signatures2 = hre.getSignatures(SmockFacet2__factory.abi);
+
+                const Cut2: FacetCut = {
+                    facetAddress: SmockFacet2.address,
+                    functionSelectors: signatures2,
+                    action: FacetCutAction.Add,
+                };
+
+                // Initializer only sets the new extended value, does not touch old storage
+                const initData2 = await SmockFacet2.populateTransaction.initialize();
+                await this.Diamond.diamondCut([Cut2], initData2.to, initData2.data);
+
+                // Here we have appended the storage layout with the `extended` bool property.
+                const DiamondExtended = await hre.ethers.getContractAt<SmockFacet2>(
+                    "SmockFacet2",
+                    this.Diamond.address,
+                );
+
+                const initializedAfterExtend = await DiamondExtended.getOldStructValueFromExtended();
+
+                const extendedValue = await DiamondExtended.getNewStructValueFromExtended();
+
+                // Old values remain
+                expect(initializedAfterExtend).to.equal(true);
+                // And we get new ones
+                expect(extendedValue).to.equal(true);
             });
         });
     });

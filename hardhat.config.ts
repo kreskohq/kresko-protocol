@@ -42,19 +42,6 @@ import "./src/tasks/diamond/addFacet.ts";
 import { compilers, networks, users } from "hardhat-configs";
 import type { HardhatUserConfig } from "hardhat/types/config";
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-// function getRemappings() {
-//     return (
-//         fs
-//             .readFileSync("remappings.txt", "utf8")
-//             .split("\n")
-//             .filter(Boolean) // remove empty lines
-//             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//             // @ts-ignore
-//             .map(line => line.trim().split("="))
-//     );
-// }
 // Set config
 const config: HardhatUserConfig = {
     gasReporter: {
@@ -75,7 +62,7 @@ const config: HardhatUserConfig = {
         artifacts: "build/artifacts",
         cache: "build/cache",
         sources: "src/contracts",
-        tests: "src/test/diamond",
+        tests: "src/test",
         deploy: "src/deploy",
         deployments: "deployments",
         imports: "imports",

@@ -3,7 +3,7 @@ import { artifacts, waffle } from "hardhat";
 
 import { shouldBehaveLikeFluxPriceAggregator } from "./FluxPriceAggregator.behavior";
 
-describe("Flux - Price Aggregator", function () {
+describe.skip("Flux - Price Aggregator", function () {
     before(async function () {
         const { signers } = await setupTests();
         this.signers = signers;

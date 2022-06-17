@@ -1,7 +1,7 @@
-import hre, { fromBig, toBig } from "hardhat";
+import hre, { fromBig, toBig } from "@utils/number";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
-import { toFixedPoint } from "../utils/fixed-point";
+import { toFixedPoint } from "../../src/utils/fixed-point";
 
 import {
     addNewKreskoAssetWithOraclePrice,

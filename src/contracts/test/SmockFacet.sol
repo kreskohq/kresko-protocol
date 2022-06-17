@@ -42,6 +42,10 @@ contract SmockFacet is SmockModifiers, ISmockFacet {
         SmockStorage.disable();
     }
 
+    function smockInitialized() external view returns (bool) {
+        return SmockStorage.state().initialized;
+    }
+
     function setMessage(string memory message) external onlyActive {
         require(block.number >= SmockStorage.state().lastMessageBlock + MESSAGE_THROTTLE, "Cant set message yet");
 

@@ -19,6 +19,15 @@ struct MinterInitArgs {
     uint256 secondsUntilStalePrice;
 }
 
+struct MinterParams {
+    FixedPoint.Unsigned burnfee;
+    FixedPoint.Unsigned minimumCollateralizationRatio;
+    FixedPoint.Unsigned liquidationIncentiveMultiplier;
+    FixedPoint.Unsigned minimumDebtValue;
+    uint256 secondsUntilStalePrice;
+    address feeRecipient;
+}
+
 /**
  * @notice Information on a token that can be used as collateral.
  * @dev Setting the factor to zero effectively makes the asset useless as collateral while still allowing

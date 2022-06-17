@@ -18,4 +18,16 @@ contract SmockInit is DiamondModifiers {
         ds().supportedInterfaces[type(ISmockFacet).interfaceId] = true;
         emit GeneralEvent.Initialized(msg.sender, 1);
     }
+
+    function getNumber() public pure returns (uint8) {
+        return 1;
+    }
+
+    function getBool() public pure returns (bool) {
+        return false;
+    }
+
+    function upgradeState() external {
+        ds().initialized = getBool();
+    }
 }
