@@ -1,0 +1,16 @@
+# do not include keys hered, create a interact.ethers file instead for actual use
+
+net https://testnet.aurora.dev
+
+0x2121245dcAD697f11244068AaD6EcbC301811239 as deployer
+
+0xC108c33731a62781579A28F33b0Ce6AF28a090D2 as aurora
+    name() view returns (string)
+    symbol() view returns (string)
+    decimals() view returns (uint8)
+    totalSupply() view returns (uint256)
+    balanceOf(address deployer) view returns (uint256)
+    #transfer(address _to, uint256 _value) public returns (bool success)
+    #transferFrom(address _from, address _to, uint256 _value) public returns (bool success)
+  
+

@@ -12,7 +12,7 @@ task("deployone:fluxpriceaggregator")
     .setAction(async function (taskArgs: TaskArguments, { ethers, deploy, priceAggregators }) {
         const { deployer } = await ethers.getNamedSigners();
 
-        const { oracles, decimals, description, admin, log, wait } = taskArgs;
+        const { oracles, decimals, description, admin, log } = taskArgs;
         const logger = getLogger("deployone:fluxpriceaggregator", log);
 
         let contractAdmin = deployer.address;

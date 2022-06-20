@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { DeployOptions } from "@kreskolabs/hardhat-deploy/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
+import SharedConfig from "src/config/shared";
 
 export const deployWithSignatures =
     (hre: HardhatRuntimeEnvironment) =>
@@ -17,7 +19,11 @@ export const deployWithSignatures =
         return [
             implementation,
             implementation.interface.fragments
-                .filter(frag => frag.type !== "constructor")
+                .filter(
+                    frag =>
+                        frag.type !== "constructor" &&
+                        !SharedConfig.signatureFilters.some(f => f.indexOf(frag.name.toLowerCase()) > -1),
+                )
                 .map(frag => ethers.utils.Interface.getSighash(frag)),
             deployment,
         ];
@@ -29,7 +35,11 @@ export const getSignatures =
         const implementation = await hre.ethers.getContract<T>(name);
 
         const fragments = implementation.interface.fragments
-            .filter(frag => frag.type !== "constructor")
+            .filter(
+                frag =>
+                    frag.type !== "constructor" &&
+                    !SharedConfig.signatureFilters.some(f => f.indexOf(frag.name.toLowerCase()) > -1),
+            )
             .reduce<{ [key: string]: string }>((result, frag) => {
                 result[frag.name] = hre.ethers.utils.Interface.getSighash(frag);
                 return result;
@@ -38,7 +48,7 @@ export const getSignatures =
         return fragments;
     };
 
-export const getLogger = (prefix?: string, log = true) => ({
+export const getLogger = (prefix?: string, log = process.env.TEST ? false : true) => ({
     warn: (...args: any[]) => log && console.warn(prefix, ...args),
     error: (...args: any[]) => log && console.error(prefix, ...args),
     log: (...args: any[]) =>

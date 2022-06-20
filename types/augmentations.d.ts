@@ -1,23 +1,31 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { Context } from "mocha";
 import { FunctionFragment } from "@ethersproject/abi";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { fromBig, toBig } from "@utils";
-import { Fixture } from "ethereum-waffle";
-import { ABI, DeployOptions } from "@kreskolabs/hardhat-deploy/types";
+import { fromBig, toBig } from "@utils/numbers";
+import type { Fixture } from "ethereum-waffle";
+import type { ABI, Deployment, DeployOptions, Facet, FacetCut } from "@kreskolabs/hardhat-deploy/dist/types";
 
-import {
+import type {
     FluxPriceFeed,
-    ExampleFlashLiquidator,
-    Kresko,
-    MockWETH10,
-    KrStaking,
     UniswapV2Pair,
-    KrStakingUniHelper,
-} from "types";
-import { UniswapV2Factory, UniswapV2Router02 } from "./contracts";
+    UniswapV2Factory,
+    UniswapV2Router02,
+    Kresko,
+    IERC20MetadataUpgradeable,
+    ERC20Upgradeable,
+} from "types/typechain";
+import type { BytesLike } from "ethers";
+import type { GnosisSafeL2 } from "./typechain/GnosisSafeL2";
+import type { FakeContract, MockContract } from "@defi-wonderland/smock";
 
 declare module "mocha" {
     export interface Context {
         loadFixture: <T>(fixture: Fixture<T>) => Promise<T>;
+        addCollateralAsset: (marketPrice: number, factor?: number) => Promise<MockContract<ERC20Upgradeable>>;
+        addKrAsset: (marketPrice: number) => Promise<MockContract<KreskoAsset>>;
         signers: {
             admin: SignerWithAddress;
             operator?: SignerWithAddress;
@@ -26,20 +34,39 @@ declare module "mocha" {
             userThree?: SignerWithAddress;
             nonadmin?: SignerWithAddress;
             liquidator?: SignerWithAddress;
+            treasury?: SignerWithAddress;
         };
+        users: {
+            deployer: SignerWithAddress;
+            owner: SignerWithAddress;
+            operator: SignerWithAddress;
+            userOne: SignerWithAddress;
+            userTwo: SignerWithAddress;
+            userThree: SignerWithAddress;
+            nonadmin?: SignerWithAddress;
+            liquidator?: SignerWithAddress;
+            treasury?: SignerWithAddress;
+        };
+        collaterals?: [MockContract<ERC20Upgradeable>, MockContract<FluxPriceAggregator>][];
+        krAssets?: [MockContract<KreskoAsset>, MockContract<FluxPriceAggregator>][];
+        // Diamond additions
+        facets: Facet[];
+        Multisig: GnosisSafeL2;
+        Diamond: Kresko;
+        DiamondDeployment: Deployment;
         admin: string;
         userOne: string;
         UniFactory: UniswapV2Factory;
         UniRouter: UniswapV2Router02;
         lpPair: UniswapV2Pair;
-        KrStaking: KrStaking;
-        KrStakingUniHelper: KrStakingUniHelper;
         userTwo: string;
         treasury: string;
         pricefeed: FluxPriceFeed;
-        TKN1: Token;
-        TKN2: Token;
-        USDC: Token;
+
+        Oracles: FakeContract<FluxPriceFeed>[];
+        TKN1: IERC20MetadataUpgradeable;
+        TKN2: IERC20MetadataUpgradeable;
+        USDC: IERC20MetadataUpgradeable;
         krTSLA: KreskoAsset;
         Kresko: Kresko;
         calculateAmountB: (
@@ -68,8 +95,6 @@ declare module "mocha" {
             }[]
         >;
         isProtocolSolvent: () => Promise<boolean>;
-        FlashLiquidator: ExampleFlashLiquidator;
-        WETH10: MockWETH10;
         WETH10OraclePrice: number;
         WETH10Oracle: FluxPriceFeed;
     }
@@ -79,7 +104,26 @@ export {};
 declare module "hardhat/types/runtime" {
     export interface HardhatRuntimeEnvironment {
         deploy: <T extends Contract>(name: string, options?: DeployOptions) => Promise<DeployResultWithSignatures<T>>;
+        Diamond: Kresko;
+        Multisig: GnosisSafeL2;
+        DiamondDeployment: Deployment;
+        getAddFacetArgs: <T extends Contract>(
+            facet: T,
+            signatures?: string[],
+            initializer?: {
+                contract: Contract;
+                functionName?: string;
+                args?: any[];
+            },
+        ) => {
+            facetCut: FacetCut;
+            initialization: {
+                _init: string;
+                _calldata: BytesLike;
+            };
+        };
         getSignatures: (abi: ABI) => string[];
+        getSignaturesWithNames: (abi: ABI) => { name: string; sig: string }[];
         utils: typeof import("ethers/lib/utils");
         bytesCall: <T>(func: FunctionFragment, params: T) => string;
         fromBig: typeof fromBig;

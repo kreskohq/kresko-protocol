@@ -27,11 +27,13 @@ yarn typechain
 ### Testing
 
 Create local .env file:
+
 ```sh
 cp .env.example .env
 ```
 
-Populate the following fields into your .env file with testing values: 
+Populate the following fields into your .env file with testing values:
+
 ```sh
 BURN_FEE=0.01
 LIQUIDATION_INCENTIVE=1.1

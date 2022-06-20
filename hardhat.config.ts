@@ -1,22 +1,25 @@
 // Deployment
 import "tsconfig-paths/register";
 
-import "@kreskolabs/hardhat-deploy";
-
-// HRE extensions
-import "@configs/extensions";
+// Enable when typechain works seamlessly
+// import "@foundry-rs/hardhat";
 
 // OZ Contracts
 import "@openzeppelin/hardhat-upgrades";
+import "@kreskolabs/hardhat-deploy";
+import "@nomiclabs/hardhat-ethers";
 
 // Plugins
+// import "solidity-coverage";
 import "@typechain/hardhat";
-import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-web3";
-
+import "hardhat-diamond-abi";
+import "hardhat-interface-generator";
+import "hardhat-contract-sizer";
+// import "hardhat-preprocessor";
+import "hardhat-watcher";
 import "hardhat-gas-reporter";
-import "solidity-coverage";
 
 // Environment variables
 import { resolve } from "path";
@@ -29,37 +32,73 @@ if (!mnemonic) {
     // Just a random word chosen from the BIP 39 list. Not sensitive.
     mnemonic = "wealth";
 }
-// All tasks
-import "@tasks";
-// Get configs
-import { compilers, networks, users } from "@configs";
+
+// Custom extensions
+import "hardhat-configs/extensions";
+
+// Tasks
+import "./src/tasks/diamond/addFacet.ts";
+// Configurations
+import { compilers, networks, users } from "hardhat-configs";
+import type { HardhatUserConfig } from "hardhat/types/config";
+import { reporters } from "mocha";
 
 // Set config
-const config = {
+const config: HardhatUserConfig = {
+    mocha: {
+        reporter: reporters.Spec,
+        timeout: 12000,
+    },
     gasReporter: {
         currency: "USD",
-        enabled: process.env.REPORT_GAS ? true : false,
-        src: "./src/contracts",
+        enabled: false,
+        src: "src/contracts",
+        showMethodSig: true,
+        excludeContracts: ["vendor"],
+    },
+    contractSizer: {
+        alphaSort: true,
+        disambiguatePaths: false,
+        runOnCompile: true,
+        only: ["Facet", "Diamond"],
     },
     namedAccounts: users,
     networks: networks(mnemonic),
     defaultNetwork: "hardhat",
     paths: {
-        artifacts: "./build/artifacts",
-        cache: "./build/cache",
-        sources: "./src/contracts",
-        tests: "./src/test",
-        deploy: "./src/deploy",
-        deployments: "./deployments",
-        imports: "./imports",
+        artifacts: "build/artifacts",
+        cache: "build/cache",
+        sources: "src/contracts",
+        tests: "src/test",
+        deploy: "src/deploy",
+        deployments: "deployments",
+        imports: "imports",
+    },
+    external: {
+        contracts: [
+            {
+                artifacts: "node_modules/@kreskolabs/gnosis-safe-contracts/build/artifacts",
+            },
+        ],
     },
     solidity: compilers,
-    typechain: {
-        outDir: "./types/contracts",
-        target: "ethers-v5",
+    diamondAbi: {
+        name: "Kresko",
+        include: ["facets/*"],
+        exclude: ["vendor", "test/*", "interfaces/*", "KreskoAsset", "hardhat-diamond-abi/.*"],
+        strict: true,
     },
-    mocha: {
-        timeout: 120000,
+    typechain: {
+        outDir: "types/typechain",
+        target: "ethers-v5",
+        tsNocheck: true,
+        externalArtifacts: ["build/artifacts/hardhat-diamond-abi/Kresko.sol/Kresko.json"],
+    },
+
+    watcher: {
+        compilation: {
+            tasks: ["compile"],
+        },
     },
 };
 
