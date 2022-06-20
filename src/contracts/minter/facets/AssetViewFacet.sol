@@ -1,9 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.14;
+import "../../shared/FP.sol" as FixedPoint;
 import {IAssetViewFacet} from "../interfaces/IAssetViewFacet.sol";
-import {ms, FixedPoint, Action} from "../MinterStorage.sol";
+import {ms, Action, KrAsset, CollateralAsset} from "../MinterStorage.sol";
 
 contract AssetViewFacet is IAssetViewFacet {
+    using FixedPoint.FPMath for FixedPoint.Unsigned;
+
+    /* -------------------------------------------------------------------------- */
+    /*                                  KrAssets                                  */
+    /* -------------------------------------------------------------------------- */
+
     /**
      * @notice Returns true if the @param _krAsset exists in the protocol
      */
@@ -12,12 +19,12 @@ contract AssetViewFacet is IAssetViewFacet {
     }
 
     /**
-     * @notice Gets an array of Kresko assets the account has minted.
-     * @param _account The account to get the minted Kresko assets for.
-     * @return An array of addresses of Kresko assets the account has minted.
+     * @notice Get the state of a specific krAsset
+     * @param _asset Address of the asset.
+     * @return State of assets `KrAsset` struct
      */
-    function getMintedKreskoAssets(address _account) external view returns (address[] memory) {
-        return ms().mintedKreskoAssets[_account];
+    function kreskoAsset(address _asset) external view returns (KrAsset memory) {
+        return ms().kreskoAsset(_asset);
     }
 
     /**
@@ -28,6 +35,15 @@ contract AssetViewFacet is IAssetViewFacet {
      */
     function getMintedKreskoAssetsIndex(address _account, address _kreskoAsset) external view returns (uint256 i) {
         return ms().getMintedKreskoAssetsIndex(_account, _kreskoAsset);
+    }
+
+    /**
+     * @notice Gets an array of Kresko assets the account has minted.
+     * @param _account The account to get the minted Kresko assets for.
+     * @return An array of addresses of Kresko assets the account has minted.
+     */
+    function getMintedKreskoAssets(address _account) external view returns (address[] memory) {
+        return ms().mintedKreskoAssets[_account];
     }
 
     /**
@@ -54,11 +70,24 @@ contract AssetViewFacet is IAssetViewFacet {
         return ms().getKrAssetValue(_kreskoAsset, _amount, _ignoreKFactor);
     }
 
+    /* -------------------------------------------------------------------------- */
+    /*                                 Collateral                                 */
+    /* -------------------------------------------------------------------------- */
+
     /**
      * @notice Returns true if the @param _collateralAsset exists in the protocol
      */
     function collateralExists(address _collateralAsset) external view returns (bool) {
         return ms().collateralAssets[_collateralAsset].exists;
+    }
+
+    /**
+     * @notice Get the state of a specific collateral asset
+     * @param _asset Address of the asset.
+     * @return State of assets `CollateralAsset` struct
+     */
+    function collateralAsset(address _asset) external view returns (CollateralAsset memory) {
+        return ms().collateralAsset(_asset);
     }
 
     /**
@@ -124,6 +153,36 @@ contract AssetViewFacet is IAssetViewFacet {
         return ms().getCollateralValueAndOraclePrice(_collateralAsset, _amount, _ignoreCollateralFactor);
     }
 
+    /**
+     * @notice Get a list of accounts and their collateral ratios
+     * @return ratios of the accounts
+     */
+    function getCollateralRatiosFor(address[] memory _accounts)
+        external
+        view
+        returns (FixedPoint.Unsigned[] memory ratios)
+    {
+        for (uint256 i; i < _accounts.length; i++) {
+            ratios[i] = ms().getAccountCollateralValue(_accounts[i]).div(
+                ms().getAccountMinimumCollateralValue(_accounts[i])
+            );
+        }
+    }
+
+    /* -------------------------------------------------------------------------- */
+    /*                                   General                                  */
+    /* -------------------------------------------------------------------------- */
+
+    /**
+     * @notice Check if `_asset` has a pause enabled for `_action`
+     * @param _action enum `Action`
+     *  Deposit = 0
+     *  Withdraw = 1,
+     *  Repay = 2,
+     *  Borrow = 3,
+     *  Liquidate = 4
+     * @return true if `_action` is paused
+     */
     function assetActionPaused(Action _action, address _asset) external view returns (bool) {
         return ms().safetyState[_asset][_action].pause.enabled;
     }

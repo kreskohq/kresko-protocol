@@ -65,5 +65,5 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     hre.Multisig = SafeProxy;
 };
 
-deploy.tags = ["local", "gnosis-safe"];
+deploy.tags = ["local", "minter", "gnosis-safe", "diamond"];
 export default deploy;

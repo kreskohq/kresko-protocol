@@ -18,15 +18,6 @@ import {Role} from "../shared/AccessControl.sol";
  */
 
 contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable {
-    /**
-     * @notice Empty constructor, see `initialize`.
-     * @dev Protects against a call to initialize when this contract is called directly without a proxy.
-     */
-    constructor() payable initializer {
-        // solhint-disable-previous-line no-empty-blocks
-        // Intentionally left blank.
-    }
-
     // keccak256("kresko.roles.asset.operator")
     bytes32 public constant OPERATOR_ROLE = 0x8952ae23cc3fea91b9dba0cefa16d18a26ca2bf124b54f42b5d04bce3aacecd2;
 

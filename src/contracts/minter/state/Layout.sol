@@ -13,6 +13,8 @@ using {
     getMinimumCollateralValue,
     getCollateralValueAndOraclePrice,
     krAssetExists,
+    kreskoAsset,
+    collateralAsset,
     getMintedKreskoAssets,
     getMintedKreskoAssetsIndex,
     getAccountKrAssetValue,

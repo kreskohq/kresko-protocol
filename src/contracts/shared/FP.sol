@@ -16,14 +16,14 @@ uint256 constant FP_DECIMALS = 18;
 uint256 constant FP_SCALING_FACTOR = 10**FP_DECIMALS;
 int256 constant SFP_SCALING_FACTOR = 10**18;
 
-using Math for Unsigned global;
-using Math for Signed global;
+using FPMath for Unsigned global;
+using FPMath for Signed global;
 
 /**
  * @title Library for fixed point arithmetic on uints
  */
 
-library Math {
+library FPMath {
     using SafeMathUpgradeable for uint256;
     using SignedSafeMathUpgradeable for int256;
 

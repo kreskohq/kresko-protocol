@@ -6,7 +6,6 @@ import {ILiquidationFacet} from "../interfaces/ILiquidationFacet.sol";
 import {ISafetyCouncilFacet} from "../interfaces/ISafetyCouncilFacet.sol";
 import {IUserFacet} from "../interfaces/IUserFacet.sol";
 import {IKreskoAsset} from "../interfaces/IKreskoAsset.sol";
-import {INonRebasingWrapperToken} from "../interfaces/INonRebasingWrapperToken.sol";
 
 import {MinterInitArgs, KrAsset, CollateralAsset, AggregatorV2V3Interface} from "../state/Structs.sol";
 
@@ -14,13 +13,11 @@ interface IOperatorFacet {
     function addCollateralAsset(
         address _collateralAsset,
         uint256 _factor,
-        address _oracle,
-        bool isNonRebasingWrapperToken
+        address _oracle
     ) external;
 
     function addKreskoAsset(
         address _kreskoAsset,
-        string calldata _symbol,
         uint256 _kFactor,
         address _oracle,
         uint256 _marketCapUSDLimit

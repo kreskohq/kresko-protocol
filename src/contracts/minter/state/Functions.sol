@@ -107,16 +107,43 @@ function getCollateralValueAndOraclePrice(
     uint256 _amount,
     bool _ignoreCollateralFactor
 ) view returns (FixedPoint.Unsigned memory, FixedPoint.Unsigned memory) {
-    CollateralAsset memory collateralAsset = self.collateralAssets[_collateralAsset];
+    CollateralAsset memory asset = self.collateralAssets[_collateralAsset];
 
-    FixedPoint.Unsigned memory fixedPointAmount = collateralAsset.decimals._toCollateralFixedPointAmount(_amount);
-    FixedPoint.Unsigned memory oraclePrice = FixedPoint.Unsigned(uint256(collateralAsset.oracle.latestAnswer()));
+    FixedPoint.Unsigned memory fixedPointAmount = asset.decimals._toCollateralFixedPointAmount(_amount);
+    FixedPoint.Unsigned memory oraclePrice = FixedPoint.Unsigned(uint256(asset.oracle.latestAnswer()));
     FixedPoint.Unsigned memory value = fixedPointAmount.mul(oraclePrice);
 
     if (!_ignoreCollateralFactor) {
-        value = value.mul(collateralAsset.factor);
+        value = value.mul(asset.factor);
     }
     return (value, oraclePrice);
+}
+
+/**
+ * @notice Gets an array of collateral assets the account has deposited.
+ * @param _account The account to get the deposited collateral assets for.
+ * @return An array of addresses of collateral assets the account has deposited.
+ */
+function getDepositedCollateralAssets(MinterState storage self, address _account) view returns (address[] memory) {
+    return self.depositedCollateralAssets[_account];
+}
+
+/**
+ * @notice Gets an index for the collateral asset the account has deposited.
+ * @param _account The account to get the index for.
+ * @param _collateralAsset The asset lookup address.
+ * @return i = index of the minted collateral asset.
+ */
+function getDepositedCollateralAssetIndex(
+    MinterState storage self,
+    address _account,
+    address _collateralAsset
+) view returns (uint256 i) {
+    for (i; i < self.depositedCollateralAssets[_account].length; i++) {
+        if (self.depositedCollateralAssets[_account][i] == _collateralAsset) {
+            break;
+        }
+    }
 }
 
 /**
@@ -133,6 +160,24 @@ function krAssetExists(MinterState storage self, address _krAsset) view returns 
  */
 function getMintedKreskoAssets(MinterState storage self, address _account) view returns (address[] memory) {
     return self.mintedKreskoAssets[_account];
+}
+
+/**
+ * @notice Get the state of a specific krAsset
+ * @param _asset Address of the asset.
+ * @return State of assets `KrAsset` struct
+ */
+function kreskoAsset(MinterState storage self, address _asset) view returns (KrAsset memory) {
+    return self.kreskoAssets[_asset];
+}
+
+/**
+ * @notice Get the state of a specific collateral asset
+ * @param _asset Address of the asset.
+ * @return State of assets `CollateralAsset` struct
+ */
+function collateralAsset(MinterState storage self, address _asset) view returns (CollateralAsset memory) {
+    return self.collateralAssets[_asset];
 }
 
 /**

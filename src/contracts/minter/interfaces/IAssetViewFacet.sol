@@ -2,6 +2,7 @@
 pragma solidity 0.8.14;
 
 import "../../shared/FP.sol" as FixedPoint;
+import {Action} from "../state/Structs.sol";
 
 interface IAssetViewFacet {
     function getMintedKreskoAssets(address _account) external view returns (address[] memory);
@@ -34,4 +35,8 @@ interface IAssetViewFacet {
         returns (uint256 i);
 
     function getDepositedCollateralAssets(address _account) external view returns (address[] memory);
+
+    function getCollateralRatiosFor(address[] memory _accounts) external view returns (FixedPoint.Unsigned[] memory);
+
+    function assetActionPaused(Action _action, address _asset) external view returns (bool);
 }

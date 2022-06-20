@@ -102,6 +102,7 @@ library AccessControl {
 
     function transferSecurityCouncil(address _newCouncil) internal {
         hasRole(Role.SAFETY_COUNCIL, msg.sender);
+        require(IGnosisSafeL2(_newCouncil).getOwners().length >= 5);
 
         // As this is called by the multisig - just check that it's not an EOA
         ds()._roles[Role.SAFETY_COUNCIL].members[msg.sender] = false;

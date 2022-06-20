@@ -52,7 +52,6 @@ contract OperatorFacet is DiamondModifiers, MinterModifiers, IOperatorFacet {
         ds().supportedInterfaces[type(IAssetViewFacet).interfaceId] = true;
         ds().supportedInterfaces[type(ILiquidationFacet).interfaceId] = true;
         ds().supportedInterfaces[type(IUserFacet).interfaceId] = true;
-        // 0x52479a58
         ds().supportedInterfaces[type(ISafetyCouncilFacet).interfaceId] = true;
 
         ms().initializations = 1;
@@ -71,23 +70,16 @@ contract OperatorFacet is DiamondModifiers, MinterModifiers, IOperatorFacet {
     function addCollateralAsset(
         address _collateralAsset,
         uint256 _factor,
-        address _oracle,
-        bool isNonRebasingWrapperToken
+        address _oracle
     ) external nonReentrant onlyRole(Role.OPERATOR) collateralAssetDoesNotExist(_collateralAsset) {
         require(_collateralAsset != address(0), Error.ADDRESS_INVALID_COLLATERAL);
         require(_oracle != address(0), Error.ADDRESS_INVALID_ORACLE);
         require(_factor <= FixedPoint.FP_SCALING_FACTOR, Error.COLLATERAL_INVALID_FACTOR);
 
-        // Set as the rebasing underlying token if the collateral asset is a
-        // NonRebasingWrapperToken, otherwise set as address(0).
-        address underlyingRebasingToken = isNonRebasingWrapperToken
-            ? INonRebasingWrapperToken(_collateralAsset).underlyingToken()
-            : address(0);
-
         ms().collateralAssets[_collateralAsset] = CollateralAsset({
             factor: FixedPoint.Unsigned(_factor),
             oracle: AggregatorV2V3Interface(_oracle),
-            underlyingRebasingToken: underlyingRebasingToken,
+            underlyingRebasingToken: address(0), /// @todo Rebasing for everything
             exists: true,
             decimals: IERC20MetadataUpgradeable(_collateralAsset).decimals()
         });
@@ -122,20 +114,20 @@ contract OperatorFacet is DiamondModifiers, MinterModifiers, IOperatorFacet {
      * @notice Adds a Kresko asset to the protocol.
      * @dev Only callable by the owner and cannot be called more than once for a given symbol.
      * @param _kreskoAsset The address of the Kresko asset.
-     * @param _symbol The symbol of the Kresko asset.
      * @param _kFactor The k-factor of the Kresko asset as a raw value for a FixedPoint.Unsigned. Must be >= 1e18.
      * @param _oracle The oracle address for the Kresko asset.
      * @param _marketCapUSDLimit The initial market capitalization USD limit for the Kresko asset.
      */
     function addKreskoAsset(
         address _kreskoAsset,
-        string calldata _symbol,
         uint256 _kFactor,
         address _oracle,
         uint256 _marketCapUSDLimit
-    ) external onlyRole(Role.OPERATOR) nonNullString(_symbol) kreskoAssetDoesNotExist(_kreskoAsset, _symbol) {
+    ) external onlyRole(Role.OPERATOR) kreskoAssetDoesNotExist(_kreskoAsset) {
         require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, Error.KRASSET_INVALID_FACTOR);
         require(_oracle != address(0), Error.ADDRESS_INVALID_ORACLE);
+
+        // The diamond needs the operator role
         IKreskoAsset kreskoAsset = IKreskoAsset(_kreskoAsset);
         require(kreskoAsset.hasRole(Role.OPERATOR, address(this)), Error.NOT_OPERATOR);
 
@@ -147,7 +139,7 @@ contract OperatorFacet is DiamondModifiers, MinterModifiers, IOperatorFacet {
             mintable: true,
             marketCapUSDLimit: _marketCapUSDLimit
         });
-        emit MinterEvent.KreskoAssetAdded(_kreskoAsset, _symbol, _kFactor, _oracle, _marketCapUSDLimit);
+        emit MinterEvent.KreskoAssetAdded(_kreskoAsset, _kFactor, _oracle, _marketCapUSDLimit);
     }
 
     /**

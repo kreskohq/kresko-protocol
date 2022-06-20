@@ -41,13 +41,20 @@ import "./src/tasks/diamond/addFacet.ts";
 // Configurations
 import { compilers, networks, users } from "hardhat-configs";
 import type { HardhatUserConfig } from "hardhat/types/config";
+import { reporters } from "mocha";
 
 // Set config
 const config: HardhatUserConfig = {
+    mocha: {
+        reporter: reporters.Spec,
+        timeout: 12000,
+    },
     gasReporter: {
         currency: "USD",
-        enabled: true,
+        enabled: false,
         src: "src/contracts",
+        showMethodSig: true,
+        excludeContracts: ["vendor"],
     },
     contractSizer: {
         alphaSort: true,
@@ -87,9 +94,7 @@ const config: HardhatUserConfig = {
         tsNocheck: true,
         externalArtifacts: ["build/artifacts/hardhat-diamond-abi/Kresko.sol/Kresko.json"],
     },
-    mocha: {
-        timeout: 120000,
-    },
+
     watcher: {
         compilation: {
             tasks: ["compile"],

@@ -16,7 +16,6 @@ node_modules/
 types/typechain
 deployments/hardhat
 bin
-
 # files
 *.env
 *.logs
@@ -26,6 +25,8 @@ coverage.json
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+# ETHERS file that uses ethers-mode plugin in VSCode, might contain keys so do not include
+*interact.ethers
 
 .npmrc
 

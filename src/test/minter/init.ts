@@ -1,6 +1,5 @@
 import hre from "hardhat";
-import { constants } from "ethers";
-import { fixtures, getUsers, Error } from "@test-utils";
+import { withFixture, Error } from "@test-utils";
 import { smock } from "@defi-wonderland/smock";
 import minterConfig from "../../config/minter";
 import chai, { expect } from "chai";
@@ -9,27 +8,10 @@ import type { OperatorFacet } from "types/typechain";
 chai.use(smock.matchers);
 
 describe("Minter", function () {
-    before(async function () {
-        this.users = await getUsers();
-    });
-    describe("#initialization", function () {
-        beforeEach(async function () {
-            const fixture = await fixtures.minterInit();
+    withFixture("createMinter");
 
-            this.users = fixture.users;
-            this.addresses = {
-                ZERO: constants.AddressZero,
-                deployer: await this.users.deployer.getAddress(),
-                userOne: await this.users.userOne.getAddress(),
-                nonAdmin: await this.users.nonadmin.getAddress(),
-            };
-
-            this.Diamond = fixture.Diamond;
-            this.facets = fixture.facets;
-            this.DiamondDeployment = fixture.DiamondDeployment;
-        });
-
-        it("should initialize minter state", async function () {
+    describe("#initialization", () => {
+        it("sets correct state", async function () {
             expect(await this.Diamond.minterInitializations()).to.equal(1);
 
             const { args } = await minterConfig.getInitializer(hre);
@@ -59,7 +41,7 @@ describe("Minter", function () {
             ).to.equal(true);
         });
 
-        it("should not be able to initialize with the same initializer twice", async function () {
+        it("cant initialize twice", async function () {
             const initializer = await minterConfig.getInitializer(hre);
             const initializerContract = await hre.ethers.getContract<OperatorFacet>(initializer.name);
 
@@ -68,7 +50,7 @@ describe("Minter", function () {
             await expect(this.Diamond.upgradeState(tx.to, tx.data)).to.be.revertedWith(Error.ALREADY_INITIALIZED);
         });
 
-        it("should have all the minter facets and selectors that were configured for deployment", async function () {
+        it("sets all facets configured", async function () {
             const facetsOnChain = (await this.Diamond.facets()).map(([facetAddress, functionSelectors]) => ({
                 facetAddress,
                 functionSelectors,

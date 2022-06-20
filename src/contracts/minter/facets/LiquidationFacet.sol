@@ -36,15 +36,19 @@ contract LiquidationFacet is DiamondModifiers {
     ) external nonReentrant {
         MinterState storage s = ms();
         {
+            // Check that this account is below its minimum collateralization ratio and can be liquidated.
+            require(s.isAccountLiquidatable(_account), Error.NOT_LIQUIDATABLE);
+            // krAsset exists
             require(s.kreskoAssets[_repayKreskoAsset].exists, Error.KRASSET_DOESNT_EXIST);
+            // Collateral exists
             require(s.collateralAssets[_collateralAssetToSeize].exists, Error.COLLATERAL_DOESNT_EXIST);
+            // No zero repays
             require(_repayAmount > 0, Error.ZERO_REPAY);
+            // Price is active
             uint256 priceTimestamp = uint256(s.kreskoAssets[_repayKreskoAsset].oracle.latestTimestamp());
             require(block.timestamp < priceTimestamp + s.secondsUntilStalePrice, Error.STALE_PRICE);
             // Borrower cannot liquidate themselves
             require(msg.sender != _account, Error.SELF_LIQUIDATION);
-            // Check that this account is below its minimum collateralization ratio and can be liquidated.
-            require(s.isAccountLiquidatable(_account), Error.NOT_LIQUIDATABLE);
         }
 
         // Repay amount USD = repay amount * KR asset USD exchange rate.

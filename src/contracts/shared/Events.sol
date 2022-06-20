@@ -60,14 +60,12 @@ library MinterEvent {
      * @notice Emitted when a Kresko asset is added to the protocol.
      * @dev Can only be emitted once for a given Kresko asset.
      * @param kreskoAsset The address of the Kresko asset.
-     * @param symbol The symbol of the Kresko asset.
      * @param kFactor The k-factor.
      * @param oracle The address of the oracle.
      * @param marketCapLimit The initial market capitalization USD limit.
      */
     event KreskoAssetAdded(
         address indexed kreskoAsset,
-        string indexed symbol,
         uint256 indexed kFactor,
         address oracle,
         uint256 marketCapLimit

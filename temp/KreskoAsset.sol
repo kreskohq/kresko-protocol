@@ -19,8 +19,8 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable {
         // Intentionally left blank.
     }
 
-    // keccak256("kresko.operator.role")
-    bytes32 public constant OPERATOR_ROLE = 0x8952ae23cc3fea91b9dba0cefa16d18a26ca2bf124b54f42b5d04bce3aacecd2;
+    /// @dev keccak256("kresko.roles.minter.operator")
+    bytes32 public constant OPERATOR = 0x112e48a576fb3a75acc75d9fcf6e0bc670b27b1dbcd2463502e10e68cf57d6fd;
 
     /**
      * @notice Initializes a KreskoAsset ERC20 token.
@@ -39,7 +39,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable {
         __ERC20_init(_name, _symbol);
         __AccessControlEnumerable_init();
         _setupRole(ADMIN_ROLE, _owner);
-        _setupRole(OPERATOR_ROLE, _operator);
+        _setupRole(OPERATOR, _operator);
     }
 
     /**

@@ -43,7 +43,7 @@ struct MinterParams {
 struct CollateralAsset {
     FixedPoint.Unsigned factor;
     AggregatorV2V3Interface oracle;
-    address underlyingRebasingToken;
+    address underlyingRebasingToken; // @todo Rebasing for everything
     uint8 decimals;
     bool exists;
 }

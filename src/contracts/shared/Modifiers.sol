@@ -106,19 +106,9 @@ abstract contract MinterModifiers {
     /**
      * @notice Reverts if the symbol of a Kresko asset already exists within the protocol.
      * @param _kreskoAsset The address of the Kresko asset.
-     * @param _symbol The symbol of the Kresko asset.
      */
-    modifier kreskoAssetDoesNotExist(address _kreskoAsset, string calldata _symbol) {
+    modifier kreskoAssetDoesNotExist(address _kreskoAsset) {
         require(!ms().kreskoAssets[_kreskoAsset].exists, Error.KRASSET_EXISTS);
-        _;
-    }
-
-    /**
-     * @notice Reverts if provided string is empty.
-     * @param _str The string to ensure is not empty.
-     */
-    modifier nonNullString(string calldata _str) {
-        require(bytes(_str).length > 0, "KR: !string");
         _;
     }
 }

@@ -4,7 +4,6 @@ pragma solidity 0.8.14;
 import {IERC20MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
-import {INonRebasingWrapperToken} from "../interfaces/INonRebasingWrapperToken.sol";
 import {IKreskoAsset} from "../interfaces/IKreskoAsset.sol";
 import {IUserFacet} from "../interfaces/IUserFacet.sol";
 

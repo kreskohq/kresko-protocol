@@ -26,7 +26,7 @@ contract SafetyCouncilFacet is ISafetyCouncilFacet, MinterModifiers, DiamondModi
      *  Repay = 2,
      *  Borrow = 3,
      *  Liquidate = 4
-     * @param _withDuration Set a duration for this pause (TODO: not implemented in the code)
+     * @param _withDuration Set a duration for this pause - @todo: implement it if required
      * @param _duration Duration for the pause if `_withDuration` is true
      */
     function toggleAssetsPaused(
