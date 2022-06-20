@@ -28,7 +28,6 @@ yarn-error.log*
 # ETHERS file that uses ethers-mode plugin in VSCode, might contain keys so do not include
 *interact.ethers
 
-.npmrc
 
 # OpenZeppelin
 .openzeppelin/dev-*.json
