@@ -38,32 +38,6 @@ export const randomContractAddress = () => {
     });
 };
 
-type CollateralAssetArgs = {
-    name: string;
-    price: number;
-    factor: number;
-    decimals: number;
-};
-
-export const addCollateralAsset = async (
-    args: CollateralAssetArgs,
-): Promise<[MockContract<ERC20Upgradeable>, MockContract<FluxPriceAggregator>]> => {
-    const users = await getUsers();
-
-    const { name, price, factor, decimals } = args;
-    const OracleAggregator = await getPriceAggregatorForAsset(name, price);
-
-    const Collateral = await (await smock.mock<ERC20Upgradeable__factory>("ERC20Upgradeable")).deploy();
-
-    Collateral.decimals.returns(decimals);
-    Collateral.symbol.returns(name);
-    Collateral.name.returns(name);
-
-    const cFactor = toFixedPoint(factor);
-    await hre.Diamond.connect(users.operator).addCollateralAsset(Collateral.address, cFactor, OracleAggregator.address);
-    return [Collateral, OracleAggregator];
-};
-
 export const getPriceAggregatorForAsset = async (assetName = "Asset", price = 10) => {
     const Oracles = [
         await smock.fake<FluxPriceFeed>("FluxPriceFeed"),
@@ -83,15 +57,82 @@ export const getPriceAggregatorForAsset = async (assetName = "Asset", price = 10
     return PriceAggregator;
 };
 
+/* -------------------------------------------------------------------------- */
+/*                              CollateralAssets                              */
+/* -------------------------------------------------------------------------- */
+
+type CollateralAssetArgs = {
+    name: string;
+    price: number;
+    factor: number;
+    decimals: number;
+};
+
+export const defaultCollateralArgs = {
+    name: "Collateral",
+    price: 5,
+    factor: 0.9,
+    decimals: 18,
+};
+
+export const addCollateralAsset = async (
+    args: CollateralAssetArgs = defaultCollateralArgs,
+): Promise<[MockContract<ERC20Upgradeable>, MockContract<FluxPriceAggregator>]> => {
+    const users = await getUsers();
+
+    const { name, price, factor, decimals } = args;
+    const OracleAggregator = await getPriceAggregatorForAsset(name, price);
+
+    const Collateral = await (await smock.mock<ERC20Upgradeable__factory>("ERC20Upgradeable")).deploy();
+
+    Collateral.decimals.returns(decimals);
+    Collateral.symbol.returns(name);
+    Collateral.name.returns(name);
+
+    const cFactor = toFixedPoint(factor);
+    await hre.Diamond.connect(users.operator).addCollateralAsset(Collateral.address, cFactor, OracleAggregator.address);
+    return [Collateral, OracleAggregator];
+};
+
+type InputArgs = {
+    user: SignerWithAddress;
+    asset: MockContract<ERC20Upgradeable | KreskoAsset>;
+    amount: number | string;
+};
+
+export const depositCollateral = async (args: InputArgs) => {
+    const { user, asset, amount } = args;
+    const depositAmount = toBig(amount);
+
+    await asset.setVariable("_balances", {
+        [user.address]: depositAmount,
+    });
+
+    await asset.setVariable("_allowances", {
+        [user.address]: {
+            [hre.Diamond.address]: depositAmount,
+        },
+    });
+
+    await expect(hre.Diamond.connect(user).depositCollateral(user.address, asset.address, depositAmount)).not.to.be
+        .reverted;
+    expect(await hre.Diamond.collateralDeposits(user.address, asset.address)).to.equal(depositAmount);
+};
+
+/* -------------------------------------------------------------------------- */
+/*                                  KrAssets                                  */
+/* -------------------------------------------------------------------------- */
+
 type KreskoAssetArgs = {
     name: string;
     price: number;
     factor: number;
     supplyLimit: number;
 };
+export const defaultKrAssetArgs = { name: "KreskoAsset", price: 10, factor: 1.1, supplyLimit: 1000 };
 
 export const addKreskoAsset = async (
-    args: KreskoAssetArgs,
+    args: KreskoAssetArgs = defaultKrAssetArgs,
 ): Promise<[MockContract<KreskoAsset>, MockContract<FluxPriceAggregator>]> => {
     const users = await getUsers();
     const { name, price, factor, supplyLimit } = args;
@@ -112,4 +153,13 @@ export const addKreskoAsset = async (
     const hasRole = await krAsset.hasRole(ethers.utils.id("kresko.roles.minter.operator"), hre.Diamond.address);
     expect(hasRole).to.be.true;
     return [krAsset, OracleAggregator];
+};
+
+export const borrowKrAsset = async (args: InputArgs) => {
+    const { user, asset, amount } = args;
+    const borrowAmount = toBig(amount);
+
+    await expect(hre.Diamond.connect(user).mintKreskoAsset(user.address, asset.address, borrowAmount)).not.to.be
+        .reverted;
+    expect(await hre.Diamond.kreskoAssetDebt(user.address, asset.address)).to.equal(borrowAmount);
 };

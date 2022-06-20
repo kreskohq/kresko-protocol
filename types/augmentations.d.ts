@@ -47,6 +47,8 @@ declare module "mocha" {
             liquidator?: SignerWithAddress;
             treasury?: SignerWithAddress;
         };
+        collaterals?: [MockContract<ERC20Upgradeable>, MockContract<FluxPriceAggregator>][];
+        krAssets?: [MockContract<KreskoAsset>, MockContract<FluxPriceAggregator>][];
         // Diamond additions
         facets: Facet[];
         Multisig: GnosisSafeL2;

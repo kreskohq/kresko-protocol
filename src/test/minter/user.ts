@@ -1,38 +1,43 @@
-import { expect } from "chai";
-import { withFixture, addCollateralAsset } from "@test-utils";
-import { toBig } from "@utils/numbers";
+import { withFixture, addCollateralAsset, depositCollateral, addKreskoAsset, borrowKrAsset } from "@test-utils";
 
 describe("Minter", function () {
-    withFixture("createMinter");
+    withFixture("createMinterUser");
 
     describe("#user", () => {
-        it("should be able to deposit collateral", async function () {
-            const depositoor = this.users.userOne;
-            const args = {
+        beforeEach(async function () {
+            this.defaultCollateralArgs = {
                 name: "Collateral",
                 price: 5,
                 factor: 0.9,
                 decimals: 18,
             };
-            const [Collateral] = await addCollateralAsset(args);
+            const [defaultCollateral] = this.collaterals[0];
 
-            await Collateral.setVariable("_balances", {
-                [depositoor.address]: toBig("1000000"),
+            this.defaultDepositArgs = {
+                user: this.users.userOne,
+                asset: defaultCollateral,
+                amount: 10000,
+            };
+
+            const [defaultKrAsset] = this.krAssets[0];
+
+            this.defaultBorrowArgs = {
+                user: this.users.userOne,
+                asset: defaultKrAsset,
+                amount: 100,
+            };
+        });
+        describe("#collateral", () => {
+            it("can deposit collateral", async function () {
+                await depositCollateral(this.defaultDepositArgs);
             });
+        });
 
-            await Collateral.setVariable("_allowances", {
-                [depositoor.address]: {
-                    [this.Diamond.address]: toBig("1000000"),
-                },
+        describe("#krAsset", () => {
+            it("can borrow krAssets", async function () {
+                await depositCollateral(this.defaultDepositArgs);
+                await borrowKrAsset(this.defaultBorrowArgs);
             });
-
-            await expect(
-                this.Diamond.connect(depositoor).depositCollateral(
-                    depositoor.address,
-                    Collateral.address,
-                    toBig("1000"),
-                ),
-            ).not.to.be.reverted;
         });
     });
 });

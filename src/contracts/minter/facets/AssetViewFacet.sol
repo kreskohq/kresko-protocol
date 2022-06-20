@@ -56,6 +56,16 @@ contract AssetViewFacet is IAssetViewFacet {
     }
 
     /**
+     * @notice Get `_account` debt amount for `_asset`
+     * @param _asset The asset address
+     * @param _account The account to query amount for
+     * @return Amount of debt for `_asset`
+     */
+    function kreskoAssetDebt(address _account, address _asset) external view returns (uint256) {
+        return ms().kreskoAssetDebt[_account][_asset];
+    }
+
+    /**
      * @notice Gets the USD value for a single Kresko asset and amount.
      * @param _kreskoAsset The address of the Kresko asset.
      * @param _amount The amount of the Kresko asset to calculate the value for.
@@ -97,6 +107,16 @@ contract AssetViewFacet is IAssetViewFacet {
      */
     function getDepositedCollateralAssets(address _account) external view returns (address[] memory) {
         return ms().depositedCollateralAssets[_account];
+    }
+
+    /**
+     * @notice Get `_account` collateral deposit amount for `_asset`
+     * @param _asset The asset address
+     * @param _account The account to query amount for
+     * @return Amount of collateral deposited for `_asset`
+     */
+    function collateralDeposits(address _account, address _asset) external view returns (uint256) {
+        return ms().collateralDeposits[_account][_asset];
     }
 
     /**
