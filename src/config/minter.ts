@@ -20,7 +20,9 @@ export type MinterInitializer<A> = {
     args: A;
 };
 
-const getInitializer = async (hre: HardhatRuntimeEnvironment): Promise<MinterInitializer<MinterInitArgsStruct>> => {
+const getMinterInitializer = async (
+    hre: HardhatRuntimeEnvironment,
+): Promise<MinterInitializer<MinterInitArgsStruct>> => {
     const { treasury, operator } = await hre.getNamedAccounts();
     const Safe = await hre.deployments.getOrNull("Multisig");
     if (!Safe) throw new Error("GnosisSafe not deployed for Minter initialization");
@@ -39,6 +41,15 @@ const getInitializer = async (hre: HardhatRuntimeEnvironment): Promise<MinterIni
     };
 };
 
+const collaterals = {
+    test: [
+        ["USDC", "USDC"],
+        ["Wrapped ETH", "WETH"],
+        ["Aurora", "Aurora"],
+        ["Wrapped NEAR", "WNEAR"],
+    ],
+};
+
 const krAssets = {
     test: [
         ["Tesla Inc.", "krTSLA"],
@@ -50,6 +61,7 @@ const krAssets = {
 
 export default {
     facets,
-    getInitializer,
+    getMinterInitializer,
     krAssets,
+    collaterals,
 };

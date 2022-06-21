@@ -14,7 +14,7 @@ describe("Minter", function () {
         it("sets correct state", async function () {
             expect(await this.Diamond.minterInitializations()).to.equal(1);
 
-            const { args } = await minterConfig.getInitializer(hre);
+            const { args } = await minterConfig.getMinterInitializer(hre);
 
             expect((await this.Diamond.burnFee()).rawValue).to.equal(args.burnFee);
             expect(await this.Diamond.feeRecipient()).to.equal(args.feeRecipient);
@@ -42,7 +42,7 @@ describe("Minter", function () {
         });
 
         it("cant initialize twice", async function () {
-            const initializer = await minterConfig.getInitializer(hre);
+            const initializer = await minterConfig.getMinterInitializer(hre);
             const initializerContract = await hre.ethers.getContract<OperatorFacet>(initializer.name);
 
             const tx = await initializerContract.populateTransaction.initialize(initializer.args);

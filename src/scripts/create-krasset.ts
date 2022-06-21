@@ -5,7 +5,7 @@ import hre from "hardhat";
 const { ethers } = hre;
 
 export async function createKrAsset(name: string, symbol: string, decimals = 18) {
-    const { deployer, userOne } = await ethers.getNamedSigners();
+    const { deployer } = await ethers.getNamedSigners();
     const kresko = hre.Diamond;
     const kreskoAssetInitializerArgs = [name, symbol, decimals, deployer, kresko.address];
 
@@ -39,6 +39,8 @@ export async function createKrAsset(name: string, symbol: string, decimals = 18)
             },
         },
     });
+
+    hre.krAssets.push([KreskoAsset, FixedKreskoAsset]);
 
     return [KreskoAsset, FixedKreskoAsset];
 }

@@ -4,25 +4,51 @@ import { BytesLike } from "ethers";
 export {};
 
 declare global {
+    /* -------------------------------------------------------------------------- */
+    /*                              Minter Contracts                              */
+    /* -------------------------------------------------------------------------- */
     type Kresko = import("types/typechain").Kresko;
-    type KreskoAsset = import("types/typechain").KreskoAsset;
 
+    type KreskoAsset = import("types/typechain").KreskoAsset;
+    type FixedKreskoAsset = import("types/typechain").FixedKreskoAsset;
+
+    type KrAssets = [KreskoAsset, FixedKreskoAsset, FluxPriceAggregator][];
+    type MockKrAssets = [
+        MockContract<KreskoAsset>,
+        MockContract<KreskoAssetFixed>,
+        MockContract<FluxPriceAggregator>,
+    ][];
+
+    type Collaterals = [ERC20Upgradeable, FluxPriceAggregator][];
+    type MockCollaterals = [MockContract<ERC20Upgradeable>, MockContract<FluxPriceAggregator>][];
+    /* -------------------------------------------------------------------------- */
+    /*                                   Oracles                                  */
+    /* -------------------------------------------------------------------------- */
     type FluxPriceFeed = import("types/typechain").FluxPriceFeed;
     type FluxPriceAggregator = import("types/typechain").FluxPriceAggregator;
     type AggregatorV2V3Interface = import("types/typechain").AggregatorV2V3Interface;
     type FeedsRegistry = import("types/typechain").FeedsRegistry;
-    type WETH9 = import("types/typechain").WETH9;
 
-    type IERC20 = import("types/typechain").IERC20;
+    /* -------------------------------------------------------------------------- */
+    /*                               Misc Contracts                               */
+    /* -------------------------------------------------------------------------- */
     type Contract = import("ethers").Contract;
+
+    type WETH9 = import("types/typechain").WETH9;
+    type ERC20Upgradeable = import("types/typechain").ERC20Upgradeable;
+    type IERC20 = import("types/typechain").IERC20;
+
     type BigNumberish = import("ethers").BigNumberish;
     type BigNumber = import("ethers").BigNumber;
-
+    /* -------------------------------------------------------------------------- */
+    /*                               Signers / Users                              */
+    /* -------------------------------------------------------------------------- */
     type Signer = import("ethers").Signer;
     type SignerWithAddress = import("@nomiclabs/hardhat-ethers/signers").SignerWithAddress;
     type Users = {
         deployer: SignerWithAddress;
         owner: SignerWithAddress;
+        admin: SignerWithAddress;
         operator: SignerWithAddress;
         userOne: SignerWithAddress;
         userTwo: SignerWithAddress;
@@ -32,7 +58,9 @@ declare global {
         feedValidator?: SignerWithAddress;
         treasury?: SignerWithAddress;
     };
-
+    /* -------------------------------------------------------------------------- */
+    /*                                 Deployments                                */
+    /* -------------------------------------------------------------------------- */
     type Artifact = import("hardhat/types").Artifact;
 
     type DeployResultWithSignatures<T extends Contract> = [T, string[], DeployResult];
@@ -50,12 +78,17 @@ declare global {
     interface KreskoAssetConstructor {
         name: string;
         symbol: string;
+        decimals: number;
         owner: string;
-        operator: string;
+        kresko: string;
     }
 
-    type SupportedContracts = "Kresko";
-    type SupportedConstructors = KreskoConstructor;
+    interface FixedKreskoAssetConstructor {
+        krAsset: string;
+        name: string;
+        symbol: string;
+        owner: string;
+    }
     interface Network {
         rpcUrl?: string;
         chainId?: number;

@@ -9,15 +9,29 @@ import {
     ERC20Upgradeable__factory,
     FluxPriceAggregator__factory,
     KreskoAsset__factory,
+    FixedKreskoAsset__factory,
+    FixedKreskoAsset,
 } from "types/typechain";
 import { expect } from "chai";
 
 export const getUsers = async (): Promise<Users> => {
-    const { deployer, owner, operator, userOne, userTwo, userThree, nonadmin, liquidator, feedValidator, treasury } =
-        await ethers.getNamedSigners();
+    const {
+        deployer,
+        owner,
+        admin,
+        operator,
+        userOne,
+        userTwo,
+        userThree,
+        nonadmin,
+        liquidator,
+        feedValidator,
+        treasury,
+    } = await ethers.getNamedSigners();
     return {
         deployer,
         owner,
+        admin,
         operator,
         userOne,
         userTwo,
@@ -38,7 +52,7 @@ export const randomContractAddress = () => {
     });
 };
 
-export const getPriceAggregatorForAsset = async (assetName = "Asset", price = 10) => {
+export const getMockOracleFor = async (assetName = "Asset", price = 10) => {
     const Oracles = [
         await smock.fake<FluxPriceFeed>("FluxPriceFeed"),
         await smock.fake<FluxPriceFeed>("FluxPriceFeed"),
@@ -75,13 +89,13 @@ export const defaultCollateralArgs = {
     decimals: 18,
 };
 
-export const addCollateralAsset = async (
+export const addMockCollateralAsset = async (
     args: CollateralAssetArgs = defaultCollateralArgs,
 ): Promise<[MockContract<ERC20Upgradeable>, MockContract<FluxPriceAggregator>]> => {
     const users = await getUsers();
 
     const { name, price, factor, decimals } = args;
-    const OracleAggregator = await getPriceAggregatorForAsset(name, price);
+    const OracleAggregator = await getMockOracleFor(name, price);
 
     const Collateral = await (await smock.mock<ERC20Upgradeable__factory>("ERC20Upgradeable")).deploy();
 
@@ -100,7 +114,7 @@ type InputArgs = {
     amount: number | string;
 };
 
-export const depositCollateral = async (args: InputArgs) => {
+export const depositMockCollateral = async (args: InputArgs) => {
     const { user, asset, amount } = args;
     const depositAmount = toBig(amount);
 
@@ -119,6 +133,17 @@ export const depositCollateral = async (args: InputArgs) => {
     expect(await hre.Diamond.collateralDeposits(user.address, asset.address)).to.equal(depositAmount);
 };
 
+export const depositCollateral = async (args: InputArgs) => {
+    const { user, asset, amount } = args;
+    const depositAmount = toBig(amount);
+
+    await asset.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
+
+    await expect(hre.Diamond.connect(user).depositCollateral(user.address, asset.address, depositAmount)).not.to.be
+        .reverted;
+    expect(await hre.Diamond.collateralDeposits(user.address, asset.address)).to.equal(depositAmount);
+};
+
 /* -------------------------------------------------------------------------- */
 /*                                  KrAssets                                  */
 /* -------------------------------------------------------------------------- */
@@ -131,17 +156,29 @@ type KreskoAssetArgs = {
 };
 export const defaultKrAssetArgs = { name: "KreskoAsset", price: 10, factor: 1.1, supplyLimit: 1000 };
 
-export const addKreskoAsset = async (
+export const addMockKreskoAsset = async (
     args: KreskoAssetArgs = defaultKrAssetArgs,
-): Promise<[MockContract<KreskoAsset>, MockContract<FluxPriceAggregator>]> => {
+): Promise<[MockContract<KreskoAsset>, MockContract<FixedKreskoAsset>, MockContract<FluxPriceAggregator>]> => {
     const users = await getUsers();
     const { name, price, factor, supplyLimit } = args;
 
-    const OracleAggregator = await getPriceAggregatorForAsset(name, price);
-    const krAsset = await (await smock.mock<KreskoAsset__factory>("KreskoAsset")).deploy();
-    await krAsset.initialize(name, name, users.deployer.address, hre.Diamond.address);
-    krAsset.decimals.returns(18);
+    // Create an oracle with price supplied
+    const OracleAggregator = await getMockOracleFor(name, price);
 
+    // create the underlying elastic krAsset
+    const krAsset = await (await smock.mock<KreskoAsset__factory>("KreskoAsset")).deploy();
+
+    // Initialize the underlying krAsset
+    await krAsset.initialize(name, name, 18, users.deployer.address, hre.Diamond.address);
+
+    // Create the fixed krAsset
+    const krAssetFixed = await (
+        await smock.mock<FixedKreskoAsset__factory>("FixedKreskoAsset")
+    ).deploy(krAsset.address);
+
+    await krAssetFixed.initialize(krAsset.address, name, name, users.deployer.address);
+
+    // Add the asset to the protocol
     const kFactor = toFixedPoint(factor);
     await hre.Diamond.connect(users.operator).addKreskoAsset(
         krAsset.address,
@@ -150,9 +187,12 @@ export const addKreskoAsset = async (
         toBig(supplyLimit),
     );
 
-    const hasRole = await krAsset.hasRole(ethers.utils.id("kresko.roles.minter.operator"), hre.Diamond.address);
-    expect(hasRole).to.be.true;
-    return [krAsset, OracleAggregator];
+    const OPERATOR_ROLE = ethers.utils.id("kresko.roles.minter.operator");
+    const hasOperatorElastic = await krAsset.hasRole(OPERATOR_ROLE, hre.Diamond.address);
+    const hasOperatorFixed = await krAssetFixed.hasRole(OPERATOR_ROLE, hre.Diamond.address);
+    expect(hasOperatorElastic).to.be.true;
+    expect(hasOperatorFixed).to.be.true;
+    return [krAsset, krAssetFixed, OracleAggregator];
 };
 
 export const borrowKrAsset = async (args: InputArgs) => {

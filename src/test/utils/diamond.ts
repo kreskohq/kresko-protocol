@@ -1,11 +1,10 @@
 import { deployments, ethers } from "hardhat";
-import { addCollateralAsset, addKreskoAsset, getUsers } from "./general";
+import { addMockCollateralAsset, addMockKreskoAsset, getUsers } from "./general";
 import { constants } from "ethers";
-import type { ERC20Upgradeable, Kresko } from "types";
 import { Deployment, Facet } from "@kreskolabs/hardhat-deploy/dist/types";
-import { MockContract } from "@defi-wonderland/smock";
+import type { Kresko } from "types";
 
-type FixtureName = "createBaseDiamond" | "createMinter" | "createMinterUser";
+type FixtureName = "createBaseDiamond" | "createMinter" | "createMinterUser" | "kreskoAsset";
 
 export const withFixture = (fixtureName: FixtureName) => {
     beforeEach(async function () {
@@ -33,8 +32,8 @@ type Fixture = {
         Diamond: Kresko;
         facets: Facet[];
         users: Users;
-        collaterals?: [MockContract<ERC20Upgradeable>, MockContract<FluxPriceAggregator>][];
-        krAssets?: [MockContract<KreskoAsset>, MockContract<FluxPriceAggregator>][];
+        collaterals?: MockCollaterals;
+        krAssets?: MockKrAssets;
     }>;
 };
 
@@ -69,8 +68,8 @@ const fixtures: Fixture = {
         const DiamondDeployment = await _hre.deployments.get("Diamond");
         const Diamond = await ethers.getContractAt<Kresko>("Kresko", DiamondDeployment.address);
 
-        const collateralAndOracle = await addCollateralAsset();
-        const krAssetAndOracle = await addKreskoAsset();
+        const collateralAndOracle = await addMockCollateralAsset();
+        const krAssetAndOracle = await addMockKreskoAsset();
 
         return {
             DiamondDeployment,
@@ -79,6 +78,21 @@ const fixtures: Fixture = {
             users: await getUsers(),
             collaterals: [collateralAndOracle],
             krAssets: [krAssetAndOracle],
+        };
+    }),
+    kreskoAsset: deployments.createFixture(async hre => {
+        await deployments.fixture();
+
+        const DiamondDeployment = await hre.deployments.get("Diamond");
+        const Diamond = await ethers.getContractAt<Kresko>("Kresko", DiamondDeployment.address);
+
+        return {
+            DiamondDeployment,
+            Diamond,
+            facets: DiamondDeployment.facets,
+            users: await getUsers(),
+            collaterals: hre.collaterals,
+            krAssets: hre.krAssets,
         };
     }),
 };

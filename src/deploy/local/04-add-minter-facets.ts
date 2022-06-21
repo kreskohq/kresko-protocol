@@ -10,7 +10,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (!Diamond.address) {
         throw new Error("Diamond not deployed");
     }
-    const initializer = await minterConfig.getInitializer(hre);
+    const initializer = await minterConfig.getMinterInitializer(hre);
 
     // Will save deployment
     await addFacets({

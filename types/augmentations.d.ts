@@ -21,54 +21,16 @@ import type { BytesLike } from "ethers";
 import type { GnosisSafeL2 } from "./typechain/GnosisSafeL2";
 import type { FakeContract, MockContract } from "@defi-wonderland/smock";
 
+/* ========================================================================== */
+/*                             TEST AUGMENTATIONS                             */
+/* ========================================================================== */
+
 declare module "mocha" {
     export interface Context {
+        /* -------------------------------------------------------------------------- */
+        /*                              Helper Functions                              */
+        /* -------------------------------------------------------------------------- */
         loadFixture: <T>(fixture: Fixture<T>) => Promise<T>;
-        addCollateralAsset: (marketPrice: number, factor?: number) => Promise<MockContract<ERC20Upgradeable>>;
-        addKrAsset: (marketPrice: number) => Promise<MockContract<KreskoAsset>>;
-        signers: {
-            admin: SignerWithAddress;
-            operator?: SignerWithAddress;
-            userOne: SignerWithAddress;
-            userTwo: SignerWithAddress;
-            userThree?: SignerWithAddress;
-            nonadmin?: SignerWithAddress;
-            liquidator?: SignerWithAddress;
-            treasury?: SignerWithAddress;
-        };
-        users: {
-            deployer: SignerWithAddress;
-            owner: SignerWithAddress;
-            operator: SignerWithAddress;
-            userOne: SignerWithAddress;
-            userTwo: SignerWithAddress;
-            userThree: SignerWithAddress;
-            nonadmin?: SignerWithAddress;
-            liquidator?: SignerWithAddress;
-            treasury?: SignerWithAddress;
-        };
-        collaterals?: [MockContract<ERC20Upgradeable>, MockContract<FluxPriceAggregator>][];
-        krAssets?: [MockContract<KreskoAsset>, MockContract<FluxPriceAggregator>][];
-        // Diamond additions
-        facets: Facet[];
-        Multisig: GnosisSafeL2;
-        Diamond: Kresko;
-        DiamondDeployment: Deployment;
-        admin: string;
-        userOne: string;
-        UniFactory: UniswapV2Factory;
-        UniRouter: UniswapV2Router02;
-        lpPair: UniswapV2Pair;
-        userTwo: string;
-        treasury: string;
-        pricefeed: FluxPriceFeed;
-
-        Oracles: FakeContract<FluxPriceFeed>[];
-        TKN1: IERC20MetadataUpgradeable;
-        TKN2: IERC20MetadataUpgradeable;
-        USDC: IERC20MetadataUpgradeable;
-        krTSLA: KreskoAsset;
-        Kresko: Kresko;
         calculateAmountB: (
             amountA: BigNumber,
             tokenA: string,
@@ -95,18 +57,85 @@ declare module "mocha" {
             }[]
         >;
         isProtocolSolvent: () => Promise<boolean>;
+        addCollateralAsset: (marketPrice: number, factor?: number) => Promise<MockContract<ERC20Upgradeable>>;
+        addKrAsset: (marketPrice: number) => Promise<MockContract<KreskoAsset>>;
+
+        /* -------------------------------------------------------------------------- */
+        /*                               Users / Signers                              */
+        /* -------------------------------------------------------------------------- */
+        signers: {
+            deployer: SignerWithAddress;
+            owner: SignerWithAddress;
+            admin: SignerWithAddress;
+            operator?: SignerWithAddress;
+            userOne: SignerWithAddress;
+            userTwo: SignerWithAddress;
+            userThree?: SignerWithAddress;
+            nonadmin?: SignerWithAddress;
+            liquidator?: SignerWithAddress;
+            treasury?: SignerWithAddress;
+        };
+        users: {
+            deployer: SignerWithAddress;
+            owner: SignerWithAddress;
+            admin: SignerWithAddress;
+            operator: SignerWithAddress;
+            userOne: SignerWithAddress;
+            userTwo: SignerWithAddress;
+            userThree: SignerWithAddress;
+            nonadmin?: SignerWithAddress;
+            liquidator?: SignerWithAddress;
+            treasury?: SignerWithAddress;
+        };
+        /* -------------------------------------------------------------------------- */
+        /*                                   Diamond                                  */
+        /* -------------------------------------------------------------------------- */
+        facets: Facet[];
+        Multisig: GnosisSafeL2;
+        Diamond: Kresko;
+        DiamondDeployment: Deployment;
+        collaterals?: MockCollaterals;
+        krAssets?: MockKrAssets;
+        /* -------------------------------------------------------------------------- */
+        /*                              Misc / Deprecated                             */
+        /* -------------------------------------------------------------------------- */
+        // @todo DEPRECATING
+        admin: string;
+        userOne: string;
+        UniFactory: UniswapV2Factory;
+        UniRouter: UniswapV2Router02;
+        lpPair: UniswapV2Pair;
+        userTwo: string;
+        treasury: string;
+        pricefeed: FluxPriceFeed;
+        // @todo DEPRECATING
+        Oracles: FakeContract<FluxPriceFeed>[];
+        TKN1: IERC20MetadataUpgradeable;
+        TKN2: IERC20MetadataUpgradeable;
+        USDC: IERC20MetadataUpgradeable;
+        krTSLA: KreskoAsset;
+        Kresko: Kresko;
         WETH10OraclePrice: number;
         WETH10Oracle: FluxPriceFeed;
     }
 }
 export {};
 
+/* ========================================================================== */
+/*                         HARDHAT RUNTIME EXTENSIONS                         */
+/* ========================================================================== */
+
 declare module "hardhat/types/runtime" {
     export interface HardhatRuntimeEnvironment {
+        /* -------------------------------------------------------------------------- */
+        /*                              Helper Functions                              */
+        /* -------------------------------------------------------------------------- */
+        fromBig: typeof fromBig;
+        toBig: typeof toBig;
         deploy: <T extends Contract>(name: string, options?: DeployOptions) => Promise<DeployResultWithSignatures<T>>;
-        Diamond: Kresko;
-        Multisig: GnosisSafeL2;
-        DiamondDeployment: Deployment;
+        getSignatures: (abi: ABI) => string[];
+        getSignaturesWithNames: (abi: ABI) => { name: string; sig: string }[];
+        bytesCall: <T>(func: FunctionFragment, params: T) => string;
         getAddFacetArgs: <T extends Contract>(
             facet: T,
             signatures?: string[],
@@ -122,29 +151,32 @@ declare module "hardhat/types/runtime" {
                 _calldata: BytesLike;
             };
         };
-        getSignatures: (abi: ABI) => string[];
-        getSignaturesWithNames: (abi: ABI) => { name: string; sig: string }[];
-        utils: typeof import("ethers/lib/utils");
-        bytesCall: <T>(func: FunctionFragment, params: T) => string;
-        fromBig: typeof fromBig;
-        toBig: typeof toBig;
+        /* -------------------------------------------------------------------------- */
+        /*                                 Deployment                                 */
+        /* -------------------------------------------------------------------------- */
+        DiamondDeployment: Deployment;
+        Diamond: Kresko;
+        Multisig: GnosisSafeL2;
         kresko: Kresko;
-        krAssets: {
-            [name: string]: KreskoAsset;
-        };
+        krAssets: [KreskoAsset, FixedKreskoAsset, FluxPriceAggregator][];
+        collaterals: [ERC20Upgradeable, FluxPriceAggregator][];
         uniPairs: {
             [name: string]: UniswapV2Pair;
         };
+        /* -------------------------------------------------------------------------- */
+        /*                             Misc / Deprecating                             */
+        /* -------------------------------------------------------------------------- */
+        utils: typeof import("ethers/lib/utils");
+        // @todo DEPRECATING
         priceFeeds: {
             [description: string]: FluxPriceFeed;
         };
+        // @todo DEPRECATING
         priceAggregators: {
             [description: string]: FluxPriceAggregator;
         };
+        // @todo DEPRECATING
         priceFeedsRegistry: FeedsRegistry;
-        constructors: {
-            [contractName in SupportedContracts]: (overrides?: Partial<SupportedConstructors>) => SupportedConstructors;
-        };
     }
 }
 
