@@ -39,7 +39,17 @@ const getInitializer = async (hre: HardhatRuntimeEnvironment): Promise<MinterIni
     };
 };
 
+const krAssets = {
+    test: [
+        ["Tesla Inc.", "krTSLA"],
+        ["GameStop Corp.", "krGME"],
+        ["iShares Gold Trust", "krIAU"],
+        ["Invesco QQQ Trust", "krQQQ"],
+    ],
+};
+
 export default {
     facets,
     getInitializer,
+    krAssets,
 };

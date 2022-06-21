@@ -2,7 +2,7 @@
 pragma solidity 0.8.14;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "../krAsset/utils/ERC20Upgradeable.sol";
 import {Role} from "../shared/AccessControl.sol";
 
 /**
@@ -35,7 +35,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable {
         address _owner,
         address _operator
     ) external initializer {
-        __ERC20_init(_name, _symbol);
+        __ERC20Upgradeable_init(_name, _symbol, 18);
         __AccessControlEnumerable_init();
         _setupRole(Role.ADMIN, _owner);
         _setupRole(Role.OPERATOR, _operator);

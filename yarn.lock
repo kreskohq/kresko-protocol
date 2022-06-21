@@ -1101,10 +1101,11 @@ __metadata:
     "@nomiclabs/hardhat-etherscan": ^3.0.3
     "@nomiclabs/hardhat-waffle": ^2.0.3
     "@nomiclabs/hardhat-web3": ^2.0.0
-    "@openzeppelin/contracts": ^4.2.0
-    "@openzeppelin/contracts-upgradeable": ^4.3.2
+    "@openzeppelin/contracts": ^4.6.0
+    "@openzeppelin/contracts-upgradeable": ^4.6.0
     "@openzeppelin/hardhat-upgrades": ^1.10.0
     "@openzeppelin/test-helpers": ^0.5.15
+    "@rari-capital/solmate": ^6.4.0
     "@solidity-parser/parser": ^0.14.1
     "@solidstate/contracts": ^0.0.32
     "@solidstate/hardhat-4byte-uploader": ^1.0.2
@@ -1315,14 +1316,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@openzeppelin/contracts-upgradeable@npm:^4.3.2":
+"@openzeppelin/contracts-upgradeable@npm:^4.6.0":
   version: 4.6.0
   resolution: "@openzeppelin/contracts-upgradeable@npm:4.6.0"
   checksum: f9802c9cccf31bd475412ba5d862ed15eed5352302c30b29c38f84aed2dcfe0d957687935a72068f3d44292a4a55b0ff26cd018b2e14a47f16f74f087009aa29
   languageName: node
   linkType: hard
 
-"@openzeppelin/contracts@npm:^4.2.0":
+"@openzeppelin/contracts@npm:^4.6.0":
   version: 4.6.0
   resolution: "@openzeppelin/contracts@npm:4.6.0"
   checksum: 1de06211b279d7aef2bb9abbdd58eb80c71256f7e888a10855ea23bb06ef8723b22fb550d06af60247dfbd7f0f23de9821732012d7541a823339070a8442d1db
@@ -1380,6 +1381,13 @@ __metadata:
     proper-lockfile: ^4.1.1
     solidity-ast: ^0.4.15
   checksum: a491e33452d9744277d66144206ab0121851d219a5cef1ed095f37977433c5a0536a0483e4d446f3d8b7c06dcb53dabffcc9e638b510c0b92153b6b0feaad998
+  languageName: node
+  linkType: hard
+
+"@rari-capital/solmate@npm:^6.4.0":
+  version: 6.4.0
+  resolution: "@rari-capital/solmate@npm:6.4.0"
+  checksum: 27c656f72ce9b51ab6ec25165ae5426f74af934352eca062eb8419c4cf7fc4c6debf45487afd6bee7860e38b7c33d3a6d353a0d4c176c961c9c8125d30cf52a4
   languageName: node
   linkType: hard
 
