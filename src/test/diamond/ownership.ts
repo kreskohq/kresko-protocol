@@ -1,6 +1,6 @@
-import hre from "hardhat";
 import { withFixture } from "@test-utils";
 import { expect } from "chai";
+import Role from "../utils/roles";
 
 describe("Diamond", function () {
     withFixture("createBaseDiamond");
@@ -10,12 +10,7 @@ describe("Diamond", function () {
         });
 
         it("sets correct default admin role", async function () {
-            expect(
-                await this.Diamond.hasRole(
-                    hre.ethers.utils.hexZeroPad(hre.ethers.utils.hexlify(0), 32),
-                    this.addresses.deployer,
-                ),
-            ).to.equal(true);
+            expect(await this.Diamond.hasRole(Role.ADMIN, this.addresses.deployer)).to.equal(true);
         });
 
         it("sets a new pending owner", async function () {

@@ -1,5 +1,5 @@
 import hre from "hardhat";
-import { withFixture, addCollateralAsset, addKreskoAsset, getPriceAggregatorForAsset } from "@test-utils";
+import { withFixture, addMockCollateralAsset, addMockKreskoAsset, getMockOracleFor } from "@test-utils";
 import { smock } from "@defi-wonderland/smock";
 import { fromBig, toBig, toFixedPoint } from "@utils";
 import chai, { expect } from "chai";
@@ -52,7 +52,7 @@ describe("Minter", function () {
                 factor: 0.9,
                 decimals: 18,
             };
-            const [Collateral] = await addCollateralAsset(args);
+            const [Collateral] = await addMockCollateralAsset(args);
             expect(await hre.Diamond.collateralExists(Collateral.address)).to.equal(true);
             const [, oraclePrice] = await hre.Diamond.getCollateralValueAndOraclePrice(
                 Collateral.address,
@@ -70,7 +70,7 @@ describe("Minter", function () {
                 factor: 1.1,
                 supplyLimit: 10000,
             };
-            const [krAsset] = await addKreskoAsset(args);
+            const [krAsset] = await addMockKreskoAsset(args);
 
             const values = await hre.Diamond.kreskoAsset(krAsset.address);
             const kreskoPriceAnswer = Number(await hre.Diamond.getKrAssetValue(krAsset.address, toBig(1), true));
@@ -90,7 +90,7 @@ describe("Minter", function () {
                 supplyLimit: 10000,
             };
 
-            const [krAsset, Oracle] = await addKreskoAsset(args);
+            const [krAsset, , Oracle] = await addMockKreskoAsset(args);
 
             const oracleAnswer = Number(await Oracle.latestAnswer());
             const kreskoAnswer = Number(await hre.Diamond.getKrAssetValue(krAsset.address, toBig(1), true));
@@ -104,7 +104,7 @@ describe("Minter", function () {
                 price: 20,
             };
 
-            const updatedOracle = await getPriceAggregatorForAsset(await krAsset.name(), updated.price);
+            const updatedOracle = await getMockOracleFor(await krAsset.name(), updated.price);
 
             await hre.Diamond.connect(this.users.operator).updateKreskoAsset(
                 krAsset.address,

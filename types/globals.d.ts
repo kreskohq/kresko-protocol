@@ -75,7 +75,7 @@ declare global {
         minimumDebtValue: BigNumberish;
         secondsUntilPriceStale: BigNumberish;
     }
-    interface KreskoAssetConstructor {
+    interface KreskoAssetInitializer {
         name: string;
         symbol: string;
         decimals: number;
@@ -83,7 +83,7 @@ declare global {
         kresko: string;
     }
 
-    interface FixedKreskoAssetConstructor {
+    interface FixedKreskoAssetInitializer {
         krAsset: string;
         name: string;
         symbol: string;

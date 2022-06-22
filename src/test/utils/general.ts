@@ -1,4 +1,4 @@
-import hre from "hardhat";
+import hre, { collaterals } from "hardhat";
 import { MockContract, smock } from "@defi-wonderland/smock";
 import { ethers } from "hardhat";
 import { toFixedPoint } from "@utils/fixed-point";
@@ -98,10 +98,11 @@ export const addMockCollateralAsset = async (
     const OracleAggregator = await getMockOracleFor(name, price);
 
     const Collateral = await (await smock.mock<ERC20Upgradeable__factory>("ERC20Upgradeable")).deploy();
+    await Collateral.setVariable("_initialized", 0);
 
-    Collateral.decimals.returns(decimals);
-    Collateral.symbol.returns(name);
-    Collateral.name.returns(name);
+    await Collateral.setVariable("name", name);
+    await Collateral.setVariable("symbol", name);
+    await Collateral.setVariable("decimals", decimals);
 
     const cFactor = toFixedPoint(factor);
     await hre.Diamond.connect(users.operator).addCollateralAsset(Collateral.address, cFactor, OracleAggregator.address);
@@ -167,6 +168,7 @@ export const addMockKreskoAsset = async (
 
     // create the underlying elastic krAsset
     const krAsset = await (await smock.mock<KreskoAsset__factory>("KreskoAsset")).deploy();
+    await krAsset.setVariable("_initialized", 0);
 
     // Initialize the underlying krAsset
     await krAsset.initialize(name, name, 18, users.deployer.address, hre.Diamond.address);
@@ -176,6 +178,7 @@ export const addMockKreskoAsset = async (
         await smock.mock<FixedKreskoAsset__factory>("FixedKreskoAsset")
     ).deploy(krAsset.address);
 
+    await krAssetFixed.setVariable("_initialized", 0);
     await krAssetFixed.initialize(krAsset.address, name, name, users.deployer.address);
 
     // Add the asset to the protocol
@@ -199,7 +202,6 @@ export const borrowKrAsset = async (args: InputArgs) => {
     const { user, asset, amount } = args;
     const borrowAmount = toBig(amount);
 
-    await expect(hre.Diamond.connect(user).mintKreskoAsset(user.address, asset.address, borrowAmount)).not.to.be
-        .reverted;
+    await hre.Diamond.connect(user).mintKreskoAsset(user.address, asset.address, borrowAmount);
     expect(await hre.Diamond.kreskoAssetDebt(user.address, asset.address)).to.equal(borrowAmount);
 };

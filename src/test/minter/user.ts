@@ -1,4 +1,4 @@
-import { withFixture, addCollateralAsset, depositCollateral, addKreskoAsset, borrowKrAsset } from "@test-utils";
+import { withFixture, depositMockCollateral, borrowKrAsset } from "@test-utils";
 
 describe("Minter", function () {
     withFixture("createMinterUser");
@@ -29,13 +29,13 @@ describe("Minter", function () {
         });
         describe("#collateral", () => {
             it("can deposit collateral", async function () {
-                await depositCollateral(this.defaultDepositArgs);
+                await depositMockCollateral(this.defaultDepositArgs);
             });
         });
 
         describe("#krAsset", () => {
             it("can borrow krAssets", async function () {
-                await depositCollateral(this.defaultDepositArgs);
+                await depositMockCollateral(this.defaultDepositArgs);
                 await borrowKrAsset(this.defaultBorrowArgs);
             });
         });

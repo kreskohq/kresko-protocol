@@ -30,6 +30,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
         bool expand;
         uint256 rate;
     }
+
     bool public rebalanced;
     Rebalance public rebalance;
     address public kresko;
@@ -187,23 +188,18 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
         address _to,
         uint256 _amount
     ) internal returns (bool) {
-        if (!rebalanced) {
-            _balances[_from] -= _amount;
-            unchecked {
-                _balances[_to] += _amount;
-            }
-        } else {
+        if (rebalanced) {
             uint256 balance = _balances[_from];
             uint256 rate = rebalance.rate;
             require(
-                _amount <= (rebalance.expand ? balance.divWadDown(rate) : balance.mulWadDown(rate)),
+                _amount <= (rebalance.expand ? balance.mulWadDown(rate) : balance.divWadDown(rate)),
                 Error.NOT_ENOUGH_BALANCE
             );
+        }
 
-            _balances[_from] -= rebalance.expand ? _amount.divWadDown(rate) : _amount.mulWadDown(rate);
-            unchecked {
-                _balances[_to] += rebalance.expand ? _amount.divWadDown(rate) : _amount.mulWadDown(rate);
-            }
+        _balances[_from] -= _amount;
+        unchecked {
+            _balances[_to] += _amount;
         }
 
         emit Transfer(_from, _to, _amount);

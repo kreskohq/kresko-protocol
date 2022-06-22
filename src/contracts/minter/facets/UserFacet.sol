@@ -139,7 +139,7 @@ contract UserFacet is DiamondModifiers, MinterModifiers {
         // Record the mint.
         s.kreskoAssetDebt[_account][_kreskoAsset] = existingDebtAmount + _amount;
 
-        IKreskoAsset(_kreskoAsset).mint(_account, _amount);
+        IKreskoAsset(_kreskoAsset).mint(address(this), _amount);
 
         emit MinterEvent.KreskoAssetMinted(_account, _kreskoAsset, _amount);
     }

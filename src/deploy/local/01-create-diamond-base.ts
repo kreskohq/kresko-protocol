@@ -8,7 +8,7 @@ import DiamondConfig from "src/config/diamond";
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("create-diamond");
     const { ethers, getNamedAccounts, deploy, deployments } = hre;
-    const { deployer, admin } = await getNamedAccounts();
+    const { deployer } = await getNamedAccounts();
 
     // #1 Do not use `add-facets.ts` for the initial diamond, set the initial facets in the constructor
     const InitialFacets: FacetCut[] = [];
@@ -24,7 +24,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     }
     const [DiamondContract, _signatures, deployment] = await deploy("Diamond", {
         from: deployer,
-        args: [admin, InitialFacets, []],
+        args: [deployer, InitialFacets, []],
     });
 
     const DiamondFullABI = await ethers.getContractAt<Kresko>("Kresko", DiamondContract.address);

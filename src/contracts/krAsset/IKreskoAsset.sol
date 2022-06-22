@@ -10,5 +10,5 @@ interface IKreskoAsset {
         uint8 _version
     ) external;
 
-    function setRate(uint256 _rate) external;
+    function setRebalance(uint256 _rate, bool _expand) external;
 }
