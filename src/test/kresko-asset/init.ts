@@ -224,6 +224,37 @@ describe("KreskoAsset", function () {
                     expect(await KreskoAsset.allowance(deployer.address, userOne.address)).to.equal(0);
                 });
 
+                it("has default transferFrom behaviour after expansion @ rate 100", async function () {
+                    const { deployer, userOne } = this.users;
+                    const transferAmount = hre.toBig(1);
+
+                    await KreskoAsset.mint(deployer.address, defaultMintAmount);
+                    await KreskoAsset.mint(userOne.address, defaultMintAmount);
+
+                    const rate = 100;
+                    const expand = true;
+                    await KreskoAsset.setRebalance(hre.toBig(rate), expand);
+
+                    await KreskoAsset.approve(userOne.address, transferAmount);
+
+                    const rebalancedDefaultMintAMount = defaultMintAmount.mul(rate);
+
+                    await KreskoAsset.connect(userOne).transferFrom(deployer.address, userOne.address, transferAmount);
+
+                    expect(await KreskoAsset.balanceOf(userOne.address)).to.equal(
+                        rebalancedDefaultMintAMount.add(transferAmount),
+                    );
+                    expect(await KreskoAsset.balanceOf(deployer.address)).to.equal(
+                        rebalancedDefaultMintAMount.sub(transferAmount),
+                    );
+
+                    await expect(
+                        KreskoAsset.connect(userOne).transferFrom(deployer.address, userOne.address, transferAmount),
+                    ).to.be.revertedWith(Error.NOT_ENOUGH_ALLOWANCE);
+
+                    expect(await KreskoAsset.allowance(deployer.address, userOne.address)).to.equal(0);
+                });
+
                 it("has default transferFrom behaviour after reduction", async function () {
                     const { deployer, userOne } = this.users;
                     const transferAmount = hre.toBig(1);
@@ -232,6 +263,37 @@ describe("KreskoAsset", function () {
                     await KreskoAsset.mint(userOne.address, defaultMintAmount);
 
                     const rate = 2;
+                    const expand = false;
+                    await KreskoAsset.setRebalance(hre.toBig(rate), expand);
+
+                    await KreskoAsset.approve(userOne.address, transferAmount);
+
+                    const rebalancedDefaultMintAMount = defaultMintAmount.div(rate);
+
+                    await KreskoAsset.connect(userOne).transferFrom(deployer.address, userOne.address, transferAmount);
+
+                    expect(await KreskoAsset.balanceOf(userOne.address)).to.equal(
+                        rebalancedDefaultMintAMount.add(transferAmount),
+                    );
+                    expect(await KreskoAsset.balanceOf(deployer.address)).to.equal(
+                        rebalancedDefaultMintAMount.sub(transferAmount),
+                    );
+
+                    await expect(
+                        KreskoAsset.connect(userOne).transferFrom(deployer.address, userOne.address, transferAmount),
+                    ).to.be.revertedWith(Error.NOT_ENOUGH_ALLOWANCE);
+
+                    expect(await KreskoAsset.allowance(deployer.address, userOne.address)).to.equal(0);
+                });
+
+                it("has default transferFrom behaviour after reduction @ 100", async function () {
+                    const { deployer, userOne } = this.users;
+                    const transferAmount = hre.toBig(1);
+
+                    await KreskoAsset.mint(deployer.address, defaultMintAmount);
+                    await KreskoAsset.mint(userOne.address, defaultMintAmount);
+
+                    const rate = 100;
                     const expand = false;
                     await KreskoAsset.setRebalance(hre.toBig(rate), expand);
 

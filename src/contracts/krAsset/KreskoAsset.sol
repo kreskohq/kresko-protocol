@@ -188,14 +188,10 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
                 _balances[_to] += _amount;
             }
         } else {
-            uint256 balance = _balances[_from];
-            uint256 rate = rebalance.rate;
-            require(
-                _amount <= (rebalance.expand ? balance.divWadDown(rate) : balance.mulWadDown(rate)),
-                Error.NOT_ENOUGH_BALANCE
-            );
+            uint256 balance = balanceOf(_from);
+            require(_amount <= balance, Error.NOT_ENOUGH_BALANCE);
 
-            _amount = rebalance.expand ? _amount.divWadDown(rate) : _amount.mulWadDown(rate);
+            _amount = rebalance.expand ? _amount.divWadDown(rebalance.rate) : _amount.mulWadDown(rebalance.rate);
             _balances[_from] -= _amount;
             unchecked {
                 _balances[_to] += _amount;
