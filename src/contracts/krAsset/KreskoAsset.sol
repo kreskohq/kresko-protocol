@@ -100,7 +100,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
         uint256 allowed = _allowances[_owner][_account];
         if (!rebalanced) return allowed;
 
-        return rebalance.expand ? allowed.mulWadUp(rebalance.rate) : allowed.divWadUp(rebalance.rate);
+        return rebalance.expand ? allowed.mulWadDown(rebalance.rate) : allowed.divWadDown(rebalance.rate);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -160,7 +160,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
      */
     function mint(address _to, uint256 _amount) external onlyRole(Role.OPERATOR) {
         if (!rebalanced) return _mint(_to, _amount);
-        _mint(_to, rebalance.expand ? _amount.mulWadDown(rebalance.rate) : _amount.divWadUp(rebalance.rate));
+        _mint(_to, rebalance.expand ? _amount.mulWadDown(rebalance.rate) : _amount.divWadDown(rebalance.rate));
     }
 
     /**
@@ -170,7 +170,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
      */
     function burn(address _from, uint256 _amount) external onlyRole(Role.OPERATOR) {
         if (!rebalanced) return _burn(_from, _amount);
-        _burn(_from, rebalance.expand ? _amount.mulWadDown(rebalance.rate) : _amount.divWadUp(rebalance.rate));
+        _burn(_from, rebalance.expand ? _amount.mulWadDown(rebalance.rate) : _amount.divWadDown(rebalance.rate));
     }
 
     /* -------------------------------------------------------------------------- */
