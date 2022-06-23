@@ -129,12 +129,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
         uint256 allowed = _allowances[_from][msg.sender]; // Saves gas for unlimited approvals.
 
         if (allowed != type(uint256).max) {
-            if (rebalanced) {
-                allowed = rebalance.expand ? allowed.mulWadUp(rebalance.rate) : allowed.divWadUp(rebalance.rate);
-                unchecked {
-                    require(_amount <= allowed, Error.NOT_ENOUGH_ALLOWANCE);
-                }
-            }
+            require(_amount <= allowed, Error.NOT_ENOUGH_ALLOWANCE);
             _allowances[_from][msg.sender] -= _amount;
         }
 
@@ -200,9 +195,10 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
                 Error.NOT_ENOUGH_BALANCE
             );
 
-            _balances[_from] -= rebalance.expand ? _amount.divWadDown(rate) : _amount.mulWadDown(rate);
+            _amount = rebalance.expand ? _amount.divWadDown(rate) : _amount.mulWadDown(rate);
+            _balances[_from] -= _amount;
             unchecked {
-                _balances[_to] += rebalance.expand ? _amount.divWadDown(rate) : _amount.mulWadDown(rate);
+                _balances[_to] += _amount;
             }
         }
 

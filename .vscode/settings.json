@@ -35,5 +35,7 @@
         ".czrc": true,
         ".editorconfig": true,
         "node_modules": true
-    }
+    },
+    "solidity-va.hover": true,
+    "solidity-va.codelens.enable": true
 }
