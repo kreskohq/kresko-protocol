@@ -3,8 +3,8 @@
 /* ========================================================================== */
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { MinterInitArgsStruct } from "types/typechain/Kresko";
 import { toFixedPoint } from "@utils/fixed-point";
+import { MinterInitArgsStruct } from "types/typechain/src/contracts/minter/interfaces/IOperatorFacet";
 
 const facets = [
     "OperatorFacet",
