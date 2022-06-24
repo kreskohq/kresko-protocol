@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.14;
 
-import "../../shared/FP.sol" as FixedPoint;
+import "../../shared/FixedPoint.sol";
 import {Action} from "../state/Structs.sol";
 
 interface IAssetViewFacet {

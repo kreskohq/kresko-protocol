@@ -17,6 +17,7 @@ import {MinterState, ms, FixedPoint, MinterEvent, Action} from "../MinterStorage
 contract UserFacet is DiamondModifiers, MinterModifiers {
     using SafeERC20Upgradeable for IERC20MetadataUpgradeable;
     using Arrays for address[];
+    using FixedPoint for FixedPoint.Unsigned;
 
     /* -------------------------------------------------------------------------- */
     /*                                 Collateral                                 */
@@ -96,16 +97,17 @@ contract UserFacet is DiamondModifiers, MinterModifiers {
         kreskoAssetPriceNotStale(_kreskoAsset)
         onlyRoleIf(_account != msg.sender, Role.MANAGER)
     {
-        if (ms().safetyStateSet) {
-            ensureNotPaused(_kreskoAsset, Action.Borrow);
-        }
         require(_amount > 0, Error.ZERO_MINT);
 
         MinterState storage s = ms();
+
+        if (s.safetyStateSet) {
+            ensureNotPaused(_kreskoAsset, Action.Borrow);
+        }
+
         // Enforce synthetic asset's maximum market capitalization limit
         require(
-            ms().getKrAssetValue(_kreskoAsset, IKreskoAsset(_kreskoAsset).totalSupply() + _amount, true).rawValue <=
-                s.kreskoAssets[_kreskoAsset].marketCapUSDLimit,
+            IKreskoAsset(_kreskoAsset).totalSupply() + _amount <= s.kreskoAssets[_kreskoAsset].supplyLimit,
             Error.KRASSET_MAX_SUPPLY_REACHED
         );
 
@@ -137,7 +139,7 @@ contract UserFacet is DiamondModifiers, MinterModifiers {
             s.mintedKreskoAssets[_account].push(_kreskoAsset);
         }
         // Record the mint.
-        s.kreskoAssetDebt[_account][_kreskoAsset] = existingDebtAmount + _amount;
+        s.kreskoAssetDebt[_account][_kreskoAsset] += _amount;
 
         IKreskoAsset(_kreskoAsset).mint(address(this), _amount);
 

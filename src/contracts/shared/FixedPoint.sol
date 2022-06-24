@@ -4,28 +4,25 @@ pragma solidity >=0.8.14;
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SignedSafeMathUpgradeable.sol";
 
-struct Unsigned {
-    uint256 rawValue;
-}
-
-struct Signed {
-    int256 rawValue;
-}
-
-uint256 constant FP_DECIMALS = 18;
-uint256 constant FP_SCALING_FACTOR = 10**FP_DECIMALS;
-int256 constant SFP_SCALING_FACTOR = 10**18;
-
-using FPMath for Unsigned global;
-using FPMath for Signed global;
-
 /**
  * @title Library for fixed point arithmetic on uints
  */
 
-library FPMath {
+library FixedPoint {
     using SafeMathUpgradeable for uint256;
     using SignedSafeMathUpgradeable for int256;
+
+    uint256 constant FP_DECIMALS = 18;
+    uint256 constant FP_SCALING_FACTOR = 10**FP_DECIMALS;
+    int256 constant SFP_SCALING_FACTOR = 10**18;
+
+    struct Unsigned {
+        uint256 rawValue;
+    }
+
+    struct Signed {
+        int256 rawValue;
+    }
 
     // Supports 18 decimals. E.g., 1e18 represents "1", 5e17 represents "0.5".
     // For unsigned values:
@@ -773,20 +770,4 @@ library FPMath {
     }
 
     // ------------------- Additional Fixed Point math functions specific to Kresko protocol -------------------
-
-    /**
-    //  * @notice Calculate amount of collateral to seize during the liquidation process.
-    //  * @param _collateralOraclePriceUSD The address of the collateral asset to be seized.
-    //  * @param _kreskoAssetRepayAmountUSD Kresko asset amount being repaid in exchange for the seized collateral.
-    //  */
-    function _calculateAmountToSeize(
-        Unsigned memory _liquidationIncentiveMultiplier,
-        Unsigned memory _collateralOraclePriceUSD,
-        Unsigned memory _kreskoAssetRepayAmountUSD
-    ) internal pure returns (Unsigned memory) {
-        // Seize amount = (repay amount USD * liquidation incentive / collateral price USD).
-        // Denominate seize amount in collateral type
-        // Apply liquidation incentive multiplier
-        return div(mul(_kreskoAssetRepayAmountUSD, _liquidationIncentiveMultiplier), _collateralOraclePriceUSD);
-    }
 }

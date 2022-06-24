@@ -158,7 +158,7 @@ declare module "hardhat/types/runtime" {
         Diamond: Kresko;
         Multisig: GnosisSafeL2;
         kresko: Kresko;
-        krAssets: [KreskoAsset, FixedKreskoAsset, FluxPriceAggregator][];
+        krAssets: [KreskoAsset, WrappedKreskoAsset, FluxPriceAggregator][];
         collaterals: [ERC20Upgradeable, FluxPriceAggregator][];
         uniPairs: {
             [name: string]: UniswapV2Pair;

@@ -32,9 +32,8 @@ contract OperatorFacet is DiamondModifiers, MinterModifiers, IOperatorFacet {
          * - reverts if above is not true.
          */
         AccessControl.setupSecurityCouncil(args.council);
-        // Minter protocol version domain
 
-        /// @dev Needs temporary operator role for calling the update functions
+        /// @dev Temporarily set operator role for calling the update functions
         AccessControl._grantRole(Role.OPERATOR, msg.sender);
 
         updateFeeRecipient(args.feeRecipient);
@@ -44,7 +43,7 @@ contract OperatorFacet is DiamondModifiers, MinterModifiers, IOperatorFacet {
         updateMinimumDebtValue(args.minimumDebtValue);
         updateSecondsUntilStalePrice(args.secondsUntilStalePrice);
 
-        // Revoke it after
+        /// @dev Revoke the operator role
         AccessControl.revokeRole(Role.OPERATOR, msg.sender);
 
         // Add IERC165 support for facets
@@ -116,13 +115,13 @@ contract OperatorFacet is DiamondModifiers, MinterModifiers, IOperatorFacet {
      * @param _kreskoAsset The address of the Kresko asset.
      * @param _kFactor The k-factor of the Kresko asset as a raw value for a FixedPoint.Unsigned. Must be >= 1e18.
      * @param _oracle The oracle address for the Kresko asset.
-     * @param _marketCapUSDLimit The initial market capitalization USD limit for the Kresko asset.
+     * @param _supplyLimit The initial market capitalization USD limit for the Kresko asset.
      */
     function addKreskoAsset(
         address _kreskoAsset,
         uint256 _kFactor,
         address _oracle,
-        uint256 _marketCapUSDLimit
+        uint256 _supplyLimit
     ) external onlyRole(Role.OPERATOR) kreskoAssetDoesNotExist(_kreskoAsset) {
         require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, Error.KRASSET_INVALID_FACTOR);
         require(_oracle != address(0), Error.ADDRESS_INVALID_ORACLE);
@@ -137,9 +136,9 @@ contract OperatorFacet is DiamondModifiers, MinterModifiers, IOperatorFacet {
             oracle: AggregatorV2V3Interface(_oracle),
             exists: true,
             mintable: true,
-            marketCapUSDLimit: _marketCapUSDLimit
+            supplyLimit: _supplyLimit
         });
-        emit MinterEvent.KreskoAssetAdded(_kreskoAsset, _kFactor, _oracle, _marketCapUSDLimit);
+        emit MinterEvent.KreskoAssetAdded(_kreskoAsset, _kFactor, _oracle, _supplyLimit);
     }
 
     /**
@@ -149,14 +148,14 @@ contract OperatorFacet is DiamondModifiers, MinterModifiers, IOperatorFacet {
      * @param _kFactor The new k-factor as a raw value for a FixedPoint.Unsigned. Must be >= 1e18.
      * @param _oracle The new oracle address for the Kresko asset's USD value.
      * @param _mintable The new mintable value.
-     * @param _marketCapUSDLimit The new market capitalization USD limit.
+     * @param _supplyLimit The new market capitalization USD limit.
      */
     function updateKreskoAsset(
         address _kreskoAsset,
         uint256 _kFactor,
         address _oracle,
         bool _mintable,
-        uint256 _marketCapUSDLimit
+        uint256 _supplyLimit
     ) external onlyRole(Role.OPERATOR) kreskoAssetExistsMaybeNotMintable(_kreskoAsset) {
         require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, Error.KRASSET_INVALID_FACTOR);
         require(_oracle != address(0), Error.ADDRESS_INVALID_ORACLE);
@@ -165,10 +164,11 @@ contract OperatorFacet is DiamondModifiers, MinterModifiers, IOperatorFacet {
         krAsset.kFactor = FixedPoint.Unsigned(_kFactor);
         krAsset.oracle = AggregatorV2V3Interface(_oracle);
         krAsset.mintable = _mintable;
-        krAsset.marketCapUSDLimit = _marketCapUSDLimit;
+        krAsset.supplyLimit = _supplyLimit;
+
         ms().kreskoAssets[_kreskoAsset] = krAsset;
 
-        emit MinterEvent.KreskoAssetUpdated(_kreskoAsset, _kFactor, _oracle, _mintable, _marketCapUSDLimit);
+        emit MinterEvent.KreskoAssetUpdated(_kreskoAsset, _kFactor, _oracle, _mintable, _supplyLimit);
     }
 
     /**
@@ -242,7 +242,7 @@ contract OperatorFacet is DiamondModifiers, MinterModifiers, IOperatorFacet {
 
     /**
      * @dev Updates the contract's seconds until stale price value
-     * @param _secondsUntilStalePrice The new seconds until stale price.
+     * @param _secondsUntilStalePrice Seconds until price is considered stale.
      */
     function updateSecondsUntilStalePrice(uint256 _secondsUntilStalePrice) public onlyRole(Role.OPERATOR) {
         ms().secondsUntilStalePrice = _secondsUntilStalePrice;

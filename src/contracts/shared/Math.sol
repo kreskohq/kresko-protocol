@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity 0.8.14;
 
-import "./FP.sol" as FixedPoint;
+import {FixedPoint} from "./FixedPoint.sol";
 
 /**
  * @title Library for Kresko specific math involving floating point arithmetic
  */
 
-library FPConversions {
+library Math {
+    using FixedPoint for FixedPoint.Unsigned;
+
     /**
      * @notice For a given collateral asset and amount, returns a FixedPoint.Unsigned representation.
      * @dev If the collateral asset has decimals other than 18, the amount is scaled appropriately.
@@ -79,5 +81,21 @@ library FPConversions {
             return amount * (10**(_collateralAssetDecimals - FixedPoint.FP_DECIMALS));
         }
         return amount;
+    }
+
+    /**
+    //  * @notice Calculate amount of collateral to seize during the liquidation process.
+    //  * @param _collateralOraclePriceUSD The address of the collateral asset to be seized.
+    //  * @param _kreskoAssetRepayAmountUSD Kresko asset amount being repaid in exchange for the seized collateral.
+    //  */
+    function _calculateAmountToSeize(
+        FixedPoint.Unsigned memory _liquidationIncentiveMultiplier,
+        FixedPoint.Unsigned memory _collateralOraclePriceUSD,
+        FixedPoint.Unsigned memory _kreskoAssetRepayAmountUSD
+    ) internal pure returns (FixedPoint.Unsigned memory) {
+        // Seize amount = (repay amount USD * liquidation incentive / collateral price USD).
+        // Denominate seize amount in collateral type
+        // Apply liquidation incentive multiplier
+        return _kreskoAssetRepayAmountUSD.mul(_liquidationIncentiveMultiplier).div(_collateralOraclePriceUSD);
     }
 }

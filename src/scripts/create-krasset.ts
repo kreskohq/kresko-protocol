@@ -28,10 +28,10 @@ export async function createKrAsset(name: string, symbol, decimals = 18) {
 
     const fixedKreskoAssetInitializerArgs = [KreskoAsset.address, name, symbol, deployer.address];
 
-    const [FixedKreskoAsset] = await hre.deploy(symbol, {
+    const [WrappedKreskoAsset] = await hre.deploy(symbol, {
         from: deployer.address,
         log: true,
-        contract: "FixedKreskoAsset",
+        contract: "WrappedKreskoAsset",
         args: [KreskoAsset.address],
         proxy: {
             owner: deployer.address,
@@ -43,7 +43,7 @@ export async function createKrAsset(name: string, symbol, decimals = 18) {
         },
     });
 
-    hre.krAssets.push([KreskoAsset, FixedKreskoAsset]);
+    hre.krAssets.push([KreskoAsset, WrappedKreskoAsset]);
 
-    return [KreskoAsset, FixedKreskoAsset];
+    return [KreskoAsset, WrappedKreskoAsset];
 }

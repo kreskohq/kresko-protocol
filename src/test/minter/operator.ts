@@ -79,7 +79,7 @@ describe("Minter", function () {
             expect(values.exists).to.equal(true);
             expect(Number(values.kFactor)).to.equal(Number(toFixedPoint(args.factor)));
             expect(Number(kreskoPriceAnswer)).to.equal(Number(toFixedPoint(args.price)));
-            expect(fromBig(values.marketCapUSDLimit)).to.equal(args.supplyLimit);
+            expect(fromBig(values.supplyLimit)).to.equal(args.supplyLimit);
         });
 
         it("can update values of a kresko asset", async function () {
@@ -120,7 +120,7 @@ describe("Minter", function () {
 
             expect(newValues.exists).to.equal(true);
             expect(Number(newValues.kFactor)).to.equal(Number(updated.factor));
-            expect(fromBig(newValues.marketCapUSDLimit)).to.equal(Number(updated.supplyLimit));
+            expect(fromBig(newValues.supplyLimit)).to.equal(Number(updated.supplyLimit));
 
             expect(updatedOracleAnswer).to.equal(newKreskoAnswer);
             expect(updatedOracleAnswer).to.equal(Number(toFixedPoint(updated.price)));

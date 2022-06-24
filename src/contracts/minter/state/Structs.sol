@@ -2,7 +2,7 @@
 pragma solidity 0.8.14;
 
 import {AggregatorV2V3Interface} from "../../vendor/flux/interfaces/AggregatorV2V3Interface.sol";
-import "../../shared/FP.sol" as FixedPoint;
+import "../../shared/FixedPoint.sol";
 
 /* ========================================================================== */
 /*                                   STRUCTS                                  */
@@ -60,7 +60,7 @@ struct CollateralAsset {
 struct KrAsset {
     FixedPoint.Unsigned kFactor;
     AggregatorV2V3Interface oracle;
-    uint256 marketCapUSDLimit;
+    uint256 supplyLimit;
     bool mintable;
     bool exists;
 }

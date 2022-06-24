@@ -4,16 +4,18 @@ pragma solidity 0.8.14;
 import {IKreskoAsset} from "../interfaces/IKreskoAsset.sol";
 
 import "../../shared/Errors.sol";
-import {FPConversions} from "../../shared/FPConversions.sol";
+import {Math} from "../../shared/Math.sol";
 import {DiamondModifiers} from "../../shared/Modifiers.sol";
 
 import "../state/Constants.sol";
 import {ms, MinterState, FixedPoint, MinterEvent, IERC20MetadataUpgradeable, SafeERC20Upgradeable, Arrays} from "../MinterStorage.sol";
 
 contract LiquidationFacet is DiamondModifiers {
-    using FPConversions for uint8;
-    using SafeERC20Upgradeable for IERC20MetadataUpgradeable;
     using Arrays for address[];
+    using Math for uint8;
+    using Math for FixedPoint.Unsigned;
+    using FixedPoint for FixedPoint.Unsigned;
+    using SafeERC20Upgradeable for IERC20MetadataUpgradeable;
 
     /**
      * @notice Attempts to liquidate an account by repaying the portion of the account's Kresko asset
@@ -36,19 +38,19 @@ contract LiquidationFacet is DiamondModifiers {
     ) external nonReentrant {
         MinterState storage s = ms();
         {
-            // Check that this account is below its minimum collateralization ratio and can be liquidated.
-            require(s.isAccountLiquidatable(_account), Error.NOT_LIQUIDATABLE);
-            // krAsset exists
-            require(s.kreskoAssets[_repayKreskoAsset].exists, Error.KRASSET_DOESNT_EXIST);
-            // Collateral exists
-            require(s.collateralAssets[_collateralAssetToSeize].exists, Error.COLLATERAL_DOESNT_EXIST);
             // No zero repays
             require(_repayAmount > 0, Error.ZERO_REPAY);
+            // Borrower cannot liquidate themselves
+            require(msg.sender != _account, Error.SELF_LIQUIDATION);
+            // krAsset exists
+            require(s.kreskoAssets[_repayKreskoAsset].exists, Error.KRASSET_DOESNT_EXIST);
+            // Check that this account is below its minimum collateralization ratio and can be liquidated.
+            require(s.isAccountLiquidatable(_account), Error.NOT_LIQUIDATABLE);
+            // Collateral exists
+            require(s.collateralAssets[_collateralAssetToSeize].exists, Error.COLLATERAL_DOESNT_EXIST);
             // Price is active
             uint256 priceTimestamp = uint256(s.kreskoAssets[_repayKreskoAsset].oracle.latestTimestamp());
             require(block.timestamp < priceTimestamp + s.secondsUntilStalePrice, Error.STALE_PRICE);
-            // Borrower cannot liquidate themselves
-            require(msg.sender != _account, Error.SELF_LIQUIDATION);
         }
 
         // Repay amount USD = repay amount * KR asset USD exchange rate.

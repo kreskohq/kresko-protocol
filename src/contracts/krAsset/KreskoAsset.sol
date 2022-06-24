@@ -2,37 +2,32 @@
 pragma solidity >=0.8.14;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
-import {FixedPointMathLib} from "@rari-capital/solmate/src/utils/FixedPointMathLib.sol";
 
 import {Role} from "../shared/AccessControl.sol";
-import "../shared/FP.sol" as FixedPoint;
 import "../shared/Errors.sol";
 
+import {RebalanceMath, Rebalance} from "./utils/Rebalance.sol";
 import "./utils/ERC20Upgradeable.sol";
 import {IKreskoAsset} from "./IKreskoAsset.sol";
 
 import "hardhat/console.sol";
 
 /**
- * @title Kresko Synthethic Asset - a rebalancing ERC20.
+ * @title Kresko Synthethic Asset - rebalancing ERC20.
  * @author Kresko
  *
- * @notice Main purpose of this token is to act as the underlying for the `FixedKreskoAsset`
+ * @notice Main purpose of this token is to act as the underlying for the `WrappedKreskoAsset`
  * - This token will rebalance eg. when a stock split happens
  *
- * @notice Minting and burning can only be performed by the `Role.OPERATOR`
+ * @notice Minting, burning and rebalancing can only be performed by the `Role.OPERATOR`
  */
 
 contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IKreskoAsset {
-    using FixedPointMathLib for uint256;
+    using RebalanceMath for uint256;
 
-    struct Rebalance {
-        bool expand;
-        uint256 rate;
-    }
     bool public rebalanced;
-    Rebalance public rebalance;
     address public kresko;
+    Rebalance public rebalance;
 
     /* -------------------------------------------------------------------------- */
     /*                               Initialization                               */
@@ -83,24 +78,21 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
     function totalSupply() public view override returns (uint256) {
         if (!rebalanced) return _totalSupply;
 
-        return rebalance.expand ? _totalSupply.mulWadDown(rebalance.rate) : _totalSupply.divWadDown(rebalance.rate);
+        return _totalSupply.rebalance(rebalance);
     }
 
     function balanceOf(address _account) public view override returns (uint256) {
         uint256 balance = _balances[_account];
         if (!rebalanced) return balance;
 
-        return
-            rebalance.expand
-                ? _balances[_account].mulWadDown(rebalance.rate)
-                : _balances[_account].divWadDown(rebalance.rate);
+        return balance.rebalance(rebalance);
     }
 
     function allowance(address _owner, address _account) public view override returns (uint256) {
         uint256 allowed = _allowances[_owner][_account];
         if (!rebalanced) return allowed;
 
-        return rebalance.expand ? allowed.mulWadDown(rebalance.rate) : allowed.divWadDown(rebalance.rate);
+        return allowed.rebalance(rebalance);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -159,8 +151,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
      * @param _amount The amount of tokens to mint.
      */
     function mint(address _to, uint256 _amount) external onlyRole(Role.OPERATOR) {
-        if (!rebalanced) return _mint(_to, _amount);
-        _mint(_to, rebalance.expand ? _amount.mulWadDown(rebalance.rate) : _amount.divWadDown(rebalance.rate));
+        _mint(_to, !rebalanced ? _amount : _amount.rebalance(rebalance));
     }
 
     /**
@@ -169,8 +160,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
      * @param _amount The amount of tokens to burn.
      */
     function burn(address _from, uint256 _amount) external onlyRole(Role.OPERATOR) {
-        if (!rebalanced) return _burn(_from, _amount);
-        _burn(_from, rebalance.expand ? _amount.mulWadDown(rebalance.rate) : _amount.divWadDown(rebalance.rate));
+        _burn(_from, !rebalanced ? _amount : _amount.rebalance(rebalance));
     }
 
     /* -------------------------------------------------------------------------- */
@@ -191,7 +181,8 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
             uint256 balance = balanceOf(_from);
             require(_amount <= balance, Error.NOT_ENOUGH_BALANCE);
 
-            _amount = rebalance.expand ? _amount.divWadDown(rebalance.rate) : _amount.mulWadDown(rebalance.rate);
+            _amount = _amount.rebalanceReverse(rebalance);
+
             _balances[_from] -= _amount;
             unchecked {
                 _balances[_to] += _amount;

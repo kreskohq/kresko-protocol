@@ -9,8 +9,8 @@ import {
     ERC20Upgradeable__factory,
     FluxPriceAggregator__factory,
     KreskoAsset__factory,
-    FixedKreskoAsset__factory,
-    FixedKreskoAsset,
+    WrappedKreskoAsset__factory,
+    WrappedKreskoAsset,
 } from "types/typechain";
 import { expect } from "chai";
 
@@ -159,7 +159,7 @@ export const defaultKrAssetArgs = { name: "KreskoAsset", price: 10, factor: 1.1,
 
 export const addMockKreskoAsset = async (
     args: KreskoAssetArgs = defaultKrAssetArgs,
-): Promise<[MockContract<KreskoAsset>, MockContract<FixedKreskoAsset>, MockContract<FluxPriceAggregator>]> => {
+): Promise<[MockContract<KreskoAsset>, MockContract<WrappedKreskoAsset>, MockContract<FluxPriceAggregator>]> => {
     const users = await getUsers();
     const { name, price, factor, supplyLimit } = args;
 
@@ -175,7 +175,7 @@ export const addMockKreskoAsset = async (
 
     // Create the fixed krAsset
     const krAssetFixed = await (
-        await smock.mock<FixedKreskoAsset__factory>("FixedKreskoAsset")
+        await smock.mock<WrappedKreskoAsset__factory>("WrappedKreskoAsset")
     ).deploy(krAsset.address);
 
     await krAssetFixed.setVariable("_initialized", 0);

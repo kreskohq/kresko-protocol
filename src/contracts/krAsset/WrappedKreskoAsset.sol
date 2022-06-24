@@ -16,7 +16,7 @@ import "./utils/ERC4626Upgradeable.sol";
  * @notice Main purpose of this token is to provide a stable balance for the underlying asset.
  * This enables easier integration with external contracts.
  */
-contract FixedKreskoAsset is ERC4626Upgradeable, AccessControlEnumerableUpgradeable {
+contract WrappedKreskoAsset is ERC4626Upgradeable, AccessControlEnumerableUpgradeable {
     /* -------------------------------------------------------------------------- */
     /*                                 Immutables                                 */
     /* -------------------------------------------------------------------------- */

@@ -8,14 +8,15 @@ import "../../shared/Errors.sol";
 import "../../shared/Events.sol";
 import "../../shared/Meta.sol";
 import {ONE_HUNDRED_PERCENT} from "./Constants.sol";
-import {FPConversions} from "../../shared/FPConversions.sol";
+import {Math} from "../../shared/Math.sol";
 
 import {MinterState, FixedPoint, CollateralAsset, KrAsset} from "./Layout.sol";
 
 using SafeERC20Upgradeable for IERC20MetadataUpgradeable;
 using Arrays for address[];
-using FPConversions for uint8;
-using FPConversions for uint256;
+using Math for uint8;
+using Math for uint256;
+using FixedPoint for FixedPoint.Unsigned;
 
 /**
  * @notice Calculates if an account's current collateral value is under its minimum collateral value

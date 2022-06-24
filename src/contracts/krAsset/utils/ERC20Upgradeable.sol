@@ -7,49 +7,42 @@ import "./IERC20Upgradeable.sol";
 /// @notice Modern and gas efficient ERC20 + EIP-2612 implementation.
 /// @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/tokens/ERC20.sol)
 /// @author Modified from Uniswap (https://github.com/Uniswap/uniswap-v2-core/blob/master/contracts/UniswapV2ERC20.sol)
+/// @author Kresko: modified to an upgradeable
 /// @dev Do not manually set balances without updating totalSupply, as the sum of all user balances must not exceed it.
 contract ERC20Upgradeable is Initializable, IERC20Upgradeable {
-    /*//////////////////////////////////////////////////////////////
-                                 EVENTS
-    //////////////////////////////////////////////////////////////*/
+    /* -------------------------------------------------------------------------- */
+    /*                                   Events                                   */
+    /* -------------------------------------------------------------------------- */
 
     event Transfer(address indexed from, address indexed to, uint256 amount);
 
     event Approval(address indexed owner, address indexed spender, uint256 amount);
 
-    /*//////////////////////////////////////////////////////////////
-                            METADATA STORAGE
-    //////////////////////////////////////////////////////////////*/
+    /* -------------------------------------------------------------------------- */
+    /*                                ERC20 Storage                               */
+    /* -------------------------------------------------------------------------- */
 
     string public name;
-
     string public symbol;
-
     uint8 public decimals;
 
-    /*//////////////////////////////////////////////////////////////
-                              ERC20 STORAGE
-    //////////////////////////////////////////////////////////////*/
-
     uint256 internal _totalSupply;
-
     mapping(address => uint256) internal _balances;
-
     mapping(address => mapping(address => uint256)) internal _allowances;
 
-    /*//////////////////////////////////////////////////////////////
-                            EIP-2612 STORAGE
-    //////////////////////////////////////////////////////////////*/
-
-    uint256 internal immutable INITIAL_CHAIN_ID;
-
-    bytes32 internal immutable INITIAL_DOMAIN_SEPARATOR;
+    /* -------------------------------------------------------------------------- */
+    /*                                  EIP-2612                                  */
+    /* -------------------------------------------------------------------------- */
 
     mapping(address => uint256) public nonces;
 
-    /*//////////////////////////////////////////////////////////////
-                               CONSTRUCTOR
-    //////////////////////////////////////////////////////////////*/
+    /* -------------------------------------------------------------------------- */
+    /*                                 Immutables                                 */
+    /* -------------------------------------------------------------------------- */
+
+    uint256 internal immutable INITIAL_CHAIN_ID;
+    bytes32 internal immutable INITIAL_DOMAIN_SEPARATOR;
+
     constructor() payable initializer {
         INITIAL_CHAIN_ID = block.chainid;
         INITIAL_DOMAIN_SEPARATOR = computeDomainSeparator();
@@ -75,7 +68,7 @@ contract ERC20Upgradeable is Initializable, IERC20Upgradeable {
     }
 
     /* -------------------------------------------------------------------------- */
-    /*                                    READS                                   */
+    /*                                    READ                                    */
     /* -------------------------------------------------------------------------- */
 
     function balanceOf(address _account) public view virtual returns (uint256) {
@@ -91,7 +84,7 @@ contract ERC20Upgradeable is Initializable, IERC20Upgradeable {
     }
 
     /* -------------------------------------------------------------------------- */
-    /*                                 ERC20 LOGIC                                */
+    /*                                 ERC20 Logic                                */
     /* -------------------------------------------------------------------------- */
 
     function approve(address spender, uint256 amount) public virtual returns (bool) {
@@ -138,9 +131,9 @@ contract ERC20Upgradeable is Initializable, IERC20Upgradeable {
         return true;
     }
 
-    /*//////////////////////////////////////////////////////////////
-                             EIP-2612 LOGIC
-    //////////////////////////////////////////////////////////////*/
+    /* -------------------------------------------------------------------------- */
+    /*                               EIP-2612 Logic                               */
+    /* -------------------------------------------------------------------------- */
 
     function permit(
         address owner,
@@ -205,9 +198,9 @@ contract ERC20Upgradeable is Initializable, IERC20Upgradeable {
             );
     }
 
-    /*//////////////////////////////////////////////////////////////
-                        INTERNAL MINT/BURN LOGIC
-    //////////////////////////////////////////////////////////////*/
+    /* -------------------------------------------------------------------------- */
+    /*                                  Internals                                 */
+    /* -------------------------------------------------------------------------- */
 
     function _mint(address to, uint256 amount) internal virtual {
         _totalSupply += amount;

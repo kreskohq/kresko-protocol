@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.14;
-import "../../shared/FP.sol" as FixedPoint;
-import {IAssetViewFacet} from "../interfaces/IAssetViewFacet.sol";
+
+import {IAssetViewFacet, FixedPoint} from "../interfaces/IAssetViewFacet.sol";
 import {ms, Action, KrAsset, CollateralAsset} from "../MinterStorage.sol";
 
 contract AssetViewFacet is IAssetViewFacet {
-    using FixedPoint.FPMath for FixedPoint.Unsigned;
+    using FixedPoint for FixedPoint.Unsigned;
 
     /* -------------------------------------------------------------------------- */
     /*                                  KrAssets                                  */
@@ -33,7 +33,7 @@ contract AssetViewFacet is IAssetViewFacet {
      * @param _kreskoAsset The asset lookup address.
      * @return i = index of the minted Kresko asset.
      */
-    function getMintedKreskoAssetsIndex(address _account, address _kreskoAsset) external view returns (uint256 i) {
+    function getMintedKreskoAssetsIndex(address _account, address _kreskoAsset) external view returns (uint256) {
         return ms().getMintedKreskoAssetsIndex(_account, _kreskoAsset);
     }
 

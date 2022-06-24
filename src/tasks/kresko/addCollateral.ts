@@ -14,7 +14,7 @@ task("kresko:addcollateral")
     .setAction(async function (taskArgs: TaskArguments, hre) {
         const { ethers, kresko } = hre;
 
-        const { symbol, cFactor, oracleAddr, nrwt, log } = taskArgs;
+        const { symbol, cFactor, oracleAddr, log } = taskArgs;
 
         const logger = getLogger("addCollateral", log);
 
@@ -23,17 +23,17 @@ task("kresko:addcollateral")
             return;
         }
 
-        const Collateral = await ethers.getContract<Token>(symbol);
+        const Collateral = await ethers.getContract<ERC20Upgradeable>(symbol);
 
         logger.log("Collateral address", Collateral.address);
 
-        const collateralAsset = await kresko.collateralAssets(Collateral.address);
+        const collateralAsset = await kresko.collateralAsset(Collateral.address);
         const exists = collateralAsset.exists;
 
         if (exists) {
             logger.warn(`Collateral ${symbol} already exists!`);
         } else {
-            const tx = await kresko.addCollateralAsset(Collateral.address, toFixedPoint(cFactor), oracleAddr, !!nrwt);
+            const tx = await kresko.addCollateralAsset(Collateral.address, toFixedPoint(cFactor), oracleAddr);
             await tx.wait();
             sleep(1500);
             if (log) {

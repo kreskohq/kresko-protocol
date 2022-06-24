@@ -11,10 +11,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         throw new Error("Diamond not deployed");
     }
     const [name, symbol] = minterConfig.krAssets.test[0];
-    const [KreskoAsset, FixedKreskoAsset] = await createKrAsset(name, symbol);
+    const [KreskoAsset, WrappedKreskoAsset] = await createKrAsset(name, symbol);
 
     logger.success("Succesfully deployed elastic supply krAsset", symbol + "-e", "address:", KreskoAsset.address);
-    logger.success("Succesfully deployed fixed supply krAsset", symbol, "address:", FixedKreskoAsset.address);
+    logger.success("Succesfully deployed fixed supply krAsset", symbol, "address:", WrappedKreskoAsset.address);
 };
 
 func.tags = ["local", "minter-init", "minter", "diamond"];

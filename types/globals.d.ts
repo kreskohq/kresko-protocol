@@ -10,12 +10,12 @@ declare global {
     type Kresko = import("types/typechain").Kresko;
 
     type KreskoAsset = import("types/typechain").KreskoAsset;
-    type FixedKreskoAsset = import("types/typechain").FixedKreskoAsset;
+    type WrappedKreskoAsset = import("types/typechain").WrappedKreskoAsset;
 
-    type KrAssets = [KreskoAsset, FixedKreskoAsset, FluxPriceAggregator][];
+    type KrAssets = [KreskoAsset, WrappedKreskoAsset, FluxPriceAggregator][];
     type MockKrAssets = [
         MockContract<KreskoAsset>,
-        MockContract<KreskoAssetFixed>,
+        MockContract<WrappedKreskoAsset>,
         MockContract<FluxPriceAggregator>,
     ][];
 
@@ -83,7 +83,7 @@ declare global {
         kresko: string;
     }
 
-    interface FixedKreskoAssetInitializer {
+    interface WrappedKreskoAssetInitializer {
         krAsset: string;
         name: string;
         symbol: string;
