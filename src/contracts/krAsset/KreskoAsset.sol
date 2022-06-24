@@ -145,7 +145,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
      * @param _rate conversion rate
      */
     function setRebalance(uint256 _rate, bool _expand) external onlyRole(Role.OPERATOR) {
-        if (_rate == 0 || _rate == 1) {
+        if (_rate == 0 || _rate == 1 ether) {
             rebalanced = false;
         } else {
             rebalanced = true;
