@@ -1,7 +1,7 @@
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import { BigNumber, extractEventFromTxReceipt } from "@utils";
 import { getLogger } from "@utils/deployment";
-import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { executeContractCallWithSigners } from "@utils/gnosis";
 import { GnosisSafeL2 } from "types/typechain/GnosisSafeL2";
 import { GnosisSafeProxyFactory, ProxyCreationEvent } from "types/typechain/GnosisSafeProxyFactory";

@@ -151,13 +151,42 @@ declare module "hardhat/types/runtime" {
                 _calldata: BytesLike;
             };
         };
+
+        /* -------------------------------------------------------------------------- */
+        /*                                   General                                  */
+        /* -------------------------------------------------------------------------- */
+        users: {
+            deployer: SignerWithAddress;
+            owner: SignerWithAddress;
+            admin: SignerWithAddress;
+            operator: SignerWithAddress;
+            userOne: SignerWithAddress;
+            userTwo: SignerWithAddress;
+            userThree: SignerWithAddress;
+            nonadmin?: SignerWithAddress;
+            liquidator?: SignerWithAddress;
+            treasury?: SignerWithAddress;
+        };
+        addr: {
+            ZERO: string;
+            deployer: string;
+            owner: string;
+            admin: string;
+            operator: string;
+            userOne: string;
+            userTwo: string;
+            userThree: string;
+            nonadmin?: string;
+            liquidator?: string;
+            treasury?: string;
+        };
+
         /* -------------------------------------------------------------------------- */
         /*                                 Deployment                                 */
         /* -------------------------------------------------------------------------- */
         DiamondDeployment: Deployment;
         Diamond: Kresko;
         Multisig: GnosisSafeL2;
-        kresko: Kresko;
         krAssets: [KreskoAsset, WrappedKreskoAsset, FluxPriceAggregator][];
         collaterals: [ERC20Upgradeable, FluxPriceAggregator][];
         uniPairs: {

@@ -2,17 +2,18 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction, FacetCut } from "@kreskolabs/hardhat-deploy/types";
 import { mergeABIs } from "@kreskolabs/hardhat-deploy/dist/src/utils";
 import { getLogger } from "@utils/deployment";
-import { Kresko } from "types/typechain";
 import DiamondConfig from "src/config/diamond";
+import type { Kresko } from "types/typechain";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-    const logger = getLogger("create-diamond");
     const { ethers, getNamedAccounts, deploy, deployments } = hre;
-    const { deployer } = await getNamedAccounts();
+    const logger = getLogger("create-diamond");
 
     // #1 Do not use `add-facets.ts` for the initial diamond, set the initial facets in the constructor
     const InitialFacets: FacetCut[] = [];
     const ABIs = [];
+
+    const { deployer } = await getNamedAccounts();
 
     // #2 Only Diamond-specific facets
     for (const facet of DiamondConfig.facets) {

@@ -2,12 +2,12 @@
 
 import hre, { waffle, deployments } from "hardhat";
 import { BigNumber, Contract, Signer } from "ethers";
-import { toFixedPoint } from "../utils/fixed-point";
+import { toFixedPoint } from "../fixed-point";
 import { expect } from "chai";
 import { Artifact } from "hardhat/types";
-import { constructors } from "../utils/constuctors";
+import { constructors } from "../constructors";
 import { DeployOptions } from "@kreskolabs/hardhat-deploy/types";
-import { toBig } from "./numbers";
+import { toBig } from "../numbers";
 import type { IERC20MetadataUpgradeable, UniswapV2Factory, UniswapV2Router02 } from "types";
 
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
@@ -74,7 +74,7 @@ export async function deployWETH10AsCollateralWithLiquidator(
 
     const fixedPointFactor = toFixedPoint(factor);
 
-    await Kresko.addCollateralAsset(WETH10.address, fixedPointFactor, oracle.address, false);
+    await Kresko.addCollateralAsset(WETH10.address, fixedPointFactor, oracle.address);
 
     return {
         WETH10,

@@ -1,9 +1,10 @@
-import hre, { collaterals } from "hardhat";
+import hre from "hardhat";
 import { MockContract, smock } from "@defi-wonderland/smock";
-import { ethers } from "hardhat";
 import { toFixedPoint } from "@utils/fixed-point";
 import { toBig } from "@utils/numbers";
-import {
+import { expect } from "chai";
+
+import type {
     ERC20Upgradeable,
     KreskoAsset,
     ERC20Upgradeable__factory,
@@ -12,47 +13,12 @@ import {
     WrappedKreskoAsset__factory,
     WrappedKreskoAsset,
 } from "types/typechain";
-import { expect } from "chai";
 
-export const getUsers = async (): Promise<Users> => {
-    const {
-        deployer,
-        owner,
-        admin,
-        operator,
-        userOne,
-        userTwo,
-        userThree,
-        nonadmin,
-        liquidator,
-        feedValidator,
-        treasury,
-    } = await ethers.getNamedSigners();
-    return {
-        deployer,
-        owner,
-        admin,
-        operator,
-        userOne,
-        userTwo,
-        userThree,
-        nonadmin,
-        liquidator,
-        feedValidator,
-        treasury,
-    };
-};
+import { defaultOraclePrice, defaultOracleDecimals, defaultCollateralArgs, defaultKrAssetArgs } from "./config";
+import roles from "./roles";
+import { getUsers } from "@utils/general";
 
-export const randomContractAddress = () => {
-    const pubKey = ethers.Wallet.createRandom().publicKey;
-
-    return ethers.utils.getContractAddress({
-        from: pubKey,
-        nonce: 0,
-    });
-};
-
-export const getMockOracleFor = async (assetName = "Asset", price = 10) => {
+export const getMockOracleFor = async (assetName = "Asset", price = defaultOraclePrice) => {
     const Oracles = [
         await smock.fake<FluxPriceFeed>("FluxPriceFeed"),
         await smock.fake<FluxPriceFeed>("FluxPriceFeed"),
@@ -64,7 +30,7 @@ export const getMockOracleFor = async (assetName = "Asset", price = 10) => {
     ).deploy(
         users.deployer.address,
         Oracles.map(o => o.address),
-        8,
+        defaultOracleDecimals,
         assetName,
     );
     PriceAggregator.latestAnswer.returns(toFixedPoint(price));
@@ -80,13 +46,6 @@ type CollateralAssetArgs = {
     price: number;
     factor: number;
     decimals: number;
-};
-
-export const defaultCollateralArgs = {
-    name: "Collateral",
-    price: 5,
-    factor: 0.9,
-    decimals: 18,
 };
 
 export const addMockCollateralAsset = async (
@@ -155,7 +114,6 @@ type KreskoAssetArgs = {
     factor: number;
     supplyLimit: number;
 };
-export const defaultKrAssetArgs = { name: "KreskoAsset", price: 10, factor: 1.1, supplyLimit: 1000 };
 
 export const addMockKreskoAsset = async (
     args: KreskoAssetArgs = defaultKrAssetArgs,
@@ -190,9 +148,9 @@ export const addMockKreskoAsset = async (
         toBig(supplyLimit),
     );
 
-    const OPERATOR_ROLE = ethers.utils.id("kresko.roles.minter.operator");
-    const hasOperatorElastic = await krAsset.hasRole(OPERATOR_ROLE, hre.Diamond.address);
-    const hasOperatorFixed = await krAssetFixed.hasRole(OPERATOR_ROLE, hre.Diamond.address);
+    const hasOperatorElastic = await krAsset.hasRole(roles.OPERATOR, hre.Diamond.address);
+    const hasOperatorFixed = await krAssetFixed.hasRole(roles.OPERATOR, hre.Diamond.address);
+
     expect(hasOperatorElastic).to.be.true;
     expect(hasOperatorFixed).to.be.true;
     return [krAsset, krAssetFixed, OracleAggregator];

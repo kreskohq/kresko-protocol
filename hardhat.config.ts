@@ -1,4 +1,5 @@
 // Deployment
+
 import "tsconfig-paths/register";
 
 // Enable when typechain works seamlessly
@@ -6,10 +7,11 @@ import "tsconfig-paths/register";
 
 // OZ Contracts
 import "@openzeppelin/hardhat-upgrades";
+
+// Plugins
 import "@kreskolabs/hardhat-deploy";
 import "@nomiclabs/hardhat-ethers";
 
-// Plugins
 // import "solidity-coverage";
 import "@typechain/hardhat";
 import "@nomiclabs/hardhat-waffle";
@@ -33,6 +35,7 @@ if (!mnemonic) {
     mnemonic = "wealth";
 }
 
+import type { HardhatUserConfig } from "hardhat/types/config";
 // Custom extensions
 import "hardhat-configs/extensions";
 
@@ -40,7 +43,6 @@ import "hardhat-configs/extensions";
 import "./src/tasks/diamond/addFacet.ts";
 // Configurations
 import { compilers, networks, users } from "hardhat-configs";
-import type { HardhatUserConfig } from "hardhat/types/config";
 import { reporters } from "mocha";
 
 // Set config
@@ -60,7 +62,7 @@ const config: HardhatUserConfig = {
         alphaSort: true,
         disambiguatePaths: false,
         runOnCompile: true,
-        only: ["Facet", "Diamond"],
+        only: ["Facet", "Diamond", "KreskoAsset"],
     },
     namedAccounts: users,
     networks: networks(mnemonic),

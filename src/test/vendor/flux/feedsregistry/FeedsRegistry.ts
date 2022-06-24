@@ -1,4 +1,4 @@
-import { setupTests } from "@utils";
+import { setupTests } from "@utils/old/test-utils";
 import { artifacts, waffle } from "hardhat";
 import { shouldBehaveLikeFeedsRegistry } from "./FeedsRegistry.behavior";
 

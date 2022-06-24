@@ -1,7 +1,6 @@
 import hre from "hardhat";
-import { Error, withFixture } from "@test-utils";
 import { expect } from "chai";
-import roles from "../utils/roles";
+import { withFixture, Error, defaultMintAmount, Role } from "@utils/test";
 
 describe("KreskoAsset", function () {
     let KreskoAsset: KreskoAsset;
@@ -9,10 +8,9 @@ describe("KreskoAsset", function () {
     beforeEach(async function () {
         [KreskoAsset] = hre.krAssets[0];
         // Grant minting rights for test deployer
-        await KreskoAsset.grantRole(roles.OPERATOR, this.addresses.deployer);
+        await KreskoAsset.grantRole(Role.OPERATOR, hre.addr.deployer);
     });
     describe("#rebalance", () => {
-        const defaultMintAmount = hre.toBig(100);
         it("can set a expanding rate", async function () {
             const rate = hre.toBig("1.525");
             const expand = true;
@@ -49,14 +47,14 @@ describe("KreskoAsset", function () {
 
         describe("#balance + supply", () => {
             it("has no effect when not enabled", async function () {
-                const { deployer } = this.addresses;
+                const { deployer } = hre.addr;
                 await KreskoAsset.mint(deployer, defaultMintAmount);
                 expect(await KreskoAsset.rebalanced()).to.equal(false);
                 expect(await KreskoAsset.balanceOf(deployer)).to.equal(defaultMintAmount);
             });
 
             it("expands balance and supply with positive rate @ 2", async function () {
-                const { deployer } = this.addresses;
+                const { deployer } = hre.addr;
                 const rate = 2;
                 const expand = true;
                 await KreskoAsset.mint(deployer, defaultMintAmount);
@@ -67,7 +65,7 @@ describe("KreskoAsset", function () {
             });
 
             it("expands balance and supply with positive rate @ 3", async function () {
-                const { deployer } = this.addresses;
+                const { deployer } = hre.addr;
                 const rate = 3;
                 const expand = true;
                 await KreskoAsset.mint(deployer, defaultMintAmount);
@@ -78,7 +76,7 @@ describe("KreskoAsset", function () {
             });
 
             it("expands balance and supply with positive rate @ 100", async function () {
-                const { deployer } = this.addresses;
+                const { deployer } = hre.addr;
                 const rate = 100;
                 const expand = true;
                 await KreskoAsset.mint(deployer, defaultMintAmount);
@@ -89,7 +87,7 @@ describe("KreskoAsset", function () {
             });
 
             it("reduces balance and supply with negative rate @ 2", async function () {
-                const { deployer } = this.addresses;
+                const { deployer } = hre.addr;
                 const rate = 2;
                 const expand = false;
                 await KreskoAsset.mint(deployer, defaultMintAmount);
@@ -100,7 +98,7 @@ describe("KreskoAsset", function () {
             });
 
             it("reduces balance and supply with negative rate @ 3", async function () {
-                const { deployer } = this.addresses;
+                const { deployer } = hre.addr;
                 const rate = 3;
                 const expand = false;
                 await KreskoAsset.mint(deployer, defaultMintAmount);
@@ -111,7 +109,7 @@ describe("KreskoAsset", function () {
             });
 
             it("reduces balance and supply with negative rate @ 100", async function () {
-                const { deployer } = this.addresses;
+                const { deployer } = hre.addr;
                 const rate = 100;
                 const expand = false;
                 await KreskoAsset.mint(deployer, defaultMintAmount);
@@ -124,7 +122,7 @@ describe("KreskoAsset", function () {
 
         describe("#transfer", () => {
             it("has default transfer behaviour after expansion", async function () {
-                const { deployer, userOne } = this.addresses;
+                const { deployer, userOne } = hre.addr;
                 const transferAmount = hre.toBig(1);
 
                 await KreskoAsset.mint(deployer, defaultMintAmount);
@@ -143,7 +141,7 @@ describe("KreskoAsset", function () {
             });
 
             it("has default transfer behaviour after reduction", async function () {
-                const { deployer, userOne } = this.addresses;
+                const { deployer, userOne } = hre.addr;
                 const transferAmount = hre.toBig(1);
 
                 await KreskoAsset.mint(deployer, defaultMintAmount);
@@ -162,7 +160,7 @@ describe("KreskoAsset", function () {
             });
 
             it("has default transferFrom behaviour after expansion", async function () {
-                const { deployer, userOne } = this.users;
+                const { deployer, userOne } = hre.users;
                 const transferAmount = hre.toBig(1);
 
                 await KreskoAsset.mint(deployer.address, defaultMintAmount);
@@ -193,7 +191,7 @@ describe("KreskoAsset", function () {
             });
 
             it("has default transferFrom behaviour after expansion @ rate 100", async function () {
-                const { deployer, userOne } = this.users;
+                const { deployer, userOne } = hre.users;
                 const transferAmount = hre.toBig(1);
 
                 await KreskoAsset.mint(deployer.address, defaultMintAmount);
@@ -224,7 +222,7 @@ describe("KreskoAsset", function () {
             });
 
             it("has default transferFrom behaviour after reduction", async function () {
-                const { deployer, userOne } = this.users;
+                const { deployer, userOne } = hre.users;
                 const transferAmount = hre.toBig(1);
 
                 await KreskoAsset.mint(deployer.address, defaultMintAmount);
@@ -255,7 +253,7 @@ describe("KreskoAsset", function () {
             });
 
             it("has default transferFrom behaviour after reduction @ 100", async function () {
-                const { deployer, userOne } = this.users;
+                const { deployer, userOne } = hre.users;
                 const transferAmount = hre.toBig(1);
 
                 await KreskoAsset.mint(deployer.address, defaultMintAmount);

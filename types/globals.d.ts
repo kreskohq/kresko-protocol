@@ -1,5 +1,5 @@
 import { DeployResult } from "@kreskolabs/hardhat-deploy/types";
-import { BytesLike } from "ethers";
+import type { BytesLike } from "ethers";
 
 export {};
 
@@ -57,6 +57,21 @@ declare global {
         liquidator?: SignerWithAddress;
         feedValidator?: SignerWithAddress;
         treasury?: SignerWithAddress;
+    };
+
+    type Addresses = {
+        ZERO: string;
+        deployer: string;
+        owner: string;
+        admin: string;
+        operator: string;
+        userOne: string;
+        userTwo: string;
+        userThree: string;
+        nonadmin?: string;
+        liquidator?: string;
+        feedValidator?: string;
+        treasury?: string;
     };
     /* -------------------------------------------------------------------------- */
     /*                                 Deployments                                */

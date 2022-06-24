@@ -2,9 +2,9 @@
 /*                         KRESKO MINTER CONFIGURATION                        */
 /* ========================================================================== */
 
-import { toFixedPoint } from "@utils";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { MinterInitArgsStruct } from "types/typechain/Kresko";
+import { toFixedPoint } from "@utils/fixed-point";
 
 const facets = [
     "OperatorFacet",
@@ -23,7 +23,7 @@ export type MinterInitializer<A> = {
 const getMinterInitializer = async (
     hre: HardhatRuntimeEnvironment,
 ): Promise<MinterInitializer<MinterInitArgsStruct>> => {
-    const { treasury, operator } = await hre.getNamedAccounts();
+    const { treasury, operator } = hre.addr;
     const Safe = await hre.deployments.getOrNull("Multisig");
     if (!Safe) throw new Error("GnosisSafe not deployed for Minter initialization");
     return {

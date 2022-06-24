@@ -5,6 +5,7 @@ import { constants, ethers } from "ethers";
 import { FacetCut, FacetCutAction } from "@kreskolabs/hardhat-deploy/dist/types";
 import { FormatTypes } from "@ethersproject/abi";
 import SharedConfig from "src/config/shared";
+import { getAddresses, getUsers } from "src/utils/general";
 
 // We can access these values from deploy scripts / hardhat run scripts
 extendEnvironment(async function (hre) {
@@ -15,6 +16,8 @@ extendEnvironment(async function (hre) {
     hre.priceAggregators = {};
     hre.uniPairs = {};
     hre.utils = ethers.utils;
+    hre.users = await getUsers(hre);
+    hre.addr = await getAddresses(hre);
     /* -------------------------------------------------------------------------- */
     /*                              Helper Functions                              */
     /* -------------------------------------------------------------------------- */
@@ -73,5 +76,3 @@ extendEnvironment(async function (hre) {
             )
             .map(fragment => ({ name: fragment.name, sig: hre.utils.Interface.getSighash(fragment) }));
 });
-
-export {};

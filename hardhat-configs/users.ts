@@ -11,6 +11,9 @@ export const users = {
     operator: {
         default: 33,
     },
+    liquidator: {
+        default: 34,
+    },
     userOne: {
         default: 1,
     },
@@ -26,7 +29,7 @@ export const users = {
     treasury: {
         default: 5,
     },
-    priceFeedValidator: {
+    feedValidator: {
         default: 6,
     },
     userFour: {

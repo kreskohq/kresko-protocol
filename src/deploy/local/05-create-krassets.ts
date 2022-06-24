@@ -17,7 +17,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     logger.success("Succesfully deployed fixed supply krAsset", symbol, "address:", WrappedKreskoAsset.address);
 };
 
-func.tags = ["local", "minter-init", "minter", "diamond"];
+func.tags = ["local", "init-krassets", "minter", "diamond"];
 func.dependencies = ["diamond-init", "gnosis-safe"];
 
 export default func;
