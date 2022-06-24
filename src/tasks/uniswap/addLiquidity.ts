@@ -3,7 +3,8 @@ import { fromBig, toBig } from "@utils/numbers";
 import { constants } from "ethers";
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
-import { UniswapV2Factory, UniswapV2Pair, UniswapV2Router02 } from "types";
+import { IERC20Uniswap, UniswapV2Factory, UniswapV2Pair, UniswapV2Router02 } from "types";
+import {} from "types";
 
 task("uniswap:addliquidity")
     .addParam("tknA", "Token A address and value to provide", {}, types.json)
@@ -20,8 +21,8 @@ task("uniswap:addliquidity")
 
         const logger = getLogger("addLiquidity", log);
 
-        const TknA = await ethers.getContractAt<Token>("Token", tknA.address);
-        const TknB = await ethers.getContractAt<Token>("Token", tknB.address);
+        const TknA = await ethers.getContractAt<IERC20Uniswap>("Token", tknA.address);
+        const TknB = await ethers.getContractAt<IERC20Uniswap>("Token", tknB.address);
 
         const tknADec = await TknA.decimals();
         const tknBDec = await TknB.decimals();

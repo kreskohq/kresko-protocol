@@ -3,7 +3,7 @@ import { TaskArguments } from "hardhat/types";
 import { FacetCut, FacetCutAction } from "@kreskolabs/hardhat-deploy/dist/types";
 import { getLogger } from "@utils/deployment";
 import { constants } from "ethers";
-import { FullDiamond } from "types";
+import { Kresko } from "types";
 
 const TASK_NAME = "remove-function";
 
@@ -24,7 +24,7 @@ task(TASK_NAME)
         if (!Deployed) {
             throw new Error(`No diamond deployed @ ${hre.network.name}`);
         }
-        const Diamond = await ethers.getContractAt<FullDiamond>("FullDiamond", Deployed.address);
+        const Diamond = await ethers.getContractAt<Kresko>("FullDiamond", Deployed.address);
         // Single facet addition, maps all functions contained
         const [Facet, Signatures] = await hre.deploy(name);
 

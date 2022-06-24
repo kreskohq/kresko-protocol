@@ -17,6 +17,7 @@ types/typechain
 deployments/hardhat
 bin
 # files
+*.secrets
 *.env
 *.logs
 *.tsbuildinfo

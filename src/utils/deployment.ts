@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { DeployOptions } from "@kreskolabs/hardhat-deploy/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { DeployOptions } from "@kreskolabs/hardhat-deploy/types";
 import SharedConfig from "src/config/shared";
 
 export const deployWithSignatures =

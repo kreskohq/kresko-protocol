@@ -1,5 +1,5 @@
 import hre from "hardhat";
-import { expect } from "chai";
+import { expect } from "@test/chai";
 import { withFixture } from "@utils/test/fixtures";
 
 describe("Diamond", function () {

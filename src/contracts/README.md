@@ -1,4 +1,6 @@
-# New state / upgrades:
+# Diamond
+
+## New state / upgrades:
 
 ### Upgrading state:
 

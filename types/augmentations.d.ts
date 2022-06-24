@@ -133,6 +133,7 @@ declare module "hardhat/types/runtime" {
         fromBig: typeof fromBig;
         toBig: typeof toBig;
         deploy: <T extends Contract>(name: string, options?: DeployOptions) => Promise<DeployResultWithSignatures<T>>;
+        getSignature: (jsonItem: Fragment | JsonFragment | string) => string | false;
         getSignatures: (abi: ABI) => string[];
         getSignaturesWithNames: (abi: ABI) => { name: string; sig: string }[];
         bytesCall: <T>(func: FunctionFragment, params: T) => string;

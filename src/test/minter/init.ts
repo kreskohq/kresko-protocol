@@ -1,11 +1,8 @@
 import hre from "hardhat";
-import { smock } from "@defi-wonderland/smock";
 import minterConfig from "../../config/minter";
-import chai, { expect } from "chai";
 import { Role, withFixture, Error } from "@utils/test";
 import type { OperatorFacet } from "types/typechain";
-
-chai.use(smock.matchers);
+import { expect } from "@test/chai";
 
 describe("Minter", function () {
     withFixture("createMinter");

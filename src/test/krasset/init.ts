@@ -1,22 +1,28 @@
 import hre from "hardhat";
-import { expect } from "chai";
+import { expect } from "@test/chai";
 import minterConfig from "../../config/minter";
 import { withFixture, Role, Error } from "@utils/test";
 
 const [name, symbol, underlyingSymbol] = minterConfig.krAssets.test[0];
 
 describe("KreskoAsset", function () {
-    let KreskoAsset: KreskoAsset;
-    let WrappedKreskoAsset: WrappedKreskoAsset;
+    let addr: Addresses;
+    before(async function () {
+        addr = hre.addr;
+    });
+
     withFixture("kreskoAsset");
 
+    let KreskoAsset: KreskoAsset;
+    let WrappedKreskoAsset: WrappedKreskoAsset;
     beforeEach(async function () {
         [KreskoAsset, WrappedKreskoAsset] = hre.krAssets[0];
     });
+
     describe("#initialization - rebalancing", () => {
         it("cant initialize twice", async function () {
             await expect(
-                KreskoAsset.initialize(name, underlyingSymbol, 18, hre.addr.deployer, hre.Diamond.address),
+                KreskoAsset.initialize(name, underlyingSymbol, 18, addr.deployer, hre.Diamond.address),
             ).to.be.revertedWith(Error.ALREADY_INITIALIZED_OZ);
         });
 
@@ -26,7 +32,7 @@ describe("KreskoAsset", function () {
             const KreskoAssetImpl = await hre.ethers.getContractAt("KreskoAsset", implementationAddress);
 
             await expect(
-                KreskoAssetImpl.initialize(name, symbol, 18, hre.addr.deployer, hre.Diamond.address),
+                KreskoAssetImpl.initialize(name, symbol, 18, addr.deployer, hre.Diamond.address),
             ).to.be.revertedWith(Error.ALREADY_INITIALIZED_OZ);
         });
 
@@ -34,7 +40,7 @@ describe("KreskoAsset", function () {
             expect(await KreskoAsset.name()).to.equal(name);
             expect(await KreskoAsset.symbol()).to.equal(underlyingSymbol);
             expect(await KreskoAsset.kresko()).to.equal(hre.Diamond.address);
-            expect(await KreskoAsset.hasRole(Role.ADMIN, hre.addr.deployer)).to.equal(true);
+            expect(await KreskoAsset.hasRole(Role.ADMIN, addr.deployer)).to.equal(true);
             expect(await KreskoAsset.hasRole(Role.OPERATOR, hre.Diamond.address)).to.equal(true);
 
             expect(await KreskoAsset.totalSupply()).to.equal(0);
@@ -59,7 +65,7 @@ describe("KreskoAsset", function () {
     describe("#initialization - wrapped", () => {
         it("cant initialize twice", async function () {
             await expect(
-                WrappedKreskoAsset.initialize(KreskoAsset.address, name, symbol, hre.addr.deployer),
+                WrappedKreskoAsset.initialize(KreskoAsset.address, name, symbol, addr.deployer),
             ).to.be.revertedWith(Error.ALREADY_INITIALIZED_OZ);
         });
 
@@ -72,7 +78,7 @@ describe("KreskoAsset", function () {
             );
 
             await expect(
-                WrappedKreskoAssetImpl.initialize(KreskoAsset.address, name, symbol, hre.addr.deployer),
+                WrappedKreskoAssetImpl.initialize(KreskoAsset.address, name, symbol, addr.deployer),
             ).to.be.revertedWith(Error.ALREADY_INITIALIZED_OZ);
         });
 
@@ -90,7 +96,7 @@ describe("KreskoAsset", function () {
             expect(await WrappedKreskoAsset.name()).to.equal(name);
             expect(await WrappedKreskoAsset.symbol()).to.equal(symbol);
             expect(await WrappedKreskoAsset.asset()).to.equal(KreskoAsset.address);
-            expect(await WrappedKreskoAsset.hasRole(Role.ADMIN, hre.addr.deployer)).to.equal(true);
+            expect(await WrappedKreskoAsset.hasRole(Role.ADMIN, addr.deployer)).to.equal(true);
             expect(await WrappedKreskoAsset.hasRole(Role.OPERATOR, hre.Diamond.address)).to.equal(true);
 
             expect(await WrappedKreskoAsset.totalSupply()).to.equal(0);

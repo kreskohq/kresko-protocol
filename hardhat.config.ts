@@ -5,18 +5,14 @@ import "tsconfig-paths/register";
 // Enable when typechain works seamlessly
 // import "@foundry-rs/hardhat";
 
-// OZ Contracts
-import "@openzeppelin/hardhat-upgrades";
-
 // Plugins
-import "@kreskolabs/hardhat-deploy";
-import "@nomiclabs/hardhat-ethers";
 
 // import "solidity-coverage";
-import "@typechain/hardhat";
-import "@nomiclabs/hardhat-waffle";
-import "@nomiclabs/hardhat-web3";
 import "hardhat-diamond-abi";
+import "@typechain/hardhat";
+import "@kreskolabs/hardhat-deploy";
+import "@nomiclabs/hardhat-ethers";
+import "@nomiclabs/hardhat-web3";
 import "hardhat-interface-generator";
 import "hardhat-contract-sizer";
 // import "hardhat-preprocessor";
@@ -35,9 +31,9 @@ if (!mnemonic) {
     mnemonic = "wealth";
 }
 
-import type { HardhatUserConfig } from "hardhat/types/config";
-// Custom extensions
 import "hardhat-configs/extensions";
+
+// Custom extensions
 
 // Tasks
 import "./src/tasks/diamond/addFacet.ts";
@@ -45,6 +41,7 @@ import "./src/tasks/diamond/addFacet.ts";
 import { compilers, networks, users } from "hardhat-configs";
 import { reporters } from "mocha";
 
+import type { HardhatUserConfig } from "hardhat/types/config";
 // Set config
 const config: HardhatUserConfig = {
     mocha: {
@@ -74,8 +71,9 @@ const config: HardhatUserConfig = {
         tests: "src/test",
         deploy: "src/deploy",
         deployments: "deployments",
-        imports: "imports",
+        imports: "src/imports",
     },
+    solidity: compilers,
     external: {
         contracts: [
             {
@@ -83,17 +81,21 @@ const config: HardhatUserConfig = {
             },
         ],
     },
-    solidity: compilers,
-    diamondAbi: {
-        name: "Kresko",
-        include: ["facets/*"],
-        exclude: ["vendor", "test/*", "interfaces/*", "KreskoAsset", "hardhat-diamond-abi/.*"],
-        strict: true,
-    },
+    diamondAbi: [
+        {
+            name: "Kresko",
+            include: ["facets/*"],
+            exclude: ["vendor", "test/*", "interfaces/*", "KreskoAsset"],
+            strict: true,
+        },
+    ],
     typechain: {
         outDir: "types/typechain",
         target: "ethers-v5",
-        tsNocheck: true,
+        alwaysGenerateOverloads: false,
+        discriminateTypes: true,
+        tsNocheck: false,
+        dontOverrideCompile: false,
         externalArtifacts: ["build/artifacts/hardhat-diamond-abi/Kresko.sol/Kresko.json"],
     },
 

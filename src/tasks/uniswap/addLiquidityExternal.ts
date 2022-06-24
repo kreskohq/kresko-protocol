@@ -1,7 +1,8 @@
 import { getLogger, getPriceFeeds, sleep } from "@utils/deployment";
 import { fromBig, toBig } from "@utils/numbers";
 import { task, types } from "hardhat/config";
-import { MockWETH10, UniswapV2Pair } from "types";
+import { IERC20Uniswap, UniswapV2Pair } from "types";
+import { WETH9Mock } from "types/typechain/src/contracts/test/WETH9Mock";
 
 task("addliquidity:external")
     .addOptionalParam("log", "log information", true, types.boolean)
@@ -10,12 +11,12 @@ task("addliquidity:external")
         const { ethers, deployments } = hre;
         const priceFeeds = await getPriceFeeds(hre);
         const { log } = taskArgs;
-        const USDC = await ethers.getContract<Token>("USDC");
+        const USDC = await ethers.getContract<IERC20Uniswap>("USDC");
 
         const logger = getLogger("addLiquidityExternal", log);
 
         /**  Aurora/USDC */
-        const Aurora = await ethers.getContract<Token>("AURORA");
+        const Aurora = await ethers.getContract<IERC20Uniswap>("AURORA");
         const auroraFeedDeployment = await deployments.get("AURORAUSD");
         const auroraFeed = await ethers.getContractAt<FluxPriceFeed>(
             auroraFeedDeployment.abi,
@@ -41,7 +42,7 @@ task("addliquidity:external")
         logger.success("Succesfully added AURORA/USDC liquidity @ ", AURORAUSDCPair.address);
 
         /**  wNEAR/USDC */
-        const wNEAR = await ethers.getContract<Token>("wNEAR");
+        const wNEAR = await ethers.getContract<IERC20>("wNEAR");
         const nearFeedDeployment = await deployments.get("NEARUSD");
         const nearFeed = await ethers.getContractAt<FluxPriceFeed>(nearFeedDeployment.abi, nearFeedDeployment.address);
         const NearValue = fromBig(await nearFeed.latestAnswer(), 8);
@@ -64,11 +65,11 @@ task("addliquidity:external")
         logger.success("Succesfully added wNEAR/USDC liquidity @ ", NEARUSDCPair.address);
 
         /**  WETH/USDC */
-        const WETH = await ethers.getContract<MockWETH10>("WETH");
+        const WETH = await ethers.getContract<WETH9Mock>("WETH9Mock");
         const ethValue = fromBig(await priceFeeds["ETH/USD"].latestAnswer(), 8);
         const wethDepositAmount = 250;
 
-        const tx = await WETH.deposit(toBig(250));
+        const tx = await WETH["deposit(uint256)"](toBig(wethDepositAmount));
         await tx.wait();
         sleep(1500);
         const WETHUSDCPair: UniswapV2Pair = await hre.run("uniswap:addliquidity", {

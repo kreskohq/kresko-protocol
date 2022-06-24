@@ -1,5 +1,5 @@
 import hre from "hardhat";
-import { expect } from "chai";
+import { expect } from "@test/chai";
 import { smock } from "@defi-wonderland/smock";
 import { FacetCut, FacetCutAction } from "@kreskolabs/hardhat-deploy/dist/types";
 import {
@@ -12,15 +12,17 @@ import {
 } from "types";
 import { withFixture } from "@utils/test/fixtures";
 import { Error } from "@utils/test";
+import { addFacet } from "@scripts/add-facet";
+import { removeFacet } from "@scripts/remove-facet";
 
 describe("Diamond", function () {
     let users: Users;
     let addr: Addresses;
-    withFixture("createBaseDiamond");
-    beforeEach(async function () {
+    before(async function () {
         users = hre.users;
         addr = hre.addr;
     });
+    withFixture("createBaseDiamond");
     describe("#upgrades", () => {
         it("can add a new facet", async function () {
             const Factory = await smock.mock<SmockFacet__factory>("SmockFacet");
@@ -51,6 +53,22 @@ describe("Diamond", function () {
             // Ensure facet has it's own storage
             const operatorFromNewStorage = await Facet.operator(); // Retrieved from SmockStorage
             expect(operatorFromNewStorage).to.equal(addr.userOne);
+        });
+
+        it("can remove a facet", async function () {
+            const NewFacet = await addFacet<SmockFacet>({
+                name: "SmockFacet",
+                initializerName: "SmockInit",
+                initializerArgs: addr.userOne,
+            });
+            const facetsBefore = await hre.Diamond.facets();
+            expect(facetsBefore.filter(f => f.facetAddress === NewFacet.address).length).to.equal(1);
+
+            await removeFacet({ name: "SmockFacet" });
+            const facetsAfter = await hre.Diamond.facets();
+
+            expect(facetsBefore.length - facetsAfter.length).to.equal(1);
+            expect(facetsAfter).to.not.deep.contain(NewFacet.address);
         });
 
         it("can remove a function", async function () {

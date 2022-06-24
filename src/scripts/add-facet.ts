@@ -12,7 +12,7 @@ type Args = {
 
 const logger = getLogger("add-facet");
 
-export async function addFacet({ name, initializerName, initializerArgs }: Args) {
+export async function addFacet<T extends Contract>({ name, initializerName, initializerArgs }: Args) {
     logger.log(name);
 
     const { ethers, deployments, getNamedAccounts } = hre;
@@ -135,5 +135,5 @@ export async function addFacet({ name, initializerName, initializerArgs }: Args)
         );
         hre.DiamondDeployment = DiamondDeployment;
     }
-    return Facet;
+    return Facet as T;
 }

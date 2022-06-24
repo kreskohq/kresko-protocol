@@ -1,6 +1,7 @@
 import { deployWithSignatures } from "@utils/deployment";
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
+import { MockERC20 } from "types/typechain";
 
 task("deploy:token")
     .addParam("name", "Name of the token")
@@ -14,10 +15,10 @@ task("deploy:token")
         const deploy = deployWithSignatures(hre);
 
         const { name, symbol, amount, decimals } = taskArgs;
-        const [Token] = await deploy<Token>(symbol, {
+        const [Token] = await deploy<MockERC20>(symbol, {
             from: deployer,
             contract: "Token",
-            args: [name, symbol, hre.toBig(amount, decimals), decimals],
+            args: [name, symbol, decimals, hre.toBig(amount, decimals)],
         });
 
         return Token;

@@ -1,5 +1,5 @@
 import hre from "hardhat";
-import { expect } from "chai";
+import { expect } from "@test/chai";
 import { withFixture, Error, defaultMintAmount, Role } from "@utils/test";
 
 describe("KreskoAsset", function () {

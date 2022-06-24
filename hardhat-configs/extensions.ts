@@ -3,7 +3,7 @@ import { toBig, fromBig } from "@utils/numbers";
 import { deployWithSignatures } from "@utils/deployment";
 import { constants, ethers } from "ethers";
 import { FacetCut, FacetCutAction } from "@kreskolabs/hardhat-deploy/dist/types";
-import { FormatTypes } from "@ethersproject/abi";
+import { FormatTypes, Fragment } from "@ethersproject/abi";
 import SharedConfig from "src/config/shared";
 import { getAddresses, getUsers } from "src/utils/general";
 
@@ -59,6 +59,9 @@ extendEnvironment(async function (hre) {
             initialization,
         };
     };
+
+    hre.getSignature = from =>
+        Fragment.from(from)?.type === "function" && ethers.utils.Interface.getSighash(Fragment.from(from));
     hre.getSignatures = abi =>
         new hre.utils.Interface(abi).fragments
             .filter(

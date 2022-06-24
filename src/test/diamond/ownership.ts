@@ -1,6 +1,6 @@
 import hre from "hardhat";
 import { withFixture, Role } from "@utils/test";
-import { expect } from "chai";
+import { expect } from "@test/chai";
 
 describe("Diamond", function () {
     withFixture("createBaseDiamond");

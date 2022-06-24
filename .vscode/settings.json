@@ -29,12 +29,9 @@
         ".yarnrc.yml": true,
         "LICENSE.md": true,
         "README.md": true,
-        "yarn.lock": true,
         ".prettierrc": true,
-        ".yarn": true,
         ".czrc": true,
-        ".editorconfig": true,
-        "node_modules": true
+        ".editorconfig": true
     },
     "solidity-va.hover": true,
     "solidity-va.codelens.enable": true

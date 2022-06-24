@@ -1,8 +1,9 @@
 {
     "extends": "ts-node/node16/tsconfig.json",
     "ts-node": { "files": true, "transpileOnly": true },
-    "include": ["hardhat.config.ts", "types/**/*", "src/**/*", "hardhat-configs/**/*", "tasks/**/*"],
+    "include": ["hardhat.config.ts", "types/**/*", "src/**/*", "hardhat-configs/**/*"],
     "exclude": ["packages", "temp", "node_modules"],
+    "files": ["hardhat.config.ts"],
     "compilerOptions": {
         "declaration": true,
         "declarationMap": true,
@@ -26,6 +27,7 @@
             "@utils": ["src/utils"],
             "@utils/*": ["src/utils/*"],
             "@tasks": ["src/tasks"],
+            "@test/*": ["src/test/*"],
             "@scripts/*": ["src/scripts/*"],
             "@test-utils": ["src/utils/test"]
         }

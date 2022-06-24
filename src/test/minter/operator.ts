@@ -1,7 +1,6 @@
 import hre from "hardhat";
-import { smock } from "@defi-wonderland/smock";
 import { toFixedPoint } from "@utils/fixed-point";
-import chai, { expect } from "chai";
+import { expect } from "@test/chai";
 
 import {
     withFixture,
@@ -12,8 +11,6 @@ import {
     defaultKrAssetArgs,
     getNewMinterParams,
 } from "@utils/test";
-
-chai.use(smock.matchers);
 
 describe("Minter", function () {
     let users: Users;
