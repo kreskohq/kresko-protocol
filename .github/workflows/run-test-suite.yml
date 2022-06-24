@@ -15,7 +15,7 @@ jobs:
                   scope: "@kreskolabs"
             - run: git config --global url."https://${{ secrets.GH_TOKEN }}@github.com/".insteadOf ssh://git@github.com/
             - run: corepack enable
-            - run: npm ci --ignore-scripts --legacy-peer-deps
+            - run: npm install --ignore-scripts --legacy-peer-deps
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
             - run: npm run test
