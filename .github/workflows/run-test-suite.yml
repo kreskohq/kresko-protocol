@@ -1,8 +1,8 @@
-name: Install cached packages
+name: run test suite
 on: [push]
 jobs:
     install-with-cache:
-        name: Run tests
+        name: using npm
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v3
