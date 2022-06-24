@@ -2,20 +2,20 @@ name: Install cached packages
 on: [push]
 jobs:
     install-with-cache:
-        name: Create new build on EAS
+        name: Run tests
         runs-on: ubuntu-latest
         steps:
-            - name: Setup repo
-              uses: actions/checkout@v3
-            - name: Setup Node
-              uses: actions/setup-node@v3
+            - uses: actions/checkout@v3
+            - uses: actions/setup-node@v3
               with:
-                  node-version: 16
+                  node-version: "16"
+                  always-auth: true
+                  cache: "npm"
                   registry-url: https://registry.npmjs.org
-                  scope: kreskolabs
-            - name: Reconfigure git to use HTTP authentication
-              run: git config --global url."https://${{ secrets.GH_TOKEN }}@github.com/".insteadOf ssh://git@github.com/
-            - name: Update NPM
-              run: npm install npm@latest --location=global
-            - name: Install dependencies
-              run: npm i --force
+                  scope: "@kreskolabs"
+            - run: git config --global url."https://${{ secrets.GH_TOKEN }}@github.com/".insteadOf ssh://git@github.com/
+            - run: corepack enable
+            - run: npm install --ignore-scripts --legacy-peer-deps
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+            - run: npm run test
