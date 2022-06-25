@@ -13,7 +13,7 @@ task("deployone:fluxpricefeed")
         const { deploy, getNamedAccounts, priceFeeds } = hre;
         const { deployer } = await getNamedAccounts();
 
-        const { decimals, name, description, validator, wait, log } = taskArgs;
+        const { decimals, name, description, validator, log } = taskArgs;
         const logger = getLogger("deployone:fluxpricefeed", log);
 
         const [PriceFeed] = await deploy<FluxPriceFeed>(name, {

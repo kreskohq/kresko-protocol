@@ -1,24 +1,19 @@
 [default]
-build_info = true
 src = "src/contracts"
-out = "build/artifacts"
-cache = true
-cache_path = "build/cache"
+out = "forge/artifacts"
 libs = ["node_modules", "lib"]
-optimizer = true
-optimizer_runs = 800
 extra_output = [
-    "storageLayout",
-    "evm.methodIdentifiers",
-    "devdoc",
-    "userdoc",
-    "metadata",
-    "evm.gasEstimates",
-    "evm.bytecode",
-    "evm.deployedBytecode",
-
+    'abi',
+    'evm.bytecode.object',
+    'evm.deployedBytecode.object',
+    'evm.methodIdentifiers',
+    'evm.gasEstimates',
 ]
-constant_optimizer = true
+
+optimizer = true
+optimizer_runs = 200
+cache = true
+cache_folder = "forge/cache"
 
 [default.optimizer_details]
 yul = true

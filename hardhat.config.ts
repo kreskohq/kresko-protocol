@@ -1,24 +1,37 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // Deployment
 
 import "tsconfig-paths/register";
 
-// Plugins
-// @audit Enabled when typechain works seamlessly
-
+/* -------------------------------------------------------------------------- */
+/*                                   Plugins                                  */
+/* -------------------------------------------------------------------------- */
 // import "solidity-coverage";
+
+/// @note comment diamond abi if enabling forge and anvil
 import "hardhat-diamond-abi";
-// import "@foundry-rs/hardhat/packages/hardhat-forge/src/forge/build/index";
 import "@typechain/hardhat";
+
 import "@kreskolabs/hardhat-deploy";
 import "@nomiclabs/hardhat-ethers";
-import "@nomiclabs/hardhat-web3";
-import "hardhat-interface-generator";
-import "hardhat-contract-sizer";
-// import "hardhat-preprocessor";
-import "hardhat-watcher";
-import "hardhat-gas-reporter";
 
-// Environment variables
+import "@nomiclabs/hardhat-web3";
+
+if (process.env.FOUNDRY === "true") {
+    require("@panukresko/hardhat-anvil");
+    require("@panukresko/hardhat-forge");
+}
+
+// import "hardhat-interface-generator";
+// import "hardhat-contract-sizer";
+// import "hardhat-preprocessor";
+// import "hardhat-watcher";
+// import "hardhat-gas-reporter";
+
+/* -------------------------------------------------------------------------- */
+/*                                   Dotenv                                   */
+/* -------------------------------------------------------------------------- */
+
 import { resolve } from "path";
 import { config as dotenvConfig } from "dotenv";
 
@@ -30,48 +43,45 @@ if (!mnemonic) {
     mnemonic = "wealth";
 }
 
+/* -------------------------------------------------------------------------- */
+/*                              Extensions To HRE                             */
+/* -------------------------------------------------------------------------- */
 import "hardhat-configs/extensions";
 
-// Custom extensions
+/* -------------------------------------------------------------------------- */
+/*                                    Tasks                                   */
+/* -------------------------------------------------------------------------- */
 
-// Tasks
-import "./src/tasks/diamond/addFacet.ts";
-// Configurations
+import "src/tasks";
+
+/* -------------------------------------------------------------------------- */
+/*                                Configuration                               */
+/* -------------------------------------------------------------------------- */
+
 import { compilers, networks, users } from "hardhat-configs";
 import { reporters } from "mocha";
 
 import type { HardhatUserConfig } from "hardhat/types/config";
-// Set config
+
+/// Actual configuration
 const config: HardhatUserConfig = {
+    solidity: compilers,
+    namedAccounts: users,
+    defaultNetwork: "hardhat",
+    networks: networks(mnemonic),
     mocha: {
         reporter: reporters.Spec,
         timeout: 12000,
     },
-    gasReporter: {
-        currency: "USD",
-        enabled: false,
-        src: "src/contracts",
-        showMethodSig: true,
-        excludeContracts: ["vendor"],
-    },
-    contractSizer: {
-        alphaSort: true,
-        disambiguatePaths: false,
-        runOnCompile: false,
-        only: ["Facet", "Diamond", "KreskoAsset"],
-    },
-    namedAccounts: users,
-    networks: networks(mnemonic),
-    defaultNetwork: "hardhat",
     paths: {
-        artifacts: "build/artifacts",
-        cache: "build/cache",
+        artifacts: "artifacts",
+        cache: "cache",
         sources: "src/contracts",
         tests: "src/test",
         deploy: "src/deploy",
         deployments: "deployments",
+        imports: "forge/artifacts",
     },
-    solidity: compilers,
     external: {
         contracts: [
             {
@@ -79,14 +89,6 @@ const config: HardhatUserConfig = {
             },
         ],
     },
-    diamondAbi: [
-        {
-            name: "Kresko",
-            include: ["facets/*"],
-            exclude: ["vendor", "test/*", "interfaces/*", "KreskoAsset"],
-            strict: true,
-        },
-    ],
     typechain: {
         outDir: "types/typechain",
         target: "ethers-v5",
@@ -94,7 +96,36 @@ const config: HardhatUserConfig = {
         dontOverrideCompile: false,
         discriminateTypes: false,
         tsNocheck: false,
-        externalArtifacts: ["build/artifacts/hardhat-diamond-abi/Kresko.sol/Kresko.json"],
+        externalArtifacts: ["artifacts/hardhat-diamond-abi/Kresko.sol/Kresko.json"],
+    },
+    // gasReporter: {
+    //     currency: "USD",
+    //     enabled: false,
+    //     src: "src/contracts",
+    //     showMethodSig: true,
+    //     excludeContracts: ["vendor"],
+    // },
+    // contractSizer: {
+    //     alphaSort: true,
+    //     disambiguatePaths: false,
+    //     runOnCompile: false,
+    //     only: ["Facet", "Diamond", "KreskoAsset"],
+    // },
+    //@ts-ignore
+    diamondAbi: [
+        {
+            name: "Kresko",
+            include: ["facets*"],
+            exclude: ["vendor", "test/*", "interfaces/*", "KreskoAsset"],
+            strict: false,
+        },
+    ],
+    //@ts-ignore
+    foundry: {
+        cachePath: "forge/cache",
+        buildInfo: true,
+        forgeOnly: false,
+        cacheVacuum: 0,
     },
 };
 

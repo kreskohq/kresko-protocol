@@ -65,10 +65,10 @@ export async function addFacet<T extends Contract>({ name, initializerName, init
             logger.warn("Adding diamondCut initializer with no arguments supplied");
         } else {
             logger.log("Adding diamondCut initializer with arguments:", initializerArgs, InitializerContract.address);
+            const tx = await InitializerContract.populateTransaction.initialize(initializerArgs || "0x");
+            initializer = [tx.to, tx.data];
         }
         // #4.5 Prepopulate the initialization tx - replacing the default set on #5.1.
-        const tx = await InitializerContract.populateTransaction.initialize(initializerArgs || "0x");
-        initializer = [tx.to, tx.data];
     } else {
         // Ensure we know that no initializer was supplied for the facets
         logger.warn("Adding facets without initializer");

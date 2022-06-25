@@ -1,21 +1,11 @@
-const defaultCompilerOptions = {
+const oldCompilerSettings = {
     optimizer: {
         enabled: true,
         runs: 800,
     },
     outputSelection: {
         "*": {
-            "*": [
-                "storageLayout",
-                "evm.methodIdentifiers",
-                "devdoc",
-                "userdoc",
-                "evm.gasEstimates",
-                "evm.bytecode",
-                "metadata",
-                "abi",
-            ],
-            "": ["ast"],
+            "*": ["storageLayout", "evm.methodIdentifiers", "devdoc", "userdoc", "evm.gasEstimates"],
         },
     },
 };
@@ -38,23 +28,20 @@ export const compilers = {
             outputSelection: {
                 "*": {
                     "*": [
+                        "abi",
                         "storageLayout",
                         "evm.methodIdentifiers",
                         "devdoc",
                         "userdoc",
-                        "abi",
                         "evm.gasEstimates",
-                        "irOptimized",
-                        "evm.bytecode",
-                        "evm.bytecode.object",
-                        "metadata",
+                        "evm.byteCode",
                     ],
                 },
             },
         },
         {
             version: "0.6.12",
-            ...defaultCompilerOptions,
+            ...oldCompilerSettings,
         },
     ],
 };

@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
-import {Errors} from "./SmockFacet.sol";
+pragma solidity >=0.8.14;
+
+library Errors {
+    string public constant INITIALIZED = "Already initialized";
+    string public constant NOT_ACTIVE = "SmockFacet: Not active";
+    string public constant ACTIVE = "SmockFacet: Active";
+}
 
 struct SmockState {
     bool initialized;
