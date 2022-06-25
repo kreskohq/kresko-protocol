@@ -5,7 +5,7 @@ import {IERC165} from "../interfaces/IERC165.sol";
 import {IDiamondCut} from "../interfaces/IDiamondCut.sol";
 import {IDiamondLoupe} from "../interfaces/IDiamondLoupe.sol";
 import {IOwnership} from "../interfaces/IOwnership.sol";
-import {IAccessControlFacet} from "../interfaces/IAccessControlFacet.sol";
+import {IAuthorizationFacet} from "../interfaces/IAuthorizationFacet.sol";
 
 import "../../shared/Errors.sol";
 import "../../shared/Events.sol";
@@ -31,10 +31,10 @@ function initialize(DiamondState storage self, address _owner) {
     self.supportedInterfaces[type(IERC165).interfaceId] = true;
     self.supportedInterfaces[type(IDiamondCut).interfaceId] = true;
     self.supportedInterfaces[type(IOwnership).interfaceId] = true;
-    self.supportedInterfaces[type(IAccessControlFacet).interfaceId] = true;
+    self.supportedInterfaces[type(IAuthorizationFacet).interfaceId] = true;
 
     emit GeneralEvent.Deployed(_owner, self.storageVersion);
-    emit AccessControlEvent.OwnershipTransferred(address(0), _owner);
+    emit AuthEvent.OwnershipTransferred(address(0), _owner);
 }
 
 /**
@@ -48,7 +48,7 @@ function initiateOwnershipTransfer(DiamondState storage self, address _newOwner)
 
     self.pendingOwner = _newOwner;
 
-    emit AccessControlEvent.PendingOwnershipTransfer(self.contractOwner, _newOwner);
+    emit AuthEvent.PendingOwnershipTransfer(self.contractOwner, _newOwner);
 }
 
 /**
@@ -60,7 +60,7 @@ function finalizeOwnershipTransfer(DiamondState storage self) {
     self.contractOwner = self.pendingOwner;
     self.pendingOwner = address(0);
 
-    emit AccessControlEvent.OwnershipTransferred(self.contractOwner, msg.sender);
+    emit AuthEvent.OwnershipTransferred(self.contractOwner, msg.sender);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -2,13 +2,12 @@
 
 import "tsconfig-paths/register";
 
-// Enable when typechain works seamlessly
-// import "@foundry-rs/hardhat";
-
 // Plugins
+// @audit Enabled when typechain works seamlessly
 
 // import "solidity-coverage";
 import "hardhat-diamond-abi";
+// import "@foundry-rs/hardhat/packages/hardhat-forge/src/forge/build/index";
 import "@typechain/hardhat";
 import "@kreskolabs/hardhat-deploy";
 import "@nomiclabs/hardhat-ethers";
@@ -58,7 +57,7 @@ const config: HardhatUserConfig = {
     contractSizer: {
         alphaSort: true,
         disambiguatePaths: false,
-        runOnCompile: true,
+        runOnCompile: false,
         only: ["Facet", "Diamond", "KreskoAsset"],
     },
     namedAccounts: users,
@@ -71,7 +70,6 @@ const config: HardhatUserConfig = {
         tests: "src/test",
         deploy: "src/deploy",
         deployments: "deployments",
-        imports: "src/imports",
     },
     solidity: compilers,
     external: {
@@ -93,16 +91,10 @@ const config: HardhatUserConfig = {
         outDir: "types/typechain",
         target: "ethers-v5",
         alwaysGenerateOverloads: false,
-        discriminateTypes: true,
-        tsNocheck: false,
         dontOverrideCompile: false,
+        discriminateTypes: false,
+        tsNocheck: false,
         externalArtifacts: ["build/artifacts/hardhat-diamond-abi/Kresko.sol/Kresko.json"],
-    },
-
-    watcher: {
-        compilation: {
-            tasks: ["compile"],
-        },
     },
 };
 

@@ -13,7 +13,7 @@ contract DiamondOwnershipFacet is DiamondModifiers, IOwnership {
      * @notice Initiate ownership transfer to a new address
      * - caller must be the current contract owner
      * - the new owner cannot be address(0)
-     * - emits a {AccessControlEvent.PendingOwnershipTransfer} event
+     * - emits a {AuthEvent.PendingOwnershipTransfer} event
      * @param _newOwner address that is set as the pending new owner
      */
     function transferOwnership(address _newOwner) external override onlyOwner {

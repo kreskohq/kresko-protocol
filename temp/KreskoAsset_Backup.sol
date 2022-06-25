@@ -4,7 +4,7 @@ pragma solidity >=0.8.14;
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import {FixedPointMathLib} from "@rari-capital/solmate/src/utils/FixedPointMathLib.sol";
 
-import {Role} from "../shared/AccessControl.sol";
+import {Role} from "../shared/Authorization.sol";
 import "../shared/FP.sol" as FixedPoint;
 import "../shared/Errors.sol";
 

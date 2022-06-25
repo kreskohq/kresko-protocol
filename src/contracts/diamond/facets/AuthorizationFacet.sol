@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.14;
 
-import {IAccessControlFacet} from "../interfaces/IAccessControlFacet.sol";
+import {IAuthorizationFacet} from "../interfaces/IAuthorizationFacet.sol";
 
-import "../../shared/AccessControl.sol";
+import "../../shared/Authorization.sol";
 
 /**
  * @title Enumerable access control for the EIP2535-pattern following the OZ implementation.
@@ -12,7 +12,7 @@ import "../../shared/AccessControl.sol";
  * @dev Difference here is the logic library that is shared and reused, there is no state here.
  */
 
-contract AccessControlFacet is IAccessControlFacet {
+contract AuthorizationFacet is IAuthorizationFacet {
     /**
      * @dev OpenZeppelin
      * Returns one of the accounts that have `role`. `index` must be a
@@ -37,7 +37,7 @@ contract AccessControlFacet is IAccessControlFacet {
      * @return address with the `role`
      */
     function getRoleMember(bytes32 role, uint256 index) external view returns (address) {
-        return AccessControl.getRoleMember(role, index);
+        return Authorization.getRoleMember(role, index);
     }
 
     /**
@@ -46,7 +46,7 @@ contract AccessControlFacet is IAccessControlFacet {
      * @notice See warning in {getRoleMember} if combining these two
      */
     function getRoleMemberCount(bytes32 role) external view returns (uint256) {
-        return AccessControl.getRoleMemberCount(role);
+        return Authorization.getRoleMemberCount(role);
     }
 
     /**
@@ -60,7 +60,7 @@ contract AccessControlFacet is IAccessControlFacet {
      * - the caller must have ``role``'s admin role.
      */
     function grantRole(bytes32 role, address account) external {
-        AccessControl.grantRole(role, account);
+        Authorization.grantRole(role, account);
     }
 
     /**
@@ -71,11 +71,11 @@ contract AccessControlFacet is IAccessControlFacet {
      * - the caller must have ``role``'s admin role.
      */
     function revokeRole(bytes32 role, address account) external {
-        AccessControl._revokeRole(role, account);
+        Authorization._revokeRole(role, account);
     }
 
     function hasRole(bytes32 role, address account) external view returns (bool) {
-        return AccessControl.hasRole(role, account);
+        return Authorization.hasRole(role, account);
     }
 
     /**
@@ -85,7 +85,7 @@ contract AccessControlFacet is IAccessControlFacet {
      * @notice To change a role's admin, use {_setRoleAdmin}.
      */
     function getRoleAdmin(bytes32 role) external view returns (bytes32) {
-        return AccessControl.getRoleAdmin(role);
+        return Authorization.getRoleAdmin(role);
     }
 
     /**
@@ -103,6 +103,6 @@ contract AccessControlFacet is IAccessControlFacet {
      * - the caller must be `account`.
      */
     function renounceRole(bytes32 role, address account) external {
-        AccessControl._renounceRole(role, account);
+        Authorization._renounceRole(role, account);
     }
 }

@@ -3,7 +3,7 @@ pragma solidity >=0.8.14;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 
-import {Role} from "../shared/AccessControl.sol";
+import {Role} from "../shared/Authorization.sol";
 import "../shared/Errors.sol";
 
 import {RebalanceMath, Rebalance} from "./utils/Rebalance.sol";

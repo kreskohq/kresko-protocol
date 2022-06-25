@@ -4,7 +4,7 @@ pragma solidity 0.8.14;
 import "../interfaces/ISafetyCouncilFacet.sol";
 
 import "../../shared/Errors.sol";
-import {AccessControl, Role} from "../../shared/AccessControl.sol";
+import {Authorization, Role} from "../../shared/Authorization.sol";
 import {DiamondModifiers, MinterModifiers} from "../../shared/Modifiers.sol";
 
 import {ms, MinterEvent} from "../MinterStorage.sol";

@@ -1,6 +1,27 @@
 [default]
+build_info = true
 src = "src/contracts"
 out = "build/artifacts"
-libs = ["node_modules"]
+cache = true
+cache_path = "build/cache"
+libs = ["node_modules", "lib"]
 optimizer = true
 optimizer_runs = 800
+extra_output = [
+    "storageLayout",
+    "evm.methodIdentifiers",
+    "devdoc",
+    "userdoc",
+    "metadata",
+    "evm.gasEstimates",
+    "evm.bytecode",
+    "evm.deployedBytecode",
+
+]
+constant_optimizer = true
+
+[default.optimizer_details]
+yul = true
+
+[default.optimizer_details.yulDetails]
+stackAllocation = true
