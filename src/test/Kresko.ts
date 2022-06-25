@@ -2912,8 +2912,8 @@ describe("Kresko", function () {
                     this.collDecimals,
                 );
 
-                // Liquidator collateral deposits in the protocol stay the same
-                expect(liquidatorBalanceInProtocolAfterLiquidation).to.equal(
+                // Liquidator collateral deposits in the protocol is reduced because of the burn fee
+                expect(liquidatorBalanceInProtocolAfterLiquidation).to.be.lessThan(
                     liquidatorBalanceInProtocolBeforeLiquidation,
                 );
 
@@ -2946,8 +2946,10 @@ describe("Kresko", function () {
                     this.collDecimals,
                 );
 
-                // Protocol should receive 5% (MAX_BURN_FEE) from the liquidation
-                expect(feeRecipientBalance).to.be.closeTo(liquidatorProfit / 2, feeRecipientBalance * 0.02);
+                // Protocol should receive 5% (MAX_BURN_FEE) twice from the liquidation as burn fee is paid twice
+                expect(feeRecipientBalance).to.be.closeTo(
+                    liquidatorProfit, feeRecipientBalance * 0.02
+                );
 
                 // Shouldn't be able to liquidate a healthy position anymore
                 await expect(

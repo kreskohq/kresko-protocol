@@ -101,6 +101,7 @@ export const networks = (mnemonic: string) => ({
         accounts: {
             mnemonic,
         },
+        allowUnlimitedContractSize: true,
         chainId: chainIds.hardhat,
         saveDeployments: true,
         deploy: ["./src/deploy/local"],
