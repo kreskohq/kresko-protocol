@@ -25,10 +25,6 @@
         ".prettierignore": true,
         ".solcover.js": true,
         ".solhint.json": true,
-        ".solhintignore": true,
-        ".yarnrc.yml": true,
-        "LICENSE.md": true,
-        "README.md": true,
         ".prettierrc": true,
         ".czrc": true,
         ".editorconfig": true
