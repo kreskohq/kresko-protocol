@@ -5,7 +5,7 @@ import "../interfaces/IOperatorFacet.sol";
 
 import {Error} from "../../shared/Errors.sol";
 import {MinterEvent, GeneralEvent} from "../../shared/Events.sol";
-import {AccessControl, Role} from "../../shared/AccessControl.sol";
+import {Authorization, Role} from "../../shared/Authorization.sol";
 import {ds, DiamondModifiers, MinterModifiers, Meta} from "../../shared/Modifiers.sol";
 
 import "../state/Constants.sol" as MinterConstant;
@@ -23,7 +23,7 @@ contract OperatorFacet is DiamondModifiers, MinterModifiers, IOperatorFacet {
     /* -------------------------------------------------------------------------- */
     function initialize(MinterInitArgs calldata args) external onlyOwner {
         require(ms().initializations == 0, Error.ALREADY_INITIALIZED);
-        AccessControl._grantRole(Role.OPERATOR, args.operator);
+        Authorization._grantRole(Role.OPERATOR, args.operator);
         /**
          * @notice Council can be set only by this specific function.
          * Requirements:
@@ -31,10 +31,10 @@ contract OperatorFacet is DiamondModifiers, MinterModifiers, IOperatorFacet {
          * - address `_council` must implement ERC165 and a specific multisig interfaceId.
          * - reverts if above is not true.
          */
-        AccessControl.setupSecurityCouncil(args.council);
+        Authorization.setupSecurityCouncil(args.council);
 
         /// @dev Temporarily set operator role for calling the update functions
-        AccessControl._grantRole(Role.OPERATOR, msg.sender);
+        Authorization._grantRole(Role.OPERATOR, msg.sender);
 
         updateFeeRecipient(args.feeRecipient);
         updateBurnFee(args.burnFee);
@@ -44,7 +44,7 @@ contract OperatorFacet is DiamondModifiers, MinterModifiers, IOperatorFacet {
         updateSecondsUntilStalePrice(args.secondsUntilStalePrice);
 
         /// @dev Revoke the operator role
-        AccessControl.revokeRole(Role.OPERATOR, msg.sender);
+        Authorization.revokeRole(Role.OPERATOR, msg.sender);
 
         // Add IERC165 support for facets
         ds().supportedInterfaces[type(IOperatorFacet).interfaceId] = true;

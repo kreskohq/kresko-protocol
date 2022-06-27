@@ -3,7 +3,7 @@ pragma solidity 0.8.14;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import "../krAsset/utils/ERC20Upgradeable.sol";
-import {Role} from "../shared/AccessControl.sol";
+import {Role} from "../shared/Authorization.sol";
 
 /**
  * @title Kresko Synthethic Asset - a simple dynamic supply ERC20.

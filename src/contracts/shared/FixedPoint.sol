@@ -12,9 +12,9 @@ library FixedPoint {
     using SafeMathUpgradeable for uint256;
     using SignedSafeMathUpgradeable for int256;
 
-    uint256 constant FP_DECIMALS = 18;
-    uint256 constant FP_SCALING_FACTOR = 10**FP_DECIMALS;
-    int256 constant SFP_SCALING_FACTOR = 10**18;
+    uint256 internal constant FP_DECIMALS = 18;
+    uint256 internal constant FP_SCALING_FACTOR = 10**FP_DECIMALS;
+    int256 internal constant SFP_SCALING_FACTOR = 10**18;
 
     struct Unsigned {
         uint256 rawValue;

@@ -4,7 +4,7 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgrad
 import {FixedPointMathLib} from "@rari-capital/solmate/src/utils/FixedPointMathLib.sol";
 import {SafeTransferLib} from "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
 
-import {Role} from "../shared/AccessControl.sol";
+import {Role} from "../shared/Authorization.sol";
 
 import "./utils/ERC4626Upgradeable.sol";
 

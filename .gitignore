@@ -1,34 +1,41 @@
-# folders
-.coverage_artifacts/
-.coverage_cache/
-.coverage_contracts/
+# yarn
 .yarn/*
 !.yarn/releases
 !.yarn/plugins
-artifacts/
-build/
-compiles/
-cache/
-coverage/
+
+# temp outputs
+.coverage_artifacts/
+.coverage_cache/
+.coverage_contracts/
 dist/
-lib/
+coverage/
+artifacts/
+cache/
+build/
+forge/
 node_modules/
-types/typechain
 deployments/hardhat
+deployments/localhost
+deployments/anvil
+types/typechain
+_bin
 bin
-# files
-*.secrets
+lib
+
+# secrets
+*interact.ethers
 *.env
+*.secrets
+*.npmrc
+
+# misc
 *.logs
 *.tsbuildinfo
-.npmrc*
 coverage.json
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-# ETHERS file that uses ethers-mode plugin in VSCode, might contain keys so do not include
-*interact.ethers
-
+*.DS_Store
 
 # OpenZeppelin
 .openzeppelin/dev-*.json

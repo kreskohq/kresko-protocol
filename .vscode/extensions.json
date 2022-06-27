@@ -12,7 +12,6 @@
         "acuarica.ethers-mode",
         "wware.snippet-creator",
         "tintinweb.vscode-inline-bookmarks",
-        "tintinweb.vscode-ethover",
         "stackbreak.comment-divider"
     ],
     // List of extensions recommended by VS Code that should not be recommended for users of this workspace.

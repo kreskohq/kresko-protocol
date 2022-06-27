@@ -193,7 +193,7 @@ library StakingEvent {
     event ClaimRewardsMulti(address indexed to);
 }
 
-library AccessControlEvent {
+library AuthEvent {
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event PendingOwnershipTransfer(address indexed previousOwner, address indexed newOwner);
     /**

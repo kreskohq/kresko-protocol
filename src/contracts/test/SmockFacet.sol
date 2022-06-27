@@ -1,44 +1,27 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
+pragma solidity >=0.8.14;
 
-import {DiamondModifiers} from "../shared/Modifiers.sol";
-import {SmockStorage} from "./SmockStorage.sol";
 import {ISmockFacet} from "./interfaces/ISmockFacet.sol";
+import {DiamondModifiers} from "../shared/Modifiers.sol";
+import {SmockStorage, Errors} from "./SmockStorage.sol";
 
 bytes32 constant TEST_OPERATOR_ROLE = keccak256("kresko.test.operator");
-
-library Errors {
-    string public constant INITIALIZED = "Already initialized";
-    string public constant NOT_ACTIVE = "SmockFacet: Not active";
-    string public constant ACTIVE = "SmockFacet: Active";
-}
-
-abstract contract SmockModifiers is DiamondModifiers {
-    modifier onlyActive() {
-        require(SmockStorage.state().isActive, Errors.ACTIVE);
-        _;
-    }
-    modifier onlyDisabled() {
-        require(!SmockStorage.state().isActive, Errors.NOT_ACTIVE);
-        _;
-    }
-}
 
 /**
  * @dev Use for Smock fakes / mocks.
  */
-contract SmockFacet is SmockModifiers, ISmockFacet {
+contract SmockFacet is DiamondModifiers, ISmockFacet {
     uint256 public constant MESSAGE_THROTTLE = 2;
 
     function operator() external view returns (address) {
         return SmockStorage.state().operator;
     }
 
-    function activate() external onlyRole(TEST_OPERATOR_ROLE) onlyDisabled {
+    function activate() external override onlyRole(TEST_OPERATOR_ROLE) onlyDisabled {
         SmockStorage.activate();
     }
 
-    function disable() external onlyRole(TEST_OPERATOR_ROLE) onlyActive {
+    function disable() external override onlyRole(TEST_OPERATOR_ROLE) onlyActive {
         SmockStorage.disable();
     }
 
@@ -46,7 +29,7 @@ contract SmockFacet is SmockModifiers, ISmockFacet {
         return SmockStorage.state().initialized;
     }
 
-    function setMessage(string memory message) external onlyActive {
+    function setMessage(string memory message) external override onlyActive {
         require(block.number >= SmockStorage.state().lastMessageBlock + MESSAGE_THROTTLE, "Cant set message yet");
 
         SmockStorage.state().message = message;
@@ -54,5 +37,14 @@ contract SmockFacet is SmockModifiers, ISmockFacet {
 
         emit SmockStorage.Call(msg.sender);
         emit NewMessage(msg.sender, message);
+    }
+
+    modifier onlyActive() {
+        require(SmockStorage.state().isActive, Errors.ACTIVE);
+        _;
+    }
+    modifier onlyDisabled() {
+        require(!SmockStorage.state().isActive, Errors.NOT_ACTIVE);
+        _;
     }
 }

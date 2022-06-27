@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.14;
 
-import {AccessControl, Role} from "../shared/AccessControl.sol";
+import {Authorization, Role} from "../shared/Authorization.sol";
 import {ds, Meta, Error, initializeDiamondCut, IDiamondCut, GeneralEvent} from "./DiamondStorage.sol";
 
 contract Diamond {
@@ -21,7 +21,7 @@ contract Diamond {
     ) {
         ds().initialize(_owner);
         ds().diamondCut(_diamondCut, address(0), "");
-        AccessControl._grantRole(Role.ADMIN, _owner);
+        Authorization._grantRole(Role.ADMIN, _owner);
 
         for (uint256 i = 0; i < _initializations.length; i++) {
             initializeDiamondCut(_initializations[i].initContract, _initializations[i].initData);

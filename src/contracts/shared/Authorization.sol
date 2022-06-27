@@ -4,7 +4,7 @@ pragma solidity 0.8.14;
 import "../vendor/gnosis/IGnosisSafeL2.sol";
 import "./Strings.sol";
 import "./Errors.sol";
-import {AccessControlEvent} from "./Events.sol";
+import {AuthEvent} from "./Events.sol";
 import {ds, Meta, EnumerableSet, enforceHasContractCode} from "../diamond/DiamondStorage.sol";
 
 /**
@@ -27,7 +27,7 @@ library Role {
     bytes32 constant SAFETY_COUNCIL = 0x9c387ecf1663f9144595993e2c602b45de94bf8ba3a110cb30e3652d79b581c0;
 }
 
-library AccessControl {
+library Authorization {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     function hasRole(bytes32 role, address account) internal view returns (bool) {
@@ -97,7 +97,7 @@ library AccessControl {
         ds()._roles[Role.SAFETY_COUNCIL].members[_councilAddress] = true;
         ds()._roleMembers[Role.SAFETY_COUNCIL].add(_councilAddress);
 
-        emit AccessControlEvent.RoleGranted(Role.SAFETY_COUNCIL, _councilAddress, Meta.msgSender());
+        emit AuthEvent.RoleGranted(Role.SAFETY_COUNCIL, _councilAddress, Meta.msgSender());
     }
 
     function transferSecurityCouncil(address _newCouncil) internal {
@@ -170,7 +170,7 @@ library AccessControl {
     function _setRoleAdmin(bytes32 role, bytes32 adminRole) internal {
         bytes32 previousAdminRole = getRoleAdmin(role);
         ds()._roles[role].adminRole = adminRole;
-        emit AccessControlEvent.RoleAdminChanged(role, previousAdminRole, adminRole);
+        emit AuthEvent.RoleAdminChanged(role, previousAdminRole, adminRole);
     }
 
     /**
@@ -184,7 +184,7 @@ library AccessControl {
         if (!hasRole(role, account)) {
             ds()._roles[role].members[account] = true;
             ds()._roleMembers[role].add(account);
-            emit AccessControlEvent.RoleGranted(role, account, Meta.msgSender());
+            emit AuthEvent.RoleGranted(role, account, Meta.msgSender());
         }
     }
 
@@ -197,7 +197,7 @@ library AccessControl {
         if (hasRole(role, account)) {
             ds()._roles[role].members[account] = false;
             ds()._roleMembers[role].remove(account);
-            emit AccessControlEvent.RoleRevoked(role, account, Meta.msgSender());
+            emit AuthEvent.RoleRevoked(role, account, Meta.msgSender());
         }
     }
 

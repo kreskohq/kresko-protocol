@@ -5,8 +5,7 @@ const oldCompilerSettings = {
     },
     outputSelection: {
         "*": {
-            "*": ["storageLayout", "evm.methodIdentifiers", "devdoc", "userdoc", "evm.gasEstimates", "irOptimized"],
-            "": ["ast"],
+            "*": ["storageLayout", "evm.methodIdentifiers", "devdoc", "userdoc", "evm.gasEstimates"],
         },
     },
 };
@@ -29,23 +28,16 @@ export const compilers = {
             outputSelection: {
                 "*": {
                     "*": [
+                        "abi",
                         "storageLayout",
                         "evm.methodIdentifiers",
                         "devdoc",
                         "userdoc",
                         "evm.gasEstimates",
-                        "irOptimized",
+                        "evm.byteCode",
                     ],
                 },
             },
-        },
-        {
-            version: "0.5.16",
-            ...oldCompilerSettings,
-        },
-        {
-            version: "0.6.6",
-            ...oldCompilerSettings,
         },
         {
             version: "0.6.12",

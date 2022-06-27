@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.14;
 
-import {AccessControl, Role} from "./AccessControl.sol";
+import {Authorization, Role} from "./Authorization.sol";
 import {Meta} from "./Meta.sol";
 import {Error} from "./Errors.sol";
 
@@ -17,12 +17,12 @@ abstract contract DiamondModifiers {
      *
      * The format of the revert reason is given by the following regular expression:
      *
-     *  /^AccessControl: account (0x[0-9a-f]{40}) is missing role (0x[0-9a-f]{64})$/
+     *  /^Authorization: account (0x[0-9a-f]{40}) is missing role (0x[0-9a-f]{64})$/
      *
      * _Available since v4.1._
      */
     modifier onlyRole(bytes32 role) {
-        AccessControl.checkRole(role);
+        Authorization.checkRole(role);
         _;
     }
 
@@ -32,7 +32,7 @@ abstract contract DiamondModifiers {
      */
     modifier onlyRoleIf(bool _accountIsNotMsgSender, bytes32 role) {
         if (_accountIsNotMsgSender) {
-            AccessControl.checkRole(role);
+            Authorization.checkRole(role);
         }
         _;
     }
