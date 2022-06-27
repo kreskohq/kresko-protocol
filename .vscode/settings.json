@@ -15,7 +15,6 @@
     "files.exclude": {
         ".husky": true,
         ".gitattributes": true,
-        ".DS_Store": true,
         ".commitlintrc.js": true,
         ".env.example": true,
         ".eslintignore": true,
@@ -40,5 +39,6 @@
     "solidity-va.codelens.flatten.enable": true,
     "solidity-va.codelens.uml.enable": false,
     "solidity-va.codelens.drawio.enable": true,
-    "solidity-va.debug.parser.showExceptions": false
+    "solidity-va.debug.parser.showExceptions": false,
+    "inline-bookmarks.view.showVisibleFilesOnly": false
 }

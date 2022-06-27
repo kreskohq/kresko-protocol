@@ -13,6 +13,7 @@ export const chainIds = {
     bsctest: 97,
     celo: 42220,
     celotest: 44787,
+    "op-kovan": 69,
     ethereum: 1,
     goerli: 5,
     kovan: 42,
@@ -119,6 +120,12 @@ export const networks = (mnemonic: string) => ({
         url: "https://data-seed-prebsc-2-s3.binance.org:8545",
         chainId: chainIds.bsctest,
         tags: ["ethereum"],
+    },
+    opkovan: {
+        account: { mnemonic },
+        url: "https://kovan.optimism.io",
+        chainId: chainIds["op-kovan"],
+        tags: ["op-kovan"],
     },
     kovan: {
         chainId: chainIds.kovan,
