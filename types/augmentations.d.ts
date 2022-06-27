@@ -143,7 +143,7 @@ declare module "hardhat/types/runtime" {
             initializer?: {
                 contract: Contract;
                 functionName?: string;
-                args?: any[];
+                args?: [string, BytesLike];
             },
         ) => {
             facetCut: FacetCut;

@@ -5,8 +5,11 @@ cache/
 coverage/
 dist/
 lib/
+forge/
 node_modules/
-typechain/
+types/typechain/
+src/contracts/vendor/**/*
+src/contracts/test/**/*
 
 # files
 .solcover.js

@@ -5,8 +5,12 @@ cache/
 coverage/
 dist/
 lib/
+build/
+forge/
 node_modules/
-typechain/
+types/typechain/
+src/contracts/vendor/
+src/contracts/test/
 
 # files
 coverage.json
