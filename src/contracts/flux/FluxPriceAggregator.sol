@@ -4,6 +4,7 @@ pragma solidity >=0.8.4;
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "./interfaces/AggregatorV2V3Interface.sol";
+import "../libraries/Median.sol";
 
 /**
  * @title Flux first-party price feed oracle aggregator
@@ -12,6 +13,8 @@ import "./interfaces/AggregatorV2V3Interface.sol";
  *     Chainlink V2 and V3 aggregator interface
  */
 contract FluxPriceAggregator is AccessControl, AggregatorV2V3Interface, Pausable {
+    using Median for uint256[];
+
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
     uint32 public latestAggregatorRoundId;
@@ -21,6 +24,7 @@ contract FluxPriceAggregator is AccessControl, AggregatorV2V3Interface, Pausable
     struct Transmission {
         int192 answer; // 192 bits ought to be enough for anyone
         uint64 timestamp;
+        bool marketOpen;
     }
     mapping(uint32 => Transmission) /* aggregator round ID */
         internal transmissions;
@@ -61,23 +65,50 @@ contract FluxPriceAggregator is AccessControl, AggregatorV2V3Interface, Pausable
 
     /// @notice Update prices, callable by anyone
     function updatePrices() public whenNotPaused {
-        // require min delay since lastUpdate
+        // Require min delay since lastUpdate
         require(block.timestamp > transmissions[latestAggregatorRoundId].timestamp + minDelay);
 
-        // fetch sum of latestAnswer from oracles
-        int256 sum = 0;
+        // Fetch median of latest answers from oracles and determine market open/closed by majority vote
+        uint256[] memory latestAnswers = new uint256[](oracles.length);
+        uint256 invalidAnswerCount;
+        int marketOpenCount;
+        int marketClosedCount;
         for (uint256 i = 0; i < oracles.length; i++) {
-            sum += AggregatorV2V3Interface(oracles[i]).latestAnswer();
+            AggregatorV2V3Interface oracle = AggregatorV2V3Interface(oracles[i]);
+            // Drop unintialized values as oracle has never posted
+            uint256 latestTime = oracle.latestTimestamp();
+            if(latestTime == 0) {
+                invalidAnswerCount++;
+                continue;
+            }
+            // Drop negative values as assets cannot have negative prices
+            int256 latestAns = oracle.latestAnswer();
+            if(latestAns < 0) {
+                invalidAnswerCount++;
+                continue;
+            }
+            latestAnswers[i-invalidAnswerCount] = uint256(latestAns);
+            // Increment market open/closed counters
+            bool isMarketOpen = oracle.latestMarketOpen();
+            isMarketOpen ? marketOpenCount++ : marketClosedCount++;
         }
 
-        // calculate average of sum
-        int192 _answer = int192(int256(uint256(sum) / oracles.length));
+        // Clean up latest answers array, keeping only valid prices
+        uint256[] memory trimmedLatestAnswers = new uint[](latestAnswers.length-invalidAnswerCount);
+        for (uint j = 0; j < trimmedLatestAnswers.length; j++) {
+            trimmedLatestAnswers[j] = latestAnswers[j];
+        }
 
-        // update round
+        // Calculate median answer and market open/close
+        uint256 medianAnswer = trimmedLatestAnswers.median(trimmedLatestAnswers.length);
+        int192 _answer = int192(int256(medianAnswer));
+        bool marketOpen = marketOpenCount > marketClosedCount ? true : false;
+
+        // Update round
         latestAggregatorRoundId++;
-        transmissions[latestAggregatorRoundId] = Transmission(_answer, uint64(block.timestamp));
+        transmissions[latestAggregatorRoundId] = Transmission(_answer, uint64(block.timestamp), marketOpen);
 
-        emit AnswerUpdated(_answer, latestAggregatorRoundId, block.timestamp);
+        emit AnswerUpdated(_answer, marketOpen, latestAggregatorRoundId, block.timestamp);
     }
 
     /*
@@ -107,11 +138,11 @@ contract FluxPriceAggregator is AccessControl, AggregatorV2V3Interface, Pausable
     }
 
     /// @notice Overrides the price, only callable by admin
-    function setManualAnswer(int192 _answer) public {
+    function setManualAnswer(int192 _answer, bool _marketOpen) public {
         require(hasRole(ADMIN_ROLE, msg.sender), "Caller is not a admin");
         latestAggregatorRoundId++;
-        transmissions[latestAggregatorRoundId] = Transmission(_answer, uint64(block.timestamp));
-        emit AnswerUpdated(_answer, latestAggregatorRoundId, block.timestamp);
+        transmissions[latestAggregatorRoundId] = Transmission(_answer, uint64(block.timestamp), _marketOpen);
+        emit AnswerUpdated(_answer, _marketOpen, latestAggregatorRoundId, block.timestamp);
     }
 
     /*
@@ -130,6 +161,13 @@ contract FluxPriceAggregator is AccessControl, AggregatorV2V3Interface, Pausable
      */
     function latestTimestamp() public view virtual override returns (uint256) {
         return transmissions[latestAggregatorRoundId].timestamp;
+    }
+
+    /**
+     * @notice market open indicator from the most recent report
+     */
+    function latestMarketOpen() public view virtual override returns (bool) {
+        return transmissions[latestAggregatorRoundId].marketOpen;
     }
 
     /**
@@ -159,6 +197,15 @@ contract FluxPriceAggregator is AccessControl, AggregatorV2V3Interface, Pausable
             return 0;
         }
         return transmissions[uint32(_roundId)].timestamp;
+    }
+
+    /**
+     * @notice market open of report from given aggregator round
+     * @param _roundId the aggregator round of the target report
+     */
+    function getMarketOpen(uint256 _roundId) public view virtual override returns (bool) {
+        require(_roundId <= 0xFFFFFFFF, "FluxPriceFeed: round ID");
+        return transmissions[uint32(_roundId)].marketOpen;
     }
 
     /*
@@ -191,6 +238,7 @@ contract FluxPriceAggregator is AccessControl, AggregatorV2V3Interface, Pausable
      * @param _roundId target aggregator round. Must fit in uint32
      * @return roundId _roundId
      * @return answer answer of report from given _roundId
+     * @return marketOpen of report from given _roundId
      * @return startedAt timestamp of block in which report from given _roundId was transmitted
      * @return updatedAt timestamp of block in which report from given _roundId was transmitted
      * @return answeredInRound _roundId
@@ -203,6 +251,7 @@ contract FluxPriceAggregator is AccessControl, AggregatorV2V3Interface, Pausable
         returns (
             uint80 roundId,
             int256 answer,
+            bool marketOpen,
             uint256 startedAt,
             uint256 updatedAt,
             uint80 answeredInRound
@@ -210,13 +259,14 @@ contract FluxPriceAggregator is AccessControl, AggregatorV2V3Interface, Pausable
     {
         require(_roundId <= 0xFFFFFFFF, V3_NO_DATA_ERROR);
         Transmission memory transmission = transmissions[uint32(_roundId)];
-        return (_roundId, transmission.answer, transmission.timestamp, transmission.timestamp, _roundId);
+        return (_roundId, transmission.answer, transmission.marketOpen, transmission.timestamp, transmission.timestamp, _roundId);
     }
 
     /**
      * @notice aggregator details for the most recently transmitted report
      * @return roundId aggregator round of latest report
      * @return answer answer of latest report
+     * @return marketOpen of report from latest report
      * @return startedAt timestamp of block containing latest report
      * @return updatedAt timestamp of block containing latest report
      * @return answeredInRound aggregator round of latest report
@@ -229,6 +279,7 @@ contract FluxPriceAggregator is AccessControl, AggregatorV2V3Interface, Pausable
         returns (
             uint80 roundId,
             int256 answer,
+            bool marketOpen,
             uint256 startedAt,
             uint256 updatedAt,
             uint80 answeredInRound
@@ -240,6 +291,6 @@ contract FluxPriceAggregator is AccessControl, AggregatorV2V3Interface, Pausable
         // require(roundId != 0, V3_NO_DATA_ERROR);
 
         Transmission memory transmission = transmissions[uint32(roundId)];
-        return (roundId, transmission.answer, transmission.timestamp, transmission.timestamp, roundId);
+        return (roundId, transmission.answer, transmission.marketOpen, transmission.timestamp, transmission.timestamp, roundId);
     }
 }

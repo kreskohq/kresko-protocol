@@ -14,7 +14,6 @@ import {
     LIQUIDATION_INCENTIVE,
     MINIMUM_COLLATERALIZATION_RATIO,
     MINIMUM_DEBT_VALUE,
-    SECONDS_UNTIL_PRICE_STALE,
     NAME_ONE,
     NAME_TWO,
     ONE,
@@ -65,6 +64,7 @@ describe.only("Kresko", function () {
             expect(await this.Kresko.feeRecipient()).to.equal(FEE_RECIPIENT_ADDRESS);
             expect(await this.Kresko.liquidationIncentiveMultiplier()).to.equal(LIQUIDATION_INCENTIVE);
             expect(await this.Kresko.minimumCollateralizationRatio()).to.equal(MINIMUM_COLLATERALIZATION_RATIO);
+            expect(await this.Kresko.minimumDebtValue()).to.equal(MINIMUM_DEBT_VALUE);
         });
 
         it("should not allow being called more than once", async function () {
@@ -75,7 +75,6 @@ describe.only("Kresko", function () {
                     LIQUIDATION_INCENTIVE,
                     MINIMUM_COLLATERALIZATION_RATIO,
                     MINIMUM_DEBT_VALUE,
-                    SECONDS_UNTIL_PRICE_STALE,
                 ),
             ).to.be.revertedWith("Initializable: contract is already initialized");
         });
@@ -1049,6 +1048,9 @@ describe.only("Kresko", function () {
         });
     });
 
+    // TODO: Once Kresko.sol is deployable (reduced bytesize) add tests for
+    //       - Mints paused on closed market
+    //       - Burns paused on closed market
     describe("Kresko Assets", function () {
         async function deployAndAddKreskoAsset(
             this: any,
@@ -1594,7 +1596,45 @@ describe.only("Kresko", function () {
                 expect(args.amount).to.equal(mintAmount);
             });
 
-            it("should not allow untrusted account to mint kreskoassets on behalf of another user", async function () {
+            it("should not allow users to mint Kresko assets when market is closed", async function () {
+                const kreskoAsset = this.kreskoAssetInfos[0].kreskoAsset;
+                const kreskoAssetAddress = kreskoAsset.address;
+
+                // Close Kresko asset's market
+                const oracle = this.kreskoAssetInfos[0].oracle;
+                await oracle.connect(this.Kresko.signer).transmit(this.kreskoAssetInfos[0].oraclePrice, false);
+                expect(await oracle.latestMarketOpen()).to.equal(false);
+
+                // Attempt to mint Kresko asset
+                const mintAmount = toFixedPoint(500);
+                await expect(
+                    this.Kresko.connect(this.signers.userOne).mintKreskoAsset(
+                        this.signers.userOne.address,
+                        kreskoAssetAddress,
+                        mintAmount,
+                    ),
+                ).to.be.revertedWith("KR: market closed");
+
+                // Reopen Kresko asset's market
+                await oracle.connect(this.Kresko.signer).transmit(this.kreskoAssetInfos[0].oraclePrice, true);
+                expect(await oracle.latestMarketOpen()).to.equal(true);
+
+                // Attempt to mint Kresko asset
+                await this.Kresko.connect(this.signers.userOne).mintKreskoAsset(
+                    this.signers.userOne.address,
+                    kreskoAssetAddress,
+                    mintAmount,
+                );
+
+                // Confirm that the mint was successful and user's balances have increased
+                const finalKreskoAssetDebt = await this.Kresko.kreskoAssetDebt(
+                    this.signers.userOne.address,
+                    kreskoAssetAddress,
+                );
+                expect(finalKreskoAssetDebt).to.equal(mintAmount);
+            });
+
+            it("should not allow untrusted account to mint Kresko assets on behalf of another user", async function () {
                 const kreskoAsset = this.kreskoAssetInfos[0].kreskoAsset;
                 const kreskoAssetAddress = kreskoAsset.address;
 
@@ -1806,7 +1846,7 @@ describe.only("Kresko", function () {
                 const kreskoAssetTotalSupplyBefore = await kreskoAsset.totalSupply();
                 await this.Kresko.connect(this.signers.admin).toggleTrustedContract(this.signers.userThree.address);
 
-                // User three burns the whole mintAmount of Kresko asset to repay userOnes debt
+                // User three burns the whole mintAmount of Kresko asset to repay userOne's debt
                 const kreskoAssetIndex = 0;
                 await this.Kresko.connect(this.signers.userThree).burnKreskoAsset(
                     this.signers.userOne.address,
@@ -1850,6 +1890,7 @@ describe.only("Kresko", function () {
                     kreskoAssetIndex,
                 );
 
+                
                 // Confirm the user no long holds the burned Kresko asset amount
                 const userBalance = await kreskoAsset.balanceOf(this.signers.userOne.address);
                 expect(userBalance).to.equal(0);
@@ -1867,38 +1908,52 @@ describe.only("Kresko", function () {
                 expect(userDebt).to.equal(0);
             });
 
-            it("should burn the users full Kresko asset balance if the requested burn would result in a position under min debt value", async function () {
-                const kreskoAsset = this.kreskoAssetInfos[0].kreskoAsset;
-                const kreskoAssetAddress = kreskoAsset.address;
+            // TODO:
+            // it("should burn up to the minimum debt position amount if the requested burn would result in a position under the minimum debt value", async function () {
+            //     const kreskoAsset = this.kreskoAssetInfos[0].kreskoAsset;
+            //     const kreskoAssetAddress = kreskoAsset.address;
 
-                const kreskoAssetTotalSupplyBefore = await kreskoAsset.totalSupply();
+            //     const userBalanceBefore = await kreskoAsset.balanceOf(this.signers.userOne.address);
+            //     const kreskoAssetTotalSupplyBefore = await kreskoAsset.totalSupply();
 
-                const requestedBurnAmount = this.mintAmount.sub(toFixedPoint(1));
-                // Burn Kresko asset
-                const kreskoAssetIndex = 0;
-                await this.Kresko.connect(this.signers.userOne).burnKreskoAsset(
-                    this.signers.userOne.address,
-                    kreskoAssetAddress,
-                    requestedBurnAmount,
-                    kreskoAssetIndex,
-                );
+            //     // Calculate actual burn amount
+            //     const requestedBurnAmount: number = this.mintAmount.sub(toFixedPoint(1));
+            //     const userOneDebt = Number(await this.Kresko.kreskoAssetDebt(this.signers.userOne.address, kreskoAssetAddress));
+            //     const krAssetValue = await this.Kresko.getKrAssetValue(kreskoAssetAddress, String(userOneDebt - requestedBurnAmount), true);
 
-                // Confirm the user no long holds the burned Kresko asset amount
-                const userBalance = await kreskoAsset.balanceOf(this.signers.userOne.address);
-                expect(userBalance).to.equal(0);
+            //     let burnAmount = requestedBurnAmount;
+            //     const krAssetValueNum = Number(krAssetValue.rawValue);
+            //     const minDebtValue = Number(await this.Kresko.minimumDebtValue());
+            //     if (krAssetValueNum > 0 && krAssetValueNum < minDebtValue) {
+            //         const oraclePrice =  Number(await this.kreskoAssetInfos[0].oracle.latestAnswer());
+            //         burnAmount = userOneDebt-(minDebtValue*oraclePrice);
+            //     }
 
-                // Confirm that the Kresko asset's total supply decreased as expected
-                const kreskoAssetTotalSupplyAfter = await kreskoAsset.totalSupply();
-                expect(kreskoAssetTotalSupplyAfter).to.equal(kreskoAssetTotalSupplyBefore.sub(this.mintAmount));
+            //     // Burn Kresko asset
+            //     const kreskoAssetIndex = 0;
+            //     await this.Kresko.connect(this.signers.userOne).burnKreskoAsset(
+            //         this.signers.userOne.address,
+            //         kreskoAssetAddress,
+            //         requestedBurnAmount,
+            //         kreskoAssetIndex,
+            //     );
 
-                // Confirm the array of the user's minted Kresko assets no longer contains the asset's address
-                const mintedKreskoAssetsAfter = await this.Kresko.getMintedKreskoAssets(this.signers.userOne.address);
-                expect(mintedKreskoAssetsAfter).to.deep.equal([]);
+            //     // Confirm the user holds the expected Kresko asset amount
+            //     const userBalance = await kreskoAsset.balanceOf(this.signers.userOne.address);
+            //     expect(userBalance).to.equal(userBalanceBefore - burnAmount);
 
-                // Confirm the user's minted kresko asset amount has been updated
-                const userDebt = await this.Kresko.kreskoAssetDebt(this.signers.userOne.address, kreskoAssetAddress);
-                expect(userDebt).to.equal(0);
-            });
+            //     // Confirm that the Kresko asset's total supply decreased as expected
+            //     const kreskoAssetTotalSupplyAfter = Number(await kreskoAsset.totalSupply());
+            //     expect(kreskoAssetTotalSupplyAfter).to.equal(kreskoAssetTotalSupplyBefore.sub(burnAmount));
+
+            //     // Confirm the array of the user's minted Kresko assets still contains the asset's address
+            //     const mintedKreskoAssetsAfter = await this.Kresko.getMintedKreskoAssets(this.signers.userOne.address);
+            //     expect(mintedKreskoAssetsAfter).to.deep.equal([kreskoAssetAddress]);
+
+            //     // Confirm the user's minted kresko asset amount has been updated
+            //     const userDebt = await Number(this.Kresko.kreskoAssetDebt(this.signers.userOne.address, kreskoAssetAddress));
+            //     expect(userDebt).to.equal(userOneDebt - burnAmount);
+            // });
 
             it("should emit KreskoAssetBurned event", async function () {
                 const kreskoAssetAddress = this.kreskoAssetInfos[0].kreskoAsset.address;
@@ -1928,6 +1983,44 @@ describe.only("Kresko", function () {
                         kreskoAssetIndex,
                     ),
                 ).to.be.revertedWith("KR: 0-burn");
+            });
+
+            it("should not allow users to burn Kresko assets when market is closed", async function () {
+                const kreskoAsset = this.kreskoAssetInfos[0].kreskoAsset;
+                const kreskoAssetAddress = kreskoAsset.address;
+                const kreskoAssetIndex = 0;
+
+                // Close Kresko asset's market
+                const oracle = this.kreskoAssetInfos[0].oracle;
+                await oracle.connect(this.Kresko.signer).transmit(this.kreskoAssetInfos[0].oraclePrice, false);
+                expect(await oracle.latestMarketOpen()).to.equal(false);
+
+                // Attempt to burn Kresko asset
+                const burnAmount = toFixedPoint(200);
+                await expect(
+                    this.Kresko.connect(this.signers.userOne).burnKreskoAsset(
+                        this.signers.userOne.address,
+                        kreskoAssetAddress,
+                        burnAmount,
+                        kreskoAssetIndex,
+                    ),
+                ).to.be.revertedWith("KR: market closed");
+
+                // Reopen Kresko asset's market
+                await oracle.connect(this.Kresko.signer).transmit(this.kreskoAssetInfos[0].oraclePrice, true);
+                expect(await oracle.latestMarketOpen()).to.equal(true);
+
+                // Attempt to burn Kresko asset
+                await this.Kresko.connect(this.signers.userOne).burnKreskoAsset(
+                    this.signers.userOne.address,
+                    kreskoAssetAddress,
+                    burnAmount,
+                    kreskoAssetIndex,
+                );
+
+                // Confirm the user no long holds the burned Kresko asset amount
+                const userBalance = await kreskoAsset.balanceOf(this.signers.userOne.address);
+                expect(userBalance).to.equal(this.mintAmount.sub(burnAmount));
             });
 
             it("should not allow untrusted address to burn any kresko assets on behalf of another user", async function () {
@@ -2474,7 +2567,7 @@ describe.only("Kresko", function () {
                 const oracle = this.collateralAssetInfos[0].oracle;
                 const updatedCollateralPrice = 11;
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
-                await oracle.transmit(fixedPointOraclePrice);
+                await oracle.transmit(fixedPointOraclePrice, true);
 
                 // Updated collateral value: (10 * $11) = $110
                 const userCollateralAmountInUSD = await this.Kresko.getAccountCollateralValue(
@@ -2494,7 +2587,7 @@ describe.only("Kresko", function () {
                 const oracle = this.collateralAssetInfos[0].oracle;
                 const updatedCollateralPrice = 11;
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
-                await oracle.transmit(fixedPointOraclePrice);
+                await oracle.transmit(fixedPointOraclePrice, true);
 
                 // Confirm we can liquidate this account
                 const canLiquidate = await this.Kresko.isAccountLiquidatable(this.signers.userOne.address);
@@ -2575,7 +2668,7 @@ describe.only("Kresko", function () {
                 const oracle = this.collateralAssetInfos[0].oracle;
                 const updatedCollateralPrice = 11;
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
-                await oracle.transmit(fixedPointOraclePrice);
+                await oracle.transmit(fixedPointOraclePrice, true);
 
                 // Fetch user's debt amount prior to liquidation
                 const kreskoAsset = this.kreskoAssetInfo[0].kreskoAsset;
@@ -2689,7 +2782,7 @@ describe.only("Kresko", function () {
                 const oracle = this.collateralAssetInfos[0].oracle;
                 const updatedCollateralPrice = 5;
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
-                await oracle.transmit(fixedPointOraclePrice);
+                await oracle.transmit(fixedPointOraclePrice, true);
 
                 // Fetch user's debt amount prior to liquidation
                 const userOneDebtAmountBeforeLiquidation = Number(
@@ -2908,7 +3001,7 @@ describe.only("Kresko", function () {
                 const oracle = this.collateralAssetInfos[0].oracle;
                 const updatedCollateralPrice = 5;
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
-                await oracle.transmit(fixedPointOraclePrice);
+                await oracle.transmit(fixedPointOraclePrice, true);
 
                 // Fetch user's debt amount prior to liquidation
                 const userOneDebtAmountBeforeLiquidation = Number(
@@ -3069,7 +3162,7 @@ describe.only("Kresko", function () {
                 const updatedCollateralPrice = 11;
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
                 const oracle = this.collateralAssetInfos[0].oracle;
-                await oracle.transmit(fixedPointOraclePrice);
+                await oracle.transmit(fixedPointOraclePrice, true);
 
                 const kreskoAsset = this.kreskoAssetInfo[0].kreskoAsset;
                 const collateralAsset = this.collateralAssetInfos[0].collateralAsset;
@@ -3107,7 +3200,7 @@ describe.only("Kresko", function () {
                 const updatedCollateralPrice = 11;
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
                 const oracle = this.collateralAssetInfos[0].oracle;
-                await oracle.transmit(fixedPointOraclePrice);
+                await oracle.transmit(fixedPointOraclePrice, true);
 
                 const kreskoAsset = this.kreskoAssetInfo[0].kreskoAsset;
                 const collateralAsset = this.collateralAssetInfos[0].collateralAsset;
@@ -3166,7 +3259,7 @@ describe.only("Kresko", function () {
                 const updatedCollateralPrice = 11;
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
                 const oracle = this.collateralAssetInfos[0].oracle;
-                await oracle.transmit(fixedPointOraclePrice);
+                await oracle.transmit(fixedPointOraclePrice, true);
 
                 // userTwo holds Kresko assets that can be used to repay userOne's loan
                 const repayAmount = 0;
@@ -3192,7 +3285,7 @@ describe.only("Kresko", function () {
                 // Change collateral asset's USD value from $20 to $11
                 const updatedCollateralPrice = 11;
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
-                await this.collateralAssetInfos[0].oracle.transmit(fixedPointOraclePrice);
+                await this.collateralAssetInfos[0].oracle.transmit(fixedPointOraclePrice, true);
 
                 // Get the debt for this kresko asset
                 const krAssetDebtUserOne = await this.Kresko.kreskoAssetDebt(
@@ -3229,7 +3322,7 @@ describe.only("Kresko", function () {
                 // Change krAsset's USD value from $20 to $15
                 const updatedCollateralPrice = 15;
                 const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
-                await this.kreskoAssetInfo[0].oracle.transmit(fixedPointOraclePrice);
+                await this.kreskoAssetInfo[0].oracle.transmit(fixedPointOraclePrice, true);
 
                 // Get the max liquidatable value for the user
                 const maxUSDValue = fromBig(
@@ -3273,7 +3366,7 @@ describe.only("Kresko", function () {
             // Change collateral asset's USD value from $20 to $11
             const updatedCollateralPrice = 11;
             const fixedPointOraclePrice = toFixedPoint(updatedCollateralPrice);
-            await this.collateralAssetInfos[0].oracle.transmit(fixedPointOraclePrice);
+            await this.collateralAssetInfos[0].oracle.transmit(fixedPointOraclePrice, true);
 
             // Transfer user two's synthetic assets to user one so they can repay their loan in full
             const userTwoSynthBalance = await this.kreskoAssetInfo[0].kreskoAsset.balanceOf(

@@ -11,7 +11,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     /** === USDC/KRTSLA ===  */
     const krTSLA = await ethers.getContract<KreskoAsset>("krTSLA");
     const TSLAValue = fromBig(await priceFeeds["TSLA/USD"].latestAnswer(), 8);
-    const TSLADepositAmount = 100;
+    const TSLADepositAmount = 250;
 
     const logger = getLogger("create-uni-pools");
 
@@ -43,7 +43,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     /** === USDC/krETH ===  */
     const krETH = await ethers.getContract<KreskoAsset>("krETH");
     const ETHValue = fromBig(await priceFeeds["ETH/USD"].latestAnswer(), 8);
-    const ETHDepositAmount = 100;
+    const ETHDepositAmount = 250;
 
     const krETHPAIR = await Factory.getPair(USDC.address, krETH.address);
 
@@ -70,7 +70,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     /** === USDC/krGOLD ===  */
     const krGOLD = await ethers.getContract<KreskoAsset>("krGOLD");
     const GOLDValue = fromBig(await priceFeeds["GOLD/USD"].latestAnswer(), 8);
-    const GOLDDepositAmount = 100;
+    const GOLDDepositAmount = 250;
     const krGOLDPair = await Factory.getPair(USDC.address, krGOLD.address);
 
     let USDCKRGOLDPair: UniswapV2Pair;

@@ -61,6 +61,7 @@ const config = {
     mocha: {
         timeout: 120000,
     },
+    allowUnlimitedContractSize: true,
 };
 
 export default config;

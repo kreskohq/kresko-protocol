@@ -16,7 +16,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     await hre.run("deploy:krasset", {
         name: "krGOLD",
-        symbol: "KrGOLD",
+        symbol: "krGOLD",
         operator: kresko.address,
         wait: 2,
         log: true,

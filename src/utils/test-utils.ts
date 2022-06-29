@@ -94,7 +94,7 @@ export async function deployWETH10AsCollateralWithLiquidator(
     const oracleArtifact: Artifact = await hre.artifacts.readArtifact("FluxPriceFeed");
     const oracle = <FluxPriceFeed>await deployContract(signer, oracleArtifact, [signer.address, 18, "ETH/USD"]);
     const fixedPointOraclePrice = toFixedPoint(oraclePrice);
-    await oracle.transmit(fixedPointOraclePrice);
+    await oracle.transmit(fixedPointOraclePrice, true);
 
     const WETH10Artifact: Artifact = await hre.artifacts.readArtifact("MockWETH10");
     const WETH10 = <MockWETH10>await deployContract(signer, WETH10Artifact);
@@ -145,7 +145,7 @@ export async function deployAndWhitelistCollateralAsset(
         await deployContract(kresko.signer, fluxPriceFeedArtifact, [signerAddress, 8, description])
     );
     const fixedPointOraclePrice = toFixedPoint(oraclePrice);
-    await oracle.transmit(fixedPointOraclePrice);
+    await oracle.transmit(fixedPointOraclePrice, true);
 
     const fixedPointCollateralFactor = toFixedPoint(collateralFactor);
     await kresko.addCollateralAsset(
@@ -191,7 +191,7 @@ export async function addNewKreskoAssetWithOraclePrice(
         await deployContract(kresko.signer, fluxPriceFeedArtifact, [signerAddress, decimals, description])
     );
     const fixedPointOraclePrice = toFixedPoint(oraclePrice);
-    await oracle.transmit(fixedPointOraclePrice);
+    await oracle.transmit(fixedPointOraclePrice, true);
     const fixedPointKFactor = toFixedPoint(kFactor);
 
     const kreskoAssetFactory = await hre.ethers.getContractFactory("KreskoAsset");
@@ -253,7 +253,7 @@ export async function deployOracle(name: string, description: string, oraclePric
         description,
     });
 
-    await Oracle.transmit(toFixedPoint(oraclePrice));
+    await Oracle.transmit(toFixedPoint(oraclePrice), true);
 
     return Oracle;
 }

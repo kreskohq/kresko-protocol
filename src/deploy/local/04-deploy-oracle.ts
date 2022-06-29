@@ -7,6 +7,7 @@ const func: DeployFunction = async function (hre) {
     const { priceFeeds, getNamedAccounts } = hre;
 
     const { priceFeedValidator } = await getNamedAccounts();
+    logger.log("priceFeedValidator:", priceFeedValidator);
     // USD
     await hre.run("deployone:fluxpricefeed", {
         name: "USD",
@@ -15,7 +16,7 @@ const func: DeployFunction = async function (hre) {
         validator: priceFeedValidator,
     });
 
-    await priceFeeds["/USD"].transmit(toFixedPoint("1", 8));
+    await priceFeeds["/USD"].transmit(toFixedPoint("1", 8), true);
 
     const usdPrice = fromBig(await priceFeeds["/USD"].latestAnswer(), 8);
     logger.log("USD price set at: ", usdPrice);
@@ -27,7 +28,7 @@ const func: DeployFunction = async function (hre) {
         description: "ETH/USD",
         validator: priceFeedValidator,
     });
-    await priceFeeds["ETH/USD"].transmit(toFixedPoint("2600", 8));
+    await priceFeeds["ETH/USD"].transmit(toFixedPoint("2600", 8), true);
 
     const ethPrice = fromBig(await priceFeeds["ETH/USD"].latestAnswer(), 8);
     logger.log("ETH price set at: ", ethPrice);
@@ -39,7 +40,7 @@ const func: DeployFunction = async function (hre) {
         description: "GOLD/USD",
         validator: priceFeedValidator,
     });
-    await priceFeeds["GOLD/USD"].transmit(toFixedPoint("1898.2", 8));
+    await priceFeeds["GOLD/USD"].transmit(toFixedPoint("1898.2", 8), true);
     const goldPrice = fromBig(await priceFeeds["GOLD/USD"].latestAnswer(), 8);
     logger.log("GOLD price set at: ", goldPrice);
 
@@ -50,7 +51,7 @@ const func: DeployFunction = async function (hre) {
         description: "TSLA/USD",
         validator: priceFeedValidator,
     });
-    await priceFeeds["TSLA/USD"].transmit(toFixedPoint("852.2", 8));
+    await priceFeeds["TSLA/USD"].transmit(toFixedPoint("852.2", 8), true);
     const tslaPrice = fromBig(await priceFeeds["TSLA/USD"].latestAnswer(), 8);
     logger.log("TSLA price set at: ", tslaPrice);
 
@@ -61,7 +62,7 @@ const func: DeployFunction = async function (hre) {
         description: "QQQ/USD",
         validator: priceFeedValidator,
     });
-    await priceFeeds["QQQ/USD"].transmit(toFixedPoint("339.09", 8));
+    await priceFeeds["QQQ/USD"].transmit(toFixedPoint("339.09", 8), true);
     const qqqPrice = fromBig(await priceFeeds["QQQ/USD"].latestAnswer(), 8);
     logger.log("QQQ price set at: ", qqqPrice);
 
@@ -72,7 +73,7 @@ const func: DeployFunction = async function (hre) {
         description: "AURORA/USD",
         validator: priceFeedValidator,
     });
-    await priceFeeds["AURORA/USD"].transmit(toFixedPoint("8.8", 8));
+    await priceFeeds["AURORA/USD"].transmit(toFixedPoint("8.8", 8), true);
     const auroraPrice = fromBig(await priceFeeds["AURORA/USD"].latestAnswer(), 8);
     logger.log("AURORA price set at: ", auroraPrice);
 
@@ -83,7 +84,7 @@ const func: DeployFunction = async function (hre) {
         description: "NEAR/USD",
         validator: priceFeedValidator,
     });
-    await priceFeeds["NEAR/USD"].transmit(toFixedPoint("10.2", 8));
+    await priceFeeds["NEAR/USD"].transmit(toFixedPoint("10.2", 8), true);
     const nearPrice = fromBig(await priceFeeds["NEAR/USD"].latestAnswer(), 8);
     logger.log("NEAR price set at: ", nearPrice);
 

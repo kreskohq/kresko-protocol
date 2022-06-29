@@ -12,7 +12,6 @@ import {
     LIQUIDATION_INCENTIVE,
     MINIMUM_COLLATERALIZATION_RATIO,
     MINIMUM_DEBT_VALUE,
-    SECONDS_UNTIL_PRICE_STALE,
 } from "@utils";
 
 /****** INFORMATION  *******
@@ -203,24 +202,28 @@ describe("Solvency", function () {
             const currentPrice = await this.getStableKrAssetPrice();
             await this.volativeKrAssetInfo.oracle.transmit(
                 toFixedPoint(currentPrice * (percentage >= 1 ? percentage : Math.abs(1 - percentage))),
+                true,
             );
         };
         this.swingStableKrAssetPriceBy = async function (percentage: number) {
             const currentPrice = await this.getVolativeKrAssetPrice();
             await this.stableKrAssetInfo.oracle.transmit(
                 toFixedPoint(currentPrice * (percentage >= 1 ? percentage : Math.abs(1 - percentage))),
+                true,
             );
         };
         this.swingStableCollateralPriceBy = async function (percentage: number) {
             const currentPrice = await this.getStableCollateralPrice();
             await this.stableCollateralAssetInfo.oracle.transmit(
                 toFixedPoint(currentPrice * (percentage >= 1 ? percentage : Math.abs(1 - percentage))),
+                true,
             );
         };
         this.swingVolativeCollateralPriceBy = async function (percentage: number) {
             const currentPrice = await this.getVolativeCollateralPrice();
             await this.volativeCollateralAssetInfo.oracle.transmit(
                 toFixedPoint(currentPrice * (percentage >= 1 ? percentage : Math.abs(1 - percentage))),
+                true,
             );
         };
     });
@@ -235,7 +238,6 @@ describe("Solvency", function () {
                 LIQUIDATION_INCENTIVE,
                 MINIMUM_COLLATERALIZATION_RATIO,
                 MINIMUM_DEBT_VALUE,
-                SECONDS_UNTIL_PRICE_STALE,
             ],
             {
                 unsafeAllow: [

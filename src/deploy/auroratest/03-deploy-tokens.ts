@@ -1,11 +1,9 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { MockWETH10 } from "types";
 import { getLogger } from "@utils/deployment";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("deploy-tokens");
-    const { deployer } = await hre.getNamedAccounts();
 
     const USDC: Token = await hre.run("deploy:token", {
         name: "USDC",
@@ -29,19 +27,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         log: true,
     });
 
-    const [WETH] = await hre.deploy<MockWETH10>("Wrapped Ether", {
-        contract: "MockWETH10",
-        from: deployer,
-        waitConfirmations: 2,
-        log: true,
-    });
+    const WETH = await hre.ethers.getContract("Wrapped Ether");
 
     const contracts = {
         USDC: USDC.address,
-        NEAR: NEAR.address,
+        wNEAR: NEAR.address,
         AURORA: AURORA.address,
         WETH: WETH.address,
     };
+
     logger.table(contracts);
     logger.success("Succesfully deployed mock tokens");
 };

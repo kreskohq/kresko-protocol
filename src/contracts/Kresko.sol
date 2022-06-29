@@ -123,9 +123,6 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     /// @notice The minimum USD value of an individual synthetic asset debt position.
     FixedPoint.Unsigned public minimumDebtValue;
 
-    /// @notice The number of seconds until a price is considered stale
-    uint256 public secondsUntilStalePrice;
-
     /* ===== General state - Collateral Assets ===== */
 
     /// @notice Mapping of collateral asset token address to information on the collateral asset.
@@ -322,12 +319,6 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     event MinimumDebtValueUpdated(uint256 indexed minimumDebtValue);
 
     /**
-     * @notice Emitted when the seconds until stale price value is updated.
-     * @param secondsUntilStalePrice The new seconds until stale price value.
-     */
-    event SecondsUntilStalePriceUpdated(uint256 indexed secondsUntilStalePrice);
-
-    /**
      * ==================================================
      * =================== Modifiers ====================
      * ==================================================
@@ -383,17 +374,6 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     /**
-     * @notice Reverts if a Kresko asset's price is stale
-     * @param _kreskoAsset The address of the Kresko asset.
-     */
-    modifier kreskoAssetPriceNotStale(address _kreskoAsset) {
-        uint256 priceTimestamp = uint256(kreskoAssets[_kreskoAsset].oracle.latestTimestamp());
-        // Include a buffer as block.timestamp can be manipulated up to 15 seconds.
-        require(block.timestamp < priceTimestamp+secondsUntilStalePrice, "KR: stale price");
-        _;
-    }
-
-    /**
      * @notice Reverts if the symbol of a Kresko asset already exists within the protocol.
      * @param _kreskoAsset The address of the Kresko asset.
      * @param _symbol The symbol of the Kresko asset.
@@ -401,6 +381,15 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     modifier kreskoAssetDoesNotExist(address _kreskoAsset, string calldata _symbol) {
         require(!kreskoAssets[_kreskoAsset].exists, "KR: krAssetExists");
         require(!kreskoAssetSymbols[_symbol], "KR: symbolExists");
+        _;
+    }
+
+    /**
+     * @notice Reverts if a Kresko asset's market is currently closed
+     * @param _kreskoAsset The address of the Kresko asset.
+     */
+    modifier kreskoAssetMarketOpen(address _kreskoAsset) {
+        require(kreskoAssets[_kreskoAsset].oracle.latestMarketOpen(), "KR: market closed");
         _;
     }
 
@@ -435,8 +424,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         address _feeRecipient,
         uint256 _liquidationIncentiveMultiplier,
         uint256 _minimumCollateralizationRatio,
-        uint256 _minimumDebtValue,
-        uint256 _secondsUntilStalePrice
+        uint256 _minimumDebtValue
     ) external initializer {
         // Set msg.sender as the owner.
         __Ownable_init();
@@ -445,7 +433,6 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         updateLiquidationIncentiveMultiplier(_liquidationIncentiveMultiplier);
         updateMinimumCollateralizationRatio(_minimumCollateralizationRatio);
         updateMinimumDebtValue(_minimumDebtValue);
-        updateSecondsUntilStalePrice(_secondsUntilStalePrice);
     }
 
     /**
@@ -585,7 +572,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     ) external
         nonReentrant
         kreskoAssetExistsAndMintable(_kreskoAsset)
-        kreskoAssetPriceNotStale(_kreskoAsset)
+        kreskoAssetMarketOpen(_kreskoAsset)
         ensureTrustedCallerWhen(_account != msg.sender)
     {
         require(_amount > 0, "KR: 0-mint");
@@ -647,6 +634,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         external
         nonReentrant
         kreskoAssetExistsMaybeNotMintable(_kreskoAsset)
+        kreskoAssetMarketOpen(_kreskoAsset)
         ensureTrustedCallerWhen(_account != msg.sender)
     {
         require(_amount > 0, "KR: 0-burn");
@@ -656,9 +644,12 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         require(_amount <= debtAmount, "KR: amount > debt");
 
         // If the requested burn would put the user's debt position below the minimum
-        // debt value, close the position entirely instead.
-        if (getKrAssetValue(_kreskoAsset, debtAmount - _amount, true).isLessThan(minimumDebtValue)) {
-            _amount = debtAmount;
+        // debt value, close up to the minimum debt value instead.
+        FixedPoint.Unsigned memory krAssetValue = getKrAssetValue(_kreskoAsset, debtAmount - _amount, true);
+        if (krAssetValue.isGreaterThan(0) && krAssetValue.isLessThan(minimumDebtValue)) {
+            FixedPoint.Unsigned memory oraclePrice = FixedPoint.Unsigned(uint256(kreskoAssets[_kreskoAsset].oracle.latestAnswer()));
+            FixedPoint.Unsigned memory minDebtAmount = minimumDebtValue.div(oraclePrice);
+            _amount = debtAmount - minDebtAmount.rawValue;
         }
 
         // Record the burn.
@@ -706,10 +697,6 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             require(kreskoAssets[_repayKreskoAsset].exists, "KR: !krAssetExist");
             require(collateralAssets[_collateralAssetToSeize].exists, "KR: !collateralExists");
             require(_repayAmount > 0, "KR: 0-repay");
-
-            uint256 priceTimestamp = uint256(kreskoAssets[_repayKreskoAsset].oracle.latestTimestamp());
-            require(block.timestamp < priceTimestamp+secondsUntilStalePrice, "KR: stale price");
-
             // Borrower cannot liquidate themselves
             require(msg.sender != _account, "KR: self liquidation");
 
@@ -982,15 +969,6 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         require(_minimumDebtValue <= MAX_DEBT_VALUE, "KR: debtValue > max");
         minimumDebtValue = FixedPoint.Unsigned(_minimumDebtValue);
         emit MinimumDebtValueUpdated(_minimumDebtValue);
-    }
-
-    /**
-     * @dev Updates the contract's seconds until stale price value
-     * @param _secondsUntilStalePrice The new seconds until stale price.
-     */
-    function updateSecondsUntilStalePrice(uint256 _secondsUntilStalePrice) public onlyOwner {
-        secondsUntilStalePrice = _secondsUntilStalePrice;
-        emit SecondsUntilStalePriceUpdated(_secondsUntilStalePrice);
     }
 
     /**
