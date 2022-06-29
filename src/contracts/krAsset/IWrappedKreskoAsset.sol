@@ -9,6 +9,10 @@ interface IWrappedKreskoAsset is IAccessControlEnumerableUpgradeable {
 
     function convertToShares(uint256 assets) external view returns (uint256);
 
+    function issue(uint256 _assets, address _receiver) external returns (uint256);
+
+    function destroy(uint256 _assets, address _receiver) external returns (uint256);
+
     function deposit(uint256 _assets, address _receiver) external returns (uint256 shares);
 
     function initialize(

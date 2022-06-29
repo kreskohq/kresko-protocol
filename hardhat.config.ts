@@ -23,7 +23,7 @@ if (process.env.FOUNDRY === "true") {
 }
 
 import "hardhat-interface-generator";
-// import "hardhat-contract-sizer";
+import "hardhat-contract-sizer";
 // import "hardhat-preprocessor";
 // import "hardhat-watcher";
 // import "hardhat-gas-reporter";
@@ -105,12 +105,12 @@ const config: HardhatUserConfig = {
     //     showMethodSig: true,
     //     excludeContracts: ["vendor"],
     // },
-    // contractSizer: {
-    //     alphaSort: true,
-    //     disambiguatePaths: false,
-    //     runOnCompile: false,
-    //     only: ["Facet", "Diamond", "KreskoAsset"],
-    // },
+    contractSizer: {
+        alphaSort: true,
+        disambiguatePaths: false,
+        runOnCompile: true,
+        only: ["Facet", "Diamond", "KreskoAsset"],
+    },
     //@ts-ignore
     diamondAbi: [
         {

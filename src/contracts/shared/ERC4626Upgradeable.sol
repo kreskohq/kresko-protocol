@@ -17,7 +17,9 @@ abstract contract ERC4626Upgradeable is ERC20Upgradeable {
     /* -------------------------------------------------------------------------- */
 
     event Deposit(address indexed caller, address indexed owner, uint256 assets, uint256 shares);
+    event Deposit(address indexed caller, uint256 assets, uint256 shares);
 
+    event Withdraw(address indexed caller, uint256 assets, uint256 shares);
     event Withdraw(
         address indexed caller,
         address indexed receiver,
@@ -47,6 +49,31 @@ abstract contract ERC4626Upgradeable is ERC20Upgradeable {
     /* -------------------------------------------------------------------------- */
     /*                          DEPOSIT/WITHDRAWAL LOGIC                          */
     /* -------------------------------------------------------------------------- */
+    function issue(uint256 assets, address receiver) public virtual returns (uint256 shares) {
+        // Check for rounding error since we round down in previewDeposit.
+        require((shares = previewDeposit(assets)) != 0, "ZERO_SHARES");
+
+        // Issue assets for Kresko
+        asset.issue(assets);
+        // Mint shares for the receiver
+        _mint(receiver, shares);
+
+        emit Deposit(msg.sender, receiver, assets, shares);
+
+        _afterDeposit(assets, shares);
+    }
+
+    function destroy(uint256 assets, address owner) public virtual returns (uint256 shares) {
+        shares = previewWithdraw(assets); // No need to check for rounding error, previewWithdraw rounds up.
+
+        _beforeWithdraw(assets, shares);
+        // Burn assets from Kresko
+        asset.destroy(assets);
+        // Burn shares from owner
+        _burn(owner, shares);
+
+        emit Withdraw(owner, assets, shares);
+    }
 
     function deposit(uint256 assets, address receiver) public virtual returns (uint256 shares) {
         // Check for rounding error since we round down in previewDeposit.

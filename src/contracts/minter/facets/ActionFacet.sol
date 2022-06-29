@@ -3,6 +3,7 @@ pragma solidity >=0.8.14;
 
 import {IAction} from "../interfaces/IAction.sol";
 import {IKreskoAsset} from "../../krasset/IKreskoAsset.sol";
+import {IWrappedKreskoAsset} from "../../krasset/IWrappedKreskoAsset.sol";
 
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
@@ -86,12 +87,12 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
      * @notice Mints new Kresko assets.
      * @param _account The address to mint assets for.
      * @param _kreskoAsset The address of the Kresko asset.
-     * @param _amount The amount of the Kresko asset to be minted.
+     * @param _assetAmount The amount of the Kresko asset to be minted.
      */
     function mintKreskoAsset(
         address _account,
         address _kreskoAsset,
-        uint256 _amount
+        uint256 _assetAmount
     )
         external
         nonReentrant
@@ -99,7 +100,7 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
         kreskoAssetPriceNotStale(_kreskoAsset)
         onlyRoleIf(_account != msg.sender, Role.MANAGER)
     {
-        require(_amount > 0, Error.ZERO_MINT);
+        require(_assetAmount > 0, Error.ZERO_MINT);
 
         MinterState storage s = ms();
 
@@ -109,43 +110,51 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
 
         // Enforce synthetic asset's maximum market capitalization limit
         require(
-            IKreskoAsset(_kreskoAsset).totalSupply() + _amount <= s.kreskoAssets[_kreskoAsset].supplyLimit,
+            IKreskoAsset(_kreskoAsset).totalSupply() + _assetAmount <= s.kreskoAssets[_kreskoAsset].supplyLimit,
             Error.KRASSET_MAX_SUPPLY_REACHED
         );
 
-        // Get the value of the minter's current deposited collateral.
-        FixedPoint.Unsigned memory accountCollateralValue = s.getAccountCollateralValue(_account);
-        // Get the account's current minimum collateral value required to maintain current debts.
-        FixedPoint.Unsigned memory minAccountCollateralValue = s.getAccountMinimumCollateralValue(_account);
-        // Calculate additional collateral amount required to back requested additional mint.
-        FixedPoint.Unsigned memory additionalCollateralValue = s.getMinimumCollateralValue(_kreskoAsset, _amount);
+        {
+            // Get the value of the minter's current deposited collateral.
+            FixedPoint.Unsigned memory accountCollateralValue = s.getAccountCollateralValue(_account);
+            // Get the account's current minimum collateral value required to maintain current debts.
+            FixedPoint.Unsigned memory minAccountCollateralValue = s.getAccountMinimumCollateralValue(_account);
+            // Calculate additional collateral amount required to back requested additional mint.
+            FixedPoint.Unsigned memory additionalCollateralValue = s.getMinimumCollateralValue(
+                _kreskoAsset,
+                _assetAmount
+            );
 
-        // Verify that minter has sufficient collateral to back current debt + new requested debt.
-        require(
-            minAccountCollateralValue.add(additionalCollateralValue).isLessThanOrEqual(accountCollateralValue),
-            Error.KRASSET_COLLATERAL_LOW
-        );
+            // Verify that minter has sufficient collateral to back current debt + new requested debt.
+            require(
+                minAccountCollateralValue.add(additionalCollateralValue).isLessThanOrEqual(accountCollateralValue),
+                Error.KRASSET_COLLATERAL_LOW
+            );
+        }
 
         // The synthetic asset debt position must be greater than the minimum debt position value
-        uint256 existingDebtAmount = s.kreskoAssetDebt[_account][_kreskoAsset];
-        require(
-            s.getKrAssetValue(_kreskoAsset, existingDebtAmount + _amount, true).isGreaterThanOrEqual(
-                s.minimumDebtValue
-            ),
-            Error.KRASSET_MINT_AMOUNT_LOW
+        uint256 existingDebtAmount = IWrappedKreskoAsset(_kreskoAsset).convertToAssets(
+            s.kreskoAssetDebt[_account][_kreskoAsset]
         );
+        {
+            require(
+                s.getKrAssetValue(_kreskoAsset, existingDebtAmount + _assetAmount, true).isGreaterThanOrEqual(
+                    s.minimumDebtValue
+                ),
+                Error.KRASSET_MINT_AMOUNT_LOW
+            );
+        }
 
         // If the account does not have an existing debt for this Kresko Asset,
         // push it to the list of the account's minted Kresko Assets.
         if (existingDebtAmount == 0) {
             s.mintedKreskoAssets[_account].push(_kreskoAsset);
         }
+        uint256 shares = IWrappedKreskoAsset(_kreskoAsset).issue(_assetAmount, _account);
+
         // Record the mint.
-        s.kreskoAssetDebt[_account][_kreskoAsset] += _amount;
-
-        IKreskoAsset(_kreskoAsset).mint(address(this), _amount);
-
-        emit MinterEvent.KreskoAssetMinted(_account, _kreskoAsset, _amount);
+        s.kreskoAssetDebt[_account][_kreskoAsset] += shares;
+        emit MinterEvent.KreskoAssetMinted(_account, _kreskoAsset, _assetAmount);
     }
 
     /**
@@ -172,9 +181,9 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
         }
         require(_amount > 0, Error.ZERO_BURN);
         MinterState storage s = ms();
-
+        IWrappedKreskoAsset asset = IWrappedKreskoAsset(_kreskoAsset);
         // Ensure the amount being burned is not greater than the user's debt.
-        uint256 debtAmount = s.kreskoAssetDebt[_account][_kreskoAsset];
+        uint256 debtAmount = asset.previewRedeem(s.kreskoAssetDebt[_account][_kreskoAsset]);
         require(_amount <= debtAmount, Error.KRASSET_BURN_AMOUNT_OVERFLOW);
 
         {
@@ -190,18 +199,15 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
             }
         }
 
-        // Record the burn.
-        s.kreskoAssetDebt[_account][_kreskoAsset] -= _amount;
-
         // If the sender is burning all of the kresko asset, remove it from minted assets array.
         if (_amount == debtAmount) {
             s.mintedKreskoAssets[_account].removeAddress(_kreskoAsset, _mintedKreskoAssetIndex);
         }
+        uint256 shares = asset.destroy(_amount, _account);
+        // Record the burn.
+        s.kreskoAssetDebt[_account][_kreskoAsset] -= shares;
 
         s.chargeBurnFee(_account, _kreskoAsset, _amount);
-
-        // Burn the received kresko assets, removing them from circulation.
-        IKreskoAsset(_kreskoAsset).burn(msg.sender, _amount);
 
         emit MinterEvent.KreskoAssetBurned(_account, _kreskoAsset, _amount);
     }

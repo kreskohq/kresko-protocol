@@ -158,6 +158,24 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable {
     }
 
     /**
+     * @notice Issues underlying tokens
+     * @dev Only callable by operator.
+     * @param _amount The amount of tokens to mint.
+     */
+    function issue(uint256 _amount) external onlyRole(Role.OPERATOR) {
+        _mint(kresko, !rebalanced ? _amount : _amount.rebalance(rebalance));
+    }
+
+    /**
+     * @notice Issues underlying tokens
+     * @dev Only callable by operator.
+     * @param _amount The amount of tokens to mint.
+     */
+    function destroy(uint256 _amount) external onlyRole(Role.OPERATOR) {
+        _burn(kresko, !rebalanced ? _amount : _amount.rebalance(rebalance));
+    }
+
+    /**
      * @notice Mints tokens to an address.
      * @dev Only callable by operator.
      * @param _amount The amount of tokens to mint.

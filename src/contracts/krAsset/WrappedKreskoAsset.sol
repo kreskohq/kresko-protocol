@@ -62,6 +62,26 @@ contract WrappedKreskoAsset is ERC4626Upgradeable, AccessControlEnumerableUpgrad
         return asset.totalSupply();
     }
 
+    function issue(uint256 _assets, address _receiver)
+        public
+        virtual
+        override
+        onlyRole(Role.OPERATOR)
+        returns (uint256 shares)
+    {
+        shares = super.issue(_assets, _receiver);
+    }
+
+    function destroy(uint256 _assets, address _owner)
+        public
+        virtual
+        override
+        onlyRole(Role.OPERATOR)
+        returns (uint256 shares)
+    {
+        shares = super.destroy(_assets, _owner);
+    }
+
     function deposit(uint256 _assets, address _receiver)
         public
         virtual

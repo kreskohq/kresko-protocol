@@ -5,6 +5,10 @@ import {IERC20Upgradeable} from "../shared/IERC20Upgradeable.sol";
 interface IKreskoAsset is IERC20Upgradeable {
     function burn(address _from, uint256 _amount) external;
 
+    function issue(uint256 _amount) external;
+
+    function destroy(uint256 _amount) external;
+
     function initialize(
         string memory _name,
         string memory _symbol,
