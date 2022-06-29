@@ -20,6 +20,7 @@ bin
 *.env
 *.logs
 *.tsbuildinfo
+.secrets
 .npmrc*
 coverage.json
 npm-debug.log*

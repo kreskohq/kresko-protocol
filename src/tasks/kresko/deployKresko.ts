@@ -22,7 +22,7 @@ task("deploy:kresko")
     .addOptionalParam("log", "Log outputs", false, types.boolean)
     .setAction(async function (taskArgs: TaskArguments, hre) {
         const { getNamedAccounts, ethers, deployments } = hre;
-        const { admin } = await getNamedAccounts();
+        const { admin, treasury } = await getNamedAccounts();
         const deploy = deployWithSignatures(hre);
         const { formatEther } = ethers.utils;
         const {
@@ -37,6 +37,7 @@ task("deploy:kresko")
 
         const logger = getLogger("deployKresko", log);
 
+        console.log(taskArgs);
         const [Kresko, , deployment] = await deploy<Kresko>("Kresko", {
             from: admin,
             log,
@@ -46,7 +47,7 @@ task("deploy:kresko")
                     methodName: "initialize",
                     args: [
                         toFixedPoint(burnFee),
-                        feeRecipient,
+                        treasury,
                         toFixedPoint(liquidationIncentiveMultiplier),
                         toFixedPoint(minCollaterRatio),
                         toFixedPoint(minDebtValue, 8),

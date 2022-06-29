@@ -1,6 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { getLogger, sleep } from "@utils/deployment";
+import { getLogger } from "@utils/deployment";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("whitelist-collateral");
@@ -24,21 +24,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         oracleAddr: priceFeeds["/USD"].address,
         log: true,
     });
-    sleep(1500);
     await hre.run("kresko:addcollateral", {
         symbol: "AURORA",
         cFactor: 0.75,
         oracleAddr: priceFeeds["AURORA/USD"].address,
         log: true,
     });
-    sleep(1500);
     await hre.run("kresko:addcollateral", {
         symbol: "wNEAR",
         cFactor: 0.7,
         oracleAddr: priceFeeds["NEAR/USD"].address,
         log: true,
     });
-    sleep(1500);
     await hre.run("kresko:addcollateral", {
         symbol: "WETH",
         cFactor: 0.7,

@@ -445,7 +445,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         updateLiquidationIncentiveMultiplier(_liquidationIncentiveMultiplier);
         updateMinimumCollateralizationRatio(_minimumCollateralizationRatio);
         updateMinimumDebtValue(_minimumDebtValue);
-        updateSecondsUntilStalePrice(_secondsUntilStalePrice);
+        // updateSecondsUntilStalePrice(_secondsUntilStalePrice);
     }
 
     /**
@@ -586,7 +586,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         external
         nonReentrant
         kreskoAssetExistsAndMintable(_kreskoAsset)
-        kreskoAssetPriceNotStale(_kreskoAsset)
+        // kreskoAssetPriceNotStale(_kreskoAsset)
         ensureTrustedCallerWhen(_account != msg.sender)
     {
         require(_amount > 0, "KR: 0-mint");
@@ -714,7 +714,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             require(_repayAmount > 0, "KR: 0-repay");
 
             uint256 priceTimestamp = uint256(kreskoAssets[_repayKreskoAsset].oracle.latestTimestamp());
-            require(block.timestamp < priceTimestamp + secondsUntilStalePrice, "KR: stale price");
+            // require(block.timestamp < priceTimestamp + secondsUntilStalePrice, "KR: stale price");
 
             // Borrower cannot liquidate themselves
             require(msg.sender != _account, "KR: self liquidation");

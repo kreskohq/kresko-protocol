@@ -12,6 +12,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             name: "USDC",
             symbol: "USDC",
             log: true,
+            amount: 1000000000,
             decimals: 6,
         });
     } else {

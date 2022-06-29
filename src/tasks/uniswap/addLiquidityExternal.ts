@@ -24,6 +24,8 @@ task("addliquidity:external")
         const AuroraValue = fromBig(await auroraFeed.latestAnswer(), 8);
         const AURORADepositAmount = 75000;
 
+        console.log(AuroraValue, AURORADepositAmount);
+
         const AURORAUSDCPair: UniswapV2Pair = await hre.run("uniswap:addliquidity", {
             tknA: {
                 address: USDC.address,
@@ -33,7 +35,7 @@ task("addliquidity:external")
                 address: Aurora.address,
                 amount: AURORADepositAmount,
             },
-            skipIfLiqExists: true,
+            skipIfLiqExists: false,
         });
 
         hre.uniPairs["AURORA/USDC"] = AURORAUSDCPair;
@@ -56,7 +58,7 @@ task("addliquidity:external")
                 address: wNEAR.address,
                 amount: NearDepositAmount,
             },
-            skipIfLiqExists: true,
+            skipIfLiqExists: false,
         });
 
         hre.uniPairs["wNEAR/USDC"] = NEARUSDCPair;
@@ -80,7 +82,7 @@ task("addliquidity:external")
                 address: WETH.address,
                 amount: wethDepositAmount,
             },
-            skipIfLiqExists: true,
+            skipIfLiqExists: false,
         });
 
         hre.uniPairs["WETH/USDC"] = WETHUSDCPair;

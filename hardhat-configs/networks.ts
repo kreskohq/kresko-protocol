@@ -10,6 +10,7 @@ export const chainIds = {
     arbitrum: 42161,
     arbitrumtest: 79377087078960,
     bsc: 56,
+    opkovan: 69,
     bsctest: 97,
     celo: 42220,
     celotest: 44787,
@@ -50,6 +51,16 @@ export const networks = (mnemonic: string) => ({
         url: "https://aurora-testnet.infura.io/v3/49b8b68abcc1484abfcb0f9e24a0c4c9",
         deploy: ["./src/deploy/auroratest"],
         gasPrice: 0,
+        live: true,
+    },
+    opkovan: {
+        accounts: {
+            mnemonic,
+            count: 50,
+        },
+        chainId: chainIds.opkovan,
+        url: "https://optimism-kovan.infura.io/v3/49b8b68abcc1484abfcb0f9e24a0c4c9",
+        deploy: ["./src/deploy/auroratest"],
         live: true,
     },
     arbitrum: {
@@ -104,7 +115,7 @@ export const networks = (mnemonic: string) => ({
         },
         chainId: chainIds.hardhat,
         saveDeployments: true,
-        deploy: ["./src/deploy/local"],
+        deploy: ["./src/deploy/auroratest"],
     },
     localhost: {
         accounts: {

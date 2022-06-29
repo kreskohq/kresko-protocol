@@ -16,68 +16,84 @@ const func: DeployFunction = async function (hre) {
         description: "/USD",
         validator: priceFeedValidator,
     });
-    const latestAnswer = await USDCFeed.latestAnswer();
-    if (!latestAnswer.gt(0)) {
-        const tx = await USDCFeed.transmit(toFixedPoint("1", 8));
-        await tx.wait();
-    }
+    let tx = await USDCFeed.transmit(toFixedPoint("1", 8));
+    await tx.wait(2);
 
     // ETH
-    await hre.run("deployone:fluxpricefeed", {
+    const ethusd = await hre.run("deployone:fluxpricefeed", {
         name: "ETHUSD",
         decimals: 8,
         description: "ETH/USD",
         validator: priceFeedValidator,
     });
+    tx = await ethusd.transmit(toFixedPoint("1109.24", 8));
+    await tx.wait(2);
 
     // GOLD
-    await hre.run("deployone:fluxpricefeed", {
+    const goldusd = await hre.run("deployone:fluxpricefeed", {
         name: "GOLDUSD",
         decimals: 8,
         description: "GOLD/USD",
         validator: priceFeedValidator,
     });
 
+    tx = await goldusd.transmit(toFixedPoint("34.52", 8));
+
+    await tx.wait(2);
     // TSLA
-    await hre.run("deployone:fluxpricefeed", {
+    const tslausd = await hre.run("deployone:fluxpricefeed", {
         name: "TSLAUSD",
         decimals: 8,
         description: "TSLA/USD",
         validator: priceFeedValidator,
     });
 
+    tx = await tslausd.transmit(toFixedPoint("671.38", 8));
+    await tx.wait(2);
+
     // QQQ
-    await hre.run("deployone:fluxpricefeed", {
+    const qqqusd = await hre.run("deployone:fluxpricefeed", {
         name: "QQQUSD",
         decimals: 8,
         description: "QQQ/USD",
         validator: priceFeedValidator,
     });
 
+    tx = await qqqusd.transmit(toFixedPoint("283.3", 8));
+    await tx.wait(2);
+
     // GME
-    await hre.run("deployone:fluxpricefeed", {
+    const gmeusd = await hre.run("deployone:fluxpricefeed", {
         name: "GMEUSD",
         decimals: 8,
         description: "GME/USD",
         validator: priceFeedValidator,
     });
 
+    tx = await gmeusd.transmit(toFixedPoint("121.98", 8));
+    await tx.wait(2);
+
     // AURORA
-    await hre.run("deployone:fluxpricefeed", {
+    const aurorausd = await hre.run("deployone:fluxpricefeed", {
         name: "AURORAUSD",
         decimals: 8,
         description: "AURORA/USD",
         validator: priceFeedValidator,
     });
 
+    tx = await aurorausd.transmit(toFixedPoint("1.32", 8));
+    await tx.wait(2);
+
     // NEAR
-    await hre.run("deployone:fluxpricefeed", {
+    const nearusd = await hre.run("deployone:fluxpricefeed", {
         name: "NEARUSD",
         decimals: 8,
         description: "NEAR/USD",
         validator: priceFeedValidator,
     });
 
+    tx = await nearusd.transmit(toFixedPoint("3.48", 8));
+    await tx.wait(2);
     logger.success("All price feeds deployed");
 };
 

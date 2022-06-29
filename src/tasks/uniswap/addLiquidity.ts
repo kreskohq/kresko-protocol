@@ -89,8 +89,6 @@ task("uniswap:addliquidity")
 
             await tx.wait();
 
-            sleep(1500);
-
             const Pair = await ethers.getContractAt<UniswapV2Pair>(
                 "UniswapV2Pair",
                 await UniFactory.getPair(TknA.address, TknB.address),

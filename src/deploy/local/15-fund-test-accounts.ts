@@ -51,6 +51,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     logger.success("succesfully funded ten test accounts");
 };
 
-func.tags = ["local", "test-accounts"];
+func.tags = ["auroratest", "test-accounts"];
+
+func.skip = async () => true;
 
 export default func;
