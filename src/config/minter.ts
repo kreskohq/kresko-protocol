@@ -4,7 +4,7 @@
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { toFixedPoint } from "@utils/fixed-point";
-import { MinterInitArgsStruct } from "types/typechain/src/contracts/minter/interfaces/IConfigurationFacet";
+import { MinterInitArgsStruct } from "types/typechain/src/contracts/minter/interfaces/IConfiguration";
 
 const facets = [
     "ConfigurationFacet",
