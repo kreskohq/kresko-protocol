@@ -1,20 +1,22 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
+pragma solidity >=0.8.14;
 
-import "../interfaces/ISafetyCouncilFacet.sol";
+import {ISafetyCouncil} from "../interfaces/ISafetyCouncil.sol";
 
-import "../../shared/Errors.sol";
-import {Authorization, Role} from "../../shared/Authorization.sol";
+import {Error} from "../../libs/Errors.sol";
+import {MinterEvent} from "../../libs/Events.sol";
+import {Authorization, Role} from "../../libs/Authorization.sol";
 import {DiamondModifiers, MinterModifiers} from "../../shared/Modifiers.sol";
 
-import {ms, MinterEvent} from "../MinterStorage.sol";
+import {Action, SafetyState, Pause} from "../MinterTypes.sol";
+import {ms} from "../MinterStorage.sol";
 
 /**
  * @title Protocol safety controls
  * @author Kresko
  * @notice `Role.SAFETY_COUNCIL` must be a multisig.
  */
-contract SafetyCouncilFacet is ISafetyCouncilFacet, MinterModifiers, DiamondModifiers {
+contract SafetyCouncilFacet is MinterModifiers, DiamondModifiers, ISafetyCouncil {
     /**
      * @dev Toggle paused-state of assets in a per-action basis
      *
@@ -83,5 +85,19 @@ contract SafetyCouncilFacet is ISafetyCouncilFacet, MinterModifiers, DiamondModi
      */
     function safetyStateFor(address _asset, Action _action) external view override returns (SafetyState memory) {
         return ms().safetyState[_asset][_action];
+    }
+
+    /**
+     * @notice Check if `_asset` has a pause enabled for `_action`
+     * @param _action enum `Action`
+     *  Deposit = 0
+     *  Withdraw = 1,
+     *  Repay = 2,
+     *  Borrow = 3,
+     *  Liquidate = 4
+     * @return true if `_action` is paused
+     */
+    function assetActionPaused(Action _action, address _asset) external view returns (bool) {
+        return ms().safetyState[_asset][_action].pause.enabled;
     }
 }

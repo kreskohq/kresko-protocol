@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 
-import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
+import {AccessControlEnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 
-import {Role} from "../shared/Authorization.sol";
-import "../shared/Errors.sol";
+import {Role} from "../libs/Authorization.sol";
+import {Error} from "../libs/Errors.sol";
 
-import {RebalanceMath, Rebalance} from "./utils/Rebalance.sol";
-import "./utils/ERC20Upgradeable.sol";
-import {IKreskoAsset} from "./IKreskoAsset.sol";
+import {RebalanceMath, Rebalance} from "../shared/Rebalance.sol";
+import {ERC20Upgradeable} from "../shared/ERC20Upgradeable.sol";
+
+import {IWrappedKreskoAsset} from "./IWrappedKreskoAsset.sol";
 
 import "hardhat/console.sol";
 
@@ -22,7 +23,7 @@ import "hardhat/console.sol";
  * @notice Minting, burning and rebalancing can only be performed by the `Role.OPERATOR`
  */
 
-contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IKreskoAsset {
+contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable {
     using RebalanceMath for uint256;
 
     bool public rebalanced;
@@ -55,6 +56,17 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
         _setRoleAdmin(Role.OPERATOR, Role.ADMIN);
         _setupRole(Role.OPERATOR, _kresko);
         kresko = _kresko;
+    }
+
+    /**
+     * @notice ERC-165
+     * - WrappedKreskoAsset, ERC20 and ERC-165 itself
+     */
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+        return
+            interfaceId == type(IWrappedKreskoAsset).interfaceId ||
+            interfaceId == 0x01ffc9a7 ||
+            interfaceId == 0x36372b07;
     }
 
     /**
@@ -102,7 +114,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
     /* -------------------------------------------------------------------------- */
     /*                                  Overrides                                 */
     /* -------------------------------------------------------------------------- */
-    function approve(address spender, uint256 amount) public virtual override returns (bool) {
+    function approve(address spender, uint256 amount) public override returns (bool) {
         _allowances[msg.sender][spender] = amount;
 
         emit Approval(msg.sender, spender, amount);

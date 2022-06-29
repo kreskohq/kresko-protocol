@@ -22,7 +22,7 @@ if (process.env.FOUNDRY === "true") {
     require("@panukresko/hardhat-forge");
 }
 
-// import "hardhat-interface-generator";
+import "hardhat-interface-generator";
 // import "hardhat-contract-sizer";
 // import "hardhat-preprocessor";
 // import "hardhat-watcher";

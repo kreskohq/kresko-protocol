@@ -2,9 +2,9 @@
 /* solhint-disable no-inline-assembly */
 /* solhint-disable avoid-low-level-calls */
 
-pragma solidity 0.8.14;
+pragma solidity >=0.8.14;
 
-import "./state/Functions.sol";
+import {MinterState} from "./MinterState.sol";
 
 // Storage position
 bytes32 constant MINTER_STORAGE_POSITION = keccak256("kresko.minter.storage");

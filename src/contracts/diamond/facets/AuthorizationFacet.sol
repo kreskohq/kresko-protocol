@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
+pragma solidity >=0.8.14;
 
-import {IAuthorizationFacet} from "../interfaces/IAuthorizationFacet.sol";
+import {IAuthorization} from "../interfaces/IAuthorization.sol";
 
-import "../../shared/Authorization.sol";
+import {Authorization, Role} from "../../libs/Authorization.sol";
 
 /**
  * @title Enumerable access control for the EIP2535-pattern following the OZ implementation.
@@ -12,7 +12,7 @@ import "../../shared/Authorization.sol";
  * @dev Difference here is the logic library that is shared and reused, there is no state here.
  */
 
-contract AuthorizationFacet is IAuthorizationFacet {
+contract AuthorizationFacet is IAuthorization {
     /**
      * @dev OpenZeppelin
      * Returns one of the accounts that have `role`. `index` must be a

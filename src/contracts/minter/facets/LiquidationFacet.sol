@@ -1,21 +1,26 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
+pragma solidity >=0.8.14;
+import {ILiquidation} from "../interfaces/ILiquidation.sol";
+import {IKreskoAsset} from "../../krasset/IKreskoAsset.sol";
 
-import {IKreskoAsset} from "../interfaces/IKreskoAsset.sol";
+import {Arrays} from "../../libs/Arrays.sol";
+import {Error} from "../../libs/Errors.sol";
+import {Math} from "../../libs/Math.sol";
+import {FixedPoint} from "../../libs/FixedPoint.sol";
+import {MinterEvent} from "../../libs/Events.sol";
 
-import "../../shared/Errors.sol";
-import {Math} from "../../shared/Math.sol";
+import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
 import {DiamondModifiers} from "../../shared/Modifiers.sol";
 
-import "../state/Constants.sol";
-import {ms, MinterState, FixedPoint, MinterEvent, IERC20MetadataUpgradeable, SafeERC20Upgradeable, Arrays} from "../MinterStorage.sol";
+import {Constants} from "../MinterTypes.sol";
+import {ms, MinterState} from "../MinterStorage.sol";
 
-contract LiquidationFacet is DiamondModifiers {
+contract LiquidationFacet is DiamondModifiers, ILiquidation {
     using Arrays for address[];
     using Math for uint8;
     using Math for FixedPoint.Unsigned;
     using FixedPoint for FixedPoint.Unsigned;
-    using SafeERC20Upgradeable for IERC20MetadataUpgradeable;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     /**
      * @notice Attempts to liquidate an account by repaying the portion of the account's Kresko asset
@@ -98,7 +103,7 @@ contract LiquidationFacet is DiamondModifiers {
         IKreskoAsset(_repayKreskoAsset).burn(msg.sender, _repayAmount);
 
         // Send liquidator the seized collateral.
-        IERC20MetadataUpgradeable(_collateralAssetToSeize).safeTransfer(msg.sender, seizeAmount);
+        IERC20Upgradeable(_collateralAssetToSeize).safeTransfer(msg.sender, seizeAmount);
 
         emit MinterEvent.LiquidationOccurred(
             _account,
@@ -182,7 +187,7 @@ contract LiquidationFacet is DiamondModifiers {
         address _account,
         address _repayKreskoAsset,
         address _collateralAssetToSeize
-    ) external view returns (FixedPoint.Unsigned memory maxLiquidatableUSD) {
+    ) public view returns (FixedPoint.Unsigned memory maxLiquidatableUSD) {
         return ms().calculateMaxLiquidatableValueForAssets(_account, _repayKreskoAsset, _collateralAssetToSeize);
     }
 }

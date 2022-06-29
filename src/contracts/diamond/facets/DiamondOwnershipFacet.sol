@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
+pragma solidity >=0.8.14;
 
 import {IOwnership} from "../interfaces/IOwnership.sol";
-import "../../shared/Modifiers.sol";
+import {DiamondModifiers} from "../../shared/Modifiers.sol";
+import {ds} from "../DiamondStorage.sol";
 
 contract DiamondOwnershipFacet is DiamondModifiers, IOwnership {
     /* -------------------------------------------------------------------------- */

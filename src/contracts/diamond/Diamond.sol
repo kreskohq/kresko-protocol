@@ -3,10 +3,15 @@
 /* solhint-disable no-inline-assembly */
 /* solhint-disable no-empty-blocks */
 
-pragma solidity 0.8.14;
+pragma solidity >=0.8.14;
 
-import {Authorization, Role} from "../shared/Authorization.sol";
-import {ds, Meta, Error, initializeDiamondCut, IDiamondCut, GeneralEvent} from "./DiamondStorage.sol";
+import {IDiamondCut} from "./interfaces/IDiamondCut.sol";
+import {Authorization, Role} from "../libs/Authorization.sol";
+import {GeneralEvent} from "../libs/Events.sol";
+import {Error} from "../libs/Errors.sol";
+
+import {initializeDiamondCut} from "./libs/LibDiamondCut.sol";
+import {ds} from "./DiamondStorage.sol";
 
 contract Diamond {
     struct Initialization {
