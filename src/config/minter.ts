@@ -4,15 +4,15 @@
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { toFixedPoint } from "@utils/fixed-point";
-import { MinterInitArgsStruct } from "types/typechain/src/contracts/minter/interfaces/IOperatorFacet";
+import { MinterInitArgsStruct } from "types/typechain/src/contracts/minter/interfaces/IConfigurationFacet";
 
 const facets = [
-    "OperatorFacet",
+    "ConfigurationFacet",
     "SafetyCouncilFacet",
-    "UserFacet",
+    "AccountStateFacet",
     "LiquidationFacet",
-    "AssetViewFacet",
-    "GeneralViewFacet",
+    "ActionFacet",
+    "StateFacet",
 ];
 
 export type MinterInitializer<A> = {
@@ -27,7 +27,7 @@ const getMinterInitializer = async (
     const Safe = await hre.deployments.getOrNull("Multisig");
     if (!Safe) throw new Error("GnosisSafe not deployed for Minter initialization");
     return {
-        name: "OperatorFacet",
+        name: "ConfigurationFacet",
         args: {
             feeRecipient: treasury,
             operator,

@@ -4,9 +4,9 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgrad
 import {FixedPointMathLib} from "@rari-capital/solmate/src/utils/FixedPointMathLib.sol";
 import {SafeTransferLib} from "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
 
-import {Role} from "../shared/Authorization.sol";
+import {Role} from "../libs/Authorization.sol";
 
-import "./utils/ERC4626Upgradeable.sol";
+import {ERC4626Upgradeable, KreskoAsset} from "../shared/ERC4626Upgradeable.sol";
 
 /**
  * @title Kresko Asset Wrapper - pro-rata representation of the underlying kresko asset.
@@ -98,9 +98,9 @@ contract WrappedKreskoAsset is ERC4626Upgradeable, AccessControlEnumerableUpgrad
         assets = super.redeem(_shares, _receiver, _owner);
     }
 
-    /*//////////////////////////////////////////////////////////////
-                          INTERNAL HOOKS LOGIC
-    //////////////////////////////////////////////////////////////*/
+    /* -------------------------------------------------------------------------- */
+    /*                            INTERNAL HOOKS LOGIC                            */
+    /* -------------------------------------------------------------------------- */
 
     function _beforeWithdraw(uint256 assets, uint256 shares) internal virtual override {
         super._beforeWithdraw(assets, shares);

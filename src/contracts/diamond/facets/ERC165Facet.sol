@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
+pragma solidity >=0.8.14;
 
-import {IERC165} from "../interfaces/IERC165.sol";
+import {IERC165} from "../../shared/IERC165.sol";
+
+import {Error} from "../../libs/Errors.sol";
 import {DiamondModifiers} from "../../shared/Modifiers.sol";
-import {ds, DiamondState, Error} from "../DiamondStorage.sol";
+
+import {ds, DiamondState} from "../DiamondStorage.sol";
 
 contract ERC165Facet is DiamondModifiers, IERC165 {
     /* -------------------------------------------------------------------------- */

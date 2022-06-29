@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
+pragma solidity >=0.8.14;
 
-import {Authorization, Role} from "./Authorization.sol";
-import {Meta} from "./Meta.sol";
-import {Error} from "./Errors.sol";
+import {Authorization, Role} from "../libs/Authorization.sol";
+import {Meta} from "../libs/Meta.sol";
+import {Error} from "../libs/Errors.sol";
 
-import {MinterState, ms, Action} from "../minter/MinterStorage.sol";
+import {Action} from "../minter/MinterTypes.sol";
+import {ms} from "../minter/MinterStorage.sol";
 
-import "../diamond/state/Constants.sol";
+import {ENTERED, NOT_ENTERED} from "../diamond/DiamondTypes.sol";
 import {ds} from "../diamond/DiamondStorage.sol";
 
 abstract contract DiamondModifiers {
