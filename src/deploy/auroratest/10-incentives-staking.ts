@@ -1,6 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { getLogger, sleep } from "@utils/deployment";
+import { getLogger } from "@utils/deployment";
 import { fromBig, toBig } from "@utils/numbers";
 import type { KrStaking } from "types";
 
@@ -23,22 +23,19 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         const tx = await Staking.addPool(RewardTokens, USDCKRIAU, 500, 0);
         await tx.wait();
     }
-    sleep(1500);
+
     const result1 = await Staking.getPidFor(USDCKRGME);
     if (!result1.found) {
         const tx = await Staking.addPool(RewardTokens, USDCKRGME, 500, 0);
         await tx.wait();
     }
 
-    sleep(1500);
     let tx = await RewardToken1.mint(Staking.address, toBig(50_000_000));
     await tx.wait();
 
-    sleep(1500);
     tx = await RewardToken2.mint(Staking.address, toBig(50_000_000));
     await tx.wait();
 
-    sleep(1500);
     const Reward1Bal = await RewardToken1.balanceOf(Staking.address);
     const Reward2Bal = await RewardToken2.balanceOf(Staking.address);
 

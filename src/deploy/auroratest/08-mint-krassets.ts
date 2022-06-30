@@ -31,10 +31,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await tx.wait();
     /** === krIAU ===  */
     const krIAU = await ethers.getContract<KreskoAsset>("krIAU");
-    logger.log("Depositing USDC for krIAU");
-    // Deposit collateral to mint
-    tx = await kresko.depositCollateral(deployer, USDC.address, ethers.utils.parseUnits("2000000", 6));
-    await tx.wait();
     // Mint 1000 krIAU
     logger.log("Minting krIAU");
     tx = await kresko.mintKreskoAsset(deployer, krIAU.address, ethers.utils.parseEther("5000"));
@@ -47,7 +43,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await tx.wait();
     logger.log("Minting done");
 };
-func.tags = ["auroratest", "mint", "mint-test"];
+func.tags = ["auroratest", "mint-krassets"];
 
 func.skip = async hre => {
     const logger = getLogger("mint-krassets");

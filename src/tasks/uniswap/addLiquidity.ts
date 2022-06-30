@@ -36,19 +36,17 @@ task("uniswap:addliquidity")
             UniRouter = await ethers.getContract<UniswapV2Router02>("UniswapV2Router02");
         }
 
-        if (skipIfLiqExists) {
-            const pairAddress = await UniFactory.getPair(TknA.address, tknB.address);
-            if (pairAddress !== constants.AddressZero) {
-                const balanceA = await TknA.balanceOf(pairAddress);
-                if (balanceA.gt(0)) {
-                    logger.log(
-                        "Skipping adding liquidity for",
-                        tknA.name,
-                        tknB.name,
-                        "since pair is created and has liquidity",
-                    );
-                    return await ethers.getContractAt<UniswapV2Pair>("UniswapV2Pair", pairAddress);
-                }
+        const pairAddress = await UniFactory.getPair(TknA.address, tknB.address);
+        if (skipIfLiqExists && pairAddress !== constants.AddressZero) {
+            const balanceA = await TknA.balanceOf(pairAddress);
+            if (balanceA.gt(0)) {
+                logger.log(
+                    "Skipping adding liquidity for",
+                    tknA.name,
+                    tknB.name,
+                    "since pair is created and has liquidity",
+                );
+                return await ethers.getContractAt<UniswapV2Pair>("UniswapV2Pair", pairAddress);
             }
         } else {
             const approvalTknA = fromBig(await TknA.allowance(deployer, UniRouter.address), tknADec);

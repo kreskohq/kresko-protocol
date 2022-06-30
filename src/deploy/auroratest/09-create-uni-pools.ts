@@ -87,7 +87,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
                 address: krIAU.address,
                 amount: GOLDDepositAmount,
             },
-            skipIfLiqExists: true,
+            skipIfLiqExists: false,
         });
     } else {
         USDCKRIAUPair = await ethers.getContractAt("UniswapV2Pair", krIAUPair);
@@ -120,9 +120,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         USDCKRQQQPair = await ethers.getContractAt("UniswapV2Pair", krQQQPairAddress);
         logger.log("pair already found @ ", USDCKRQQQPair.address);
     }
+
+    console.log("QQQ pair", USDCKRQQQPair);
     hre.uniPairs["USDC/KRQQQ"] = USDCKRQQQPair;
 };
 
-func.tags = ["auroratest"];
+func.tags = ["auroratest", "init-pools"];
 
 export default func;

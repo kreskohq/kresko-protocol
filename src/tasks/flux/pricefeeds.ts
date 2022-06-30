@@ -20,7 +20,7 @@ task("deployone:fluxpricefeed")
             from: deployer,
             contract: "FluxPriceFeed",
             args: [validator ? validator : deployer, decimals, description],
-            waitConfirmations: 2,
+            waitConfirmations: wait,
         });
 
         const VALIDATOR_ROLE = await PriceFeed.VALIDATOR_ROLE();
@@ -28,7 +28,7 @@ task("deployone:fluxpricefeed")
 
         if (!hasValidatorRole) {
             const tx = await PriceFeed.grantRole(VALIDATOR_ROLE, deployer);
-            await tx.wait();
+            await tx.wait(wait);
             logger.log("FluxPriceFeed for pair:", description, "deployed at:", PriceFeed.address);
         }
 

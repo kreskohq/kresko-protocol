@@ -10,6 +10,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await hre.run("addliquidity:external", { log: true });
 };
 
-func.tags = ["auroratest", "liquidity", "uniswap"];
+func.tags = ["auroratest", "extra-pairs"];
 
 export default func;

@@ -27,7 +27,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         symbol: "krQQQ",
         kFactor: 1.2,
         oracleAddr: priceFeeds["QQQ/USD"].address,
-
         log: true,
     });
 

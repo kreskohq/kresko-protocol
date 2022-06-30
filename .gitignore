@@ -21,6 +21,7 @@ bin
 *.logs
 *.tsbuildinfo
 .secrets
+*interact.ethers
 .npmrc*
 coverage.json
 npm-debug.log*

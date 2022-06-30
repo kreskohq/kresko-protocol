@@ -31,7 +31,7 @@ task("deploy:krasset")
         const [KreskoAsset, , deployment] = await deploy<KreskoAsset>(symbol, {
             from: deployer,
             log,
-            waitConfirmations: 1,
+            waitConfirmations: wait,
             contract: "KreskoAsset",
             proxy: {
                 owner: deployer,

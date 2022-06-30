@@ -4,6 +4,8 @@ pragma solidity >=0.8.4;
 import "./interfaces/IERC3156FlashBorrower.sol";
 
 contract MockWETH10 {
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+    event Transfer(address indexed from, address indexed to, uint256 value);
     uint8 public constant decimals = 18;
     string public constant name = "Wrapped Ether";
     string public constant symbol = "WETH";
@@ -58,6 +60,7 @@ contract MockWETH10 {
 
         balanceOf[msg.sender] = balance - value;
         balanceOf[to] += value;
+        emit Transfer(msg.sender, to, value);
         return true;
     }
 
@@ -71,16 +74,19 @@ contract MockWETH10 {
 
         balanceOf[from] = balance - value;
         balanceOf[to] += value;
+        emit Transfer(from, to, value);
         return true;
     }
 
     // allow arbitrary values
     function deposit(uint256 _amount) external {
         balanceOf[msg.sender] += _amount;
+        emit Transfer(address(0), msg.sender, _amount);
     }
 
     function withdraw(uint256 _amount) external {
         balanceOf[msg.sender] -= _amount;
+        emit Transfer(msg.sender, address(0), _amount);
     }
 
     /**
@@ -99,6 +105,7 @@ contract MockWETH10 {
      */
     function approve(address spender, uint256 amount) public returns (bool) {
         _approve(msg.sender, spender, amount);
+        emit Approval(msg.sender, spender, amount);
         return true;
     }
 

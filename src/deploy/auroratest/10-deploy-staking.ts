@@ -27,7 +27,7 @@ func.skip = async hre => {
     !!Staking && logger.log("Skipping deploying staking");
     return !!Staking;
 };
-
-func.tags = ["auroratest", "auroratest-staking"];
+func.dependencies = ["init-pools"];
+func.tags = ["auroratest", "staking"];
 
 export default func;
