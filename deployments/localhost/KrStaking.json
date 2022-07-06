@@ -158,6 +158,19 @@
             "anonymous": false,
             "inputs": [
                 {
+                    "indexed": false,
+                    "internalType": "uint8",
+                    "name": "version",
+                    "type": "uint8"
+                }
+            ],
+            "name": "Initialized",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
                     "indexed": true,
                     "internalType": "bytes32",
                     "name": "role",
@@ -949,21 +962,21 @@
             "type": "constructor"
         }
     ],
-    "transactionHash": "0x4242bc4ed409fb0d1f10d188a4f268da3496d00e677b13ec90dae25e23394c33",
+    "transactionHash": "0x6cf169501623d1cc8d7137febc0085c8f942e3d1ce40c41d7ab19bfa3baebd35",
     "receipt": {
         "to": null,
         "from": "0x2121245dcAD697f11244068AaD6EcbC301811239",
         "contractAddress": "0x5cBe6BEE34cccbB659DEeB5699D2504c42D276b6",
         "transactionIndex": 0,
-        "gasUsed": "729759",
-        "logsBloom": "0x00000004000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000000000000020000000000000000000800000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000040001000000000000000000000000000000000000000000000000000080000000100000000000020000000000000000000000000000000000000008000000000000000000000000000",
-        "blockHash": "0xbbd9c5df516f2e4220b362f04711124a121e01d9bf33927f6154f9f4f6ea3e53",
-        "transactionHash": "0x4242bc4ed409fb0d1f10d188a4f268da3496d00e677b13ec90dae25e23394c33",
+        "gasUsed": "730466",
+        "logsBloom": "0x00000004000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000000000000020000000000000000000800000000000000000000000000000000000000000000000000000000000000800000000000000080000000000000000000000000000000000000000000000400000000000000000040001000000000000000000000000000000000000000040000000000080000000100000000000020000000000000000000000000000000000000008000000000000000000000000000",
+        "blockHash": "0xebaa7c50d0e1f654401509a007c94a89832ce59e91e0e2f22a1d72d734666798",
+        "transactionHash": "0x6cf169501623d1cc8d7137febc0085c8f942e3d1ce40c41d7ab19bfa3baebd35",
         "logs": [
             {
                 "transactionIndex": 0,
                 "blockNumber": 68,
-                "transactionHash": "0x4242bc4ed409fb0d1f10d188a4f268da3496d00e677b13ec90dae25e23394c33",
+                "transactionHash": "0x6cf169501623d1cc8d7137febc0085c8f942e3d1ce40c41d7ab19bfa3baebd35",
                 "address": "0x5cBe6BEE34cccbB659DEeB5699D2504c42D276b6",
                 "topics": [
                     "0x2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d",
@@ -973,11 +986,21 @@
                 ],
                 "data": "0x",
                 "logIndex": 0,
-                "blockHash": "0xbbd9c5df516f2e4220b362f04711124a121e01d9bf33927f6154f9f4f6ea3e53"
+                "blockHash": "0xebaa7c50d0e1f654401509a007c94a89832ce59e91e0e2f22a1d72d734666798"
+            },
+            {
+                "transactionIndex": 0,
+                "blockNumber": 68,
+                "transactionHash": "0x6cf169501623d1cc8d7137febc0085c8f942e3d1ce40c41d7ab19bfa3baebd35",
+                "address": "0x5cBe6BEE34cccbB659DEeB5699D2504c42D276b6",
+                "topics": ["0x7f26b83ff96e1f2b6a682f133852f6798a09c465da95921460cefb3847402498"],
+                "data": "0x0000000000000000000000000000000000000000000000000000000000000001",
+                "logIndex": 1,
+                "blockHash": "0xebaa7c50d0e1f654401509a007c94a89832ce59e91e0e2f22a1d72d734666798"
             }
         ],
         "blockNumber": 68,
-        "cumulativeGasUsed": "729759",
+        "cumulativeGasUsed": "730466",
         "status": 1,
         "byzantium": true
     },

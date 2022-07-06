@@ -1,4 +1,5 @@
 import { utils } from "ethers";
+import { HardhatNetworkAccountsConfig, HardhatNetworkChainsConfig, HardhatNetworkConfig } from "hardhat/types";
 
 const parseUnits = utils.parseUnits;
 
@@ -31,11 +32,14 @@ export const chainIds = {
     xdai: 100,
 };
 
-export const networks = (mnemonic: string) => ({
+const defaultAccountConfig = (mnemonic: string) => ({
+    count: 50,
+    mnemonic,
+});
+
+export const networks: (mnemonic: string) => { [key: string]: any } = mnemonic => ({
     aurora: {
-        accounts: {
-            mnemonic,
-        },
+        accounts: defaultAccountConfig(mnemonic),
         gasPrice: 0,
         chainId: chainIds.aurora,
         url: `https://mainnet.aurora.dev/${process.env.AURORA_API_KEY}`,
@@ -43,10 +47,7 @@ export const networks = (mnemonic: string) => ({
         live: true,
     },
     auroratest: {
-        accounts: {
-            mnemonic,
-            count: 50,
-        },
+        accounts: defaultAccountConfig(mnemonic),
         chainId: chainIds.auroratest,
         url: "https://aurora-testnet.infura.io/v3/49b8b68abcc1484abfcb0f9e24a0c4c9",
         deploy: ["./src/deploy/auroratest"],
@@ -54,47 +55,44 @@ export const networks = (mnemonic: string) => ({
         live: true,
     },
     opkovan: {
-        accounts: {
-            mnemonic,
-            count: 50,
-        },
+        accounts: defaultAccountConfig(mnemonic),
         chainId: chainIds.opkovan,
         url: "https://optimism-kovan.infura.io/v3/49b8b68abcc1484abfcb0f9e24a0c4c9",
         deploy: ["./src/deploy/auroratest"],
         live: true,
     },
     arbitrum: {
-        accounts: { mnemonic },
+        accounts: defaultAccountConfig(mnemonic),
         url: "https://arb1.arbitrum.io/rpc",
         chainId: chainIds.arbitrum,
         tags: ["arbitrum"],
     },
     arbitrumtest: {
-        accounts: { mnemonic },
+        accounts: defaultAccountConfig(mnemonic),
         url: "https://kovan3.arbitrum.io/rpc",
         chainId: chainIds.arbitrumtest,
         tags: ["arbitrumtest"],
     },
     avalanche: {
-        accounts: { mnemonic },
+        accounts: defaultAccountConfig(mnemonic),
         url: "https://api.avax.network/ext/bc/C/rpc",
         chainId: chainIds.avalanche,
         tags: ["avalanche"],
     },
     avalanchetest: {
-        accounts: { mnemonic },
+        accounts: defaultAccountConfig(mnemonic),
         url: "https://api.avax-test.network/ext/bc/C/rpc",
         chainId: chainIds.avalanchetest,
         tags: ["avalanchetest"],
     },
     bsc: {
-        accounts: { mnemonic },
+        accounts: defaultAccountConfig(mnemonic),
         url: "https://bsc-dataseed.binance.org",
         chainId: chainIds.bsc,
         tags: ["bsc"],
     },
     bsctest: {
-        accounts: { mnemonic },
+        accounts: defaultAccountConfig(mnemonic),
         url: "https://data-seed-prebsc-2-s3.binance.org:8545",
         chainId: chainIds.bsctest,
         tags: ["bsctest"],
@@ -110,23 +108,22 @@ export const networks = (mnemonic: string) => ({
         tags: ["celotest"],
     },
     hardhat: {
-        accounts: {
-            mnemonic,
-        },
+        accounts: defaultAccountConfig(mnemonic),
         chainId: chainIds.hardhat,
         saveDeployments: true,
         deploy: ["./src/deploy/auroratest"],
+        mining: {
+            automine: true,
+        },
     },
     localhost: {
-        accounts: {
-            mnemonic,
-        },
+        accounts: defaultAccountConfig(mnemonic),
         saveDeployments: true,
         chainId: chainIds.hardhat,
         deploy: ["./src/deploy/local"],
     },
     ethereum: {
-        accounts: { mnemonic },
+        accounts: defaultAccountConfig(mnemonic),
         url: "https://data-seed-prebsc-2-s3.binance.org:8545",
         chainId: chainIds.bsctest,
         tags: ["ethereum"],
@@ -154,37 +151,37 @@ export const networks = (mnemonic: string) => ({
         tags: ["moonbase"],
     },
     fantom: {
-        accounts: { mnemonic },
+        accounts: defaultAccountConfig(mnemonic),
         url: "https://rpcapi.fantom.network",
         chainId: chainIds.fantom,
         tags: ["fantom"],
     },
     harmony: {
-        accounts: { mnemonic },
+        accounts: defaultAccountConfig(mnemonic),
         url: "https://api.s0.t.hmny.io",
         chainId: chainIds.harmony,
         tags: ["harmony"],
     },
     harmonytest: {
-        accounts: { mnemonic },
+        accounts: defaultAccountConfig(mnemonic),
         url: "https://api.s0.b.hmny.io",
         chainId: chainIds.harmonytest,
         tags: ["harmonytest"],
     },
     polygontest: {
-        accounts: { mnemonic },
+        accounts: defaultAccountConfig(mnemonic),
         url: "https://rpc-mumbai.maticvigil.com/",
         chainId: chainIds.polygontest,
         tags: ["polygontest"],
     },
     polygon: {
-        accounts: { mnemonic },
+        accounts: defaultAccountConfig(mnemonic),
         url: `https://polygon-rpc.com/`,
         chainId: chainIds.polygon,
         tags: ["polygon"],
     },
     xdai: {
-        accounts: { mnemonic },
+        accounts: defaultAccountConfig(mnemonic),
         url: "https://rpc.xdaichain.com",
         chainId: chainIds.xdai,
         tags: ["xdai"],
