@@ -73,6 +73,25 @@ contract KreskoViewer {
         FixedPoint.Unsigned borrowingPowerUSD;
     }
 
+    struct GenericInfo {
+        address assetAddress;
+        FixedPoint.Unsigned kFactor;
+        FixedPoint.Unsigned cFactor;
+        uint256 price;
+        bool isKrAsset;
+        bool isCollateral;
+        uint256 debtAmount;
+        uint256 depositAmount;
+        uint256 walletBalance;
+    }
+
+    struct Price {
+        uint256 price;
+        uint256 timestamp;
+        address assetAddress;
+        uint80 roundId;
+    }
+
     struct Allowance {
         address owner;
         address spender;
@@ -273,6 +292,38 @@ contract KreskoViewer {
 
             result[i] = assetInfo;
         }
+    }
+
+    function batchPrices(address[] calldata _assets, AggregatorV2V3Interface[] calldata _oracles)
+        external
+        view
+        returns (Price[] memory result)
+    {
+        require(_assets.length == _oracles.length, "Query must be equal");
+        result = new Price[](_assets.length);
+        for (uint256 i; i < _assets.length; i++) {
+            (uint80 roundId, int256 answer, , uint256 updatedAt, ) = _oracles[i].latestRoundData();
+            result[i] = Price(uint256(answer), updatedAt, _assets[i], roundId);
+        }
+    }
+
+    function getGenericInfo(
+        address _account,
+        address _asset,
+        AggregatorV2V3Interface oracle
+    ) external view returns (GenericInfo memory) {
+        return
+            GenericInfo({
+                assetAddress: _asset,
+                depositAmount: Kresko.collateralDeposits(_account, _asset),
+                debtAmount: Kresko.kreskoAssetDebt(_account, _asset),
+                isKrAsset: Kresko.krAssetExists(_asset),
+                isCollateral: Kresko.collateralExists(_asset),
+                price: uint256(oracle.latestAnswer()),
+                kFactor: Kresko.kreskoAssets(_asset).kFactor,
+                cFactor: Kresko.collateralAssets(_asset).factor,
+                walletBalance: IERC20MetadataUpgradeable(_asset).balanceOf(_account)
+            });
     }
 
     function borrowingPowerUSD(address _account) public view returns (FixedPoint.Unsigned memory) {

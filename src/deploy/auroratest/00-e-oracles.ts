@@ -5,7 +5,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 const func: DeployFunction = async function (hre) {
     const loggerGeneral = getLogger("general");
     const logger = getLogger("deploy-oracle");
-    loggerGeneral.log("Starting deployment to Aurora Testnet");
+    loggerGeneral.log("Starting Aurora Testnet deployment script");
     const { getNamedAccounts } = hre;
 
     const { priceFeedValidator } = await getNamedAccounts();

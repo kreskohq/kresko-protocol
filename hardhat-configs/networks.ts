@@ -1,5 +1,4 @@
 import { utils } from "ethers";
-import { HardhatNetworkAccountsConfig, HardhatNetworkChainsConfig, HardhatNetworkConfig } from "hardhat/types";
 
 const parseUnits = utils.parseUnits;
 
@@ -49,7 +48,7 @@ export const networks: (mnemonic: string) => { [key: string]: any } = mnemonic =
     auroratest: {
         accounts: defaultAccountConfig(mnemonic),
         chainId: chainIds.auroratest,
-        url: "https://aurora-testnet.infura.io/v3/49b8b68abcc1484abfcb0f9e24a0c4c9",
+        url: `https://aurora-testnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
         deploy: ["./src/deploy/auroratest"],
         gasPrice: 0,
         live: true,
@@ -112,9 +111,6 @@ export const networks: (mnemonic: string) => { [key: string]: any } = mnemonic =
         chainId: chainIds.hardhat,
         saveDeployments: true,
         deploy: ["./src/deploy/auroratest"],
-        mining: {
-            automine: true,
-        },
     },
     localhost: {
         accounts: defaultAccountConfig(mnemonic),
@@ -124,8 +120,8 @@ export const networks: (mnemonic: string) => { [key: string]: any } = mnemonic =
     },
     ethereum: {
         accounts: defaultAccountConfig(mnemonic),
-        url: "https://data-seed-prebsc-2-s3.binance.org:8545",
-        chainId: chainIds.bsctest,
+        url: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+        chainId: chainIds.ethereum,
         tags: ["ethereum"],
     },
     kovan: {
