@@ -23,13 +23,13 @@ export const users = {
     treasury: {
         default: 6,
     },
-    priceFeedValidator: {
+    priceFeedValidatorAurora: {
         default: 7,
     },
-    userFour: {
+    priceFeedValidatorOpKovan: {
         default: 8,
     },
-    userFive: {
+    priceFeedValidatorOpGoerli: {
         default: 9,
     },
     testUserOne: {

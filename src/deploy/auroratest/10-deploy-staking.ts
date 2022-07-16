@@ -1,21 +1,38 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { getLogger } from "@utils/deployment";
-import type { KrStaking } from "types";
+import { KrStaking, UniswapV2Factory } from "types";
+import { testnetConfigs } from "src/deploy-config";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("deploy-staking");
-    const { ethers, uniPairs } = hre;
+    const { ethers } = hre;
 
-    const RewardToken1 = await ethers.getContract<Token>("AURORA");
-    const RewardToken2 = await ethers.getContract<Token>("wNEAR");
+    const config = testnetConfigs[hre.network.name];
 
-    const USDCKRTSLA = uniPairs["USDC/KRTSLA"].address;
+    const Factory = await hre.ethers.getContract<UniswapV2Factory>("UniswapV2Factory");
+
+    const pools = config.stakingPools;
+    const [token0, token1] = pools[0].lpToken;
+
+    const Token0 = await ethers.getContract<Token>(token0.symbol);
+    const Token1 = await ethers.getContract<Token>(token1.symbol);
+    const InitialStakingToken = await Factory.getPair(Token0.address, Token1.address);
+
+    if (InitialStakingToken === ethers.constants.AddressZero) {
+        throw new Error("No pools deployed and trying to initialize staking");
+    }
+
+    const [rewardToken1, rewardToken2] = config.rewardTokens;
+    const RewardToken1 = await ethers.getContract<Token>(rewardToken1.symbol);
+    const RewardToken2 = await ethers.getContract<Token>(rewardToken2.symbol);
+
+    const [perBlock1, perBlock2] = config.rewardsPerBlock;
 
     const Staking: KrStaking = await hre.run("deploy:staking", {
-        stakingToken: USDCKRTSLA,
+        stakingToken: InitialStakingToken,
         rewardTokens: `${RewardToken1.address},${RewardToken2.address}`,
-        rewardPerBlocks: "0.004,0.002",
+        rewardPerBlocks: `${perBlock1},${perBlock2}`,
     });
 
     logger.success("Succesfully deployed Staking contract @", Staking.address);

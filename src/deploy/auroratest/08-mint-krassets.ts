@@ -1,55 +1,32 @@
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { DeployFunction } from "hardhat-deploy/types";
 import { getLogger } from "@utils/deployment";
 import { fromBig } from "@utils/numbers";
+import { DeployFunction } from "hardhat-deploy/types";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { testnetConfigs } from "src/deploy-config";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("mint-krassets");
-    const { ethers, kresko, getNamedAccounts } = hre;
-    let tx;
-    const { deployer } = await getNamedAccounts();
-    const USDC = await ethers.getContract<Token>("USDC");
-    /** === krTSLA ===  */
-    const krTSLA = await ethers.getContract<KreskoAsset>("krTSLA");
-    logger.log("Approving USDC");
-    //Approve USDC token to be deposited to Kresko
-    tx = await USDC.approve(kresko.address, ethers.constants.MaxUint256);
-    await tx.wait();
-    logger.log("Depositing USDC");
-    // Deposit collateral to mint
-    tx = await kresko.depositCollateral(deployer, USDC.address, ethers.utils.parseUnits("100000000", 6));
-    await tx.wait();
-    // Mint 1000 krTSLA
-    logger.log("Minting KRTSLA");
-    tx = await kresko.mintKreskoAsset(deployer, krTSLA.address, ethers.utils.parseEther("1000"));
-    await tx.wait();
-    /** === krGME ===  */
-    const krGME = await ethers.getContract<KreskoAsset>("krGME");
-    // Mint 1000 krGME
-    logger.log("Minting krGME");
-    tx = await kresko.mintKreskoAsset(deployer, krGME.address, ethers.utils.parseEther("10000"));
-    await tx.wait();
-    /** === krIAU ===  */
-    const krIAU = await ethers.getContract<KreskoAsset>("krIAU");
-    // Mint 1000 krIAU
-    logger.log("Minting krIAU");
-    tx = await kresko.mintKreskoAsset(deployer, krIAU.address, ethers.utils.parseEther("5000"));
-    await tx.wait();
-    logger.log("Minting done");
-    // Mint 1000 krQQQ
-    const krQQQ = await ethers.getContract<KreskoAsset>("krQQQ");
-    logger.log("Minting krQQQ");
-    tx = await kresko.mintKreskoAsset(deployer, krQQQ.address, ethers.utils.parseEther("1000"));
-    await tx.wait();
-    logger.log("Minting done");
+    const krAssets = testnetConfigs[hre.network.name].krAssets;
+
+    for (const krAsset of krAssets) {
+        if (!krAsset.mintAmount) continue;
+        logger.log(`minting ${krAsset.mintAmount} of ${krAsset.name}`);
+        await hre.run("mint:krasset", {
+            name: krAsset.symbol,
+            amount: krAsset.mintAmount,
+        });
+    }
 };
 func.tags = ["auroratest", "mint-krassets"];
 
 func.skip = async hre => {
     const logger = getLogger("mint-krassets");
-    const krQQQ = await hre.ethers.getContract<KreskoAsset>("krQQQ");
+    const krAssets = testnetConfigs[hre.network.name].krAssets;
+
+    const lastAsset = await hre.deployments.get(krAssets[krAssets.length - 1].symbol);
+
     const { deployer } = await hre.getNamedAccounts();
-    const isFinished = fromBig(await hre.kresko.kreskoAssetDebt(deployer, krQQQ.address)) > 0;
+    const isFinished = fromBig(await hre.kresko.kreskoAssetDebt(deployer, lastAsset.address)) > 0;
     isFinished && logger.log("Skipping minting krAssets");
     return isFinished;
 };

@@ -1,4 +1,4 @@
-import { deployWithSignatures, getLogger, sleep } from "@utils/deployment";
+import { deployWithSignatures, getLogger } from "@utils/deployment";
 import { toFixedPoint } from "@utils/fixed-point";
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
@@ -6,17 +6,13 @@ import { TaskArguments } from "hardhat/types";
 task("deploy:kresko")
     .addOptionalParam("burnFee", "Burn fee", process.env.BURN_FEE)
     .addOptionalParam("feeRecipient", "Burn fee recipient", process.env.FEE_RECIPIENT_ADDRESS, types.string)
+    .addOptionalParam("liquidationIncentive", "Liquidation incentive multiplier", process.env.LIQUIDATION_INCENTIVE)
     .addOptionalParam(
-        "liquidationIncentiveMultiplier",
-        "Liquidation incentive multiplier",
-        process.env.LIQUIDATION_INCENTIVE,
-    )
-    .addOptionalParam(
-        "minCollaterRatio",
+        "minimumCollateralizationRatio",
         "Minimum collateralization ratio",
         process.env.MINIMUM_COLLATERALIZATION_RATIO,
     )
-    .addOptionalParam("minDebtValue", "Minimum debt value", process.env.MINIMUM_DEBT_VALUE)
+    .addOptionalParam("minimumDebtValue", "Minimum debt value", process.env.MINIMUM_DEBT_VALUE)
     .addOptionalParam("secondsUntilStalePrice", "Minimum debt value", process.env.SECONDS_UNTIL_PRICE_STALE)
     .addOptionalParam("wait", "wait confirmations", 1, types.int)
     .addOptionalParam("log", "Log outputs", false, types.boolean)
@@ -25,45 +21,35 @@ task("deploy:kresko")
         const { admin, treasury } = await getNamedAccounts();
         const deploy = deployWithSignatures(hre);
         const { formatEther } = ethers.utils;
-        const {
-            burnFee,
-            feeRecipient,
-            liquidationIncentiveMultiplier,
-            minCollaterRatio,
-            minDebtValue,
-            secondsUntilStalePrice,
-            log,
-        } = taskArgs;
 
-        const logger = getLogger("deployKresko", log);
+        const logger = getLogger("deployKresko", taskArgs.log);
 
         console.log(taskArgs);
         const [Kresko, , deployment] = await deploy<Kresko>("Kresko", {
             from: admin,
-            log,
+            log: taskArgs.log,
             proxy: {
                 proxyContract: "OptimizedTransparentProxy",
                 execute: {
                     methodName: "initialize",
                     args: [
-                        toFixedPoint(burnFee),
+                        toFixedPoint(taskArgs.burnFee),
                         treasury,
-                        toFixedPoint(liquidationIncentiveMultiplier),
-                        toFixedPoint(minCollaterRatio),
-                        toFixedPoint(minDebtValue, 8),
-                        secondsUntilStalePrice,
+                        toFixedPoint(taskArgs.liquidationIncentive),
+                        toFixedPoint(taskArgs.minimumCollateralizationRatio),
+                        toFixedPoint(taskArgs.minimumDebtValue, 8),
+                        taskArgs.secondsUntilStalePrice,
                     ],
                 },
             },
         });
-        sleep(1500);
         // Deploy kresko viewer
         const [KreskoViewer] = await deploy("KreskoViewer", {
             from: admin,
             args: [Kresko.address],
         });
 
-        if (log) {
+        if (taskArgs.log) {
             const ProxyAdmin = await deployments.get("DefaultProxyAdmin");
             const initValuesOnChain: KreskoConstructor = {
                 burnFee: formatEther(await Kresko.burnFee()),

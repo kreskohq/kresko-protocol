@@ -1,43 +1,47 @@
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { DeployFunction } from "hardhat-deploy/types";
 import { getLogger } from "@utils/deployment";
-import { fromBig, toBig } from "@utils/numbers";
-import type { KrStaking } from "types";
+import { fromBig } from "@utils/numbers";
+import { DeployFunction } from "hardhat-deploy/types";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { testnetConfigs } from "src/deploy-config";
+import type { KrStaking, UniswapV2Factory } from "types";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("deploy-staking");
-    const { ethers, uniPairs } = hre;
+    const { ethers } = hre;
 
     const Staking = await ethers.getContract<KrStaking>("KrStaking");
 
-    const RewardToken1 = await ethers.getContract<Token>("AURORA");
-    const RewardToken2 = await ethers.getContract<Token>("wNEAR");
+    const config = testnetConfigs[hre.network.name];
+    const [rewardToken1, rewardToken2] = config.rewardTokens;
+    const Reward1 = await ethers.getContract<Token>(rewardToken1.symbol);
+    const Reward2 = await ethers.getContract<Token>(rewardToken2.symbol);
+    const RewardTokens = [Reward1.address, Reward2.address];
 
-    const RewardTokens = [RewardToken1.address, RewardToken2.address];
+    const Factory = await hre.ethers.getContract<UniswapV2Factory>("UniswapV2Factory");
 
-    const USDCKRIAU = uniPairs["USDC/KRIAU"].address;
-    const USDCKRGME = uniPairs["USDC/KRGME"].address;
+    // First pool is added on the constructor
+    const pools = config.stakingPools.slice(1);
 
-    const result0 = await Staking.getPidFor(USDCKRIAU);
-    if (!result0.found) {
-        const tx = await Staking.addPool(RewardTokens, USDCKRIAU, 500, 0);
-        await tx.wait();
+    for (const pool of pools) {
+        logger.log(`Adding pool ${pool.lpToken[0].symbol}- ${pool.lpToken[1].symbol}`);
+        const [token0, token1] = pool.lpToken;
+        const Token0 = await ethers.getContract<Token>(token0.symbol);
+        const Token1 = await ethers.getContract<Token>(token1.symbol);
+        const lpToken = await Factory.getPair(Token0.address, Token1.address);
+        const result0 = await Staking.getPidFor(lpToken);
+        if (!result0.found) {
+            const tx = await Staking.addPool(RewardTokens, lpToken, pool.allocPoint, pool.startBlock);
+            await tx.wait();
+        }
     }
 
-    const result1 = await Staking.getPidFor(USDCKRGME);
-    if (!result1.found) {
-        const tx = await Staking.addPool(RewardTokens, USDCKRGME, 500, 0);
-        await tx.wait();
-    }
-
-    let tx = await RewardToken1.mint(Staking.address, toBig(50_000_000));
+    const [amount1, amount2] = config.rewardTokenAmounts;
+    await Reward1.mint(Staking.address, hre.toBig(amount1));
+    const tx = await Reward2.mint(Staking.address, hre.toBig(amount2));
     await tx.wait();
 
-    tx = await RewardToken2.mint(Staking.address, toBig(50_000_000));
-    await tx.wait();
-
-    const Reward1Bal = await RewardToken1.balanceOf(Staking.address);
-    const Reward2Bal = await RewardToken2.balanceOf(Staking.address);
+    const Reward1Bal = await Reward1.balanceOf(Staking.address);
+    const Reward2Bal = await Reward2.balanceOf(Staking.address);
 
     logger.success("Pools total", Number(await Staking.poolLength()));
     logger.success("R1", fromBig(Reward1Bal), "R2", fromBig(Reward2Bal));
@@ -46,10 +50,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 func.skip = async hre => {
     const Staking = await hre.ethers.getContract<KrStaking>("KrStaking");
-    const RewardToken1 = await hre.ethers.getContract<Token>("AURORA");
-    const RewardToken2 = await hre.ethers.getContract<Token>("wNEAR");
-    const Reward1Bal = await RewardToken1.balanceOf(Staking.address);
-    const Reward2Bal = await RewardToken2.balanceOf(Staking.address);
+    const config = testnetConfigs[hre.network.name];
+    const [rewardToken1, rewardToken2] = config.rewardTokens;
+    const Reward1 = await hre.ethers.getContract<Token>(rewardToken1.symbol);
+    const Reward2 = await hre.ethers.getContract<Token>(rewardToken2.symbol);
+    const Reward1Bal = await Reward1.balanceOf(Staking.address);
+    const Reward2Bal = await Reward2.balanceOf(Staking.address);
     const logger = getLogger("deploy-staking");
 
     if (Reward1Bal.gt(0) && Reward2Bal.gt(0)) {

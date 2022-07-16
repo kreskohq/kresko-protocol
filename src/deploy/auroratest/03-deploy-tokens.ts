@@ -1,71 +1,41 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { getLogger } from "@utils/deployment";
-import { toBig } from "@utils/numbers";
-
+import { testnetConfigs } from "src/deploy-config";
+import { MockWETH10 } from "types";
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("deploy-tokens");
-    const USDCDeployed = await hre.deployments.getOrNull("USDC");
-    let USDC: Token | undefined;
-    if (!USDCDeployed) {
-        USDC = await hre.run("deploy:token", {
-            name: "USDC",
-            symbol: "USDC",
-            log: true,
-            amount: 1000000000,
-            decimals: 6,
-        });
-    } else {
-        logger.log("Skipping deploying USDC");
-    }
-    const AuroraDeployed = await hre.deployments.getOrNull("AURORA");
 
-    let AURORA: Token | undefined;
-    if (!AuroraDeployed) {
-        AURORA = await hre.run("deploy:token", {
-            name: "Aurora",
-            symbol: "AURORA",
+    const collaterals = testnetConfigs[hre.network.name].collaterals;
+
+    for (const collateral of collaterals) {
+        const isDeployed = await hre.deployments.getOrNull(collateral.symbol);
+        if (collateral.symbol === "WETH") {
+            await (await hre.ethers.getContract<MockWETH10>("WETH")).deposit(hre.toBig(collateral.mintAmount));
+            continue;
+        }
+        if (isDeployed != null) continue;
+
+        logger.log(`Deploying collateral token ${collateral.name}`);
+        await hre.run("deploy:token", {
+            name: collateral.name,
+            symbol: collateral.symbol,
             log: true,
+            amount: collateral.mintAmount,
+            decimals: collateral.decimals,
         });
-    } else {
-        logger.log("Skipping deploying Aurora");
+        logger.log(`Deployed ${collateral.name}`);
     }
 
-    const NearDeployed = await hre.deployments.getOrNull("wNEAR");
-
-    let NEAR: Token | undefined;
-    if (!NearDeployed) {
-        NEAR = await hre.run("deploy:token", {
-            name: "Wrapped Near",
-            symbol: "wNEAR",
-            log: true,
-        });
-    } else {
-        logger.log("Skipping deploying wNEAR");
-    }
-    const WETH = await hre.ethers.getContract("WETH");
-
-    // Give deployer some WETH
-    await WETH.deposit(toBig(500, 18));
-    logger.log("deposited weth for deployer");
-
-    const contracts = {
-        USDC: USDC ? USDC.address : USDCDeployed.address,
-        wNEAR: NEAR ? NEAR.address : NearDeployed.address,
-        AURORA: AURORA ? AURORA.address : AuroraDeployed.address,
-        WETH: WETH.address,
-    };
-
-    logger.table(contracts);
-    logger.success("Succesfully deployed mock tokens");
+    logger.success("Succesfully deployed collateral tokens");
 };
 
-func.tags = ["auroratest"];
+func.tags = ["auroratest", "deploy-collaterals"];
 
 func.skip = async hre => {
     const logger = getLogger("deploy-tokens");
-
-    const isFinished = await hre.deployments.getOrNull("wNEAR");
+    const collaterals = testnetConfigs[hre.network.name].collaterals;
+    const isFinished = await hre.deployments.getOrNull(collaterals[collaterals.length - 1].name);
     isFinished && logger.log("Skipping deploying mock tokens");
     return !!isFinished;
 };

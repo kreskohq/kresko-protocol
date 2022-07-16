@@ -1,99 +1,46 @@
-import { toFixedPoint } from "@utils";
 import { getLogger } from "@utils/deployment";
+import { fromBig } from "@utils/numbers";
 import { DeployFunction } from "hardhat-deploy/types";
+import { testnetConfigs } from "src/deploy-config";
 
 const func: DeployFunction = async function (hre) {
-    const loggerGeneral = getLogger("general");
     const logger = getLogger("deploy-oracle");
-    loggerGeneral.log("Starting Aurora Testnet deployment script");
     const { getNamedAccounts } = hre;
 
-    const { priceFeedValidator } = await getNamedAccounts();
-    // USD
-    const USDCFeed = await hre.run("deployone:fluxpricefeed", {
-        name: "USD",
-        decimals: 8,
-        description: "/USD",
-        validator: priceFeedValidator,
-    });
-    let tx = await USDCFeed.transmit(toFixedPoint("1", 8));
-    await tx.wait();
+    /* -------------------------------------------------------------------------- */
+    /*                                  Validator                                 */
+    /* -------------------------------------------------------------------------- */
+    const { priceFeedValidatorAurora, priceFeedValidatorOpKovan, priceFeedValidatorOpGoerli } =
+        await getNamedAccounts();
 
-    // ETH
-    const ethusd = await hre.run("deployone:fluxpricefeed", {
-        name: "ETHUSD",
-        decimals: 8,
-        description: "ETH/USD",
-        validator: priceFeedValidator,
-    });
-    tx = await ethusd.transmit(toFixedPoint("1109.24", 8));
-    await tx.wait();
+    let validator = priceFeedValidatorAurora;
 
-    // GOLD
-    const goldusd = await hre.run("deployone:fluxpricefeed", {
-        name: "GOLDUSD",
-        decimals: 8,
-        description: "GOLD/USD",
-        validator: priceFeedValidator,
-    });
+    if (hre.network.name === "opkovan") {
+        validator = priceFeedValidatorOpKovan;
+    } else if (hre.network.name === "opgoerli") {
+        validator = priceFeedValidatorOpGoerli;
+    }
 
-    tx = await goldusd.transmit(toFixedPoint("34.52", 8));
+    /* -------------------------------------------------------------------------- */
+    /*                                 Deployments                                */
+    /* -------------------------------------------------------------------------- */
 
-    await tx.wait();
-    // TSLA
-    const tslausd = await hre.run("deployone:fluxpricefeed", {
-        name: "TSLAUSD",
-        decimals: 8,
-        description: "TSLA/USD",
-        validator: priceFeedValidator,
-    });
+    const assets = [...testnetConfigs[hre.network.name].collaterals, ...testnetConfigs[hre.network.name].krAssets];
 
-    tx = await tslausd.transmit(toFixedPoint("671.38", 8));
-    await tx.wait();
+    for (let i = 0; i < assets.length; i++) {
+        const asset = assets[i];
+        logger.log(`Deploying oracle for ${asset.name}`);
+        const feed = await hre.run("deployone:fluxpricefeed", {
+            name: asset.oracle.name,
+            decimals: 8,
+            description: asset.oracle.description,
+            validator,
+        });
+        const tx = await feed.transmit(asset.price);
+        await tx.wait();
+        logger.log(`Oracle deployed for ${asset.name} - initial price: ${fromBig(asset.price, 8)}`);
+    }
 
-    // QQQ
-    const qqqusd = await hre.run("deployone:fluxpricefeed", {
-        name: "QQQUSD",
-        decimals: 8,
-        description: "QQQ/USD",
-        validator: priceFeedValidator,
-    });
-
-    tx = await qqqusd.transmit(toFixedPoint("283.3", 8));
-    await tx.wait();
-
-    // GME
-    const gmeusd = await hre.run("deployone:fluxpricefeed", {
-        name: "GMEUSD",
-        decimals: 8,
-        description: "GME/USD",
-        validator: priceFeedValidator,
-    });
-
-    tx = await gmeusd.transmit(toFixedPoint("121.98", 8));
-    await tx.wait();
-
-    // AURORA
-    const aurorausd = await hre.run("deployone:fluxpricefeed", {
-        name: "AURORAUSD",
-        decimals: 8,
-        description: "AURORA/USD",
-        validator: priceFeedValidator,
-    });
-
-    tx = await aurorausd.transmit(toFixedPoint("1.32", 8));
-    await tx.wait();
-
-    // NEAR
-    const nearusd = await hre.run("deployone:fluxpricefeed", {
-        name: "NEARUSD",
-        decimals: 8,
-        description: "NEAR/USD",
-        validator: priceFeedValidator,
-    });
-
-    tx = await nearusd.transmit(toFixedPoint("3.48", 8));
-    await tx.wait();
     logger.success("All price feeds deployed");
 };
 
