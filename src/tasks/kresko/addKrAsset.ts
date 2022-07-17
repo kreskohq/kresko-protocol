@@ -11,7 +11,8 @@ task("kresko:addkrasset")
     .addOptionalParam("log", "Log outputs", false, types.boolean)
     .addOptionalParam("wait", "Log outputs", 1, types.int)
     .setAction(async function (taskArgs: TaskArguments, hre) {
-        const { ethers, kresko } = hre;
+        const { ethers } = hre;
+        const kresko = await ethers.getContract<Kresko>("Kresko");
         const { symbol, kFactor, oracleAddr, marketCapLimit, log } = taskArgs;
         const logger = getLogger("addCollateral", log);
         if (kFactor == 1000) {

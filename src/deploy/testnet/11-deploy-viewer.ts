@@ -1,0 +1,13 @@
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { DeployFunction } from "hardhat-deploy/types";
+
+const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+    // await hre.run("deploy:viewer", {});
+};
+
+// func.skip = async hre => {
+//     const isDeployed = await hre.deployments.getOrNull("KreskoViewer");
+//     return !!isDeployed;
+// };
+func.tags = ["testnet", "viewer"];
+export default func;

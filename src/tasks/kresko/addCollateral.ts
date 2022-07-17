@@ -12,8 +12,8 @@ task("kresko:addcollateral")
     .addOptionalParam("log", "Log outputs", false, types.boolean)
     .addOptionalParam("wait", "wait confirmations", 1, types.int)
     .setAction(async function (taskArgs: TaskArguments, hre) {
-        const { ethers, kresko } = hre;
-
+        const { ethers } = hre;
+        const kresko = await ethers.getContract<Kresko>("Kresko");
         const { symbol, cFactor, oracleAddr, nrwt, log } = taskArgs;
 
         const logger = getLogger("addCollateral", log);
