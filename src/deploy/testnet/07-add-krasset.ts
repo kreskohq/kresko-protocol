@@ -10,7 +10,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         logger.log(`whitelisting ${krAsset.name}`);
         await hre.run("kresko:addkrasset", {
             symbol: krAsset.symbol,
-            kFactor: krAsset.factor,
+            kFactor: krAsset.kFactor,
             oracleAddr: (await hre.ethers.getContract(krAsset.oracle.name)).address,
         });
     }

@@ -12,8 +12,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         feeRecipient: treasury,
         minimumCollateralizationRatio: params.minimumCollateralizationRatio,
         burnFee: params.burnFee,
-        secondsUntilPriceStale: params.secondsUntilPriceStale,
         minimumDebtValue: params.minimumDebtValue,
+        secondsUntilStalePrice: params.secondsUntilStalePrice,
         liquidationIncentive: params.liquidationIncentive,
     });
     logger.log("Kresko deployed");

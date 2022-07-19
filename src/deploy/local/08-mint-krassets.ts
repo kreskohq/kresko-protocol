@@ -1,70 +1,39 @@
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { DeployFunction } from "hardhat-deploy/types";
 import { getLogger } from "@utils/deployment";
+import { fromBig } from "@utils/numbers";
+import { DeployFunction } from "hardhat-deploy/types";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { testnetConfigs } from "src/deploy-config";
+import { Kresko, KreskoAsset } from "types";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-    const logger = getLogger("mint-krasset");
-    const { ethers, kresko, getNamedAccounts } = hre;
-    let tx;
-    const { deployer } = await getNamedAccounts();
-    const USDC = await ethers.getContract<Token>("USDC");
-    const collateralDec = await USDC.decimals();
+    const logger = getLogger("mint-krassets");
+    const krAssets = testnetConfigs[hre.network.name].krAssets;
+    const kresko = await hre.ethers.getContract<Kresko>("Kresko");
+    const { deployer } = await hre.getNamedAccounts();
 
-    /** === krTSLA ===  */
-    const krTSLA = await ethers.getContract<KreskoAsset>("krTSLA");
-    logger.log("Approving USDC");
-
-    // Approve USDC token to be deposited to Kresko
-    tx = await USDC.approve(kresko.address, ethers.constants.MaxUint256);
-    // await tx.wait();
-    logger.log("Depositing USDC");
-
-    // Deposit collateral to mint
-    tx = await kresko.depositCollateral(deployer, USDC.address, ethers.utils.parseUnits("1000000", collateralDec));
-    // await tx.wait();
-
-    // Mint 100 krTSLA
-    logger.log("Minting KRTSLA");
-    tx = await kresko.mintKreskoAsset(deployer, krTSLA.address, ethers.utils.parseEther("100"));
-    // await tx.wait();
-
-    /** === krETH ===  */
-    const krETH = await ethers.getContract<KreskoAsset>("krETH");
-
-    logger.log("Depositing USDC for krETH");
-
-    // Deposit collateral to mint
-    tx = await kresko.depositCollateral(deployer, USDC.address, ethers.utils.parseUnits("1000000", collateralDec));
-    // await tx.wait();
-
-    // Mint 100 krETH
-    logger.log("Minting krETH");
-    tx = await kresko.mintKreskoAsset(deployer, krETH.address, ethers.utils.parseEther("100"));
-    // await tx.wait();
-
-    /** === krGOLD ===  */
-    const krGOLD = await ethers.getContract<KreskoAsset>("krGOLD");
-
-    logger.log("Depositing USDC for krGOLD");
-
-    // Deposit collateral to mint
-    tx = await kresko.depositCollateral(deployer, USDC.address, ethers.utils.parseUnits("1000000", collateralDec));
-    // await tx.wait();
-
-    // Mint 100 krGOLD
-    logger.log("Minting krGOLD");
-    tx = await kresko.mintKreskoAsset(deployer, krGOLD.address, ethers.utils.parseEther("100"));
-    // await tx.wait();
-
-    // Mint 100 krQQQ
-    const krQQQ = await ethers.getContract<KreskoAsset>("krQQQ");
-    logger.log("Minting krQQQ");
-    tx = await kresko.mintKreskoAsset(deployer, krQQQ.address, ethers.utils.parseEther("100"));
-    // await tx.wait();
-
-    logger.success("Succesfully minted krAssets");
+    for (const krAsset of krAssets) {
+        const asset = await hre.ethers.getContract<KreskoAsset>(krAsset.symbol);
+        const debt = await kresko.kreskoAssetDebt(deployer, asset.address);
+        if (!krAsset.mintAmount || debt.gt(0)) continue;
+        logger.log(`minting ${krAsset.mintAmount} of ${krAsset.name}`);
+        await hre.run("mint:krasset", {
+            name: krAsset.symbol,
+            amount: krAsset.mintAmount,
+        });
+    }
 };
+func.tags = ["testnet", "mint-krassets"];
 
-func.tags = ["local", "mint", "mint-test"];
+func.skip = async hre => {
+    const logger = getLogger("mint-krassets");
+    const krAssets = testnetConfigs[hre.network.name].krAssets;
+
+    const lastAsset = await hre.deployments.get(krAssets[krAssets.length - 1].symbol);
+    const kresko = await hre.ethers.getContract<Kresko>("Kresko");
+    const { deployer } = await hre.getNamedAccounts();
+    const isFinished = fromBig(await kresko.kreskoAssetDebt(deployer, lastAsset.address)) > 0;
+    isFinished && logger.log("Skipping minting krAssets");
+    return isFinished;
+};
 
 export default func;

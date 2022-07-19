@@ -3,20 +3,21 @@ import { DeployResult } from "hardhat-deploy/types";
 export {};
 
 declare global {
-    type Kresko = import("./contracts/Kresko").Kresko;
-    type KreskoAsset = import("./contracts/KreskoAsset").KreskoAsset;
-    type NonRebasingWrapperToken = import("./contracts/NonRebasingWrapperToken").NonRebasingWrapperToken;
-    type RebasingToken = import("./contracts/RebasingToken").RebasingToken;
+    type Kresko = import("./contracts/src/contracts/Kresko").Kresko;
+    type KreskoAsset = import("./contracts/src/contracts/KreskoAsset").KreskoAsset;
+    type NonRebasingWrapperToken = import("./contracts/index").NonRebasingWrapperToken;
+    type RebasingToken = import("./contracts/index").RebasingToken;
 
-    type FluxPriceFeed = import("./contracts/FluxPriceFeed").FluxPriceFeed;
-    type FluxPriceAggregator = import("./contracts/FluxPriceAggregator").FluxPriceAggregator;
-    type AggregatorV2V3Interface = import("./contracts/AggregatorV2V3Interface").AggregatorV2V3Interface;
-    type FeedsRegistry = import("./contracts/FeedsRegistry").FeedsRegistry;
-    type WETH9 = import("./contracts/WETH9").WETH9;
+    type FluxPriceFeed = import("./contracts/src/contracts/flux/FluxPriceFeed").FluxPriceFeed;
+    type FluxPriceAggregator = import("./contracts/src/contracts/flux/FluxPriceAggregator").FluxPriceAggregator;
+    type AggregatorV2V3Interface =
+        import("./contracts/src/contracts/flux/interfaces/AggregatorV2V3Interface").AggregatorV2V3Interface;
+    type FeedsRegistry = import("./contracts/src/contracts/flux/FeedsRegistry").FeedsRegistry;
+    type WETH9 = import("./contracts/index").WETH9;
 
-    type MockToken = import("./contracts/MockToken").MockToken;
-    type Token = import("./contracts/Token").Token;
-    type IERC20 = import("./contracts/IERC20").IERC20;
+    type MockToken = import("./contracts/index").MockToken;
+    type Token = import("./contracts/index").Token;
+    type IERC20 = import("./contracts/index").IERC20;
     type Contract = import("ethers").Contract;
     type BigNumberish = import("ethers").BigNumberish;
     type BigNumber = import("ethers").BigNumber;
@@ -34,7 +35,7 @@ declare global {
         liquidationIncentive: BigNumberish;
         minimumCollateralizationRatio: BigNumberish;
         minimumDebtValue: BigNumberish;
-        secondsUntilPriceStale: BigNumberish;
+        secondsUntilStalePrice: BigNumberish;
     }
     interface KreskoAssetConstructor {
         name: string;

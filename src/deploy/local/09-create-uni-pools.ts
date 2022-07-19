@@ -1,72 +1,51 @@
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { DeployFunction } from "hardhat-deploy/types";
-import { UniswapV2Pair } from "types";
-import { fromBig } from "@utils";
+import { AddressZero } from "@utils";
 import { getLogger } from "@utils/deployment";
+import { DeployFunction } from "hardhat-deploy/types";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { testnetConfigs } from "src/deploy-config";
+import { UniswapV2Factory } from "types";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-    const { deployer } = await hre.getNamedAccounts();
-    const { ethers, priceFeeds } = hre;
-    const USDC = await ethers.getContract<Token>("USDC");
+    const { ethers } = hre;
+    const pools = testnetConfigs[hre.network.name].pools;
     const logger = getLogger("create-uni-pools");
-    /** === USDC/KRTSLA ===  */
-    const krTSLA = await ethers.getContract<KreskoAsset>("krTSLA");
-    const TSLAValue = fromBig(await priceFeeds["TSLA/USD"].latestAnswer(), 8);
-    const TSLADepositAmount = 100;
+    const Factory = await ethers.getContract<UniswapV2Factory>("UniswapV2Factory");
 
-    const usdcDec = await USDC.decimals();
-    // Add initial LP (also creates the pair) according to oracle price
-    const USDCKRTSLApair: UniswapV2Pair = await hre.run("uniswap:addliquidity", {
-        tknA: {
-            address: USDC.address,
-            amount: Number(TSLAValue) * TSLADepositAmount,
-        },
-        tknB: {
-            address: krTSLA.address,
-            amount: TSLADepositAmount,
-        },
-    });
-    hre.uniPairs["USDC/KRTSLA"] = USDCKRTSLApair;
+    for (const pool of pools) {
+        const [assetA, assetB, amountB] = pool;
+        logger.log(`Adding liquidity ${assetA.name}-${assetB.name}`);
+        const amountA = (amountB * hre.fromBig(assetB.price, 8)) / hre.fromBig(assetA.price, 8);
 
-    logger.log("USDC AMOUNT", fromBig(await USDC.balanceOf(deployer), usdcDec));
+        const token0 = await hre.ethers.getContract(assetA.symbol);
+        const token1 = await hre.ethers.getContract(assetB.symbol);
 
-    /** === USDC/krETH ===  */
-    const krETH = await ethers.getContract<KreskoAsset>("krETH");
-    const ETHValue = fromBig(await priceFeeds["ETH/USD"].latestAnswer(), 8);
-    const ETHDepositAmount = 100;
+        console.log(hre.fromBig(await token1.balanceOf((await hre.getNamedAccounts()).deployer)));
 
-    // Add initial LP (also creates the pair) according to oracle price
-    const USDCKRETHPair: UniswapV2Pair = await hre.run("uniswap:addliquidity", {
-        tknA: {
-            address: USDC.address,
-            amount: Number(ETHValue) * ETHDepositAmount,
-        },
-        tknB: {
-            address: krETH.address,
-            amount: ETHDepositAmount,
-        },
-    });
-    hre.uniPairs["USDC/KRETH"] = USDCKRETHPair;
+        const pairAddress = await Factory.getPair(token0.address, token1.address);
 
-    /** === USDC/krGOLD ===  */
-    const krGOLD = await ethers.getContract<KreskoAsset>("krGOLD");
-    const GOLDValue = fromBig(await priceFeeds["GOLD/USD"].latestAnswer(), 8);
-    const GOLDDepositAmount = 100;
+        if (pairAddress === AddressZero) {
+            const pair = await hre.run("uniswap:addliquidity", {
+                tknA: {
+                    address: token0.address,
+                    amount: amountA,
+                },
+                tknB: {
+                    address: token1.address,
+                    amount: amountB,
+                },
+            });
+            hre.uniPairs[`${token0.symbol}-${token1.symbol}`] = pair;
+        } else {
+            hre.uniPairs[`${token0.symbol}-${token1.symbol}`] = await ethers.getContractAt(
+                "UniswapV2Pair",
+                pairAddress,
+            );
+        }
+    }
 
-    // Add initial LP (also creates the pair) according to oracle price
-    const USDCKRGOLDPair: UniswapV2Pair = await hre.run("uniswap:addliquidity", {
-        tknA: {
-            address: USDC.address,
-            amount: Number(GOLDValue) * GOLDDepositAmount,
-        },
-        tknB: {
-            address: krGOLD.address,
-            amount: GOLDDepositAmount,
-        },
-    });
-    hre.uniPairs["USDC/KRGOLD"] = USDCKRGOLDPair;
-    logger.success("Succesfully added all liquidity");
+    logger.success("succesfully added liquidity for pools");
 };
 
-func.tags = ["local", "liquidity", "uniswap"];
+func.tags = ["testnet", "create-pools"];
+
 export default func;

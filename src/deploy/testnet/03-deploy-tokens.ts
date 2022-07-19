@@ -17,7 +17,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             await WETH.deposit(hre.toBig(collateral.mintAmount));
             continue;
         }
-        if (isDeployed != null) continue;
+        if (isDeployed != null || !!collateral.kFactor) continue;
 
         logger.log(`Deploying collateral token ${collateral.name}`);
         await hre.run("deploy:token", {

@@ -1,39 +1,22 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { getLogger } from "@utils/deployment";
+import { testnetConfigs } from "src/deploy-config";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("add-krasset");
-    const { priceFeeds } = hre;
-
-    await hre.run("kresko:addkrasset", {
-        name: "krGOLD",
-        kFactor: 1.1,
-        oracleAddr: priceFeeds["GOLD/USD"].address,
-        log: true,
-    });
-    await hre.run("kresko:addkrasset", {
-        name: "krTSLA",
-        kFactor: 1.25,
-        oracleAddr: priceFeeds["TSLA/USD"].address,
-        log: true,
-    });
-
-    await hre.run("kresko:addkrasset", {
-        name: "krETH",
-        kFactor: 1.15,
-        oracleAddr: priceFeeds["ETH/USD"].address,
-        log: true,
-    });
-
-    await hre.run("kresko:addkrasset", {
-        name: "krQQQ",
-        kFactor: 1.15,
-        oracleAddr: priceFeeds["QQQ/USD"].address,
-        log: true,
-    });
-    logger.log("Succesfully added kr-assets");
+    const krAssets = testnetConfigs[hre.network.name].krAssets;
+    for (const krAsset of krAssets) {
+        logger.log(`whitelisting ${krAsset.name}`);
+        await hre.run("kresko:addkrasset", {
+            symbol: krAsset.symbol,
+            kFactor: krAsset.kFactor,
+            oracleAddr: (await hre.ethers.getContract(krAsset.oracle.name)).address,
+        });
+    }
+    logger.success("Succesfully whitelisted all krAssets");
 };
-export default func;
 
-func.tags = ["local"];
+func.tags = ["testnet", "add-krassets"];
+
+export default func;

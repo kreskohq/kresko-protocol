@@ -1,46 +1,46 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { MockWETH10 } from "types";
 import { getLogger } from "@utils/deployment";
-
+import { testnetConfigs } from "src/deploy-config";
+import { MockWETH10 } from "types";
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("deploy-tokens");
     const { deployer } = await hre.getNamedAccounts();
-    const USDC: Token = await hre.run("deploy:token", {
-        name: "USDC",
-        symbol: "USDC",
-        log: true,
-        decimals: 6,
-    });
+    const collaterals = testnetConfigs[hre.network.name].collaterals;
+    const WETH = await hre.ethers.getContract<MockWETH10>("WETH");
+    for (const collateral of collaterals) {
+        const isDeployed = await hre.deployments.getOrNull(collateral.symbol);
+        if (
+            collateral.symbol === "WETH" &&
+            (await WETH.balanceOf(deployer)).lt(hre.ethers.utils.parseEther(collateral.mintAmount.toString()))
+        ) {
+            await WETH.deposit(hre.toBig(collateral.mintAmount));
+            continue;
+        }
+        if (isDeployed != null || !!collateral.kFactor) continue;
 
-    const AURORA: Token = await hre.run("deploy:token", {
-        name: "Aurora",
-        symbol: "AURORA",
-        log: true,
-    });
+        logger.log(`Deploying collateral token ${collateral.name}`);
+        await hre.run("deploy:token", {
+            name: collateral.name,
+            symbol: collateral.symbol,
+            log: true,
+            amount: collateral.mintAmount,
+            decimals: collateral.decimals,
+        });
+        logger.log(`Deployed ${collateral.name}`);
+    }
 
-    const NEAR: Token = await hre.run("deploy:token", {
-        name: "Wrapped Near",
-        symbol: "wNEAR",
-        log: true,
-    });
-
-    const [WETH] = await hre.deploy<MockWETH10>("Wrapped Ether", {
-        contract: "MockWETH10",
-        from: deployer,
-        log: true,
-    });
-
-    const contracts = {
-        USDC: USDC.address,
-        NEAR: NEAR.address,
-        AURORA: AURORA.address,
-        WETH: WETH.address,
-    };
-    console.table(contracts);
-    logger.success("Succesfully deployed mock tokens");
+    logger.success("Succesfully deployed collateral tokens");
 };
 
-func.tags = ["auroratest"];
+func.tags = ["testnet", "deploy-collaterals"];
+
+func.skip = async hre => {
+    const logger = getLogger("deploy-tokens");
+    const collaterals = testnetConfigs[hre.network.name].collaterals;
+    const isFinished = await hre.deployments.getOrNull(collaterals[collaterals.length - 1].name);
+    isFinished && logger.log("Skipping deploying mock tokens");
+    return !!isFinished;
+};
 
 export default func;

@@ -15,7 +15,7 @@ export const constructors = {
             throw new Error("fee recipient address not set");
         }
         const feeRecipientAddress = ethers.utils.getAddress(feeRecipientAddressStr);
-        const secondsUntilPriceStale = overrides?.secondsUntilPriceStale || process.env.SECONDS_UNTIL_PRICE_STALE;
+        const secondsUntilStalePrice = overrides?.secondsUntilStalePrice || process.env.SECONDS_UNTIL_PRICE_STALE;
 
         return {
             burnFee,
@@ -23,7 +23,7 @@ export const constructors = {
             liquidationIncentive,
             minimumCollateralizationRatio,
             minimumDebtValue,
-            secondsUntilPriceStale,
+            secondsUntilStalePrice,
         };
     },
 };

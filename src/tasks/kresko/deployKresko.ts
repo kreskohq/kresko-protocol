@@ -24,7 +24,6 @@ task("deploy:kresko")
 
         const logger = getLogger("deployKresko", taskArgs.log);
 
-        console.log(taskArgs);
         const [Kresko, , deployment] = await deploy<Kresko>("Kresko", {
             from: admin,
             log: taskArgs.log,
@@ -57,7 +56,7 @@ task("deploy:kresko")
                 feeRecipient: await Kresko.feeRecipient(),
                 minimumCollateralizationRatio: formatEther(await Kresko.minimumCollateralizationRatio()),
                 minimumDebtValue: formatEther(await Kresko.minimumDebtValue()),
-                secondsUntilPriceStale: await Kresko.secondsUntilStalePrice(),
+                secondsUntilStalePrice: await Kresko.secondsUntilStalePrice(),
             };
             const contracts = {
                 ProxyAdmin: ProxyAdmin.address,

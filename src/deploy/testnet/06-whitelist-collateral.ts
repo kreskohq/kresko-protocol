@@ -11,7 +11,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         logger.log(`whitelisting collateral: ${collateral.name}`);
         await hre.run("kresko:addcollateral", {
             symbol: collateral.symbol,
-            cFactor: collateral.factor,
+            cFactor: collateral.cFactor,
             oracleAddr: (await hre.ethers.getContract(collateral.oracle.name)).address,
             log: true,
         });

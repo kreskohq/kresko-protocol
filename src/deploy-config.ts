@@ -8,7 +8,8 @@ type Asset = {
         name: string;
         description: string;
     };
-    factor: number;
+    cFactor?: number;
+    kFactor?: number;
     decimals: number;
     mintAmount?: number;
 };
@@ -42,7 +43,7 @@ export const assets: { [asset: string]: Asset } = {
             name: "AURORAUSD",
             description: "AURORA/USD",
         },
-        factor: 0.75,
+        cFactor: 0.75,
         mintAmount: 10_000_000,
     },
     USDC: {
@@ -54,7 +55,7 @@ export const assets: { [asset: string]: Asset } = {
             name: "USD",
             description: "/USD",
         },
-        factor: 0.95,
+        cFactor: 0.95,
         mintAmount: 100_000_000,
     },
     OP: {
@@ -66,7 +67,7 @@ export const assets: { [asset: string]: Asset } = {
             name: "OPUSD",
             description: "OP/USD",
         },
-        factor: 0.75,
+        cFactor: 0.75,
         mintAmount: 10_000_000,
     },
     WETH: {
@@ -78,7 +79,7 @@ export const assets: { [asset: string]: Asset } = {
             name: "ETHUSD",
             description: "ETH/USD",
         },
-        factor: 0.8,
+        cFactor: 0.8,
         mintAmount: 10_000,
     },
     WNEAR: {
@@ -90,7 +91,7 @@ export const assets: { [asset: string]: Asset } = {
             name: "NEARUSD",
             description: "NEAR/USD",
         },
-        factor: 0.75,
+        cFactor: 0.75,
         mintAmount: 10_000_000,
     },
     krTSLA: {
@@ -102,7 +103,7 @@ export const assets: { [asset: string]: Asset } = {
             name: "TSLAUSD",
             description: "TSLA/USD",
         },
-        factor: 1.25,
+        kFactor: 1.25,
         mintAmount: 1000,
     },
     krQQQ: {
@@ -114,7 +115,7 @@ export const assets: { [asset: string]: Asset } = {
             name: "QQQUSD",
             description: "QQQ/USD",
         },
-        factor: 1.2,
+        kFactor: 1.2,
         mintAmount: 2000,
     },
     krIAU: {
@@ -126,7 +127,8 @@ export const assets: { [asset: string]: Asset } = {
             name: "GOLDUSD",
             description: "GOLD/USD",
         },
-        factor: 1.1,
+        kFactor: 1.1,
+        cFactor: 0.75,
         mintAmount: 20000,
     },
     krGME: {
@@ -138,7 +140,7 @@ export const assets: { [asset: string]: Asset } = {
             name: "GMEUSD",
             description: "GME/USD",
         },
-        factor: 1.25,
+        kFactor: 1.25,
         mintAmount: 4000,
     },
 };
@@ -147,8 +149,8 @@ const defaultParams: Omit<KreskoConstructor, "feeRecipient"> = {
     burnFee: "0.015",
     liquidationIncentive: "1.1",
     minimumCollateralizationRatio: "1.5",
+    secondsUntilStalePrice: "60",
     minimumDebtValue: "10",
-    secondsUntilPriceStale: "60",
 };
 
 const defaultPools: [Asset, Asset, number][] = [
@@ -186,7 +188,7 @@ const defaultStakingPools: StakingPoolConfig[] = [
 export const testnetConfigs: NetworkConfig = {
     hardhat: {
         protocolParams: defaultParams,
-        collaterals: [assets.USDC, assets.OP, assets.Aurora, assets.WETH, assets.WNEAR],
+        collaterals: [assets.USDC, assets.OP, assets.Aurora, assets.WETH, assets.WNEAR, assets.krIAU],
         krAssets: [assets.krTSLA, assets.krQQQ, assets.krGME, assets.krIAU],
         pools: defaultPools,
         stakingPools: defaultStakingPools,
@@ -196,7 +198,7 @@ export const testnetConfigs: NetworkConfig = {
     },
     localhost: {
         protocolParams: defaultParams,
-        collaterals: [assets.USDC, assets.OP, assets.Aurora, assets.WETH, assets.WNEAR],
+        collaterals: [assets.USDC, assets.OP, assets.Aurora, assets.WETH, assets.WNEAR, assets.krIAU],
         krAssets: [assets.krTSLA, assets.krQQQ, assets.krGME, assets.krIAU],
         pools: defaultPools,
         stakingPools: defaultStakingPools,
