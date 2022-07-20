@@ -84,16 +84,7 @@ abstract contract MinterModifiers {
         require(ms().kreskoAssets[_kreskoAsset].mintable, Error.KRASSET_NOT_MINTABLE);
         _;
     }
-    /**
-     * @notice Reverts if a Kresko asset's price is stale
-     * @param _kreskoAsset The address of the Kresko asset.
-     */
-    modifier kreskoAssetPriceNotStale(address _kreskoAsset) {
-        uint256 priceTimestamp = uint256(ms().kreskoAssets[_kreskoAsset].oracle.latestTimestamp());
-        // Include a buffer as block.timestamp can be manipulated up to 15 seconds.
-        require(block.timestamp < priceTimestamp + ms().secondsUntilStalePrice, "KR: stale price");
-        _;
-    }
+
     /**
      * @notice Reverts if a Kresko asset does not exist within the protocol. Does not revert if
      * the Kresko asset is not mintable.

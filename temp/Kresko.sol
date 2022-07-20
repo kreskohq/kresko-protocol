@@ -384,17 +384,6 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     /**
-     * @notice Reverts if a Kresko asset's price is stale
-     * @param _kreskoAsset The address of the Kresko asset.
-     */
-    modifier kreskoAssetPriceNotStale(address _kreskoAsset) {
-        uint256 priceTimestamp = uint256(kreskoAssets[_kreskoAsset].oracle.latestTimestamp());
-        // Include a buffer as block.timestamp can be manipulated up to 15 seconds.
-        require(block.timestamp < priceTimestamp + secondsUntilStalePrice, "KR: stale price");
-        _;
-    }
-
-    /**
      * @notice Reverts if the symbol of a Kresko asset already exists within the protocol.
      * @param _kreskoAsset The address of the Kresko asset.
      * @param _symbol The symbol of the Kresko asset.
@@ -437,7 +426,6 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 _liquidationIncentiveMultiplier,
         uint256 _minimumCollateralizationRatio,
         uint256 _minimumDebtValue,
-        uint256 _secondsUntilStalePrice
     ) external initializer {
         // Set msg.sender as the owner.
         __Ownable_init();
@@ -446,7 +434,6 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         updateLiquidationIncentiveMultiplier(_liquidationIncentiveMultiplier);
         updateMinimumCollateralizationRatio(_minimumCollateralizationRatio);
         updateMinimumDebtValue(_minimumDebtValue);
-        updateSecondsUntilStalePrice(_secondsUntilStalePrice);
     }
 
     /**
@@ -583,13 +570,7 @@ contract Kresko is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         address _account,
         address _kreskoAsset,
         uint256 _amount
-    )
-        external
-        nonReentrant
-        kreskoAssetExistsAndMintable(_kreskoAsset)
-        kreskoAssetPriceNotStale(_kreskoAsset)
-        ensureTrustedCallerWhen(_account != msg.sender)
-    {
+    ) external nonReentrant kreskoAssetExistsAndMintable(_kreskoAsset) ensureTrustedCallerWhen(_account != msg.sender) {
         require(_amount > 0, "KR: 0-mint");
 
         // Enforce synthetic asset's maximum market capitalization limit

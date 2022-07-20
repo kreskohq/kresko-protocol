@@ -2,8 +2,8 @@
 pragma solidity >=0.8.14;
 
 import {IAction} from "../interfaces/IAction.sol";
-import {IKreskoAsset} from "../../krasset/IKreskoAsset.sol";
-import {IWrappedKreskoAsset} from "../../krasset/IWrappedKreskoAsset.sol";
+import {IKreskoAsset} from "../../krAsset/IKreskoAsset.sol";
+import {IWrappedKreskoAsset} from "../../krAsset/IWrappedKreskoAsset.sol";
 
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
@@ -97,7 +97,6 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
         external
         nonReentrant
         kreskoAssetExistsAndMintable(_kreskoAsset)
-        kreskoAssetPriceNotStale(_kreskoAsset)
         onlyRoleIf(_account != msg.sender, Role.MANAGER)
     {
         require(_assetAmount > 0, Error.ZERO_MINT);

@@ -2,8 +2,8 @@
 /*                         KRESKO MINTER CONFIGURATION                        */
 /* ========================================================================== */
 
-import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { toFixedPoint } from "@utils/fixed-point";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { MinterInitArgsStruct } from "types/typechain/src/contracts/minter/interfaces/IConfigurationFacet";
 
 const facets = [
@@ -36,7 +36,6 @@ const getMinterInitializer = async (
             liquidationIncentiveMultiplier: toFixedPoint(process.env.LIQUIDATION_INCENTIVE),
             minimumCollateralizationRatio: toFixedPoint(process.env.MINIMUM_COLLATERALIZATION_RATIO),
             minimumDebtValue: toFixedPoint(process.env.MINIMUM_DEBT_VALUE, 8),
-            secondsUntilStalePrice: toFixedPoint(process.env.SECONDS_UNTIL_STALE_PRICE, 8),
         },
     };
 };

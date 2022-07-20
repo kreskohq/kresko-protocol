@@ -3,7 +3,7 @@ pragma solidity >=0.8.14;
 
 import {IERC165} from "../../shared/IERC165.sol";
 import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
-import {IWrappedKreskoAsset} from "../../krasset/IWrappedKreskoAsset.sol";
+import {IWrappedKreskoAsset} from "../../krAsset/IWrappedKreskoAsset.sol";
 
 import {IConfiguration} from "../interfaces/IConfiguration.sol";
 
@@ -49,7 +49,6 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         updateLiquidationIncentiveMultiplier(args.liquidationIncentiveMultiplier);
         updateMinimumCollateralizationRatio(args.minimumCollateralizationRatio);
         updateMinimumDebtValue(args.minimumDebtValue);
-        updateSecondsUntilStalePrice(args.secondsUntilStalePrice);
 
         /// @dev Revoke the operator role
         Authorization.revokeRole(Role.OPERATOR, msg.sender);
@@ -240,14 +239,5 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         require(_minimumDebtValue <= Constants.MAX_DEBT_VALUE, Error.PARAM_MIN_DEBT_AMOUNT_HIGH);
         ms().minimumDebtValue = FixedPoint.Unsigned(_minimumDebtValue);
         emit MinterEvent.MinimumDebtValueUpdated(_minimumDebtValue);
-    }
-
-    /**
-     * @dev Updates the contract's seconds until stale price value
-     * @param _secondsUntilStalePrice Seconds until price is considered stale.
-     */
-    function updateSecondsUntilStalePrice(uint256 _secondsUntilStalePrice) public onlyRole(Role.OPERATOR) {
-        ms().secondsUntilStalePrice = _secondsUntilStalePrice;
-        emit MinterEvent.SecondsUntilStalePriceUpdated(_secondsUntilStalePrice);
     }
 }

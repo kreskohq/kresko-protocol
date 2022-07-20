@@ -30,7 +30,6 @@ describe("Minter", function () {
             await expect(Diamond.updateMinimumCollateralizationRatio(update.minimumCollateralizationRatio)).to.not.be
                 .reverted;
             await expect(Diamond.updateMinimumDebtValue(update.minimumDebtValue)).to.not.be.reverted;
-            await expect(Diamond.updateSecondsUntilStalePrice(update.secondsUntilStalePrice)).to.not.be.reverted;
             await expect(Diamond.updateFeeRecipient(update.feeRecipient)).to.not.be.reverted;
 
             const {
@@ -38,7 +37,6 @@ describe("Minter", function () {
                 liquidationIncentiveMultiplier,
                 minimumCollateralizationRatio,
                 minimumDebtValue,
-                secondsUntilStalePrice,
                 feeRecipient,
             } = await hre.Diamond.getAllParams();
 
@@ -46,7 +44,6 @@ describe("Minter", function () {
             expect(update.liquidationIncentiveMultiplier.toBigInt()).to.equal(liquidationIncentiveMultiplier.rawValue);
             expect(update.minimumCollateralizationRatio.toBigInt()).to.equal(minimumCollateralizationRatio.rawValue);
             expect(update.minimumDebtValue.toBigInt()).to.equal(minimumDebtValue.rawValue);
-            expect(update.secondsUntilStalePrice).to.equal(Number(secondsUntilStalePrice));
             expect(update.feeRecipient).to.equal(feeRecipient);
         });
 

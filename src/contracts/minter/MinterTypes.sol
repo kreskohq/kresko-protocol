@@ -3,7 +3,7 @@ pragma solidity >=0.8.14;
 
 import {AggregatorV2V3Interface} from "../vendor/flux/interfaces/AggregatorV2V3Interface.sol";
 import {FixedPoint} from "../libs/FixedPoint.sol";
-import {IWrappedKreskoAsset} from "../krasset/IWrappedKreskoAsset.sol";
+import {IWrappedKreskoAsset} from "../krAsset/IWrappedKreskoAsset.sol";
 
 /* -------------------------------------------------------------------------- */
 /*                                  CONSTANTS                                 */
@@ -66,7 +66,6 @@ struct MinterInitArgs {
     uint256 liquidationIncentiveMultiplier;
     uint256 minimumCollateralizationRatio;
     uint256 minimumDebtValue;
-    uint256 secondsUntilStalePrice;
 }
 
 /**
@@ -78,7 +77,6 @@ struct MinterParams {
     FixedPoint.Unsigned minimumCollateralizationRatio;
     FixedPoint.Unsigned liquidationIncentiveMultiplier;
     FixedPoint.Unsigned minimumDebtValue;
-    uint256 secondsUntilStalePrice;
     address feeRecipient;
 }
 
