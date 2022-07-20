@@ -8,5 +8,10 @@ task("sandbox").setAction(async function (_taskArgs: TaskArguments, hre) {
 
     const USDC = await hre.ethers.getContract<ERC20PresetMinterPauser>("USDC");
 
-    await USDC.burn(hre.toBig("10000000"));
+    const bal = await KreskoViewer.getBalances([USDC.address], deployer);
+
+    const balFormatted = hre.fromBig(bal[0].balance, 6);
+
+    console.log(`balFormatted`, balFormatted);
+    console.log(`USDC.address`, USDC.address, deployer);
 });

@@ -724,7 +724,7 @@
 
 "@kreskolabs/contracts@file:/Users/pk/Projects/kresko-protocol/packages/contracts":
   "resolved" "file:packages/contracts"
-  "version" "1.2.8"
+  "version" "1.2.10"
   dependencies:
     "typescript" "^4.5.2"
 
