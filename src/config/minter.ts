@@ -26,6 +26,7 @@ const getMinterInitializer = async (
     const { treasury, operator } = hre.addr;
     const Safe = await hre.deployments.getOrNull("Multisig");
     if (!Safe) throw new Error("GnosisSafe not deployed for Minter initialization");
+
     return {
         name: "ConfigurationFacet",
         args: {
@@ -36,7 +37,6 @@ const getMinterInitializer = async (
             liquidationIncentiveMultiplier: toFixedPoint(process.env.LIQUIDATION_INCENTIVE),
             minimumCollateralizationRatio: toFixedPoint(process.env.MINIMUM_COLLATERALIZATION_RATIO),
             minimumDebtValue: toFixedPoint(process.env.MINIMUM_DEBT_VALUE, 8),
-            secondsUntilStalePrice: toFixedPoint(process.env.SECONDS_UNTIL_STALE_PRICE, 8),
         },
     };
 };

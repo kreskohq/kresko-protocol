@@ -37,8 +37,6 @@ struct MinterState {
     FixedPoint.Unsigned minimumCollateralizationRatio;
     /// @notice The minimum USD value of an individual synthetic asset debt position.
     FixedPoint.Unsigned minimumDebtValue;
-    /// @notice The number of seconds until a price is considered stale
-    uint256 secondsUntilStalePrice;
     /// @notice Flag tells if there is a need to perform safety checks on user actions
     bool safetyStateSet;
     /// @notice asset -> action -> state

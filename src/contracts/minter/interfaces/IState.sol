@@ -19,8 +19,6 @@ interface IState {
 
     function minimumDebtValue() external view returns (FixedPoint.Unsigned memory);
 
-    function secondsUntilStalePrice() external view returns (uint256);
-
     function krAssetExists(address _krAsset) external view returns (bool);
 
     function kreskoAsset(address _asset) external view returns (KrAsset memory);
