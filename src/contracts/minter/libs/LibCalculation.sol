@@ -30,9 +30,10 @@ library LibCalc {
         address _collateralAssetToSeize
     ) internal view returns (FixedPoint.Unsigned memory maxLiquidatableUSD) {
         // Minimum collateral value required for the krAsset position
-        FixedPoint.Unsigned memory minCollateralValue = self.getMinimumCollateralValue(
+        FixedPoint.Unsigned memory minCollateralValue = self.getMinimumCollateralValueAtRatio(
             _repayKreskoAsset,
-            self.kreskoAssetDebt[_account][_repayKreskoAsset]
+            self.kreskoAssetDebt[_account][_repayKreskoAsset],
+            self.liquidationThreshold
         );
 
         // Collateral value for this position

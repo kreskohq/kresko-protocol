@@ -115,9 +115,16 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
         // Get the value of the minter's current deposited collateral.
         FixedPoint.Unsigned memory accountCollateralValue = s.getAccountCollateralValue(_account);
         // Get the account's current minimum collateral value required to maintain current debts.
-        FixedPoint.Unsigned memory minAccountCollateralValue = s.getAccountMinimumCollateralValue(_account);
+        FixedPoint.Unsigned memory minAccountCollateralValue = s.getAccountMinimumCollateralValueAtRatio(
+            _account,
+            s.minimumCollateralizationRatio
+        );
         // Calculate additional collateral amount required to back requested additional mint.
-        FixedPoint.Unsigned memory additionalCollateralValue = s.getMinimumCollateralValue(_kreskoAsset, _amount);
+        FixedPoint.Unsigned memory additionalCollateralValue = s.getMinimumCollateralValueAtRatio(
+            _kreskoAsset,
+            _amount,
+            s.minimumCollateralizationRatio
+        );
 
         // Verify that minter has sufficient collateral to back current debt + new requested debt.
         require(
