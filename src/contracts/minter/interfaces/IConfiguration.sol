@@ -42,4 +42,6 @@ interface IConfiguration {
     function updateMinimumCollateralizationRatio(uint256 _minimumCollateralizationRatio) external;
 
     function updateMinimumDebtValue(uint256 _minimumDebtValue) external;
+
+    function updateLiquidationThreshold(uint256 _minimumDebtValue) external;
 }

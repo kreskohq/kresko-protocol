@@ -66,6 +66,7 @@ struct MinterInitArgs {
     uint256 liquidationIncentiveMultiplier;
     uint256 minimumCollateralizationRatio;
     uint256 minimumDebtValue;
+    uint256 liquidationThreshold;
 }
 
 /**
@@ -77,6 +78,7 @@ struct MinterParams {
     FixedPoint.Unsigned minimumCollateralizationRatio;
     FixedPoint.Unsigned liquidationIncentiveMultiplier;
     FixedPoint.Unsigned minimumDebtValue;
+    FixedPoint.Unsigned liquidationThreshold;
     address feeRecipient;
 }
 

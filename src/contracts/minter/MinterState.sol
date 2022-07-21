@@ -37,6 +37,8 @@ struct MinterState {
     FixedPoint.Unsigned minimumCollateralizationRatio;
     /// @notice The minimum USD value of an individual synthetic asset debt position.
     FixedPoint.Unsigned minimumDebtValue;
+    /// @notice The collateralization ratio at which positions may be liquidated.
+    FixedPoint.Unsigned liquidationThreshold;
     /// @notice Flag tells if there is a need to perform safety checks on user actions
     bool safetyStateSet;
     /// @notice asset -> action -> state
