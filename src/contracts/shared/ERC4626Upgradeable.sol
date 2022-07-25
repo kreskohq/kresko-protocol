@@ -4,7 +4,7 @@ pragma solidity >=0.8.14;
 import {FixedPointMathLib} from "@rari-capital/solmate/src/utils/FixedPointMathLib.sol";
 
 import "./SafeERC20Upgradeable.sol";
-import "../krasset/KreskoAsset.sol";
+import "../krAsset/KreskoAsset.sol";
 
 /// @notice Minimal ERC4626 tokenized Vault implementation.
 /// @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/mixins/ERC4626.sol)

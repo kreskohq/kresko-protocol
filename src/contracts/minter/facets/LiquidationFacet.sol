@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 import {ILiquidation} from "../interfaces/ILiquidation.sol";
-import {IKreskoAsset} from "../../krasset/IKreskoAsset.sol";
+import {IKreskoAsset} from "../../krAsset/IKreskoAsset.sol";
 
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
@@ -53,9 +53,6 @@ contract LiquidationFacet is DiamondModifiers, ILiquidation {
             require(s.isAccountLiquidatable(_account), Error.NOT_LIQUIDATABLE);
             // Collateral exists
             require(s.collateralAssets[_collateralAssetToSeize].exists, Error.COLLATERAL_DOESNT_EXIST);
-            // Price is active
-            uint256 priceTimestamp = uint256(s.kreskoAssets[_repayKreskoAsset].oracle.latestTimestamp());
-            require(block.timestamp < priceTimestamp + s.secondsUntilStalePrice, Error.STALE_PRICE);
         }
 
         // Repay amount USD = repay amount * KR asset USD exchange rate.

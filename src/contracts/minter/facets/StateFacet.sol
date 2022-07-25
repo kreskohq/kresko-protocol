@@ -43,10 +43,6 @@ contract StateFacet is IState {
         return ms().minimumDebtValue;
     }
 
-    function secondsUntilStalePrice() external view returns (uint256) {
-        return ms().secondsUntilStalePrice;
-    }
-
     function getAllParams() external view returns (MinterParams memory) {
         MinterState storage s = ms();
         return
@@ -55,7 +51,6 @@ contract StateFacet is IState {
                 s.minimumCollateralizationRatio,
                 s.liquidationIncentiveMultiplier,
                 s.minimumDebtValue,
-                s.secondsUntilStalePrice,
                 s.feeRecipient
             );
     }
