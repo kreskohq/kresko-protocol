@@ -114,6 +114,8 @@ contract KreskoViewer {
     struct StakingData {
         uint256 pid;
         address depositToken;
+        uint256 totalDeposits;
+        uint256 allocPoint;
         uint256[] rewardPerBlocks;
         uint256 lastRewardBlock;
         uint256 depositAmount;
@@ -401,6 +403,8 @@ contract KreskoViewer {
             address depositTokenAddress = address(poolInfo.depositToken);
             result[i] = StakingData({
                 pid: rewards[i].pid,
+                totalDeposits: poolInfo.depositToken.balanceOf(address(Staking)),
+                allocPoint: poolInfo.allocPoint,
                 depositToken: depositTokenAddress,
                 depositAmount: userInfo.amount,
                 rewardTokens: rewards[i].tokens,

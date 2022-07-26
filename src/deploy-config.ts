@@ -1,4 +1,5 @@
-import { toFixedPoint } from "@utils/fixed-point";
+import { JStoFixed, toFixedPoint } from "@utils/fixed-point";
+import { toBig } from "@utils/numbers";
 import fetch from "node-fetch";
 
 type Asset = {
@@ -39,19 +40,19 @@ export const getPriceFromTwelveData = async (symbol: string) => {
         `https://api.twelvedata.com/price?symbol=${symbol}&prepost=true&apikey=${process.env.TWELVE_DATA_API_KEY}`,
     );
     const data = (await result.json()) as { price: string };
-    return Number(data.price).toFixed(1);
+    return JStoFixed(Number(data.price), 2).toString();
 };
 export const getPriceFromCoinGecko = async (symbol: string) => {
     const result = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${symbol}&vs_currencies=usd`);
     const data = (await result.json()) as { [key: string]: { usd: string } };
-    return Number(data[symbol].usd).toFixed(2);
+    return JStoFixed(Number(data[symbol].usd), 2).toString();
 };
 export const assets: { [asset: string]: Asset } = {
     Aurora: {
         name: "Aurora",
         symbol: "AURORA",
         decimals: 18,
-        price: async () => toFixedPoint(await getPriceFromCoinGecko("aurora-near"), 8),
+        price: async () => toBig(await getPriceFromCoinGecko("aurora-near"), 8),
         oracle: {
             name: "AURORAUSD",
             description: "AURORA/USD",
@@ -64,7 +65,7 @@ export const assets: { [asset: string]: Asset } = {
         symbol: "USDC",
         decimals: 6,
         price: async () => {
-            return toFixedPoint("1", 8);
+            return toBig("1", 8);
         },
         oracle: {
             name: "USD",
@@ -77,7 +78,7 @@ export const assets: { [asset: string]: Asset } = {
         name: "OP",
         symbol: "OP",
         decimals: 18,
-        price: async () => toFixedPoint(await getPriceFromCoinGecko("optimism"), 8),
+        price: async () => toBig(await getPriceFromCoinGecko("optimism"), 8),
         oracle: {
             name: "OPUSD",
             description: "OP/USD",
@@ -89,7 +90,7 @@ export const assets: { [asset: string]: Asset } = {
         name: "Wrapped Ether",
         symbol: "WETH",
         decimals: 18,
-        price: async () => toFixedPoint(await getPriceFromTwelveData("ETH"), 8),
+        price: async () => toBig(await getPriceFromCoinGecko("ethereum"), 8),
         oracle: {
             name: "ETHUSD",
             description: "ETH/USD",
@@ -101,7 +102,7 @@ export const assets: { [asset: string]: Asset } = {
         name: "Wrapped Near",
         symbol: "WNEAR",
         decimals: 18,
-        price: async () => toFixedPoint(await getPriceFromTwelveData("NEAR"), 8),
+        price: async () => toBig(await getPriceFromCoinGecko("near"), 8),
         oracle: {
             name: "NEARUSD",
             description: "NEAR/USD",
@@ -113,7 +114,7 @@ export const assets: { [asset: string]: Asset } = {
         name: "Tesla, Inc.",
         symbol: "krTSLA",
         decimals: 18,
-        price: async () => toFixedPoint(await getPriceFromTwelveData("TSLA"), 8),
+        price: async () => toBig(await getPriceFromTwelveData("TSLA"), 8),
         oracle: {
             name: "TSLAUSD",
             description: "TSLA/USD",
@@ -125,7 +126,7 @@ export const assets: { [asset: string]: Asset } = {
         name: "Invesco QQQ Trust",
         symbol: "krQQQ",
         decimals: 18,
-        price: async () => toFixedPoint(await getPriceFromTwelveData("QQQ"), 8),
+        price: async () => toBig(await getPriceFromTwelveData("QQQ"), 8),
         oracle: {
             name: "QQQUSD",
             description: "QQQ/USD",
@@ -137,7 +138,7 @@ export const assets: { [asset: string]: Asset } = {
         name: "iShares Gold Trust",
         symbol: "krIAU",
         decimals: 18,
-        price: async () => toFixedPoint(await getPriceFromTwelveData("IAU"), 8),
+        price: async () => toBig(await getPriceFromTwelveData("IAU"), 8),
         oracle: {
             name: "GOLDUSD",
             description: "GOLD/USD",
@@ -150,7 +151,7 @@ export const assets: { [asset: string]: Asset } = {
         name: "GameStop Corp.",
         symbol: "krGME",
         decimals: 18,
-        price: async () => toFixedPoint(await getPriceFromTwelveData("GME"), 8),
+        price: async () => toBig(await getPriceFromTwelveData("GME"), 8),
         oracle: {
             name: "GMEUSD",
             description: "GME/USD",

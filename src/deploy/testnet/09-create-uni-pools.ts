@@ -1,4 +1,4 @@
-import { AddressZero } from "@utils";
+import { AddressZero, JStoFixed } from "@utils";
 import { getLogger } from "@utils/deployment";
 import { DeployFunction } from "hardhat-deploy/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
@@ -14,12 +14,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     for (const pool of pools) {
         const [assetA, assetB, amountB] = pool;
         logger.log(`Adding liquidity ${assetA.name}-${assetB.name}`);
-        const amountA = (amountB * hre.fromBig(await assetB.price(), 8)) / hre.fromBig(await assetA.price(), 8);
+        const amountA = JStoFixed(
+            (amountB * hre.fromBig(await assetB.price(), 8)) / hre.fromBig(await assetA.price(), 8),
+            2,
+        );
 
         const token0 = await hre.ethers.getContract(assetA.symbol);
         const token1 = await hre.ethers.getContract(assetB.symbol);
-
-        console.log(hre.fromBig(await token1.balanceOf((await hre.getNamedAccounts()).deployer)));
 
         const pairAddress = await Factory.getPair(token0.address, token1.address);
 

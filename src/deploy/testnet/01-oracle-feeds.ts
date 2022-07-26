@@ -1,5 +1,5 @@
 import { getLogger } from "@utils/deployment";
-import { fromBig } from "@utils/numbers";
+import { fromFixedPoint, JStoFixed } from "@utils/fixed-point";
 import { DeployFunction } from "hardhat-deploy/types";
 import { testnetConfigs } from "src/deploy-config";
 import { FluxPriceFeed } from "types";
@@ -42,11 +42,15 @@ const func: DeployFunction = async function (hre) {
             validator,
         });
         const price = await asset.price();
-        console.log(price, asset.symbol);
         await feed.transmit(price, {
             from: deployer.address,
         });
-        logger.log(`Oracle deployed for ${asset.name} - initial price: ${fromBig(price, 8)}`);
+        logger.log(
+            `Oracle deployed for ${asset.name} - initial price: ${JStoFixed(
+                Number(hre.ethers.utils.formatUnits(price, 8)),
+                2,
+            )}`,
+        );
     }
 
     logger.success("All price feeds deployed");
