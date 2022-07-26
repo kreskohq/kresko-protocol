@@ -43,4 +43,12 @@ interface IKrStaking {
         uint256 _pid,
         address _rewardRecipient
     ) external;
+
+    function allPendingRewards(address) external view returns (Reward[] memory);
+
+    function userInfo(uint256 _pid, address _account) external view returns (UserInfo memory);
+
+    function poolInfo(uint256 _pid) external view returns (PoolInfo memory);
+
+    function rewardPerBlockFor(address depositTokenAddress) external view returns (uint256[] memory rewardPerBlocks);
 }

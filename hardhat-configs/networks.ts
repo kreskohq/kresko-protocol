@@ -51,7 +51,6 @@ export const networks: (mnemonic: string) => { [key: string]: any } = mnemonic =
         chainId: chainIds.auroratest,
         url: `https://aurora-testnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
         deploy: ["./src/deploy/testnet"],
-        gasPrice: 0,
         live: true,
     },
     opkovan: {

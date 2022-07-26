@@ -42,11 +42,6 @@ task("deploy:kresko")
                 },
             },
         });
-        // Deploy kresko viewer
-        const [KreskoViewer] = await deploy("KreskoViewer", {
-            from: admin,
-            args: [Kresko.address],
-        });
 
         if (taskArgs.log) {
             const ProxyAdmin = await deployments.get("DefaultProxyAdmin");
@@ -62,7 +57,6 @@ task("deploy:kresko")
                 ProxyAdmin: ProxyAdmin.address,
                 "Kresko (Proxy)": Kresko.address,
                 "Kresko Implementation": deployment.implementation,
-                KreskoViewer: KreskoViewer.address,
                 txHash: deployment.transactionHash,
             };
             logger.table(contracts);

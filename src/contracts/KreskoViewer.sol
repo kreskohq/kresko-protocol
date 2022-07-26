@@ -5,12 +5,14 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20Metadat
 import "./libraries/FixedPointMath.sol";
 import "./libraries/FixedPoint.sol";
 import "./interfaces/IKresko.sol";
+import "./interfaces/IKrStaking.sol";
 
 contract KreskoViewer {
     using FixedPoint for FixedPoint.Unsigned;
     using FixedPointMath for uint256;
 
     IKresko public Kresko;
+    IKrStaking public Staking;
 
     struct krAssetInfoUser {
         address assetAddress;
@@ -109,8 +111,19 @@ contract KreskoViewer {
         string name;
     }
 
-    constructor(IKresko _kresko) {
+    struct StakingData {
+        uint256 pid;
+        address depositToken;
+        uint256[] rewardPerBlocks;
+        uint256 lastRewardBlock;
+        uint256 depositAmount;
+        address[] rewardTokens;
+        uint256[] rewardAmounts;
+    }
+
+    constructor(IKresko _kresko, IKrStaking _staking) {
         Kresko = _kresko;
+        Staking = _staking;
     }
 
     function healthFactorFor(address _account) public view returns (FixedPoint.Unsigned memory) {
@@ -374,6 +387,26 @@ contract KreskoViewer {
                 allowance: _tokens[i].allowance(owner, spender),
                 spender: spender,
                 owner: owner
+            });
+        }
+    }
+
+    function getStakingData(address _account) external view returns (StakingData[] memory result) {
+        IKrStaking.Reward[] memory rewards = Staking.allPendingRewards(_account);
+        result = new StakingData[](rewards.length);
+
+        for (uint256 i; i < rewards.length; i++) {
+            IKrStaking.UserInfo memory userInfo = Staking.userInfo(rewards[i].pid, _account);
+            IKrStaking.PoolInfo memory poolInfo = Staking.poolInfo(rewards[i].pid);
+            address depositTokenAddress = address(poolInfo.depositToken);
+            result[i] = StakingData({
+                pid: rewards[i].pid,
+                depositToken: depositTokenAddress,
+                depositAmount: userInfo.amount,
+                rewardTokens: rewards[i].tokens,
+                rewardAmounts: rewards[i].amounts,
+                rewardPerBlocks: Staking.rewardPerBlockFor(depositTokenAddress),
+                lastRewardBlock: poolInfo.lastRewardBlock
             });
         }
     }

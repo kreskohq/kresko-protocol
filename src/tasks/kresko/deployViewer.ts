@@ -4,25 +4,29 @@ import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
 import { KreskoViewer } from "types";
 
-task("deploy:viewer")
+task("deploy:kresko-viewer")
     .addOptionalParam("kreskoAddr", "Address of Kresko")
+    .addOptionalParam("stakingAddr", "Address of Staking")
     .addOptionalParam("wait", "wait confirmations", 1, types.int)
     .addOptionalParam("log", "Log outputs", false, types.boolean)
     .setAction(async function (taskArgs: TaskArguments, hre) {
         const { getNamedAccounts, ethers } = hre;
         const { deployer } = await getNamedAccounts();
         const deploy = deployWithSignatures(hre);
-        const { kreskoAddr, log } = taskArgs;
+        const { kreskoAddr, stakingAddr, log } = taskArgs;
         const logger = getLogger("deployViewer", log);
         const Kresko = kreskoAddr
             ? await ethers.getContractAt<Kresko>("Kresko", kreskoAddr)
             : await ethers.getContract<Kresko>("Kresko");
+        const Staking = stakingAddr
+            ? await ethers.getContractAt<Kresko>("KrStaking", stakingAddr)
+            : await ethers.getContract<Kresko>("KrStaking");
 
         // Deploy kresko viewer
         const [viewer] = await deploy<KreskoViewer>("KreskoViewer", {
             from: deployer,
             log,
-            args: [Kresko.address],
+            args: [Kresko.address, Staking.address],
         });
 
         if (log) {
