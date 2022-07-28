@@ -41,8 +41,7 @@ library LibAccount {
      * @return A boolean indicating if the account can be liquidated.
      */
     function isAccountLiquidatable(MinterState storage self, address _account) internal view returns (bool) {
-
-        return self.getAccountCollateralValue(_account).isLessThan(
+        return FixedPoint.fromUnscaledUint(self.getAccountCollateralValue(_account).rawValue).isLessThan(
             self.getAccountMinimumCollateralValueAtRatio(_account, self.liquidationThreshold));
     }
 
@@ -65,7 +64,7 @@ library LibAccount {
             (FixedPoint.Unsigned memory collateralValue, ) = self.getCollateralValueAndOraclePrice(
                 asset,
                 self.collateralDeposits[_account][asset],
-                false // Take the collateral factor into consideration.
+                false // Take the collateral factor into consideration. // TODO: should this take the collateral factor into account?
             );
             totalCollateralValue = totalCollateralValue.add(collateralValue);
         }

@@ -30,7 +30,7 @@ export const getNewMinterParams = (feeRecipient: string) => ({
     liquidationIncentiveMultiplier: toFixedPoint(1.05),
     minimumCollateralizationRatio: toFixedPoint(1.4),
     minimumDebtValue: toFixedPoint(20),
-    secondsUntilStalePrice: 30,
+    liquidationThreshold: toFixedPoint(1.3),
     feeRecipient: feeRecipient,
 });
 
