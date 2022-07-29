@@ -102,14 +102,18 @@ contract AccountStateFacet is IAccountState {
     }
 
     /**
-     * @notice Gets an account's minimum collateral value for its Kresko Asset debts.
-     * @dev Accounts that have their collateral value under the minimum collateral value are considered unhealthy
-     * and therefore to avoid liquidations users should maintain a collateral value higher than the value returned.
+     * @notice Get an account's minimum collateral value required to back a Kresko asset amount at a given collateralization ratio.
+     * @dev Accounts that have their collateral value under the minimum collateral value are considered unhealthy,
+     *      accounts with their collateral value under the liquidation threshold are considered liquidatable.
      * @param _account The account to calculate the minimum collateral value for.
+     * @param _ratio The collateralization ratio required: higher ratio = more collateral required
      * @return The minimum collateral value of a particular account.
      */
-    function getAccountMinimumCollateralValue(address _account) public view returns (FixedPoint.Unsigned memory) {
-        return ms().getAccountMinimumCollateralValue(_account);
+    function getAccountMinimumCollateralValueAtRatio(
+        address _account,
+        FixedPoint.Unsigned memory _ratio
+    ) public view returns (FixedPoint.Unsigned memory) {
+        return ms().getAccountMinimumCollateralValueAtRatio(_account, _ratio);
     }
 
     /**
@@ -121,7 +125,7 @@ contract AccountStateFacet is IAccountState {
         if (collateralValue.rawValue == 0) {
             return FixedPoint.Unsigned(0);
         }
-        ratio = collateralValue.div(getAccountMinimumCollateralValue(_account));
+        ratio = collateralValue.div(getAccountMinimumCollateralValueAtRatio(_account, ms().minimumCollateralizationRatio));
     }
 
     /**

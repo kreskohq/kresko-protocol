@@ -6,7 +6,6 @@ export async function extractEventFromTxReceipt<T extends Event = Event>(
     eventName: string,
 ): Promise<T> {
     const receipt: ContractReceipt = await tx.wait();
-
     const event = receipt.events?.find((x: T) => {
         return x.event === eventName;
     });

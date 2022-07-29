@@ -177,10 +177,10 @@ library MinterEvent {
     event MinimumDebtValueUpdated(uint256 indexed minimumDebtValue);
 
     /**
-     * @notice Emitted when the seconds until stale price value is updated.
-     * @param secondsUntilStalePrice The new seconds until stale price value.
+     * @notice Emitted when the liquidation threshold value is updated
+     * @param liquidationThreshold The new liquidation threshold value.
      */
-    event SecondsUntilStalePriceUpdated(uint256 indexed secondsUntilStalePrice);
+    event LiquidationThresholdUpdated(uint256 indexed liquidationThreshold);
 }
 
 library StakingEvent {

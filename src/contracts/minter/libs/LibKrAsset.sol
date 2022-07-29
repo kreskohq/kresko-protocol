@@ -47,19 +47,21 @@ library LibKrAsset {
     }
 
     /**
-     * @notice Get the minimum collateral value required to keep a individual debt position healthy.
+     * @notice Get the minimum collateral value required to back a Kresko asset amount at a given collateralization ratio.
      * @param _krAsset The address of the Kresko asset.
      * @param _amount The Kresko Asset debt amount.
      * @return minCollateralValue is the minimum collateral value required for this Kresko Asset amount.
+    * @param _ratio The collateralization ratio required: higher ratio = more collateral required.
      */
-    function getMinimumCollateralValue(
+    function getMinimumCollateralValueAtRatio(
         MinterState storage self,
         address _krAsset,
-        uint256 _amount
+        uint256 _amount,
+        FixedPoint.Unsigned memory _ratio
     ) internal view returns (FixedPoint.Unsigned memory minCollateralValue) {
         // Calculate the Kresko asset's value weighted by its k-factor.
         FixedPoint.Unsigned memory weightedKreskoAssetValue = self.getKrAssetValue(_krAsset, _amount, false);
-        // Calculate the minimum collateral required to back this Kresko asset amount.
-        return weightedKreskoAssetValue.mul(self.minimumCollateralizationRatio);
+        // Calculate the collateral value required to back this Kresko asset amount at the given ratio
+        return weightedKreskoAssetValue.mul(_ratio);
     }
 }

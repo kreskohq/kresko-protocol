@@ -43,6 +43,10 @@ contract StateFacet is IState {
         return ms().minimumDebtValue;
     }
 
+    function liquidationThreshold() external view returns (FixedPoint.Unsigned memory) {
+        return ms().liquidationThreshold;
+    }
+
     function getAllParams() external view returns (MinterParams memory) {
         MinterState storage s = ms();
         return
@@ -51,6 +55,7 @@ contract StateFacet is IState {
                 s.minimumCollateralizationRatio,
                 s.liquidationIncentiveMultiplier,
                 s.minimumDebtValue,
+                s.liquidationThreshold,
                 s.feeRecipient
             );
     }

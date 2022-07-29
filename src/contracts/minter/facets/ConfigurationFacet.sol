@@ -26,6 +26,8 @@ import {ms, MinterState} from "../MinterStorage.sol";
  */
 
 contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration {
+    using FixedPoint for FixedPoint.Unsigned;
+
     /* -------------------------------------------------------------------------- */
     /*                                 Initializer                                */
     /* -------------------------------------------------------------------------- */
@@ -49,6 +51,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         updateLiquidationIncentiveMultiplier(args.liquidationIncentiveMultiplier);
         updateMinimumCollateralizationRatio(args.minimumCollateralizationRatio);
         updateMinimumDebtValue(args.minimumDebtValue);
+        updateLiquidationThreshold(args.liquidationThreshold);
 
         /// @dev Revoke the operator role
         Authorization.revokeRole(Role.OPERATOR, msg.sender);
@@ -239,5 +242,16 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         require(_minimumDebtValue <= Constants.MAX_DEBT_VALUE, Error.PARAM_MIN_DEBT_AMOUNT_HIGH);
         ms().minimumDebtValue = FixedPoint.Unsigned(_minimumDebtValue);
         emit MinterEvent.MinimumDebtValueUpdated(_minimumDebtValue);
+    }
+
+    /**
+     * @dev Updates the contract's liquidation threshold value
+     * @param _liquidationThreshold The new liquidation threshold value
+     */
+    function updateLiquidationThreshold(uint256 _liquidationThreshold) public override onlyRole(Role.OPERATOR) {
+        // Liquidation threshold cannot be greater than minimum collateralization ratio
+        require(FixedPoint.Unsigned(_liquidationThreshold).isLessThanOrEqual(ms().minimumCollateralizationRatio), Error.INVALID_LT);
+        ms().liquidationThreshold = FixedPoint.Unsigned(_liquidationThreshold);
+        emit MinterEvent.LiquidationThresholdUpdated(_liquidationThreshold);
     }
 }
