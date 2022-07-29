@@ -12,8 +12,8 @@ import {
     defaultOraclePrice,
 } from "@test-utils";
 
-import { LiquidationOccurredEvent } from  "../../../types/typechain/src/contracts/libs/Events.sol/MinterEvent"
-// import { NOT_LIQUIDATABLE } from  "../../../types/typechain/src/contracts/libs/Errors.sol/Error"
+import { LiquidationOccurredEvent } from "types/typechain/MinterEvent";
+import { Error } from "@utils/test/errors"
 import { extractEventFromTxReceipt } from "@utils/events";
 
 describe.only("Minter", function () {
@@ -261,69 +261,125 @@ describe.only("Minter", function () {
                         mintedKreskoAssetIndex,
                         depositedCollateralAssetIndex,
                     ),
-                ).to.be.revertedWith("200"); // TODO: import NOT_LIQUIDATABLE error (or pull from contract?)
+                ).to.be.revertedWith(Error.NOT_LIQUIDATABLE);
             });
 
-            // it("should allow liquidations without liquidator approval of Kresko assets to Kresko.sol contract", async function () {
-            //     // Check that liquidator's token approval to Kresko.sol contract is 0
-            //     expect(await this.krAsset.allowance(users.userTwo.address, hre.Diamond.address)).to.equal(0);
+            it("should not allow liquidations if repayment amount is 0", async function () {
+                // Liquidation should fail
+                const repayAmount = 0;
+                await expect(
+                    hre.Diamond.connect(users.userTwo).liquidate(
+                        users.userOne.address,
+                        this.krAsset.address,
+                        repayAmount,
+                        this.collateral.address,
+                        0,
+                        0,
+                    )
+                ).to.be.revertedWith(Error.ZERO_REPAY);
+            });
 
-            //     // Liquidation should succeed despite lack of token approval
-            //     const repayAmount = 10;
-            //     const mintedKreskoAssetIndex = 0;
-            //     const depositedCollateralAssetIndex = 0;
-            //     const receipt = await hre.Diamond.connect(users.userTwo).liquidate(
-            //         users.userOne.address,
-            //         this.krAsset.address,
-            //         repayAmount,
-            //         this.collateral.address,
-            //         mintedKreskoAssetIndex,
-            //         depositedCollateralAssetIndex,
-            //     );
+            it("should not allow liquidations with krAsset amount greater than krAsset debt of user", async function () {
+                // Get user's debt for this kresko asset
+                const krAssetDebtUserOne = await hre.Diamond.kreskoAssetDebt(
+                    users.userOne.address,
+                    this.krAsset.address,
+                );
 
-            //     const { args } = await extractEventFromTxReceipt(receipt, "LiquidationOccurred");
-            //     expect(args.account).to.equal(users.userOne.address);
-            //     expect(args.liquidator).to.equal(users.userTwo.address);
-            //     expect(args.repayKreskoAsset).to.equal(this.krAsset.address);
-            //     expect(args.repayAmount).to.equal(repayAmount);
-            //     expect(args.seizedCollateralAsset).to.equal(this.collateral.address);
+                // Ensure we are repaying more than debt
+                const repayAmount = toBig(100);
+                expect(repayAmount.gt(krAssetDebtUserOne)).to.be.true;
+                
+                // Liquidation should fail
+                await expect(
+                    hre.Diamond.connect(users.userTwo).liquidate(
+                        users.userOne.address,
+                        this.krAsset.address,
+                        repayAmount,
+                        this.collateral.address,
+                        0,
+                        0,
+                    )
+                ).to.be.revertedWith(Error.KRASSET_BURN_AMOUNT_OVERFLOW);
+            });
 
-            //     // Confirm that liquidator's token approval is still 0
-            //     expect(await this.krAsset.allowance(users.userTwo.address, hre.Diamond.address)).to.equal(0);
-            // });
+            it("should not allow liquidations with USD value greater than the USD value required for regaining healthy position", async function () {
+                const repayAmount = 100;
+                // Ensure liquidation cannot happen
+                await expect(
+                    hre.Diamond.connect(users.userTwo).liquidate(
+                        users.userOne.address,
+                        this.krAsset.address,
+                        repayAmount,
+                        this.collateral.address,
+                        0,
+                        0,
+                    ),
+                ).to.be.revertedWith(Error.LIQUIDATION_OVERFLOW);
+            });
 
-            // it("should not change liquidator's existing token approvals during a successful liquidation", async function () {
-            //     // Liquidator increases contract's token approval
-            //     const repayAmount = 10;
-            //     await this.krAsset.connect(users.userTwo).approve(hre.Diamond.address, repayAmount);
-            //     expect(await this.krAsset.allowance(users.userTwo.address, hre.Diamond.address)).to.equal(
-            //         repayAmount,
-            //     );
+            it("should allow liquidations without liquidator approval of Kresko assets to Kresko.sol contract", async function () {
+                // Check that liquidator's token approval to Kresko.sol contract is 0
+                expect(await this.krAsset.allowance(users.userTwo.address, hre.Diamond.address)).to.equal(0);
 
-            //     const mintedKreskoAssetIndex = 0;
-            //     const depositedCollateralAssetIndex = 0;
-            //     const receipt = await hre.Diamond.connect(users.userTwo).liquidate(
-            //         users.userOne.address,
-            //         this.krAsset.address,
-            //         repayAmount,
-            //         this.collateral.address,
-            //         mintedKreskoAssetIndex,
-            //         depositedCollateralAssetIndex,
-            //     );
+                // Liquidation should succeed despite lack of token approval
+                const repayAmount = 10;
+                const mintedKreskoAssetIndex = 0;
+                const depositedCollateralAssetIndex = 0;
+                await hre.Diamond.connect(users.userTwo).liquidate(
+                    users.userOne.address,
+                    this.krAsset.address,
+                    repayAmount,
+                    this.collateral.address,
+                    mintedKreskoAssetIndex,
+                    depositedCollateralAssetIndex,
+                );
 
-            //     const { args } = await extractEventFromTxReceipt(receipt, "LiquidationOccurred");
-            //     expect(args.account).to.equal(users.userOne.address);
-            //     expect(args.liquidator).to.equal(users.userTwo.address);
-            //     expect(args.repayKreskoAsset).to.equal(this.krAsset.address);
-            //     expect(args.repayAmount).to.equal(repayAmount);
-            //     expect(args.seizedCollateralAsset).to.equal(this.collateral.address);
+                // Confirm that liquidator's token approval is still 0
+                expect(await this.krAsset.allowance(users.userTwo.address, hre.Diamond.address)).to.equal(0);
+            });
 
-            //     // Confirm that liquidator's token approval is unchanged
-            //     expect(await this.krAsset.allowance(users.userTwo.address, hre.Diamond.address)).to.equal(
-            //         repayAmount,
-            //     );
-            // });
+            it("should not change liquidator's existing token approvals during a successful liquidation", async function () {
+                // Liquidator increases contract's token approval
+                const repayAmount = 10;
+                await this.krAsset.connect(users.userTwo).approve(hre.Diamond.address, repayAmount);
+                expect(await this.krAsset.allowance(users.userTwo.address, hre.Diamond.address)).to.equal(
+                    repayAmount,
+                );
 
+                const mintedKreskoAssetIndex = 0;
+                const depositedCollateralAssetIndex = 0;
+                await expect(
+                    hre.Diamond.connect(users.userTwo).liquidate(
+                        users.userOne.address,
+                        this.krAsset.address,
+                        repayAmount,
+                        this.collateral.address,
+                        mintedKreskoAssetIndex,
+                        depositedCollateralAssetIndex,
+                    )
+                ).not.to.be.reverted;
+
+                // Confirm that liquidator's token approval is unchanged
+                expect(await this.krAsset.allowance(users.userTwo.address, hre.Diamond.address)).to.equal(
+                    repayAmount,
+                );
+            });
+
+            it("should not allow borrowers to liquidate themselves", async function () {
+                // Liquidation should fail
+                const repayAmount = 5;
+                await expect(
+                    hre.Diamond.connect(users.userOne).liquidate(
+                        users.userOne.address,
+                        this.krAsset.address,
+                        repayAmount,
+                        this.collateral.address,
+                        0,
+                        0,
+                    )
+                ).to.be.revertedWith(Error.SELF_LIQUIDATION);
+            });
         });
     });
 });
