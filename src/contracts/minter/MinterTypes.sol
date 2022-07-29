@@ -87,9 +87,9 @@ struct MinterParams {
  * @dev Each Kresko asset has 18 decimals.
  * @param kFactor The k-factor used for calculating the required collateral value for Kresko asset debt.
  * @param oracle The oracle that provides the USD price of one Kresko asset.
+ * @param supplyLimit The total supply limit of the Kresko asset.
  * @param exists Whether the Kresko asset exists within the protocol.
  * @param mintable Whether the Kresko asset can be minted.
- * @param marketCapUSDLimit The market capitalization limit in USD of the Kresko asset.
  */
 struct KrAsset {
     FixedPoint.Unsigned kFactor;

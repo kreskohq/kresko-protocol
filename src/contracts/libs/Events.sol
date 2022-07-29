@@ -62,13 +62,13 @@ library MinterEvent {
      * @param kreskoAsset The address of the Kresko asset.
      * @param kFactor The k-factor.
      * @param oracle The address of the oracle.
-     * @param marketCapLimit The initial market capitalization USD limit.
+     * @param supplyLimit The total supply limit.
      */
     event KreskoAssetAdded(
         address indexed kreskoAsset,
         uint256 indexed kFactor,
         address oracle,
-        uint256 marketCapLimit
+        uint256 supplyLimit
     );
 
     /**
@@ -77,14 +77,14 @@ library MinterEvent {
      * @param kFactor The k-factor.
      * @param oracle The address of the oracle.
      * @param mintable The mintable value.
-     * @param limit The market capitalization USD limit.
+     * @param supplyLimit The total supply limit.
      */
     event KreskoAssetUpdated(
         address indexed kreskoAsset,
         uint256 indexed kFactor,
         address indexed oracle,
         bool mintable,
-        uint256 limit
+        uint256 supplyLimit
     );
 
     /**
