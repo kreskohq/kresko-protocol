@@ -1,13 +1,10 @@
 import hre, { users } from "hardhat";
 const { ethers } = hre;
-
 import { expect } from "@test/chai";
 import minterConfig from "../../config/minter";
-import { withFixture, Role, Error } from "@utils/test";
+import { withFixture } from "@utils/test";
 
-const [name, symbol, underlyingSymbol] = minterConfig.krAssets.test[0];
-
-describe.only("KreskoAsset", function () {
+describe("KreskoAsset", function () {
     withFixture("kreskoAsset");
 
     let KreskoAsset: KreskoAsset;
