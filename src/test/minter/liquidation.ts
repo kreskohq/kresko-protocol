@@ -16,7 +16,7 @@ import { LiquidationOccurredEvent } from "types/typechain/MinterEvent";
 import { Error } from "@utils/test/errors"
 import { extractEventFromTxReceipt } from "@utils/events";
 
-describe.only("Minter", function () {
+describe("Minter", function () {
     withFixture("createMinterUser");
     beforeEach(async function () {
 
