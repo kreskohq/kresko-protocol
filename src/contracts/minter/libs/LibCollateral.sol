@@ -6,6 +6,7 @@ import {MinterEvent} from "../../libs/Events.sol";
 import {Math} from "../../libs/Math.sol";
 import {Arrays} from "../../libs/Arrays.sol";
 import {FixedPoint} from "../../libs/FixedPoint.sol";
+import {Error} from "../../libs/Errors.sol";
 
 import {CollateralAsset} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
@@ -60,7 +61,7 @@ library LibCollateral {
         uint256 _depositAmount,
         uint256 _depositedCollateralAssetIndex
     ) internal {
-        require(_amount > 0, "KR: 0-withdraw");
+        require(_amount > 0, Error.ZERO_WITHDRAW);
 
         // Ensure the withdrawal does not result in the account having a collateral value
         // under the minimum collateral amount required to maintain a healthy position.
@@ -82,7 +83,7 @@ library LibCollateral {
         // Require accountCollateralValue - withdrawnCollateralValue >= accountMinCollateralValue.
         require(
             accountCollateralValue.sub(withdrawnCollateralValue).isGreaterThanOrEqual(accountMinCollateralValue),
-            "KR: collateralTooLow"
+            Error.COLLATERAL_INSUFFICIENT_AMOUNT
         );
 
         // Record the withdrawal.
@@ -113,7 +114,7 @@ library LibCollateral {
         // Because the depositedCollateralAssets[_account] is pushed to if the existing
         // deposit amount is 0, require the amount to be > 0. Otherwise, the depositedCollateralAssets[_account]
         // could be filled with duplicates, causing collateral to be double-counted in the collateral value.
-        require(_amount > 0, "KR: 0-deposit");
+        require(_amount > 0, Error.ZERO_DEPOSIT);
 
         // If the account does not have an existing deposit for this collateral asset,
         // push it to the list of the account's deposited collateral assets.
