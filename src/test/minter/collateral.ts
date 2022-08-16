@@ -38,8 +38,8 @@ describe.only("Minter", function () {
         };
     });
 
-    describe("#user", () => {
-        describe("#collateral", () => {
+    describe("#collateral", () => {
+        describe("#deposit", () => {
             it("should allow an account to deposit whitelisted collateral", async function () {
                 // Account has no deposited assets
                 const depositedCollateralAssetsBefore = await hre.Diamond.getDepositedCollateralAssets(
@@ -218,7 +218,11 @@ describe.only("Minter", function () {
                     0,
                 )).to.be.revertedWith(Error.ZERO_DEPOSIT);
             });
-
         });
+
+        describe("#withdraw", () => {
+            // TODO: migrate old collateral withdraw tests
+        });
+
     });
 });
