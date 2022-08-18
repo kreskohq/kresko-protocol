@@ -13,7 +13,7 @@ describe("Minter", function () {
     withFixture("createMinterUser");
     beforeEach(async function () {
         const collateralArgs = {
-            name: "Collateral",
+            name: "Collateral003",
             price: defaultOraclePrice, // $10
             factor: 1,
             decimals: defaultDecimals,

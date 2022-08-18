@@ -23,7 +23,7 @@ describe("Minter", function () {
         // -------------------------------- Set up mock assets --------------------------------
         // Set up mock collateral asset
         const collateralArgs = {
-            name: "Collateral",
+            name: "Collateral002",
             price: defaultOraclePrice, // $10
             factor: 1,
             decimals: defaultDecimals,

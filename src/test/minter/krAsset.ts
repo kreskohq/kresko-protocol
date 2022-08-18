@@ -11,12 +11,12 @@ import { Error } from "@utils/test/errors"
 import { expect } from "chai";
 import { toBig, fromBig } from "@utils/numbers";
 
-describe("Minter", function () {
+describe.only("Minter", function () {
     withFixture("createMinterUser");
     beforeEach(async function () {
         // Add mock collateral to protocol
         const collateralArgs = {
-            name: "Collateral",
+            name: "Collateral001",
             price: defaultOraclePrice, // $10
             factor: 1,
             decimals: defaultDecimals,
