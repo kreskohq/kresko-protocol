@@ -9,7 +9,7 @@ import { Error } from "@utils/test/errors"
 import { expect } from "chai";
 import { toBig, fromBig } from "@utils/numbers";
 
-describe.only("Minter", function () {
+describe("Minter", function () {
     withFixture("createMinterUser");
     beforeEach(async function () {
         const collateralArgs = {
