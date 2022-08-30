@@ -45,7 +45,7 @@ describe.only("Minter", function () {
         // Add mock krAsset to protocol
         const krAssetArgs = {
             name: "KreskoAsset",
-            price: 10, // $10
+            price: defaultOraclePrice, // $10
             factor: 1,
             supplyLimit: 10000,
         }
@@ -281,7 +281,7 @@ describe.only("Minter", function () {
             });
 
             // it("should emit KreskoAssetMinted event", async function () {
-            //     const mintAmount = toFixedPoint(500);
+            //     const mintAmount = toBig(500);
             //     const receipt = await hre.Diamond.connect(users.userOne).mintKreskoAsset(
             //         users.userOne.address,
             //         this.krAsset.address,
@@ -313,7 +313,7 @@ describe.only("Minter", function () {
                     ),
                 ).to.be.revertedWith(
                     `AccessControl: account ${users.userOne.address.toLowerCase()} is missing role 0x46925e0f0cc76e485772167edccb8dc449d43b23b55fc4e756b063f49099e6a0`,
-                    );
+                );
             });
 
             it("should not allow users to mint Kresko assets if the resulting position's USD value is less than the minimum debt value", async function () {
@@ -393,7 +393,303 @@ describe.only("Minter", function () {
         });
 
         describe("#burnKreskoAsset", function () {
-            // TODO: 
+            beforeEach(async function () {
+                // Create userOne debt position
+                this.mintAmount = toBig(2);
+                await hre.Diamond.connect(users.userOne).mintKreskoAsset(
+                    users.userOne.address,
+                    this.krAsset.address,
+                    this.mintAmount,
+                );
+
+                // Load userThree with Kresko Assets
+                await this.collateral.setVariable("_balances", {
+                    [users.userThree.address]: this.initialBalance,
+                });
+                await this.collateral.setVariable("_allowances", {
+                    [users.userThree.address]: {
+                        [hre.Diamond.address]: this.initialBalance,
+                    },
+                });
+                expect(await this.collateral.balanceOf(users.userThree.address)).to.equal(this.initialBalance)
+    
+                await expect(hre.Diamond.connect(users.userThree).depositCollateral(
+                    users.userThree.address,
+                    this.collateral.address,
+                    toBig(10000)
+                )).not.to.be.reverted;
+
+                await hre.Diamond.connect(users.userThree).mintKreskoAsset(
+                    users.userThree.address,
+                    this.krAsset.address,
+                    this.mintAmount,
+                );
+            });
+
+            it("should allow users to burn some of their Kresko asset balances", async function () {
+                const kreskoAssetTotalSupplyBefore = await this.krAsset.totalSupply();
+
+                // Burn Kresko asset
+                const burnAmount = toBig(1);
+                const kreskoAssetIndex = 0;
+                await hre.Diamond.connect(users.userOne).burnKreskoAsset(
+                    users.userOne.address,
+                    this.krAsset.address,
+                    burnAmount,
+                    kreskoAssetIndex,
+                );
+
+                // Confirm the user no long holds the burned Kresko asset amount
+                const userBalance = await this.krAsset.balanceOf(users.userOne.address);
+                expect(userBalance).to.equal(this.mintAmount.sub(burnAmount));
+
+                // Confirm that the Kresko asset's total supply decreased as expected
+                const kreskoAssetTotalSupplyAfter = await this.krAsset.totalSupply();
+                expect(kreskoAssetTotalSupplyAfter).to.equal(kreskoAssetTotalSupplyBefore.sub(burnAmount));
+
+                // Confirm the array of the user's minted Kresko assets still contains the asset's address
+                const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                expect(mintedKreskoAssetsAfter).to.deep.equal([this.krAsset.address]);
+
+                // Confirm the user's minted kresko asset amount has been updated
+                const userDebt = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                expect(userDebt).to.equal(this.mintAmount.sub(burnAmount));
+            });
+
+            it("should allow users to burn their full balance of a Kresko asset", async function () {
+                const kreskoAssetTotalSupplyBefore = await this.krAsset.totalSupply();
+
+                // Burn Kresko asset
+                const kreskoAssetIndex = 0;
+                await hre.Diamond.connect(users.userOne).burnKreskoAsset(
+                    users.userOne.address,
+                    this.krAsset.address,
+                    this.mintAmount,
+                    kreskoAssetIndex,
+                );
+
+                // Confirm the user no long holds the burned Kresko asset amount
+                const userBalance = await this.krAsset.balanceOf(users.userOne.address);
+                expect(userBalance).to.equal(0);
+                // Confirm that the Kresko asset's total supply decreased as expected
+                const kreskoAssetTotalSupplyAfter = await this.krAsset.totalSupply();
+                expect(kreskoAssetTotalSupplyAfter).to.equal(kreskoAssetTotalSupplyBefore.sub(this.mintAmount));
+                // Confirm the array of the user's minted Kresko assets no longer contains the asset's address
+                const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                expect(mintedKreskoAssetsAfter).to.deep.equal([]);
+                // Confirm the user's minted kresko asset amount has been updated
+                const userDebt = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                expect(userDebt).to.equal(0);
+            });
+
+            it("should allow trusted address to burn its own Kresko asset balances on behalf of another user", async function () {
+                // Grant userThree the MANAGER role            
+                await hre.Diamond.connect(users.deployer).grantRole(Role.MANAGER, users.userThree.address);
+                expect(await hre.Diamond.hasRole(Role.MANAGER, users.userThree.address)).to.equal(true);
+
+                const kreskoAssetTotalSupplyBefore = await this.krAsset.totalSupply();
+
+                // Burn Kresko asset
+                const burnAmount = toBig(1);
+                const kreskoAssetIndex = 0;
+
+                // User three burns it's KreskoAsset to reduce userOnes debt
+                await expect(
+                    hre.Diamond.connect(users.userThree).burnKreskoAsset(
+                        users.userOne.address,
+                        this.krAsset.address,
+                        burnAmount,
+                        kreskoAssetIndex,
+                    ),
+                ).to.not.be.reverted;
+
+                // Confirm the userOne had no effect on it's kreskoAsset balance
+                const userOneBalance = await this.krAsset.balanceOf(users.userOne.address);
+                expect(userOneBalance).to.equal(this.mintAmount);
+
+                // Confirm the userThree no long holds the burned Kresko asset amount
+                const userThreeBalance = await this.krAsset.balanceOf(users.userThree.address);
+                expect(userThreeBalance).to.equal(this.mintAmount.sub(burnAmount));
+                // Confirm that the Kresko asset's total supply decreased as expected
+                const kreskoAssetTotalSupplyAfter = await this.krAsset.totalSupply();
+                expect(kreskoAssetTotalSupplyAfter).to.equal(kreskoAssetTotalSupplyBefore.sub(burnAmount));
+                // Confirm the array of the user's minted Kresko assets still contains the asset's address
+                const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                expect(mintedKreskoAssetsAfter).to.deep.equal([this.krAsset.address]);
+                // Confirm the user's minted kresko asset amount has been updated
+                const userOneDebt = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                expect(userOneDebt).to.equal(this.mintAmount.sub(burnAmount));
+            });
+
+            it("should allow trusted address to burn the full balance of its Kresko asset on behalf another user", async function () {
+                // Grant userThree the MANAGER role            
+                await hre.Diamond.connect(users.deployer).grantRole(Role.MANAGER, users.userThree.address);
+                expect(await hre.Diamond.hasRole(Role.MANAGER, users.userThree.address)).to.equal(true);
+
+                const kreskoAssetTotalSupplyBefore = await this.krAsset.totalSupply();
+
+                // User three burns the whole mintAmount of Kresko asset to repay userOne's debt
+                const kreskoAssetIndex = 0;
+                await hre.Diamond.connect(users.userThree).burnKreskoAsset(
+                    users.userOne.address,
+                    this.krAsset.address,
+                    this.mintAmount,
+                    kreskoAssetIndex,
+                );
+
+                // Confirm the userOne holds the initial minted amount of Kresko assets
+                const userOneBalance = await this.krAsset.balanceOf(users.userOne.address);
+                expect(userOneBalance).to.equal(this.mintAmount);
+                const userThreeBalance = await this.krAsset.balanceOf(users.userThree.address);
+                expect(userThreeBalance).to.equal(0);
+                // Confirm that the Kresko asset's total supply decreased as expected
+                const kreskoAssetTotalSupplyAfter = await this.krAsset.totalSupply();
+                expect(kreskoAssetTotalSupplyAfter).to.equal(kreskoAssetTotalSupplyBefore.sub(this.mintAmount));
+                // Confirm the array of the user's minted Kresko assets no longer contains the asset's address
+                const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                expect(mintedKreskoAssetsAfter).to.deep.equal([]);
+                // Confirm the user's minted kresko asset amount has been updated
+                const userOneDebt = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                expect(userOneDebt).to.equal(0);
+            });
+
+            it("should burn up to the minimum debt position amount if the requested burn would result in a position under the minimum debt value", async function () {
+                const userBalanceBefore = await this.krAsset.balanceOf(users.userOne.address);
+                const kreskoAssetTotalSupplyBefore = await this.krAsset.totalSupply();
+
+                // Calculate actual burn amount
+                const requestedBurnAmount = this.mintAmount.sub(toBig(1.01));
+                const userOneDebt = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+
+                const krAssetValue = await hre.Diamond.getKrAssetValue(
+                    this.krAsset.address,
+                    String(userOneDebt.sub(requestedBurnAmount)),
+                    true,
+                );
+
+                let burnAmount = requestedBurnAmount;
+                const krAssetValueNum = Number(krAssetValue.rawValue);
+                const normalizedKrAssetValueNum = krAssetValueNum/(10*10**8);
+                const minDebtValue = Number(await hre.Diamond.minimumDebtValue());
+
+                if (krAssetValueNum > 0 && normalizedKrAssetValueNum < minDebtValue) {
+                    const oraclePrice = defaultOraclePrice;
+                    burnAmount = (Number(userOneDebt) - (minDebtValue * oraclePrice))/10*10**8;
+                }
+
+                // Burn Kresko asset
+                const kreskoAssetIndex = 0;
+                await hre.Diamond.connect(users.userOne).burnKreskoAsset(
+                    users.userOne.address,
+                    this.krAsset.address,
+                    burnAmount,
+                    kreskoAssetIndex,
+                );
+
+                // Confirm the user holds the expected Kresko asset amount
+                const userBalance = await this.krAsset.balanceOf(users.userOne.address);
+
+                // expect(fromBig(userBalance)).to.equal(fromBig(userBalanceBefore.sub(burnAmount)));
+                expect(userBalance).eq(userBalanceBefore.sub(burnAmount));
+
+                // Confirm that the Kresko asset's total supply decreased as expected
+                const kreskoAssetTotalSupplyAfter = await this.krAsset.totalSupply();
+                expect(kreskoAssetTotalSupplyAfter).eq(kreskoAssetTotalSupplyBefore.sub(burnAmount));
+
+                // Confirm the array of the user's minted Kresko assets still contains the asset's address
+                const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                expect(mintedKreskoAssetsAfter).to.deep.equal([this.krAsset.address]);
+
+                // Confirm the user's minted kresko asset amount has been updated
+                const newUserDebt = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                expect(newUserDebt).eq(userOneDebt.sub(burnAmount));
+
+            });
+
+            // it("should emit KreskoAssetBurned event", async function () {
+            //     const kreskoAssetIndex = 0;
+            //     const receipt = await hre.Diamond.connect(users.userOne).burnKreskoAsset(
+            //         users.userOne.address,
+            //         this.krAsset.address,
+            //         this.mintAmount,
+            //         kreskoAssetIndex,
+            //     );
+
+            //     const { args } = await extractEventFromTxReceipt<KreskoAssetBurnedEvent>(receipt, "KreskoAssetBurned");
+            //     expect(args.account).to.equal(users.userOne.address);
+            //     expect(args.kreskoAsset).to.equal(this.krAsset.address);
+            //     expect(args.amount).to.equal(this.mintAmount);
+            // });
+
+            it("should allow users to burn Kresko assets without giving token approval to Kresko.sol contract", async function () {
+                const secondMintAmount = 1;
+                const burnAmount = this.mintAmount.add(secondMintAmount);
+
+                await hre.Diamond.connect(users.userOne).mintKreskoAsset(
+                    users.userOne.address,
+                    this.krAsset.address,
+                    secondMintAmount,
+                );
+
+                const kreskoAssetIndex = 0;
+
+                await expect(
+                    hre.Diamond.connect(users.userOne).burnKreskoAsset(
+                        users.userOne.address,
+                        this.krAsset.address,
+                        burnAmount,
+                        kreskoAssetIndex,
+                    )
+                ).to.be.not.reverted;
+
+                // TODO: check receipt from transaction
+                // const { args } = await extractEventFromTxReceipt(receipt, "KreskoAssetBurned");
+                // expect(args.account).to.equal(users.userOne.address);
+                // expect(args.kreskoAsset).to.equal(this.krAsset.address);
+                // expect(args.amount).to.equal(burnAmount);
+            });
+
+            it("should not allow users to burn an amount of 0", async function () {
+                const kreskoAssetIndex = 0;
+
+                await expect(
+                    hre.Diamond.connect(users.userOne).burnKreskoAsset(
+                        users.userOne.address,
+                        this.krAsset.address,
+                        0,
+                        kreskoAssetIndex,
+                    ),
+                ).to.be.revertedWith(Error.ZERO_BURN);
+            });
+
+            it("should not allow untrusted address to burn any kresko assets on behalf of another user", async function () {
+                const kreskoAssetIndex = 0;
+
+                await expect(
+                    hre.Diamond.connect(users.userThree).burnKreskoAsset(
+                        users.userOne.address,
+                        this.krAsset.address,
+                        100,
+                        kreskoAssetIndex,
+                    ),
+                ).to.be.revertedWith(
+                    `AccessControl: account ${users.userThree.address.toLowerCase()} is missing role 0x46925e0f0cc76e485772167edccb8dc449d43b23b55fc4e756b063f49099e6a0`,
+                );
+            });
+
+            it("should not allow users to burn more kresko assets than they hold as debt", async function () {
+                const kreskoAssetIndex = 0;
+                const burnAmount = this.mintAmount.add(1);
+
+                await expect(
+                    hre.Diamond.connect(users.userOne).burnKreskoAsset(
+                        users.userOne.address,
+                        this.krAsset.address,
+                        burnAmount,
+                        kreskoAssetIndex,
+                    ),
+                ).to.be.reverted;
+            });
         });
     });
 });
