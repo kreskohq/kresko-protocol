@@ -641,12 +641,6 @@ describe.only("Minter", function () {
                         kreskoAssetIndex,
                     )
                 ).to.be.not.reverted;
-
-                // TODO: check receipt from transaction
-                // const { args } = await extractEventFromTxReceipt(receipt, "KreskoAssetBurned");
-                // expect(args.account).to.equal(users.userOne.address);
-                // expect(args.kreskoAsset).to.equal(this.krAsset.address);
-                // expect(args.amount).to.equal(burnAmount);
             });
 
             it("should not allow users to burn an amount of 0", async function () {
