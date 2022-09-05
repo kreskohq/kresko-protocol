@@ -85,4 +85,10 @@ library Error {
     string public constant POOL_EXISTS = "302"; // Pool with this deposit token already exists
     string public constant POOL_DOESNT_EXIST = "303"; // Pool with this deposit token does not exist
     string public constant ADDRESS_INVALID_REWARD_RECIPIENT = "304"; // Reward recipient cant be address(0)
+
+    /* -------------------------------------------------------------------------- */
+    /*                                   4. Libraries                             */
+    /* -------------------------------------------------------------------------- */
+
+    string public constant ARRAY_OUT_OF_BOUNDS = "400"; // Array out of bounds error
 }
