@@ -72,6 +72,9 @@ export enum Error {
     NOT_SAFETY_COUNCIL = "231", // Sender must have the role `Role.SAFETY_COUNCIL`
     ACTION_PAUSED_FOR_ASSET = "232", // This action is currently paused for this asset
     INVALID_ASSET_SUPPLIED = "233", // Asset supplied is not a collateral nor a krAsset
+    KRASSET_NOT_WRAPPED = "234", // krAsset given is not the wrapped version
+    INVALID_LT = "235", // Liquidation threshold is greater than minimum collateralization ratio
+    COLLATERAL_INSUFFICIENT_AMOUNT = "236", // Insufficient amount of collateral to complete the operation
 
     /* -------------------------------------------------------------------------- */
     /*                                   3. Staking                               */
@@ -82,4 +85,11 @@ export enum Error {
     POOL_EXISTS = "302", // Pool with this deposit token already exists
     POOL_DOESNT_EXIST = "303", // Pool with this deposit token does not exist
     ADDRESS_INVALID_REWARD_RECIPIENT = "304", // Reward recipient cant be address(0)
+
+    /* -------------------------------------------------------------------------- */
+    /*                                   4. Libraries                             */
+    /* -------------------------------------------------------------------------- */
+
+    ARRAY_OUT_OF_BOUNDS = "400", // Array out of bounds error
+    
 }
