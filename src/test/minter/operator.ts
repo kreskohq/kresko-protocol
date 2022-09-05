@@ -24,7 +24,6 @@ describe("Minter", function () {
         it("can modify all parameters", async function () {
             const Diamond = hre.Diamond.connect(users.operator);
             const update = getNewMinterParams(addr.operator);
-            await expect(Diamond.updateBurnFee(update.burnFee)).to.not.be.reverted;
             await expect(Diamond.updateLiquidationIncentiveMultiplier(update.liquidationIncentiveMultiplier)).to.not.be
                 .reverted;
             await expect(Diamond.updateMinimumCollateralizationRatio(update.minimumCollateralizationRatio)).to.not.be
@@ -34,7 +33,6 @@ describe("Minter", function () {
             await expect(Diamond.updateFeeRecipient(update.feeRecipient)).to.not.be.reverted;
 
             const {
-                burnfee,
                 liquidationIncentiveMultiplier,
                 minimumCollateralizationRatio,
                 minimumDebtValue,
@@ -42,7 +40,6 @@ describe("Minter", function () {
                 feeRecipient,
             } = await hre.Diamond.getAllParams();
 
-            expect(update.burnFee.toBigInt()).to.equal(burnfee.rawValue);
             expect(update.liquidationIncentiveMultiplier.toBigInt()).to.equal(liquidationIncentiveMultiplier.rawValue);
             expect(update.minimumCollateralizationRatio.toBigInt()).to.equal(minimumCollateralizationRatio.rawValue);
             expect(update.minimumDebtValue.toBigInt()).to.equal(minimumDebtValue.rawValue);

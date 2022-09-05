@@ -4,7 +4,6 @@ import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
 
 task("deploy:kresko")
-    .addOptionalParam("burnFee", "Burn fee", process.env.BURN_FEE)
     .addOptionalParam("feeRecipient", "Burn fee recipient", process.env.FEE_RECIPIENT_ADDRESS, types.string)
     .addOptionalParam(
         "liquidationIncentiveMultiplier",
@@ -26,7 +25,6 @@ task("deploy:kresko")
         const deploy = deployWithSignatures(hre);
         const { formatEther } = ethers.utils;
         const {
-            burnFee,
             feeRecipient,
             liquidationIncentiveMultiplier,
             minCollaterRatio,
@@ -45,7 +43,6 @@ task("deploy:kresko")
                 execute: {
                     methodName: "initialize",
                     args: [
-                        toFixedPoint(burnFee),
                         feeRecipient,
                         toFixedPoint(liquidationIncentiveMultiplier),
                         toFixedPoint(minCollaterRatio),
@@ -65,7 +62,6 @@ task("deploy:kresko")
         if (log) {
             const ProxyAdmin = await deployments.get("DefaultProxyAdmin");
             const initValuesOnChain: KreskoConstructor = {
-                burnFee: formatEther(await Kresko.burnFee()),
                 liquidationIncentive: formatEther(await Kresko.liquidationIncentiveMultiplier()),
                 feeRecipient: await Kresko.feeRecipient(),
                 minimumCollateralizationRatio: formatEther(await Kresko.minimumCollateralizationRatio()),

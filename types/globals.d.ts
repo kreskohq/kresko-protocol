@@ -83,7 +83,6 @@ declare global {
     type DiamondCutInitializer = [string, BytesLike];
 
     interface KreskoConstructor {
-        burnFee: BigNumberish;
         feeRecipient: string;
         liquidationIncentive: BigNumberish;
         minimumCollateralizationRatio: BigNumberish;
