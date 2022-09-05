@@ -7,6 +7,7 @@ import {
     withFixture,
     getMockOracleFor,
     defaultDecimals,
+    defaultCloseFee,
     addMockCollateralAsset,
     addMockKreskoAsset,
     defaultOraclePrice,
@@ -47,6 +48,7 @@ describe("Minter", function () {
             price: 11, // $11
             factor: 1,
             supplyLimit: 10000,
+            closeFee: defaultCloseFee
         }
         const [KreskoAsset] = await addMockKreskoAsset(krAssetArgs);
         const kreskoAssetPrice = Number(

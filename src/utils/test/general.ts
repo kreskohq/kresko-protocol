@@ -113,13 +113,14 @@ type KreskoAssetArgs = {
     price: number;
     factor: number;
     supplyLimit: number;
+    closeFee: number;
 };
 
 export const addMockKreskoAsset = async (
     args: KreskoAssetArgs = defaultKrAssetArgs,
 ): Promise<[MockContract<KreskoAsset>, MockContract<WrappedKreskoAsset>, MockContract<FluxPriceAggregator>]> => {
     const users = await getUsers();
-    const { name, price, factor, supplyLimit } = args;
+    const { name, price, factor, supplyLimit, closeFee } = args;
 
     // Create an oracle with price supplied
     const OracleAggregator = await getMockOracleFor(name, price);
@@ -141,11 +142,13 @@ export const addMockKreskoAsset = async (
 
     // Add the asset to the protocol
     const kFactor = toFixedPoint(factor);
+    const closeFeeFP = toFixedPoint(closeFee);
     await hre.Diamond.connect(users.operator).addKreskoAsset(
         krAsset.address,
         kFactor,
         OracleAggregator.address,
         toBig(supplyLimit),
+        closeFeeFP,
     );
 
     const hasOperatorElastic = await krAsset.hasRole(roles.OPERATOR, hre.Diamond.address);

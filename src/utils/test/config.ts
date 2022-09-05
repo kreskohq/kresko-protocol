@@ -10,12 +10,14 @@ export const defaultDepositAmount = toBig(10, defaultDecimals);
 export const defaultMintAmount = toBig(100, defaultDecimals);
 
 export const defaultSupplyLimit = 1000;
+export const defaultCloseFee = 0.015;
 
 export const defaultKrAssetArgs = {
     name: "KreskoAsset",
     price: defaultOraclePrice,
     factor: 1.1,
     supplyLimit: defaultSupplyLimit,
+    closeFee: defaultCloseFee,
 };
 
 export const defaultCollateralArgs = {
@@ -26,7 +28,6 @@ export const defaultCollateralArgs = {
 };
 
 export const getNewMinterParams = (feeRecipient: string) => ({
-    burnFee: toFixedPoint(0.02),
     liquidationIncentiveMultiplier: toFixedPoint(1.05),
     minimumCollateralizationRatio: toFixedPoint(1.4),
     minimumDebtValue: toFixedPoint(20),

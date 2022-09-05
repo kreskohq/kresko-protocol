@@ -5,6 +5,7 @@ import {
     withFixture,
     defaultDecimals,
     defaultOraclePrice,
+    defaultCloseFee,
     addMockCollateralAsset,
     addMockKreskoAsset,
 } from "@test-utils";
@@ -389,6 +390,7 @@ describe.only("Minter", function () {
                         price: defaultOraclePrice, // $10
                         factor: 1,
                         supplyLimit: 10000,
+                        closeFee: defaultCloseFee
                     }
                     const [KreskoAsset] = await addMockKreskoAsset(krAssetArgs);
                     this.krAsset = KreskoAsset;
