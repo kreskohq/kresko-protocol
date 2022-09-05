@@ -23,10 +23,6 @@ contract StateFacet is IState {
     /* -------------------------------------------------------------------------- */
     /*                                Configurables                               */
     /* -------------------------------------------------------------------------- */
-    function burnFee() external view returns (FixedPoint.Unsigned memory) {
-        return ms().burnFee;
-    }
-
     function feeRecipient() external view returns (address) {
         return ms().feeRecipient;
     }
@@ -51,7 +47,6 @@ contract StateFacet is IState {
         MinterState storage s = ms();
         return
             MinterParams(
-                s.burnFee,
                 s.minimumCollateralizationRatio,
                 s.liquidationIncentiveMultiplier,
                 s.minimumDebtValue,

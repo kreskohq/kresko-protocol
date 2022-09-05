@@ -14,12 +14,11 @@ interface IConfiguration {
         address _krAsset,
         uint256 _kFactor,
         address _oracle,
-        uint256 _supplyLimit
+        uint256 _supplyLimit,
+        uint256 _closeFee
     ) external;
 
     function initialize(MinterInitArgs calldata args) external;
-
-    function updateBurnFee(uint256 _burnFee) external;
 
     function updateCollateralAsset(
         address _collateralAsset,
@@ -34,7 +33,8 @@ interface IConfiguration {
         uint256 _kFactor,
         address _oracle,
         bool _mintable,
-        uint256 _supplyLimit
+        uint256 _supplyLimit,
+        uint256 _closeFee
     ) external;
 
     function updateLiquidationIncentiveMultiplier(uint256 _liquidationIncentiveMultiplier) external;

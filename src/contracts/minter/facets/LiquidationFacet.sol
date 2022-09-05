@@ -93,8 +93,8 @@ contract LiquidationFacet is DiamondModifiers, ILiquidation {
             _depositedCollateralAssetIndex
         );
 
-        // Charge burn fee from the liquidated user
-        s.chargeBurnFee(_account, _repayKreskoAsset, _repayAmount);
+        // Charge close fee from the liquidated user
+        s.chargeCloseFee(_account, _repayKreskoAsset, _repayAmount);
 
         // Burn the received Kresko assets, removing them from circulation.
         IKreskoAsset(_repayKreskoAsset).burn(msg.sender, _repayAmount);

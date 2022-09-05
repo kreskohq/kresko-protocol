@@ -21,14 +21,14 @@ library LibRepay {
     using LibCalc for MinterState;
 
     /**
-     * @notice Charges the protocol burn fee based off the value of the burned asset.
+     * @notice Charges the protocol close fee based off the value of the burned asset.
      * @dev Takes the fee from the account's collateral assets. Attempts collateral assets
      *   in reverse order of the account's deposited collateral assets array.
-     * @param _account The account to charge the burn fee from.
+     * @param _account The account to charge the close fee from.
      * @param _kreskoAsset The address of the kresko asset being burned.
      * @param _kreskoAssetAmountBurned The amount of the kresko asset being burned.
      */
-    function chargeBurnFee(
+    function chargeCloseFee(
         MinterState storage self,
         address _account,
         address _kreskoAsset,
@@ -39,7 +39,7 @@ library LibRepay {
         FixedPoint.Unsigned memory feeValue = FixedPoint
             .Unsigned(uint256(krAsset.oracle.latestAnswer()))
             .mul(FixedPoint.Unsigned(_kreskoAssetAmountBurned))
-            .mul(self.burnFee);
+            .mul(krAsset.closeFee);
 
         // Do nothing if the fee value is 0.
         if (feeValue.rawValue == 0) {
@@ -55,7 +55,7 @@ library LibRepay {
         for (uint256 i = accountCollateralAssets.length - 1; i >= 0; i--) {
             address collateralAssetAddress = accountCollateralAssets[i];
 
-            (uint256 transferAmount, FixedPoint.Unsigned memory feeValuePaid) = self.calcBurnFee(
+            (uint256 transferAmount, FixedPoint.Unsigned memory feeValuePaid) = self.calcCloseFee(
                 collateralAssetAddress,
                 _account,
                 feeValue,
@@ -66,7 +66,7 @@ library LibRepay {
             self.collateralDeposits[_account][collateralAssetAddress] -= transferAmount;
             // Transfer the fee to the feeRecipient.
             IERC20Upgradeable(collateralAssetAddress).safeTransfer(self.feeRecipient, transferAmount);
-            emit MinterEvent.BurnFeePaid(_account, collateralAssetAddress, transferAmount, feeValuePaid.rawValue);
+            emit MinterEvent.CloseFeePaid(_account, collateralAssetAddress, transferAmount, feeValuePaid.rawValue);
 
             feeValue = feeValue.sub(feeValuePaid);
             // If the entire fee has been paid, no more action needed.
