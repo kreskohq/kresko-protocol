@@ -1,3 +1,4 @@
+// @ts-ignore
 import solc from "solc";
 
 const solcCache: Record<string, any> = {};
