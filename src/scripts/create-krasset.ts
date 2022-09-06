@@ -42,8 +42,14 @@ export async function createKrAsset(name: string, symbol, decimals = 18) {
             },
         },
     });
+    const asset: KrAsset = {
+        address: KreskoAsset.address,
+        contract: KreskoAsset,
+        wrapper: WrappedKreskoAsset,
+    };
 
-    hre.krAssets.push([KreskoAsset, WrappedKreskoAsset]);
+    hre.krAssets = hre.krAssets.filter(k => k.address !== krAsset.address).concat(asset);
+    hre.allAssets = hre.allAssets.filter(a => a.address !== krAsset.address || a.collateral).concat(asset);
 
-    return [KreskoAsset, WrappedKreskoAsset];
+    return asset;
 }

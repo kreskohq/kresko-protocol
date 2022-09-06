@@ -4,16 +4,15 @@ import { withFixture, Role, defaultMintAmount } from "@utils/test";
 
 describe("Wrapped KreskoAsset", () => {
     let addr: Addresses;
-
+    let KreskoAsset: KreskoAsset;
+    let WrappedKreskoAsset: WrappedKreskoAsset;
     before(() => {
         addr = hre.addr;
     });
-
-    let KreskoAsset: KreskoAsset;
-    let WrappedKreskoAsset: WrappedKreskoAsset;
-    withFixture("kreskoAsset");
+    withFixture("kresko-asset");
     beforeEach(async function () {
-        [KreskoAsset, WrappedKreskoAsset] = hre.krAssets[0];
+        KreskoAsset = hre.krAssets[0].contract;
+        WrappedKreskoAsset = hre.krAssets[0].wrapper;
         // Grant minting rights for test deployer
         await Promise.all([
             KreskoAsset.grantRole(Role.OPERATOR, addr.deployer),

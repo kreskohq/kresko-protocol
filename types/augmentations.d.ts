@@ -94,8 +94,10 @@ declare module "mocha" {
         Multisig: GnosisSafeL2;
         Diamond: Kresko;
         DiamondDeployment: Deployment;
-        collaterals?: MockCollaterals;
-        krAssets?: MockKrAssets;
+        collaterals?: Collateral[];
+        collateral?: Collateral;
+        krAsset?: KrAsset;
+        krAssets?: KrAsset[];
         /* -------------------------------------------------------------------------- */
         /*                              Misc / Deprecated                             */
         /* -------------------------------------------------------------------------- */
@@ -188,8 +190,11 @@ declare module "hardhat/types/runtime" {
         DiamondDeployment: Deployment;
         Diamond: Kresko;
         Multisig: GnosisSafeL2;
-        krAssets: [KreskoAsset, WrappedKreskoAsset, FluxPriceAggregator][];
-        collaterals: [ERC20Upgradeable, FluxPriceAggregator][];
+        krAssets: KrAsset[];
+        collateral: Collateral;
+        krAsset: KrAsset;
+        collaterals: Collateral[];
+        allAssets: (KrAsset | Collateral)[];
         uniPairs: {
             [name: string]: UniswapV2Pair;
         };

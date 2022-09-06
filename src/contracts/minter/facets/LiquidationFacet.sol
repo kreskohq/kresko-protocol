@@ -14,6 +14,7 @@ import {DiamondModifiers} from "../../shared/Modifiers.sol";
 
 import {Constants} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
+import "hardhat/console.sol";
 
 contract LiquidationFacet is DiamondModifiers, ILiquidation {
     using Arrays for address[];
@@ -71,6 +72,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidation {
                 _repayKreskoAsset,
                 _collateralAssetToSeize
             );
+
             require(krAssetDebt >= _repayAmount, Error.KRASSET_BURN_AMOUNT_OVERFLOW);
             require(repayAmountUSD.isLessThanOrEqual(maxLiquidation), Error.LIQUIDATION_OVERFLOW);
         }

@@ -5,6 +5,8 @@ import {AggregatorV2V3Interface} from "../vendor/flux/interfaces/AggregatorV2V3I
 import {FixedPoint} from "../libs/FixedPoint.sol";
 import {IWrappedKreskoAsset} from "../krAsset/IWrappedKreskoAsset.sol";
 
+/* solhint-disable state-visibility */
+
 /* -------------------------------------------------------------------------- */
 /*                                  CONSTANTS                                 */
 /* -------------------------------------------------------------------------- */
@@ -66,6 +68,7 @@ struct MinterInitArgs {
     uint256 liquidationIncentiveMultiplier;
     uint256 minimumCollateralizationRatio;
     uint256 minimumDebtValue;
+    uint256 liquidationThreshold;
 }
 
 /**
@@ -77,6 +80,7 @@ struct MinterParams {
     FixedPoint.Unsigned minimumCollateralizationRatio;
     FixedPoint.Unsigned liquidationIncentiveMultiplier;
     FixedPoint.Unsigned minimumDebtValue;
+    FixedPoint.Unsigned liquidationThreshold;
     address feeRecipient;
 }
 

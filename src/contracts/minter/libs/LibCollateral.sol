@@ -75,7 +75,10 @@ library LibCollateral {
             false // Take the collateral factor into consideration.
         );
         // Get the account's minimum collateral value.
-        FixedPoint.Unsigned memory accountMinCollateralValue = self.getAccountMinimumCollateralValue(_account);
+        FixedPoint.Unsigned memory accountMinCollateralValue = self.getAccountMinimumCollateralValueAtRatio(
+            _account,
+            self.minimumCollateralizationRatio
+        );
         // Require accountCollateralValue - withdrawnCollateralValue >= accountMinCollateralValue.
         require(
             accountCollateralValue.sub(withdrawnCollateralValue).isGreaterThanOrEqual(accountMinCollateralValue),

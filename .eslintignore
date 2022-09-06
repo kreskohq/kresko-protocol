@@ -6,10 +6,13 @@ coverage/
 dist/
 lib/
 forge/
+temp/**/*
+types/**/*
 node_modules/
-types/typechain/
+packages/**/*
 src/contracts/vendor/**/*
 src/contracts/test/**/*
+src/utils/**/*
 
 # files
 .solcover.js
