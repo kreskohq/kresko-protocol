@@ -1,8 +1,11 @@
 import { addMockKreskoAsset, Role, withFixture } from "@test-utils";
+import { extractInternalIndexedEventFromTxReceipt, toFixedPoint } from "@utils";
 import { fromBig, toBig } from "@utils/numbers";
 import { Error } from "@utils/test/errors";
 import { expect } from "chai";
 import hre, { users } from "hardhat";
+import { MinterEvent__factory } from "types";
+import { KreskoAssetMintedEventObject } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
 describe("Minter", function () {
     withFixture("minter-with-mocks");
@@ -254,19 +257,23 @@ describe("Minter", function () {
                 expect(userOneDebtFromUserThreeMint).to.equal(mintAmount);
             });
 
-            // it("should emit KreskoAssetMinted event", async function () {
-            //     const mintAmount = toFixedPoint(500);
-            //     const receipt = await hre.Diamond.connect(users.userOne).mintKreskoAsset(
-            //         users.userOne.address,
-            //         this.krAsset.address,
-            //         mintAmount,
-            //     );
+            it("should emit KreskoAssetMinted event", async function () {
+                const mintAmount = toFixedPoint(500);
+                const tx = await hre.Diamond.connect(users.userOne).mintKreskoAsset(
+                    users.userOne.address,
+                    this.krAsset.address,
+                    mintAmount,
+                );
 
-            //     const { args } = await extractEventFromTxReceipt(receipt, "KreskoAssetMinted");
-            //     expect(args.account).to.equal(users.userOne.address);
-            //     expect(args.kreskoAsset).to.equal(this.krAsset.address);
-            //     expect(args.amount).to.equal(mintAmount);
-            // });
+                const event = await extractInternalIndexedEventFromTxReceipt<KreskoAssetMintedEventObject>(
+                    tx,
+                    MinterEvent__factory.connect(hre.Diamond.address, users.userOne),
+                    "KreskoAssetMinted",
+                );
+                expect(event.account).to.equal(users.userOne.address);
+                expect(event.kreskoAsset).to.equal(this.krAsset.address);
+                expect(event.amount).to.equal(mintAmount);
+            });
 
             it("should not allow untrusted account to mint Kresko assets on behalf of another user", async function () {
                 // Initially the Kresko asset's total supply should be 0
