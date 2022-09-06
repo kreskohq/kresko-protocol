@@ -106,7 +106,7 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
             ensureNotPaused(_kreskoAsset, Action.Borrow);
         }
 
-        // Enforce synthetic asset's maximum market capitalization limit
+        // Enforce krAsset's total supply limit
         require(
             IKreskoAsset(_kreskoAsset).totalSupply() + _amount <= s.kreskoAssets[_kreskoAsset].supplyLimit,
             Error.KRASSET_MAX_SUPPLY_REACHED
@@ -149,7 +149,7 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
         // Record the mint.
         s.kreskoAssetDebt[_account][_kreskoAsset] += _amount;
 
-        IKreskoAsset(_kreskoAsset).mint(address(this), _amount);
+        IKreskoAsset(_kreskoAsset).mint(_account, _amount);
 
         emit MinterEvent.KreskoAssetMinted(_account, _kreskoAsset, _amount);
     }

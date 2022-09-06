@@ -5,7 +5,7 @@ type FixtureName = "diamond-init" | "minter-init" | "minter-with-mocks" | "kresk
 let currentFixtureName: string;
 export const withFixture = (fixtureName: FixtureName) => {
     before(function () {
-        if (fixtureName !== currentFixtureName) {
+        if (currentFixtureName && fixtureName !== currentFixtureName) {
             hre.collaterals = [];
             hre.krAssets = [];
             hre.allAssets = [];

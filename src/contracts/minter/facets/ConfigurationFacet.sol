@@ -120,7 +120,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
      * @param _krAsset The address of the wrapped Kresko asset.
      * @param _kFactor The k-factor of the Kresko asset as a raw value for a FixedPoint.Unsigned. Must be >= 1e18.
      * @param _oracle The oracle address for the Kresko asset.
-     * @param _supplyLimit The initial market capitalization USD limit for the Kresko asset.
+     * @param _supplyLimit The initial total supply limit for the Kresko asset.
      */
     function addKreskoAsset(
         address _krAsset,
@@ -153,7 +153,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
      * @param _kFactor The new k-factor as a raw value for a FixedPoint.Unsigned. Must be >= 1e18.
      * @param _oracle The new oracle address for the Kresko asset's USD value.
      * @param _mintable The new mintable value.
-     * @param _supplyLimit The new market capitalization USD limit.
+     * @param _supplyLimit The new total supply limit for the Kresko asset.
      */
     function updateKreskoAsset(
         address _krAsset,

@@ -19,7 +19,9 @@ library DiamondEvent {
 }
 
 library MinterEvent {
-    /* ===== Collateral ===== */
+    /* -------------------------------------------------------------------------- */
+    /*                                 Collateral                                 */
+    /* -------------------------------------------------------------------------- */
 
     /**
      * @notice Emitted when a collateral asset is added to the protocol.
@@ -54,7 +56,9 @@ library MinterEvent {
      */
     event CollateralWithdrawn(address indexed account, address indexed collateralAsset, uint256 indexed amount);
 
-    /* ===== Kresko Assets ===== */
+    /* -------------------------------------------------------------------------- */
+    /*                                Kresko Assets                               */
+    /* -------------------------------------------------------------------------- */
 
     /**
      * @notice Emitted when a Kresko asset is added to the protocol.
@@ -62,14 +66,9 @@ library MinterEvent {
      * @param kreskoAsset The address of the Kresko asset.
      * @param kFactor The k-factor.
      * @param oracle The address of the oracle.
-     * @param marketCapLimit The initial market capitalization USD limit.
+     * @param supplyLimit The total supply limit.
      */
-    event KreskoAssetAdded(
-        address indexed kreskoAsset,
-        uint256 indexed kFactor,
-        address oracle,
-        uint256 marketCapLimit
-    );
+    event KreskoAssetAdded(address indexed kreskoAsset, uint256 indexed kFactor, address oracle, uint256 supplyLimit);
 
     /**
      * @notice Emitted when a Kresko asset's oracle is updated.
@@ -77,14 +76,14 @@ library MinterEvent {
      * @param kFactor The k-factor.
      * @param oracle The address of the oracle.
      * @param mintable The mintable value.
-     * @param limit The market capitalization USD limit.
+     * @param supplyLimit The total supply limit.
      */
     event KreskoAssetUpdated(
         address indexed kreskoAsset,
         uint256 indexed kFactor,
         address indexed oracle,
         bool mintable,
-        uint256 limit
+        uint256 supplyLimit
     );
 
     /**
@@ -136,7 +135,9 @@ library MinterEvent {
         uint256 collateralSent
     );
 
-    /* ===== Configurable Parameters ===== */
+    /* -------------------------------------------------------------------------- */
+    /*                                Parameters                                  */
+    /* -------------------------------------------------------------------------- */
 
     /**
      * @notice Emitted when a safety state is triggered for an asset

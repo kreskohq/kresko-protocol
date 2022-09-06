@@ -8,6 +8,7 @@ import {
     ERC20Upgradeable,
     ERC20Upgradeable__factory,
     FluxPriceAggregator__factory,
+    FluxPriceFeed__factory,
     KreskoAsset,
     KreskoAsset__factory,
     WrappedKreskoAsset__factory,
@@ -57,9 +58,9 @@ export const addMockCollateralAsset = async (
     const Collateral = await (await smock.mock<ERC20Upgradeable__factory>("ERC20Upgradeable")).deploy();
     await Collateral.setVariable("_initialized", 0);
 
-    await Collateral.setVariable("name", name);
-    await Collateral.setVariable("symbol", name);
-    await Collateral.setVariable("decimals", decimals);
+    Collateral.name.returns(name);
+    Collateral.symbol.returns(name);
+    Collateral.decimals.returns(decimals);
 
     const cFactor = toFixedPoint(factor);
     await hre.Diamond.connect(users.operator).addCollateralAsset(Collateral.address, cFactor, OracleAggregator.address);
@@ -70,18 +71,24 @@ export const addMockCollateralAsset = async (
     };
     const asset: Collateral = {
         address: Collateral.address,
-        contract: Collateral as unknown as ERC20Upgradeable,
+        contract: ERC20Upgradeable__factory.connect(Collateral.address, users.deployer),
         kresko: () => hre.Diamond.collateralAsset(Collateral.address),
-        priceAggregator: OracleAggregator as unknown as FluxPriceAggregator,
-        priceFeed: Oracle as unknown as FluxPriceFeed,
+        priceAggregator: FluxPriceAggregator__factory.connect(OracleAggregator.address, users.deployer),
+        priceFeed: FluxPriceFeed__factory.connect(Oracle.address, users.deployer),
         deployArgs: args,
         mocks,
         setPrice: price => setPrice(OracleAggregator, price),
         getPrice: () => OracleAggregator.latestAnswer(),
         update: update => updateCollateralAsset(Collateral.address, update),
     };
-    hre.collaterals = hre.collaterals.filter(c => c.address !== Collateral.address).concat(asset);
-    hre.allAssets = hre.allAssets.filter(a => a.address !== Collateral.address || a.krAsset).concat(asset);
+    const found = hre.collaterals.findIndex(c => c.address === asset.address)
+    if(found === -1) {
+        hre.collaterals.push(asset)
+        hre.allAssets.push(asset)
+    } else {
+        hre.collaterals = hre.collaterals.map(c => c.address === c.address ? asset : c);
+        hre.allAssets = hre.allAssets.map(c => c.address === asset.address && c.collateral ? asset : c);
+    }
     return asset;
 };
 
@@ -97,8 +104,15 @@ export const updateCollateralAsset = async (address: string, args: TestCollatera
         deployArgs: { ...collateral.deployArgs, ...args },
         ...collateral,
     };
-    hre.collaterals = hre.collaterals.filter(c => c.address !== address).concat(asset);
-    hre.allAssets = hre.allAssets.filter(a => a.address !== address || a.krAsset).concat(asset);
+
+    const found = hre.collaterals.findIndex(c => c.address === asset.address)
+    if(found === -1) {
+        hre.collaterals.push(asset)
+        hre.allAssets.push(asset)
+    } else {
+        hre.collaterals = hre.collaterals.map(c => c.address === c.address ? asset : c);
+        hre.allAssets = hre.allAssets.map(c => c.address === asset.address && c.collateral ? asset : c);
+    }
     return asset;
 };
 
@@ -139,6 +153,7 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
     // create the underlying elastic krAsset
     const krAsset = await (await smock.mock<KreskoAsset__factory>("KreskoAsset")).deploy();
     await krAsset.setVariable("_initialized", 0);
+    krAsset.decimals.returns(18)
 
     // Initialize the underlying krAsset
     await krAsset.initialize(name, name, 18, users.deployer.address, hre.Diamond.address);
@@ -176,17 +191,25 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
         address: krAsset.address,
         kresko: async () => await hre.Diamond.kreskoAsset(krAsset.address),
         deployArgs: args,
-        contract: krAsset as unknown as KreskoAsset,
-        wrapper: krAssetFixed as unknown as WrappedKreskoAsset,
-        priceAggregator: OracleAggregator as unknown as FluxPriceAggregator,
-        priceFeed: Oracle as unknown as FluxPriceFeed,
+        contract: KreskoAsset__factory.connect(krAsset.address, users.deployer),
+        wrapper: WrappedKreskoAsset__factory.connect(krAssetFixed.address, users.deployer),
+        priceAggregator: FluxPriceAggregator__factory.connect(OracleAggregator.address, users.deployer),
+        priceFeed: FluxPriceFeed__factory.connect(Oracle.address, users.deployer),
         mocks,
         setPrice: price => setPrice(OracleAggregator, price),
         getPrice: () => OracleAggregator.latestAnswer(),
         update: update => updateKrAsset(krAsset.address, update),
     };
-    hre.krAssets = hre.krAssets.filter(k => k.address !== krAsset.address).concat(asset);
-    hre.allAssets = hre.allAssets.filter(a => a.address !== krAsset.address || a.collateral).concat(asset);
+
+
+    const found = hre.krAssets.findIndex(c => c.address === asset.address)
+    if(found === -1) {
+        hre.krAssets.push(asset)
+        hre.allAssets.push(asset)
+    } else {
+        hre.krAssets = hre.krAssets.map(c => c.address === c.address ? asset : c);
+        hre.allAssets = hre.allAssets.map(c => c.address === asset.address && c.collateral ? asset : c);
+    }
     return asset;
 };
 
@@ -205,8 +228,14 @@ export const updateKrAsset = async (address: string, args: TestKreskoAssetUpdate
         deployArgs: { ...krAsset.deployArgs, ...args },
         ...krAsset,
     };
-    hre.krAssets = hre.krAssets.filter(k => k.address !== krAsset.address).concat(asset);
-    hre.allAssets = hre.allAssets.filter(a => a.address !== krAsset.address || a.collateral).concat(asset);
+    const found = hre.krAssets.findIndex(c => c.address === asset.address)
+    if(found === -1) {
+        hre.krAssets.push(asset)
+        hre.allAssets.push(asset)
+    } else {
+        hre.krAssets = hre.krAssets.map(c => c.address === c.address ? asset : c);
+        hre.allAssets = hre.allAssets.map(c => c.address === asset.address && c.collateral ? asset : c);
+    }
     return asset;
 };
 

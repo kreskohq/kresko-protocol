@@ -29,6 +29,7 @@ describe("Minter", function () {
             factor: 1,
             supplyLimit: 10000,
         };
+
         this.krAsset = await updateKrAsset(this.krAssets[0].address, krAssetArgs);
         this.krAsset.setPrice(krAssetArgs.price);
         // -------------------------------- Set up userOne deposit/debt --------------------------------
