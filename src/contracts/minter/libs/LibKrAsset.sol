@@ -47,11 +47,12 @@ library LibKrAsset {
     }
 
     /**
-     * @notice Get the minimum collateral value required to back a Kresko asset amount at a given collateralization ratio.
+     * @notice Get the minimum collateral value required to
+     * back a Kresko asset amount at a given collateralization ratio.
      * @param _krAsset The address of the Kresko asset.
      * @param _amount The Kresko Asset debt amount.
      * @return minCollateralValue is the minimum collateral value required for this Kresko Asset amount.
-    * @param _ratio The collateralization ratio required: higher ratio = more collateral required.
+     * @param _ratio The collateralization ratio required: higher ratio = more collateral required.
      */
     function getMinimumCollateralValueAtRatio(
         MinterState storage self,

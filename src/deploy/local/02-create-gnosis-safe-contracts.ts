@@ -89,5 +89,5 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     logger.success("safe contracts succesfully deployed");
 };
 
-deploy.tags = ["local", "minter", "gnosis-safe", "diamond"];
+deploy.tags = ["local", "gnosis-safe", "all"];
 export default deploy;

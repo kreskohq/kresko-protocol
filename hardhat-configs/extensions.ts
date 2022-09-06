@@ -22,6 +22,9 @@ extendEnvironment(async function (hre) {
     /*                              Helper Functions                              */
     /* -------------------------------------------------------------------------- */
     hre.deploy = deployWithSignatures(hre);
+    hre.collaterals = [];
+    hre.krAssets = [];
+    hre.allAssets = [];
     hre.fromBig = fromBig;
     hre.toBig = toBig;
     hre.getAddFacetArgs = <T extends Contract>(

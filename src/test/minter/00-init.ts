@@ -1,13 +1,12 @@
 import hre from "hardhat";
 import minterConfig from "../../config/minter";
 import { Role, withFixture, Error } from "@utils/test";
-import type { OperatorFacet } from "types/typechain";
+import type { ConfigurationFacet } from "types/typechain";
 import { expect } from "@test/chai";
 
 describe("Minter", function () {
-    withFixture("createMinter");
-
-    describe("#initialization", () => {
+    withFixture("minter-init");
+    describe("#initialization", async () => {
         it("sets correct state", async function () {
             expect(await hre.Diamond.minterInitializations()).to.equal(1);
 
@@ -29,7 +28,7 @@ describe("Minter", function () {
 
         it("cant initialize twice", async function () {
             const initializer = await minterConfig.getMinterInitializer(hre);
-            const initializerContract = await hre.ethers.getContract<OperatorFacet>(initializer.name);
+            const initializerContract = await hre.ethers.getContract<ConfigurationFacet>(initializer.name);
 
             const tx = await initializerContract.populateTransaction.initialize(initializer.args);
 

@@ -5,6 +5,8 @@ import {AggregatorV2V3Interface} from "../vendor/flux/interfaces/AggregatorV2V3I
 import {FixedPoint} from "../libs/FixedPoint.sol";
 import {IWrappedKreskoAsset} from "../krAsset/IWrappedKreskoAsset.sol";
 
+/* solhint-disable state-visibility */
+
 /* -------------------------------------------------------------------------- */
 /*                                  CONSTANTS                                 */
 /* -------------------------------------------------------------------------- */

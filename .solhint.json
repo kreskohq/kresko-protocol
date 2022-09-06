@@ -3,10 +3,11 @@
     "plugins": ["prettier"],
     "rules": {
         "code-complexity": ["error", 7],
+        "func-visibility": ["warn", { "ignoreConstructors": true }],
         "compiler-version": ["error", ">=0.8.14"],
-        "constructor-syntax": "error",
-        "max-line-length": ["error", 120],
+        "max-line-length": ["warn", 120],
         "prettier/prettier": ["error"],
+        "no-inline-assembly": ["off"],
         "reason-string": ["warn", { "maxLength": 64 }]
     }
 }

@@ -95,7 +95,7 @@ const config: HardhatUserConfig = {
         alwaysGenerateOverloads: false,
         dontOverrideCompile: false,
         discriminateTypes: false,
-        tsNocheck: false,
+        tsNocheck: true,
         externalArtifacts: ["artifacts/hardhat-diamond-abi/Kresko.sol/Kresko.json"],
     },
     // gasReporter: {

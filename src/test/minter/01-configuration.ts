@@ -1,4 +1,4 @@
-import hre from "hardhat";
+import hre, { users } from "hardhat";
 import { toFixedPoint } from "@utils/fixed-point";
 import { expect } from "@test/chai";
 
@@ -13,17 +13,11 @@ import {
 } from "@utils/test";
 
 describe("Minter", function () {
-    let users: Users;
-    let addr: Addresses;
-    withFixture("createMinter");
-    beforeEach(async function () {
-        users = hre.users;
-        addr = hre.addr;
-    });
-    describe("#operator", () => {
+    withFixture("minter-init");
+    describe("#configuration", function () {
         it("can modify all parameters", async function () {
             const Diamond = hre.Diamond.connect(users.operator);
-            const update = getNewMinterParams(addr.operator);
+            const update = getNewMinterParams(users.operator.address);
             await expect(Diamond.updateBurnFee(update.burnFee)).to.not.be.reverted;
             await expect(Diamond.updateLiquidationIncentiveMultiplier(update.liquidationIncentiveMultiplier)).to.not.be
                 .reverted;
@@ -32,7 +26,6 @@ describe("Minter", function () {
             await expect(Diamond.updateMinimumDebtValue(update.minimumDebtValue)).to.not.be.reverted;
             await expect(Diamond.updateLiquidationThreshold(update.liquidationThreshold)).to.not.be.reverted;
             await expect(Diamond.updateFeeRecipient(update.feeRecipient)).to.not.be.reverted;
-
             const {
                 burnfee,
                 liquidationIncentiveMultiplier,
@@ -51,40 +44,44 @@ describe("Minter", function () {
         });
 
         it("can add a collateral asset", async function () {
-            const [Collateral] = await addMockCollateralAsset(defaultCollateralArgs);
-            expect(await hre.Diamond.collateralExists(Collateral.address)).to.equal(true);
+            const { contract } = await addMockCollateralAsset(defaultCollateralArgs);
+            expect(await hre.Diamond.collateralExists(contract.address)).to.equal(true);
             const [, oraclePrice] = await hre.Diamond.getCollateralValueAndOraclePrice(
-                Collateral.address,
+                contract.address,
                 hre.toBig(1),
                 true,
             );
 
-            expect(Number(oraclePrice)).to.equal(Number(toFixedPoint(defaultCollateralArgs.price)));
+            expect(Number(oraclePrice)).to.equal(hre.toBig(defaultCollateralArgs.price, 8));
         });
 
         it("can add a kresko asset", async function () {
-            const [KreskoAsset] = await addMockKreskoAsset();
+            const { contract, kresko } = await addMockKreskoAsset();
 
-            const values = await hre.Diamond.kreskoAsset(KreskoAsset.address);
-            const kreskoPriceAnswer = Number(
-                await hre.Diamond.getKrAssetValue(KreskoAsset.address, hre.toBig(1), true),
+            const values = await kresko();
+            const kreskoPriceAnswer = hre.fromBig(
+                await hre.Diamond.getKrAssetValue(contract.address, hre.toBig(1), true),
+                8,
             );
 
-            expect(await hre.Diamond.krAssetExists(KreskoAsset.address)).to.equal(true);
+            expect(await hre.Diamond.krAssetExists(contract.address)).to.equal(true);
             expect(values.exists).to.equal(true);
             expect(Number(values.kFactor)).to.equal(Number(toFixedPoint(defaultKrAssetArgs.factor)));
-            expect(Number(kreskoPriceAnswer)).to.equal(Number(toFixedPoint(defaultKrAssetArgs.price)));
+            expect(kreskoPriceAnswer).to.equal(defaultKrAssetArgs.price);
             expect(hre.fromBig(values.supplyLimit)).to.equal(defaultKrAssetArgs.supplyLimit);
         });
 
         it("can update values of a kresko asset", async function () {
-            const [krAsset, , Oracle] = await addMockKreskoAsset();
+            const { contract, priceAggregator } = await addMockKreskoAsset();
 
-            const oracleAnswer = Number(await Oracle.latestAnswer());
-            const kreskoAnswer = Number(await hre.Diamond.getKrAssetValue(krAsset.address, hre.toBig(1), true));
+            const oracleAnswer = hre.fromBig(await priceAggregator.latestAnswer(), 8);
+            const kreskoAnswer = hre.fromBig(
+                await hre.Diamond.getKrAssetValue(contract.address, hre.toBig(1), true),
+                8,
+            );
 
             expect(oracleAnswer).to.equal(kreskoAnswer);
-            expect(oracleAnswer).to.equal(Number(toFixedPoint(defaultKrAssetArgs.price)));
+            expect(oracleAnswer).to.equal(defaultKrAssetArgs.price);
 
             const update = {
                 factor: toFixedPoint(1.2),
@@ -92,26 +89,29 @@ describe("Minter", function () {
                 price: 20,
             };
 
-            const updatedOracle = await getMockOracleFor(await krAsset.name(), update.price);
+            const [newPriceFeed] = await getMockOracleFor(await contract.name(), update.price);
 
             await hre.Diamond.connect(users.operator).updateKreskoAsset(
-                krAsset.address,
+                contract.address,
                 update.factor,
-                updatedOracle.address,
+                newPriceFeed.address,
                 false,
                 hre.toBig(update.supplyLimit),
             );
 
-            const newValues = await hre.Diamond.kreskoAsset(krAsset.address);
-            const updatedOracleAnswer = Number(await updatedOracle.latestAnswer());
-            const newKreskoAnswer = Number(await hre.Diamond.getKrAssetValue(krAsset.address, hre.toBig(1), true));
+            const newValues = await hre.Diamond.kreskoAsset(contract.address);
+            const updatedOracleAnswer = hre.fromBig(await newPriceFeed.latestAnswer(), 8);
+            const newKreskoAnswer = hre.fromBig(
+                await hre.Diamond.getKrAssetValue(contract.address, hre.toBig(1), true),
+                8,
+            );
 
             expect(newValues.exists).to.equal(true);
             expect(Number(newValues.kFactor)).to.equal(Number(update.factor));
-            expect(hre.fromBig(newValues.supplyLimit)).to.equal(Number(update.supplyLimit));
+            expect(hre.fromBig(newValues.supplyLimit)).to.equal(update.supplyLimit);
 
             expect(updatedOracleAnswer).to.equal(newKreskoAnswer);
-            expect(updatedOracleAnswer).to.equal(Number(toFixedPoint(update.price)));
+            expect(updatedOracleAnswer).to.equal(update.price);
         });
     });
 });

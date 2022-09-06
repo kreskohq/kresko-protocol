@@ -3,6 +3,7 @@ pragma solidity >=0.8.14;
 
 import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {MinterState} from "../MinterState.sol";
+import "hardhat/console.sol";
 
 library LibAccount {
     using FixedPoint for FixedPoint.Unsigned;
@@ -41,8 +42,10 @@ library LibAccount {
      * @return A boolean indicating if the account can be liquidated.
      */
     function isAccountLiquidatable(MinterState storage self, address _account) internal view returns (bool) {
-        return FixedPoint.fromUnscaledUint(self.getAccountCollateralValue(_account).rawValue).isLessThan(
-            self.getAccountMinimumCollateralValueAtRatio(_account, self.liquidationThreshold));
+        return
+            self.getAccountCollateralValue(_account).isLessThan(
+                self.getAccountMinimumCollateralValueAtRatio(_account, self.liquidationThreshold)
+            );
     }
 
     /**
@@ -64,7 +67,9 @@ library LibAccount {
             (FixedPoint.Unsigned memory collateralValue, ) = self.getCollateralValueAndOraclePrice(
                 asset,
                 self.collateralDeposits[_account][asset],
-                false // Take the collateral factor into consideration. // TODO: should this take the collateral factor into account?
+                false // Take the collateral factor into consideration.
+                // TODO: should this take the collateral factor into account?
+                // TODO: PANU: add a param bool _ignoreCollateralFactor or rename the func?
             );
             totalCollateralValue = totalCollateralValue.add(collateralValue);
         }
@@ -73,7 +78,8 @@ library LibAccount {
     }
 
     /**
-  * @notice Get an account's minimum collateral value required to back a Kresko asset amount at a given collateralization ratio.
+     * @notice Get an account's minimum collateral value required
+     *         to back a Kresko asset amount at a given collateralization ratio.
      * @dev Accounts that have their collateral value under the minimum collateral value are considered unhealthy,
      *      accounts with their collateral value under the liquidation threshold are considered liquidatable.
      * @param _account The account to calculate the minimum collateral value for.
@@ -84,21 +90,8 @@ library LibAccount {
         MinterState storage self,
         address _account,
         FixedPoint.Unsigned memory _ratio
-    )
-        internal
-        view
-        returns (FixedPoint.Unsigned memory)
-    {
-        FixedPoint.Unsigned memory minCollateralValue = FixedPoint.Unsigned(0);
-
-        address[] memory assets = self.mintedKreskoAssets[_account];
-        for (uint256 i = 0; i < assets.length; i++) {
-            address asset = assets[i];
-            uint256 amount = self.kreskoAssetDebt[_account][asset];
-            minCollateralValue = minCollateralValue.add(self.getMinimumCollateralValueAtRatio(asset, amount, _ratio));
-        }
-
-        return minCollateralValue;
+    ) internal view returns (FixedPoint.Unsigned memory) {
+        return self.getAccountKrAssetValue(_account).mul(_ratio);
     }
 
     /**
