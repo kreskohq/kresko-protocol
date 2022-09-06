@@ -34,8 +34,8 @@ describe("Minter", function () {
         this.krAsset = this.krAssets[0];
     });
 
-    describe("#krAsset", () => {
-        describe("#mint", () => {
+    describe("#krAsset", function () {
+        describe("#mint", function () {
             it("should allow users to mint whitelisted Kresko assets backed by collateral", async function () {
                 // Initially the Kresko asset's total supply should be 0
                 const kreskoAssetTotalSupplyBefore = await this.krAsset.contract.totalSupply();
@@ -59,7 +59,7 @@ describe("Minter", function () {
                 const amountMinted = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
                 expect(amountMinted).to.equal(mintAmount);
                 // Confirm the user's Kresko asset balance has increased
-                const userBalance = await this.krAsset.contract.balanceOf(users.userOne.address);
+                const userBalance = await this.krAsset.mocks.contract.balanceOf(users.userOne.address);
                 expect(userBalance).to.equal(mintAmount);
                 // Confirm that the Kresko asset's total supply increased as expected
                 const kreskoAssetTotalSupplyAfter = await this.krAsset.contract.totalSupply();
@@ -76,7 +76,7 @@ describe("Minter", function () {
                 expect(mintedKreskoAssetsInitial).to.deep.equal([]);
 
                 // Mint Kresko asset
-                const firstMintAmount = toBig(0.5);
+                const firstMintAmount = toBig(5);
                 await hre.Diamond.connect(users.userOne).mintKreskoAsset(
                     users.userOne.address,
                     this.krAsset.address,
@@ -104,7 +104,7 @@ describe("Minter", function () {
 
                 // ------------------------ Second mint ------------------------
                 // Mint Kresko asset
-                const secondMintAmount = toBig(0.4);
+                const secondMintAmount = toBig(5);
                 await hre.Diamond.connect(users.userOne).mintKreskoAsset(
                     users.userOne.address,
                     this.krAsset.address,
@@ -174,7 +174,7 @@ describe("Minter", function () {
                 const { contract: secondKreskoAsset } = await addMockKreskoAsset(secondKrAssetArgs);
 
                 // Mint Kresko asset
-                const secondMintAmount = toBig(1);
+                const secondMintAmount = toBig(2);
                 await hre.Diamond.connect(users.userOne).mintKreskoAsset(
                     users.userOne.address,
                     secondKreskoAsset.address,
@@ -210,7 +210,7 @@ describe("Minter", function () {
                 const mintAmount = toBig(1); // 1 * $10 = $10
                 const mintAmountUSDValue = await hre.Diamond.getKrAssetValue(this.krAsset.address, mintAmount, false);
                 const currMinimumDebtValue = await hre.Diamond.minimumDebtValue();
-                expect(fromBig(mintAmountUSDValue)).to.equal(Number(currMinimumDebtValue) / 10 ** 8);
+                expect(fromBig(mintAmountUSDValue, 8)).to.equal(Number(currMinimumDebtValue) / 10 ** 8);
 
                 await hre.Diamond.connect(users.userOne).mintKreskoAsset(
                     users.userOne.address,
@@ -368,7 +368,7 @@ describe("Minter", function () {
         });
 
         describe("#burnKreskoAsset", function () {
-            // TODO:
+            it("needs to be done"); // TODO
         });
     });
 });

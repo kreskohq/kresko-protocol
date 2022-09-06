@@ -72,6 +72,10 @@ export enum Error {
     NOT_SAFETY_COUNCIL = "231", // Sender must have the role `Role.SAFETY_COUNCIL`
     ACTION_PAUSED_FOR_ASSET = "232", // This action is currently paused for this asset
     INVALID_ASSET_SUPPLIED = "233", // Asset supplied is not a collateral nor a krAsset
+    KRASSET_NOT_WRAPPED = "234", // krAsset given is not the wrapped version
+    INVALID_LT = "235", // Liquidation threshold is greater than minimum collateralization ratio
+    COLLATERAL_INSUFFICIENT_AMOUNT = "236", // Insufficient amount of collateral to complete the operation
+    MULTISIG_NOT_ENOUGH_OWNERS = "237", // Multisig has invalid amount of owners
 
     /* -------------------------------------------------------------------------- */
     /*                                   3. Staking                               */

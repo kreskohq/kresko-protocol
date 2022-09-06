@@ -48,8 +48,13 @@ export async function createKrAsset(name: string, symbol, decimals = 18) {
         wrapper: WrappedKreskoAsset,
     };
 
-    hre.krAssets = hre.krAssets.filter(k => k.address !== krAsset.address).concat(asset);
-    hre.allAssets = hre.allAssets.filter(a => a.address !== krAsset.address || a.collateral).concat(asset);
-
+    const found = hre.krAssets.findIndex(c => c.address === asset.address);
+    if (found === -1) {
+        hre.krAssets.push(asset);
+        hre.allAssets.push(asset);
+    } else {
+        hre.krAssets = hre.krAssets.map(c => (c.address === c.address ? asset : c));
+        hre.allAssets = hre.allAssets.map(c => (c.address === asset.address && c.collateral ? asset : c));
+    }
     return asset;
 }
