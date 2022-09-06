@@ -18,7 +18,7 @@ jobs:
             - run: npm install --ignore-scripts --legacy-peer-deps
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-            - run: npm run test
+            - run: npm run test-ci
               env:
                   BURN_FEE: 0.015
                   LIQUIDATION_INCENTIVE: 1.1
