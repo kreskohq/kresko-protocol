@@ -2,7 +2,7 @@ import { getLogger, getPriceFeeds, sleep } from "@utils/deployment";
 import { fromBig, toBig } from "@utils/numbers";
 import { task, types } from "hardhat/config";
 import { IERC20Uniswap, UniswapV2Pair } from "types";
-import { WETH9Mock } from "types/typechain/src/contracts/test/WETH9Mock";
+import { MockWETH9 } from "types/typechain/src/contracts/test/MockWETH9";
 
 task("addliquidity:external")
     .addOptionalParam("log", "log information", true, types.boolean)
@@ -65,7 +65,7 @@ task("addliquidity:external")
         logger.success("Succesfully added wNEAR/USDC liquidity @ ", NEARUSDCPair.address);
 
         /**  WETH/USDC */
-        const WETH = await ethers.getContract<WETH9Mock>("WETH9Mock");
+        const WETH = await ethers.getContract<MockWETH9>("WETH9Mock");
         const ethValue = fromBig(await priceFeeds["ETH/USD"].latestAnswer(), 8);
         const wethDepositAmount = 250;
 

@@ -73,6 +73,7 @@ library Error {
     string public constant INVALID_ASSET_SUPPLIED = "233"; // Asset supplied is not a collateral nor a krAsset
     string public constant KRASSET_NOT_WRAPPED = "234"; // krAsset given is not the wrapped version
     string public constant INVALID_LT = "235"; // Liquidation threshold is greater than minimum collateralization ratio
+    string public constant MULTISIG_NOT_ENOUGH_OWNERS = "236"; // Multisig has invalid amount of owners
 
     /* -------------------------------------------------------------------------- */
     /*                                   3. Staking                               */

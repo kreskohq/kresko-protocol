@@ -11,6 +11,8 @@ import {DiamondModifiers, MinterModifiers} from "../../shared/Modifiers.sol";
 import {Action, SafetyState, Pause} from "../MinterTypes.sol";
 import {ms} from "../MinterStorage.sol";
 
+/* solhint-disable not-rely-on-time */
+
 /**
  * @title Protocol safety controls
  * @author Kresko

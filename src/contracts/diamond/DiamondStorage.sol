@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 /* solhint-disable no-inline-assembly */
 /* solhint-disable avoid-low-level-calls */
+/* solhint-disable func-visibility */
 
 pragma solidity >=0.8.14;
 

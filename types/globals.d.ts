@@ -1,5 +1,16 @@
 import { DeployResult } from "@kreskolabs/hardhat-deploy/types";
 import type { BytesLike } from "ethers";
+import { FakeContract, MockContract } from "@defi-wonderland/smock";
+import { ERC20Upgradeable__factory } from "./typechain/factories/src/contracts/shared";
+import { KreskoAsset__factory, WrappedKreskoAsset__factory } from "./typechain/factories/src/contracts/krAsset";
+import { KrAssetStructOutput } from "./Kresko";
+import { CollateralAssetStruct } from "./typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
+import {
+    TestKreskoAssetUpdate,
+    TestKreskoAssetArgs,
+    TestCollateralAssetArgs,
+    TestCollateralAssetUpdate,
+} from "@utils/test";
 
 export {};
 
@@ -11,16 +22,49 @@ declare global {
 
     type KreskoAsset = import("types/typechain").KreskoAsset;
     type WrappedKreskoAsset = import("types/typechain").WrappedKreskoAsset;
+    type KrAsset = {
+        krAsset?: boolean;
+        collateral?: boolean;
+        address: string;
+        contract: KreskoAsset;
+        deployArgs: TestKreskoAssetArgs;
+        kresko: () => Promise<KrAssetStructOutput>;
+        mocks?: {
+            contract: MockContract<KreskoAsset>;
+            priceAggregator: MockContract<FluxPriceAggregator>;
+            priceFeed: FakeContract<FluxPriceFeed>;
+            wrapper?: MockContract<WrappedKreskoAsset>;
+        };
+        wrapper?: WrappedKreskoAsset;
+        priceAggregator: FluxPriceAggregator;
+        priceFeed: FluxPriceFeed;
+        setPrice?: (price: number) => void;
+        getPrice?: () => Promise<BigNumber>;
+        update?: (update: TestKreskoAssetUpdate) => Promise<KrAsset>;
+    };
+    type Collateral = {
+        address: string;
+        collateral?: boolean;
+        krAsset?: boolean;
+        deployArgs: TestCollateralAssetArgs;
+        contract: ERC20Upgradeable;
+        kresko: () => Promise<CollateralAssetStruct>;
+        mocks?: {
+            contract: MockContract<ERC20Upgradeable>;
+            priceAggregator: MockContract<FluxPriceAggregator>;
+            priceFeed: FakeContract<FluxPriceFeed>;
+        };
+        priceAggregator: FluxPriceAggregator;
+        priceFeed: FluxPriceFeed;
+        setPrice?: (price: number) => void;
+        getPrice?: () => Promise<BigNumber>;
+        update?: (update: TestCollateralAssetUpdate) => Promise<CollateralAsset>;
+    };
 
-    type KrAssets = [KreskoAsset, WrappedKreskoAsset, FluxPriceAggregator][];
-    type MockKrAssets = [
-        MockContract<KreskoAsset>,
-        MockContract<WrappedKreskoAsset>,
-        MockContract<FluxPriceAggregator>,
-    ][];
+    type KrAssets = KrAsset[];
+    type Collaterals = Collateral[];
 
-    type Collaterals = [ERC20Upgradeable, FluxPriceAggregator][];
-    type MockCollaterals = [MockContract<ERC20Upgradeable>, MockContract<FluxPriceAggregator>][];
+    type Asset = Collateral | KrAsset;
     /* -------------------------------------------------------------------------- */
     /*                                   Oracles                                  */
     /* -------------------------------------------------------------------------- */

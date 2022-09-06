@@ -16,6 +16,7 @@ import {DiamondModifiers, MinterModifiers} from "../../shared/Modifiers.sol";
 
 import {ds} from "../../diamond/DiamondStorage.sol";
 
+// solhint-disable-next-line
 import {MinterInitArgs, CollateralAsset, KrAsset, AggregatorV2V3Interface, FixedPoint, Constants} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 
@@ -250,7 +251,10 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
      */
     function updateLiquidationThreshold(uint256 _liquidationThreshold) public override onlyRole(Role.OPERATOR) {
         // Liquidation threshold cannot be greater than minimum collateralization ratio
-        require(FixedPoint.Unsigned(_liquidationThreshold).isLessThanOrEqual(ms().minimumCollateralizationRatio), Error.INVALID_LT);
+        require(
+            FixedPoint.Unsigned(_liquidationThreshold).isLessThanOrEqual(ms().minimumCollateralizationRatio),
+            Error.INVALID_LT
+        );
         ms().liquidationThreshold = FixedPoint.Unsigned(_liquidationThreshold);
         emit MinterEvent.LiquidationThresholdUpdated(_liquidationThreshold);
     }
