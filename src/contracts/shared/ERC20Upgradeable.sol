@@ -4,11 +4,16 @@ pragma solidity >=0.8.14;
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./IERC20Upgradeable.sol";
 
+/* solhint-disable var-name-mixedcase */
+/* solhint-disable not-rely-on-time */
+/* solhint-disable func-name-mixedcase */
+
 /// @notice Modern and gas efficient ERC20 + EIP-2612 implementation.
 /// @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/tokens/ERC20.sol)
 /// @author Modified from Uniswap (https://github.com/Uniswap/uniswap-v2-core/blob/master/contracts/UniswapV2ERC20.sol)
 /// @author Kresko: modified to an upgradeable
 /// @dev Do not manually set balances without updating totalSupply, as the sum of all user balances must not exceed it.
+
 contract ERC20Upgradeable is Initializable, IERC20Upgradeable {
     /* -------------------------------------------------------------------------- */
     /*                                   Events                                   */

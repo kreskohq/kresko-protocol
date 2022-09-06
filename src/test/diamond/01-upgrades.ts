@@ -18,11 +18,13 @@ import { removeFacet } from "@scripts/remove-facet";
 describe("Diamond", function () {
     let users: Users;
     let addr: Addresses;
+
     before(async function () {
         users = hre.users;
         addr = hre.addr;
     });
-    withFixture("createBaseDiamond");
+    withFixture("diamond-init");
+
     describe("#upgrades", () => {
         it("can add a new facet", async function () {
             const Factory = await smock.mock<SmockFacet__factory>("SmockFacet");
@@ -41,7 +43,6 @@ describe("Diamond", function () {
             const initData = await SmockInitializer.populateTransaction.initialize(addr.userOne);
 
             await hre.Diamond.diamondCut([Cut], initData.to, initData.data);
-
             const TEST_OPERATOR_ROLE = hre.ethers.utils.id("kresko.test.operator");
             const isTestOperator = await hre.Diamond.hasRole(TEST_OPERATOR_ROLE, addr.userOne);
 
@@ -111,7 +112,10 @@ describe("Diamond", function () {
             expect(functionsAfterCut.length).to.equal(functions.length - 1);
 
             // Ensure delegatecall did set the correct pending owner with the cut
-            const filter = hre.Diamond.filters.PendingOwnershipTransfer(addr.deployer, correctOwner);
+            const filter = hre.Diamond.filters["PendingOwnershipTransfer(address,address)"](
+                addr.deployer,
+                correctOwner,
+            );
             const [event] = await hre.Diamond.queryFilter(filter);
 
             const { previousOwner, newOwner } = event.args;

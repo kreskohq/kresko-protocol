@@ -1,39 +1,27 @@
 import hre, { users } from "hardhat";
-import {
-    withFixture,
-    defaultDecimals,
-    defaultOraclePrice,
-    addMockCollateralAsset,
-} from "@test-utils";
-import { Error } from "@utils/test/errors"
+import { withFixture, defaultDecimals, defaultOraclePrice, addMockCollateralAsset } from "@test-utils";
+import { Error } from "@utils/test/errors";
 import { expect } from "chai";
 import { toBig, fromBig } from "@utils/numbers";
 
 describe("Minter", function () {
-    withFixture("createMinterUser");
+    withFixture("minter-with-mocks");
     beforeEach(async function () {
-        const collateralArgs = {
-            name: "Collateral003",
-            price: defaultOraclePrice, // $10
-            factor: 1,
-            decimals: defaultDecimals,
-        };
-        const [Collateral] = await addMockCollateralAsset(collateralArgs);
-
+        this.collateral = this.collaterals[0];
         this.initialBalance = toBig(100000);
-        await Collateral.setVariable("_balances", {
+        await this.collateral.mocks.contract.setVariable("_balances", {
             [users.userOne.address]: this.initialBalance,
         });
-        await Collateral.setVariable("_allowances", {
+        await this.collateral.mocks.contract.setVariable("_allowances", {
             [users.userOne.address]: {
                 [hre.Diamond.address]: this.initialBalance,
             },
         });
-        expect(await Collateral.balanceOf(users.userOne.address)).to.equal(this.initialBalance);
+        expect(await this.collateral.mocks.contract.balanceOf(users.userOne.address)).to.equal(this.initialBalance);
 
         this.despositArgs = {
             user: users.userOne,
-            asset: Collateral,
+            asset: this.collateral,
             amount: toBig(10000),
         };
     });
@@ -48,11 +36,13 @@ describe("Minter", function () {
                 expect(depositedCollateralAssetsBefore).to.deep.equal([]);
 
                 // Deposit collateral
-                await expect(hre.Diamond.connect(this.despositArgs.user).depositCollateral(
-                    this.despositArgs.user.address,
-                    this.despositArgs.asset.address,
-                    this.despositArgs.amount
-                )).not.to.be.reverted;
+                await expect(
+                    hre.Diamond.connect(this.despositArgs.user).depositCollateral(
+                        this.despositArgs.user.address,
+                        this.despositArgs.asset.address,
+                        this.despositArgs.amount,
+                    ),
+                ).not.to.be.reverted;
 
                 // Account now has deposited assets
                 const depositedCollateralAssetsAfter = await hre.Diamond.getDepositedCollateralAssets(
@@ -60,12 +50,17 @@ describe("Minter", function () {
                 );
                 expect(depositedCollateralAssetsAfter).to.deep.equal([this.despositArgs.asset.address]);
                 // Account's collateral deposit balances have increased
-                expect(await hre.Diamond.collateralDeposits(this.despositArgs.user.address, this.despositArgs.asset.address)).to.equal(this.despositArgs.amount);
+                expect(
+                    await hre.Diamond.collateralDeposits(
+                        this.despositArgs.user.address,
+                        this.despositArgs.asset.address,
+                    ),
+                ).to.equal(this.despositArgs.amount);
                 // Kresko contract's collateral balance has increased
                 expect(await this.despositArgs.asset.balanceOf(hre.Diamond.address)).to.equal(this.despositArgs.amount);
                 // Account's collateral balance has decreased
                 expect(fromBig(await this.despositArgs.asset.balanceOf(users.userOne.address))).to.equal(
-                    fromBig(this.initialBalance) - fromBig(this.despositArgs.amount)
+                    fromBig(this.initialBalance) - fromBig(this.despositArgs.amount),
                 );
             });
 
@@ -87,12 +82,14 @@ describe("Minter", function () {
                 );
                 expect(depositedCollateralAssetsBefore).to.deep.equal([]);
 
-                 // Deposit collateral
-                 await expect(hre.Diamond.connect(users.userThree).depositCollateral(
-                    this.despositArgs.user.address,
-                    this.despositArgs.asset.address,
-                    this.despositArgs.amount
-                )).not.to.be.reverted;
+                // Deposit collateral
+                await expect(
+                    hre.Diamond.connect(users.userThree).depositCollateral(
+                        this.despositArgs.user.address,
+                        this.despositArgs.asset.address,
+                        this.despositArgs.amount,
+                    ),
+                ).not.to.be.reverted;
 
                 // Confirm the array of the user's deposited collateral assets has been pushed to.
                 const depositedCollateralAssetsAfter = await hre.Diamond.getDepositedCollateralAssets(
@@ -114,24 +111,28 @@ describe("Minter", function () {
                 // Confirm the depositor's (arbitraryUser) wallet balance has been adjusted accordingly
                 const depositorBalanceAfter = await this.despositArgs.asset.balanceOf(arbitraryUser.address);
                 expect(fromBig(depositorBalanceAfter)).to.equal(
-                    fromBig(this.initialBalance) - fromBig(this.despositArgs.amount)
+                    fromBig(this.initialBalance) - fromBig(this.despositArgs.amount),
                 );
             });
 
             it("should allow an account to deposit more collateral to an existing deposit", async function () {
                 // Deposit first batch of collateral
-                await expect(hre.Diamond.connect(this.despositArgs.user).depositCollateral(
-                    this.despositArgs.user.address,
-                    this.despositArgs.asset.address,
-                    this.despositArgs.amount
-                )).not.to.be.reverted;
+                await expect(
+                    hre.Diamond.connect(this.despositArgs.user).depositCollateral(
+                        this.despositArgs.user.address,
+                        this.despositArgs.asset.address,
+                        this.despositArgs.amount,
+                    ),
+                ).not.to.be.reverted;
 
-                  // Deposit second batch of collateral
-                  await expect(hre.Diamond.connect(this.despositArgs.user).depositCollateral(
-                    this.despositArgs.user.address,
-                    this.despositArgs.asset.address,
-                    this.despositArgs.amount
-                )).not.to.be.reverted;
+                // Deposit second batch of collateral
+                await expect(
+                    hre.Diamond.connect(this.despositArgs.user).depositCollateral(
+                        this.despositArgs.user.address,
+                        this.despositArgs.asset.address,
+                        this.despositArgs.amount,
+                    ),
+                ).not.to.be.reverted;
 
                 // Confirm the array of the user's deposited collateral assets hasn't been double-pushed to.
                 const depositedCollateralAssetsAfter = await hre.Diamond.getDepositedCollateralAssets(
@@ -155,30 +156,34 @@ describe("Minter", function () {
                     factor: 1,
                     decimals: defaultDecimals,
                 };
-                const [SecondCollateral] = await addMockCollateralAsset(collateralArgs);
-        
-                await SecondCollateral.setVariable("_balances", {
+                const { contract, mocks } = await addMockCollateralAsset(collateralArgs);
+
+                await mocks.contract.setVariable("_balances", {
                     [users.userOne.address]: this.initialBalance,
                 });
-                await SecondCollateral.setVariable("_allowances", {
+                await mocks.contract.setVariable("_allowances", {
                     [users.userOne.address]: {
                         [hre.Diamond.address]: this.initialBalance,
                     },
                 });
 
                 // Deposit batch of first collateral type
-                await expect(hre.Diamond.connect(this.despositArgs.user).depositCollateral(
-                    this.despositArgs.user.address,
-                    this.despositArgs.asset.address,
-                    this.despositArgs.amount
-                )).not.to.be.reverted;
+                await expect(
+                    hre.Diamond.connect(this.despositArgs.user).depositCollateral(
+                        this.despositArgs.user.address,
+                        this.despositArgs.asset.address,
+                        this.despositArgs.amount,
+                    ),
+                ).not.to.be.reverted;
 
                 // Deposit batch of second collateral type
-                await expect(hre.Diamond.connect(this.despositArgs.user).depositCollateral(
-                    this.despositArgs.user.address,
-                    SecondCollateral.address,
-                    this.despositArgs.amount
-                )).not.to.be.reverted;
+                await expect(
+                    hre.Diamond.connect(this.despositArgs.user).depositCollateral(
+                        this.despositArgs.user.address,
+                        contract.address,
+                        this.despositArgs.amount,
+                    ),
+                ).not.to.be.reverted;
 
                 // Confirm the array of the user's deposited collateral assets contains both collateral assets
                 const depositedCollateralAssetsAfter = await hre.Diamond.getDepositedCollateralAssets(
@@ -186,7 +191,7 @@ describe("Minter", function () {
                 );
                 expect(depositedCollateralAssetsAfter).to.deep.equal([
                     this.despositArgs.asset.address,
-                    SecondCollateral.address,
+                    contract.address,
                 ]);
             });
 
@@ -204,25 +209,28 @@ describe("Minter", function () {
             // });
 
             it("should revert if depositing collateral that has not been whitelisted", async function () {
-                await expect(hre.Diamond.connect(this.despositArgs.user).depositCollateral(
-                    this.despositArgs.user.address,
-                    "0x0000000000000000000000000000000000000001",
-                    this.despositArgs.amount
-                )).to.be.revertedWith(Error.COLLATERAL_DOESNT_EXIST);
+                await expect(
+                    hre.Diamond.connect(this.despositArgs.user).depositCollateral(
+                        this.despositArgs.user.address,
+                        "0x0000000000000000000000000000000000000001",
+                        this.despositArgs.amount,
+                    ),
+                ).to.be.revertedWith(Error.COLLATERAL_DOESNT_EXIST);
             });
 
             it("should revert if depositing an amount of 0", async function () {
-                await expect(hre.Diamond.connect(this.despositArgs.user).depositCollateral(
-                    this.despositArgs.user.address,
-                    this.despositArgs.asset.address,
-                    0,
-                )).to.be.revertedWith(Error.ZERO_DEPOSIT);
+                await expect(
+                    hre.Diamond.connect(this.despositArgs.user).depositCollateral(
+                        this.despositArgs.user.address,
+                        this.despositArgs.asset.address,
+                        0,
+                    ),
+                ).to.be.revertedWith(Error.ZERO_DEPOSIT);
             });
         });
 
         describe("#withdraw", () => {
             // TODO: migrate old collateral withdraw tests
         });
-
     });
 });

@@ -5,7 +5,7 @@ import minterConfig from "../../config/minter";
 import { withFixture } from "@utils/test";
 
 describe("KreskoAsset", function () {
-    withFixture("kreskoAsset");
+    withFixture("kresko-asset");
 
     let KreskoAsset: KreskoAsset;
     beforeEach(async function () {
@@ -13,10 +13,10 @@ describe("KreskoAsset", function () {
         const name = "Test krAsset";
         const symbol = "TEST";
         this.owner = users.userThree;
-    
+
         const underlyingSymbol = minterConfig.underlyingPrefix + symbol;
         const kreskoAssetInitializerArgs = [name, underlyingSymbol, 18, deployer.address, this.owner.address];
-    
+
         [KreskoAsset] = await hre.deploy<KreskoAsset>(underlyingSymbol, {
             from: deployer.address,
             log: true,
@@ -31,7 +31,7 @@ describe("KreskoAsset", function () {
             },
         });
 
-        this.kreskoAsset = KreskoAsset
+        this.kreskoAsset = KreskoAsset;
     });
 
     describe("#mint", function () {
@@ -50,7 +50,6 @@ describe("KreskoAsset", function () {
             expect(await this.kreskoAsset.balanceOf(this.owner.address)).to.equal(this.mintAmount);
         });
 
-
         it("should allow the asset owner to mint to another address", async function () {
             expect(await this.kreskoAsset.totalSupply()).to.equal(0);
             expect(await this.kreskoAsset.balanceOf(users.userOne.address)).to.equal(0);
@@ -67,7 +66,7 @@ describe("KreskoAsset", function () {
             expect(await this.kreskoAsset.balanceOf(this.owner.address)).to.equal(0);
 
             await expect(
-                this.kreskoAsset.connect(users.userOne).mint(this.owner.address, this.mintAmount)
+                this.kreskoAsset.connect(users.userOne).mint(this.owner.address, this.mintAmount),
             ).to.be.revertedWith(
                 `AccessControl: account ${users.userOne.address.toLowerCase()} is missing role 0x112e48a576fb3a75acc75d9fcf6e0bc670b27b1dbcd2463502e10e68cf57d6fd`,
             );
@@ -80,7 +79,7 @@ describe("KreskoAsset", function () {
 
         it("should not allow admin to mint tokens", async function () {
             await expect(
-                this.kreskoAsset.connect(users.admin).mint(this.owner.address, this.mintAmount)
+                this.kreskoAsset.connect(users.admin).mint(this.owner.address, this.mintAmount),
             ).to.be.revertedWith(
                 `AccessControl: account ${users.admin.address.toLowerCase()} is missing role 0x112e48a576fb3a75acc75d9fcf6e0bc670b27b1dbcd2463502e10e68cf57d6fd`,
             );
@@ -109,9 +108,9 @@ describe("KreskoAsset", function () {
             await this.kreskoAsset.connect(this.owner).approve(users.userOne.address, this.mintAmount);
 
             expect(await this.kreskoAsset.totalSupply()).to.equal(this.mintAmount);
-            expect(
-                await this.kreskoAsset.allowance(this.owner.address, users.userOne.address),
-            ).to.equal(this.mintAmount);
+            expect(await this.kreskoAsset.allowance(this.owner.address, users.userOne.address)).to.equal(
+                this.mintAmount,
+            );
 
             await this.kreskoAsset.connect(this.owner).burn(users.userOne.address, this.mintAmount);
 
@@ -121,9 +120,9 @@ describe("KreskoAsset", function () {
             // Confirm that owner doesn't hold any tokens
             expect(await this.kreskoAsset.balanceOf(this.owner.address)).to.equal(0);
             // Confirm that token allowances are unchanged
-            expect(
-                await this.kreskoAsset.allowance(this.owner.address, users.userOne.address),
-            ).to.equal(this.mintAmount);
+            expect(await this.kreskoAsset.allowance(this.owner.address, users.userOne.address)).to.equal(
+                this.mintAmount,
+            );
         });
 
         it("should not allow the operator to burn more tokens than user holds", async function () {
@@ -133,7 +132,7 @@ describe("KreskoAsset", function () {
             await expect(
                 this.kreskoAsset.connect(this.owner).burn(users.userOne.address, overUserBalance),
             ).to.be.revertedWith(
-                "VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)"
+                "VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
             );
 
             // Check total supply and user's balances are unchanged

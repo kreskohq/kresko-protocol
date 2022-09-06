@@ -1,63 +1,44 @@
-import hre, { users } from "hardhat";
-import {
-    Role,
-    withFixture,
-    defaultDecimals,
-    defaultOraclePrice,
-    addMockCollateralAsset,
-    addMockKreskoAsset,
-} from "@test-utils";
-import { Error } from "@utils/test/errors"
+import { addMockKreskoAsset, Role, withFixture } from "@test-utils";
+import { fromBig, toBig } from "@utils/numbers";
+import { Error } from "@utils/test/errors";
 import { expect } from "chai";
-import { toBig, fromBig } from "@utils/numbers";
+import hre, { users } from "hardhat";
 
-describe.only("Minter", function () {
-    withFixture("createMinterUser");
+describe("Minter", function () {
+    withFixture("minter-with-mocks");
     beforeEach(async function () {
         // Add mock collateral to protocol
-        const collateralArgs = {
-            name: "Collateral001",
-            price: defaultOraclePrice, // $10
-            factor: 1,
-            decimals: defaultDecimals,
-        };
-        const [Collateral] = await addMockCollateralAsset(collateralArgs);
-        this.collateral = Collateral
+
+        this.collateral = this.collaterals[0];
         // Load account with collateral
         this.initialBalance = toBig(100000);
-        await this.collateral.setVariable("_balances", {
+        await this.collateral.mocks.contract.setVariable("_balances", {
             [users.userOne.address]: this.initialBalance,
         });
-        await this.collateral.setVariable("_allowances", {
+        await this.collateral.mocks.contract.setVariable("_allowances", {
             [users.userOne.address]: {
                 [hre.Diamond.address]: this.initialBalance,
             },
         });
-        expect(await this.collateral.balanceOf(users.userOne.address)).to.equal(this.initialBalance)
+        expect(await this.collateral.contract.balanceOf(users.userOne.address)).to.equal(this.initialBalance);
 
         // User deposits 10,000 collateral
-        await expect(hre.Diamond.connect(users.userOne).depositCollateral(
-            users.userOne.address,
-            this.collateral.address,
-            toBig(10000)
-        )).not.to.be.reverted;
-        
-        // Add mock krAsset to protocol
-        const krAssetArgs = {
-            name: "KreskoAsset",
-            price: 10, // $10
-            factor: 1,
-            supplyLimit: 10000,
-        }
-        const [KreskoAsset] = await addMockKreskoAsset(krAssetArgs);
-        this.krAsset = KreskoAsset
+        await expect(
+            hre.Diamond.connect(users.userOne).depositCollateral(
+                users.userOne.address,
+                this.collateral.address,
+                toBig(10000),
+            ),
+        ).not.to.be.reverted;
+
+        this.krAsset = this.krAssets[0];
     });
 
     describe("#krAsset", () => {
         describe("#mint", () => {
             it("should allow users to mint whitelisted Kresko assets backed by collateral", async function () {
                 // Initially the Kresko asset's total supply should be 0
-                const kreskoAssetTotalSupplyBefore = await this.krAsset.totalSupply();
+                const kreskoAssetTotalSupplyBefore = await this.krAsset.contract.totalSupply();
                 expect(kreskoAssetTotalSupplyBefore).to.equal(0);
                 // Initially, the array of the user's minted kresko assets should be empty.
                 const mintedKreskoAssetsBefore = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
@@ -75,22 +56,19 @@ describe.only("Minter", function () {
                 const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
                 expect(mintedKreskoAssetsAfter).to.deep.equal([this.krAsset.address]);
                 // Confirm the amount minted is recorded for the user.
-                const amountMinted = await hre.Diamond.kreskoAssetDebt(
-                    users.userOne.address,
-                    this.krAsset.address,
-                );
+                const amountMinted = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
                 expect(amountMinted).to.equal(mintAmount);
                 // Confirm the user's Kresko asset balance has increased
-                const userBalance = await this.krAsset.balanceOf(users.userOne.address);
+                const userBalance = await this.krAsset.contract.balanceOf(users.userOne.address);
                 expect(userBalance).to.equal(mintAmount);
                 // Confirm that the Kresko asset's total supply increased as expected
-                const kreskoAssetTotalSupplyAfter = await this.krAsset.totalSupply();
-                expect(kreskoAssetTotalSupplyAfter.eq(kreskoAssetTotalSupplyBefore.add(mintAmount)))
+                const kreskoAssetTotalSupplyAfter = await this.krAsset.contract.totalSupply();
+                expect(kreskoAssetTotalSupplyAfter.eq(kreskoAssetTotalSupplyBefore.add(mintAmount)));
             });
 
             it("should allow successive, valid mints of the same Kresko asset", async function () {
                 // Initially the Kresko asset's total supply should be 0
-                const kreskoAssetTotalSupplyInitial = await this.krAsset.totalSupply();
+                const kreskoAssetTotalSupplyInitial = await this.krAsset.contract.totalSupply();
                 expect(kreskoAssetTotalSupplyInitial).to.equal(0);
 
                 // Initially, the array of the user's minted kresko assets should be empty.
@@ -117,11 +95,11 @@ describe.only("Minter", function () {
                 expect(amountMintedAfter).to.equal(firstMintAmount);
 
                 // Confirm the Kresko Asset as been minted to the user from Kresko.sol
-                const userBalanceAfter = await this.krAsset.balanceOf(users.userOne.address);
+                const userBalanceAfter = await this.krAsset.contract.balanceOf(users.userOne.address);
                 expect(userBalanceAfter).to.equal(amountMintedAfter);
 
                 // Confirm that the Kresko asset's total supply increased as expected
-                const kreskoAssetTotalSupplyAfter = await this.krAsset.totalSupply();
+                const kreskoAssetTotalSupplyAfter = await this.krAsset.contract.totalSupply();
                 expect(kreskoAssetTotalSupplyAfter).to.equal(kreskoAssetTotalSupplyInitial.add(firstMintAmount));
 
                 // ------------------------ Second mint ------------------------
@@ -145,17 +123,17 @@ describe.only("Minter", function () {
                 expect(amountMintedFinal).to.equal(firstMintAmount.add(secondMintAmount));
 
                 // Confirm the Kresko Asset as been minted to the user from Kresko.sol
-                const userBalanceFinal = await this.krAsset.balanceOf(users.userOne.address);
+                const userBalanceFinal = await this.krAsset.contract.balanceOf(users.userOne.address);
                 expect(userBalanceFinal).to.equal(amountMintedFinal);
 
                 // Confirm that the Kresko asset's total supply increased as expected
-                const kreskoAssetTotalSupplyFinal = await this.krAsset.totalSupply();
+                const kreskoAssetTotalSupplyFinal = await this.krAsset.contract.totalSupply();
                 expect(kreskoAssetTotalSupplyFinal).to.equal(kreskoAssetTotalSupplyAfter.add(secondMintAmount));
             });
 
             it("should allow users to mint multiple different Kresko assets", async function () {
                 // Initially the Kresko asset's total supply should be 0
-                const kreskoAssetTotalSupplyInitial = await this.krAsset.totalSupply();
+                const kreskoAssetTotalSupplyInitial = await this.krAsset.contract.totalSupply();
                 expect(kreskoAssetTotalSupplyInitial).to.equal(0);
                 // Initially, the array of the user's minted kresko assets should be empty.
                 const mintedKreskoAssetsInitial = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
@@ -179,10 +157,10 @@ describe.only("Minter", function () {
                 );
                 expect(amountMintedAfter).to.equal(firstMintAmount);
                 // Confirm the Kresko Asset as been minted to the user from Kresko.sol
-                const userBalanceAfter = await this.krAsset.balanceOf(users.userOne.address);
+                const userBalanceAfter = await this.krAsset.contract.balanceOf(users.userOne.address);
                 expect(userBalanceAfter).to.equal(amountMintedAfter);
                 // Confirm that the Kresko asset's total supply increased as expected
-                const kreskoAssetTotalSupplyAfter = await this.krAsset.totalSupply();
+                const kreskoAssetTotalSupplyAfter = await this.krAsset.contract.totalSupply();
                 expect(kreskoAssetTotalSupplyAfter).to.equal(kreskoAssetTotalSupplyInitial.add(firstMintAmount));
 
                 // ------------------------ Second mint ------------------------
@@ -192,8 +170,8 @@ describe.only("Minter", function () {
                     price: 5, // $5
                     factor: 1,
                     supplyLimit: 100000,
-                }
-                const [secondKreskoAsset] = await addMockKreskoAsset(secondKrAssetArgs);
+                };
+                const { contract: secondKreskoAsset } = await addMockKreskoAsset(secondKrAssetArgs);
 
                 // Mint Kresko asset
                 const secondMintAmount = toBig(1);
@@ -230,13 +208,9 @@ describe.only("Minter", function () {
 
                 // Confirm that the mint amount's USD value is equal to the contract's current minimum debt value
                 const mintAmount = toBig(1); // 1 * $10 = $10
-                const mintAmountUSDValue = await hre.Diamond.getKrAssetValue(
-                    this.krAsset.address,
-                    mintAmount,
-                    false,
-                );
+                const mintAmountUSDValue = await hre.Diamond.getKrAssetValue(this.krAsset.address, mintAmount, false);
                 const currMinimumDebtValue = await hre.Diamond.minimumDebtValue();
-                expect(fromBig(mintAmountUSDValue)).to.equal( Number(currMinimumDebtValue)/10**8);
+                expect(fromBig(mintAmountUSDValue)).to.equal(Number(currMinimumDebtValue) / 10 ** 8);
 
                 await hre.Diamond.connect(users.userOne).mintKreskoAsset(
                     users.userOne.address,
@@ -253,12 +227,12 @@ describe.only("Minter", function () {
             });
 
             it("should allow a trusted address to mint Kresko assets on behalf of another user", async function () {
-                // Grant userThree the MANAGER role            
+                // Grant userThree the MANAGER role
                 await hre.Diamond.connect(users.deployer).grantRole(Role.MANAGER, users.userThree.address);
                 expect(await hre.Diamond.hasRole(Role.MANAGER, users.userThree.address)).to.equal(true);
 
                 // Initially the Kresko asset's total supply should be 0
-                const kreskoAssetTotalSupplyBefore = await this.krAsset.totalSupply();
+                const kreskoAssetTotalSupplyBefore = await this.krAsset.contract.totalSupply();
                 expect(kreskoAssetTotalSupplyBefore).to.equal(0);
                 // Initially, the array of the user's minted kresko assets should be empty.
                 const mintedKreskoAssetsBefore = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
@@ -296,7 +270,7 @@ describe.only("Minter", function () {
 
             it("should not allow untrusted account to mint Kresko assets on behalf of another user", async function () {
                 // Initially the Kresko asset's total supply should be 0
-                const kreskoAssetTotalSupplyBefore = await this.krAsset.totalSupply();
+                const kreskoAssetTotalSupplyBefore = await this.krAsset.contract.totalSupply();
                 expect(kreskoAssetTotalSupplyBefore).to.equal(0);
 
                 // Initially, the array of the user's minted kresko assets should be empty.
@@ -304,7 +278,7 @@ describe.only("Minter", function () {
                 expect(mintedKreskoAssetsBefore).to.deep.equal([]);
 
                 // Mint Kresko asset
-                const mintAmount = toBig(1)
+                const mintAmount = toBig(1);
                 await expect(
                     hre.Diamond.connect(users.userOne).mintKreskoAsset(
                         users.userTwo.address,
@@ -313,7 +287,7 @@ describe.only("Minter", function () {
                     ),
                 ).to.be.revertedWith(
                     `AccessControl: account ${users.userOne.address.toLowerCase()} is missing role 0x46925e0f0cc76e485772167edccb8dc449d43b23b55fc4e756b063f49099e6a0`,
-                    );
+                );
             });
 
             it("should not allow users to mint Kresko assets if the resulting position's USD value is less than the minimum debt value", async function () {
@@ -325,13 +299,9 @@ describe.only("Minter", function () {
                 expect(initialKreskoAssetDebt).to.equal(0);
 
                 // Confirm that the mint amount's USD value is below the contract's current minimum debt value
-                const minAmount = 100000000;  // 8 decimals
+                const minAmount = 100000000; // 8 decimals
                 const mintAmount = minAmount - 1;
-                const mintAmountUSDValue = await hre.Diamond.getKrAssetValue(
-                    this.krAsset.address,
-                    mintAmount,
-                    false,
-                );
+                const mintAmountUSDValue = await hre.Diamond.getKrAssetValue(this.krAsset.address, mintAmount, false);
                 const currMinimumDebtValue = await hre.Diamond.minimumDebtValue();
                 expect(Number(mintAmountUSDValue)).to.be.lessThan(Number(currMinimumDebtValue));
 
@@ -358,9 +328,12 @@ describe.only("Minter", function () {
             it("should not allow users to mint Kresko assets over their collateralization ratio limit", async function () {
                 // We can ignore price and collateral factor as both this.collateral and this.krAsset both
                 // have the same price ($10) and same collateral factor (1)
-                const collateralAmountDeposited = await hre.Diamond.collateralDeposits(users.userOne.address, this.collateral.address);
+                const collateralAmountDeposited = await hre.Diamond.collateralDeposits(
+                    users.userOne.address,
+                    this.collateral.address,
+                );
                 // Apply 150% MCR and increase deposit amount to be above the maximum allowed by MCR
-                const mcrAmount = fromBig(collateralAmountDeposited) / 1.5
+                const mcrAmount = fromBig(collateralAmountDeposited) / 1.5;
                 const mintAmount = toBig(mcrAmount + 1);
 
                 await expect(
@@ -374,11 +347,13 @@ describe.only("Minter", function () {
 
             it("should not allow the minting of any Kresko asset amount over its maximum limit", async function () {
                 // User deposits another 10,000 collateral tokens, enabling mints of up to 20,000/1.5 = ~13,333 kresko asset tokens
-                await expect(hre.Diamond.connect(users.userOne).depositCollateral(
-                    users.userOne.address,
-                    this.collateral.address,
-                    toBig(10000)
-                )).not.to.be.reverted;
+                await expect(
+                    hre.Diamond.connect(users.userOne).depositCollateral(
+                        users.userOne.address,
+                        this.collateral.address,
+                        toBig(10000),
+                    ),
+                ).not.to.be.reverted;
 
                 const krAsset = await hre.Diamond.kreskoAsset(this.krAsset.address);
                 const overSupplyLimit = fromBig(krAsset.supplyLimit) + 1;
@@ -393,7 +368,7 @@ describe.only("Minter", function () {
         });
 
         describe("#burnKreskoAsset", function () {
-            // TODO: 
+            // TODO:
         });
     });
 });

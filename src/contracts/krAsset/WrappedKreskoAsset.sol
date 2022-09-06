@@ -8,6 +8,8 @@ import {Role} from "../libs/Authorization.sol";
 
 import {ERC4626Upgradeable, KreskoAsset} from "../shared/ERC4626Upgradeable.sol";
 
+/* solhint-disable no-empty-blocks */
+
 /**
  * @title Kresko Asset Wrapper - pro-rata representation of the underlying kresko asset.
  * Based on ERC-4626 by Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/mixins/ERC4626.sol)

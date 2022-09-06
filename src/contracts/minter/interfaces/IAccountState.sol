@@ -11,10 +11,7 @@ interface IAccountState {
 
     function getAccountKrAssetValue(address _account) external view returns (FixedPoint.Unsigned memory);
 
-    function getAccountCollateralValue(address _account)
-        external
-        view
-        returns (FixedPoint.Unsigned memory);
+    function getAccountCollateralValue(address _account) external view returns (FixedPoint.Unsigned memory);
 
     function getAccountMinimumCollateralValueAtRatio(address _account, FixedPoint.Unsigned memory _ratio)
         external

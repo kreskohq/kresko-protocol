@@ -14,6 +14,8 @@ using LibCollateral for MinterState global;
 using LibAccount for MinterState global;
 using LibRepay for MinterState global;
 
+/* solhint-disable state-visibility */
+
 /// @title Complete storage layout for the minter state
 struct MinterState {
     /* -------------------------------------------------------------------------- */

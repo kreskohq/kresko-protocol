@@ -6,6 +6,10 @@ import {FixedPointMathLib} from "@rari-capital/solmate/src/utils/FixedPointMathL
 import "./SafeERC20Upgradeable.sol";
 import "../krAsset/KreskoAsset.sol";
 
+/* solhint-disable func-name-mixedcase */
+/* solhint-disable no-empty-blocks */
+/* solhint-disable func-visibility */
+
 /// @notice Minimal ERC4626 tokenized Vault implementation.
 /// @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/mixins/ERC4626.sol)
 abstract contract ERC4626Upgradeable is ERC20Upgradeable {
