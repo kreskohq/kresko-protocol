@@ -16,9 +16,12 @@ export const withFixture = (fixtureName: FixtureName) => {
     beforeEach(async function () {
         const fixture = await deployments.createFixture(async hre => {
             const result = await deployments.fixture(fixtureName);
-            hre.Diamond = await ethers.getContractAt<Kresko>("Kresko", result.Diamond.address);
+
+            if(result.Diamond) {
+                hre.Diamond = await ethers.getContractAt<Kresko>("Kresko", result.Diamond.address);
+            }
             return {
-                facets: result.Diamond.facets,
+                facets: result.Diamond ? result.Diamond.facets : [],
                 collaterals: hre.collaterals,
                 krAssets: hre.krAssets,
             };
