@@ -48,7 +48,7 @@ export const getSignatures =
         return fragments;
     };
 
-export const getLogger = (prefix?: string, log = process.env.TEST ? false : true) => ({
+export const getLogger = (prefix?: string, log = process.env.TEST || process.env.TESTCI ? false : true) => ({
     warn: (...args: any[]) => log && console.warn(prefix, ...args),
     error: (...args: any[]) => log && console.error(prefix, ...args),
     log: (...args: any[]) =>

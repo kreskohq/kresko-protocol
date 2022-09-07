@@ -9,6 +9,8 @@ import {Error} from "./Errors.sol";
 import {Meta} from "./Meta.sol";
 import {ds} from "../diamond/DiamondStorage.sol";
 
+/* solhint-disable state-visibility */
+
 /**
  * @title Shared library for access control
  * @author Kresko
@@ -104,7 +106,7 @@ library Authorization {
 
     function transferSecurityCouncil(address _newCouncil) internal {
         hasRole(Role.SAFETY_COUNCIL, msg.sender);
-        require(IGnosisSafeL2(_newCouncil).getOwners().length >= 5);
+        require(IGnosisSafeL2(_newCouncil).getOwners().length >= 5, Error.MULTISIG_NOT_ENOUGH_OWNERS);
 
         // As this is called by the multisig - just check that it's not an EOA
         ds()._roles[Role.SAFETY_COUNCIL].members[msg.sender] = false;

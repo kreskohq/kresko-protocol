@@ -1,16 +1,21 @@
 # folders
-artifacts/
+.vscode
+deployments/**/*
+artifacts/**/*
 build/
 cache/
 coverage/
-dist/
-lib/
-build/
-forge/
+dist/**/*
+lib/**/*
+build/**/*
+forge/**/*
 node_modules/
-types/typechain/
-src/contracts/vendor/
-src/contracts/test/
+temp/**/*
+types/**/*
+packages/**/*
+src/contracts/vendor/**/*
+src/contracts/test/**/*
+src/utils/**/*
 
 # files
 coverage.json

@@ -7,19 +7,18 @@ const [name, symbol, underlyingSymbol] = minterConfig.krAssets.test[0];
 
 describe("KreskoAsset", function () {
     let addr: Addresses;
+    let KreskoAsset: KreskoAsset;
+    let WrappedKreskoAsset: WrappedKreskoAsset;
     before(async function () {
         addr = hre.addr;
     });
-
-    withFixture("kreskoAsset");
-
-    let KreskoAsset: KreskoAsset;
-    let WrappedKreskoAsset: WrappedKreskoAsset;
-    beforeEach(async function () {
-        [KreskoAsset, WrappedKreskoAsset] = hre.krAssets[0];
-    });
+    withFixture("kresko-asset");
 
     describe("#initialization - rebalancing", () => {
+        beforeEach(async function () {
+            KreskoAsset = hre.krAssets[0].contract;
+            WrappedKreskoAsset = hre.krAssets[0].wrapper;
+        });
         it("cant initialize twice", async function () {
             await expect(
                 KreskoAsset.initialize(name, underlyingSymbol, 18, addr.deployer, hre.Diamond.address),
@@ -63,6 +62,11 @@ describe("KreskoAsset", function () {
     });
 
     describe("#initialization - wrapped", () => {
+        withFixture("kresko-asset");
+        beforeEach(async function () {
+            KreskoAsset = hre.krAssets[0].contract;
+            WrappedKreskoAsset = hre.krAssets[0].wrapper;
+        });
         it("cant initialize twice", async function () {
             await expect(
                 WrappedKreskoAsset.initialize(KreskoAsset.address, name, symbol, addr.deployer),

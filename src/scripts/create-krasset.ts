@@ -42,8 +42,19 @@ export async function createKrAsset(name: string, symbol, decimals = 18) {
             },
         },
     });
+    const asset: KrAsset = {
+        address: KreskoAsset.address,
+        contract: KreskoAsset,
+        wrapper: WrappedKreskoAsset,
+    };
 
-    hre.krAssets.push([KreskoAsset, WrappedKreskoAsset]);
-
-    return [KreskoAsset, WrappedKreskoAsset];
+    const found = hre.krAssets.findIndex(c => c.address === asset.address);
+    if (found === -1) {
+        hre.krAssets.push(asset);
+        hre.allAssets.push(asset);
+    } else {
+        hre.krAssets = hre.krAssets.map(c => (c.address === c.address ? asset : c));
+        hre.allAssets = hre.allAssets.map(c => (c.address === asset.address && c.collateral ? asset : c));
+    }
+    return asset;
 }

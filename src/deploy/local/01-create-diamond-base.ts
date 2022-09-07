@@ -7,6 +7,7 @@ import type { Kresko } from "types/typechain";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const { ethers, getNamedAccounts, deploy, deployments } = hre;
+
     const logger = getLogger("create-diamond");
 
     // #1 Do not use `add-facets.ts` for the initial diamond, set the initial facets in the constructor
@@ -46,6 +47,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     logger.success("Diamond deployed @", DiamondContract.address, "with", deployment.facets.length, "facets");
 };
 
-func.tags = ["local", "diamond-init", "minter", "diamond"];
+func.tags = ["local", "diamond-init", "all"];
 
 export default func;

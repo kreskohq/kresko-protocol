@@ -3,8 +3,11 @@ import { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import { BigNumber, extractEventFromTxReceipt } from "@utils";
 import { getLogger } from "@utils/deployment";
 import { executeContractCallWithSigners } from "@utils/gnosis";
-import { GnosisSafeL2 } from "types/typechain/GnosisSafeL2";
-import { GnosisSafeProxyFactory, ProxyCreationEvent } from "types/typechain/GnosisSafeProxyFactory";
+import { GnosisSafeL2 } from "types/typechain/src/contracts/vendor/gnosis/GnosisSafeL2";
+import {
+    GnosisSafeProxyFactory,
+    ProxyCreationEvent,
+} from "types/typechain/src/contracts/vendor/gnosis/GnosisSafeProxyFactory";
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("multisig");
@@ -44,7 +47,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const SafeDeployment = await deployments.get("GnosisSafeL2");
     const SafeProxy = await ethers.getContractAt<GnosisSafeL2>(SafeDeployment.abi, creationEvent.args.proxy);
-
     await deployments.save("Multisig", {
         abi: SafeDeployment.abi,
         address: creationEvent.args.proxy,
@@ -65,5 +67,5 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     hre.Multisig = SafeProxy;
 };
 
-deploy.tags = ["local", "minter", "gnosis-safe", "diamond"];
+deploy.tags = ["local", "gnosis-safe", "all"];
 export default deploy;

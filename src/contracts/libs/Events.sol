@@ -19,7 +19,9 @@ library DiamondEvent {
 }
 
 library MinterEvent {
-    /* ===== Collateral ===== */
+    /* -------------------------------------------------------------------------- */
+    /*                                 Collateral                                 */
+    /* -------------------------------------------------------------------------- */
 
     /**
      * @notice Emitted when a collateral asset is added to the protocol.
@@ -54,7 +56,9 @@ library MinterEvent {
      */
     event CollateralWithdrawn(address indexed account, address indexed collateralAsset, uint256 indexed amount);
 
-    /* ===== Kresko Assets ===== */
+    /* -------------------------------------------------------------------------- */
+    /*                                Kresko Assets                               */
+    /* -------------------------------------------------------------------------- */
 
     /**
      * @notice Emitted when a Kresko asset is added to the protocol.
@@ -64,12 +68,7 @@ library MinterEvent {
      * @param oracle The address of the oracle.
      * @param supplyLimit The total supply limit.
      */
-    event KreskoAssetAdded(
-        address indexed kreskoAsset,
-        uint256 indexed kFactor,
-        address oracle,
-        uint256 supplyLimit
-    );
+    event KreskoAssetAdded(address indexed kreskoAsset, uint256 indexed kFactor, address oracle, uint256 supplyLimit);
 
     /**
      * @notice Emitted when a Kresko asset's oracle is updated.
@@ -136,7 +135,9 @@ library MinterEvent {
         uint256 collateralSent
     );
 
-    /* ===== Configurable Parameters ===== */
+    /* -------------------------------------------------------------------------- */
+    /*                                Parameters                                  */
+    /* -------------------------------------------------------------------------- */
 
     /**
      * @notice Emitted when a safety state is triggered for an asset

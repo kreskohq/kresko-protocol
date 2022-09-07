@@ -3,7 +3,7 @@ import { expect } from "@test/chai";
 import { withFixture } from "@utils/test/fixtures";
 
 describe("Diamond", function () {
-    withFixture("createBaseDiamond");
+    withFixture("diamond-init");
     describe("#initialization", () => {
         it("sets correct state", async function () {
             expect(await hre.Diamond.owner()).to.equal(hre.users.deployer.address);
