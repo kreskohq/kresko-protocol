@@ -3,6 +3,7 @@
 import { Contract, utils, BigNumber, BigNumberish, Signer, PopulatedTransaction } from "ethers";
 import { TypedDataSigner } from "@ethersproject/abstract-signer";
 import { AddressZero } from "@ethersproject/constants";
+import { GnosisSafeL2 } from 'types';
 
 export const EIP_DOMAIN = {
     EIP712Domain: [
@@ -155,7 +156,7 @@ export const logGas = async (message: string, tx: Promise<any>, skip?: boolean):
 };
 
 export const executeTx = async (
-    safe: Contract,
+    safe: GnosisSafeL2,
     safeTx: SafeTransaction,
     signatures: SafeSignature[],
     overrides?: any,
@@ -221,7 +222,7 @@ export const buildContractCall = (
 };
 
 export const executeTxWithSigners = async (
-    safe: Contract,
+    safe: GnosisSafeL2,
     tx: SafeTransaction,
     signers: SignerWithAddress[],
     overrides?: any,
@@ -230,8 +231,8 @@ export const executeTxWithSigners = async (
     return executeTx(safe, tx, sigs, overrides);
 };
 
-export const executeContractCallWithSigners = async (
-    safe: Contract,
+export const executeContractCallWithSigners =  async (
+    safe: GnosisSafeL2,
     contract: Contract,
     method: string,
     params: any[],
@@ -239,7 +240,7 @@ export const executeContractCallWithSigners = async (
     delegateCall?: boolean,
     overrides?: Partial<SafeTransaction>,
 ) => {
-    const tx = buildContractCall(contract, method, params, await safe.nonce(), delegateCall, overrides);
+    const tx = buildContractCall(contract, method, params, Number(await safe.nonce()), delegateCall, overrides);
     return executeTxWithSigners(safe, tx, signers);
 };
 

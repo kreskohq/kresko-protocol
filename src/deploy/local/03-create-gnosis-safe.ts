@@ -47,7 +47,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const SafeDeployment = await deployments.get("GnosisSafeL2");
     const SafeProxy = await ethers.getContractAt<GnosisSafeL2>(SafeDeployment.abi, creationEvent.args.proxy);
-
     await deployments.save("Multisig", {
         abi: SafeDeployment.abi,
         address: creationEvent.args.proxy,

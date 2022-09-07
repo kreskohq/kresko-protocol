@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity >=0.8.14;
 
+import {Error} from "./Errors.sol";
+
 /**
  * @title Library for operations on arrays
  */
@@ -17,7 +19,7 @@ library Arrays {
         address _elementToRemove,
         uint256 _elementIndex
     ) internal {
-        require(_addresses[_elementIndex] == _elementToRemove, "Arrays: incorrect removal index");
+        require(_addresses[_elementIndex] == _elementToRemove, Error.ARRAY_OUT_OF_BOUNDS);
 
         uint256 lastIndex = _addresses.length - 1;
         // If the index to remove is not the last one, overwrite the element at the index

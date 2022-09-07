@@ -86,4 +86,11 @@ export enum Error {
     POOL_EXISTS = "302", // Pool with this deposit token already exists
     POOL_DOESNT_EXIST = "303", // Pool with this deposit token does not exist
     ADDRESS_INVALID_REWARD_RECIPIENT = "304", // Reward recipient cant be address(0)
+
+    /* -------------------------------------------------------------------------- */
+    /*                                   4. Libraries                             */
+    /* -------------------------------------------------------------------------- */
+
+    ARRAY_OUT_OF_BOUNDS = "400", // Array out of bounds error
+    
 }
