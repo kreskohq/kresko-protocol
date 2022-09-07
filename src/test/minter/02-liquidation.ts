@@ -1,7 +1,7 @@
 import { expect } from "@test/chai";
 import hre, { users } from "hardhat";
 
-import { borrowKrAsset, depositMockCollateral, updateCollateralAsset, updateKrAsset, withFixture } from "@test-utils";
+import { borrowKrAsset, depositMockCollateral, withFixture } from "@test-utils";
 import { fromBig, toBig } from "@utils/numbers";
 
 import { extractInternalIndexedEventFromTxReceipt } from "@utils/events";
@@ -20,7 +20,8 @@ describe("Minter", function () {
             factor: 1,
             decimals: 18,
         };
-        this.collateral = await updateCollateralAsset(this.collaterals[0].address, collateralArgs);
+        this.collateral = this.collaterals[0];
+        await this.collateral.update(collateralArgs);
         this.collateral.setPrice(collateralArgs.price);
         // Set up mock KreskoAsset
         const krAssetArgs = {
@@ -29,8 +30,8 @@ describe("Minter", function () {
             factor: 1,
             supplyLimit: 10000,
         };
-
-        this.krAsset = await updateKrAsset(this.krAssets[0].address, krAssetArgs);
+        this.krAsset = this.krAssets[0];
+        await this.collateral.update(collateralArgs);
         this.krAsset.setPrice(krAssetArgs.price);
         // -------------------------------- Set up userOne deposit/debt --------------------------------
         // Deposit collateral

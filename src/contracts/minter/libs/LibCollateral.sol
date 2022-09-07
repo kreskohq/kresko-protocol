@@ -62,7 +62,10 @@ library LibCollateral {
         uint256 _depositedCollateralAssetIndex
     ) internal {
         require(_amount > 0, Error.ZERO_WITHDRAW);
-        require(_depositedCollateralAssetIndex <= self.depositedCollateralAssets[_account].length-1, Error.ARRAY_OUT_OF_BOUNDS);
+        require(
+            _depositedCollateralAssetIndex <= self.depositedCollateralAssets[_account].length - 1,
+            Error.ARRAY_OUT_OF_BOUNDS
+        );
 
         // Ensure the withdrawal does not result in the account having a collateral value
         // under the minimum collateral amount required to maintain a healthy position.
