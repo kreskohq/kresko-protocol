@@ -13,7 +13,7 @@ import { Error } from "@utils/test/errors"
 import { expect } from "chai";
 import { toBig, fromBig } from "@utils/numbers";
 
-describe.only("Minter", function () {
+describe("Minter", function () {
     withFixture("createMinterUser");
     beforeEach(async function () {
         const collateralArgs = {
@@ -245,7 +245,7 @@ describe.only("Minter", function () {
             });
         });
 
-        describe.only("#withdrawCollateral", () => {
+        describe("#withdrawCollateral", () => {
             beforeEach(async function () {
                 // Deposit collateral
                 await expect(hre.Diamond.connect(this.despositArgs.user).depositCollateral(

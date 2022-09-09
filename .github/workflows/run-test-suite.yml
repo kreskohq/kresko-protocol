@@ -23,4 +23,4 @@ jobs:
                   LIQUIDATION_INCENTIVE: 1.1
                   MINIMUM_COLLATERALIZATION_RATIO: 1.5
                   MINIMUM_DEBT_VALUE: 10
-                  SECONDS_UNTIL_STALE_PRICE: 60
+                  LIQUIDATION_THRESHOLD: 60

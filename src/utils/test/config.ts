@@ -3,12 +3,9 @@ import { toBig } from "@utils/numbers";
 
 export const defaultOraclePrice = 10;
 export const defaultOracleDecimals = 8;
-
 export const defaultDecimals = 18;
-
 export const defaultDepositAmount = toBig(10, defaultDecimals);
 export const defaultMintAmount = toBig(100, defaultDecimals);
-
 export const defaultSupplyLimit = 1000;
 export const defaultCloseFee = 0.015;
 

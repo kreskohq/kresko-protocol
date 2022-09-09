@@ -20,6 +20,11 @@ describe("Council", function () {
         it("can toggle different asset functionality to be paused", async function () {
           // TODO: 
         });
+    });
 
+    describe("#timelock", () => {
+        it("has a timelock", async function () {
+          // TODO: 
+        });
     });
 });

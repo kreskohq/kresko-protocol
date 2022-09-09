@@ -12,7 +12,7 @@ import { Error } from "@utils/test/errors"
 import { expect } from "chai";
 import { toBig, fromBig } from "@utils/numbers";
 
-describe("Minter", function () {
+describe.only("Minter", function () {
     withFixture("createMinterUser");
     beforeEach(async function () {
         // Add mock collateral to protocol
@@ -395,7 +395,7 @@ describe("Minter", function () {
             });
         });
 
-        describe("#burnKreskoAsset", function () {
+        describe.only("#burnKreskoAsset", function () {
             beforeEach(async function () {
                 // Create userOne debt position
                 this.mintAmount = toBig(2);
@@ -606,8 +606,9 @@ describe("Minter", function () {
                 // Confirm the user's minted kresko asset amount has been updated
                 const newUserDebt = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
                 expect(newUserDebt).eq(userOneDebt.sub(burnAmount));
-
             });
+
+
 
             // it("should emit KreskoAssetBurned event", async function () {
             //     const kreskoAssetIndex = 0;
@@ -635,7 +636,6 @@ describe("Minter", function () {
                 );
 
                 const kreskoAssetIndex = 0;
-
                 await expect(
                     hre.Diamond.connect(users.userOne).burnKreskoAsset(
                         users.userOne.address,
@@ -687,6 +687,239 @@ describe("Minter", function () {
                     ),
                 ).to.be.reverted;
             });
+
+            it("should charge users the appropriate close fee when burning kresko assets", async function () {
+                // const kreskoAssetTotalSupplyBefore = await this.krAsset.totalSupply();
+
+                const userInitialDepositValue = await hre.Diamond.getAccountCollateralValue(users.userOne.address);
+
+                // Burn Kresko asset
+                const kreskoAssetIndex = 0;
+                await hre.Diamond.connect(users.userOne).burnKreskoAsset(
+                    users.userOne.address,
+                    this.krAsset.address,
+                    this.mintAmount,
+                    kreskoAssetIndex,
+                );
+
+                const userAfterDepositValue = await hre.Diamond.getAccountCollateralValue(users.userOne.address);
+                
+                console.log("userInitialDepositValue:", userInitialDepositValue.rawValue);
+                console.log("userAfterDepositValue:", userAfterDepositValue.rawValue);
+                console.log("userInitialDepositValue:", userInitialDepositValue.rawValue);
+
+                expect(userInitialDepositValue.rawValue).eq(userInitialDepositValue.rawValue.sub(userAfterDepositValue.rawValue));
+
+
+                // // Confirm the user no long holds the burned Kresko asset amount
+                // const userBalance = await this.krAsset.balanceOf(users.userOne.address);
+                // expect(userBalance).to.equal(0);
+                // // Confirm that the Kresko asset's total supply decreased as expected
+                // const kreskoAssetTotalSupplyAfter = await this.krAsset.totalSupply();
+                // expect(kreskoAssetTotalSupplyAfter).to.equal(kreskoAssetTotalSupplyBefore.sub(this.mintAmount));
+                // // Confirm the array of the user's minted Kresko assets no longer contains the asset's address
+                // const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                // expect(mintedKreskoAssetsAfter).to.deep.equal([]);
+                // // Confirm the user's minted kresko asset amount has been updated
+                // const userDebt = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                // expect(userDebt).to.equal(0);
+            });
+
+            // describe("Protocol burn fee", async function () {
+            //     const singleFeePaymentTest = async function (
+            //         this: Mocha.Context,
+            //         collateralAssetInfo: CollateralAssetInfo,
+            //     ) {
+            //         const kreskoAssetIndex = 0;
+            //         // const kreskoAssetInfo = this.krAsset;
+
+            //         const burnAmount = toBig(200);
+            //         const burnValue = burnAmount.mul(this.krAssetArgs.oraclePrice);
+            //         const expectedFeeValue = burnValue.mul(this.krAssetArgs.closeFee);
+            //         const expectedCollateralFeeAmount = expectedFeeValue.div(collateralAssetInfo.oraclePrice);
+
+            //         // Get the balances prior to the fee being charged.
+                    // const kreskoCollateralAssetBalanceBefore = await collateralAssetInfo.asset.balanceOf(
+                    //     hre.Diamond.address,
+                    // );
+
+                    // const globalFeeRecipient = await hre.Diamond.feeRecipient();
+
+                    // const feeRecipientCollateralAssetBalanceBefore =
+                    //     await collateralAssetInfo.asset.balanceOf(globalFeeRecipient);
+
+                    // await hre.Diamond.connect(users.userOne).burnKreskoAsset(
+                    //     users.userOne.address,
+                    //     this.krAsset.address,
+                    //     burnAmount,
+                    //     kreskoAssetIndex,
+                    // );
+
+                    // // Get the balances after the fees have been charged.
+                    // const kreskoCollateralAssetBalanceAfter = await collateralAssetInfo.asset.balanceOf(
+                    //     hre.Diamond.address,
+                    // );
+                    // const feeRecipientCollateralAssetBalanceAfter = await collateralAssetInfo.asset.balanceOf(
+                    //     globalFeeRecipient,
+                    // );
+
+                    // // Ensure the amount gained / lost by the kresko contract and the fee recipient are as expected.
+                    // const feeRecipientBalanceIncrease = feeRecipientCollateralAssetBalanceAfter.sub(
+                    //     feeRecipientCollateralAssetBalanceBefore,
+                    // );
+                    // expect(kreskoCollateralAssetBalanceBefore.sub(kreskoCollateralAssetBalanceAfter)).to.equal(
+                    //     feeRecipientBalanceIncrease,
+                    // );
+                    // expect(feeRecipientBalanceIncrease).to.equal(expectedCollateralFeeAmount);
+
+                    // // Ensure the emitted event is as expected.
+                    // const events = await extractEventsFromTxReceipt<BurnFeePaidEvent>(burnReceipt, "BurnFeePaid");
+                    // expect(events.length).to.equal(1);
+                    // const { args } = events[0];
+                    // expect(args.account).to.equal(users.userOne.address);
+                    // expect(args.paymentCollateralAsset).to.equal(collateralAssetInfo.collateralAsset.address);
+                    // expect(args.paymentAmount).to.equal(expectedCollateralFeeAmount);
+                    // expect(args.paymentValue).to.equal(expectedFeeValue);
+                // };
+
+                // const atypicalCollateralDecimalsTest = async function (this: Mocha.Context, decimals: number) {
+                //     const collateralAssetInfo = await deployAndWhitelistCollateralAsset(hre.Diamond, 0.8, 10, decimals);
+                //     // Give userOne a balance for the collateral asset.
+                //     await collateralAssetInfo.collateralAsset.setBalanceOf(
+                //         users.userOne.address,
+                //         collateralAssetInfo.fromDecimal(1000),
+                //     );
+                //     await hre.Diamond.connect(users.userOne).depositCollateral(
+                //         users.userOne.address,
+                //         collateralAssetInfo.collateralAsset.address,
+                //         collateralAssetInfo.fromDecimal(100),
+                //     );
+
+                //     await singleFeePaymentTest.bind(this)(collateralAssetInfo);
+                // };
+
+                // it("should charge the protocol burn fee with a single collateral asset if the deposit amount is sufficient and emit BurnFeePaid event", async function () {
+                //     await singleFeePaymentTest.bind(this)(this.collateralAssetInfo);
+                // });
+
+                // it("should charge the protocol burn fee across multiple collateral assets if needed", async function () {
+                //     const price = 10;
+                //     // Deploy and whitelist collateral assets
+                //     const collateralAssetInfos = await Promise.all([
+                //         deployAndWhitelistCollateralAsset(hre.Diamond, 0.8, price, 18),
+                //         deployAndWhitelistCollateralAsset(hre.Diamond, 0.8, price, 18),
+                //     ]);
+
+                //     const smallDepositAmount = parseEther("0.1");
+                //     const smallDepositValue = smallDepositAmount.mul(price);
+
+                //     // Deposit a small amount of the new collateralAssetInfos.
+                //     for (const collateralAssetInfo of collateralAssetInfos) {
+                //         // Give userOne a balance for the collateral asset.
+                //         await collateralAssetInfo.collateralAsset.setBalanceOf(
+                //             users.userOne.address,
+                //             this.initialUserCollateralBalance,
+                //         );
+
+                //         await hre.Diamond.connect(users.userOne).depositCollateral(
+                //             users.userOne.address,
+                //             collateralAssetInfo.collateralAsset.address,
+                //             smallDepositAmount,
+                //         );
+                //     }
+
+                //     const allCollateralAssetInfos = [this.collateralAssetInfo, ...collateralAssetInfos];
+
+                //     // Now test:
+
+                //     const kreskoAssetIndex = 0;
+                //     const kreskoAssetInfo = hre.DiamondAssetInfos[kreskoAssetIndex];
+
+                //     const burnAmount = toFixedPoint(200);
+                //     const burnValue = fixedPointMul(kreskoAssetInfo.oraclePrice, burnAmount);
+                //     const expectedFeeValue = fixedPointMul(burnValue, BURN_FEE);
+
+                //     const getCollateralAssetBalances = () =>
+                //         Promise.all(
+                //             allCollateralAssetInfos.map(async info => ({
+                //                 kreskoBalance: await info.collateralAsset.balanceOf(hre.Diamond.address),
+                //                 feeRecipientBalance: await info.collateralAsset.balanceOf(FEE_RECIPIENT_ADDRESS),
+                //             })),
+                //         );
+
+                    // // Get the balances prior to the fee being charged.
+                    // const collateralAssetBalancesBefore = await getCollateralAssetBalances();
+
+                    // const burnReceipt = await hre.Diamond.connect(users.userOne).burnKreskoAsset(
+                    //     users.userOne.address,
+                    //     kreskoAssetInfo.kreskoAsset.address,
+                    //     burnAmount,
+                    //     kreskoAssetIndex,
+                    // );
+
+                    // // Get the balances after the fee has been charged.
+                    // const collateralAssetBalancesAfter = await getCollateralAssetBalances();
+
+                    // const events = await extractEventsFromTxReceipt<BurnFeePaidEvent>(burnReceipt, "BurnFeePaid");
+
+                //     // Burn fees are charged against collateral assets in reverse order of the user's
+                //     // deposited collateral assets array. In other words, collateral assets will be tried
+                //     // in order of the most recently deposited for the first time -> oldest.
+                //     // We expect 3 BurnFeePaid events because the first 2 collateral deposits have a value
+                //     // of $1 and will be taken in their entirety, and the remainder of the fee will be taken
+                //     // from the large deposit amount of the the very first collateral asset.
+                //     expect(events.length).to.equal(3);
+
+                //     const expectFeePaid = (
+                //         eventArgs: Result,
+                //         collateralAssetInfoIndex: number,
+                //         paymentAmount: BigNumber,
+                //         paymentValue: BigNumber,
+                //     ) => {
+                //         // Ensure the amount gained / lost by the kresko contract and the fee recipient are as expected.
+                //         const feeRecipientBalanceBefore =
+                //             collateralAssetBalancesBefore[collateralAssetInfoIndex].feeRecipientBalance;
+                //         const kreskoBalanceBefore =
+                //             collateralAssetBalancesBefore[collateralAssetInfoIndex].kreskoBalance;
+                //         const feeRecipientBalanceAfter =
+                //             collateralAssetBalancesAfter[collateralAssetInfoIndex].feeRecipientBalance;
+                //         const kreskoBalanceAfter = collateralAssetBalancesAfter[collateralAssetInfoIndex].kreskoBalance;
+
+                //         const feeRecipientBalanceIncrease = feeRecipientBalanceAfter.sub(feeRecipientBalanceBefore);
+                //         expect(kreskoBalanceBefore.sub(kreskoBalanceAfter)).to.equal(feeRecipientBalanceIncrease);
+                //         expect(feeRecipientBalanceIncrease).to.equal(paymentAmount);
+
+                //         expect(eventArgs.account).to.equal(users.userOne.address);
+                //         expect(eventArgs.paymentCollateralAsset).to.equal(
+                //             allCollateralAssetInfos[collateralAssetInfoIndex].collateralAsset.address,
+                //         );
+                //         expect(eventArgs.paymentAmount).to.equal(paymentAmount);
+                //         expect(eventArgs.paymentValue).to.equal(paymentValue);
+                //     };
+
+                //     // Small deposit of the most recently deposited collateral asset
+                //     expectFeePaid(events[0].args, 2, smallDepositAmount, smallDepositValue);
+
+                //     // Small deposit of the second most recently deposited collateral asset
+                //     expectFeePaid(events[1].args, 1, smallDepositAmount, smallDepositValue);
+
+                //     // The remainder from the initial large deposit
+                //     const expectedPaymentValue = expectedFeeValue.sub(smallDepositValue.mul(2));
+                //     const expectedPaymentAmount = fixedPointDiv(
+                //         expectedPaymentValue,
+                //         this.collateralAssetInfo.oraclePrice,
+                //     );
+                //     expectFeePaid(events[2].args, 0, expectedPaymentAmount, expectedPaymentValue);
+                // });
+
+                // it("should charge fees as expected against collateral assets with decimals < 18", async function () {
+                //     await atypicalCollateralDecimalsTest.bind(this)(8);
+                // });
+
+                // it("should charge fees as expected against collateral assets with decimals > 18", async function () {
+                //     await atypicalCollateralDecimalsTest.bind(this)(24);
+                // });
+            // });
         });
     });
 });
