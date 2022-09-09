@@ -48,7 +48,6 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         Authorization._grantRole(Role.OPERATOR, msg.sender);
 
         updateFeeRecipient(args.feeRecipient);
-        updateBurnFee(args.burnFee);
         updateLiquidationIncentiveMultiplier(args.liquidationIncentiveMultiplier);
         updateMinimumCollateralizationRatio(args.minimumCollateralizationRatio);
         updateMinimumDebtValue(args.minimumDebtValue);
@@ -121,15 +120,19 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
      * @param _kFactor The k-factor of the Kresko asset as a raw value for a FixedPoint.Unsigned. Must be >= 1e18.
      * @param _oracle The oracle address for the Kresko asset.
      * @param _supplyLimit The initial total supply limit for the Kresko asset.
+     * @param _closeFee The initial close fee percentage for the Kresko asset.
      */
     function addKreskoAsset(
         address _krAsset,
         uint256 _kFactor,
         address _oracle,
-        uint256 _supplyLimit
+        uint256 _supplyLimit,
+        uint256 _closeFee
     ) external onlyRole(Role.OPERATOR) kreskoAssetDoesNotExist(_krAsset) {
         require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, Error.KRASSET_INVALID_FACTOR);
         require(_oracle != address(0), Error.ADDRESS_INVALID_ORACLE);
+        require(_closeFee <= Constants.MAX_CLOSE_FEE, Error.PARAM_CLOSE_FEE_TOO_HIGH);
+
         // Ensure it is wrapped
         require(IERC165(_krAsset).supportsInterface(type(IWrappedKreskoAsset).interfaceId), Error.KRASSET_NOT_WRAPPED);
         // The diamond needs the operator role
@@ -139,11 +142,12 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         ms().kreskoAssets[_krAsset] = KrAsset({
             kFactor: FixedPoint.Unsigned(_kFactor),
             oracle: AggregatorV2V3Interface(_oracle),
+            supplyLimit: _supplyLimit,
+            closeFee: FixedPoint.Unsigned(_closeFee),
             exists: true,
-            mintable: true,
-            supplyLimit: _supplyLimit
+            mintable: true
         });
-        emit MinterEvent.KreskoAssetAdded(_krAsset, _kFactor, _oracle, _supplyLimit);
+        emit MinterEvent.KreskoAssetAdded(_krAsset, _kFactor, _oracle, _supplyLimit, _closeFee);
     }
 
     /**
@@ -154,36 +158,29 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
      * @param _oracle The new oracle address for the Kresko asset's USD value.
      * @param _mintable The new mintable value.
      * @param _supplyLimit The new total supply limit for the Kresko asset.
+     * @param _closeFee The new close fee percentage for the Kresko asset.
      */
     function updateKreskoAsset(
         address _krAsset,
         uint256 _kFactor,
         address _oracle,
         bool _mintable,
-        uint256 _supplyLimit
+        uint256 _supplyLimit,
+        uint256 _closeFee
     ) external onlyRole(Role.OPERATOR) kreskoAssetExistsMaybeNotMintable(_krAsset) {
         require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, Error.KRASSET_INVALID_FACTOR);
         require(_oracle != address(0), Error.ADDRESS_INVALID_ORACLE);
+        require(_closeFee <= Constants.MAX_CLOSE_FEE, Error.PARAM_CLOSE_FEE_TOO_HIGH);
 
         KrAsset memory krAsset = ms().kreskoAssets[_krAsset];
         krAsset.kFactor = FixedPoint.Unsigned(_kFactor);
         krAsset.oracle = AggregatorV2V3Interface(_oracle);
-        krAsset.mintable = _mintable;
         krAsset.supplyLimit = _supplyLimit;
-
+        krAsset.closeFee = FixedPoint.Unsigned(_closeFee);
+        krAsset.mintable = _mintable;
         ms().kreskoAssets[_krAsset] = krAsset;
 
-        emit MinterEvent.KreskoAssetUpdated(_krAsset, _kFactor, _oracle, _mintable, _supplyLimit);
-    }
-
-    /**
-     * @notice Updates the burn fee.
-     * @param _burnFee The new burn fee as a raw value for a FixedPoint.Unsigned.
-     */
-    function updateBurnFee(uint256 _burnFee) public override onlyRole(Role.OPERATOR) {
-        require(_burnFee <= Constants.MAX_BURN_FEE, Error.PARAM_BURN_FEE_TOO_HIGH);
-        ms().burnFee = FixedPoint.Unsigned(_burnFee);
-        emit MinterEvent.BurnFeeUpdated(_burnFee);
+        emit MinterEvent.KreskoAssetUpdated(_krAsset, _kFactor, _oracle, _mintable, _supplyLimit, _closeFee);
     }
 
     /**

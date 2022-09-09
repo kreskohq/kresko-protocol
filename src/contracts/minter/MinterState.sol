@@ -29,10 +29,8 @@ struct MinterState {
     /*                           Configurable Parameters                          */
     /* -------------------------------------------------------------------------- */
 
-    /// @notice The recipient of burn fees.
+    /// @notice The recipient of protocol fees.
     address feeRecipient;
-    /// @notice The percent fee imposed upon the value of burned krAssets, taken as collateral and sent to feeRecipient.
-    FixedPoint.Unsigned burnFee;
     /// @notice The factor used to calculate the incentive a liquidator receives in the form of seized collateral.
     FixedPoint.Unsigned liquidationIncentiveMultiplier;
     /// @notice The absolute minimum ratio of collateral value to debt value used to calculate collateral requirements.
