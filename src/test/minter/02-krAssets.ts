@@ -10,7 +10,7 @@ import {
     KreskoAssetMintedEventObject,
 } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
-describe.only("Minter", function () {
+describe("Minter", function () {
     withFixture("minter-with-mocks");
     beforeEach(async function () {
         // Add mock collateral to protocol
