@@ -16,7 +16,6 @@ describe("Minter", function () {
             expect(await hre.Diamond.hasRole(Role.SAFETY_COUNCIL, hre.Multisig.address)).to.equal(true);
 
             expect(await hre.Diamond.feeRecipient()).to.equal(args.feeRecipient);
-            expect((await hre.Diamond.burnFee()).rawValue).to.equal(args.burnFee);
             expect((await hre.Diamond.liquidationIncentiveMultiplier()).rawValue).to.equal(
                 args.liquidationIncentiveMultiplier,
             );

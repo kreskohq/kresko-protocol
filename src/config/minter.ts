@@ -33,7 +33,6 @@ const getMinterInitializer = async (
             feeRecipient: treasury,
             operator,
             council: Safe.address,
-            burnFee: toFixedPoint(process.env.BURN_FEE),
             liquidationIncentiveMultiplier: toFixedPoint(process.env.LIQUIDATION_INCENTIVE),
             minimumCollateralizationRatio: toFixedPoint(process.env.MINIMUM_COLLATERALIZATION_RATIO),
             minimumDebtValue: toFixedPoint(process.env.MINIMUM_DEBT_VALUE, 8),
