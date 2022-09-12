@@ -3,7 +3,6 @@ import { ethers } from "ethers";
 
 export const constructors = {
     Kresko: (overrides?: Partial<KreskoConstructor>): KreskoConstructor => {
-        const burnFee = toFixedPoint(overrides?.burnFee || process.env.BURN_FEE);
         const liquidationIncentive = toFixedPoint(overrides?.liquidationIncentive || process.env.LIQUIDATION_INCENTIVE);
         const minimumCollateralizationRatio = toFixedPoint(
             overrides?.minimumCollateralizationRatio || process.env.MINIMUM_COLLATERALIZATION_RATIO,
@@ -15,15 +14,14 @@ export const constructors = {
             throw new Error("fee recipient address not set");
         }
         const feeRecipientAddress = ethers.utils.getAddress(feeRecipientAddressStr);
-        const secondsUntilPriceStale = overrides?.secondsUntilPriceStale || process.env.SECONDS_UNTIL_PRICE_STALE;
+        const minimumLiquidationThreshold = overrides?.minimumLiquidationThreshold || process.env.MINIMUM_LIQUIDATION_THRESHOLD;
 
         return {
-            burnFee,
             feeRecipient: feeRecipientAddress,
             liquidationIncentive,
             minimumCollateralizationRatio,
             minimumDebtValue,
-            secondsUntilPriceStale,
+            minimumLiquidationThreshold,
         };
     },
 };

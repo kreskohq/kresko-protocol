@@ -51,7 +51,7 @@ export enum Error {
     KRASSET_INVALID_FACTOR = "210", // kFactor must be greater than 1FP
     KRASSET_BURN_AMOUNT_OVERFLOW = "211", // Repaying more than account has debt
     KRASSET_EXISTS = "212", // Asset is already added
-    PARAM_BURN_FEE_TOO_HIGH = "213", // "Burn fee exceeds MAX_BURN_FEE"
+    PARAM_CLOSE_FEE_TOO_HIGH = "213", // "Close fee exceeds MAX_CLOSE_FEE"
     PARAM_LIQUIDATION_INCENTIVE_LOW = "214", // "Liquidation incentive less than MIN_LIQUIDATION_INCENTIVE_MULTIPLIER"
     PARAM_LIQUIDATION_INCENTIVE_HIGH = "215", // "Liquidation incentive greater than MAX_LIQUIDATION_INCENTIVE_MULTIPLIER"
     PARAM_MIN_COLLATERAL_RATIO_LOW = "216", // Minimum collateral ratio less than MIN_COLLATERALIZATION_RATIO

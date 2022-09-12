@@ -1,4 +1,4 @@
-import { addMockKreskoAsset, Role, withFixture } from "@test-utils";
+import { addMockKreskoAsset, Role, withFixture, defaultCloseFee } from "@test-utils";
 import { extractInternalIndexedEventFromTxReceipt } from "@utils";
 import { fromBig, toBig } from "@utils/numbers";
 import { Error } from "@utils/test/errors";
@@ -10,7 +10,7 @@ import {
     KreskoAssetMintedEventObject,
 } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
-describe("Minter", function () {
+describe.only("Minter", function () {
     withFixture("minter-with-mocks");
     beforeEach(async function () {
         // Add mock collateral to protocol
@@ -176,6 +176,7 @@ describe("Minter", function () {
                     price: 5, // $5
                     factor: 1,
                     supplyLimit: 100000,
+                    closeFee: defaultCloseFee,
                 };
                 const { contract: secondKreskoAsset } = await addMockKreskoAsset(secondKrAssetArgs);
 

@@ -145,7 +145,7 @@ export const depositCollateral = async (args: InputArgs) => {
 
 export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAssetArgs): Promise<KrAsset> => {
     const users = await getUsers();
-    const { name, price, factor, supplyLimit } = args;
+    const { name, price, factor, supplyLimit, closeFee } = args;
 
     // Create an oracle with price supplied
     const [OracleAggregator, Oracle] = await getMockOracleFor(name, price);
@@ -173,6 +173,7 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
         kFactor,
         OracleAggregator.address,
         toBig(supplyLimit, await krAsset.decimals()),
+        toFixedPoint(closeFee),
     );
 
     const hasOperatorElastic = await krAsset.hasRole(roles.OPERATOR, hre.Diamond.address);
@@ -222,6 +223,7 @@ export const updateKrAsset = async (address: string, args: TestKreskoAssetUpdate
         args.oracle || krAsset.priceAggregator.address,
         typeof args.mintable === "undefined" ? true : args.mintable,
         hre.toBig(args.supplyLimit, await krAsset.contract.decimals()),
+        toFixedPoint(args.closeFee),
     );
 
     const asset: KrAsset = {
