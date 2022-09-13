@@ -6,8 +6,8 @@
         "func-visibility": ["warn", { "ignoreConstructors": true }],
         "compiler-version": ["error", ">=0.8.14"],
         "max-line-length": ["warn", 120],
-        "prettier/prettier": ["error"],
         "no-inline-assembly": ["off"],
+        "prettier/prettier": ["error"],
         "reason-string": ["warn", { "maxLength": 64 }]
     }
 }
