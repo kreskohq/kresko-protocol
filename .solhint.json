@@ -5,8 +5,8 @@
         "code-complexity": ["error", 7],
         "func-visibility": ["warn", { "ignoreConstructors": true }],
         "compiler-version": ["error", ">=0.8.14"],
-        "max-line-length": ["warn", 120],
         "no-inline-assembly": ["off"],
+        "max-line-length": ["warn", 120],
         "prettier/prettier": ["error"],
         "reason-string": ["warn", { "maxLength": 64 }]
     }
