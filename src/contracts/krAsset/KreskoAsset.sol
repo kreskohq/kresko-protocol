@@ -18,8 +18,7 @@ import "hardhat/console.sol";
  * @title Kresko Synthethic Asset - rebalancing ERC20.
  * @author Kresko
  *
- * @notice Main purpose of this token is to act as the underlying for the `WrappedKreskoAsset`
- * - This token will rebalance eg. when a stock split happens
+ * @notice Rebalances to adjust for stock splits and reverse stock splits
  *
  * @notice Minting, burning and rebalancing can only be performed by the `Role.OPERATOR`
  */
@@ -103,6 +102,10 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable {
         if (!rebalanced) return allowed;
 
         return allowed.rebalance(rebalance);
+    }
+
+    function convert(uint256 _amount) external view returns (uint256 _rebalancedAmount) {
+        return _amount.rebalance(rebalance);
     }
 
     /* -------------------------------------------------------------------------- */

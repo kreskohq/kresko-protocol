@@ -17,6 +17,7 @@ import "@kreskolabs/hardhat-deploy";
 import "@nomiclabs/hardhat-ethers";
 
 import "@nomiclabs/hardhat-web3";
+import "hardhat-watcher";
 
 if (process.env.FOUNDRY === "true") {
     require("@panukresko/hardhat-anvil");
@@ -124,6 +125,15 @@ const config: HardhatUserConfig = {
         buildInfo: true,
         forgeOnly: false,
         cacheVacuum: 0,
+    },
+    watcher: {
+        test: {
+            tasks: [{ command: "test", params: { testFiles: ["{path}"] } }],
+            files: ["./src/test/**/*"],
+            verbose: false,
+            clearOnStart: true,
+            start: "echo watching tests",
+        },
     },
 };
 

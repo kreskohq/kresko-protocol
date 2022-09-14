@@ -11,10 +11,12 @@ library RebalanceMath {
     using FixedPointMathLib for uint256;
 
     function rebalanceReverse(uint256 self, Rebalance memory _rebalance) internal pure returns (uint256) {
+        if (_rebalance.rate == 0) return self;
         return _rebalance.expand ? self.divWadDown(_rebalance.rate) : self.mulWadDown(_rebalance.rate);
     }
 
     function rebalance(uint256 self, Rebalance memory _rebalance) internal pure returns (uint256) {
+        if (_rebalance.rate == 0) return self;
         return _rebalance.expand ? self.mulWadDown(_rebalance.rate) : self.divWadDown(_rebalance.rate);
     }
 }

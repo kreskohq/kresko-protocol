@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 import {IERC20Upgradeable} from "../shared/IERC20Upgradeable.sol";
+import {Rebalance} from "../shared/Rebalance.sol";
 
 interface IKreskoAsset is IERC20Upgradeable {
     function burn(address _from, uint256 _amount) external;
@@ -17,7 +18,9 @@ interface IKreskoAsset is IERC20Upgradeable {
 
     function mint(address _to, uint256 _amount) external;
 
-    function rebalance() external view returns (bool expand, uint256 rate);
+    function convert(uint256 _amount) external view returns (uint256 _rebalancedAmount);
+
+    function rebalance() external view returns (Rebalance memory);
 
     function rebalanced() external view returns (bool);
 

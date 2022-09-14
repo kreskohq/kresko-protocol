@@ -36,7 +36,6 @@ library LibKrAsset {
         KrAsset memory krAsset = self.kreskoAssets[_kreskoAsset];
 
         FixedPoint.Unsigned memory oraclePrice = FixedPoint.Unsigned(uint256(krAsset.oracle.latestAnswer()));
-
         FixedPoint.Unsigned memory value = FixedPoint.Unsigned(_amount).mul(oraclePrice);
 
         if (!_ignoreKFactor) {

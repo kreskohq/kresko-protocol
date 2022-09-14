@@ -33,17 +33,13 @@ describe("Minter", function () {
                 [hre.Diamond.address]: this.initialBalance,
             },
         });
-        expect(await this.collateral.contract.balanceOf(users.userOne.address)).to.equal(this.initialBalance);
 
         // User deposits 10,000 collateral
-        await expect(
-            hre.Diamond.connect(users.userOne).depositCollateral(
-                users.userOne.address,
-                this.collateral.address,
-                toBig(10000),
-            ),
-        ).not.to.be.reverted;
-
+        await hre.Diamond.connect(users.userOne).depositCollateral(
+            users.userOne.address,
+            this.collateral.address,
+            hre.toBig(10000),
+        );
         this.krAsset = hre.krAssets.find(c => c.deployArgs.name === defaultKrAssetArgs.name);
     });
 
@@ -738,5 +734,96 @@ describe("Minter", function () {
                 });
             });
         });
+    });
+    describe.only("#krAsset - rebalancing", function () {
+        beforeEach(async function () {
+            // this.krAsset = this.krAssets[0];
+            await this.krAsset.contract.grantRole(Role.OPERATOR, hre.addr.deployer);
+        });
+        describe("#mint - no rebalance to rebalanced", function () {
+            const mintAmountInt = 40;
+            const mintAmount = hre.toBig(mintAmountInt);
+            it("debt amount tracks the rebalancing index", async function () {
+                // rebalance params
+                const rate = 4;
+                const expand = true;
+
+                const userOne = hre.Diamond.connect(users.userOne);
+                await userOne.mintKreskoAsset(users.userOne.address, this.krAsset.address, mintAmount);
+
+                await this.krAsset.contract.setRebalance(hre.toBig(rate), expand);
+                const balance = await this.krAsset.contract.balanceOf(users.userOne.address);
+
+                expect(balance).to.bignumber.equal(mintAmount.mul(rate));
+
+                const debtAmount = await userOne.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                expect(balance).to.bignumber.equal(debtAmount);
+            });
+
+            it("debt value tracks the rebalancing index", async function () {
+                // rebalance params
+                const rate = 4;
+                const expand = true;
+                const assetPrice = await this.krAsset.getPrice();
+
+                const userOne = hre.Diamond.connect(users.userOne);
+                await userOne.mintKreskoAsset(users.userOne.address, this.krAsset.address, mintAmount);
+                const valueBeforeRebalance = await userOne.getAccountKrAssetValue(users.userOne.address);
+
+                // assume price follows the rate eg. 4x more = 4x less value
+                this.krAsset.setPrice(hre.fromBig(assetPrice.div(rate), 8));
+                await this.krAsset.contract.setRebalance(hre.toBig(rate), expand);
+                const valueAfterRebalance = await userOne.getAccountKrAssetValue(users.userOne.address);
+
+                expect(valueAfterRebalance.rawValue.eq(valueBeforeRebalance.rawValue)).to.be.true;
+            });
+        });
+        describe("#mint - pre rebalanced", function () {
+            const mintAmountInt = 40;
+            const mintAmount = hre.toBig(mintAmountInt);
+            it("debt amount tracks the rebalancing index", async function () {
+                const userOne = hre.Diamond.connect(users.userOne);
+
+                // rebalance params
+                const rate = 4;
+                const expand = true;
+                const assetPrice = await this.krAsset.getPrice();
+
+                // assume price follows the rate eg. 4x more = 4x less value
+                this.krAsset.setPrice(hre.fromBig(assetPrice.div(rate), 8));
+
+                // Rebalancing event
+                await this.krAsset.contract.setRebalance(hre.toBig(rate), expand);
+
+                await userOne.mintKreskoAsset(users.userOne.address, this.krAsset.address, mintAmount);
+                const balance = await this.krAsset.contract.balanceOf(users.userOne.address);
+
+                console.log(Number(balance), Number(mintAmount));
+                expect(hre.fromBig(balance)).to.equal(mintAmountInt * rate);
+
+                const debtAmount = await userOne.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                expect(balance.eq(debtAmount)).to.be.true;
+            });
+
+            it("debt value tracks the rebalancing index", async function () {
+                // rebalance params
+                const rate = 4;
+                const expand = true;
+
+                const assetPrice = await this.krAsset.getPrice();
+                const userOne = hre.Diamond.connect(users.userOne);
+                // assume price follows the rate eg. 4x more = 4x less value
+                this.krAsset.setPrice(hre.fromBig(assetPrice.div(rate), 8));
+                await this.krAsset.contract.setRebalance(hre.toBig(rate), expand);
+
+                await userOne.mintKreskoAsset(users.userOne.address, this.krAsset.address, mintAmount);
+                const valueBeforeRebalance = await userOne.getAccountKrAssetValue(users.userOne.address);
+                const valueAfterRebalance = await userOne.getAccountKrAssetValue(users.userOne.address);
+
+                expect(Number(valueAfterRebalance)).to.be.equal(Number(valueBeforeRebalance));
+            });
+        });
+
+        // describe("#burnKreskoAsset", function () {});
     });
 });

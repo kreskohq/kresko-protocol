@@ -15,7 +15,7 @@ import {ERC4626Upgradeable, KreskoAsset} from "../shared/ERC4626Upgradeable.sol"
  * Based on ERC-4626 by Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/mixins/ERC4626.sol)
  * @author Kresko
  *
- * @notice Main purpose of this token is to provide a stable balance for the underlying asset.
+ * @notice Main purpose of this token is to provide a stable balance for the underlying kresko asset.
  * This enables easier integration with external contracts.
  */
 contract WrappedKreskoAsset is ERC4626Upgradeable, AccessControlEnumerableUpgradeable {
@@ -70,28 +70,15 @@ contract WrappedKreskoAsset is ERC4626Upgradeable, AccessControlEnumerableUpgrad
      * @notice Track the underlying amount
      * @return Total supply for the underlying
      */
-
     function totalAssets() public view virtual override returns (uint256) {
         return asset.totalSupply();
     }
 
-    function deposit(uint256 _assets, address _receiver)
-        public
-        virtual
-        override
-        onlyRole(Role.OPERATOR)
-        returns (uint256 shares)
-    {
+    function deposit(uint256 _assets, address _receiver) public virtual override returns (uint256 shares) {
         shares = super.deposit(_assets, _receiver);
     }
 
-    function mint(uint256 _shares, address _receiver)
-        public
-        virtual
-        override
-        onlyRole(Role.OPERATOR)
-        returns (uint256 assets)
-    {
+    function mint(uint256 _shares, address _receiver) public virtual override returns (uint256 assets) {
         assets = super.mint(_shares, _receiver);
     }
 
@@ -99,7 +86,7 @@ contract WrappedKreskoAsset is ERC4626Upgradeable, AccessControlEnumerableUpgrad
         uint256 _assets,
         address _receiver,
         address _owner
-    ) public virtual override onlyRole(Role.OPERATOR) returns (uint256 shares) {
+    ) public virtual override returns (uint256 shares) {
         shares = super.withdraw(_assets, _receiver, _owner);
     }
 
@@ -107,7 +94,7 @@ contract WrappedKreskoAsset is ERC4626Upgradeable, AccessControlEnumerableUpgrad
         uint256 _shares,
         address _receiver,
         address _owner
-    ) public virtual override onlyRole(Role.OPERATOR) returns (uint256 assets) {
+    ) public virtual override returns (uint256 assets) {
         assets = super.redeem(_shares, _receiver, _owner);
     }
 
