@@ -4,6 +4,7 @@ pragma solidity >=0.8.14;
 import {IAccountState} from "../interfaces/IAccountState.sol";
 import {Action, KrAsset, CollateralAsset, FixedPoint} from "../MinterTypes.sol";
 import {IKreskoAsset} from "../../krAsset/IKreskoAsset.sol";
+import {IWrappedKreskoAsset} from "../../krAsset/IWrappedKreskoAsset.sol";
 import {RebalanceMath, Rebalance} from "../../shared/Rebalance.sol";
 import {ms} from "../MinterStorage.sol";
 
@@ -49,8 +50,8 @@ contract AccountStateFacet is IAccountState {
      * @param _account The account to query amount for
      * @return Amount of debt for `_asset`
      */
-    function kreskoAssetDebt(address _account, IKreskoAsset _asset) external view returns (uint256) {
-        return _asset.convert(ms().kreskoAssetDebt[_account][address(_asset)]);
+    function kreskoAssetDebt(address _account, address _asset) external view returns (uint256) {
+        return ms().getKreskoAssetDebt(_account, _asset);
     }
 
     /* -------------------------------------------------------------------------- */

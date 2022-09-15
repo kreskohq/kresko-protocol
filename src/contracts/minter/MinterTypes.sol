@@ -89,6 +89,7 @@ struct MinterParams {
  * @param oracle The oracle that provides the USD price of one Kresko asset.
  * @param supplyLimit The total supply limit of the Kresko asset.
  * @param closeFee The percentage paid in fees when closing a debt position of this type.
+ * @param wrapper If the collateral is a krAsset, the wrapper address
  * @param exists Whether the Kresko asset exists within the protocol.
  * @param mintable Whether the Kresko asset can be minted.
  */
@@ -96,6 +97,7 @@ struct KrAsset {
     FixedPoint.Unsigned kFactor;
     AggregatorV2V3Interface oracle;
     uint256 supplyLimit;
+    address wrapper;
     FixedPoint.Unsigned closeFee;
     bool mintable;
     bool exists;
@@ -107,14 +109,14 @@ struct KrAsset {
  * it to be deposited and withdrawn.
  * @param factor The collateral factor used for calculating the value of the collateral.
  * @param oracle The oracle that provides the USD price of one collateral asset.
- * @param kreskoAsset If the collateral is a krAsset, the underlying token address
+ * @param wrapper If the collateral is a krAsset, the wrapper address
  * @param decimals The decimals for the token, stored here to avoid repetitive external calls.
  * @param exists Whether the collateral asset exists within the protocol.
  */
 struct CollateralAsset {
     FixedPoint.Unsigned factor;
     AggregatorV2V3Interface oracle;
-    address kreskoAsset;
+    address wrapper;
     uint8 decimals;
     bool exists;
 }

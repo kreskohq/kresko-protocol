@@ -49,6 +49,23 @@ abstract contract ERC4626Upgradeable is ERC20Upgradeable {
     }
 
     /* -------------------------------------------------------------------------- */
+    /*                             BORROW/REPAY LOGIX                             */
+    /* -------------------------------------------------------------------------- */
+
+    function borrow(uint256 assets, address receiver) public virtual returns (uint256 shares) {
+        // Check for rounding error since we round down in previewDeposit.
+        require((shares = previewDeposit(assets)) != 0, "ZERO_SHARES");
+
+        // Mint
+        _mint(asset.kresko(), shares);
+        asset.mint(receiver, assets);
+
+        emit Deposit(msg.sender, receiver, assets, shares);
+
+        _afterDeposit(assets, shares);
+    }
+
+    /* -------------------------------------------------------------------------- */
     /*                          DEPOSIT/WITHDRAWAL LOGIC                          */
     /* -------------------------------------------------------------------------- */
 

@@ -61,7 +61,7 @@ export const addMockCollateralAsset = async (
     Collateral.decimals.returns(decimals);
 
     const cFactor = toFixedPoint(factor);
-    await hre.Diamond.connect(users.operator).addCollateralAsset(Collateral.address, cFactor, OracleAggregator.address);
+    await hre.Diamond.connect(users.operator).addCollateralAsset(Collateral.address, hre.ethers.constants.AddressZero, cFactor, OracleAggregator.address);
     const mocks = {
         contract: Collateral,
         priceAggregator: OracleAggregator,
@@ -95,6 +95,7 @@ export const updateCollateralAsset = async (address: string, args: TestCollatera
     const collateral = hre.collaterals.find(c => c.address === address);
     await hre.Diamond.connect(users.operator).updateCollateralAsset(
         collateral.address,
+        hre.ethers.constants.AddressZero,
         toFixedPoint(args.factor),
         args.oracle || collateral.priceAggregator.address,
     );
@@ -157,32 +158,36 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
     await krAsset.initialize(name, symbol, 18, users.deployer.address, hre.Diamond.address);
 
     // Create the fixed krAsset
-    const krAssetFixed = await (
+    const wkrAsset = await (
         await smock.mock<WrappedKreskoAsset__factory>("WrappedKreskoAsset")
     ).deploy(krAsset.address);
 
-    await krAssetFixed.setVariable("_initialized", 0);
-    await krAssetFixed.initialize(krAsset.address, name, wrapperPrefix + symbol, users.deployer.address);
+    await wkrAsset.setVariable("_initialized", 0);
+    await wkrAsset.initialize(krAsset.address, name, wrapperPrefix + symbol, users.deployer.address);
 
     // Add the asset to the protocol
     const kFactor = toFixedPoint(factor);
     await hre.Diamond.connect(users.operator).addKreskoAsset(
         krAsset.address,
-        krAssetFixed.address,
+        wkrAsset.address,
         kFactor,
         OracleAggregator.address,
         toBig(supplyLimit, await krAsset.decimals()),
         toFixedPoint(closeFee),
     );
+    await krAsset.grantRole(roles.OPERATOR, wkrAsset.address);
+    
+    const krAssetHasOperator = await krAsset.hasRole(roles.OPERATOR, hre.Diamond.address);
+    const wkrAssetHasOperator = await wkrAsset.hasRole(roles.OPERATOR, hre.Diamond.address);
+    const wkrAssetIsOperatorForKrAsset = await krAsset.hasRole(roles.OPERATOR, wkrAsset.address);
 
-    const hasOperatorElastic = await krAsset.hasRole(roles.OPERATOR, hre.Diamond.address);
-    const hasOperatorFixed = await krAssetFixed.hasRole(roles.OPERATOR, hre.Diamond.address);
+    expect(krAssetHasOperator).to.be.true;
+    expect(wkrAssetHasOperator).to.be.true;
+    expect(wkrAssetIsOperatorForKrAsset).to.be.true;
 
-    expect(hasOperatorElastic).to.be.true;
-    expect(hasOperatorFixed).to.be.true;
     const mocks = {
         contract: krAsset,
-        wrapper: krAssetFixed,
+        wrapper: wkrAsset,
         priceAggregator: OracleAggregator,
         priceFeed: Oracle,
     };
@@ -192,7 +197,7 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
         kresko: async () => await hre.Diamond.kreskoAsset(krAsset.address),
         deployArgs: args,
         contract: KreskoAsset__factory.connect(krAsset.address, users.deployer),
-        wrapper: WrappedKreskoAsset__factory.connect(krAssetFixed.address, users.deployer),
+        wrapper: WrappedKreskoAsset__factory.connect(wkrAsset.address, users.deployer),
         priceAggregator: FluxPriceAggregator__factory.connect(OracleAggregator.address, users.deployer),
         priceFeed: FluxPriceFeed__factory.connect(Oracle.address, users.deployer),
         mocks,
@@ -218,6 +223,7 @@ export const updateKrAsset = async (address: string, args: TestKreskoAssetUpdate
     const krAsset = hre.krAssets.find(c => c.address === address);
     await hre.Diamond.connect(users.operator).updateKreskoAsset(
         krAsset.address,
+        krAsset.mocks.wrapper.address,
         toFixedPoint(args.factor),
         args.oracle || krAsset.priceAggregator.address,
         typeof args.mintable === "undefined" ? true : args.mintable,

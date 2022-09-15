@@ -62,6 +62,7 @@ library Error {
     string public constant KRASSET_COLLATERAL_LOW = "222"; // Collateral deposits do not cover the amount being minted
     string public constant KRASSET_MINT_AMOUNT_LOW = "223"; // Debt position must be greater than the minimum debt position value
     string public constant KRASSET_MAX_SUPPLY_REACHED = "224"; // Asset being minted has reached its current supply limit
+
     string public constant SELF_LIQUIDATION = "225"; // Account cannot liquidate itself
     string public constant ZERO_REPAY = "226"; // Account cannot liquidate itself
     string public constant STALE_PRICE = "227"; // Price for the asset is stale
@@ -75,6 +76,8 @@ library Error {
     string public constant INVALID_LT = "235"; // Liquidation threshold is greater than minimum collateralization ratio
     string public constant COLLATERAL_INSUFFICIENT_AMOUNT = "236"; // Insufficient amount of collateral to complete the operation
     string public constant MULTISIG_NOT_ENOUGH_OWNERS = "237"; // Multisig has invalid amount of owners
+    string public constant KRASSET_INVALID_WRAPPER = "238"; // krAsset wrapper does not support the correct interfaceId
+    string public constant KRASSET_INVALID_CONTRACT = "239"; // krAsset does not support the correct interfaceId
 
     /* -------------------------------------------------------------------------- */
     /*                                   3. Staking                               */

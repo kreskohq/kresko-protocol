@@ -5,6 +5,7 @@ import {FixedPointMathLib} from "@rari-capital/solmate/src/utils/FixedPointMathL
 import {SafeTransferLib} from "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
 
 import {Role} from "../libs/Authorization.sol";
+
 import {IWrappedKreskoAsset} from "./IWrappedKreskoAsset.sol";
 import {ERC4626Upgradeable, KreskoAsset} from "../shared/ERC4626Upgradeable.sol";
 
@@ -43,9 +44,10 @@ contract WrappedKreskoAsset is ERC4626Upgradeable, AccessControlEnumerableUpgrad
      */
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
         return
-            interfaceId == type(IWrappedKreskoAsset).interfaceId ||
-            interfaceId == 0x01ffc9a7 ||
-            interfaceId == 0x36372b07;
+            interfaceId != 0xffffffff &&
+            (interfaceId == type(IWrappedKreskoAsset).interfaceId ||
+                interfaceId == 0x01ffc9a7 ||
+                interfaceId == 0x36372b07);
     }
 
     /**

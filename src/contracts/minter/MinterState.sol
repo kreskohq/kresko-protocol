@@ -1,20 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 
-import {Action, SafetyState, CollateralAsset, KrAsset, FixedPoint} from "./MinterTypes.sol";
 import {LibKrAsset} from "./libs/LibKrAsset.sol";
 import {LibAccount} from "./libs/LibAccount.sol";
 import {LibCollateral} from "./libs/LibCollateral.sol";
 import {LibCalc} from "./libs/LibCalculation.sol";
 import {LibRepay} from "./libs/LibRepay.sol";
+import {Action, SafetyState, CollateralAsset, KrAsset, FixedPoint} from "./MinterTypes.sol";
+
+
+/* solhint-disable state-visibility */
 
 using LibCalc for MinterState global;
 using LibKrAsset for MinterState global;
 using LibCollateral for MinterState global;
 using LibAccount for MinterState global;
 using LibRepay for MinterState global;
-
-/* solhint-disable state-visibility */
 
 /// @title Complete storage layout for the minter state
 struct MinterState {
@@ -66,3 +67,4 @@ struct MinterState {
     /// @notice Mapping of account -> addresses of borrowed krAssets
     mapping(address => address[]) mintedKreskoAssets;
 }
+

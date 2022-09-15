@@ -3,8 +3,10 @@ pragma solidity >=0.8.14;
 
 import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {MinterState} from "../MinterState.sol";
+import {KrAsset} from "../MinterTypes.sol";
 import {RebalanceMath, Rebalance} from "../../shared/Rebalance.sol";
 import {IKreskoAsset} from "../../krAsset/IKreskoAsset.sol";
+import {IWrappedKreskoAsset} from "../../krAsset/IWrappedKreskoAsset.sol";
 import "hardhat/console.sol";
 
 library LibAccount {
@@ -112,11 +114,24 @@ library LibAccount {
         address[] memory assets = self.mintedKreskoAssets[_account];
         for (uint256 i = 0; i < assets.length; i++) {
             address asset = assets[i];
-            value = value.add(
-                self.getKrAssetValue(asset, IKreskoAsset(asset).convert(self.kreskoAssetDebt[_account][asset]), false)
-            );
+            value = value.add(self.getKrAssetValue(asset, self.getKreskoAssetDebt(_account, asset), false));
         }
         return value;
+    }
+
+    /**
+     * @notice Get `_account` debt amount for `_asset`
+     * @param _asset The asset address
+     * @param _account The account to query amount for
+     * @return Amount of debt for `_asset`
+     */
+    function getKreskoAssetDebt(
+        MinterState storage self,
+        address _account,
+        address _asset
+    ) internal view returns (uint256) {
+        KrAsset memory krAsset = self.kreskoAssets[_asset];
+        return IWrappedKreskoAsset(krAsset.wrapper).previewRedeem(self.kreskoAssetDebt[_account][_asset]);
     }
 
     /**

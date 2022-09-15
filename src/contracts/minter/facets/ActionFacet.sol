@@ -3,6 +3,7 @@ pragma solidity >=0.8.14;
 
 import {IAction} from "../interfaces/IAction.sol";
 import {IKreskoAsset} from "../../krAsset/IKreskoAsset.sol";
+import {IWrappedKreskoAsset} from "../../krAsset/IWrappedKreskoAsset.sol";
 
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
@@ -11,8 +12,7 @@ import {MinterEvent} from "../../libs/Events.sol";
 
 import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
 import {DiamondModifiers, MinterModifiers} from "../../shared/Modifiers.sol";
-
-import {Action, FixedPoint} from "../MinterTypes.sol";
+import {Action, FixedPoint, KrAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 
 contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
@@ -107,8 +107,10 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
         }
 
         // Enforce krAsset's total supply limit
+        KrAsset memory krAsset = s.kreskoAssets[_kreskoAsset];
+
         require(
-            IKreskoAsset(_kreskoAsset).totalSupply() + _amount <= s.kreskoAssets[_kreskoAsset].supplyLimit,
+            IKreskoAsset(_kreskoAsset).totalSupply() + _amount <= krAsset.supplyLimit,
             Error.KRASSET_MAX_SUPPLY_REACHED
         );
 
@@ -147,9 +149,7 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
             s.mintedKreskoAssets[_account].push(_kreskoAsset);
         }
         // Record the mint.
-        s.kreskoAssetDebt[_account][_kreskoAsset] += _amount;
-
-        IKreskoAsset(_kreskoAsset).mint(_account, _amount);
+        s.kreskoAssetDebt[_account][_kreskoAsset] += IWrappedKreskoAsset(krAsset.wrapper).borrow(_amount, _account);
 
         emit MinterEvent.KreskoAssetMinted(_account, _kreskoAsset, _amount);
     }

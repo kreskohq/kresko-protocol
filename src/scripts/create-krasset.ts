@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
+import { Role } from "@utils/test";
 import hre from "hardhat";
 const { ethers } = hre;
 import minterConfig from "../config/minter";
@@ -43,6 +44,9 @@ export async function createKrAsset(name: string, symbol, decimals = 18) {
             },
         },
     });
+
+    await KreskoAsset.grantRole(Role.OPERATOR, WrappedKreskoAsset.address);
+
     const asset: KrAsset = {
         address: KreskoAsset.address,
         contract: KreskoAsset,

@@ -9,6 +9,7 @@ import {Error} from "../libs/Errors.sol";
 
 import {RebalanceMath, Rebalance} from "../shared/Rebalance.sol";
 import {ERC20Upgradeable} from "../shared/ERC20Upgradeable.sol";
+import {IERC165} from "../shared/IERC165.sol";
 
 import {IKreskoAsset} from "./IKreskoAsset.sol";
 
@@ -23,7 +24,7 @@ import "hardhat/console.sol";
  * @notice Minting, burning and rebalancing can only be performed by the `Role.OPERATOR`
  */
 
-contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable {
+contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IERC165 {
     using RebalanceMath for uint256;
 
     bool public rebalanced;
@@ -62,8 +63,16 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable {
      * @notice ERC-165
      * - WrappedKreskoAsset, ERC20 and ERC-165 itself
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
-        return interfaceId == type(IKreskoAsset).interfaceId || interfaceId == 0x01ffc9a7 || interfaceId == 0x36372b07;
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override(AccessControlEnumerableUpgradeable, IERC165)
+        returns (bool)
+    {
+        return
+            interfaceId != 0xffffffff &&
+            (interfaceId == type(IKreskoAsset).interfaceId || interfaceId == 0x01ffc9a7 || interfaceId == 0x36372b07);
     }
 
     /**
@@ -164,7 +173,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable {
      * @param _amount The amount of tokens to mint.
      */
     function mint(address _to, uint256 _amount) external onlyRole(Role.OPERATOR) {
-        _mint(_to, !rebalanced ? _amount : _amount.rebalance(rebalance));
+        _mint(_to, !rebalanced ? _amount : _amount.rebalanceReverse(rebalance));
     }
 
     /**
@@ -173,7 +182,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable {
      * @param _amount The amount of tokens to burn.
      */
     function burn(address _from, uint256 _amount) external onlyRole(Role.OPERATOR) {
-        _burn(_from, !rebalanced ? _amount : _amount.rebalance(rebalance));
+        _burn(_from, !rebalanced ? _amount : _amount.rebalanceReverse(rebalance));
     }
 
     /* -------------------------------------------------------------------------- */
