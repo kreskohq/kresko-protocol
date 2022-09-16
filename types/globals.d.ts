@@ -2,8 +2,9 @@ import { DeployResult } from "@kreskolabs/hardhat-deploy/types";
 import type { BytesLike } from "ethers";
 import { FakeContract, MockContract } from "@defi-wonderland/smock";
 import { ERC20Upgradeable__factory } from "./typechain/factories/src/contracts/shared";
-import { KreskoAsset__factory, WrappedKreskoAsset__factory } from "./typechain/factories/src/contracts/krAsset";
+import { KreskoAsset__factory, KreskoAssetAnchor__factory } from "./typechain/factories/src/contracts/krAsset";
 import { KrAssetStructOutput } from "./Kresko";
+import {KreskoAssetAnchor} from "types/typechain/src/contracts/krAsset"
 import { CollateralAssetStruct } from "./typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 import {
     TestKreskoAssetUpdate,
@@ -19,9 +20,7 @@ declare global {
     /*                              Minter Contracts                              */
     /* -------------------------------------------------------------------------- */
     type Kresko = import("types/typechain").Kresko;
-
     type KreskoAsset = import("types/typechain").KreskoAsset;
-    type WrappedKreskoAsset = import("types/typechain").WrappedKreskoAsset;
     type KrAsset = {
         krAsset?: boolean;
         collateral?: boolean;
@@ -33,9 +32,9 @@ declare global {
             contract: MockContract<KreskoAsset>;
             priceAggregator: MockContract<FluxPriceAggregator>;
             priceFeed: FakeContract<FluxPriceFeed>;
-            wrapper?: MockContract<WrappedKreskoAsset>;
+            anchor?: MockContract<KreskoAssetAnchor>;
         };
-        wrapper?: WrappedKreskoAsset;
+        anchor?: KreskoAssetAnchor;
         priceAggregator: FluxPriceAggregator;
         priceFeed: FluxPriceFeed;
         setPrice?: (price: number) => void;
@@ -53,9 +52,11 @@ declare global {
             contract: MockContract<ERC20Upgradeable>;
             priceAggregator: MockContract<FluxPriceAggregator>;
             priceFeed: FakeContract<FluxPriceFeed>;
+            anchor?: MockContract<KreskoAssetAnchor>;
         };
         priceAggregator: FluxPriceAggregator;
         priceFeed: FluxPriceFeed;
+        anchor?: KreskoAssetAnchor;
         setPrice?: (price: number) => void;
         getPrice?: () => Promise<BigNumber>;
         update?: (update: TestCollateralAssetUpdate) => Promise<CollateralAsset>;
@@ -142,7 +143,7 @@ declare global {
         kresko: string;
     }
 
-    interface WrappedKreskoAssetInitializer {
+    interface KreskoAssetAnchorInitializer {
         krAsset: string;
         name: string;
         symbol: string;

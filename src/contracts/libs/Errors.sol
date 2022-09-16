@@ -72,11 +72,11 @@ library Error {
     string public constant NOT_SAFETY_COUNCIL = "231"; // Sender must have the role `Role.SAFETY_COUNCIL`
     string public constant ACTION_PAUSED_FOR_ASSET = "232"; // This action is currently paused for this asset
     string public constant INVALID_ASSET_SUPPLIED = "233"; // Asset supplied is not a collateral nor a krAsset
-    string public constant KRASSET_NOT_WRAPPED = "234"; // krAsset given is not the wrapped version
+    string public constant KRASSET_NOT_ANCHOR = "234"; // Address is not the anchor for the krAsset
     string public constant INVALID_LT = "235"; // Liquidation threshold is greater than minimum collateralization ratio
     string public constant COLLATERAL_INSUFFICIENT_AMOUNT = "236"; // Insufficient amount of collateral to complete the operation
     string public constant MULTISIG_NOT_ENOUGH_OWNERS = "237"; // Multisig has invalid amount of owners
-    string public constant KRASSET_INVALID_WRAPPER = "238"; // krAsset wrapper does not support the correct interfaceId
+    string public constant KRASSET_INVALID_ANCHOR = "238"; // krAsset anchor does not support the correct interfaceId
     string public constant KRASSET_INVALID_CONTRACT = "239"; // krAsset does not support the correct interfaceId
 
     /* -------------------------------------------------------------------------- */

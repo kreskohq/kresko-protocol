@@ -3,7 +3,7 @@ pragma solidity >=0.8.14;
 
 import {IAction} from "../interfaces/IAction.sol";
 import {IKreskoAsset} from "../../krAsset/IKreskoAsset.sol";
-import {IWrappedKreskoAsset} from "../../krAsset/IWrappedKreskoAsset.sol";
+import {IKreskoAssetAnchor} from "../../krAsset/IKreskoAssetAnchor.sol";
 
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
@@ -150,7 +150,7 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
             s.mintedKreskoAssets[_account].push(_kreskoAsset);
         }
         // Record the mint.
-        s.kreskoAssetDebt[_account][_kreskoAsset] += IWrappedKreskoAsset(krAsset.wrapper).issue(_amount, _account);
+        s.kreskoAssetDebt[_account][_kreskoAsset] += IKreskoAssetAnchor(krAsset.anchor).issue(_amount, _account);
 
         emit MinterEvent.KreskoAssetMinted(_account, _kreskoAsset, _amount);
     }
@@ -196,7 +196,7 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
         s.chargeCloseFee(_account, _kreskoAsset, burnAmountNoDust);
 
         // Burn wkrAssets and krAssets. Reduce debt by amount burned.
-        s.kreskoAssetDebt[_account][_kreskoAsset] -= IWrappedKreskoAsset(s.kreskoAssets[_kreskoAsset].wrapper).destroy(
+        s.kreskoAssetDebt[_account][_kreskoAsset] -= IKreskoAssetAnchor(s.kreskoAssets[_kreskoAsset].anchor).destroy(
             burnAmountNoDust,
             msg.sender
         );

@@ -3,7 +3,7 @@ pragma solidity >=0.8.14;
 
 import {IERC165} from "../../shared/IERC165.sol";
 import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
-import {IWrappedKreskoAsset} from "../../krAsset/IWrappedKreskoAsset.sol";
+import {IKreskoAssetAnchor} from "../../krAsset/IKreskoAssetAnchor.sol";
 import {IKreskoAsset} from "../../krAsset/IKreskoAsset.sol";
 
 import {IConfigurationFacet} from "../interfaces/IConfigurationFacet.sol";
@@ -66,14 +66,14 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
      * @notice Adds a collateral asset to the protocol.
      * @dev Only callable by the owner and cannot be called more than once for an asset.
      * @param _collateralAsset The address of the collateral asset.
-     * @param _wrapper Underlying wrapper for a krAsset collateral, needs to support IWrappedKreskoAsset.
+     * @param _anchor Underlying anchor for a krAsset collateral, needs to support IKreskoAssetAnchor.
      * @param _factor The collateral factor of the collateral asset as a raw value for a FixedPoint.Unsigned.
      * Must be <= 1e18.
      * @param _oracle The oracle address for the collateral asset's USD value.
      */
     function addCollateralAsset(
         address _collateralAsset,
-        address _wrapper,
+        address _anchor,
         uint256 _factor,
         address _oracle
     ) external nonReentrant onlyRole(Role.OPERATOR) collateralAssetDoesNotExist(_collateralAsset) {
@@ -83,14 +83,14 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
 
         bool krAsset = ms().kreskoAssets[_collateralAsset].exists;
         require(
-            !krAsset || IERC165(_wrapper).supportsInterface(type(IWrappedKreskoAsset).interfaceId),
-            Error.KRASSET_INVALID_WRAPPER
+            !krAsset || IERC165(_anchor).supportsInterface(type(IKreskoAssetAnchor).interfaceId),
+            Error.KRASSET_INVALID_ANCHOR
         );
 
         ms().collateralAssets[_collateralAsset] = CollateralAsset({
             factor: FixedPoint.Unsigned(_factor),
             oracle: AggregatorV2V3Interface(_oracle),
-            wrapper: _wrapper,
+            anchor: _anchor,
             exists: true,
             decimals: IERC20Upgradeable(_collateralAsset).decimals()
         });
@@ -101,13 +101,13 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
      * @notice Updates a previously added collateral asset.
      * @dev Only callable by the owner.
      * @param _collateralAsset The address of the collateral asset.
-     * @param _wrapper Underlying wrapper for a krAsset collateral, needs to support IWrappedKreskoAsset.
+     * @param _anchor Underlying anchor for a krAsset collateral, needs to support IKreskoAssetAnchor.
      * @param _factor The new collateral factor as a raw value for a FixedPoint.Unsigned. Must be <= 1e18.
      * @param _oracle The new oracle address for the collateral asset.
      */
     function updateCollateralAsset(
         address _collateralAsset,
-        address _wrapper,
+        address _anchor,
         uint256 _factor,
         address _oracle
     ) external onlyRole(Role.OPERATOR) collateralAssetExists(_collateralAsset) {
@@ -115,8 +115,8 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         // Setting the factor to 0 effectively sunsets a collateral asset, which is intentionally allowed.
         require(_factor <= FixedPoint.FP_SCALING_FACTOR, Error.COLLATERAL_INVALID_FACTOR);
 
-        if (_wrapper != address(0)) {
-            ms().collateralAssets[_collateralAsset].wrapper = _wrapper;
+        if (_anchor != address(0)) {
+            ms().collateralAssets[_collateralAsset].anchor = _anchor;
         }
         ms().collateralAssets[_collateralAsset].factor = FixedPoint.Unsigned(_factor);
         ms().collateralAssets[_collateralAsset].oracle = AggregatorV2V3Interface(_oracle);
@@ -130,8 +130,8 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
     /**
      * @notice Adds a Kresko asset to the protocol.
      * @dev Only callable by the owner.
-     * @param _krAsset The address of the KreskoAsset.
-     * @param _wrapper The address of the wrapped Kresko asset.
+     * @param _krAsset The address of the wrapped Kresko asset, needs to support IKreskoAsset.
+     * @param _anchor Underlying anchor for the krAsset, needs to support IKreskoAssetAnchor.
      * @param _kFactor The k-factor of the Kresko asset as a raw value for a FixedPoint.Unsigned. Must be >= 1e18.
      * @param _oracle The oracle address for the Kresko asset.
      * @param _supplyLimit The initial total supply limit for the Kresko asset.
@@ -139,7 +139,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
      */
     function addKreskoAsset(
         address _krAsset,
-        address _wrapper,
+        address _anchor,
         uint256 _kFactor,
         address _oracle,
         uint256 _supplyLimit,
@@ -151,10 +151,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         require(_closeFee <= Constants.MAX_CLOSE_FEE, Error.PARAM_CLOSE_FEE_TOO_HIGH);
 
         require(IERC165(_krAsset).supportsInterface(type(IKreskoAsset).interfaceId), Error.KRASSET_INVALID_CONTRACT);
-        require(
-            IERC165(_wrapper).supportsInterface(type(IWrappedKreskoAsset).interfaceId),
-            Error.KRASSET_INVALID_WRAPPER
-        );
+        require(IERC165(_anchor).supportsInterface(type(IKreskoAssetAnchor).interfaceId), Error.KRASSET_INVALID_ANCHOR);
 
         // The diamond needs the operator role
         require(IKreskoAsset(_krAsset).hasRole(Role.OPERATOR, address(this)), Error.NOT_OPERATOR);
@@ -163,7 +160,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         ms().kreskoAssets[_krAsset] = KrAsset({
             kFactor: FixedPoint.Unsigned(_kFactor),
             oracle: AggregatorV2V3Interface(_oracle),
-            wrapper: _wrapper,
+            anchor: _anchor,
             supplyLimit: _supplyLimit,
             closeFee: FixedPoint.Unsigned(_closeFee),
             exists: true,
@@ -176,7 +173,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
      * @notice Updates the k-factor of a previously added Kresko asset.
      * @dev Only callable by the owner.
      * @param _krAsset The address of the Kresko asset.
-     * @param _wrapper Underlying wrapper for a krAsset.
+     * @param _anchor Underlying anchor for a krAsset.
      * @param _kFactor The new k-factor as a raw value for a FixedPoint.Unsigned. Must be >= 1e18.
      * @param _oracle The new oracle address for the Kresko asset's USD value.
      * @param _mintable The new mintable value.
@@ -185,7 +182,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
      */
     function updateKreskoAsset(
         address _krAsset,
-        address _wrapper,
+        address _anchor,
         uint256 _kFactor,
         address _oracle,
         bool _mintable,
@@ -198,8 +195,8 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
 
         KrAsset memory krAsset = ms().kreskoAssets[_krAsset];
 
-        if (address(_wrapper) != address(0)) {
-            krAsset.wrapper = _wrapper;
+        if (address(_anchor) != address(0)) {
+            krAsset.anchor = _anchor;
         }
         if (address(_oracle) != address(0)) {
             krAsset.oracle = AggregatorV2V3Interface(_oracle);

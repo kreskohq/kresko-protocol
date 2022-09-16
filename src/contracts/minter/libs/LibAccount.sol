@@ -4,14 +4,14 @@ pragma solidity >=0.8.14;
 import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {MinterState} from "../MinterState.sol";
 import {KrAsset} from "../MinterTypes.sol";
-import {RebalanceMath, Rebalance} from "../../shared/Rebalance.sol";
+import {RebaseMath, Rebase} from "../../shared/Rebase.sol";
 import {IKreskoAsset} from "../../krAsset/IKreskoAsset.sol";
-import {IWrappedKreskoAsset} from "../../krAsset/IWrappedKreskoAsset.sol";
+import {IKreskoAssetAnchor} from "../../krAsset/IKreskoAssetAnchor.sol";
 import "hardhat/console.sol";
 
 library LibAccount {
     using FixedPoint for FixedPoint.Unsigned;
-    using RebalanceMath for uint256;
+    using RebaseMath for uint256;
 
     /**
      * @notice Gets an array of Kresko assets the account has minted.
@@ -130,8 +130,10 @@ library LibAccount {
         address _account,
         address _asset
     ) internal view returns (uint256) {
-        KrAsset memory krAsset = self.kreskoAssets[_asset];
-        return IWrappedKreskoAsset(krAsset.wrapper).previewRedeem(self.kreskoAssetDebt[_account][_asset]);
+        return
+            IKreskoAssetAnchor(self.kreskoAssets[_asset].anchor).convertToAssets(
+                self.kreskoAssetDebt[_account][_asset]
+            );
     }
 
     /**

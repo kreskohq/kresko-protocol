@@ -6,20 +6,20 @@ import {SafeTransferLib} from "@rari-capital/solmate/src/utils/SafeTransferLib.s
 
 import {Role} from "../libs/Authorization.sol";
 
-import {IWrappedKreskoAsset} from "./IWrappedKreskoAsset.sol";
+import {IKreskoAssetAnchor} from "./IKreskoAssetAnchor.sol";
 import {ERC4626Upgradeable, KreskoAsset} from "../shared/ERC4626Upgradeable.sol";
 
 /* solhint-disable no-empty-blocks */
 
 /**
- * @title Kresko Asset Wrapper - pro-rata representation of the underlying kresko asset.
+ * @title Kresko Asset Anchor - pro-rata representation of the underlying kresko asset.
  * Based on ERC-4626 by Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/mixins/ERC4626.sol)
  * @author Kresko
  *
- * @notice Main purpose of this token is to provide a stable balance for the underlying kresko asset.
- * This enables easier integration with external contracts.
+ * @notice Main purpose of this token is to provide a stable reference for the underlying rebasing KreskoAsset.
+ * Enables easier normalized book-keeping and integration with external contracts.
  */
-contract WrappedKreskoAsset is ERC4626Upgradeable, AccessControlEnumerableUpgradeable {
+contract KreskoAssetAnchor is ERC4626Upgradeable, AccessControlEnumerableUpgradeable {
     /* -------------------------------------------------------------------------- */
     /*                                 Immutables                                 */
     /* -------------------------------------------------------------------------- */
@@ -40,12 +40,12 @@ contract WrappedKreskoAsset is ERC4626Upgradeable, AccessControlEnumerableUpgrad
 
     /**
      * @notice ERC-165
-     * - WrappedKreskoAsset, ERC20 and ERC-165 itself
+     * - KreskoAssetAnchor, ERC20 and ERC-165 itself
      */
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
         return
             interfaceId != 0xffffffff &&
-            (interfaceId == type(IWrappedKreskoAsset).interfaceId ||
+            (interfaceId == type(IKreskoAssetAnchor).interfaceId ||
                 interfaceId == 0x01ffc9a7 ||
                 interfaceId == 0x36372b07);
     }
@@ -76,29 +76,33 @@ contract WrappedKreskoAsset is ERC4626Upgradeable, AccessControlEnumerableUpgrad
         return asset.totalSupply();
     }
 
-    function issue(uint256 _assets, address _to) public virtual override returns (uint256 shares) {
+    /**
+     * @notice Mints @param _assets of krAssets for @param _to,
+     * @notice Mints relative @return _shares of wkrAssets
+     */
+    function issue(uint256 _assets, address _to)
+        public
+        virtual
+        override
+        onlyRole(Role.OPERATOR)
+        returns (uint256 shares)
+    {
         shares = super.issue(_assets, _to);
     }
 
-    function destroy(uint256 _assets, address _from) public virtual override returns (uint256 shares) {
+    /**
+     * @notice Burns @param _assets of krAssets from @param _from,
+     * @notice Burns relative @return _shares of wkrAssets
+     */
+    function destroy(uint256 _assets, address _from)
+        public
+        virtual
+        override
+        onlyRole(Role.OPERATOR)
+        returns (uint256 shares)
+    {
         shares = super.destroy(_assets, _from);
     }
-
-    // function withdraw(
-    //     uint256 _assets,
-    //     address _receiver,
-    //     address _owner
-    // ) public virtual override returns (uint256 shares) {
-    //     shares = super.withdraw(_assets, _receiver, _owner);
-    // }
-
-    // function redeem(
-    //     uint256 _shares,
-    //     address _receiver,
-    //     address _owner
-    // ) public virtual override returns (uint256 assets) {
-    //     assets = super.redeem(_shares, _receiver, _owner);
-    // }
 
     /* -------------------------------------------------------------------------- */
     /*                            INTERNAL HOOKS LOGIC                            */

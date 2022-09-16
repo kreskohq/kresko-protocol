@@ -4,13 +4,10 @@ pragma solidity >=0.8.14;
 import {IAccountState} from "../interfaces/IAccountState.sol";
 import {Action, KrAsset, CollateralAsset, FixedPoint} from "../MinterTypes.sol";
 import {IKreskoAsset} from "../../krAsset/IKreskoAsset.sol";
-import {IWrappedKreskoAsset} from "../../krAsset/IWrappedKreskoAsset.sol";
-import {RebalanceMath, Rebalance} from "../../shared/Rebalance.sol";
 import {ms} from "../MinterStorage.sol";
 
 contract AccountStateFacet is IAccountState {
     using FixedPoint for FixedPoint.Unsigned;
-    using RebalanceMath for uint256;
 
     /* -------------------------------------------------------------------------- */
     /*                                  KrAssets                                  */

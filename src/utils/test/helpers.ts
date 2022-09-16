@@ -8,11 +8,11 @@ import {
     ERC20Upgradeable__factory,
     FluxPriceAggregator__factory,
     FluxPriceFeed__factory, KreskoAsset__factory,
-    WrappedKreskoAsset__factory
 } from "types/typechain";
 
 import { getUsers } from "@utils/general";
-import { wrapperPrefix } from "src/config/minter";
+import {KreskoAssetAnchor} from "types/typechain/src/contracts/krAsset";
+import { KreskoAssetAnchor__factory } from "types/typechain/factories/src/contracts/krAsset/KreskoAssetAnchor__factory";
 import {
     defaultCollateralArgs,
     defaultKrAssetArgs,
@@ -158,36 +158,41 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
     await krAsset.initialize(name, symbol, 18, users.deployer.address, hre.Diamond.address);
 
     // Create the fixed krAsset
-    const wkrAsset = await (
-        await smock.mock<WrappedKreskoAsset__factory>("WrappedKreskoAsset")
+    const akrAsset = await (
+        await smock.mock<KreskoAssetAnchor__factory>("KreskoAssetAnchor")
     ).deploy(krAsset.address);
 
+<<<<<<< HEAD
     await wkrAsset.setVariable("_initialized", 0);
     await wkrAsset.initialize(krAsset.address, name, wrapperPrefix + symbol, users.deployer.address);
+=======
+    await akrAsset.setVariable("_initialized", 0);
+    await akrAsset.initialize(krAsset.address, name, name, users.deployer.address);
+>>>>>>> 8c03321 (feat: rename WrappedKreskoAsset to KreskoAssetAnchor)
 
     // Add the asset to the protocol
     const kFactor = toFixedPoint(factor);
     await hre.Diamond.connect(users.operator).addKreskoAsset(
         krAsset.address,
-        wkrAsset.address,
+        akrAsset.address,
         kFactor,
         OracleAggregator.address,
         toBig(supplyLimit, await krAsset.decimals()),
         toFixedPoint(closeFee),
     );
-    await krAsset.grantRole(roles.OPERATOR, wkrAsset.address);
+    await krAsset.grantRole(roles.OPERATOR, akrAsset.address);
     
     const krAssetHasOperator = await krAsset.hasRole(roles.OPERATOR, hre.Diamond.address);
-    const wkrAssetHasOperator = await wkrAsset.hasRole(roles.OPERATOR, hre.Diamond.address);
-    const wkrAssetIsOperatorForKrAsset = await krAsset.hasRole(roles.OPERATOR, wkrAsset.address);
+    const akrAssetHasOperator = await akrAsset.hasRole(roles.OPERATOR, hre.Diamond.address);
+    const akrAssetIsOperatorForKrAsset = await krAsset.hasRole(roles.OPERATOR, akrAsset.address);
 
     expect(krAssetHasOperator).to.be.true;
-    expect(wkrAssetHasOperator).to.be.true;
-    expect(wkrAssetIsOperatorForKrAsset).to.be.true;
+    expect(akrAssetHasOperator).to.be.true;
+    expect(akrAssetIsOperatorForKrAsset).to.be.true;
 
     const mocks = {
         contract: krAsset,
-        wrapper: wkrAsset,
+        anchor: akrAsset,
         priceAggregator: OracleAggregator,
         priceFeed: Oracle,
     };
@@ -197,10 +202,10 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
         kresko: async () => await hre.Diamond.kreskoAsset(krAsset.address),
         deployArgs: args,
         contract: KreskoAsset__factory.connect(krAsset.address, users.deployer),
-        wrapper: WrappedKreskoAsset__factory.connect(wkrAsset.address, users.deployer),
         priceAggregator: FluxPriceAggregator__factory.connect(OracleAggregator.address, users.deployer),
         priceFeed: FluxPriceFeed__factory.connect(Oracle.address, users.deployer),
         mocks,
+        anchor: KreskoAssetAnchor__factory.connect(akrAsset.address, users.deployer),
         setPrice: price => setPrice(OracleAggregator, price),
         getPrice: () => OracleAggregator.latestAnswer(),
         update: update => updateKrAsset(krAsset.address, update),
@@ -223,7 +228,7 @@ export const updateKrAsset = async (address: string, args: TestKreskoAssetUpdate
     const krAsset = hre.krAssets.find(c => c.address === address);
     await hre.Diamond.connect(users.operator).updateKreskoAsset(
         krAsset.address,
-        krAsset.mocks.wrapper.address,
+        krAsset.mocks.anchor.address,
         toFixedPoint(args.factor),
         args.oracle || krAsset.priceAggregator.address,
         typeof args.mintable === "undefined" ? true : args.mintable,

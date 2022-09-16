@@ -8,14 +8,14 @@ interface IConfigurationFacet {
 
     function addCollateralAsset(
         address _collateralAsset,
-        address _wrapper,
+        address _anchor,
         uint256 _factor,
         address _oracle
     ) external;
 
     function addKreskoAsset(
         address _krAsset,
-        address _wrapper,
+        address _anchor,
         uint256 _kFactor,
         address _oracle,
         uint256 _supplyLimit,
@@ -26,7 +26,7 @@ interface IConfigurationFacet {
 
     function updateCollateralAsset(
         address _collateralAsset,
-        address _wrapper,
+        address _anchor,
         uint256 _factor,
         address _oracle
     ) external;
@@ -35,7 +35,7 @@ interface IConfigurationFacet {
 
     function updateKreskoAsset(
         address _krAsset,
-        address _wrapper,
+        address _anchor,
         uint256 _kFactor,
         address _oracle,
         bool _mintable,

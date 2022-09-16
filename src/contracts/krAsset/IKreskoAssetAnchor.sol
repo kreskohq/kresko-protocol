@@ -2,12 +2,22 @@
 pragma solidity >=0.8.14;
 import "@openzeppelin/contracts-upgradeable/access/IAccessControlEnumerableUpgradeable.sol";
 
-interface IWrappedKreskoAsset is IAccessControlEnumerableUpgradeable {
+interface IKreskoAssetAnchor is IAccessControlEnumerableUpgradeable {
     function asset() external view returns (address);
 
     function convertToAssets(uint256 shares) external view returns (uint256);
 
     function convertToShares(uint256 assets) external view returns (uint256);
+
+    // deprecated by issue(uint256, address)
+    function deposit(uint256, address) external returns (uint256);
+
+    // deprecated by destroy(uint256, address)
+    function withdraw(
+        uint256,
+        address,
+        address
+    ) external returns (uint256);
 
     function issue(uint256 _assets, address _to) external returns (uint256 shares);
 

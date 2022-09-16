@@ -147,10 +147,10 @@ abstract contract ERC4626Upgradeable is ERC20Upgradeable {
     function _afterDeposit(uint256 assets, uint256 shares) internal virtual {}
 
     /* -------------------------------------------------------------------------- */
-    /*                                  NOT USED                                  */
+    /*                                  DEPRECATED                                */
     /* -------------------------------------------------------------------------- */
 
-    function __deposit(uint256 assets, address receiver) public virtual returns (uint256 shares) {
+    function deposit(uint256 assets, address receiver) public virtual returns (uint256 shares) {
         // Check for rounding error since we round down in previewDeposit.
         require((shares = previewDeposit(assets)) != 0, "ZERO_SHARES");
 
@@ -164,20 +164,7 @@ abstract contract ERC4626Upgradeable is ERC20Upgradeable {
         _afterDeposit(assets, shares);
     }
 
-    function __mint(uint256 shares, address receiver) public virtual returns (uint256 assets) {
-        assets = previewMint(shares); // No need to check for rounding error, previewMint rounds up.
-
-        // Need to transfer before minting or ERC777s could reenter.
-        asset.safeTransferFrom(msg.sender, address(this), assets);
-
-        _mint(receiver, shares);
-
-        emit Issue(msg.sender, receiver, assets, shares);
-
-        _afterDeposit(assets, shares);
-    }
-
-    function __withdraw(
+    function withdraw(
         uint256 assets,
         address receiver,
         address owner
@@ -199,7 +186,20 @@ abstract contract ERC4626Upgradeable is ERC20Upgradeable {
         asset.safeTransfer(receiver, assets);
     }
 
-    function __redeem(
+    function mint(uint256 shares, address receiver) public virtual returns (uint256 assets) {
+        assets = previewMint(shares); // No need to check for rounding error, previewMint rounds up.
+
+        // Need to transfer before minting or ERC777s could reenter.
+        asset.safeTransferFrom(msg.sender, address(this), assets);
+
+        _mint(receiver, shares);
+
+        emit Issue(msg.sender, receiver, assets, shares);
+
+        _afterDeposit(assets, shares);
+    }
+
+    function redeem(
         uint256 shares,
         address receiver,
         address owner
