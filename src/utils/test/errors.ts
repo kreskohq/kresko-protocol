@@ -31,8 +31,8 @@ export enum Error {
     ZERO_ADDRESS = "104", // Address provided cannot be address(0)
     ALREADY_INITIALIZED = "105", // Contract has already been initialized
     RE_ENTRANCY = "106", // Function does not allow re-entrant calls
-    NOT_ENOUGH_BALANCE = "107", // Transfer of elastic token exceeds value
-    NOT_ENOUGH_ALLOWANCE = "108", // TransferFrom of elastic token exceeds allowance
+    NOT_ENOUGH_BALANCE = "107", // Transfer of rebasing token exceeds value
+    NOT_ENOUGH_ALLOWANCE = "108", // TransferFrom of rebasing token exceeds allowance
 
     /* -------------------------------------------------------------------------- */
     /*                                   2. Minter                                 */

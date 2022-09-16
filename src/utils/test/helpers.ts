@@ -149,7 +149,7 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
     // Create an oracle with price supplied
     const [OracleAggregator, Oracle] = await getMockOracleFor(name, price);
 
-    // create the underlying elastic krAsset
+    // create the underlying rebasing krAsset
     const krAsset = await (await smock.mock<KreskoAsset__factory>("KreskoAsset")).deploy();
     await krAsset.setVariable("_initialized", 0);
     krAsset.decimals.returns(18)
