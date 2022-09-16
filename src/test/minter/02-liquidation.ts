@@ -20,7 +20,8 @@ describe("Minter", function () {
             factor: 1,
             decimals: 18,
         };
-        this.collateral = await updateCollateralAsset(this.collaterals[0].address, collateralArgs);
+        this.collateral = this.collaterals[0];
+        await this.collateral.update(collateralArgs);
         this.collateral.setPrice(collateralArgs.price);
         // Set up mock KreskoAsset
         const krAssetArgs = {
@@ -30,8 +31,8 @@ describe("Minter", function () {
             supplyLimit: 10000,
             closeFee: defaultCloseFee,
         };
-
-        this.krAsset = await updateKrAsset(this.krAssets[0].address, krAssetArgs);
+        this.krAsset = this.krAssets[0];
+        await this.collateral.update(collateralArgs);
         this.krAsset.setPrice(krAssetArgs.price);
         // -------------------------------- Set up userOne deposit/debt --------------------------------
         // Deposit collateral
