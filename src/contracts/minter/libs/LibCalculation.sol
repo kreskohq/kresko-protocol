@@ -9,6 +9,8 @@ import {Math} from "../../libs/Math.sol";
 import {MinterState} from "../MinterState.sol";
 import {KrAsset} from "../MinterTypes.sol";
 
+import "hardhat/console.sol";
+
 uint256 constant ONE_HUNDRED_PERCENT = 1e18;
 
 library LibCalc {
@@ -117,16 +119,33 @@ library LibCalc {
         FixedPoint.Unsigned memory _feeValue,
         uint256 _collateralAssetIndex
     ) internal returns (uint256, FixedPoint.Unsigned memory) {
+
+        // console.log("feeValue:", _feeValue.rawValue);
+
+        // 1000000
+        // 1,000,000,000,0000
+        // 10,000 * 100 = 1,000,000
+
         uint256 depositAmount = self.collateralDeposits[_account][_collateralAssetAddress];
+
+        // console.log("depositAmount:", depositAmount);
 
         // Don't take the collateral asset's collateral factor into consideration.
         (FixedPoint.Unsigned memory depositValue, FixedPoint.Unsigned memory oraclePrice) = self
             .getCollateralValueAndOraclePrice(_collateralAssetAddress, depositAmount, true);
 
+        // console.log("depositValue:", depositValue.rawValue);
+        // console.log("oraclePrice:", oraclePrice.rawValue);
+
         FixedPoint.Unsigned memory feeValuePaid;
         uint256 transferAmount;
         // If feeValue < depositValue, the entire fee can be charged for this collateral asset.
+        console.log("feeValue:", _feeValue.rawValue);
+        // 10000000000000/0000000000000000000000
+        console.log("depositValue:", depositValue.rawValue);
+        // 100000 = (10,000 * $10) = 100,000 + 8 decimals 
         if (_feeValue.isLessThan(depositValue)) {
+            console.log("feeValue <= depositValue");
             // We want to make sure that transferAmount is < depositAmount.
             // Proof:
             //   depositValue <= oraclePrice * depositAmount (<= due to a potential loss of precision)
@@ -146,6 +165,7 @@ library LibCalc {
             );
             feeValuePaid = _feeValue;
         } else {
+            console.log("feeValue > depositValue");
             // If the feeValue >= depositValue, the entire deposit
             // should be taken as the fee.
             transferAmount = depositAmount;
@@ -153,6 +173,11 @@ library LibCalc {
             // Because the entire deposit is taken, remove it from the depositCollateralAssets array.
             self.depositedCollateralAssets[_account].removeAddress(_collateralAssetAddress, _collateralAssetIndex);
         }
+        console.log("--- calcCloseFee ---");
+        console.log("transferAmount:", transferAmount);
+        console.log("feeValuePaid:", feeValuePaid.rawValue);
+        console.log("--- calcCloseFee ---");
+
         return (transferAmount, feeValuePaid);
     }
 }
