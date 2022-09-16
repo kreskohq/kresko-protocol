@@ -15,9 +15,6 @@ import {DiamondModifiers, MinterModifiers} from "../../shared/Modifiers.sol";
 import {Action, FixedPoint} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 
-import "hardhat/console.sol";
-
-
 contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using FixedPoint for FixedPoint.Unsigned;
@@ -207,9 +204,7 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
             s.mintedKreskoAssets[_account].removeAddress(_kreskoAsset, _mintedKreskoAssetIndex);
         }
 
-        console.log("BEFORE chargeCloseFee");
         s.chargeCloseFee(_account, _kreskoAsset, _amount);
-        console.log("AFTER chargeCloseFee");
 
         // Burn the received kresko assets, removing them from circulation.
         IKreskoAsset(_kreskoAsset).burn(msg.sender, _amount);

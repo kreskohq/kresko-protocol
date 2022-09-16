@@ -12,9 +12,6 @@ import {Math} from "../../libs/Math.sol";
 import {LibCalc} from "./LibCalculation.sol";
 import {KrAsset} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
-import {IKreskoAsset} from "../../krAsset/IKreskoAsset.sol";
-
-import "hardhat/console.sol";
 
 library LibRepay {
     using Arrays for address[];
@@ -40,22 +37,13 @@ library LibRepay {
     ) internal {
         KrAsset memory krAsset = self.kreskoAssets[_kreskoAsset];
         // Calculate the value of the fee according to the value of the krAssets being burned.
-        FixedPoint.Unsigned memory feeValue = FixedPoint.Unsigned(
-            _kreskoAssetAmountBurned *
-            FixedPoint.Unsigned(
-                uint256(krAsset.oracle.latestAnswer())
-            ).div(10*10**7).rawValue *
-            krAsset.closeFee.rawValue);
+        FixedPoint.Unsigned memory feeValue = FixedPoint
+            .Unsigned(uint256(krAsset.oracle.latestAnswer()))
+            .mul(FixedPoint.Unsigned(_kreskoAssetAmountBurned))
+            .mul(krAsset.closeFee);
 
-        // expectedFeeValue: 100000000000000000000000000000000000
-        // feeValueONE:      100000000000000000000000000000000000
-        
-        console.log("feeValue:", feeValue.rawValue); //
-        // This is the amount in $$ that the user must pay (in the collateral type)
-        
         // Do nothing if the fee value is 0.
         if (feeValue.rawValue == 0) {
-            console.log("feeValue.rawValue == 0");
             return;
         }
 
@@ -75,30 +63,13 @@ library LibRepay {
                 i
             );
 
-            console.log("----------- IN THE ARRAY ---------------------");
-            console.log("feeValuePaid:", feeValuePaid.rawValue);
-            console.log("transferAmount:", transferAmount);
-            console.log("depositAmount:", self.collateralDeposits[_account][collateralAssetAddress]);
-
             // Remove the transferAmount from the stored deposit for the account.
             self.collateralDeposits[_account][collateralAssetAddress] -= transferAmount;
-            console.log("A");
             // Transfer the fee to the feeRecipient.
-            console.log(IERC20Upgradeable(collateralAssetAddress).balanceOf(address(this)));
             IERC20Upgradeable(collateralAssetAddress).safeTransfer(self.feeRecipient, transferAmount);
             emit MinterEvent.CloseFeePaid(_account, collateralAssetAddress, transferAmount, feeValuePaid.rawValue);
-            console.log("B");
-
-            console.log("feeValue:", feeValue.rawValue);
-            // 100000000000000000000000000000000000
-            console.log("feeValuePaid:", feeValuePaid.rawValue);
-            // We want 10000000000000000000000000000000000
-            // We have 10000000000000 (we are missing 21 zeros)
-            console.log("feeValue.sub(feeValuePaid):", feeValue.sub(feeValuePaid).rawValue);
 
             feeValue = feeValue.sub(feeValuePaid);
-            console.log("C");
-
             // If the entire fee has been paid, no more action needed.
             if (feeValue.rawValue == 0) {
                 return;
