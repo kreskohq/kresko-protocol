@@ -1,7 +1,14 @@
 import { expect } from "@test/chai";
 import hre, { users } from "hardhat";
 
-import { borrowKrAsset, defaultCloseFee, depositMockCollateral, withFixture } from "@test-utils";
+import {
+    mintKrAsset,
+    depositMockCollateral,
+    withFixture,
+    defaultCloseFee,
+    defaultCollateralArgs,
+    defaultKrAssetArgs,
+} from "@test-utils";
 import { fromBig, toBig } from "@utils/numbers";
 
 import { extractInternalIndexedEventFromTxReceipt } from "@utils/events";
@@ -20,7 +27,7 @@ describe("Minter", function () {
             factor: 1,
             decimals: 18,
         };
-        this.collateral = hre.collaterals.find(c => c.deployArgs.name === "Collateral");
+        this.collateral = hre.collaterals.find(c => c.deployArgs.name === defaultCollateralArgs.name);
         this.collateral = await this.collateral.update(collateralArgs);
         this.collateral.setPrice(collateralArgs.price);
         // Set up mock KreskoAsset
@@ -31,7 +38,7 @@ describe("Minter", function () {
             supplyLimit: 10000,
             closeFee: defaultCloseFee,
         };
-        this.krAsset = hre.krAssets.find(c => c.deployArgs.name === "KreskoAsset");
+        this.krAsset = hre.krAssets.find(c => c.deployArgs.name === defaultKrAssetArgs.name);
         await this.collateral.update(collateralArgs);
         this.krAsset.setPrice(krAssetArgs.price);
         // -------------------------------- Set up userOne deposit/debt --------------------------------
@@ -45,7 +52,7 @@ describe("Minter", function () {
 
         // Mint KrAsset
         this.mintAmount = 10; // 10 * $11 = $110 in debt value
-        await borrowKrAsset({
+        await mintKrAsset({
             user: users.userOne,
             amount: this.mintAmount,
             asset: this.krAsset,

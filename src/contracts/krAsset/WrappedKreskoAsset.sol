@@ -76,29 +76,29 @@ contract WrappedKreskoAsset is ERC4626Upgradeable, AccessControlEnumerableUpgrad
         return asset.totalSupply();
     }
 
-    function deposit(uint256 _assets, address _receiver) public virtual override returns (uint256 shares) {
-        shares = super.deposit(_assets, _receiver);
+    function issue(uint256 _assets, address _to) public virtual override returns (uint256 shares) {
+        shares = super.issue(_assets, _to);
     }
 
-    function mint(uint256 _shares, address _receiver) public virtual override returns (uint256 assets) {
-        assets = super.mint(_shares, _receiver);
+    function destroy(uint256 _assets, address _from) public virtual override returns (uint256 shares) {
+        shares = super.destroy(_assets, _from);
     }
 
-    function withdraw(
-        uint256 _assets,
-        address _receiver,
-        address _owner
-    ) public virtual override returns (uint256 shares) {
-        shares = super.withdraw(_assets, _receiver, _owner);
-    }
+    // function withdraw(
+    //     uint256 _assets,
+    //     address _receiver,
+    //     address _owner
+    // ) public virtual override returns (uint256 shares) {
+    //     shares = super.withdraw(_assets, _receiver, _owner);
+    // }
 
-    function redeem(
-        uint256 _shares,
-        address _receiver,
-        address _owner
-    ) public virtual override returns (uint256 assets) {
-        assets = super.redeem(_shares, _receiver, _owner);
-    }
+    // function redeem(
+    //     uint256 _shares,
+    //     address _receiver,
+    //     address _owner
+    // ) public virtual override returns (uint256 assets) {
+    //     assets = super.redeem(_shares, _receiver, _owner);
+    // }
 
     /* -------------------------------------------------------------------------- */
     /*                            INTERNAL HOOKS LOGIC                            */

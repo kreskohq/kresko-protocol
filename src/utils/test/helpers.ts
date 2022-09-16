@@ -246,7 +246,7 @@ export const updateKrAsset = async (address: string, args: TestKreskoAssetUpdate
     return asset;
 };
 
-export const borrowKrAsset = async (args: InputArgs) => {
+export const mintKrAsset = async (args: InputArgs) => {
     const { user, asset, amount } = args;
     return hre.Diamond.connect(user).mintKreskoAsset(user.address, asset.address, toBig(amount));
 };

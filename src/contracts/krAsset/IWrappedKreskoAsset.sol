@@ -9,9 +9,9 @@ interface IWrappedKreskoAsset is IAccessControlEnumerableUpgradeable {
 
     function convertToShares(uint256 assets) external view returns (uint256);
 
-    function borrow(uint256 _assets, address _receiver) external returns (uint256 shares);
+    function issue(uint256 _assets, address _to) external returns (uint256 shares);
 
-    function deposit(uint256 _assets, address _receiver) external returns (uint256 shares);
+    function destroy(uint256 _assets, address _from) external returns (uint256 shares);
 
     function initialize(
         address _asset,
@@ -38,12 +38,6 @@ interface IWrappedKreskoAsset is IAccessControlEnumerableUpgradeable {
 
     function previewWithdraw(uint256 assets) external view returns (uint256);
 
-    function redeem(
-        uint256 _shares,
-        address _receiver,
-        address _owner
-    ) external returns (uint256 assets);
-
     function renounceRole(bytes32 role, address account) external;
 
     function revokeRole(bytes32 role, address account) external;
@@ -69,10 +63,4 @@ interface IWrappedKreskoAsset is IAccessControlEnumerableUpgradeable {
         string memory _symbol,
         uint8 _version
     ) external;
-
-    function withdraw(
-        uint256 _assets,
-        address _receiver,
-        address _owner
-    ) external returns (uint256 shares);
 }
