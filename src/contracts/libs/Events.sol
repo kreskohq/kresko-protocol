@@ -68,8 +68,16 @@ library MinterEvent {
      * @param oracle The address of the oracle.
      * @param supplyLimit The total supply limit.
      * @param closeFee The close fee percentage.
+     * @param openFee The open fee percentage.
      */
-    event KreskoAssetAdded(address indexed kreskoAsset, uint256 indexed kFactor, address oracle, uint256 supplyLimit, uint256 closeFee);
+    event KreskoAssetAdded(
+        address indexed kreskoAsset,
+        uint256 indexed kFactor,
+        address oracle,
+        uint256 supplyLimit,
+        uint256 closeFee,
+        uint256 openFee
+    );
 
     /**
      * @notice Emitted when a Kresko asset's oracle is updated.
@@ -79,6 +87,7 @@ library MinterEvent {
      * @param mintable The mintable value.
      * @param supplyLimit The total supply limit.
      * @param closeFee The close fee percentage.
+     * @param openFee The open fee percentage.
      */
     event KreskoAssetUpdated(
         address indexed kreskoAsset,
@@ -86,7 +95,8 @@ library MinterEvent {
         address indexed oracle,
         bool mintable,
         uint256 supplyLimit,
-        uint256 closeFee
+        uint256 closeFee,
+        uint256 openFee
     );
 
     /**
@@ -114,6 +124,21 @@ library MinterEvent {
      * @param paymentValue The USD value of the payment.
      */
     event CloseFeePaid(
+        address indexed account,
+        address indexed paymentCollateralAsset,
+        uint256 indexed paymentAmount,
+        uint256 paymentValue
+    );
+
+    /**
+     * @notice Emitted when an account pays an open fee with a collateral asset upon minting a Kresko asset.
+     * @dev This can be emitted multiple times for a single Kresko asset mint.
+     * @param account The address of the account minting the Kresko asset.
+     * @param paymentCollateralAsset The address of the collateral asset used to pay the open fee.
+     * @param paymentAmount The amount of the payment collateral asset that was paid.
+     * @param paymentValue The USD value of the payment.
+     */
+    event OpenFeePaid(
         address indexed account,
         address indexed paymentCollateralAsset,
         uint256 indexed paymentAmount,

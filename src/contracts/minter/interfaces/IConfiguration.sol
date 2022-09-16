@@ -23,7 +23,8 @@ interface IConfiguration {
         uint256 _kFactor,
         address _oracle,
         uint256 _supplyLimit,
-        uint256 _closeFee
+        uint256 _closeFee,
+        uint256 _openFee
     ) external;
 
     function updateKreskoAsset(
@@ -32,7 +33,8 @@ interface IConfiguration {
         address _oracle,
         bool _mintable,
         uint256 _supplyLimit,
-        uint256 _closeFee
+        uint256 _closeFee,
+        uint256 _openFee
     ) external;
 
     function updateFeeRecipient(address _feeRecipient) external;

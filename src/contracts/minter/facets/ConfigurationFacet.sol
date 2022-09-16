@@ -121,17 +121,20 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
      * @param _oracle The oracle address for the Kresko asset.
      * @param _supplyLimit The initial total supply limit for the Kresko asset.
      * @param _closeFee The initial close fee percentage for the Kresko asset.
+     * @param _openFee The initial open fee percentage for the Kresko asset.
      */
     function addKreskoAsset(
         address _krAsset,
         uint256 _kFactor,
         address _oracle,
         uint256 _supplyLimit,
-        uint256 _closeFee
+        uint256 _closeFee,
+        uint256 _openFee
     ) external onlyRole(Role.OPERATOR) kreskoAssetDoesNotExist(_krAsset) {
         require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, Error.KRASSET_INVALID_FACTOR);
         require(_oracle != address(0), Error.ADDRESS_INVALID_ORACLE);
         require(_closeFee <= Constants.MAX_CLOSE_FEE, Error.PARAM_CLOSE_FEE_TOO_HIGH);
+        require(_openFee <= Constants.MAX_OPEN_FEE, Error.PARAM_OPEN_FEE_TOO_HIGH);
 
         // Ensure it is wrapped
         require(IERC165(_krAsset).supportsInterface(type(IWrappedKreskoAsset).interfaceId), Error.KRASSET_NOT_WRAPPED);
@@ -144,10 +147,11 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             oracle: AggregatorV2V3Interface(_oracle),
             supplyLimit: _supplyLimit,
             closeFee: FixedPoint.Unsigned(_closeFee),
+            openFee: FixedPoint.Unsigned(_openFee),
             exists: true,
             mintable: true
         });
-        emit MinterEvent.KreskoAssetAdded(_krAsset, _kFactor, _oracle, _supplyLimit, _closeFee);
+        emit MinterEvent.KreskoAssetAdded(_krAsset, _kFactor, _oracle, _supplyLimit, _closeFee, _openFee);
     }
 
     /**
@@ -159,6 +163,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
      * @param _mintable The new mintable value.
      * @param _supplyLimit The new total supply limit for the Kresko asset.
      * @param _closeFee The new close fee percentage for the Kresko asset.
+     * @param _openFee The new open fee percentage for the Kresko asset.
      */
     function updateKreskoAsset(
         address _krAsset,
@@ -166,21 +171,24 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         address _oracle,
         bool _mintable,
         uint256 _supplyLimit,
-        uint256 _closeFee
+        uint256 _closeFee,
+        uint256 _openFee
     ) external onlyRole(Role.OPERATOR) kreskoAssetExistsMaybeNotMintable(_krAsset) {
         require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, Error.KRASSET_INVALID_FACTOR);
         require(_oracle != address(0), Error.ADDRESS_INVALID_ORACLE);
         require(_closeFee <= Constants.MAX_CLOSE_FEE, Error.PARAM_CLOSE_FEE_TOO_HIGH);
+        require(_openFee <= Constants.MAX_OPEN_FEE, Error.PARAM_OPEN_FEE_TOO_HIGH);
 
         KrAsset memory krAsset = ms().kreskoAssets[_krAsset];
         krAsset.kFactor = FixedPoint.Unsigned(_kFactor);
         krAsset.oracle = AggregatorV2V3Interface(_oracle);
         krAsset.supplyLimit = _supplyLimit;
         krAsset.closeFee = FixedPoint.Unsigned(_closeFee);
+        krAsset.openFee = FixedPoint.Unsigned(_openFee);
         krAsset.mintable = _mintable;
         ms().kreskoAssets[_krAsset] = krAsset;
 
-        emit MinterEvent.KreskoAssetUpdated(_krAsset, _kFactor, _oracle, _mintable, _supplyLimit, _closeFee);
+        emit MinterEvent.KreskoAssetUpdated(_krAsset, _kFactor, _oracle, _mintable, _supplyLimit, _closeFee, _openFee);
     }
 
     /**

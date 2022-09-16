@@ -75,6 +75,7 @@ library Error {
     string public constant INVALID_LT = "235"; // Liquidation threshold is greater than minimum collateralization ratio
     string public constant COLLATERAL_INSUFFICIENT_AMOUNT = "236"; // Insufficient amount of collateral to complete the operation
     string public constant MULTISIG_NOT_ENOUGH_OWNERS = "237"; // Multisig has invalid amount of owners
+    string public constant PARAM_OPEN_FEE_TOO_HIGH = "238"; // "Close fee exceeds MAX_OPEN_FEE"
 
     /* -------------------------------------------------------------------------- */
     /*                                   3. Staking                               */

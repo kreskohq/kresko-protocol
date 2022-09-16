@@ -17,6 +17,9 @@ library Constants {
     /// @dev The maximum configurable close fee.
     uint256 constant MAX_CLOSE_FEE = 10e16; // 10%
 
+    /// @dev The maximum configurable open fee.
+    uint256 constant MAX_OPEN_FEE = 10e16; // 10%
+
     /// @dev The minimum configurable minimum collateralization ratio.
     uint256 constant MIN_COLLATERALIZATION_RATIO = ONE_HUNDRED_PERCENT;
 
@@ -89,6 +92,7 @@ struct MinterParams {
  * @param oracle The oracle that provides the USD price of one Kresko asset.
  * @param supplyLimit The total supply limit of the Kresko asset.
  * @param closeFee The percentage paid in fees when closing a debt position of this type.
+ * @param openFee The percentage paid in fees when opening a debt position of this type.
  * @param exists Whether the Kresko asset exists within the protocol.
  * @param mintable Whether the Kresko asset can be minted.
  */
@@ -97,6 +101,7 @@ struct KrAsset {
     AggregatorV2V3Interface oracle;
     uint256 supplyLimit;
     FixedPoint.Unsigned closeFee;
+    FixedPoint.Unsigned openFee;
     bool mintable;
     bool exists;
 }
