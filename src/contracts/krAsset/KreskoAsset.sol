@@ -186,7 +186,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IE
     }
 
     /* -------------------------------------------------------------------------- */
-    /*                                  Internal                                  */
+    /*                                  Internal                      Œ            */
     /* -------------------------------------------------------------------------- */
 
     function _transfer(

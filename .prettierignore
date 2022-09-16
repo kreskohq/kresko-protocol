@@ -5,7 +5,9 @@ artifacts/**/*
 build/
 cache/
 coverage/
+bind/**/*
 dist/**/*
+bin/**/*
 lib/**/*
 build/**/*
 forge/**/*
@@ -19,3 +21,4 @@ src/utils/**/*
 
 # files
 coverage.json
+.solcover.js

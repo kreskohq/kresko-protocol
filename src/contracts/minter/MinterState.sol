@@ -8,7 +8,6 @@ import {LibCalc} from "./libs/LibCalculation.sol";
 import {LibRepay} from "./libs/LibRepay.sol";
 import {Action, SafetyState, CollateralAsset, KrAsset, FixedPoint} from "./MinterTypes.sol";
 
-
 /* solhint-disable state-visibility */
 
 using LibCalc for MinterState global;
@@ -67,4 +66,3 @@ struct MinterState {
     /// @notice Mapping of account -> addresses of borrowed krAssets
     mapping(address => address[]) mintedKreskoAssets;
 }
-

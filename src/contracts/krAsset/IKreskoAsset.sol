@@ -4,7 +4,7 @@ import "@openzeppelin/contracts-upgradeable/access/IAccessControlEnumerableUpgra
 import {IERC20Upgradeable} from "../shared/IERC20Upgradeable.sol";
 import {Rebalance} from "../shared/Rebalance.sol";
 
-interface IKreskoAsset is IERC20Upgradeable,  IAccessControlEnumerableUpgradeable {
+interface IKreskoAsset is IERC20Upgradeable, IAccessControlEnumerableUpgradeable {
     function burn(address _from, uint256 _amount) external;
 
     function initialize(
