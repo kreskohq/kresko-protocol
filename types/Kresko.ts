@@ -41,11 +41,20 @@ export type KrAssetStruct = {
     exists: PromiseOrValue<boolean>;
 };
 
-export type KrAssetStructOutput = [FixedPoint.UnsignedStructOutput, string, BigNumber, FixedPoint.UnsignedStructOutput, boolean, boolean] & {
+export type KrAssetStructOutput = [
+    FixedPoint.UnsignedStructOutput,
+    string,
+    BigNumber,
+    FixedPoint.UnsignedStructOutput,
+    FixedPoint.UnsignedStructOutput,
+    boolean,
+    boolean
+] & {
     kFactor: FixedPoint.UnsignedStructOutput;
     oracle: string;
     supplyLimit: BigNumber;
     closeFee: FixedPoint.UnsignedStructOutput;
+    openFee: FixedPoint.UnsignedStructOutput;
     mintable: boolean;
     exists: boolean;
 };

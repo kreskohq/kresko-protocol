@@ -1,7 +1,7 @@
 import { expect } from "@test/chai";
 import hre, { users } from "hardhat";
 
-import { borrowKrAsset, depositMockCollateral, updateCollateralAsset, updateKrAsset, withFixture, defaultCloseFee } from "@test-utils";
+import { borrowKrAsset, depositMockCollateral, updateCollateralAsset, updateKrAsset, withFixture, defaultCloseFee, defaultOpenFee } from "@test-utils";
 import { fromBig, toBig } from "@utils/numbers";
 
 import { extractInternalIndexedEventFromTxReceipt } from "@utils/events";
@@ -29,6 +29,7 @@ describe("Minter", function () {
             factor: 1,
             supplyLimit: 10000,
             closeFee: defaultCloseFee,
+            openFee: defaultOpenFee,
         };
 
         this.krAsset = await updateKrAsset(this.krAssets[0].address, krAssetArgs);

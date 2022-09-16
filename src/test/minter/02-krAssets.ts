@@ -1,4 +1,4 @@
-import { addMockKreskoAsset, Role, withFixture, defaultCloseFee } from "@test-utils";
+import { addMockKreskoAsset, Role, withFixture, defaultCloseFee, defaultOpenFee } from "@test-utils";
 import { extractInternalIndexedEventFromTxReceipt } from "@utils";
 import { fromBig, toBig } from "@utils/numbers";
 import { Error } from "@utils/test/errors";
@@ -177,6 +177,7 @@ describe("Minter", function () {
                     factor: 1,
                     supplyLimit: 100000,
                     closeFee: defaultCloseFee,
+                    openFee: defaultOpenFee,
                 };
                 const { contract: secondKreskoAsset } = await addMockKreskoAsset(secondKrAssetArgs);
 
