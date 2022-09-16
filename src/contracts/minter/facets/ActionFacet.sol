@@ -66,8 +66,8 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
             ensureNotPaused(_collateralAsset, Action.Withdraw);
         }
 
-        uint256 depositAmount = ms().collateralDeposits[_account][_collateralAsset];
-        _amount = (_amount <= depositAmount ? _amount : depositAmount);
+        uint256 depositAmount = ms().getCollateralDeposits(_account, _collateralAsset);
+        _amount = (_amount > depositAmount ? depositAmount : _amount);
         ms().verifyAndRecordCollateralWithdrawal(
             _account,
             _collateralAsset,

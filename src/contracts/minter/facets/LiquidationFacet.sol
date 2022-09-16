@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 import {ILiquidation} from "../interfaces/ILiquidation.sol";
-import {IKreskoAsset} from "../../krAsset/IKreskoAsset.sol";
+import {IKreskoAssetAnchor} from "../../krAsset/IKreskoAssetAnchor.sol";
 
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
@@ -12,7 +12,7 @@ import {MinterEvent} from "../../libs/Events.sol";
 import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
 import {DiamondModifiers} from "../../shared/Modifiers.sol";
 
-import {Constants} from "../MinterTypes.sol";
+import {Constants, KrAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 import "hardhat/console.sol";
 
@@ -80,11 +80,13 @@ contract LiquidationFacet is DiamondModifiers, ILiquidation {
         FixedPoint.Unsigned memory collateralPriceUSD = FixedPoint.Unsigned(
             uint256(s.collateralAssets[_collateralAssetToSeize].oracle.latestAnswer())
         );
+        // Charge burn fee from the liquidated user
+        s.chargeCloseFee(_account, _repayKreskoAsset, _repayAmount);
 
-        // Get the actual seized amount
-        uint256 seizeAmount = _liquidateAssets(
+        // Perform the liquidation by burning KreskoAssets from msg.sender
+        // Get the amount of collateral to seize
+        uint256 seizedAmount = _liquidateAssets(
             _account,
-            krAssetDebt,
             _repayAmount,
             s.collateralAssets[_collateralAssetToSeize].decimals._fromCollateralFixedPointAmount(
                 s.liquidationIncentiveMultiplier._calculateAmountToSeize(collateralPriceUSD, repayAmountUSD)
@@ -95,14 +97,8 @@ contract LiquidationFacet is DiamondModifiers, ILiquidation {
             _depositedCollateralAssetIndex
         );
 
-        // Charge close fee from the liquidated user
-        s.chargeCloseFee(_account, _repayKreskoAsset, _repayAmount);
-
-        // Burn the received Kresko assets, removing them from circulation.
-        IKreskoAsset(_repayKreskoAsset).burn(msg.sender, _repayAmount);
-
         // Send liquidator the seized collateral.
-        IERC20Upgradeable(_collateralAssetToSeize).safeTransfer(msg.sender, seizeAmount);
+        IERC20Upgradeable(_collateralAssetToSeize).safeTransfer(msg.sender, seizedAmount);
 
         emit MinterEvent.LiquidationOccurred(
             _account,
@@ -110,14 +106,13 @@ contract LiquidationFacet is DiamondModifiers, ILiquidation {
             _repayKreskoAsset,
             _repayAmount,
             _collateralAssetToSeize,
-            seizeAmount
+            seizedAmount
         );
     }
 
     /**
-     * @notice Remove Kresko assets and collateral assets from the liquidated user's holdings.
+     * @notice Burns KreskoAssets from the liquidator, calculates collateral assets to send to liquidator.
      * @param _account The account to attempt to liquidate.
-     * @param _krAssetDebt The amount of Kresko assets that the liquidated user owes.
      * @param _repayAmount The amount of the Kresko asset to be repaid.
      * @param _seizeAmount The calculated amount of collateral assets to be seized.
      * @param _repayKreskoAsset The address of the Kresko asset to be repaid.
@@ -127,7 +122,6 @@ contract LiquidationFacet is DiamondModifiers, ILiquidation {
      */
     function _liquidateAssets(
         address _account,
-        uint256 _krAssetDebt,
         uint256 _repayAmount,
         uint256 _seizeAmount,
         address _repayKreskoAsset,
@@ -136,18 +130,26 @@ contract LiquidationFacet is DiamondModifiers, ILiquidation {
         uint256 _depositedCollateralAssetIndex
     ) internal returns (uint256) {
         MinterState storage s = ms();
+        KrAsset memory krAsset = s.kreskoAssets[_repayKreskoAsset];
         // Subtract repaid Kresko assets from liquidated user's recorded debt.
-        s.kreskoAssetDebt[_account][_repayKreskoAsset] = _krAssetDebt - _repayAmount;
+        s.kreskoAssetDebt[_account][_repayKreskoAsset] -= IKreskoAssetAnchor(krAsset.anchor).destroy(
+            _repayAmount,
+            msg.sender
+        );
+
         // If the liquidation repays the user's entire Kresko asset balance, remove it from minted assets array.
-        if (_repayAmount == _krAssetDebt) {
+        if (s.kreskoAssetDebt[_account][_repayKreskoAsset] == 0) {
             s.mintedKreskoAssets[_account].removeAddress(_repayKreskoAsset, _mintedKreskoAssetIndex);
         }
 
         // Get users collateral deposit amount
-        uint256 collateralDeposit = s.collateralDeposits[_account][_collateralAssetToSeize];
+        uint256 collateralDeposit = s.getCollateralDeposits(_account, _collateralAssetToSeize);
 
         if (collateralDeposit > _seizeAmount) {
-            s.collateralDeposits[_account][_collateralAssetToSeize] = collateralDeposit - _seizeAmount;
+            s.collateralDeposits[_account][_collateralAssetToSeize] -= s.normalizeCollateralAmount(
+                _seizeAmount,
+                _collateralAssetToSeize
+            );
         } else {
             // This clause means user either has collateralDeposits equal or less than the _seizeAmount
             _seizeAmount = collateralDeposit;

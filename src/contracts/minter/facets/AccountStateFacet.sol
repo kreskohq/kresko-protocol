@@ -71,7 +71,7 @@ contract AccountStateFacet is IAccountState {
      * @return Amount of collateral deposited for `_asset`
      */
     function collateralDeposits(address _account, address _asset) external view returns (uint256) {
-        return ms().collateralDeposits[_account][_asset];
+        return ms().getCollateralDeposits(_account, _asset);
     }
 
     /**

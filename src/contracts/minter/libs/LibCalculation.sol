@@ -40,7 +40,7 @@ library LibCalc {
         // Collateral value for this position
         (FixedPoint.Unsigned memory collateralValueAvailable, ) = self.getCollateralValueAndOraclePrice(
             _collateralAssetToSeize,
-            self.collateralDeposits[_account][_collateralAssetToSeize],
+            self.getCollateralDeposits(_account, _collateralAssetToSeize),
             false // take cFactor into consideration
         );
         if (collateralValueAvailable.isGreaterThanOrEqual(minCollateralValue)) {
@@ -117,7 +117,7 @@ library LibCalc {
         FixedPoint.Unsigned memory _feeValue,
         uint256 _collateralAssetIndex
     ) internal returns (uint256, FixedPoint.Unsigned memory) {
-        uint256 depositAmount = self.collateralDeposits[_account][_collateralAssetAddress];
+        uint256 depositAmount = self.getCollateralDeposits(_account, _collateralAssetAddress);
 
         // Don't take the collateral asset's collateral factor into consideration.
         (FixedPoint.Unsigned memory depositValue, FixedPoint.Unsigned memory oraclePrice) = self

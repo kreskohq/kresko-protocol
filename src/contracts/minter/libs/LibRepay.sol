@@ -65,7 +65,10 @@ library LibRepay {
             );
 
             // Remove the transferAmount from the stored deposit for the account.
-            self.collateralDeposits[_account][collateralAssetAddress] -= transferAmount;
+            self.collateralDeposits[_account][collateralAssetAddress] -= self.normalizeCollateralAmount(
+                transferAmount,
+                collateralAssetAddress
+            );
             // Transfer the fee to the feeRecipient.
             IERC20Upgradeable(collateralAssetAddress).safeTransfer(self.feeRecipient, transferAmount);
             emit MinterEvent.CloseFeePaid(_account, collateralAssetAddress, transferAmount, feeValuePaid.rawValue);

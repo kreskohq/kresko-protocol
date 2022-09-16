@@ -3,7 +3,7 @@ pragma solidity >=0.8.14;
 
 import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {MinterState} from "../MinterState.sol";
-import {KrAsset} from "../MinterTypes.sol";
+import {KrAsset, CollateralAsset} from "../MinterTypes.sol";
 import {RebaseMath, Rebase} from "../../shared/Rebase.sol";
 import {IKreskoAsset} from "../../krAsset/IKreskoAsset.sol";
 import {IKreskoAssetAnchor} from "../../krAsset/IKreskoAssetAnchor.sol";
@@ -40,6 +40,30 @@ library LibAccount {
     }
 
     /**
+     * @notice Get `_account` collateral amount for `_asset`
+     * @notice Performs rebasing conversion for KreskoAssets
+     * @param _asset The asset address
+     * @param _account The account to query amount for
+     * @return Amount of collateral for `_asset`
+     */
+    function getCollateralDeposits(
+        MinterState storage self,
+        address _account,
+        address _asset
+    ) internal view returns (uint256) {
+        CollateralAsset memory collateral = self.collateralAssets[_asset];
+        uint256 deposits = self.collateralDeposits[_account][_asset];
+
+        // Perform conversion for KreskoAsset collaterals
+        if (collateral.anchor != address(0)) {
+            return IKreskoAssetAnchor(self.kreskoAssets[_asset].anchor).convertToAssets(deposits);
+        }
+
+        // No conversion for other assets
+        return deposits;
+    }
+
+    /**
      * @notice Calculates if an account's current collateral value is under its minimum collateral value.
      * @dev Returns true if the account's current collateral value is below the minimum collateral value.
      * required to consider the position healthy.
@@ -71,7 +95,7 @@ library LibAccount {
             address asset = assets[i];
             (FixedPoint.Unsigned memory collateralValue, ) = self.getCollateralValueAndOraclePrice(
                 asset,
-                self.collateralDeposits[_account][asset],
+                self.getCollateralDeposits(_account, asset),
                 false // Take the collateral factor into consideration.
                 // TODO: should this take the collateral factor into account?
                 // TODO: PANU: add a param bool _ignoreCollateralFactor or rename the func?
