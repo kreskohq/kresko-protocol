@@ -184,7 +184,7 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
         uint256 debtAmount = s.getKreskoAssetDebt(_account, _kreskoAsset);
         require(_burnAmount <= debtAmount, Error.KRASSET_BURN_AMOUNT_OVERFLOW);
 
-        // Check that value is not greater than 0 but less than minDebtValue
+        // Ensure amount is either 0 or >= minDebtValue
         uint256 burnAmountNoDust = s.ensureNotDustPosition(_kreskoAsset, _burnAmount, debtAmount);
 
         // If the sender is burning all of the kresko asset, remove it from minted assets array.
@@ -192,6 +192,7 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
             s.mintedKreskoAssets[_account].removeAddress(_kreskoAsset, _mintedKreskoAssetIndex);
         }
 
+        // Charge the burn fee from collateral of _account
         s.chargeCloseFee(_account, _kreskoAsset, burnAmountNoDust);
 
         // Burn wkrAssets and krAssets. Reduce debt by amount burned.
