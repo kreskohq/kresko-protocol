@@ -1089,7 +1089,7 @@ describe("Minter", function () {
             });
 
             describe("#debt amount", function () {
-                it("can burn existing debt amount with equal rebased amount", async function () {
+                it("can burn all existing debt with equal rebased amount", async function () {
                     const userOne = hre.Diamond.connect(users.userOne);
 
                     // Rebalance params
@@ -1123,6 +1123,46 @@ describe("Minter", function () {
                     const wkrAssetBalanceKresko = await this.krAsset.wrapper.balanceOf(hre.Diamond.address);
 
                     expect(wkrAssetBalanceKresko).to.equal(0);
+                });
+
+                it("can burn part of existing debt with equal rebased amount", async function () {
+                    const userOne = hre.Diamond.connect(users.userOne);
+
+                    // Rebalance params
+                    const rate = 4;
+                    const expand = true;
+
+                    // Half of minted amount after rebasing
+                    const halfOfOriginalMintAmount = mintAmount.div(2);
+                    const halfOfRebasedMintAmount = mintAmount.mul(rate / 2);
+
+                    // Rebase with params
+                    const assetPrice = await this.krAsset.getPrice();
+                    this.krAsset.setPrice(hre.fromBig(assetPrice.div(rate), 8));
+                    await this.krAsset.contract.setRebalance(hre.toBig(rate), expand);
+
+                    const debtAfterRebase = await userOne.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                    expect(debtAfterRebase).to.bignumber.equal(mintAmount.mul(rate));
+
+                    // Burn assets
+                    await userOne.burnKreskoAsset(
+                        users.userOne.address,
+                        this.krAsset.address,
+                        halfOfRebasedMintAmount,
+                        0,
+                    );
+
+                    // Ensure debt is adjusted correctly, should remove half of the debt
+                    const debtAfterBurn = await userOne.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                    expect(debtAfterBurn).to.bignumber.equal(halfOfRebasedMintAmount);
+
+                    // Should leave half in wallet
+                    const balanceAfterBurn = await this.krAsset.contract.balanceOf(users.userOne.address);
+                    expect(balanceAfterBurn).to.bignumber.equal(halfOfRebasedMintAmount);
+
+                    // Should leave half of original amount in wkrAsset
+                    const wkrAssetBalanceKresko = await this.krAsset.wrapper.balanceOf(hre.Diamond.address);
+                    expect(wkrAssetBalanceKresko).to.bignumber.equal(halfOfOriginalMintAmount);
                 });
             });
         });
