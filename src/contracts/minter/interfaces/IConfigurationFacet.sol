@@ -22,8 +22,6 @@ interface IConfigurationFacet {
         uint256 _closeFee
     ) external;
 
-    function updateBurnFee(uint256 _burnFee) external;
-
     function updateCollateralAsset(
         address _collateralAsset,
         address _anchor,
