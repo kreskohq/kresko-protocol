@@ -62,7 +62,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidation {
         );
 
         // Get the token debt amount
-        uint256 krAssetDebt = s.kreskoAssetDebt[_account][_repayKreskoAsset];
+        uint256 krAssetDebt = s.getKreskoAssetDebt(_account, _repayKreskoAsset);
         // Avoid stack too deep error
         {
             // Liquidator may not repay more value than what the liquidation pair allows

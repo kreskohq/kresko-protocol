@@ -33,7 +33,7 @@ library LibCalc {
         // Minimum collateral value required for the krAsset position
         FixedPoint.Unsigned memory minCollateralValue = self.getMinimumCollateralValueAtRatio(
             _repayKreskoAsset,
-            self.kreskoAssetDebt[_account][_repayKreskoAsset],
+            self.getKreskoAssetDebt(_account, _repayKreskoAsset),
             self.liquidationThreshold
         );
 
