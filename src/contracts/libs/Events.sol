@@ -67,8 +67,9 @@ library MinterEvent {
      * @param kFactor The k-factor.
      * @param oracle The address of the oracle.
      * @param supplyLimit The total supply limit.
+     * @param closeFee The close fee percentage.
      */
-    event KreskoAssetAdded(address indexed kreskoAsset, uint256 indexed kFactor, address oracle, uint256 supplyLimit);
+    event KreskoAssetAdded(address indexed kreskoAsset, uint256 indexed kFactor, address oracle, uint256 supplyLimit, uint256 closeFee);
 
     /**
      * @notice Emitted when a Kresko asset's oracle is updated.
@@ -77,13 +78,15 @@ library MinterEvent {
      * @param oracle The address of the oracle.
      * @param mintable The mintable value.
      * @param supplyLimit The total supply limit.
+     * @param closeFee The close fee percentage.
      */
     event KreskoAssetUpdated(
         address indexed kreskoAsset,
         uint256 indexed kFactor,
         address indexed oracle,
         bool mintable,
-        uint256 supplyLimit
+        uint256 supplyLimit,
+        uint256 closeFee
     );
 
     /**
@@ -103,14 +106,14 @@ library MinterEvent {
     event KreskoAssetBurned(address indexed account, address indexed kreskoAsset, uint256 indexed amount);
 
     /**
-     * @notice Emitted when an account pays a burn fee with a collateral asset upon burning a Kresko asset.
+     * @notice Emitted when an account pays a close fee with a collateral asset upon burning a Kresko asset.
      * @dev This can be emitted multiple times for a single Kresko asset burn.
      * @param account The address of the account burning the Kresko asset.
-     * @param paymentCollateralAsset The address of the collateral asset used to pay the burn fee.
+     * @param paymentCollateralAsset The address of the collateral asset used to pay the close fee.
      * @param paymentAmount The amount of the payment collateral asset that was paid.
      * @param paymentValue The USD value of the payment.
      */
-    event BurnFeePaid(
+    event CloseFeePaid(
         address indexed account,
         address indexed paymentCollateralAsset,
         uint256 indexed paymentAmount,
@@ -146,12 +149,6 @@ library MinterEvent {
      * @param description change description
      */
     event SafetyStateChange(Action indexed action, address indexed asset, string indexed description);
-
-    /**
-     * @notice Emitted when the burn fee is updated.
-     * @param burnFee The new burn fee raw value.
-     */
-    event BurnFeeUpdated(uint256 indexed burnFee);
 
     /**
      * @notice Emitted when the fee recipient is updated.

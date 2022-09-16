@@ -14,8 +14,8 @@ import {IWrappedKreskoAsset} from "../krAsset/IWrappedKreskoAsset.sol";
 library Constants {
     uint256 constant ONE_HUNDRED_PERCENT = 1e18;
 
-    /// @dev The maximum configurable burn fee.
-    uint256 constant MAX_BURN_FEE = 5e16; // 5%
+    /// @dev The maximum configurable close fee.
+    uint256 constant MAX_CLOSE_FEE = 10e16; // 10%
 
     /// @dev The minimum configurable minimum collateralization ratio.
     uint256 constant MIN_COLLATERALIZATION_RATIO = ONE_HUNDRED_PERCENT;
@@ -63,7 +63,6 @@ enum Action {
 struct MinterInitArgs {
     address operator;
     address council;
-    uint256 burnFee;
     address feeRecipient;
     uint256 liquidationIncentiveMultiplier;
     uint256 minimumCollateralizationRatio;
@@ -76,7 +75,6 @@ struct MinterInitArgs {
  */
 
 struct MinterParams {
-    FixedPoint.Unsigned burnfee;
     FixedPoint.Unsigned minimumCollateralizationRatio;
     FixedPoint.Unsigned liquidationIncentiveMultiplier;
     FixedPoint.Unsigned minimumDebtValue;
@@ -90,6 +88,7 @@ struct MinterParams {
  * @param kFactor The k-factor used for calculating the required collateral value for Kresko asset debt.
  * @param oracle The oracle that provides the USD price of one Kresko asset.
  * @param supplyLimit The total supply limit of the Kresko asset.
+ * @param closeFee The percentage paid in fees when closing a debt position of this type.
  * @param exists Whether the Kresko asset exists within the protocol.
  * @param mintable Whether the Kresko asset can be minted.
  */
@@ -97,6 +96,7 @@ struct KrAsset {
     FixedPoint.Unsigned kFactor;
     AggregatorV2V3Interface oracle;
     uint256 supplyLimit;
+    FixedPoint.Unsigned closeFee;
     bool mintable;
     bool exists;
 }

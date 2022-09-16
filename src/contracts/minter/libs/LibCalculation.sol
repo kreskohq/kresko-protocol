@@ -7,6 +7,7 @@ import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {Math} from "../../libs/Math.sol";
 
 import {MinterState} from "../MinterState.sol";
+import {KrAsset} from "../MinterTypes.sol";
 
 uint256 constant ONE_HUNDRED_PERCENT = 1e18;
 
@@ -45,16 +46,15 @@ library LibCalc {
         if (collateralValueAvailable.isGreaterThanOrEqual(minCollateralValue)) {
             return FixedPoint.Unsigned(0);
         } else {
-            // Get the factors of the assets
-            FixedPoint.Unsigned memory kFactor = self.kreskoAssets[_repayKreskoAsset].kFactor;
+            KrAsset memory kreskoAsset = self.kreskoAssets[_repayKreskoAsset];
             FixedPoint.Unsigned memory cFactor = self.collateralAssets[_collateralAssetToSeize].factor;
 
             // Calculate how much value is under
             FixedPoint.Unsigned memory valueUnderMin = minCollateralValue.sub(collateralValueAvailable);
 
             // Get the divisor which calculates the max repayment from the underwater value
-            FixedPoint.Unsigned memory repayDivisor = kFactor.mul(self.minimumCollateralizationRatio).sub(
-                self.liquidationIncentiveMultiplier.sub(self.burnFee).mul(cFactor)
+            FixedPoint.Unsigned memory repayDivisor = kreskoAsset.kFactor.mul(self.minimumCollateralizationRatio).sub(
+                self.liquidationIncentiveMultiplier.sub(kreskoAsset.closeFee).mul(cFactor)
             );
 
             // Max repayment value for this pair
@@ -62,7 +62,7 @@ library LibCalc {
 
             // Get the future collateral value that is being used for the liquidation
             FixedPoint.Unsigned memory collateralValueRepaid = maxLiquidatableUSD.div(
-                kFactor.mul(self.liquidationIncentiveMultiplier.add(self.burnFee))
+                kreskoAsset.kFactor.mul(self.liquidationIncentiveMultiplier.add(kreskoAsset.closeFee))
             );
 
             // If it's more than whats available get the max value from how much value is available instead.
@@ -89,20 +89,20 @@ library LibCalc {
 
                 return
                     maxLiquidatableUSD.div(maxLiquidatableUSD.div(collateralValueAvailable.mul(cFactor.pow(4)))).mul(
-                        // Include a burnFee surplus in the liquidation
+                        // Include a closeFee surplus in the liquidation
                         // so the users can repay their debt.
-                        FixedPoint.Unsigned(ONE_HUNDRED_PERCENT).add(self.burnFee)
+                        FixedPoint.Unsigned(ONE_HUNDRED_PERCENT).add(kreskoAsset.closeFee)
                     );
             } else {
                 // For collaterals with cFactor = 1 / accounts with only single collateral
                 // the debt is just repaid in full with a single transaction
-                return maxLiquidatableUSD.mul(FixedPoint.Unsigned(ONE_HUNDRED_PERCENT).add(self.burnFee));
+                return maxLiquidatableUSD.mul(FixedPoint.Unsigned(ONE_HUNDRED_PERCENT).add(kreskoAsset.closeFee));
             }
         }
     }
 
     /**
-     * @notice Calculates the burn fee for a burned asset.
+     * @notice Calculates the close fee for a burned asset.
      * @param _collateralAssetAddress The collateral asset from which to take to the fee.
      * @param _account The owner of the collateral.
      * @param _feeValue The original value of the fee.
@@ -110,7 +110,7 @@ library LibCalc {
      * @return The transfer amount to be received as a uint256 and a FixedPoint.Unsigned
      * representing the fee value paid.
      */
-    function calcBurnFee(
+    function calcCloseFee(
         MinterState storage self,
         address _collateralAssetAddress,
         address _account,
@@ -153,6 +153,7 @@ library LibCalc {
             // Because the entire deposit is taken, remove it from the depositCollateralAssets array.
             self.depositedCollateralAssets[_account].removeAddress(_collateralAssetAddress, _collateralAssetIndex);
         }
+
         return (transferAmount, feeValuePaid);
     }
 }

@@ -9,8 +9,6 @@ interface IState {
 
     function minterInitializations() external view returns (uint256);
 
-    function burnFee() external view returns (FixedPoint.Unsigned memory);
-
     function feeRecipient() external view returns (address);
 
     function liquidationIncentiveMultiplier() external view returns (FixedPoint.Unsigned memory);

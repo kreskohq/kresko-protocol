@@ -26,6 +26,7 @@ export type TestKreskoAssetArgs = {
     oracle?: string;
     factor: number;
     supplyLimit: number;
+    closeFee: number;
 };
 export type TestKreskoAssetUpdate = {
     name: string;
@@ -33,6 +34,7 @@ export type TestKreskoAssetUpdate = {
     oracle?: string;
     factor: number;
     supplyLimit: number;
+    closeFee: number;
 };
 
 export const defaultOraclePrice = 10;
@@ -44,12 +46,14 @@ export const defaultDepositAmount = toBig(10, defaultDecimals);
 export const defaultMintAmount = toBig(100, defaultDecimals);
 
 export const defaultSupplyLimit = 10000;
+export const defaultCloseFee = 0.01; // 1%
 
 export const defaultKrAssetArgs = {
     name: "KreskoAsset",
     price: defaultOraclePrice,
     factor: 1,
     supplyLimit: defaultSupplyLimit,
+    closeFee: defaultCloseFee,
 };
 
 export const defaultCollateralArgs = {
@@ -60,7 +64,6 @@ export const defaultCollateralArgs = {
 };
 
 export const getNewMinterParams = (feeRecipient: string) => ({
-    burnFee: toFixedPoint(0.02),
     liquidationIncentiveMultiplier: toFixedPoint(1.05),
     minimumCollateralizationRatio: toFixedPoint(1.4),
     minimumDebtValue: toFixedPoint(20),
@@ -70,6 +73,7 @@ export const getNewMinterParams = (feeRecipient: string) => ({
 
 export default {
     supplyLimit: defaultSupplyLimit,
+    closeFee: defaultCloseFee,
     mintAmount: defaultMintAmount,
     depositAmount: defaultDepositAmount,
     collateralArgs: defaultCollateralArgs,

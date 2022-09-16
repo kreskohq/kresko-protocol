@@ -37,11 +37,12 @@ cp .env.example .env
 Populate the following fields into your .env file with testing values:
 
 ```sh
-BURN_FEE=0.01
 LIQUIDATION_INCENTIVE=1.1
 MINIMUM_COLLATERALIZATION_RATIO=1.5
 FEE_RECIPIENT_ADDRESS=0x0000000000000000000000000000000000000FEE
 MINIMUM_DEBT_VALUE=10
+LIQUIDATION_THRESHOLD=1.4
+
 ```
 
 Run the test suite with:

@@ -18,7 +18,6 @@ describe("Minter", function () {
         it("can modify all parameters", async function () {
             const Diamond = hre.Diamond.connect(users.operator);
             const update = getNewMinterParams(users.operator.address);
-            await expect(Diamond.updateBurnFee(update.burnFee)).to.not.be.reverted;
             await expect(Diamond.updateLiquidationIncentiveMultiplier(update.liquidationIncentiveMultiplier)).to.not.be
                 .reverted;
             await expect(Diamond.updateMinimumCollateralizationRatio(update.minimumCollateralizationRatio)).to.not.be
@@ -27,7 +26,6 @@ describe("Minter", function () {
             await expect(Diamond.updateLiquidationThreshold(update.liquidationThreshold)).to.not.be.reverted;
             await expect(Diamond.updateFeeRecipient(update.feeRecipient)).to.not.be.reverted;
             const {
-                burnfee,
                 liquidationIncentiveMultiplier,
                 minimumCollateralizationRatio,
                 minimumDebtValue,
@@ -35,7 +33,6 @@ describe("Minter", function () {
                 feeRecipient,
             } = await hre.Diamond.getAllParams();
 
-            expect(update.burnFee.toBigInt()).to.equal(burnfee.rawValue);
             expect(update.liquidationIncentiveMultiplier.toBigInt()).to.equal(liquidationIncentiveMultiplier.rawValue);
             expect(update.minimumCollateralizationRatio.toBigInt()).to.equal(minimumCollateralizationRatio.rawValue);
             expect(update.minimumDebtValue.toBigInt()).to.equal(minimumDebtValue.rawValue);
@@ -69,6 +66,7 @@ describe("Minter", function () {
             expect(Number(values.kFactor)).to.equal(Number(toFixedPoint(defaultKrAssetArgs.factor)));
             expect(kreskoPriceAnswer).to.equal(defaultKrAssetArgs.price);
             expect(hre.fromBig(values.supplyLimit)).to.equal(defaultKrAssetArgs.supplyLimit);
+            expect(hre.fromBig(values.closeFee)).to.equal(defaultKrAssetArgs.closeFee);
         });
 
         it("can update values of a kresko asset", async function () {
@@ -87,6 +85,7 @@ describe("Minter", function () {
                 factor: toFixedPoint(1.2),
                 supplyLimit: 12000,
                 price: 20,
+                closeFee: toFixedPoint(0.02),
             };
 
             const [newPriceFeed] = await getMockOracleFor(await contract.name(), update.price);
@@ -97,6 +96,7 @@ describe("Minter", function () {
                 newPriceFeed.address,
                 false,
                 hre.toBig(update.supplyLimit),
+                update.closeFee,
             );
 
             const newValues = await hre.Diamond.kreskoAsset(contract.address);

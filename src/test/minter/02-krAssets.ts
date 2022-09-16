@@ -1,4 +1,4 @@
-import { addMockKreskoAsset, Role, withFixture } from "@test-utils";
+import { addMockKreskoAsset, Role, withFixture, defaultCloseFee } from "@test-utils";
 import { extractInternalIndexedEventFromTxReceipt } from "@utils";
 import { fromBig, toBig } from "@utils/numbers";
 import { Error } from "@utils/test/errors";
@@ -8,13 +8,13 @@ import { MinterEvent__factory } from "types";
 import {
     KreskoAssetBurnedEvent,
     KreskoAssetMintedEventObject,
+    CloseFeePaidEventObject,
 } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
 describe("Minter", function () {
     withFixture("minter-with-mocks");
     beforeEach(async function () {
         // Add mock collateral to protocol
-
         this.collateral = this.collaterals[0];
         // Load account with collateral
         this.initialBalance = toBig(100000);
@@ -176,6 +176,7 @@ describe("Minter", function () {
                     price: 5, // $5
                     factor: 1,
                     supplyLimit: 100000,
+                    closeFee: defaultCloseFee,
                 };
                 const { contract: secondKreskoAsset } = await addMockKreskoAsset(secondKrAssetArgs);
 
@@ -667,6 +668,64 @@ describe("Minter", function () {
                         kreskoAssetIndex,
                     ),
                 ).to.be.reverted;
+            });
+
+            describe("Protocol close fee", async function () {
+                it("should charge the protocol close fee with a single collateral asset if the deposit amount is sufficient and emit CloseFeePaid event", async function () {
+                    const burnAmount = toBig(1);
+                    const burnValue = burnAmount.mul(this.krAsset.deployArgs.price);
+                    const closeFee = toBig(await this.krAsset.deployArgs.closeFee); // use toBig() to emulate closeFee's 18 decimals on contract
+                    const expectedFeeValue = burnValue.mul(closeFee);
+                    const expectedCollateralFeeAmount = expectedFeeValue.div(this.collateral.deployArgs.price);
+
+                     // Get the balances prior to the fee being charged.
+                     const kreskoCollateralAssetBalanceBefore = await this.collateral.contract.balanceOf(
+                        hre.Diamond.address,
+                    );
+                    const feeRecipientCollateralBalanceBefore =
+                        await this.collateral.contract.balanceOf(await hre.Diamond.feeRecipient());
+
+                    // Burn Kresko asset
+                    const kreskoAssetIndex = 0;
+                    const tx = await hre.Diamond.connect(users.userOne).burnKreskoAsset(
+                        users.userOne.address,
+                        this.krAsset.address,
+                        burnAmount,
+                        kreskoAssetIndex,
+                    );
+
+                    // Get the balances after the fees have been charged.
+                    const kreskoCollateralAssetBalanceAfter = await this.collateral.contract.balanceOf(
+                        hre.Diamond.address,
+                    );
+                    const feeRecipientCollateralBalanceAfter =
+                        await this.collateral.contract.balanceOf(await hre.Diamond.feeRecipient());
+
+                    // Ensure the amount gained / lost by the kresko contract and the fee recipient are as expected
+                    const feeRecipientBalanceIncrease = feeRecipientCollateralBalanceAfter.sub(
+                        feeRecipientCollateralBalanceBefore,
+                    );
+                    expect(kreskoCollateralAssetBalanceBefore.sub(kreskoCollateralAssetBalanceAfter)).to.equal(
+                        feeRecipientBalanceIncrease,
+                    );
+
+                    // Normalize expected amount because protocol closeFee has 10**18 decimals
+                    const normalizedExpectedCollateralFeeAmount = fromBig(expectedCollateralFeeAmount)/10**18;
+                    expect(feeRecipientBalanceIncrease).to.equal(toBig(normalizedExpectedCollateralFeeAmount));
+
+                    // Ensure the emitted event is as expected.
+                    const event = await extractInternalIndexedEventFromTxReceipt<CloseFeePaidEventObject>(
+                        tx,
+                        MinterEvent__factory.connect(hre.Diamond.address, users.userOne),
+                        "CloseFeePaid",
+                    );
+                    expect(event.account).to.equal(users.userOne.address);
+                    expect(event.paymentCollateralAsset).to.equal(this.collateral.address);
+                    expect(event.paymentAmount).to.equal(toBig(normalizedExpectedCollateralFeeAmount));
+                    const expectedFeeValueNormalizedA = expectedFeeValue.div(10**10); // Normalize krAsset price's 10**10 decimals on contract
+                    const expectedFeeValueNormalizedB = fromBig(expectedFeeValueNormalizedA); // Normalize closeFee's 10**18 decimals on contract
+                    expect(event.paymentValue).to.equal(expectedFeeValueNormalizedB);
+                });
             });
         });
     });

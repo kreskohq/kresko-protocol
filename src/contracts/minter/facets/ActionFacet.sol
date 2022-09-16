@@ -204,11 +204,10 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
             s.mintedKreskoAssets[_account].removeAddress(_kreskoAsset, _mintedKreskoAssetIndex);
         }
 
-        s.chargeBurnFee(_account, _kreskoAsset, _amount);
+        s.chargeCloseFee(_account, _kreskoAsset, _amount);
 
         // Burn the received kresko assets, removing them from circulation.
         IKreskoAsset(_kreskoAsset).burn(msg.sender, _amount);
-
         emit MinterEvent.KreskoAssetBurned(_account, _kreskoAsset, _amount);
     }
 
