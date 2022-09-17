@@ -269,7 +269,7 @@ describe("Minter", function () {
             });
         });
 
-        describe("#withdrawCollateral", () => {
+        describe("#withdraw", () => {
             beforeEach(async function () {
                 // Deposit collateral
                 await expect(
@@ -585,6 +585,44 @@ describe("Minter", function () {
                         ).to.be.revertedWith(Error.ARRAY_OUT_OF_BOUNDS);
                     });
                 });
+            });
+        });
+
+        describe("#deposit - rebase events", () => {
+            describe("deposit amounts are calculated correctly", () => {
+                it("when deposit is made before expanding rebase");
+                it("when deposit is made before reducing rebase");
+                it("when deposit is made after an expanding rebase");
+                it("when deposit is made after an reducing rebase");
+                it("when deposit is made before and after a expanding rebase");
+                it("when deposit is made before and after a reducing rebase");
+            });
+            describe("deposit usd values are calculated correctly", () => {
+                it("when deposit is made before expanding rebase");
+                it("when deposit is made before reducing rebase");
+                it("when deposit is made after an expanding rebase");
+                it("when deposit is made after an reducing rebase");
+                it("when deposit is made before and after a expanding rebase");
+                it("when deposit is made before and after a reducing rebase");
+            });
+        });
+
+        describe("#withdraw - rebase events", () => {
+            describe("deposit amounts are calculated correctly", () => {
+                it("when deposit is made before expanding rebase");
+                it("when deposit is made before reducing rebase");
+                it("when deposit is made after an expanding rebase");
+                it("when deposit is made after an reducing rebase");
+                it("when deposit is made before and after a expanding rebase");
+                it("when deposit is made before and after a reducing rebase");
+            });
+            describe("deposit usd values are calculated correctly", () => {
+                it("when deposit is made before expanding rebase");
+                it("when deposit is made before reducing rebase");
+                it("when deposit is made after an expanding rebase");
+                it("when deposit is made after an reducing rebase");
+                it("when deposit is made before and after a expanding rebase");
+                it("when deposit is made before and after a reducing rebase");
             });
         });
     });

@@ -680,8 +680,8 @@ describe("Minter", function () {
         describe("#mint - rebase events", function () {
             const mintAmountInt = 40;
             const mintAmount = hre.toBig(mintAmountInt);
-            describe("#debt amount", function () {
-                it("existing debt amount is adjusted after a expanding rebase", async function () {
+            describe("debt amounts are calculated correctly", function () {
+                it("when minted before expanding rebase", async function () {
                     const userOne = hre.Diamond.connect(users.userOne);
                     // Rebase params
                     const denominator = 4;
@@ -705,7 +705,7 @@ describe("Minter", function () {
                     expect(balanceAfter).to.bignumber.equal(debtAmount);
                 });
 
-                it("existing debt amount is adjusted after a reducing rebase", async function () {
+                it("when minted before reducing rebase", async function () {
                     const userOne = hre.Diamond.connect(users.userOne);
                     // Rebase params
                     const denominator = 4;
@@ -729,7 +729,7 @@ describe("Minter", function () {
                     expect(balanceAfter).to.bignumber.equal(debtAmount);
                 });
 
-                it("new debt amount is adjusted after a expanding rebase", async function () {
+                it("when minted after expanding rebase", async function () {
                     const userOne = hre.Diamond.connect(users.userOne);
 
                     // Rebase params
@@ -754,7 +754,7 @@ describe("Minter", function () {
                     expect(balanceAfter).to.bignumber.equal(debtAmount);
                 });
 
-                it("new debt amount is adjusted after a reducing rebase", async function () {
+                it("when minted after reducing rebase", async function () {
                     const userOne = hre.Diamond.connect(users.userOne);
 
                     // Rebase params
@@ -780,8 +780,8 @@ describe("Minter", function () {
                 });
             });
 
-            describe("#debt usd value", function () {
-                it("existing debt value is adjusted after a expanding rebase", async function () {
+            describe("debt values are calculated correctly", function () {
+                it("when mint is made before expanding rebase", async function () {
                     const userOne = hre.Diamond.connect(users.userOne);
                     // Rebase params
                     const denominator = 4;
@@ -803,7 +803,7 @@ describe("Minter", function () {
                     expect(valueAfterRebase.rawValue).to.bignumber.equal(valueBeforeRebase.rawValue);
                 });
 
-                it("existing debt value is adjusted after a reducing rebase", async function () {
+                it("when mint is made before reducing rebase", async function () {
                     const userOne = hre.Diamond.connect(users.userOne);
                     // Rebase params
                     const denominator = 4;
@@ -824,7 +824,7 @@ describe("Minter", function () {
                     const valueAfterRebase = await userOne.getAccountKrAssetValue(users.userOne.address);
                     expect(valueAfterRebase.rawValue).to.bignumber.equal(valueBeforeRebase.rawValue);
                 });
-                it("new debt value is adjusted after a expanding rebase", async function () {
+                it("when minted after expanding rebase", async function () {
                     const userOne = hre.Diamond.connect(users.userOne);
 
                     // Rebase params
@@ -849,7 +849,7 @@ describe("Minter", function () {
                     expect(valueAfterRebase.rawValue).to.bignumber.equal(valueBeforeRebase.rawValue);
                 });
 
-                it("new debt value is adjusted after a reducing rebase", async function () {
+                it("when minted after reducing rebase", async function () {
                     const userOne = hre.Diamond.connect(users.userOne);
 
                     // Rebase params
@@ -875,8 +875,8 @@ describe("Minter", function () {
                 });
             });
 
-            describe("#misc", function () {
-                it("both existing & new debt are adjusted after a expanding rebase", async function () {
+            describe("debt values and amounts are calculated correctly", function () {
+                it("when minted before and after a expanding rebase", async function () {
                     const userOne = hre.Diamond.connect(users.userOne);
                     const assetPrice = await this.krAsset.getPrice();
 
@@ -942,7 +942,7 @@ describe("Minter", function () {
                     expect(debtValueAfterSecondMint.rawValue).to.bignumber.equal(valueBeforeRebase.rawValue.mul(2));
                 });
 
-                it("both existing & new debt are adjusted after a reducing rebase", async function () {
+                it("when minted before and after a reducing rebase", async function () {
                     const userOne = hre.Diamond.connect(users.userOne);
                     const assetPrice = await this.krAsset.getPrice();
 
@@ -1371,8 +1371,8 @@ describe("Minter", function () {
                 await mintKrAsset({ asset: this.krAsset, amount: mintAmountInt, user: users.userOne });
             });
 
-            describe("#debt amount", function () {
-                it("can burn all existing debt with equal expanded rebased amount", async function () {
+            describe("debt amounts are calculated correctly", function () {
+                it("when repaying all debt after a expanding rebase", async function () {
                     const userOne = hre.Diamond.connect(users.userOne);
 
                     // Rebase params
@@ -1408,7 +1408,7 @@ describe("Minter", function () {
                     expect(wkrAssetBalanceKresko).to.equal(0);
                 });
 
-                it("can burn part of existing debt with equal expanded rebased amount", async function () {
+                it("when repaying partial debt after a expanding rebase", async function () {
                     const userOne = hre.Diamond.connect(users.userOne);
 
                     // Rebase params
@@ -1448,7 +1448,7 @@ describe("Minter", function () {
                     expect(wkrAssetBalanceKresko).to.bignumber.equal(halfOfOriginalMintAmount);
                 });
 
-                it("can burn all existing debt with equal reduced rebased amount", async function () {
+                it("when repaying all debt after a reducing rebase", async function () {
                     const userOne = hre.Diamond.connect(users.userOne);
 
                     // Rebase params
@@ -1489,7 +1489,7 @@ describe("Minter", function () {
                     expect(wkrAssetBalanceKresko).to.equal(0);
                 });
 
-                it("can burn part of existing debt with equal reduced rebased amount", async function () {
+                it("when repaying partial debt after a reducing rebase", async function () {
                     const userOne = hre.Diamond.connect(users.userOne);
 
                     // Rebase params
@@ -1535,8 +1535,8 @@ describe("Minter", function () {
                 });
             });
 
-            describe("#debt value", function () {
-                it("can repay all debt value and removes the asset from mintedKreskoAssets after a expanding rebase", async function () {
+            describe("debt value and mintedKreskoAssets book-keeping is calculated correctly", function () {
+                it("when repaying all debt after a expanding rebase", async function () {
                     const userOne = hre.Diamond.connect(users.userOne);
 
                     // Rebase params
@@ -1575,7 +1575,7 @@ describe("Minter", function () {
                     const mintedKreskoAssetsAfterBurn = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
                     expect(mintedKreskoAssetsAfterBurn).to.not.contain(this.krAsset.address);
                 });
-                it("can repay partial debt value and does not remove the asset from mintedKreskoAssets after a expanding rebase", async function () {
+                it("when repaying partial debt after a expanding rebase", async function () {
                     const userOne = hre.Diamond.connect(users.userOne);
 
                     // Rebase params
@@ -1608,7 +1608,7 @@ describe("Minter", function () {
                     const mintedKreskoAssetsAfterBurn = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
                     expect(mintedKreskoAssetsAfterBurn).to.contain(this.krAsset.address);
                 });
-                it("can repay all debt value and removes the asset from mintedKreskoAssets after a reducing rebase", async function () {
+                it("when repaying all debt after a reducing rebase", async function () {
                     const userOne = hre.Diamond.connect(users.userOne);
 
                     // Rebase params
@@ -1647,7 +1647,7 @@ describe("Minter", function () {
                     const mintedKreskoAssetsAfterBurn = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
                     expect(mintedKreskoAssetsAfterBurn).to.not.contain(this.krAsset.address);
                 });
-                it("can repay partial debt value and does not remove the asset from mintedKreskoAssets after a reducing rebase", async function () {
+                it("when repaying partial debt after a reducing rebase", async function () {
                     const userOne = hre.Diamond.connect(users.userOne);
 
                     // Rebase params
