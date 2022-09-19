@@ -2,7 +2,9 @@
 pragma solidity >=0.8.14;
 
 import {IAccountState} from "../interfaces/IAccountState.sol";
-import {Action, KrAsset, CollateralAsset, FixedPoint} from "../MinterTypes.sol";
+import {Action, Fee, KrAsset, CollateralAsset, FixedPoint} from "../MinterTypes.sol";
+import {Error} from "../../libs/Errors.sol";
+
 import {ms} from "../MinterStorage.sol";
 
 contract AccountStateFacet is IAccountState {
@@ -142,5 +144,72 @@ contract AccountStateFacet is IAccountState {
             ratios[i] = getAccountCollateralRatio(_accounts[i]);
         }
         return ratios;
+    }
+
+    /**
+     * @notice Calculates the expected fee to be taken from a user's deposited collateral assets.
+     * @param _account The account to charge the open fee from.
+     * @param _kreskoAsset The address of the kresko asset being burned.
+     * @param _kreskoAssetAmount The amount of the kresko asset being minted.
+     * @param _feeType The fee type (open, close, etc).
+     * @return assets The collateral types as an array of addresses.
+     * @return amounts The collateral amounts as an array of uint256.
+     */
+    function calcExpectedFee(
+        address _account,
+        address _kreskoAsset,
+        uint256 _kreskoAssetAmount,
+        uint256 _feeType
+    ) external returns (address[] memory, uint256[] memory) {
+        require(_feeType <= 1, Error.INVALID_FEE_TYPE);
+
+        KrAsset memory krAsset = ms().kreskoAssets[_kreskoAsset];
+
+        // Calculate the value of the fee according to the value of the krAsset
+        FixedPoint.Unsigned memory feeValue = FixedPoint
+            .Unsigned(uint256(krAsset.oracle.latestAnswer()))
+            .mul(FixedPoint.Unsigned(_kreskoAssetAmount))
+            .mul(Fee(_feeType) == Fee.Open ? krAsset.openFee : krAsset.openFee);
+
+        address[] memory accountCollateralAssets = ms().depositedCollateralAssets[_account];
+
+        RuntimeInfo memory info; // Using RuntimeInfo struct to avoid StackTooDeep error
+        info.assets =  new address[](accountCollateralAssets.length);
+        info.amounts = new uint256[](accountCollateralAssets.length);
+
+        // Return empty arrays if the fee value is 0.
+        if (feeValue.rawValue == 0) {
+            return (info.assets, info.amounts);
+        }
+
+        for (uint256 i = accountCollateralAssets.length - 1; i >= 0; i--) {
+            address collateralAssetAddress = accountCollateralAssets[i];
+
+            (uint256 transferAmount, FixedPoint.Unsigned memory feeValuePaid) = ms().calcFee(
+                collateralAssetAddress,
+                _account,
+                feeValue,
+                i
+            );
+
+            if(transferAmount > 0) {
+                info.assets[info.collateralTypeCount] = collateralAssetAddress;
+                info.amounts[info.collateralTypeCount] = transferAmount;
+                info.collateralTypeCount = info.collateralTypeCount++;
+            }
+
+            feeValue = feeValue.sub(feeValuePaid);
+            // If the entire fee has been paid, no more action needed.
+            if (feeValue.rawValue == 0) {
+                return (info.assets, info.amounts);
+            }
+        }
+        return (info.assets, info.amounts);
+    }
+    // RuntimeInfo is used to avoid StackTooDeep error
+    struct RuntimeInfo {
+        address[] assets;
+        uint256[] amounts;
+        uint256 collateralTypeCount;
     }
 }

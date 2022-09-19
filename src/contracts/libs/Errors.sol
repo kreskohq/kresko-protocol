@@ -76,6 +76,7 @@ library Error {
     string public constant COLLATERAL_INSUFFICIENT_AMOUNT = "236"; // Insufficient amount of collateral to complete the operation
     string public constant MULTISIG_NOT_ENOUGH_OWNERS = "237"; // Multisig has invalid amount of owners
     string public constant PARAM_OPEN_FEE_TOO_HIGH = "238"; // "Close fee exceeds MAX_OPEN_FEE"
+    string public constant INVALID_FEE_TYPE = "239"; // "Invalid fee type
 
     /* -------------------------------------------------------------------------- */
     /*                                   3. Staking                               */
