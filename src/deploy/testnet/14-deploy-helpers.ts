@@ -4,7 +4,7 @@ import { getLogger } from "@utils/deployment";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await hre.run("deploy-staking-helper", { log: true });
-    await hre.run("deploy-viewer", { log: true });
+    await hre.run("initialize-viewer", { log: true });
     const logger = getLogger("Deployment", true);
 
     logger.success("Deployment successfull");

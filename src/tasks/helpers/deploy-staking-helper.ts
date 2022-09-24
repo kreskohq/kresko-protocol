@@ -1,9 +1,9 @@
-import type { KrStaking, UniswapV2Factory, UniswapV2Router02, KrStakingUniHelper } from "types";
-import type { TaskArguments } from "hardhat/types";
 import { deployWithSignatures, getLogger } from "@utils/deployment";
 import { task, types } from "hardhat/config";
+import type { TaskArguments } from "hardhat/types";
+import type { KrStaking, KrStakingHelper, UniswapV2Factory, UniswapV2Router02 } from "types";
 
-task("deploy:stakingunihelper")
+task("deploy-staking-helper")
     .addOptionalParam("routerAddr", "Address of uni router")
     .addOptionalParam("factoryAddr", "Address of uni factory")
     .addOptionalParam("stakingAddr", "Address of staking")
@@ -13,8 +13,8 @@ task("deploy:stakingunihelper")
         const { getNamedAccounts, ethers } = hre;
         const { deployer } = await getNamedAccounts();
         const deploy = deployWithSignatures(hre);
-        const { routerAddr, factoryAddr, stakingAddr, wait, log } = taskArgs;
-        const logger = getLogger("deploy:stakingunihelper", log);
+        const { routerAddr, factoryAddr, stakingAddr, log } = taskArgs;
+        const logger = getLogger("deploy-staking-helper", log);
         let Router: UniswapV2Router02;
         let Factory: UniswapV2Factory;
         let KrStaking: KrStaking;
@@ -45,18 +45,18 @@ task("deploy:stakingunihelper")
             throw new Error("No factory found");
         }
 
-        const [KrStakingUniHelper] = await deploy<KrStakingUniHelper>("KrStakingUniHelper", {
+        const [KrStakingHelper] = await deploy<KrStakingHelper>("KrStakingHelper", {
             args: [Router.address, Factory.address, KrStaking.address],
             log,
             from: deployer,
         });
 
         const OPERATOR_ROLE = await KrStaking.OPERATOR_ROLE();
-        if (!(await KrStaking.hasRole(OPERATOR_ROLE, KrStakingUniHelper.address))) {
-            logger.log("Granting operator role for", KrStakingUniHelper.address);
-            await KrStaking.grantRole(OPERATOR_ROLE, KrStakingUniHelper.address);
+        if (!(await KrStaking.hasRole(OPERATOR_ROLE, KrStakingHelper.address))) {
+            logger.log("Granting operator role for", KrStakingHelper.address);
+            await KrStaking.grantRole(OPERATOR_ROLE, KrStakingHelper.address);
         }
 
-        logger.success("Succesfully deployed KrStakingUniHelper @", KrStakingUniHelper.address);
-        return KrStakingUniHelper;
+        logger.success("Succesfully deployed KrStakingHelper @", KrStakingHelper.address);
+        return KrStakingHelper;
     });

@@ -46,7 +46,7 @@ export async function addFacets({ names, initializerName, initializerArgs, log =
     /* -------------------------------------------------------------------------- */
     /*                              Deploy All Facets                             */
     /* -------------------------------------------------------------------------- */
-    const deploymentInfo = [];
+    const deploymentInfo: { name: string; address: string; functions: number }[] = [];
     for (const facet of names) {
         // #4.3 Deploy each facet contract
         const [FacetContract, sigs, FacetDeployment] = await deploy(facet, { log, from: deployer });
@@ -113,6 +113,7 @@ export async function addFacets({ names, initializerName, initializerArgs, log =
 
     // #6.1 Get the on-chain values of facets in the Diamond after the cut.
     const facets = (await Diamond.facets()).map(f => ({
+        name: deploymentInfo.find(d => d.address === f.facetAddress)?.name ?? "",
         facetAddress: f.facetAddress,
         functionSelectors: f.functionSelectors,
     }));
@@ -135,6 +136,7 @@ export async function addFacets({ names, initializerName, initializerArgs, log =
     } else {
         // #6.3 Add the new facet into the Diamonds deployment object
         DiamondDeployment.facets = facets;
+        hre.facets = deploymentInfo;
 
         // #6.4 Merge the ABIs of new facets into the existing Diamond ABI for deployment output.
         DiamondDeployment.abi = mergeABIs([DiamondDeployment.abi, ...ABIs], {

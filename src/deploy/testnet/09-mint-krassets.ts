@@ -1,9 +1,9 @@
-import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
-import type { HardhatRuntimeEnvironment } from "hardhat/types";
-import type { Kresko, KreskoAsset } from "types";
 import { getLogger } from "@utils/deployment";
 import { fromBig } from "@utils/numbers";
 import { testnetConfigs } from "src/config/deployment";
+import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
+import type { HardhatRuntimeEnvironment } from "hardhat/types";
+import type { KreskoAsset } from "types";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("mint-krassets");

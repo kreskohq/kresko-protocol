@@ -1,9 +1,9 @@
-import type { TaskArguments } from "hardhat/types";
-import type { MockERC20, UniswapV2Factory, UniswapV2Pair, UniswapV2Router02 } from "types";
-import { task, types } from "hardhat/config";
-import { getLogger, sleep } from "@utils/deployment";
+import { getLogger } from "@utils/deployment";
 import { fromBig, toBig } from "@utils/numbers";
 import { constants } from "ethers";
+import { task, types } from "hardhat/config";
+import type { TaskArguments } from "hardhat/types";
+import type { MockERC20, UniswapV2Factory, UniswapV2Pair, UniswapV2Router02 } from "types";
 
 task("add-liquidity-v2")
     .addParam("tknA", "Token A address and value to provide", {}, types.json)

@@ -30,7 +30,6 @@ task("add-krasset")
         if (exists) {
             logger.warn(`KrAsset ${symbol} already exists!`);
         } else {
-            console.log(asset.wrapper.interface.format());
             const tx = await kresko.addKreskoAsset(
                 KrAsset.address,
                 asset.wrapper.address,

@@ -1,10 +1,10 @@
+import { deployWithSignatures, getLogger } from "@utils/deployment";
+import { toBig } from "@utils/numbers";
+import { task, types } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
 import type { KrStaking } from "types";
-import { toBig } from "@utils/numbers";
-import { deployWithSignatures, getLogger } from "@utils/deployment";
-import { task, types } from "hardhat/config";
 
-task("deploy:staking")
+task("deploy-staking")
     .addParam("stakingToken", "Address of the token to be staked")
     .addParam("rewardTokens", "Addresses of the tokens to be rewarded, separate by ,")
     .addParam("rewardPerBlocks", "Tokens rewarded per block, separate by ,")
@@ -15,7 +15,7 @@ task("deploy:staking")
         const { getNamedAccounts } = hre;
         const { deployer } = await getNamedAccounts();
         const deploy = deployWithSignatures(hre);
-        const { stakingToken, rewardTokens, rewardPerBlocks, startBlock, wait, log } = taskArgs;
+        const { stakingToken, rewardTokens, rewardPerBlocks, startBlock, log } = taskArgs;
         const logger = getLogger("latestAnswer", log);
         const rewardTokenArr = rewardTokens.split(",");
         const rewardPerBlocksArr = rewardPerBlocks.split(",");

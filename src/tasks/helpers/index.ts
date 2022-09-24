@@ -1,2 +1,2 @@
 export * from "./deploy-staking-helper";
-export * from "./deploy-viewer";
+export * from "./initialize-viewer";

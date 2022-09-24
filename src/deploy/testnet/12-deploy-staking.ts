@@ -29,7 +29,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const [perBlock1, perBlock2] = config.rewardsPerBlock;
 
-    const Staking: KrStaking = await hre.run("deploy:staking", {
+    const Staking: KrStaking = await hre.run("deploy-staking", {
         stakingToken: InitialStakingToken,
         rewardTokens: `${RewardToken1.address},${RewardToken2.address}`,
         rewardPerBlocks: `${perBlock1},${perBlock2}`,

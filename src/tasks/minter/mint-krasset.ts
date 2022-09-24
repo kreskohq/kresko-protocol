@@ -1,7 +1,7 @@
 import { fromBig } from "@utils/numbers";
 import { task, types } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
-import type { ERC20PresetMinterPauser, Kresko, KreskoAsset } from "types";
+import type { ERC20PresetMinterPauser, KreskoAsset } from "types";
 task("mint-krasset")
     .addParam("name", "Name of the krAsset")
     .addOptionalParam("amount", "Amount to mint in decimal", 1000, types.float)

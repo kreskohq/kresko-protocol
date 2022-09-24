@@ -6,7 +6,6 @@ import { WETH } from "types/typechain/src/contracts/test/WETH";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("deploy-tokens");
-    const { deployer } = await hre.getNamedAccounts();
     const collaterals = testnetConfigs[hre.network.name].collaterals;
     for (const collateral of collaterals) {
         if (!collateral.testAsset) continue;

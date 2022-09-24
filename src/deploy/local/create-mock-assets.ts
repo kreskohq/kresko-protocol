@@ -7,8 +7,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (!Diamond.address) {
         throw new Error("Diamond not deployed");
     }
-    // await addMockCollateralAsset();
-    // await addMockKreskoAsset();
+    await addMockCollateralAsset();
+    await addMockKreskoAsset();
 };
 
 func.tags = ["local", "minter-with-mocks", "all"];

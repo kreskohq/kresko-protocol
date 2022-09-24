@@ -13,6 +13,7 @@ const facets = [
     "LiquidationFacet",
     "ActionFacet",
     "StateFacet",
+    "UIDataProviderFacet",
 ];
 
 export type MinterInitializer<A> = {
