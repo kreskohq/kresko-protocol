@@ -1,12 +1,11 @@
+import type { TaskArguments } from "hardhat/types";
+import type { MockERC20, UniswapV2Factory, UniswapV2Pair, UniswapV2Router02 } from "types";
+import { task, types } from "hardhat/config";
 import { getLogger, sleep } from "@utils/deployment";
 import { fromBig, toBig } from "@utils/numbers";
 import { constants } from "ethers";
-import { task, types } from "hardhat/config";
-import { TaskArguments } from "hardhat/types";
-import { IERC20Uniswap, UniswapV2Factory, UniswapV2Pair, UniswapV2Router02 } from "types";
-import {} from "types";
 
-task("uniswap:addliquidity")
+task("add-liquidity-v2")
     .addParam("tknA", "Token A address and value to provide", {}, types.json)
     .addParam("tknB", "Token B address and value to provide", {}, types.json)
     .addOptionalParam("factoryAddr", "Factory address")
@@ -21,8 +20,8 @@ task("uniswap:addliquidity")
 
         const logger = getLogger("addLiquidity", log);
 
-        const TknA = await ethers.getContractAt<IERC20Uniswap>("Token", tknA.address);
-        const TknB = await ethers.getContractAt<IERC20Uniswap>("Token", tknB.address);
+        const TknA = await ethers.getContractAt<MockERC20>("MockERC20", tknA.address);
+        const TknB = await ethers.getContractAt<MockERC20>("MockERC20", tknB.address);
 
         const tknADec = await TknA.decimals();
         const tknBDec = await TknB.decimals();
@@ -37,19 +36,17 @@ task("uniswap:addliquidity")
             UniRouter = await ethers.getContract<UniswapV2Router02>("UniswapV2Router02");
         }
 
-        if (skipIfLiqExists) {
-            const pairAddress = await UniFactory.getPair(TknA.address, tknB.address);
-            if (pairAddress !== constants.AddressZero) {
-                const balanceA = await TknA.balanceOf(pairAddress);
-                if (balanceA.gt(0)) {
-                    logger.log(
-                        "Skipping adding liquidity for",
-                        tknA.name,
-                        tknB.name,
-                        "since pair is created and has liquidity",
-                    );
-                    return await ethers.getContractAt<UniswapV2Pair>("UniswapV2Pair", pairAddress);
-                }
+        const pairAddress = await UniFactory.getPair(TknA.address, tknB.address);
+        if (skipIfLiqExists && pairAddress !== constants.AddressZero) {
+            const balanceA = await TknA.balanceOf(pairAddress);
+            if (balanceA.gt(0)) {
+                logger.log(
+                    "Skipping adding liquidity for",
+                    tknA.name,
+                    tknB.name,
+                    "since pair is created and has liquidity",
+                );
+                return await ethers.getContractAt<UniswapV2Pair>("UniswapV2Pair", pairAddress);
             }
         } else {
             const approvalTknA = fromBig(await TknA.allowance(deployer, UniRouter.address), tknADec);
@@ -89,8 +86,6 @@ task("uniswap:addliquidity")
             );
 
             await tx.wait();
-
-            sleep(1500);
 
             const Pair = await ethers.getContractAt<UniswapV2Pair>(
                 "UniswapV2Pair",

@@ -11,6 +11,8 @@ interface IState {
 
     function feeRecipient() external view returns (address);
 
+    function liquidationThreshold() external view returns (FixedPoint.Unsigned memory);
+
     function liquidationIncentiveMultiplier() external view returns (FixedPoint.Unsigned memory);
 
     function minimumCollateralizationRatio() external view returns (FixedPoint.Unsigned memory);

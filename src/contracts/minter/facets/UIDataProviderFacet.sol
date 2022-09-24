@@ -1,17 +1,20 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+pragma solidity 0.8.14;
 
+import {IUniswapV2Pair} from "@sushiswap/core/contracts/uniswapv2/interfaces/IUniswapV2Pair.sol";
+import {AggregatorV2V3Interface} from "../../vendor/flux/interfaces/AggregatorV2V3Interface.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
-import "../../vendor/uniswapv2/Index.sol";
+
 import "../../staking/interfaces/IKrStaking.sol";
 import "../interfaces/IKresko.sol";
 
-import {Action, KrAsset, CollateralAsset, FixedPoint} from "../MinterTypes.sol";
+import {Math} from "../../libs/Math.sol";
+import {Action, FixedPoint} from "../MinterTypes.sol";
 
 /* solhint-disable var-name-mixedcase */
 /* solhint-disable contract-name-camelcase */
 
-contract KreskoViewer {
+contract UIDataProviderFacet {
     using FixedPoint for FixedPoint.Unsigned;
     using Math for uint256;
 
@@ -34,7 +37,6 @@ contract KreskoViewer {
     struct CollateralAssetInfoUser {
         address assetAddress;
         address oracleAddress;
-        address underlyingRebasingToken;
         uint256 amount;
         FixedPoint.Unsigned amountUSD;
         FixedPoint.Unsigned cFactor;
@@ -48,7 +50,6 @@ contract KreskoViewer {
     struct CollateralAssetInfo {
         address assetAddress;
         address oracleAddress;
-        address underlyingRebasingToken;
         uint256 price;
         uint256 value;
         FixedPoint.Unsigned cFactor;
@@ -61,7 +62,7 @@ contract KreskoViewer {
         uint256 liqMultiplier;
         uint256 minDebtAmount;
         uint256 minCollateralRatio;
-        uint256 burnFee;
+        uint256 liquidationThreshold;
     }
 
     struct krAssetInfo {
@@ -176,7 +177,10 @@ contract KreskoViewer {
                 debtUSD: Kresko.getAccountKrAssetValue(_account),
                 collateralActualUSD: totalCollateralUSD,
                 collateralUSD: Kresko.getAccountCollateralValue(_account),
-                minCollateralUSD: Kresko.getAccountMinimumCollateralValue(_account)
+                minCollateralUSD: Kresko.getAccountMinimumCollateralValueAtRatio(
+                    _account,
+                    Kresko.minimumCollateralizationRatio()
+                )
             });
         }
     }
@@ -195,8 +199,8 @@ contract KreskoViewer {
         protocolParams = ProtocolParams({
             minCollateralRatio: Kresko.minimumCollateralizationRatio().rawValue,
             liqMultiplier: Kresko.liquidationIncentiveMultiplier().rawValue,
-            burnFee: Kresko.burnFee().rawValue,
-            minDebtAmount: Kresko.minimumDebtValue().rawValue
+            minDebtAmount: Kresko.minimumDebtValue().rawValue,
+            liquidationThreshold: Kresko.liquidationThreshold().rawValue
         });
     }
 
@@ -224,7 +228,7 @@ contract KreskoViewer {
             result = new krAssetInfoUser[](krAssetAddresses.length);
             for (uint256 i; i < krAssetAddresses.length; i++) {
                 address assetAddress = krAssetAddresses[i];
-                IKresko.KrAsset memory krAsset = Kresko.kreskoAssets(assetAddress);
+                KrAsset memory krAsset = Kresko.kreskoAssets(assetAddress);
                 uint256 amount = Kresko.kreskoAssetDebt(_account, assetAddress);
 
                 uint256 price = uint256(krAsset.oracle.latestAnswer());
@@ -262,7 +266,7 @@ contract KreskoViewer {
             result = new CollateralAssetInfoUser[](collateralAssetAddresses.length);
             for (uint256 i; i < collateralAssetAddresses.length; i++) {
                 address assetAddress = collateralAssetAddresses[i];
-                IKresko.CollateralAsset memory collateralAsset = Kresko.collateralAssets(assetAddress);
+                CollateralAsset memory collateralAsset = Kresko.collateralAssets(assetAddress);
                 uint8 decimals = IERC20MetadataUpgradeable(assetAddress).decimals();
 
                 uint256 amount = Kresko.collateralDeposits(_account, assetAddress);
@@ -277,7 +281,6 @@ contract KreskoViewer {
                     amount: amount,
                     amountUSD: amountUSD,
                     oracleAddress: address(collateralAsset.oracle),
-                    underlyingRebasingToken: collateralAsset.underlyingRebasingToken,
                     assetAddress: assetAddress,
                     cFactor: collateralAsset.factor,
                     decimals: decimals,
@@ -301,7 +304,7 @@ contract KreskoViewer {
         result = new CollateralAssetInfo[](assetAddresses.length);
         for (uint256 i; i < assetAddresses.length; i++) {
             address assetAddress = assetAddresses[i];
-            IKresko.CollateralAsset memory collateralAsset = Kresko.collateralAssets(assetAddress);
+            CollateralAsset memory collateralAsset = Kresko.collateralAssets(assetAddress);
             uint8 decimals = IERC20MetadataUpgradeable(assetAddress).decimals();
 
             string memory symbol = IERC20MetadataUpgradeable(assetAddress).symbol();
@@ -313,7 +316,6 @@ contract KreskoViewer {
             CollateralAssetInfo memory assetInfo = CollateralAssetInfo({
                 value: value.rawValue,
                 oracleAddress: address(collateralAsset.oracle),
-                underlyingRebasingToken: collateralAsset.underlyingRebasingToken,
                 assetAddress: assetAddress,
                 cFactor: collateralAsset.factor,
                 decimals: decimals,
@@ -348,7 +350,7 @@ contract KreskoViewer {
         for (uint256 i; i < assetAddresses.length; i++) {
             address assetAddress = assetAddresses[i];
 
-            IKresko.KrAsset memory krAsset = Kresko.kreskoAssets(assetAddress);
+            KrAsset memory krAsset = Kresko.kreskoAssets(assetAddress);
 
             FixedPoint.Unsigned memory value = Kresko.getKrAssetValue(assetAddress, 1 ether, false);
             uint256 price = uint256(krAsset.oracle.latestAnswer());
@@ -403,7 +405,10 @@ contract KreskoViewer {
     }
 
     function borrowingPowerUSD(address _account) public view returns (FixedPoint.Unsigned memory) {
-        FixedPoint.Unsigned memory minCollateral = Kresko.getAccountMinimumCollateralValue(_account);
+        FixedPoint.Unsigned memory minCollateral = Kresko.getAccountMinimumCollateralValueAtRatio(
+            _account,
+            Kresko.minimumCollateralizationRatio()
+        );
         FixedPoint.Unsigned memory collateral = Kresko.getAccountCollateralValue(_account);
 
         if (collateral.isLessThan(minCollateral)) {

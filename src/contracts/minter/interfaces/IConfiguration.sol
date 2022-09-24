@@ -20,6 +20,7 @@ interface IConfiguration {
 
     function addKreskoAsset(
         address _krAsset,
+        address _wrapper,
         uint256 _kFactor,
         address _oracle,
         uint256 _supplyLimit,

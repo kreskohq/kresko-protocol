@@ -17,7 +17,7 @@ task("deploy:token")
         const { name, symbol, amount, decimals } = taskArgs;
         const [Token] = await deploy<MockERC20>(symbol, {
             from: deployer,
-            contract: "Token",
+            contract: "MockERC20",
             args: [name, symbol, decimals, hre.toBig(amount, decimals)],
         });
 

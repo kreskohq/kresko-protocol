@@ -7,11 +7,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (!Diamond.address) {
         throw new Error("Diamond not deployed");
     }
-    await addMockCollateralAsset();
-    await addMockKreskoAsset();
+    // await addMockCollateralAsset();
+    // await addMockKreskoAsset();
 };
 
-func.tags = ["test", "minter-with-mocks", "all"];
+func.tags = ["local", "minter-with-mocks", "all"];
 func.dependencies = ["minter-init"];
 
 export default func;

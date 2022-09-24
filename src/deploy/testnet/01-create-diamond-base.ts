@@ -47,6 +47,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     logger.success("Diamond deployed @", DiamondContract.address, "with", deployment.facets.length, "facets");
 };
 
-func.tags = ["local", "diamond-init", "all"];
+func.tags = ["testnet", "diamond-init", "all"];
 
 export default func;

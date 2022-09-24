@@ -21,6 +21,7 @@ contract KISS is ERC20PresetMinterPauser {
     // AccessControl
     uint256 public operatorRoleTimestamp;
     address public pendingOperator;
+    address public kresko;
 
     // ERC20
     string private _name;
@@ -45,6 +46,7 @@ contract KISS is ERC20PresetMinterPauser {
         _name = name_;
         _symbol = symbol_;
         _decimals = dec_;
+        kresko = kresko_;
 
         // AccessControl
         // 1. Setup admin

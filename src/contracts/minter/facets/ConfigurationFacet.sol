@@ -82,7 +82,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         ms().collateralAssets[_collateralAsset] = CollateralAsset({
             factor: FixedPoint.Unsigned(_factor),
             oracle: AggregatorV2V3Interface(_oracle),
-            kreskoAsset: krAsset ? IWrappedKreskoAsset(_collateralAsset).asset() : address(0),
+            kreskoAsset: krAsset ? _collateralAsset : address(0),
             exists: true,
             decimals: IERC20Upgradeable(_collateralAsset).decimals()
         });
@@ -116,7 +116,8 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
     /**
      * @notice Adds a Kresko asset to the protocol.
      * @dev Only callable by the owner.
-     * @param _krAsset The address of the wrapped Kresko asset.
+     * @param _krAsset The address of the KreskoAsset.
+     * @param _wrapper The address of the wrapped Kresko asset.
      * @param _kFactor The k-factor of the Kresko asset as a raw value for a FixedPoint.Unsigned. Must be >= 1e18.
      * @param _oracle The oracle address for the Kresko asset.
      * @param _supplyLimit The initial total supply limit for the Kresko asset.
@@ -124,6 +125,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
      */
     function addKreskoAsset(
         address _krAsset,
+        address _wrapper,
         uint256 _kFactor,
         address _oracle,
         uint256 _supplyLimit,
@@ -134,9 +136,9 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         require(_closeFee <= Constants.MAX_CLOSE_FEE, Error.PARAM_CLOSE_FEE_TOO_HIGH);
 
         // Ensure it is wrapped
-        require(IERC165(_krAsset).supportsInterface(type(IWrappedKreskoAsset).interfaceId), Error.KRASSET_NOT_WRAPPED);
+        require(IERC165(_wrapper).supportsInterface(type(IWrappedKreskoAsset).interfaceId), Error.KRASSET_NOT_WRAPPED);
         // The diamond needs the operator role
-        require(IWrappedKreskoAsset(_krAsset).hasRole(Role.OPERATOR, address(this)), Error.NOT_OPERATOR);
+        require(IWrappedKreskoAsset(_wrapper).hasRole(Role.OPERATOR, address(this)), Error.NOT_OPERATOR);
 
         // Store details.
         ms().kreskoAssets[_krAsset] = KrAsset({

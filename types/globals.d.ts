@@ -132,6 +132,7 @@ declare global {
         minimumCollateralizationRatio: BigNumberish;
         minimumDebtValue: BigNumberish;
         minimumLiquidationThreshold: BigNumberish;
+        liquidationThreshold: BigNumberish;
     }
     interface KreskoAssetInitializer {
         name: string;

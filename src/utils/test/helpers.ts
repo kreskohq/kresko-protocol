@@ -5,13 +5,10 @@ import { expect } from "chai";
 import hre from "hardhat";
 
 import {
-    ERC20Upgradeable,
     ERC20Upgradeable__factory,
     FluxPriceAggregator__factory,
-    FluxPriceFeed__factory,
-    KreskoAsset,
-    KreskoAsset__factory,
-    WrappedKreskoAsset__factory,
+    FluxPriceFeed__factory, KreskoAsset__factory,
+    WrappedKreskoAsset__factory
 } from "types/typechain";
 
 import { getUsers } from "@utils/general";
@@ -24,7 +21,7 @@ import {
     TestCollateralAssetArgs,
     TestCollateralAssetUpdate,
     TestKreskoAssetArgs,
-    TestKreskoAssetUpdate,
+    TestKreskoAssetUpdate
 } from "./mocks";
 import roles from "./roles";
 
@@ -170,6 +167,7 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
     const kFactor = toFixedPoint(factor);
     await hre.Diamond.connect(users.operator).addKreskoAsset(
         krAsset.address,
+        krAssetFixed.address,
         kFactor,
         OracleAggregator.address,
         toBig(supplyLimit, await krAsset.decimals()),

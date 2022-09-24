@@ -43,5 +43,9 @@ export const compilers = {
             version: "0.6.12",
             ...oldCompilerSettings,
         },
+        {
+            version: "0.6.6",
+            ...oldCompilerSettings,
+        },
     ],
 };

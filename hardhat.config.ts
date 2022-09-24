@@ -55,15 +55,17 @@ import "hardhat-configs/extensions";
 import "src/tasks";
 
 /* -------------------------------------------------------------------------- */
-/*                                Configuration                               */
+/*                                Config helpers                              */
 /* -------------------------------------------------------------------------- */
 
+import type { HardhatUserConfig } from "hardhat/types/config";
 import { compilers, networks, users } from "hardhat-configs";
 import { reporters } from "mocha";
 
-import type { HardhatUserConfig } from "hardhat/types/config";
+/* -------------------------------------------------------------------------- */
+/*                               CONFIGURATION                                */
+/* -------------------------------------------------------------------------- */
 
-/// Actual configuration
 const config: HardhatUserConfig = {
     solidity: compilers,
     namedAccounts: users,

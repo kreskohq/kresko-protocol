@@ -1,8 +1,8 @@
+import type { MockWETH9 } from "types/typechain/src/contracts/test/MockWETH9";
+import type { IERC20Uniswap, UniswapV2Pair } from "types";
 import { getLogger, getPriceFeeds, sleep } from "@utils/deployment";
 import { fromBig, toBig } from "@utils/numbers";
 import { task, types } from "hardhat/config";
-import { IERC20Uniswap, UniswapV2Pair } from "types";
-import { MockWETH9 } from "types/typechain/src/contracts/test/MockWETH9";
 
 task("addliquidity:external")
     .addOptionalParam("log", "log information", true, types.boolean)
