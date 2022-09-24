@@ -8,6 +8,7 @@ import "@sushiswap/core/contracts/uniswapv2/interfaces/IUniswapV2Router02.sol";
 import "@sushiswap/core/contracts/uniswapv2/interfaces/IUniswapV2Factory.sol";
 import "@sushiswap/core/contracts/uniswapv2/interfaces/IERC20.sol";
 import "@sushiswap/core/contracts/uniswapv2/interfaces/IWETH.sol";
+import "hardhat/console.sol";
 
 contract UniswapV2Router02 is IUniswapV2Router02 {
     using SafeMathUniswap for uint;
@@ -39,9 +40,12 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint amountBMin
     ) internal virtual returns (uint amountA, uint amountB) {
         // create the pair if it doesn"t exist yet
+
         if (IUniswapV2Factory(factory).getPair(tokenA, tokenB) == address(0)) {
-            IUniswapV2Factory(factory).createPair(tokenA, tokenB);
+            address pair = IUniswapV2Factory(factory).createPair(tokenA, tokenB);
+            console.log(pair);
         }
+        
         (uint reserveA, uint reserveB) = UniswapV2Library.getReserves(factory, tokenA, tokenB);
         if (reserveA == 0 && reserveB == 0) {
             (amountA, amountB) = (amountADesired, amountBDesired);

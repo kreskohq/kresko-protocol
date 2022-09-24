@@ -56,7 +56,6 @@ task("add-liquidity-v2")
                 logger.log("TknA allowance too low, approving router @", UniRouter.address);
                 const tx = await TknA.approve(UniRouter.address, ethers.constants.MaxUint256);
                 await tx.wait();
-                sleep(1500);
                 logger.log("Approval success");
             }
 
@@ -64,7 +63,6 @@ task("add-liquidity-v2")
                 logger.log("TknB allowance too low, approving router @", UniRouter.address);
                 const tx = await TknB.approve(UniRouter.address, ethers.constants.MaxUint256);
                 await tx.wait();
-                sleep(1500);
                 logger.log("Approval success");
             }
 
@@ -72,6 +70,11 @@ task("add-liquidity-v2")
             const tknBName = await TknB.name();
 
             logger.log("Adding liquidity for", tknAName, tknBName);
+
+            console.log(hre.fromBig(await TknA.balanceOf(hre.users.deployer.address)), TknA.address);
+            console.log(tknA.amount);
+            console.log(hre.fromBig(await TknB.balanceOf(hre.users.deployer.address)), TknB.address);
+            console.log(tknB.amount);
 
             // Add initial LP (also creates the pair) according to oracle price
             const tx = await UniRouter.addLiquidity(
@@ -84,7 +87,7 @@ task("add-liquidity-v2")
                 deployer,
                 (Date.now() / 1000 + 9000).toFixed(0),
             );
-
+            logger.log("Adding liquidity for", tknAName, tknBName);
             await tx.wait();
 
             const Pair = await ethers.getContractAt<UniswapV2Pair>(

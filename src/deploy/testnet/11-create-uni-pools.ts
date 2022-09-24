@@ -21,7 +21,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
         const token0 = await hre.ethers.getContract(assetA.symbol);
         const token1 = await hre.ethers.getContract(assetB.symbol);
-
         const pairAddress = await Factory.getPair(token0.address, token1.address);
 
         if (pairAddress === AddressZero) {
