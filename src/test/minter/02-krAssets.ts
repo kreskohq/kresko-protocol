@@ -678,12 +678,13 @@ describe("Minter", function () {
                     const expectedFeeValue = burnValue.mul(closeFee);
                     const expectedCollateralFeeAmount = expectedFeeValue.div(this.collateral.deployArgs.price);
 
-                     // Get the balances prior to the fee being charged.
-                     const kreskoCollateralAssetBalanceBefore = await this.collateral.contract.balanceOf(
+                    // Get the balances prior to the fee being charged.
+                    const kreskoCollateralAssetBalanceBefore = await this.collateral.contract.balanceOf(
                         hre.Diamond.address,
                     );
-                    const feeRecipientCollateralBalanceBefore =
-                        await this.collateral.contract.balanceOf(await hre.Diamond.feeRecipient());
+                    const feeRecipientCollateralBalanceBefore = await this.collateral.contract.balanceOf(
+                        await hre.Diamond.feeRecipient(),
+                    );
 
                     // Burn Kresko asset
                     const kreskoAssetIndex = 0;
@@ -698,8 +699,9 @@ describe("Minter", function () {
                     const kreskoCollateralAssetBalanceAfter = await this.collateral.contract.balanceOf(
                         hre.Diamond.address,
                     );
-                    const feeRecipientCollateralBalanceAfter =
-                        await this.collateral.contract.balanceOf(await hre.Diamond.feeRecipient());
+                    const feeRecipientCollateralBalanceAfter = await this.collateral.contract.balanceOf(
+                        await hre.Diamond.feeRecipient(),
+                    );
 
                     // Ensure the amount gained / lost by the kresko contract and the fee recipient are as expected
                     const feeRecipientBalanceIncrease = feeRecipientCollateralBalanceAfter.sub(
@@ -710,7 +712,7 @@ describe("Minter", function () {
                     );
 
                     // Normalize expected amount because protocol closeFee has 10**18 decimals
-                    const normalizedExpectedCollateralFeeAmount = fromBig(expectedCollateralFeeAmount)/10**18;
+                    const normalizedExpectedCollateralFeeAmount = fromBig(expectedCollateralFeeAmount) / 10 ** 18;
                     expect(feeRecipientBalanceIncrease).to.equal(toBig(normalizedExpectedCollateralFeeAmount));
 
                     // Ensure the emitted event is as expected.
@@ -722,7 +724,7 @@ describe("Minter", function () {
                     expect(event.account).to.equal(users.userOne.address);
                     expect(event.paymentCollateralAsset).to.equal(this.collateral.address);
                     expect(event.paymentAmount).to.equal(toBig(normalizedExpectedCollateralFeeAmount));
-                    const expectedFeeValueNormalizedA = expectedFeeValue.div(10**10); // Normalize krAsset price's 10**10 decimals on contract
+                    const expectedFeeValueNormalizedA = expectedFeeValue.div(10 ** 10); // Normalize krAsset price's 10**10 decimals on contract
                     const expectedFeeValueNormalizedB = fromBig(expectedFeeValueNormalizedA); // Normalize closeFee's 10**18 decimals on contract
                     expect(event.paymentValue).to.equal(expectedFeeValueNormalizedB);
                 });

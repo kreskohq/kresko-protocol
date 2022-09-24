@@ -1,7 +1,7 @@
 import { expect } from "@test/chai";
 import hre, { users } from "hardhat";
 
-import { borrowKrAsset, depositMockCollateral, updateCollateralAsset, updateKrAsset, withFixture, defaultCloseFee } from "@test-utils";
+import { borrowKrAsset, defaultCloseFee, depositMockCollateral, withFixture } from "@test-utils";
 import { fromBig, toBig } from "@utils/numbers";
 
 import { extractInternalIndexedEventFromTxReceipt } from "@utils/events";

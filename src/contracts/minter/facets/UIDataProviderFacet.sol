@@ -2,10 +2,14 @@
 pragma solidity >=0.8.14;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
-import "../interfaces/IKresko.sol";
-// import "./interfaces/IKrStaking.sol";
 import "../../vendor/uniswapv2/Index.sol";
+import "../../staking/interfaces/IKrStaking.sol";
+import "../interfaces/IKresko.sol";
+
 import {Action, KrAsset, CollateralAsset, FixedPoint} from "../MinterTypes.sol";
+
+/* solhint-disable var-name-mixedcase */
+/* solhint-disable contract-name-camelcase */
 
 contract KreskoViewer {
     using FixedPoint for FixedPoint.Unsigned;

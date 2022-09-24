@@ -69,7 +69,13 @@ library MinterEvent {
      * @param supplyLimit The total supply limit.
      * @param closeFee The close fee percentage.
      */
-    event KreskoAssetAdded(address indexed kreskoAsset, uint256 indexed kFactor, address oracle, uint256 supplyLimit, uint256 closeFee);
+    event KreskoAssetAdded(
+        address indexed kreskoAsset,
+        uint256 indexed kFactor,
+        address oracle,
+        uint256 supplyLimit,
+        uint256 closeFee
+    );
 
     /**
      * @notice Emitted when a Kresko asset's oracle is updated.

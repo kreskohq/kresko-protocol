@@ -10,4 +10,7 @@ import {ILiquidation} from "./ILiquidation.sol";
 import {IAuthorization} from "../../diamond/interfaces/IAuthorization.sol";
 import {IOwnership} from "../../diamond/interfaces/IOwnership.sol";
 
-interface IKresko is IAccountState, ILiquidation, IConfiguration, IAction, IAuthorization, IOwnership  {}
+/* solhint-disable no-empty-blocks */
+interface IKresko is IAccountState, ILiquidation, IConfiguration, IAction, IAuthorization, IOwnership {
+
+}
