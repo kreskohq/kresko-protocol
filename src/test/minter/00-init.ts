@@ -5,7 +5,7 @@ import type { ConfigurationFacet } from "types/typechain";
 import { expect } from "@test/chai";
 
 describe("Minter", function () {
-    withFixture("minter-init");
+    withFixture(["minter-init"]);
     describe("#initialization", async () => {
         it("sets correct state", async function () {
             expect(await hre.Diamond.minterInitializations()).to.equal(1);
@@ -39,7 +39,12 @@ describe("Minter", function () {
                 facetAddress,
                 functionSelectors,
             }));
-            expect(facetsOnChain).to.have.deep.members(hre.DiamondDeployment.facets);
+            expect(facetsOnChain).to.have.deep.members(
+                hre.DiamondDeployment.facets.map(f => ({
+                    facetAddress: f.facetAddress,
+                    functionSelectors: f.functionSelectors,
+                })),
+            );
         });
     });
 });

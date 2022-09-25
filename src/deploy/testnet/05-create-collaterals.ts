@@ -38,8 +38,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     logger.success("Succesfully deployed collateral tokens");
 };
-func.dependencies = ["minter-init", "oracles"];
-func.tags = ["testnet", "collaterals", "all"];
+func.tags = ["minter-test", "testnet", "collaterals", "all"];
+func.dependencies = ["minter-init"];
 
 func.skip = async hre => {
     const logger = getLogger("deploy-tokens");

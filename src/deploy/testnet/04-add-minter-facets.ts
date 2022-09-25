@@ -22,7 +22,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     logger.success("Added minter facets and saved to diamond");
 };
 
-func.tags = ["testnet", "minter-init", "all"];
+func.tags = ["minter-test", "testnet", "minter-init", "all"];
 func.dependencies = ["diamond-init", "gnosis-safe"];
 
 export default func;

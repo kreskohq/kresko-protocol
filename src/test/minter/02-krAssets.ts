@@ -1,4 +1,11 @@
-import { addMockKreskoAsset, Role, withFixture, defaultCloseFee } from "@test-utils";
+import {
+    addMockKreskoAsset,
+    Role,
+    withFixture,
+    defaultCloseFee,
+    defaultCollateralArgs,
+    defaultKrAssetArgs,
+} from "@test-utils";
 import { extractInternalIndexedEventFromTxReceipt } from "@utils";
 import { fromBig, toBig } from "@utils/numbers";
 import { Error } from "@utils/test/errors";
@@ -12,10 +19,10 @@ import {
 } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
 describe("Minter", function () {
-    withFixture("minter-with-mocks");
+    withFixture(["minter-test"]);
     beforeEach(async function () {
         // Add mock collateral to protocol
-        this.collateral = this.collaterals[0];
+        this.collateral = hre.collaterals.find(c => c.deployArgs.name === defaultCollateralArgs.name);
         // Load account with collateral
         this.initialBalance = toBig(100000);
         await this.collateral.mocks.contract.setVariable("_balances", {
@@ -37,7 +44,7 @@ describe("Minter", function () {
             ),
         ).not.to.be.reverted;
 
-        this.krAsset = this.krAssets[0];
+        this.krAsset = hre.krAssets.find(c => c.deployArgs.name === defaultKrAssetArgs.name);
     });
 
     describe("#krAsset", function () {
@@ -173,6 +180,7 @@ describe("Minter", function () {
                 // Add second mock krAsset to protocol
                 const secondKrAssetArgs = {
                     name: "SecondKreskoAsset",
+                    symbol: "SecondKreskoAsset",
                     price: 5, // $5
                     factor: 1,
                     supplyLimit: 100000,

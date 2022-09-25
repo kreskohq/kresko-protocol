@@ -56,7 +56,10 @@ export async function addFacets({ names, initializerName, initializerArgs, log =
 
         // #4.5 Ensure functions do not exist
         const existingFacet = facetsBefore.find(f => f.facetAddress === FacetContract.address);
-        if (existingFacet.functionSelectors.some(sel => facetCut.functionSelectors.indexOf(sel) === -1)) {
+        if (
+            !existingFacet ||
+            existingFacet.functionSelectors.some(sel => facetCut.functionSelectors.indexOf(sel) === -1)
+        ) {
             FacetCuts.push(facetCut);
         } else {
             logger.log("Skipping facet", facet);

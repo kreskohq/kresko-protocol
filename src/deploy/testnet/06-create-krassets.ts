@@ -33,7 +33,6 @@ func.skip = async hre => {
     return !!isFinished;
 };
 
-func.tags = ["testnet", "kresko-assets", "all"];
-func.dependencies = ["minter-init", "collaterals"];
+func.tags = ["minter-test", "testnet", "kresko-assets", "all"];
 
 export default func;

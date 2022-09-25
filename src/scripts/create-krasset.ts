@@ -47,6 +47,12 @@ export async function createKrAsset(name: string, symbol, decimals = 18) {
         address: KreskoAsset.address,
         contract: KreskoAsset,
         wrapper: WrappedKreskoAsset,
+        deployArgs: {
+            name,
+            symbol,
+            decimals,
+            wrapperSymbol: underlyingSymbol,
+        },
     };
 
     const found = hre.krAssets.findIndex(c => c.address === asset.address);

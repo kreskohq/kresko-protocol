@@ -1,4 +1,12 @@
-import { Action, addMockCollateralAsset, defaultDecimals, defaultOraclePrice, Role, withFixture } from "@test-utils";
+import {
+    Action,
+    addMockCollateralAsset,
+    defaultCollateralArgs,
+    defaultDecimals,
+    defaultOraclePrice,
+    Role,
+    withFixture,
+} from "@test-utils";
 import { extractInternalIndexedEventFromTxReceipt } from "@utils";
 import { executeContractCallWithSigners } from "@utils/gnosis/utils/execution";
 import { fromBig, toBig } from "@utils/numbers";
@@ -12,9 +20,11 @@ import {
 } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
 describe("Minter", function () {
-    withFixture("minter-with-mocks");
+    withFixture(["minter-test"]);
     beforeEach(async function () {
-        this.collateral = this.collaterals[0];
+        this.collateral = this.collaterals.find(c => c.deployArgs.name === defaultCollateralArgs.name);
+        console.log(this.collaterals.length);
+        console.log(hre.collaterals.length);
         this.initialBalance = toBig(100000);
         await this.collateral.mocks.contract.setVariable("_balances", {
             [users.userOne.address]: this.initialBalance,

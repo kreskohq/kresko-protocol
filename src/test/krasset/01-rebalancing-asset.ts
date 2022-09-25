@@ -4,7 +4,7 @@ import { withFixture, Error, defaultMintAmount, Role } from "@utils/test";
 
 describe("KreskoAsset", function () {
     let KreskoAsset: KreskoAsset;
-    withFixture("kresko-asset");
+    withFixture(["minter-test", "kr"]);
     beforeEach(async function () {
         KreskoAsset = hre.krAssets[0].contract;
         // Grant minting rights for test deployer

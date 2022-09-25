@@ -9,7 +9,7 @@ describe("Wrapped KreskoAsset", () => {
     before(() => {
         addr = hre.addr;
     });
-    withFixture("kresko-asset");
+    withFixture(["minter-test", "kr"]);
     beforeEach(async function () {
         KreskoAsset = hre.krAssets[0].contract;
         WrappedKreskoAsset = hre.krAssets[0].wrapper;

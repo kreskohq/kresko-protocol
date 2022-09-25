@@ -10,7 +10,7 @@ import { MinterEvent__factory } from "types/typechain";
 import { LiquidationOccurredEvent } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
 describe("Minter", function () {
-    withFixture("minter-with-mocks");
+    withFixture(["minter-test"]);
 
     beforeEach(async function () {
         // -------------------------------- Set up mock assets --------------------------------
@@ -20,8 +20,8 @@ describe("Minter", function () {
             factor: 1,
             decimals: 18,
         };
-        this.collateral = this.collaterals[0];
-        await this.collateral.update(collateralArgs);
+        this.collateral = hre.collaterals.find(c => c.deployArgs.name === "Collateral");
+        this.collateral = await this.collateral.update(collateralArgs);
         this.collateral.setPrice(collateralArgs.price);
         // Set up mock KreskoAsset
         const krAssetArgs = {
@@ -31,7 +31,7 @@ describe("Minter", function () {
             supplyLimit: 10000,
             closeFee: defaultCloseFee,
         };
-        this.krAsset = this.krAssets[0];
+        this.krAsset = hre.krAssets.find(c => c.deployArgs.name === "KreskoAsset");
         await this.collateral.update(collateralArgs);
         this.krAsset.setPrice(krAssetArgs.price);
         // -------------------------------- Set up userOne deposit/debt --------------------------------

@@ -91,6 +91,6 @@ const func: DeployFunction = async function (hre) {
 //         return false;
 //     }
 // };
-func.tags = ["testnet", "oracles"];
+func.tags = ["minter-test", "testnet", "oracles"];
 
 export default func;

@@ -20,7 +20,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     logger.success("Succesfully whitelisted collaterals");
 };
 
-func.tags = ["testnet", "whitelist-collaterals", "all"];
+func.tags = ["minter-test", "testnet", "whitelist-collaterals", "all"];
 func.dependencies = ["minter-init", "whitelist-krassets"];
 
 export default func;
