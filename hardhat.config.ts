@@ -2,6 +2,7 @@
 // Deployment
 
 import "tsconfig-paths/register";
+import type { HardhatUserConfig } from "hardhat/types/config";
 
 /* -------------------------------------------------------------------------- */
 /*                                   Plugins                                  */
@@ -31,7 +32,6 @@ import "hardhat-interface-generator";
 /* -------------------------------------------------------------------------- */
 /*                                   Dotenv                                   */
 /* -------------------------------------------------------------------------- */
-
 import { resolve } from "path";
 import { config as dotenvConfig } from "dotenv";
 
@@ -44,33 +44,29 @@ if (!mnemonic) {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                              Extensions To HRE                             */
+/*                                Config helpers                              */
 /* -------------------------------------------------------------------------- */
-import "hardhat-configs/extensions";
+
+import { reporters } from "mocha";
 
 /* -------------------------------------------------------------------------- */
 /*                                    Tasks                                   */
 /* -------------------------------------------------------------------------- */
 
 import "src/tasks";
-
 /* -------------------------------------------------------------------------- */
-/*                                Config helpers                              */
+/*                              Extensions To HRE                             */
 /* -------------------------------------------------------------------------- */
-
-import type { HardhatUserConfig } from "hardhat/types/config";
+import "hardhat-configs/extensions";
 import { compilers, networks, users } from "hardhat-configs";
-import { reporters } from "mocha";
 
 /* -------------------------------------------------------------------------- */
 /*                               CONFIGURATION                                */
 /* -------------------------------------------------------------------------- */
-
 const config: HardhatUserConfig = {
     solidity: compilers,
-    namedAccounts: users,
-    defaultNetwork: "hardhat",
     networks: networks(mnemonic),
+    namedAccounts: users,
     mocha: {
         reporter: reporters.Spec,
         timeout: 12000,
@@ -118,7 +114,7 @@ const config: HardhatUserConfig = {
         {
             name: "Kresko",
             include: ["facets*"],
-            exclude: ["vendor", "test/*", "interfaces/*", "KreskoAsset"],
+            exclude: ["vendor", "test/*", "interfaces/*", "KreskoAsset", "WrappedKreskoAsset", "KrStaking"],
             strict: false,
         },
     ],

@@ -8,7 +8,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const collaterals = testnetConfigs[hre.network.name].collaterals;
     for (const collateral of collaterals) {
-        logger.log(`whitelisting collateral: ${collateral.name}`);
+        logger.log(`whitelisting collateral: ${collateral.name}/${collateral.symbol}`);
         await hre.run("add-collateral", {
             symbol: collateral.symbol,
             cFactor: collateral.cFactor,
@@ -21,6 +21,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 
 func.tags = ["testnet", "whitelist-collaterals", "all"];
-func.dependencies = ["minter-init", "kresko-assets"];
+func.dependencies = ["minter-init", "whitelist-krassets"];
 
 export default func;

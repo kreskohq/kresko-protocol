@@ -51,14 +51,14 @@ const collaterals = {
     ],
 };
 
-const underlyingPrefix = "e-";
+const wrapperPrefix = "w";
 
 const krAssets = {
     test: [
-        ["Tesla Inc.", "krTSLA", underlyingPrefix + "krTSLA"],
-        ["GameStop Corp.", "krGME", underlyingPrefix + "krGME"],
-        ["iShares Gold Trust", "krIAU", underlyingPrefix + "krIAU"],
-        ["Invesco QQQ Trust", "krQQQ", underlyingPrefix + "krQQQ"],
+        ["Tesla Inc.", "krTSLA", wrapperPrefix + "krTSLA"],
+        ["GameStop Corp.", "krGME", wrapperPrefix + "krGME"],
+        ["iShares Gold Trust", "krIAU", wrapperPrefix + "krIAU"],
+        ["Invesco QQQ Trust", "krQQQ", wrapperPrefix + "krQQQ"],
     ],
 };
 
@@ -67,5 +67,5 @@ export default {
     getMinterInitializer,
     krAssets,
     collaterals,
-    underlyingPrefix,
+    wrapperPrefix,
 };

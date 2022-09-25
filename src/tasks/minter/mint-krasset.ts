@@ -35,7 +35,7 @@ task("mint-krasset")
         let tx = await Kresko.depositCollateral(address, KISS.address, KISSAmount);
         await tx.wait();
 
-        console.log(`Deposited ${parsedValue}USDC for minting ${taskArgs.name}`);
+        console.log(`Deposited ${parsedValue} KISS for minting ${taskArgs.name}`);
 
         tx = await Kresko.mintKreskoAsset(address, KrAsset.address, mintAmount);
         await tx.wait();

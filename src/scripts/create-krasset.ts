@@ -10,8 +10,8 @@ export async function createKrAsset(name: string, symbol, decimals = 18) {
     const kresko = hre.Diamond;
     const deploy = hre.deploy;
 
-    const underlyingSymbol = minterConfig.underlyingPrefix + symbol;
-    const kreskoAssetInitializerArgs = [name, underlyingSymbol, decimals, deployer.address, kresko.address];
+    const underlyingSymbol = minterConfig.wrapperPrefix + symbol;
+    const kreskoAssetInitializerArgs = [name, symbol, decimals, deployer.address, kresko.address];
 
     const [KreskoAsset] = await deploy<KreskoAsset>(symbol, {
         from: deployer.address,
@@ -27,7 +27,7 @@ export async function createKrAsset(name: string, symbol, decimals = 18) {
         },
     });
 
-    const fixedKreskoAssetInitializerArgs = [KreskoAsset.address, name, symbol, deployer.address];
+    const fixedKreskoAssetInitializerArgs = [KreskoAsset.address, name, underlyingSymbol, deployer.address];
 
     const [WrappedKreskoAsset] = await deploy<WrappedKreskoAsset>(underlyingSymbol, {
         from: deployer.address,

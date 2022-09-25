@@ -7,7 +7,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("add-krasset");
     const krAssets = testnetConfigs[hre.network.name].krAssets;
     for (const krAsset of krAssets) {
-        logger.log(`whitelisting ${krAsset.name}`);
+        logger.log(`whitelisting ${krAsset.name}/${krAsset.symbol}`);
         await hre.run("add-krasset", {
             symbol: krAsset.symbol,
             kFactor: krAsset.kFactor,

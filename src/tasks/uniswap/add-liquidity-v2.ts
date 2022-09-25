@@ -71,11 +71,6 @@ task("add-liquidity-v2")
 
             logger.log("Adding liquidity for", tknAName, tknBName);
 
-            console.log(hre.fromBig(await TknA.balanceOf(hre.users.deployer.address)), TknA.address);
-            console.log(tknA.amount);
-            console.log(hre.fromBig(await TknB.balanceOf(hre.users.deployer.address)), TknB.address);
-            console.log(tknB.amount);
-
             // Add initial LP (also creates the pair) according to oracle price
             const tx = await UniRouter.addLiquidity(
                 TknA.address,
@@ -87,7 +82,6 @@ task("add-liquidity-v2")
                 deployer,
                 (Date.now() / 1000 + 9000).toFixed(0),
             );
-            logger.log("Adding liquidity for", tknAName, tknBName);
             await tx.wait();
 
             const Pair = await ethers.getContractAt<UniswapV2Pair>(
