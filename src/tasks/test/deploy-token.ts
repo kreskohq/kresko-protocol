@@ -3,7 +3,7 @@ import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
 import { MockERC20 } from "types/typechain";
 
-task("deploy:token")
+task("deploy-token")
     .addParam("name", "Name of the token")
     .addParam("symbol", "Symbol for the token")
     .addOptionalParam("decimals", "token decimals", 18, types.int)

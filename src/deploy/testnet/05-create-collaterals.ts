@@ -14,7 +14,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         if (collateral.symbol === "WETH") {
             let WETH: WETH;
             if (!isDeployed) {
-                [WETH] = await hre.deploy<WETH>("WETH");
+                [WETH] = await hre.deploy<WETH>("WETH", {
+                    from: hre.users.deployer.address,
+                });
             } else {
                 WETH = await hre.ethers.getContract<WETH>("WETH");
             }
@@ -24,7 +26,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         if (isDeployed != null || !!collateral.kFactor) continue;
 
         logger.log(`Deploying collateral test token ${collateral.name}`);
-        await hre.run("deploy:token", {
+        await hre.run("deploy-token", {
             name: collateral.name,
             symbol: collateral.symbol,
             log: true,
@@ -36,7 +38,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     logger.success("Succesfully deployed collateral tokens");
 };
-func.dependencies = ["minter-init"];
+func.dependencies = ["minter-init", "oracles"];
 func.tags = ["testnet", "collaterals", "all"];
 
 func.skip = async hre => {

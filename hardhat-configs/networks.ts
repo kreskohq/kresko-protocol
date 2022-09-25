@@ -25,7 +25,7 @@ export const chainIds = {
     rinkeby: 4,
     ropsten: 3,
     hardhat: 1337,
-    fantom: 250,
+    fantom: 2100,
     harmony: 1666600000,
     harmonytest: 1666700000,
     polygon: 137,
@@ -103,7 +103,7 @@ export const networks = (mnemonic: string) => ({
     hardhat: {
         accounts: {
             mnemonic,
-            count: 50,
+            count: 100,
         },
         saveDeployments: true,
         allowUnlimitedContractSize: true,
@@ -111,7 +111,7 @@ export const networks = (mnemonic: string) => ({
     localhost: {
         accounts: {
             mnemonic,
-            count: 50,
+            count: 100,
         },
         saveDeployments: true,
         chainId: chainIds.hardhat,
@@ -125,21 +125,21 @@ export const networks = (mnemonic: string) => ({
     },
 
     op: {
-        accounts: { mnemonic, count: 50 },
+        accounts: { mnemonic, count: 100 },
         url: `https://optimism-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
         chainId: chainIds.op,
         saveDeployments: true,
         tags: ["mainnet"],
     },
     opkovan: {
-        accounts: { mnemonic, count: 50 },
+        accounts: { mnemonic, count: 100 },
         url: "https://kovan.optimism.io",
         chainId: chainIds.opkovan,
         saveDeployments: true,
         tags: ["testnet"],
     },
     opgoerli: {
-        accounts: { mnemonic, count: 50 },
+        accounts: { mnemonic, count: 100 },
         url: `https://optimism-goerli.infura.io/v3/${process.env.INFURA_API_KEY}`,
         chainId: chainIds.opgoerli,
         saveDeployments: true,

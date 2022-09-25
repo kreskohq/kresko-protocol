@@ -16,14 +16,28 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const { deployer } = await getNamedAccounts();
 
+    // #1.1 If deployed, set existing artifacts to runtime environment
+    const DiamondDeployment = await deployments.getOrNull("Diamond");
+    if (DiamondDeployment) {
+        logger.log("Diamond already deployed");
+        const DiamondFullABI = await ethers.getContractAt<Kresko>("Kresko", DiamondDeployment.address);
+        hre.Diamond = DiamondFullABI;
+        hre.DiamondDeployment = DiamondDeployment;
+        return;
+    }
+
     // #2 Only Diamond-specific facets
     for (const facet of DiamondConfig.facets) {
-        const [FacetContract, sigs] = await deploy(facet);
+        const [FacetContract, sigs] = await deploy(facet, {
+            from: deployer,
+            log: true,
+        });
         const args = hre.getAddFacetArgs(FacetContract, sigs);
         const Artifact = await deployments.getArtifact(facet);
         InitialFacets.push(args.facetCut);
         ABIs.push(Artifact.abi);
     }
+
     const [DiamondContract, _signatures, deployment] = await deploy("Diamond", {
         from: deployer,
         args: [deployer, InitialFacets, []],

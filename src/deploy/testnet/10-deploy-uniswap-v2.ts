@@ -7,17 +7,17 @@ import type { WETH } from "types/typechain/src/contracts/test/WETH";
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("deploy-uniswap");
     const { getNamedAccounts, deploy } = hre;
-    const { admin } = await getNamedAccounts();
+    const { deployer } = await getNamedAccounts();
 
     const [UniFactory] = await deploy<UniswapV2Factory>("UniswapV2Factory", {
-        from: admin,
-        args: [admin],
+        from: deployer,
+        args: [deployer],
     });
 
     const WETH = await hre.ethers.getContract<WETH>("WETH");
 
     const [UniRouter] = await deploy<UniswapV2Router02>("UniswapV2Router02", {
-        from: admin,
+        from: deployer,
         args: [UniFactory.address, WETH.address],
     });
 

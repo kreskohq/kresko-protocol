@@ -33,7 +33,7 @@ const func: DeployFunction = async function (hre) {
         const asset = assets[i];
         const deployment = await hre.deployments.getOrNull(asset.oracle.name);
         if (deployment != null) {
-            logger.log(`Oracle already deployed for ${asset.name}`);
+            logger.log(`Oracle already deployed for ${asset.symbol}`);
             logger.log(`Checking price..`);
             const oracle = await hre.ethers.getContractAt<FluxPriceFeed>(
                 "FluxPriceFeed",
@@ -46,13 +46,13 @@ const func: DeployFunction = async function (hre) {
                 continue;
             } else {
                 const price = await asset.price();
-                logger.log(`Price not found, transmitting.. ${asset.name} - ${price.toString()}`);
+                logger.log(`Price not found, transmitting.. ${asset.symbol} - ${price.toString()}`);
                 await oracle.transmit(price);
                 logger.success(`Price transmitted`);
                 continue;
             }
         }
-        logger.log(`Deploying oracle for ${asset.name}`);
+        logger.log(`Deploying oracle for ${asset.symbol}`);
         const feed: FluxPriceFeed = await hre.run("deployone:fluxpricefeed", {
             name: asset.oracle.name,
             decimals: 8,
@@ -64,7 +64,7 @@ const func: DeployFunction = async function (hre) {
             from: deployer.address,
         });
         logger.log(
-            `Oracle deployed for ${asset.name} - initial price: ${JStoFixed(
+            `Oracle deployed for ${asset.symbol} - initial price: ${JStoFixed(
                 Number(hre.ethers.utils.formatUnits(price, 8)),
                 2,
             )}`,
