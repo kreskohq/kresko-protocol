@@ -2,10 +2,10 @@
 pragma solidity >=0.8.14;
 
 import {IERC165} from "../../shared/IERC165.sol";
-import {IDiamondCut} from "../interfaces/IDiamondCut.sol";
-import {IDiamondLoupe} from "../interfaces/IDiamondLoupe.sol";
-import {IOwnership} from "../interfaces/IOwnership.sol";
-import {IAuthorization} from "../interfaces/IAuthorization.sol";
+import {IDiamondCutFacet} from "../interfaces/IDiamondCutFacet.sol";
+import {IDiamondLoupeFacet} from "../interfaces/IDiamondLoupeFacet.sol";
+import {IOwnershipFacet} from "../interfaces/IOwnershipFacet.sol";
+import {IAuthorizationFacet} from "../interfaces/IAuthorizationFacet.sol";
 
 import {GeneralEvent, AuthEvent} from "../../libs/Events.sol";
 import {Error} from "../../libs/Errors.sol";
@@ -28,11 +28,11 @@ library LibOwnership {
         self.storageVersion++;
         self.contractOwner = _owner;
 
-        self.supportedInterfaces[type(IDiamondLoupe).interfaceId] = true;
+        self.supportedInterfaces[type(IDiamondLoupeFacet).interfaceId] = true;
         self.supportedInterfaces[type(IERC165).interfaceId] = true;
-        self.supportedInterfaces[type(IDiamondCut).interfaceId] = true;
-        self.supportedInterfaces[type(IOwnership).interfaceId] = true;
-        self.supportedInterfaces[type(IAuthorization).interfaceId] = true;
+        self.supportedInterfaces[type(IDiamondCutFacet).interfaceId] = true;
+        self.supportedInterfaces[type(IOwnershipFacet).interfaceId] = true;
+        self.supportedInterfaces[type(IAuthorizationFacet).interfaceId] = true;
 
         emit GeneralEvent.Deployed(_owner, self.storageVersion);
         emit AuthEvent.OwnershipTransferred(address(0), _owner);

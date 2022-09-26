@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
-import {ILiquidation} from "../interfaces/ILiquidation.sol";
+import {ILiquidationFacet} from "../interfaces/ILiquidationFacet.sol";
 import {IKreskoAssetAnchor} from "../../krAsset/IKreskoAssetAnchor.sol";
 
 import {Arrays} from "../../libs/Arrays.sol";
@@ -16,7 +16,7 @@ import {Constants, KrAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 import "hardhat/console.sol";
 
-contract LiquidationFacet is DiamondModifiers, ILiquidation {
+contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
     using Arrays for address[];
     using Math for uint8;
     using Math for FixedPoint.Unsigned;

@@ -10,7 +10,7 @@ describe("KreskoAssetAnchor", () => {
     before(() => {
         addr = hre.addr;
     });
-    withFixture("kresko-asset");
+    withFixture(["minter-test", "krAsset"]);
     beforeEach(async function () {
         KreskoAsset = hre.krAssets[0].contract;
         KreskoAssetAnchor = hre.krAssets[0].anchor;

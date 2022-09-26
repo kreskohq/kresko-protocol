@@ -5,6 +5,7 @@ import {IERC165} from "../../shared/IERC165.sol";
 import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
 import {IKreskoAssetAnchor} from "../../krAsset/IKreskoAssetAnchor.sol";
 import {IKreskoAsset} from "../../krAsset/IKreskoAsset.sol";
+import {IKISS} from "../../kiss/interfaces/IKISS.sol";
 
 import {IConfigurationFacet} from "../interfaces/IConfigurationFacet.sol";
 
@@ -150,7 +151,11 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
 
         require(_closeFee <= Constants.MAX_CLOSE_FEE, Error.PARAM_CLOSE_FEE_TOO_HIGH);
 
-        require(IERC165(_krAsset).supportsInterface(type(IKreskoAsset).interfaceId), Error.KRASSET_INVALID_CONTRACT);
+        require(
+            IERC165(_krAsset).supportsInterface(type(IKreskoAsset).interfaceId) ||
+                IERC165(_krAsset).supportsInterface(type(IKISS).interfaceId),
+            Error.KRASSET_INVALID_CONTRACT
+        );
         require(IERC165(_anchor).supportsInterface(type(IKreskoAssetAnchor).interfaceId), Error.KRASSET_INVALID_ANCHOR);
 
         // The diamond needs the operator role

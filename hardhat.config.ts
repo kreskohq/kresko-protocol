@@ -115,7 +115,7 @@ const config: HardhatUserConfig = {
         {
             name: "Kresko",
             include: ["facets*"],
-            exclude: ["vendor", "test/*", "interfaces/*", "KreskoAsset", "WrappedKreskoAsset", "KrStaking"],
+            exclude: ["vendor", "test/*", "interfaces/*", "KreskoAsset", "KreskoAssetAnchor", "KrStaking"],
             strict: false,
         },
     ],
@@ -131,8 +131,6 @@ const config: HardhatUserConfig = {
             tasks: [{ command: "test", params: { testFiles: ["{path}"] } }],
             files: ["./src/test/**/*"],
             verbose: false,
-            clearOnStart: true,
-            start: "echo watching tests",
         },
     },
 };

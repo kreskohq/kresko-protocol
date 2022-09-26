@@ -4,6 +4,7 @@ import { getLogger } from "@utils/deployment";
 import { toFixedPoint } from "@utils/fixed-point";
 import { fromBig } from "@utils/numbers";
 import { task, types } from "hardhat/config";
+import { wrapperPrefix } from "src/config/minter";
 
 task("add-collateral")
     .addParam("symbol", "Name of the collateral")
@@ -29,12 +30,18 @@ task("add-collateral")
         logger.log("Collateral address", Collateral.address);
 
         const collateralAsset = await kresko.collateralAsset(Collateral.address);
+        const anchor = await hre.deployments.getOrNull(wrapperPrefix + symbol);
         const exists = collateralAsset.exists;
 
         if (exists) {
             logger.warn(`Collateral ${symbol} already exists!`);
         } else {
-            const tx = await kresko.addCollateralAsset(Collateral.address, toFixedPoint(cFactor), oracleAddr);
+            const tx = await kresko.addCollateralAsset(
+                Collateral.address,
+                anchor?.address ?? ethers.constants.AddressZero,
+                toFixedPoint(cFactor),
+                oracleAddr,
+            );
             await tx.wait();
             if (log) {
                 const collateralDecimals = await Collateral.decimals();

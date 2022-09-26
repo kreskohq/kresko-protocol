@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 
-import {IState} from "../interfaces/IState.sol";
+import {IStateFacet} from "../interfaces/IStateFacet.sol";
 
 import {MinterParams, FixedPoint, KrAsset, CollateralAsset} from "../MinterTypes.sol";
 import {MinterState, ms} from "../MinterStorage.sol";
@@ -11,7 +11,7 @@ import {MinterState, ms} from "../MinterStorage.sol";
  * @author Kresko
  * @dev Structs do not create views for members.
  */
-contract StateFacet is IState {
+contract StateFacet is IStateFacet {
     function domainSeparator() external view returns (bytes32) {
         return ms().domainSeparator;
     }

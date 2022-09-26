@@ -7,12 +7,12 @@ const { ethers } = hre;
 import minterConfig from "../config/minter";
 
 export async function createKrAsset(name: string, symbol, decimals = 18) {
-    const { deployer } = await ethers.getNamedSigners();
+    const { deployer, operator } = await ethers.getNamedSigners();
     const kresko = hre.Diamond;
     const deploy = hre.deploy;
 
     const underlyingSymbol = minterConfig.wrapperPrefix + symbol;
-    const kreskoAssetInitializerArgs = [name, symbol, decimals, deployer.address, kresko.address];
+    const kreskoAssetInitArgs = [name, symbol, decimals, deployer.address, kresko.address];
 
     const [KreskoAsset] = await deploy<KreskoAsset>(symbol, {
         from: deployer.address,
@@ -23,14 +23,14 @@ export async function createKrAsset(name: string, symbol, decimals = 18) {
             proxyContract: "OptimizedTransparentProxy",
             execute: {
                 methodName: "initialize",
-                args: kreskoAssetInitializerArgs,
+                args: kreskoAssetInitArgs,
             },
         },
     });
 
-    const fixedKreskoAssetInitializerArgs = [KreskoAsset.address, name, underlyingSymbol, deployer.address];
+    const kreskoAssetAnchorInitArgs = [KreskoAsset.address, name, underlyingSymbol, deployer.address];
 
-    const [KreskoAssetAnchor] = await hre.deploy(symbol, {
+    const [KreskoAssetAnchor] = await hre.deploy(underlyingSymbol, {
         from: deployer.address,
         log: true,
         contract: "KreskoAssetAnchor",
@@ -40,7 +40,7 @@ export async function createKrAsset(name: string, symbol, decimals = 18) {
             proxyContract: "OptimizedTransparentProxy",
             execute: {
                 methodName: "initialize",
-                args: fixedKreskoAssetInitializerArgs,
+                args: kreskoAssetAnchorInitArgs,
             },
         },
     });

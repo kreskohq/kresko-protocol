@@ -162,13 +162,9 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
         await smock.mock<KreskoAssetAnchor__factory>("KreskoAssetAnchor")
     ).deploy(krAsset.address);
 
-<<<<<<< HEAD
-    await wkrAsset.setVariable("_initialized", 0);
-    await wkrAsset.initialize(krAsset.address, name, wrapperPrefix + symbol, users.deployer.address);
-=======
+
     await akrAsset.setVariable("_initialized", 0);
     await akrAsset.initialize(krAsset.address, name, name, users.deployer.address);
->>>>>>> 8c03321 (feat: rename WrappedKreskoAsset to KreskoAssetAnchor)
 
     // Add the asset to the protocol
     const kFactor = toFixedPoint(factor);

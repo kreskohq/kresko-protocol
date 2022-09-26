@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 
-import {IAccountState} from "../interfaces/IAccountState.sol";
+import {IAccountStateFacet} from "../interfaces/IAccountStateFacet.sol";
 import {Action, KrAsset, CollateralAsset, FixedPoint} from "../MinterTypes.sol";
 import {IKreskoAsset} from "../../krAsset/IKreskoAsset.sol";
 import {ms} from "../MinterStorage.sol";
 
-contract AccountStateFacet is IAccountState {
+contract AccountStateFacet is IAccountStateFacet {
     using FixedPoint for FixedPoint.Unsigned;
 
     /* -------------------------------------------------------------------------- */

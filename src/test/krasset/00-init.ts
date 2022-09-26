@@ -14,11 +14,10 @@ describe("KreskoAsset", function () {
     before(async function () {
         addr = hre.addr;
     });
-    withFixture(["minter-test", "kr"]);
-
+    withFixture(["minter-test", "krAsset"]);
     describe("#initialization - anchor", () => {
         beforeEach(async function () {
-            const deployment = hre.krAssets.find(k => k.deployArgs.name === name);
+            const deployment = this.krAssets.find(k => k.deployArgs.name === name);
             KreskoAsset = deployment.contract;
             KreskoAssetAnchor = deployment.anchor;
         });
