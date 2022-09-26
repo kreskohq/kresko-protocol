@@ -587,7 +587,7 @@ describe.only("Minter", function () {
             });
         });
 
-        describe.only("#deposit - rebase events", function () {
+        describe("#deposit - rebase events", function () {
             const mintAmount = hre.toBig(10);
             const arbitraryUser = users.userThree;
             let arbitraryUserDiamond: Kresko;
@@ -832,7 +832,7 @@ describe.only("Minter", function () {
                     expect(depositsAfterSecondDeposit).to.bignumber.equal(expectedDepositsAfterSecondDeposit);
                 });
             });
-            describe.only("deposit usd values are calculated correctly", () => {
+            describe("deposit usd values are calculated correctly", () => {
                 it("when deposit is made before expanding rebase", async function () {
                     await arbitraryUserDiamond.depositCollateral(
                         arbitraryUser.address,
@@ -1052,14 +1052,368 @@ describe.only("Minter", function () {
             });
         });
 
-        describe("#withdraw - rebase events", () => {
-            describe("deposit amounts are calculated correctly", () => {
-                it("when deposit is made before expanding rebase");
-                it("when deposit is made before reducing rebase");
-                it("when deposit is made after an expanding rebase");
-                it("when deposit is made after an reducing rebase");
-                it("when deposit is made before and after a expanding rebase");
-                it("when deposit is made before and after a reducing rebase");
+        describe.only("#withdraw - rebase events", () => {
+            const mintAmount = hre.toBig(10);
+            const arbitraryUser = users.userThree;
+            let arbitraryUserDiamond: Kresko;
+            beforeEach(async function () {
+                arbitraryUserDiamond = hre.Diamond.connect(arbitraryUser);
+                await this.collateral.mocks.contract.setVariable("_balances", {
+                    [arbitraryUser.address]: this.initialBalance,
+                });
+                await this.collateral.mocks.contract.setVariable("_allowances", {
+                    [arbitraryUser.address]: {
+                        [hre.Diamond.address]: this.initialBalance,
+                    },
+                });
+                this.krAsset = this.krAssets.find(k => k.deployArgs.name === defaultKrAssetArgs.name);
+                // grant operator role to deployer for rebases
+                await this.krAsset.contract.grantRole(Role.OPERATOR, hre.addr.deployer);
+                const assetInfo = await this.krAsset.kresko();
+
+                // Add krAsset as a collateral with anchor and cFactor of 1
+                await hre.Diamond.connect(users.operator).addCollateralAsset(
+                    this.krAsset.contract.address,
+                    this.krAsset.anchor.address,
+                    hre.toBig(1),
+                    assetInfo.oracle,
+                );
+
+                // Allowance for Kresko
+                await this.krAsset.contract
+                    .connect(arbitraryUser)
+                    .approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
+
+                // Deposit some collateral
+                await arbitraryUserDiamond.depositCollateral(
+                    arbitraryUser.address,
+                    this.collateral.address,
+                    this.depositArgs.amount,
+                );
+
+                // Mint some krAssets
+                await arbitraryUserDiamond.mintKreskoAsset(arbitraryUser.address, this.krAsset.address, mintAmount);
+
+                // Deposit all debt on tests
+                this.krAssetCollateralAmount = await arbitraryUserDiamond.kreskoAssetDebt(
+                    arbitraryUser.address,
+                    this.krAsset.address,
+                );
+            });
+            describe("collateral amounts are calculated correctly", () => {
+                it("when deposit is made before expanding rebase", async function () {
+                    // Rebase params
+                    const denominator = 4;
+                    const expand = true;
+                    const rebasedDepositAmount = this.krAssetCollateralAmount.mul(denominator);
+
+                    // Deposit collateral before rebase
+                    await arbitraryUserDiamond.depositCollateral(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                        this.krAssetCollateralAmount,
+                    );
+
+                    const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                    );
+
+                    // Rebase the asset according to params
+                    await this.krAsset.contract.rebase(hre.toBig(denominator), expand);
+
+                    const depositsAfter = await hre.Diamond.collateralDeposits(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                    );
+                    // Ensure that the collateral balance is adjusted by the rebase
+                    expect(depositsAfter).to.bignumber.equal(rebasedDepositAmount);
+
+                    // Withdraw rebased amount
+                    await arbitraryUserDiamond.withdrawCollateral(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                        rebasedDepositAmount,
+                        cIndex,
+                    );
+
+                    const depositsAfterWithdraw = await hre.Diamond.collateralDeposits(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                    );
+                    const balanceAfterWithdraw = await this.krAsset.contract.balanceOf(arbitraryUser.address);
+
+                    expect(depositsAfterWithdraw).to.equal(0);
+                    expect(balanceAfterWithdraw).to.equal(rebasedDepositAmount);
+                });
+                it("when deposit is made before reducing rebase", async function () {
+                    // Rebase params
+                    const denominator = 4;
+                    const expand = false;
+                    const rebasedDepositAmount = this.krAssetCollateralAmount.div(denominator);
+
+                    // Deposit collateral before rebase
+                    await arbitraryUserDiamond.depositCollateral(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                        this.krAssetCollateralAmount,
+                    );
+
+                    const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                    );
+
+                    // Rebase the asset according to params
+                    await this.krAsset.contract.rebase(hre.toBig(denominator), expand);
+
+                    const depositsAfter = await hre.Diamond.collateralDeposits(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                    );
+                    // Ensure that the collateral balance is adjusted by the rebase
+                    expect(depositsAfter).to.bignumber.equal(rebasedDepositAmount);
+
+                    // Withdraw rebased amount
+                    await arbitraryUserDiamond.withdrawCollateral(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                        rebasedDepositAmount,
+                        cIndex,
+                    );
+
+                    const depositsAfterWithdraw = await hre.Diamond.collateralDeposits(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                    );
+                    const balanceAfterWithdraw = await this.krAsset.contract.balanceOf(arbitraryUser.address);
+
+                    expect(depositsAfterWithdraw).to.equal(0);
+                    expect(balanceAfterWithdraw).to.equal(rebasedDepositAmount);
+                });
+                it("when deposit is made after an expanding rebase", async function () {
+                    // Rebase params
+                    const denominator = 4;
+                    const expand = true;
+                    const rebasedDepositAmount = this.krAssetCollateralAmount.mul(denominator);
+
+                    // Rebase the asset according to params
+                    await this.krAsset.contract.rebase(hre.toBig(denominator), expand);
+
+                    // Deposit after the rebase
+                    await arbitraryUserDiamond.depositCollateral(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                        rebasedDepositAmount,
+                    );
+
+                    const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                    );
+
+                    // Get collateral deposits after
+                    const depositsAfter = await hre.Diamond.collateralDeposits(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                    );
+
+                    // Ensure that the collateral balance is what was deposited as no rebases occured after
+                    expect(depositsAfter).to.bignumber.equal(rebasedDepositAmount);
+
+                    // Withdraw rebased amount
+                    await arbitraryUserDiamond.withdrawCollateral(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                        rebasedDepositAmount,
+                        cIndex,
+                    );
+
+                    const depositsAfterWithdraw = await hre.Diamond.collateralDeposits(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                    );
+                    const balanceAfterWithdraw = await this.krAsset.contract.balanceOf(arbitraryUser.address);
+
+                    expect(depositsAfterWithdraw).to.equal(0);
+                    expect(balanceAfterWithdraw).to.equal(rebasedDepositAmount);
+                });
+                it("when deposit is made after an reducing rebase", async function () {
+                    // Rebase params
+                    const denominator = 4;
+                    const expand = false;
+                    const rebasedDepositAmount = this.krAssetCollateralAmount.div(denominator);
+
+                    // Rebase the asset according to params
+                    await this.krAsset.contract.rebase(hre.toBig(denominator), expand);
+
+                    // Deposit after the rebase
+                    await arbitraryUserDiamond.depositCollateral(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                        rebasedDepositAmount,
+                    );
+                    const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                    );
+
+                    // Get collateral deposits after
+                    const depositsAfter = await hre.Diamond.collateralDeposits(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                    );
+
+                    // Ensure that the collateral balance is what was deposited as no rebases occured after
+                    expect(depositsAfter).to.bignumber.equal(rebasedDepositAmount);
+
+                    // Withdraw rebased amount
+                    await arbitraryUserDiamond.withdrawCollateral(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                        rebasedDepositAmount,
+                        cIndex,
+                    );
+
+                    const depositsAfterWithdraw = await hre.Diamond.collateralDeposits(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                    );
+                    const balanceAfterWithdraw = await this.krAsset.contract.balanceOf(arbitraryUser.address);
+
+                    expect(depositsAfterWithdraw).to.equal(0);
+                    expect(balanceAfterWithdraw).to.equal(rebasedDepositAmount);
+                });
+                it("when deposit is made before and after a expanding rebase", async function () {
+                    // Rebase params
+                    const denominator = 4;
+                    const expand = true;
+
+                    // Deposit half before, half (rebase adjusted) after
+                    const firstDepositAmount = this.krAssetCollateralAmount.div(2);
+                    const secondDepositAmount = this.krAssetCollateralAmount.mul(denominator).div(2);
+
+                    const fullDepositAmountAfterRebase = firstDepositAmount.mul(denominator).add(secondDepositAmount);
+
+                    // Deposit before the rebase
+                    await arbitraryUserDiamond.depositCollateral(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                        firstDepositAmount,
+                    );
+                    const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                    );
+
+                    // Get deposits before
+                    const depositsFirst = await hre.Diamond.collateralDeposits(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                    );
+                    expect(depositsFirst).to.bignumber.equal(firstDepositAmount);
+
+                    // Rebase the asset according to params
+                    await this.krAsset.contract.rebase(hre.toBig(denominator), expand);
+
+                    // Deposit after the rebase
+                    await arbitraryUserDiamond.depositCollateral(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                        secondDepositAmount,
+                    );
+
+                    // Get collateral deposits after
+                    const depositsAfter = await hre.Diamond.collateralDeposits(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                    );
+
+                    // Ensure deposit balance matches expected
+                    expect(depositsAfter).to.bignumber.equal(fullDepositAmountAfterRebase);
+
+                    // Withdraw rebased amount
+                    await arbitraryUserDiamond.withdrawCollateral(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                        fullDepositAmountAfterRebase,
+                        cIndex,
+                    );
+
+                    const depositsAfterWithdraw = await hre.Diamond.collateralDeposits(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                    );
+                    const balanceAfterWithdraw = await this.krAsset.contract.balanceOf(arbitraryUser.address);
+
+                    expect(depositsAfterWithdraw).to.equal(0);
+                    expect(balanceAfterWithdraw).to.equal(fullDepositAmountAfterRebase);
+                });
+                it("when deposit is made before and after a reducing rebase", async function () {
+                    // Rebase params
+                    const denominator = 4;
+                    const expand = false;
+
+                    // Deposit half before, half (rebase adjusted) after
+                    const firstDepositAmount = this.krAssetCollateralAmount.div(2);
+                    const secondDepositAmount = this.krAssetCollateralAmount.div(denominator).div(2);
+
+                    const fullDepositAmountAfterRebase = firstDepositAmount.div(denominator).add(secondDepositAmount);
+
+                    // Deposit before the rebase
+                    await arbitraryUserDiamond.depositCollateral(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                        firstDepositAmount,
+                    );
+                    const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                    );
+
+                    // Get deposits before
+                    const depositsFirst = await hre.Diamond.collateralDeposits(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                    );
+                    expect(depositsFirst).to.bignumber.equal(firstDepositAmount);
+
+                    // Rebase the asset according to params
+                    await this.krAsset.contract.rebase(hre.toBig(denominator), expand);
+
+                    // Deposit after the rebase
+                    await arbitraryUserDiamond.depositCollateral(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                        secondDepositAmount,
+                    );
+
+                    // Get collateral deposits after
+                    const depositsAfter = await hre.Diamond.collateralDeposits(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                    );
+
+                    // Ensure deposit balance matches expected
+                    expect(depositsAfter).to.bignumber.equal(fullDepositAmountAfterRebase);
+
+                    // Withdraw rebased amount
+                    await arbitraryUserDiamond.withdrawCollateral(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                        fullDepositAmountAfterRebase,
+                        cIndex,
+                    );
+
+                    const depositsAfterWithdraw = await hre.Diamond.collateralDeposits(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                    );
+                    const balanceAfterWithdraw = await this.krAsset.contract.balanceOf(arbitraryUser.address);
+
+                    expect(depositsAfterWithdraw).to.equal(0);
+                    expect(balanceAfterWithdraw).to.equal(fullDepositAmountAfterRebase);
+                });
             });
             describe("deposit usd values are calculated correctly", () => {
                 it("when deposit is made before expanding rebase");
