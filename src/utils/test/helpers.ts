@@ -25,6 +25,7 @@ import {
     TestKreskoAssetUpdate
 } from "./mocks";
 import roles from "./roles";
+import { wrapperPrefix } from "src/config/minter";
 
 export const getMockOracleFor = async (assetName = "Asset", price = defaultOraclePrice) => {
     const Oracle = await smock.fake<FluxPriceFeed>("FluxPriceFeed");
@@ -164,7 +165,8 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
 
 
     await akrAsset.setVariable("_initialized", 0);
-    await akrAsset.initialize(krAsset.address, name, name, users.deployer.address);
+    await akrAsset.initialize(krAsset.address, name, wrapperPrefix + symbol, users.deployer.address);
+    akrAsset.decimals.returns(18)
 
     // Add the asset to the protocol
     const kFactor = toFixedPoint(factor);

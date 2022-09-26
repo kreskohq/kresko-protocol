@@ -20,7 +20,7 @@ import {
     CollateralWithdrawnEventObject,
 } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
-describe.only("Minter", function () {
+describe("Minter", function () {
     withFixture(["minter-test", "integration"]);
     beforeEach(async function () {
         this.collateral = this.collaterals.find(c => c.deployArgs.name === defaultCollateralArgs.name);
@@ -642,6 +642,7 @@ describe.only("Minter", function () {
                         this.krAsset.address,
                         this.krAssetCollateralAmount,
                     );
+
                     // Rebase params
                     const denominator = 4;
                     const expand = true;
@@ -850,9 +851,9 @@ describe.only("Minter", function () {
                     // Rebase params
                     const denominator = 4;
                     const expand = true;
+
                     const newPrice = fromBig(await this.krAsset.getPrice(), 8) / denominator;
                     this.krAsset.setPrice(newPrice);
-
                     // Rebase the asset according to params
                     await this.krAsset.contract.rebase(hre.toBig(denominator), expand);
 
