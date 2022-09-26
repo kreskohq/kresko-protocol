@@ -383,6 +383,15 @@ describe("Minter", function () {
                     ),
                 ).to.be.revertedWith(Error.SELF_LIQUIDATION);
             });
+
+            describe("#rebasing events", async () => {
+                it("should not allow liquidation of healthy accounts after a expanding rebase");
+                it("should not allow liquidation of healthy accounts after a recuding rebase");
+                it("should allow liquidations of unhealthy accounts after a expanding rebase");
+                it("should allow liquidations of unhealthy accounts after a reducing rebase");
+                it("should liquidate correct amount of assets after a expanding rebase");
+                it("should liquidate correct amount of assets after a reducing rebase");
+            });
         });
     });
 });
