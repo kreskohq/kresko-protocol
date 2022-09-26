@@ -20,7 +20,7 @@ import {
     CollateralWithdrawnEventObject,
 } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
-describe("Minter", function () {
+describe.only("Minter", function () {
     withFixture(["minter-test", "integration"]);
     beforeEach(async function () {
         this.collateral = this.collaterals.find(c => c.deployArgs.name === defaultCollateralArgs.name);
@@ -1081,7 +1081,7 @@ describe("Minter", function () {
         });
 
         describe("#withdraw - rebase events", () => {
-            const mintAmount = hre.toBig(10);
+            const mintAmount = hre.toBig(50);
             const arbitraryUser = users.userThree;
             let arbitraryUserDiamond: Kresko;
             beforeEach(async function () {
@@ -1440,6 +1440,42 @@ describe("Minter", function () {
                     expect(finalDeposits).to.equal(0);
                     expect(finalBalance).to.bignumber.equal(fullDepositAmount);
                 });
+
+                it("when withdrawing a non-rebased collateral after a rebase", async function () {
+                    // Rebase params
+                    const denominator = 4;
+                    const expand = true;
+                    const newPrice = fromBig(await this.krAsset.getPrice(), 8) / denominator;
+                    const withdrawAmount = toBig(10);
+
+                    await arbitraryUserDiamond.depositCollateral(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                        this.krAssetCollateralAmount,
+                    );
+
+                    const nrcBalanceBefore = await this.collateral.contract.balanceOf(arbitraryUser.address);
+                    const expectedNrcBalanceAfter = nrcBalanceBefore.add(withdrawAmount);
+
+                    // Rebase the asset according to params
+                    this.krAsset.setPrice(newPrice);
+                    await this.krAsset.contract.rebase(hre.toBig(denominator), expand);
+
+                    const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
+                        arbitraryUser.address,
+                        this.collateral.address,
+                    );
+                    await arbitraryUserDiamond.withdrawCollateral(
+                        arbitraryUser.address,
+                        this.collateral.address,
+                        withdrawAmount,
+                        cIndex,
+                    );
+
+                    expect(await this.collateral.contract.balanceOf(arbitraryUser.address)).to.bignumber.equal(
+                        expectedNrcBalanceAfter,
+                    );
+                });
             });
             describe("withdraw usd values are calculated correctly", () => {
                 it("when withdrawing a deposit made before expanding rebase", async function () {
@@ -1723,6 +1759,56 @@ describe("Minter", function () {
                     expect(finalValue.rawValue).to.equal(0);
                     expect(await this.krAsset.contract.balanceOf(arbitraryUser.address)).to.bignumber.equal(
                         fullDepositAmount,
+                    );
+                });
+                it("when withdrawing a non-rebased collateral after a rebase", async function () {
+                    // Rebase params
+                    const denominator = 4;
+                    const expand = true;
+                    const newPrice = fromBig(await this.krAsset.getPrice(), 8) / denominator;
+                    const withdrawAmount = toBig(10);
+
+                    await arbitraryUserDiamond.depositCollateral(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                        this.krAssetCollateralAmount,
+                    );
+
+                    const accountValueBefore = await hre.Diamond.getAccountCollateralValue(arbitraryUser.address);
+                    const [nrcValueBefore] = await hre.Diamond.getAccountSingleCollateralValueAndRealValue(
+                        arbitraryUser.address,
+                        this.collateral.address,
+                    );
+                    const [withdrawValue] = await hre.Diamond.getCollateralValueAndOraclePrice(
+                        this.collateral.address,
+                        withdrawAmount,
+                        false,
+                    );
+                    const expectedNrcValueAfter = nrcValueBefore.rawValue.sub(withdrawValue.rawValue);
+
+                    // Rebase the asset according to params
+                    this.krAsset.setPrice(newPrice);
+                    await this.krAsset.contract.rebase(hre.toBig(denominator), expand);
+
+                    const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
+                        arbitraryUser.address,
+                        this.collateral.address,
+                    );
+                    await arbitraryUserDiamond.withdrawCollateral(
+                        arbitraryUser.address,
+                        this.collateral.address,
+                        withdrawAmount,
+                        cIndex,
+                    );
+                    const finalAccountValue = await hre.Diamond.getAccountCollateralValue(arbitraryUser.address);
+                    const [finalValue] = await hre.Diamond.getAccountSingleCollateralValueAndRealValue(
+                        arbitraryUser.address,
+                        this.collateral.address,
+                    );
+
+                    expect(finalValue.rawValue).to.equal(expectedNrcValueAfter);
+                    expect(finalAccountValue.rawValue).to.bignumber.equal(
+                        accountValueBefore.rawValue.sub(withdrawValue.rawValue),
                     );
                 });
             });
