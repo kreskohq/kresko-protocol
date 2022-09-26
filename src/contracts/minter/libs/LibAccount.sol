@@ -56,7 +56,7 @@ library LibAccount {
 
         // Perform conversion for KreskoAsset collaterals
         if (collateral.anchor != address(0)) {
-            return IKreskoAssetAnchor(self.kreskoAssets[_asset].anchor).convertToAssets(deposits);
+            return IKreskoAssetAnchor(self.collateralAssets[_asset].anchor).convertToAssets(deposits);
         }
 
         // No conversion for other assets
