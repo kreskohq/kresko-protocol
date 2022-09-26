@@ -133,6 +133,15 @@ contract AccountStateFacet is IAccountStateFacet {
         );
     }
 
+    function getAccountSingleCollateralValueAndRealValue(address _account, address _asset)
+        external
+        view
+        returns (FixedPoint.Unsigned memory value, FixedPoint.Unsigned memory realValue)
+    {
+        uint256 depositAmount = ms().getCollateralDeposits(_account, _asset);
+        return ms().getCollateralValueAndOraclePrice(_asset, depositAmount, false);
+    }
+
     /**
      * @notice Get a list of accounts and their collateral ratios
      * @return ratios of the accounts
