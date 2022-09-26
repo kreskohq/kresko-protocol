@@ -832,13 +832,223 @@ describe.only("Minter", function () {
                     expect(depositsAfterSecondDeposit).to.bignumber.equal(expectedDepositsAfterSecondDeposit);
                 });
             });
-            describe("deposit usd values are calculated correctly", () => {
-                it("when deposit is made before expanding rebase");
-                it("when deposit is made before reducing rebase");
-                it("when deposit is made after an expanding rebase");
-                it("when deposit is made after an reducing rebase");
-                it("when deposit is made before and after a expanding rebase");
-                it("when deposit is made before and after a reducing rebase");
+            describe.only("deposit usd values are calculated correctly", () => {
+                it("when deposit is made before expanding rebase", async function () {
+                    await arbitraryUserDiamond.depositCollateral(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                        this.krAssetCollateralAmount,
+                    );
+                    const valueBefore = await hre.Diamond.getAccountCollateralValue(arbitraryUser.address);
+
+                    // Rebase params
+                    const denominator = 4;
+                    const expand = true;
+                    const newPrice = fromBig(await this.krAsset.getPrice(), 8) / denominator;
+                    this.krAsset.setPrice(newPrice);
+
+                    // Rebase the asset according to params
+                    await this.krAsset.contract.rebase(hre.toBig(denominator), expand);
+
+                    // Get collateral value of account after
+                    const valueAfter = await hre.Diamond.getAccountCollateralValue(arbitraryUser.address);
+
+                    // Ensure that the collateral value stays the same
+                    expect(valueBefore.rawValue).to.bignumber.equal(valueAfter.rawValue);
+                });
+                it("when deposit is made before reducing rebase", async function () {
+                    await arbitraryUserDiamond.depositCollateral(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                        this.krAssetCollateralAmount,
+                    );
+                    const valueBefore = await hre.Diamond.getAccountCollateralValue(arbitraryUser.address);
+
+                    // Rebase params
+                    const denominator = 4;
+                    const expand = false;
+                    const newPrice = fromBig(await this.krAsset.getPrice(), 8) * denominator;
+                    this.krAsset.setPrice(newPrice);
+
+                    // Rebase the asset according to params
+                    await this.krAsset.contract.rebase(hre.toBig(denominator), expand);
+
+                    // Get collateral value of account after
+                    const valueAfter = await hre.Diamond.getAccountCollateralValue(arbitraryUser.address);
+
+                    // Ensure that the collateral value stays the same
+                    expect(valueBefore.rawValue).to.bignumber.equal(valueAfter.rawValue);
+                });
+                it("when deposit is made after an expanding rebase", async function () {
+                    // Rebase params
+                    const denominator = 4;
+                    const expand = true;
+                    const newPrice = fromBig(await this.krAsset.getPrice(), 8) / denominator;
+
+                    // Get expected value before rebase and deposit
+                    const [expectedValue] = await hre.Diamond.getCollateralValueAndOraclePrice(
+                        this.krAsset.address,
+                        this.krAssetCollateralAmount,
+                        false,
+                    );
+
+                    const depositAmount = this.krAssetCollateralAmount.mul(denominator);
+
+                    // Rebase the asset according to params
+                    this.krAsset.setPrice(newPrice);
+                    await this.krAsset.contract.rebase(hre.toBig(denominator), expand);
+
+                    // Deposit rebased amount after
+                    await arbitraryUserDiamond.depositCollateral(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                        depositAmount,
+                    );
+
+                    // Get collateral value of account after
+                    const [valueAfter] = await hre.Diamond.getCollateralValueAndOraclePrice(
+                        this.krAsset.address,
+                        depositAmount,
+                        false,
+                    );
+
+                    // Ensure that the collateral value stays the same
+                    expect(expectedValue.rawValue).to.bignumber.equal(valueAfter.rawValue);
+                });
+                it("when deposit is made after an reducing rebase", async function () {
+                    // Rebase params
+                    const denominator = 4;
+                    const expand = false;
+                    const newPrice = fromBig(await this.krAsset.getPrice(), 8) * denominator;
+
+                    // Get expected value before rebase and deposit
+                    const [expectedValue] = await hre.Diamond.getCollateralValueAndOraclePrice(
+                        this.krAsset.address,
+                        this.krAssetCollateralAmount,
+                        false,
+                    );
+
+                    const depositAmount = this.krAssetCollateralAmount.div(denominator);
+
+                    // Rebase the asset according to params
+                    this.krAsset.setPrice(newPrice);
+                    await this.krAsset.contract.rebase(hre.toBig(denominator), expand);
+
+                    // Deposit rebased amount after
+                    await arbitraryUserDiamond.depositCollateral(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                        depositAmount,
+                    );
+
+                    // Get collateral value of account after
+                    const [valueAfter] = await hre.Diamond.getCollateralValueAndOraclePrice(
+                        this.krAsset.address,
+                        depositAmount,
+                        false,
+                    );
+
+                    // Ensure that the collateral value stays the same
+                    expect(expectedValue.rawValue).to.bignumber.equal(valueAfter.rawValue);
+                });
+                it("when deposit is made before and after a expanding rebase", async function () {
+                    // Rebase params
+                    const denominator = 4;
+                    const expand = true;
+                    const newPrice = fromBig(await this.krAsset.getPrice(), 8) / denominator;
+
+                    // Deposit half before, half after
+                    const depositAmount = this.krAssetCollateralAmount.div(2);
+
+                    await arbitraryUserDiamond.depositCollateral(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                        depositAmount,
+                    );
+
+                    const expectedValue = await hre.Diamond.getAccountCollateralValue(arbitraryUser.address);
+
+                    // Rebase the asset according to params
+                    this.krAsset.setPrice(newPrice);
+                    await this.krAsset.contract.rebase(hre.toBig(denominator), expand);
+
+                    // Get value after
+                    const valueAfterRebase = await hre.Diamond.getAccountCollateralValue(arbitraryUser.address);
+
+                    // Ensure that the collateral value stays the same
+                    expect(expectedValue.rawValue).to.bignumber.equal(valueAfterRebase.rawValue);
+
+                    // Calculate added value since price adjusted in the rebase
+                    const [addedValueAfterSecondDeposit] = await hre.Diamond.getCollateralValueAndOraclePrice(
+                        this.krAsset.address,
+                        depositAmount,
+                        false,
+                    );
+                    const expectedValueAfterSecondDeposit = expectedValue.rawValue.add(
+                        addedValueAfterSecondDeposit.rawValue,
+                    );
+
+                    // Deposit more
+                    await arbitraryUserDiamond.depositCollateral(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                        depositAmount,
+                    );
+                    // Get deposits after
+                    const valueAfterSecondRebase = await hre.Diamond.getAccountCollateralValue(arbitraryUser.address);
+
+                    // Ensure that the collateral value stays the same
+                    expect(valueAfterSecondRebase.rawValue).to.bignumber.equal(expectedValueAfterSecondDeposit);
+                });
+                it("when deposit is made before and after a reducing rebase", async function () {
+                    // Rebase params
+                    const denominator = 4;
+                    const expand = false;
+                    const newPrice = fromBig(await this.krAsset.getPrice(), 8) * denominator;
+
+                    // Deposit half before, half after
+                    const depositAmount = this.krAssetCollateralAmount.div(denominator).div(2);
+
+                    await arbitraryUserDiamond.depositCollateral(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                        depositAmount,
+                    );
+
+                    const expectedValue = await hre.Diamond.getAccountCollateralValue(arbitraryUser.address);
+
+                    // Rebase the asset according to params
+                    this.krAsset.setPrice(newPrice);
+                    await this.krAsset.contract.rebase(hre.toBig(denominator), expand);
+
+                    // Get value after
+                    const valueAfterRebase = await hre.Diamond.getAccountCollateralValue(arbitraryUser.address);
+
+                    // Ensure that the collateral value stays the same
+                    expect(expectedValue.rawValue).to.bignumber.equal(valueAfterRebase.rawValue);
+
+                    // Calculate added value since price adjusted in the rebase
+                    const [addedValueAfterSecondDeposit] = await hre.Diamond.getCollateralValueAndOraclePrice(
+                        this.krAsset.address,
+                        depositAmount,
+                        false,
+                    );
+                    const expectedValueAfterSecondDeposit = expectedValue.rawValue.add(
+                        addedValueAfterSecondDeposit.rawValue,
+                    );
+
+                    // Deposit more
+                    await arbitraryUserDiamond.depositCollateral(
+                        arbitraryUser.address,
+                        this.krAsset.address,
+                        depositAmount,
+                    );
+                    // Get deposits after
+                    const valueAfterSecondRebase = await hre.Diamond.getAccountCollateralValue(arbitraryUser.address);
+
+                    // Ensure that the collateral value stays the same
+                    expect(valueAfterSecondRebase.rawValue).to.bignumber.equal(expectedValueAfterSecondDeposit);
+                });
             });
         });
 
