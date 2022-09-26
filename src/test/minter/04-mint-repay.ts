@@ -1362,6 +1362,8 @@ describe("Minter", function () {
                     const expectedFeeValueNormalizedB = fromBig(expectedFeeValueNormalizedA); // Normalize closeFee's 10**18 decimals on contract
                     expect(event.paymentValue).to.equal(expectedFeeValueNormalizedB);
                 });
+                it("should charge correct protocol close fee after a expanding rebase");
+                it("should charge correct protocol close fee after a reducing rebase");
             });
         });
 
