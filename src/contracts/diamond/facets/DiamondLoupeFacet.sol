@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 
-import {IDiamondLoupe} from "../interfaces/IDiamondLoupe.sol";
+import {IDiamondLoupeFacet} from "../interfaces/IDiamondLoupeFacet.sol";
 import {ds, DiamondState} from "../DiamondStorage.sol";
 
-contract DiamondLoupeFacet is IDiamondLoupe {
+contract DiamondLoupeFacet is IDiamondLoupeFacet {
     /// @notice Gets all facets and their selectors.
     /// @return facets_ Facet
     function facets() external view override returns (Facet[] memory facets_) {

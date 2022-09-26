@@ -2,7 +2,7 @@
 pragma solidity >=0.8.14;
 
 /// @title Contract Ownership
-interface IOwnership {
+interface IOwnershipFacet {
     /// @dev Pending contract ownership transfer is initiated.
     event PendingOwnershipTransfer(address indexed previousOwner, address indexed newOwner);
     /// @dev Ownership of a contract is transferred

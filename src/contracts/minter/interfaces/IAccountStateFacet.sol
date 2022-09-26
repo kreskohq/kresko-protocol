@@ -4,7 +4,7 @@ pragma solidity >=0.8.14;
 import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {Action} from "../MinterTypes.sol";
 
-interface IAccountState {
+interface IAccountStateFacet {
     function getMintedKreskoAssets(address _account) external view returns (address[] memory);
 
     function getMintedKreskoAssetsIndex(address _account, address _kreskoAsset) external view returns (uint256);

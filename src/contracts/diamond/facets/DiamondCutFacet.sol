@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 
-import {IDiamondCut} from "../interfaces/IDiamondCut.sol";
+import {IDiamondCutFacet} from "../interfaces/IDiamondCutFacet.sol";
 import {DiamondModifiers} from "../../shared/Modifiers.sol";
 import {initializeDiamondCut} from "../libs/LibDiamondCut.sol";
 import {ds} from "../DiamondStorage.sol";
 
-contract DiamondCutFacet is DiamondModifiers, IDiamondCut {
+contract DiamondCutFacet is DiamondModifiers, IDiamondCutFacet {
     /// @notice Add/replace/remove any number of functions and optionally execute
     ///  a function with delegatecall
     /// @param _diamondCut Contains the facet addresses and function selectors

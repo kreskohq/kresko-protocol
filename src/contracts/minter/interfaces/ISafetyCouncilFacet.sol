@@ -2,7 +2,7 @@
 pragma solidity >=0.8.14;
 import {Action, SafetyState, Pause} from "../MinterTypes.sol";
 
-interface ISafetyCouncil {
+interface ISafetyCouncilFacet {
     function toggleAssetsPaused(
         address[] memory _assets,
         Action _action,

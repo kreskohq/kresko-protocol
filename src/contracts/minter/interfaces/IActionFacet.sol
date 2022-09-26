@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 
-interface IAction {
+interface IActionFacet {
     function burnKreskoAsset(
         address _account,
         address _kreskoAsset,

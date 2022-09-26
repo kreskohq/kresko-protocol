@@ -3,7 +3,7 @@ pragma solidity >=0.8.14;
 
 import "../../libs/FixedPoint.sol";
 
-interface ILiquidation {
+interface ILiquidationFacet {
     function calculateMaxLiquidatableValueForAssets(
         address _account,
         address _repayKreskoAsset,

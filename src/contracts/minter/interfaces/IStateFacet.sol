@@ -4,7 +4,7 @@ pragma solidity >=0.8.14;
 import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {CollateralAsset, KrAsset} from "../MinterTypes.sol";
 
-interface IState {
+interface IStateFacet {
     function domainSeparator() external view returns (bytes32);
 
     function minterInitializations() external view returns (uint256);

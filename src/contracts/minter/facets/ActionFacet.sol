@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 
-import {IAction} from "../interfaces/IAction.sol";
+import {IActionFacet} from "../interfaces/IActionFacet.sol";
 import {IKreskoAsset} from "../../krAsset/IKreskoAsset.sol";
 import {IKreskoAssetAnchor} from "../../krAsset/IKreskoAssetAnchor.sol";
 
@@ -16,7 +16,7 @@ import {Action, FixedPoint, KrAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 import "hardhat/console.sol";
 
-contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
+contract ActionFacet is DiamondModifiers, MinterModifiers, IActionFacet {
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using FixedPoint for FixedPoint.Unsigned;
     using Arrays for address[];

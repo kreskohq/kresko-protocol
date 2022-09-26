@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 
-interface IAuthorization {
+interface IAuthorizationFacet {
     function getRoleAdmin(bytes32 role) external view returns (bytes32);
 
     function grantRole(bytes32 role, address account) external;
