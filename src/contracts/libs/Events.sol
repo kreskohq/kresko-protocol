@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
-import {IDiamondCut} from "../diamond/interfaces/IDiamondCut.sol";
+import {IDiamondCutFacet} from "../diamond/interfaces/IDiamondCutFacet.sol";
 import {Action} from "../minter/MinterTypes.sol";
 
 library GeneralEvent {
@@ -15,7 +15,7 @@ library GeneralEvent {
 }
 
 library DiamondEvent {
-    event DiamondCut(IDiamondCut.FacetCut[] _diamondCut, address _init, bytes _calldata);
+    event DiamondCut(IDiamondCutFacet.FacetCut[] _diamondCut, address _init, bytes _calldata);
 }
 
 library MinterEvent {
