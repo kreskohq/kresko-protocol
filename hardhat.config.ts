@@ -69,7 +69,7 @@ const config: HardhatUserConfig = {
     namedAccounts: users,
     mocha: {
         reporter: reporters.Spec,
-        timeout: 12000,
+        timeout: process.env.CI ? 45000 : 15000,
     },
     paths: {
         artifacts: "artifacts",
