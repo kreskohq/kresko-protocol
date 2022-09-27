@@ -1,6 +1,5 @@
 import {
     Action,
-    addMockCollateralAsset,
     defaultCollateralArgs,
     defaultDecimals,
     defaultKrAssetArgs,
@@ -12,6 +11,7 @@ import { extractInternalIndexedEventFromTxReceipt } from "@utils";
 import { executeContractCallWithSigners } from "@utils/gnosis/utils/execution";
 import { fromBig, toBig } from "@utils/numbers";
 import { Error } from "@utils/test/errors";
+import { addMockCollateralAsset } from "@utils/test/helpers/collaterals";
 import { expect } from "chai";
 import hre, { users } from "hardhat";
 import { MinterEvent__factory } from "types";

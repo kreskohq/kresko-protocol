@@ -1,17 +1,16 @@
 import {
-    addMockKreskoAsset,
     defaultOraclePrice,
     Role,
     withFixture,
     defaultCloseFee,
-    depositCollateral,
     defaultCollateralArgs,
     defaultKrAssetArgs,
-    mintKrAsset,
 } from "@test-utils";
 import { extractInternalIndexedEventFromTxReceipt } from "@utils";
 import { fromBig, toBig } from "@utils/numbers";
 import { Error } from "@utils/test/errors";
+import { depositCollateral } from "@utils/test/helpers/collaterals";
+import { addMockKreskoAsset, mintKrAsset } from "@utils/test/helpers/krassets";
 import { expect } from "chai";
 import hre, { users } from "hardhat";
 import { MinterEvent__factory } from "types";

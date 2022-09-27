@@ -108,11 +108,11 @@ contract KISSConverter is Ownable, ReentrancyGuard {
         address to = _to == address(0) ? sender : _to;
         balances[to][_underlying] -= _underlyingOut;
 
-        uint256 kissOut = toKISS(_underlying, _underlyingOut);
-        KISS.burn(sender, kissOut);
+        uint256 kissIn = toKISS(_underlying, _underlyingOut);
+        KISS.burn(sender, kissIn);
 
         IERC20MetadataUpgradeable(_underlying).safeTransfer(to, _underlyingOut);
-        emit Redeem(kissOut, _underlyingOut, to, _underlying);
+        emit Redeem(kissIn, _underlyingOut, to, _underlying);
     }
 
     /**

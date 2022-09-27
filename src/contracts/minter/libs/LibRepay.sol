@@ -102,8 +102,8 @@ library LibRepay {
             FixedPoint.Unsigned memory oraclePrice = FixedPoint.Unsigned(
                 uint256(self.kreskoAssets[_kreskoAsset].oracle.latestAnswer())
             );
-            FixedPoint.Unsigned memory minDebtAmount = self.minimumDebtValue.div(oraclePrice);
-            amount = _debtAmount - minDebtAmount.rawValue;
+            FixedPoint.Unsigned memory minDebtValue = self.minimumDebtValue.div(oraclePrice);
+            amount = _debtAmount - minDebtValue.rawValue;
         } else {
             amount = _burnAmount;
         }

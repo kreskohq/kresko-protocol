@@ -98,6 +98,7 @@ declare global {
         userOne: SignerWithAddress;
         userTwo: SignerWithAddress;
         userThree: SignerWithAddress;
+        userFour: SignerWithAddress;
         nonadmin?: SignerWithAddress;
         liquidator?: SignerWithAddress;
         feedValidator?: SignerWithAddress;
@@ -113,6 +114,7 @@ declare global {
         userOne: string;
         userTwo: string;
         userThree: string;
+        userFour: string;
         nonadmin?: string;
         liquidator?: string;
         feedValidator?: string;

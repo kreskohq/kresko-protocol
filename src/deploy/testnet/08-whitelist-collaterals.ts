@@ -13,7 +13,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             symbol: collateral.symbol,
             cFactor: collateral.cFactor,
             oracleAddr: (await hre.ethers.getContract(collateral.oracle.name)).address,
-            log: true,
+            log: !process.env.TEST,
         });
     }
 

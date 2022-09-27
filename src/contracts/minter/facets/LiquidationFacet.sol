@@ -72,7 +72,6 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
                 _repayKreskoAsset,
                 _collateralAssetToSeize
             );
-
             require(krAssetDebt >= _repayAmount, Error.KRASSET_BURN_AMOUNT_OVERFLOW);
             require(repayAmountUSD.isLessThanOrEqual(maxLiquidation), Error.LIQUIDATION_OVERFLOW);
         }

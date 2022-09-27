@@ -54,7 +54,7 @@ library LibUI {
 
     struct ProtocolParams {
         uint256 liqMultiplier;
-        uint256 minDebtAmount;
+        uint256 minDebtValue;
         uint256 minCollateralRatio;
         uint256 liquidationThreshold;
     }

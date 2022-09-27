@@ -1,10 +1,10 @@
-import type { KISS, KISSConverter, KreskoAssetAnchor, MockERC20 } from "types";
-import type { TaskArguments } from "hardhat/types";
 import { deployWithSignatures } from "@utils/deployment";
 import { defaultSupplyLimit } from "@utils/test/mocks";
-import { task, types } from "hardhat/config";
-import { wrapperPrefix } from "src/config/minter";
 import { Role } from "@utils/test/roles";
+import { task, types } from "hardhat/config";
+import type { TaskArguments } from "hardhat/types";
+import { wrapperPrefix } from "src/config/minter";
+import type { KISS, KISSConverter, KreskoAssetAnchor, MockERC20 } from "types";
 
 task("deploy-kiss")
     .addOptionalParam("wait", "wait confirmations", 1, types.int)
@@ -36,7 +36,6 @@ task("deploy-kiss")
         await KISSContract.approve(KISSConverter.address, hre.ethers.constants.MaxUint256);
 
         await KISSConverter.issue(users.deployer.address, DAI.address, hre.toBig(amount, decimals));
-        console.log("Issued", amount, "of KISS to", users.deployer.address);
 
         const kreskoAssetAnchorInitArgs = [
             KISSContract.address,

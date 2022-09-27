@@ -4,13 +4,13 @@ import { expect } from "@test/chai";
 
 import {
     withFixture,
-    addMockCollateralAsset,
-    addMockKreskoAsset,
     getMockOracleFor,
     defaultCollateralArgs,
     defaultKrAssetArgs,
     getNewMinterParams,
 } from "@utils/test";
+import { addMockCollateralAsset } from "@utils/test/helpers/collaterals";
+import { addMockKreskoAsset } from "@utils/test/helpers/krassets";
 
 describe("Minter", function () {
     withFixture(["minter-init"]);

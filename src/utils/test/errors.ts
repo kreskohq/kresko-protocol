@@ -92,5 +92,4 @@ export enum Error {
     /* -------------------------------------------------------------------------- */
 
     ARRAY_OUT_OF_BOUNDS = "400", // Array out of bounds error
-    
 }

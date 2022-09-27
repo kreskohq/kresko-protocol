@@ -1,10 +1,9 @@
 import hre, { deployments, ethers } from "hardhat";
 
-
 let currentFixtureName: string[];
 export const withFixture = (fixtureName: string[]) => {
     before(function () {
-        if (currentFixtureName && fixtureName.join('') !== currentFixtureName.join('')) {
+        if (currentFixtureName && fixtureName.join("") !== currentFixtureName.join("")) {
             hre.collaterals = [];
             hre.krAssets = [];
             hre.allAssets = [];
@@ -15,8 +14,8 @@ export const withFixture = (fixtureName: string[]) => {
     beforeEach(async function () {
         const fixture = await deployments.createFixture(async hre => {
             const result = await deployments.fixture(fixtureName);
-        
-            if(result.Diamond) {
+
+            if (result.Diamond) {
                 hre.Diamond = await ethers.getContractAt<Kresko>("Kresko", result.Diamond.address);
             }
             return {

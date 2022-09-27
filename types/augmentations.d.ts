@@ -166,6 +166,7 @@ declare module "hardhat/types/runtime" {
             userOne: SignerWithAddress;
             userTwo: SignerWithAddress;
             userThree: SignerWithAddress;
+            userFour: SignerWithAddress;
             nonadmin?: SignerWithAddress;
             liquidator?: SignerWithAddress;
             treasury?: SignerWithAddress;
@@ -179,6 +180,7 @@ declare module "hardhat/types/runtime" {
             userOne: string;
             userTwo: string;
             userThree: string;
+            userFour: string;
             nonadmin?: string;
             liquidator?: string;
             treasury?: string;

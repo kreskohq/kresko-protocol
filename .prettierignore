@@ -17,7 +17,6 @@ types/**/*
 packages/**/*
 src/contracts/vendor/**/*
 src/contracts/test/**/*
-src/utils/**/*
 
 # files
 coverage.json
