@@ -2,17 +2,19 @@
 pragma solidity >=0.8.14;
 
 // solhint-disable-next-line
-import {SafeERC20Upgradeable, IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
 import {Arrays} from "../../libs/Arrays.sol";
 import {MinterEvent} from "../../libs/Events.sol";
 import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {Math} from "../../libs/Math.sol";
 import {Error} from "../../libs/Errors.sol";
+import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
+import {SafeERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
 
 import {LibCalc} from "./LibCalculation.sol";
 import {KrAsset} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
+import "hardhat/console.sol";
 
 library LibRepay {
     using Arrays for address[];
@@ -44,6 +46,7 @@ library LibRepay {
             .mul(krAsset.closeFee);
 
         // Do nothing if the fee value is 0.
+
         if (feeValue.rawValue == 0) {
             return;
         }

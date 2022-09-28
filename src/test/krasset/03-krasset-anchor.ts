@@ -51,16 +51,16 @@ describe("KreskoAssetAnchor", () => {
                     await KreskoAssetAnchor.deposit(defaultMintAmount, addr.deployer);
 
                     const denominator = 2;
-                    const expand = true;
-                    await KreskoAsset.rebase(hre.toBig(denominator), expand);
+                    const positive = true;
+                    await KreskoAsset.rebase(hre.toBig(denominator), positive);
 
-                    const expandedAmount = defaultMintAmount.mul(denominator);
+                    const rebasedAmount = defaultMintAmount.mul(denominator);
                     expect(await KreskoAsset.balanceOf(addr.deployer)).to.equal(0);
                     expect(await KreskoAssetAnchor.balanceOf(addr.deployer)).to.equal(defaultMintAmount);
-                    expect(await KreskoAssetAnchor.totalAssets()).to.equal(expandedAmount);
+                    expect(await KreskoAssetAnchor.totalAssets()).to.equal(rebasedAmount);
 
                     await KreskoAssetAnchor.redeem(defaultMintAmount, addr.deployer, addr.deployer);
-                    expect(await KreskoAsset.balanceOf(addr.deployer)).to.equal(expandedAmount);
+                    expect(await KreskoAsset.balanceOf(addr.deployer)).to.equal(rebasedAmount);
                     expect(await KreskoAssetAnchor.balanceOf(addr.deployer)).to.equal(0);
                     expect(await KreskoAssetAnchor.balanceOf(KreskoAsset.address)).to.equal(0);
                 });
@@ -70,16 +70,16 @@ describe("KreskoAssetAnchor", () => {
                     await KreskoAssetAnchor.deposit(defaultMintAmount, addr.deployer);
 
                     const denominator = 6;
-                    const expand = true;
-                    await KreskoAsset.rebase(hre.toBig(denominator), expand);
+                    const positive = true;
+                    await KreskoAsset.rebase(hre.toBig(denominator), positive);
 
-                    const expandedAmount = defaultMintAmount.mul(denominator);
+                    const rebasedAmount = defaultMintAmount.mul(denominator);
                     expect(await KreskoAsset.balanceOf(addr.deployer)).to.equal(0);
                     expect(await KreskoAssetAnchor.balanceOf(addr.deployer)).to.equal(defaultMintAmount);
-                    expect(await KreskoAssetAnchor.totalAssets()).to.equal(expandedAmount);
+                    expect(await KreskoAssetAnchor.totalAssets()).to.equal(rebasedAmount);
 
                     await KreskoAssetAnchor.redeem(defaultMintAmount, addr.deployer, addr.deployer);
-                    expect(await KreskoAsset.balanceOf(addr.deployer)).to.equal(expandedAmount);
+                    expect(await KreskoAsset.balanceOf(addr.deployer)).to.equal(rebasedAmount);
                     expect(await KreskoAssetAnchor.balanceOf(addr.deployer)).to.equal(0);
                     expect(await KreskoAssetAnchor.balanceOf(KreskoAsset.address)).to.equal(0);
                 });
@@ -89,16 +89,16 @@ describe("KreskoAssetAnchor", () => {
                     await KreskoAssetAnchor.deposit(defaultMintAmount, addr.deployer);
 
                     const denominator = 2;
-                    const expand = false;
-                    await KreskoAsset.rebase(hre.toBig(denominator), expand);
+                    const positive = false;
+                    await KreskoAsset.rebase(hre.toBig(denominator), positive);
 
-                    const expandedAmount = defaultMintAmount.div(denominator);
+                    const rebasedAmount = defaultMintAmount.div(denominator);
                     expect(await KreskoAsset.balanceOf(addr.deployer)).to.equal(0);
                     expect(await KreskoAssetAnchor.balanceOf(addr.deployer)).to.equal(defaultMintAmount);
-                    expect(await KreskoAssetAnchor.totalAssets()).to.equal(expandedAmount);
+                    expect(await KreskoAssetAnchor.totalAssets()).to.equal(rebasedAmount);
 
                     await KreskoAssetAnchor.redeem(defaultMintAmount, addr.deployer, addr.deployer);
-                    expect(await KreskoAsset.balanceOf(addr.deployer)).to.equal(expandedAmount);
+                    expect(await KreskoAsset.balanceOf(addr.deployer)).to.equal(rebasedAmount);
                     expect(await KreskoAssetAnchor.balanceOf(addr.deployer)).to.equal(0);
                     expect(await KreskoAssetAnchor.balanceOf(KreskoAsset.address)).to.equal(0);
                 });
@@ -108,16 +108,16 @@ describe("KreskoAssetAnchor", () => {
                     await KreskoAssetAnchor.deposit(defaultMintAmount, addr.deployer);
 
                     const denominator = 6;
-                    const expand = false;
-                    await KreskoAsset.rebase(hre.toBig(denominator), expand);
+                    const positive = false;
+                    await KreskoAsset.rebase(hre.toBig(denominator), positive);
 
-                    const expandedAmount = defaultMintAmount.div(denominator);
+                    const rebasedAmount = defaultMintAmount.div(denominator);
                     expect(await KreskoAsset.balanceOf(addr.deployer)).to.equal(0);
                     expect(await KreskoAssetAnchor.balanceOf(addr.deployer)).to.equal(defaultMintAmount);
-                    expect(await KreskoAssetAnchor.totalAssets()).to.equal(expandedAmount);
+                    expect(await KreskoAssetAnchor.totalAssets()).to.equal(rebasedAmount);
 
                     await KreskoAssetAnchor.redeem(defaultMintAmount, addr.deployer, addr.deployer);
-                    expect(await KreskoAsset.balanceOf(addr.deployer)).to.equal(expandedAmount);
+                    expect(await KreskoAsset.balanceOf(addr.deployer)).to.equal(rebasedAmount);
                     expect(await KreskoAssetAnchor.balanceOf(addr.deployer)).to.equal(0);
                     expect(await KreskoAssetAnchor.balanceOf(KreskoAsset.address)).to.equal(0);
                 });

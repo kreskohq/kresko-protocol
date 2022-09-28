@@ -49,7 +49,7 @@ describe("KreskoAsset", function () {
 
             const rebaseInfo = await KreskoAsset.rebaseInfo();
             expect(rebaseInfo.denominator).to.equal(0);
-            expect(rebaseInfo.expand).to.equal(false);
+            expect(rebaseInfo.positive).to.equal(false);
         });
 
         it("can reinitialize metadata", async function () {
@@ -110,7 +110,7 @@ describe("KreskoAsset", function () {
 
             const rebaseInfo = await KreskoAsset.rebaseInfo();
             expect(rebaseInfo.denominator).to.equal(0);
-            expect(rebaseInfo.expand).to.equal(false);
+            expect(rebaseInfo.positive).to.equal(false);
         });
     });
 });

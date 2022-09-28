@@ -11,37 +11,30 @@ describe("KreskoAsset", function () {
         await KreskoAsset.grantRole(Role.OPERATOR, hre.addr.deployer);
     });
     describe("#rebase", () => {
-        it("can set a expanding denominator", async function () {
+        it("can set a positive rebase", async function () {
             const denominator = hre.toBig("1.525");
-            const expand = true;
-            await expect(KreskoAsset.rebase(denominator, expand)).to.not.be.reverted;
+            const positive = true;
+            await expect(KreskoAsset.rebase(denominator, positive)).to.not.be.reverted;
             expect(await KreskoAsset.isRebased()).to.equal(true);
             const rebaseInfo = await KreskoAsset.rebaseInfo();
             expect(rebaseInfo.denominator).equal(denominator);
-            expect(rebaseInfo.expand).equal(true);
+            expect(rebaseInfo.positive).equal(true);
         });
 
-        it("can set a reducing denominator", async function () {
+        it("can set a negative rebase", async function () {
             const denominator = hre.toBig("1.525");
-            const expand = false;
-            await expect(KreskoAsset.rebase(denominator, expand)).to.not.be.reverted;
+            const positive = false;
+            await expect(KreskoAsset.rebase(denominator, positive)).to.not.be.reverted;
             expect(await KreskoAsset.isRebased()).to.equal(true);
             const rebaseInfo = await KreskoAsset.rebaseInfo();
             expect(rebaseInfo.denominator).equal(denominator);
-            expect(rebaseInfo.expand).equal(false);
+            expect(rebaseInfo.positive).equal(false);
         });
 
         it("can be disabled by setting the denominator to 1 ether", async function () {
             const denominator = hre.toBig(1);
-            const expand = false;
-            await expect(KreskoAsset.rebase(denominator, expand)).to.not.be.reverted;
-            expect(await KreskoAsset.isRebased()).to.equal(false);
-        });
-
-        it("can be disabled by setting the denominator to 0", async function () {
-            const denominator = 0;
-            const expand = true;
-            await expect(KreskoAsset.rebase(denominator, expand)).to.not.be.reverted;
+            const positive = false;
+            await expect(KreskoAsset.rebase(denominator, positive)).to.not.be.reverted;
             expect(await KreskoAsset.isRebased()).to.equal(false);
         });
 
@@ -53,67 +46,67 @@ describe("KreskoAsset", function () {
                 expect(await KreskoAsset.balanceOf(deployer)).to.equal(defaultMintAmount);
             });
 
-            it("expands balance and supply with positive denominator @ 2", async function () {
+            it("increases balance and supply with positive rebase @ 2", async function () {
                 const { deployer } = hre.addr;
                 const denominator = 2;
-                const expand = true;
+                const positive = true;
                 await KreskoAsset.mint(deployer, defaultMintAmount);
-                await KreskoAsset.rebase(hre.toBig(denominator), expand);
+                await KreskoAsset.rebase(hre.toBig(denominator), positive);
 
                 expect(await KreskoAsset.balanceOf(deployer)).to.equal(defaultMintAmount.mul(denominator));
                 expect(await KreskoAsset.totalSupply()).to.equal(defaultMintAmount.mul(denominator));
             });
 
-            it("expands balance and supply with positive denominator @ 3", async function () {
+            it("increases balance and supply with positive rebase @ 3", async function () {
                 const { deployer } = hre.addr;
                 const denominator = 3;
-                const expand = true;
+                const positive = true;
                 await KreskoAsset.mint(deployer, defaultMintAmount);
-                await KreskoAsset.rebase(hre.toBig(denominator), expand);
+                await KreskoAsset.rebase(hre.toBig(denominator), positive);
 
                 expect(await KreskoAsset.balanceOf(deployer)).to.equal(defaultMintAmount.mul(denominator));
                 expect(await KreskoAsset.totalSupply()).to.equal(defaultMintAmount.mul(denominator));
             });
 
-            it("expands balance and supply with positive denominator @ 100", async function () {
+            it("increases balance and supply with positive rebase  @ 100", async function () {
                 const { deployer } = hre.addr;
                 const denominator = 100;
-                const expand = true;
+                const positive = true;
                 await KreskoAsset.mint(deployer, defaultMintAmount);
-                await KreskoAsset.rebase(hre.toBig(denominator), expand);
+                await KreskoAsset.rebase(hre.toBig(denominator), positive);
 
                 expect(await KreskoAsset.balanceOf(deployer)).to.equal(defaultMintAmount.mul(denominator));
                 expect(await KreskoAsset.totalSupply()).to.equal(defaultMintAmount.mul(denominator));
             });
 
-            it("reduces balance and supply with negative denominator @ 2", async function () {
+            it("reduces balance and supply with negative rebase @ 2", async function () {
                 const { deployer } = hre.addr;
                 const denominator = 2;
-                const expand = false;
+                const positive = false;
                 await KreskoAsset.mint(deployer, defaultMintAmount);
-                await KreskoAsset.rebase(hre.toBig(denominator), expand);
+                await KreskoAsset.rebase(hre.toBig(denominator), positive);
 
                 expect(await KreskoAsset.balanceOf(deployer)).to.equal(defaultMintAmount.div(denominator));
                 expect(await KreskoAsset.totalSupply()).to.equal(defaultMintAmount.div(denominator));
             });
 
-            it("reduces balance and supply with negative denominator @ 3", async function () {
+            it("reduces balance and supply with negative rebase @ 3", async function () {
                 const { deployer } = hre.addr;
                 const denominator = 3;
-                const expand = false;
+                const positive = false;
                 await KreskoAsset.mint(deployer, defaultMintAmount);
-                await KreskoAsset.rebase(hre.toBig(denominator), expand);
+                await KreskoAsset.rebase(hre.toBig(denominator), positive);
 
                 expect(await KreskoAsset.balanceOf(deployer)).to.equal(defaultMintAmount.div(denominator));
                 expect(await KreskoAsset.totalSupply()).to.equal(defaultMintAmount.div(denominator));
             });
 
-            it("reduces balance and supply with negative denominator @ 100", async function () {
+            it("reduces balance and supply with negative rebase @ 100", async function () {
                 const { deployer } = hre.addr;
                 const denominator = 100;
-                const expand = false;
+                const positive = false;
                 await KreskoAsset.mint(deployer, defaultMintAmount);
-                await KreskoAsset.rebase(hre.toBig(denominator), expand);
+                await KreskoAsset.rebase(hre.toBig(denominator), positive);
 
                 expect(await KreskoAsset.balanceOf(deployer)).to.equal(defaultMintAmount.div(denominator));
                 expect(await KreskoAsset.totalSupply()).to.equal(defaultMintAmount.div(denominator));
@@ -121,7 +114,7 @@ describe("KreskoAsset", function () {
         });
 
         describe("#transfer", () => {
-            it("has default transfer behaviour after expansion", async function () {
+            it("has default transfer behaviour after positive rebase", async function () {
                 const { deployer, userOne } = hre.addr;
                 const transferAmount = hre.toBig(1);
 
@@ -129,8 +122,8 @@ describe("KreskoAsset", function () {
                 await KreskoAsset.mint(userOne, defaultMintAmount);
 
                 const denominator = 2;
-                const expand = true;
-                await KreskoAsset.rebase(hre.toBig(denominator), expand);
+                const positive = true;
+                await KreskoAsset.rebase(hre.toBig(denominator), positive);
 
                 const rebaseInfodDefaultMintAMount = defaultMintAmount.mul(denominator);
 
@@ -142,7 +135,7 @@ describe("KreskoAsset", function () {
                 );
             });
 
-            it("has default transfer behaviour after reduction", async function () {
+            it("has default transfer behaviour after negative rebase", async function () {
                 const { deployer, userOne } = hre.addr;
                 const transferAmount = hre.toBig(1);
 
@@ -150,8 +143,8 @@ describe("KreskoAsset", function () {
                 await KreskoAsset.mint(userOne, defaultMintAmount);
 
                 const denominator = 2;
-                const expand = false;
-                await KreskoAsset.rebase(hre.toBig(denominator), expand);
+                const positive = false;
+                await KreskoAsset.rebase(hre.toBig(denominator), positive);
 
                 const rebaseInfodDefaultMintAMount = defaultMintAmount.div(denominator);
 
@@ -163,7 +156,7 @@ describe("KreskoAsset", function () {
                 );
             });
 
-            it("has default transferFrom behaviour after expansion", async function () {
+            it("has default transferFrom behaviour after positive rebase", async function () {
                 const { deployer, userOne } = hre.users;
                 const transferAmount = hre.toBig(1);
 
@@ -171,8 +164,8 @@ describe("KreskoAsset", function () {
                 await KreskoAsset.mint(userOne.address, defaultMintAmount);
 
                 const denominator = 2;
-                const expand = true;
-                await KreskoAsset.rebase(hre.toBig(denominator), expand);
+                const positive = true;
+                await KreskoAsset.rebase(hre.toBig(denominator), positive);
 
                 await KreskoAsset.approve(userOne.address, transferAmount);
 
@@ -194,7 +187,7 @@ describe("KreskoAsset", function () {
                 expect(await KreskoAsset.allowance(deployer.address, userOne.address)).to.equal(0);
             });
 
-            it("has default transferFrom behaviour after expansion @ denominator 100", async function () {
+            it("has default transferFrom behaviour after positive rebase @ 100", async function () {
                 const { deployer, userOne } = hre.users;
                 const transferAmount = hre.toBig(1);
 
@@ -202,8 +195,8 @@ describe("KreskoAsset", function () {
                 await KreskoAsset.mint(userOne.address, defaultMintAmount);
 
                 const denominator = 100;
-                const expand = true;
-                await KreskoAsset.rebase(hre.toBig(denominator), expand);
+                const positive = true;
+                await KreskoAsset.rebase(hre.toBig(denominator), positive);
 
                 await KreskoAsset.approve(userOne.address, transferAmount);
 
@@ -225,7 +218,7 @@ describe("KreskoAsset", function () {
                 expect(await KreskoAsset.allowance(deployer.address, userOne.address)).to.equal(0);
             });
 
-            it("has default transferFrom behaviour after reduction", async function () {
+            it("has default transferFrom behaviour after negative rebase", async function () {
                 const { deployer, userOne } = hre.users;
                 const transferAmount = hre.toBig(1);
 
@@ -233,8 +226,8 @@ describe("KreskoAsset", function () {
                 await KreskoAsset.mint(userOne.address, defaultMintAmount);
 
                 const denominator = 2;
-                const expand = false;
-                await KreskoAsset.rebase(hre.toBig(denominator), expand);
+                const positive = false;
+                await KreskoAsset.rebase(hre.toBig(denominator), positive);
 
                 await KreskoAsset.approve(userOne.address, transferAmount);
 
@@ -256,7 +249,7 @@ describe("KreskoAsset", function () {
                 expect(await KreskoAsset.allowance(deployer.address, userOne.address)).to.equal(0);
             });
 
-            it("has default transferFrom behaviour after reduction @ 100", async function () {
+            it("has default transferFrom behaviour after negative rebase @ 100", async function () {
                 const { deployer, userOne } = hre.users;
                 const transferAmount = hre.toBig(1);
 
@@ -264,8 +257,8 @@ describe("KreskoAsset", function () {
                 await KreskoAsset.mint(userOne.address, defaultMintAmount);
 
                 const denominator = 100;
-                const expand = false;
-                await KreskoAsset.rebase(hre.toBig(denominator), expand);
+                const positive = false;
+                await KreskoAsset.rebase(hre.toBig(denominator), positive);
 
                 await KreskoAsset.approve(userOne.address, transferAmount);
 

@@ -94,4 +94,10 @@ library Error {
     /* -------------------------------------------------------------------------- */
 
     string public constant ARRAY_OUT_OF_BOUNDS = "400"; // Array out of bounds error
+
+    /* -------------------------------------------------------------------------- */
+    /*                                   5. KrAsset                               */
+    /* -------------------------------------------------------------------------- */
+
+    string public constant REBASING_DENOMINATOR_LOW = "500"; // denominator of rebases must be > 1
 }

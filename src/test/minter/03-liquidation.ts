@@ -457,39 +457,39 @@ describe("Minter", function () {
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidate.address)).to.be.false;
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidateTwo.address)).to.be.false;
             });
-            it("should not allow liquidation of healthy accounts after a expanding rebase", async function () {
+            it("should not allow liquidation of healthy accounts after a positive rebase", async function () {
                 // Rebase params
                 const denominator = 4;
-                const expand = true;
+                const positive = true;
                 const rebasePrice = fromBig(await this.krAsset.getPrice(), 8) / denominator;
 
                 this.krAsset.setPrice(rebasePrice);
-                await this.krAsset.contract.rebase(hre.toBig(denominator), expand);
+                await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
 
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidate.address)).to.be.false;
                 await expect(liquidate(userToLiquidate, this.krAsset, this.collateral)).to.be.reverted;
             });
 
-            it("should not allow liquidation of healthy accounts after a reducing rebase", async function () {
+            it("should not allow liquidation of healthy accounts after a negative rebase", async function () {
                 // Rebase params
                 const denominator = 4;
-                const expand = false;
+                const positive = false;
                 const rebasePrice = fromBig(await this.krAsset.getPrice(), 8) * denominator;
 
                 this.krAsset.setPrice(rebasePrice);
-                await this.krAsset.contract.rebase(hre.toBig(denominator), expand);
+                await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
 
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidate.address)).to.be.false;
                 await expect(liquidate(userToLiquidate, this.krAsset, this.collateral)).to.be.reverted;
             });
-            it("should allow liquidations of unhealthy accounts after a expanding rebase", async function () {
+            it("should allow liquidations of unhealthy accounts after a positive rebase", async function () {
                 // Rebase params
                 const denominator = 4;
-                const expand = true;
+                const positive = true;
                 const rebasePrice = fromBig(await this.krAsset.getPrice(), 8) / denominator;
 
                 this.krAsset.setPrice(rebasePrice);
-                await this.krAsset.contract.rebase(hre.toBig(denominator), expand);
+                await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
 
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidate.address)).to.be.false;
 
@@ -497,14 +497,14 @@ describe("Minter", function () {
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidate.address)).to.be.true;
                 await expect(liquidate(userToLiquidate, this.krAsset, this.collateral)).to.not.be.reverted;
             });
-            it("should allow liquidations of unhealthy accounts after a reducing rebase", async function () {
+            it("should allow liquidations of unhealthy accounts after a negative rebase", async function () {
                 // Rebase params
                 const denominator = 4;
-                const expand = false;
+                const positive = false;
                 const rebasePrice = fromBig(await this.krAsset.getPrice(), 8) * denominator;
 
                 this.krAsset.setPrice(rebasePrice);
-                await this.krAsset.contract.rebase(hre.toBig(denominator), expand);
+                await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
 
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidate.address)).to.be.false;
 
@@ -512,7 +512,7 @@ describe("Minter", function () {
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidate.address)).to.be.true;
                 await expect(liquidate(userToLiquidate, this.krAsset, this.collateral)).to.not.be.reverted;
             });
-            it("should liquidate correct amount of krAssets after a expanding rebase", async function () {
+            it("should liquidate correct amount of krAssets after a positive rebase", async function () {
                 // Change price to make user position unhealthy
                 const startingPrice = hre.fromBig(await this.krAsset.getPrice(), 8);
                 const newPrice = startingPrice * 2;
@@ -544,12 +544,12 @@ describe("Minter", function () {
 
                 // Rebase params
                 const denominator = 4;
-                const expand = true;
+                const positive = true;
                 const rebasePrice = newPrice / denominator;
 
                 // Rebase
                 this.krAsset.setPrice(rebasePrice);
-                await this.krAsset.contract.rebase(hre.toBig(denominator), expand);
+                await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
 
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidateTwo.address)).to.be.true;
 
@@ -570,7 +570,7 @@ describe("Minter", function () {
                 expect(results.debtRepaid * denominator).to.equal(results.debtRepaidRebase);
                 expect(results.userOneValueAfter).to.equal(results.userTwoValueAfter);
             });
-            it("should liquidate correct amount of assets after a reducing rebase", async function () {
+            it("should liquidate correct amount of assets after a negative rebase", async function () {
                 // Change price to make user position unhealthy
                 const startingPrice = hre.fromBig(await this.krAsset.getPrice(), 8);
                 const newPrice = startingPrice * 2;
@@ -602,12 +602,12 @@ describe("Minter", function () {
 
                 // Rebase params
                 const denominator = 4;
-                const expand = false;
+                const positive = false;
                 const rebasePrice = newPrice * denominator;
 
                 // Rebase
                 this.krAsset.setPrice(rebasePrice);
-                await this.krAsset.contract.rebase(hre.toBig(denominator), expand);
+                await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
 
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidateTwo.address)).to.be.true;
 

@@ -99,15 +99,17 @@ export const leverageKrAsset = async (
     const amountToWithdraw =
         hre.fromBig(accountCollateral.rawValue.sub(accountMinCollateralRequired.rawValue), 8) / price;
 
-    await hre.Diamond.connect(user).withdrawCollateral(
-        user.address,
-        collateralToUse.address,
-        hre.toBig(amountToWithdraw),
-        await hre.Diamond.getDepositedCollateralAssetIndex(user.address, collateralToUse.address),
-    );
+    if (amountToWithdraw > 0) {
+        await hre.Diamond.connect(user).withdrawCollateral(
+            user.address,
+            collateralToUse.address,
+            hre.toBig(amountToWithdraw),
+            await hre.Diamond.getDepositedCollateralAssetIndex(user.address, collateralToUse.address),
+        );
 
-    // "burn" collateral not needed
-    await collateralToUse.contract
-        .connect(user)
-        .transfer(hre.ethers.constants.AddressZero, hre.toBig(amountToWithdraw));
+        // "burn" collateral not needed
+        await collateralToUse.contract
+            .connect(user)
+            .transfer(hre.ethers.constants.AddressZero, hre.toBig(amountToWithdraw));
+    }
 };

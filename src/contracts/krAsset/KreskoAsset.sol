@@ -142,17 +142,18 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IE
 
     /**
      * @notice Perform a rebase, changing the denumerator and its operator
-     * @param _denumerator the denumerator for the operator, 1 ether = 1
-     * @param _expand expanding rebase or reducing rebase
+     * @param _denominator the denumerator for the operator, 1 ether = 1
+     * @param _positive supply increasing/reducing rebase
      * @dev denumerator values 0 and 1 ether will disable the rebase
      */
-    function rebase(uint256 _denumerator, bool _expand) external onlyRole(Role.OPERATOR) {
-        if (_denumerator == 0 || _denumerator == 1 ether) {
+    function rebase(uint256 _denominator, bool _positive) external onlyRole(Role.OPERATOR) {
+        require(_denominator >= 1 ether, Error.REBASING_DENOMINATOR_LOW);
+        if (_denominator == 1 ether) {
             isRebased = false;
             rebaseInfo = Rebase(false, 0);
         } else {
             isRebased = true;
-            rebaseInfo = Rebase(_expand, _denumerator);
+            rebaseInfo = Rebase(_positive, _denominator);
         }
     }
 
