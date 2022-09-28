@@ -105,3 +105,12 @@ export const depositCollateral = async (args: InputArgs) => {
     await asset.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
     return hre.Diamond.connect(user).depositCollateral(user.address, asset.address, depositAmount);
 };
+
+export const withdrawCollateral = async (args: InputArgs) => {
+    const convert = typeof args.amount === "string" || typeof args.amount === "number";
+    const { user, asset, amount } = args;
+    const depositAmount = convert ? toBig(+amount) : amount;
+    await asset.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
+    const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(user.address, asset.address);
+    return hre.Diamond.connect(user).withdrawCollateral(user.address, asset.address, depositAmount, cIndex);
+};

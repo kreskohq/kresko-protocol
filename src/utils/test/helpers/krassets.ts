@@ -122,3 +122,16 @@ export const mintKrAsset = async (args: InputArgs) => {
     const { user, asset, amount } = args;
     return hre.Diamond.connect(user).mintKreskoAsset(user.address, asset.address, convert ? toBig(+amount) : amount);
 };
+
+export const burnKrAsset = async (args: InputArgs) => {
+    const convert = typeof args.amount === "string" || typeof args.amount === "number";
+    const { user, asset, amount } = args;
+    const kIndex = await hre.Diamond.getMintedKreskoAssetsIndex(user.address, asset.address);
+
+    return hre.Diamond.connect(user).burnKreskoAsset(
+        user.address,
+        asset.address,
+        convert ? toBig(+amount) : amount,
+        kIndex,
+    );
+};

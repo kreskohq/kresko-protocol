@@ -1,8 +1,9 @@
 import { MockContract, smock } from "@defi-wonderland/smock";
-import hre from "hardhat";
+import hre, { ethers } from "hardhat";
 import { FluxPriceAggregator__factory } from "types/typechain";
 import { getUsers } from "@utils/general";
-import { defaultOracleDecimals, defaultOraclePrice } from "../mocks";
+import { defaultCloseFee, defaultOracleDecimals, defaultOraclePrice } from "../mocks";
+import { toBig } from "@utils/numbers";
 /* -------------------------------------------------------------------------- */
 /*                                  GENERAL                                   */
 /* -------------------------------------------------------------------------- */
@@ -54,12 +55,39 @@ export const leverageKrAsset = async (
     await collateralToUse.mocks.contract.setVariable("_balances", {
         [user.address]: hre.toBig(collateralAmount),
     });
+    if (!(await hre.Diamond.collateralAsset(collateralToUse.address)).exists) {
+        await hre.Diamond.connect(hre.users.operator).addCollateralAsset(
+            collateralToUse.address,
+            collateralToUse.anchor ? collateralToUse.anchor.address : ethers.constants.AddressZero,
+            hre.toBig(1),
+            collateralToUse.priceFeed.address,
+        );
+    }
     await hre.Diamond.connect(user).depositCollateral(
         user.address,
         collateralToUse.address,
         hre.toBig(collateralAmount),
     );
+    if (!(await hre.Diamond.kreskoAsset(krAsset.address)).exists) {
+        await hre.Diamond.connect(hre.users.operator).addKreskoAsset(
+            krAsset.address,
+            krAsset.anchor.address,
+            toBig(1),
+            krAsset.priceFeed.address,
+            hre.toBig(1_000_000),
+            defaultCloseFee,
+        );
+    }
     await hre.Diamond.connect(user).mintKreskoAsset(user.address, krAsset.address, amount);
+
+    if (!(await hre.Diamond.collateralAsset(krAsset.address)).exists) {
+        await hre.Diamond.connect(hre.users.operator).addCollateralAsset(
+            krAsset.address,
+            krAsset.anchor.address,
+            toBig(1),
+            krAsset.priceFeed.address,
+        );
+    }
     await hre.Diamond.connect(user).depositCollateral(user.address, krAsset.address, amount);
 
     // Deposit krAsset and withdraw other collateral to bare minimum of within healthy range

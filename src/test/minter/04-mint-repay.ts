@@ -5,12 +5,13 @@ import {
     defaultCloseFee,
     defaultCollateralArgs,
     defaultKrAssetArgs,
+    leverageKrAsset,
 } from "@test-utils";
-import { extractInternalIndexedEventFromTxReceipt } from "@utils";
+import { extractEventFromTxReceipt, extractInternalIndexedEventFromTxReceipt, fromFixedPoint } from "@utils";
 import { fromBig, toBig } from "@utils/numbers";
 import { Error } from "@utils/test/errors";
-import { depositCollateral } from "@utils/test/helpers/collaterals";
-import { addMockKreskoAsset, mintKrAsset } from "@utils/test/helpers/krassets";
+import { depositCollateral, withdrawCollateral } from "@utils/test/helpers/collaterals";
+import { addMockKreskoAsset, burnKrAsset, mintKrAsset } from "@utils/test/helpers/krassets";
 import { expect } from "chai";
 import hre, { users } from "hardhat";
 import { MinterEvent__factory } from "types";
@@ -18,6 +19,7 @@ import {
     KreskoAssetBurnedEvent,
     KreskoAssetMintedEventObject,
     CloseFeePaidEventObject,
+    CloseFeePaidEvent,
 } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
 describe("Minter", function () {
@@ -1303,7 +1305,7 @@ describe("Minter", function () {
                 ).to.be.reverted;
             });
 
-            describe("Protocol close fee", async function () {
+            describe.only("Protocol close fee", async function () {
                 it("should charge the protocol close fee with a single collateral asset if the deposit amount is sufficient and emit CloseFeePaid event", async function () {
                     const burnAmount = toBig(1);
                     const burnValue = burnAmount.mul(this.krAsset.deployArgs.price);
@@ -1361,7 +1363,27 @@ describe("Minter", function () {
                     const expectedFeeValueNormalizedB = fromBig(expectedFeeValueNormalizedA); // Normalize closeFee's 10**18 decimals on contract
                     expect(event.paymentValue).to.equal(expectedFeeValueNormalizedB);
                 });
-                it("should charge correct protocol close fee after a expanding rebase");
+                it("should charge correct protocol close fee after a expanding rebase", async function () {
+                    const burnAmount = 10;
+                    const expectedFeeAmount = hre.toBig(burnAmount * this.krAsset.deployArgs.closeFee);
+                    const expectedFeeValue = hre.toBig(
+                        burnAmount * this.krAsset.deployArgs.price * this.krAsset.deployArgs.closeFee,
+                        8,
+                    );
+
+                    await leverageKrAsset(users.userOne, this.krAsset, this.collateral, hre.toBig(burnAmount));
+                    await withdrawCollateral({ user: users.userOne, asset: this.krAsset, amount: burnAmount });
+                    const tx = await burnKrAsset({ user: users.userOne, asset: this.krAsset, amount: burnAmount });
+
+                    const event = await extractInternalIndexedEventFromTxReceipt<CloseFeePaidEventObject>(
+                        tx,
+                        MinterEvent__factory.connect(hre.Diamond.address, users.userOne),
+                        "CloseFeePaid",
+                    );
+
+                    expect(event.paymentAmount).to.equal(expectedFeeAmount);
+                    expect(event.paymentValue).to.equal(expectedFeeValue);
+                });
                 it("should charge correct protocol close fee after a reducing rebase");
             });
         });
