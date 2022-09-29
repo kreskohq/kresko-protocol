@@ -9,10 +9,8 @@ interface IKreskoAssetAnchor is IAccessControlEnumerableUpgradeable {
 
     function convertToShares(uint256 assets) external view returns (uint256);
 
-    // deprecated by issue(uint256, address)
     function deposit(uint256, address) external returns (uint256);
 
-    // deprecated by destroy(uint256, address)
     function withdraw(
         uint256,
         address,
