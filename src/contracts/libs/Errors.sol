@@ -100,4 +100,6 @@ library Error {
     /* -------------------------------------------------------------------------- */
 
     string public constant REBASING_DENOMINATOR_LOW = "500"; // denominator of rebases must be > 1
+    string public constant ISSUER_NOT_KRESKO = "501"; // issuer must be done by kresko
+    string public constant REDEEMER_NOT_KRESKO = "502"; // redeem must be done by kresko
 }
