@@ -99,7 +99,15 @@ library Error {
     /*                                   5. KrAsset                               */
     /* -------------------------------------------------------------------------- */
 
-    string public constant REBASING_DENOMINATOR_LOW = "500"; // denominator of rebases must be > 1
+    string public constant REBASING_DENOMINATOR_LOW = "500"; // denominator of rebases must be >= 1
     string public constant ISSUER_NOT_KRESKO = "501"; // issuer must be done by kresko
     string public constant REDEEMER_NOT_KRESKO = "502"; // redeem must be done by kresko
+    string public constant DESTROY_OVERFLOW = "503"; // trying to destroy more than allowed
+    string public constant ISSUE_OVERFLOW = "504"; // trying to destroy more than allowed
+    string public constant MINT_OVERFLOW = "505"; // trying to destroy more than allowed
+    string public constant DEPOSIT_OVERFLOW = "506"; // trying to destroy more than allowed
+    string public constant REDEEM_OVERFLOW = "507"; // trying to destroy more than allowed
+    string public constant WITHDRAW_OVERFLOW = "508"; // trying to destroy more than allowed
+    string public constant ZERO_SHARES = "509"; // amount of shares must be greater than 0
+    string public constant ZERO_ASSETS = "510"; // amount of assets must be greater than 0
 }

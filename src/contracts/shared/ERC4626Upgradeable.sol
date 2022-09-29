@@ -3,8 +3,9 @@ pragma solidity >=0.8.14;
 
 import {FixedPointMathLib} from "@rari-capital/solmate/src/utils/FixedPointMathLib.sol";
 
-import "./SafeERC20Upgradeable.sol";
-import "../krAsset/KreskoAsset.sol";
+import {SafeERC20Upgradeable} from "./SafeERC20Upgradeable.sol";
+import {KreskoAsset, ERC20Upgradeable} from "../krAsset/KreskoAsset.sol";
+import {Error} from "../libs/Errors.sol";
 
 /* solhint-disable func-name-mixedcase */
 /* solhint-disable no-empty-blocks */
@@ -12,8 +13,7 @@ import "../krAsset/KreskoAsset.sol";
 
 /// @notice Minimal ERC4626 tokenized Vault implementation.
 /// @notice Kresko:
-/// Removed redeem/mint functions and replaced with issuse/destroy which are only
-/// used when protocol is issuing and destroying underlying kresko assets.
+/// Adds issue/destroy functions that are called when KreskoAssets are minted/burned through the protocol.
 /// @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/mixins/ERC4626.sol)
 /// @author Kresko (https://www.kresko.fi)
 abstract contract ERC4626Upgradeable is ERC20Upgradeable {
@@ -73,8 +73,9 @@ abstract contract ERC4626Upgradeable is ERC20Upgradeable {
      */
     function issue(uint256 assets, address to) public virtual returns (uint256 shares) {
         require(msg.sender == asset.kresko(), Error.ISSUER_NOT_KRESKO);
+
         // Check for rounding error since we round down in previewDeposit.
-        require((shares = previewIssue(assets)) != 0, "ZERO_SHARES");
+        require((shares = previewIssue(assets)) != 0, Error.ZERO_SHARES);
 
         // Mint shares to kresko
         _mint(asset.kresko(), shares);
@@ -93,8 +94,9 @@ abstract contract ERC4626Upgradeable is ERC20Upgradeable {
      */
     function destroy(uint256 assets, address from) public virtual returns (uint256 shares) {
         require(msg.sender == asset.kresko(), Error.REDEEMER_NOT_KRESKO);
+
         // Check for rounding error since we round down in previewDeposit.
-        require((shares = previewDestroy(assets)) != 0, "ZERO_SHARES");
+        require((shares = previewIssue(assets)) != 0, Error.ZERO_SHARES);
 
         _beforeWithdraw(assets, shares);
 
@@ -110,52 +112,67 @@ abstract contract ERC4626Upgradeable is ERC20Upgradeable {
     /*                              Accounting Logic                              */
     /* -------------------------------------------------------------------------- */
 
-    /// @notice amount of KreskoAssets
     function totalAssets() public view virtual returns (uint256);
 
-    /// @notice convert KreskoAsset amount to anchor amount
     function convertToShares(uint256 assets) public view virtual returns (uint256) {
         uint256 supply = _totalSupply; // Saves an extra SLOAD if totalSupply is non-zero.
 
-        return supply == 0 ? assets : assets.mulDivUp(supply, totalAssets());
+        return supply == 0 ? assets : assets.mulDivDown(supply, totalAssets());
     }
 
-    /// @notice convert anchor amount to KreskoAsset amount
     function convertToAssets(uint256 shares) public view virtual returns (uint256) {
         uint256 supply = _totalSupply; // Saves an extra SLOAD if _totalSupply is non-zero.
 
         return supply == 0 ? shares : shares.mulDivDown(totalAssets(), supply);
     }
 
-    /// @notice amount shares for amount of @param assets
+    /// @notice amount of shares for amount of @param assets
     function previewIssue(uint256 assets) public view virtual returns (uint256) {
         return convertToShares(assets);
     }
 
-    /// @notice amount assets for amount of @param shares
+    /// @notice amount of assets for amount of @param shares
     function previewDestroy(uint256 shares) public view virtual returns (uint256) {
         return convertToAssets(shares);
     }
 
-    /// @notice amount shares for amount of @param assets
-    function previewDeposit(uint256 shares) public view virtual returns (uint256) {
-        uint256 supply = _totalSupply; // Saves an extra SLOAD if _totalSupply is non-zero.
-
-        return supply == 0 ? shares : shares.mulDivDown(totalAssets(), supply);
+    /// @notice amount of shares for amount of @param assets
+    function previewDeposit(uint256 assets) public view virtual returns (uint256) {
+        return convertToShares(assets);
     }
 
-    /// @notice amount assets for amount of @param shares
+    /// @notice amount of assets for amount of @param shares
+    function previewMint(uint256 shares) public view virtual returns (uint256) {
+        uint256 supply = _totalSupply; // Saves an extra SLOAD if _totalSupply is non-zero.
+
+        return supply == 0 ? shares : shares.mulDivUp(totalAssets(), supply);
+    }
+
+    /// @notice amount of shares for amount of @param assets
     function previewWithdraw(uint256 assets) public view virtual returns (uint256) {
         uint256 supply = _totalSupply; // Saves an extra SLOAD if _totalSupply is non-zero.
 
         return supply == 0 ? assets : assets.mulDivUp(supply, totalAssets());
     }
 
+    /// @notice amount of assets for amount of @param shares
+    function previewRedeem(uint256 shares) public view virtual returns (uint256) {
+        return convertToAssets(shares);
+    }
+
     /* -------------------------------------------------------------------------- */
-    /*                              LIMIT VIEWS                                   */
+    /*                       DEPOSIT/WITHDRAWAL LIMIT VIEWS                       */
     /* -------------------------------------------------------------------------- */
 
+    function maxDeposit(address) public view virtual returns (uint256) {
+        return type(uint256).max;
+    }
+
     function maxIssue(address) public view virtual returns (uint256) {
+        return type(uint256).max;
+    }
+
+    function maxMint(address) public view virtual returns (uint256) {
         return type(uint256).max;
     }
 
@@ -163,16 +180,16 @@ abstract contract ERC4626Upgradeable is ERC20Upgradeable {
         return convertToAssets(_balances[owner]);
     }
 
-    function maxDeposit(address) public view virtual returns (uint256) {
-        return type(uint256).max;
+    function maxWithdraw(address owner) public view virtual returns (uint256) {
+        return convertToAssets(_balances[owner]);
     }
 
-    function maxWithdraw(address owner) public view virtual returns (uint256) {
+    function maxRedeem(address owner) public view virtual returns (uint256) {
         return _balances[owner];
     }
 
     /* -------------------------------------------------------------------------- */
-    /*                            INTERNAL HOOKS                                  */
+    /*                            INTERNAL HOOKS LOGIC                            */
     /* -------------------------------------------------------------------------- */
 
     function _beforeWithdraw(uint256 assets, uint256 shares) internal virtual {}
@@ -180,15 +197,15 @@ abstract contract ERC4626Upgradeable is ERC20Upgradeable {
     function _afterDeposit(uint256 assets, uint256 shares) internal virtual {}
 
     /* -------------------------------------------------------------------------- */
-    /*                             EXTERNAL USE                                   */
+    /*                               EXTERNAL USE                                 */
     /* -------------------------------------------------------------------------- */
 
     /**
-     * @notice Deposits KreskoAssets, mints shares of anchor asset
+     * @notice Deposit KreskoAssets for equivalent amount of anchor tokens
      */
     function deposit(uint256 assets, address receiver) public virtual returns (uint256 shares) {
         // Check for rounding error since we round down in previewDeposit.
-        require((shares = previewDeposit(assets)) != 0, "ZERO_SHARES");
+        require((shares = previewDeposit(assets)) != 0, Error.ZERO_SHARES);
 
         // Need to transfer before minting or ERC777s could reenter.
         asset.safeTransferFrom(msg.sender, address(this), assets);
@@ -201,7 +218,7 @@ abstract contract ERC4626Upgradeable is ERC20Upgradeable {
     }
 
     /**
-     * @notice Withdraws KreskoAssets, destroys shares of anchor asset
+     * @notice Withdraw KreskoAssets for equivalent amount of anchor tokens
      */
     function withdraw(
         uint256 assets,
@@ -213,8 +230,54 @@ abstract contract ERC4626Upgradeable is ERC20Upgradeable {
         if (msg.sender != owner) {
             uint256 allowed = _allowances[owner][msg.sender]; // Saves gas for limited approvals.
 
-            if (allowed != type(uint256).max) _allowances[owner][msg.sender] = allowed - shares;
+            if (allowed != type(uint256).max) {
+                _allowances[owner][msg.sender] = allowed - shares;
+            }
         }
+
+        _beforeWithdraw(assets, shares);
+
+        _burn(owner, shares);
+
+        emit Withdraw(msg.sender, receiver, owner, assets, shares);
+
+        asset.safeTransfer(receiver, assets);
+    }
+
+    /**
+     * @notice Mint shares of anchor tokens for equivalent amount of KreskoAssets
+     */
+    function mint(uint256 shares, address receiver) public virtual returns (uint256 assets) {
+        assets = previewMint(shares); // No need to check for rounding error, previewMint rounds up.
+
+        // Need to transfer before minting or ERC777s could reenter.
+        asset.safeTransferFrom(msg.sender, address(this), assets);
+
+        _mint(receiver, shares);
+
+        emit Deposit(msg.sender, receiver, assets, shares);
+
+        _afterDeposit(assets, shares);
+    }
+
+    /**
+     * @notice Redeem shares of anchor for KreskoAssets
+     */
+    function redeem(
+        uint256 shares,
+        address receiver,
+        address owner
+    ) public virtual returns (uint256 assets) {
+        if (msg.sender != owner) {
+            uint256 allowed = _allowances[owner][msg.sender]; // Saves gas for limited approvals.
+
+            if (allowed != type(uint256).max) {
+                _allowances[owner][msg.sender] = allowed - shares;
+            }
+        }
+
+        // Check for rounding error since we round down in previewRedeem.
+        require((assets = previewRedeem(shares)) != 0, Error.ZERO_ASSETS);
 
         _beforeWithdraw(assets, shares);
 
