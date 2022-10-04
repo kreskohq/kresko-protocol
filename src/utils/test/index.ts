@@ -4,3 +4,4 @@ export * from "./helpers";
 export * from "./mocks";
 export * from "./roles";
 export * from "./actions";
+export * from "./fees";
