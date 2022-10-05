@@ -222,7 +222,6 @@ export const updateKrAsset = async (address: string, args: TestKreskoAssetUpdate
         krAsset.address,
         toFixedPoint(args.factor),
         args.oracle || krAsset.priceAggregator.address,
-        typeof args.mintable === "undefined" ? true : args.mintable,
         hre.toBig(args.supplyLimit, await krAsset.contract.decimals()),
         toFixedPoint(args.closeFee),
         toFixedPoint(args.openFee),

@@ -148,8 +148,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             supplyLimit: _supplyLimit,
             closeFee: FixedPoint.Unsigned(_closeFee),
             openFee: FixedPoint.Unsigned(_openFee),
-            exists: true,
-            mintable: true
+            exists: true
         });
         emit MinterEvent.KreskoAssetAdded(_krAsset, _kFactor, _oracle, _supplyLimit, _closeFee, _openFee);
     }
@@ -160,7 +159,6 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
      * @param _krAsset The address of the Kresko asset.
      * @param _kFactor The new k-factor as a raw value for a FixedPoint.Unsigned. Must be >= 1e18.
      * @param _oracle The new oracle address for the Kresko asset's USD value.
-     * @param _mintable The new mintable value.
      * @param _supplyLimit The new total supply limit for the Kresko asset.
      * @param _closeFee The new close fee percentage for the Kresko asset.
      * @param _openFee The new open fee percentage for the Kresko asset.
@@ -169,11 +167,10 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         address _krAsset,
         uint256 _kFactor,
         address _oracle,
-        bool _mintable,
         uint256 _supplyLimit,
         uint256 _closeFee,
         uint256 _openFee
-    ) external onlyRole(Role.OPERATOR) kreskoAssetExistsMaybeNotMintable(_krAsset) {
+    ) external onlyRole(Role.OPERATOR) kreskoAssetExists(_krAsset) {
         require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, Error.KRASSET_INVALID_FACTOR);
         require(_oracle != address(0), Error.ADDRESS_INVALID_ORACLE);
         require(_closeFee <= Constants.MAX_CLOSE_FEE, Error.PARAM_CLOSE_FEE_TOO_HIGH);
@@ -185,10 +182,9 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         krAsset.supplyLimit = _supplyLimit;
         krAsset.closeFee = FixedPoint.Unsigned(_closeFee);
         krAsset.openFee = FixedPoint.Unsigned(_openFee);
-        krAsset.mintable = _mintable;
         ms().kreskoAssets[_krAsset] = krAsset;
 
-        emit MinterEvent.KreskoAssetUpdated(_krAsset, _kFactor, _oracle, _mintable, _supplyLimit, _closeFee, _openFee);
+        emit MinterEvent.KreskoAssetUpdated(_krAsset, _kFactor, _oracle, _supplyLimit, _closeFee, _openFee);
     }
 
     /**

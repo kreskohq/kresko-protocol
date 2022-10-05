@@ -22,7 +22,6 @@ export type InputArgs = {
 export type TestKreskoAssetArgs = {
     name: string;
     price: number;
-    mintable?: boolean;
     oracle?: string;
     factor: number;
     supplyLimit: number;
@@ -31,7 +30,6 @@ export type TestKreskoAssetArgs = {
 };
 export type TestKreskoAssetUpdate = {
     name: string;
-    mintable?: boolean;
     oracle?: string;
     factor: number;
     supplyLimit: number;

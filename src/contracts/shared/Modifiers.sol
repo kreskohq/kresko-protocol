@@ -76,20 +76,11 @@ abstract contract MinterModifiers {
     }
 
     /**
-     * @notice Reverts if a Kresko asset does not exist within the protocol or is not mintable.
-     * @param _kreskoAsset The address of the Kresko asset.
-     */
-    modifier kreskoAssetExistsAndMintable(address _kreskoAsset) {
-        require(ms().kreskoAssets[_kreskoAsset].exists, Error.KRASSET_DOESNT_EXIST);
-        require(ms().kreskoAssets[_kreskoAsset].mintable, Error.KRASSET_NOT_MINTABLE);
-        _;
-    }
-    /**
      * @notice Reverts if a Kresko asset does not exist within the protocol. Does not revert if
      * the Kresko asset is not mintable.
      * @param _kreskoAsset The address of the Kresko asset.
      */
-    modifier kreskoAssetExistsMaybeNotMintable(address _kreskoAsset) {
+    modifier kreskoAssetExists(address _kreskoAsset) {
         require(ms().kreskoAssets[_kreskoAsset].exists, Error.KRASSET_DOESNT_EXIST);
         _;
     }

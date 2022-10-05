@@ -84,7 +84,6 @@ library MinterEvent {
      * @param kreskoAsset The address of the Kresko asset.
      * @param kFactor The k-factor.
      * @param oracle The address of the oracle.
-     * @param mintable The mintable value.
      * @param supplyLimit The total supply limit.
      * @param closeFee The close fee percentage.
      * @param openFee The open fee percentage.
@@ -93,7 +92,6 @@ library MinterEvent {
         address indexed kreskoAsset,
         uint256 indexed kFactor,
         address indexed oracle,
-        bool mintable,
         uint256 supplyLimit,
         uint256 closeFee,
         uint256 openFee

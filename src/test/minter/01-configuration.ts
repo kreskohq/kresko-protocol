@@ -96,7 +96,6 @@ describe("Minter", function () {
                 contract.address,
                 update.factor,
                 newPriceFeed.address,
-                false,
                 hre.toBig(update.supplyLimit),
                 update.closeFee,
                 update.openFee,

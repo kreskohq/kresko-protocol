@@ -105,7 +105,6 @@ struct MinterParams {
  * @param closeFee The percentage paid in fees when closing a debt position of this type.
  * @param openFee The percentage paid in fees when opening a debt position of this type.
  * @param exists Whether the Kresko asset exists within the protocol.
- * @param mintable Whether the Kresko asset can be minted.
  */
 struct KrAsset {
     FixedPoint.Unsigned kFactor;
@@ -113,7 +112,6 @@ struct KrAsset {
     uint256 supplyLimit;
     FixedPoint.Unsigned closeFee;
     FixedPoint.Unsigned openFee;
-    bool mintable;
     bool exists;
 }
 

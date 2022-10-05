@@ -31,7 +31,6 @@ interface IConfiguration {
         address _krAsset,
         uint256 _kFactor,
         address _oracle,
-        bool _mintable,
         uint256 _supplyLimit,
         uint256 _closeFee,
         uint256 _openFee

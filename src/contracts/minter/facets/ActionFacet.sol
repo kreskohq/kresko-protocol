@@ -95,7 +95,7 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
     )
         external
         nonReentrant
-        kreskoAssetExistsAndMintable(_kreskoAsset)
+        kreskoAssetExists(_kreskoAsset)
         onlyRoleIf(_account != msg.sender, Role.MANAGER)
     {
         require(_amount > 0, Error.ZERO_MINT);
@@ -172,7 +172,7 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
     )
         external
         nonReentrant
-        kreskoAssetExistsMaybeNotMintable(_kreskoAsset)
+        kreskoAssetExists(_kreskoAsset)
         onlyRoleIf(_account != msg.sender, Role.MANAGER)
     {
         if (ms().safetyStateSet) {
