@@ -12,7 +12,7 @@ import {MinterEvent} from "../../libs/Events.sol";
 import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
 import {DiamondModifiers} from "../../shared/Modifiers.sol";
 
-import {Constants} from "../MinterTypes.sol";
+import {Constants, Fee} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 import "hardhat/console.sol";
 
@@ -96,7 +96,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidation {
         );
 
         // Charge close fee from the liquidated user
-        s.chargeCloseFee(_account, _repayKreskoAsset, _repayAmount);
+        s.chargeFee(_account, _repayKreskoAsset, _repayAmount, Fee.Close);
 
         // Burn the received Kresko assets, removing them from circulation.
         IKreskoAsset(_repayKreskoAsset).burn(msg.sender, _repayAmount);

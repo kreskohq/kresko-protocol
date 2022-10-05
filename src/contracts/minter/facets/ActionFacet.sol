@@ -12,7 +12,7 @@ import {MinterEvent} from "../../libs/Events.sol";
 import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
 import {DiamondModifiers, MinterModifiers} from "../../shared/Modifiers.sol";
 
-import {Action, FixedPoint} from "../MinterTypes.sol";
+import {Action, Fee, FixedPoint} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 
 contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
@@ -112,7 +112,7 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
             Error.KRASSET_MAX_SUPPLY_REACHED
         );
 
-        s.chargeOpenFee(_account, _kreskoAsset, _amount);
+        s.chargeFee(_account, _kreskoAsset, _amount, Fee.Open);
 
         // Get the value of the minter's current deposited collateral.
         FixedPoint.Unsigned memory accountCollateralValue = s.getAccountCollateralValue(_account);
@@ -206,7 +206,7 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
             s.mintedKreskoAssets[_account].removeAddress(_kreskoAsset, _mintedKreskoAssetIndex);
         }
 
-        s.chargeCloseFee(_account, _kreskoAsset, _amount);
+        s.chargeFee(_account, _kreskoAsset, _amount, Fee.Close);
 
         // Burn the received kresko assets, removing them from circulation.
         IKreskoAsset(_kreskoAsset).burn(msg.sender, _amount);

@@ -6,15 +6,13 @@ import {LibKrAsset} from "./libs/LibKrAsset.sol";
 import {LibAccount} from "./libs/LibAccount.sol";
 import {LibCollateral} from "./libs/LibCollateral.sol";
 import {LibCalc} from "./libs/LibCalculation.sol";
-import {LibRepay} from "./libs/LibRepay.sol";
-import {LibMint} from "./libs/LibMint.sol";
+import {LibFees} from "./libs/LibFees.sol";
 
 using LibCalc for MinterState global;
 using LibKrAsset for MinterState global;
 using LibCollateral for MinterState global;
 using LibAccount for MinterState global;
-using LibRepay for MinterState global;
-using LibMint for MinterState global;
+using LibFees for MinterState global;
 
 /* solhint-disable state-visibility */
 

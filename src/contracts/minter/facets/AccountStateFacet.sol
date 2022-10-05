@@ -151,8 +151,8 @@ contract AccountStateFacet is IAccountState {
     }
 
     /**
-     * @notice Calculates the expected fee to be taken from a user's deposited collateral assets,
-     *         by imitating calcFee without modifying state.
+     * @notice Calculates the expected fee to be charged from a user's deposited collateral assets,
+     *         by imitating chargeFee() without modifying state.
      * @param _account The account to charge the open fee from.
      * @param _kreskoAsset The address of the kresko asset being burned.
      * @param _kreskoAssetAmount The amount of the kresko asset being minted.
