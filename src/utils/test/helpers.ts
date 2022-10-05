@@ -5,16 +5,14 @@ import { expect } from "chai";
 import hre from "hardhat";
 
 import {
-    ERC20Upgradeable,
     ERC20Upgradeable__factory,
     FluxPriceAggregator__factory,
-    FluxPriceFeed__factory,
-    KreskoAsset,
-    KreskoAsset__factory,
-    WrappedKreskoAsset__factory,
+    FluxPriceFeed__factory, KreskoAsset__factory,
+    WrappedKreskoAsset__factory
 } from "types/typechain";
 
 import { getUsers } from "@utils/general";
+import { wrapperPrefix } from "src/config/minter";
 import {
     defaultCollateralArgs,
     defaultKrAssetArgs,
@@ -24,7 +22,7 @@ import {
     TestCollateralAssetArgs,
     TestCollateralAssetUpdate,
     TestKreskoAssetArgs,
-    TestKreskoAssetUpdate,
+    TestKreskoAssetUpdate
 } from "./mocks";
 import roles from "./roles";
 
@@ -145,7 +143,7 @@ export const depositCollateral = async (args: InputArgs) => {
 
 export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAssetArgs): Promise<KrAsset> => {
     const users = await getUsers();
-    const { name, price, factor, supplyLimit, closeFee } = args;
+    const { name, symbol, price, factor, supplyLimit, closeFee } = args;
 
     // Create an oracle with price supplied
     const [OracleAggregator, Oracle] = await getMockOracleFor(name, price);
@@ -156,7 +154,7 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
     krAsset.decimals.returns(18)
 
     // Initialize the underlying krAsset
-    await krAsset.initialize(name, name, 18, users.deployer.address, hre.Diamond.address);
+    await krAsset.initialize(name, symbol, 18, users.deployer.address, hre.Diamond.address);
 
     // Create the fixed krAsset
     const krAssetFixed = await (
@@ -164,12 +162,13 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
     ).deploy(krAsset.address);
 
     await krAssetFixed.setVariable("_initialized", 0);
-    await krAssetFixed.initialize(krAsset.address, name, name, users.deployer.address);
+    await krAssetFixed.initialize(krAsset.address, name, wrapperPrefix + symbol, users.deployer.address);
 
     // Add the asset to the protocol
     const kFactor = toFixedPoint(factor);
     await hre.Diamond.connect(users.operator).addKreskoAsset(
         krAsset.address,
+        krAssetFixed.address,
         kFactor,
         OracleAggregator.address,
         toBig(supplyLimit, await krAsset.decimals()),

@@ -10,7 +10,7 @@ import {Error} from "../libs/Errors.sol";
 import {RebalanceMath, Rebalance} from "../shared/Rebalance.sol";
 import {ERC20Upgradeable} from "../shared/ERC20Upgradeable.sol";
 
-import {IWrappedKreskoAsset} from "./IWrappedKreskoAsset.sol";
+import {IKreskoAsset} from "./IKreskoAsset.sol";
 
 import "hardhat/console.sol";
 
@@ -64,10 +64,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable {
      * - WrappedKreskoAsset, ERC20 and ERC-165 itself
      */
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
-        return
-            interfaceId == type(IWrappedKreskoAsset).interfaceId ||
-            interfaceId == 0x01ffc9a7 ||
-            interfaceId == 0x36372b07;
+        return interfaceId == type(IKreskoAsset).interfaceId || interfaceId == 0x01ffc9a7 || interfaceId == 0x36372b07;
     }
 
     /**

@@ -13,7 +13,9 @@ export const chainIds = {
     bsctest: 97,
     celo: 42220,
     celotest: 44787,
-    "op-kovan": 69,
+    op: 10,
+    opkovan: 69,
+    opgoerli: 420,
     ethereum: 1,
     goerli: 5,
     kovan: 42,
@@ -23,7 +25,7 @@ export const chainIds = {
     rinkeby: 4,
     ropsten: 3,
     hardhat: 1337,
-    fantom: 250,
+    fantom: 2100,
     harmony: 1666600000,
     harmonytest: 1666700000,
     polygon: 137,
@@ -47,7 +49,7 @@ export const networks = (mnemonic: string) => ({
             mnemonic,
         },
         chainId: chainIds.auroratest,
-        url: "https://aurora-testnet.infura.io/v3/49b8b68abcc1484abfcb0f9e24a0c4c9",
+        url: `https://aurora-testnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
         deploy: ["./src/deploy/auroratest"],
         gasPrice: 0,
         live: true,
@@ -101,7 +103,7 @@ export const networks = (mnemonic: string) => ({
     hardhat: {
         accounts: {
             mnemonic,
-            count: 50,
+            count: 100,
         },
         saveDeployments: true,
         allowUnlimitedContractSize: true,
@@ -109,7 +111,7 @@ export const networks = (mnemonic: string) => ({
     localhost: {
         accounts: {
             mnemonic,
-            count: 50,
+            count: 100,
         },
         saveDeployments: true,
         chainId: chainIds.hardhat,
@@ -121,11 +123,27 @@ export const networks = (mnemonic: string) => ({
         chainId: chainIds.bsctest,
         tags: ["ethereum"],
     },
+
+    op: {
+        accounts: { mnemonic, count: 100 },
+        url: `https://optimism-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+        chainId: chainIds.op,
+        saveDeployments: true,
+        tags: ["mainnet"],
+    },
     opkovan: {
-        account: { mnemonic },
+        accounts: { mnemonic, count: 100 },
         url: "https://kovan.optimism.io",
-        chainId: chainIds["op-kovan"],
-        tags: ["op-kovan"],
+        chainId: chainIds.opkovan,
+        saveDeployments: true,
+        tags: ["testnet"],
+    },
+    opgoerli: {
+        accounts: { mnemonic, count: 100 },
+        url: `https://optimism-goerli.infura.io/v3/${process.env.INFURA_API_KEY}`,
+        chainId: chainIds.opgoerli,
+        saveDeployments: true,
+        tags: ["testnet"],
     },
     kovan: {
         chainId: chainIds.kovan,

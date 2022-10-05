@@ -1,5 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-
+import "@kreskolabs/hardhat-deploy";
+import "@nomiclabs/hardhat-ethers";
 export const getUsers = async (hre?: HardhatRuntimeEnvironment): Promise<Users> => {
     if (!hre) hre = require("hardhat");
     const {
