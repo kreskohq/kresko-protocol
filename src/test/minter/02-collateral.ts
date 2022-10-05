@@ -1,4 +1,4 @@
-import { Action, Fee, addMockCollateralAsset, defaultDecimals, defaultOraclePrice, Role, withFixture } from "@test-utils";
+import { Action, addMockCollateralAsset, defaultDecimals, defaultOraclePrice, Role, withFixture } from "@test-utils";
 import { extractInternalIndexedEventFromTxReceipt } from "@utils";
 import { executeContractCallWithSigners } from "@utils/gnosis/utils/execution";
 import { fromBig, toBig } from "@utils/numbers";
@@ -409,7 +409,7 @@ describe("Minter", function () {
                             this.mintAmount,
                         );
 
-                        // Mint amount differs from deposited amount due to open fee, see open fee test below
+                        // Mint amount differs from deposited amount due to open fee
                         const amountDeposited = await hre.Diamond.collateralDeposits(
                             users.userOne.address,
                             this.collateral.address,
@@ -419,25 +419,6 @@ describe("Minter", function () {
                         // Load the MCR for testing purposes
                         this.mcr = await hre.Diamond.minimumCollateralizationRatio();
                     });
-
-                    it("should correctly assess the open fee on krAsset creation", async function () {
-                        // Confirm that the open fee for our recent mint was correctly assessed
-                        const feeRes = await hre.Diamond.calcExpectedFee(
-                            users.userOne.address,
-                            this.krAsset.address,
-                            this.mintAmount,
-                            Fee.OPEN
-                        );
-                        const output: string[] = feeRes.toString().split(",");
-                        this.openFeeCollateralType = output[0];
-                        this.openFeeAmount = toBig(Number(output[1]) / 10**18);
-
-                        const amountDeposited = await hre.Diamond.collateralDeposits(
-                            users.userOne.address,
-                            this.collateral.address,
-                        );
-                        expect(amountDeposited).eq(this.depositAmount.sub(this.openFeeAmount));
-                    })
 
                     it("should allow an account to withdraw their deposit if it does not violate the health factor", async function () {
                         const userOneBalancePreWithdrawal = await this.collateral.contract.balanceOf(users.userOne.address);
