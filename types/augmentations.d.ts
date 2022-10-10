@@ -195,6 +195,7 @@ declare module "hardhat/types/runtime" {
         krAsset: KrAsset;
         collaterals: Collateral[];
         allAssets: (KrAsset | Collateral)[];
+        facets: { name: string; address: string; functions: number }[]
         uniPairs: {
             [name: string]: UniswapV2Pair;
         };

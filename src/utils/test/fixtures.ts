@@ -1,11 +1,10 @@
 import hre, { deployments, ethers } from "hardhat";
 
-type FixtureName = "diamond-init" | "minter-init" | "minter-with-mocks" | "kresko-asset";
 
-let currentFixtureName: string;
-export const withFixture = (fixtureName: FixtureName) => {
+let currentFixtureName: string[];
+export const withFixture = (fixtureName: string[]) => {
     before(function () {
-        if (currentFixtureName && fixtureName !== currentFixtureName) {
+        if (currentFixtureName && fixtureName.join('') !== currentFixtureName.join('')) {
             hre.collaterals = [];
             hre.krAssets = [];
             hre.allAssets = [];
@@ -16,7 +15,7 @@ export const withFixture = (fixtureName: FixtureName) => {
     beforeEach(async function () {
         const fixture = await deployments.createFixture(async hre => {
             const result = await deployments.fixture(fixtureName);
-
+        
             if(result.Diamond) {
                 hre.Diamond = await ethers.getContractAt<Kresko>("Kresko", result.Diamond.address);
             }

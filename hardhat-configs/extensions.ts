@@ -16,6 +16,7 @@ extendEnvironment(async function (hre) {
     hre.priceAggregators = {};
     hre.uniPairs = {};
     hre.utils = ethers.utils;
+    hre.facets = [];
     hre.users = await getUsers(hre);
     hre.addr = await getAddresses(hre);
     /* -------------------------------------------------------------------------- */

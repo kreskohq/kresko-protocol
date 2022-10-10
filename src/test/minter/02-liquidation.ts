@@ -1,7 +1,7 @@
 import { expect } from "@test/chai";
 import hre, { users } from "hardhat";
 
-import { borrowKrAsset, depositMockCollateral, updateCollateralAsset, updateKrAsset, withFixture, defaultCloseFee, defaultOpenFee } from "@test-utils";
+import { borrowKrAsset, defaultCloseFee, defaultOpenFee, depositMockCollateral, withFixture } from "@test-utils";
 import { fromBig, toBig } from "@utils/numbers";
 
 import { extractInternalIndexedEventFromTxReceipt } from "@utils/events";
@@ -10,7 +10,7 @@ import { MinterEvent__factory } from "types/typechain";
 import { LiquidationOccurredEvent } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
 describe("Minter", function () {
-    withFixture("minter-with-mocks");
+    withFixture(["minter-test"]);
 
     beforeEach(async function () {
         // -------------------------------- Set up mock assets --------------------------------
@@ -20,7 +20,8 @@ describe("Minter", function () {
             factor: 1,
             decimals: 18,
         };
-        this.collateral = await updateCollateralAsset(this.collaterals[0].address, collateralArgs);
+        this.collateral = hre.collaterals.find(c => c.deployArgs.name === "Collateral");
+        this.collateral = await this.collateral.update(collateralArgs);
         this.collateral.setPrice(collateralArgs.price);
         // Set up mock KreskoAsset
         const krAssetArgs = {
@@ -31,8 +32,8 @@ describe("Minter", function () {
             closeFee: defaultCloseFee,
             openFee: defaultOpenFee,
         };
-
-        this.krAsset = await updateKrAsset(this.krAssets[0].address, krAssetArgs);
+        this.krAsset = hre.krAssets.find(c => c.deployArgs.name === "KreskoAsset");
+        await this.collateral.update(collateralArgs);
         this.krAsset.setPrice(krAssetArgs.price);
         // -------------------------------- Set up userOne deposit/debt --------------------------------
         // Deposit collateral

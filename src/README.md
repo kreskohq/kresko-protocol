@@ -4,7 +4,7 @@
 
 ### Upgrading state:
 
--    Provide the address `_init` that contains the initialization process when calling `diamondCut` and pass `_calldata` for arguments for the function.
+-   Provide the address `_init` that contains the initialization process when calling `diamondCut` and pass `_calldata` for arguments for the function.
 
 ### Do NOT:
 

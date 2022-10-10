@@ -144,7 +144,7 @@ describe("KreskoAsset", function () {
 
             await expect(
                 this.kreskoAsset.connect(this.signers.operator).burn(this.signers.admin.address, overUserBalance),
-            ).to.be.revertedWith("ERC20: burn amount exceeds balance");
+            ).to.be.reverted
 
             // Check total supply and user's balances are unchanged
             expect(await this.kreskoAsset.totalSupply()).to.equal(this.mintAmount);

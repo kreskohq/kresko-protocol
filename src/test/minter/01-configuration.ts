@@ -13,7 +13,7 @@ import {
 } from "@utils/test";
 
 describe("Minter", function () {
-    withFixture("minter-init");
+    withFixture(["minter-init"]);
     describe("#configuration", function () {
         it("can modify all parameters", async function () {
             const Diamond = hre.Diamond.connect(users.operator);

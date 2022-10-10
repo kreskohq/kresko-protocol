@@ -13,7 +13,7 @@ type Args = {
 };
 
 const logger = getLogger("add-facet");
-export async function addFacets({ names, initializerName, initializerArgs, log = false }: Args) {
+export async function addFacets({ names, initializerName, initializerArgs, log = true }: Args) {
     logger.log("Adding facets");
     logger.table(names);
 
@@ -46,21 +46,31 @@ export async function addFacets({ names, initializerName, initializerArgs, log =
     /* -------------------------------------------------------------------------- */
     /*                              Deploy All Facets                             */
     /* -------------------------------------------------------------------------- */
-    const deploymentInfo = [];
+    const deploymentInfo: { name: string; address: string; functions: number }[] = [];
     for (const facet of names) {
         // #4.3 Deploy each facet contract
         const [FacetContract, sigs, FacetDeployment] = await deploy(facet, { log, from: deployer });
 
         // #4.4 Convert the address and signatures into the required `FacetCut` type and push into the array.
         const { facetCut } = hre.getAddFacetArgs(FacetContract, sigs);
-        FacetCuts.push(facetCut);
 
-        // #4.5 Push their ABI into a separate array for deployment output later on.
+        // #4.5 Ensure functions do not exist
+        const existingFacet = facetsBefore.find(f => f.facetAddress === FacetContract.address);
+        if (
+            !existingFacet ||
+            existingFacet.functionSelectors.some(sel => facetCut.functionSelectors.indexOf(sel) === -1)
+        ) {
+            FacetCuts.push(facetCut);
+        } else {
+            logger.log("Skipping facet", facet);
+        }
+
+        // #4.6 Push their ABI into a separate array for deployment output later on.
         ABIs.push(FacetDeployment.abi);
 
         deploymentInfo.push({ name: facet, address: FacetDeployment.address, functions: sigs.length });
     }
-    logger.success("Facets deployed:");
+    logger.success("Facets on-chain:");
     logger.table(deploymentInfo);
 
     /* -------------------------------------------------------------------------- */
@@ -70,7 +80,7 @@ export async function addFacets({ names, initializerName, initializerArgs, log =
     // #5.1 Initialize the `diamondCut` initializer argument to do nothing.
     let initializer: DiamondCutInitializer = [constants.AddressZero, "0x"];
 
-    if (initializerName) {
+    if (initializerName && FacetCuts.length) {
         // #5.2 If `initializerName` is supplied, try to get the existing deployment
         const InitializerArtifact = await hre.deployments.getOrNull(initializerName);
 
@@ -99,52 +109,81 @@ export async function addFacets({ names, initializerName, initializerArgs, log =
         // #5.5 Prepopulate the initialization tx - replacing the default set on #5.1.
         const tx = await InitializerContract.populateTransaction.initialize(initializerArgs || "0x");
         initializer = [tx.to, tx.data];
+    } else if (!FacetCuts.length) {
+        logger.log("Skipping adding facets because they all exist");
     } else {
         // Ensure we know that no initializer was supplied for the facets
         logger.warn("Adding facets without initializer");
     }
 
-    /* -------------------------------------------------------------------------- */
-    /*                                 DiamondCut                                 */
-    /* -------------------------------------------------------------------------- */
-    const tx = await Diamond.diamondCut(FacetCuts, ...initializer);
+    if (FacetCuts.length) {
+        /* -------------------------------------------------------------------------- */
+        /*                                 DiamondCut                                 */
+        /* -------------------------------------------------------------------------- */
+        const tx = await Diamond.diamondCut(FacetCuts, ...initializer);
+        const receipt = await tx.wait(1);
 
-    const receipt = await tx.wait();
+        // #6.1 Get the on-chain values of facets in the Diamond after the cut.
+        const facetsAfter = (await Diamond.facets()).map(f => ({
+            name: deploymentInfo.find(d => d.address === f.facetAddress)?.name ?? "",
+            facetAddress: f.facetAddress,
+            functionSelectors: f.functionSelectors,
+        }));
 
-    // #6.1 Get the on-chain values of facets in the Diamond after the cut.
-    const facets = (await Diamond.facets()).map(f => ({
-        facetAddress: f.facetAddress,
-        functionSelectors: f.functionSelectors,
-    }));
+        // #6.2 Ensure the facets are found on-chain
+        const addedFacets = facetsAfter.filter(f => !!FacetCuts.find(fc => fc.facetAddress === f.facetAddress));
+        if (addedFacets.length !== FacetCuts.length) {
+            // Print out relevant errors if facets are not found
+            logger.error("On-chain amount does not match the amount of facets tried to add");
+            logger.error(
+                "Facets found on-chain before:",
+                facetsBefore.map(f => f.facetAddress),
+            );
+            logger.error(
+                "All facets found on-chain after:",
+                facetsAfter.map(f => f.facetAddress),
+            );
+            // Do not continue with any possible scripts after
+            throw new Error("Error adding a facet");
+        } else {
+            // #6.3 Add the new facet into the Diamonds deployment object
+            DiamondDeployment.facets = facetsAfter;
+            hre.facets = deploymentInfo;
 
-    // #6.2 Ensure the facets are found on-chain
-    const addedFacets = facets.filter(f => !!FacetCuts.find(fc => fc.facetAddress === f.facetAddress));
-    if (addedFacets.length !== FacetCuts.length) {
-        // Print out relevant errors if facets are not found
-        logger.error("On-chain amount does not match the amount of facets tried to add");
-        logger.error(
-            "Facets found on-chain before:",
-            facetsBefore.map(f => f.facetAddress),
-        );
-        logger.error(
-            "All facets found on-chain after:",
-            facets.map(f => f.facetAddress),
-        );
-        // Do not continue with any possible scripts after
-        throw new Error("Error adding a facet");
+            // #6.4 Merge the ABIs of new facets into the existing Diamond ABI for deployment output.
+            DiamondDeployment.abi = mergeABIs([DiamondDeployment.abi, ...ABIs], {
+                // This check will notify if there are selector clashes
+                check: true,
+                skipSupportsInterface: false,
+            });
+
+            // #6.5 Save the deployment output
+            await deployments.save("Diamond", DiamondDeployment);
+            // Live network deployments should be released into the contracts-package.
+            if (hre.network.live) {
+                // TODO: Automate the release
+                logger.log(
+                    "New facets saved to deployment file, remember to make a release of the contracts package for frontend",
+                );
+            }
+
+            // #6.6 Save the deployment and Diamond into runtime for later steps.
+            hre.DiamondDeployment = DiamondDeployment;
+            hre.Diamond = await ethers.getContractAt<Kresko>("Kresko", DiamondDeployment.address);
+
+            logger.success(FacetCuts.length, "facets succesfully added", "txHash:", receipt.transactionHash);
+        }
+        return hre.Diamond;
     } else {
-        // #6.3 Add the new facet into the Diamonds deployment object
-        DiamondDeployment.facets = facets;
-
         // #6.4 Merge the ABIs of new facets into the existing Diamond ABI for deployment output.
-        DiamondDeployment.abi = mergeABIs([DiamondDeployment.abi, ...ABIs], {
-            // This check will notify if there are selector clashes
-            check: true,
-            skipSupportsInterface: false,
-        });
+        // DiamondDeployment.abi = mergeABIs([DiamondDeployment.abi, ...ABIs], {
+        //     // This check will notify if there are selector clashes
+        //     check: true,
+        //     skipSupportsInterface: false,
+        // });
 
         // #6.5 Save the deployment output
-        await deployments.save("Diamond", DiamondDeployment);
+        // await deployments.save("Diamond", DiamondDeployment);
         // Live network deployments should be released into the contracts-package.
         if (hre.network.live) {
             // TODO: Automate the release
@@ -156,8 +195,5 @@ export async function addFacets({ names, initializerName, initializerArgs, log =
         // #6.6 Save the deployment and Diamond into runtime for later steps.
         hre.DiamondDeployment = DiamondDeployment;
         hre.Diamond = await ethers.getContractAt<Kresko>("Kresko", DiamondDeployment.address);
-
-        logger.success(FacetCuts.length, "facets succesfully added", "txHash:", receipt.transactionHash);
     }
-    return hre.Diamond;
 }

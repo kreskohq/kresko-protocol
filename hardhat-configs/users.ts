@@ -3,87 +3,88 @@ export const users = {
         default: 0,
     },
     admin: {
-        default: 31,
-    },
-    owner: {
-        default: 32,
-    },
-    operator: {
-        default: 33,
-    },
-    liquidator: {
-        default: 34,
-    },
-    userOne: {
         default: 1,
     },
-    userTwo: {
+    owner: {
         default: 2,
     },
-    userThree: {
+    operator: {
         default: 3,
     },
-    nonadmin: {
+    liquidator: {
         default: 4,
     },
-    treasury: {
+    nonadmin: {
         default: 5,
     },
-    feedValidator: {
-        default: 6,
-    },
-    userFour: {
-        default: 7,
-    },
-    userFive: {
-        default: 8,
-    },
-    testUserOne: {
-        default: 9,
-    },
-    testUserTwo: {
+    treasury: {
         default: 10,
     },
-    testUserThree: {
-        default: 11,
-    },
-    testUserFour: {
-        default: 12,
-    },
-    testUserFive: {
-        default: 13,
-    },
-    testUserSix: {
-        default: 14,
-    },
-    testUserSeven: {
-        default: 15,
-    },
-    testUserEight: {
-        default: 16,
-    },
-    testUserNine: {
-        default: 17,
-    },
-    testUserTen: {
-        default: 18,
-    },
-    testUserExtra: {
-        default: 19,
-    },
-    devOne: {
+    feedValidator: {
         default: 20,
     },
+    // test users
+    userOne: {
+        default: 31,
+    },
+    userTwo: {
+        default: 32,
+    },
+    userThree: {
+        default: 33,
+    },
+    userFour: {
+        default: 34,
+    },
+    userFive: {
+        default: 35,
+    },
+    testUserOne: {
+        default: 36,
+    },
+    testUserTwo: {
+        default: 37,
+    },
+    testUserThree: {
+        default: 38,
+    },
+    testUserFour: {
+        default: 39,
+    },
+    testUserFive: {
+        default: 40,
+    },
+    testUserSix: {
+        default: 41,
+    },
+    testUserSeven: {
+        default: 42,
+    },
+    testUserEight: {
+        default: 43,
+    },
+    testUserNine: {
+        default: 44,
+    },
+    testUserTen: {
+        default: 45,
+    },
+    testUserExtra: {
+        default: 46,
+    },
+    devOne: {
+        default: 47,
+    },
     devTwo: {
-        default: 21,
+        default: 48,
     },
     extOne: {
-        default: 22,
+        default: 49,
     },
     extTwo: {
-        default: 23,
+        default: 50,
     },
     extThree: {
-        default: 24,
+        default: 51,
     },
 };

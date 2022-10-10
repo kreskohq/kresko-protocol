@@ -1,2 +1,2 @@
-export * from "./deployToken";
+export * from "./deploy-token";
 export * from "./sandbox";

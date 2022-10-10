@@ -23,7 +23,7 @@ describe("Diamond", function () {
         users = hre.users;
         addr = hre.addr;
     });
-    withFixture("diamond-init");
+    withFixture(["diamond-init"]);
 
     describe("#upgrades", () => {
         it("can add a new facet", async function () {
