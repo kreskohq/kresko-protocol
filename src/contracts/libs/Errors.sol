@@ -100,7 +100,7 @@ library Error {
     /* -------------------------------------------------------------------------- */
 
     string public constant REBASING_DENOMINATOR_LOW = "500"; // denominator of rebases must be >= 1
-    string public constant ISSUER_NOT_KRESKO = "501"; // issuer must be done by kresko
+    string public constant ISSUER_NOT_KRESKO = "501"; // issue must be done by kresko
     string public constant REDEEMER_NOT_KRESKO = "502"; // redeem must be done by kresko
     string public constant DESTROY_OVERFLOW = "503"; // trying to destroy more than allowed
     string public constant ISSUE_OVERFLOW = "504"; // trying to destroy more than allowed
