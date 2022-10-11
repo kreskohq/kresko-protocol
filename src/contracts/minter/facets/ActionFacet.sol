@@ -110,7 +110,9 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IActionFacet {
             Error.KRASSET_MAX_SUPPLY_REACHED
         );
 
-        s.chargeOpenFee(_account, _kreskoAsset, _amount);
+        if (krAsset.openFee.isGreaterThan(0)) {
+            s.chargeOpenFee(_account, _kreskoAsset, _amount);
+        }
 
         // Get the value of the minter's current deposited collateral.
         FixedPoint.Unsigned memory accountCollateralValue = s.getAccountCollateralValue(_account);

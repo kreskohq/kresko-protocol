@@ -3,6 +3,7 @@ import {
     defaultCollateralArgs,
     defaultKrAssetArgs,
     defaultOraclePrice,
+    Fee,
     leverageKrAsset,
     Role,
     withFixture,
@@ -19,6 +20,7 @@ import {
     CloseFeePaidEventObject,
     KreskoAssetBurnedEvent,
     KreskoAssetMintedEventObject,
+    OpenFeePaidEventObject,
 } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
 describe("Minter", function () {
@@ -186,6 +188,7 @@ describe("Minter", function () {
                     factor: 1,
                     supplyLimit: 100000,
                     closeFee: defaultCloseFee,
+                    openFee: 0,
                 };
                 const { contract: secondKreskoAsset } = await addMockKreskoAsset(secondKrAssetArgs);
 
@@ -1304,7 +1307,82 @@ describe("Minter", function () {
                     ),
                 ).to.be.reverted;
             });
+            describe("Protocol open fee", async function () {
+                it("should charge the protocol open fee with a single collateral asset if the deposit amount is sufficient and emit CloseFeePaid event", async function () {
+                    const openFee = 0.01;
+                    const openFeeBig = toBig(openFee); // use toBig() to emulate closeFee's 18 decimals on contract
+                    this.krAsset = this.krAssets[0];
 
+                    await this.krAsset.update({
+                        ...defaultKrAssetArgs,
+                        openFee,
+                    });
+                    const mintAmount = toBig(1);
+                    const mintValue = mintAmount.mul(this.krAsset.deployArgs.price);
+
+                    const expectedFeeValue = mintValue.mul(openFeeBig);
+                    const expectedCollateralFeeAmount = expectedFeeValue.div(this.collateral.deployArgs.price);
+
+                    // Get the balances prior to the fee being charged.
+                    const kreskoCollateralAssetBalanceBefore = await this.collateral.contract.balanceOf(
+                        hre.Diamond.address,
+                    );
+                    const feeRecipientCollateralBalanceBefore = await this.collateral.contract.balanceOf(
+                        await hre.Diamond.feeRecipient(),
+                    );
+
+                    // Mint Kresko asset
+                    const tx = await hre.Diamond.connect(users.userOne).mintKreskoAsset(
+                        users.userOne.address,
+                        this.krAsset.address,
+                        mintAmount,
+                    );
+
+                    // Get the balances after the fees have been charged.
+                    const kreskoCollateralAssetBalanceAfter = await this.collateral.contract.balanceOf(
+                        hre.Diamond.address,
+                    );
+                    const feeRecipientCollateralBalanceAfter = await this.collateral.contract.balanceOf(
+                        await hre.Diamond.feeRecipient(),
+                    );
+
+                    // Ensure the amount gained / lost by the kresko contract and the fee recipient are as expected
+                    const feeRecipientBalanceIncrease = feeRecipientCollateralBalanceAfter.sub(
+                        feeRecipientCollateralBalanceBefore,
+                    );
+                    expect(kreskoCollateralAssetBalanceBefore.sub(kreskoCollateralAssetBalanceAfter)).to.equal(
+                        feeRecipientBalanceIncrease,
+                    );
+
+                    // Normalize expected amount because protocol closeFee has 10**18 decimals
+                    const normalizedExpectedCollateralFeeAmount = fromBig(expectedCollateralFeeAmount) / 10 ** 18;
+                    expect(feeRecipientBalanceIncrease).to.equal(toBig(normalizedExpectedCollateralFeeAmount));
+
+                    // Ensure the emitted event is as expected.
+                    const event = await extractInternalIndexedEventFromTxReceipt<OpenFeePaidEventObject>(
+                        tx,
+                        MinterEvent__factory.connect(hre.Diamond.address, users.userOne),
+                        "OpenFeePaid",
+                    );
+                    expect(event.account).to.equal(users.userOne.address);
+                    expect(event.paymentCollateralAsset).to.equal(this.collateral.address);
+                    expect(event.paymentAmount).to.equal(toBig(normalizedExpectedCollateralFeeAmount));
+                    const expectedFeeValueNormalizedA = expectedFeeValue.div(10 ** 10); // Normalize krAsset price's 10**10 decimals on contract
+                    const expectedFeeValueNormalizedB = fromBig(expectedFeeValueNormalizedA); // Normalize closeFee's 10**18 decimals on contract
+                    expect(event.paymentValue).to.equal(expectedFeeValueNormalizedB);
+
+                    // Now verify that calcExpectedFee function returns accurate fee amount
+                    const feeRes = await hre.Diamond.calcExpectedFee(
+                        users.userOne.address,
+                        this.krAsset.address,
+                        mintAmount,
+                        Fee.OPEN,
+                    );
+                    const output: string[] = feeRes.toString().split(",");
+                    const openFeeAmount = Number(output[1]) / 10 ** 18;
+                    expect(openFeeAmount).eq(normalizedExpectedCollateralFeeAmount);
+                });
+            });
             describe("Protocol close fee", async function () {
                 it("should charge the protocol close fee with a single collateral asset if the deposit amount is sufficient and emit CloseFeePaid event", async function () {
                     const burnAmount = toBig(1);

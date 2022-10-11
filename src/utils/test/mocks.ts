@@ -50,7 +50,7 @@ export const defaultMintAmount = toBig(100, defaultDecimals);
 
 export const defaultSupplyLimit = 10000;
 export const defaultCloseFee = 0.01; // 1%
-export const defaultOpenFee = 0.01; // 1%
+export const defaultOpenFee = 0; // 0%
 
 export const defaultKrAssetArgs = {
     name: "KreskoAsset",

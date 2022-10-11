@@ -417,6 +417,12 @@ describe("Minter", function () {
                             this.krAsset.address,
                             this.mintAmount,
                         );
+                        // Mint amount differs from deposited amount due to open fee
+                        const amountDeposited = await hre.Diamond.collateralDeposits(
+                            users.userOne.address,
+                            this.collateral.address,
+                        );
+                        this.initialUserOneDeposited = amountDeposited;
 
                         this.mcr = await hre.Diamond.minimumCollateralizationRatio();
                     });
@@ -462,6 +468,7 @@ describe("Minter", function () {
                             users.userOne.address,
                             this.collateral.address,
                         );
+
                         expect(amountDeposited).to.equal(this.depositAmount.sub(withdrawAmount));
 
                         // Check the balances of the contract and user
