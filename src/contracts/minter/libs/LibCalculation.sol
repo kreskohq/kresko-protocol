@@ -8,7 +8,6 @@ import {Math} from "../../libs/Math.sol";
 
 import {MinterState} from "../MinterState.sol";
 import {KrAsset} from "../MinterTypes.sol";
-import "hardhat/console.sol";
 
 uint256 constant ONE_HUNDRED_PERCENT = 1e18;
 uint256 constant ONE_USD = 1e18;
