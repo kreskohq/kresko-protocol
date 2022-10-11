@@ -3,10 +3,14 @@ pragma solidity >=0.8.14;
 
 import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {MinterState} from "../MinterState.sol";
-import "hardhat/console.sol";
+import {KrAsset, CollateralAsset} from "../MinterTypes.sol";
+import {RebaseMath, Rebase} from "../../shared/Rebase.sol";
+import {IKreskoAsset} from "../../krAsset/IKreskoAsset.sol";
+import {IKreskoAssetAnchor} from "../../krAsset/IKreskoAssetAnchor.sol";
 
 library LibAccount {
     using FixedPoint for FixedPoint.Unsigned;
+    using RebaseMath for uint256;
 
     /**
      * @notice Gets an array of Kresko assets the account has minted.
@@ -32,6 +36,30 @@ library LibAccount {
         returns (address[] memory)
     {
         return self.depositedCollateralAssets[_account];
+    }
+
+    /**
+     * @notice Get `_account` collateral amount for `_asset`
+     * @notice Performs rebasing conversion for KreskoAssets
+     * @param _asset The asset address
+     * @param _account The account to query amount for
+     * @return Amount of collateral for `_asset`
+     */
+    function getCollateralDeposits(
+        MinterState storage self,
+        address _account,
+        address _asset
+    ) internal view returns (uint256) {
+        CollateralAsset memory collateral = self.collateralAssets[_asset];
+        uint256 deposits = self.collateralDeposits[_account][_asset];
+
+        // Perform conversion for KreskoAsset collaterals
+        if (collateral.anchor != address(0)) {
+            return IKreskoAssetAnchor(self.collateralAssets[_asset].anchor).convertToAssets(deposits);
+        }
+
+        // No conversion for other assets
+        return deposits;
     }
 
     /**
@@ -66,7 +94,7 @@ library LibAccount {
             address asset = assets[i];
             (FixedPoint.Unsigned memory collateralValue, ) = self.getCollateralValueAndOraclePrice(
                 asset,
-                self.collateralDeposits[_account][asset],
+                self.getCollateralDeposits(_account, asset),
                 false // Take the collateral factor into consideration.
                 // TODO: should this take the collateral factor into account?
                 // TODO: PANU: add a param bool _ignoreCollateralFactor or rename the func?
@@ -109,9 +137,26 @@ library LibAccount {
         address[] memory assets = self.mintedKreskoAssets[_account];
         for (uint256 i = 0; i < assets.length; i++) {
             address asset = assets[i];
-            value = value.add(self.getKrAssetValue(asset, self.kreskoAssetDebt[_account][asset], false));
+            value = value.add(self.getKrAssetValue(asset, self.getKreskoAssetDebt(_account, asset), false));
         }
         return value;
+    }
+
+    /**
+     * @notice Get `_account` debt amount for `_asset`
+     * @param _asset The asset address
+     * @param _account The account to query amount for
+     * @return Amount of debt for `_asset`
+     */
+    function getKreskoAssetDebt(
+        MinterState storage self,
+        address _account,
+        address _asset
+    ) internal view returns (uint256) {
+        return
+            IKreskoAssetAnchor(self.kreskoAssets[_asset].anchor).convertToAssets(
+                self.kreskoAssetDebt[_account][_asset]
+            );
     }
 
     /**

@@ -3,7 +3,7 @@
 import { Contract, utils, BigNumber, BigNumberish, Signer, PopulatedTransaction } from "ethers";
 import { TypedDataSigner } from "@ethersproject/abstract-signer";
 import { AddressZero } from "@ethersproject/constants";
-import { GnosisSafeL2 } from 'types';
+import { GnosisSafeL2 } from "types";
 
 export const EIP_DOMAIN = {
     EIP712Domain: [
@@ -231,7 +231,7 @@ export const executeTxWithSigners = async (
     return executeTx(safe, tx, sigs, overrides);
 };
 
-export const executeContractCallWithSigners =  async (
+export const executeContractCallWithSigners = async (
     safe: GnosisSafeL2,
     contract: Contract,
     method: string,

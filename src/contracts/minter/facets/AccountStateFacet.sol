@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 
-import {IAccountState} from "../interfaces/IAccountState.sol";
+import {IAccountStateFacet} from "../interfaces/IAccountStateFacet.sol";
 import {Action, Fee, KrAsset, CollateralAsset, FixedPoint} from "../MinterTypes.sol";
+import {IKreskoAsset} from "../../krAsset/IKreskoAsset.sol";
 import {Error} from "../../libs/Errors.sol";
 import {Math} from "../../libs/Math.sol";
 
 import {ms} from "../MinterStorage.sol";
 
-contract AccountStateFacet is IAccountState {
+contract AccountStateFacet is IAccountStateFacet {
     using Math for uint256;
     using Math for uint8;
     using Math for FixedPoint.Unsigned;
@@ -53,7 +54,7 @@ contract AccountStateFacet is IAccountState {
      * @return Amount of debt for `_asset`
      */
     function kreskoAssetDebt(address _account, address _asset) external view returns (uint256) {
-        return ms().kreskoAssetDebt[_account][_asset];
+        return ms().getKreskoAssetDebt(_account, _asset);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -76,7 +77,7 @@ contract AccountStateFacet is IAccountState {
      * @return Amount of collateral deposited for `_asset`
      */
     function collateralDeposits(address _account, address _asset) external view returns (uint256) {
-        return ms().collateralDeposits[_account][_asset];
+        return ms().getCollateralDeposits(_account, _asset);
     }
 
     /**
@@ -138,6 +139,15 @@ contract AccountStateFacet is IAccountState {
         );
     }
 
+    function getAccountSingleCollateralValueAndRealValue(address _account, address _asset)
+        external
+        view
+        returns (FixedPoint.Unsigned memory value, FixedPoint.Unsigned memory realValue)
+    {
+        uint256 depositAmount = ms().getCollateralDeposits(_account, _asset);
+        return ms().getCollateralValueAndOraclePrice(_asset, depositAmount, false);
+    }
+
     /**
      * @notice Get a list of accounts and their collateral ratios
      * @return ratios of the accounts
@@ -179,7 +189,7 @@ contract AccountStateFacet is IAccountState {
         address[] memory accountCollateralAssets = ms().depositedCollateralAssets[_account];
 
         ExpectedFeeRuntimeInfo memory info; // Using ExpectedFeeRuntimeInfo struct to avoid StackTooDeep error
-        info.assets =  new address[](accountCollateralAssets.length);
+        info.assets = new address[](accountCollateralAssets.length);
         info.amounts = new uint256[](accountCollateralAssets.length);
 
         // Return empty arrays if the fee value is 0.
@@ -201,15 +211,15 @@ contract AccountStateFacet is IAccountState {
             // If feeValue < depositValue, the entire fee can be charged for this collateral asset.
             if (feeValue.isLessThan(depositValue)) {
                 transferAmount = ms().collateralAssets[collateralAssetAddress].decimals._fromCollateralFixedPointAmount(
-                    feeValue.div(oraclePrice)
-                );
+                        feeValue.div(oraclePrice)
+                    );
                 feeValuePaid = feeValue;
             } else {
                 transferAmount = depositAmount;
                 feeValuePaid = depositValue;
             }
 
-            if(transferAmount > 0) {
+            if (transferAmount > 0) {
                 info.assets[info.collateralTypeCount] = collateralAssetAddress;
                 info.amounts[info.collateralTypeCount] = transferAmount;
                 info.collateralTypeCount = info.collateralTypeCount++;
@@ -223,6 +233,7 @@ contract AccountStateFacet is IAccountState {
         }
         return (info.assets, info.amounts);
     }
+
     // ExpectedFeeRuntimeInfo is used to avoid StackTooDeep error
     struct ExpectedFeeRuntimeInfo {
         address[] assets;

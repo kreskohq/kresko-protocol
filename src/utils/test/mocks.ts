@@ -1,5 +1,6 @@
 import { toFixedPoint } from "@utils/fixed-point";
 import { toBig } from "@utils/numbers";
+import { wrapperPrefix } from "src/config/minter";
 export type TestCollateralAssetArgs = {
     name: string;
     price: number;
@@ -16,11 +17,13 @@ export type TestCollateralAssetUpdate = {
 export type InputArgs = {
     user: SignerWithAddress;
     asset: KrAsset | Collateral;
-    amount: number | string;
+    amount: string | number | BigNumber;
 };
 
 export type TestKreskoAssetArgs = {
     name: string;
+    symbol?: string;
+    wrapperSymbol?: string;
     price: number;
     oracle?: string;
     factor: number;
@@ -51,6 +54,8 @@ export const defaultOpenFee = 0.01; // 1%
 
 export const defaultKrAssetArgs = {
     name: "KreskoAsset",
+    symbol: "KreskoAsset",
+    wrapperPrefix: wrapperPrefix + "KreskoAsset",
     price: defaultOraclePrice,
     factor: 1,
     supplyLimit: defaultSupplyLimit,

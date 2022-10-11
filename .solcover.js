@@ -6,7 +6,7 @@ if (!mnemonic) {
     throw new Error("Please set your MNEMONIC in a .env file");
 }
 
-module.exports = {
+module.exports = { 
     istanbulReporter: ["html", "lcov"],
     onCompileComplete: async function (_config) {
         await run("typechain");

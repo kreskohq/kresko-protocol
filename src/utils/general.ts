@@ -1,5 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-
+import "@kreskolabs/hardhat-deploy";
+import "@nomiclabs/hardhat-ethers";
 export const getUsers = async (hre?: HardhatRuntimeEnvironment): Promise<Users> => {
     if (!hre) hre = require("hardhat");
     const {
@@ -10,6 +11,7 @@ export const getUsers = async (hre?: HardhatRuntimeEnvironment): Promise<Users> 
         userOne,
         userTwo,
         userThree,
+        userFour,
         nonadmin,
         liquidator,
         feedValidator,
@@ -23,6 +25,7 @@ export const getUsers = async (hre?: HardhatRuntimeEnvironment): Promise<Users> 
         userOne,
         userTwo,
         userThree,
+        userFour,
         nonadmin,
         liquidator,
         feedValidator,
@@ -40,6 +43,7 @@ export const getAddresses = async (hre?: HardhatRuntimeEnvironment): Promise<Add
         userOne,
         userTwo,
         userThree,
+        userFour,
         nonadmin,
         liquidator,
         feedValidator,
@@ -54,6 +58,7 @@ export const getAddresses = async (hre?: HardhatRuntimeEnvironment): Promise<Add
         userOne: userOne.address,
         userTwo: userTwo.address,
         userThree: userThree.address,
+        userFour: userFour.address,
         nonadmin: nonadmin.address,
         liquidator: liquidator.address,
         feedValidator: feedValidator.address,

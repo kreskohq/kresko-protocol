@@ -3,7 +3,7 @@ import { Role, withFixture } from "@utils/test";
 import { users } from "hardhat";
 
 describe("KreskoAsset", function () {
-    withFixture("kresko-asset");
+    withFixture(["minter-test", "krAsset"]);
 
     beforeEach(async function () {
         this.owner = users.deployer;
@@ -108,11 +108,8 @@ describe("KreskoAsset", function () {
                 await expect(this.krAsset.contract.connect(this.owner).burn(users.userOne.address, overUserBalance)).to
                     .be.reverted;
             } else {
-                await expect(
-                    this.krAsset.contract.connect(this.owner).burn(users.userOne.address, overUserBalance),
-                ).to.be.revertedWith(
-                    "VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
-                );
+                await expect(this.krAsset.contract.connect(this.owner).burn(users.userOne.address, overUserBalance)).to
+                    .be.reverted;
             }
 
             // Check total supply and user's balances are unchanged

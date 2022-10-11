@@ -1,18 +1,20 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
+import { Role } from "@utils/test";
 import hre from "hardhat";
 const { ethers } = hre;
 import minterConfig from "../config/minter";
 
 export async function createKrAsset(name: string, symbol, decimals = 18) {
-    const { deployer } = await ethers.getNamedSigners();
+    const { deployer, operator } = await ethers.getNamedSigners();
     const kresko = hre.Diamond;
+    const deploy = hre.deploy;
 
-    const underlyingSymbol = minterConfig.underlyingPrefix + symbol;
-    const kreskoAssetInitializerArgs = [name, underlyingSymbol, decimals, deployer.address, kresko.address];
+    const underlyingSymbol = minterConfig.wrapperPrefix + symbol;
+    const kreskoAssetInitArgs = [name, symbol, decimals, deployer.address, kresko.address];
 
-    const [KreskoAsset] = await hre.deploy<KreskoAsset>(underlyingSymbol, {
+    const [KreskoAsset] = await deploy<KreskoAsset>(symbol, {
         from: deployer.address,
         log: true,
         contract: "KreskoAsset",
@@ -21,31 +23,40 @@ export async function createKrAsset(name: string, symbol, decimals = 18) {
             proxyContract: "OptimizedTransparentProxy",
             execute: {
                 methodName: "initialize",
-                args: kreskoAssetInitializerArgs,
+                args: kreskoAssetInitArgs,
             },
         },
     });
 
-    const fixedKreskoAssetInitializerArgs = [KreskoAsset.address, name, symbol, deployer.address];
+    const kreskoAssetAnchorInitArgs = [KreskoAsset.address, name, underlyingSymbol, deployer.address];
 
-    const [WrappedKreskoAsset] = await hre.deploy(symbol, {
+    const [KreskoAssetAnchor] = await hre.deploy(underlyingSymbol, {
         from: deployer.address,
         log: true,
-        contract: "WrappedKreskoAsset",
+        contract: "KreskoAssetAnchor",
         args: [KreskoAsset.address],
         proxy: {
             owner: deployer.address,
             proxyContract: "OptimizedTransparentProxy",
             execute: {
                 methodName: "initialize",
-                args: fixedKreskoAssetInitializerArgs,
+                args: kreskoAssetAnchorInitArgs,
             },
         },
     });
+
+    await KreskoAsset.grantRole(Role.OPERATOR, KreskoAssetAnchor.address);
+
     const asset: KrAsset = {
         address: KreskoAsset.address,
         contract: KreskoAsset,
-        wrapper: WrappedKreskoAsset,
+        anchor: KreskoAssetAnchor,
+        deployArgs: {
+            name,
+            symbol,
+            decimals,
+            wrapperSymbol: underlyingSymbol,
+        },
     };
 
     const found = hre.krAssets.findIndex(c => c.address === asset.address);

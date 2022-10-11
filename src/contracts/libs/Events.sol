@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
-import {IDiamondCut} from "../diamond/interfaces/IDiamondCut.sol";
+import {IDiamondCutFacet} from "../diamond/interfaces/IDiamondCutFacet.sol";
 import {Action} from "../minter/MinterTypes.sol";
 
 library GeneralEvent {
@@ -15,7 +15,7 @@ library GeneralEvent {
 }
 
 library DiamondEvent {
-    event DiamondCut(IDiamondCut.FacetCut[] _diamondCut, address _init, bytes _calldata);
+    event DiamondCut(IDiamondCutFacet.FacetCut[] _diamondCut, address _init, bytes _calldata);
 }
 
 library MinterEvent {
@@ -64,6 +64,7 @@ library MinterEvent {
      * @notice Emitted when a Kresko asset is added to the protocol.
      * @dev Can only be emitted once for a given Kresko asset.
      * @param kreskoAsset The address of the Kresko asset.
+     * @param anchor anchor token
      * @param kFactor The k-factor.
      * @param oracle The address of the oracle.
      * @param supplyLimit The total supply limit.
@@ -72,6 +73,7 @@ library MinterEvent {
      */
     event KreskoAssetAdded(
         address indexed kreskoAsset,
+        address indexed anchor,
         uint256 indexed kFactor,
         address oracle,
         uint256 supplyLimit,

@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 
-import {IAction} from "../interfaces/IAction.sol";
+import {IActionFacet} from "../interfaces/IActionFacet.sol";
 import {IKreskoAsset} from "../../krAsset/IKreskoAsset.sol";
+import {IKreskoAssetAnchor} from "../../krAsset/IKreskoAssetAnchor.sol";
 
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
@@ -11,11 +12,11 @@ import {MinterEvent} from "../../libs/Events.sol";
 
 import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
 import {DiamondModifiers, MinterModifiers} from "../../shared/Modifiers.sol";
-
-import {Action, FixedPoint} from "../MinterTypes.sol";
+import {Action, FixedPoint, KrAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
+import "hardhat/console.sol";
 
-contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
+contract ActionFacet is DiamondModifiers, MinterModifiers, IActionFacet {
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using FixedPoint for FixedPoint.Unsigned;
     using Arrays for address[];
@@ -65,8 +66,8 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
             ensureNotPaused(_collateralAsset, Action.Withdraw);
         }
 
-        uint256 depositAmount = ms().collateralDeposits[_account][_collateralAsset];
-        _amount = (_amount <= depositAmount ? _amount : depositAmount);
+        uint256 depositAmount = ms().getCollateralDeposits(_account, _collateralAsset);
+        _amount = (_amount > depositAmount ? depositAmount : _amount);
         ms().verifyAndRecordCollateralWithdrawal(
             _account,
             _collateralAsset,
@@ -92,12 +93,7 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
         address _account,
         address _kreskoAsset,
         uint256 _amount
-    )
-        external
-        nonReentrant
-        kreskoAssetExists(_kreskoAsset)
-        onlyRoleIf(_account != msg.sender, Role.MANAGER)
-    {
+    ) external nonReentrant kreskoAssetExists(_kreskoAsset) onlyRoleIf(_account != msg.sender, Role.MANAGER) {
         require(_amount > 0, Error.ZERO_MINT);
 
         MinterState storage s = ms();
@@ -107,8 +103,10 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
         }
 
         // Enforce krAsset's total supply limit
+        KrAsset memory krAsset = s.kreskoAssets[_kreskoAsset];
+
         require(
-            IKreskoAsset(_kreskoAsset).totalSupply() + _amount <= s.kreskoAssets[_kreskoAsset].supplyLimit,
+            IKreskoAsset(_kreskoAsset).totalSupply() + _amount <= krAsset.supplyLimit,
             Error.KRASSET_MAX_SUPPLY_REACHED
         );
 
@@ -149,9 +147,7 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
             s.mintedKreskoAssets[_account].push(_kreskoAsset);
         }
         // Record the mint.
-        s.kreskoAssetDebt[_account][_kreskoAsset] += _amount;
-
-        IKreskoAsset(_kreskoAsset).mint(_account, _amount);
+        s.kreskoAssetDebt[_account][_kreskoAsset] += IKreskoAssetAnchor(krAsset.anchor).issue(_amount, _account);
 
         emit MinterEvent.KreskoAssetMinted(_account, _kreskoAsset, _amount);
     }
@@ -160,57 +156,44 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IAction {
      * @notice Burns existing Kresko assets.
      * @param _account The address to burn kresko assets for
      * @param _kreskoAsset The address of the Kresko asset.
-     * @param _amount The amount of the Kresko asset to be burned.
+     * @param _burnAmount The amount of the Kresko asset to be burned.
      * @param _mintedKreskoAssetIndex The index of the collateral asset in the user's minted assets array.
      * @notice Only needed if withdrawing the entire deposit of a particular collateral asset.
      */
     function burnKreskoAsset(
         address _account,
         address _kreskoAsset,
-        uint256 _amount,
+        uint256 _burnAmount,
         uint256 _mintedKreskoAssetIndex
-    )
-        external
-        nonReentrant
-        kreskoAssetExists(_kreskoAsset)
-        onlyRoleIf(_account != msg.sender, Role.MANAGER)
-    {
-        if (ms().safetyStateSet) {
-            ensureNotPaused(_kreskoAsset, Action.Repay);
-        }
-        require(_amount > 0, Error.ZERO_BURN);
+    ) external nonReentrant kreskoAssetExists(_kreskoAsset) onlyRoleIf(_account != msg.sender, Role.MANAGER) {
+        require(_burnAmount > 0, Error.ZERO_BURN);
         MinterState storage s = ms();
 
-        // Ensure the amount being burned is not greater than the user's debt.
-        uint256 debtAmount = s.kreskoAssetDebt[_account][_kreskoAsset];
-        require(_amount <= debtAmount, Error.KRASSET_BURN_AMOUNT_OVERFLOW);
-
-        {
-            // If the requested burn would put the user's debt position below the minimum
-            // debt value, close up to the minimum debt value instead.
-            FixedPoint.Unsigned memory krAssetValue = s.getKrAssetValue(_kreskoAsset, debtAmount - _amount, true);
-            if (krAssetValue.isGreaterThan(0) && krAssetValue.isLessThan(s.minimumDebtValue)) {
-                FixedPoint.Unsigned memory oraclePrice = FixedPoint.Unsigned(
-                    uint256(s.kreskoAssets[_kreskoAsset].oracle.latestAnswer())
-                );
-                FixedPoint.Unsigned memory minDebtAmount = s.minimumDebtValue.div(oraclePrice);
-                _amount = debtAmount - minDebtAmount.rawValue;
-            }
+        if (s.safetyStateSet) {
+            ensureNotPaused(_kreskoAsset, Action.Repay);
         }
 
-        // Record the burn.
-        s.kreskoAssetDebt[_account][_kreskoAsset] -= _amount;
+        uint256 debtAmount = s.getKreskoAssetDebt(_account, _kreskoAsset);
+        require(_burnAmount <= debtAmount, Error.KRASSET_BURN_AMOUNT_OVERFLOW);
+
+        // Ensure amount is either 0 or >= minDebtValue
+        uint256 burnAmountNoDust = s.ensureNotDustPosition(_kreskoAsset, _burnAmount, debtAmount);
 
         // If the sender is burning all of the kresko asset, remove it from minted assets array.
-        if (_amount == debtAmount) {
+        if (burnAmountNoDust == debtAmount) {
             s.mintedKreskoAssets[_account].removeAddress(_kreskoAsset, _mintedKreskoAssetIndex);
         }
 
-        s.chargeCloseFee(_account, _kreskoAsset, _amount);
+        // Charge the burn fee from collateral of _account
+        s.chargeCloseFee(_account, _kreskoAsset, burnAmountNoDust);
 
-        // Burn the received kresko assets, removing them from circulation.
-        IKreskoAsset(_kreskoAsset).burn(msg.sender, _amount);
-        emit MinterEvent.KreskoAssetBurned(_account, _kreskoAsset, _amount);
+        // Burn wkrAssets and krAssets. Reduce debt by amount burned.
+        s.kreskoAssetDebt[_account][_kreskoAsset] -= IKreskoAssetAnchor(s.kreskoAssets[_kreskoAsset].anchor).destroy(
+            burnAmountNoDust,
+            msg.sender
+        );
+
+        emit MinterEvent.KreskoAssetBurned(_account, _kreskoAsset, burnAmountNoDust);
     }
 
     /// @dev Simple check for the enabled flag

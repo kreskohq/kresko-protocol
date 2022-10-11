@@ -2,6 +2,7 @@
 // Deployment
 
 import "tsconfig-paths/register";
+import type { HardhatUserConfig } from "hardhat/types/config";
 
 /* -------------------------------------------------------------------------- */
 /*                                   Plugins                                  */
@@ -16,6 +17,7 @@ import "@kreskolabs/hardhat-deploy";
 import "@nomiclabs/hardhat-ethers";
 
 import "@nomiclabs/hardhat-web3";
+import "hardhat-watcher";
 
 if (process.env.FOUNDRY === "true") {
     require("@panukresko/hardhat-anvil");
@@ -31,7 +33,6 @@ import "hardhat-interface-generator";
 /* -------------------------------------------------------------------------- */
 /*                                   Dotenv                                   */
 /* -------------------------------------------------------------------------- */
-
 import { resolve } from "path";
 import { config as dotenvConfig } from "dotenv";
 
@@ -44,34 +45,32 @@ if (!mnemonic) {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                              Extensions To HRE                             */
+/*                                Config helpers                              */
 /* -------------------------------------------------------------------------- */
-import "hardhat-configs/extensions";
+
+import { reporters } from "mocha";
 
 /* -------------------------------------------------------------------------- */
 /*                                    Tasks                                   */
 /* -------------------------------------------------------------------------- */
 
 import "src/tasks";
-
 /* -------------------------------------------------------------------------- */
-/*                                Configuration                               */
+/*                              Extensions To HRE                             */
 /* -------------------------------------------------------------------------- */
-
+import "hardhat-configs/extensions";
 import { compilers, networks, users } from "hardhat-configs";
-import { reporters } from "mocha";
 
-import type { HardhatUserConfig } from "hardhat/types/config";
-
-/// Actual configuration
+/* -------------------------------------------------------------------------- */
+/*                               CONFIGURATION                                */
+/* -------------------------------------------------------------------------- */
 const config: HardhatUserConfig = {
     solidity: compilers,
-    namedAccounts: users,
-    defaultNetwork: "hardhat",
     networks: networks(mnemonic),
+    namedAccounts: users,
     mocha: {
         reporter: reporters.Spec,
-        timeout: 12000,
+        timeout: process.env.CI ? 45000 : 15000,
     },
     paths: {
         artifacts: "artifacts",
@@ -116,7 +115,7 @@ const config: HardhatUserConfig = {
         {
             name: "Kresko",
             include: ["facets*"],
-            exclude: ["vendor", "test/*", "interfaces/*", "KreskoAsset"],
+            exclude: ["vendor", "test/*", "interfaces/*", "KreskoAsset", "KreskoAssetAnchor", "KrStaking"],
             strict: false,
         },
     ],
@@ -126,6 +125,13 @@ const config: HardhatUserConfig = {
         buildInfo: true,
         forgeOnly: false,
         cacheVacuum: 0,
+    },
+    watcher: {
+        test: {
+            tasks: [{ command: "test", params: { testFiles: ["{path}"] } }],
+            files: ["./src/test/**/*"],
+            verbose: false,
+        },
     },
 };
 
