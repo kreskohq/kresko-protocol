@@ -1,8 +1,8 @@
-import type { TaskArguments } from "hardhat/types";
 import { getLogger } from "@utils/deployment";
 import { toFixedPoint } from "@utils/fixed-point";
 import { defaultSupplyLimit } from "@utils/test/mocks";
 import { task, types } from "hardhat/config";
+import type { TaskArguments } from "hardhat/types";
 
 task("add-krasset")
     .addParam("symbol", "Name of the asset")
@@ -37,6 +37,7 @@ task("add-krasset")
                 oracleAddr,
                 toFixedPoint(supplyLimit),
                 toFixedPoint(0.02),
+                toFixedPoint(0),
             );
             await tx.wait();
             logger.success(`Succesfully added ${symbol} in Kresko with kFactor of ${kFactor}`);

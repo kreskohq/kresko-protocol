@@ -102,7 +102,7 @@ library LibCalc {
     }
 
     /**
-     * @notice Calculates the close fee for a burned asset.
+     * @notice Calculates the fee to be taken from a user's deposited collateral assets.
      * @param _collateralAssetAddress The collateral asset from which to take to the fee.
      * @param _account The owner of the collateral.
      * @param _feeValue The original value of the fee.
@@ -110,7 +110,7 @@ library LibCalc {
      * @return The transfer amount to be received as a uint256 and a FixedPoint.Unsigned
      * representing the fee value paid.
      */
-    function calcCloseFee(
+    function calcFee(
         MinterState storage self,
         address _collateralAssetAddress,
         address _account,

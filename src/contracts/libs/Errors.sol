@@ -76,8 +76,10 @@ library Error {
     string public constant INVALID_LT = "235"; // Liquidation threshold is greater than minimum collateralization ratio
     string public constant COLLATERAL_INSUFFICIENT_AMOUNT = "236"; // Insufficient amount of collateral to complete the operation
     string public constant MULTISIG_NOT_ENOUGH_OWNERS = "237"; // Multisig has invalid amount of owners
-    string public constant KRASSET_INVALID_ANCHOR = "238"; // krAsset anchor does not support the correct interfaceId
-    string public constant KRASSET_INVALID_CONTRACT = "239"; // krAsset does not support the correct interfaceId
+    string public constant PARAM_OPEN_FEE_TOO_HIGH = "238"; // "Close fee exceeds MAX_OPEN_FEE"
+    string public constant INVALID_FEE_TYPE = "239"; // "Invalid fee type
+    string public constant KRASSET_INVALID_ANCHOR = "240"; // krAsset anchor does not support the correct interfaceId
+    string public constant KRASSET_INVALID_CONTRACT = "241"; // krAsset does not support the correct interfaceId
 
     /* -------------------------------------------------------------------------- */
     /*                                   3. Staking                               */

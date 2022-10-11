@@ -67,6 +67,7 @@ describe("Minter", function () {
             expect(kreskoPriceAnswer).to.equal(defaultKrAssetArgs.price);
             expect(hre.fromBig(values.supplyLimit)).to.equal(defaultKrAssetArgs.supplyLimit);
             expect(hre.fromBig(values.closeFee)).to.equal(defaultKrAssetArgs.closeFee);
+            expect(hre.fromBig(values.openFee)).to.equal(defaultKrAssetArgs.openFee);
         });
 
         it("can update values of a kresko asset", async function () {
@@ -86,6 +87,7 @@ describe("Minter", function () {
                 supplyLimit: 12000,
                 price: 20,
                 closeFee: toFixedPoint(0.02),
+                openFee: toFixedPoint(0.02),
             };
 
             const [newPriceFeed] = await getMockOracleFor(await contract.name(), update.price);
@@ -95,9 +97,9 @@ describe("Minter", function () {
                 anchor.address,
                 update.factor,
                 newPriceFeed.address,
-                false,
                 hre.toBig(update.supplyLimit),
                 update.closeFee,
+                update.openFee,
             );
 
             const newValues = await hre.Diamond.kreskoAsset(contract.address);

@@ -19,7 +19,8 @@ interface IConfigurationFacet {
         uint256 _kFactor,
         address _oracle,
         uint256 _supplyLimit,
-        uint256 _closeFee
+        uint256 _closeFee,
+        uint256 _openFee
     ) external;
 
     function updateCollateralAsset(
@@ -36,9 +37,9 @@ interface IConfigurationFacet {
         address _anchor,
         uint256 _kFactor,
         address _oracle,
-        bool _mintable,
         uint256 _supplyLimit,
-        uint256 _closeFee
+        uint256 _closeFee,
+        uint256 _openFee
     ) external;
 
     function updateLiquidationIncentiveMultiplier(uint256 _liquidationIncentiveMultiplier) external;

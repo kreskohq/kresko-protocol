@@ -93,12 +93,7 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IActionFacet {
         address _account,
         address _kreskoAsset,
         uint256 _amount
-    )
-        external
-        nonReentrant
-        kreskoAssetExistsAndMintable(_kreskoAsset)
-        onlyRoleIf(_account != msg.sender, Role.MANAGER)
-    {
+    ) external nonReentrant kreskoAssetExists(_kreskoAsset) onlyRoleIf(_account != msg.sender, Role.MANAGER) {
         require(_amount > 0, Error.ZERO_MINT);
 
         MinterState storage s = ms();
@@ -114,6 +109,10 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IActionFacet {
             IKreskoAsset(_kreskoAsset).totalSupply() + _amount <= krAsset.supplyLimit,
             Error.KRASSET_MAX_SUPPLY_REACHED
         );
+
+        if (krAsset.openFee.isGreaterThan(0)) {
+            s.chargeOpenFee(_account, _kreskoAsset, _amount);
+        }
 
         // Get the value of the minter's current deposited collateral.
         FixedPoint.Unsigned memory accountCollateralValue = s.getAccountCollateralValue(_account);
@@ -168,12 +167,7 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IActionFacet {
         address _kreskoAsset,
         uint256 _burnAmount,
         uint256 _mintedKreskoAssetIndex
-    )
-        external
-        nonReentrant
-        kreskoAssetExistsMaybeNotMintable(_kreskoAsset)
-        onlyRoleIf(_account != msg.sender, Role.MANAGER)
-    {
+    ) external nonReentrant kreskoAssetExists(_kreskoAsset) onlyRoleIf(_account != msg.sender, Role.MANAGER) {
         require(_burnAmount > 0, Error.ZERO_BURN);
         MinterState storage s = ms();
 

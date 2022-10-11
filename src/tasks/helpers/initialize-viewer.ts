@@ -42,7 +42,6 @@ task("initialize-viewer")
                 krAssets: krAssets.map(collateral => ({
                     index: Number(collateral.index),
                     kFactor: fromBig(collateral.kFactor),
-                    mintable: collateral.mintable,
                     address: collateral.assetAddress,
                     tokenId: collateral.symbol,
                     price: fromBig(collateral.price, 8),
