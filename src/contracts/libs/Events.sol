@@ -30,7 +30,12 @@ library MinterEvent {
      * @param factor The collateral factor.
      * @param oracle The address of the oracle.
      */
-    event CollateralAssetAdded(address indexed collateralAsset, uint256 indexed factor, address indexed oracle);
+    event CollateralAssetAdded(
+        address indexed collateralAsset,
+        uint256 indexed factor,
+        address indexed oracle,
+        address anchor
+    );
 
     /**
      * @notice Emitted when a collateral asset is updated.
@@ -38,7 +43,12 @@ library MinterEvent {
      * @param factor The collateral factor.
      * @param oracle The oracle address.
      */
-    event CollateralAssetUpdated(address indexed collateralAsset, uint256 indexed factor, address indexed oracle);
+    event CollateralAssetUpdated(
+        address indexed collateralAsset,
+        uint256 indexed factor,
+        address indexed oracle,
+        address anchor
+    );
 
     /**
      * @notice Emitted when an account deposits collateral.
@@ -74,8 +84,8 @@ library MinterEvent {
     event KreskoAssetAdded(
         address indexed kreskoAsset,
         address indexed anchor,
-        uint256 indexed kFactor,
-        address oracle,
+        address indexed oracle,
+        uint256 kFactor,
         uint256 supplyLimit,
         uint256 closeFee,
         uint256 openFee
@@ -92,8 +102,9 @@ library MinterEvent {
      */
     event KreskoAssetUpdated(
         address indexed kreskoAsset,
-        uint256 indexed kFactor,
+        address indexed anchor,
         address indexed oracle,
+        uint256 kFactor,
         uint256 supplyLimit,
         uint256 closeFee,
         uint256 openFee

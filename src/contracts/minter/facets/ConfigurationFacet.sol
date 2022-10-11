@@ -95,7 +95,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             exists: true,
             decimals: IERC20Upgradeable(_collateralAsset).decimals()
         });
-        emit MinterEvent.CollateralAssetAdded(_collateralAsset, _factor, _oracle);
+        emit MinterEvent.CollateralAssetAdded(_collateralAsset, _factor, _oracle, _anchor);
     }
 
     /**
@@ -122,7 +122,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         ms().collateralAssets[_collateralAsset].factor = FixedPoint.Unsigned(_factor);
         ms().collateralAssets[_collateralAsset].oracle = AggregatorV2V3Interface(_oracle);
 
-        emit MinterEvent.CollateralAssetUpdated(_collateralAsset, _factor, _oracle);
+        emit MinterEvent.CollateralAssetUpdated(_collateralAsset, _factor, _oracle, _anchor);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -174,7 +174,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             openFee: FixedPoint.Unsigned(_openFee),
             exists: true
         });
-        emit MinterEvent.KreskoAssetAdded(_krAsset, _kFactor, _oracle, _supplyLimit, _closeFee, _openFee);
+        emit MinterEvent.KreskoAssetAdded(_krAsset, _anchor, _oracle, _kFactor, _supplyLimit, _closeFee, _openFee);
     }
 
     /**
@@ -217,7 +217,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         krAsset.openFee = FixedPoint.Unsigned(_openFee);
         ms().kreskoAssets[_krAsset] = krAsset;
 
-        emit MinterEvent.KreskoAssetUpdated(_krAsset, _kFactor, _oracle, _supplyLimit, _closeFee, _openFee);
+        emit MinterEvent.KreskoAssetUpdated(_krAsset, _anchor, _oracle, _kFactor, _supplyLimit, _closeFee, _openFee);
     }
 
     /**
