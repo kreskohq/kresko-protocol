@@ -46,7 +46,6 @@ library LibRepay {
             .mul(krAsset.closeFee);
 
         // Do nothing if the fee value is 0.
-
         if (feeValue.rawValue == 0) {
             return;
         }
