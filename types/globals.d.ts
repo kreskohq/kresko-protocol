@@ -13,8 +13,6 @@ import {
     TestCollateralAssetUpdate,
 } from "@utils/test";
 
-
-
 declare global {
     /* -------------------------------------------------------------------------- */
     /*                              Minter Contracts                              */
@@ -162,8 +160,4 @@ declare global {
 
 }
 
-
-
 export {}
-
-
