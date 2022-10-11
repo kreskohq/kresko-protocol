@@ -61,7 +61,7 @@ library LibCalc {
                 // cFactor^4 is the diminishing factor (cFactor = 1 == nothing happens)
                 return krAssetSide.mul(cFactor.pow(4)).add(collateralSide);
             } else {
-                // For o
+                // For single CDP accounts and seized collaterals with a cFactor of 1
                 return krAssetSide.add(collateralSide);
             }
         }

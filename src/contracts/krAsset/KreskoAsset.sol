@@ -13,7 +13,6 @@ import {IERC165} from "../shared/IERC165.sol";
 
 import {IKreskoAsset} from "./IKreskoAsset.sol";
 
-
 /**
  * @title Kresko Synthethic Asset - rebasing ERC20.
  * @author Kresko
