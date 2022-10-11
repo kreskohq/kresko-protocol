@@ -7,7 +7,6 @@ import {KrAsset, CollateralAsset} from "../MinterTypes.sol";
 import {RebaseMath, Rebase} from "../../shared/Rebase.sol";
 import {IKreskoAsset} from "../../krAsset/IKreskoAsset.sol";
 import {IKreskoAssetAnchor} from "../../krAsset/IKreskoAssetAnchor.sol";
-import "hardhat/console.sol";
 
 library LibAccount {
     using FixedPoint for FixedPoint.Unsigned;
