@@ -3,7 +3,7 @@ pragma solidity >=0.8.14;
 
 import {AggregatorV2V3Interface} from "../vendor/flux/interfaces/AggregatorV2V3Interface.sol";
 import {FixedPoint} from "../libs/FixedPoint.sol";
-import {IWrappedKreskoAsset} from "../krAsset/IWrappedKreskoAsset.sol";
+import {IKreskoAssetAnchor} from "../krAsset/IKreskoAssetAnchor.sol";
 
 /* solhint-disable state-visibility */
 
@@ -16,6 +16,9 @@ library Constants {
 
     /// @dev The maximum configurable close fee.
     uint256 constant MAX_CLOSE_FEE = 10e16; // 10%
+
+    /// @dev The maximum configurable open fee.
+    uint256 constant MAX_OPEN_FEE = 10e16; // 10%
 
     /// @dev The minimum configurable minimum collateralization ratio.
     uint256 constant MIN_COLLATERALIZATION_RATIO = ONE_HUNDRED_PERCENT;
@@ -53,6 +56,17 @@ enum Action {
     Liquidation
 }
 
+/**
+ * @dev Fee types
+ *
+ * Open = 0
+ * Close = 1
+ */
+enum Fee {
+    Open,
+    Close
+}
+
 /* ========================================================================== */
 /*                                   STRUCTS                                  */
 /* ========================================================================== */
@@ -83,21 +97,23 @@ struct MinterParams {
 }
 
 /**
- * @notice Information on a token that is a Kresko asset.
- * @dev Each Kresko asset has 18 decimals.
- * @param kFactor The k-factor used for calculating the required collateral value for Kresko asset debt.
- * @param oracle The oracle that provides the USD price of one Kresko asset.
- * @param supplyLimit The total supply limit of the Kresko asset.
+ * @notice Information on a token that is a KreskoAsset.
+ * @dev Each KreskoAsset has 18 decimals.
+ * @param kFactor The k-factor used for calculating the required collateral value for KreskoAsset debt.
+ * @param oracle The oracle that provides the USD price of one KreskoAsset.
+ * @param supplyLimit The total supply limit of the KreskoAsset.
+ * @param anchor The anchor address
  * @param closeFee The percentage paid in fees when closing a debt position of this type.
- * @param exists Whether the Kresko asset exists within the protocol.
- * @param mintable Whether the Kresko asset can be minted.
+ * @param openFee The percentage paid in fees when opening a debt position of this type.
+ * @param exists Whether the KreskoAsset exists within the protocol.
  */
 struct KrAsset {
     FixedPoint.Unsigned kFactor;
     AggregatorV2V3Interface oracle;
     uint256 supplyLimit;
+    address anchor;
     FixedPoint.Unsigned closeFee;
-    bool mintable;
+    FixedPoint.Unsigned openFee;
     bool exists;
 }
 
@@ -107,14 +123,14 @@ struct KrAsset {
  * it to be deposited and withdrawn.
  * @param factor The collateral factor used for calculating the value of the collateral.
  * @param oracle The oracle that provides the USD price of one collateral asset.
- * @param kreskoAsset If the collateral is a krAsset, the underlying token address
+ * @param anchor If the collateral is a KreskoAsset, the anchor address
  * @param decimals The decimals for the token, stored here to avoid repetitive external calls.
  * @param exists Whether the collateral asset exists within the protocol.
  */
 struct CollateralAsset {
     FixedPoint.Unsigned factor;
     AggregatorV2V3Interface oracle;
-    address kreskoAsset;
+    address anchor;
     uint8 decimals;
     bool exists;
 }

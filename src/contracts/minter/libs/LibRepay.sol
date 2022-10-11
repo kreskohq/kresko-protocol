@@ -2,12 +2,14 @@
 pragma solidity >=0.8.14;
 
 // solhint-disable-next-line
-import {SafeERC20Upgradeable, IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
 import {Arrays} from "../../libs/Arrays.sol";
 import {MinterEvent} from "../../libs/Events.sol";
 import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {Math} from "../../libs/Math.sol";
+import {Error} from "../../libs/Errors.sol";
+import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
+import {SafeERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
 
 import {LibCalc} from "./LibCalculation.sol";
 import {KrAsset} from "../MinterTypes.sol";
@@ -56,7 +58,7 @@ library LibRepay {
         for (uint256 i = accountCollateralAssets.length - 1; i >= 0; i--) {
             address collateralAssetAddress = accountCollateralAssets[i];
 
-            (uint256 transferAmount, FixedPoint.Unsigned memory feeValuePaid) = self.calcCloseFee(
+            (uint256 transferAmount, FixedPoint.Unsigned memory feeValuePaid) = self.calcFee(
                 collateralAssetAddress,
                 _account,
                 feeValue,
@@ -64,7 +66,10 @@ library LibRepay {
             );
 
             // Remove the transferAmount from the stored deposit for the account.
-            self.collateralDeposits[_account][collateralAssetAddress] -= transferAmount;
+            self.collateralDeposits[_account][collateralAssetAddress] -= self.normalizeCollateralAmount(
+                transferAmount,
+                collateralAssetAddress
+            );
             // Transfer the fee to the feeRecipient.
             IERC20Upgradeable(collateralAssetAddress).safeTransfer(self.feeRecipient, transferAmount);
             emit MinterEvent.CloseFeePaid(_account, collateralAssetAddress, transferAmount, feeValuePaid.rawValue);
@@ -74,6 +79,34 @@ library LibRepay {
             if (feeValue.rawValue == 0) {
                 return;
             }
+        }
+    }
+
+    /**
+     * @notice Check that debt repaid does not leave a dust position, if it does:
+     * return an amount that pays up to minDebtValue
+     * @param _kreskoAsset The address of the kresko asset being burned.
+     * @param _burnAmount The amount being burned
+     * @param _debtAmount The debt amount of `_account`
+     * @return amount == 0 or >= minDebtAmount
+     */
+    function ensureNotDustPosition(
+        MinterState storage self,
+        address _kreskoAsset,
+        uint256 _burnAmount,
+        uint256 _debtAmount
+    ) internal view returns (uint256 amount) {
+        // If the requested burn would put the user's debt position below the minimum
+        // debt value, close up to the minimum debt value instead.
+        FixedPoint.Unsigned memory krAssetValue = self.getKrAssetValue(_kreskoAsset, _debtAmount - _burnAmount, true);
+        if (krAssetValue.isGreaterThan(0) && krAssetValue.isLessThan(self.minimumDebtValue)) {
+            FixedPoint.Unsigned memory oraclePrice = FixedPoint.Unsigned(
+                uint256(self.kreskoAssets[_kreskoAsset].oracle.latestAnswer())
+            );
+            FixedPoint.Unsigned memory minDebtValue = self.minimumDebtValue.div(oraclePrice);
+            amount = _debtAmount - minDebtValue.rawValue;
+        } else {
+            amount = _burnAmount;
         }
     }
 }

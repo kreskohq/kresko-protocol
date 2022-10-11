@@ -3,7 +3,7 @@ import { Role, withFixture } from "@utils/test";
 import { users } from "hardhat";
 
 describe("KreskoAsset", function () {
-    withFixture(["minter-test", "kr"]);
+    withFixture(["minter-test", "krAsset"]);
 
     beforeEach(async function () {
         this.owner = users.deployer;

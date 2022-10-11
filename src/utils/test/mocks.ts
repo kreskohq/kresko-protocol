@@ -17,27 +17,27 @@ export type TestCollateralAssetUpdate = {
 export type InputArgs = {
     user: SignerWithAddress;
     asset: KrAsset | Collateral;
-    amount: number | string;
+    amount: string | number | BigNumber;
 };
 
 export type TestKreskoAssetArgs = {
     name: string;
-    symbol?: string
-    wrapperSymbol?: string
+    symbol?: string;
+    wrapperSymbol?: string;
     price: number;
-    mintable?: boolean;
     oracle?: string;
     factor: number;
     supplyLimit: number;
     closeFee: number;
+    openFee: number;
 };
 export type TestKreskoAssetUpdate = {
     name: string;
-    mintable?: boolean;
     oracle?: string;
     factor: number;
     supplyLimit: number;
     closeFee: number;
+    openFee: number;
 };
 
 export const defaultOraclePrice = 10;
@@ -50,6 +50,7 @@ export const defaultMintAmount = toBig(100, defaultDecimals);
 
 export const defaultSupplyLimit = 10000;
 export const defaultCloseFee = 0.01; // 1%
+export const defaultOpenFee = 0; // 0%
 
 export const defaultKrAssetArgs = {
     name: "KreskoAsset",
@@ -59,6 +60,7 @@ export const defaultKrAssetArgs = {
     factor: 1,
     supplyLimit: defaultSupplyLimit,
     closeFee: defaultCloseFee,
+    openFee: defaultOpenFee,
 };
 
 export const defaultCollateralArgs = {
@@ -79,6 +81,7 @@ export const getNewMinterParams = (feeRecipient: string) => ({
 export default {
     supplyLimit: defaultSupplyLimit,
     closeFee: defaultCloseFee,
+    openFee: defaultOpenFee,
     mintAmount: defaultMintAmount,
     depositAmount: defaultDepositAmount,
     collateralArgs: defaultCollateralArgs,

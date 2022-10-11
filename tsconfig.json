@@ -1,7 +1,7 @@
 {
     "extends": "ts-node/node16/tsconfig.json",
     "ts-node": { "files": true, "transpileOnly": true },
-    "include": ["hardhat.config.ts", "types/**/*", "src/**/*", "hardhat-configs/**/*"],
+    "include": ["hardhat.config.ts", "types", "types/globals.d.ts", "src/**/*", "hardhat-configs/**/*"],
     "exclude": ["packages", "temp", "node_modules"],
     "files": ["hardhat.config.ts"],
     "compilerOptions": {
@@ -20,8 +20,7 @@
         "strict": false,
         "esModuleInterop": true,
         "baseUrl": "./",
-        "types": ["node"],
-        "typeRoots": ["./types"],
+        "typeRoots": ["types"],
         "paths": {
             "@configs": ["hardhat-configs"],
             "@utils": ["src/utils"],

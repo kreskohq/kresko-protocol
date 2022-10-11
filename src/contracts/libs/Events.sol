@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
-import {IDiamondCut} from "../diamond/interfaces/IDiamondCut.sol";
+import {IDiamondCutFacet} from "../diamond/interfaces/IDiamondCutFacet.sol";
 import {Action} from "../minter/MinterTypes.sol";
 
 library GeneralEvent {
@@ -15,7 +15,7 @@ library GeneralEvent {
 }
 
 library DiamondEvent {
-    event DiamondCut(IDiamondCut.FacetCut[] _diamondCut, address _init, bytes _calldata);
+    event DiamondCut(IDiamondCutFacet.FacetCut[] _diamondCut, address _init, bytes _calldata);
 }
 
 library MinterEvent {
@@ -30,7 +30,12 @@ library MinterEvent {
      * @param factor The collateral factor.
      * @param oracle The address of the oracle.
      */
-    event CollateralAssetAdded(address indexed collateralAsset, uint256 indexed factor, address indexed oracle);
+    event CollateralAssetAdded(
+        address indexed collateralAsset,
+        uint256 indexed factor,
+        address indexed oracle,
+        address anchor
+    );
 
     /**
      * @notice Emitted when a collateral asset is updated.
@@ -38,7 +43,12 @@ library MinterEvent {
      * @param factor The collateral factor.
      * @param oracle The oracle address.
      */
-    event CollateralAssetUpdated(address indexed collateralAsset, uint256 indexed factor, address indexed oracle);
+    event CollateralAssetUpdated(
+        address indexed collateralAsset,
+        uint256 indexed factor,
+        address indexed oracle,
+        address anchor
+    );
 
     /**
      * @notice Emitted when an account deposits collateral.
@@ -64,17 +74,21 @@ library MinterEvent {
      * @notice Emitted when a Kresko asset is added to the protocol.
      * @dev Can only be emitted once for a given Kresko asset.
      * @param kreskoAsset The address of the Kresko asset.
+     * @param anchor anchor token
      * @param kFactor The k-factor.
      * @param oracle The address of the oracle.
      * @param supplyLimit The total supply limit.
      * @param closeFee The close fee percentage.
+     * @param openFee The open fee percentage.
      */
     event KreskoAssetAdded(
         address indexed kreskoAsset,
-        uint256 indexed kFactor,
-        address oracle,
+        address indexed anchor,
+        address indexed oracle,
+        uint256 kFactor,
         uint256 supplyLimit,
-        uint256 closeFee
+        uint256 closeFee,
+        uint256 openFee
     );
 
     /**
@@ -82,17 +96,18 @@ library MinterEvent {
      * @param kreskoAsset The address of the Kresko asset.
      * @param kFactor The k-factor.
      * @param oracle The address of the oracle.
-     * @param mintable The mintable value.
      * @param supplyLimit The total supply limit.
      * @param closeFee The close fee percentage.
+     * @param openFee The open fee percentage.
      */
     event KreskoAssetUpdated(
         address indexed kreskoAsset,
-        uint256 indexed kFactor,
+        address indexed anchor,
         address indexed oracle,
-        bool mintable,
+        uint256 kFactor,
         uint256 supplyLimit,
-        uint256 closeFee
+        uint256 closeFee,
+        uint256 openFee
     );
 
     /**
@@ -120,6 +135,21 @@ library MinterEvent {
      * @param paymentValue The USD value of the payment.
      */
     event CloseFeePaid(
+        address indexed account,
+        address indexed paymentCollateralAsset,
+        uint256 indexed paymentAmount,
+        uint256 paymentValue
+    );
+
+    /**
+     * @notice Emitted when an account pays an open fee with a collateral asset upon minting a Kresko asset.
+     * @dev This can be emitted multiple times for a single Kresko asset mint.
+     * @param account The address of the account minting the Kresko asset.
+     * @param paymentCollateralAsset The address of the collateral asset used to pay the open fee.
+     * @param paymentAmount The amount of the payment collateral asset that was paid.
+     * @param paymentValue The USD value of the payment.
+     */
+    event OpenFeePaid(
         address indexed account,
         address indexed paymentCollateralAsset,
         uint256 indexed paymentAmount,

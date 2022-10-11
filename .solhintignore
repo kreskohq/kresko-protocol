@@ -1,13 +1,13 @@
 # folders
 
 .yarn/
-build/
-dist/
+build/**/*
+dist/**/*
 forge/
-artifacts/
-cache/
-bin/
-lib/
+artifacts/**/*
+cache/**/*
+bin/**/*
+lib/**/*
 node_modules/
 ./src/contracts/vendor/
 ./src/contracts/test/

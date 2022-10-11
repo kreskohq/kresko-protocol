@@ -3,17 +3,25 @@ pragma solidity >=0.8.14;
 
 import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {Action} from "../MinterTypes.sol";
-import {IAccountState} from "./IAccountState.sol";
-import {IConfiguration} from "./IConfiguration.sol";
-import {IAction} from "./IAction.sol";
-import {IState} from "./IState.sol";
-import {ILiquidation} from "./ILiquidation.sol";
-import {IAuthorization} from "../../diamond/interfaces/IAuthorization.sol";
-import {IOwnership} from "../../diamond/interfaces/IOwnership.sol";
+import {IAccountStateFacet} from "./IAccountStateFacet.sol";
+import {IConfigurationFacet} from "./IConfigurationFacet.sol";
+import {IActionFacet} from "./IActionFacet.sol";
+import {IStateFacet} from "./IStateFacet.sol";
+import {ILiquidationFacet} from "./ILiquidationFacet.sol";
+import {IAuthorizationFacet} from "../../diamond/interfaces/IAuthorizationFacet.sol";
+import {IOwnershipFacet} from "../../diamond/interfaces/IOwnershipFacet.sol";
 import {KrAsset, CollateralAsset} from "../MinterTypes.sol";
 
 /* solhint-disable no-empty-blocks */
-interface IKresko is IAccountState, IState, ILiquidation, IConfiguration, IAction, IAuthorization, IOwnership {
+interface IKresko is
+    IAccountStateFacet,
+    IStateFacet,
+    ILiquidationFacet,
+    IConfigurationFacet,
+    IActionFacet,
+    IAuthorizationFacet,
+    IOwnershipFacet
+{
     function kreskoAssets(address _asset) external view returns (KrAsset memory);
 
     function kreskoAssetDebt(address _account, address _asset) external view returns (uint256);

@@ -31,6 +31,7 @@ library LibUI {
     struct CollateralAssetInfoUser {
         address assetAddress;
         address oracleAddress;
+        address anchorAddress;
         uint256 amount;
         FixedPoint.Unsigned amountUSD;
         FixedPoint.Unsigned cFactor;
@@ -44,6 +45,7 @@ library LibUI {
     struct CollateralAssetInfo {
         address assetAddress;
         address oracleAddress;
+        address anchorAddress;
         uint256 price;
         uint256 value;
         FixedPoint.Unsigned cFactor;
@@ -54,7 +56,7 @@ library LibUI {
 
     struct ProtocolParams {
         uint256 liqMultiplier;
-        uint256 minDebtAmount;
+        uint256 minDebtValue;
         uint256 minCollateralRatio;
         uint256 liquidationThreshold;
     }
@@ -62,6 +64,7 @@ library LibUI {
     struct krAssetInfo {
         address oracleAddress;
         address assetAddress;
+        address anchorAddress;
         uint256 price;
         uint256 value;
         FixedPoint.Unsigned kFactor;
@@ -141,11 +144,11 @@ library LibUI {
     struct krAssetInfoUser {
         address assetAddress;
         address oracleAddress;
+        address anchorAddress;
         uint256 amount;
         FixedPoint.Unsigned amountUSD;
         uint256 index;
         FixedPoint.Unsigned kFactor;
-        bool mintable;
         uint256 price;
         string symbol;
         string name;
@@ -242,6 +245,7 @@ library LibUI {
             krAssetInfo memory assetInfo = krAssetInfo({
                 value: value.rawValue,
                 oracleAddress: address(krAsset.oracle),
+                anchorAddress: krAsset.anchor,
                 assetAddress: assetAddress,
                 kFactor: krAsset.kFactor,
                 price: price,
@@ -273,6 +277,7 @@ library LibUI {
             CollateralAssetInfo memory assetInfo = CollateralAssetInfo({
                 value: value.rawValue,
                 oracleAddress: address(collateralAsset.oracle),
+                anchorAddress: collateralAsset.anchor,
                 assetAddress: assetAddress,
                 cFactor: collateralAsset.factor,
                 decimals: decimals,
@@ -309,6 +314,7 @@ library LibUI {
                 CollateralAssetInfoUser memory assetInfo = CollateralAssetInfoUser({
                     amount: amount,
                     amountUSD: amountUSD,
+                    anchorAddress: collateralAsset.anchor,
                     oracleAddress: address(collateralAsset.oracle),
                     assetAddress: assetAddress,
                     cFactor: collateralAsset.factor,
@@ -347,11 +353,11 @@ library LibUI {
                 krAssetInfoUser memory assetInfo = krAssetInfoUser({
                     assetAddress: assetAddress,
                     oracleAddress: address(krAsset.oracle),
+                    anchorAddress: krAsset.anchor,
                     amount: amount,
                     amountUSD: amountUSD,
                     index: i,
                     kFactor: krAsset.kFactor,
-                    mintable: krAsset.mintable,
                     price: price,
                     symbol: symbol,
                     name: name

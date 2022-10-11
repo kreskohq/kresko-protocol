@@ -26,5 +26,6 @@
     "solidity-va.codelens.uml.enable": false,
     "solidity-va.codelens.drawio.enable": true,
     "solidity-va.debug.parser.showExceptions": false,
-    "inline-bookmarks.view.showVisibleFilesOnly": false
+    "inline-bookmarks.view.showVisibleFilesOnly": false,
+    "solidity.defaultCompiler": "remote"
 }
