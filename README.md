@@ -11,19 +11,7 @@ This repository contains the core smart contract code for Kresko protocol, which
 Install dependencies:
 
 ```sh
-yarn
-```
-
-Compile the smart contracts with Hardhat:
-
-```sh
-yarn compile
-```
-
-Generate types:
-
-```sh
-yarn typechain
+npm install
 ```
 
 ### Testing
@@ -37,18 +25,23 @@ cp .env.example .env
 Populate the following fields into your .env file with testing values:
 
 ```sh
+MNEMONIC=your mnemonic here
 LIQUIDATION_INCENTIVE=1.1
-MINIMUM_COLLATERALIZATION_RATIO=1.5
-FEE_RECIPIENT_ADDRESS=0x0000000000000000000000000000000000000FEE
-MINIMUM_DEBT_VALUE=10
 LIQUIDATION_THRESHOLD=1.4
+MINIMUM_COLLATERALIZATION_RATIO=1.5
+MINIMUM_DEBT_VALUE=10
+FEE_RECIPIENT_ADDRESS=0x0000000000000000000000000000000000000FEE
 
+# The following api keys are required for local development
+INFURA_API_KEY=
+ALCHEMY_API_KEY=
+TWELVE_DATA_API_KEY=
 ```
 
 Run the test suite with:
 
 ```sh
-yarn test
+npm test
 ```
 
 ### Deployment
