@@ -23,7 +23,7 @@ interface IKreskoAsset is IERC20Upgradeable, IAccessControlEnumerableUpgradeable
 
     function isRebased() external view returns (bool);
 
-    function rebase(uint256 _denumerator, bool _positive) external;
+    function rebase(uint256 _denominator, bool _positive) external;
 
     function updateMetaData(
         string memory _name,
