@@ -14,7 +14,6 @@ import {SafeERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
 import {LibCalc} from "./LibCalculation.sol";
 import {KrAsset} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
-import "hardhat/console.sol";
 
 library LibRepay {
     using Arrays for address[];
