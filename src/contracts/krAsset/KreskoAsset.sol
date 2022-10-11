@@ -7,29 +7,27 @@ import {AccessControlEnumerableUpgradeable} from "@openzeppelin/contracts-upgrad
 import {Role} from "../libs/Authorization.sol";
 import {Error} from "../libs/Errors.sol";
 
-import {RebalanceMath, Rebalance} from "../shared/Rebalance.sol";
+import {RebaseMath, Rebase} from "../shared/Rebase.sol";
 import {ERC20Upgradeable} from "../shared/ERC20Upgradeable.sol";
+import {IERC165} from "../shared/IERC165.sol";
 
 import {IKreskoAsset} from "./IKreskoAsset.sol";
 
-import "hardhat/console.sol";
-
 /**
- * @title Kresko Synthethic Asset - rebalancing ERC20.
+ * @title Kresko Synthethic Asset - rebasing ERC20.
  * @author Kresko
  *
- * @notice Main purpose of this token is to act as the underlying for the `WrappedKreskoAsset`
- * - This token will rebalance eg. when a stock split happens
+ * @notice Rebases to adjust for stock splits and reverse stock splits
  *
- * @notice Minting, burning and rebalancing can only be performed by the `Role.OPERATOR`
+ * @notice Minting, burning and rebasing can only be performed by the `Role.OPERATOR`
  */
 
-contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable {
-    using RebalanceMath for uint256;
+contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IERC165 {
+    using RebaseMath for uint256;
 
-    bool public rebalanced;
+    bool public isRebased;
     address public kresko;
-    Rebalance public rebalance;
+    Rebase public rebaseInfo;
 
     /* -------------------------------------------------------------------------- */
     /*                               Initialization                               */
@@ -61,10 +59,18 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable {
 
     /**
      * @notice ERC-165
-     * - WrappedKreskoAsset, ERC20 and ERC-165 itself
+     * - IKreskoAsset, ERC20 and ERC-165 itself
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
-        return interfaceId == type(IKreskoAsset).interfaceId || interfaceId == 0x01ffc9a7 || interfaceId == 0x36372b07;
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override(AccessControlEnumerableUpgradeable, IERC165)
+        returns (bool)
+    {
+        return
+            interfaceId != 0xffffffff &&
+            (interfaceId == type(IKreskoAsset).interfaceId || interfaceId == 0x01ffc9a7 || interfaceId == 0x36372b07);
     }
 
     /**
@@ -86,35 +92,25 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable {
     /* -------------------------------------------------------------------------- */
 
     function totalSupply() public view override returns (uint256) {
-        if (!rebalanced) return _totalSupply;
-
-        return _totalSupply.rebalance(rebalance);
+        return isRebased ? _totalSupply.rebase(rebaseInfo) : _totalSupply;
     }
 
     function balanceOf(address _account) public view override returns (uint256) {
         uint256 balance = _balances[_account];
-        if (!rebalanced) return balance;
-
-        return balance.rebalance(rebalance);
+        return isRebased ? balance.rebase(rebaseInfo) : balance;
     }
 
     function allowance(address _owner, address _account) public view override returns (uint256) {
         uint256 allowed = _allowances[_owner][_account];
-        if (!rebalanced) return allowed;
-
-        return allowed.rebalance(rebalance);
+        return isRebased ? allowed.rebase(rebaseInfo) : allowed;
     }
-
-    /* -------------------------------------------------------------------------- */
-    /*                                    Write                                   */
-    /* -------------------------------------------------------------------------- */
 
     /* -------------------------------------------------------------------------- */
     /*                                  Overrides                                 */
     /* -------------------------------------------------------------------------- */
+
     function approve(address spender, uint256 amount) public override returns (bool) {
         _allowances[msg.sender][spender] = amount;
-
         emit Approval(msg.sender, spender, amount);
         return true;
     }
@@ -143,15 +139,19 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable {
     /* -------------------------------------------------------------------------- */
 
     /**
-     * @notice Updates the rate for conversions between fixed kresko asset
-     * @param _rate conversion rate
+     * @notice Perform a rebase, changing the denumerator and its operator
+     * @param _denominator the denumerator for the operator, 1 ether = 1
+     * @param _positive supply increasing/reducing rebase
+     * @dev denumerator values 0 and 1 ether will disable the rebase
      */
-    function setRebalance(uint256 _rate, bool _expand) external onlyRole(Role.OPERATOR) {
-        if (_rate == 0 || _rate == 1 ether) {
-            rebalanced = false;
+    function rebase(uint256 _denominator, bool _positive) external onlyRole(Role.OPERATOR) {
+        require(_denominator >= 1 ether, Error.REBASING_DENOMINATOR_LOW);
+        if (_denominator == 1 ether) {
+            isRebased = false;
+            rebaseInfo = Rebase(false, 0);
         } else {
-            rebalanced = true;
-            rebalance = Rebalance(_expand, _rate);
+            isRebased = true;
+            rebaseInfo = Rebase(_positive, _denominator);
         }
     }
 
@@ -161,7 +161,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable {
      * @param _amount The amount of tokens to mint.
      */
     function mint(address _to, uint256 _amount) external onlyRole(Role.OPERATOR) {
-        _mint(_to, !rebalanced ? _amount : _amount.rebalance(rebalance));
+        _mint(_to, isRebased ? _amount.unrebase(rebaseInfo) : _amount);
     }
 
     /**
@@ -170,7 +170,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable {
      * @param _amount The amount of tokens to burn.
      */
     function burn(address _from, uint256 _amount) external onlyRole(Role.OPERATOR) {
-        _burn(_from, !rebalanced ? _amount : _amount.rebalance(rebalance));
+        _burn(_from, isRebased ? _amount.unrebase(rebaseInfo) : _amount);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -182,7 +182,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable {
         address _to,
         uint256 _amount
     ) internal returns (bool) {
-        if (!rebalanced) {
+        if (!isRebased) {
             _balances[_from] -= _amount;
             unchecked {
                 _balances[_to] += _amount;
@@ -191,7 +191,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable {
             uint256 balance = balanceOf(_from);
             require(_amount <= balance, Error.NOT_ENOUGH_BALANCE);
 
-            _amount = _amount.rebalanceReverse(rebalance);
+            _amount = _amount.unrebase(rebaseInfo);
 
             _balances[_from] -= _amount;
             unchecked {

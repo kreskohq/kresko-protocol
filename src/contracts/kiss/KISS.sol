@@ -3,6 +3,8 @@ pragma solidity 0.8.14;
 
 import "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
 import "./interfaces/IKISSConverter.sol";
+import {IKISS} from "./interfaces/IKISS.sol";
+import {Role} from "../libs/Authorization.sol";
 
 /* solhint-disable not-rely-on-time */
 
@@ -11,7 +13,7 @@ import "./interfaces/IKISSConverter.sol";
  * @author Kresko
  */
 contract KISS is ERC20PresetMinterPauser {
-    bytes32 public constant OPERATOR_ROLE = keccak256("kresko.kiss.operator");
+    bytes32 public constant OPERATOR_ROLE = 0x112e48a576fb3a75acc75d9fcf6e0bc670b27b1dbcd2463502e10e68cf57d6fd;
     uint256 public constant OPERATOR_ROLE_PERIOD = 1 minutes; // testnet
 
     /* -------------------------------------------------------------------------- */
@@ -52,9 +54,15 @@ contract KISS is ERC20PresetMinterPauser {
         // 1. Setup admin
         // 2. Kresko protocol can mint
         // 3. Remove unnecessary MINTER_ROLE from multisig
-        _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
-        _setupRole(OPERATOR_ROLE, kresko_);
+        _setupRole(Role.ADMIN, _msgSender());
+        _setupRole(Role.OPERATOR, kresko_);
         _revokeRole(MINTER_ROLE, _msgSender());
+    }
+
+    function supportsInterface(bytes4 interfaceId) public pure override returns (bool) {
+        return
+            interfaceId != 0xffffffff &&
+            (interfaceId == type(IKISS).interfaceId || interfaceId == 0x01ffc9a7 || interfaceId == 0x36372b07);
     }
 
     /**
@@ -63,7 +71,7 @@ contract KISS is ERC20PresetMinterPauser {
      * @param _to address to mint tokens to
      * @param _amount amount to mint
      */
-    function mint(address _to, uint256 _amount) public override onlyRole(OPERATOR_ROLE) {
+    function mint(address _to, uint256 _amount) public override onlyRole(Role.OPERATOR) {
         require(msg.sender.code.length > 0, "KISS: EOA");
         _mint(_to, _amount);
     }
@@ -74,7 +82,7 @@ contract KISS is ERC20PresetMinterPauser {
      * @param _from address to burn tokens from
      * @param _amount amount to burn
      */
-    function burn(address _from, uint256 _amount) external onlyRole(OPERATOR_ROLE) {
+    function burn(address _from, uint256 _amount) external onlyRole(Role.OPERATOR) {
         require(msg.sender.code.length > 0, "KISS: EOA");
         _burn(_from, _amount);
     }
@@ -96,21 +104,21 @@ contract KISS is ERC20PresetMinterPauser {
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
         // Handle OPERATOR_ROLE explicitly
-        if (_role == OPERATOR_ROLE) {
+        if (_role == Role.OPERATOR) {
             require(_to.code.length > 0, "KISS: EOA");
             if (pendingOperator != address(0)) {
                 // Ensure cooldown period
 
                 require(operatorRoleTimestamp < block.timestamp, "KISS: !OPERATOR_ROLE_PERIOD");
                 // Grant role
-                _grantRole(OPERATOR_ROLE, pendingOperator);
+                _grantRole(Role.OPERATOR, pendingOperator);
                 emit NewMinter(_msgSender());
                 // Reset pending owner
                 // No need to touch the timestamp (next call will just trigger the cooldown period)
                 pendingOperator = address(0);
             } else if (operatorRoleTimestamp != 0) {
                 // Do not allow more than 2 minters
-                require(getRoleMemberCount(OPERATOR_ROLE) <= 1, "KISS: !minterRevoked");
+                require(getRoleMemberCount(Role.OPERATOR) <= 1, "KISS: !minterRevoked");
                 // Set the timestamp for the cooldown period
                 operatorRoleTimestamp = block.timestamp + OPERATOR_ROLE_PERIOD;
                 // Set the pending minter, execution to upper clause next call
@@ -118,7 +126,7 @@ contract KISS is ERC20PresetMinterPauser {
                 emit NewMinterInitiated(_to, operatorRoleTimestamp);
             } else {
                 // Initialize converter
-                _grantRole(OPERATOR_ROLE, _to);
+                _grantRole(Role.OPERATOR, _to);
                 emit NewMinter(_to);
                 // Set the timestamp, execution is not coming here again
                 operatorRoleTimestamp = block.timestamp;

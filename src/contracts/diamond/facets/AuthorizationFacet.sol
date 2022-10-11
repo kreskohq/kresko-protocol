@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 
-import {IAuthorization} from "../interfaces/IAuthorization.sol";
+import {IAuthorizationFacet} from "../interfaces/IAuthorizationFacet.sol";
 
 import {Authorization, Role} from "../../libs/Authorization.sol";
 
@@ -12,7 +12,7 @@ import {Authorization, Role} from "../../libs/Authorization.sol";
  * @dev Difference here is the logic library that is shared and reused, there is no state here.
  */
 
-contract AuthorizationFacet is IAuthorization {
+contract AuthorizationFacet is IAuthorizationFacet {
     /**
      * @dev OpenZeppelin
      * Returns one of the accounts that have `role`. `index` must be a

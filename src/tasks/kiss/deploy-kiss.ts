@@ -1,20 +1,21 @@
-import type { KISS, KISSConverter, MockERC20 } from "types";
-import type { TaskArguments } from "hardhat/types";
 import { deployWithSignatures } from "@utils/deployment";
 import { defaultSupplyLimit } from "@utils/test/mocks";
+import { Role } from "@utils/test/roles";
 import { task, types } from "hardhat/config";
+import type { TaskArguments } from "hardhat/types";
+import { wrapperPrefix } from "src/config/minter";
+import type { KISS, KISSConverter, KreskoAssetAnchor, MockERC20 } from "types";
 
 task("deploy-kiss")
     .addOptionalParam("wait", "wait confirmations", 1, types.int)
     .addOptionalParam("amount", "Amount to mint to deployer", 1_000_000_000, types.float)
     .setAction(async function (taskArgs: TaskArguments, hre) {
-        const { getNamedAccounts } = hre;
-        const { deployer } = await getNamedAccounts();
+        const users = hre.users;
         const deploy = deployWithSignatures(hre);
 
         const { amount, decimals } = taskArgs;
-        const [KISS] = await deploy<KISS>("KISS", {
-            from: deployer,
+        const [KISSContract] = await deploy<KISS>("KISS", {
+            from: users.deployer.address,
             contract: "KISS",
             log: true,
             args: ["KISS", "KISS", decimals, hre.Diamond.address],
@@ -24,38 +25,42 @@ task("deploy-kiss")
 
         const underlyings = [DAI.address];
         const [KISSConverter] = await deploy<KISSConverter>("KISSConverter", {
-            from: deployer,
+            from: users.deployer.address,
             log: true,
-            args: [KISS.address, underlyings],
+            args: [KISSContract.address, underlyings],
         });
 
-        await KISS.grantRole(await KISS.OPERATOR_ROLE(), KISSConverter.address);
+        await KISSContract.grantRole(await KISSContract.OPERATOR_ROLE(), KISSConverter.address);
 
         await DAI.approve(KISSConverter.address, hre.ethers.constants.MaxUint256);
-        await KISS.approve(KISSConverter.address, hre.ethers.constants.MaxUint256);
+        await KISSContract.approve(KISSConverter.address, hre.ethers.constants.MaxUint256);
 
-        await KISSConverter.issue(deployer, DAI.address, hre.toBig(amount, decimals));
-        console.log("Issued", amount, "of KISS to", deployer);
+        await KISSConverter.issue(users.deployer.address, DAI.address, hre.toBig(amount, decimals));
 
-        const fixedKreskoAssetInitializerArgs = [KISS.address, "wKISS", "wKISS", deployer];
-        const [wKISS] = await deploy<WrappedKreskoAsset>("wKISS", {
-            from: deployer,
+        const kreskoAssetAnchorInitArgs = [
+            KISSContract.address,
+            wrapperPrefix + "KISS",
+            wrapperPrefix + "KISS",
+            users.deployer.address,
+        ];
+        const [KISSUselessAnchor] = await deploy<KreskoAssetAnchor>(wrapperPrefix + "KISS", {
+            from: users.deployer.address,
             log: true,
-            contract: "WrappedKreskoAsset",
-            args: [KISS.address],
+            contract: "KreskoAssetAnchor",
+            args: [KISSContract.address],
             proxy: {
-                owner: deployer,
+                owner: users.deployer.address,
                 proxyContract: "OptimizedTransparentProxy",
                 execute: {
                     methodName: "initialize",
-                    args: fixedKreskoAssetInitializerArgs,
+                    args: kreskoAssetAnchorInitArgs,
                 },
             },
         });
         const asset: KrAsset = {
-            address: KISS.address,
-            contract: KISS as unknown as KreskoAsset,
-            wrapper: wKISS,
+            address: KISSContract.address,
+            contract: KISSContract as unknown as KreskoAsset,
+            anchor: KISSUselessAnchor,
             deployArgs: {
                 name: "KISS",
                 price: 1,
@@ -64,12 +69,16 @@ task("deploy-kiss")
                 supplyLimit: defaultSupplyLimit,
                 closeFee: 0,
             },
-            kresko: async () => await hre.Diamond.kreskoAsset(KISS.address),
+            kresko: async () => await hre.Diamond.kreskoAsset(KISSContract.address),
             getPrice: async () => hre.toBig(1, 8),
             priceAggregator: undefined,
             priceFeed: undefined,
         };
-
+        const hasRole = await KISSContract.hasRole(Role.OPERATOR, hre.Diamond.address);
+        const kresko = await KISSContract.kresko();
+        if (!hasRole) {
+            throw new Error(`NO ROLE ${hre.Diamond.address} ${kresko}`);
+        }
         const found = hre.krAssets.findIndex(c => c.address === asset.address);
         if (found === -1) {
             hre.krAssets.push(asset);
@@ -79,7 +88,7 @@ task("deploy-kiss")
             hre.allAssets = hre.allAssets.map(c => (c.address === asset.address && c.collateral ? asset : c));
         }
         return {
-            contract: KISS,
-            wrapper: wKISS,
+            contract: KISSContract,
+            anchor: KISSUselessAnchor,
         };
     });

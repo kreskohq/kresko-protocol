@@ -17,13 +17,13 @@ export type TestCollateralAssetUpdate = {
 export type InputArgs = {
     user: SignerWithAddress;
     asset: KrAsset | Collateral;
-    amount: number | string;
+    amount: string | number | BigNumber;
 };
 
 export type TestKreskoAssetArgs = {
     name: string;
-    symbol?: string
-    wrapperSymbol?: string
+    symbol?: string;
+    wrapperSymbol?: string;
     price: number;
     mintable?: boolean;
     oracle?: string;

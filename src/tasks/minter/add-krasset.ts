@@ -32,7 +32,7 @@ task("add-krasset")
         } else {
             const tx = await kresko.addKreskoAsset(
                 KrAsset.address,
-                asset.wrapper.address,
+                asset.anchor.address,
                 toFixedPoint(kFactor),
                 oracleAddr,
                 toFixedPoint(supplyLimit),

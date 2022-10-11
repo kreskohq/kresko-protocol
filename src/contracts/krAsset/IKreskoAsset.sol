@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
+import "@openzeppelin/contracts-upgradeable/access/IAccessControlEnumerableUpgradeable.sol";
 import {IERC20Upgradeable} from "../shared/IERC20Upgradeable.sol";
+import {Rebase} from "../shared/Rebase.sol";
 
-interface IKreskoAsset is IERC20Upgradeable {
+interface IKreskoAsset is IERC20Upgradeable, IAccessControlEnumerableUpgradeable {
     function burn(address _from, uint256 _amount) external;
 
     function initialize(
@@ -17,11 +19,11 @@ interface IKreskoAsset is IERC20Upgradeable {
 
     function mint(address _to, uint256 _amount) external;
 
-    function rebalance() external view returns (bool expand, uint256 rate);
+    function rebaseInfo() external view returns (Rebase memory);
 
-    function rebalanced() external view returns (bool);
+    function isRebased() external view returns (bool);
 
-    function setRebalance(uint256 _rate, bool _expand) external;
+    function rebase(uint256 _denominator, bool _positive) external;
 
     function updateMetaData(
         string memory _name,

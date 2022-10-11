@@ -6,6 +6,7 @@
         "name": "Kresko Labs",
         "url": "https://kresko.fi"
     },
+    "typings": "globals.d.ts",
     "devDependencies": {
         "@codechecks/client": "^0.1.10",
         "@commitlint/cli": "^12.1.4",
@@ -62,7 +63,7 @@
         "hardhat-gas-reporter": "^1.0.8",
         "hardhat-interface-generator": "^0.0.6",
         "hardhat-preprocessor": "^0.1.4",
-        "hardhat-watcher": "^2.3.0",
+        "hardhat-watcher": "^2.5.0",
         "husky": "^6.0.0",
         "lint-staged": "^11.0.0",
         "mocha": "^10.0.0",

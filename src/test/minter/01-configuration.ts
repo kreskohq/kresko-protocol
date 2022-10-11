@@ -4,13 +4,13 @@ import { expect } from "@test/chai";
 
 import {
     withFixture,
-    addMockCollateralAsset,
-    addMockKreskoAsset,
     getMockOracleFor,
     defaultCollateralArgs,
     defaultKrAssetArgs,
     getNewMinterParams,
 } from "@utils/test";
+import { addMockCollateralAsset } from "@utils/test/helpers/collaterals";
+import { addMockKreskoAsset } from "@utils/test/helpers/krassets";
 
 describe("Minter", function () {
     withFixture(["minter-init"]);
@@ -70,7 +70,7 @@ describe("Minter", function () {
         });
 
         it("can update values of a kresko asset", async function () {
-            const { contract, priceAggregator } = await addMockKreskoAsset();
+            const { contract, anchor, priceAggregator } = await addMockKreskoAsset();
 
             const oracleAnswer = hre.fromBig(await priceAggregator.latestAnswer(), 8);
             const kreskoAnswer = hre.fromBig(
@@ -92,6 +92,7 @@ describe("Minter", function () {
 
             await hre.Diamond.connect(users.operator).updateKreskoAsset(
                 contract.address,
+                anchor.address,
                 update.factor,
                 newPriceFeed.address,
                 false,

@@ -51,7 +51,7 @@ const collaterals = {
     ],
 };
 
-export const wrapperPrefix = "w";
+export const wrapperPrefix = "a";
 
 const krAssets = {
     test: [

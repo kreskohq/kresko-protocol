@@ -5,7 +5,7 @@
 
 pragma solidity >=0.8.14;
 
-import {IDiamondCut} from "./interfaces/IDiamondCut.sol";
+import {IDiamondCutFacet} from "./interfaces/IDiamondCutFacet.sol";
 import {Authorization, Role} from "../libs/Authorization.sol";
 import {GeneralEvent} from "../libs/Events.sol";
 import {Error} from "../libs/Errors.sol";
@@ -22,7 +22,7 @@ contract Diamond {
 
     constructor(
         address _owner,
-        IDiamondCut.FacetCut[] memory _diamondCut,
+        IDiamondCutFacet.FacetCut[] memory _diamondCut,
         Initialization[] memory _initializations
     ) {
         ds().initialize(_owner);

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 import {AggregatorV2V3Interface} from "../../vendor/flux/interfaces/AggregatorV2V3Interface.sol";
-import {IWrappedKreskoAsset} from "../../krAsset/IWrappedKreskoAsset.sol";
+import {IKreskoAssetAnchor} from "../../krAsset/IKreskoAssetAnchor.sol";
 import {MinterEvent} from "../../libs/Events.sol";
 import {Math} from "../../libs/Math.sol";
 import {Arrays} from "../../libs/Arrays.sol";
@@ -91,7 +91,10 @@ library LibCollateral {
         );
 
         // Record the withdrawal.
-        self.collateralDeposits[_account][_collateralAsset] = _depositAmount - _amount;
+        self.collateralDeposits[_account][_collateralAsset] = self.normalizeCollateralAmount(
+            _depositAmount - _amount,
+            _collateralAsset
+        );
 
         // If the user is withdrawing all of the collateral asset, remove the collateral asset
         // from the user's deposited collateral assets array.
@@ -122,15 +125,35 @@ library LibCollateral {
 
         // If the account does not have an existing deposit for this collateral asset,
         // push it to the list of the account's deposited collateral assets.
-        uint256 existingDepositAmount = self.collateralDeposits[_account][_collateralAsset];
+        uint256 existingDepositAmount = self.getCollateralDeposits(_account, _collateralAsset);
         if (existingDepositAmount == 0) {
             self.depositedCollateralAssets[_account].push(_collateralAsset);
         }
         // Record the deposit.
         unchecked {
-            self.collateralDeposits[_account][_collateralAsset] = existingDepositAmount + _amount;
+            self.collateralDeposits[_account][_collateralAsset] = self.normalizeCollateralAmount(
+                existingDepositAmount + _amount,
+                _collateralAsset
+            );
         }
 
         emit MinterEvent.CollateralDeposited(_account, _collateralAsset, _amount);
+    }
+
+    /**
+     * In case the collateral is a KreskoAsset, convert to anchor shares
+     * @param _amount amount to possibly convert
+     * @param _collateralAsset address of the collateral asset
+     */
+    function normalizeCollateralAmount(
+        MinterState storage self,
+        uint256 _amount,
+        address _collateralAsset
+    ) internal view returns (uint256 amount) {
+        CollateralAsset memory asset = self.collateralAssets[_collateralAsset];
+        if (asset.anchor != address(0)) {
+            return IKreskoAssetAnchor(asset.anchor).convertToShares(_amount);
+        }
+        return _amount;
     }
 }

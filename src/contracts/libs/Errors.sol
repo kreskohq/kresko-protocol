@@ -30,8 +30,8 @@ library Error {
     string public constant ZERO_ADDRESS = "104"; // Address provided cannot be address(0)
     string public constant ALREADY_INITIALIZED = "105"; // Contract has already been initialized
     string public constant RE_ENTRANCY = "106"; // Function does not allow re-entrant calls
-    string public constant NOT_ENOUGH_BALANCE = "107"; // Transfer of elastic token exceeds value
-    string public constant NOT_ENOUGH_ALLOWANCE = "108"; // TransferFrom of elastic token exceeds allowance
+    string public constant NOT_ENOUGH_BALANCE = "107"; // Transfer of rebasing token exceeds value
+    string public constant NOT_ENOUGH_ALLOWANCE = "108"; // TransferFrom of rebasing token exceeds allowance
 
     /* -------------------------------------------------------------------------- */
     /*                                   2. Minter                                 */
@@ -62,6 +62,7 @@ library Error {
     string public constant KRASSET_COLLATERAL_LOW = "222"; // Collateral deposits do not cover the amount being minted
     string public constant KRASSET_MINT_AMOUNT_LOW = "223"; // Debt position must be greater than the minimum debt position value
     string public constant KRASSET_MAX_SUPPLY_REACHED = "224"; // Asset being minted has reached its current supply limit
+
     string public constant SELF_LIQUIDATION = "225"; // Account cannot liquidate itself
     string public constant ZERO_REPAY = "226"; // Account cannot liquidate itself
     string public constant STALE_PRICE = "227"; // Price for the asset is stale
@@ -71,10 +72,12 @@ library Error {
     string public constant NOT_SAFETY_COUNCIL = "231"; // Sender must have the role `Role.SAFETY_COUNCIL`
     string public constant ACTION_PAUSED_FOR_ASSET = "232"; // This action is currently paused for this asset
     string public constant INVALID_ASSET_SUPPLIED = "233"; // Asset supplied is not a collateral nor a krAsset
-    string public constant KRASSET_NOT_WRAPPED = "234"; // krAsset given is not the wrapped version
+    string public constant KRASSET_NOT_ANCHOR = "234"; // Address is not the anchor for the krAsset
     string public constant INVALID_LT = "235"; // Liquidation threshold is greater than minimum collateralization ratio
     string public constant COLLATERAL_INSUFFICIENT_AMOUNT = "236"; // Insufficient amount of collateral to complete the operation
     string public constant MULTISIG_NOT_ENOUGH_OWNERS = "237"; // Multisig has invalid amount of owners
+    string public constant KRASSET_INVALID_ANCHOR = "238"; // krAsset anchor does not support the correct interfaceId
+    string public constant KRASSET_INVALID_CONTRACT = "239"; // krAsset does not support the correct interfaceId
 
     /* -------------------------------------------------------------------------- */
     /*                                   3. Staking                               */
@@ -91,4 +94,20 @@ library Error {
     /* -------------------------------------------------------------------------- */
 
     string public constant ARRAY_OUT_OF_BOUNDS = "400"; // Array out of bounds error
+
+    /* -------------------------------------------------------------------------- */
+    /*                                   5. KrAsset                               */
+    /* -------------------------------------------------------------------------- */
+
+    string public constant REBASING_DENOMINATOR_LOW = "500"; // denominator of rebases must be >= 1
+    string public constant ISSUER_NOT_KRESKO = "501"; // issue must be done by kresko
+    string public constant REDEEMER_NOT_KRESKO = "502"; // redeem must be done by kresko
+    string public constant DESTROY_OVERFLOW = "503"; // trying to destroy more than allowed
+    string public constant ISSUE_OVERFLOW = "504"; // trying to destroy more than allowed
+    string public constant MINT_OVERFLOW = "505"; // trying to destroy more than allowed
+    string public constant DEPOSIT_OVERFLOW = "506"; // trying to destroy more than allowed
+    string public constant REDEEM_OVERFLOW = "507"; // trying to destroy more than allowed
+    string public constant WITHDRAW_OVERFLOW = "508"; // trying to destroy more than allowed
+    string public constant ZERO_SHARES = "509"; // amount of shares must be greater than 0
+    string public constant ZERO_ASSETS = "510"; // amount of assets must be greater than 0
 }

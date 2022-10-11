@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 
-import {ISafetyCouncil} from "../interfaces/ISafetyCouncil.sol";
+import {ISafetyCouncilFacet} from "../interfaces/ISafetyCouncilFacet.sol";
 
 import {Error} from "../../libs/Errors.sol";
 import {MinterEvent} from "../../libs/Events.sol";
@@ -18,7 +18,7 @@ import {ms} from "../MinterStorage.sol";
  * @author Kresko
  * @notice `Role.SAFETY_COUNCIL` must be a multisig.
  */
-contract SafetyCouncilFacet is MinterModifiers, DiamondModifiers, ISafetyCouncil {
+contract SafetyCouncilFacet is MinterModifiers, DiamondModifiers, ISafetyCouncilFacet {
     /**
      * @dev Toggle paused-state of assets in a per-action basis
      *

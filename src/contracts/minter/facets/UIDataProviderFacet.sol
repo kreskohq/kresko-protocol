@@ -48,7 +48,7 @@ contract UIDataProviderFacet is DiamondModifiers {
         protocolParams = LibUI.ProtocolParams({
             minCollateralRatio: ms().minimumCollateralizationRatio.rawValue,
             liqMultiplier: ms().liquidationIncentiveMultiplier.rawValue,
-            minDebtAmount: ms().minimumDebtValue.rawValue,
+            minDebtValue: ms().minimumDebtValue.rawValue,
             liquidationThreshold: ms().liquidationThreshold.rawValue
         });
     }

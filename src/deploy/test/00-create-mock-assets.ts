@@ -1,6 +1,7 @@
 import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import { getLogger } from "@utils/deployment";
-import { addMockCollateralAsset, addMockKreskoAsset } from "@utils/test";
+import { addMockCollateralAsset } from "@utils/test/helpers/collaterals";
+import { addMockKreskoAsset } from "@utils/test/helpers/krassets";
 
 const func: DeployFunction = async function (hre) {
     const logger = getLogger("deploy-oracle");

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
-import {IDiamondCut} from "../interfaces/IDiamondCut.sol";
+import {IDiamondCutFacet} from "../interfaces/IDiamondCutFacet.sol";
 
 import {Meta} from "../../libs/Meta.sol";
 import {DiamondEvent} from "../../libs/Events.sol";
@@ -34,17 +34,17 @@ library LibDiamondCut {
 
     function diamondCut(
         DiamondState storage self,
-        IDiamondCut.FacetCut[] memory _diamondCut,
+        IDiamondCutFacet.FacetCut[] memory _diamondCut,
         address _init,
         bytes memory _calldata
     ) internal {
         for (uint256 facetIndex; facetIndex < _diamondCut.length; facetIndex++) {
-            IDiamondCut.FacetCutAction action = _diamondCut[facetIndex].action;
-            if (action == IDiamondCut.FacetCutAction.Add) {
+            IDiamondCutFacet.FacetCutAction action = _diamondCut[facetIndex].action;
+            if (action == IDiamondCutFacet.FacetCutAction.Add) {
                 self.addFunctions(_diamondCut[facetIndex].facetAddress, _diamondCut[facetIndex].functionSelectors);
-            } else if (action == IDiamondCut.FacetCutAction.Replace) {
+            } else if (action == IDiamondCutFacet.FacetCutAction.Replace) {
                 self.replaceFunctions(_diamondCut[facetIndex].facetAddress, _diamondCut[facetIndex].functionSelectors);
-            } else if (action == IDiamondCut.FacetCutAction.Remove) {
+            } else if (action == IDiamondCutFacet.FacetCutAction.Remove) {
                 self.removeFunctions(_diamondCut[facetIndex].facetAddress, _diamondCut[facetIndex].functionSelectors);
             } else {
                 revert("DiamondCut: Incorrect FacetCutAction");
