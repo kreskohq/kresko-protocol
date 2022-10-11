@@ -124,7 +124,7 @@ export type KrAssetStruct = {
   supplyLimit: PromiseOrValue<BigNumberish>;
   anchor: PromiseOrValue<string>;
   closeFee: FixedPoint.UnsignedStruct;
-  mintable: PromiseOrValue<boolean>;
+  openFee: FixedPoint.UnsignedStruct;
   exists: PromiseOrValue<boolean>;
 };
 
@@ -134,7 +134,7 @@ export type KrAssetStructOutput = [
   BigNumber,
   string,
   FixedPoint.UnsignedStructOutput,
-  boolean,
+  FixedPoint.UnsignedStructOutput,
   boolean
 ] & {
   kFactor: FixedPoint.UnsignedStructOutput;
@@ -142,7 +142,7 @@ export type KrAssetStructOutput = [
   supplyLimit: BigNumber;
   anchor: string;
   closeFee: FixedPoint.UnsignedStructOutput;
-  mintable: boolean;
+  openFee: FixedPoint.UnsignedStructOutput;
   exists: boolean;
 };
 
@@ -196,11 +196,11 @@ export declare namespace LibUI {
   export type KrAssetInfoUserStruct = {
     assetAddress: PromiseOrValue<string>;
     oracleAddress: PromiseOrValue<string>;
+    anchorAddress: PromiseOrValue<string>;
     amount: PromiseOrValue<BigNumberish>;
     amountUSD: FixedPoint.UnsignedStruct;
     index: PromiseOrValue<BigNumberish>;
     kFactor: FixedPoint.UnsignedStruct;
-    mintable: PromiseOrValue<boolean>;
     price: PromiseOrValue<BigNumberish>;
     symbol: PromiseOrValue<string>;
     name: PromiseOrValue<string>;
@@ -209,22 +209,22 @@ export declare namespace LibUI {
   export type KrAssetInfoUserStructOutput = [
     string,
     string,
+    string,
     BigNumber,
     FixedPoint.UnsignedStructOutput,
     BigNumber,
     FixedPoint.UnsignedStructOutput,
-    boolean,
     BigNumber,
     string,
     string
   ] & {
     assetAddress: string;
     oracleAddress: string;
+    anchorAddress: string;
     amount: BigNumber;
     amountUSD: FixedPoint.UnsignedStructOutput;
     index: BigNumber;
     kFactor: FixedPoint.UnsignedStructOutput;
-    mintable: boolean;
     price: BigNumber;
     symbol: string;
     name: string;
@@ -233,6 +233,7 @@ export declare namespace LibUI {
   export type CollateralAssetInfoUserStruct = {
     assetAddress: PromiseOrValue<string>;
     oracleAddress: PromiseOrValue<string>;
+    anchorAddress: PromiseOrValue<string>;
     amount: PromiseOrValue<BigNumberish>;
     amountUSD: FixedPoint.UnsignedStruct;
     cFactor: FixedPoint.UnsignedStruct;
@@ -246,6 +247,7 @@ export declare namespace LibUI {
   export type CollateralAssetInfoUserStructOutput = [
     string,
     string,
+    string,
     BigNumber,
     FixedPoint.UnsignedStructOutput,
     FixedPoint.UnsignedStructOutput,
@@ -257,6 +259,7 @@ export declare namespace LibUI {
   ] & {
     assetAddress: string;
     oracleAddress: string;
+    anchorAddress: string;
     amount: BigNumber;
     amountUSD: FixedPoint.UnsignedStructOutput;
     cFactor: FixedPoint.UnsignedStructOutput;
@@ -382,6 +385,7 @@ export declare namespace LibUI {
   export type CollateralAssetInfoStruct = {
     assetAddress: PromiseOrValue<string>;
     oracleAddress: PromiseOrValue<string>;
+    anchorAddress: PromiseOrValue<string>;
     price: PromiseOrValue<BigNumberish>;
     value: PromiseOrValue<BigNumberish>;
     cFactor: FixedPoint.UnsignedStruct;
@@ -393,6 +397,7 @@ export declare namespace LibUI {
   export type CollateralAssetInfoStructOutput = [
     string,
     string,
+    string,
     BigNumber,
     BigNumber,
     FixedPoint.UnsignedStructOutput,
@@ -402,6 +407,7 @@ export declare namespace LibUI {
   ] & {
     assetAddress: string;
     oracleAddress: string;
+    anchorAddress: string;
     price: BigNumber;
     value: BigNumber;
     cFactor: FixedPoint.UnsignedStructOutput;
@@ -413,6 +419,7 @@ export declare namespace LibUI {
   export type KrAssetInfoStruct = {
     oracleAddress: PromiseOrValue<string>;
     assetAddress: PromiseOrValue<string>;
+    anchorAddress: PromiseOrValue<string>;
     price: PromiseOrValue<BigNumberish>;
     value: PromiseOrValue<BigNumberish>;
     kFactor: FixedPoint.UnsignedStruct;
@@ -423,6 +430,7 @@ export declare namespace LibUI {
   export type KrAssetInfoStructOutput = [
     string,
     string,
+    string,
     BigNumber,
     BigNumber,
     FixedPoint.UnsignedStructOutput,
@@ -431,6 +439,7 @@ export declare namespace LibUI {
   ] & {
     oracleAddress: string;
     assetAddress: string;
+    anchorAddress: string;
     price: BigNumber;
     value: BigNumber;
     kFactor: FixedPoint.UnsignedStructOutput;
@@ -521,6 +530,7 @@ export interface KreskoInterface extends utils.Interface {
     "transferOwnership(address)": FunctionFragment;
     "setERC165(bytes4[],bytes4[])": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
+    "calcExpectedFee(address,address,uint256,uint256)": FunctionFragment;
     "collateralDeposits(address,address)": FunctionFragment;
     "getAccountCollateralRatio(address)": FunctionFragment;
     "getAccountCollateralValue(address)": FunctionFragment;
@@ -538,12 +548,12 @@ export interface KreskoInterface extends utils.Interface {
     "mintKreskoAsset(address,address,uint256)": FunctionFragment;
     "withdrawCollateral(address,address,uint256,uint256)": FunctionFragment;
     "addCollateralAsset(address,address,uint256,address)": FunctionFragment;
-    "addKreskoAsset(address,address,uint256,address,uint256,uint256)": FunctionFragment;
+    "addKreskoAsset(address,address,uint256,address,uint256,uint256,uint256)": FunctionFragment;
     "initialize((address,address,address,uint256,uint256,uint256,uint256))": FunctionFragment;
     "initialize(address)": FunctionFragment;
     "updateCollateralAsset(address,address,uint256,address)": FunctionFragment;
     "updateFeeRecipient(address)": FunctionFragment;
-    "updateKreskoAsset(address,address,uint256,address,bool,uint256,uint256)": FunctionFragment;
+    "updateKreskoAsset(address,address,uint256,address,uint256,uint256,uint256)": FunctionFragment;
     "updateLiquidationIncentiveMultiplier(uint256)": FunctionFragment;
     "updateLiquidationThreshold(uint256)": FunctionFragment;
     "updateMinimumCollateralizationRatio(uint256)": FunctionFragment;
@@ -599,6 +609,7 @@ export interface KreskoInterface extends utils.Interface {
       | "transferOwnership"
       | "setERC165"
       | "supportsInterface"
+      | "calcExpectedFee"
       | "collateralDeposits"
       | "getAccountCollateralRatio"
       | "getAccountCollateralValue"
@@ -734,6 +745,15 @@ export interface KreskoInterface extends utils.Interface {
     values: [PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
+    functionFragment: "calcExpectedFee",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
+  encodeFunctionData(
     functionFragment: "collateralDeposits",
     values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
@@ -832,6 +852,7 @@ export interface KreskoInterface extends utils.Interface {
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<string>,
       PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>
     ]
   ): string;
@@ -863,7 +884,7 @@ export interface KreskoInterface extends utils.Interface {
       PromiseOrValue<string>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<string>,
-      PromiseOrValue<boolean>,
+      PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>
     ]
@@ -1082,6 +1103,10 @@ export interface KreskoInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "setERC165", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "supportsInterface",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "calcExpectedFee",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -1473,6 +1498,14 @@ export interface Kresko extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
+    calcExpectedFee(
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      _kreskoAssetAmount: PromiseOrValue<BigNumberish>,
+      _feeType: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[string[], BigNumber[]]>;
+
     collateralDeposits(
       _account: PromiseOrValue<string>,
       _asset: PromiseOrValue<string>,
@@ -1593,6 +1626,7 @@ export interface Kresko extends BaseContract {
       _oracle: PromiseOrValue<string>,
       _supplyLimit: PromiseOrValue<BigNumberish>,
       _closeFee: PromiseOrValue<BigNumberish>,
+      _openFee: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -1624,9 +1658,9 @@ export interface Kresko extends BaseContract {
       _anchor: PromiseOrValue<string>,
       _kFactor: PromiseOrValue<BigNumberish>,
       _oracle: PromiseOrValue<string>,
-      _mintable: PromiseOrValue<boolean>,
       _supplyLimit: PromiseOrValue<BigNumberish>,
       _closeFee: PromiseOrValue<BigNumberish>,
+      _openFee: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -1935,6 +1969,14 @@ export interface Kresko extends BaseContract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
+  calcExpectedFee(
+    _account: PromiseOrValue<string>,
+    _kreskoAsset: PromiseOrValue<string>,
+    _kreskoAssetAmount: PromiseOrValue<BigNumberish>,
+    _feeType: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<[string[], BigNumber[]]>;
+
   collateralDeposits(
     _account: PromiseOrValue<string>,
     _asset: PromiseOrValue<string>,
@@ -2051,6 +2093,7 @@ export interface Kresko extends BaseContract {
     _oracle: PromiseOrValue<string>,
     _supplyLimit: PromiseOrValue<BigNumberish>,
     _closeFee: PromiseOrValue<BigNumberish>,
+    _openFee: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -2082,9 +2125,9 @@ export interface Kresko extends BaseContract {
     _anchor: PromiseOrValue<string>,
     _kFactor: PromiseOrValue<BigNumberish>,
     _oracle: PromiseOrValue<string>,
-    _mintable: PromiseOrValue<boolean>,
     _supplyLimit: PromiseOrValue<BigNumberish>,
     _closeFee: PromiseOrValue<BigNumberish>,
+    _openFee: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -2371,6 +2414,14 @@ export interface Kresko extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    calcExpectedFee(
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      _kreskoAssetAmount: PromiseOrValue<BigNumberish>,
+      _feeType: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[string[], BigNumber[]]>;
+
     collateralDeposits(
       _account: PromiseOrValue<string>,
       _asset: PromiseOrValue<string>,
@@ -2487,6 +2538,7 @@ export interface Kresko extends BaseContract {
       _oracle: PromiseOrValue<string>,
       _supplyLimit: PromiseOrValue<BigNumberish>,
       _closeFee: PromiseOrValue<BigNumberish>,
+      _openFee: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -2518,9 +2570,9 @@ export interface Kresko extends BaseContract {
       _anchor: PromiseOrValue<string>,
       _kFactor: PromiseOrValue<BigNumberish>,
       _oracle: PromiseOrValue<string>,
-      _mintable: PromiseOrValue<boolean>,
       _supplyLimit: PromiseOrValue<BigNumberish>,
       _closeFee: PromiseOrValue<BigNumberish>,
+      _openFee: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -2839,6 +2891,14 @@ export interface Kresko extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    calcExpectedFee(
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      _kreskoAssetAmount: PromiseOrValue<BigNumberish>,
+      _feeType: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     collateralDeposits(
       _account: PromiseOrValue<string>,
       _asset: PromiseOrValue<string>,
@@ -2950,6 +3010,7 @@ export interface Kresko extends BaseContract {
       _oracle: PromiseOrValue<string>,
       _supplyLimit: PromiseOrValue<BigNumberish>,
       _closeFee: PromiseOrValue<BigNumberish>,
+      _openFee: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -2981,9 +3042,9 @@ export interface Kresko extends BaseContract {
       _anchor: PromiseOrValue<string>,
       _kFactor: PromiseOrValue<BigNumberish>,
       _oracle: PromiseOrValue<string>,
-      _mintable: PromiseOrValue<boolean>,
       _supplyLimit: PromiseOrValue<BigNumberish>,
       _closeFee: PromiseOrValue<BigNumberish>,
+      _openFee: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -3237,6 +3298,14 @@ export interface Kresko extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    calcExpectedFee(
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      _kreskoAssetAmount: PromiseOrValue<BigNumberish>,
+      _feeType: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     collateralDeposits(
       _account: PromiseOrValue<string>,
       _asset: PromiseOrValue<string>,
@@ -3348,6 +3417,7 @@ export interface Kresko extends BaseContract {
       _oracle: PromiseOrValue<string>,
       _supplyLimit: PromiseOrValue<BigNumberish>,
       _closeFee: PromiseOrValue<BigNumberish>,
+      _openFee: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -3379,9 +3449,9 @@ export interface Kresko extends BaseContract {
       _anchor: PromiseOrValue<string>,
       _kFactor: PromiseOrValue<BigNumberish>,
       _oracle: PromiseOrValue<string>,
-      _mintable: PromiseOrValue<boolean>,
       _supplyLimit: PromiseOrValue<BigNumberish>,
       _closeFee: PromiseOrValue<BigNumberish>,
+      _openFee: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
