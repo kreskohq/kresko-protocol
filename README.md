@@ -2,6 +2,8 @@
 
 This repository contains the core smart contract code for Kresko protocol, which supports the creation and management of crypto-backed synthetic assets. Prices for synthetic assets are committed on chain by trusted oracles. Kresko uses a proxy system so that contract upgrades are not disruptive to protocol functionality. This is a usage and integration guide that assumes familiarity with the basic economic mechanics as described in the litepaper.
 
+[![run test suite](https://github.com/kreskohq/kresko-protocol/actions/workflows/run-test-suite.yml/badge.svg)](https://github.com/kreskohq/kresko-protocol/actions/workflows/run-test-suite.yml)
+
 ## Usage
 
 ### Setup
@@ -9,41 +11,37 @@ This repository contains the core smart contract code for Kresko protocol, which
 Install dependencies:
 
 ```sh
-yarn
-```
-
-Compile the smart contracts with Hardhat:
-
-```sh
-yarn compile
-```
-
-Generate types:
-
-```sh
-yarn typechain
+npm install
 ```
 
 ### Testing
 
 Create local .env file:
+
 ```sh
 cp .env.example .env
 ```
 
-Populate the following fields into your .env file with testing values: 
+Populate the following fields into your .env file with testing values:
+
 ```sh
-BURN_FEE=0.01
+MNEMONIC=your mnemonic here
 LIQUIDATION_INCENTIVE=1.1
+LIQUIDATION_THRESHOLD=1.4
 MINIMUM_COLLATERALIZATION_RATIO=1.5
-FEE_RECIPIENT_ADDRESS=0x0000000000000000000000000000000000000FEE
 MINIMUM_DEBT_VALUE=10
+FEE_RECIPIENT_ADDRESS=0x0000000000000000000000000000000000000FEE
+
+# The following api keys are required for local development
+INFURA_API_KEY=
+ALCHEMY_API_KEY=
+TWELVE_DATA_API_KEY=
 ```
 
 Run the test suite with:
 
 ```sh
-yarn test
+npm test
 ```
 
 ### Deployment

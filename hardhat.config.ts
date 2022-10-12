@@ -1,24 +1,38 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // Deployment
+
 import "tsconfig-paths/register";
+import type { HardhatUserConfig } from "hardhat/types/config";
 
-import "hardhat-deploy";
+/* -------------------------------------------------------------------------- */
+/*                                   Plugins                                  */
+/* -------------------------------------------------------------------------- */
+// import "solidity-coverage";
 
-// HRE extensions
-import "@configs/extensions";
-
-// OZ Contracts
-import "@openzeppelin/hardhat-upgrades";
-
-// Plugins
+/// @note comment diamond abi if enabling forge and anvil
+import "hardhat-diamond-abi";
 import "@typechain/hardhat";
+
+import "@kreskolabs/hardhat-deploy";
 import "@nomiclabs/hardhat-ethers";
-import "@nomiclabs/hardhat-waffle";
+
 import "@nomiclabs/hardhat-web3";
+import "hardhat-watcher";
 
-import "hardhat-gas-reporter";
-import "solidity-coverage";
+if (process.env.FOUNDRY === "true") {
+    require("@panukresko/hardhat-anvil");
+    require("@panukresko/hardhat-forge");
+}
 
-// Environment variables
+import "hardhat-interface-generator";
+// import "hardhat-contract-sizer";
+// import "hardhat-preprocessor";
+// import "hardhat-watcher";
+// import "hardhat-gas-reporter";
+
+/* -------------------------------------------------------------------------- */
+/*                                   Dotenv                                   */
+/* -------------------------------------------------------------------------- */
 import { resolve } from "path";
 import { config as dotenvConfig } from "dotenv";
 
@@ -29,37 +43,95 @@ if (!mnemonic) {
     // Just a random word chosen from the BIP 39 list. Not sensitive.
     mnemonic = "wealth";
 }
-// All tasks
-import "@tasks";
-// Get configs
-import { compilers, networks, users } from "@configs";
 
-// Set config
-const config = {
-    gasReporter: {
-        currency: "USD",
-        enabled: process.env.REPORT_GAS ? true : false,
-        src: "./src/contracts",
-    },
-    namedAccounts: users,
-    networks: networks(mnemonic),
-    defaultNetwork: "hardhat",
-    paths: {
-        artifacts: "./build/artifacts",
-        cache: "./build/cache",
-        sources: "./src/contracts",
-        tests: "./src/test",
-        deploy: "./src/deploy",
-        deployments: "./deployments",
-        imports: "./imports",
-    },
+/* -------------------------------------------------------------------------- */
+/*                                Config helpers                              */
+/* -------------------------------------------------------------------------- */
+
+import { reporters } from "mocha";
+
+/* -------------------------------------------------------------------------- */
+/*                                    Tasks                                   */
+/* -------------------------------------------------------------------------- */
+
+import "src/tasks";
+/* -------------------------------------------------------------------------- */
+/*                              Extensions To HRE                             */
+/* -------------------------------------------------------------------------- */
+import "hardhat-configs/extensions";
+import { compilers, networks, users } from "hardhat-configs";
+
+/* -------------------------------------------------------------------------- */
+/*                               CONFIGURATION                                */
+/* -------------------------------------------------------------------------- */
+const config: HardhatUserConfig = {
     solidity: compilers,
-    typechain: {
-        outDir: "./types/contracts",
-        target: "ethers-v5",
-    },
+    networks: networks(mnemonic),
+    namedAccounts: users,
     mocha: {
-        timeout: 120000,
+        reporter: reporters.Spec,
+        timeout: process.env.CI ? 45000 : 15000,
+    },
+    paths: {
+        artifacts: "artifacts",
+        cache: "cache",
+        sources: "src/contracts",
+        tests: "src/test",
+        deploy: "src/deploy",
+        deployments: "deployments",
+        imports: "forge/artifacts",
+    },
+    external: {
+        contracts: [
+            {
+                artifacts: "node_modules/@kreskolabs/gnosis-safe-contracts/build/artifacts",
+            },
+        ],
+    },
+    typechain: {
+        outDir: "types/typechain",
+        target: "ethers-v5",
+        alwaysGenerateOverloads: false,
+        dontOverrideCompile: false,
+        discriminateTypes: false,
+        tsNocheck: true,
+        externalArtifacts: ["artifacts/hardhat-diamond-abi/Kresko.sol/Kresko.json"],
+    },
+    // gasReporter: {
+    //     currency: "USD",
+    //     enabled: false,
+    //     src: "src/contracts",
+    //     showMethodSig: true,
+    //     excludeContracts: ["vendor"],
+    // },
+    // contractSizer: {
+    //     alphaSort: true,
+    //     disambiguatePaths: false,
+    //     runOnCompile: false,
+    //     only: ["Facet", "Diamond", "KreskoAsset"],
+    // },
+    //@ts-ignore
+    diamondAbi: [
+        {
+            name: "Kresko",
+            include: ["facets*"],
+            exclude: ["vendor", "test/*", "interfaces/*", "KreskoAsset", "KreskoAssetAnchor", "KrStaking"],
+            strict: false,
+        },
+    ],
+    //@ts-ignore
+    foundry: {
+        cachePath: "forge/cache",
+        buildInfo: true,
+        forgeOnly: false,
+        cacheVacuum: 0,
+    },
+    watcher: {
+        test: {
+            tasks: [{ command: "test", params: { testFiles: ["{path}"] } }],
+            files: ["./src/test/**/*"],
+            verbose: false,
+        },
     },
 };
 

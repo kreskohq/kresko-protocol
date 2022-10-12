@@ -13,13 +13,12 @@ task("deployone:fluxpricefeed")
         const { deploy, getNamedAccounts, priceFeeds } = hre;
         const { deployer } = await getNamedAccounts();
 
-        const { decimals, name, description, validator, wait, log } = taskArgs;
+        const { decimals, name, description, validator, log } = taskArgs;
         const logger = getLogger("deployone:fluxpricefeed", log);
 
         const [PriceFeed] = await deploy<FluxPriceFeed>(name, {
             from: deployer,
             contract: "FluxPriceFeed",
-            waitConfirmations: wait,
             args: [validator ? validator : deployer, decimals, description],
         });
 
@@ -27,9 +26,7 @@ task("deployone:fluxpricefeed")
         const hasValidatorRole = await PriceFeed.hasRole(VALIDATOR_ROLE, deployer);
 
         if (!hasValidatorRole) {
-            const tx = await PriceFeed.grantRole(VALIDATOR_ROLE, deployer);
-            await tx.wait(wait);
-
+            await PriceFeed.grantRole(VALIDATOR_ROLE, deployer);
             logger.log("FluxPriceFeed for pair:", description, "deployed at:", PriceFeed.address);
         }
 
