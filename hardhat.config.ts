@@ -28,7 +28,7 @@ import "hardhat-interface-generator";
 import "hardhat-contract-sizer";
 // import "hardhat-preprocessor";
 // import "hardhat-watcher";
-import "hardhat-gas-reporter";
+// import "hardhat-gas-reporter";
 
 /* -------------------------------------------------------------------------- */
 /*                                   Dotenv                                   */
