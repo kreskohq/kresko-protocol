@@ -107,6 +107,7 @@ const config: HardhatUserConfig = {
         alphaSort: true,
         disambiguatePaths: false,
         runOnCompile: true,
+        except: ["vendor"],
     },
     //@ts-ignore
     diamondAbi: [
