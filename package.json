@@ -82,6 +82,9 @@
         "typescript": "^4.7.2",
         "web3": "^1.7.4"
     },
+    "peerDependencies": {
+        "ethereumjs-abi": "https://github.com/ethereumjs/ethereumjs-abi/archive/refs/tags/v0.6.8.tar.gz"
+    },
     "keywords": [
         "blockchain",
         "ethereum",
@@ -93,6 +96,7 @@
     "license": "WTFPL",
     "private": true,
     "resolutions": {
+        "ethereumjs-abi": "https://github.com/ethereumjs/ethereumjs-abi/archive/refs/tags/v0.6.8.tar.gz",
         "@ethersproject/wallet": "^5.2.0"
     },
     "scripts": {
