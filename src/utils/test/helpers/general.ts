@@ -76,6 +76,7 @@ export const leverageKrAsset = async (
             krAsset.priceFeed.address,
             hre.toBig(1_000_000),
             defaultCloseFee,
+            0,
         );
     }
     await hre.Diamond.connect(user).mintKreskoAsset(user.address, krAsset.address, amount);
