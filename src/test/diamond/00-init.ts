@@ -2,14 +2,15 @@ import hre from "hardhat";
 import { expect } from "@test/chai";
 import { withFixture } from "@utils/test/fixtures";
 
-describe("Diamond", function () {
+describe.only("Diamond", function () {
     let users: Users;
     before(async function () {
         users = await hre.getUsers();
     });
     withFixture(["diamond-init"]);
     describe("#initialization", () => {
-        it("sets correct state", async function () {
+        it.only("sets correct state", async function () {
+            console.log(this.users);
             expect(await hre.Diamond.owner()).to.equal(users.deployer.address);
             expect(await hre.Diamond.initialized()).to.equal(true);
         });
