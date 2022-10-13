@@ -11,7 +11,7 @@ This repository contains the core smart contract code for Kresko protocol, which
 Install dependencies:
 
 ```sh
-npm install
+pnpm i
 ```
 
 ### Testing
@@ -41,7 +41,7 @@ TWELVE_DATA_API_KEY=
 Run the test suite with:
 
 ```sh
-npm test
+pnpm test
 ```
 
 ### Deployment
@@ -49,19 +49,19 @@ npm test
 It's possible to run the local deployment setup without a local server started with:
 
 ```sh
-yarn deploy
+pnpm deploy
 ```
 
 The contracts are deployable to a variety of blockchain networks (full list in package.json). For example, deploy the contracts to the Aurora testnet with:
 
 ```sh
-yarn deploy:auroratest
+pnpm deploy --network opgoerli
 ```
 
 After a proxy upgrade or deployment to a new network the contract addresses and ABIs can be updated with:
 
 ```sh
-yarn publish:contracts-frontend
+pnpm publish:contracts-frontend
 ```
 
 ### Contributions
