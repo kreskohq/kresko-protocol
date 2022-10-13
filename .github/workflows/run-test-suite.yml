@@ -15,9 +15,32 @@ jobs:
                   scope: "@kreskolabs"
             - run: git config --global url."https://${{ secrets.GH_TOKEN }}@github.com/".insteadOf ssh://git@github.com/
             - run: corepack enable
-            - run: npm install --ignore-scripts --legacy-peer-deps
+
+            - uses: pnpm/action-setup@v2.2.2
+              name: Install pnpm
+              id: pnpm-install
+              with:
+                  version: 7
+                  run_install: false
+
+            - name: Get pnpm store directory
+              id: pnpm-cache
+              run: |
+                  echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
+                  
+            - uses: actions/cache@v3
+              name: Setup pnpm cache
+              with:
+                path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+                key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                restore-keys: |
+                  ${{ runner.os }}-pnpm-store-
+                
+            - name: Install packages
+              run: pnpm i
               env:
-                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+                NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+                
             - run: npm run test-ci
               env:
                   TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
