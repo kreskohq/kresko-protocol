@@ -3,7 +3,7 @@ import hre, { ethers } from "hardhat";
 import { FluxPriceAggregator__factory } from "types/typechain";
 import { getUsers } from "@utils/general";
 import { defaultCloseFee, defaultOracleDecimals, defaultOraclePrice } from "../mocks";
-import { toBig } from "@utils/numbers";
+import { toBig } from "@kreskolabs/lib";
 /* -------------------------------------------------------------------------- */
 /*                                  GENERAL                                   */
 /* -------------------------------------------------------------------------- */

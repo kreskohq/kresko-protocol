@@ -1,6 +1,6 @@
 import { getLogger } from "@kreskolabs/lib/dist/utils";
+import { toBig } from "@kreskolabs/lib";
 import { deployWithSignatures } from "@utils/deployment";
-import { toBig } from "@utils/numbers";
 import { task, types } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
 import type { KrStaking } from "types";

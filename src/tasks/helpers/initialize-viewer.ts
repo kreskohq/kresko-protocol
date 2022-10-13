@@ -1,5 +1,5 @@
 import { getLogger } from "@kreskolabs/lib/dist/utils";
-import { fromBig } from "@utils/numbers";
+import { fromBig } from "@kreskolabs/lib";
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
 
@@ -25,27 +25,27 @@ task("initialize-viewer")
             logger.log({
                 collaterals: collaterals.map(collateral => ({
                     index: Number(collateral.index),
-                    cFactor: fromBig(collateral.cFactor),
+                    cFactor: fromBig(collateral.cFactor.rawValue),
                     address: collateral.assetAddress,
                     tokenId: collateral.symbol,
                     decimals: Number(collateral.decimals),
                     price: fromBig(collateral.price, 8),
                     amount: fromBig(collateral.amount, collateral.decimals),
-                    amountUSD: fromBig(collateral.amountUSD, 8),
+                    amountUSD: fromBig(collateral.amountUSD.rawValue, 8),
                 })),
                 krAssets: krAssets.map(collateral => ({
                     index: Number(collateral.index),
-                    kFactor: fromBig(collateral.kFactor),
+                    kFactor: fromBig(collateral.kFactor.rawValue),
                     address: collateral.assetAddress,
                     tokenId: collateral.symbol,
                     price: fromBig(collateral.price, 8),
                     amount: fromBig(collateral.amount),
-                    amountUSD: fromBig(collateral.amountUSD, 8),
+                    amountUSD: fromBig(collateral.amountUSD.rawValue, 8),
                 })),
-                healthFactor: fromBig(healthFactor),
-                minCollateralUSD: fromBig(minCollateralUSD, 8),
-                collateralUSD: fromBig(collateralUSD, 8),
-                debtUSD: fromBig(debtUSD, 8),
+                healthFactor: fromBig(healthFactor.rawValue),
+                minCollateralUSD: fromBig(minCollateralUSD.rawValue, 8),
+                collateralUSD: fromBig(collateralUSD.rawValue, 8),
+                debtUSD: fromBig(debtUSD.rawValue, 8),
             });
 
             const assetInfos = await hre.Diamond.getGlobalData(
@@ -55,7 +55,7 @@ task("initialize-viewer")
 
             logger.log({
                 collateralInfo: assetInfos.collateralAssets.map(coll => ({
-                    cFactor: fromBig(coll.cFactor),
+                    cFactor: fromBig(coll.cFactor.rawValue),
                     address: coll.assetAddress,
                     oracleAddress: coll.oracleAddress,
                     price: fromBig(coll.price, 8),
@@ -65,7 +65,7 @@ task("initialize-viewer")
                     decimals: coll.decimals,
                 })),
                 krAssets: assetInfos.krAssets.map(kr => ({
-                    kFactor: fromBig(kr.kFactor),
+                    kFactor: fromBig(kr.kFactor.rawValue),
                     address: kr.assetAddress,
                     oracleAddress: kr.oracleAddress,
                     price: fromBig(kr.price, 8),

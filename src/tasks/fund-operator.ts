@@ -1,4 +1,4 @@
-import { toBig } from "@utils/numbers";
+import { toBig } from "@kreskolabs/lib";
 import { task } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
 

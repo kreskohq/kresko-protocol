@@ -1,4 +1,4 @@
-import { fromBig } from "@utils/numbers";
+import { fromBig } from "@kreskolabs/lib";
 import { task, types } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
 import type { ERC20PresetMinterPauser, KreskoAsset } from "types";
