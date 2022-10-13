@@ -42,7 +42,6 @@ specifiers:
   '@types/fs-extra': ^9.0.13
   '@types/mocha': ^9.1.1
   '@types/node': ^13.3.5
-  '@types/node-fetch': ^2.6.2
   '@typescript-eslint/eslint-plugin': ^5.29.0
   '@typescript-eslint/parser': ^5.29.0
   '@uniswap/lib': ^4.0.1-alpha
@@ -70,7 +69,6 @@ specifiers:
   lint-staged: ^11.0.0
   mocha: ^10.0.0
   module-alias: ^2.2.2
-  node-fetch: 2.6.6
   prettier: ^2.6.2
   prettier-plugin-solidity: 1.0.0-beta.24
   shelljs: ^0.8.4
@@ -121,7 +119,6 @@ devDependencies:
   '@types/fs-extra': 9.0.13
   '@types/mocha': 9.1.1
   '@types/node': 13.13.52
-  '@types/node-fetch': 2.6.2
   '@typescript-eslint/eslint-plugin': 5.40.0_25sstg4uu2sk4pm7xcyzuov7xq
   '@typescript-eslint/parser': 5.40.0_z4bbprzjrhnsfa24uvmcbu7f5q
   '@uniswap/lib': 4.0.1-alpha
@@ -149,7 +146,6 @@ devDependencies:
   lint-staged: 11.2.6
   mocha: 10.0.0
   module-alias: 2.2.2
-  node-fetch: 2.6.6
   prettier: 2.7.1
   prettier-plugin-solidity: 1.0.0-beta.24_prettier@2.7.1
   shelljs: 0.8.5
@@ -8982,13 +8978,6 @@ packages:
     dependencies:
       encoding: 0.1.13
       is-stream: 1.1.0
-    dev: true
-
-  /node-fetch/2.6.6:
-    resolution: {integrity: sha512-Z8/6vRlTUChSdIgMa51jxQ4lrw/Jy5SOW10ObaA47/RElsAN2c5Pn8bTgFGWn/ibwzXTE8qwr1Yzx28vsecXEA==}
-    engines: {node: 4.x || >=6.0.0}
-    dependencies:
-      whatwg-url: 5.0.0
     dev: true
 
   /node-fetch/2.6.7:
