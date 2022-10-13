@@ -8,13 +8,15 @@ import { KreskoAssetAnchor } from "types/typechain/src/contracts/krAsset/KreskoA
 const { name, symbol } = testnetConfigs.hardhat.krAssets[0];
 
 describe("KreskoAsset", function () {
-    let addr: Addresses;
     let KreskoAsset: KreskoAsset;
     let KreskoAssetAnchor: KreskoAssetAnchor;
-    before(async function () {
-        addr = hre.addr;
+
+    let addr: Addresses;
+    beforeEach(async function () {
+        addr = await hre.getAddresses();
     });
-    withFixture(["minter-test", "krAsset"]);
+
+    withFixture(["minter-test", "kresko-assets", "collaterals"]);
     describe("#initialization - anchor", () => {
         beforeEach(async function () {
             const deployment = this.krAssets.find(k => k.deployArgs.name === name);

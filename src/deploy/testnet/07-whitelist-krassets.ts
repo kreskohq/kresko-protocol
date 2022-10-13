@@ -18,7 +18,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     logger.success("Succesfully whitelisted all krAssets");
 };
 
-func.tags = ["minter-test", "testnet", "whitelist-krassets", "all"];
+func.tags = ["testnet", "whitelist-krassets", "all"];
 func.dependencies = ["minter-init", "kresko-assets"];
 
 export default func;

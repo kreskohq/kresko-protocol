@@ -14,7 +14,7 @@ import { Error } from "@utils/test/errors";
 import { depositCollateral, withdrawCollateral } from "@utils/test/helpers/collaterals";
 import { addMockKreskoAsset, burnKrAsset, mintKrAsset } from "@utils/test/helpers/krassets";
 import { expect } from "chai";
-import hre, { users } from "hardhat";
+import hre from "hardhat";
 import { MinterEvent__factory } from "types";
 import {
     CloseFeePaidEventObject,
@@ -24,12 +24,17 @@ import {
 } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
 describe("Minter", function () {
+    let users: Users;
+    before(async function () {
+        users = await hre.getUsers();
+    });
+
     withFixture(["minter-test", "integration"]);
     beforeEach(async function () {
         this.collateral = this.collaterals.find(c => c.deployArgs.name === defaultCollateralArgs.name);
         this.krAsset = this.krAssets.find(c => c.deployArgs.name === defaultKrAssetArgs.name);
 
-        await this.krAsset.contract.grantRole(Role.OPERATOR, hre.addr.deployer);
+        await this.krAsset.contract.grantRole(Role.OPERATOR, users.deployer.address);
         this.krAsset.setPrice(defaultOraclePrice);
         2;
 

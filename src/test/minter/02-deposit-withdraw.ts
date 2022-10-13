@@ -13,7 +13,7 @@ import { fromBig, toBig } from "@utils/numbers";
 import { Error } from "@utils/test/errors";
 import { addMockCollateralAsset } from "@utils/test/helpers/collaterals";
 import { expect } from "chai";
-import hre, { users } from "hardhat";
+import hre from "hardhat";
 import { MinterEvent__factory } from "types";
 import {
     CollateralDepositedEventObject,
@@ -21,6 +21,11 @@ import {
 } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
 describe("Minter", function () {
+    let users: Users;
+    before(async function () {
+        users = await hre.getUsers();
+    });
+
     withFixture(["minter-test", "integration"]);
     beforeEach(async function () {
         this.collateral = this.collaterals.find(c => c.deployArgs.name === defaultCollateralArgs.name);
@@ -594,11 +599,12 @@ describe("Minter", function () {
             });
         });
 
-        describe("#deposit - rebase events", function () {
-            const mintAmount = hre.toBig(10);
-            const arbitraryUser = users.userThree;
+        describe("#deposit - rebase events", async function () {
+            const mintAmount = toBig(10);
             let arbitraryUserDiamond: Kresko;
+            let arbitraryUser: SignerWithAddress;
             beforeEach(async function () {
+                arbitraryUser = hre.users.userThree;
                 arbitraryUserDiamond = hre.Diamond.connect(arbitraryUser);
                 await this.collateral.mocks.contract.setVariable("_balances", {
                     [arbitraryUser.address]: this.initialBalance,
@@ -610,7 +616,7 @@ describe("Minter", function () {
                 });
                 this.krAsset = this.krAssets.find(k => k.deployArgs.name === defaultKrAssetArgs.name);
                 // grant operator role to deployer for rebases
-                await this.krAsset.contract.grantRole(Role.OPERATOR, hre.addr.deployer);
+                await this.krAsset.contract.grantRole(Role.OPERATOR, users.deployer.address);
                 const assetInfo = await this.krAsset.kresko();
 
                 // Add krAsset as a collateral with anchor and cFactor of 1
@@ -1090,9 +1096,10 @@ describe("Minter", function () {
 
         describe("#withdraw - rebase events", () => {
             const mintAmount = hre.toBig(50);
-            const arbitraryUser = users.userThree;
+            let arbitraryUser: SignerWithAddress;
             let arbitraryUserDiamond: Kresko;
             beforeEach(async function () {
+                arbitraryUser = users.userThree;
                 arbitraryUserDiamond = hre.Diamond.connect(arbitraryUser);
                 await this.collateral.mocks.contract.setVariable("_balances", {
                     [arbitraryUser.address]: this.initialBalance,
@@ -1104,7 +1111,7 @@ describe("Minter", function () {
                 });
                 this.krAsset = this.krAssets.find(k => k.deployArgs.name === defaultKrAssetArgs.name);
                 // grant operator role to deployer for rebases
-                await this.krAsset.contract.grantRole(Role.OPERATOR, hre.addr.deployer);
+                await this.krAsset.contract.grantRole(Role.OPERATOR, users.deployer.address);
                 const assetInfo = await this.krAsset.kresko();
 
                 // Add krAsset as a collateral with anchor and cFactor of 1

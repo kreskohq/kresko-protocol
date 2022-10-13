@@ -36,12 +36,12 @@ export const liquidate = async (user: SignerWithAddress, krAsset: any, collatera
 
     const liqAmount = await getLiqAmount(user, krAsset, collateral);
     await mintKrAsset({
-        user: users.liquidator,
+        user: hre.users.liquidator,
         asset: krAsset,
         amount: liqAmount,
     });
 
-    const tx = await hre.Diamond.connect(users.liquidator).liquidate(
+    const tx = await hre.Diamond.connect(hre.users.liquidator).liquidate(
         user.address,
         krAsset.address,
         hre.toBig(liqAmount),

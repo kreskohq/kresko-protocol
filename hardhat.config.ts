@@ -58,8 +58,8 @@ import "src/tasks";
 /* -------------------------------------------------------------------------- */
 /*                              Extensions To HRE                             */
 /* -------------------------------------------------------------------------- */
-import "hardhat-configs/extensions";
 import { compilers, networks, users } from "hardhat-configs";
+import "hardhat-configs/extensions";
 
 /* -------------------------------------------------------------------------- */
 /*                               CONFIGURATION                                */

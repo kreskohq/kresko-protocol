@@ -1,18 +1,22 @@
-import hre, { users } from "hardhat";
-import { toFixedPoint } from "@utils/fixed-point";
 import { expect } from "@test/chai";
+import { toFixedPoint } from "@utils/fixed-point";
+import hre from "hardhat";
 
 import {
-    withFixture,
-    getMockOracleFor,
     defaultCollateralArgs,
     defaultKrAssetArgs,
+    getMockOracleFor,
     getNewMinterParams,
+    withFixture,
 } from "@utils/test";
 import { addMockCollateralAsset } from "@utils/test/helpers/collaterals";
 import { addMockKreskoAsset } from "@utils/test/helpers/krassets";
 
 describe("Minter", function () {
+    let users: Users;
+    before(async function () {
+        users = await hre.getUsers();
+    });
     withFixture(["minter-init"]);
     describe("#configuration", function () {
         it("can modify all parameters", async function () {

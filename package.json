@@ -11,7 +11,7 @@
         "@codechecks/client": "^0.1.10",
         "@commitlint/cli": "^12.1.4",
         "@commitlint/config-conventional": "^12.1.4",
-        "@defi-wonderland/smock": "^2.0.7",
+        "@defi-wonderland/smock": "^2.3.0",
         "@ethersproject/abi": "^5.6.3",
         "@ethersproject/abstract-signer": "^5.6.2",
         "@ethersproject/bignumber": "^5.6.2",
@@ -19,6 +19,7 @@
         "@ethersproject/contracts": "^5.6.2",
         "@ethersproject/providers": "^5.6.8",
         "@ethersproject/solidity": "^5.6.1",
+        "@ethersproject/units": "^5.7.0",
         "@kreskolabs/gnosis-safe-contracts": "1.3.3",
         "@kreskolabs/hardhat-deploy": "^2.2.0",
         "@kreskolabs/openzeppelin-diamond": "^2.0.0",
@@ -34,6 +35,7 @@
         "@solidstate/hardhat-4byte-uploader": "^1.0.2",
         "@sushiswap/core": "^1.4.2",
         "@sushiswap/core-sdk": "^1.0.0-canary.34",
+        "@tsconfig/node16": "^1.0.3",
         "@typechain/ethers-v5": "10.1.0",
         "@typechain/hardhat": "^6.1.2",
         "@types/chai": "^4.3.1",
@@ -57,7 +59,7 @@
         "ethereum-waffle": "^3.4.4",
         "ethers": "^5.6.8",
         "fs-extra": "^10.0.0",
-        "hardhat": "2.9.9",
+        "hardhat": "2.11.2",
         "hardhat-contract-sizer": "^2.5.1",
         "hardhat-diamond-abi": "^3.0.0",
         "hardhat-gas-reporter": "^1.0.8",
@@ -69,7 +71,7 @@
         "mocha": "^10.0.0",
         "module-alias": "^2.2.2",
         "prettier": "^2.6.2",
-        "prettier-plugin-solidity": "git+ssh://git@github.com/prettier-solidity/prettier-plugin-solidity",
+        "prettier-plugin-solidity": "1.0.0-beta.24",
         "shelljs": "^0.8.4",
         "solhint": "3.3.7",
         "solhint-plugin-prettier": "^0.0.5",
@@ -79,6 +81,9 @@
         "typechain": "^8.1.0",
         "typescript": "^4.7.2",
         "web3": "^1.7.4"
+    },
+    "peerDependencies": {
+        "ethereumjs-abi": "https://github.com/ethereumjs/ethereumjs-abi/archive/refs/tags/v0.6.8.tar.gz"
     },
     "keywords": [
         "blockchain",
@@ -91,6 +96,7 @@
     "license": "WTFPL",
     "private": true,
     "resolutions": {
+        "ethereumjs-abi": "https://github.com/ethereumjs/ethereumjs-abi/archive/refs/tags/v0.6.8.tar.gz",
         "@ethersproject/wallet": "^5.2.0"
     },
     "scripts": {
@@ -113,11 +119,12 @@
         "lint": "npm run lint:sol && npm run lint:ts && npm run prettier:check",
         "lint:sol": "TS_NODE_TRANSPILE_ONLY=1 solhint --config .solhint.json --max-warnings 0 './src/contracts/**/**/*.sol'",
         "lint:ts": "eslint src --config ./.eslintrc.yaml --ignore-path ./.eslintignore --ext .js,.ts .",
-        "prettier": "prettier src --config ./.prettierrc --write \"**/*.{js,json,md,sol,ts}\"",
-        "prettier:check": "prettier src --check --config ./.prettierrc \"**/*.{js,json,md,sol,ts}\"",
+        "prettier": "prettier src --plugin=prettier-plugin-solidity --config ./.prettierrc --write \"**/*.{js,json,md,sol,ts}\"",
+        "prettier:check": "prettier --plugin=prettier-plugin-solidity src --check --config ./.prettierrc \"**/*.{js,json,md,sol,ts}\"",
         "postinstall": "husky install",
         "publish:contracts": "cd packages/contracts && npm run clean && cd ../.. && hardhat export --export-all packages/contracts/deployments/deployments.json && cp -a types/contracts packages/contracts/types && cd packages/contracts && npm run build && npm publish"
     },
+    "packageManager": "pnpm@7.11.0",
     "workspaces": [
         "packages/contracts"
     ]

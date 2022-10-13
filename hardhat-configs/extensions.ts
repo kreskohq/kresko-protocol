@@ -1,33 +1,36 @@
-import { extendEnvironment } from "hardhat/config";
-import { toBig, fromBig } from "@utils/numbers";
-import { deployWithSignatures } from "@utils/deployment";
-import { constants, ethers } from "ethers";
-import { FacetCut, FacetCutAction } from "@kreskolabs/hardhat-deploy/dist/types";
 import { FormatTypes, Fragment } from "@ethersproject/abi";
+import { FacetCut, FacetCutAction } from "@kreskolabs/hardhat-deploy/dist/types";
+import { deployWithSignatures } from "@utils/deployment";
+import { getAddresses, getUsers } from "@utils/general";
+import { fromBig, toBig } from "@utils/numbers";
+import { constants, ethers } from "ethers";
+import { extendEnvironment } from "hardhat/config";
 import SharedConfig from "src/config/shared";
-import { getAddresses, getUsers } from "src/utils/general";
 
-// We can access these values from deploy scripts / hardhat run scripts
 extendEnvironment(async function (hre) {
-    hre.krAssets = [];
-    hre.collaterals = [];
-    hre.priceFeeds = {};
+    hre.users = await getUsers(hre);
+    hre.addr = await getAddresses(hre);
+});
+// We can access these values from deploy scripts / hardhat run scripts
+extendEnvironment(function (hre) {
+    /* -------------------------------------------------------------------------- */
+    /*                                   VALUES                                   */
+    /* -------------------------------------------------------------------------- */
     hre.priceFeedsRegistry;
-    hre.priceAggregators = {};
     hre.uniPairs = {};
     hre.utils = ethers.utils;
     hre.facets = [];
-    hre.users = await getUsers(hre);
-    hre.addr = await getAddresses(hre);
-    /* -------------------------------------------------------------------------- */
-    /*                              Helper Functions                              */
-    /* -------------------------------------------------------------------------- */
-    hre.deploy = deployWithSignatures(hre);
     hre.collaterals = [];
     hre.krAssets = [];
     hre.allAssets = [];
+    hre.getUsers = getUsers;
+    hre.getAddresses = getAddresses;
+    /* -------------------------------------------------------------------------- */
+    /*                              Helper Functions                              */
+    /* -------------------------------------------------------------------------- */
     hre.fromBig = fromBig;
     hre.toBig = toBig;
+    hre.deploy = deployWithSignatures(hre);
     hre.getAddFacetArgs = <T extends Contract>(
         facet: T,
         selectors?: string[],

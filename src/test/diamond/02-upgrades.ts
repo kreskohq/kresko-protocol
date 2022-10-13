@@ -16,12 +16,11 @@ import { addFacet } from "@scripts/add-facet";
 import { removeFacet } from "@scripts/remove-facet";
 
 describe("Diamond", function () {
-    let users: Users;
     let addr: Addresses;
-
+    let users: Users;
     before(async function () {
-        users = hre.users;
-        addr = hre.addr;
+        addr = await hre.getAddresses();
+        users = await hre.getUsers();
     });
     withFixture(["diamond-init"]);
 
