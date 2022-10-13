@@ -1,7 +1,5 @@
+import { toFixedPoint } from "@kreskolabs/lib";
 import { expect } from "@test/chai";
-import { toFixedPoint } from "@utils/fixed-point";
-import hre from "hardhat";
-
 import {
     defaultCollateralArgs,
     defaultKrAssetArgs,
@@ -11,6 +9,7 @@ import {
 } from "@utils/test";
 import { addMockCollateralAsset } from "@utils/test/helpers/collaterals";
 import { addMockKreskoAsset } from "@utils/test/helpers/krassets";
+import hre from "hardhat";
 
 describe("Minter", function () {
     let users: Users;
@@ -61,7 +60,7 @@ describe("Minter", function () {
 
             const values = await kresko();
             const kreskoPriceAnswer = hre.fromBig(
-                await hre.Diamond.getKrAssetValue(contract.address, hre.toBig(1), true),
+                (await hre.Diamond.getKrAssetValue(contract.address, hre.toBig(1), true)).rawValue,
                 8,
             );
 
@@ -70,8 +69,8 @@ describe("Minter", function () {
             expect(Number(values.kFactor)).to.equal(Number(toFixedPoint(defaultKrAssetArgs.factor)));
             expect(kreskoPriceAnswer).to.equal(defaultKrAssetArgs.price);
             expect(hre.fromBig(values.supplyLimit)).to.equal(defaultKrAssetArgs.supplyLimit);
-            expect(hre.fromBig(values.closeFee)).to.equal(defaultKrAssetArgs.closeFee);
-            expect(hre.fromBig(values.openFee)).to.equal(defaultKrAssetArgs.openFee);
+            expect(hre.fromBig(values.closeFee.rawValue)).to.equal(defaultKrAssetArgs.closeFee);
+            expect(hre.fromBig(values.openFee.rawValue)).to.equal(defaultKrAssetArgs.openFee);
         });
 
         it("can update values of a kresko asset", async function () {
@@ -79,7 +78,7 @@ describe("Minter", function () {
 
             const oracleAnswer = hre.fromBig(await priceAggregator.latestAnswer(), 8);
             const kreskoAnswer = hre.fromBig(
-                await hre.Diamond.getKrAssetValue(contract.address, hre.toBig(1), true),
+                (await hre.Diamond.getKrAssetValue(contract.address, hre.toBig(1), true)).rawValue,
                 8,
             );
 
@@ -109,7 +108,7 @@ describe("Minter", function () {
             const newValues = await hre.Diamond.kreskoAsset(contract.address);
             const updatedOracleAnswer = hre.fromBig(await newPriceFeed.latestAnswer(), 8);
             const newKreskoAnswer = hre.fromBig(
-                await hre.Diamond.getKrAssetValue(contract.address, hre.toBig(1), true),
+                (await hre.Diamond.getKrAssetValue(contract.address, hre.toBig(1), true)).rawValue,
                 8,
             );
 

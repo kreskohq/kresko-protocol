@@ -1,7 +1,8 @@
 import hre from "hardhat";
 import { expect } from "@test/chai";
 import { Error, Role, withFixture } from "@utils/test";
-import { testnetConfigs, anchorTokenPrefix } from "@deploy-config/testnet";
+import { testnetConfigs } from "@deploy-config/testnet";
+import { anchorTokenPrefix } from "@deploy-config/shared";
 import type { KreskoAssetAnchor } from "types/typechain/src/contracts/krAsset/KreskoAssetAnchor";
 
 const { name, symbol } = testnetConfigs.hardhat.krAssets[0];

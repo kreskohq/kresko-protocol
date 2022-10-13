@@ -4,7 +4,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { Context } from "mocha";
 import { FunctionFragment } from "@ethersproject/abi";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { fromBig, toBig } from "@utils/numbers";
+import { fromBig, toBig } from "@kreskolabs/lib";
 import type { Fixture } from "ethereum-waffle";
 import type { ABI, Deployment, DeployOptions, Facet, FacetCut } from "@kreskolabs/hardhat-deploy/dist/types";
 
