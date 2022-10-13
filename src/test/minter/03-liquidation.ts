@@ -10,8 +10,8 @@ import {
 } from "@test-utils";
 import { expect } from "@test/chai";
 
-import { extractInternalIndexedEventFromTxReceipt } from "@utils/events";
 import { Error } from "@utils/test/errors";
+import { getInternalEvent } from "@kreskolabs/lib";
 import { depositCollateral } from "@utils/test/helpers/collaterals";
 import { mintKrAsset } from "@utils/test/helpers/krassets";
 import { liquidate } from "@utils/test/helpers/liquidations";
@@ -217,7 +217,7 @@ describe("Minter", function () {
                     depositedCollateralAssetIndex,
                 );
 
-                const event = await extractInternalIndexedEventFromTxReceipt<LiquidationOccurredEvent["args"]>(
+                const event = await getInternalEvent<LiquidationOccurredEvent["args"]>(
                     tx,
                     MinterEvent__factory.connect(hre.Diamond.address, users.userTwo),
                     "LiquidationOccurred",

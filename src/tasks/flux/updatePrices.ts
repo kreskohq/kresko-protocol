@@ -1,4 +1,4 @@
-import { getLogger } from "@utils/deployment";
+import { getLogger } from "@kreskolabs/lib/dist/utils";
 import { task, types } from "hardhat/config";
 
 task("updatePrices", "Fetches latest answers on oracles")

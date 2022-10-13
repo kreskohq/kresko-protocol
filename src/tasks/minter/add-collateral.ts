@@ -1,10 +1,10 @@
 import type { TaskArguments } from "hardhat/types";
 import type { MockERC20 } from "types";
-import { getLogger } from "@utils/deployment";
-import { toFixedPoint } from "@utils/fixed-point";
-import { fromBig } from "@utils/numbers";
+import { getLogger } from "@kreskolabs/lib/dist/utils";
+import { toFixedPoint, fromBig } from "@kreskolabs/lib";
+
 import { task, types } from "hardhat/config";
-import { wrapperPrefix } from "src/config/minter";
+import { anchorTokenPrefix } from "@deploy-config/shared";
 
 task("add-collateral")
     .addParam("symbol", "Name of the collateral")
@@ -30,7 +30,7 @@ task("add-collateral")
         logger.log("Collateral address", Collateral.address);
 
         const collateralAsset = await kresko.collateralAsset(Collateral.address);
-        const anchor = await hre.deployments.getOrNull(wrapperPrefix + symbol);
+        const anchor = await hre.deployments.getOrNull(anchorTokenPrefix + symbol);
         const exists = collateralAsset.exists;
 
         if (exists) {

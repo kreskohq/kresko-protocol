@@ -1,7 +1,7 @@
-import { getLogger } from "@utils/deployment";
-import { fromBig } from "@utils/numbers";
-import { testnetConfigs } from "src/config/deployment";
+import { testnetConfigs } from "@deploy-config/testnet";
 import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
+import { fromBig } from "@kreskolabs/lib";
+import { getLogger } from "@kreskolabs/lib/dist/utils";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import type { KreskoAsset } from "types";
 

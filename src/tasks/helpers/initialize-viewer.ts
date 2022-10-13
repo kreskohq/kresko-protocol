@@ -1,4 +1,4 @@
-import { getLogger } from "@utils/deployment";
+import { getLogger } from "@kreskolabs/lib/dist/utils";
 import { fromBig } from "@utils/numbers";
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";

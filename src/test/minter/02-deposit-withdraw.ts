@@ -7,15 +7,14 @@ import {
     Role,
     withFixture,
 } from "@test-utils";
-import { extractInternalIndexedEventFromTxReceipt } from "@utils";
+import hre from "hardhat";
+import { getInternalEvent, fromBig, toBig } from "@kreskolabs/lib";
 import { executeContractCallWithSigners } from "@utils/gnosis/utils/execution";
-import { fromBig, toBig } from "@utils/numbers";
 import { Error } from "@utils/test/errors";
 import { addMockCollateralAsset } from "@utils/test/helpers/collaterals";
 import { expect } from "chai";
-import hre from "hardhat";
 import { MinterEvent__factory } from "types";
-import {
+import type {
     CollateralDepositedEventObject,
     CollateralWithdrawnEventObject,
 } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
@@ -217,7 +216,7 @@ describe("Minter", function () {
                     this.collateral.address,
                     this.depositArgs.amount,
                 );
-                const event = await extractInternalIndexedEventFromTxReceipt<CollateralDepositedEventObject>(
+                const event = await getInternalEvent<CollateralDepositedEventObject>(
                     tx,
                     MinterEvent__factory.connect(hre.Diamond.address, this.depositArgs.user),
                     "CollateralDeposited",
@@ -388,7 +387,7 @@ describe("Minter", function () {
                         0,
                     );
 
-                    const event = await extractInternalIndexedEventFromTxReceipt<CollateralWithdrawnEventObject>(
+                    const event = await getInternalEvent<CollateralWithdrawnEventObject>(
                         tx,
                         MinterEvent__factory.connect(hre.Diamond.address, users.userOne),
                         "CollateralWithdrawn",

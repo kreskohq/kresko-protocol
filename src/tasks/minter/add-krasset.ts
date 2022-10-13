@@ -1,5 +1,5 @@
-import { getLogger } from "@utils/deployment";
-import { toFixedPoint } from "@utils/fixed-point";
+import { getLogger } from "@kreskolabs/lib/dist/utils";
+import { toFixedPoint } from "@kreskolabs/lib";
 import { defaultSupplyLimit } from "@utils/test/mocks";
 import { task, types } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";

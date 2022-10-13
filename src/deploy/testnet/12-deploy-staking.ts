@@ -1,8 +1,8 @@
 import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import type { KrStaking, MockERC20, UniswapV2Factory } from "types";
-import { getLogger } from "@utils/deployment";
-import { testnetConfigs } from "src/config/deployment";
+import { getLogger } from "@kreskolabs/lib/dist/utils";
+import { testnetConfigs } from "@deploy-config/testnet";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("deploy-staking");

@@ -1,7 +1,7 @@
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
 import { FacetCut, FacetCutAction } from "@kreskolabs/hardhat-deploy/dist/types";
-import { getLogger } from "@utils/deployment";
+import { getLogger } from "@kreskolabs/lib/dist/utils";
 import { constants } from "ethers";
 import { Kresko } from "types";
 

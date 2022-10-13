@@ -1,11 +1,11 @@
 import { FormatTypes, Fragment } from "@ethersproject/abi";
 import { FacetCut, FacetCutAction } from "@kreskolabs/hardhat-deploy/dist/types";
+import { fromBig, toBig } from "@kreskolabs/lib/dist/numbers";
 import { deployWithSignatures } from "@utils/deployment";
 import { getAddresses, getUsers } from "@utils/general";
-import { fromBig, toBig } from "@utils/numbers";
 import { constants, ethers } from "ethers";
 import { extendEnvironment } from "hardhat/config";
-import SharedConfig from "src/config/shared";
+import SharedConfig from "src/deploy-config/shared";
 
 extendEnvironment(async function (hre) {
     hre.users = await getUsers(hre);

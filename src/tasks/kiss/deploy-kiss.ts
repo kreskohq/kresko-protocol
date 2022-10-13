@@ -1,9 +1,9 @@
 import { deployWithSignatures } from "@utils/deployment";
-import { defaultSupplyLimit } from "@utils/test/mocks";
+import { defaultKrAssetArgs, defaultSupplyLimit } from "@utils/test/mocks";
 import { Role } from "@utils/test/roles";
 import { task, types } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
-import { wrapperPrefix } from "src/config/minter";
+import { anchorTokenPrefix } from "@deploy-config/shared";
 import type { KISS, KISSConverter, KreskoAssetAnchor, MockERC20 } from "types";
 
 task("deploy-kiss")
@@ -39,11 +39,11 @@ task("deploy-kiss")
 
         const kreskoAssetAnchorInitArgs = [
             KISSContract.address,
-            wrapperPrefix + "KISS",
-            wrapperPrefix + "KISS",
+            anchorTokenPrefix + "KISS",
+            anchorTokenPrefix + "KISS",
             users.deployer.address,
         ];
-        const [KISSUselessAnchor] = await deploy<KreskoAssetAnchor>(wrapperPrefix + "KISS", {
+        const [KISSUselessAnchor] = await deploy<KreskoAssetAnchor>(anchorTokenPrefix + "KISS", {
             from: users.deployer.address,
             log: true,
             contract: "KreskoAssetAnchor",
@@ -64,11 +64,12 @@ task("deploy-kiss")
             deployArgs: {
                 name: "KISS",
                 price: 1,
-                mintable: false,
                 factor: 1,
                 supplyLimit: defaultSupplyLimit,
-                closeFee: 0,
+                closeFee: defaultKrAssetArgs.closeFee,
+                openFee: defaultKrAssetArgs.openFee,
             },
+
             kresko: async () => await hre.Diamond.kreskoAsset(KISSContract.address),
             getPrice: async () => hre.toBig(1, 8),
             priceAggregator: undefined,

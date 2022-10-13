@@ -1,7 +1,7 @@
-import { getLogger } from "@utils/deployment";
-import minterConfig from "src/config/minter";
-import { addFacets } from "@scripts/add-facets";
+import { getMinterInitializer, minterFacets } from "@deploy-config/shared";
 import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
+import { getLogger } from "@kreskolabs/lib/dist/utils";
+import { addFacets } from "@scripts/add-facets";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -11,11 +11,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         throw new Error("Diamond not deployed");
     }
 
-    const initializer = await minterConfig.getMinterInitializer(hre);
+    const initializer = await getMinterInitializer(hre);
 
     // Will save deployment
     await addFacets({
-        names: minterConfig.facets,
+        names: minterFacets,
         initializerName: initializer.name,
         initializerArgs: initializer.args,
     });

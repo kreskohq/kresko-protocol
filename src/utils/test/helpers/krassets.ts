@@ -1,9 +1,9 @@
 import { smock } from "@defi-wonderland/smock";
-import { toFixedPoint } from "@utils/fixed-point";
+import { anchorTokenPrefix } from "@deploy-config/shared";
+import { toFixedPoint, toBig } from "@kreskolabs/lib";
 import { getUsers } from "@utils/general";
 import { expect } from "chai";
-import hre, { toBig } from "hardhat";
-import { wrapperPrefix } from "src/config/minter";
+import hre from "hardhat";
 import {
     KreskoAsset__factory,
     KreskoAssetAnchor__factory,
@@ -33,7 +33,7 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
     const akrAsset = await (await smock.mock<KreskoAssetAnchor__factory>("KreskoAssetAnchor")).deploy(krAsset.address);
 
     await akrAsset.setVariable("_initialized", 0);
-    await akrAsset.initialize(krAsset.address, name, wrapperPrefix + symbol, users.deployer.address);
+    await akrAsset.initialize(krAsset.address, name, anchorTokenPrefix + symbol, users.deployer.address);
     akrAsset.decimals.returns(18);
 
     // Add the asset to the protocol

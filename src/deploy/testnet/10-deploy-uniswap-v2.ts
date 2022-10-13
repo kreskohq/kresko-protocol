@@ -1,4 +1,4 @@
-import { getLogger } from "@utils/deployment";
+import { getLogger } from "@kreskolabs/lib/dist/utils";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import type { UniswapV2Factory, UniswapV2Router02 } from "types";

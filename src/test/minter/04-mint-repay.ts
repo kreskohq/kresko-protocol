@@ -8,8 +8,7 @@ import {
     Role,
     withFixture,
 } from "@test-utils";
-import { extractInternalIndexedEventFromTxReceipt } from "@utils";
-import { fromBig, toBig } from "@utils/numbers";
+import { getInternalEvent, fromBig, toBig } from "@kreskolabs/lib";
 import { Error } from "@utils/test/errors";
 import { depositCollateral, withdrawCollateral } from "@utils/test/helpers/collaterals";
 import { addMockKreskoAsset, burnKrAsset, mintKrAsset } from "@utils/test/helpers/krassets";
@@ -234,7 +233,7 @@ describe("Minter", function () {
                 const mintAmount = toBig(1); // 1 * $10 = $10
                 const mintAmountUSDValue = await hre.Diamond.getKrAssetValue(this.krAsset.address, mintAmount, false);
                 const currMinimumDebtValue = await hre.Diamond.minimumDebtValue();
-                expect(fromBig(mintAmountUSDValue, 8)).to.equal(Number(currMinimumDebtValue) / 10 ** 8);
+                expect(fromBig(mintAmountUSDValue.rawValue, 8)).to.equal(Number(currMinimumDebtValue) / 10 ** 8);
 
                 await hre.Diamond.connect(users.userOne).mintKreskoAsset(
                     users.userOne.address,
@@ -286,7 +285,7 @@ describe("Minter", function () {
                     mintAmount,
                 );
 
-                const event = await extractInternalIndexedEventFromTxReceipt<KreskoAssetMintedEventObject>(
+                const event = await getInternalEvent<KreskoAssetMintedEventObject>(
                     tx,
                     MinterEvent__factory.connect(hre.Diamond.address, users.userOne),
                     "KreskoAssetMinted",
@@ -571,7 +570,7 @@ describe("Minter", function () {
                 // Calculate actual burn amount
                 const userOneDebt = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
 
-                const minDebtValue = fromBig(await hre.Diamond.minimumDebtValue(), 8);
+                const minDebtValue = fromBig((await hre.Diamond.minimumDebtValue()).rawValue, 8);
 
                 const oraclePrice = this.krAsset.deployArgs.price;
                 const burnAmount = hre.toBig(fromBig(userOneDebt) - minDebtValue / oraclePrice);
@@ -613,7 +612,7 @@ describe("Minter", function () {
                     kreskoAssetIndex,
                 );
 
-                const event = await extractInternalIndexedEventFromTxReceipt<KreskoAssetBurnedEvent["args"]>(
+                const event = await getInternalEvent<KreskoAssetBurnedEvent["args"]>(
                     tx,
                     MinterEvent__factory.connect(hre.Diamond.address, users.userOne),
                     "KreskoAssetBurned",
@@ -1197,7 +1196,7 @@ describe("Minter", function () {
                 // Calculate actual burn amount
                 const userOneDebt = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
 
-                const minDebtValue = fromBig(await hre.Diamond.minimumDebtValue(), 8);
+                const minDebtValue = fromBig((await hre.Diamond.minimumDebtValue()).rawValue, 8);
 
                 const oraclePrice = this.krAsset.deployArgs.price;
                 const burnAmount = hre.toBig(fromBig(userOneDebt) - minDebtValue / oraclePrice);
@@ -1239,7 +1238,7 @@ describe("Minter", function () {
                     kreskoAssetIndex,
                 );
 
-                const event = await extractInternalIndexedEventFromTxReceipt<KreskoAssetBurnedEvent["args"]>(
+                const event = await getInternalEvent<KreskoAssetBurnedEvent["args"]>(
                     tx,
                     MinterEvent__factory.connect(hre.Diamond.address, users.userOne),
                     "KreskoAssetBurned",
@@ -1364,7 +1363,7 @@ describe("Minter", function () {
                     expect(feeRecipientBalanceIncrease).to.equal(toBig(normalizedExpectedCollateralFeeAmount));
 
                     // Ensure the emitted event is as expected.
-                    const event = await extractInternalIndexedEventFromTxReceipt<OpenFeePaidEventObject>(
+                    const event = await getInternalEvent<OpenFeePaidEventObject>(
                         tx,
                         MinterEvent__factory.connect(hre.Diamond.address, users.userOne),
                         "OpenFeePaid",
@@ -1434,7 +1433,7 @@ describe("Minter", function () {
                     expect(feeRecipientBalanceIncrease).to.equal(toBig(normalizedExpectedCollateralFeeAmount));
 
                     // Ensure the emitted event is as expected.
-                    const event = await extractInternalIndexedEventFromTxReceipt<CloseFeePaidEventObject>(
+                    const event = await getInternalEvent<CloseFeePaidEventObject>(
                         tx,
                         MinterEvent__factory.connect(hre.Diamond.address, users.userOne),
                         "CloseFeePaid",
@@ -1457,7 +1456,7 @@ describe("Minter", function () {
                     await leverageKrAsset(users.userThree, this.krAsset, this.collateral, hre.toBig(burnAmount));
                     await withdrawCollateral({ user: users.userThree, asset: this.krAsset, amount: burnAmount });
 
-                    const event = await extractInternalIndexedEventFromTxReceipt<CloseFeePaidEventObject>(
+                    const event = await getInternalEvent<CloseFeePaidEventObject>(
                         await burnKrAsset({ user: users.userThree, asset: this.krAsset, amount: burnAmount }),
                         MinterEvent__factory.connect(hre.Diamond.address, users.userThree),
                         "CloseFeePaid",
@@ -1477,7 +1476,7 @@ describe("Minter", function () {
                     await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
 
                     await withdrawCollateral({ user: users.userFour, asset: this.krAsset, amount: burnAmountRebase });
-                    const eventAfterRebase = await extractInternalIndexedEventFromTxReceipt<CloseFeePaidEventObject>(
+                    const eventAfterRebase = await getInternalEvent<CloseFeePaidEventObject>(
                         await burnKrAsset({ user: users.userFour, asset: this.krAsset, amount: burnAmountRebase }),
                         MinterEvent__factory.connect(hre.Diamond.address, users.userOne),
                         "CloseFeePaid",
@@ -1497,7 +1496,7 @@ describe("Minter", function () {
                     await leverageKrAsset(users.userThree, this.krAsset, this.collateral, hre.toBig(burnAmount));
                     await withdrawCollateral({ user: users.userThree, asset: this.krAsset, amount: burnAmount });
 
-                    const event = await extractInternalIndexedEventFromTxReceipt<CloseFeePaidEventObject>(
+                    const event = await getInternalEvent<CloseFeePaidEventObject>(
                         await burnKrAsset({ user: users.userThree, asset: this.krAsset, amount: burnAmount }),
                         MinterEvent__factory.connect(hre.Diamond.address, users.userThree),
                         "CloseFeePaid",
@@ -1517,7 +1516,7 @@ describe("Minter", function () {
                     await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
 
                     await withdrawCollateral({ user: users.userFour, asset: this.krAsset, amount: burnAmountRebase });
-                    const eventAfterRebase = await extractInternalIndexedEventFromTxReceipt<CloseFeePaidEventObject>(
+                    const eventAfterRebase = await getInternalEvent<CloseFeePaidEventObject>(
                         await burnKrAsset({ user: users.userFour, asset: this.krAsset, amount: burnAmountRebase }),
                         MinterEvent__factory.connect(hre.Diamond.address, users.userOne),
                         "CloseFeePaid",

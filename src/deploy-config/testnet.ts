@@ -1,53 +1,6 @@
-import { JStoFixed } from "@utils/fixed-point";
-import { toBig } from "@utils/numbers";
-import fetch from "node-fetch";
+import { getPriceFromCoinGecko, getPriceFromTwelveData, toBig } from "@kreskolabs/lib";
+import type { Asset, NetworkConfig, StakingPoolConfig } from "types";
 
-type Asset = {
-    name: string;
-    symbol: string;
-    price: () => Promise<BigNumber>;
-    oracle: {
-        name: string;
-        description: string;
-    };
-    cFactor?: number;
-    kFactor?: number;
-    decimals: number;
-    mintAmount?: number;
-    testAsset?: boolean;
-};
-
-type StakingPoolConfig = {
-    lpToken: [Asset, Asset];
-    allocPoint: number;
-    startBlock: number;
-};
-
-type NetworkConfig = {
-    [network: string]: {
-        protocolParams: Omit<KreskoConstructor, "feeRecipient">;
-        collaterals: Asset[];
-        krAssets: Asset[];
-        pools: [Asset, Asset, number][];
-        rewardTokens: Asset[];
-        rewardTokenAmounts: number[];
-        rewardsPerBlock: number[];
-        stakingPools: StakingPoolConfig[];
-    };
-};
-
-export const getPriceFromTwelveData = async (symbol: string) => {
-    const result = await fetch(
-        `https://api.twelvedata.com/price?symbol=${symbol}&prepost=true&apikey=${process.env.TWELVE_DATA_API_KEY}`,
-    );
-    const data = (await result.json()) as { price: string };
-    return JStoFixed(Number(data.price), 2).toString();
-};
-export const getPriceFromCoinGecko = async (symbol: string) => {
-    const result = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${symbol}&vs_currencies=usd`);
-    const data = (await result.json()) as { [key: string]: { usd: string } };
-    return JStoFixed(Number(data[symbol].usd), 2).toString();
-};
 export const assets: { [asset: string]: Asset } = {
     DAI: {
         name: "Dai",
