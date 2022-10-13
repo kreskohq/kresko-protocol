@@ -2,31 +2,23 @@
 pragma solidity >=0.8.14;
 
 // solhint-disable-next-line
-import {SafeERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
 import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
 import {AggregatorV2V3Interface} from "../../vendor/flux/interfaces/AggregatorV2V3Interface.sol";
 import {IUniswapV2Pair} from "../../vendor/uniswap/v2-core/interfaces/IUniswapV2Pair.sol";
 import {IKrStaking} from "../../staking/interfaces/IKrStaking.sol";
 import {IKresko} from "../interfaces/IKresko.sol";
-import {Arrays} from "../../libs/Arrays.sol";
 import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {Math} from "../../libs/Math.sol";
 
 import {KrAsset, CollateralAsset} from "../MinterTypes.sol";
 import {MinterState, ms} from "../MinterStorage.sol";
 
-import {UI} from "../facets/UIDataProviderFacet.sol";
-import "hardhat/console.sol";
-
 /* solhint-disable contract-name-camelcase */
 /* solhint-disable var-name-mixedcase */
 
 library LibUI {
-    using Arrays for address[];
-    using Math for uint8;
     using Math for uint256;
     using FixedPoint for FixedPoint.Unsigned;
-    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     struct CollateralAssetInfoUser {
         address assetAddress;
@@ -154,49 +146,48 @@ library LibUI {
         string name;
     }
 
-    function getBalances(IERC20Upgradeable[] memory _tokens, address account)
-        internal
-        view
-        returns (Balance[] memory balances)
-    {
+    function getBalances(address[] memory _tokens, address account) internal view returns (Balance[] memory balances) {
         balances = new Balance[](_tokens.length);
         for (uint256 i; i < _tokens.length; i++) {
-            balances[i] = Balance({token: address(_tokens[i]), balance: _tokens[i].balanceOf(account)});
+            balances[i] = Balance({
+                token: address(_tokens[i]),
+                balance: IERC20Upgradeable(_tokens[i]).balanceOf(account)
+            });
         }
     }
 
     function getAllowances(
-        IERC20Upgradeable[] memory _tokens,
+        address[] memory _tokens,
         address owner,
         address spender
     ) internal view returns (Allowance[] memory allowances) {
         allowances = new Allowance[](_tokens.length);
         for (uint256 i; i < _tokens.length; i++) {
             allowances[i] = Allowance({
-                allowance: _tokens[i].allowance(owner, spender),
+                allowance: IERC20Upgradeable(_tokens[i]).allowance(owner, spender),
                 spender: spender,
                 owner: owner
             });
         }
     }
 
-    function getStakingData(address _account) internal view returns (StakingData[] memory result) {
-        IKrStaking.Reward[] memory rewards = UI().staking.allPendingRewards(_account);
+    function getStakingData(address _account, address _staking) internal view returns (StakingData[] memory result) {
+        IKrStaking staking = IKrStaking(_staking);
+        IKrStaking.Reward[] memory rewards = staking.allPendingRewards(_account);
         result = new StakingData[](rewards.length);
 
         for (uint256 i; i < rewards.length; i++) {
-            IKrStaking.UserInfo memory userInfo = UI().staking.userInfo(rewards[i].pid, _account);
-            IKrStaking.PoolInfo memory poolInfo = UI().staking.poolInfo(rewards[i].pid);
+            IKrStaking.PoolInfo memory poolInfo = staking.poolInfo(rewards[i].pid);
             address depositTokenAddress = address(poolInfo.depositToken);
             result[i] = StakingData({
                 pid: rewards[i].pid,
-                totalDeposits: poolInfo.depositToken.balanceOf(address(UI().staking)),
+                totalDeposits: poolInfo.depositToken.balanceOf(_staking),
                 allocPoint: poolInfo.allocPoint,
                 depositToken: depositTokenAddress,
-                depositAmount: userInfo.amount,
+                depositAmount: staking.userInfo(rewards[i].pid, _account).amount,
                 rewardTokens: rewards[i].tokens,
                 rewardAmounts: rewards[i].amounts,
-                rewardPerBlocks: UI().staking.rewardPerBlockFor(depositTokenAddress),
+                rewardPerBlocks: staking.rewardPerBlockFor(depositTokenAddress),
                 lastRewardBlock: poolInfo.lastRewardBlock
             });
         }
@@ -216,15 +207,15 @@ library LibUI {
         }
     }
 
-    function batchPrices(address[] calldata _assets, AggregatorV2V3Interface[] calldata _oracles)
+    function batchPrices(address[] memory _assets, address[] memory _oracles)
         internal
         view
         returns (Price[] memory result)
     {
-        require(_assets.length == _oracles.length, "Query must be equal");
         result = new Price[](_assets.length);
         for (uint256 i; i < _assets.length; i++) {
-            (uint80 roundId, int256 answer, , uint256 updatedAt, ) = _oracles[i].latestRoundData();
+            (uint80 roundId, int256 answer, , uint256 updatedAt, ) = AggregatorV2V3Interface(_oracles[i])
+                .latestRoundData();
             result[i] = Price(uint256(answer), updatedAt, _assets[i], roundId);
         }
     }
@@ -233,27 +224,18 @@ library LibUI {
         result = new krAssetInfo[](assetAddresses.length);
         for (uint256 i; i < assetAddresses.length; i++) {
             address assetAddress = assetAddresses[i];
-
             KrAsset memory krAsset = ms().kreskoAssets[assetAddress];
 
-            FixedPoint.Unsigned memory value = ms().getKrAssetValue(assetAddress, 1 ether, false);
-            uint256 price = uint256(krAsset.oracle.latestAnswer());
-
-            string memory name = IERC20Upgradeable(assetAddress).name();
-            string memory symbol = IERC20Upgradeable(assetAddress).symbol();
-
-            krAssetInfo memory assetInfo = krAssetInfo({
-                value: value.rawValue,
+            result[i] = krAssetInfo({
+                value: ms().getKrAssetValue(assetAddress, 1 ether, false).rawValue,
                 oracleAddress: address(krAsset.oracle),
                 anchorAddress: krAsset.anchor,
                 assetAddress: assetAddress,
                 kFactor: krAsset.kFactor,
-                price: price,
-                symbol: symbol,
-                name: name
+                price: uint256(krAsset.oracle.latestAnswer()),
+                symbol: IERC20Upgradeable(assetAddress).symbol(),
+                name: IERC20Upgradeable(assetAddress).name()
             });
-
-            result[i] = assetInfo;
         }
     }
 
@@ -268,13 +250,10 @@ library LibUI {
             CollateralAsset memory collateralAsset = ms().collateralAssets[assetAddress];
             uint8 decimals = IERC20Upgradeable(assetAddress).decimals();
 
-            string memory symbol = IERC20Upgradeable(assetAddress).symbol();
             (FixedPoint.Unsigned memory value, FixedPoint.Unsigned memory price) = ms()
                 .getCollateralValueAndOraclePrice(assetAddress, 1 * 10**decimals, false);
 
-            string memory name = IERC20Upgradeable(assetAddress).name();
-
-            CollateralAssetInfo memory assetInfo = CollateralAssetInfo({
+            result[i] = CollateralAssetInfo({
                 value: value.rawValue,
                 oracleAddress: address(collateralAsset.oracle),
                 anchorAddress: collateralAsset.anchor,
@@ -282,11 +261,9 @@ library LibUI {
                 cFactor: collateralAsset.factor,
                 decimals: decimals,
                 price: price.rawValue,
-                symbol: symbol,
-                name: name
+                symbol: IERC20Upgradeable(assetAddress).symbol(),
+                name: IERC20Upgradeable(assetAddress).name()
             });
-
-            result[i] = assetInfo;
         }
     }
 
@@ -300,33 +277,27 @@ library LibUI {
             result = new CollateralAssetInfoUser[](collateralAssetAddresses.length);
             for (uint256 i; i < collateralAssetAddresses.length; i++) {
                 address assetAddress = collateralAssetAddresses[i];
-                CollateralAsset memory collateralAsset = ms().collateralAssets[assetAddress];
                 uint8 decimals = IERC20Upgradeable(assetAddress).decimals();
 
                 uint256 amount = ms().collateralDeposits[_account][assetAddress];
 
-                string memory symbol = IERC20Upgradeable(assetAddress).symbol();
                 (FixedPoint.Unsigned memory amountUSD, FixedPoint.Unsigned memory price) = ms()
                     .getCollateralValueAndOraclePrice(assetAddress, amount, true);
 
-                string memory name = IERC20Upgradeable(assetAddress).name();
-
-                CollateralAssetInfoUser memory assetInfo = CollateralAssetInfoUser({
+                totalCollateralUSD.add(amountUSD);
+                result[i] = CollateralAssetInfoUser({
                     amount: amount,
                     amountUSD: amountUSD,
-                    anchorAddress: collateralAsset.anchor,
-                    oracleAddress: address(collateralAsset.oracle),
+                    anchorAddress: ms().collateralAssets[assetAddress].anchor,
+                    oracleAddress: address(ms().collateralAssets[assetAddress].oracle),
                     assetAddress: assetAddress,
-                    cFactor: collateralAsset.factor,
+                    cFactor: ms().collateralAssets[assetAddress].factor,
                     decimals: decimals,
                     index: i,
                     price: price.rawValue,
-                    symbol: symbol,
-                    name: name
+                    symbol: IERC20Upgradeable(assetAddress).symbol(),
+                    name: IERC20Upgradeable(assetAddress).name()
                 });
-
-                totalCollateralUSD.add(amountUSD);
-                result[i] = assetInfo;
             }
         }
     }
@@ -344,13 +315,10 @@ library LibUI {
                 KrAsset memory krAsset = ms().kreskoAssets[assetAddress];
                 uint256 amount = ms().kreskoAssetDebt[_account][assetAddress];
 
-                uint256 price = uint256(krAsset.oracle.latestAnswer());
                 FixedPoint.Unsigned memory amountUSD = ms().getKrAssetValue(assetAddress, amount, true);
 
-                string memory symbol = IERC20Upgradeable(assetAddress).symbol();
-                string memory name = IERC20Upgradeable(assetAddress).name();
-
-                krAssetInfoUser memory assetInfo = krAssetInfoUser({
+                totalDebtUSD.add(amountUSD);
+                result[i] = krAssetInfoUser({
                     assetAddress: assetAddress,
                     oracleAddress: address(krAsset.oracle),
                     anchorAddress: krAsset.anchor,
@@ -358,13 +326,10 @@ library LibUI {
                     amountUSD: amountUSD,
                     index: i,
                     kFactor: krAsset.kFactor,
-                    price: price,
-                    symbol: symbol,
-                    name: name
+                    price: uint256(krAsset.oracle.latestAnswer()),
+                    symbol: IERC20Upgradeable(assetAddress).symbol(),
+                    name: IERC20Upgradeable(assetAddress).name()
                 });
-
-                totalDebtUSD.add(amountUSD);
-                result[i] = assetInfo;
             }
         }
     }

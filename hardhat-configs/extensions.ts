@@ -17,6 +17,7 @@ extendEnvironment(function (hre) {
     /*                                   VALUES                                   */
     /* -------------------------------------------------------------------------- */
     hre.priceFeedsRegistry;
+    hre.priceFeeds = {};
     hre.uniPairs = {};
     hre.utils = ethers.utils;
     hre.facets = [];

@@ -7,7 +7,7 @@ import type { HardhatUserConfig } from "hardhat/types/config";
 /* -------------------------------------------------------------------------- */
 /*                                   Plugins                                  */
 /* -------------------------------------------------------------------------- */
-// import "solidity-coverage";
+import "solidity-coverage";
 
 /// @note comment diamond abi if enabling forge and anvil
 import "hardhat-diamond-abi";
@@ -25,10 +25,10 @@ if (process.env.FOUNDRY === "true") {
 }
 
 import "hardhat-interface-generator";
-// import "hardhat-contract-sizer";
+import "hardhat-contract-sizer";
 // import "hardhat-preprocessor";
 // import "hardhat-watcher";
-// import "hardhat-gas-reporter";
+import "hardhat-gas-reporter";
 
 /* -------------------------------------------------------------------------- */
 /*                                   Dotenv                                   */
@@ -99,17 +99,15 @@ const config: HardhatUserConfig = {
     },
     // gasReporter: {
     //     currency: "USD",
-    //     enabled: false,
-    //     src: "src/contracts",
+    //     enabled: true,
     //     showMethodSig: true,
-    //     excludeContracts: ["vendor"],
+    //     src: "./src/contracts",
     // },
-    // contractSizer: {
-    //     alphaSort: true,
-    //     disambiguatePaths: false,
-    //     runOnCompile: false,
-    //     only: ["Facet", "Diamond", "KreskoAsset"],
-    // },
+    contractSizer: {
+        alphaSort: true,
+        disambiguatePaths: false,
+        runOnCompile: true,
+    },
     //@ts-ignore
     diamondAbi: [
         {
