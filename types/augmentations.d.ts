@@ -154,10 +154,6 @@ declare module "hardhat/types/runtime" {
                 _calldata: BytesLike;
             };
         };
-
-        /* -------------------------------------------------------------------------- */
-        /*                                   General                                  */
-        /* -------------------------------------------------------------------------- */
         users: {
             deployer: SignerWithAddress;
             owner: SignerWithAddress;
@@ -170,8 +166,37 @@ declare module "hardhat/types/runtime" {
             nonadmin?: SignerWithAddress;
             liquidator?: SignerWithAddress;
             treasury?: SignerWithAddress;
-        };
+        }
         addr: {
+            deployer: string;
+            owner: string;
+            admin: string;
+            operator: string;
+            userOne: string;
+            userTwo: string;
+            userThree: string;
+            userFour: string;
+            nonadmin?: string;
+            liquidator?: string;
+            treasury?: string;
+        }
+        /* -------------------------------------------------------------------------- */
+        /*                                   General                                  */
+        /* -------------------------------------------------------------------------- */
+        getUsers: () =>  Promise<{
+            deployer: SignerWithAddress;
+            owner: SignerWithAddress;
+            admin: SignerWithAddress;
+            operator: SignerWithAddress;
+            userOne: SignerWithAddress;
+            userTwo: SignerWithAddress;
+            userThree: SignerWithAddress;
+            userFour: SignerWithAddress;
+            nonadmin?: SignerWithAddress;
+            liquidator?: SignerWithAddress;
+            treasury?: SignerWithAddress;
+        }>;
+        getAddresses: () =>  Promise<{
             ZERO: string;
             deployer: string;
             owner: string;
@@ -184,7 +209,7 @@ declare module "hardhat/types/runtime" {
             nonadmin?: string;
             liquidator?: string;
             treasury?: string;
-        };
+        }>;
 
         /* -------------------------------------------------------------------------- */
         /*                                 Deployment                                 */

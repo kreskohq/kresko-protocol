@@ -10,7 +10,7 @@
         "emitDecoratorMetadata": true,
         "target": "ES2018",
         "lib": ["ES2018", "DOM", "DOM.Iterable", "ES2019.Array", "ES2019.Object", "es5"],
-        "module": "commonjs",
+        "module": "CommonJS",
         "allowJs": true,
         "moduleResolution": "node",
         "noImplicitAny": true,

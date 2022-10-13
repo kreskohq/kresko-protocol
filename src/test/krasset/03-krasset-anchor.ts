@@ -4,11 +4,11 @@ import { withFixture, Role, defaultMintAmount } from "@utils/test";
 import { KreskoAssetAnchor } from "types/typechain/src/contracts/krAsset/KreskoAssetAnchor";
 
 describe("KreskoAssetAnchor", () => {
-    let addr: Addresses;
     let KreskoAsset: KreskoAsset;
     let KreskoAssetAnchor: KreskoAssetAnchor;
-    before(() => {
-        addr = hre.addr;
+    let addr: Addresses;
+    before(async function () {
+        addr = await hre.getAddresses();
     });
     withFixture(["minter-test", "krAsset"]);
     beforeEach(async function () {

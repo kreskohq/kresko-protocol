@@ -3,10 +3,14 @@ import { expect } from "@test/chai";
 import { withFixture } from "@utils/test/fixtures";
 
 describe("Diamond", function () {
+    let users: Users;
+    before(async function () {
+        users = await hre.getUsers();
+    });
     withFixture(["diamond-init"]);
     describe("#initialization", () => {
         it("sets correct state", async function () {
-            expect(await hre.Diamond.owner()).to.equal(hre.users.deployer.address);
+            expect(await hre.Diamond.owner()).to.equal(users.deployer.address);
             expect(await hre.Diamond.initialized()).to.equal(true);
         });
 

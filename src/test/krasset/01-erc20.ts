@@ -1,10 +1,12 @@
 import { expect } from "@test/chai";
 import { Role, withFixture } from "@utils/test";
-import { users } from "hardhat";
-
+import hre from "hardhat";
 describe("KreskoAsset", function () {
     withFixture(["minter-test", "krAsset"]);
-
+    let users: Users;
+    before(async function () {
+        users = await hre.getUsers();
+    });
     beforeEach(async function () {
         this.owner = users.deployer;
         this.krAsset = this.krAssets[0];

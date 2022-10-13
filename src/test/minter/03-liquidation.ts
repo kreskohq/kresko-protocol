@@ -10,19 +10,20 @@ import {
 } from "@test-utils";
 import { expect } from "@test/chai";
 
-import hre, { users } from "hardhat";
 import { extractInternalIndexedEventFromTxReceipt } from "@utils/events";
 import { Error } from "@utils/test/errors";
 import { depositCollateral } from "@utils/test/helpers/collaterals";
 import { mintKrAsset } from "@utils/test/helpers/krassets";
 import { liquidate } from "@utils/test/helpers/liquidations";
+import hre from "hardhat";
 import { MinterEvent__factory } from "types/typechain";
 import { LiquidationOccurredEvent } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
 describe("Minter", function () {
     withFixture(["minter-test", "integration"]);
-
+    let users: Users;
     beforeEach(async function () {
+        users = hre.users;
         // -------------------------------- Set up mock assets --------------------------------
         const collateralArgs = {
             name: "CollateralAsset",
@@ -49,11 +50,11 @@ describe("Minter", function () {
         this.krAsset.setPrice(krAssetArgs.price);
 
         // grant operator role to deployer for rebases
-        await this.krAsset.contract.grantRole(Role.OPERATOR, hre.addr.deployer);
+        await this.krAsset.contract.grantRole(Role.OPERATOR, hre.users.deployer.address);
         const assetInfo = await this.krAsset.kresko();
 
         // Add krAsset as a collateral with anchor and cFactor of 1
-        await hre.Diamond.connect(users.operator).addCollateralAsset(
+        await hre.Diamond.connect(hre.users.operator).addCollateralAsset(
             this.krAsset.contract.address,
             this.krAsset.anchor.address,
             hre.toBig(1),
@@ -63,25 +64,25 @@ describe("Minter", function () {
         // -------------------------------- Set up userOne deposit/debt --------------------------------
 
         await this.collateral.mocks.contract.setVariable("_balances", {
-            [users.liquidator.address]: hre.toBig(100000000),
+            [hre.users.liquidator.address]: hre.toBig(100000000),
         });
         await this.collateral.mocks.contract.setVariable("_allowances", {
-            [users.liquidator.address]: {
+            [hre.users.liquidator.address]: {
                 [hre.Diamond.address]: hre.toBig(100000000),
             },
         });
         // Deposit collateral
         this.defaultDepositAmount = 20; // 20 * $10 = $200 in collateral asset value
         await this.collateral.mocks.contract.setVariable("_balances", {
-            [users.userOne.address]: hre.toBig(this.defaultDepositAmount),
+            [hre.users.userOne.address]: hre.toBig(this.defaultDepositAmount),
         });
         await this.collateral.mocks.contract.setVariable("_allowances", {
-            [users.userOne.address]: {
+            [hre.users.userOne.address]: {
                 [hre.Diamond.address]: hre.toBig(this.defaultDepositAmount),
             },
         });
         await depositCollateral({
-            user: users.userOne,
+            user: hre.users.userOne,
             amount: this.defaultDepositAmount,
             asset: this.collateral,
         });
@@ -89,7 +90,7 @@ describe("Minter", function () {
         // // Mint KrAsset
         this.defaultMintAmount = 10; // 10 * $11 = $110 in debt value
         await mintKrAsset({
-            user: users.userOne,
+            user: hre.users.userOne,
             amount: this.defaultMintAmount,
             asset: this.krAsset,
         });
@@ -131,7 +132,7 @@ describe("Minter", function () {
             beforeEach(async function () {
                 // Grant userTwo tokens to use for liquidation
                 await this.krAsset.mocks.contract.setVariable("_balances", {
-                    [users.userTwo.address]: hre.toBig(10000),
+                    [hre.users.userTwo.address]: hre.toBig(10000),
                 });
 
                 // Update collateral price from $10 to $7.5
@@ -416,8 +417,8 @@ describe("Minter", function () {
             });
         });
         describe("#liquidate - rebasing events", function () {
-            const userToLiquidate = users.userThree;
-            const userToLiquidateTwo = users.userFour;
+            let userToLiquidate: SignerWithAddress;
+            let userToLiquidateTwo: SignerWithAddress;
             const collateralPrice = 10;
             const krAssetPrice = 1;
             const thousand = hre.toBig(1000);
@@ -429,6 +430,8 @@ describe("Minter", function () {
             };
 
             beforeEach(async function () {
+                userToLiquidate = hre.users.userThree;
+                userToLiquidateTwo = hre.users.userFour;
                 this.collateral.setPrice(collateralPrice);
                 this.krAsset.setPrice(krAssetPrice);
 

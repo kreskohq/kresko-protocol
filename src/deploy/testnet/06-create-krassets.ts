@@ -33,6 +33,6 @@ func.skip = async hre => {
     return !!isFinished;
 };
 
-func.tags = ["minter-test", "testnet", "kresko-assets", "all"];
+func.tags = ["testnet", "kresko-assets", "all"];
 
 export default func;
