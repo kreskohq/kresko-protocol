@@ -1,13 +1,14 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
-import { BigNumber, extractEventFromTxReceipt } from "@utils";
-import { getLogger } from "@utils/deployment";
+import { getNamedEvent } from "@kreskolabs/lib";
+import { getLogger } from "@kreskolabs/lib/dist/utils";
 import { executeContractCallWithSigners } from "@utils/gnosis";
 import { GnosisSafeL2 } from "types/typechain/src/contracts/vendor/gnosis/GnosisSafeL2";
 import {
     GnosisSafeProxyFactory,
     ProxyCreationEvent,
 } from "types/typechain/src/contracts/vendor/gnosis/GnosisSafeProxyFactory";
+import { BigNumber } from "@ethersproject/bignumber";
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("multisig");
@@ -41,7 +42,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const tx = await Factory.createProxy(MasterCopy.address, creationTx.data);
 
-    const creationEvent = await extractEventFromTxReceipt<ProxyCreationEvent>(tx, "ProxyCreation");
+    const creationEvent = await getNamedEvent<ProxyCreationEvent>(tx, "ProxyCreation");
 
     const receipt = await tx.wait();
 

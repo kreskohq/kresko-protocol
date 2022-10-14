@@ -1,8 +1,8 @@
 import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import type { FluxPriceFeed } from "types";
-import { getLogger } from "@utils/deployment";
-import { JStoFixed } from "@utils/fixed-point";
-import { testnetConfigs } from "src/config/deployment";
+import { testnetConfigs } from "@deploy-config/testnet";
+import { getLogger } from "@kreskolabs/lib/dist/utils";
+import { JStoFixed } from "@kreskolabs/lib";
 
 const func: DeployFunction = async function (hre) {
     const logger = getLogger("deploy-oracle");

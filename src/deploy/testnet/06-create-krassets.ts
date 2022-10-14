@@ -1,8 +1,8 @@
 import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import { createKrAsset } from "@scripts/create-krasset";
-import { getLogger } from "@utils/deployment";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
-import { testnetConfigs } from "src/config/deployment";
+import { testnetConfigs } from "@deploy-config/testnet";
+import { getLogger } from "@kreskolabs/lib/dist/utils";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("deploy-krasset");

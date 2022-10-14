@@ -3,15 +3,15 @@
 // @ts-nocheck
 import { Role } from "@utils/test";
 import hre from "hardhat";
-const { ethers } = hre;
-import minterConfig from "../config/minter";
+import { anchorTokenPrefix } from "@deploy-config/shared";
 
 export async function createKrAsset(name: string, symbol, decimals = 18) {
-    const { deployer, operator } = await ethers.getNamedSigners();
+    const { deployer } = await hre.ethers.getNamedSigners();
     const kresko = hre.Diamond;
     const deploy = hre.deploy;
 
-    const underlyingSymbol = minterConfig.wrapperPrefix + symbol;
+    const underlyingSymbol = anchorTokenPrefix + symbol;
+
     const kreskoAssetInitArgs = [name, symbol, decimals, deployer.address, kresko.address];
 
     const [KreskoAsset] = await deploy<KreskoAsset>(symbol, {

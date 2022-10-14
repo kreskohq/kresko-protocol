@@ -1,7 +1,7 @@
-import hre, { toBig } from "hardhat";
+import hre from "hardhat";
 import { smock } from "@defi-wonderland/smock";
-import { toFixedPoint } from "@utils/fixed-point";
 import { getUsers } from "@utils/general";
+import { toFixedPoint, toBig } from "@kreskolabs/lib";
 import { ERC20Upgradeable__factory, FluxPriceAggregator__factory, FluxPriceFeed__factory } from "types";
 import { TestCollateralAssetArgs, defaultCollateralArgs, TestCollateralAssetUpdate, InputArgs } from "../mocks";
 import { getMockOracleFor, setPrice } from "./general";

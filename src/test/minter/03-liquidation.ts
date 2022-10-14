@@ -10,8 +10,8 @@ import {
 } from "@test-utils";
 import { expect } from "@test/chai";
 
-import { extractInternalIndexedEventFromTxReceipt } from "@utils/events";
 import { Error } from "@utils/test/errors";
+import { getInternalEvent } from "@kreskolabs/lib";
 import { depositCollateral } from "@utils/test/helpers/collaterals";
 import { mintKrAsset } from "@utils/test/helpers/krassets";
 import { liquidate } from "@utils/test/helpers/liquidations";
@@ -105,7 +105,10 @@ describe("Minter", function () {
                     users.userOne.address,
                     liquidationThreshold,
                 );
-                expect(this.defaultDepositAmount * this.collateral.deployArgs.price > hre.fromBig(minCollateralUSD));
+                expect(
+                    this.defaultDepositAmount * this.collateral.deployArgs.price >
+                        hre.fromBig(minCollateralUSD.rawValue, 8),
+                );
 
                 // The account should be NOT liquidatable as collateral value ($200) >= min collateral value ($154)
                 const initialCanLiquidate = await hre.Diamond.isAccountLiquidatable(users.userOne.address);
@@ -120,7 +123,7 @@ describe("Minter", function () {
                     hre.toBig(1),
                     true,
                 );
-                expect(hre.fromBig(newCollateralOraclePrice, 8)).to.equal(newCollateralPrice);
+                expect(hre.fromBig(newCollateralOraclePrice.rawValue, 8)).to.equal(newCollateralPrice);
 
                 // The account should be liquidatable as collateral value ($140) < min collateral value ($154)
                 const secondaryCanLiquidate = await hre.Diamond.isAccountLiquidatable(users.userOne.address);
@@ -217,7 +220,7 @@ describe("Minter", function () {
                     depositedCollateralAssetIndex,
                 );
 
-                const event = await extractInternalIndexedEventFromTxReceipt<LiquidationOccurredEvent["args"]>(
+                const event = await getInternalEvent<LiquidationOccurredEvent["args"]>(
                     tx,
                     MinterEvent__factory.connect(hre.Diamond.address, users.userTwo),
                     "LiquidationOccurred",
@@ -247,7 +250,7 @@ describe("Minter", function () {
                 );
                 expect(
                     hre.fromBig(currUserOneCollateralAmount) * newCollateralPrice >
-                        hre.fromBig(minimumCollateralUSDValueRequired),
+                        hre.fromBig(minimumCollateralUSDValueRequired.rawValue, 8),
                 );
 
                 const canLiquidate = await hre.Diamond.isAccountLiquidatable(users.userOne.address);

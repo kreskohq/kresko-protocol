@@ -3,7 +3,7 @@ import hre, { ethers } from "hardhat";
 import { FluxPriceAggregator__factory } from "types/typechain";
 import { getUsers } from "@utils/general";
 import { defaultCloseFee, defaultOracleDecimals, defaultOraclePrice } from "../mocks";
-import { toBig } from "@utils/numbers";
+import { toBig } from "@kreskolabs/lib";
 /* -------------------------------------------------------------------------- */
 /*                                  GENERAL                                   */
 /* -------------------------------------------------------------------------- */
@@ -25,8 +25,8 @@ export const setPrice = (oracle: MockContract<FluxPriceAggregator>, price: numbe
 };
 
 export const getHealthFactor = async (user: SignerWithAddress) => {
-    const accountKrAssetValue = hre.fromBig(await hre.Diamond.getAccountKrAssetValue(user.address), 8);
-    const accountCollateral = hre.fromBig(await hre.Diamond.getAccountCollateralValue(user.address), 8);
+    const accountKrAssetValue = hre.fromBig((await hre.Diamond.getAccountKrAssetValue(user.address)).rawValue, 8);
+    const accountCollateral = hre.fromBig((await hre.Diamond.getAccountCollateralValue(user.address)).rawValue, 8);
 
     return accountCollateral / accountKrAssetValue;
 };
@@ -41,7 +41,7 @@ export const leverageKrAsset = async (
     await krAsset.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
 
     const krAssetValue = hre.fromBig((await hre.Diamond.getKrAssetValue(krAsset.address, amount, false)).rawValue, 8);
-    const MCR = hre.fromBig(await hre.Diamond.minimumCollateralizationRatio());
+    const MCR = hre.fromBig((await hre.Diamond.minimumCollateralizationRatio()).rawValue);
     const collateralValueRequired = krAssetValue * MCR;
     const [collateralValue] = await hre.Diamond.getCollateralValueAndOraclePrice(
         collateralToUse.address,
@@ -76,6 +76,7 @@ export const leverageKrAsset = async (
             krAsset.priceFeed.address,
             hre.toBig(1_000_000),
             defaultCloseFee,
+            0,
         );
     }
     await hre.Diamond.connect(user).mintKreskoAsset(user.address, krAsset.address, amount);

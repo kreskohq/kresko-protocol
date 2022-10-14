@@ -1,9 +1,9 @@
 import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import type { UniswapV2Factory } from "types";
-import { AddressZero, JStoFixed } from "@utils";
-import { getLogger } from "@utils/deployment";
-import { testnetConfigs } from "src/config/deployment";
+import { getLogger } from "@kreskolabs/lib/dist/utils";
+import { testnetConfigs } from "@deploy-config/testnet";
+import { JStoFixed } from "@kreskolabs/lib";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const { ethers } = hre;
@@ -23,7 +23,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         const token1 = await hre.ethers.getContract(assetB.symbol);
         const pairAddress = await Factory.getPair(token0.address, token1.address);
 
-        if (pairAddress === AddressZero) {
+        if (pairAddress === ethers.constants.AddressZero) {
             const pair = await hre.run("add-liquidity-v2", {
                 tknA: {
                     address: token0.address,

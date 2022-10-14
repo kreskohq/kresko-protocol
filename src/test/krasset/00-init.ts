@@ -1,9 +1,9 @@
+import hre from "hardhat";
 import { expect } from "@test/chai";
 import { Error, Role, withFixture } from "@utils/test";
-import hre from "hardhat";
-import { testnetConfigs } from "src/config/deployment";
-import { wrapperPrefix } from "src/config/minter";
-import { KreskoAssetAnchor } from "types/typechain/src/contracts/krAsset/KreskoAssetAnchor";
+import { testnetConfigs } from "@deploy-config/testnet";
+import { anchorTokenPrefix } from "@deploy-config/shared";
+import type { KreskoAssetAnchor } from "types/typechain/src/contracts/krAsset/KreskoAssetAnchor";
 
 const { name, symbol } = testnetConfigs.hardhat.krAssets[0];
 
@@ -78,7 +78,7 @@ describe("KreskoAsset", function () {
         });
 
         it("cant initialize implementation", async function () {
-            const deployment = await hre.deployments.get(wrapperPrefix + symbol);
+            const deployment = await hre.deployments.get(anchorTokenPrefix + symbol);
             const implementationAddress = deployment.implementation;
             const KreskoAssetAnchorImpl = await hre.ethers.getContractAt<KreskoAssetAnchor>(
                 "KreskoAssetAnchor",
@@ -102,7 +102,7 @@ describe("KreskoAsset", function () {
 
         it("sets correct state", async function () {
             expect(await KreskoAssetAnchor.name()).to.equal(name);
-            expect(await KreskoAssetAnchor.symbol()).to.equal(wrapperPrefix + symbol);
+            expect(await KreskoAssetAnchor.symbol()).to.equal(anchorTokenPrefix + symbol);
             expect(await KreskoAssetAnchor.asset()).to.equal(KreskoAsset.address);
             expect(await KreskoAssetAnchor.hasRole(Role.ADMIN, addr.deployer)).to.equal(true);
             expect(await KreskoAssetAnchor.hasRole(Role.OPERATOR, hre.Diamond.address)).to.equal(true);

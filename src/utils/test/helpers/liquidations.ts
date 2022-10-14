@@ -1,15 +1,17 @@
-import { fromBig } from "@utils/numbers";
-import hre, { users } from "hardhat";
+import hre from "hardhat";
+import { fromBig } from "@kreskolabs/lib";
 import { mintKrAsset } from "./krassets";
 
 const getLiqAmount = async (user: SignerWithAddress, krAsset: any, collateral: any, log = false) => {
     const accountMinimumCollateralValue = fromBig(
-        await hre.Diamond.getAccountMinimumCollateralValueAtRatio(user.address, {
-            rawValue: hre.toBig(1.4),
-        }),
+        (
+            await hre.Diamond.getAccountMinimumCollateralValueAtRatio(user.address, {
+                rawValue: hre.toBig(1.4),
+            })
+        ).rawValue,
         8,
     );
-    const accountCollateralValue = fromBig(await hre.Diamond.getAccountCollateralValue(user.address), 8);
+    const accountCollateralValue = fromBig((await hre.Diamond.getAccountCollateralValue(user.address)).rawValue, 8);
 
     const kreskoAssetDebt = hre.fromBig(await hre.Diamond.kreskoAssetDebt(user.address, krAsset.address));
     const maxLiquidatableValue = hre.fromBig(

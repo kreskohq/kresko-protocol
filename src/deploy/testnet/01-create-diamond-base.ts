@@ -1,8 +1,8 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction, FacetCut } from "@kreskolabs/hardhat-deploy/types";
 import { mergeABIs } from "@kreskolabs/hardhat-deploy/dist/src/utils";
-import { getLogger } from "@utils/deployment";
-import DiamondConfig from "src/config/diamond";
+import { getLogger } from "@kreskolabs/lib/dist/utils";
+import { diamondFacets } from "@deploy-config/shared";
 import type { Kresko } from "types/typechain";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -27,7 +27,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     }
 
     // #2 Only Diamond-specific facets
-    for (const facet of DiamondConfig.facets) {
+    for (const facet of diamondFacets) {
         const [FacetContract, sigs] = await deploy(facet, {
             from: deployer,
             log: true,

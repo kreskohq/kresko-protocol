@@ -9,7 +9,7 @@
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
         "target": "ES2018",
-        "lib": ["ES2018", "DOM", "DOM.Iterable", "ES2019.Array", "ES2019.Object", "es5"],
+        "lib": ["ES2018", "DOM", "DOM.Iterable", "ES2019.Array", "ES2019.Object", "es2019"],
         "module": "CommonJS",
         "allowJs": true,
         "moduleResolution": "node",
@@ -21,6 +21,7 @@
         "typeRoots": ["types"],
         "paths": {
             "@configs": ["hardhat-configs"],
+            "@deploy-config/*": ["src/deploy-config/*"],
             "@utils": ["src/utils"],
             "@utils/*": ["src/utils/*"],
             "@tasks": ["src/tasks"],

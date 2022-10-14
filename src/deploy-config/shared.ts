@@ -1,12 +1,25 @@
 /* ========================================================================== */
-/*                         KRESKO MINTER CONFIGURATION                        */
+/*                         SHARED CONFIGURATION VALUES                        */
 /* ========================================================================== */
 
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { toFixedPoint } from "@utils/fixed-point";
-import { MinterInitArgsStruct } from "types/typechain/src/contracts/minter/interfaces/IConfiguration";
+import { toFixedPoint } from "@kreskolabs/lib";
+import type { HardhatRuntimeEnvironment } from "hardhat/types";
+import type { MinterInitArgsStruct } from "types/Kresko";
+import type { MinterInitializer } from "types";
 
-const facets = [
+// These function namings are ignored when generating ABI for the diamond
+const signatureFilters = ["init", "initializer"];
+
+export const diamondFacets = [
+    "DiamondCutFacet",
+    "DiamondLoupeFacet",
+    "DiamondOwnershipFacet",
+    "AuthorizationFacet",
+    "ERC165Facet",
+];
+export const anchorTokenPrefix = "a";
+
+export const minterFacets = [
     "ConfigurationFacet",
     "SafetyCouncilFacet",
     "AccountStateFacet",
@@ -16,12 +29,7 @@ const facets = [
     "UIDataProviderFacet",
 ];
 
-export type MinterInitializer<A> = {
-    name: string;
-    args: A;
-};
-
-const getMinterInitializer = async (
+export const getMinterInitializer = async (
     hre: HardhatRuntimeEnvironment,
 ): Promise<MinterInitializer<MinterInitArgsStruct>> => {
     const { treasury, operator } = hre.addr;
@@ -42,30 +50,9 @@ const getMinterInitializer = async (
     };
 };
 
-const collaterals = {
-    test: [
-        ["USDC", "USDC"],
-        ["Wrapped ETH", "WETH"],
-        ["Aurora", "Aurora"],
-        ["Wrapped NEAR", "WNEAR"],
-    ],
-};
-
-export const wrapperPrefix = "a";
-
-const krAssets = {
-    test: [
-        ["Tesla Inc.", "krTSLA", wrapperPrefix + "krTSLA"],
-        ["GameStop Corp.", "krGME", wrapperPrefix + "krGME"],
-        ["iShares Gold Trust", "krIAU", wrapperPrefix + "krIAU"],
-        ["Invesco QQQ Trust", "krQQQ", wrapperPrefix + "krQQQ"],
-    ],
-};
-
 export default {
-    facets,
-    getMinterInitializer,
-    krAssets,
-    collaterals,
-    wrapperPrefix,
+    signatureFilters,
+    diamondFacets,
+    minterFacets,
+    anchorTokenPrefix,
 };

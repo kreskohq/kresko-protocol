@@ -1,6 +1,6 @@
-import { toFixedPoint } from "@utils/fixed-point";
-import { toBig } from "@utils/numbers";
-import { wrapperPrefix } from "src/config/minter";
+import { anchorTokenPrefix } from "@deploy-config/shared";
+import { toBig, toFixedPoint } from "@kreskolabs/lib/dist/numbers";
+
 export type TestCollateralAssetArgs = {
     name: string;
     price: number;
@@ -55,7 +55,7 @@ export const defaultOpenFee = 0; // 0%
 export const defaultKrAssetArgs = {
     name: "KreskoAsset",
     symbol: "KreskoAsset",
-    wrapperPrefix: wrapperPrefix + "KreskoAsset",
+    anchorTokenPrefix: anchorTokenPrefix + "KreskoAsset",
     price: defaultOraclePrice,
     factor: 1,
     supplyLimit: defaultSupplyLimit,
