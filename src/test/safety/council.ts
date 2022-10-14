@@ -1,10 +1,13 @@
-import hre from "hardhat";
+import hre, { users } from "hardhat";
 import { expect } from "chai";
 import { Action, } from "@test-utils";
-// import { toBig } from "@utils/numbers";
 import { withFixture } from "@utils/test";
-// import { GnosisSafeL2 } from "types/typechain/src/contracts/vendor/gnosis/GnosisSafeL2";
 import { executeContractCallWithSigners } from "@utils/gnosis/utils/execution";
+import { extractInternalIndexedEventFromTxReceipt } from "@utils";
+import {
+    SafetyStateChangeEventObject,
+} from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
+import { MinterEvent__factory } from "types";
 
 describe.only("Council", function () {
     withFixture(["minter-test", "integration"]);
@@ -295,6 +298,29 @@ describe.only("Council", function () {
                     this.collateral.address,
                 );
                 expect(isPaused).to.equal(false);
+            });
+        });
+
+        describe("event emission", () => {
+            it("should emit event MinterEvent.SafetyStateChange on action changed containing action, asset, ", async function () {
+                const tx = await executeContractCallWithSigners(
+                    hre.Multisig,
+                    hre.Diamond,
+                    "toggleAssetsPaused",
+                    [[this.collateral.address], Action.DEPOSIT, true, 0],
+                    [this.deployer, this.devTwo, this.extOne],
+                );
+
+                const event = await extractInternalIndexedEventFromTxReceipt<SafetyStateChangeEventObject>(
+                    tx,
+                    MinterEvent__factory.connect(hre.Diamond.address, users.userOne),
+                    "SafetyStateChange",
+                );
+                expect(event.action).to.equal(Action.DEPOSIT);
+                expect(event.asset).to.equal(this.collateral.address);
+                expect(event.description.hash).to.equal(
+                    hre.ethers.utils.keccak256(hre.ethers.utils.toUtf8Bytes("paused"))
+                );
             });
         });
     });
