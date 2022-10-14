@@ -9,7 +9,7 @@ import {
 } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 import { MinterEvent__factory } from "types";
 
-describe.only("Safety Council", function () {
+describe("Safety Council", function () {
     withFixture(["minter-test", "integration"]);
     beforeEach(async function () {
         this.collateral = this.collaterals[0];
@@ -143,7 +143,7 @@ describe.only("Safety Council", function () {
             });
         });
 
-        describe.only("duration based pausing", () => {
+        describe("duration based pausing", () => {
             it("can optionally set a timeout on a given pause command", async function () {
                 const duration = 100000000;
 
