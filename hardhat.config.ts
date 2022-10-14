@@ -84,7 +84,7 @@ const config: HardhatUserConfig = {
     external: {
         contracts: [
             {
-                artifacts: "node_modules/@kreskolabs/gnosis-safe-contracts/build/artifacts",
+                artifacts: "./node_modules/@kreskolabs/gnosis-safe-contracts/build/artifacts",
             },
         ],
     },

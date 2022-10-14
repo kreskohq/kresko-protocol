@@ -22,6 +22,7 @@ specifiers:
   '@kreskolabs/hardhat-deploy': ^2.2.0
   '@kreskolabs/lib': ^1.4.3
   '@kreskolabs/openzeppelin-diamond': ^2.0.0
+  '@nomicfoundation/hardhat-network-helpers': ^1.0.6
   '@nomiclabs/hardhat-ethers': npm:hardhat-deploy-ethers@^0.3.0-beta.13
   '@nomiclabs/hardhat-etherscan': ^3.0.3
   '@nomiclabs/hardhat-web3': ^2.0.0
@@ -99,6 +100,7 @@ devDependencies:
   '@kreskolabs/hardhat-deploy': 2.2.0
   '@kreskolabs/lib': 1.4.3
   '@kreskolabs/openzeppelin-diamond': 2.0.0
+  '@nomicfoundation/hardhat-network-helpers': 1.0.6_hardhat@2.11.2
   '@nomiclabs/hardhat-ethers': /hardhat-deploy-ethers/0.3.0-beta.13_liuail6phkx7un26teqxcf6yx4
   '@nomiclabs/hardhat-etherscan': 3.1.1_hardhat@2.11.2
   '@nomiclabs/hardhat-web3': 2.0.0_hardhat@2.11.2+web3@1.8.0
@@ -1201,6 +1203,15 @@ packages:
       rustbn.js: 0.2.0
     transitivePeerDependencies:
       - supports-color
+    dev: true
+
+  /@nomicfoundation/hardhat-network-helpers/1.0.6_hardhat@2.11.2:
+    resolution: {integrity: sha512-a35iVD4ycF6AoTfllAnKm96IPIzzHpgKX/ep4oKc2bsUKFfMlacWdyntgC/7d5blyCTXfFssgNAvXDZfzNWVGQ==}
+    peerDependencies:
+      hardhat: ^2.9.5
+    dependencies:
+      ethereumjs-util: 7.1.5
+      hardhat: 2.11.2_mwhvu7sfp6vq5ryuwb6hlbjfka
     dev: true
 
   /@nomicfoundation/solidity-analyzer-darwin-arm64/0.0.3:

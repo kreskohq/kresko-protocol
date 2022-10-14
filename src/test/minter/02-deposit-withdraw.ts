@@ -18,6 +18,7 @@ import type {
     CollateralDepositedEventObject,
     CollateralWithdrawnEventObject,
 } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
+import { time } from "@nomicfoundation/hardhat-network-helpers";
 
 describe("Minter", function () {
     let users: Users;
@@ -47,7 +48,7 @@ describe("Minter", function () {
         };
     });
 
-    describe("#collateral", function () {
+    describe.only("#collateral", function () {
         describe("#deposit", () => {
             it("should allow an account to deposit whitelisted collateral", async function () {
                 // Account has no deposited assets
@@ -421,6 +422,8 @@ describe("Minter", function () {
                             this.krAsset.address,
                             this.mintAmount,
                         );
+                        const debt = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                        console.log(fromBig(debt), fromBig(this.mintAmount));
                         // Mint amount differs from deposited amount due to open fee
                         const amountDeposited = await hre.Diamond.collateralDeposits(
                             users.userOne.address,
@@ -429,6 +432,9 @@ describe("Minter", function () {
                         this.initialUserOneDeposited = amountDeposited;
 
                         this.mcr = await hre.Diamond.minimumCollateralizationRatio();
+                        const debt2 = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                        const debtIndex = await hre.Diamond.getNormalizedDebtIndex(this.krAsset.address);
+                        console.log(fromBig(debt2), fromBig(this.mintAmount), debtIndex);
                     });
 
                     it("should allow an account to withdraw their deposit if it does not violate the health factor", async function () {
@@ -494,20 +500,24 @@ describe("Minter", function () {
                             .true;
                     });
 
-                    it("should allow withdraws that exceed deposits and only send the user total deposit available", async function () {
+                    it.only("should allow withdraws that exceed deposits and only send the user total deposit available", async function () {
+                        const debt2 = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                        const debtIndex = await hre.Diamond.getNormalizedDebtIndex(this.krAsset.address);
+                        console.log(fromBig(debt2), fromBig(this.mintAmount), fromBig(debtIndex));
                         const userOneInitialCollateralBalance = await this.collateral.contract.balanceOf(
                             users.userOne.address,
                         );
-
+                        // await time.increase(100);
+                        const debt = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                        const dcc = await hre.Diamond.getNormalizedDebtIndex(this.krAsset.address);
+                        console.log(fromBig(debt), fromBig(this.mintAmount), fromBig(dcc));
                         // First repay Kresko assets so we can withdraw all collateral
-                        await expect(
-                            hre.Diamond.connect(users.userOne).burnKreskoAsset(
-                                users.userOne.address,
-                                this.krAsset.address,
-                                this.mintAmount,
-                                0,
-                            ),
-                        ).to.not.be.reverted;
+                        await hre.Diamond.connect(users.userOne).burnKreskoAsset(
+                            users.userOne.address,
+                            this.krAsset.address,
+                            hre.ethers.constants.MaxUint256,
+                            0,
+                        );
 
                         // The burn fee was taken from deposited collateral, so fetch the current deposited amount
                         const currentAmountDeposited = await hre.Diamond.collateralDeposits(

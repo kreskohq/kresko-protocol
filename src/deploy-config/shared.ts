@@ -27,6 +27,7 @@ export const minterFacets = [
     "ActionFacet",
     "StateFacet",
     "UIDataProviderFacet",
+    "InterestRateFacet",
 ];
 
 export const getMinterInitializer = async (

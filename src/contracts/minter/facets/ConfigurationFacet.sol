@@ -3,8 +3,8 @@ pragma solidity >=0.8.14;
 
 import {IERC165} from "../../shared/IERC165.sol";
 import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
-import {IKreskoAssetAnchor} from "../../krAsset/IKreskoAssetAnchor.sol";
-import {IKreskoAsset} from "../../krAsset/IKreskoAsset.sol";
+import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
+import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
 import {IKISS} from "../../kiss/interfaces/IKISS.sol";
 
 import {IConfigurationFacet} from "../interfaces/IConfigurationFacet.sol";

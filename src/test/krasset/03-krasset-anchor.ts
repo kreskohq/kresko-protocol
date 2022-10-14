@@ -1,7 +1,7 @@
 import hre from "hardhat";
 import { expect } from "@test/chai";
 import { withFixture, Role, defaultMintAmount } from "@utils/test";
-import { KreskoAssetAnchor } from "types/typechain/src/contracts/krAsset/KreskoAssetAnchor";
+import { KreskoAssetAnchor } from "types/typechain/src/contracts/kreskoasset/KreskoAssetAnchor";
 
 describe("KreskoAssetAnchor", () => {
     let KreskoAsset: KreskoAsset;

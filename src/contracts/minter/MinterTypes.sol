@@ -3,7 +3,7 @@ pragma solidity >=0.8.14;
 
 import {AggregatorV2V3Interface} from "../vendor/flux/interfaces/AggregatorV2V3Interface.sol";
 import {FixedPoint} from "../libs/FixedPoint.sol";
-import {IKreskoAssetAnchor} from "../krAsset/IKreskoAssetAnchor.sol";
+import {IKreskoAssetAnchor} from "../kreskoasset/IKreskoAssetAnchor.sol";
 
 /* solhint-disable state-visibility */
 

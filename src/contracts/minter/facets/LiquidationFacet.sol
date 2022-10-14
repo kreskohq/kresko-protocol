@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 import {ILiquidationFacet} from "../interfaces/ILiquidationFacet.sol";
-import {IKreskoAssetAnchor} from "../../krAsset/IKreskoAssetAnchor.sol";
+import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
 
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
@@ -14,6 +14,7 @@ import {DiamondModifiers} from "../../shared/Modifiers.sol";
 
 import {Constants, KrAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
+import {irs} from "../InterestRateState.sol";
 import "hardhat/console.sol";
 
 contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
@@ -130,11 +131,18 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
     ) internal returns (uint256) {
         MinterState storage s = ms();
         KrAsset memory krAsset = s.kreskoAssets[_repayKreskoAsset];
+
+        // Update liquidity and debt indexes
+        irs().configs[_repayKreskoAsset].updateIndexes();
+
         // Subtract repaid Kresko assets from liquidated user's recorded debt.
         s.kreskoAssetDebt[_account][_repayKreskoAsset] -= IKreskoAssetAnchor(krAsset.anchor).destroy(
             _repayAmount,
             msg.sender
         );
+
+        // Update interest rates
+        irs().configs[_repayKreskoAsset].updateInterestRates(0, 0);
 
         // If the liquidation repays the user's entire Kresko asset balance, remove it from minted assets array.
         if (s.kreskoAssetDebt[_account][_repayKreskoAsset] == 0) {

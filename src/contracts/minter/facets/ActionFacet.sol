@@ -2,8 +2,8 @@
 pragma solidity >=0.8.14;
 
 import {IActionFacet} from "../interfaces/IActionFacet.sol";
-import {IKreskoAsset} from "../../krAsset/IKreskoAsset.sol";
-import {IKreskoAssetAnchor} from "../../krAsset/IKreskoAssetAnchor.sol";
+import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
+import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
 
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
@@ -14,6 +14,7 @@ import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upg
 import {DiamondModifiers, MinterModifiers} from "../../shared/Modifiers.sol";
 import {Action, FixedPoint, KrAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
+import {irs} from "../InterestRateState.sol";
 import "hardhat/console.sol";
 
 contract ActionFacet is DiamondModifiers, MinterModifiers, IActionFacet {
@@ -105,6 +106,9 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IActionFacet {
         // Enforce krAsset's total supply limit
         KrAsset memory krAsset = s.kreskoAssets[_kreskoAsset];
 
+        // Update interest rate indexes
+        irs().configs[_kreskoAsset].updateIndexes();
+
         require(
             IKreskoAsset(_kreskoAsset).totalSupply() + _amount <= krAsset.supplyLimit,
             Error.KRASSET_MAX_SUPPLY_REACHED
@@ -151,6 +155,9 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IActionFacet {
         // Record the mint.
         s.kreskoAssetDebt[_account][_kreskoAsset] += IKreskoAssetAnchor(krAsset.anchor).issue(_amount, _account);
 
+        // Update interest rates
+        irs().configs[_kreskoAsset].updateInterestRates(0, 0);
+
         emit MinterEvent.KreskoAssetMinted(_account, _kreskoAsset, _amount);
     }
 
@@ -175,27 +182,37 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IActionFacet {
             ensureNotPaused(_kreskoAsset, Action.Repay);
         }
 
+        // Update interest rate indexes
+        irs().configs[_kreskoAsset].updateIndexes();
+
         uint256 debtAmount = s.getKreskoAssetDebt(_account, _kreskoAsset);
-        require(_burnAmount <= debtAmount, Error.KRASSET_BURN_AMOUNT_OVERFLOW);
-
-        // Ensure amount is either 0 or >= minDebtValue
-        uint256 burnAmountNoDust = s.ensureNotDustPosition(_kreskoAsset, _burnAmount, debtAmount);
-
-        // If the sender is burning all of the kresko asset, remove it from minted assets array.
-        if (burnAmountNoDust == debtAmount) {
-            s.mintedKreskoAssets[_account].removeAddress(_kreskoAsset, _mintedKreskoAssetIndex);
+        if (_burnAmount != type(uint256).max) {
+            require(_burnAmount <= debtAmount, Error.KRASSET_BURN_AMOUNT_OVERFLOW);
+            // Ensure amount is either 0 or >= minDebtValue
+            _burnAmount = s.ensureNotDustPosition(_kreskoAsset, _burnAmount, debtAmount);
+        } else {
+            _burnAmount = debtAmount;
         }
 
-        // Charge the burn fee from collateral of _account
-        s.chargeCloseFee(_account, _kreskoAsset, burnAmountNoDust);
+        // If the sender is burning all of the kresko asset, remove it from minted assets array.
+        if (_burnAmount == debtAmount) {
+            s.mintedKreskoAssets[_account].removeAddress(_kreskoAsset, _mintedKreskoAssetIndex);
+        }
+        console.log(_burnAmount);
 
-        // Burn wkrAssets and krAssets. Reduce debt by amount burned.
+        // Charge the burn fee from collateral of _account
+        s.chargeCloseFee(_account, _kreskoAsset, _burnAmount);
+
+        // Burn akrAssets and krAssets. Reduce debt by amount burned.
         s.kreskoAssetDebt[_account][_kreskoAsset] -= IKreskoAssetAnchor(s.kreskoAssets[_kreskoAsset].anchor).destroy(
-            burnAmountNoDust,
+            _burnAmount,
             msg.sender
         );
 
-        emit MinterEvent.KreskoAssetBurned(_account, _kreskoAsset, burnAmountNoDust);
+        // Update interest rates
+        irs().configs[_kreskoAsset].updateInterestRates(0, 0);
+
+        emit MinterEvent.KreskoAssetBurned(_account, _kreskoAsset, _burnAmount);
     }
 
     /// @dev Simple check for the enabled flag

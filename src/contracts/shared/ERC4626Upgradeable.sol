@@ -4,7 +4,7 @@ pragma solidity >=0.8.14;
 import {FixedPointMathLib} from "@rari-capital/solmate/src/utils/FixedPointMathLib.sol";
 
 import {SafeERC20Upgradeable} from "./SafeERC20Upgradeable.sol";
-import {KreskoAsset, ERC20Upgradeable} from "../krAsset/KreskoAsset.sol";
+import {KreskoAsset, ERC20Upgradeable} from "../kreskoasset/KreskoAsset.sol";
 import {Error} from "../libs/Errors.sol";
 
 /* solhint-disable func-name-mixedcase */

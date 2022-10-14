@@ -5,12 +5,15 @@ import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {MinterState} from "../MinterState.sol";
 import {KrAsset, CollateralAsset} from "../MinterTypes.sol";
 import {RebaseMath, Rebase} from "../../shared/Rebase.sol";
-import {IKreskoAsset} from "../../krAsset/IKreskoAsset.sol";
-import {IKreskoAssetAnchor} from "../../krAsset/IKreskoAssetAnchor.sol";
+import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
+import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
+import {irs} from "../InterestRateState.sol";
+import {WadRay} from "../../libs/WadRay.sol";
 
 library LibAccount {
     using FixedPoint for FixedPoint.Unsigned;
     using RebaseMath for uint256;
+    using WadRay for uint256;
 
     /**
      * @notice Gets an array of Kresko assets the account has minted.
@@ -153,10 +156,13 @@ library LibAccount {
         address _account,
         address _asset
     ) internal view returns (uint256) {
-        return
-            IKreskoAssetAnchor(self.kreskoAssets[_asset].anchor).convertToAssets(
-                self.kreskoAssetDebt[_account][_asset]
-            );
+        uint256 debt = IKreskoAssetAnchor(self.kreskoAssets[_asset].anchor).convertToAssets(
+            self.kreskoAssetDebt[_account][_asset]
+        );
+        if (debt == 0) {
+            return 0;
+        }
+        return debt.rayMul(irs().configs[_asset].getNormalizedDebtIndex());
     }
 
     /**

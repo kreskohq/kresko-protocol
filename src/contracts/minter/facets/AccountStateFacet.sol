@@ -3,7 +3,7 @@ pragma solidity >=0.8.14;
 
 import {IAccountStateFacet} from "../interfaces/IAccountStateFacet.sol";
 import {Action, Fee, KrAsset, CollateralAsset, FixedPoint} from "../MinterTypes.sol";
-import {IKreskoAsset} from "../../krAsset/IKreskoAsset.sol";
+import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
 import {Error} from "../../libs/Errors.sol";
 import {Math} from "../../libs/Math.sol";
 
