@@ -57,7 +57,7 @@ contract SafetyCouncilFacet is MinterModifiers, DiamondModifiers, ISafetyCouncil
                 enabled = true;
             }
             // Update the state for this asset
-            ms().safetyState[asset][Action.Deposit].pause = Pause(
+            ms().safetyState[asset][_action].pause = Pause(
                 willPause,
                 block.timestamp,
                 _withDuration ? block.timestamp + _duration : 0
