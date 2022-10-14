@@ -2,7 +2,6 @@ import { getLogger } from "@utils/deployment";
 import { fromBig } from "@utils/numbers";
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
-import { UIDataProviderFacet } from "types";
 
 task("initialize-viewer")
     .addOptionalParam("stakingAddr", "Address of Staking")
@@ -18,14 +17,9 @@ task("initialize-viewer")
             ? await ethers.getContractAt<Kresko>("KrStaking", stakingAddr)
             : await ethers.getContract<Kresko>("KrStaking");
 
-        // Initialize UIDataProvider
-        const facet = await hre.ethers.getContract<UIDataProviderFacet>("UIDataProviderFacet");
-        const initializerArgs = await facet.populateTransaction.initialize(Staking.address);
-        await hre.Diamond.upgradeState(initializerArgs.to, initializerArgs.data);
-
         if (log) {
             const [krAssets, collaterals, healthFactor, debtUSD, collateralUSD, minCollateralUSD] = (
-                await hre.Diamond.getAccountData(deployer, [])
+                await hre.Diamond.getAccountData(deployer, [], Staking.address)
             ).user;
 
             logger.log({

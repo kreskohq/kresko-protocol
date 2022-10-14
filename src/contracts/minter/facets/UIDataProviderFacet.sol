@@ -9,10 +9,8 @@ pragma solidity 0.8.14;
 /* solhint-disable avoid-low-level-calls */
 /* solhint-disable func-visibility */
 
-import {FixedPoint} from "../MinterTypes.sol";
-import {DiamondModifiers} from "../../shared/Modifiers.sol";
+import {ds, Error, Meta} from "../../shared/Modifiers.sol";
 import {LibUI, IKresko, IKrStaking, IUniswapV2Pair, IERC20Upgradeable, AggregatorV2V3Interface, ms} from "../libs/LibUI.sol";
-import "hardhat/console.sol";
 
 bytes32 constant UI_STORAGE_POSITION = keccak256("kresko.ui.storage");
 
@@ -20,20 +18,7 @@ struct UIState {
     IKrStaking staking;
 }
 
-function UI() pure returns (UIState storage state) {
-    bytes32 position = UI_STORAGE_POSITION;
-    assembly {
-        state.slot := position
-    }
-}
-
-contract UIDataProviderFacet is DiamondModifiers {
-    using FixedPoint for FixedPoint.Unsigned;
-
-    function initialize(IKrStaking _staking) external onlyOwner {
-        UI().staking = _staking;
-    }
-
+contract UIDataProviderFacet {
     function getGlobalData(address[] memory _collateralAssets, address[] memory _krAssets)
         external
         view
@@ -53,7 +38,11 @@ contract UIDataProviderFacet is DiamondModifiers {
         });
     }
 
-    function getAccountData(address _account, IERC20Upgradeable[] memory _tokens)
+    function getAccountData(
+        address _account,
+        address[] memory _tokens,
+        address _staking
+    )
         external
         view
         returns (
@@ -64,7 +53,7 @@ contract UIDataProviderFacet is DiamondModifiers {
     {
         user = LibUI.kreskoUser(_account);
         balances = LibUI.getBalances(_tokens, _account);
-        stakingData = LibUI.getStakingData(_account);
+        stakingData = LibUI.getStakingData(_account, _staking);
     }
 
     function getPairsData(address[] memory _pairAddresses) external view returns (LibUI.PairData[] memory result) {
@@ -84,7 +73,7 @@ contract UIDataProviderFacet is DiamondModifiers {
         }
     }
 
-    function batchPrices(address[] calldata _assets, AggregatorV2V3Interface[] calldata _oracles)
+    function batchPrices(address[] memory _assets, address[] memory _oracles)
         public
         view
         returns (LibUI.Price[] memory result)
@@ -92,37 +81,18 @@ contract UIDataProviderFacet is DiamondModifiers {
         return LibUI.batchPrices(_assets, _oracles);
     }
 
-    function getGenericInfo(
-        address _account,
-        address _asset,
-        AggregatorV2V3Interface oracle
-    ) external view returns (LibUI.GenericInfo memory result) {
-        IKresko kresko = IKresko(address(this));
-        result = LibUI.GenericInfo({
-            assetAddress: _asset,
-            depositAmount: kresko.collateralDeposits(_account, _asset),
-            debtAmount: kresko.kreskoAssetDebt(_account, _asset),
-            isKrAsset: kresko.krAssetExists(_asset),
-            isCollateral: kresko.collateralExists(_asset),
-            price: uint256(oracle.latestAnswer()),
-            kFactor: kresko.kreskoAssets(_asset).kFactor,
-            cFactor: kresko.collateralAssets(_asset).factor,
-            walletBalance: IERC20Upgradeable(_asset).balanceOf(_account)
-        });
-    }
-
     function getTokenData(
-        IERC20Upgradeable[] memory _allTokens,
-        address[] calldata _assets,
-        AggregatorV2V3Interface[] calldata _oracles
+        address[] memory _allTokens,
+        address[] memory _assets,
+        address[] memory _oracles
     ) external view returns (LibUI.TokenMetadata[] memory metadatas, LibUI.Price[] memory prices) {
         metadatas = new LibUI.TokenMetadata[](_allTokens.length);
         for (uint256 i; i < _allTokens.length; i++) {
             metadatas[i] = LibUI.TokenMetadata({
-                decimals: _allTokens[i].decimals(),
-                name: _allTokens[i].name(),
-                symbol: _allTokens[i].symbol(),
-                totalSupply: _allTokens[i].totalSupply()
+                decimals: IERC20Upgradeable(_allTokens[i]).decimals(),
+                name: IERC20Upgradeable(_allTokens[i]).name(),
+                symbol: IERC20Upgradeable(_allTokens[i]).symbol(),
+                totalSupply: IERC20Upgradeable(_allTokens[i]).totalSupply()
             });
         }
         prices = LibUI.batchPrices(_assets, _oracles);
