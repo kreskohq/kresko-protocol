@@ -7,10 +7,9 @@ import { withFixture } from "@utils/test";
 import { executeContractCallWithSigners } from "@utils/gnosis/utils/execution";
 
 describe.only("Council", function () {
-    withFixture("minter-with-mocks");
+    withFixture(["minter-test", "integration"]);
     beforeEach(async function () {
         this.collateral = this.collaterals[0];
-        console.log( this.collateral)
         this.initialBalance = toBig(100000);
         await this.collateral.mocks.contract.setVariable("_balances", {
             [users.userOne.address]: this.initialBalance,
@@ -29,34 +28,168 @@ describe.only("Council", function () {
             amount: toBig(10000),
         };
     });
-
    
     describe("#toggleAssetsPaused", () => {
-        it("can toggle different asset functionality to be paused", async function () {
+        describe("toggle all possible actions: DEPOSIT, WITHDRAW, REPAY, BORROW, LIQUIDATION", () => {
+            it("can toggle action DEPOSIT pause status on and off", async function () {
+                const { deployer, devTwo, extOne } = await hre.ethers.getNamedSigners();
 
-            const { deployer, devTwo, extOne } = await hre.ethers.getNamedSigners();
+                await executeContractCallWithSigners(
+                    hre.Multisig,
+                    hre.Diamond,
+                    "toggleAssetsPaused",
+                    [[this.collateral.address], Action.DEPOSIT, true, 0],
+                    [deployer, devTwo, extOne],
+                );
 
-            await executeContractCallWithSigners(
-                hre.Multisig,
-                hre.Diamond,
-                "toggleAssetsPaused",
-                [[this.collateral.address], Action.DEPOSIT, true, 0],
-                [deployer, devTwo, extOne],
-            );
+                let isPaused = await hre.Diamond.assetActionPaused(
+                    Action.DEPOSIT.toString(),
+                    this.collateral.address,
+                );
+                expect(isPaused).to.equal(true);
 
-            const isDepositPaused = await hre.Diamond.assetActionPaused(
-                Action.DEPOSIT.toString(),
-                this.collateral.address,
-            );
-            expect(isDepositPaused).to.equal(true);
+                await executeContractCallWithSigners(
+                    hre.Multisig,
+                    hre.Diamond,
+                    "toggleAssetsPaused",
+                    [[this.collateral.address], Action.DEPOSIT, false, 0],
+                    [deployer, devTwo, extOne],
+                );
 
-            // await expect(
-            //     hre.Diamond.connect(this.depositArgs.user).depositCollateral(
-            //         this.depositArgs.user.address,
-            //         this.collateral.contract.address,
-            //         0,
-            //     ),
-            // ).to.be.revertedWith(Error.ZERO_DEPOSIT);
+                isPaused = await hre.Diamond.assetActionPaused(
+                    Action.DEPOSIT.toString(),
+                    this.collateral.address,
+                );
+                expect(isPaused).to.equal(false);
+            });
+
+            it("can toggle action WITHDRAW pause status on and off", async function () {
+                const { deployer, devTwo, extOne } = await hre.ethers.getNamedSigners();
+
+                await executeContractCallWithSigners(
+                    hre.Multisig,
+                    hre.Diamond,
+                    "toggleAssetsPaused",
+                    [[this.collateral.address], Action.WITHDRAW, true, 0],
+                    [deployer, devTwo, extOne],
+                );
+
+                let isPaused = await hre.Diamond.assetActionPaused(
+                    Action.WITHDRAW.toString(),
+                    this.collateral.address,
+                );
+                expect(isPaused).to.equal(true);
+
+                await executeContractCallWithSigners(
+                    hre.Multisig,
+                    hre.Diamond,
+                    "toggleAssetsPaused",
+                    [[this.collateral.address], Action.WITHDRAW, false, 0],
+                    [deployer, devTwo, extOne],
+                );
+
+                isPaused = await hre.Diamond.assetActionPaused(
+                    Action.WITHDRAW.toString(),
+                    this.collateral.address,
+                );
+                expect(isPaused).to.equal(false);
+            });
+
+            it("can toggle action REPAY pause status on and off", async function () {
+                const { deployer, devTwo, extOne } = await hre.ethers.getNamedSigners();
+
+                await executeContractCallWithSigners(
+                    hre.Multisig,
+                    hre.Diamond,
+                    "toggleAssetsPaused",
+                    [[this.collateral.address], Action.REPAY, true, 0],
+                    [deployer, devTwo, extOne],
+                );
+
+                let isPaused = await hre.Diamond.assetActionPaused(
+                    Action.REPAY.toString(),
+                    this.collateral.address,
+                );
+                expect(isPaused).to.equal(true);
+
+                await executeContractCallWithSigners(
+                    hre.Multisig,
+                    hre.Diamond,
+                    "toggleAssetsPaused",
+                    [[this.collateral.address], Action.REPAY, false, 0],
+                    [deployer, devTwo, extOne],
+                );
+
+                isPaused = await hre.Diamond.assetActionPaused(
+                    Action.REPAY.toString(),
+                    this.collateral.address,
+                );
+                expect(isPaused).to.equal(false);
+            });
+
+            it("can toggle action BORROW pause status on and off", async function () {
+                const { deployer, devTwo, extOne } = await hre.ethers.getNamedSigners();
+
+                await executeContractCallWithSigners(
+                    hre.Multisig,
+                    hre.Diamond,
+                    "toggleAssetsPaused",
+                    [[this.collateral.address], Action.BORROW, true, 0],
+                    [deployer, devTwo, extOne],
+                );
+
+                let isPaused = await hre.Diamond.assetActionPaused(
+                    Action.BORROW.toString(),
+                    this.collateral.address,
+                );
+                expect(isPaused).to.equal(true);
+
+                await executeContractCallWithSigners(
+                    hre.Multisig,
+                    hre.Diamond,
+                    "toggleAssetsPaused",
+                    [[this.collateral.address], Action.BORROW, false, 0],
+                    [deployer, devTwo, extOne],
+                );
+
+                isPaused = await hre.Diamond.assetActionPaused(
+                    Action.BORROW.toString(),
+                    this.collateral.address,
+                );
+                expect(isPaused).to.equal(false);
+            });
+
+            it("can toggle action LIQUIDATION pause status on and off", async function () {
+                const { deployer, devTwo, extOne } = await hre.ethers.getNamedSigners();
+
+                await executeContractCallWithSigners(
+                    hre.Multisig,
+                    hre.Diamond,
+                    "toggleAssetsPaused",
+                    [[this.collateral.address], Action.LIQUIDATION, true, 0],
+                    [deployer, devTwo, extOne],
+                );
+
+                let isPaused = await hre.Diamond.assetActionPaused(
+                    Action.LIQUIDATION.toString(),
+                    this.collateral.address,
+                );
+                expect(isPaused).to.equal(true);
+
+                await executeContractCallWithSigners(
+                    hre.Multisig,
+                    hre.Diamond,
+                    "toggleAssetsPaused",
+                    [[this.collateral.address], Action.LIQUIDATION, false, 0],
+                    [deployer, devTwo, extOne],
+                );
+
+                isPaused = await hre.Diamond.assetActionPaused(
+                    Action.LIQUIDATION.toString(),
+                    this.collateral.address,
+                );
+                expect(isPaused).to.equal(false);
+            });
         });
     });
 });
