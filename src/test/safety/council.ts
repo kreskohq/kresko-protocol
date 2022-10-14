@@ -9,7 +9,7 @@ import {
 } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 import { MinterEvent__factory } from "types";
 
-describe.only("Council", function () {
+describe.only("Safety Council", function () {
     withFixture(["minter-test", "integration"]);
     beforeEach(async function () {
         this.collateral = this.collaterals[0];
@@ -31,7 +31,7 @@ describe.only("Council", function () {
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.collateral.address], Action.DEPOSIT, true, 0],
+                    [[this.collateral.address], Action.DEPOSIT, false, 0],
                     [this.deployer, this.devTwo, this.extOne],
                 );
 
@@ -47,7 +47,7 @@ describe.only("Council", function () {
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.collateral.address], Action.DEPOSIT, true, 0],
+                    [[this.collateral.address], Action.DEPOSIT, false, 0],
                     [this.deployer, this.devTwo, this.extOne, this.extTwo],
                 );
 
@@ -63,7 +63,7 @@ describe.only("Council", function () {
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.collateral.address], Action.DEPOSIT, true, 0],
+                    [[this.collateral.address], Action.DEPOSIT, false, 0],
                     [this.deployer, this.devTwo, this.extOne, this.extTwo, this.extThree],
                 );
 
@@ -79,7 +79,7 @@ describe.only("Council", function () {
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.collateral.address], Action.DEPOSIT, true, 0],
+                    [[this.collateral.address], Action.DEPOSIT, false, 0],
                     [this.deployer, this.devTwo],
                 )).to.be.revertedWith("");
 
@@ -97,7 +97,7 @@ describe.only("Council", function () {
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.collateral.address], Action.DEPOSIT, true, 0],
+                    [[this.collateral.address], Action.DEPOSIT, false, 0],
                     [this.deployer, this.devTwo, this.extOne],
                 );
 
@@ -113,7 +113,7 @@ describe.only("Council", function () {
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.krAsset.address], Action.REPAY, true, 0],
+                    [[this.krAsset.address], Action.REPAY, false, 0],
                     [this.deployer, this.devTwo, this.extOne],
                 );
 
@@ -131,7 +131,7 @@ describe.only("Council", function () {
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[randomAddr], Action.DEPOSIT, true, 0],
+                    [[randomAddr], Action.DEPOSIT, false, 0],
                     [this.deployer, this.devTwo, this.extOne],
                 )).to.be.revertedWith("");
 
@@ -143,9 +143,64 @@ describe.only("Council", function () {
             });
         });
 
-        describe("time", () => {
-            it("", async function () {
-                // TODO:
+        describe.only("duration based pausing", () => {
+            it("can optionally set a timeout on a given pause command", async function () {
+                const duration = 100000000;
+
+                await executeContractCallWithSigners(
+                    hre.Multisig,
+                    hre.Diamond,
+                    "toggleAssetsPaused",
+                    [[this.collateral.address], Action.DEPOSIT, true, duration],
+                    [this.deployer, this.devTwo, this.extOne],
+                );
+
+                const depositSafetyState = await hre.Diamond.safetyStateFor(this.collateral.address, Action.DEPOSIT);
+                expect(depositSafetyState.length).to.equal(1);
+                // Blocktime timestamp + duration should be equal to final timestamp
+                expect(depositSafetyState[0].timestamp0.add(duration)).eq(depositSafetyState[0].timestamp1)
+            });
+
+            // TODO: should the protocol be updated to use duration based pausing, we can test it at the end of this function
+            it("duration based pause functionality should expire after the duration has passed [PLACEHOLDER]", async function () {
+                const duration = 100000;
+
+                await executeContractCallWithSigners(
+                    hre.Multisig,
+                    hre.Diamond,
+                    "toggleAssetsPaused",
+                    [[this.collateral.address], Action.DEPOSIT, true, duration],
+                    [this.deployer, this.devTwo, this.extOne],
+                );
+
+                const depositSafetyState = await hre.Diamond.safetyStateFor(this.collateral.address, Action.DEPOSIT);
+                expect(depositSafetyState.length).to.equal(1);
+
+                // Blocktime timestamp + duration should be equal to final timestamp
+                expect(depositSafetyState[0].timestamp0.add(duration)).eq(depositSafetyState[0].timestamp1)
+
+                // Confirm that the current blocktime is within the pause action's duration
+                const blockNumBefore = await hre.ethers.provider.getBlockNumber();
+                const blockBefore = await hre.ethers.provider.getBlock(blockNumBefore);
+                const timestampBefore = blockBefore.timestamp;
+                expect(Number(depositSafetyState[0].timestamp1)).to.be.greaterThan(timestampBefore)
+
+                // Increase time by seven days
+                const sevenDays = 7 * 24 * 60 * 60;
+                await hre.ethers.provider.send('evm_increaseTime', [sevenDays]);
+                await hre.ethers.provider.send('evm_mine', []);
+
+                // Confirm that block time has increased as expected
+                const blockNumAfter = await hre.ethers.provider.getBlockNumber();
+                const blockAfter = await hre.ethers.provider.getBlock(blockNumAfter);
+                const timestampAfter = blockAfter.timestamp;
+                expect(blockNumAfter).to.be.equal(blockNumBefore + 1);
+                expect(timestampAfter).to.be.equal(timestampBefore + sevenDays);
+
+                // Confirm that the current blocktime is after the pause action's duration
+                expect(timestampAfter).to.be.greaterThan(Number(depositSafetyState[0].timestamp1))
+
+                 // NOTE: now we can test any functionality that should have now expired
             });
         });
 
@@ -155,7 +210,7 @@ describe.only("Council", function () {
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.collateral.address], Action.DEPOSIT, true, 0],
+                    [[this.collateral.address], Action.DEPOSIT, false, 0],
                     [this.deployer, this.devTwo, this.extOne],
                 );
 
@@ -185,7 +240,7 @@ describe.only("Council", function () {
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.collateral.address], Action.WITHDRAW, true, 0],
+                    [[this.collateral.address], Action.WITHDRAW, false, 0],
                     [this.deployer, this.devTwo, this.extOne],
                 );
 
@@ -215,7 +270,7 @@ describe.only("Council", function () {
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.collateral.address], Action.REPAY, true, 0],
+                    [[this.collateral.address], Action.REPAY, false, 0],
                     [this.deployer, this.devTwo, this.extOne],
                 );
 
@@ -245,7 +300,7 @@ describe.only("Council", function () {
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.collateral.address], Action.BORROW, true, 0],
+                    [[this.collateral.address], Action.BORROW, false, 0],
                     [this.deployer, this.devTwo, this.extOne],
                 );
 
@@ -275,7 +330,7 @@ describe.only("Council", function () {
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.collateral.address], Action.LIQUIDATION, true, 0],
+                    [[this.collateral.address], Action.LIQUIDATION, false, 0],
                     [this.deployer, this.devTwo, this.extOne],
                 );
 
@@ -307,7 +362,7 @@ describe.only("Council", function () {
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.collateral.address], Action.DEPOSIT, true, 0],
+                    [[this.collateral.address], Action.DEPOSIT, false, 0],
                     [this.deployer, this.devTwo, this.extOne],
                 );
 
