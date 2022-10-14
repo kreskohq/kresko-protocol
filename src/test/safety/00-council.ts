@@ -357,7 +357,7 @@ describe("Safety Council", function () {
         });
 
         describe("event emission", () => {
-            it("should emit event MinterEvent.SafetyStateChange on action changed containing action, asset, ", async function () {
+            it("should emit event MinterEvent.SafetyStateChange on action changed containing action, asset, and description", async function () {
                 const tx = await executeContractCallWithSigners(
                     hre.Multisig,
                     hre.Diamond,
