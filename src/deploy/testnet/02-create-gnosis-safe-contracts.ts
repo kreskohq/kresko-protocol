@@ -12,8 +12,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const logger = getLogger("gnosis-safe-contracts-for-tests");
 
-
-
     if(hre.network.name == "opgoerli") {
         const config = testnetConfigs[hre.network.name];
         const gnosisSafeDeployments = config.gnosisSafeDeployments;

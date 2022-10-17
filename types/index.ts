@@ -1,3 +1,5 @@
+import { Address } from "@kreskolabs/hardhat-deploy/types";
+
 export * from "./typechain";
 export { Kresko } from "./Kresko";
 export type Fixtures = "diamond";
@@ -33,9 +35,22 @@ export type NetworkConfig = {
         rewardTokenAmounts: number[];
         rewardsPerBlock: number[];
         stakingPools: StakingPoolConfig[];
+        gnosisSafeDeployments?: GnosisSafeDeployment[];
     };
 };
+
 export type MinterInitializer<A> = {
     name: string;
     args: A;
 };
+
+export type GnosisSafeDeployment = {
+    defaultAddress: Address;
+    released: boolean;
+    contractName: string;
+    version: string;
+    networkAddresses: {
+        opgoerli: string;
+    };
+    abi: any;
+}
