@@ -129,5 +129,8 @@
     "packageManager": "pnpm@7.11.0",
     "workspaces": [
         "packages/contracts"
-    ]
+    ],
+    "dependencies": {
+        "@gnosis.pm/safe-deployments": "safe-global/safe-deployments#main"
+    }
 }

@@ -17,6 +17,7 @@ specifiers:
   '@ethersproject/providers': ^5.6.8
   '@ethersproject/solidity': ^5.6.1
   '@ethersproject/units': ^5.7.0
+  '@gnosis.pm/safe-deployments': safe-global/safe-deployments#main
   '@kreskolabs/configs': ^1.3.3
   '@kreskolabs/gnosis-safe-contracts': 1.3.3
   '@kreskolabs/hardhat-deploy': ^2.2.0
@@ -81,6 +82,9 @@ specifiers:
   typescript: ^4.7.2
   web3: ^1.7.4
 
+dependencies:
+  '@gnosis.pm/safe-deployments': github.com/safe-global/safe-deployments/f99230316242b49fa35693f6afd770c74b198c30
+
 devDependencies:
   '@codechecks/client': 0.1.12_typescript@4.8.4
   '@commitlint/cli': 12.1.4
@@ -105,7 +109,7 @@ devDependencies:
   '@openzeppelin/contracts': 4.7.3
   '@openzeppelin/contracts-upgradeable': 4.7.3
   '@openzeppelin/test-helpers': 0.5.16
-  '@panukresko/hardhat': 0.3.1_2bdytvoba7cafufhnzt53hwiym
+  '@panukresko/hardhat': 0.3.1_hxw5dsgvhdlftutz32cmbwsh6y
   '@rari-capital/solmate': 6.4.0
   '@solidity-parser/parser': 0.14.3
   '@solidstate/hardhat-4byte-uploader': 1.0.2_hardhat@2.11.2
@@ -536,7 +540,7 @@ packages:
     dependencies:
       '@resolver-engine/imports': 0.3.3
       '@resolver-engine/imports-fs': 0.3.3
-      '@typechain/ethers-v5': 2.0.0_hvhmgvgv65f7ns5nchpmx3azgq
+      '@typechain/ethers-v5': 2.0.0_typechain@3.0.0
       '@types/mkdirp': 0.5.2
       '@types/node-fetch': 2.6.2
       ethers: 5.7.1
@@ -1399,12 +1403,10 @@ packages:
       ts-interface-checker: 0.1.13
     dev: true
 
-  /@panukresko/hardhat-anvil/0.3.1_2bdytvoba7cafufhnzt53hwiym:
+  /@panukresko/hardhat-anvil/0.3.1_53bcvfa7ua5tuy3gznjdxknfe4:
     resolution: {integrity: sha512-S81RzoJC08A1qWZpfYc/yjxdtil/xgQUizfvx2LdfC7IhuIXdC1stYi+bUBR4NOdEF/a+9KF8gQTCxWZfA+75w==}
     peerDependencies:
-      '@nomiclabs/hardhat-ethers': npm:hardhat-deploy-ethers@^0.3.0-beta.13
       ethereum-waffle: ^3.2.0
-      ethers: ^5.6.8
       hardhat: ^2.9.9
     dependencies:
       '@nomiclabs/hardhat-ethers': /hardhat-deploy-ethers/0.3.0-beta.13_liuail6phkx7un26teqxcf6yx4
@@ -1420,15 +1422,15 @@ packages:
       hardhat: 2.11.2_mwhvu7sfp6vq5ryuwb6hlbjfka
       ts-interface-checker: 0.1.13
     transitivePeerDependencies:
+      - bufferutil
       - supports-color
+      - utf-8-validate
     dev: true
 
-  /@panukresko/hardhat-forge/0.3.1_2bdytvoba7cafufhnzt53hwiym:
+  /@panukresko/hardhat-forge/0.3.1_53bcvfa7ua5tuy3gznjdxknfe4:
     resolution: {integrity: sha512-rG40F67rDpbhIsufXuqMzyg2wjMaH1wD2reh+zPGbZxUi0MUHGrr9kuhWLB5faqWN9IIiEw4d1HTWBHSZ+uQ/w==}
     peerDependencies:
-      '@nomiclabs/hardhat-ethers': npm:hardhat-deploy-ethers@^0.3.0-beta.13
       ethereum-waffle: ^3.2.0
-      ethers: ^5.6.8
       hardhat: ^2.9.9
     dependencies:
       '@nomiclabs/hardhat-ethers': /hardhat-deploy-ethers/0.3.0-beta.13_liuail6phkx7un26teqxcf6yx4
@@ -1446,21 +1448,22 @@ packages:
       true-case-path: 2.2.1
       ts-interface-checker: 0.1.13
     transitivePeerDependencies:
+      - bufferutil
       - supports-color
+      - utf-8-validate
     dev: true
 
-  /@panukresko/hardhat/0.3.1_2bdytvoba7cafufhnzt53hwiym:
+  /@panukresko/hardhat/0.3.1_hxw5dsgvhdlftutz32cmbwsh6y:
     resolution: {integrity: sha512-f8Nn+zue5sy1opOcCNQqtz8ABYhHlW+vna3ZZUYUbHl28vSp78UfzP7ad5kGpQdKRbnrAzkl4xOKMph6Jr0mYQ==}
     peerDependencies:
       '@nomiclabs/hardhat-ethers': npm:hardhat-deploy-ethers@^0.3.0-beta.13
       ethereum-waffle: ^3.2.0
-      ethers: ^5.6.8
       hardhat: ^2.9.9
     dependencies:
       '@nomiclabs/hardhat-ethers': /hardhat-deploy-ethers/0.3.0-beta.13_liuail6phkx7un26teqxcf6yx4
       '@panukresko/easy-foundryup': 0.3.1
-      '@panukresko/hardhat-anvil': 0.3.1_2bdytvoba7cafufhnzt53hwiym
-      '@panukresko/hardhat-forge': 0.3.1_2bdytvoba7cafufhnzt53hwiym
+      '@panukresko/hardhat-anvil': 0.3.1_53bcvfa7ua5tuy3gznjdxknfe4
+      '@panukresko/hardhat-forge': 0.3.1_53bcvfa7ua5tuy3gznjdxknfe4
       '@types/sinon-chai': 3.2.8
       '@types/web3': 1.0.19
       camelcase-keys: 7.0.2
@@ -1470,7 +1473,9 @@ packages:
       hardhat: 2.11.2_mwhvu7sfp6vq5ryuwb6hlbjfka
       ts-interface-checker: 0.1.13
     transitivePeerDependencies:
+      - bufferutil
       - supports-color
+      - utf-8-validate
     dev: true
 
   /@rari-capital/solmate/6.4.0:
@@ -1837,14 +1842,16 @@ packages:
       typescript: 4.8.4
     dev: true
 
-  /@typechain/ethers-v5/2.0.0_hvhmgvgv65f7ns5nchpmx3azgq:
+  /@typechain/ethers-v5/2.0.0_typechain@3.0.0:
     resolution: {integrity: sha512-0xdCkyGOzdqh4h5JSf+zoWx85IusEjDcPIwNEHP8mrWSnCae4rvrqB+/gtpdNfX7zjlFlZiMeePn2r63EI3Lrw==}
     peerDependencies:
-      ethers: ^5.0.0
       typechain: ^3.0.0
     dependencies:
       ethers: 5.7.1
       typechain: 3.0.0_typescript@4.8.4
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
     dev: true
 
   /@typechain/hardhat/6.1.3_hdc77mquumuyu4r5wip4q5ohha:
@@ -4263,8 +4270,8 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
     dependencies:
-      JSONStream: 1.3.5
       is-text-path: 1.0.1
+      JSONStream: 1.3.5
       lodash: 4.17.21
       meow: 8.1.2
       split2: 3.2.2
@@ -8372,7 +8379,6 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       yallist: 4.0.0
-    dev: true
 
   /lru_map/0.3.3:
     resolution: {integrity: sha512-Pn9cox5CsMYngeDbmChANltQl+5pi6XmTrraMSzhPmMBbmgcxmqWry0U3PGapCU1yB4/LqCcom7qhHZiF/jGfQ==}
@@ -10480,7 +10486,6 @@ packages:
     hasBin: true
     dependencies:
       lru-cache: 6.0.0
-    dev: true
 
   /send/0.18.0:
     resolution: {integrity: sha512-qqWzuOjSFOuqPjFe4NOsMLafToQQwBSOEpS+FwEt3A2V3vKubTquT3vmLTQpFgMXp8AlFWFuP1qKaJZOtPpVXg==}
@@ -13192,7 +13197,6 @@ packages:
 
   /yallist/4.0.0:
     resolution: {integrity: sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==}
-    dev: true
 
   /yaml/1.10.2:
     resolution: {integrity: sha512-r3vXyErRCYJ7wg28yvBY5VSoAF8ZvlcW9/BwUzEtUsjvX/DKs24dIkuwjtuprwJJHsbyUbLApepYTR1BN4uHrg==}
@@ -13315,3 +13319,13 @@ packages:
       bn.js: 4.12.0
       ethereumjs-util: 6.2.1
     dev: true
+
+  github.com/safe-global/safe-deployments/f99230316242b49fa35693f6afd770c74b198c30:
+    resolution: {tarball: https://codeload.github.com/safe-global/safe-deployments/tar.gz/f99230316242b49fa35693f6afd770c74b198c30}
+    name: '@gnosis.pm/safe-deployments'
+    version: 1.16.0
+    prepare: true
+    requiresBuild: true
+    dependencies:
+      semver: 7.3.8
+    dev: false
