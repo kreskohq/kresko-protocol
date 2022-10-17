@@ -18,7 +18,6 @@ import type {
     CollateralDepositedEventObject,
     CollateralWithdrawnEventObject,
 } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
-import { time } from "@nomicfoundation/hardhat-network-helpers";
 
 describe("Minter", function () {
     let users: Users;
@@ -48,7 +47,7 @@ describe("Minter", function () {
         };
     });
 
-    describe.only("#collateral", function () {
+    describe("#collateral", function () {
         describe("#deposit", () => {
             it("should allow an account to deposit whitelisted collateral", async function () {
                 // Account has no deposited assets
@@ -500,22 +499,15 @@ describe("Minter", function () {
                             .true;
                     });
 
-                    it.only("should allow withdraws that exceed deposits and only send the user total deposit available", async function () {
-                        const debt2 = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
-                        const debtIndex = await hre.Diamond.getNormalizedDebtIndex(this.krAsset.address);
-                        console.log(fromBig(debt2), fromBig(this.mintAmount), fromBig(debtIndex));
+                    it("should allow withdraws that exceed deposits and only send the user total deposit available", async function () {
                         const userOneInitialCollateralBalance = await this.collateral.contract.balanceOf(
                             users.userOne.address,
                         );
-                        // await time.increase(100);
-                        const debt = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
-                        const dcc = await hre.Diamond.getNormalizedDebtIndex(this.krAsset.address);
-                        console.log(fromBig(debt), fromBig(this.mintAmount), fromBig(dcc));
                         // First repay Kresko assets so we can withdraw all collateral
                         await hre.Diamond.connect(users.userOne).burnKreskoAsset(
                             users.userOne.address,
                             this.krAsset.address,
-                            hre.ethers.constants.MaxUint256,
+                            this.mintAmount,
                             0,
                         );
 

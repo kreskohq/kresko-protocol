@@ -162,7 +162,25 @@ library LibAccount {
         if (debt == 0) {
             return 0;
         }
-        return debt.rayMul(irs().configs[_asset].getNormalizedDebtIndex());
+        return debt.rayMul(irs().srAssets[_asset].getNormalizedDebtIndex());
+    }
+
+    /**
+     * @notice Get the total interest accrued on top of debt
+     * @return The interest balance of @param _account denominated in @param _asset
+     **/
+    function getKreskoAssetDebtInterest(
+        MinterState storage self,
+        address _account,
+        address _asset
+    ) internal view returns (uint256) {
+        uint256 debt = IKreskoAssetAnchor(self.kreskoAssets[_asset].anchor).convertToAssets(
+            self.kreskoAssetDebt[_account][_asset]
+        );
+        if (debt == 0) {
+            return 0;
+        }
+        return debt.rayMul(irs().srAssets[_asset].getNormalizedDebtIndex()) - debt;
     }
 
     /**

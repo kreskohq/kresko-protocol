@@ -2,41 +2,74 @@
 pragma solidity >=0.8.14;
 
 import {WadRay} from "../../libs/WadRay.sol";
-import {LibInterestRate} from "../libs/LibInterestRate.sol";
-import {AssetConfig, InterestRateMode} from "../InterestRateState.sol";
+import {LibStabilityRate} from "../libs/LibStabilityRate.sol";
+import {SRateAsset} from "../InterestRateState.sol";
 import {ms} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";
+import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
+import {DiamondModifiers} from "../../shared/Modifiers.sol";
+import "hardhat/console.sol";
 
-/**
- * @title VariableDebtToken
- * @notice Implements a variable debt token to track the borrowing positions of users
- * at variable rate mode
- * @author Aave
- **/
-contract InterestRateFacet {
+contract StabilityRateFacet is DiamondModifiers {
     using WadRay for uint256;
-    using LibInterestRate for AssetConfig;
+    using LibStabilityRate for SRateAsset;
 
-    function getNormalizedDebtIndex(address asset) external view returns (uint256) {
-        return irs().configs[asset].getNormalizedDebtIndex();
+    struct SRateConfig {
+        uint128 debtRateBase;
+        uint128 reserveFactor;
+        uint128 rateSlope1;
+        uint128 rateSlope2;
+        uint128 optimalPriceRate;
+        uint128 excessPriceRateDelta;
     }
 
-    function configure(address asset) external {
-        // mode = InterestRateMode.AMM;
-        irs().configs[asset] = AssetConfig({
-            liquidityIndex: uint128(WadRay.ray()),
-            debtIndex: uint128(WadRay.ray()),
-            debtRateBase: uint128(WadRay.ray()),
+    function getCalculatedSRates(address _asset) external view returns (uint256, uint256) {
+        return irs().srAssets[_asset].calculateStabilityRates();
+    }
+
+    function getSRateIndex(address _asset) external view returns (uint256) {
+        return irs().srAssets[_asset].getNormalizedDebtIndex();
+    }
+
+    function initSRateAsset(address _asset, SRateConfig memory _config) external onlyOwner {
+        require(irs().srAssets[_asset].asset == address(0), "Stability rates already initialized");
+        require(WadRay.RAY >= _config.optimalPriceRate, "Invalid optimal rate");
+        require(WadRay.RAY >= _config.excessPriceRateDelta, "Invalid excess rate");
+
+        irs().srAssets[_asset] = SRateAsset({
+            liquidityIndex: uint128(WadRay.RAY),
+            debtIndex: uint128(WadRay.RAY),
+            debtRateBase: _config.debtRateBase,
             lastUpdateTimestamp: uint40(block.timestamp),
-            underlyingAsset: asset,
-            reserveFactor: uint128(0),
-            rateSlope1: uint128(WadRay.ray() * 1),
-            rateSlope2: uint128(WadRay.ray() * 20),
-            optimalPriceRate: uint128(WadRay.ray() * 40),
-            excessPriceRate: uint128(WadRay.ray() * 50),
-            debtRate: uint128(WadRay.ray()),
-            liquidityRate: uint128(WadRay.ray())
+            asset: _asset,
+            reserveFactor: _config.reserveFactor,
+            rateSlope1: _config.rateSlope1,
+            rateSlope2: _config.rateSlope2,
+            optimalPriceRate: _config.optimalPriceRate,
+            excessPriceRateDelta: _config.excessPriceRateDelta,
+            debtRate: uint128(WadRay.RAY),
+            liquidityRate: uint128(WadRay.RAY)
         });
+    }
+
+    function configureSRateAsset(address _asset, SRateConfig memory _config) external onlyOwner {
+        require(irs().srAssets[_asset].asset == _asset, "Stability rates not initialized");
+        require(WadRay.RAY >= _config.optimalPriceRate, "Invalid optimal rate");
+        require(WadRay.RAY >= _config.excessPriceRateDelta, "Invalid excess rate");
+        irs().srAssets[_asset].reserveFactor = _config.reserveFactor;
+        irs().srAssets[_asset].rateSlope1 = _config.rateSlope1;
+        irs().srAssets[_asset].rateSlope2 = _config.rateSlope2;
+        irs().srAssets[_asset].optimalPriceRate = _config.optimalPriceRate;
+        irs().srAssets[_asset].excessPriceRateDelta = _config.excessPriceRateDelta;
+    }
+
+    function getSRateAssetConfiguration(address _asset) external view returns (SRateAsset memory) {
+        return irs().srAssets[_asset];
+    }
+
+    function getTotalStabilityFeeAccrued(address _asset) external view returns (uint256) {
+        uint256 totalSupply = IERC20Upgradeable(_asset).totalSupply();
+        return totalSupply.rayMul(irs().srAssets[_asset].getNormalizedDebtIndex()) - totalSupply;
     }
 
     // /**
@@ -44,7 +77,7 @@ contract InterestRateFacet {
     //  * @return The debt balance of the user
     //  **/
     // function accumulatedDebt(address _user, address _asset) external view returns (uint256) {
-    //     return irs().configs[_asset].getAccumulatedDebt(_user, _asset);
+    //     return irs().sRates[_asset].getAccumulatedDebt(_user, _asset);
     // }
 
     // /**

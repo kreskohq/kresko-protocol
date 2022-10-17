@@ -133,7 +133,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         KrAsset memory krAsset = s.kreskoAssets[_repayKreskoAsset];
 
         // Update liquidity and debt indexes
-        irs().configs[_repayKreskoAsset].updateIndexes();
+        irs().srAssets[_repayKreskoAsset].updateSRIndexes();
 
         // Subtract repaid Kresko assets from liquidated user's recorded debt.
         s.kreskoAssetDebt[_account][_repayKreskoAsset] -= IKreskoAssetAnchor(krAsset.anchor).destroy(
@@ -142,7 +142,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         );
 
         // Update interest rates
-        irs().configs[_repayKreskoAsset].updateInterestRates(0, 0);
+        irs().srAssets[_repayKreskoAsset].updateSRates();
 
         // If the liquidation repays the user's entire Kresko asset balance, remove it from minted assets array.
         if (s.kreskoAssetDebt[_account][_repayKreskoAsset] == 0) {

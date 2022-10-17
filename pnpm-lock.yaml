@@ -20,7 +20,7 @@ specifiers:
   '@kreskolabs/configs': ^1.3.3
   '@kreskolabs/gnosis-safe-contracts': 1.3.3
   '@kreskolabs/hardhat-deploy': ^2.2.0
-  '@kreskolabs/lib': ^1.4.3
+  '@kreskolabs/lib': ^1.5.2
   '@kreskolabs/openzeppelin-diamond': ^2.0.0
   '@nomicfoundation/hardhat-network-helpers': ^1.0.6
   '@nomiclabs/hardhat-ethers': npm:hardhat-deploy-ethers@^0.3.0-beta.13
@@ -98,7 +98,7 @@ devDependencies:
   '@kreskolabs/configs': 1.3.3
   '@kreskolabs/gnosis-safe-contracts': 1.3.3_ethers@5.7.1
   '@kreskolabs/hardhat-deploy': 2.2.0
-  '@kreskolabs/lib': 1.4.3
+  '@kreskolabs/lib': 1.5.2
   '@kreskolabs/openzeppelin-diamond': 2.0.0
   '@nomicfoundation/hardhat-network-helpers': 1.0.6_hardhat@2.11.2
   '@nomiclabs/hardhat-ethers': /hardhat-deploy-ethers/0.3.0-beta.13_liuail6phkx7un26teqxcf6yx4
@@ -978,6 +978,10 @@ packages:
     resolution: {integrity: sha512-ttqVrVLFG6gp9xgSpR11CVBiZ0/JK6SRXW4ESn+znGfawOvZ+xMjyyZFoi226+oFqLwuF8+9r2TEgEtK1sPEpA==}
     dev: true
 
+  /@kreskolabs/configs/1.3.4:
+    resolution: {integrity: sha512-c5ESswnKNMPKz/FEimtaNmeUQmrnHZMivDJUQnvs1/OXZPQzYL2CIgv6VZUk8GiugFDKXhoXzjn5zKgh8K4Mxg==}
+    dev: true
+
   /@kreskolabs/gnosis-safe-contracts/1.3.3_ethers@5.7.1:
     resolution: {integrity: sha512-spH/p5fI3nIOxm2sKiGfRQDN6VqcNS9R/oIrgYgHj7FNvEonpGjscoSOvF2oWi7o9W5hVXFHNay7G4SiqYIgPQ==}
     peerDependencies:
@@ -1008,13 +1012,13 @@ packages:
       - utf-8-validate
     dev: true
 
-  /@kreskolabs/lib/1.4.3:
-    resolution: {integrity: sha512-kn5jKwmylFJDxX3a9vpJ67CUE4rhtovtYchM9J6SSvgN3pHmMVva9H0+Rz0wNXFayguWmld9wp787p0l3raAcQ==}
+  /@kreskolabs/lib/1.5.2:
+    resolution: {integrity: sha512-YPH+M2zrJkB9ApPkU9+fY3P00Fup0ymvOfS6UoKYR72l2J8USIAjViIjHEo0rpn05NtDYFvQcpQHcoWndetz4g==}
     dependencies:
       '@ethersproject/abstract-signer': 5.7.0
       '@ethersproject/contracts': 5.7.0
       '@ethersproject/providers': 5.7.1
-      '@kreskolabs/configs': 1.3.3
+      '@kreskolabs/configs': 1.3.4
       '@types/node-fetch': 2.6.2
       ethereum-block-by-date: 1.4.6
     transitivePeerDependencies:

@@ -1,14 +1,40 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
-import {LibInterestRate} from "./libs/LibInterestRate.sol";
+import {LibStabilityRate} from "./libs/LibStabilityRate.sol";
 
-enum InterestRateMode {
-    PREMIUM,
-    UTILIZATION
+using LibStabilityRate for SRateAsset global;
+
+struct SRateAsset {
+    // Interest index for debt
+    uint128 debtIndex;
+    // Represents the optimal price rate between an oracle report and an AMM twap
+    uint128 optimalPriceRate;
+    // Slope of the variable interest curve when rate > 0 and <= optimalPriceRate.
+    // Expressed in ray
+    uint128 rateSlope1;
+    // Slope of the variable interest curve when rate > optimalPriceRate.
+    // Expressed in ray
+    uint128 rateSlope2;
+    /**
+     * Represents the excess price premium in either direction.
+     * Expressed in ray
+     * Eg. 1/20 ray = 5% price premium in either direction is considered excess
+     **/
+    uint128 excessPriceRateDelta;
+    // Current accrual rate for debt
+    uint128 debtRate;
+    // Base accrual rate for debt
+    uint128 debtRateBase;
+    // Interest index for debt supply - not used yet
+    uint128 liquidityIndex;
+    // Rate for debt supply - not used yet
+    uint128 liquidityRate;
+    uint128 reserveFactor;
+    address asset;
+    uint40 lastUpdateTimestamp;
 }
-using LibInterestRate for AssetConfig global;
 
-struct AssetConfig {
+struct URateAsset {
     uint128 debtIndex;
     uint128 optimalPriceRate;
     /**
@@ -26,12 +52,13 @@ struct AssetConfig {
     uint128 liquidityIndex;
     uint128 liquidityRate;
     uint128 reserveFactor;
-    address underlyingAsset;
+    address asset;
     uint40 lastUpdateTimestamp;
 }
 
 struct InterestRateState {
-    mapping(address => AssetConfig) configs;
+    mapping(address => SRateAsset) srAssets;
+    mapping(address => SRateAsset) urAssets;
 }
 
 // Storage position

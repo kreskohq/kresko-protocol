@@ -48,7 +48,7 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
         toFixedPoint(openFee),
     );
     await krAsset.grantRole(roles.OPERATOR, akrAsset.address);
-    await hre.Diamond.configure(krAsset.address);
+    await hre.Diamond.initSRateAsset(krAsset.address, defaultKrAssetArgs.stabilityRates);
 
     const krAssetHasOperator = await krAsset.hasRole(roles.OPERATOR, hre.Diamond.address);
     const akrAssetHasOperator = await akrAsset.hasRole(roles.OPERATOR, hre.Diamond.address);

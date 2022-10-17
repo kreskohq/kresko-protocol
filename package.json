@@ -23,7 +23,7 @@
         "@kreskolabs/configs": "^1.3.3",
         "@kreskolabs/gnosis-safe-contracts": "1.3.3",
         "@kreskolabs/hardhat-deploy": "^2.2.0",
-        "@kreskolabs/lib": "^1.4.3",
+        "@kreskolabs/lib": "^1.5.2",
         "@kreskolabs/openzeppelin-diamond": "^2.0.0",
         "@nomicfoundation/hardhat-network-helpers": "^1.0.6",
         "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@^0.3.0-beta.13",

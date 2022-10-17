@@ -98,6 +98,8 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IActionFacet {
         require(_amount > 0, Error.ZERO_MINT);
 
         MinterState storage s = ms();
+        // Update interest rate indexes
+        irs().srAssets[_kreskoAsset].updateSRIndexes();
 
         if (s.safetyStateSet) {
             ensureNotPaused(_kreskoAsset, Action.Borrow);
@@ -105,9 +107,6 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IActionFacet {
 
         // Enforce krAsset's total supply limit
         KrAsset memory krAsset = s.kreskoAssets[_kreskoAsset];
-
-        // Update interest rate indexes
-        irs().configs[_kreskoAsset].updateIndexes();
 
         require(
             IKreskoAsset(_kreskoAsset).totalSupply() + _amount <= krAsset.supplyLimit,
@@ -152,11 +151,12 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IActionFacet {
         if (existingDebtAmount == 0) {
             s.mintedKreskoAssets[_account].push(_kreskoAsset);
         }
+
         // Record the mint.
         s.kreskoAssetDebt[_account][_kreskoAsset] += IKreskoAssetAnchor(krAsset.anchor).issue(_amount, _account);
 
-        // Update interest rates
-        irs().configs[_kreskoAsset].updateInterestRates(0, 0);
+        // Update stability rates
+        irs().srAssets[_kreskoAsset].updateSRates();
 
         emit MinterEvent.KreskoAssetMinted(_account, _kreskoAsset, _amount);
     }
@@ -178,12 +178,12 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IActionFacet {
         require(_burnAmount > 0, Error.ZERO_BURN);
         MinterState storage s = ms();
 
+        // Update stability rate indexes
+        irs().srAssets[_kreskoAsset].updateSRIndexes();
+
         if (s.safetyStateSet) {
             ensureNotPaused(_kreskoAsset, Action.Repay);
         }
-
-        // Update interest rate indexes
-        irs().configs[_kreskoAsset].updateIndexes();
 
         uint256 debtAmount = s.getKreskoAssetDebt(_account, _kreskoAsset);
         if (_burnAmount != type(uint256).max) {
@@ -209,8 +209,8 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IActionFacet {
             msg.sender
         );
 
-        // Update interest rates
-        irs().configs[_kreskoAsset].updateInterestRates(0, 0);
+        // Update stability rates
+        irs().srAssets[_kreskoAsset].updateSRates();
 
         emit MinterEvent.KreskoAssetBurned(_account, _kreskoAsset, _burnAmount);
     }
