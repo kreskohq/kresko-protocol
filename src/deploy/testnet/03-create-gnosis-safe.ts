@@ -22,7 +22,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     // Local mastercopy
     const MasterCopy = await ethers.getContract<GnosisSafeL2>("GnosisSafeL2");
-    const ReentrancyGuard = await ethers.getContract("ReentrancyTransactionGuard");
+    // const ReentrancyGuard = await ethers.getContract("ReentrancyTransactionGuard");
     // Multisig users
     const safeUsers = [deployer, devTwo, extOne, extTwo, extThree];
 
@@ -56,13 +56,13 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     });
 
     // Test utility to execute the multisig upgrade
-    await executeContractCallWithSigners(
-        SafeProxy,
-        SafeProxy,
-        "setGuard",
-        [ReentrancyGuard.address],
-        [deployer, devTwo, extOne],
-    );
+    // await executeContractCallWithSigners(
+    //     SafeProxy,
+    //     SafeProxy,
+    //     "setGuard",
+    //     [ReentrancyGuard.address],
+    //     [deployer, devTwo, extOne],
+    // );
 
     logger.success("Multisig succesfully deployed through proxyFactory @", SafeProxy.address);
     hre.Multisig = SafeProxy;
