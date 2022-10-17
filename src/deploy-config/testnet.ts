@@ -1,5 +1,17 @@
 import { getPriceFromCoinGecko, getPriceFromTwelveData, toBig } from "@kreskolabs/lib";
-import type { Asset, NetworkConfig, StakingPoolConfig } from "types";
+import type { Asset, NetworkConfig, StakingPoolConfig, GnosisSafeDeployment } from "types";
+
+import {
+    CompatibilityFallbackHandler,
+    CreateCall,
+    GnosisSafeL2,
+    GnosisSafe,
+    MultiSendCallOnly,
+    MultiSend,
+    ProxyFactory,
+    SignMessageLib,
+    SimulateTxAccessor,
+} from "./gnosis-safe"
 
 export const assets: { [asset: string]: Asset } = {
     DAI: {
@@ -198,6 +210,18 @@ const defaultStakingPools: StakingPoolConfig[] = [
     },
 ];
 
+const defaultGnosisSafeDeploymentsOPGoerli: GnosisSafeDeployment[] = [
+    CompatibilityFallbackHandler,
+    CreateCall,
+    GnosisSafeL2,
+    GnosisSafe,
+    MultiSendCallOnly,
+    MultiSend,
+    ProxyFactory,
+    SignMessageLib,
+    SimulateTxAccessor,
+];
+
 export const testnetConfigs: NetworkConfig = {
     hardhat: {
         protocolParams: defaultParams,
@@ -282,6 +306,7 @@ export const testnetConfigs: NetworkConfig = {
         rewardTokens: [assets.DAI, assets.OP],
         rewardTokenAmounts: [100_000_000, 100_000_000],
         rewardsPerBlock: [0.1, 0.075],
+        gnosisSafeDeployments: defaultGnosisSafeDeploymentsOPGoerli,
     },
     auroratest: {
         protocolParams: defaultParams,
