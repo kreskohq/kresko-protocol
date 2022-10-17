@@ -17,7 +17,6 @@ specifiers:
   '@ethersproject/providers': ^5.6.8
   '@ethersproject/solidity': ^5.6.1
   '@ethersproject/units': ^5.7.0
-  '@gnosis.pm/safe-deployments': git+ssh://git@github.com/safe-global/safe-deployments
   '@kreskolabs/configs': ^1.3.3
   '@kreskolabs/gnosis-safe-contracts': 1.3.3
   '@kreskolabs/hardhat-deploy': ^2.2.0
@@ -81,9 +80,6 @@ specifiers:
   typechain: ^8.1.0
   typescript: ^4.7.2
   web3: ^1.7.4
-
-dependencies:
-  '@gnosis.pm/safe-deployments': github.com/safe-global/safe-deployments/f99230316242b49fa35693f6afd770c74b198c30
 
 devDependencies:
   '@codechecks/client': 0.1.12_typescript@4.8.4
@@ -8375,6 +8371,7 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       yallist: 4.0.0
+    dev: true
 
   /lru_map/0.3.3:
     resolution: {integrity: sha512-Pn9cox5CsMYngeDbmChANltQl+5pi6XmTrraMSzhPmMBbmgcxmqWry0U3PGapCU1yB4/LqCcom7qhHZiF/jGfQ==}
@@ -10481,6 +10478,7 @@ packages:
     hasBin: true
     dependencies:
       lru-cache: 6.0.0
+    dev: true
 
   /send/0.18.0:
     resolution: {integrity: sha512-qqWzuOjSFOuqPjFe4NOsMLafToQQwBSOEpS+FwEt3A2V3vKubTquT3vmLTQpFgMXp8AlFWFuP1qKaJZOtPpVXg==}
@@ -13191,6 +13189,7 @@ packages:
 
   /yallist/4.0.0:
     resolution: {integrity: sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==}
+    dev: true
 
   /yaml/1.10.2:
     resolution: {integrity: sha512-r3vXyErRCYJ7wg28yvBY5VSoAF8ZvlcW9/BwUzEtUsjvX/DKs24dIkuwjtuprwJJHsbyUbLApepYTR1BN4uHrg==}
@@ -13313,13 +13312,3 @@ packages:
       bn.js: 4.12.0
       ethereumjs-util: 6.2.1
     dev: true
-
-  github.com/safe-global/safe-deployments/f99230316242b49fa35693f6afd770c74b198c30:
-    resolution: {tarball: https://codeload.github.com/safe-global/safe-deployments/tar.gz/f99230316242b49fa35693f6afd770c74b198c30}
-    name: '@gnosis.pm/safe-deployments'
-    version: 1.16.0
-    prepare: true
-    requiresBuild: true
-    dependencies:
-      semver: 7.3.8
-    dev: false
