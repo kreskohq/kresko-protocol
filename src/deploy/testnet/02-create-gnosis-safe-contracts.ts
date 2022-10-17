@@ -1,57 +1,84 @@
 import { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import { getLogger } from "@kreskolabs/lib/dist/utils";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import {
-    getProxyFactoryDeployment,
-    getDefaultCallbackHandlerDeployment,
-    getCompatibilityFallbackHandlerDeployment,
-    getCreateCallDeployment,
-    getMultiSendDeployment,
-    getMultiSendCallOnlyDeployment,
-    getSignMessageLibDeployment,
-    getSafeSingletonDeployment,
-    getSafeL2SingletonDeployment
-} from "@gnosis.pm/safe-deployments";
+import { testnetConfigs } from "@deploy-config/testnet";
+
+// import { ReentrancyGuard } from "../../../artifacts/@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-    const { deployments, getNamedAccounts } = hre;
+    const { deployments, getNamedAccounts, ethers } = hre;
     const { deployer } = await getNamedAccounts();
     const { deploy } = deployments;
 
     const logger = getLogger("gnosis-safe-contracts-for-tests");
 
-    // Each deployment method takes an optional DeploymentFilter as a parameter:
-    //
-    // interface DeploymentFilter {
-    //     version?: string,
-    //     released?: boolean, // Defaults to true if no filter is specified
-    //     network?: string // Chain id of the network
-    // }
 
-    // const GoerliNetworkParams = { network: "420", version: "1.0.0" }
 
-    // const proxyFactory = getProxyFactoryDeployment(GoerliNetworkParams)
-    // const defaultCallbackHandler = getDefaultCallbackHandlerDeployment(GoerliNetworkParams)
-    // const compatibilityFallbackHandler = getCompatibilityFallbackHandlerDeployment(GoerliNetworkParams)
-    // const createCallLib = getCreateCallDeployment(GoerliNetworkParams)
-    // const multiSendLib = getMultiSendDeployment(GoerliNetworkParams)
-    // const multiSendCallOnlyLib = getMultiSendCallOnlyDeployment(GoerliNetworkParams)
-    // const signMessageLib = getSignMessageLibDeployment(GoerliNetworkParams)
-    // const gnosisSafeSingleton = getSafeSingletonDeployment(GoerliNetworkParams)
-    // getSimulateTxAccesorDeployment available in latest 'main' branch but not v1.3.0 deployment
-    // const simulateTxAccessor = getSimulateTxAccesorDeployment(GoerliNetworkParams)
+    if(hre.network.name == "opgoerli") {
+        const config = testnetConfigs[hre.network.name];
+        const gnosisSafeDeployments = config.gnosisSafeDeployments;
 
-    // gnosisSafeL2Singleton: gnosisSafe version with additional events used on L2 networks
-    const gnosisSafeL2Singleton = getSafeL2SingletonDeployment({ network: "5" })
-    console.log(gnosisSafeL2Singleton)
+        const simulateTxAccesorInfo = gnosisSafeDeployments.find(i => i.contractName === "SimulateTxAccesor");
+        await deployments.save("SimulateTxAccessor", {
+            abi: simulateTxAccesorInfo.abi,
+            address: simulateTxAccesorInfo.networkAddresses.opgoerli,
+        });
 
-    // TODO: no ReentrancyTransactionGuard replacement
-    // await deploy("ReentrancyTransactionGuard", {
-    //     from: deployer,
-    //     args: [],
-    //     log: true,
-    //     deterministicDeployment: true,
-    // });
+        const gnosisSafeProxyFactoryInfo = gnosisSafeDeployments.find(i => i.contractName === "GnosisSafeProxyFactory");
+        await deployments.save("GnosisSafeProxyFactory", {
+            abi: gnosisSafeProxyFactoryInfo.abi,
+            address: gnosisSafeProxyFactoryInfo.networkAddresses.opgoerli,
+        });
+
+        const compatibilityFallbackHandlerInfo = gnosisSafeDeployments.find(i => i.contractName === "CompatibilityFallbackHandler");
+        await deployments.save("CompatibilityFallbackHandler", {
+            abi: compatibilityFallbackHandlerInfo.abi,
+            address: compatibilityFallbackHandlerInfo.networkAddresses.opgoerli,
+        });
+
+        const createCallInfo = gnosisSafeDeployments.find(i => i.contractName === "CreateCall");
+        await deployments.save("CreateCall", {
+            abi: createCallInfo.abi,
+            address: createCallInfo.networkAddresses.opgoerli,
+        });
+
+        const multiSendInfo = gnosisSafeDeployments.find(i => i.contractName === "MultiSend");
+        await deployments.save("MultiSend", {
+            abi: multiSendInfo.abi,
+            address: multiSendInfo.networkAddresses.opgoerli,
+        });
+
+        const multiSendCallOnlyInfo = gnosisSafeDeployments.find(i => i.contractName === "MultiSendCallOnly");
+        await deployments.save("MultiSendCallOnly", {
+            abi: multiSendCallOnlyInfo.abi,
+            address: multiSendCallOnlyInfo.networkAddresses.opgoerli,
+        });
+
+        const signMessageLibInfo = gnosisSafeDeployments.find(i => i.contractName === "SignMessageLib");
+        await deployments.save("SignMessageLib", {
+            abi: signMessageLibInfo.abi,
+            address: signMessageLibInfo.networkAddresses.opgoerli,
+        });
+
+        const gnosisSafeL2Info = gnosisSafeDeployments.find(i => i.contractName === "GnosisSafeL2");
+        await deployments.save("GnosisSafeL2", {
+            abi: gnosisSafeL2Info.abi,
+            address: gnosisSafeL2Info.networkAddresses.opgoerli,
+        });
+
+        // // No ReentrancyTransactionGuard contract so we'll deploy it manually
+        // const reentrancyTransactionGuardName = "ReentrancyGuard"
+        // const ReentrancyTransactionGuardArtifact = await hre.deployments.getOrNull(reentrancyTransactionGuardName);
+        // let ReentrancyTransactionGuardContract: Contract;
+        // // Deploy the ReentrancyTransactionGuard contract if it does not exist
+        // if (!ReentrancyTransactionGuardArtifact) {
+        //     [ReentrancyTransactionGuardContract] = await hre.deploy(reentrancyTransactionGuardName, { from: deployer, log: true });
+        //     await deployments.save("ReentrancyTransactionGuard", {
+        //         abi: ReentrancyTransactionGuardArtifact.abi,
+        //         address:   ReentrancyTransactionGuardContract.address,
+        //     });
+        // }
+    }
 
     logger.success("safe contracts succesfully deployed");
 };
