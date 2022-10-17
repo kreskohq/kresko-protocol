@@ -130,7 +130,4 @@
     "workspaces": [
         "packages/contracts"
     ],
-    "dependencies": {
-        "@gnosis.pm/safe-deployments": "git+ssh://git@github.com/safe-global/safe-deployments"
-    }
 }
