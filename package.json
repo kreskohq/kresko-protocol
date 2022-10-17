@@ -129,5 +129,5 @@
     "packageManager": "pnpm@7.11.0",
     "workspaces": [
         "packages/contracts"
-    ],
+    ]
 }
