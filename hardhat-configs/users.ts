@@ -87,4 +87,7 @@ export const users = {
     extThree: {
         default: 51,
     },
+    funder: {
+        default: 52,
+    },
 };
