@@ -144,6 +144,8 @@ library LibUI {
         uint256 price;
         string symbol;
         string name;
+        FixedPoint.Unsigned openFee;
+        FixedPoint.Unsigned closeFee;
     }
 
     function getBalances(address[] memory _tokens, address account) internal view returns (Balance[] memory balances) {
@@ -322,6 +324,8 @@ library LibUI {
                     assetAddress: assetAddress,
                     oracleAddress: address(krAsset.oracle),
                     anchorAddress: krAsset.anchor,
+                    openFee: krAsset.openFee,
+                    closeFee: krAsset.closeFee,
                     amount: amount,
                     amountUSD: amountUSD,
                     index: i,

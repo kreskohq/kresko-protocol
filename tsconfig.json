@@ -1,6 +1,5 @@
 {
     "extends": "ts-node/node16/tsconfig.json",
-    "ts-node": { "files": true, "transpileOnly": true },
     "exclude": ["packages", "temp", "node_modules"],
     "compilerOptions": {
         "declaration": true,
@@ -29,5 +28,6 @@
             "@scripts/*": ["src/scripts/*"],
             "@test-utils": ["src/utils/test"]
         }
-    }
+    },
+    "ts-node": { "files": true, "transpileOnly": true }
 }

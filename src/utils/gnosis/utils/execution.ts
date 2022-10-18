@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-extra-non-null-assertion */
 import { Contract, utils, BigNumber, BigNumberish, Signer, PopulatedTransaction } from "ethers";
 import { TypedDataSigner } from "@ethersproject/abstract-signer";
-import { AddressZero } from "@ethersproject/constants";
+import { constants } from "ethers";
 import { GnosisSafeL2 } from "types";
 
 export const EIP_DOMAIN = {
@@ -264,8 +264,8 @@ export const buildSafeTransaction = (template: {
         safeTxGas: template.safeTxGas || 0,
         baseGas: template.baseGas || 0,
         gasPrice: template.gasPrice || 0,
-        gasToken: template.gasToken || AddressZero,
-        refundReceiver: template.refundReceiver || AddressZero,
+        gasToken: template.gasToken || constants.AddressZero,
+        refundReceiver: template.refundReceiver || constants.AddressZero,
         nonce: template.nonce,
     };
 };
