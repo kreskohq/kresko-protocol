@@ -812,6 +812,179 @@
     {
       "inputs": [
         {
+          "internalType": "address",
+          "name": "_account",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_kreskoAsset",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_burnAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_mintedKreskoAssetIndex",
+          "type": "uint256"
+        }
+      ],
+      "name": "burnKreskoAsset",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_account",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_collateralAsset",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "depositCollateral",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_account",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_kreskoAsset",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "mintKreskoAsset",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_account",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_collateralAsset",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_depositedCollateralAssetIndex",
+          "type": "uint256"
+        }
+      ],
+      "name": "withdrawCollateral",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_collateralAsset",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_anchor",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_factor",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_oracle",
+          "type": "address"
+        }
+      ],
+      "name": "addCollateralAsset",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_krAsset",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_anchor",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_kFactor",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_oracle",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_supplyLimit",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_closeFee",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_openFee",
+          "type": "uint256"
+        }
+      ],
+      "name": "addKreskoAsset",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "components": [
             {
               "internalType": "address",
@@ -855,6 +1028,235 @@
         }
       ],
       "name": "initialize",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_collateralAsset",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_anchor",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_factor",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_oracle",
+          "type": "address"
+        }
+      ],
+      "name": "updateCollateralAsset",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_feeRecipient",
+          "type": "address"
+        }
+      ],
+      "name": "updateFeeRecipient",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_krAsset",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_anchor",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_kFactor",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_oracle",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_supplyLimit",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_closeFee",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_openFee",
+          "type": "uint256"
+        }
+      ],
+      "name": "updateKreskoAsset",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_liquidationIncentiveMultiplier",
+          "type": "uint256"
+        }
+      ],
+      "name": "updateLiquidationIncentiveMultiplier",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_liquidationThreshold",
+          "type": "uint256"
+        }
+      ],
+      "name": "updateLiquidationThreshold",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_minimumCollateralizationRatio",
+          "type": "uint256"
+        }
+      ],
+      "name": "updateMinimumCollateralizationRatio",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_minimumDebtValue",
+          "type": "uint256"
+        }
+      ],
+      "name": "updateMinimumDebtValue",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_account",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_repayKreskoAsset",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_collateralAssetToSeize",
+          "type": "address"
+        }
+      ],
+      "name": "calculateMaxLiquidatableValueForAssets",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "rawValue",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct FixedPoint.Unsigned",
+          "name": "maxLiquidatableUSD",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_account",
+          "type": "address"
+        }
+      ],
+      "name": "isAccountLiquidatable",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_account",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_repayKreskoAsset",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_repayAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_collateralAssetToSeize",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_mintedKreskoAssetIndex",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_depositedCollateralAssetIndex",
+          "type": "uint256"
+        }
+      ],
+      "name": "liquidate",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
