@@ -16,7 +16,6 @@ temp/**/*
 types/**/*
 packages/**/*
 src/contracts/vendor/**/*
-src/contracts/test/**/*
 
 # files
 coverage.json
