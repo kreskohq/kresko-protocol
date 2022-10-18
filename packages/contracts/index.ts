@@ -13,8 +13,8 @@ export interface Export {
 }
 
 export type MultiExport = {
-    [chainId: string]: { [name: string]: Export };
-};
+    [chainId: string]: Export[];
+  };
 
 const deployments: MultiExport = deploymentsJson;
 
