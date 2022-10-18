@@ -1,4 +1,3 @@
-import hre from "hardhat";
 import { FacetCut, FacetCutAction } from "@kreskolabs/hardhat-deploy/dist/types";
 import { getLogger } from "@kreskolabs/lib/dist/utils";
 
@@ -12,8 +11,8 @@ type Args = {
 const logger = getLogger("remove-facet");
 
 export async function removeFacet({ name, initializerName, initializerArgs }: Args) {
-    const { ethers, deployments, users } = hre;
-    const { deployer } = users;
+    const { ethers, deployments, getUsers } = hre;
+    const { deployer } = await getUsers();
 
     /* -------------------------------------------------------------------------- */
     /*                                    Setup                                   */
@@ -39,7 +38,7 @@ export async function removeFacet({ name, initializerName, initializerArgs }: Ar
 
     // #3.2 Initialize the `FacetCut` object
     const FacetCut: FacetCut = {
-        facetAddress: hre.addr.ZERO,
+        facetAddress: ethers.constants.AddressZero,
         functionSelectors: selectorsToRemove,
         action: FacetCutAction.Remove,
     };

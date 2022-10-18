@@ -10,7 +10,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const logger = getLogger("gnosis-safe-contracts-for-tests");
 
-    switch(hre.network.name) {
+    switch (hre.network.name) {
         case "opgoerli": {
             const config = testnetConfigs[hre.network.name];
             const gnosisSafeDeployments = config.gnosisSafeDeployments;
@@ -21,13 +21,17 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
                 address: simulateTxAccesorInfo.networkAddresses.opgoerli,
             });
 
-            const gnosisSafeProxyFactoryInfo = gnosisSafeDeployments.find(i => i.contractName === "GnosisSafeProxyFactory");
+            const gnosisSafeProxyFactoryInfo = gnosisSafeDeployments.find(
+                i => i.contractName === "GnosisSafeProxyFactory",
+            );
             await deployments.save("GnosisSafeProxyFactory", {
                 abi: gnosisSafeProxyFactoryInfo.abi,
                 address: gnosisSafeProxyFactoryInfo.networkAddresses.opgoerli,
             });
 
-            const compatibilityFallbackHandlerInfo = gnosisSafeDeployments.find(i => i.contractName === "CompatibilityFallbackHandler");
+            const compatibilityFallbackHandlerInfo = gnosisSafeDeployments.find(
+                i => i.contractName === "CompatibilityFallbackHandler",
+            );
             await deployments.save("CompatibilityFallbackHandler", {
                 abi: compatibilityFallbackHandlerInfo.abi,
                 address: compatibilityFallbackHandlerInfo.networkAddresses.opgoerli,
@@ -85,70 +89,70 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
                 log: true,
                 deterministicDeployment: true,
             });
-        
+
             await deploy("GnosisSafeProxyFactory", {
                 from: deployer,
                 args: [],
                 log: true,
                 deterministicDeployment: true,
             });
-        
+
             await deploy("DefaultCallbackHandler", {
                 from: deployer,
                 args: [],
                 log: true,
                 deterministicDeployment: true,
             });
-        
+
             await deploy("CompatibilityFallbackHandler", {
                 from: deployer,
                 args: [],
                 log: true,
                 deterministicDeployment: true,
             });
-        
+
             await deploy("CreateCall", {
                 from: deployer,
                 args: [],
                 log: true,
                 deterministicDeployment: true,
             });
-        
+
             await deploy("MultiSend", {
                 from: deployer,
                 args: [],
                 log: true,
                 deterministicDeployment: true,
             });
-        
+
             await deploy("MultiSendCallOnly", {
                 from: deployer,
                 args: [],
                 log: true,
                 deterministicDeployment: true,
             });
-        
+
             await deploy("SignMessageLib", {
                 from: deployer,
                 args: [],
                 log: true,
                 deterministicDeployment: true,
             });
-        
+
             await deploy("GnosisSafe", {
                 from: deployer,
                 args: [],
                 log: true,
                 deterministicDeployment: true,
             });
-        
+
             await deploy("GnosisSafeL2", {
                 from: deployer,
                 args: [],
                 log: true,
                 deterministicDeployment: true,
             });
-        
+
             await deploy("ReentrancyTransactionGuard", {
                 from: deployer,
                 args: [],

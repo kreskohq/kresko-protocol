@@ -124,7 +124,9 @@
         "prettier": "prettier src --plugin=prettier-plugin-solidity --config ./.prettierrc --write \"**/*.{js,json,md,sol,ts}\"",
         "prettier:check": "prettier --plugin=prettier-plugin-solidity src --check --config ./.prettierrc \"**/*.{js,json,md,sol,ts}\"",
         "postinstall": "husky install",
-        "publish:contracts": "cd packages/contracts && npm run clean && cd ../.. && hardhat export --export-all packages/contracts/deployments/deployments.json && cp -a types/contracts packages/contracts/types && cd packages/contracts && npm run build && npm publish"
+        "publish:contracts": "cd packages/contracts && npm run clean && cd ../.. && hardhat export --export-all packages/contracts/deployments/deployments.json && cp -a types/typechain/src/contracts packages/contracts/types && cp types/typechain/hardhat-diamond-abi/HardhatDiamondAbi.sol/Kresko.ts packages/contracts/types && cd packages/contracts && npm run build && npm publish",
+        "remove-facet": "hardhat remove-facet",
+        "add-facet": "hardhat add-facet"
     },
     "packageManager": "pnpm@7.11.0",
     "workspaces": [
