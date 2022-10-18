@@ -11,7 +11,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         await hre.run("add-krasset", {
             symbol: krAsset.symbol,
             kFactor: krAsset.kFactor,
-            supplyLimit: 1_000_000,
+            supplyLimit: 2_000_000_000,
             oracleAddr: (await hre.ethers.getContract(krAsset.oracle.name)).address,
         });
     }

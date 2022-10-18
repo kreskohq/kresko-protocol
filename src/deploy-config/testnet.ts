@@ -82,7 +82,7 @@ export const assets: { [asset: string]: Asset } = {
         },
         cFactor: 0.9,
         kFactor: 1,
-        mintAmount: 1_000_000_000,
+        mintAmount: 500_000_000,
     },
     krETH: {
         name: "krETH",

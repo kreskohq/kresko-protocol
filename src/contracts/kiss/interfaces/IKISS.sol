@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
+pragma solidity >=0.8.14;
 
 interface IKISS {
-    function mint(address, uint256) external;
+    function operatorRoleTimestamp() external returns (uint256);
 
-    function burn(address, uint256) external;
+    function pendingOperator() external returns (address);
+
+    function kresko() external returns (address);
 }

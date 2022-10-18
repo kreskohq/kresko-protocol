@@ -5,6 +5,7 @@ import {IERC165} from "../../shared/IERC165.sol";
 import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
 import {IKreskoAssetAnchor} from "../../krAsset/IKreskoAssetAnchor.sol";
 import {IKreskoAsset} from "../../krAsset/IKreskoAsset.sol";
+import {IKreskoAssetIssuer} from "../../krAsset/IKreskoAssetIssuer.sol";
 import {IKISS} from "../../kiss/interfaces/IKISS.sol";
 
 import {IConfigurationFacet} from "../interfaces/IConfigurationFacet.sol";
@@ -84,7 +85,9 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
 
         bool krAsset = ms().kreskoAssets[_collateralAsset].exists;
         require(
-            !krAsset || IERC165(_anchor).supportsInterface(type(IKreskoAssetAnchor).interfaceId),
+            !krAsset ||
+                (IERC165(_collateralAsset).supportsInterface(type(IKISS).interfaceId)) ||
+                IERC165(_anchor).supportsInterface(type(IKreskoAssetIssuer).interfaceId),
             Error.KRASSET_INVALID_ANCHOR
         );
 
@@ -155,11 +158,11 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         require(_openFee <= Constants.MAX_OPEN_FEE, Error.PARAM_OPEN_FEE_TOO_HIGH);
 
         require(
-            IERC165(_krAsset).supportsInterface(type(IKreskoAsset).interfaceId) ||
-                IERC165(_krAsset).supportsInterface(type(IKISS).interfaceId),
+            IERC165(_krAsset).supportsInterface(type(IKISS).interfaceId) ||
+                IERC165(_krAsset).supportsInterface(type(IKreskoAsset).interfaceId),
             Error.KRASSET_INVALID_CONTRACT
         );
-        require(IERC165(_anchor).supportsInterface(type(IKreskoAssetAnchor).interfaceId), Error.KRASSET_INVALID_ANCHOR);
+        require(IERC165(_anchor).supportsInterface(type(IKreskoAssetIssuer).interfaceId), Error.KRASSET_INVALID_ANCHOR);
 
         // The diamond needs the operator role
         require(IKreskoAsset(_krAsset).hasRole(Role.OPERATOR, address(this)), Error.NOT_OPERATOR);
