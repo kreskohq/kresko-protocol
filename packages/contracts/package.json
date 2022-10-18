@@ -1,7 +1,7 @@
 {
     "name": "@kreskolabs/contracts",
     "description": "Typechain and contract deployments for front-end",
-    "version": "1.2.3",
+    "version": "1.3.0",
     "author": {
         "name": "Kresko Labs",
         "url": "https://www.kresko.fi"
@@ -15,7 +15,7 @@
         "typechain"
     ],
     "scripts": {
-        "build": "npx tsc && npm version patch",
+        "build": "npx tsc && npm version minor",
         "clean": "rm -rf deployments && rm -rf types"
     },
     "files": [
@@ -24,7 +24,7 @@
     "license": "ISC",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
-    "dependencies": {
+    "devDependencies": {
         "typescript": "^4.5.2"
     }
 }

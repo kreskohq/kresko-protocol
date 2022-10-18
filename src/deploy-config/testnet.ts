@@ -11,7 +11,7 @@ import {
     ProxyFactory,
     SignMessageLib,
     SimulateTxAccessor,
-} from "./gnosis-safe"
+} from "./gnosis-safe";
 
 export const assets: { [asset: string]: Asset } = {
     DAI: {
