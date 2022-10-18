@@ -33,7 +33,6 @@ task(TASK_NAME)
         }
 
         const Diamond = await ethers.getContractAt<Kresko>("Kresko", DiamondDeployment.address);
-        console.log("HELLOOO");
 
         // Single facet addition, maps all functions contained
         const [Facet, Signatures] = await hre.deploy(name, {

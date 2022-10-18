@@ -59,6 +59,8 @@ library LibUI {
         address anchorAddress;
         uint256 price;
         uint256 value;
+        FixedPoint.Unsigned openFee;
+        FixedPoint.Unsigned closeFee;
         FixedPoint.Unsigned kFactor;
         string symbol;
         string name;
@@ -233,6 +235,8 @@ library LibUI {
                 oracleAddress: address(krAsset.oracle),
                 anchorAddress: krAsset.anchor,
                 assetAddress: assetAddress,
+                closeFee: krAsset.closeFee,
+                openFee: krAsset.openFee,
                 kFactor: krAsset.kFactor,
                 price: uint256(krAsset.oracle.latestAnswer()),
                 symbol: IERC20Upgradeable(assetAddress).symbol(),
