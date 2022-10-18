@@ -8,6 +8,7 @@ export type Asset = {
     name: string;
     symbol: string;
     price: () => Promise<BigNumber>;
+    marketOpen: () => Promise<boolean>;
     oracle: {
         name: string;
         description: string;
