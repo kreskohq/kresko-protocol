@@ -214,7 +214,7 @@ library LibUI {
     {
         result = new Price[](_assets.length);
         for (uint256 i; i < _assets.length; i++) {
-            (uint80 roundId, int256 answer, , uint256 updatedAt, ) = AggregatorV2V3Interface(_oracles[i])
+            (uint80 roundId, int256 answer, , , uint256 updatedAt, ) = AggregatorV2V3Interface(_oracles[i])
                 .latestRoundData();
             result[i] = Price(uint256(answer), updatedAt, _assets[i], roundId);
         }

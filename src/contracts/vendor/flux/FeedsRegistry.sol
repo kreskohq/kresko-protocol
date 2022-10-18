@@ -65,7 +65,7 @@ contract FeedsRegistry is AccessControl {
         if (feed == address(0)) {
             return 0;
         }
-        (, int256 price, , , ) = AggregatorV3Interface(feed).latestRoundData();
+        (, int256 price, , , , ) = AggregatorV3Interface(feed).latestRoundData();
         return uint256(price);
     }
 
