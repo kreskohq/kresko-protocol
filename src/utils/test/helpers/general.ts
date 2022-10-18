@@ -20,8 +20,9 @@ export const getMockOracleFor = async (assetName = "Asset", price = defaultOracl
     return [PriceAggregator, Oracle] as const;
 };
 
-export const setPrice = (oracle: MockContract<FluxPriceAggregator>, price: number) => {
-    oracle.latestAnswer.returns(hre.toBig(price, 8));
+export const setPrice = (oracles: any, price: number) => {
+    oracles.priceFeed.latestAnswer.returns(hre.toBig(price, 8));
+    oracles.priceAggregator.latestAnswer.returns(hre.toBig(price, 8));
 };
 
 export const getHealthFactor = async (user: SignerWithAddress) => {

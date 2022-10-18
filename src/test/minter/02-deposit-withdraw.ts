@@ -432,7 +432,7 @@ describe("Minter", function () {
 
                         this.mcr = await hre.Diamond.minimumCollateralizationRatio();
                         const debt2 = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
-                        const debtIndex = await hre.Diamond.getNormalizedDebtIndex(this.krAsset.address);
+                        const debtIndex = await hre.Diamond.getSRateIndex(this.krAsset.address);
                         console.log(fromBig(debt2), fromBig(this.mintAmount), debtIndex);
                     });
 

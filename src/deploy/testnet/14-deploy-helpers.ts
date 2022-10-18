@@ -7,7 +7,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await hre.run("initialize-viewer", { log: true });
     const logger = getLogger("Deployment", true);
 
-    logger.success("Deployment successfull");
+    logger.success("Helpers deployed and initialized");
 };
 
 func.tags = ["testnet", "helpers"];

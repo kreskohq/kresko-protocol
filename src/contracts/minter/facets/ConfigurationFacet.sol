@@ -63,6 +63,10 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         emit GeneralEvent.Initialized(args.operator, 1);
     }
 
+    function setAmmOracle(address _ammOracle) external onlyOwner {
+        ms().ammOracle = _ammOracle;
+    }
+
     /**
      * @notice Adds a collateral asset to the protocol.
      * @dev Only callable by the owner and cannot be called more than once for an asset.

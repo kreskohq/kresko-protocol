@@ -2,6 +2,7 @@
 pragma solidity >=0.8.14;
 
 import {FixedPoint} from "../../libs/FixedPoint.sol";
+import {IUniswapV2Oracle} from "../interfaces/IUniswapV2Oracle.sol";
 import {KrAsset} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
 
@@ -43,6 +44,14 @@ library LibKrAsset {
         }
 
         return value;
+    }
+
+    function getKrAssetAMMPrice(
+        MinterState storage self,
+        address _kreskoAsset,
+        uint256 _amount
+    ) internal view returns (FixedPoint.Unsigned memory) {
+        return FixedPoint.Unsigned(IUniswapV2Oracle(self.ammOracle).consultKrAsset(_kreskoAsset, _amount));
     }
 
     /**

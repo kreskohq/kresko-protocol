@@ -41,8 +41,15 @@ export const addMockCollateralAsset = async (
         priceFeed: FluxPriceFeed__factory.connect(Oracle.address, users.deployer),
         deployArgs: args,
         mocks,
-        setPrice: price => setPrice(OracleAggregator, price),
+        setPrice: price => setPrice(mocks, price),
         getPrice: () => OracleAggregator.latestAnswer(),
+        setBalance: async (user, amount) => {
+            const totalSupply = await Collateral.totalSupply();
+            await mocks.contract.setVariable("_totalSupply", totalSupply.add(amount));
+            await mocks.contract.setVariable("_balances", {
+                [user.address]: amount,
+            });
+        },
         update: update => updateCollateralAsset(Collateral.address, update),
     };
     const found = hre.collaterals.findIndex(c => c.address === asset.address);

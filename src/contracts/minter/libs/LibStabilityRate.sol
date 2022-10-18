@@ -4,11 +4,13 @@ pragma solidity >=0.8.14;
 import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
 import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
 
+import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 import {Percentages} from "../../libs/Percentages.sol";
+import {LibKrAsset} from "../libs/LibKrAsset.sol";
 import {SRateAsset} from "../InterestRateState.sol";
-
 import {ms} from "../MinterStorage.sol";
+import "hardhat/console.sol";
 
 /* solhint-disable not-rely-on-time */
 
@@ -17,6 +19,7 @@ library LibStabilityRate {
     using WadRay for uint128;
     using Percentages for uint256;
     using Percentages for uint128;
+    using FixedPoint for FixedPoint.Unsigned;
 
     /// @dev Ignoring leap years
     uint256 internal constant SECONDS_PER_YEAR = 365 days;
@@ -29,7 +32,7 @@ library LibStabilityRate {
         uint256 newLiquidityIndex = asset.liquidityIndex;
         uint256 newDebtIndex = asset.debtIndex;
 
-        //only cumulating if there is any income being produced
+        // only cumulating if there is any income being produced
         if (asset.liquidityRate > 0) {
             uint256 cumulatedLiquidityInterest = asset.calculateLinearInterest();
             newLiquidityIndex = cumulatedLiquidityInterest.rayMul(asset.liquidityIndex);
@@ -63,29 +66,43 @@ library LibStabilityRate {
         asset.debtRate = uint128(newDebtRate);
     }
 
+    function getPriceRate(SRateAsset storage asset) internal view returns (uint256) {
+        FixedPoint.Unsigned memory oraclePrice = ms().getKrAssetValue(asset.asset, 1 ether, true);
+        FixedPoint.Unsigned memory ammPrice = ms().getKrAssetAMMPrice(asset.asset, 1 ether);
+        return ammPrice.div(oraclePrice).div(10).rawValue;
+    }
+
     function calculateStabilityRates(SRateAsset storage asset) internal view returns (uint256, uint256) {
         IKreskoAsset krAsset = IKreskoAsset(asset.asset);
 
-        uint256 totalDebt = krAsset.totalSupply();
-
         uint256 currentDebtRate = 0;
-        uint256 priceRate = WadRay.RAY * 50;
+        uint256 priceRate = asset.getPriceRate();
         // priceRate = totalDebt == 0 ? 0 : totalDebt.rayDiv(availableLiquidity.add(totalDebt));
 
-        // Calculate current values
+        // If premium is high
         if (priceRate > asset.optimalPriceRate + asset.excessPriceRateDelta) {
-            uint256 excessPriceRateRatio = (priceRate - asset.optimalPriceRate.rayDiv(asset.excessPriceRateDelta));
-
-            currentDebtRate = asset.debtRateBase + asset.rateSlope1 + (asset.rateSlope2.rayMul(excessPriceRateRatio));
+            uint256 excessRate = priceRate - asset.optimalPriceRate;
+            currentDebtRate =
+                asset.debtRateBase.rayDiv(priceRate.percentMul(125e2)) +
+                ((asset.optimalPriceRate - excessRate).rayMul(asset.rateSlope1));
+            // If premium is low
+        } else if (priceRate < asset.optimalPriceRate - asset.excessPriceRateDelta) {
+            uint256 multiplier = (asset.optimalPriceRate - priceRate).rayDiv(asset.excessPriceRateDelta);
+            currentDebtRate =
+                (asset.debtRateBase + asset.rateSlope1) +
+                asset.optimalPriceRate.rayMul(multiplier).rayMul(asset.rateSlope2);
+            // If premium is within optimal range
         } else {
-            currentDebtRate = asset.debtRateBase + (priceRate.rayMul(asset.rateSlope1).rayDiv(asset.optimalPriceRate));
+            currentDebtRate = asset.debtRateBase + (priceRate.rayMul(asset.rateSlope1));
         }
 
+        uint256 totalDebt = krAsset.totalSupply().wadToRay();
         // Get new overall debt rate
-        uint256 weightedRate = totalDebt.wadToRay().rayMul(currentDebtRate);
-        uint256 currentLiquidityRate = weightedRate.rayDiv(totalDebt.wadToRay()).rayMul(priceRate).percentMul(
-            Percentages.PERCENTAGE_FACTOR - asset.reserveFactor
-        );
+        uint256 weightedRate = totalDebt.rayMul(currentDebtRate);
+        uint256 currentLiquidityRate = weightedRate.rayDiv(totalDebt).rayMul(priceRate);
+        // uint256 currentLiquidityRate = weightedRate.rayDiv(totalDebt.wadToRay()).rayMul(priceRate).percentMul(
+        //     Percentages.PERCENTAGE_FACTOR - asset.reserveFactor
+        // );
 
         return (currentLiquidityRate, currentDebtRate);
     }

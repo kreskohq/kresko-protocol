@@ -75,7 +75,14 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
         priceFeed: FluxPriceFeed__factory.connect(Oracle.address, users.deployer),
         mocks,
         anchor: KreskoAssetAnchor__factory.connect(akrAsset.address, users.deployer),
-        setPrice: price => setPrice(OracleAggregator, price),
+        setPrice: price => setPrice(mocks, price),
+        setBalance: async (user, amount) => {
+            const totalSupply = await krAsset.totalSupply();
+            await mocks.contract.setVariable("_totalSupply", totalSupply.add(amount));
+            await mocks.contract.setVariable("_balances", {
+                [user.address]: amount,
+            });
+        },
         getPrice: () => OracleAggregator.latestAnswer(),
         update: update => updateKrAsset(krAsset.address, update),
     };

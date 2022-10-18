@@ -27,8 +27,17 @@ contract StabilityRateFacet is DiamondModifiers {
         return irs().srAssets[_asset].calculateStabilityRates();
     }
 
+    function getPriceRate(address _asset) external view returns (uint256) {
+        return irs().srAssets[_asset].getPriceRate();
+    }
+
     function getSRateIndex(address _asset) external view returns (uint256) {
         return irs().srAssets[_asset].getNormalizedDebtIndex();
+    }
+
+    function updateSRates(address _asset) external {
+        irs().srAssets[_asset].updateSRIndexes();
+        irs().srAssets[_asset].updateSRates();
     }
 
     function initSRateAsset(address _asset, SRateConfig memory _config) external onlyOwner {

@@ -1,8 +1,7 @@
+import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import { getLogger } from "@kreskolabs/lib/dist/utils";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import type { UniswapV2Factory, UniswapV2Router02 } from "types";
-import type { WETH } from "types/typechain/src/contracts/test/WETH";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("deploy-uniswap");
@@ -14,18 +13,27 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         args: [deployer],
     });
 
-    const WETH = await hre.ethers.getContract<WETH>("WETH");
+    const WETHDeployment = await hre.deployments.getOrNull("WETH");
+    let WETHAddress = "";
 
+    if (!WETHDeployment) {
+        const [WETH] = await hre.deploy("WETH");
+        WETHAddress = WETH.address;
+    } else {
+        WETHAddress = WETHDeployment.address;
+    }
     const [UniRouter] = await deploy<UniswapV2Router02>("UniswapV2Router02", {
         from: deployer,
-        args: [UniFactory.address, WETH.address],
+        args: [UniFactory.address, WETHAddress],
     });
 
     const contracts = {
-        WETH: WETH.address,
+        WETH: WETHAddress,
         UniV2Factory: UniFactory.address,
         UniRouter: UniRouter.address,
     };
+    hre.UniV2Factory = UniFactory;
+    hre.UniV2Router = UniRouter;
 
     logger.table(contracts);
     logger.success("Succesfully deployed uniswap contracts");

@@ -39,7 +39,7 @@ export async function removeFacet({ name, initializerName, initializerArgs }: Ar
 
     // #3.2 Initialize the `FacetCut` object
     const FacetCut: FacetCut = {
-        facetAddress: hre.addr.ZERO,
+        facetAddress: ethers.constants.AddressZero,
         functionSelectors: selectorsToRemove,
         action: FacetCutAction.Remove,
     };
