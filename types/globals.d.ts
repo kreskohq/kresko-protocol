@@ -12,8 +12,10 @@ import {
     TestCollateralAssetArgs,
     TestCollateralAssetUpdate,
 } from "@utils/test";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 declare global {
+    const hre: HardhatRuntimeEnvironment;
     /* -------------------------------------------------------------------------- */
     /*                              Minter Contracts                              */
     /* -------------------------------------------------------------------------- */

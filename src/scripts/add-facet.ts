@@ -15,8 +15,8 @@ const logger = getLogger("add-facet");
 export async function addFacet<T extends Contract>({ name, initializerName, initializerArgs }: Args) {
     logger.log(name);
 
-    const { ethers, deployments, getNamedAccounts } = hre;
-    const { deployer } = await getNamedAccounts();
+    const { ethers, deployments, getUsers } = hre;
+    const { deployer } = await getUsers();
 
     /* -------------------------------------------------------------------------- */
     /*                                    Setup                                   */
@@ -56,7 +56,7 @@ export async function addFacet<T extends Contract>({ name, initializerName, init
         let InitializerContract: Contract;
         // #4.3 Deploy the initializer contract if it does not exist
         if (!InitializerArtifact) {
-            [InitializerContract] = await hre.deploy(initializerName, { from: deployer, log: true });
+            [InitializerContract] = await hre.deploy(initializerName, { from: deployer.address, log: true });
         }
         // #4.4 Get the contract instance
         InitializerContract = await hre.ethers.getContract(initializerName);

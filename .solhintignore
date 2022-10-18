@@ -10,4 +10,3 @@ bin/**/*
 lib/**/*
 node_modules/
 ./src/contracts/vendor/
-./src/contracts/test/
