@@ -1,19 +1,17 @@
-import { getLogger } from "@kreskolabs/lib/dist/utils";
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
 
-task("deployone:fluxpriceaggregator")
+task("test:deployone:fluxpriceaggregator")
     .addParam("oracles", "Initial oracle addresses, separated by a single comma")
     .addParam("decimals", "The number of decimals in the value posted")
     .addParam("description", "The description of the contract")
     .addOptionalParam("admin", "The admin allowed to modify the oracles and minimum update time")
     .addOptionalParam("wait", "wait confirmations", 1, types.int)
     .addOptionalParam("log", "log information", true, types.boolean)
-    .setAction(async function (taskArgs: TaskArguments, { ethers, deploy, priceAggregators }) {
+    .setAction(async function (taskArgs: TaskArguments, { ethers, deploy }) {
         const { deployer } = await ethers.getNamedSigners();
 
-        const { oracles, decimals, description, admin, log } = taskArgs;
-        const logger = getLogger("deployone:fluxpriceaggregator", log);
+        const { oracles, decimals, description, admin } = taskArgs;
 
         let contractAdmin = deployer.address;
         if (admin) {
@@ -27,8 +25,5 @@ task("deployone:fluxpriceaggregator")
             from: deployer.address,
             args: [contractAdmin, oraclesArray, decimals, description],
         });
-
-        logger.log("FluxPriceAggregator deployed to: ", PriceAggregator.address);
-
-        priceAggregators[description] = PriceAggregator;
+        return PriceAggregator
     });
