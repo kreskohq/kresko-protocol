@@ -2,7 +2,7 @@ import { expect } from "@test/chai";
 import { withFixture } from "@utils/test";
 import hre from "hardhat";
 
-describe.only("Flux price aggregator", function () {
+describe("Flux price aggregator", function () {
     let addr: Addresses;    
     before(async function () {        
         addr = await hre.getAddresses();
@@ -11,8 +11,6 @@ describe.only("Flux price aggregator", function () {
     });
     withFixture(["minter-test", "krAsset"]);
     beforeEach(async function () {        
-        this.usd = "0x5553440000000000000000000000000000000000000000000000000000000000";
-
         // Deploy three price feeds
         for (let i = 0; i < 3; i++) {
             const name : string = "TEST" + i;
