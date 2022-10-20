@@ -2,8 +2,7 @@ import { expect } from "@test/chai";
 import { withFixture } from "@utils/test";
 import hre from "hardhat";
 
-
-describe.only("Flux Pricefeed", function () {
+describe("Flux Pricefeed", function () {
     let addr: Addresses;   
     const TEST_VALUE = 100;     
  
@@ -25,7 +24,13 @@ describe.only("Flux Pricefeed", function () {
         this.pricefeed = feed
     });
 
-    describe("#test", () => {
+    describe("functionality", () => {
+        it("should initialize timestamp value once the initial answer is submitted", async function () {
+            expect(await this.pricefeed.latestTimestamp()).to.equal(0);
+            await this.pricefeed.transmit(TEST_VALUE, true, { from: addr.deployer});
+            expect(Number(await this.pricefeed.latestTimestamp())).to.be.greaterThan(0);
+        });
+
         it("should return latestAnswer once it's changed", async function () {
             expect(await this.pricefeed.latestAnswer()).to.equal(0);
             await this.pricefeed.transmit(TEST_VALUE, true, { from: addr.deployer});
