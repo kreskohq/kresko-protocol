@@ -3,7 +3,7 @@ pragma solidity >=0.8.14;
 
 import "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
 
-import {IKreskoAssetIssuer} from "../krAsset/IKreskoAssetIssuer.sol";
+import {IKreskoAssetIssuer} from "../kreskoasset/IKreskoAssetIssuer.sol";
 import {IKISS} from "./interfaces/IKISS.sol";
 import {Role} from "../libs/Authorization.sol";
 
