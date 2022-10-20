@@ -4,6 +4,7 @@ pragma solidity >=0.8.14;
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "./interfaces/AggregatorV2V3Interface.sol";
+import "../../libs/Median.sol";
 
 /**
  * @title Flux first-party price feed oracle aggregator
@@ -12,6 +13,8 @@ import "./interfaces/AggregatorV2V3Interface.sol";
  *     Chainlink V2 and V3 aggregator interface
  */
 contract FluxPriceAggregator is AccessControl, AggregatorV2V3Interface, Pausable {
+    using Median for uint256[];
+
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
     uint32 public latestAggregatorRoundId;
@@ -60,38 +63,56 @@ contract FluxPriceAggregator is AccessControl, AggregatorV2V3Interface, Pausable
      * Publicly-callable mutative functions
      */
 
-    /// @notice Update prices, callable by anyone
+    /// @notice Update prices and market open boolean, callable by anyone.
+    ///         Logic:
+    ///             First, all pricefeeds which have never posted an answer are ignored.
+    ///             From the valid answers, the following is calculated:
+    ///             - Price: Median price is selected
+    ///             - marketOpen: majority of pricefeeds must have answer market open = true for a
+    ///                           market to be considered open. If tied, market is considered closed.
     function updatePrices() public whenNotPaused {
-        // require min delay since lastUpdate
+        // Require min delay since lastUpdate
         require(block.timestamp > transmissions[latestAggregatorRoundId].timestamp + minDelay);
 
-        // fetch sum of latestAnswer from oracles
-        int256 sum = 0;
-        for (uint256 i = 0; i < oracles.length; i++) {
-            sum += AggregatorV2V3Interface(oracles[i]).latestAnswer();
-        }
+        // Fetch median of latest answers from oracles and determine market open/closed by majority vote
+        uint256[] memory latestAnswers = new uint256[](oracles.length);
+        uint256 invalidAnswerCount;
 
-        // calculate average of sum
-        int192 _answer = int192(int256(uint256(sum) / oracles.length));
-
-        // majority required for open market
+        // Majority required for open market
         int marketOpenCount;
         int marketClosedCount;
         for (uint256 i = 0; i < oracles.length; i++) {
-            bool isMarketOpen = AggregatorV2V3Interface(oracles[i]).latestMarketOpen();
-            if (isMarketOpen) {
-                marketOpenCount++;
-            } else {
-                marketClosedCount++;
+            AggregatorV2V3Interface oracle = AggregatorV2V3Interface(oracles[i]);
+            // Drop unintialized values as oracle has never posted
+            uint256 latestTime = oracle.latestTimestamp();
+            if(latestTime == 0) {
+                invalidAnswerCount++;
+                continue;
             }
+            // Drop negative values as assets cannot have negative prices
+            int256 latestAns = oracle.latestAnswer();
+            if(latestAns < 0) {
+                invalidAnswerCount++;
+                continue;
+            }
+            latestAnswers[i-invalidAnswerCount] = uint256(latestAns);
+            // Increment market open/closed counters
+            bool isMarketOpen = oracle.latestMarketOpen();
+            isMarketOpen ? marketOpenCount++ : marketClosedCount++;
         }
 
-        bool marketOpen = false;
-        if (marketOpenCount > marketClosedCount) {
-            marketOpen = true;
+        // Clean up latest answers array, keeping only valid prices
+        uint256[] memory trimmedLatestAnswers = new uint[](latestAnswers.length-invalidAnswerCount);
+        for (uint j = 0; j < trimmedLatestAnswers.length; j++) {
+            trimmedLatestAnswers[j] = latestAnswers[j];
         }
 
-        // update round
+        // Calculate median answer and market open/close
+        uint256 medianAnswer = trimmedLatestAnswers.median(trimmedLatestAnswers.length);
+        int192 _answer = int192(int256(medianAnswer));
+        bool marketOpen = marketOpenCount > marketClosedCount ? true : false;
+
+        // Update round
         latestAggregatorRoundId++;
         transmissions[latestAggregatorRoundId] = Transmission(_answer, uint64(block.timestamp), marketOpen);
 
