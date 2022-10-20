@@ -31,7 +31,7 @@ describe.only("Flux price aggregator", function () {
         const decimalsAggregator: number = 8;
         const description: string = "TEST";
         const oracles = this.oracles.map(oracle => oracle.address);
-        const deployedAggregator: FluxPriceAggregator = await hre.run("deployone:fluxpriceaggregator", {
+        const deployedAggregator: FluxPriceAggregator = await hre.run("test:deployone:fluxpriceaggregator", {
             oracles: oracles.toString(),
             decimals: decimalsAggregator.toString(),
             description
@@ -209,39 +209,38 @@ describe.only("Flux price aggregator", function () {
             expect(await this.aggregator.latestAnswer()).to.equal(125);
         });
 
-        //  // TODO: should this consider prices from marketClosed respondents?
-        //  it("should determine market open/closed from 3+ oracles", async function () {
-        //     // Consider situation:
-        //     //      - Price changes 20% overnight and on open majority of oracles post prices and updatesPrices is called.
-        //     //      - The market is considered open, but yesterday's closing price from oracles that haven't posted today
-        //     //        yet is still considered in the median calculation.
-        //     //      
-        //     //      Oracles at close:                       [a, b, c, d, e]
-        //     //      Closing prices:                         [100, 100, 100, 100, 100], [closed, closed, closed, closed, closed]
-        //     //      At open when update prices is called:   [100, 100, 120, 120, 121], [closed, closed, open, open, open]
-        //     //
-        //     //      Outcome is valid: market is open with price 120.
-        //     //
-        //     //      The test below replicates this behavior with 3 oracles instead of 5.
+         it("should include prices from marketClosed answers in median calculation", async function () {
+            // Consider situation:
+            //      - Price changes 20% overnight and on open majority of oracles post prices and updatesPrices is called.
+            //      - The market is considered open, but yesterday's closing price from oracles that haven't posted today
+            //        yet is still considered in the median calculation.
+            //      
+            //      Oracles at close:                       [a, b, c, d, e]
+            //      Closing prices:                         [100, 100, 100, 100, 100], [closed, closed, closed, closed, closed]
+            //      At open when update prices is called:   [100, 100, 120, 120, 122], [closed, closed, open, open, open]
+            //
+            //      Outcome is valid: market is open with price 120.
+            //
+            //      The test below replicates this behavior with 3 oracles instead of 5.
     
-        //     await this.oracles[0].transmit(100, false, {
-        //         from: addr.deployer,
-        //     });
-        //     await this.oracles[1].transmit(120, true, {
-        //         from: addr.deployer,
-        //     });
-        //     await this.oracles[2].transmit(121, true, {
-        //         from: addr.deployer,
-        //     });
-        //     expect(Number(await this.aggregator.latestTimestamp())).to.be.equal(0);
-        //     expect(await this.aggregator.latestMarketOpen()).to.equal(false);
+            await this.oracles[0].transmit(100, false, {
+                from: addr.deployer,
+            });
+            await this.oracles[1].transmit(120, true, {
+                from: addr.deployer,
+            });
+            await this.oracles[2].transmit(122, true, {
+                from: addr.deployer,
+            });
+            expect(Number(await this.aggregator.latestTimestamp())).to.be.equal(0);
+            expect(await this.aggregator.latestMarketOpen()).to.equal(false);
     
-        //     await this.aggregator.updatePrices({from: addr.deployer});
+            await this.aggregator.updatePrices({from: addr.deployer});
     
-        //     expect(await this.aggregator.latestAnswer()).to.equal(120);
-        //     expect(Number(await this.aggregator.latestTimestamp())).to.be.greaterThan(0);
-        //     expect(await this.aggregator.latestMarketOpen()).to.equal(true);
-        // });
+            expect(await this.aggregator.latestAnswer()).to.equal(120);
+            expect(Number(await this.aggregator.latestTimestamp())).to.be.greaterThan(0);
+            expect(await this.aggregator.latestMarketOpen()).to.equal(true);
+        });
 
         it("should ignore negative prices, not including them in price aggregation", async function () {
             await this.oracles[0].transmit(100, true, {
