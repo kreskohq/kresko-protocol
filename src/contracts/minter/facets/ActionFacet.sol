@@ -3,7 +3,7 @@ pragma solidity >=0.8.14;
 
 import {IActionFacet} from "../interfaces/IActionFacet.sol";
 import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
-import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
+import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
 
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
@@ -153,7 +153,7 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IActionFacet {
         }
 
         // Record the mint.
-        s.kreskoAssetDebt[_account][_kreskoAsset] += IKreskoAssetAnchor(krAsset.anchor).issue(_amount, _account);
+        s.kreskoAssetDebt[_account][_kreskoAsset] += IKreskoAssetIssuer(krAsset.anchor).issue(_amount, _account);
 
         // Update stability rates
         irs().srAssets[_kreskoAsset].updateSRates();
@@ -198,13 +198,12 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IActionFacet {
         if (_burnAmount == debtAmount) {
             s.mintedKreskoAssets[_account].removeAddress(_kreskoAsset, _mintedKreskoAssetIndex);
         }
-        console.log(_burnAmount);
 
         // Charge the burn fee from collateral of _account
         s.chargeCloseFee(_account, _kreskoAsset, _burnAmount);
 
         // Burn akrAssets and krAssets. Reduce debt by amount burned.
-        s.kreskoAssetDebt[_account][_kreskoAsset] -= IKreskoAssetAnchor(s.kreskoAssets[_kreskoAsset].anchor).destroy(
+        s.kreskoAssetDebt[_account][_kreskoAsset] -= IKreskoAssetIssuer(s.kreskoAssets[_kreskoAsset].anchor).destroy(
             _burnAmount,
             msg.sender
         );

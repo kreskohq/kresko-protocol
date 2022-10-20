@@ -49,6 +49,7 @@ contract StabilityRateFacet is DiamondModifiers {
             liquidityIndex: uint128(WadRay.RAY),
             debtIndex: uint128(WadRay.RAY),
             debtRateBase: _config.debtRateBase,
+            // solhint-disable not-rely-on-time
             lastUpdateTimestamp: uint40(block.timestamp),
             asset: _asset,
             reserveFactor: _config.reserveFactor,

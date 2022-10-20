@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // Deployment
 
-import "tsconfig-paths/register";
 import type { HardhatUserConfig } from "hardhat/types/config";
+import "tsconfig-paths/register";
 
 /* -------------------------------------------------------------------------- */
 /*                                   Plugins                                  */
@@ -54,7 +54,7 @@ import { reporters } from "mocha";
 /*                                    Tasks                                   */
 /* -------------------------------------------------------------------------- */
 
-import "src/tasks";
+import "./src/tasks";
 /* -------------------------------------------------------------------------- */
 /*                              Extensions To HRE                             */
 /* -------------------------------------------------------------------------- */

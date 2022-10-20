@@ -1,0 +1,9 @@
+export { default as CompatibilityFallbackHandler } from "./gnosis-contracts/compatibility_fallback_handler.json";
+export { default as CreateCall } from "./gnosis-contracts/create_call.json";
+export { default as GnosisSafeL2 } from "./gnosis-contracts/gnosis_safe_l2.json";
+export { default as GnosisSafe } from "./gnosis-contracts/gnosis_safe.json";
+export { default as MultiSendCallOnly } from "./gnosis-contracts/multi_send_call_only.json";
+export { default as MultiSend } from "./gnosis-contracts/multi_send.json";
+export { default as ProxyFactory } from "./gnosis-contracts/proxy_factory.json";
+export { default as SignMessageLib } from "./gnosis-contracts/sign_message_lib.json";
+export { default as SimulateTxAccessor } from "./gnosis-contracts/simulate_tx_accessor.json";

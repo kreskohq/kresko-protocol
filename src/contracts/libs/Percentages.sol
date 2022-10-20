@@ -5,13 +5,14 @@ pragma solidity >=0.8.14;
  * @title Percentages
  * @author Aave
  * @notice Provides functions to perform percentage calculations
- * @dev Percentages are defined by default with 2 decimals of precision (100.00). The precision is indicated by PERCENTAGE_FACTOR
+ * @dev Percentages are defined by default with 2 decimals of precision (100.00).
+ * The precision is indicated by PERCENTAGE_FACTOR
  * @dev Operations are rounded half up
  **/
 
 library Percentages {
-    uint256 constant PERCENTAGE_FACTOR = 1e4; //percentage plus two decimals
-    uint256 constant HALF_PERCENT = PERCENTAGE_FACTOR / 2;
+    uint256 internal constant PERCENTAGE_FACTOR = 1e4; //percentage plus two decimals
+    uint256 internal constant HALF_PERCENT = PERCENTAGE_FACTOR / 2;
 
     /**
      * @dev Executes a percentage multiplication

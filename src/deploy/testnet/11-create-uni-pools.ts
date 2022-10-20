@@ -1,6 +1,6 @@
 import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
-import type { UniswapV2Factory } from "types";
+import { UniswapV2Factory, WETH } from "types";
 import { getLogger } from "@kreskolabs/lib/dist/utils";
 import { testnetConfigs } from "@deploy-config/testnet";
 import { JStoFixed } from "@kreskolabs/lib";
@@ -23,6 +23,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         const token1 = await hre.ethers.getContract(assetB.symbol);
         const pairAddress = await Factory.getPair(token0.address, token1.address);
 
+        if (assetB.symbol === "WETH") {
+            await (await hre.ethers.getContract<WETH>("WETH"))["deposit(uint256)"](hre.toBig(amountB));
+        }
         if (pairAddress === ethers.constants.AddressZero) {
             const pair = await hre.run("add-liquidity-v2", {
                 tknA: {
@@ -36,6 +39,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             });
             hre.uniPairs[`${token0.symbol}-${token1.symbol}`] = pair;
         } else {
+            console.log("Pair Found", `${assetA.symbol}- ${assetB.symbol}`);
             hre.uniPairs[`${token0.symbol}-${token1.symbol}`] = await ethers.getContractAt(
                 "UniswapV2Pair",
                 pairAddress,
@@ -46,7 +50,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     logger.success("succesfully added liquidity for pools");
 };
 
-func.tags = ["testnet", "add-liquidity", "all"];
-func.dependencies = ["minter-init", "whitelist-krassets"];
+func.tags = ["testnet", "add-liquidity", "all", "staking-deployment"];
+// func.dependencies = ["minter-init", "whitelist-krassets"];
 
 export default func;

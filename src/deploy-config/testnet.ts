@@ -1,5 +1,17 @@
 import { getPriceFromCoinGecko, getPriceFromTwelveData, toBig } from "@kreskolabs/lib";
-import type { Asset, NetworkConfig, StakingPoolConfig } from "types";
+import type { Asset, NetworkConfig, StakingPoolConfig, GnosisSafeDeployment } from "types";
+
+import {
+    CompatibilityFallbackHandler,
+    CreateCall,
+    GnosisSafeL2,
+    GnosisSafe,
+    MultiSendCallOnly,
+    MultiSend,
+    ProxyFactory,
+    SignMessageLib,
+    SimulateTxAccessor,
+} from "./gnosis-safe";
 
 export const assets: { [asset: string]: Asset } = {
     DAI: {
@@ -70,7 +82,7 @@ export const assets: { [asset: string]: Asset } = {
         },
         cFactor: 0.9,
         kFactor: 1,
-        mintAmount: 1_000_000_000,
+        mintAmount: 500_000_000,
     },
     krETH: {
         name: "krETH",
@@ -155,7 +167,6 @@ const defaultPools: [Asset, Asset, number][] = [
     [assets.KISS, assets.krQQQ, assets.krQQQ.mintAmount],
     [assets.KISS, assets.WETH, 17_500],
     [assets.KISS, assets.DAI, 200_000_000],
-    [assets.DAI, assets.SNX, assets.SNX.mintAmount],
     [assets.WETH, assets.DAI, 50_000_000],
     [assets.WETH, assets.OP, assets.OP.mintAmount],
 ];
@@ -196,6 +207,18 @@ const defaultStakingPools: StakingPoolConfig[] = [
         allocPoint: 1000,
         startBlock: 0,
     },
+];
+
+const defaultGnosisSafeDeploymentsOPGoerli: GnosisSafeDeployment[] = [
+    CompatibilityFallbackHandler,
+    CreateCall,
+    GnosisSafeL2,
+    GnosisSafe,
+    MultiSendCallOnly,
+    MultiSend,
+    ProxyFactory,
+    SignMessageLib,
+    SimulateTxAccessor,
 ];
 
 export const testnetConfigs: NetworkConfig = {
@@ -241,27 +264,6 @@ export const testnetConfigs: NetworkConfig = {
         rewardTokenAmounts: [100_000_000, 100_000_000],
         rewardsPerBlock: [0.04, 0.03],
     },
-    opkovan: {
-        protocolParams: defaultParams,
-        collaterals: [
-            assets.OP,
-            assets.WETH,
-            assets.KISS,
-            assets.DAI,
-            assets.SNX,
-            assets.krETH,
-            assets.krTSLA,
-            assets.krQQQ,
-            assets.krGME,
-            assets.krIAU,
-        ],
-        krAssets: [assets.krTSLA, assets.KISS, assets.krQQQ, assets.krGME, assets.krIAU, assets.krETH],
-        pools: defaultPools,
-        stakingPools: defaultStakingPools,
-        rewardTokens: [assets.DAI, assets.OP],
-        rewardTokenAmounts: [100_000_000, 100_000_000],
-        rewardsPerBlock: [0.04, 0.03],
-    },
     opgoerli: {
         protocolParams: defaultParams,
         collaterals: [
@@ -282,6 +284,7 @@ export const testnetConfigs: NetworkConfig = {
         rewardTokens: [assets.DAI, assets.OP],
         rewardTokenAmounts: [100_000_000, 100_000_000],
         rewardsPerBlock: [0.1, 0.075],
+        gnosisSafeDeployments: defaultGnosisSafeDeploymentsOPGoerli,
     },
     auroratest: {
         protocolParams: defaultParams,

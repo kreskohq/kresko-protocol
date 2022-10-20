@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
+
 import {ILiquidationFacet} from "../interfaces/ILiquidationFacet.sol";
-import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
+import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
 
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
@@ -136,7 +137,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         irs().srAssets[_repayKreskoAsset].updateSRIndexes();
 
         // Subtract repaid Kresko assets from liquidated user's recorded debt.
-        s.kreskoAssetDebt[_account][_repayKreskoAsset] -= IKreskoAssetAnchor(krAsset.anchor).destroy(
+        s.kreskoAssetDebt[_account][_repayKreskoAsset] -= IKreskoAssetIssuer(krAsset.anchor).destroy(
             _repayAmount,
             msg.sender
         );

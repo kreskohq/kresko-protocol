@@ -64,6 +64,7 @@ struct InterestRateState {
 // Storage position
 bytes32 constant INTEREST_RATE_STORAGE_POSITION = keccak256("kresko.interest.rate.storage");
 
+// solhint-disable func-visibility
 function irs() pure returns (InterestRateState storage state) {
     bytes32 position = INTEREST_RATE_STORAGE_POSITION;
     assembly {

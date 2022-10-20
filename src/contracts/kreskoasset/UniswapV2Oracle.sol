@@ -31,6 +31,7 @@ contract UniswapV2Oracle {
 
     // helper function that returns the current block timestamp within the range of uint32, i.e. [0, 2**32 - 1]
     function currentBlockTimestamp() internal view returns (uint32) {
+        // solhint-disable not-rely-on-time
         return uint32(block.timestamp % 2**32);
     }
 

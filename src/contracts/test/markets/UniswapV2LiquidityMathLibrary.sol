@@ -29,7 +29,8 @@ library UniswapV2LiquidityMathLibrary {
         amountIn = leftSide.sub(rightSide);
     }
 
-    // gets the reserves after an arbitrage moves the price to the profit-maximizing ratio given an externally observed true price
+    // gets the reserves after an arbitrage moves the price to
+    // the profit-maximizing ratio given an externally observed true price
     function getReservesAfterArbitrage(
         address factory,
         address tokenA,
@@ -106,7 +107,8 @@ library UniswapV2LiquidityMathLibrary {
         return computeLiquidityValue(reservesA, reservesB, totalSupply, liquidityAmount, feeOn, kLast);
     }
 
-    // given two tokens, tokenA and tokenB, and their "true price", i.e. the observed ratio of value of token A to token B,
+    // Given two tokens, tokenA and tokenB, and their "true price",
+    // i.e. the observed ratio of value of token A to token B,
     // and a liquidity amount, returns the value of the liquidity in terms of tokenA and tokenB
     function getLiquidityValueAfterArbitrageToPrice(
         address factory,

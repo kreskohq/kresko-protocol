@@ -10,7 +10,7 @@ task("mint-krasset")
         const { deployer } = await hre.ethers.getNamedSigners();
 
         const address = await deployer.getAddress();
-        const Kresko = hre.Diamond;
+        const Kresko = await hre.ethers.getContract("Diamond");
 
         const KrAsset = await hre.ethers.getContract<KreskoAsset>(taskArgs.name);
         const KrAssetInfo = await Kresko.kreskoAsset(KrAsset.address);

@@ -44,7 +44,7 @@ func.skip = async hre => {
     !!Staking && logger.log("Skipping deploying staking");
     return !!Staking;
 };
-func.tags = ["testnet", "staking"];
+func.tags = ["testnet", "staking", "staking-deployment"];
 func.dependencies = ["add-liquidity"];
 
 export default func;

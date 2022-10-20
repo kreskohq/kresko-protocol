@@ -18,7 +18,8 @@ task(TASK_NAME)
     .addOptionalParam("initParams", "Address to delegatecall to when adding the facet", "0x", types.string)
     .setAction(async function ({ name, initAddress, initParams }: TaskArguments, hre) {
         const logger = getLogger(TASK_NAME);
-        const { ethers, deployments } = hre;
+        const { ethers, deployments, getUsers } = hre;
+        const { deployer } = await getUsers();
 
         const Deployed = await hre.deployments.getOrNull("Diamond");
         if (!Deployed) {
@@ -26,7 +27,9 @@ task(TASK_NAME)
         }
         const Diamond = await ethers.getContractAt<Kresko>("FullDiamond", Deployed.address);
         // Single facet addition, maps all functions contained
-        const [Facet, Signatures] = await hre.deploy(name);
+        const [Facet, Signatures] = await hre.deploy(name, {
+            from: deployer.address,
+        });
 
         const Cut: FacetCut = {
             facetAddress: Facet.address,

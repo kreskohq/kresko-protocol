@@ -172,7 +172,8 @@ library LibStabilityRate {
     }
 
     // /**
-    //  * @dev Accumulates a predefined amount of asset to the reserve as a fixed, instantaneous income. Used for example to accumulate
+    //  * @dev Accumulates a predefined amount of asset to the reserve as a fixed, instantaneous income.
+    // Used for example to accumulate
     //  * the flashloan fee to the reserve, and spread it between all the depositors
     //  * @param reserve The reserve object
     //  * @param totalLiquidity The total liquidity available in the reserve
@@ -194,7 +195,8 @@ library LibStabilityRate {
     // }
 
     // /**
-    //  * @dev Calculates the compounded interest between the timestamp of the last update and the current block timestamp
+    //  * @dev Calculates the compounded interest between the timestamp of the last update and
+    // the current block timestamp
     //  * @param rate The interest rate (in ray)
     //  * @param lastUpdateTimestamp The timestamp from which the interest accumulation needs to be calculated
     //  **/
