@@ -140,6 +140,24 @@ describe.only("Flux price aggregator", function () {
             expect(Number(await this.aggregator.latestTimestamp())).to.be.greaterThan(0);
             expect(await this.aggregator.latestMarketOpen()).to.equal(true);
         });
+
+        it("should ignore negative prices, not including their associated market open boolean in market open/closed determination", async function () {
+            await this.oracles[0].transmit(100, true, {
+                from: addr.deployer,
+            });
+            await this.oracles[1].transmit(-20, false, {
+                from: addr.deployer,
+            });
+            await this.oracles[1].transmit(-10, false, {
+                from: addr.deployer,
+            });
+            expect(Number(await this.aggregator.latestTimestamp())).to.be.equal(0);
+    
+            await this.aggregator.updatePrices({from: addr.deployer});
+    
+            expect(Number(await this.aggregator.latestTimestamp())).to.be.greaterThan(0);
+            expect(await this.aggregator.latestMarketOpen()).to.equal(true);
+        });
     });
 
     describe("Median calculations", () => {
@@ -225,21 +243,23 @@ describe.only("Flux price aggregator", function () {
         //     expect(await this.aggregator.latestMarketOpen()).to.equal(true);
         // });
 
-        // it("should ignore negative prices, not including them in price aggregation or market open/closed voting", async function () {
-        //     await this.oracles[0].transmit(100, true, {
-        //         from: addr.deployer,
-        //     });
-        //     await this.oracles[1].transmit(-20, false, {
-        //         from: addr.deployer,
-        //     });
+        it("should ignore negative prices, not including them in price aggregation", async function () {
+            await this.oracles[0].transmit(100, true, {
+                from: addr.deployer,
+            });
+            await this.oracles[1].transmit(-20, false, {
+                from: addr.deployer,
+            });
+            await this.oracles[1].transmit(-10, false, {
+                from: addr.deployer,
+            });
 
-        //     expect(Number(await this.aggregator.latestTimestamp())).to.be.equal(0);
+            expect(Number(await this.aggregator.latestTimestamp())).to.be.equal(0);
     
-        //     await this.aggregator.updatePrices({from: addr.deployer});
+            await this.aggregator.updatePrices({from: addr.deployer});
     
-        //     expect(Number(await this.aggregator.latestTimestamp())).to.be.greaterThan(0);
-        //     expect(await this.aggregator.latestAnswer()).to.equal(100);
-        //     expect(await this.aggregator.latestMarketOpen()).to.equal(true); // TODO: move to market open section
-        // });
+            expect(Number(await this.aggregator.latestTimestamp())).to.be.greaterThan(0);
+            expect(await this.aggregator.latestAnswer()).to.equal(100);
+        });
     });
 });
