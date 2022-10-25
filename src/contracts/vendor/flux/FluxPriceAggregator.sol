@@ -83,19 +83,18 @@ contract FluxPriceAggregator is AccessControl, AggregatorV2V3Interface, Pausable
         int marketClosedCount;
         for (uint256 i = 0; i < oracles.length; i++) {
             AggregatorV2V3Interface oracle = AggregatorV2V3Interface(oracles[i]);
-            // Drop unintialized values as oracle has never posted
+            // All price feeds must be initialized to turn on the aggregator
             uint256 latestTime = oracle.latestTimestamp();
-            if(latestTime == 0) {
-                invalidAnswerCount++;
-                continue;
-            }
-            // Drop negative values as assets cannot have negative prices
+            require(latestTime > 0, "Error: uninitialized oracle");
+            
+            // Oracles that post negative prices will be ignored
             int256 latestAns = oracle.latestAnswer();
             if(latestAns < 0) {
                 invalidAnswerCount++;
                 continue;
             }
             latestAnswers[i-invalidAnswerCount] = uint256(latestAns);
+
             // Increment market open/closed counters
             bool isMarketOpen = oracle.latestMarketOpen();
             isMarketOpen ? marketOpenCount++ : marketClosedCount++;
