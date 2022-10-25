@@ -164,14 +164,12 @@ describe.only("Flux price aggregator", function () {
             from: addr.deployer,
             });
             expect(Number(await this.aggregator.latestTimestamp())).to.be.equal(0);
-            expect(Number(await this.aggregator.latestAnswer())).to.be.equal(0);
             expect(await this.aggregator.latestMarketOpen()).to.equal(false);
     
             await this.aggregator.updatePrices({from: addr.deployer});
     
-            // Answer + timestamp updated but market open evaluates to false
+            // Timestamp updated but market open evaluates to false
             expect(Number(await this.aggregator.latestTimestamp())).to.be.greaterThan(0);
-            expect(Number(await this.aggregator.latestAnswer())).to.be.greaterThan(0);
             expect(await this.aggregator.latestMarketOpen()).to.equal(false);
         });
 
@@ -196,155 +194,67 @@ describe.only("Flux price aggregator", function () {
         });
     });
 
-    // describe("Median calculations", () => {
-    //     it("should aggregate latest prices from 1 oracle, ignoring uninitialized oracles", async function () {
-    //         await this.oracles[0].transmit(100, true, {
-    //             from: addr.deployer,
-    //         });
+    describe("Median calculations", () => {
+        it("should ignore prices of oracles who report that the market is closed", async function () {
+            // Median of (10, 500, 600) = 500
+            // Median of (500, 600) = 550
+            await this.oracles[0].transmit(10, false, {
+                from: addr.deployer,
+            });
+            await this.oracles[1].transmit(500, true, {
+                from: addr.deployer,
+            });
+            await this.oracles[2].transmit(600, true, {
+                from: addr.deployer,
+            });
+            expect(Number(await this.aggregator.latestTimestamp())).to.be.equal(0);
+            expect(await this.aggregator.latestMarketOpen()).to.equal(false);
+            expect(Number(await this.aggregator.latestAnswer())).to.be.equal(0);
 
-    //         expect(Number(await this.aggregator.latestTimestamp())).to.be.equal(0);
-    //         expect(await this.aggregator.latestAnswer()).to.be.equal(0);
-
-    //         await this.aggregator.updatePrices({from: addr.deployer});
-
-    //         expect(Number(await this.aggregator.latestTimestamp())).to.be.greaterThan(0);
-    //         expect(await this.aggregator.latestAnswer()).to.be.equal(100);
-    //     });
-
-    //     it("should aggregate latest prices from 2 oracles, correctly selecting the median price, ignoring uninitialized oracles", async function () {
-    //         await this.oracles[0].transmit(100, true, {
-    //             from: addr.deployer,
-    //         });
-    //         await this.oracles[2].transmit(300, true, {
-    //             from: addr.deployer,
-    //         });
-    //         expect(Number(await this.aggregator.latestTimestamp())).to.be.equal(0);
-    //         expect(await this.aggregator.latestAnswer()).to.equal(0);
+            await this.aggregator.updatePrices({from: addr.deployer});
     
-    //         await this.aggregator.updatePrices({from: addr.deployer});
+            // Market is open and price should be 550
+            expect(Number(await this.aggregator.latestTimestamp())).to.be.greaterThan(0);
+            expect(await this.aggregator.latestMarketOpen()).to.equal(true);
+            expect(Number(await this.aggregator.latestAnswer())).to.be.equal(550);
+        });
+
+        it("should aggregate latest prices from 3+ oracles, correctly selecting the median price", async function () {
+            await this.oracles[0].transmit(100, true, {
+                from: addr.deployer,
+            });
+            await this.oracles[1].transmit(125, true, {
+                from: addr.deployer,
+            });
+            await this.oracles[2].transmit(300, true, {
+                from: addr.deployer,
+            });
+            expect(Number(await this.aggregator.latestTimestamp())).to.be.equal(0);
     
-    //         expect(Number(await this.aggregator.latestTimestamp())).to.be.greaterThan(0);
-    //         expect(await this.aggregator.latestAnswer()).to.equal(200);
-    //     });
-
-    //     it("should aggregate latest prices from 3+ oracles, correctly selecting the median price", async function () {
-    //         await this.oracles[0].transmit(100, true, {
-    //             from: addr.deployer,
-    //         });
-    //         await this.oracles[1].transmit(125, true, {
-    //             from: addr.deployer,
-    //         });
-    //         await this.oracles[2].transmit(300, true, {
-    //             from: addr.deployer,
-    //         });
-    //         expect(Number(await this.aggregator.latestTimestamp())).to.be.equal(0);
+            await this.aggregator.updatePrices({from: addr.deployer});
     
-    //         await this.aggregator.updatePrices({from: addr.deployer});
+            expect(Number(await this.aggregator.latestTimestamp())).to.be.greaterThan(0);
+            expect(await this.aggregator.latestAnswer()).to.equal(125);
+        });
+
+        it("should ignore negative prices, not including them in price aggregation", async function () {
+            await this.oracles[0].transmit(100, true, {
+                from: addr.deployer,
+            });
+            await this.oracles[1].transmit(-20, true, {
+                from: addr.deployer,
+            });
+            await this.oracles[2].transmit(-10, true, {
+                from: addr.deployer,
+            });
+
+            expect(Number(await this.aggregator.latestTimestamp())).to.be.equal(0);
     
-    //         expect(Number(await this.aggregator.latestTimestamp())).to.be.greaterThan(0);
-    //         expect(await this.aggregator.latestAnswer()).to.equal(125);
-    //     });
-
-    //      it("should include prices from marketClosed answers in median calculation", async function () {
-    //         // Consider situation:
-    //         //      - Price changes 20% overnight and on open majority of oracles post prices and updatesPrices is called.
-    //         //      - The market is considered open, but yesterday's closing price from oracles that haven't posted today
-    //         //        yet is still considered in the median calculation.
-    //         //      
-    //         //      Oracles at close:                       [a, b, c, d, e]
-    //         //      Closing prices:                         [100, 100, 100, 100, 100], [closed, closed, closed, closed, closed]
-    //         //      At open when update prices is called:   [100, 100, 120, 120, 122], [closed, closed, open, open, open]
-    //         //
-    //         //      Outcome is valid: market is open with price 120.
-    //         //
-    //         //      The test below replicates this behavior with 3 oracles instead of 5.
+            await this.aggregator.updatePrices({from: addr.deployer});
     
-    //         await this.oracles[0].transmit(100, false, {
-    //             from: addr.deployer,
-    //         });
-    //         await this.oracles[1].transmit(120, true, {
-    //             from: addr.deployer,
-    //         });
-    //         await this.oracles[2].transmit(122, true, {
-    //             from: addr.deployer,
-    //         });
-    //         expect(Number(await this.aggregator.latestTimestamp())).to.be.equal(0);
-    //         expect(await this.aggregator.latestMarketOpen()).to.equal(false);
-    
-    //         await this.aggregator.updatePrices({from: addr.deployer});
-    
-    //         expect(await this.aggregator.latestAnswer()).to.equal(120);
-    //         expect(Number(await this.aggregator.latestTimestamp())).to.be.greaterThan(0);
-    //         expect(await this.aggregator.latestMarketOpen()).to.equal(true);
-    //     });
-
-    //     it("should ignore negative prices, not including them in price aggregation", async function () {
-    //         await this.oracles[0].transmit(100, true, {
-    //             from: addr.deployer,
-    //         });
-    //         await this.oracles[1].transmit(-20, false, {
-    //             from: addr.deployer,
-    //         });
-    //         await this.oracles[1].transmit(-10, false, {
-    //             from: addr.deployer,
-    //         });
-
-    //         expect(Number(await this.aggregator.latestTimestamp())).to.be.equal(0);
-    
-    //         await this.aggregator.updatePrices({from: addr.deployer});
-    
-    //         expect(Number(await this.aggregator.latestTimestamp())).to.be.greaterThan(0);
-    //         expect(await this.aggregator.latestAnswer()).to.equal(100);
-    //     });
-    // });
-
-    // describe("Situational testing", () => {
-    //     beforeEach(async function () {
-    //         // Set minimum delay lower for testing subsequent updatePrices()
-    //         // await this.aggregator.setDelay(1, {from: addr.deployer});
-    //         // expect(await this.aggregator.minDelay()).to.equal(1);
-    //     });
-
-    //     it("should do stuff", async function () {
-    //         await this.oracles[0].transmit(100, true, {
-    //             from: addr.deployer,
-    //         });
-
-    //         console.log(Number(await this.oracles[0].latestTimestamp()));
-
-    //         expect(Number(await this.aggregator.latestRound())).to.be.equal(0);
-    //         expect(await this.aggregator.latestAnswer()).to.be.equal(0);
-
-    //         await this.aggregator.updatePrices({from: addr.deployer});
-
-    //         expect(Number(await this.aggregator.latestRound())).to.be.equal(1);
-    //         expect(await this.aggregator.latestAnswer()).to.be.equal(100);
-
-    //         let blockNum = await hre.ethers.provider.getBlockNumber();
-    //         let block = await hre.ethers.provider.getBlock(blockNum);
-    //         console.log("block timestamp:", block.timestamp);
-
-    //         // Increase time by 1 hour
-    //         const oneHour = 1 * 60 * 60;
-    //         await hre.ethers.provider.send('evm_increaseTime', [oneHour]);
-    //         await hre.ethers.provider.send('evm_mine', []);
-
-    //         await this.aggregator.updatePrices({from: addr.deployer});
-
-    //         blockNum = await hre.ethers.provider.getBlockNumber();
-    //         block = await hre.ethers.provider.getBlock(blockNum);
-    //         console.log("block timestamp:", block.timestamp);
-
-    //         console.log(Number(await this.oracles[0].latestTimestamp()));
-
-    //         expect(Number(await this.aggregator.latestRound())).to.be.equal(2);
-    //         expect(await this.aggregator.latestAnswer()).to.be.equal(100);
-
-
-    //         // expect(Number(await this.aggregator.latestTimestamp())).to.be.greaterThan(0);
-    //         // expect(await this.aggregator.latestAnswer()).to.be.equal(100);
-    //     });
-    // });
-
+            expect(Number(await this.aggregator.latestTimestamp())).to.be.greaterThan(0);
+            expect(await this.aggregator.latestAnswer()).to.equal(100);
+        });
+    });
 });
 

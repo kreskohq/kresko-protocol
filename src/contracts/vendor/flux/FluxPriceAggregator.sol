@@ -76,7 +76,7 @@ contract FluxPriceAggregator is AccessControl, AggregatorV2V3Interface, Pausable
 
         // Fetch median of latest answers from oracles and determine market open/closed by majority vote
         uint256[] memory latestAnswers = new uint256[](oracles.length);
-        uint256 invalidAnswerCount;
+        uint256 invalidPriceCount;
 
         // Majority required for open market
         int marketOpenCount;
@@ -87,21 +87,26 @@ contract FluxPriceAggregator is AccessControl, AggregatorV2V3Interface, Pausable
             uint256 latestTime = oracle.latestTimestamp();
             require(latestTime > 0, "Error: uninitialized oracle");
             
-            // Oracles that post negative prices will be ignored
+            // Oracles that post negative prices will be ignored entirely
             int256 latestAns = oracle.latestAnswer();
             if(latestAns < 0) {
-                invalidAnswerCount++;
+                invalidPriceCount++;
                 continue;
             }
-            latestAnswers[i-invalidAnswerCount] = uint256(latestAns);
 
-            // Increment market open/closed counters
+            // Increment market open/closed counters. Oracles who report that the market is closed will have their price ignored
             bool isMarketOpen = oracle.latestMarketOpen();
-            isMarketOpen ? marketOpenCount++ : marketClosedCount++;
+            if(isMarketOpen) {
+                marketOpenCount++;
+                latestAnswers[i-invalidPriceCount] = uint256(latestAns);
+            } else {
+                marketClosedCount++;
+                invalidPriceCount++;
+            }
         }
 
         // Clean up latest answers array, keeping only valid prices
-        uint256[] memory trimmedLatestAnswers = new uint[](latestAnswers.length-invalidAnswerCount);
+        uint256[] memory trimmedLatestAnswers = new uint[](latestAnswers.length-invalidPriceCount);
         for (uint j = 0; j < trimmedLatestAnswers.length; j++) {
             trimmedLatestAnswers[j] = latestAnswers[j];
         }
