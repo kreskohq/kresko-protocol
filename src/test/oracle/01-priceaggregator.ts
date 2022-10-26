@@ -2,7 +2,7 @@ import { expect } from "@test/chai";
 import { withFixture } from "@utils/test";
 import hre from "hardhat";
 
-describe.only("Flux price aggregator", function () {
+describe("Flux price aggregator", function () {
     let addr: Addresses;
     const oracles = [] as FluxPriceFeed[];
     before(async function () {        

@@ -97,6 +97,10 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IActionFacet {
         require(_amount > 0, Error.ZERO_MINT);
 
         MinterState storage s = ms();
+        require(
+            s.kreskoAsset(_kreskoAsset).oracle.latestMarketOpen() == true,
+            Error.KRASSET_NOT_MINTABLE
+        );
 
         if (s.safetyStateSet) {
             ensureNotPaused(_kreskoAsset, Action.Borrow);

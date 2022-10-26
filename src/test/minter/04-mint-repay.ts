@@ -391,6 +391,33 @@ describe("Minter", function () {
                     ),
                 ).to.be.revertedWith(Error.KRASSET_MAX_SUPPLY_REACHED);
             });
+
+            it("should not allow the minting of kreskoAssets if the market is closed", async function () {
+                this.krAsset.setMarketOpen(false);
+                await expect(
+                    hre.Diamond.connect(users.userOne).mintKreskoAsset(
+                        users.userOne.address,
+                        this.krAsset.address,
+                        toBig(1),
+                    ),
+                ).to.be.revertedWith(Error.KRASSET_NOT_MINTABLE);
+
+                // Confirm that the user has no minted krAssets
+                const mintedKreskoAssetsBefore = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                expect(mintedKreskoAssetsBefore).to.deep.equal([]);
+
+                // Confirm that opening the market makes krAsset mintable again
+                this.krAsset.setMarketOpen(true);
+                await hre.Diamond.connect(users.userOne).mintKreskoAsset(
+                    users.userOne.address,
+                    this.krAsset.address,
+                    toBig(1),
+                );
+
+                // Confirm the array of the user's minted Kresko assets has been pushed to
+                const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                expect(mintedKreskoAssetsAfter).to.deep.equal([this.krAsset.address]);
+            });
         });
 
         describe("#burn", function () {
