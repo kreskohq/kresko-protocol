@@ -400,7 +400,7 @@ describe("Minter", function () {
                         this.krAsset.address,
                         toBig(1),
                     ),
-                ).to.be.revertedWith(Error.KRASSET_NOT_MINTABLE);
+                ).to.be.revertedWith(Error.KRASSET_MARKET_CLOSED);
 
                 // Confirm that the user has no minted krAssets
                 const mintedKreskoAssetsBefore = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);

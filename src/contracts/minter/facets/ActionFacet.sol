@@ -14,7 +14,6 @@ import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upg
 import {DiamondModifiers, MinterModifiers} from "../../shared/Modifiers.sol";
 import {Action, FixedPoint, KrAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
-import "hardhat/console.sol";
 
 contract ActionFacet is DiamondModifiers, MinterModifiers, IActionFacet {
     using SafeERC20Upgradeable for IERC20Upgradeable;
@@ -99,7 +98,7 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IActionFacet {
         MinterState storage s = ms();
         require(
             s.kreskoAsset(_kreskoAsset).oracle.latestMarketOpen() == true,
-            Error.KRASSET_NOT_MINTABLE
+            Error.KRASSET_MARKET_CLOSED
         );
 
         if (s.safetyStateSet) {

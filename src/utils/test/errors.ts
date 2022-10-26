@@ -62,7 +62,7 @@ export enum Error {
     KRASSET_SYMBOL_EXISTS = "221", // KrAsset with this symbol is already within the protocl
     KRASSET_COLLATERAL_LOW = "222", // Collateral deposits do not cover the amount being minted
     KRASSET_MINT_AMOUNT_LOW = "223", // Debt position must be greater than the minimum debt position value
-    KRASSET_MAX_SUPPLY_REACHED = "224", // Asset being minted has reached its current supply limit
+    KRASSET_MAX_SUPPLY_REACHED = "224", // KrAsset being minted has reached its current supply limit
     SELF_LIQUIDATION = "225", // Account cannot liquidate itself
     ZERO_REPAY = "226", // Account cannot liquidate itself
     STALE_PRICE = "227", // Price for the asset is stale
@@ -71,12 +71,16 @@ export enum Error {
     SAFETY_COUNCIL_EXISTS = "230", // Only one council role can exist
     NOT_SAFETY_COUNCIL = "231", // Sender must have the role `Role.SAFETY_COUNCIL`
     ACTION_PAUSED_FOR_ASSET = "232", // This action is currently paused for this asset
-    INVALID_ASSET_SUPPLIED = "233", // Asset supplied is not a collateral nor a krAsset
+    INVALID_ASSET_SUPPLIED = "233", // KrAsset supplied is not a collateral nor a krAsset
     KRASSET_NOT_WRAPPED = "234", // krAsset given is not the wrapped version
     INVALID_LT = "235", // Liquidation threshold is greater than minimum collateralization ratio
     COLLATERAL_INSUFFICIENT_AMOUNT = "236", // Insufficient amount of collateral to complete the operation
     MULTISIG_NOT_ENOUGH_OWNERS = "237", // Multisig has invalid amount of owners
-
+    PARAM_OPEN_FEE_TOO_HIGH = "238", // "Close fee exceeds MAX_OPEN_FEE"
+    INVALID_FEE_TYPE = "239", // "Invalid fee type
+    KRASSET_INVALID_ANCHOR = "240", // KrAsset anchor does not support the correct interfaceId
+    KRASSET_INVALID_CONTRACT = "241", // KrAsset does not support the correct interfaceId
+    KRASSET_MARKET_CLOSED = "242", // KrAsset's market is currently closed
     /* -------------------------------------------------------------------------- */
     /*                                   3. Staking                               */
     /* -------------------------------------------------------------------------- */
