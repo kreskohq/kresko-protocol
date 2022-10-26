@@ -2,7 +2,6 @@ import {
     defaultCloseFee,
     defaultCollateralArgs,
     defaultKrAssetArgs,
-    defaultOraclePrice,
     Fee,
     leverageKrAsset,
     Role,
@@ -34,8 +33,8 @@ describe("Minter", function () {
         this.krAsset = this.krAssets.find(c => c.deployArgs.name === defaultKrAssetArgs.name);
 
         await this.krAsset.contract.grantRole(Role.OPERATOR, users.deployer.address);
-        this.krAsset.setPrice(defaultOraclePrice);
-        2;
+        this.krAsset.setPrice(this.krAsset.deployArgs.price);
+        this.krAsset.setMarketOpen(this.krAsset.deployArgs.marketOpen);
 
         // Load account with collateral
         this.initialBalance = toBig(100000);
@@ -47,7 +46,6 @@ describe("Minter", function () {
                 [hre.Diamond.address]: this.initialBalance,
             },
         });
-        this.krAsset.setPrice(this.krAsset.deployArgs.price);
         this.collateral.setPrice(this.collateral.deployArgs.price);
 
         // User deposits 10,000 collateral
@@ -189,6 +187,7 @@ describe("Minter", function () {
                     name: "SecondKreskoAsset",
                     symbol: "SecondKreskoAsset",
                     price: 5, // $5
+                    marketOpen: true,
                     factor: 1,
                     supplyLimit: 100000,
                     closeFee: defaultCloseFee,
