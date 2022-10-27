@@ -9,6 +9,7 @@ import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
 import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
 import {irs} from "../InterestRateState.sol";
 import {WadRay} from "../../libs/WadRay.sol";
+import "hardhat/console.sol";
 
 library LibAccount {
     using FixedPoint for FixedPoint.Unsigned;
@@ -162,7 +163,7 @@ library LibAccount {
         if (debt == 0) {
             return 0;
         }
-        return debt.rayMul(irs().srAssets[_asset].getNormalizedDebtIndex());
+        return debt.rayMul(irs().srAssets[_asset].getNormalizedDebtIndex()).rayToWad();
     }
 
     /**
@@ -174,13 +175,15 @@ library LibAccount {
         address _account,
         address _asset
     ) internal view returns (uint256) {
+        console.log(IKreskoAssetAnchor(self.kreskoAssets[_asset].anchor).totalAssets());
         uint256 debt = IKreskoAssetAnchor(self.kreskoAssets[_asset].anchor).convertToAssets(
             self.kreskoAssetDebt[_account][_asset]
         );
         if (debt == 0) {
             return 0;
         }
-        return debt.rayMul(irs().srAssets[_asset].getNormalizedDebtIndex()) - debt;
+        console.log(debt, debt.rayMul(irs().srAssets[_asset].getNormalizedDebtIndex()));
+        return (debt.rayMul(irs().srAssets[_asset].getNormalizedDebtIndex()) - debt).rayToWad();
     }
 
     /**

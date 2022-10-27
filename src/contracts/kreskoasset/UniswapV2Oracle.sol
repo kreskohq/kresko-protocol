@@ -121,8 +121,11 @@ contract UniswapV2Oracle {
         if (_krAsset == data.token0) {
             amountOut = data.price0Average.mul(_amount).decode144();
         } else {
-            require(_krAsset == data.token1, "consult:token");
-            amountOut = data.price1Average.mul(_amount).decode144();
+            if (_krAsset != data.token1) {
+                amountOut = 0;
+            } else {
+                amountOut = data.price1Average.mul(_amount).decode144();
+            }
         }
     }
 

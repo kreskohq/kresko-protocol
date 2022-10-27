@@ -56,7 +56,19 @@ struct URateAsset {
     uint40 lastUpdateTimestamp;
 }
 
+/**
+* @dev UserState - additionalData is a flexible field.
+* ATokens and VariableDebtTokens use this field store the index of the
+* user's last supply/withdrawal/borrow/repayment. StableDebtTokens use
+* this field to store the user's stable rate.
+*/
+struct UserState {
+    uint128 balance;
+    uint128 additionalData;
+}
+
 struct InterestRateState {
+    mapping(address => mapping(address => UserState)) userState;
     mapping(address => SRateAsset) srAssets;
     mapping(address => SRateAsset) urAssets;
 }

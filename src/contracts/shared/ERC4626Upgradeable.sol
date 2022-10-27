@@ -116,7 +116,6 @@ abstract contract ERC4626Upgradeable is ERC20Upgradeable {
 
     function convertToShares(uint256 assets) public view virtual returns (uint256) {
         uint256 supply = _totalSupply; // Saves an extra SLOAD if totalSupply is non-zero.
-
         return supply == 0 ? assets : assets.mulDivDown(supply, totalAssets());
     }
 

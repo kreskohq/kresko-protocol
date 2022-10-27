@@ -8,6 +8,7 @@ import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 import {Percentages} from "../../libs/Percentages.sol";
 import {LibKrAsset} from "../libs/LibKrAsset.sol";
+
 import {SRateAsset} from "../InterestRateState.sol";
 import {ms} from "../MinterStorage.sol";
 import "hardhat/console.sol";
@@ -69,6 +70,11 @@ library LibStabilityRate {
     function getPriceRate(SRateAsset storage asset) internal view returns (uint256) {
         FixedPoint.Unsigned memory oraclePrice = ms().getKrAssetValue(asset.asset, 1 ether, true);
         FixedPoint.Unsigned memory ammPrice = ms().getKrAssetAMMPrice(asset.asset, 1 ether);
+
+        // no pair, no effect
+        if (ammPrice.rawValue == 0) {
+            return 1 ether;
+        }
         return ammPrice.div(oraclePrice).div(10).rawValue;
     }
 

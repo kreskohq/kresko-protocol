@@ -8,6 +8,7 @@ import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
 import {Role} from "../../libs/Authorization.sol";
+import {WadRay} from "../../libs/WadRay.sol";
 import {MinterEvent} from "../../libs/Events.sol";
 
 import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
@@ -15,7 +16,6 @@ import {DiamondModifiers, MinterModifiers} from "../../shared/Modifiers.sol";
 import {Action, FixedPoint, KrAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";
-import "hardhat/console.sol";
 
 contract ActionFacet is DiamondModifiers, MinterModifiers, IActionFacet {
     using SafeERC20Upgradeable for IERC20Upgradeable;
@@ -98,8 +98,6 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IActionFacet {
         require(_amount > 0, Error.ZERO_MINT);
 
         MinterState storage s = ms();
-        // Update interest rate indexes
-        irs().srAssets[_kreskoAsset].updateSRIndexes();
 
         if (s.safetyStateSet) {
             ensureNotPaused(_kreskoAsset, Action.Borrow);
@@ -113,50 +111,37 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IActionFacet {
             Error.KRASSET_MAX_SUPPLY_REACHED
         );
 
-        if (krAsset.openFee.isGreaterThan(0)) {
+        if (krAsset.openFee.rawValue > 0) {
             s.chargeOpenFee(_account, _kreskoAsset, _amount);
         }
-
-        // Get the value of the minter's current deposited collateral.
-        FixedPoint.Unsigned memory accountCollateralValue = s.getAccountCollateralValue(_account);
-        // Get the account's current minimum collateral value required to maintain current debts.
-        FixedPoint.Unsigned memory minAccountCollateralValue = s.getAccountMinimumCollateralValueAtRatio(
-            _account,
-            s.minimumCollateralizationRatio
-        );
-        // Calculate additional collateral amount required to back requested additional mint.
-        FixedPoint.Unsigned memory additionalCollateralValue = s.getMinimumCollateralValueAtRatio(
-            _kreskoAsset,
-            _amount,
-            s.minimumCollateralizationRatio
-        );
-
-        // Verify that minter has sufficient collateral to back current debt + new requested debt.
-        require(
-            minAccountCollateralValue.add(additionalCollateralValue).isLessThanOrEqual(accountCollateralValue),
-            Error.KRASSET_COLLATERAL_LOW
-        );
+        {
+            // Get the account's current minimum collateral value required to maintain current debts.
+            // Calculate additional collateral amount required to back requested additional mint.
+            // Verify that minter has sufficient collateral to back current debt + new requested debt.
+            require(
+                s
+                    .getAccountMinimumCollateralValueAtRatio(_account, s.minimumCollateralizationRatio)
+                    .add(s.getMinimumCollateralValueAtRatio(_kreskoAsset, _amount, s.minimumCollateralizationRatio))
+                    .isLessThanOrEqual(s.getAccountCollateralValue(_account)),
+                Error.KRASSET_COLLATERAL_LOW
+            );
+        }
 
         // The synthetic asset debt position must be greater than the minimum debt position value
-        uint256 existingDebtAmount = s.kreskoAssetDebt[_account][_kreskoAsset];
+        uint256 existingDebt = s.getKreskoAssetDebt(_account, _kreskoAsset);
         require(
-            s.getKrAssetValue(_kreskoAsset, existingDebtAmount + _amount, true).isGreaterThanOrEqual(
-                s.minimumDebtValue
-            ),
+            s.getKrAssetValue(_kreskoAsset, existingDebt + _amount, true).isGreaterThanOrEqual(s.minimumDebtValue),
             Error.KRASSET_MINT_AMOUNT_LOW
         );
 
         // If the account does not have an existing debt for this Kresko Asset,
         // push it to the list of the account's minted Kresko Assets.
-        if (existingDebtAmount == 0) {
+        if (existingDebt == 0) {
             s.mintedKreskoAssets[_account].push(_kreskoAsset);
         }
 
         // Record the mint.
-        s.kreskoAssetDebt[_account][_kreskoAsset] += IKreskoAssetIssuer(krAsset.anchor).issue(_amount, _account);
-
-        // Update stability rates
-        irs().srAssets[_kreskoAsset].updateSRates();
+        s.mint(_kreskoAsset, krAsset.anchor, _amount, _account);
 
         emit MinterEvent.KreskoAssetMinted(_account, _kreskoAsset, _amount);
     }
@@ -178,9 +163,6 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IActionFacet {
         require(_burnAmount > 0, Error.ZERO_BURN);
         MinterState storage s = ms();
 
-        // Update stability rate indexes
-        irs().srAssets[_kreskoAsset].updateSRIndexes();
-
         if (s.safetyStateSet) {
             ensureNotPaused(_kreskoAsset, Action.Repay);
         }
@@ -198,18 +180,11 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IActionFacet {
         if (_burnAmount == debtAmount) {
             s.mintedKreskoAssets[_account].removeAddress(_kreskoAsset, _mintedKreskoAssetIndex);
         }
-
         // Charge the burn fee from collateral of _account
         s.chargeCloseFee(_account, _kreskoAsset, _burnAmount);
 
-        // Burn akrAssets and krAssets. Reduce debt by amount burned.
-        s.kreskoAssetDebt[_account][_kreskoAsset] -= IKreskoAssetIssuer(s.kreskoAssets[_kreskoAsset].anchor).destroy(
-            _burnAmount,
-            msg.sender
-        );
-
-        // Update stability rates
-        irs().srAssets[_kreskoAsset].updateSRates();
+        // Record the burn
+        s.repay(_kreskoAsset, s.kreskoAssets[_kreskoAsset].anchor, _burnAmount, _account);
 
         emit MinterEvent.KreskoAssetBurned(_account, _kreskoAsset, _burnAmount);
     }

@@ -57,6 +57,16 @@ contract AccountStateFacet is IAccountStateFacet {
         return ms().getKreskoAssetDebt(_account, _asset);
     }
 
+    /**
+     * @notice Get `_account` interest amount for `_asset`
+     * @param _asset The asset address
+     * @param _account The account to query amount for
+     * @return Amount of debt for `_asset`
+     */
+    function kreskoAssetDebtInterest(address _account, address _asset) external view returns (uint256) {
+        return ms().getKreskoAssetDebtInterest(_account, _asset);
+    }
+
     /* -------------------------------------------------------------------------- */
     /*                                 Collateral                                 */
     /* -------------------------------------------------------------------------- */

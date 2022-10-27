@@ -8,20 +8,48 @@ import {MinterEvent} from "../../libs/Events.sol";
 import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {Math} from "../../libs/Math.sol";
 import {Error} from "../../libs/Errors.sol";
+import {WadRay} from "../../libs/WadRay.sol";
+
 import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
+import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
 
 import {LibCalc} from "./LibCalculation.sol";
 import {KrAsset} from "../MinterTypes.sol";
+import {irs} from "../InterestRateState.sol";
 import {MinterState} from "../MinterState.sol";
 
 library LibRepay {
     using Arrays for address[];
+
     using Math for uint8;
     using Math for uint256;
+    using WadRay for uint256;
+
     using FixedPoint for FixedPoint.Unsigned;
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using LibCalc for MinterState;
+
+    function repay(
+        MinterState storage self,
+        address _kreskoAsset,
+        address _anchor,
+        uint256 _amount,
+        address _account
+    ) internal {
+        // Update interest rate indexes
+        (, uint256 newIndex) = irs().srAssets[_kreskoAsset].updateSRIndexes();
+        irs().userState[_account][_kreskoAsset].additionalData = uint128(newIndex);
+
+        // uint256 debtAccrued = _existingDebt.rayMul(newIndex) -
+        //     _existingDebt.rayMul(irs().userState[_account][_kreskoAsset].additionalData);
+        uint256 destroyed = IKreskoAssetIssuer(_anchor).destroy(_amount, msg.sender);
+        uint256 amountScaled = destroyed.wadToRay().rayDiv(newIndex);
+        self.kreskoAssetDebt[_account][_kreskoAsset] -= amountScaled;
+
+        // Update stability rates
+        irs().srAssets[_kreskoAsset].updateSRates();
+    }
 
     /**
      * @notice Charges the protocol close fee based off the value of the burned asset.

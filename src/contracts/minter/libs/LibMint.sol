@@ -4,22 +4,51 @@ pragma solidity >=0.8.14;
 // solhint-disable-next-line
 import {SafeERC20Upgradeable, IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
+import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
 import {Arrays} from "../../libs/Arrays.sol";
 import {MinterEvent} from "../../libs/Events.sol";
 import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {Math} from "../../libs/Math.sol";
+import {WadRay} from "../../libs/WadRay.sol";
 
 import {LibCalc} from "./LibCalculation.sol";
 import {KrAsset} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
+import {irs} from "../InterestRateState.sol";
 
 library LibMint {
     using Arrays for address[];
+
     using Math for uint8;
     using Math for uint256;
+    using WadRay for uint256;
+
     using FixedPoint for FixedPoint.Unsigned;
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using LibCalc for MinterState;
+
+    function mint(
+        MinterState storage self,
+        address _kreskoAsset,
+        address _anchor,
+        uint256 _amount,
+        address _account
+    ) internal {
+        // Update interest rate indexes
+        (, uint256 newIndex) = irs().srAssets[_kreskoAsset].updateSRIndexes();
+
+        uint256 amountScaled = IKreskoAssetIssuer(_anchor).issue(_amount, _account).wadToRay().rayDiv(newIndex);
+        require(amountScaled != 0, "Invalid mint");
+
+        // uint256 debtAccrued = _existingDebt.rayMul(newIndex) -
+        //     _existingDebt.rayMul(irs().userState[_account][_kreskoAsset].additionalData);
+
+        irs().userState[_account][_kreskoAsset].additionalData = uint128(newIndex);
+        self.kreskoAssetDebt[_account][_kreskoAsset] += amountScaled;
+
+        // Update stability rates
+        irs().srAssets[_kreskoAsset].updateSRates();
+    }
 
     /**
      * @notice Charges the protocol open fee based off the value of the minted asset.
