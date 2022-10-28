@@ -43,7 +43,7 @@ describe("Flux Pricefeed", function () {
             expect(await this.pricefeed.latestMarketOpen()).to.equal(true);
         });
 
-        it("should not allow nonadmin to change values", async function () {
+        it("should not allow non-validator to change values", async function () {
             expect(await this.pricefeed.latestAnswer()).to.equal(0);
             try {
                 await this.pricefeed.transmit(TEST_VALUE, true, { from: addr.userOne});

@@ -82,7 +82,32 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
             break;
         }
+        case "hardhat": {
+            await deploy("GnosisSafeProxyFactory", {
+                from: deployer,
+                args: [],
+                log: true,
+                deterministicDeployment: true,
+            });
+
+            await deploy("GnosisSafe", {
+                from: deployer,
+                args: [],
+                log: true,
+                deterministicDeployment: true,
+            });
+
+            await deploy("GnosisSafeL2", {
+                from: deployer,
+                args: [],
+                log: true,
+                deterministicDeployment: true,
+            });
+
+            break;
+        }
         default: {
+
             await deploy("SimulateTxAccessor", {
                 from: deployer,
                 args: [],

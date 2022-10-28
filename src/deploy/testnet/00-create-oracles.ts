@@ -21,6 +21,13 @@ const func: DeployFunction = async function (hre) {
         validator = priceFeedValidatorOpKovan;
     } else if (hre.network.name === "opgoerli") {
         validator = priceFeedValidatorOpGoerli;
+    } else if (hre.network.name === "hardhat") {
+        // Fund validator with exactly 1.0 ether
+        validator = "0xB76982b8e49CEf7dc984c8e2CB87000422aE73bB";
+        await deployer.sendTransaction({
+            to: validator,
+            value: hre.ethers.utils.parseEther("1.0"),
+          });
     }
 
     /* -------------------------------------------------------------------------- */
