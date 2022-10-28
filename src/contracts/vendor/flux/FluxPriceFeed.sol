@@ -32,6 +32,7 @@ contract FluxPriceFeed is AccessControl, AggregatorV2V3Interface {
         uint8 _decimals,
         string memory _description
     ) {
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(ADMIN_ROLE, msg.sender);
         _setupRole(VALIDATOR_ROLE, _validator);
         decimals = _decimals;
