@@ -3,8 +3,7 @@ import { Role } from "@utils/test/roles";
 import { task, types } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
 import type { KISS } from "types";
-// 0xdE945BB222777d72F82d589Fa711Ba522A5FDec9
-// 0x7038C32Df3C97216B07cb56e40ad645EE5BB20D3
+
 task("deploy-kiss")
     .addOptionalParam("wait", "wait confirmations", 1, types.int)
     .addOptionalParam("amount", "Amount to mint to deployer", 1_000_000_000, types.float)
