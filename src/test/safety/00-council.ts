@@ -1,22 +1,24 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import hre, { users } from "hardhat";
-import { expect } from "chai";
-import { Action } from "@test-utils";
-import { withFixture } from "@utils/test";
-import { executeContractCallWithSigners } from "@utils/gnosis/utils/execution";
 import { getInternalEvent } from "@kreskolabs/lib/dist/events";
-import { SafetyStateChangeEventObject } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
+import { Action } from "@test-utils";
+import { executeContractCallWithSigners } from "@utils/gnosis/utils/execution";
+import { withFixture } from "@utils/test";
+import { expect } from "chai";
+import hre from "hardhat";
 import { MinterEvent__factory } from "types";
+import { SafetyStateChangeEventObject } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
 describe("Safety Council", function () {
     withFixture(["minter-test", "integration"]);
+    let users: Users;
     beforeEach(async function () {
         this.collateral = this.collaterals[0];
         this.krAsset = this.krAssets[0];
 
         // These are the 5 signers on the SafetyCouncil multisig
         const { deployer, devTwo, extOne, extTwo, extThree } = await hre.ethers.getNamedSigners();
+        users = await hre.getUsers();
         this.deployer = deployer;
         this.devTwo = devTwo;
         this.extOne = extOne;

@@ -9,7 +9,7 @@ import { expect } from "chai";
 import hre from "hardhat";
 import { UniswapMath } from "types/typechain/src/contracts/test/markets";
 
-describe.only("Stability Rates", function () {
+describe("Stability Rates", function () {
     withFixture(["minter-test", "interest-rate", "uniswap"]);
     let users: Users;
     let UniMath: UniswapMath;
@@ -192,8 +192,6 @@ describe.only("Stability Rates", function () {
 
             expect(debtIndex.gt(oneRay)).to.be.true;
 
-            console.log(+debtIndex);
-
             const debtAfterYear = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
             expect(debtAfterYear).to.bignumber.closeTo(mintAmount.rayMul(debtIndex), oneRay.div(10000));
         });
@@ -357,51 +355,7 @@ describe.only("Stability Rates", function () {
         });
     });
 
-    describe.only("#debt calculation - repay interest", async () => {
-        const depositAmount = hre.toBig(1000);
-        const mintAmount = hre.toBig(50);
-
-        beforeEach(async function () {
-            await this.collateral.setBalance(userTwo, depositAmount);
-        });
-        it.only("can repay interest with KISS", async function () {
-            await updateTWAP();
-            await hre.Diamond.updateSRates(this.krAsset.address);
-
-            await depositCollateral({
-                asset: this.collateral,
-                amount: depositAmount,
-                user: userTwo,
-            });
-
-            await mintKrAsset({
-                asset: this.krAsset,
-                amount: mintAmount,
-                user: userTwo,
-            });
-            const debt = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
-            expect(debt).to.bignumber.closeTo(mintAmount, 10);
-
-            const year = 60 * 60 * 24 * 365;
-            await time.increase(year);
-            const debtIndex = await hre.Diamond.getSRateIndex(this.krAsset.address);
-            await hre.Diamond.updateSRates(this.krAsset.address);
-
-            expect(debtIndex.gt(oneRay)).to.be.true;
-
-            const interestAccrued = await hre.Diamond.kreskoAssetDebtInterest(userTwo.address, this.krAsset.address);
-
-            // TODO: investigate this
-            // const debtAfterYear = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
-            // const balAfterYear = await this.krAsset.contract.balanceOf(userTwo.address);
-            // const interest = debtAfterYear.sub(mintAmount);
-            // expect(interest).to.equal(interestChain);
-
-            await repayInterest({
-                asset: this.krAsset,
-                amount: interestAccrued,
-                user: userTWo,
-            });
-        });
+    describe("#debt calculation - repay interest", async () => {
+        it("can repay interest with KISS");
     });
 });
