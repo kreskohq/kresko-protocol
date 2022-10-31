@@ -1,18 +1,19 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
+pragma solidity >=0.8.14;
 
 import "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
-import "./interfaces/IKISSConverter.sol";
+
+import {IKreskoAssetIssuer} from "../krAsset/IKreskoAssetIssuer.sol";
 import {IKISS} from "./interfaces/IKISS.sol";
 import {Role} from "../libs/Authorization.sol";
 
 /* solhint-disable not-rely-on-time */
 
 /**
- * @title Kresko Integrated Stable System (TEST)
+ * @title Kresko Integrated Stable System
  * @author Kresko
  */
-contract KISS is ERC20PresetMinterPauser {
+contract KISS is IKISS, IKreskoAssetIssuer, ERC20PresetMinterPauser {
     bytes32 public constant OPERATOR_ROLE = 0x112e48a576fb3a75acc75d9fcf6e0bc670b27b1dbcd2463502e10e68cf57d6fd;
     uint256 public constant OPERATOR_ROLE_PERIOD = 1 minutes; // testnet
 
@@ -62,7 +63,10 @@ contract KISS is ERC20PresetMinterPauser {
     function supportsInterface(bytes4 interfaceId) public pure override returns (bool) {
         return
             interfaceId != 0xffffffff &&
-            (interfaceId == type(IKISS).interfaceId || interfaceId == 0x01ffc9a7 || interfaceId == 0x36372b07);
+            (interfaceId == type(IKISS).interfaceId ||
+                interfaceId == type(IKreskoAssetIssuer).interfaceId ||
+                interfaceId == 0x01ffc9a7 ||
+                interfaceId == 0x36372b07);
     }
 
     /**
@@ -71,9 +75,10 @@ contract KISS is ERC20PresetMinterPauser {
      * @param _to address to mint tokens to
      * @param _amount amount to mint
      */
-    function mint(address _to, uint256 _amount) public override onlyRole(Role.OPERATOR) {
+    function issue(uint256 _amount, address _to) public override onlyRole(Role.OPERATOR) returns (uint256) {
         require(msg.sender.code.length > 0, "KISS: EOA");
         _mint(_to, _amount);
+        return _amount;
     }
 
     /**
@@ -82,9 +87,10 @@ contract KISS is ERC20PresetMinterPauser {
      * @param _from address to burn tokens from
      * @param _amount amount to burn
      */
-    function burn(address _from, uint256 _amount) external onlyRole(Role.OPERATOR) {
+    function destroy(uint256 _amount, address _from) external onlyRole(Role.OPERATOR) returns (uint256) {
         require(msg.sender.code.length > 0, "KISS: EOA");
         _burn(_from, _amount);
+        return _amount;
     }
 
     /**
@@ -148,6 +154,14 @@ contract KISS is ERC20PresetMinterPauser {
     /* -------------------------------------------------------------------------- */
     /*                                    Testnet                                 */
     /* -------------------------------------------------------------------------- */
+
+    function convertToShares(uint256 assets) external view returns (uint256) {
+        return assets;
+    }
+
+    function convertToAssets(uint256 shares) external view returns (uint256) {
+        return shares;
+    }
 
     /**
      * @notice Switch metadata

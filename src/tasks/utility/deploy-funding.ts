@@ -37,21 +37,21 @@ task("deploy-funding", "funds a set of accounts", async (_, hre) => {
         console.log("Sending ether");
         await deployer.sendTransaction({
             to: Multisender.address,
-            data: hre.ethers.utils.hexlify(hre.ethers.utils.toUtf8Bytes("BLAABLAA")),
+            data: "0x",
             nonce: await deployer.getTransactionCount(),
             value: toBig(2.5),
         });
     }
 
-    const testUsers = signers.slice(31, 51).map(s => s.address);
-    const wethAmount = toBig(2);
-    const ethAmount = toBig(0.025);
-    const kissAmount = toBig(10000);
+    // const testUsers = signers.slice(31, 51).map(s => s.address);
+    // const wethAmount = toBig(2);
+    // const ethAmount = toBig(0.025);
+    // const kissAmount = toBig(10000);
 
-    await Multisender.distribute(
-        testUsers.concat("0x379F97846a0293A7197E4B510B631e53F9e1202A"),
-        wethAmount,
-        ethAmount,
-        kissAmount,
-    );
+    // await Multisender.distribute(
+    //     testUsers.concat("0x379F97846a0293A7197E4B510B631e53F9e1202A"),
+    //     wethAmount,
+    //     ethAmount,
+    //     kissAmount,
+    // );
 });

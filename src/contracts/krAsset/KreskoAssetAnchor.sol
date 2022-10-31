@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
+
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
+
 import {FixedPointMathLib} from "@rari-capital/solmate/src/utils/FixedPointMathLib.sol";
 import {SafeTransferLib} from "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
 
 import {Role} from "../libs/Authorization.sol";
 
+import {IKreskoAssetIssuer} from "./IKreskoAssetIssuer.sol";
 import {IKreskoAssetAnchor} from "./IKreskoAssetAnchor.sol";
 import {ERC4626Upgradeable, KreskoAsset} from "../shared/ERC4626Upgradeable.sol";
 
@@ -46,6 +49,7 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, AccessControlEnumerableUpgrade
         return
             interfaceId != 0xffffffff &&
             (interfaceId == type(IKreskoAssetAnchor).interfaceId ||
+                interfaceId == type(IKreskoAssetIssuer).interfaceId ||
                 interfaceId == 0x01ffc9a7 ||
                 interfaceId == 0x36372b07);
     }

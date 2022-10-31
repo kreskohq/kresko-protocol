@@ -8,7 +8,7 @@ task("add-krasset")
     .addParam("symbol", "Name of the asset")
     .addParam("kFactor", "kFactor for the asset", 1000, types.float)
     .addParam("oracleAddr", "Price feed address")
-    .addParam("supplyLimit", "Market cap USD limit", defaultSupplyLimit, types.int)
+    .addParam("supplyLimit", "Supply limit", defaultSupplyLimit, types.int)
     .addOptionalParam("log", "Log outputs", false, types.boolean)
     .addOptionalParam("wait", "Log outputs", 1, types.int)
     .setAction(async function (taskArgs: TaskArguments, hre) {
@@ -32,7 +32,7 @@ task("add-krasset")
         } else {
             const tx = await kresko.addKreskoAsset(
                 KrAsset.address,
-                asset.anchor.address,
+                !asset.anchor ? KrAsset.address : asset.anchor.address,
                 toFixedPoint(kFactor),
                 oracleAddr,
                 toFixedPoint(supplyLimit),

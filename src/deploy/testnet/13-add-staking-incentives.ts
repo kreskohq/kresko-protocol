@@ -69,7 +69,7 @@ func.skip = async hre => {
     return false;
 };
 
-func.tags = ["testnet", "staking-incentive"];
+func.tags = ["testnet", "staking-incentive", "staking-deployment"];
 func.dependencies = ["staking"];
 
 export default func;
