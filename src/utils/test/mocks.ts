@@ -49,7 +49,7 @@ export const defaultDepositAmount = toBig(10, defaultDecimals);
 export const defaultMintAmount = toBig(100, defaultDecimals);
 
 export const defaultSupplyLimit = 10000;
-export const defaultCloseFee = 0.02; // 1%
+export const defaultCloseFee = 0.02; // 2%
 export const defaultOpenFee = 0; // 0%
 
 export const defaultKrAssetArgs = {
