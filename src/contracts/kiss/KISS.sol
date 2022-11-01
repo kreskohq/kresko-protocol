@@ -10,7 +10,7 @@ import {Role} from "../libs/Authorization.sol";
 /* solhint-disable not-rely-on-time */
 
 /**
- * @title Kresko Integrated Stable System (TEST)
+ * @title Kresko Integrated Stable System
  * @author Kresko
  */
 contract KISS is IKISS, IKreskoAssetIssuer, ERC20PresetMinterPauser {

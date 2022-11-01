@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 
+/// @title KreskoAsset issuer interface
+/// @author Kresko
+/// @notice Contract that can issue/destroy Kresko Assets through Kresko
+/// @dev This interface is used by KISS & KreskoAssetAnchor
 interface IKreskoAssetIssuer {
     function issue(uint256 _assets, address _to) external returns (uint256 shares);
 

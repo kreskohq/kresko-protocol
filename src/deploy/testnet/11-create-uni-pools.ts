@@ -51,6 +51,5 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 
 func.tags = ["testnet", "add-liquidity", "all", "staking-deployment"];
-// func.dependencies = ["minter-init", "whitelist-krassets"];
 
 export default func;
