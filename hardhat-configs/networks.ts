@@ -1,5 +1,5 @@
 import { utils } from "ethers";
-
+import { INFURA_API_KEY, RPC, ALCHEMY_API_KEY_GOERLI } from "@kreskolabs/configs";
 const parseUnits = utils.parseUnits;
 
 export const chainIds = {
@@ -13,6 +13,9 @@ export const chainIds = {
     bsctest: 97,
     celo: 42220,
     celotest: 44787,
+    op: 10,
+    opkovan: 69,
+    opgoerli: 420,
     ethereum: 1,
     goerli: 5,
     kovan: 42,
@@ -22,7 +25,7 @@ export const chainIds = {
     rinkeby: 4,
     ropsten: 3,
     hardhat: 1337,
-    fantom: 250,
+    fantom: 2100,
     harmony: 1666600000,
     harmonytest: 1666700000,
     polygon: 137,
@@ -37,7 +40,7 @@ export const networks = (mnemonic: string) => ({
         },
         gasPrice: 0,
         chainId: chainIds.aurora,
-        url: `https://mainnet.aurora.dev/${process.env.AURORA_API_KEY}`,
+        url: `https://mainnet.aurora.dev`,
         deploy: ["./src/deploy/aurora"],
         live: true,
     },
@@ -46,9 +49,9 @@ export const networks = (mnemonic: string) => ({
             mnemonic,
         },
         chainId: chainIds.auroratest,
-        gasPrice: 0,
-        url: `https://auroratest.kresko.link?key=${process.env.AURORATEST_API_KEY}`,
+        url: `https://aurora-testnet.infura.io/v3/${INFURA_API_KEY}`,
         deploy: ["./src/deploy/auroratest"],
+        gasPrice: 0,
         live: true,
     },
     arbitrum: {
@@ -100,28 +103,50 @@ export const networks = (mnemonic: string) => ({
     hardhat: {
         accounts: {
             mnemonic,
+            count: 100,
         },
-        chainId: chainIds.hardhat,
         saveDeployments: true,
-        deploy: ["./src/deploy/local"],
+        allowUnlimitedContractSize: true,
     },
     localhost: {
         accounts: {
             mnemonic,
+            count: 100,
         },
         saveDeployments: true,
         chainId: chainIds.hardhat,
-        deploy: ["./src/deploy/local"],
+        allowUnlimitedContractSize: true,
     },
     ethereum: {
         accounts: { mnemonic },
-        url: "https://data-seed-prebsc-2-s3.binance.org:8545",
-        chainId: chainIds.bsctest,
+        url: RPC.eth.mainnet.infura,
+        chainId: chainIds.ethereum,
         tags: ["ethereum"],
+    },
+    op: {
+        accounts: { mnemonic, count: 100 },
+        url: RPC.optimism.mainnet.default,
+        chainId: chainIds.op,
+        saveDeployments: true,
+        tags: ["mainnet"],
+    },
+    opkovan: {
+        accounts: { mnemonic, count: 100 },
+        url: RPC.optimism.kovan.default,
+        chainId: chainIds.opkovan,
+        saveDeployments: true,
+        tags: ["testnet"],
+    },
+    opgoerli: {
+        accounts: { mnemonic, count: 100 },
+        url: RPC.optimism.goerli.default,
+        chainId: chainIds.opgoerli,
+        saveDeployments: true,
+        tags: ["testnet"],
     },
     kovan: {
         chainId: chainIds.kovan,
-        url: `https://eth-kovan.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY_KOVAN}`,
+        url: `https://eth-kovan.alchemyapi.io/v2/${ALCHEMY_API_KEY_GOERLI}`,
         gasPrice: Number(parseUnits("10", "gwei")),
         deploy: ["./src/deploy/kovan"],
         live: true,
@@ -167,7 +192,7 @@ export const networks = (mnemonic: string) => ({
     },
     polygon: {
         accounts: { mnemonic },
-        url: `https://polygon-rpc.com/`,
+        url: RPC.polygon.mainnet.default,
         chainId: chainIds.polygon,
         tags: ["polygon"],
     },

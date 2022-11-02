@@ -1,38 +1,93 @@
 export const users = {
-    admin: {
-        default: 0,
-    },
     deployer: {
         default: 0,
     },
-    operator: {
+    admin: {
         default: 1,
     },
-    userOne: {
+    owner: {
         default: 2,
     },
-    userTwo: {
+    operator: {
         default: 3,
     },
-    userThree: {
+    liquidator: {
         default: 4,
     },
     nonadmin: {
         default: 5,
     },
     treasury: {
-        default: 6,
+        default: 10,
     },
-    priceFeedValidator: {
-        default: 7,
+    feedValidator: {
+        default: 20,
+    },
+    // test users
+    userOne: {
+        default: 31,
+    },
+    userTwo: {
+        default: 32,
+    },
+    userThree: {
+        default: 33,
     },
     userFour: {
-        default: 8,
+        default: 34,
     },
     userFive: {
-        default: 9,
+        default: 35,
     },
-    userSix: {
-        default: 10,
+    testUserOne: {
+        default: 36,
+    },
+    testUserTwo: {
+        default: 37,
+    },
+    testUserThree: {
+        default: 38,
+    },
+    testUserFour: {
+        default: 39,
+    },
+    testUserFive: {
+        default: 40,
+    },
+    testUserSix: {
+        default: 41,
+    },
+    testUserSeven: {
+        default: 42,
+    },
+    testUserEight: {
+        default: 43,
+    },
+    testUserNine: {
+        default: 44,
+    },
+    testUserTen: {
+        default: 45,
+    },
+    testUserExtra: {
+        default: 46,
+    },
+    devOne: {
+        default: 47,
+    },
+    devTwo: {
+        default: 48,
+    },
+    extOne: {
+        default: 49,
+    },
+    extTwo: {
+        default: 50,
+    },
+    extThree: {
+        default: 51,
+    },
+    funder: {
+        default: 52,
     },
 };

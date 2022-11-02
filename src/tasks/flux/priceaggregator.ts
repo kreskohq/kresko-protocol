@@ -1,4 +1,4 @@
-import { getLogger } from "@utils/deployment";
+import { getLogger } from "@kreskolabs/lib/dist/utils";
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
 
@@ -12,7 +12,7 @@ task("deployone:fluxpriceaggregator")
     .setAction(async function (taskArgs: TaskArguments, { ethers, deploy, priceAggregators }) {
         const { deployer } = await ethers.getNamedSigners();
 
-        const { oracles, decimals, description, admin, log, wait } = taskArgs;
+        const { oracles, decimals, description, admin, log } = taskArgs;
         const logger = getLogger("deployone:fluxpriceaggregator", log);
 
         let contractAdmin = deployer.address;
@@ -25,7 +25,6 @@ task("deployone:fluxpriceaggregator")
 
         const [PriceAggregator] = await deploy<FluxPriceAggregator>("FluxPriceAggregator", {
             from: deployer.address,
-            waitConfirmations: wait,
             args: [contractAdmin, oraclesArray, decimals, description],
         });
 

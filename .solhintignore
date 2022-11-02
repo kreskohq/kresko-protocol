@@ -1,5 +1,12 @@
 # folders
+
 .yarn/
-build/
-dist/
+build/**/*
+dist/**/*
+forge/
+artifacts/**/*
+cache/**/*
+bin/**/*
+lib/**/*
 node_modules/
+./src/contracts/vendor/
