@@ -112,4 +112,16 @@ library Error {
     string public constant WITHDRAW_OVERFLOW = "508"; // trying to destroy more than allowed
     string public constant ZERO_SHARES = "509"; // amount of shares must be greater than 0
     string public constant ZERO_ASSETS = "510"; // amount of assets must be greater than 0
+    string public constant INVALID_SCALED_AMOUNT = "511"; // amount of debt scaled must be greater than 0
+
+    /* -------------------------------------------------------------------------- */
+    /*                              6. STABILITY RATES                            */
+    /* -------------------------------------------------------------------------- */
+
+    string public constant STABILITY_RATES_ALREADY_INITIALIZED = "601"; // stability rates for the asset are already initialized
+    string public constant INVALID_OPTIMAL_RATE = "602"; // the optimal price rate configured is less than 1e27 for the asset
+    string public constant INVALID_PRICE_RATE_DELTA = "603"; // the price rate delta configured is less than 1e27 for the asset
+    string public constant STABILITY_RATES_NOT_INITIALIZED = "604"; // the stability rates for the asset are not initialized
+    string public constant STABILITY_RATE_OVERFLOW = "605"; // the stability rates is > max uint128
+    string public constant DEBT_INDEX_OVERFLOW = "606"; // the debt index is > max uint128
 }

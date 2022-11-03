@@ -8,6 +8,7 @@ import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
 import {Arrays} from "../../libs/Arrays.sol";
 import {MinterEvent} from "../../libs/Events.sol";
 import {FixedPoint} from "../../libs/FixedPoint.sol";
+import {Error} from "../../libs/Errors.sol";
 import {Math} from "../../libs/Math.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 
@@ -27,6 +28,12 @@ library LibMint {
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using LibCalc for MinterState;
 
+    /// @notice Mint kresko assets with stability rate updates.
+    /// @dev Amount minted is divided by the current debt index for debt adjustment
+    /// @param _kreskoAsset the asset being repaid
+    /// @param _anchor the anchor token of the asset being repaid
+    /// @param _amount the asset amount being burned
+    /// @param _account the account the debt is subtracted from
     function mint(
         MinterState storage self,
         address _kreskoAsset,
@@ -34,20 +41,15 @@ library LibMint {
         uint256 _amount,
         address _account
     ) internal {
-        // Update interest rate indexes
-        (, uint256 newIndex) = irs().srAssets[_kreskoAsset].updateSRIndexes();
+        uint256 newDebtIndex = irs().srAssets[_kreskoAsset].updateDebtIndex();
+        uint256 issued = IKreskoAssetIssuer(_anchor).issue(_amount, _account);
+        uint256 amountScaled = issued.wadToRay().rayDiv(newDebtIndex);
 
-        uint256 amountScaled = IKreskoAssetIssuer(_anchor).issue(_amount, _account).wadToRay().rayDiv(newIndex);
-        require(amountScaled != 0, "Invalid mint");
+        require(amountScaled != 0, Error.INVALID_SCALED_AMOUNT);
 
-        // uint256 debtAccrued = _existingDebt.rayMul(newIndex) -
-        //     _existingDebt.rayMul(irs().userState[_account][_kreskoAsset].additionalData);
-
-        irs().userState[_account][_kreskoAsset].additionalData = uint128(newIndex);
         self.kreskoAssetDebt[_account][_kreskoAsset] += amountScaled;
 
-        // Update stability rates
-        irs().srAssets[_kreskoAsset].updateSRates();
+        irs().srAssets[_kreskoAsset].updateStabilityRate();
     }
 
     /**

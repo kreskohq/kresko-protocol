@@ -8,15 +8,19 @@ export const getBlockTimestamp = async () => {
     return BigNumber.from(data.timestamp);
 };
 
+export const calcIndexAdjustedAmount = async (amount: BigNumber, asset: KrAsset) => {
+    return amount.rayMul(await hre.Diamond.getDebtIndexForAsset(asset.address));
+};
+
 export const calcExpectedStabilityRateNoPremium = (priceRate: BigNumber, krAssetArgs: any) => {
-    return krAssetArgs.stabilityRates.debtRateBase.add(priceRate.rayMul(krAssetArgs.stabilityRates.rateSlope1));
+    return krAssetArgs.stabilityRates.stabilityRateBase.add(priceRate.rayMul(krAssetArgs.stabilityRates.rateSlope1));
 };
 export const calcExpectedStabilityRateLowPremium = (priceRate: BigNumber, krAssetArgs: any) => {
     const multiplier = krAssetArgs.stabilityRates.optimalPriceRate
         .sub(priceRate)
-        .rayDiv(krAssetArgs.stabilityRates.excessPriceRateDelta);
+        .rayDiv(krAssetArgs.stabilityRates.priceRateDelta);
 
-    return krAssetArgs.stabilityRates.debtRateBase
+    return krAssetArgs.stabilityRates.stabilityRateBase
         .add(krAssetArgs.stabilityRates.rateSlope1)
         .add(
             krAssetArgs.stabilityRates.optimalPriceRate
@@ -26,7 +30,7 @@ export const calcExpectedStabilityRateLowPremium = (priceRate: BigNumber, krAsse
 };
 export const calcExpectedStabilityRateHighPremium = (priceRate: BigNumber, krAssetArgs: any) => {
     const excessRate = priceRate.sub(krAssetArgs.stabilityRates.optimalPriceRate);
-    return krAssetArgs.stabilityRates.debtRateBase
+    return krAssetArgs.stabilityRates.stabilityRateBase
         .rayDiv(priceRate.percentMul(125e2))
         .add(krAssetArgs.stabilityRates.optimalPriceRate.sub(excessRate).rayMul(krAssetArgs.stabilityRates.rateSlope1));
 };

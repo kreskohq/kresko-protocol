@@ -12,12 +12,11 @@ pragma solidity >=0.8.14;
 import {ds, Error, Meta} from "../../shared/Modifiers.sol";
 import {LibUI, IKresko, IKrStaking, IUniswapV2Pair, IERC20Upgradeable, AggregatorV2V3Interface, ms} from "../libs/LibUI.sol";
 
-bytes32 constant UI_STORAGE_POSITION = keccak256("kresko.ui.storage");
-
-struct UIState {
-    IKrStaking staking;
-}
-
+/**
+ * @author Kresko
+ * @title UIDataProviderFacet
+ * @notice Diamond (EIP-2535) facet for UI data views
+ */
 contract UIDataProviderFacet {
     function getGlobalData(address[] memory _collateralAssets, address[] memory _krAssets)
         external

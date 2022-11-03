@@ -18,10 +18,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
                 amount: krAsset.mintAmount,
                 decimals: 18,
             });
-            await hre.Diamond.initSRateAsset(contract.address, defaultKrAssetArgs.stabilityRates);
+            await hre.Diamond.initializeStabilityRateForAsset(contract.address, defaultKrAssetArgs.stabilityRates);
         } else {
             const asset = await createKrAsset(krAsset.name, krAsset.symbol);
-            await hre.Diamond.initSRateAsset(asset.address, defaultKrAssetArgs.stabilityRates);
+            await hre.Diamond.initializeStabilityRateForAsset(asset.address, defaultKrAssetArgs.stabilityRates);
         }
         logger.log(`Deployed ${krAsset.name}`);
     }

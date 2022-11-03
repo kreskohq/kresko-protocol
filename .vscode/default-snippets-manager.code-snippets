@@ -1,0 +1,27 @@
+{
+	"natfunc": {
+		"prefix": "natfunc",
+		"description": "natfunc",
+		"scope": "solidity",
+		"body": [
+			"/**",
+			"* @notice general details",
+			"* @dev dev details",
+			"* @param _param explain _param",
+			"*/"
+		]
+	},
+	"natcontract": {
+		"prefix": "natcontract",
+		"description": "natcontract",
+		"scope": "solidity",
+		"body": [
+			"/** ",
+			"* @title Contract title",
+			"* @author Kresko",
+			"* @notice High level explanation of this contract",
+			"* @dev Explain any developer details",
+			"*/"
+		]
+	}
+}

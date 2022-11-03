@@ -16,6 +16,10 @@ import {MinterState, ms} from "../MinterStorage.sol";
 /* solhint-disable contract-name-camelcase */
 /* solhint-disable var-name-mixedcase */
 
+/**
+ * @title Library for UI related views
+ * @author Kresko
+ */
 library LibUI {
     using Math for uint256;
     using FixedPoint for FixedPoint.Unsigned;

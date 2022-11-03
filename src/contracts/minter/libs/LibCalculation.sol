@@ -12,6 +12,10 @@ import {KrAsset} from "../MinterTypes.sol";
 uint256 constant ONE_HUNDRED_PERCENT = 1e18;
 uint256 constant ONE_USD = 1e18;
 
+/**
+ * @title Calculation library for liquidation & fee values
+ * @author Kresko
+ */
 library LibCalc {
     using Arrays for address[];
     using Math for uint8;

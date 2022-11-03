@@ -30,6 +30,12 @@ library LibRepay {
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using LibCalc for MinterState;
 
+    /// @notice Repay user kresko asset debt with stability rate updates.
+    /// @dev Amount repaid is being divided by the current debt index
+    /// @param _kreskoAsset the asset being repaid
+    /// @param _anchor the anchor token of the asset being repaid
+    /// @param _amount the asset amount being burned
+    /// @param _account the account the debt is subtracted from
     function repay(
         MinterState storage self,
         address _kreskoAsset,
@@ -37,18 +43,15 @@ library LibRepay {
         uint256 _amount,
         address _account
     ) internal {
-        // Update interest rate indexes
-        (, uint256 newIndex) = irs().srAssets[_kreskoAsset].updateSRIndexes();
-        irs().userState[_account][_kreskoAsset].additionalData = uint128(newIndex);
-
-        // uint256 debtAccrued = _existingDebt.rayMul(newIndex) -
-        //     _existingDebt.rayMul(irs().userState[_account][_kreskoAsset].additionalData);
+        uint256 newDebtIndex = irs().srAssets[_kreskoAsset].updateDebtIndex();
         uint256 destroyed = IKreskoAssetIssuer(_anchor).destroy(_amount, msg.sender);
-        uint256 amountScaled = destroyed.wadToRay().rayDiv(newIndex);
+        uint256 amountScaled = destroyed.wadToRay().rayDiv(newDebtIndex);
+
+        require(amountScaled != 0, Error.INVALID_SCALED_AMOUNT);
+
         self.kreskoAssetDebt[_account][_kreskoAsset] -= amountScaled;
 
-        // Update stability rates
-        irs().srAssets[_kreskoAsset].updateSRates();
+        irs().srAssets[_kreskoAsset].updateStabilityRate();
     }
 
     /**

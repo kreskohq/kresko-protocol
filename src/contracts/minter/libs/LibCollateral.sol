@@ -11,6 +11,10 @@ import {Error} from "../../libs/Errors.sol";
 import {CollateralAsset} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
 
+/**
+ * @title Library for collateral related operations
+ * @author Kresko
+ */
 library LibCollateral {
     using FixedPoint for FixedPoint.Unsigned;
     using Math for uint8;

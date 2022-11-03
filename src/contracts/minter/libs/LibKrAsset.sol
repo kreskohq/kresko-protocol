@@ -51,6 +51,9 @@ library LibKrAsset {
         address _kreskoAsset,
         uint256 _amount
     ) internal view returns (FixedPoint.Unsigned memory) {
+        if (self.ammOracle == address(0)) {
+            return FixedPoint.Unsigned(0);
+        }
         return FixedPoint.Unsigned(IUniswapV2Oracle(self.ammOracle).consultKrAsset(_kreskoAsset, _amount));
     }
 

@@ -14,6 +14,11 @@ import { TestKreskoAssetArgs, defaultKrAssetArgs, TestKreskoAssetUpdate, InputAr
 import roles from "../roles";
 import { getMockOracleFor, setPrice } from "./general";
 
+export const getDebtIndexAdjustedBalance = async (user: SignerWithAddress, asset: KrAsset) => {
+    const balance = await asset.contract.balanceOf(user.address);
+    return [balance, balance.rayMul(await hre.Diamond.getDebtIndexForAsset(asset.address))];
+};
+
 export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAssetArgs): Promise<KrAsset> => {
     const users = await getUsers();
     const { name, symbol, price, factor, supplyLimit, closeFee, openFee } = args;
@@ -48,7 +53,7 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
         toFixedPoint(openFee),
     );
     await krAsset.grantRole(roles.OPERATOR, akrAsset.address);
-    await hre.Diamond.initSRateAsset(krAsset.address, defaultKrAssetArgs.stabilityRates);
+    await hre.Diamond.initializeStabilityRateForAsset(krAsset.address, defaultKrAssetArgs.stabilityRates);
 
     const krAssetHasOperator = await krAsset.hasRole(roles.OPERATOR, hre.Diamond.address);
     const akrAssetHasOperator = await akrAsset.hasRole(roles.OPERATOR, hre.Diamond.address);

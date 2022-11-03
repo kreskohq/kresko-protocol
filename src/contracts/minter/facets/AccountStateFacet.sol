@@ -6,9 +6,13 @@ import {Action, Fee, KrAsset, CollateralAsset, FixedPoint} from "../MinterTypes.
 import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
 import {Error} from "../../libs/Errors.sol";
 import {Math} from "../../libs/Math.sol";
-
 import {ms} from "../MinterStorage.sol";
 
+/**
+ * @author Kresko
+ * @title AccountStateFacet
+ * @notice Diamond (EIP-2535) facet for views concerning account state
+ */
 contract AccountStateFacet is IAccountStateFacet {
     using Math for uint256;
     using Math for uint8;

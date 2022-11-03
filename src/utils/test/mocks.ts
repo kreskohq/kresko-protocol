@@ -63,12 +63,12 @@ export const defaultKrAssetArgs = {
     closeFee: defaultCloseFee,
     openFee: defaultOpenFee,
     stabilityRates: {
-        debtRateBase: oneRay.div(10000).mul(25),
+        stabilityRateBase: oneRay.div(10000).mul(25), // 0.25%
         reserveFactor: PERCENTAGE_FACTOR, // 100%
         rateSlope1: oneRay.div(1000).mul(3),
         rateSlope2: oneRay.div(1000).mul(30),
         optimalPriceRate: oneRay, // price parity = 1 ray
-        excessPriceRateDelta: oneRay.div(1000).mul(25), // 2% delta
+        priceRateDelta: oneRay.div(1000).mul(25), // 2.5% delta
     },
 };
 

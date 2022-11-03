@@ -17,6 +17,11 @@ import {Action, FixedPoint, KrAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";
 
+/**
+ * @author Kresko
+ * @title ActionFacet
+ * @notice Diamond (EIP-2535) facet for main user actions in the Kresko protocol
+ */
 contract ActionFacet is DiamondModifiers, MinterModifiers, IActionFacet {
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using FixedPoint for FixedPoint.Unsigned;
@@ -143,6 +148,7 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IActionFacet {
         // Record the mint.
         s.mint(_kreskoAsset, krAsset.anchor, _amount, _account);
 
+        // Emit logs
         emit MinterEvent.KreskoAssetMinted(_account, _kreskoAsset, _amount);
     }
 
@@ -186,6 +192,7 @@ contract ActionFacet is DiamondModifiers, MinterModifiers, IActionFacet {
         // Record the burn
         s.repay(_kreskoAsset, s.kreskoAssets[_kreskoAsset].anchor, _burnAmount, _account);
 
+        // Emit logs
         emit MinterEvent.KreskoAssetBurned(_account, _kreskoAsset, _burnAmount);
     }
 

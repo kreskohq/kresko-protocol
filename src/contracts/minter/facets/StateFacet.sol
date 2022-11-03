@@ -27,6 +27,10 @@ contract StateFacet is IStateFacet {
         return ms().feeRecipient;
     }
 
+    function ammOracle() external view returns (address) {
+        return ms().ammOracle;
+    }
+
     function minimumCollateralizationRatio() external view returns (FixedPoint.Unsigned memory) {
         return ms().minimumCollateralizationRatio;
     }

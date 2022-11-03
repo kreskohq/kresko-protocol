@@ -70,7 +70,7 @@ contract UniswapV2Oracle {
         require(msg.sender == owner, "c:owner");
         require(_pair != address(0), "c:pair");
         require(_updatePeriod > 15 minutes, "c:period");
-        require(pairs[_pair].token0 == address(0) && pairs[_pair].token1 == address(0), "c:exists");
+        require(pairs[_pair].token0 == address(0), "c:exists");
 
         IUniswapV2Pair pair = IUniswapV2Pair(_pair);
         address token0 = pair.token0();

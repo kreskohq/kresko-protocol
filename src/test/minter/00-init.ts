@@ -7,7 +7,7 @@ import { expect } from "@test/chai";
 describe("Minter", function () {
     withFixture(["minter-init"]);
     describe("#initialization", async () => {
-        it("sets correct state", async function () {
+        it("sets correct initial state", async function () {
             expect(await hre.Diamond.minterInitializations()).to.equal(1);
 
             const { args } = await getMinterInitializer(hre);
@@ -34,7 +34,7 @@ describe("Minter", function () {
             await expect(hre.Diamond.upgradeState(tx.to, tx.data)).to.be.revertedWith(Error.ALREADY_INITIALIZED);
         });
 
-        it("sets all facets configured", async function () {
+        it("configures all facets correctly", async function () {
             const facetsOnChain = (await hre.Diamond.facets()).map(([facetAddress, functionSelectors]) => ({
                 facetAddress,
                 functionSelectors,

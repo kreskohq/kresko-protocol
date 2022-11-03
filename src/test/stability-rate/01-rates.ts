@@ -17,7 +17,7 @@ import hre from "hardhat";
 import { UniswapMath } from "types/typechain/src/contracts/test/markets";
 
 describe("Stability Rates", function () {
-    withFixture(["minter-test", "interest-rate", "uniswap"]);
+    withFixture(["minter-test", "stability-rates", "uniswap"]);
     let users: Users;
     let UniMath: UniswapMath;
     let userOne: SignerWithAddress;
@@ -58,13 +58,15 @@ describe("Stability Rates", function () {
         await updateTWAP();
     });
     describe("#price-rate", async () => {
+        it("calculates correct price rates when there is no amm price");
+        it("calculates correct price rates when the amm liquidity does not qualify");
         it("calculates correct price rates when amm == oracle", async function () {
-            await hre.Diamond.updateSRates(this.krAsset.address);
+            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
 
             const ammPricesOptimal = await getAMMPrices(this.collateral, this.krAsset);
             expect(ammPricesOptimal.price1).to.be.closeTo(10, 0.05);
 
-            const priceRate = await hre.Diamond.getPriceRate(this.krAsset.address);
+            const priceRate = await hre.Diamond.getPriceRateForAsset(this.krAsset.address);
             expect(priceRate).to.bignumber.equal(oneRay);
         });
 
@@ -92,7 +94,7 @@ describe("Stability Rates", function () {
             expect(ammPricesUpPremium.price1).to.be.closeTo(10.5, 0.05);
 
             await updateTWAP();
-            const priceRate = await hre.Diamond.getPriceRate(this.krAsset.address);
+            const priceRate = await hre.Diamond.getPriceRateForAsset(this.krAsset.address);
             expect(priceRate).to.bignumber.closeTo(expectedPriceRate, oneRay.div(100));
         });
 
@@ -120,22 +122,24 @@ describe("Stability Rates", function () {
             expect(ammRates.price1).to.be.closeTo(9.5, 0.05);
 
             await updateTWAP();
-            const priceRate = await hre.Diamond.getPriceRate(this.krAsset.address);
+            const priceRate = await hre.Diamond.getPriceRateForAsset(this.krAsset.address);
             expect(priceRate).to.bignumber.closeTo(expectedPriceRate, oneRay.div(100));
         });
     });
     describe("#stability-rate", async () => {
+        it("calculates correct stability rates when there is no amm price");
+        it("calculates correct stability rates when the amm liquidity does not qualify");
         it("calculates correct stability rates when amm == oracle", async function () {
-            await hre.Diamond.updateSRates(this.krAsset.address);
+            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
             await updateTWAP();
-            await hre.Diamond.updateSRates(this.krAsset.address);
-            const [, sRate] = await hre.Diamond.getCalculatedSRates(this.krAsset.address);
-            const priceRate = await hre.Diamond.getPriceRate(this.krAsset.address);
-            expect(sRate).to.bignumber.equal(calcExpectedStabilityRateNoPremium(priceRate, defaultKrAssetArgs));
+            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
+            const stabilityRate = await hre.Diamond.getStabilityRateForAsset(this.krAsset.address);
+            const priceRate = await hre.Diamond.getPriceRateForAsset(this.krAsset.address);
+            expect(stabilityRate).to.bignumber.equal(calcExpectedStabilityRateNoPremium(priceRate, defaultKrAssetArgs));
         });
 
         it("calculates correct stability rates when amm > oracle", async function () {
-            await hre.Diamond.updateSRates(this.krAsset.address);
+            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
             const premiumPercentage = 105; // 105% eg. 5% premium
             const krAssetAmount = toBig(1);
             const collateralAmount = toBig(10).div(100).mul(premiumPercentage);
@@ -156,15 +160,18 @@ describe("Stability Rates", function () {
             });
 
             await updateTWAP();
-            await hre.Diamond.updateSRates(this.krAsset.address);
+            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
 
-            const [, sRate] = await hre.Diamond.getCalculatedSRates(this.krAsset.address);
-            const priceRate = await hre.Diamond.getPriceRate(this.krAsset.address);
-            expect(sRate).to.bignumber.equal(calcExpectedStabilityRateHighPremium(priceRate, defaultKrAssetArgs));
+            const stabilityRate = await hre.Diamond.getStabilityRateForAsset(this.krAsset.address);
+            const priceRate = await hre.Diamond.getPriceRateForAsset(this.krAsset.address);
+
+            expect(stabilityRate).to.bignumber.equal(
+                calcExpectedStabilityRateHighPremium(priceRate, defaultKrAssetArgs),
+            );
         });
 
         it("calculates correct stability rates when amm < oracle ", async function () {
-            await hre.Diamond.updateSRates(this.krAsset.address);
+            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
             const premiumPercentage = 95; // 95% eg. -5% premium
             const krAssetAmount = toBig(1);
             const collateralAmount = toBig(10).div(100).mul(premiumPercentage);
@@ -185,17 +192,21 @@ describe("Stability Rates", function () {
             });
 
             await updateTWAP();
-            await hre.Diamond.updateSRates(this.krAsset.address);
+            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
 
-            const [, sRate] = await hre.Diamond.getCalculatedSRates(this.krAsset.address);
-            const priceRate = await hre.Diamond.getPriceRate(this.krAsset.address);
+            const stabilityRate = await hre.Diamond.getStabilityRateForAsset(this.krAsset.address);
+            const priceRate = await hre.Diamond.getPriceRateForAsset(this.krAsset.address);
 
-            expect(sRate).to.bignumber.equal(calcExpectedStabilityRateLowPremium(priceRate, defaultKrAssetArgs));
+            expect(stabilityRate).to.bignumber.equal(
+                calcExpectedStabilityRateLowPremium(priceRate, defaultKrAssetArgs),
+            );
         });
     });
-    describe("#rate-index", async () => {
-        it("calculates correct rate index after a year when amm price > oracle", async function () {
-            await hre.Diamond.updateSRates(this.krAsset.address);
+    describe("#debt-index", async () => {
+        it("calculates correct debt index when there is no amm price");
+        it("calculates correct debt index when the amm liquidity does not qualify");
+        it("calculates correct debt index after a year when amm price > oracle", async function () {
+            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
             const premiumPercentage = 105; // 105% eg. 5% premium
             const krAssetAmount = toBig(1);
             const collateralAmount = toBig(10).div(100).mul(premiumPercentage);
@@ -216,25 +227,25 @@ describe("Stability Rates", function () {
             });
 
             await updateTWAP();
-            await hre.Diamond.updateSRates(this.krAsset.address);
+            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
 
             const year = 60 * 60 * 24 * 365;
-            const [, sRate] = await hre.Diamond.getCalculatedSRates(this.krAsset.address);
+            const stabilityRate = await hre.Diamond.getStabilityRateForAsset(this.krAsset.address);
 
             const lastUpdateTimestamp = await getBlockTimestamp();
             await time.increase(year);
             const currentTimestamp = await getBlockTimestamp();
 
-            await hre.Diamond.updateSRates(this.krAsset.address);
-            const sRateIndexAfter = await hre.Diamond.getSRateIndex(this.krAsset.address);
-            expect(sRateIndexAfter).to.be.bignumber.closeTo(
-                calcCompoundedInterest(sRate, currentTimestamp, lastUpdateTimestamp),
+            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
+            const debtIndex = await hre.Diamond.getDebtIndexForAsset(this.krAsset.address);
+            expect(debtIndex).to.be.bignumber.closeTo(
+                calcCompoundedInterest(stabilityRate, currentTimestamp, lastUpdateTimestamp),
                 oneRay.div(1000),
             );
         });
 
-        it("calculates correct rate index after year when amm price < oracle", async function () {
-            await hre.Diamond.updateSRates(this.krAsset.address);
+        it("calculates correct debt index after year when amm price < oracle", async function () {
+            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
             const premiumPercentage = 90; // 90% eg. -10% premium
             const krAssetAmount = toBig(1);
             const collateralAmount = toBig(10).div(100).mul(premiumPercentage);
@@ -255,40 +266,40 @@ describe("Stability Rates", function () {
             });
 
             await updateTWAP();
-            await hre.Diamond.updateSRates(this.krAsset.address);
+            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
 
             const year = 60 * 60 * 24 * 365;
-            const [, sRate] = await hre.Diamond.getCalculatedSRates(this.krAsset.address);
+            const stabilityRate = await hre.Diamond.getStabilityRateForAsset(this.krAsset.address);
 
             const lastUpdateTimestamp = await getBlockTimestamp();
             await time.increase(year);
             const currentTimestamp = await getBlockTimestamp();
 
-            await hre.Diamond.updateSRates(this.krAsset.address);
-            const sRateIndexAfter = await hre.Diamond.getSRateIndex(this.krAsset.address);
-            expect(sRateIndexAfter).to.be.bignumber.closeTo(
-                calcCompoundedInterest(sRate, currentTimestamp, lastUpdateTimestamp),
+            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
+            const debtIndex = await hre.Diamond.getDebtIndexForAsset(this.krAsset.address);
+            expect(debtIndex).to.be.bignumber.closeTo(
+                calcCompoundedInterest(stabilityRate, currentTimestamp, lastUpdateTimestamp),
                 oneRay.div(1000),
             );
         });
 
-        it("calculates correct rate index after a year for amm price == oracle", async function () {
-            await hre.Diamond.updateSRates(this.krAsset.address);
+        it("calculates correct debt index after a year for amm price == oracle", async function () {
+            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
 
             await updateTWAP();
-            await hre.Diamond.updateSRates(this.krAsset.address);
+            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
 
             const year = 60 * 60 * 24 * 365;
-            const [, sRate] = await hre.Diamond.getCalculatedSRates(this.krAsset.address);
+            const stabilityRate = await hre.Diamond.getStabilityRateForAsset(this.krAsset.address);
 
             const lastUpdateTimestamp = await getBlockTimestamp();
             await time.increase(year);
             const currentTimestamp = await getBlockTimestamp();
 
-            await hre.Diamond.updateSRates(this.krAsset.address);
-            const sRateIndexAfter = await hre.Diamond.getSRateIndex(this.krAsset.address);
+            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
+            const sRateIndexAfter = await hre.Diamond.getDebtIndexForAsset(this.krAsset.address);
             expect(sRateIndexAfter).to.be.bignumber.closeTo(
-                calcCompoundedInterest(sRate, currentTimestamp, lastUpdateTimestamp),
+                calcCompoundedInterest(stabilityRate, currentTimestamp, lastUpdateTimestamp),
                 oneRay.div(1000),
             );
         });

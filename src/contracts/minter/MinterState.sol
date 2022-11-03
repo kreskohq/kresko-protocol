@@ -18,7 +18,10 @@ using LibAccount for MinterState global;
 using LibRepay for MinterState global;
 using LibMint for MinterState global;
 
-/// @title Complete storage layout for the minter state
+/**
+ * @title Storage layout for the minter state
+ * @author Kresko
+ */
 struct MinterState {
     /* -------------------------------------------------------------------------- */
     /*                               Initialization                               */

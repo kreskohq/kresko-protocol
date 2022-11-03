@@ -9,7 +9,6 @@ import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
 import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
 import {irs} from "../InterestRateState.sol";
 import {WadRay} from "../../libs/WadRay.sol";
-import "hardhat/console.sol";
 
 library LibAccount {
     using FixedPoint for FixedPoint.Unsigned;
@@ -148,6 +147,9 @@ library LibAccount {
 
     /**
      * @notice Get `_account` debt amount for `_asset`
+     * @notice debt amount of an account has two external effects
+     * * Effect #1: Asset is rebased due to stock split/reverse split
+     * * Effect #2: Stability rate accrual
      * @param _asset The asset address
      * @param _account The account to query amount for
      * @return Amount of debt for `_asset`
@@ -163,11 +165,13 @@ library LibAccount {
         if (debt == 0) {
             return 0;
         }
+
         return debt.rayMul(irs().srAssets[_asset].getNormalizedDebtIndex()).rayToWad();
     }
 
     /**
      * @notice Get the total interest accrued on top of debt
+     * * eg: debt * debtIndex - debt
      * @return The interest balance of @param _account denominated in @param _asset
      **/
     function getKreskoAssetDebtInterest(
@@ -175,14 +179,12 @@ library LibAccount {
         address _account,
         address _asset
     ) internal view returns (uint256) {
-        console.log(IKreskoAssetAnchor(self.kreskoAssets[_asset].anchor).totalAssets());
         uint256 debt = IKreskoAssetAnchor(self.kreskoAssets[_asset].anchor).convertToAssets(
             self.kreskoAssetDebt[_account][_asset]
         );
         if (debt == 0) {
             return 0;
         }
-        console.log(debt, debt.rayMul(irs().srAssets[_asset].getNormalizedDebtIndex()));
         return (debt.rayMul(irs().srAssets[_asset].getNormalizedDebtIndex()) - debt).rayToWad();
     }
 

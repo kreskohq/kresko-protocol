@@ -12,74 +12,68 @@ describe("Interest Rates", function () {
     });
     describe("#init", async () => {
         it("initializes correct stability rates", async function () {
-            const config = await hre.Diamond.getSRateAssetConfiguration(this.krAsset.address);
+            const config = await hre.Diamond.getStabilityRateConfigurationForAsset(this.krAsset.address);
 
             // default values
-            expect(config.liquidityIndex).to.bignumber.equal(oneRay);
             expect(config.debtIndex).to.bignumber.equal(oneRay);
-            expect(config.debtRate).to.bignumber.equal(oneRay);
-            expect(config.liquidityRate).to.bignumber.equal(oneRay);
+            expect(config.stabilityRate).to.bignumber.equal(oneRay);
             expect(config.asset).to.equal(this.krAsset.address);
 
             // configured values
             expect(config.rateSlope1).to.bignumber.equal(defaultKrAssetArgs.stabilityRates.rateSlope1);
             expect(config.rateSlope2).to.bignumber.equal(defaultKrAssetArgs.stabilityRates.rateSlope2);
-            expect(config.debtRateBase).to.bignumber.equal(defaultKrAssetArgs.stabilityRates.debtRateBase);
+            expect(config.stabilityRateBase).to.bignumber.equal(defaultKrAssetArgs.stabilityRates.stabilityRateBase);
             expect(config.optimalPriceRate).to.bignumber.equal(defaultKrAssetArgs.stabilityRates.optimalPriceRate);
-            expect(config.excessPriceRateDelta).to.bignumber.equal(
-                defaultKrAssetArgs.stabilityRates.excessPriceRateDelta,
-            );
+            expect(config.priceRateDelta).to.bignumber.equal(defaultKrAssetArgs.stabilityRates.priceRateDelta);
         });
 
         it("configures correct stability rates", async function () {
-            const configuration: StabilityRateFacet.SRateConfigStruct = {
-                debtRateBase: oneRay,
+            const configuration: StabilityRateFacet.StabilityRateSetupStruct = {
+                stabilityRateBase: oneRay,
                 rateSlope1: oneRay.mul(10),
                 rateSlope2: oneRay.mul(50),
                 optimalPriceRate: oneRay.div(2),
-                excessPriceRateDelta: oneRay.div(100).mul(10),
-                reserveFactor: "10000",
+                priceRateDelta: oneRay.div(100).mul(10),
             };
 
-            await hre.Diamond.configureSRateAsset(this.krAsset.address, configuration);
+            await hre.Diamond.configureStabilityRatesForAsset(this.krAsset.address, configuration);
 
-            const config = await hre.Diamond.getSRateAssetConfiguration(this.krAsset.address);
+            const config = await hre.Diamond.getStabilityRateConfigurationForAsset(this.krAsset.address);
 
             // default values
-            expect(config.liquidityIndex).to.bignumber.equal(oneRay);
             expect(config.debtIndex).to.bignumber.equal(oneRay);
-            expect(config.debtRate).to.bignumber.equal(oneRay);
-            expect(config.liquidityRate).to.bignumber.equal(oneRay);
+            expect(config.stabilityRate).to.bignumber.equal(oneRay);
             expect(config.asset).to.equal(this.krAsset.address);
 
             // configured values
             expect(config.rateSlope1).to.bignumber.equal(configuration.rateSlope1);
             expect(config.rateSlope2).to.bignumber.equal(configuration.rateSlope2);
-            expect(config.debtRateBase).to.bignumber.equal(configuration.debtRateBase);
+            expect(config.stabilityRateBase).to.bignumber.equal(configuration.stabilityRateBase);
             expect(config.optimalPriceRate).to.bignumber.equal(configuration.optimalPriceRate);
-            expect(config.excessPriceRateDelta).to.bignumber.equal(configuration.excessPriceRateDelta);
+            expect(config.priceRateDelta).to.bignumber.equal(configuration.priceRateDelta);
         });
         it("cant set incorrect values", async function () {
-            const incorrectOptimalRate: StabilityRateFacet.SRateConfigStruct = {
-                debtRateBase: oneRay,
+            const incorrectOptimalRate: StabilityRateFacet.StabilityRateSetupStruct = {
+                stabilityRateBase: oneRay,
                 rateSlope1: oneRay.mul(10),
                 rateSlope2: oneRay.mul(50),
                 optimalPriceRate: oneRay.add(1),
-                excessPriceRateDelta: oneRay.div(100).mul(10),
-                reserveFactor: "10000",
+                priceRateDelta: oneRay.div(100).mul(10),
             };
-            const incorrectExcessRate: StabilityRateFacet.SRateConfigStruct = {
-                debtRateBase: oneRay,
+            const incorrectExcessRate: StabilityRateFacet.StabilityRateSetupStruct = {
+                stabilityRateBase: oneRay,
                 rateSlope1: oneRay.mul(10),
                 rateSlope2: oneRay.mul(50),
                 optimalPriceRate: oneRay,
-                excessPriceRateDelta: oneRay.add(1),
-                reserveFactor: "10000",
+                priceRateDelta: oneRay.add(1),
             };
-            await expect(hre.Diamond.initSRateAsset(this.krAsset.address, defaultKrAssetArgs.stabilityRates)).to.be
+            await expect(
+                hre.Diamond.initializeStabilityRateForAsset(this.krAsset.address, defaultKrAssetArgs.stabilityRates),
+            ).to.be.reverted;
+            await expect(hre.Diamond.configureStabilityRatesForAsset(this.krAsset.address, incorrectOptimalRate)).to.be
                 .reverted;
-            await expect(hre.Diamond.configureSRateAsset(this.krAsset.address, incorrectOptimalRate)).to.be.reverted;
-            await expect(hre.Diamond.configureSRateAsset(this.krAsset.address, incorrectExcessRate)).to.be.reverted;
+            await expect(hre.Diamond.configureStabilityRatesForAsset(this.krAsset.address, incorrectExcessRate)).to.be
+                .reverted;
         });
     });
 });

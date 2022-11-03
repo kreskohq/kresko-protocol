@@ -6,68 +6,69 @@ import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
 
 import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {WadRay} from "../../libs/WadRay.sol";
+import {Error} from "../../libs/Errors.sol";
 import {Percentages} from "../../libs/Percentages.sol";
 import {LibKrAsset} from "../libs/LibKrAsset.sol";
 
-import {SRateAsset} from "../InterestRateState.sol";
+import {StabilityRateConfig} from "../InterestRateState.sol";
 import {ms} from "../MinterStorage.sol";
 import "hardhat/console.sol";
 
 /* solhint-disable not-rely-on-time */
 
+/**
+ * @author Kresko
+ * @title AMM price stability rate library, derived from Aave Protocols VariableDebtToken calculations
+ * @notice Library for performing stability rate related operations
+ */
 library LibStabilityRate {
     using WadRay for uint256;
     using WadRay for uint128;
     using Percentages for uint256;
-    using Percentages for uint128;
     using FixedPoint for FixedPoint.Unsigned;
 
     /// @dev Ignoring leap years
     uint256 internal constant SECONDS_PER_YEAR = 365 days;
 
     /**
-     * @dev Updates the reserve indexes and the timestamp of the update
-     * @param asset rate configuration for the asset
-     **/
-    function updateSRIndexes(SRateAsset storage asset) internal returns (uint256, uint256) {
-        uint256 newLiquidityIndex = asset.liquidityIndex;
-        uint256 newDebtIndex = asset.debtIndex;
-
-        // only cumulating if there is any income being produced
-        if (asset.liquidityRate > 0) {
-            uint256 cumulatedLiquidityInterest = asset.calculateLinearInterest();
-            newLiquidityIndex = cumulatedLiquidityInterest.rayMul(asset.liquidityIndex);
-            require(newLiquidityIndex <= type(uint128).max, "Liq index overflow");
-
-            asset.liquidityIndex = uint128(newLiquidityIndex);
-
-            if (IERC20Upgradeable(asset.asset).totalSupply() != 0) {
-                uint256 cumulatedDebtInterest = asset.calculateCompoundedInterest(block.timestamp);
-                newDebtIndex = cumulatedDebtInterest.rayMul(asset.debtIndex);
-                require(newDebtIndex <= type(uint128).max, "Debt index overflow");
-                asset.debtIndex = uint128(newDebtIndex);
-            }
+     * @notice Cumulates the stability rate from previous update and multiplies the debt index with it.
+     * @dev Updates the updated timestamp
+     * @dev New debt index cannot overflow uint128
+     * @param asset configuration for the asset
+     * @return newDebtIndex the updated index
+     */
+    function updateDebtIndex(StabilityRateConfig storage asset) internal returns (uint256 newDebtIndex) {
+        newDebtIndex = asset.debtIndex;
+        // only cumulating if there is any assets minted and rate is over 0
+        if (IERC20Upgradeable(asset.asset).totalSupply() != 0) {
+            uint256 cumulatedStabilityRate = asset.calculateCompoundedInterest(block.timestamp);
+            newDebtIndex = cumulatedStabilityRate.rayMul(asset.debtIndex);
+            require(newDebtIndex <= type(uint128).max, Error.DEBT_INDEX_OVERFLOW);
+            asset.debtIndex = uint128(newDebtIndex);
         }
 
         asset.lastUpdateTimestamp = uint40(block.timestamp);
-        return (newLiquidityIndex, newDebtIndex);
+        return newDebtIndex;
     }
 
     /**
-     * @dev Updates the current borrow rate and the current liquidity rate
+     * @notice Updates the current stability rate for an asset
+     * @dev New stability rate cannot overflow uint128
      * @param asset rate configuration for the asset
-     **/
-    function updateSRates(SRateAsset storage asset) internal {
-        (uint256 newLiquidityRate, uint256 newDebtRate) = calculateStabilityRates(asset);
-
-        require(newLiquidityRate <= type(uint128).max, "Liq rate overflow");
-        require(newDebtRate <= type(uint128).max, "Debt rate overflow");
-
-        asset.liquidityRate = uint128(newLiquidityRate);
-        asset.debtRate = uint128(newDebtRate);
+     */
+    function updateStabilityRate(StabilityRateConfig storage asset) internal {
+        uint256 stabilityRate = calculateStabilityRate(asset);
+        require(stabilityRate <= type(uint128).max, Error.STABILITY_RATE_OVERFLOW);
+        asset.stabilityRate = uint128(stabilityRate);
     }
 
-    function getPriceRate(SRateAsset storage asset) internal view returns (uint256) {
+    /**
+     * @notice Get the current price rate between AMM and oracle pricing
+     * @dev Raw return value of ammPrice == 0 when no AMM pair exists OR liquidity of the pair does not qualify
+     * @param asset rate configuration for the asset
+     * @return priceRate the current price rate
+     */
+    function getPriceRate(StabilityRateConfig storage asset) internal view returns (uint256 priceRate) {
         FixedPoint.Unsigned memory oraclePrice = ms().getKrAssetValue(asset.asset, 1 ether, true);
         FixedPoint.Unsigned memory ammPrice = ms().getKrAssetAMMPrice(asset.asset, 1 ether);
 
@@ -78,51 +79,36 @@ library LibStabilityRate {
         return ammPrice.div(oraclePrice).div(10).rawValue;
     }
 
-    function calculateStabilityRates(SRateAsset storage asset) internal view returns (uint256, uint256) {
-        IKreskoAsset krAsset = IKreskoAsset(asset.asset);
+    /**
+     * @notice Calculate new stability rate from the current price rate
+     * @dev Separate calculations exist for following cases:
+     * case 1: AMM premium > optimal + delta
+     * case 2: AMM premium < optimal - delta
+     * case 3: AMM premium <= optimal + delta && AMM premium >= optimal - delta
+     * @param asset rate configuration for the asset
+     * @return priceRate the current price rate
+     */
+    function calculateStabilityRate(StabilityRateConfig storage asset) internal view returns (uint256 stabilityRate) {
+        uint256 priceRate = asset.getPriceRate(); // 0.95 RAY = -5% PREMIUM, 1.05 RAY = +5% PREMIUM
 
-        uint256 currentDebtRate = 0;
-        uint256 priceRate = asset.getPriceRate();
-        // priceRate = totalDebt == 0 ? 0 : totalDebt.rayDiv(availableLiquidity.add(totalDebt));
-
-        // If premium is high
-        if (priceRate > asset.optimalPriceRate + asset.excessPriceRateDelta) {
-            uint256 excessRate = priceRate - asset.optimalPriceRate;
-            currentDebtRate =
-                asset.debtRateBase.rayDiv(priceRate.percentMul(125e2)) +
-                ((asset.optimalPriceRate - excessRate).rayMul(asset.rateSlope1));
-            // If premium is low
-        } else if (priceRate < asset.optimalPriceRate - asset.excessPriceRateDelta) {
-            uint256 multiplier = (asset.optimalPriceRate - priceRate).rayDiv(asset.excessPriceRateDelta);
-            currentDebtRate =
-                (asset.debtRateBase + asset.rateSlope1) +
-                asset.optimalPriceRate.rayMul(multiplier).rayMul(asset.rateSlope2);
-            // If premium is within optimal range
+        // If AMM price > priceRate + delta
+        if (priceRate > asset.optimalPriceRate + asset.priceRateDelta) {
+            uint256 excessRate = priceRate - WadRay.RAY;
+            stabilityRate =
+                asset.stabilityRateBase.rayDiv(priceRate.percentMul(125e2)) +
+                ((WadRay.RAY - excessRate).rayMul(asset.rateSlope1));
+            // If AMM price < pricaRate + delta
+        } else if (priceRate < asset.optimalPriceRate - asset.priceRateDelta) {
+            uint256 multiplier = (WadRay.RAY - priceRate).rayDiv(asset.priceRateDelta);
+            stabilityRate =
+                (asset.stabilityRateBase + asset.rateSlope1) +
+                WadRay.RAY.rayMul(multiplier).rayMul(asset.rateSlope2);
+            // Default case, if premium is within optimal range
         } else {
-            currentDebtRate = asset.debtRateBase + (priceRate.rayMul(asset.rateSlope1));
+            stabilityRate = asset.stabilityRateBase + (priceRate.rayMul(asset.rateSlope1));
         }
 
-        uint256 totalDebt = krAsset.totalSupply().wadToRay();
-        // Get new overall debt rate
-        uint256 weightedRate = totalDebt.rayMul(currentDebtRate);
-        uint256 currentLiquidityRate = weightedRate.rayDiv(totalDebt).rayMul(priceRate);
-        // uint256 currentLiquidityRate = weightedRate.rayDiv(totalDebt.wadToRay()).rayMul(priceRate).percentMul(
-        //     Percentages.PERCENTAGE_FACTOR - asset.reserveFactor
-        // );
-
-        return (currentLiquidityRate, currentDebtRate);
-    }
-
-    /**
-     * @dev Function to calculate the interest accumulated using a linear interest rate formula
-     * @param asset rate configuration for the asset
-     * @return The interest rate linearly accumulated during the timeDelta, in ray
-     **/
-
-    function calculateLinearInterest(SRateAsset storage asset) internal view returns (uint256) {
-        uint256 timeDifference = block.timestamp - uint256(asset.lastUpdateTimestamp);
-
-        return ((asset.liquidityRate * timeDifference) / SECONDS_PER_YEAR) + WadRay.RAY;
+        return stabilityRate;
     }
 
     /**
@@ -140,7 +126,7 @@ library LibStabilityRate {
      * @param currentTimestamp The timestamp of the last update of the interest
      * @return The interest rate compounded during the timeDelta, in ray
      **/
-    function calculateCompoundedInterest(SRateAsset storage asset, uint256 currentTimestamp)
+    function calculateCompoundedInterest(StabilityRateConfig storage asset, uint256 currentTimestamp)
         internal
         view
         returns (uint256)
@@ -161,8 +147,8 @@ library LibStabilityRate {
 
             expMinusTwo = exp > 2 ? exp - 2 : 0;
 
-            basePowerTwo = asset.debtRate.rayMul(asset.debtRate) / (SECONDS_PER_YEAR * SECONDS_PER_YEAR);
-            basePowerThree = basePowerTwo.rayMul(asset.debtRate) / SECONDS_PER_YEAR;
+            basePowerTwo = asset.stabilityRate.rayMul(asset.stabilityRate) / (SECONDS_PER_YEAR * SECONDS_PER_YEAR);
+            basePowerThree = basePowerTwo.rayMul(asset.stabilityRate) / SECONDS_PER_YEAR;
         }
 
         uint256 secondTerm = exp * expMinusOne * basePowerTwo;
@@ -174,67 +160,17 @@ library LibStabilityRate {
             thirdTerm /= 6;
         }
 
-        return WadRay.RAY + (asset.debtRate * exp) / SECONDS_PER_YEAR + secondTerm + thirdTerm;
-    }
-
-    // /**
-    //  * @dev Accumulates a predefined amount of asset to the reserve as a fixed, instantaneous income.
-    // Used for example to accumulate
-    //  * the flashloan fee to the reserve, and spread it between all the depositors
-    //  * @param reserve The reserve object
-    //  * @param totalLiquidity The total liquidity available in the reserve
-    //  * @param amount The amount to accomulate
-    //  **/
-    // function cumulateToLiquidityIndex(
-    //     DataTypes.ReserveData storage reserve,
-    //     uint256 totalLiquidity,
-    //     uint256 amount
-    // ) internal {
-    //     uint256 amountToLiquidityRatio = amount.wadToRay().rayDiv(totalLiquidity.wadToRay());
-
-    //     uint256 result = amountToLiquidityRatio.add(WadRayMath.ray());
-
-    //     result = result.rayMul(reserve.liquidityIndex);
-    //     require(result <= type(uint128).max, Errors.RL_LIQUIDITY_INDEX_OVERFLOW);
-
-    //     reserve.liquidityIndex = uint128(result);
-    // }
-
-    // /**
-    //  * @dev Calculates the compounded interest between the timestamp of the last update and
-    // the current block timestamp
-    //  * @param rate The interest rate (in ray)
-    //  * @param lastUpdateTimestamp The timestamp from which the interest accumulation needs to be calculated
-    //  **/
-    // function calculateCompoundedInterest(uint256 rate, uint40 lastUpdateTimestamp) internal view returns (uint256) {
-    //     return calculateCompoundedInterest(rate, lastUpdateTimestamp, block.timestamp);
-    // }
-
-    /**
-     * @dev Returns the ongoing normalized income index for the depositors
-     * A value of 1e27 means there is no income. As time passes, the income is accrued
-     * A value of 2*1e27 means for each unit of asset one unit of income has been accrued
-     * @param asset rate configuration for the asset
-     * @return the normalized deposit income index. expressed in ray
-     **/
-    function getNormalizedIncomeIndex(SRateAsset storage asset) internal view returns (uint256) {
-        //solium-disable-next-line
-        if (asset.lastUpdateTimestamp == uint40(block.timestamp)) {
-            //if the index was updated in the same block, no need to perform any calculation
-            return asset.liquidityIndex;
-        }
-
-        return asset.calculateLinearInterest().rayMul(asset.liquidityIndex);
+        return WadRay.RAY + (asset.stabilityRate * exp) / SECONDS_PER_YEAR + secondTerm + thirdTerm;
     }
 
     /**
      * @dev Returns the ongoing normalized debt index for the borrowers
-     * A value of 1e27 means there is no debt. As time passes, the income is accrued
+     * A value of 1e27 means there is no interest. As time passes, the interest is accrued
      * A value of 2*1e27 means that for each unit of debt, one unit worth of interest has been accumulated
      * @param asset rate configuration for the asset
      * @return The normalized debt index. expressed in ray
      **/
-    function getNormalizedDebtIndex(SRateAsset storage asset) internal view returns (uint256) {
+    function getNormalizedDebtIndex(StabilityRateConfig storage asset) internal view returns (uint256) {
         //solium-disable-next-line
         if (asset.lastUpdateTimestamp == uint40(block.timestamp)) {
             //if the index was updated in the same block, no need to perform any calculation
