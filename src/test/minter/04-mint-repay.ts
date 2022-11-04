@@ -36,7 +36,7 @@ import {
 const INTEREST_RATE_DELTA = hre.toBig("0.000001");
 const INTEREST_RATE_PRICE_DELTA = hre.toBig("0.0001", 8);
 
-describe.only("Minter", function () {
+describe("Minter", function () {
     let users: Users;
     before(async function () {
         users = await hre.getUsers();

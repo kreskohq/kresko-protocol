@@ -138,7 +138,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         {
             // Subtract repaid Kresko assets from liquidated user's recorded debt.
             uint256 destroyed = IKreskoAssetIssuer(krAsset.anchor).destroy(_repayAmount, msg.sender);
-            s.kreskoAssetDebt[_account][_repayKreskoAsset] -= destroyed.rayDiv(
+            s.kreskoAssetDebt[_account][_repayKreskoAsset] -= destroyed.wadToRay().rayDiv(
                 irs().srAssets[_repayKreskoAsset].updateDebtIndex()
             );
             irs().srAssets[_repayKreskoAsset].updateStabilityRate(); // Update interest rates
