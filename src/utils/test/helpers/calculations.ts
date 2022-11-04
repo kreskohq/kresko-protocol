@@ -34,6 +34,13 @@ export const calcExpectedStabilityRateHighPremium = (priceRate: BigNumber, krAss
         .rayDiv(priceRate.percentMul(125e2))
         .add(krAssetArgs.stabilityRates.optimalPriceRate.sub(excessRate).rayMul(krAssetArgs.stabilityRates.rateSlope1));
 };
+
+export const calcDebtIndex = async (asset: Asset, lastUpdate: BigNumber) => {
+    const rate = await hre.Diamond.getStabilityRateForAsset(asset.address);
+    const index = await hre.Diamond.getDebtIndexForAsset(asset.address);
+
+    return index.rayMul(calcCompoundedInterest(rate, await getBlockTimestamp(), lastUpdate));
+};
 export const calcCompoundedInterest = (
     rate: BigNumber,
     currentTimestamp: BigNumber,

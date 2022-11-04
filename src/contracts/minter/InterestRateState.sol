@@ -19,7 +19,7 @@ struct StabilityRateConfig {
      * Represents the excess price premium in either direction.
      * Expressed in ray
      * Eg. 1/20 ray = 5% price premium in either direction is considered excess
-     **/
+     */
     uint128 priceRateDelta;
     // Current accrual rate for debt
     uint128 stabilityRate;

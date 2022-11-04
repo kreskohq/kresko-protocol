@@ -86,7 +86,7 @@ library LibStabilityRate {
      * case 2: AMM premium < optimal - delta
      * case 3: AMM premium <= optimal + delta && AMM premium >= optimal - delta
      * @param asset rate configuration for the asset
-     * @return priceRate the current price rate
+     * @return stabilityRate the current stability rate
      */
     function calculateStabilityRate(StabilityRateConfig storage asset) internal view returns (uint256 stabilityRate) {
         uint256 priceRate = asset.getPriceRate(); // 0.95 RAY = -5% PREMIUM, 1.05 RAY = +5% PREMIUM
