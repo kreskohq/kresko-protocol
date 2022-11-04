@@ -2,6 +2,7 @@ import type { UniswapV2Pair, UniswapV2Router02 } from "types";
 import hre from "hardhat";
 import { fromBig } from "@kreskolabs/lib";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
+import { getBlockTimestamp } from "./calculations";
 
 type AddLiquidityArgs = {
     user: SignerWithAddress;
@@ -32,7 +33,7 @@ export const addLiquidity = async (args: AddLiquidityArgs) => {
         "0",
         "0",
         user.address,
-        (Date.now() / 1000 + 9000).toFixed(0),
+        +(await getBlockTimestamp()) + 1000,
     );
     return getPair(token0, token1);
 };
@@ -49,7 +50,7 @@ export const withdrawAllLiquidity = async (args: WithdrawLiquidityArgs) => {
         "0",
         "0",
         user.address,
-        (Date.now() / 1000 + 9000).toFixed(0),
+        +(await getBlockTimestamp()) + 1000,
     );
     await pair.sync();
     return pair;
@@ -137,7 +138,7 @@ export const swap = async (args: SwapArgs) => {
             0,
             route,
             user.address,
-            (Date.now() / 1000 + 9000).toFixed(0),
+            +(await getBlockTimestamp()) + 1000,
         );
 };
 

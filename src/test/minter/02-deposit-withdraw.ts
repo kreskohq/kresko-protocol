@@ -422,8 +422,6 @@ describe("Minter", function () {
                             this.krAsset.address,
                             this.mintAmount,
                         );
-                        const debt = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
-                        console.log(fromBig(debt), fromBig(this.mintAmount));
                         // Mint amount differs from deposited amount due to open fee
                         const amountDeposited = await hre.Diamond.collateralDeposits(
                             users.userOne.address,

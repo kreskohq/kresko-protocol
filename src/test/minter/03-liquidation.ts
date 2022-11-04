@@ -20,7 +20,7 @@ import { MinterEvent__factory } from "types/typechain";
 import { LiquidationOccurredEvent } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
 const INTEREST_RATE_DELTA = 0.01;
-describe.only("Minter", function () {
+describe("Minter", function () {
     withFixture(["minter-test", "integration"]);
     let users: Users;
     beforeEach(async function () {
@@ -420,7 +420,7 @@ describe.only("Minter", function () {
                 ).to.be.revertedWith(Error.SELF_LIQUIDATION);
             });
         });
-        describe.only("#liquidate - rebasing events", function () {
+        describe("#liquidate - rebasing events", function () {
             let userToLiquidate: SignerWithAddress;
             let userToLiquidateTwo: SignerWithAddress;
             const collateralPrice = 10;

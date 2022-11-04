@@ -17,7 +17,6 @@ import {DiamondModifiers} from "../../shared/Modifiers.sol";
 import {Constants, KrAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";
-import "hardhat/console.sol";
 
 contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
     using Arrays for address[];
