@@ -41,6 +41,10 @@ export const calcDebtIndex = async (asset: Asset, lastUpdate: BigNumber) => {
 
     return index.rayMul(calcCompoundedInterest(rate, await getBlockTimestamp(), lastUpdate));
 };
+
+export const getNormalizedAmount = async (amount: BigNumber, asset: Asset) => {
+    return amount.rayDiv(await hre.Diamond.getDebtIndexForAsset(asset.address));
+};
 export const calcCompoundedInterest = (
     rate: BigNumber,
     currentTimestamp: BigNumber,
