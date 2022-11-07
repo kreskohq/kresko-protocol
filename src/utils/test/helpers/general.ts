@@ -8,7 +8,7 @@ import { toBig } from "@kreskolabs/lib";
 /*                                  GENERAL                                   */
 /* -------------------------------------------------------------------------- */
 
-export const getMockOracleFor = async (assetName = "Asset", price = defaultOraclePrice) => {
+export const getMockOracleFor = async (assetName = "Asset", price = defaultOraclePrice, marketOpen = true) => {
     const Oracle = await smock.fake<FluxPriceFeed>("FluxPriceFeed");
     const users = await getUsers();
 
@@ -17,11 +17,16 @@ export const getMockOracleFor = async (assetName = "Asset", price = defaultOracl
     ).deploy(users.deployer.address, [Oracle.address], defaultOracleDecimals, assetName);
 
     PriceAggregator.latestAnswer.returns(hre.toBig(price, 8));
+    PriceAggregator.latestMarketOpen.returns(marketOpen);
     return [PriceAggregator, Oracle] as const;
 };
 
 export const setPrice = (oracle: MockContract<FluxPriceAggregator>, price: number) => {
     oracle.latestAnswer.returns(hre.toBig(price, 8));
+};
+
+export const setMarketOpen = (oracle: MockContract<FluxPriceAggregator>, marketOpen: boolean) => {
+    oracle.latestMarketOpen.returns(marketOpen);
 };
 
 export const getHealthFactor = async (user: SignerWithAddress) => {

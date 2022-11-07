@@ -17,6 +17,7 @@ interface AggregatorV3Interface {
         returns (
             uint80 roundId,
             int256 answer,
+            bool marketOpen,
             uint256 startedAt,
             uint256 updatedAt,
             uint80 answeredInRound
@@ -28,6 +29,7 @@ interface AggregatorV3Interface {
         returns (
             uint80 roundId,
             int256 answer,
+            bool marketOpen,
             uint256 startedAt,
             uint256 updatedAt,
             uint80 answeredInRound

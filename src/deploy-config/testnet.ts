@@ -21,6 +21,9 @@ export const assets: { [asset: string]: Asset } = {
         price: async () => {
             return toBig("1", 8);
         },
+        marketOpen: async () => {
+            return true;
+        },
         oracle: {
             name: "USD",
             description: "/USD",
@@ -34,6 +37,9 @@ export const assets: { [asset: string]: Asset } = {
         symbol: "OP",
         decimals: 18,
         price: async () => toBig(await getPriceFromCoinGecko("optimism"), 8),
+        marketOpen: async () => {
+            return true;
+        },
         oracle: {
             name: "OPUSD",
             description: "OP/USD",
@@ -47,6 +53,9 @@ export const assets: { [asset: string]: Asset } = {
         symbol: "WETH",
         decimals: 18,
         price: async () => toBig(await getPriceFromCoinGecko("ethereum"), 8),
+        marketOpen: async () => {
+            return true;
+        },
         oracle: {
             name: "ETHUSD",
             description: "ETH/USD",
@@ -60,6 +69,9 @@ export const assets: { [asset: string]: Asset } = {
         symbol: "SNX",
         decimals: 18,
         price: async () => toBig(await getPriceFromCoinGecko("havven"), 8),
+        marketOpen: async () => {
+            return true;
+        },
         oracle: {
             name: "SNXUSD",
             description: "SNX/USD",
@@ -76,6 +88,9 @@ export const assets: { [asset: string]: Asset } = {
         price: async () => {
             return toBig("1", 8);
         },
+        marketOpen: async () => {
+            return true;
+        },
         oracle: {
             name: "USD",
             description: "/USD",
@@ -89,6 +104,9 @@ export const assets: { [asset: string]: Asset } = {
         symbol: "krETH",
         decimals: 18,
         price: async () => toBig(await getPriceFromCoinGecko("ethereum"), 8),
+        marketOpen: async () => {
+            return true;
+        },
         oracle: {
             name: "ETHUSD",
             description: "ETH/USD",
@@ -102,6 +120,9 @@ export const assets: { [asset: string]: Asset } = {
         symbol: "krTSLA",
         decimals: 18,
         price: async () => toBig(await getPriceFromTwelveData("TSLA"), 8),
+        marketOpen: async () => {
+            return true; // TODO:
+        },
         oracle: {
             name: "TSLAUSD",
             description: "TSLA/USD",
@@ -115,6 +136,9 @@ export const assets: { [asset: string]: Asset } = {
         symbol: "krQQQ",
         decimals: 18,
         price: async () => toBig(await getPriceFromTwelveData("QQQ"), 8),
+        marketOpen: async () => {
+            return true;  // TODO:
+        },
         oracle: {
             name: "QQQUSD",
             description: "QQQ/USD",
@@ -128,6 +152,9 @@ export const assets: { [asset: string]: Asset } = {
         symbol: "krIAU",
         decimals: 18,
         price: async () => toBig(await getPriceFromTwelveData("IAU"), 8),
+        marketOpen: async () => {
+            return true;  // TODO:
+        },
         oracle: {
             name: "GOLDUSD",
             description: "GOLD/USD",
@@ -141,6 +168,9 @@ export const assets: { [asset: string]: Asset } = {
         symbol: "krGME",
         decimals: 18,
         price: async () => toBig(await getPriceFromTwelveData("GME"), 8),
+        marketOpen: async () => {
+            return true;  // TODO:
+        },
         oracle: {
             name: "GMEUSD",
             description: "GME/USD",

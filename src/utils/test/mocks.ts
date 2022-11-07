@@ -25,6 +25,7 @@ export type TestKreskoAssetArgs = {
     symbol?: string;
     wrapperSymbol?: string;
     price: number;
+    marketOpen: boolean;
     oracle?: string;
     factor: number;
     supplyLimit: number;
@@ -57,6 +58,7 @@ export const defaultKrAssetArgs = {
     symbol: "KreskoAsset",
     anchorTokenPrefix: anchorTokenPrefix + "KreskoAsset",
     price: defaultOraclePrice,
+    marketOpen: true,
     factor: 1,
     supplyLimit: defaultSupplyLimit,
     closeFee: defaultCloseFee,
