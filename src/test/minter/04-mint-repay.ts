@@ -1,14 +1,6 @@
 import { fromBig, getInternalEvent, toBig } from "@kreskolabs/lib";
 import { oneRay } from "@kreskolabs/lib/dist/numbers/wadray";
-import {
-    defaultCloseFee,
-    defaultCollateralArgs,
-    defaultKrAssetArgs,
-    defaultOraclePrice,
-    Fee,
-    Role,
-    withFixture,
-} from "@test-utils";
+import { defaultCloseFee, defaultCollateralArgs, defaultKrAssetArgs, Fee, Role, withFixture } from "@test-utils";
 import { Error } from "@utils/test/errors";
 import {
     calcDebtIndex,
@@ -48,7 +40,8 @@ describe("Minter", function () {
         this.krAsset = this.krAssets.find(c => c.deployArgs.name === defaultKrAssetArgs.name);
 
         await this.krAsset.contract.grantRole(Role.OPERATOR, users.deployer.address);
-        this.krAsset.setPrice(defaultOraclePrice);
+        this.krAsset.setPrice(this.krAsset.deployArgs.price);
+        this.krAsset.setMarketOpen(this.krAsset.deployArgs.marketOpen);
 
         // Load account with collateral
         this.initialBalance = toBig(100000);
@@ -58,7 +51,6 @@ describe("Minter", function () {
                 [hre.Diamond.address]: this.initialBalance,
             },
         });
-        this.krAsset.setPrice(this.krAsset.deployArgs.price);
         this.collateral.setPrice(this.collateral.deployArgs.price);
 
         // User deposits 10,000 collateral
@@ -203,6 +195,7 @@ describe("Minter", function () {
                     name: "SecondKreskoAsset",
                     symbol: "SecondKreskoAsset",
                     price: 5, // $5
+                    marketOpen: true,
                     factor: 1,
                     supplyLimit: 100000,
                     closeFee: defaultCloseFee,
@@ -405,6 +398,33 @@ describe("Minter", function () {
                         toBig(overSupplyLimit),
                     ),
                 ).to.be.revertedWith(Error.KRASSET_MAX_SUPPLY_REACHED);
+            });
+
+            it("should not allow the minting of kreskoAssets if the market is closed", async function () {
+                this.krAsset.setMarketOpen(false);
+                await expect(
+                    hre.Diamond.connect(users.userOne).mintKreskoAsset(
+                        users.userOne.address,
+                        this.krAsset.address,
+                        toBig(1),
+                    ),
+                ).to.be.revertedWith(Error.KRASSET_MARKET_CLOSED);
+
+                // Confirm that the user has no minted krAssets
+                const mintedKreskoAssetsBefore = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                expect(mintedKreskoAssetsBefore).to.deep.equal([]);
+
+                // Confirm that opening the market makes krAsset mintable again
+                this.krAsset.setMarketOpen(true);
+                await hre.Diamond.connect(users.userOne).mintKreskoAsset(
+                    users.userOne.address,
+                    this.krAsset.address,
+                    toBig(1),
+                );
+
+                // Confirm the array of the user's minted Kresko assets has been pushed to
+                const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                expect(mintedKreskoAssetsAfter).to.deep.equal([this.krAsset.address]);
             });
         });
 

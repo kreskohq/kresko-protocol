@@ -49,7 +49,7 @@ library Error {
     string public constant COLLATERAL_WITHDRAW_OVERFLOW = "209"; // Withdraw amount cannot reduce accounts collateral value under minCollateralValue
     string public constant KRASSET_INVALID_FACTOR = "210"; // kFactor must be greater than 1FP
     string public constant KRASSET_BURN_AMOUNT_OVERFLOW = "211"; // Repaying more than account has debt
-    string public constant KRASSET_EXISTS = "212"; // Asset is already added
+    string public constant KRASSET_EXISTS = "212"; // KrAsset is already added
     string public constant PARAM_CLOSE_FEE_TOO_HIGH = "213"; // "Close fee exceeds MAX_CLOSE_FEE"
     string public constant PARAM_LIQUIDATION_INCENTIVE_LOW = "214"; // "Liquidation incentive less than MIN_LIQUIDATION_INCENTIVE_MULTIPLIER"
     string public constant PARAM_LIQUIDATION_INCENTIVE_HIGH = "215"; // "Liquidation incentive greater than MAX_LIQUIDATION_INCENTIVE_MULTIPLIER"
@@ -61,8 +61,7 @@ library Error {
     string public constant KRASSET_SYMBOL_EXISTS = "221"; // KrAsset with this symbol is already within the protocl
     string public constant KRASSET_COLLATERAL_LOW = "222"; // Collateral deposits do not cover the amount being minted
     string public constant KRASSET_MINT_AMOUNT_LOW = "223"; // Debt position must be greater than the minimum debt position value
-    string public constant KRASSET_MAX_SUPPLY_REACHED = "224"; // Asset being minted has reached its current supply limit
-
+    string public constant KRASSET_MAX_SUPPLY_REACHED = "224"; // KrAsset being minted has reached its current supply limit
     string public constant SELF_LIQUIDATION = "225"; // Account cannot liquidate itself
     string public constant ZERO_REPAY = "226"; // Account cannot liquidate itself
     string public constant STALE_PRICE = "227"; // Price for the asset is stale
@@ -80,6 +79,7 @@ library Error {
     string public constant INVALID_FEE_TYPE = "239"; // "Invalid fee type
     string public constant KRASSET_INVALID_ANCHOR = "240"; // krAsset anchor does not support the correct interfaceId
     string public constant KRASSET_INVALID_CONTRACT = "241"; // krAsset does not support the correct interfaceId
+    string public constant KRASSET_MARKET_CLOSED = "242"; // KrAsset's market is currently closed
 
     /* -------------------------------------------------------------------------- */
     /*                                   3. Staking                               */

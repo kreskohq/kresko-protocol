@@ -39,7 +39,8 @@ declare global {
         priceFeed: FluxPriceFeed;
         setPrice?: (price: number) => void;
         getPrice?: () => Promise<BigNumber>;
-        setBalance?: (user: SignerWithAddress, amount: BigNumber) =>Promise<void>;
+        setMarketOpen?: (marketOpen: boolean) => void;
+        getMarketOpen?: () => Promise<boolean>;
         update?: (update: TestKreskoAssetUpdate) => Promise<KrAsset>;
     };
     type Collateral = {

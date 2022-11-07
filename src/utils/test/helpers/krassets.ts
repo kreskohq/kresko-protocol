@@ -12,7 +12,7 @@ import {
 } from "types";
 import { TestKreskoAssetArgs, defaultKrAssetArgs, TestKreskoAssetUpdate, InputArgs } from "../mocks";
 import roles from "../roles";
-import { getMockOracleFor, setPrice } from "./general";
+import { getMockOracleFor, setPrice, setMarketOpen } from "./general";
 
 export const getDebtIndexAdjustedBalance = async (user: SignerWithAddress, asset: KrAsset) => {
     const balance = await asset.contract.balanceOf(user.address);
@@ -21,10 +21,10 @@ export const getDebtIndexAdjustedBalance = async (user: SignerWithAddress, asset
 
 export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAssetArgs): Promise<KrAsset> => {
     const users = await getUsers();
-    const { name, symbol, price, factor, supplyLimit, closeFee, openFee } = args;
+    const { name, symbol, price, marketOpen, factor, supplyLimit, closeFee, openFee } = args;
 
     // Create an oracle with price supplied
-    const [OracleAggregator, Oracle] = await getMockOracleFor(name, price);
+    const [OracleAggregator, Oracle] = await getMockOracleFor(name, price, marketOpen);
 
     // create the underlying rebasing krAsset
     const krAsset = await (await smock.mock<KreskoAsset__factory>("KreskoAsset")).deploy();
@@ -89,6 +89,8 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
             });
         },
         getPrice: () => OracleAggregator.latestAnswer(),
+        setMarketOpen: marketOpen => setMarketOpen(OracleAggregator, marketOpen),
+        getMarketOpen: () => OracleAggregator.latestMarketOpen(),
         update: update => updateKrAsset(krAsset.address, update),
     };
 

@@ -21,6 +21,13 @@ const func: DeployFunction = async function (hre) {
         validator = priceFeedValidatorOpKovan;
     } else if (hre.network.name === "opgoerli") {
         validator = priceFeedValidatorOpGoerli;
+    } else if (hre.network.name === "hardhat") {
+        // Fund validator with exactly 1.0 ether
+        validator = "0xB76982b8e49CEf7dc984c8e2CB87000422aE73bB";
+        await deployer.sendTransaction({
+            to: validator,
+            value: hre.ethers.utils.parseEther("1.0"),
+        });
     }
 
     /* -------------------------------------------------------------------------- */
@@ -40,6 +47,8 @@ const func: DeployFunction = async function (hre) {
                 deployment.address,
                 validator,
             );
+
+            const marketOpen = await oracle.latestMarketOpen();
             const price = await oracle.latestAnswer();
             if (price.gt(0)) {
                 logger.log("Price found, skipping");
@@ -47,8 +56,8 @@ const func: DeployFunction = async function (hre) {
             } else {
                 const price = await asset.price();
                 logger.log(`Price not found, transmitting.. ${asset.symbol} - ${price.toString()}`);
-                await oracle.transmit(price);
-                logger.success(`Price transmitted`);
+                await oracle.transmit(price, marketOpen);
+                logger.success(`Price and market status transmitted`);
                 continue;
             }
         }
@@ -60,7 +69,8 @@ const func: DeployFunction = async function (hre) {
             validator,
         });
         const price = await asset.price();
-        await feed.transmit(price, {
+        const marketOpen = await asset.marketOpen();
+        await feed.transmit(price, marketOpen, {
             from: deployer.address,
         });
         logger.log(
@@ -82,8 +92,10 @@ const func: DeployFunction = async function (hre) {
 //         const oracle = await hre.ethers.getContract<FluxPriceFeed>(lastOracle);
 
 //         const price = await oracle.latestAnswer();
+//         const marketOpen = await oracle.latestMarketOpen();
 
 //         console.log("last oracle price", price.toString());
+//         console.log("last oracle market open", marketOpen.toString());
 
 //         if (price.gt(0)) return true;
 //         else return false;
