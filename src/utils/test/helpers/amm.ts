@@ -82,7 +82,9 @@ export const getPair = async (token0: Collateral | KrAsset, token1: Collateral |
 
 export const getAMMPrices = async (token0: Collateral | KrAsset, token1: Collateral | KrAsset) => {
     const Pair = await getPair(token0, token1);
-    const [r0, r1] = await Pair.getReserves();
+    const reserves = await Pair.getReserves();
+
+    const [r0, r1] = token0 > token1 ? [reserves[0], reserves[1]] : [reserves[1], reserves[0]];
 
     const r0Dec = fromBig(r0);
     const r1Dec = fromBig(r1);

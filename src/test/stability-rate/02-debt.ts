@@ -3,6 +3,7 @@ import { oneRay } from "@kreskolabs/lib/dist/numbers/wadray";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { defaultCollateralArgs, defaultKrAssetArgs, withFixture } from "@utils/test";
 import { addLiquidity, getTWAPUpdaterFor, swap } from "@utils/test/helpers/amm";
+import { ONE_YEAR } from "@utils/test/helpers/calculations";
 import { depositCollateral } from "@utils/test/helpers/collaterals";
 import { burnKrAsset, mintKrAsset } from "@utils/test/helpers/krassets";
 import { expect } from "chai";
@@ -227,7 +228,6 @@ describe("Stability Rates", function () {
             });
 
             await updateTWAP();
-            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
 
             await depositCollateral({
                 asset: this.collateral,
@@ -243,8 +243,7 @@ describe("Stability Rates", function () {
             const debt = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
             expect(debt).to.bignumber.closeTo(mintAmount, 10);
 
-            const year = 60 * 60 * 24 * 365;
-            await time.increase(year);
+            await time.increase(ONE_YEAR);
             const debtIndex = await hre.Diamond.getDebtIndexForAsset(this.krAsset.address);
 
             expect(debtIndex.gt(oneRay)).to.be.true;
@@ -284,7 +283,7 @@ describe("Stability Rates", function () {
             });
 
             await updateTWAP();
-            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
+            // await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
 
             await depositCollateral({
                 asset: this.collateral,

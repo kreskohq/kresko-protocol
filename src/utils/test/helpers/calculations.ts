@@ -1,6 +1,6 @@
 import { RAY } from "@kreskolabs/lib/dist/numbers/wadray";
 import { BigNumber } from "ethers";
-export const ONE_YEAR = "31536000";
+export const ONE_YEAR = 60 * 60 * 24 * 365;
 
 export const getBlockTimestamp = async () => {
     const block = await hre.ethers.provider.getBlockNumber();

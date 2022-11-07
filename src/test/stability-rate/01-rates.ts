@@ -64,7 +64,7 @@ describe("Stability Rates", function () {
             await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
 
             const ammPricesOptimal = await getAMMPrices(this.collateral, this.krAsset);
-            expect(ammPricesOptimal.price1).to.be.closeTo(10, 0.05);
+            expect(ammPricesOptimal.price0).to.be.closeTo(10, 0.05);
 
             const priceRate = await hre.Diamond.getPriceRateForAsset(this.krAsset.address);
             expect(priceRate).to.bignumber.equal(oneRay);
@@ -91,7 +91,7 @@ describe("Stability Rates", function () {
                 user: userOne,
             });
             const ammPricesUpPremium = await getAMMPrices(this.collateral, this.krAsset);
-            expect(ammPricesUpPremium.price1).to.be.closeTo(10.5, 0.05);
+            expect(ammPricesUpPremium.price0).to.be.closeTo(10.5, 0.05);
 
             await updateTWAP();
             const priceRate = await hre.Diamond.getPriceRateForAsset(this.krAsset.address);
@@ -119,7 +119,7 @@ describe("Stability Rates", function () {
                 user: userOne,
             });
             const ammRates = await getAMMPrices(this.collateral, this.krAsset);
-            expect(ammRates.price1).to.be.closeTo(9.5, 0.05);
+            expect(ammRates.price0).to.be.closeTo(9.5, 0.05);
 
             await updateTWAP();
             const priceRate = await hre.Diamond.getPriceRateForAsset(this.krAsset.address);
