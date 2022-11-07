@@ -41,7 +41,6 @@ contract KreskoAssetFacet is DiamondModifiers, MinterModifiers, IKreskoAssetFace
         require(_amount > 0, Error.ZERO_MINT);
 
         MinterState storage s = ms();
-
         if (s.safetyStateSet) {
             ensureNotPaused(_kreskoAsset, Action.Borrow);
         }
@@ -49,6 +48,7 @@ contract KreskoAssetFacet is DiamondModifiers, MinterModifiers, IKreskoAssetFace
         // Enforce krAsset's total supply limit
         KrAsset memory krAsset = s.kreskoAssets[_kreskoAsset];
 
+        require(krAsset.oracle.latestMarketOpen() == true, Error.KRASSET_MARKET_CLOSED);
         require(
             IKreskoAsset(_kreskoAsset).totalSupply() + _amount <= krAsset.supplyLimit,
             Error.KRASSET_MAX_SUPPLY_REACHED

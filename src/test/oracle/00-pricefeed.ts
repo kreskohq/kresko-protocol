@@ -20,6 +20,7 @@ describe("Flux Pricefeed", function () {
             name,
             decimals,
             description: descriptionFeed,
+            log: false,
         });
         this.pricefeed = feed;
     });

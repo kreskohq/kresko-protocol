@@ -5,7 +5,7 @@ import { getLogger } from "@kreskolabs/lib/dist/utils";
 import { JStoFixed } from "@kreskolabs/lib";
 
 const func: DeployFunction = async function (hre) {
-    const logger = getLogger("deploy-oracle");
+    const logger = getLogger("deploy-oracle", !process.env.TEST);
     const { getNamedAccounts } = hre;
     const { deployer } = await hre.ethers.getNamedSigners();
 

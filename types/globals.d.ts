@@ -37,6 +37,7 @@ declare global {
         anchor?: KreskoAssetAnchor;
         priceAggregator: FluxPriceAggregator;
         priceFeed: FluxPriceFeed;
+        setBalance?: (user: SignerWithAddress, balance: BigNumber) =>Promise<void> 
         setPrice?: (price: number) => void;
         getPrice?: () => Promise<BigNumber>;
         setMarketOpen?: (marketOpen: boolean) => void;

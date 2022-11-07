@@ -21,6 +21,7 @@ describe("Flux price aggregator", function () {
                 name,
                 decimals,
                 description: descriptionFeed,
+                log: false,
             });
             oracles.push(feed);
         }
@@ -33,6 +34,7 @@ describe("Flux price aggregator", function () {
             oracles: pricefeeds.toString(),
             decimals: decimalsAggregator.toString(),
             description,
+            log: false,
         });
         this.aggregator = deployedAggregator;
 

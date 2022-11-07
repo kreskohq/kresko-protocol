@@ -7,7 +7,7 @@ task("test:deployone:fluxpriceaggregator")
     .addParam("description", "The description of the contract")
     .addOptionalParam("admin", "The admin allowed to modify the oracles and minimum update time")
     .addOptionalParam("wait", "wait confirmations", 1, types.int)
-    .addOptionalParam("log", "log information", true, types.boolean)
+    .addOptionalParam("log", "log information", !process.env.TEST, types.boolean)
     .setAction(async function (taskArgs: TaskArguments, { ethers, deploy }) {
         const { deployer } = await ethers.getNamedSigners();
 
