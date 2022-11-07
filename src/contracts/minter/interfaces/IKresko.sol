@@ -5,7 +5,8 @@ import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {Action} from "../MinterTypes.sol";
 import {IAccountStateFacet} from "./IAccountStateFacet.sol";
 import {IConfigurationFacet} from "./IConfigurationFacet.sol";
-import {IActionFacet} from "./IActionFacet.sol";
+import {IKreskoAssetFacet} from "./IKreskoAssetFacet.sol";
+import {ICollateralAssetFacet} from "./ICollateralAssetFacet.sol";
 import {IStateFacet} from "./IStateFacet.sol";
 import {ILiquidationFacet} from "./ILiquidationFacet.sol";
 import {IAuthorizationFacet} from "../../diamond/interfaces/IAuthorizationFacet.sol";
@@ -18,7 +19,8 @@ interface IKresko is
     IStateFacet,
     ILiquidationFacet,
     IConfigurationFacet,
-    IActionFacet,
+    ICollateralAssetFacet,
+    IKreskoAssetFacet,
     IAuthorizationFacet,
     IOwnershipFacet
 {

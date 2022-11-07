@@ -18,6 +18,11 @@ import {Constants, KrAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";
 
+/**
+ * @author Kresko
+ * @title LiquidationFacet
+ * @notice Main end-user functionality concerning liquidations within the Kresko protocol
+ */
 contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
     using Arrays for address[];
     using Math for uint8;

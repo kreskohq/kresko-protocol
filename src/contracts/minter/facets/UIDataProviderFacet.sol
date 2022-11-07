@@ -15,7 +15,7 @@ import {LibUI, IKresko, IKrStaking, IUniswapV2Pair, IERC20Upgradeable, Aggregato
 /**
  * @author Kresko
  * @title UIDataProviderFacet
- * @notice Diamond (EIP-2535) facet for UI data views
+ * @notice UI data aggregation views
  */
 contract UIDataProviderFacet {
     function getGlobalData(address[] memory _collateralAssets, address[] memory _krAssets)

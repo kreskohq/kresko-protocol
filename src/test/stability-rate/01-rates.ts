@@ -16,7 +16,7 @@ import { expect } from "chai";
 import hre from "hardhat";
 import { UniswapMath } from "types/typechain/src/contracts/test/markets";
 
-describe("Stability Rates", function () {
+describe.only("Stability Rates", function () {
     withFixture(["minter-test", "stability-rates", "uniswap"]);
     let users: Users;
     let UniMath: UniswapMath;

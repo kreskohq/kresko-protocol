@@ -113,8 +113,8 @@ const config: HardhatUserConfig = {
     diamondAbi: [
         {
             name: "Kresko",
-            include: ["facets*"],
-            exclude: ["vendor", "test/*", "interfaces/*", "KreskoAsset", "KreskoAssetAnchor", "KrStaking"],
+            include: ["facets/*"],
+            exclude: ["vendor", "test/*", "interfaces/*", "krasset/*", "KrStaking"],
             strict: false,
         },
     ],

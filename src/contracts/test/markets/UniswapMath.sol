@@ -3,14 +3,13 @@ pragma solidity >=0.6.6;
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 import "@uniswap/lib/contracts/libraries/TransferHelper.sol";
 import "./UniswapV2LiquidityMathLibrary.sol";
-import "hardhat/console.sol";
 
 contract UniswapMath {
     using SafeMath for uint256;
     IUniswapV2Router02 public immutable router;
     address public immutable factory;
 
-    constructor(address factory_, IUniswapV2Router02 router_) public {
+    constructor(address factory_, IUniswapV2Router02 router_) {
         factory = factory_;
         router = router_;
     }

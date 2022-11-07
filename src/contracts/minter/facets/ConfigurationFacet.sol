@@ -24,11 +24,11 @@ import {MinterInitArgs, CollateralAsset, KrAsset, AggregatorV2V3Interface, Fixed
 import {ms} from "../MinterStorage.sol";
 
 /**
- * @title Functionality for `Role.OPERATOR` level actions
  * @author Kresko
+ * @title ConfigurationFacet
+ * @notice Functionality for `Role.OPERATOR` level actions.
  * @notice Can be only initialized by the `Role.ADMIN`
  */
-
 contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfigurationFacet {
     using FixedPoint for FixedPoint.Unsigned;
 

@@ -80,14 +80,15 @@ export const getPair = async (token0: Collateral | KrAsset, token1: Collateral |
     ) as unknown as UniswapV2Pair;
 };
 
-export const getAMMPrices = async (token0: Collateral | KrAsset, token1: Collateral | KrAsset) => {
-    const Pair = await getPair(token0, token1);
+export const getAMMPrices = async (tokenA: Collateral | KrAsset, tokenB: Collateral | KrAsset) => {
+    const Pair = await getPair(tokenA, tokenB);
+    const token0 = await Pair.token0();
     const reserves = await Pair.getReserves();
 
-    const [r0, r1] = token0 > token1 ? [reserves[0], reserves[1]] : [reserves[1], reserves[0]];
+    const [rA, rB] = token0 === tokenA.address ? [reserves[0], reserves[1]] : [reserves[1], reserves[0]];
 
-    const r0Dec = fromBig(r0);
-    const r1Dec = fromBig(r1);
+    const r0Dec = fromBig(rA);
+    const r1Dec = fromBig(rB);
     return {
         price0: Number(Number(r0Dec / r1Dec).toFixed(3)),
         price1: Number(Number(r1Dec / r0Dec).toFixed(3)),
@@ -114,8 +115,7 @@ export const getValuesForUsers = async (logDesc: string, args: LPValueArgsUsers)
         console.log(`User ${i} LP value:`, "$", LPValue);
         results.push(LPValue);
     }
-    // console.log("reserveA", hre.fromBig(reserveA));
-    // console.log("reserveB", hre.fromBig(reserveB));
+
     console.log(logDesc, "tokenB AMM price: ", "$", bPrice);
     console.log("----------------------------------");
     return {

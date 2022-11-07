@@ -12,7 +12,6 @@ import {LibKrAsset} from "../libs/LibKrAsset.sol";
 
 import {StabilityRateConfig} from "../InterestRateState.sol";
 import {ms} from "../MinterStorage.sol";
-import "hardhat/console.sol";
 
 /* solhint-disable not-rely-on-time */
 

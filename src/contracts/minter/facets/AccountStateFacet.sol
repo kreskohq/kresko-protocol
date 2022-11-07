@@ -11,7 +11,7 @@ import {ms} from "../MinterStorage.sol";
 /**
  * @author Kresko
  * @title AccountStateFacet
- * @notice Diamond (EIP-2535) facet for views concerning account state
+ * @notice Views concerning account state
  */
 contract AccountStateFacet is IAccountStateFacet {
     using Math for uint256;

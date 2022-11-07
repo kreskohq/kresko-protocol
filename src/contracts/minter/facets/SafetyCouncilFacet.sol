@@ -14,8 +14,8 @@ import {ms} from "../MinterStorage.sol";
 /* solhint-disable not-rely-on-time */
 
 /**
- * @title Protocol safety controls
  * @author Kresko
+ * @title SafetyCouncilFacet - protocol safety controls
  * @notice `Role.SAFETY_COUNCIL` must be a multisig.
  */
 contract SafetyCouncilFacet is MinterModifiers, DiamondModifiers, ISafetyCouncilFacet {

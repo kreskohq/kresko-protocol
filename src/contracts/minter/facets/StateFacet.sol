@@ -7,9 +7,9 @@ import {MinterParams, FixedPoint, KrAsset, CollateralAsset} from "../MinterTypes
 import {MinterState, ms} from "../MinterStorage.sol";
 
 /**
- * @title View functions for protocol parameters and asset values
  * @author Kresko
- * @dev Structs do not create views for members.
+ * @title View functions for protocol parameters and asset values
+ * @dev As structs do not create views for members, we must expose most of the state values explicitly.
  */
 contract StateFacet is IStateFacet {
     function domainSeparator() external view returns (bytes32) {

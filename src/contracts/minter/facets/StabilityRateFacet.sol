@@ -12,7 +12,7 @@ import {DiamondModifiers, Error} from "../../shared/Modifiers.sol";
 /**
  * @title Stability rate facet
  * @author Kresko
- * @notice Diamond (EIP-2535) facet for stability rate related views and state operations
+ * @notice Stability rate related views and state operations
  * @dev Uses both MinterState (ms) and InterestRateState (irs)
  */
 contract StabilityRateFacet is DiamondModifiers {
