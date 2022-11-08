@@ -69,8 +69,8 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
             FixedPoint.Unsigned(uint256(s.kreskoAssets[_repayKreskoAsset].oracle.latestAnswer()))
         );
 
-        // Get the token debt amount
-        uint256 krAssetDebt = s.getKreskoAssetDebtScaled(_account, _repayKreskoAsset);
+        // Get the scaled debt amount
+        uint256 krAssetDebt = s.getKreskoAssetDebtPrincipal(_account, _repayKreskoAsset);
         // Avoid stack too deep error
         {
             // Liquidator may not repay more value than what the liquidation pair allows

@@ -111,7 +111,7 @@ contract KreskoAssetFacet is DiamondModifiers, MinterModifiers, IKreskoAssetFace
             ensureNotPaused(_kreskoAsset, Action.Repay);
         }
 
-        uint256 debtAmount = s.getKreskoAssetDebtScaled(_account, _kreskoAsset);
+        uint256 debtAmount = s.getKreskoAssetDebtPrincipal(_account, _kreskoAsset);
         if (_burnAmount != type(uint256).max) {
             require(_burnAmount <= debtAmount, Error.KRASSET_BURN_AMOUNT_OVERFLOW);
             // Ensure amount is either 0 or >= minDebtValue
@@ -120,8 +120,8 @@ contract KreskoAssetFacet is DiamondModifiers, MinterModifiers, IKreskoAssetFace
             _burnAmount = debtAmount;
         }
 
-        // If the sender is burning all of the kresko asset, remove it from minted assets array.
-        if (_burnAmount == debtAmount) {
+        // If sender repays all kresko assets, has repaid all interest, remove it from minted assets array.
+        if (_burnAmount == debtAmount && irs().srAssetsUser[_account][_kreskoAsset].debtScaled == 0) {
             s.mintedKreskoAssets[_account].removeAddress(_kreskoAsset, _mintedKreskoAssetIndex);
         }
         // Charge the burn fee from collateral of _account
