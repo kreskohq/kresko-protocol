@@ -3,7 +3,7 @@ import { oneRay } from "@kreskolabs/lib/dist/numbers/wadray";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { defaultCollateralArgs, defaultKrAssetArgs, withFixture } from "@utils/test";
 import { addLiquidity, getTWAPUpdaterFor, swap } from "@utils/test/helpers/amm";
-import { ONE_YEAR } from "@utils/test/helpers/calculations";
+import { calcCompoundedInterest, getBlockTimestamp, ONE_YEAR } from "@utils/test/helpers/calculations";
 import { depositCollateral } from "@utils/test/helpers/collaterals";
 import { burnKrAsset, mintKrAsset } from "@utils/test/helpers/krassets";
 import { expect } from "chai";
@@ -355,13 +355,47 @@ describe("Stability Rates", function () {
     });
 
     describe("#debt calculation - repay interest", async () => {
-        // const depositAmount = hre.toBig(100);
-        // const mintAmount = hre.toBig(10);
-        // beforeEach(async function () {
-        //     await this.collateral.setBalance(userTwo, depositAmount);
-        // });
+        const depositAmount = hre.toBig(100);
+        const mintAmount = hre.toBig(10);
+        beforeEach(async function () {
+            await this.collateral.setBalance(userTwo, depositAmount);
+        });
 
-        it("can view accrued interest in KISS");
+        it("can view accrued interest in KISS", async function () {
+            await depositCollateral({
+                asset: this.collateral,
+                amount: depositAmount,
+                user: userTwo,
+            });
+
+            await mintKrAsset({
+                asset: this.krAsset,
+                amount: mintAmount,
+                user: userTwo,
+            });
+            const stabilityRate = await hre.Diamond.getStabilityRateForAsset(this.krAsset.address);
+
+            const timestampBefore = await getBlockTimestamp();
+            await time.increase(ONE_YEAR);
+            const timestampAfter = await getBlockTimestamp();
+            const cumulativeStabilityRate = calcCompoundedInterest(stabilityRate, timestampAfter, timestampBefore);
+
+            await mintKrAsset({
+                asset: this.krAsset,
+                amount: mintAmount,
+                user: userTwo,
+            });
+
+            const debt = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
+            const [accruedDebt, accruedDebtKiss] = await hre.Diamond.kreskoAssetDebtInterest(
+                userTwo.address,
+                this.krAsset.address,
+            );
+
+            console.log(+debt);
+            console.log(+accruedDebt);
+            console.log(+accruedDebtKiss);
+        });
         it("can repay interest with KISS");
     });
 });
