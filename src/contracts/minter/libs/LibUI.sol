@@ -323,7 +323,7 @@ library LibUI {
             for (uint256 i; i < krAssetAddresses.length; i++) {
                 address assetAddress = krAssetAddresses[i];
                 KrAsset memory krAsset = ms().kreskoAssets[assetAddress];
-                uint256 amount = ms().kreskoAssetDebt[_account][assetAddress];
+                uint256 amount = ms().getKreskoAssetDebtScaled(_account, assetAddress);
 
                 FixedPoint.Unsigned memory amountUSD = ms().getKrAssetValue(assetAddress, amount, true);
 

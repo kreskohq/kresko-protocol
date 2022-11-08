@@ -1,13 +1,7 @@
 import { fromBig, getInternalEvent, toBig } from "@kreskolabs/lib";
-import { oneRay } from "@kreskolabs/lib/dist/numbers/wadray";
 import { defaultCloseFee, defaultCollateralArgs, defaultKrAssetArgs, Fee, Role, withFixture } from "@test-utils";
 import { Error } from "@utils/test/errors";
-import {
-    calcDebtIndex,
-    calcIndexAdjustedAmount,
-    getBlockTimestamp,
-    getNormalizedAmount,
-} from "@utils/test/helpers/calculations";
+import { calcIndexAdjustedAmount, getNormalizedAmount } from "@utils/test/helpers/calculations";
 import { depositCollateral, withdrawCollateral } from "@utils/test/helpers/collaterals";
 import {
     addMockKreskoAsset,
@@ -599,7 +593,10 @@ describe("Minter", function () {
                 const kreskoAssetTotalSupplyBefore = await this.krAsset.contract.totalSupply();
 
                 // Calculate actual burn amount
-                const userOneDebt = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                const userOneDebt = await hre.Diamond.kreskoAssetDebtPrincipal(
+                    users.userOne.address,
+                    this.krAsset.address,
+                );
 
                 const minDebtValue = fromBig((await hre.Diamond.minimumDebtValue()).rawValue, 8);
 
@@ -630,8 +627,11 @@ describe("Minter", function () {
                 expect(mintedKreskoAssetsAfter).to.deep.equal([this.krAsset.address]);
 
                 // Confirm the user's minted kresko asset amount has been updated
-                const newUserDebt = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
-                expect(newUserDebt).to.be.closeTo(userOneDebt.sub(burnAmount), INTEREST_RATE_DELTA);
+                const newUserDebt = await hre.Diamond.kreskoAssetDebtPrincipal(
+                    users.userOne.address,
+                    this.krAsset.address,
+                );
+                expect(newUserDebt).to.be.equal(userOneDebt.sub(burnAmount));
             });
 
             it("should emit KreskoAssetBurned event", async function () {
@@ -1254,7 +1254,10 @@ describe("Minter", function () {
                 const kreskoAssetTotalSupplyBefore = await this.krAsset.contract.totalSupply();
 
                 // Calculate actual burn amount
-                const userOneDebt = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                const userOneDebt = await hre.Diamond.kreskoAssetDebtPrincipal(
+                    users.userOne.address,
+                    this.krAsset.address,
+                );
 
                 const minDebtValue = fromBig((await hre.Diamond.minimumDebtValue()).rawValue, 8);
 
@@ -1577,30 +1580,24 @@ describe("Minter", function () {
                     await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
 
                     // Pay half of debt
-                    const debt = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                    const debt = await hre.Diamond.kreskoAssetDebtPrincipal(
+                        users.userOne.address,
+                        this.krAsset.address,
+                    );
                     const repayAmount = debt;
-                    const lastUpdate = await getBlockTimestamp();
                     await userOne.burnKreskoAsset(users.userOne.address, this.krAsset.address, repayAmount, 0);
 
                     // Debt value after half repayment
-                    const debtAfter = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                    const debtAfter = await hre.Diamond.kreskoAssetDebtPrincipal(
+                        users.userOne.address,
+                        this.krAsset.address,
+                    );
 
-                    // Calc expected value with last update
-                    const expectedDebt = mintAmount
-                        .rayMul(await calcDebtIndex(this.krAsset, lastUpdate))
-                        .mul(denominator);
+                    expect(debtAfter).to.bignumber.equal(0);
 
-                    expect(debtAfter).to.bignumber.closeTo(expectedDebt, oneRay.div(1_000_000));
-
-                    // Should be all burned
-                    const minDebtValue = (await hre.Diamond.minimumDebtValue()).rawValue;
-
-                    // Interest repaid * 2 due to additional stability rate tick in burn
-                    const interestRepaid = hre.fromBig(debt.sub(mintAmount.mul(denominator))) * 2;
-
-                    const expectedBalanceAfterBurn = +minDebtValue.div(assetPrice.div(denominator)) - interestRepaid;
+                    const expectedBalanceAfterBurn = 0;
                     const balanceAfterBurn = hre.fromBig(await this.krAsset.contract.balanceOf(users.userOne.address));
-                    expect(balanceAfterBurn).to.closeTo(expectedBalanceAfterBurn, 0.00001);
+                    expect(balanceAfterBurn).to.equal(expectedBalanceAfterBurn);
 
                     // Anchor krAssets should equal balance * denominator
                     const wkrAssetBalanceKresko = await this.krAsset.anchor.balanceOf(hre.Diamond.address);
@@ -1621,26 +1618,28 @@ describe("Minter", function () {
                     await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
 
                     // Pay half of debt
-                    const debt = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                    const debt = await hre.Diamond.kreskoAssetDebtPrincipal(
+                        users.userOne.address,
+                        this.krAsset.address,
+                    );
                     const repayAmount = debt.div(2);
-                    const lastUpdate = await getBlockTimestamp();
                     await userOne.burnKreskoAsset(users.userOne.address, this.krAsset.address, repayAmount, 0);
 
                     // Debt value after half repayment
-                    const debtAfter = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                    const debtAfter = await hre.Diamond.kreskoAssetDebtPrincipal(
+                        users.userOne.address,
+                        this.krAsset.address,
+                    );
 
                     // Calc expected value with last update
-                    const expectedDebt = mintAmount
-                        .rayMul(await calcDebtIndex(this.krAsset, lastUpdate))
-                        .div(2)
-                        .mul(denominator);
+                    const expectedDebt = mintAmount.div(2).mul(denominator);
 
-                    expect(debtAfter).to.bignumber.closeTo(expectedDebt, oneRay.div(1_000_000));
+                    expect(debtAfter).to.bignumber.equal(expectedDebt);
 
                     // Should be all burned
                     const expectedBalanceAfter = mintAmount.mul(denominator).sub(repayAmount);
                     const balanceAfterBurn = await this.krAsset.contract.balanceOf(users.userOne.address);
-                    expect(balanceAfterBurn).to.bignumber.closeTo(expectedBalanceAfter, 100); // WEI
+                    expect(balanceAfterBurn).to.bignumber.equal(expectedBalanceAfter);
 
                     // All wkrAssets should be burned
                     const expectedwkrBalance = mintAmount.sub(repayAmount.div(denominator));
@@ -1662,34 +1661,31 @@ describe("Minter", function () {
                     await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
 
                     // Pay half of debt
-                    const debt = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                    const debt = await hre.Diamond.kreskoAssetDebtPrincipal(
+                        users.userOne.address,
+                        this.krAsset.address,
+                    );
                     const repayAmount = debt;
-                    const lastUpdate = await getBlockTimestamp();
                     await userOne.burnKreskoAsset(users.userOne.address, this.krAsset.address, repayAmount, 0);
 
                     // Debt value after half repayment
-                    const debtAfter = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                    const debtAfter = await hre.Diamond.kreskoAssetDebtPrincipal(
+                        users.userOne.address,
+                        this.krAsset.address,
+                    );
 
                     // Calc expected value with last update
-                    const expectedDebt = mintAmount
-                        .rayMul(await calcDebtIndex(this.krAsset, lastUpdate))
-                        .div(denominator);
+                    const expectedDebt = 0;
 
-                    expect(debtAfter).to.bignumber.closeTo(expectedDebt, oneRay.div(1_000_000));
+                    expect(debtAfter).to.bignumber.equal(expectedDebt);
 
-                    // Should be all burned
-                    const minDebtValue = (await hre.Diamond.minimumDebtValue()).rawValue;
-
-                    // Interest repaid * 2 due to additional stability rate tick in burn
-                    const interestRepaid = hre.fromBig(debt.sub(mintAmount.div(denominator))) * 2;
-
-                    const expectedBalanceAfterBurn = hre.fromBig(minDebtValue.div(newPrice), 8) - interestRepaid;
+                    const expectedBalanceAfterBurn = 0;
                     const balanceAfterBurn = hre.fromBig(await this.krAsset.contract.balanceOf(users.userOne.address));
-                    expect(balanceAfterBurn).to.closeTo(expectedBalanceAfterBurn, 0.000000001);
+                    expect(balanceAfterBurn).to.equal(expectedBalanceAfterBurn);
 
                     // Anchor krAssets should equal balance * denominator
                     const wkrAssetBalanceKresko = await this.krAsset.anchor.balanceOf(hre.Diamond.address);
-                    expect(wkrAssetBalanceKresko).to.closeTo(hre.toBig(expectedBalanceAfterBurn * denominator), 100000); // WEI
+                    expect(wkrAssetBalanceKresko).to.equal(hre.toBig(expectedBalanceAfterBurn * denominator)); // WEI
                 });
 
                 it("when repaying partial debt after a negative rebase", async function () {
@@ -1706,21 +1702,23 @@ describe("Minter", function () {
                     await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
 
                     // Pay half of debt
-                    const debt = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                    const debt = await hre.Diamond.kreskoAssetDebtPrincipal(
+                        users.userOne.address,
+                        this.krAsset.address,
+                    );
                     const repayAmount = debt.div(2);
-                    const lastUpdate = await getBlockTimestamp();
                     await userOne.burnKreskoAsset(users.userOne.address, this.krAsset.address, repayAmount, 0);
 
                     // Debt value after half repayment
-                    const debtAfter = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                    const debtAfter = await hre.Diamond.kreskoAssetDebtPrincipal(
+                        users.userOne.address,
+                        this.krAsset.address,
+                    );
 
                     // Calc expected value with last update
-                    const expectedDebt = mintAmount
-                        .rayMul(await calcDebtIndex(this.krAsset, lastUpdate))
-                        .div(2)
-                        .div(denominator);
+                    const expectedDebt = mintAmount.div(2).div(denominator);
 
-                    expect(debtAfter).to.bignumber.closeTo(expectedDebt, oneRay.div(1_000_000));
+                    expect(debtAfter).to.bignumber.equal(expectedDebt);
 
                     // Should be all burned
                     const expectedBalanceAfter = mintAmount.div(denominator).sub(repayAmount);
@@ -1752,13 +1750,14 @@ describe("Minter", function () {
                     await userOne.burnKreskoAsset(users.userOne.address, this.krAsset.address, fullRepayAmount, 0);
 
                     // Debt value after half repayment
-                    const debtAfter = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                    const debtAfter = await hre.Diamond.kreskoAssetDebtPrincipal(
+                        users.userOne.address,
+                        this.krAsset.address,
+                    );
                     const debtValueAfter = (await hre.Diamond.getKrAssetValue(this.krAsset.address, debtAfter, false))
                         .rawValue;
 
-                    // Stability rate accrued will cause the repay to pay up to min debt value
-                    const expectedValue = (await hre.Diamond.minimumDebtValue()).rawValue;
-                    expect(debtValueAfter).to.equal(expectedValue);
+                    expect(debtValueAfter).to.equal(0);
 
                     // Should still contain minted krAsset
                     const mintedKreskoAssetsAfterBurn = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
@@ -1785,17 +1784,22 @@ describe("Minter", function () {
 
                     // Burn assets
                     // Pay half of debt
-                    const debt = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
-                    const lastUpdate = await getBlockTimestamp();
+                    const debt = await hre.Diamond.kreskoAssetDebtPrincipal(
+                        users.userOne.address,
+                        this.krAsset.address,
+                    );
                     await userOne.burnKreskoAsset(users.userOne.address, this.krAsset.address, debt.div(2), 0);
 
                     // Debt value after half repayment
-                    const debtAfter = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                    const debtAfter = await hre.Diamond.kreskoAssetDebtPrincipal(
+                        users.userOne.address,
+                        this.krAsset.address,
+                    );
                     const debtValueAfter = (await hre.Diamond.getKrAssetValue(this.krAsset.address, debtAfter, false))
                         .rawValue;
 
                     // Calc expected value with last update
-                    const expectedValue = mintValue.rayMul(await calcDebtIndex(this.krAsset, lastUpdate)).div(2);
+                    const expectedValue = mintValue.div(2);
                     expect(debtValueAfter).to.equal(expectedValue);
 
                     // Should still contain minted krAsset
@@ -1819,14 +1823,14 @@ describe("Minter", function () {
                     await userOne.burnKreskoAsset(users.userOne.address, this.krAsset.address, fullRepayAmount, 0);
 
                     // Debt value after half repayment
-                    const debtAfter = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                    const debtAfter = await hre.Diamond.kreskoAssetDebtPrincipal(
+                        users.userOne.address,
+                        this.krAsset.address,
+                    );
                     const debtValueAfter = (await hre.Diamond.getKrAssetValue(this.krAsset.address, debtAfter, false))
                         .rawValue;
 
-                    // Stability rate accrued will cause the repay to pay up to min debt value
-                    const expectedValue = (await hre.Diamond.minimumDebtValue()).rawValue;
-                    expect(debtValueAfter).to.equal(expectedValue);
-
+                    expect(debtValueAfter).to.equal(0);
                     // Should still contain minted krAsset
                     const mintedKreskoAssetsAfterBurn = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
                     expect(mintedKreskoAssetsAfterBurn).to.contain(this.krAsset.address);
@@ -1847,17 +1851,22 @@ describe("Minter", function () {
                     await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
 
                     // Pay half of debt
-                    const debt = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
-                    const lastUpdate = await getBlockTimestamp();
+                    const debt = await hre.Diamond.kreskoAssetDebtPrincipal(
+                        users.userOne.address,
+                        this.krAsset.address,
+                    );
                     await userOne.burnKreskoAsset(users.userOne.address, this.krAsset.address, debt.div(2), 0);
 
                     // Debt value after half repayment
-                    const debtAfter = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                    const debtAfter = await hre.Diamond.kreskoAssetDebtPrincipal(
+                        users.userOne.address,
+                        this.krAsset.address,
+                    );
                     const debtValueAfter = (await hre.Diamond.getKrAssetValue(this.krAsset.address, debtAfter, false))
                         .rawValue;
 
                     // Calc expected value with last update
-                    const expectedValue = mintValue.rayMul(await calcDebtIndex(this.krAsset, lastUpdate)).div(2);
+                    const expectedValue = mintValue.div(2);
                     expect(debtValueAfter).to.equal(expectedValue);
 
                     // Should still contain minted krAsset

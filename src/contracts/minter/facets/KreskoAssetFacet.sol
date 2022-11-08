@@ -112,6 +112,7 @@ contract KreskoAssetFacet is DiamondModifiers, MinterModifiers, IKreskoAssetFace
         }
 
         uint256 debtAmount = s.getKreskoAssetDebtPrincipal(_account, _kreskoAsset);
+
         if (_burnAmount != type(uint256).max) {
             require(_burnAmount <= debtAmount, Error.KRASSET_BURN_AMOUNT_OVERFLOW);
             // Ensure amount is either 0 or >= minDebtValue
