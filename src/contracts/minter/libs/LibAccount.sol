@@ -140,27 +140,26 @@ library LibAccount {
         address[] memory assets = self.mintedKreskoAssets[_account];
         for (uint256 i = 0; i < assets.length; i++) {
             address asset = assets[i];
-            value = value.add(self.getKrAssetValue(asset, self.getKreskoAssetDebt(_account, asset), false));
+            value = value.add(self.getKrAssetValue(asset, self.getKreskoAssetDebtScaled(_account, asset), false));
         }
         return value;
     }
 
     /**
-     * @notice Get `_account` debt amount for `_asset`
-     * @notice debt amount of an account has two external effects
-     * * Effect #1: Asset is rebased due to stock split/reverse split
-     * * Effect #2: Stability rate accrual
+     * @notice Get `_account` scaled debt amount for `_asset`
+     * @notice debt amount of an account has one external effects
+     * * Effect #1: Stability rate accrual through debt index
      * @param _asset The asset address
      * @param _account The account to query amount for
-     * @return Amount of debt for `_asset`
+     * @return Amount of scaled debt for `_asset`
      */
-    function getKreskoAssetDebt(
+    function getKreskoAssetDebtScaled(
         MinterState storage self,
         address _account,
         address _asset
     ) internal view returns (uint256) {
         uint256 debt = IKreskoAssetAnchor(self.kreskoAssets[_asset].anchor).convertToAssets(
-            self.kreskoAssetDebt[_account][_asset]
+            irs().srAssetsUser[_account][_asset].debtScaled
         );
         if (debt == 0) {
             return 0;
@@ -170,22 +169,39 @@ library LibAccount {
     }
 
     /**
+     * @notice Get `_account` principal debt amount for `_asset`
+     * @notice Principal debt amount of an account has one external effects
+     * * Effect #1: Asset is rebased due to stock split/reverse split
+     * @param _asset The asset address
+     * @param _account The account to query amount for
+     * @return Amount of principal debt for `_asset`
+     */
+    function getKreskoAssetDebtPrincipal(
+        MinterState storage self,
+        address _account,
+        address _asset
+    ) internal view returns (uint256) {
+        return
+            IKreskoAssetAnchor(self.kreskoAssets[_asset].anchor).convertToAssets(
+                self.kreskoAssetDebt[_account][_asset]
+            );
+    }
+
+    /**
      * @notice Get the total interest accrued on top of debt
-     * * eg: debt * debtIndex - debt
-     * @return The interest balance of @param _account denominated in @param _asset
+     * * eg: scaled debt - principal debt
+     * @return assetAmount the interest denominated in _asset
+     * @return kissAmount the interest denominated in KISS, ignores K-factor
      **/
     function getKreskoAssetDebtInterest(
         MinterState storage self,
         address _account,
         address _asset
-    ) internal view returns (uint256) {
-        uint256 debt = IKreskoAssetAnchor(self.kreskoAssets[_asset].anchor).convertToAssets(
-            self.kreskoAssetDebt[_account][_asset]
-        );
-        if (debt == 0) {
-            return 0;
-        }
-        return (debt.rayMul(irs().srAssets[_asset].getNormalizedDebtIndex()) - debt).rayToWad();
+    ) internal view returns (uint256 assetAmount, uint256 kissAmount) {
+        assetAmount =
+            self.getKreskoAssetDebtScaled(_account, _asset) -
+            self.getKreskoAssetDebtPrincipal(_account, _asset);
+        kissAmount = self.getKrAssetValue(_asset, assetAmount, true).rawValue;
     }
 
     /**

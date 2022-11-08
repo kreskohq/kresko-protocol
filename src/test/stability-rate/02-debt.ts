@@ -355,6 +355,13 @@ describe("Stability Rates", function () {
     });
 
     describe("#debt calculation - repay interest", async () => {
+        // const depositAmount = hre.toBig(100);
+        // const mintAmount = hre.toBig(10);
+        // beforeEach(async function () {
+        //     await this.collateral.setBalance(userTwo, depositAmount);
+        // });
+
+        it("can view accrued interest in KISS");
         it("can repay interest with KISS");
     });
 });

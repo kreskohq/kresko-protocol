@@ -58,16 +58,31 @@ contract AccountStateFacet is IAccountStateFacet {
      * @return Amount of debt for `_asset`
      */
     function kreskoAssetDebt(address _account, address _asset) external view returns (uint256) {
-        return ms().getKreskoAssetDebt(_account, _asset);
+        return ms().getKreskoAssetDebtScaled(_account, _asset);
+    }
+
+    /**
+     * @notice Get `_account` principal debt amount for `_asset`
+     * @param _asset The asset address
+     * @param _account The account to query amount for
+     * @return Amount of principal debt for `_asset`
+     */
+    function kreskoAssetDebtPrincipal(address _account, address _asset) external view returns (uint256) {
+        return ms().getKreskoAssetDebtPrincipal(_account, _asset);
     }
 
     /**
      * @notice Get `_account` interest amount for `_asset`
      * @param _asset The asset address
      * @param _account The account to query amount for
-     * @return Amount of debt for `_asset`
+     * @return assetAmount the interest denominated in _asset
+     * @return kissAmount the interest denominated in KISS, ignores K-factor
      */
-    function kreskoAssetDebtInterest(address _account, address _asset) external view returns (uint256) {
+    function kreskoAssetDebtInterest(address _account, address _asset)
+        external
+        view
+        returns (uint256 assetAmount, uint256 kissAmount)
+    {
         return ms().getKreskoAssetDebtInterest(_account, _asset);
     }
 

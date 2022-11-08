@@ -31,8 +31,14 @@ struct StabilityRateConfig {
     uint40 lastUpdateTimestamp;
 }
 
+struct StabilityRateUser {
+    uint128 debtScaled;
+    uint128 lastDebtIndex;
+}
+
 struct InterestRateState {
     mapping(address => StabilityRateConfig) srAssets;
+    mapping(address => mapping(address => StabilityRateUser)) srAssetsUser;
 }
 
 // Storage position

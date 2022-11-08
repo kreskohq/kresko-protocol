@@ -71,7 +71,7 @@ contract KreskoAssetFacet is DiamondModifiers, MinterModifiers, IKreskoAssetFace
         }
 
         // The synthetic asset debt position must be greater than the minimum debt position value
-        uint256 existingDebt = s.getKreskoAssetDebt(_account, _kreskoAsset);
+        uint256 existingDebt = s.getKreskoAssetDebtScaled(_account, _kreskoAsset);
         require(
             s.getKrAssetValue(_kreskoAsset, existingDebt + _amount, true).isGreaterThanOrEqual(s.minimumDebtValue),
             Error.KRASSET_MINT_AMOUNT_LOW
@@ -111,7 +111,7 @@ contract KreskoAssetFacet is DiamondModifiers, MinterModifiers, IKreskoAssetFace
             ensureNotPaused(_kreskoAsset, Action.Repay);
         }
 
-        uint256 debtAmount = s.getKreskoAssetDebt(_account, _kreskoAsset);
+        uint256 debtAmount = s.getKreskoAssetDebtScaled(_account, _kreskoAsset);
         if (_burnAmount != type(uint256).max) {
             require(_burnAmount <= debtAmount, Error.KRASSET_BURN_AMOUNT_OVERFLOW);
             // Ensure amount is either 0 or >= minDebtValue

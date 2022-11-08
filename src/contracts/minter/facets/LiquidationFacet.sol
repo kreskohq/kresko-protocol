@@ -70,7 +70,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         );
 
         // Get the token debt amount
-        uint256 krAssetDebt = s.getKreskoAssetDebt(_account, _repayKreskoAsset);
+        uint256 krAssetDebt = s.getKreskoAssetDebtScaled(_account, _repayKreskoAsset);
         // Avoid stack too deep error
         {
             // Liquidator may not repay more value than what the liquidation pair allows
@@ -142,10 +142,18 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         {
             // Subtract repaid Kresko assets from liquidated user's recorded debt.
             uint256 destroyed = IKreskoAssetIssuer(krAsset.anchor).destroy(_repayAmount, msg.sender);
-            s.kreskoAssetDebt[_account][_repayKreskoAsset] -= destroyed.wadToRay().rayDiv(
-                irs().srAssets[_repayKreskoAsset].updateDebtIndex()
-            );
-            irs().srAssets[_repayKreskoAsset].updateStabilityRate(); // Update interest rates
+            s.kreskoAssetDebt[_account][_repayKreskoAsset] -= destroyed;
+
+            // Update stability rate values
+            uint256 newDebtIndex = irs().srAssets[_repayKreskoAsset].updateDebtIndex();
+            uint256 amountScaled = destroyed.wadToRay().rayDiv(newDebtIndex);
+
+            // Update user scaled debt and last index
+            irs().srAssetsUser[_account][_repayKreskoAsset].debtScaled -= uint128(amountScaled);
+            irs().srAssetsUser[_account][_repayKreskoAsset].lastDebtIndex = uint128(newDebtIndex);
+
+            // Update the global stability rate
+            irs().srAssets[_repayKreskoAsset].updateStabilityRate();
         }
 
         // If the liquidation repays the user's entire Kresko asset balance, remove it from minted assets array.
