@@ -96,7 +96,7 @@ contract KreskoAssetFacet is DiamondModifiers, MinterModifiers, IKreskoAssetFace
      * @param _kreskoAsset The address of the Kresko asset.
      * @param _burnAmount The amount of the Kresko asset to be burned.
      * @param _mintedKreskoAssetIndex The index of the collateral asset in the user's minted assets array.
-     * @notice Only needed if withdrawing the entire deposit of a particular collateral asset.
+     * @notice Only needed if burning all principal debt of a particular collateral asset.
      */
     function burnKreskoAsset(
         address _account,
@@ -111,17 +111,19 @@ contract KreskoAssetFacet is DiamondModifiers, MinterModifiers, IKreskoAssetFace
             ensureNotPaused(_kreskoAsset, Action.Repay);
         }
 
+        // Get accounts principal debt
         uint256 debtAmount = s.getKreskoAssetDebtPrincipal(_account, _kreskoAsset);
 
         if (_burnAmount != type(uint256).max) {
             require(_burnAmount <= debtAmount, Error.KRASSET_BURN_AMOUNT_OVERFLOW);
-            // Ensure amount is either 0 or >= minDebtValue
+            // Ensure principal left is either 0 or >= minDebtValue
             _burnAmount = s.ensureNotDustPosition(_kreskoAsset, _burnAmount, debtAmount);
         } else {
+            // _burnAmount of uint256 max, burn all principal debt
             _burnAmount = debtAmount;
         }
 
-        // If sender repays all kresko assets, has repaid all interest, remove it from minted assets array.
+        // If sender repays all debt, has repaid all interest, remove it from minted assets array.
         if (_burnAmount == debtAmount && irs().srAssetsUser[_account][_kreskoAsset].debtScaled == 0) {
             s.mintedKreskoAssets[_account].removeAddress(_kreskoAsset, _mintedKreskoAssetIndex);
         }
