@@ -124,4 +124,16 @@ library Error {
     string public constant STABILITY_RATES_NOT_INITIALIZED = "604"; // the stability rates for the asset are not initialized
     string public constant STABILITY_RATE_OVERFLOW = "605"; // the stability rates is > max uint128
     string public constant DEBT_INDEX_OVERFLOW = "606"; // the debt index is > max uint128
+
+    /* -------------------------------------------------------------------------- */
+    /*                              7. AMM ORACLE                                 */
+    /* -------------------------------------------------------------------------- */
+
+    string public constant PAIR_ADDRESS_IS_ZERO = "701"; // Pair address to configure cannot be zero
+    string public constant INVALID_UPDATE_PERIOD = "702"; // Update period must be greater than the minimum
+    string public constant PAIR_ALREADY_EXISTS = "703"; // Pair with the address is already initialized
+    string public constant PAIR_DOES_NOT_EXIST = "704"; // Pair supplied does not exist
+    string public constant INVALID_LIQUIDITY = "706"; // Pair initializaition requires that the pair has liquidity
+    string public constant UPDATE_PERIOD_NOT_FINISHED = "707"; // Update can only be called once per update period
+    string public constant INVALID_PAIR = "708"; // Pair being consulted does not have the token that the price was requested for
 }
