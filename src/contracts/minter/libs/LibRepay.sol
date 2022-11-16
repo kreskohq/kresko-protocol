@@ -53,7 +53,7 @@ library LibRepay {
 
         // Decrease the principal debt
         self.kreskoAssetDebt[_account][_kreskoAsset] -= destroyed;
-        // Decrease the scaled debt
+        // Decrease the scaled debt and set user asset's last debt index
         irs().srAssetsUser[_account][_kreskoAsset].debtScaled -= uint128(amountScaled);
         irs().srAssetsUser[_account][_kreskoAsset].lastDebtIndex = uint128(newDebtIndex);
         // Update the global rate for the asset
