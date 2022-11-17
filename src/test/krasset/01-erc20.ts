@@ -1,5 +1,5 @@
 import { expect } from "@test/chai";
-import { Role, withFixture } from "@utils/test";
+import { defaultKrAssetArgs, Role, withFixture } from "@utils/test";
 import hre from "hardhat";
 describe("KreskoAsset", function () {
     withFixture(["minter-test", "krAsset"]);
@@ -9,7 +9,7 @@ describe("KreskoAsset", function () {
     });
     beforeEach(async function () {
         this.owner = users.deployer;
-        this.krAsset = this.krAssets[0];
+        this.krAsset = hre.krAssets.find(asset => asset.deployArgs.symbol === defaultKrAssetArgs.symbol);
         this.mintAmount = 125;
         await this.krAsset.contract.grantRole(Role.OPERATOR, this.owner.address);
     });

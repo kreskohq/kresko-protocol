@@ -355,7 +355,7 @@ describe("Stability Rates", function () {
         });
     });
 
-    describe.only("#debt calculation - repay interest", async () => {
+    describe("#debt calculation - repay interest", async () => {
         const depositAmount = hre.toBig(100);
         const mintAmount = hre.toBig(10);
         beforeEach(async function () {

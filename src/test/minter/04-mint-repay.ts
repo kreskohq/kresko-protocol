@@ -1346,7 +1346,7 @@ describe("Minter", function () {
                 it("should charge the protocol open fee with a single collateral asset if the deposit amount is sufficient and emit CloseFeePaid event", async function () {
                     const openFee = 0.01;
                     const openFeeBig = toBig(openFee); // use toBig() to emulate closeFee's 18 decimals on contract
-                    this.krAsset = this.krAssets[0];
+                    this.krAsset = hre.krAssets.find(asset => asset.deployArgs.symbol === defaultKrAssetArgs.symbol);
 
                     await this.krAsset.update({
                         ...defaultKrAssetArgs,

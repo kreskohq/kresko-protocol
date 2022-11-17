@@ -1,5 +1,5 @@
 import { expect } from "@test/chai";
-import { defaultMintAmount, Error, Role, withFixture } from "@utils/test";
+import { defaultKrAssetArgs, defaultMintAmount, Error, Role, withFixture } from "@utils/test";
 import hre from "hardhat";
 
 describe("KreskoAsset", function () {
@@ -12,7 +12,7 @@ describe("KreskoAsset", function () {
     });
     withFixture(["minter-test", "krAsset"]);
     beforeEach(async function () {
-        KreskoAsset = hre.krAssets[0].contract;
+        KreskoAsset = hre.krAssets.find(asset => asset.deployArgs.symbol === defaultKrAssetArgs.symbol).contract;
         // Grant minting rights for test deployer
         await KreskoAsset.grantRole(Role.OPERATOR, addr.deployer);
     });

@@ -413,7 +413,9 @@ describe("Minter", function () {
 
                 describe("when the account's minimum collateral value is > 0", function () {
                     beforeEach(async function () {
-                        this.krAsset = this.krAssets[0];
+                        this.krAsset = hre.krAssets.find(
+                            asset => asset.deployArgs.symbol === defaultKrAssetArgs.symbol,
+                        );
 
                         // userOne mints some kr assets
                         this.mintAmount = toBig(100);
