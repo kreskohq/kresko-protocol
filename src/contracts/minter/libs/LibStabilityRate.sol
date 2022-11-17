@@ -37,6 +37,8 @@ library LibStabilityRate {
      * @return newDebtIndex the updated index
      */
     function updateDebtIndex(StabilityRateConfig storage asset) internal returns (uint256 newDebtIndex) {
+        if (asset.asset == address(0)) return WadRay.RAY;
+
         newDebtIndex = asset.debtIndex;
         // only cumulating if there is any assets minted and rate is over 0
         if (IERC20Upgradeable(asset.asset).totalSupply() != 0) {
@@ -56,6 +58,8 @@ library LibStabilityRate {
      * @param asset rate configuration for the asset
      */
     function updateStabilityRate(StabilityRateConfig storage asset) internal {
+        if (asset.asset == address(0)) return;
+
         uint256 stabilityRate = calculateStabilityRate(asset);
         require(stabilityRate <= type(uint128).max, Error.STABILITY_RATE_OVERFLOW);
         asset.stabilityRate = uint128(stabilityRate);
@@ -170,6 +174,7 @@ library LibStabilityRate {
      * @return The normalized debt index. expressed in ray
      **/
     function getNormalizedDebtIndex(StabilityRateConfig storage asset) internal view returns (uint256) {
+        if (asset.asset == address(0)) return WadRay.RAY;
         //solium-disable-next-line
         if (asset.lastUpdateTimestamp == uint40(block.timestamp)) {
             //if the index was updated in the same block, no need to perform any calculation

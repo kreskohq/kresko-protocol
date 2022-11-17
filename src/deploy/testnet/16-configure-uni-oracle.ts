@@ -2,6 +2,7 @@ import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import { getLogger } from "@kreskolabs/lib/dist/utils";
 import { UniswapV2Oracle } from "types";
+import { deployments } from "hardhat";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("UniV2Oracle", true);
@@ -12,6 +13,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     });
     hre.UniV2Oracle = UniV2Oracle;
     await hre.Diamond.updateAMMOracle(UniV2Oracle.address);
+    await hre.Diamond.updateKISS((await deployments.get("KISS")).address);
     logger.success("UniV2Oracle deployed successfully");
 };
 

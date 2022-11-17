@@ -117,28 +117,78 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
     /* -------------------------------------------------------------------------- */
 
     /**
+     * @notice Repays part of accrued stability rate interest for a single asset
+     * @param _account Account to repay interest for
+     * @param _asset Kresko asset to repay interest for
+     * @return repaymentValue value repaid
+     */
+    function repayStabilityRateInterestPartial(
+        address _account,
+        address _asset,
+        uint256 _amount
+    ) external nonReentrant kreskoAssetExists(_asset) returns (uint256 repaymentValue) {
+        // Update debt index for the asset
+        uint256 newDebtIndex = irs().srAssets[_asset].updateDebtIndex();
+
+        // Get the accrued interest in repayment token
+        (, uint256 maxRepayment) = ms().getKreskoAssetDebtInterest(_account, _asset);
+
+        // If no interest has accrued or 0 was supplied - no further operations needed
+        // Do not revert because we want the preserve new debt index and stability rate
+        if (maxRepayment == 0 || _amount == 0) {
+            // Update stability rate for asset
+            irs().srAssets[_asset].updateStabilityRate();
+            return 0;
+        }
+
+        // In overflow we can repay all interest
+        if (_amount > maxRepayment) {
+            repaymentValue = maxRepayment;
+        } else {
+            repaymentValue = _amount;
+        }
+
+        // Transfer the accrued interest
+        IERC20Upgradeable(irs().KISS).safeTransferFrom(msg.sender, ms().feeRecipient, repaymentValue);
+        uint256 amountScaled = repaymentValue.wadToRay().rayDiv(newDebtIndex);
+
+        // Reduce the scaled debt
+        irs().srAssetsUser[_account][_asset].debtScaled -= uint128(amountScaled);
+        // Update the last debt index
+        irs().srAssetsUser[_account][_asset].lastDebtIndex = uint128(newDebtIndex);
+        // Update stability rate for asset
+        irs().srAssets[_asset].updateStabilityRate();
+        // Emit event with the account, asset and amount repaid
+        emit InterestRateEvent.StabilityRateInterestRepaid(_account, _asset, repaymentValue);
+    }
+
+    /**
      * @notice Repays accrued stability rate interest for a single asset
      * @param _account Account to repay interest for
      * @param _asset Kresko asset to repay interest for
      * @return repaymentValue value repaid
      */
-    function repayStabilityRateInterest(address _account, address _asset)
+    function repayFullStabilityRateInterest(address _account, address _asset)
         external
         nonReentrant
         kreskoAssetExists(_asset)
         returns (uint256 repaymentValue)
     {
-        return ms().repayStabilityRateInterest(_account, _asset);
+        return ms().repayFullStabilityRateInterest(_account, _asset);
     }
 
     /**
      * @notice Repays all accrued stability rate interest for an account
      * @param _account Account to repay all asset interests for
      */
-    function batchRepayStabilityRateInterest(address _account) external nonReentrant returns (uint256 repaymentValue) {
+    function batchRepayFullStabilityRateInterest(address _account)
+        external
+        nonReentrant
+        returns (uint256 repaymentValue)
+    {
         address[] memory mintedKreskoAssets = ms().getMintedKreskoAssets(_account);
         for (uint256 i; i < mintedKreskoAssets.length; i++) {
-            repaymentValue += ms().repayStabilityRateInterest(_account, mintedKreskoAssets[i]);
+            repaymentValue += ms().repayFullStabilityRateInterest(_account, mintedKreskoAssets[i]);
         }
         emit InterestRateEvent.StabilityRateInterestBatchRepaid(_account, repaymentValue);
     }

@@ -8,6 +8,7 @@ const func: DeployFunction = async function (hre) {
     if (!hre.Diamond) {
         throw new Error("No diamond deployed");
     }
+
     await addMockCollateralAsset();
     await addMockKreskoAsset();
 

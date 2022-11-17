@@ -56,7 +56,7 @@ library LibRepay {
         // Decrease the scaled debt and set user asset's last debt index
         irs().srAssetsUser[_account][_kreskoAsset].debtScaled -= uint128(amountScaled);
         irs().srAssetsUser[_account][_kreskoAsset].lastDebtIndex = uint128(newDebtIndex);
-        // Update the global rate for the asset
+        // Update the stability rate for the asset
         irs().srAssets[_kreskoAsset].updateStabilityRate();
     }
 
@@ -66,7 +66,7 @@ library LibRepay {
      * @param _asset Kresko asset to repay interest for
      * @return repaymentValue amount repaid
      */
-    function repayStabilityRateInterest(
+    function repayFullStabilityRateInterest(
         MinterState storage self,
         address _account,
         address _asset
@@ -76,20 +76,26 @@ library LibRepay {
         // Get the accrued interest in repayment token
         (, repaymentValue) = self.getKreskoAssetDebtInterest(_account, _asset);
 
+        // If no interest has accrued no further operations needed
+        // Do not revert because we want the preserve new debt index and stability rate
+        if (repaymentValue == 0) {
+            // Update stability rate for asset
+            irs().srAssets[_asset].updateStabilityRate();
+            return 0;
+        }
+
         // Transfer the accrued interest
         IERC20Upgradeable(irs().KISS).safeTransferFrom(msg.sender, self.feeRecipient, repaymentValue);
 
-        // Set debt scaled to be equal to current principal (wipe out interest)
+        // Reset the debt to match principal as the account just repaid all accrued interest
         irs().srAssetsUser[_account][_asset].debtScaled = uint128(
             self.getKreskoAssetDebtPrincipal(_account, _asset).wadToRay().rayDiv(newDebtIndex)
         );
-
         // Update the last debt index
         irs().srAssetsUser[_account][_asset].lastDebtIndex = uint128(newDebtIndex);
 
         // Update stability rates
         irs().srAssets[_asset].updateStabilityRate();
-
         // Emit event with the account, asset and amount repaid
         emit InterestRateEvent.StabilityRateInterestRepaid(_account, _asset, repaymentValue);
     }

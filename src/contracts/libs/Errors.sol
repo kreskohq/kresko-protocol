@@ -125,6 +125,8 @@ library Error {
     string public constant STABILITY_RATE_OVERFLOW = "605"; // the stability rates is > max uint128
     string public constant DEBT_INDEX_OVERFLOW = "606"; // the debt index is > max uint128
     string public constant KISS_NOT_SET = "607"; // the debt index is > max uint128
+    string public constant STABILITY_RATE_REPAYMENT_AMOUNT_ZERO = "608"; // interest being repaid cannot be 0
+    string public constant STABILITY_RATE_INTEREST_IS_ZERO = "609"; // account must have accrued interest to repay it
 
     /* -------------------------------------------------------------------------- */
     /*                              7. AMM ORACLE                                 */
