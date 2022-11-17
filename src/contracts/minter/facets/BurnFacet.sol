@@ -57,7 +57,7 @@ contract BurnFacet is DiamondModifiers, MinterModifiers, IBurnFacet {
         }
 
         // If sender repays all debt, has repaid all interest, remove it from minted assets array.
-        if (_burnAmount == debtAmount && irs().srAssetsUser[_account][_kreskoAsset].debtScaled == debtAmount) {
+        if (irs().srAssetsUser[_account][_kreskoAsset].debtScaled == _burnAmount) {
             s.mintedKreskoAssets[_account].removeAddress(_kreskoAsset, _mintedKreskoAssetIndex);
         }
         // Charge the burn fee from collateral of _account
