@@ -125,8 +125,9 @@ library LibCalculation {
      * @param _account The owner of the collateral.
      * @param _feeValue The original value of the fee.
      * @param _collateralAssetIndex The collateral asset's index in the user's depositedCollateralAssets array.
-     * @return The transfer amount to be received as a uint256 and a FixedPoint.Unsigned
-     * representing the fee value paid.
+     *
+     * @return transferAmount to be received as a uint256
+     * @return feeValuePaid FixedPoint.Unsigned representing the fee value paid.
      */
     function calcFee(
         MinterState storage self,
@@ -134,15 +135,13 @@ library LibCalculation {
         address _account,
         FixedPoint.Unsigned memory _feeValue,
         uint256 _collateralAssetIndex
-    ) internal returns (uint256, FixedPoint.Unsigned memory) {
+    ) internal returns (uint256 transferAmount, FixedPoint.Unsigned memory feeValuePaid) {
         uint256 depositAmount = self.getCollateralDeposits(_account, _collateralAssetAddress);
 
         // Don't take the collateral asset's collateral factor into consideration.
         (FixedPoint.Unsigned memory depositValue, FixedPoint.Unsigned memory oraclePrice) = self
             .getCollateralValueAndOraclePrice(_collateralAssetAddress, depositAmount, true);
 
-        FixedPoint.Unsigned memory feeValuePaid;
-        uint256 transferAmount;
         // If feeValue < depositValue, the entire fee can be charged for this collateral asset.
         if (_feeValue.isLessThan(depositValue)) {
             // We want to make sure that transferAmount is < depositAmount.

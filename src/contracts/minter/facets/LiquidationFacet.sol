@@ -29,6 +29,8 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
     using LibMath for FixedPoint.Unsigned;
     using WadRay for uint256;
     using FixedPoint for FixedPoint.Unsigned;
+    using FixedPoint for uint256;
+    using FixedPoint for int256;
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
     /**
@@ -65,10 +67,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         }
 
         // Repay amount USD = repay amount * KR asset USD exchange rate.
-        FixedPoint.Unsigned memory repayAmountUSD = FixedPoint.Unsigned(_repayAmount).mul(
-            FixedPoint.Unsigned(uint256(s.kreskoAssets[_repayKreskoAsset].oracle.latestAnswer()))
-        );
-
+        FixedPoint.Unsigned memory repayAmountUSD = s.kreskoAssets[_repayKreskoAsset].fixedPointUSD(_repayAmount);
         // Get the scaled debt amount
         uint256 krAssetDebt = s.getKreskoAssetDebtPrincipal(_account, _repayKreskoAsset);
         // Avoid stack too deep error
@@ -84,9 +83,6 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
             require(repayAmountUSD.isLessThanOrEqual(maxLiquidation), Error.LIQUIDATION_OVERFLOW);
         }
 
-        FixedPoint.Unsigned memory collateralPriceUSD = FixedPoint.Unsigned(
-            uint256(s.collateralAssets[_collateralAssetToSeize].oracle.latestAnswer())
-        );
         // Charge burn fee from the liquidated user
         s.chargeCloseFee(_account, _repayKreskoAsset, _repayAmount);
 
@@ -98,7 +94,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
             s.collateralAssets[_collateralAssetToSeize].decimals.fromCollateralFixedPointAmount(
                 LibCalculation.calculateAmountToSeize(
                     s.liquidationIncentiveMultiplier,
-                    collateralPriceUSD,
+                    s.collateralAssets[_collateralAssetToSeize].fixedPointPrice(),
                     repayAmountUSD
                 )
             ),
@@ -169,10 +165,9 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         uint256 collateralDeposit = s.getCollateralDeposits(_account, _collateralAssetToSeize);
 
         if (collateralDeposit > _seizeAmount) {
-            s.collateralDeposits[_account][_collateralAssetToSeize] -= s.normalizeCollateralAmount(
-                _seizeAmount,
-                _collateralAssetToSeize
-            );
+            s.collateralDeposits[_account][_collateralAssetToSeize] -= ms()
+                .collateralAssets[_collateralAssetToSeize]
+                .toStaticAmount(_seizeAmount);
         } else {
             // This clause means user either has collateralDeposits equal or less than the _seizeAmount
             _seizeAmount = collateralDeposit;

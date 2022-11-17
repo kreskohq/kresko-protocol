@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 
-import {IKreskoAssetFacet} from "../interfaces/IKreskoAssetFacet.sol";
+import {IMintFacet} from "../interfaces/IMintFacet.sol";
 import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
 
 import {Arrays} from "../../libs/Arrays.sol";
@@ -16,10 +16,10 @@ import {irs} from "../InterestRateState.sol";
 
 /**
  * @author Kresko
- * @title KreskoAssetFacet
- * @notice Main end-user functionality concerning kresko assets within the Kresko protocol
+ * @title MintFacet
+ * @notice Main end-user functionality concerning minting kresko assets
  */
-contract KreskoAssetFacet is DiamondModifiers, MinterModifiers, IKreskoAssetFacet {
+contract MintFacet is DiamondModifiers, MinterModifiers, IMintFacet {
     using FixedPoint for FixedPoint.Unsigned;
     using Arrays for address[];
 
@@ -48,7 +48,7 @@ contract KreskoAssetFacet is DiamondModifiers, MinterModifiers, IKreskoAssetFace
         // Enforce krAsset's total supply limit
         KrAsset memory krAsset = s.kreskoAssets[_kreskoAsset];
 
-        require(krAsset.oracle.latestMarketOpen() == true, Error.KRASSET_MARKET_CLOSED);
+        require(krAsset.oracle.latestMarketOpen(), Error.KRASSET_MARKET_CLOSED);
         require(
             IKreskoAsset(_kreskoAsset).totalSupply() + _amount <= krAsset.supplyLimit,
             Error.KRASSET_MAX_SUPPLY_REACHED
@@ -73,7 +73,7 @@ contract KreskoAssetFacet is DiamondModifiers, MinterModifiers, IKreskoAssetFace
         // The synthetic asset debt position must be greater than the minimum debt position value
         uint256 existingDebt = s.getKreskoAssetDebtScaled(_account, _kreskoAsset);
         require(
-            s.getKrAssetValue(_kreskoAsset, existingDebt + _amount, true).isGreaterThanOrEqual(s.minimumDebtValue),
+            krAsset.fixedPointUSD(existingDebt + _amount).isGreaterThanOrEqual(s.minimumDebtValue),
             Error.KRASSET_MINT_AMOUNT_LOW
         );
 
@@ -88,53 +88,6 @@ contract KreskoAssetFacet is DiamondModifiers, MinterModifiers, IKreskoAssetFace
 
         // Emit logs
         emit MinterEvent.KreskoAssetMinted(_account, _kreskoAsset, _amount);
-    }
-
-    /**
-     * @notice Burns existing Kresko assets.
-     * @param _account The address to burn kresko assets for
-     * @param _kreskoAsset The address of the Kresko asset.
-     * @param _burnAmount The amount of the Kresko asset to be burned.
-     * @param _mintedKreskoAssetIndex The index of the collateral asset in the user's minted assets array.
-     * @notice Only needed if burning all principal debt of a particular collateral asset.
-     */
-    function burnKreskoAsset(
-        address _account,
-        address _kreskoAsset,
-        uint256 _burnAmount,
-        uint256 _mintedKreskoAssetIndex
-    ) external nonReentrant kreskoAssetExists(_kreskoAsset) onlyRoleIf(_account != msg.sender, Role.MANAGER) {
-        require(_burnAmount > 0, Error.ZERO_BURN);
-        MinterState storage s = ms();
-
-        if (s.safetyStateSet) {
-            ensureNotPaused(_kreskoAsset, Action.Repay);
-        }
-
-        // Get accounts principal debt
-        uint256 debtAmount = s.getKreskoAssetDebtPrincipal(_account, _kreskoAsset);
-
-        if (_burnAmount != type(uint256).max) {
-            require(_burnAmount <= debtAmount, Error.KRASSET_BURN_AMOUNT_OVERFLOW);
-            // Ensure principal left is either 0 or >= minDebtValue
-            _burnAmount = s.ensureNotDustPosition(_kreskoAsset, _burnAmount, debtAmount);
-        } else {
-            // _burnAmount of uint256 max, burn all principal debt
-            _burnAmount = debtAmount;
-        }
-
-        // If sender repays all debt, has repaid all interest, remove it from minted assets array.
-        if (_burnAmount == debtAmount && irs().srAssetsUser[_account][_kreskoAsset].debtScaled == 0) {
-            s.mintedKreskoAssets[_account].removeAddress(_kreskoAsset, _mintedKreskoAssetIndex);
-        }
-        // Charge the burn fee from collateral of _account
-        s.chargeCloseFee(_account, _kreskoAsset, _burnAmount);
-
-        // Record the burn
-        s.repay(_kreskoAsset, s.kreskoAssets[_kreskoAsset].anchor, _burnAmount, _account);
-
-        // Emit logs
-        emit MinterEvent.KreskoAssetBurned(_account, _kreskoAsset, _burnAmount);
     }
 
     /// @dev Simple check for the enabled flag

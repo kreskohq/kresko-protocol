@@ -18,6 +18,8 @@ contract AccountStateFacet is IAccountStateFacet {
     using LibMath for uint8;
     using LibMath for FixedPoint.Unsigned;
     using FixedPoint for FixedPoint.Unsigned;
+    using FixedPoint for int256;
+    using FixedPoint for uint256;
 
     /* -------------------------------------------------------------------------- */
     /*                                  KrAssets                                  */
@@ -210,10 +212,9 @@ contract AccountStateFacet is IAccountStateFacet {
         KrAsset memory krAsset = ms().kreskoAssets[_kreskoAsset];
 
         // Calculate the value of the fee according to the value of the krAsset
-        FixedPoint.Unsigned memory feeValue = FixedPoint
-            .Unsigned(uint256(krAsset.oracle.latestAnswer()))
-            .mul(FixedPoint.Unsigned(_kreskoAssetAmount))
-            .mul(Fee(_feeType) == Fee.Open ? krAsset.openFee : krAsset.closeFee);
+        FixedPoint.Unsigned memory feeValue = krAsset.fixedPointUSD(_kreskoAssetAmount).mul(
+            Fee(_feeType) == Fee.Open ? krAsset.openFee : krAsset.closeFee
+        );
 
         address[] memory accountCollateralAssets = ms().depositedCollateralAssets[_account];
 

@@ -4,6 +4,7 @@ pragma solidity >=0.8.14;
 import {AggregatorV2V3Interface} from "../vendor/flux/interfaces/AggregatorV2V3Interface.sol";
 import {FixedPoint} from "../libs/FixedPoint.sol";
 import {IKreskoAssetAnchor} from "../kreskoasset/IKreskoAssetAnchor.sol";
+import {LibUtils} from "./libs/LibUtils.sol";
 
 /* solhint-disable state-visibility */
 
@@ -118,7 +119,7 @@ struct KrAsset {
     FixedPoint.Unsigned openFee;
     bool exists;
 }
-
+using LibUtils for KrAsset global;
 /**
  * @notice Information on a token that can be used as collateral.
  * @dev Setting the factor to zero effectively makes the asset useless as collateral while still allowing
@@ -136,6 +137,7 @@ struct CollateralAsset {
     uint8 decimals;
     bool exists;
 }
+using LibUtils for CollateralAsset global;
 
 /// @notice Configuration for pausing `Action`
 struct Pause {

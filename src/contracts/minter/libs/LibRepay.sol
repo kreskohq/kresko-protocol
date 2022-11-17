@@ -116,10 +116,7 @@ library LibRepay {
     ) internal {
         KrAsset memory krAsset = self.kreskoAssets[_kreskoAsset];
         // Calculate the value of the fee according to the value of the krAssets being burned.
-        FixedPoint.Unsigned memory feeValue = FixedPoint
-            .Unsigned(uint256(krAsset.oracle.latestAnswer()))
-            .mul(FixedPoint.Unsigned(_kreskoAssetAmountBurned))
-            .mul(krAsset.closeFee);
+        FixedPoint.Unsigned memory feeValue = krAsset.fixedPointUSD(_kreskoAssetAmountBurned).mul(krAsset.closeFee);
 
         // Do nothing if the fee value is 0.
         if (feeValue.rawValue == 0) {
@@ -143,10 +140,10 @@ library LibRepay {
             );
 
             // Remove the transferAmount from the stored deposit for the account.
-            self.collateralDeposits[_account][collateralAssetAddress] -= self.normalizeCollateralAmount(
-                transferAmount,
-                collateralAssetAddress
-            );
+            self.collateralDeposits[_account][collateralAssetAddress] -= self
+                .collateralAssets[collateralAssetAddress]
+                .toStaticAmount(transferAmount);
+
             // Transfer the fee to the feeRecipient.
             IERC20Upgradeable(collateralAssetAddress).safeTransfer(self.feeRecipient, transferAmount);
             emit MinterEvent.CloseFeePaid(_account, collateralAssetAddress, transferAmount, feeValuePaid.rawValue);
@@ -177,10 +174,9 @@ library LibRepay {
         // debt value, close up to the minimum debt value instead.
         FixedPoint.Unsigned memory krAssetValue = self.getKrAssetValue(_kreskoAsset, _debtAmount - _burnAmount, true);
         if (krAssetValue.isGreaterThan(0) && krAssetValue.isLessThan(self.minimumDebtValue)) {
-            FixedPoint.Unsigned memory oraclePrice = FixedPoint.Unsigned(
-                uint256(self.kreskoAssets[_kreskoAsset].oracle.latestAnswer())
+            FixedPoint.Unsigned memory minDebtValue = self.minimumDebtValue.div(
+                self.kreskoAssets[_kreskoAsset].fixedPointPrice()
             );
-            FixedPoint.Unsigned memory minDebtValue = self.minimumDebtValue.div(oraclePrice);
             amount = _debtAmount - minDebtValue.rawValue;
         } else {
             amount = _burnAmount;

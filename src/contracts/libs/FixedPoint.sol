@@ -773,11 +773,23 @@ library FixedPoint {
 
     // ------------------- Additional Fixed Point math functions specific to Kresko protocol -------------------
 
-    function ONE_HUNDRED_PERCENT() internal pure returns (FixedPoint.Unsigned memory) {
+    function ONE_HUNDRED_PERCENT() internal pure returns (Unsigned memory) {
         return FixedPoint.Unsigned(1e18);
     }
 
-    function ONE_USD() internal pure returns (FixedPoint.Unsigned memory) {
+    function ONE_USD() internal pure returns (Unsigned memory) {
         return FixedPoint.Unsigned(1e18);
+    }
+
+    function toFixedPoint(uint256 value) internal pure returns (Unsigned memory) {
+        return FixedPoint.Unsigned(value);
+    }
+
+    function toFixedPoint(uint128 value) internal pure returns (Unsigned memory) {
+        return FixedPoint.Unsigned(value);
+    }
+
+    function toFixedPoint(int256 value) internal pure returns (Unsigned memory) {
+        return FixedPoint.Unsigned(uint256(value));
     }
 }

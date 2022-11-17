@@ -61,7 +61,7 @@ library LibCollateral {
         CollateralAsset memory asset = self.collateralAssets[_collateralAsset];
 
         FixedPoint.Unsigned memory fixedPointAmount = asset.decimals.toCollateralFixedPointAmount(_amount);
-        FixedPoint.Unsigned memory oraclePrice = FixedPoint.Unsigned(uint256(asset.oracle.latestAnswer()));
+        FixedPoint.Unsigned memory oraclePrice = asset.fixedPointPrice();
         FixedPoint.Unsigned memory value = fixedPointAmount.mul(oraclePrice);
 
         if (!_ignoreCollateralFactor) {
@@ -108,9 +108,8 @@ library LibCollateral {
         );
 
         // Record the withdrawal.
-        self.collateralDeposits[_account][_collateralAsset] = self.normalizeCollateralAmount(
-            _depositAmount - _amount,
-            _collateralAsset
+        self.collateralDeposits[_account][_collateralAsset] = self.collateralAssets[_collateralAsset].toStaticAmount(
+            _depositAmount - _amount
         );
 
         // If the user is withdrawing all of the collateral asset, remove the collateral asset
@@ -148,10 +147,9 @@ library LibCollateral {
         }
         // Record the deposit.
         unchecked {
-            self.collateralDeposits[_account][_collateralAsset] = self.normalizeCollateralAmount(
-                existingDepositAmount + _amount,
-                _collateralAsset
-            );
+            self.collateralDeposits[_account][_collateralAsset] = self
+                .collateralAssets[_collateralAsset]
+                .toStaticAmount(existingDepositAmount + _amount);
         }
 
         emit MinterEvent.CollateralDeposited(_account, _collateralAsset, _amount);

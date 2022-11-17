@@ -73,10 +73,7 @@ library LibMint {
     ) internal {
         KrAsset memory krAsset = self.kreskoAssets[_kreskoAsset];
         // Calculate the value of the fee according to the value of the krAssets being minted.
-        FixedPoint.Unsigned memory feeValue = FixedPoint
-            .Unsigned(uint256(krAsset.oracle.latestAnswer()))
-            .mul(FixedPoint.Unsigned(_kreskoAssetAmountMinted))
-            .mul(krAsset.openFee);
+        FixedPoint.Unsigned memory feeValue = krAsset.fixedPointUSD(_kreskoAssetAmountMinted).mul(krAsset.openFee);
 
         // Do nothing if the fee value is 0.
         if (feeValue.rawValue == 0) {
@@ -99,7 +96,10 @@ library LibMint {
             );
 
             // Remove the transferAmount from the stored deposit for the account.
-            self.collateralDeposits[_account][collateralAssetAddress] -= transferAmount;
+            self.collateralDeposits[_account][collateralAssetAddress] -= self
+                .collateralAssets[collateralAssetAddress]
+                .toStaticAmount(transferAmount);
+
             // Transfer the fee to the feeRecipient.
             IERC20Upgradeable(collateralAssetAddress).safeTransfer(self.feeRecipient, transferAmount);
             emit MinterEvent.OpenFeePaid(_account, collateralAssetAddress, transferAmount, feeValuePaid.rawValue);

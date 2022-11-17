@@ -7,7 +7,7 @@ import {RebaseMath, Rebase} from "../../shared/Rebase.sol";
 import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
 import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
 import {irs} from "../InterestRateState.sol";
-import {FixedPoint} from "../../libs/FixedPoint.sol";
+import {LibMath, FixedPoint} from "../libs/LibMath.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 import "hardhat/console.sol";
 
@@ -15,6 +15,7 @@ library LibAccount {
     using FixedPoint for FixedPoint.Unsigned;
     using RebaseMath for uint256;
     using WadRay for uint256;
+    using LibMath for FixedPoint.Unsigned;
 
     /**
      * @notice Gets an array of Kresko assets the account has minted.
@@ -54,16 +55,7 @@ library LibAccount {
         address _account,
         address _asset
     ) internal view returns (uint256) {
-        CollateralAsset memory collateral = self.collateralAssets[_asset];
-        uint256 deposits = self.collateralDeposits[_account][_asset];
-
-        // Perform conversion for KreskoAsset collaterals
-        if (collateral.anchor != address(0)) {
-            return IKreskoAssetAnchor(self.collateralAssets[_asset].anchor).convertToAssets(deposits);
-        }
-
-        // No conversion for other assets
-        return deposits;
+        return self.collateralAssets[_asset].toRebasingAmount(self.collateralDeposits[_account][_asset]);
     }
 
     /**
@@ -129,15 +121,13 @@ library LibAccount {
     /**
      * @notice Gets the Kresko asset value in USD of a particular account.
      * @param _account The account to calculate the Kresko asset value for.
-     * @return The Kresko asset value of a particular account.
+     * @return value The Kresko asset value of a particular account.
      */
     function getAccountKrAssetValue(MinterState storage self, address _account)
         internal
         view
-        returns (FixedPoint.Unsigned memory)
+        returns (FixedPoint.Unsigned memory value)
     {
-        FixedPoint.Unsigned memory value = FixedPoint.Unsigned(0);
-
         address[] memory assets = self.mintedKreskoAssets[_account];
         for (uint256 i = 0; i < assets.length; i++) {
             address asset = assets[i];
@@ -159,9 +149,7 @@ library LibAccount {
         address _account,
         address _asset
     ) internal view returns (uint256) {
-        uint256 debt = IKreskoAssetAnchor(self.kreskoAssets[_asset].anchor).convertToAssets(
-            irs().srAssetsUser[_account][_asset].debtScaled
-        );
+        uint256 debt = self.kreskoAssets[_asset].toRebasingAmount(irs().srAssetsUser[_account][_asset].debtScaled);
         if (debt == 0) {
             return 0;
         }
@@ -182,10 +170,7 @@ library LibAccount {
         address _account,
         address _asset
     ) internal view returns (uint256) {
-        return
-            IKreskoAssetAnchor(self.kreskoAssets[_asset].anchor).convertToAssets(
-                self.kreskoAssetDebt[_account][_asset]
-            );
+        return self.kreskoAssets[_asset].toRebasingAmount(self.kreskoAssetDebt[_account][_asset]);
     }
 
     /**
@@ -199,13 +184,10 @@ library LibAccount {
         address _account,
         address _asset
     ) internal view returns (uint256 assetAmount, uint256 kissAmount) {
-        // console.log(self.getKreskoAssetDebtScaled(_account, _asset));
-        // console.log(self.getKreskoAssetDebtPrincipal(_account, _asset));
-
         assetAmount =
             self.getKreskoAssetDebtScaled(_account, _asset) -
             self.getKreskoAssetDebtPrincipal(_account, _asset);
-        kissAmount = self.getKrAssetValue(_asset, assetAmount, true).rawValue * 10**18 - self.extOracleDecimals;
+        kissAmount = self.getKrAssetValue(_asset, assetAmount, true).fromFixedPointPriceToWad();
     }
 
     /**

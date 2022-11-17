@@ -5,7 +5,8 @@ import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {Action} from "../MinterTypes.sol";
 import {IAccountStateFacet} from "./IAccountStateFacet.sol";
 import {IConfigurationFacet} from "./IConfigurationFacet.sol";
-import {IKreskoAssetFacet} from "./IKreskoAssetFacet.sol";
+import {IBurnFacet} from "./IBurnFacet.sol";
+import {IMintFacet} from "./IMintFacet.sol";
 import {ICollateralAssetFacet} from "./ICollateralAssetFacet.sol";
 import {IStateFacet} from "./IStateFacet.sol";
 import {ILiquidationFacet} from "./ILiquidationFacet.sol";
@@ -20,7 +21,8 @@ interface IKresko is
     ILiquidationFacet,
     IConfigurationFacet,
     ICollateralAssetFacet,
-    IKreskoAssetFacet,
+    IMintFacet,
+    IBurnFacet,
     IAuthorizationFacet,
     IOwnershipFacet
 {

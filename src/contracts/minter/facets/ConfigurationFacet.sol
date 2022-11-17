@@ -31,6 +31,7 @@ import {ms} from "../MinterStorage.sol";
  */
 contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfigurationFacet {
     using FixedPoint for FixedPoint.Unsigned;
+    using FixedPoint for uint256;
 
     /* -------------------------------------------------------------------------- */
     /*                                 Initialize                                 */
@@ -93,7 +94,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             _liquidationIncentiveMultiplier <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER,
             Error.PARAM_LIQUIDATION_INCENTIVE_HIGH
         );
-        ms().liquidationIncentiveMultiplier = FixedPoint.Unsigned(_liquidationIncentiveMultiplier);
+        ms().liquidationIncentiveMultiplier = _liquidationIncentiveMultiplier.toFixedPoint();
         emit MinterEvent.LiquidationIncentiveMultiplierUpdated(_liquidationIncentiveMultiplier);
     }
 
@@ -111,7 +112,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             _minimumCollateralizationRatio >= Constants.MIN_COLLATERALIZATION_RATIO,
             Error.PARAM_MIN_COLLATERAL_RATIO_LOW
         );
-        ms().minimumCollateralizationRatio = FixedPoint.Unsigned(_minimumCollateralizationRatio);
+        ms().minimumCollateralizationRatio = _minimumCollateralizationRatio.toFixedPoint();
         emit MinterEvent.MinimumCollateralizationRatioUpdated(_minimumCollateralizationRatio);
     }
 
@@ -121,7 +122,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
      */
     function updateMinimumDebtValue(uint256 _minimumDebtValue) public override onlyRole(Role.OPERATOR) {
         require(_minimumDebtValue <= Constants.MAX_DEBT_VALUE, Error.PARAM_MIN_DEBT_AMOUNT_HIGH);
-        ms().minimumDebtValue = FixedPoint.Unsigned(_minimumDebtValue);
+        ms().minimumDebtValue = _minimumDebtValue.toFixedPoint();
         emit MinterEvent.MinimumDebtValueUpdated(_minimumDebtValue);
     }
 
@@ -131,11 +132,10 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
      */
     function updateLiquidationThreshold(uint256 _liquidationThreshold) public override onlyRole(Role.OPERATOR) {
         // Liquidation threshold cannot be greater than minimum collateralization ratio
-        require(
-            FixedPoint.Unsigned(_liquidationThreshold).isLessThanOrEqual(ms().minimumCollateralizationRatio),
-            Error.INVALID_LT
-        );
-        ms().liquidationThreshold = FixedPoint.Unsigned(_liquidationThreshold);
+        FixedPoint.Unsigned memory newThreshold = _liquidationThreshold.toFixedPoint();
+        require(newThreshold.isLessThanOrEqual(ms().minimumCollateralizationRatio), Error.INVALID_LT);
+
+        ms().liquidationThreshold = newThreshold;
         emit MinterEvent.LiquidationThresholdUpdated(_liquidationThreshold);
     }
 
@@ -218,7 +218,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         if (_anchor != address(0)) {
             ms().collateralAssets[_collateralAsset].anchor = _anchor;
         }
-        ms().collateralAssets[_collateralAsset].factor = FixedPoint.Unsigned(_factor);
+        ms().collateralAssets[_collateralAsset].factor = _factor.toFixedPoint();
         ms().collateralAssets[_collateralAsset].oracle = AggregatorV2V3Interface(_oracle);
 
         emit MinterEvent.CollateralAssetUpdated(_collateralAsset, _factor, _oracle, _anchor);
@@ -265,12 +265,12 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
 
         // Store details.
         ms().kreskoAssets[_krAsset] = KrAsset({
-            kFactor: FixedPoint.Unsigned(_kFactor),
+            kFactor: _kFactor.toFixedPoint(),
             oracle: AggregatorV2V3Interface(_oracle),
             anchor: _anchor,
             supplyLimit: _supplyLimit,
-            closeFee: FixedPoint.Unsigned(_closeFee),
-            openFee: FixedPoint.Unsigned(_openFee),
+            closeFee: _closeFee.toFixedPoint(),
+            openFee: _openFee.toFixedPoint(),
             exists: true
         });
         emit MinterEvent.KreskoAssetAdded(_krAsset, _anchor, _oracle, _kFactor, _supplyLimit, _closeFee, _openFee);
@@ -310,10 +310,10 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             krAsset.oracle = AggregatorV2V3Interface(_oracle);
         }
 
-        krAsset.kFactor = FixedPoint.Unsigned(_kFactor);
+        krAsset.kFactor = _kFactor.toFixedPoint();
         krAsset.supplyLimit = _supplyLimit;
-        krAsset.closeFee = FixedPoint.Unsigned(_closeFee);
-        krAsset.openFee = FixedPoint.Unsigned(_openFee);
+        krAsset.closeFee = _closeFee.toFixedPoint();
+        krAsset.openFee = _openFee.toFixedPoint();
         ms().kreskoAssets[_krAsset] = krAsset;
 
         emit MinterEvent.KreskoAssetUpdated(_krAsset, _anchor, _oracle, _kFactor, _supplyLimit, _closeFee, _openFee);
