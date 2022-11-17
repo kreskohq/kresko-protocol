@@ -11,7 +11,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         args: [hre.UniV2Factory.address],
     });
     hre.UniV2Oracle = UniV2Oracle;
-    await hre.Diamond.setAmmOracle(UniV2Oracle.address);
+    await hre.Diamond.updateAMMOracle(UniV2Oracle.address);
     logger.success("UniV2Oracle deployed successfully");
 };
 

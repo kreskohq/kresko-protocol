@@ -11,6 +11,9 @@ import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
 import {MinterModifiers, DiamondModifiers, Error} from "../../shared/Modifiers.sol";
 import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
 
+/* solhint-disable var-name-mixedcase */
+/* solhint-disable func-name-mixedcase */
+
 /**
  * @title Stability rate facet
  * @author Kresko
@@ -41,6 +44,7 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
      * @param _setup setup parameters
      */
     function initializeStabilityRateForAsset(address _asset, StabilityRateSetup memory _setup) external onlyOwner {
+        require(irs().KISS != address(0), Error.KISS_NOT_SET);
         require(irs().srAssets[_asset].asset == address(0), Error.STABILITY_RATES_ALREADY_INITIALIZED);
         require(WadRay.RAY >= _setup.optimalPriceRate, Error.INVALID_OPTIMAL_RATE);
         require(WadRay.RAY >= _setup.priceRateDelta, Error.INVALID_PRICE_RATE_DELTA);
@@ -97,6 +101,15 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
     function updateStabilityRateAndIndexForAsset(address _asset) external {
         irs().srAssets[_asset].updateDebtIndex();
         irs().srAssets[_asset].updateStabilityRate();
+    }
+
+    /**
+     * @notice Sets the protocol AMM oracle address
+     * @param _KISS  The address of the oracle
+     */
+    function updateKISS(address _KISS) external onlyOwner {
+        irs().KISS = _KISS;
+        emit InterestRateEvent.KISSUpdated(_KISS);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -180,5 +193,12 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
     function getTotalStabilityFeeAccrued(address _asset) external view returns (uint256) {
         uint256 totalSupply = IERC20Upgradeable(_asset).totalSupply();
         return totalSupply.rayMul(irs().srAssets[_asset].getNormalizedDebtIndex()) - totalSupply;
+    }
+
+    /**
+     * @notice The configured address of KISS
+     */
+    function KISS() external view returns (address) {
+        return irs().KISS;
     }
 }

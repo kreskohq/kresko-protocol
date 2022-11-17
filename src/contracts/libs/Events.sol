@@ -3,6 +3,8 @@ pragma solidity >=0.8.14;
 import {IDiamondCutFacet} from "../diamond/interfaces/IDiamondCutFacet.sol";
 import {Action} from "../minter/MinterTypes.sol";
 
+/* solhint-disable var-name-mixedcase */
+
 /**
  * @author Kresko
  * @title Events
@@ -71,6 +73,12 @@ library MinterEvent {
      * @param amount The amount of the collateral asset that was withdrawn.
      */
     event CollateralWithdrawn(address indexed account, address indexed collateralAsset, uint256 indexed amount);
+
+    /**
+     * @notice Emitted when AMM oracle is set.
+     * @param ammOracle The address of the AMM oracle.
+     */
+    event AMMOracleUpdated(address indexed ammOracle);
 
     /* -------------------------------------------------------------------------- */
     /*                                Kresko Assets                               */
@@ -283,4 +291,10 @@ library InterestRateEvent {
      * @dev Emitted when @param account repaid all interest @param value
      */
     event StabilityRateInterestBatchRepaid(address indexed account, uint256 value);
+
+    /**
+     * @notice Emitted when KISS address is set.
+     * @param KISS The address of KISS.
+     */
+    event KISSUpdated(address indexed KISS);
 }

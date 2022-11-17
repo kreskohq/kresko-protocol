@@ -36,8 +36,6 @@ struct MinterState {
 
     /// @notice The recipient of protocol fees.
     address feeRecipient;
-    /// @notice The AMM oracle address.
-    address ammOracle;
     /// @notice The factor used to calculate the incentive a liquidator receives in the form of seized collateral.
     FixedPoint.Unsigned liquidationIncentiveMultiplier;
     /// @notice The absolute minimum ratio of collateral value to debt value used to calculate collateral requirements.
@@ -72,4 +70,6 @@ struct MinterState {
     mapping(address => mapping(address => uint256)) kreskoAssetDebt;
     /// @notice Mapping of account -> addresses of borrowed krAssets
     mapping(address => address[]) mintedKreskoAssets;
+    /// @notice The AMM oracle address.
+    address ammOracle;
 }

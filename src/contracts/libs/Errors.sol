@@ -124,6 +124,7 @@ library Error {
     string public constant STABILITY_RATES_NOT_INITIALIZED = "604"; // the stability rates for the asset are not initialized
     string public constant STABILITY_RATE_OVERFLOW = "605"; // the stability rates is > max uint128
     string public constant DEBT_INDEX_OVERFLOW = "606"; // the debt index is > max uint128
+    string public constant KISS_NOT_SET = "607"; // the debt index is > max uint128
 
     /* -------------------------------------------------------------------------- */
     /*                              7. AMM ORACLE                                 */
