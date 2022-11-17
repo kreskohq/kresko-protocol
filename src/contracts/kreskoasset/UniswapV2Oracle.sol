@@ -25,7 +25,7 @@ contract UniswapV2Oracle {
     IUniswapV2Factory public immutable factory;
     address public owner;
 
-    constructor(address _factory) public {
+    constructor(address _factory) {
         factory = IUniswapV2Factory(_factory);
         owner = msg.sender;
     }

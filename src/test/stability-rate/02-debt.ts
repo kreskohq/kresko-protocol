@@ -3,7 +3,7 @@ import { oneRay } from "@kreskolabs/lib/dist/numbers/wadray";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { defaultCollateralArgs, defaultKrAssetArgs, withFixture } from "@utils/test";
 import { addLiquidity, getTWAPUpdaterFor, swap } from "@utils/test/helpers/amm";
-import { calcCompoundedInterest, getBlockTimestamp, ONE_YEAR } from "@utils/test/helpers/calculations";
+import { ONE_YEAR } from "@utils/test/helpers/calculations";
 import { depositCollateral } from "@utils/test/helpers/collaterals";
 import { burnKrAsset, mintKrAsset } from "@utils/test/helpers/krassets";
 import { expect } from "chai";
@@ -354,7 +354,7 @@ describe("Stability Rates", function () {
         });
     });
 
-    describe("#debt calculation - repay interest", async () => {
+    describe.only("#debt calculation - repay interest", async () => {
         const depositAmount = hre.toBig(100);
         const mintAmount = hre.toBig(10);
         beforeEach(async function () {
@@ -373,12 +373,7 @@ describe("Stability Rates", function () {
                 amount: mintAmount,
                 user: userTwo,
             });
-            const stabilityRate = await hre.Diamond.getStabilityRateForAsset(this.krAsset.address);
-
-            const timestampBefore = await getBlockTimestamp();
             await time.increase(ONE_YEAR);
-            const timestampAfter = await getBlockTimestamp();
-            const cumulativeStabilityRate = calcCompoundedInterest(stabilityRate, timestampAfter, timestampBefore);
 
             await mintKrAsset({
                 asset: this.krAsset,

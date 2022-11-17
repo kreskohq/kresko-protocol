@@ -201,7 +201,7 @@ library LibAccount {
         assetAmount =
             self.getKreskoAssetDebtScaled(_account, _asset) -
             self.getKreskoAssetDebtPrincipal(_account, _asset);
-        kissAmount = self.getKrAssetValue(_asset, assetAmount, true).rawValue;
+        kissAmount = self.getKrAssetValue(_asset, assetAmount, true).rawValue * 10**10;
     }
 
     /**

@@ -2,12 +2,14 @@
 pragma solidity >=0.8.14;
 
 import {WadRay} from "../../libs/WadRay.sol";
+import {InterestRateEvent} from "../../libs/Events.sol";
 import {LibStabilityRate} from "../libs/LibStabilityRate.sol";
 import {StabilityRateConfig} from "../InterestRateState.sol";
 import {ms} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";
 import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
-import {DiamondModifiers, Error} from "../../shared/Modifiers.sol";
+import {MinterModifiers, DiamondModifiers, Error} from "../../shared/Modifiers.sol";
+import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
 
 /**
  * @title Stability rate facet
@@ -15,7 +17,8 @@ import {DiamondModifiers, Error} from "../../shared/Modifiers.sol";
  * @notice Stability rate related views and state operations
  * @dev Uses both MinterState (ms) and InterestRateState (irs)
  */
-contract StabilityRateFacet is DiamondModifiers {
+contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
+    using SafeERC20Upgradeable for IERC20Upgradeable;
     using WadRay for uint256;
     using LibStabilityRate for StabilityRateConfig;
 
@@ -26,6 +29,33 @@ contract StabilityRateFacet is DiamondModifiers {
         uint128 rateSlope2;
         uint128 optimalPriceRate;
         uint128 priceRateDelta;
+    }
+
+    /**
+     * @notice Repays accrued stability rate interest for a single asset
+     * @param _account Account to repay interest for
+     * @param _asset Kresko asset to repay interest for
+     * @return repaymentValue value repaid
+     */
+    function repayStabilityRateInterest(address _account, address _asset)
+        external
+        nonReentrant
+        kreskoAssetExists(_asset)
+        returns (uint256 repaymentValue)
+    {
+        return ms().repayStabilityRateInterest(_account, _asset);
+    }
+
+    /**
+     * @notice Repays all accrued stability rate interest for an account
+     * @param _account Account to repay all asset interests for
+     */
+    function batchRepayStabilityRateInterest(address _account) external nonReentrant returns (uint256 repaymentValue) {
+        address[] memory mintedKreskoAssets = ms().getMintedKreskoAssets(_account);
+        for (uint256 i; i < mintedKreskoAssets.length; i++) {
+            repaymentValue += ms().repayStabilityRateInterest(_account, mintedKreskoAssets[i]);
+        }
+        emit InterestRateEvent.StabilityRateInterestBatchRepaid(_account, repaymentValue);
     }
 
     /**

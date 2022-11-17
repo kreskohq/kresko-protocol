@@ -4,7 +4,7 @@ pragma solidity >=0.8.14;
 // solhint-disable-next-line
 
 import {Arrays} from "../../libs/Arrays.sol";
-import {MinterEvent} from "../../libs/Events.sol";
+import {MinterEvent, InterestRateEvent} from "../../libs/Events.sol";
 import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {Math} from "../../libs/Math.sol";
 import {Error} from "../../libs/Errors.sol";
@@ -58,6 +58,40 @@ library LibRepay {
         irs().srAssetsUser[_account][_kreskoAsset].lastDebtIndex = uint128(newDebtIndex);
         // Update the global rate for the asset
         irs().srAssets[_kreskoAsset].updateStabilityRate();
+    }
+
+    /**
+     * @notice Repays accrued stability rate interest for a single asset
+     * @param _account Account to repay interest for
+     * @param _asset Kresko asset to repay interest for
+     * @return repaymentValue amount repaid
+     */
+    function repayStabilityRateInterest(
+        MinterState storage self,
+        address _account,
+        address _asset
+    ) internal returns (uint256 repaymentValue) {
+        // Update debt index for the asset
+        uint256 newDebtIndex = irs().srAssets[_asset].updateDebtIndex();
+        // Get the accrued interest in repayment token
+        (, repaymentValue) = self.getKreskoAssetDebtInterest(_account, _asset);
+
+        // Transfer the accrued interest
+        IERC20Upgradeable(irs().KISS).safeTransferFrom(msg.sender, self.feeRecipient, repaymentValue);
+
+        // Set debt scaled to be equal to current principal (wipe out interest)
+        irs().srAssetsUser[_account][_asset].debtScaled = uint128(
+            self.getKreskoAssetDebtPrincipal(_account, _asset).wadToRay().rayDiv(newDebtIndex)
+        );
+
+        // Update the last debt index
+        irs().srAssetsUser[_account][_asset].lastDebtIndex = uint128(newDebtIndex);
+
+        // Update stability rates
+        irs().srAssets[_asset].updateStabilityRate();
+
+        // Emit event with the account, asset and amount repaid
+        emit InterestRateEvent.StabilityRateInterestRepaid(_account, _asset, repaymentValue);
     }
 
     /**

@@ -263,3 +263,14 @@ library AuthEvent {
      */
     event RoleRevoked(bytes32 indexed role, address indexed account, address indexed sender);
 }
+
+library InterestRateEvent {
+    /**
+     * @dev Emitted when @param account repaid their @param asset interest @param value
+     */
+    event StabilityRateInterestRepaid(address indexed account, address indexed asset, uint256 value);
+    /**
+     * @dev Emitted when @param account repaid all interest @param value
+     */
+    event StabilityRateInterestBatchRepaid(address indexed account, uint256 value);
+}

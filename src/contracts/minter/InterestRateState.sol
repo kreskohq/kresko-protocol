@@ -4,6 +4,9 @@ import {LibStabilityRate} from "./libs/LibStabilityRate.sol";
 
 using LibStabilityRate for StabilityRateConfig global;
 
+/* solhint-disable var-name-mixedcase */
+
+// Asset data
 struct StabilityRateConfig {
     // Interest index for debt
     uint128 debtIndex;
@@ -31,14 +34,20 @@ struct StabilityRateConfig {
     uint40 lastUpdateTimestamp;
 }
 
+// User data
 struct StabilityRateUser {
     uint128 debtScaled;
     uint128 lastDebtIndex;
 }
 
+// Storage layout
 struct InterestRateState {
+    // asset address -> asset data
     mapping(address => StabilityRateConfig) srAssets;
+    // account address -> asset address -> user data
     mapping(address => mapping(address => StabilityRateUser)) srAssetsUser;
+    // interest rate repayment token is KISS
+    address KISS;
 }
 
 // Storage position
