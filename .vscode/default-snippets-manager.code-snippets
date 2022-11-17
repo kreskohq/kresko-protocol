@@ -1,4 +1,21 @@
 {
+	"spdxpragma": {
+		"prefix": "spdxpragma",
+		"description": "spdxpragma",
+		"scope": "solidity",
+		"body": [
+			"// SPDX-License-Identifier: MIT",
+			"pragma solidity >=0.8.14;"
+		]
+	},
+	"hhc": {
+		"prefix": "hhc",
+		"description": "hhc",
+		"scope": "solidity",
+		"body": [
+			"import \"hardhat/console.sol\";"
+		]
+	},
 	"natfunc": {
 		"prefix": "natfunc",
 		"description": "natfunc",

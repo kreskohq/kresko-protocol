@@ -3,9 +3,8 @@ pragma solidity >=0.8.14;
 import {AggregatorV2V3Interface} from "../../vendor/flux/interfaces/AggregatorV2V3Interface.sol";
 import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
 import {MinterEvent} from "../../libs/Events.sol";
-import {Math} from "../../libs/Math.sol";
+import {LibMath, FixedPoint} from "../libs/LibMath.sol";
 import {Arrays} from "../../libs/Arrays.sol";
-import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {Error} from "../../libs/Errors.sol";
 
 import {CollateralAsset} from "../MinterTypes.sol";
@@ -17,12 +16,26 @@ import {MinterState} from "../MinterState.sol";
  */
 library LibCollateral {
     using FixedPoint for FixedPoint.Unsigned;
-    using Math for uint8;
+    using LibMath for uint8;
     using Arrays for address[];
 
-    /* -------------------------------------------------------------------------- */
-    /*                                  Functions                                 */
-    /* -------------------------------------------------------------------------- */
+    /**
+     * In case a collateral asset is also a kresko asset, convert an amount to anchor shares
+     * @param _amount amount to possibly convert
+     * @param _collateralAsset address of the collateral asset
+     */
+    function normalizeCollateralAmount(
+        MinterState storage self,
+        uint256 _amount,
+        address _collateralAsset
+    ) internal view returns (uint256 amount) {
+        CollateralAsset memory asset = self.collateralAssets[_collateralAsset];
+        if (asset.anchor != address(0)) {
+            return IKreskoAssetAnchor(asset.anchor).convertToShares(_amount);
+        }
+        return _amount;
+    }
+
     /**
      * @notice Get the state of a specific collateral asset
      * @param _asset Address of the asset.
@@ -47,7 +60,7 @@ library LibCollateral {
     ) internal view returns (FixedPoint.Unsigned memory, FixedPoint.Unsigned memory) {
         CollateralAsset memory asset = self.collateralAssets[_collateralAsset];
 
-        FixedPoint.Unsigned memory fixedPointAmount = asset.decimals._toCollateralFixedPointAmount(_amount);
+        FixedPoint.Unsigned memory fixedPointAmount = asset.decimals.toCollateralFixedPointAmount(_amount);
         FixedPoint.Unsigned memory oraclePrice = FixedPoint.Unsigned(uint256(asset.oracle.latestAnswer()));
         FixedPoint.Unsigned memory value = fixedPointAmount.mul(oraclePrice);
 
@@ -142,22 +155,5 @@ library LibCollateral {
         }
 
         emit MinterEvent.CollateralDeposited(_account, _collateralAsset, _amount);
-    }
-
-    /**
-     * In case the collateral is a KreskoAsset, convert to anchor shares
-     * @param _amount amount to possibly convert
-     * @param _collateralAsset address of the collateral asset
-     */
-    function normalizeCollateralAmount(
-        MinterState storage self,
-        uint256 _amount,
-        address _collateralAsset
-    ) internal view returns (uint256 amount) {
-        CollateralAsset memory asset = self.collateralAssets[_collateralAsset];
-        if (asset.anchor != address(0)) {
-            return IKreskoAssetAnchor(asset.anchor).convertToShares(_amount);
-        }
-        return _amount;
     }
 }

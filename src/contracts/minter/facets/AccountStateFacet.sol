@@ -5,7 +5,7 @@ import {IAccountStateFacet} from "../interfaces/IAccountStateFacet.sol";
 import {Action, Fee, KrAsset, CollateralAsset, FixedPoint} from "../MinterTypes.sol";
 import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
 import {Error} from "../../libs/Errors.sol";
-import {Math} from "../../libs/Math.sol";
+import {LibMath} from "../libs/LibMath.sol";
 import {ms} from "../MinterStorage.sol";
 
 /**
@@ -14,9 +14,9 @@ import {ms} from "../MinterStorage.sol";
  * @notice Views concerning account state
  */
 contract AccountStateFacet is IAccountStateFacet {
-    using Math for uint256;
-    using Math for uint8;
-    using Math for FixedPoint.Unsigned;
+    using LibMath for uint256;
+    using LibMath for uint8;
+    using LibMath for FixedPoint.Unsigned;
     using FixedPoint for FixedPoint.Unsigned;
 
     /* -------------------------------------------------------------------------- */
@@ -239,9 +239,9 @@ contract AccountStateFacet is IAccountStateFacet {
             uint256 transferAmount;
             // If feeValue < depositValue, the entire fee can be charged for this collateral asset.
             if (feeValue.isLessThan(depositValue)) {
-                transferAmount = ms().collateralAssets[collateralAssetAddress].decimals._fromCollateralFixedPointAmount(
-                        feeValue.div(oraclePrice)
-                    );
+                transferAmount = ms().collateralAssets[collateralAssetAddress].decimals.fromCollateralFixedPointAmount(
+                    feeValue.div(oraclePrice)
+                );
                 feeValuePaid = feeValue;
             } else {
                 transferAmount = depositAmount;

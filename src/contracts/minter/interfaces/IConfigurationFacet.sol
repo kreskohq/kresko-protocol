@@ -49,4 +49,8 @@ interface IConfigurationFacet {
     function updateMinimumDebtValue(uint256 _minimumDebtValue) external;
 
     function updateLiquidationThreshold(uint256 _minimumDebtValue) external;
+
+    function updateAMMOracle(address _ammOracle) external;
+
+    function updateExtOracleDecimals(uint8 _decimals) external;
 }

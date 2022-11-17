@@ -1,13 +1,14 @@
-import { toBig } from "@kreskolabs/lib/dist/numbers";
+import { fromBig, toBig } from "@kreskolabs/lib/dist/numbers";
 import { oneRay } from "@kreskolabs/lib/dist/numbers/wadray";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { defaultCollateralArgs, defaultKrAssetArgs, withFixture } from "@utils/test";
 import { addLiquidity, getTWAPUpdaterFor, swap } from "@utils/test/helpers/amm";
-import { ONE_YEAR } from "@utils/test/helpers/calculations";
+import { calcCompoundedInterest, getBlockTimestamp, ONE_YEAR } from "@utils/test/helpers/calculations";
 import { depositCollateral } from "@utils/test/helpers/collaterals";
 import { burnKrAsset, mintKrAsset } from "@utils/test/helpers/krassets";
 import { expect } from "chai";
 import hre from "hardhat";
+import { KISS } from "types";
 import { UniswapMath } from "types/typechain/src/contracts/test/markets";
 
 describe("Stability Rates", function () {
@@ -361,7 +362,97 @@ describe("Stability Rates", function () {
             await this.collateral.setBalance(userTwo, depositAmount);
         });
 
-        it("can view accrued interest in KISS", async function () {
+        it("should be able to view account principal debt for asset", async function () {
+            await depositCollateral({
+                asset: this.collateral,
+                amount: depositAmount,
+                user: userTwo,
+            });
+
+            await mintKrAsset({
+                asset: this.krAsset,
+                amount: mintAmount,
+                user: userTwo,
+            });
+            await time.increase(ONE_YEAR);
+            await mintKrAsset({
+                asset: this.krAsset,
+                amount: mintAmount,
+                user: userTwo,
+            });
+            const expectedPrincipalDebt = mintAmount.mul(2);
+            const principalDebtAfterOneYear = await hre.Diamond.kreskoAssetDebtPrincipal(
+                userTwo.address,
+                this.krAsset.address,
+            );
+            expect(principalDebtAfterOneYear).to.bignumber.equal(expectedPrincipalDebt);
+        });
+
+        it("should be able to view account scaled debt for asset", async function () {
+            await depositCollateral({
+                asset: this.collateral,
+                amount: depositAmount,
+                user: userTwo,
+            });
+
+            await mintKrAsset({
+                asset: this.krAsset,
+                amount: mintAmount,
+                user: userTwo,
+            });
+            await time.increase(ONE_YEAR);
+            await mintKrAsset({
+                asset: this.krAsset,
+                amount: mintAmount,
+                user: userTwo,
+            });
+            const principalDebt = await hre.Diamond.kreskoAssetDebtPrincipal(userTwo.address, this.krAsset.address);
+            const accruedInterest = await hre.Diamond.kreskoAssetDebtInterest(userTwo.address, this.krAsset.address);
+
+            const expectedScaledDebt = principalDebt.add(accruedInterest.assetAmount);
+
+            const scaledDebt = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
+            expect(scaledDebt).to.bignumber.equal(expectedScaledDebt);
+        });
+
+        it("should be able to view accrued interest in KISS", async function () {
+            await depositCollateral({
+                asset: this.collateral,
+                amount: depositAmount,
+                user: userTwo,
+            });
+
+            await mintKrAsset({
+                asset: this.krAsset,
+                amount: mintAmount,
+                user: userTwo,
+            });
+
+            await time.increase(ONE_YEAR);
+
+            await mintKrAsset({
+                asset: this.krAsset,
+                amount: mintAmount,
+                user: userTwo,
+            });
+
+            const principalDebt = await hre.Diamond.kreskoAssetDebtPrincipal(userTwo.address, this.krAsset.address);
+            const scaledDebt = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
+
+            const expectedValue = (
+                await hre.Diamond.getKrAssetValue(this.krAsset.address, scaledDebt.sub(principalDebt), true)
+            ).rawValue;
+
+            const accruedInterest = await hre.Diamond.kreskoAssetDebtInterest(userTwo.address, this.krAsset.address);
+
+            // 8 decimals
+            expect(accruedInterest.kissAmount).to.bignumber.equal(expectedValue.mul(10 ** 10));
+        });
+
+        it("can repay full interest with KISS", async function () {
+            const KISS = await hre.ethers.getContract<KISS>("KISS");
+            await KISS.connect(userTwo).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
+
             await depositCollateral({
                 asset: this.collateral,
                 amount: depositAmount,
@@ -375,22 +466,80 @@ describe("Stability Rates", function () {
             });
             await time.increase(ONE_YEAR);
 
+            const minDebtAmount = (await hre.Diamond.minimumDebtValue()).rawValue.mul(10 ** 10);
+            await mintKrAsset({
+                asset: KISS,
+                amount: minDebtAmount,
+                user: userTwo,
+            });
+            // get the principal before repayment
+            const principalDebt = await hre.Diamond.kreskoAssetDebtPrincipal(userTwo.address, this.krAsset.address);
+
+            // repay accrued interest
+            await hre.Diamond.connect(userTwo).repayFullStabilityRateInterest(userTwo.address, this.krAsset.address);
+
+            // get values after repayment
+            const debt = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
+            const accruedInterest = await hre.Diamond.kreskoAssetDebtInterest(userTwo.address, this.krAsset.address);
+            expect(accruedInterest.assetAmount).to.bignumber.eq(0);
+            expect(debt).to.bignumber.eq(principalDebt);
+        });
+        it("can repay partial interest with KISS", async function () {
+            const KISS = await hre.ethers.getContract<KISS>("KISS");
+            await KISS.connect(userTwo).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
+
+            await depositCollateral({
+                asset: this.collateral,
+                amount: depositAmount,
+                user: userTwo,
+            });
+
             await mintKrAsset({
                 asset: this.krAsset,
                 amount: mintAmount,
                 user: userTwo,
             });
+            await time.increase(ONE_YEAR);
 
-            const debt = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
-            const [accruedDebt, accruedDebtKiss] = await hre.Diamond.kreskoAssetDebtInterest(
+            const minDebtAmount = (await hre.Diamond.minimumDebtValue()).rawValue.mul(10 ** 10);
+            await mintKrAsset({
+                asset: KISS,
+                amount: minDebtAmount,
+                user: userTwo,
+            });
+            const accruedInterestBefore = await hre.Diamond.kreskoAssetDebtInterest(
                 userTwo.address,
                 this.krAsset.address,
             );
+            // get the principal before repayment
 
-            console.log(+debt);
-            console.log(+accruedDebt);
-            console.log(+accruedDebtKiss);
+            const repaymentAmount = accruedInterestBefore.kissAmount.div(5);
+
+            const scaledDebtBefore = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
+
+            // repay accrued interest
+            await hre.Diamond.connect(userTwo).repayStabilityRateInterestPartial(
+                userTwo.address,
+                this.krAsset.address,
+                repaymentAmount,
+            );
+            const principalDebt = await hre.Diamond.kreskoAssetDebtPrincipal(userTwo.address, this.krAsset.address);
+            const scaledDebt = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
+
+            console.log("repayment amount:", fromBig(repaymentAmount));
+            console.log("scaled debt after:", fromBig(scaledDebt));
+            console.log("principal debt after:", fromBig(principalDebt));
+            const accruedInterestAfter = await hre.Diamond.kreskoAssetDebtInterest(
+                userTwo.address,
+                this.krAsset.address,
+            );
+            // // get values after repayment
+            // const debt = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
+
+            // expect(accruedInterestAfter.kissAmount).to.bignumber.eq(
+            //     accruedInterestAfter.kissAmount.sub(repaymentAmount),
+            // );
+            // expect(debt).to.bignumber.eq(principalDebt);
         });
-        it("can repay interest with KISS");
     });
 });

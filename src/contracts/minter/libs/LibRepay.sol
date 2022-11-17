@@ -6,7 +6,7 @@ pragma solidity >=0.8.14;
 import {Arrays} from "../../libs/Arrays.sol";
 import {MinterEvent, InterestRateEvent} from "../../libs/Events.sol";
 import {FixedPoint} from "../../libs/FixedPoint.sol";
-import {Math} from "../../libs/Math.sol";
+import {LibMath, FixedPoint} from "../libs/LibMath.sol";
 import {Error} from "../../libs/Errors.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 
@@ -14,7 +14,7 @@ import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
 import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
 
-import {LibCalc} from "./LibCalculation.sol";
+import {LibCalculation} from "./LibCalculation.sol";
 import {KrAsset} from "../MinterTypes.sol";
 import {irs} from "../InterestRateState.sol";
 import {MinterState} from "../MinterState.sol";
@@ -22,13 +22,13 @@ import {MinterState} from "../MinterState.sol";
 library LibRepay {
     using Arrays for address[];
 
-    using Math for uint8;
-    using Math for uint256;
+    using LibMath for uint8;
+    using LibMath for uint256;
     using WadRay for uint256;
 
     using FixedPoint for FixedPoint.Unsigned;
     using SafeERC20Upgradeable for IERC20Upgradeable;
-    using LibCalc for MinterState;
+    using LibCalculation for MinterState;
 
     /// @notice Repay user kresko asset debt with stability rate updates.
     /// @dev Updates the principal in MinterState and stability rate adjusted values in InterestRateState

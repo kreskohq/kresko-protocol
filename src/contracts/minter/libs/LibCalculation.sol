@@ -3,23 +3,20 @@ pragma solidity >=0.8.14;
 
 import {Arrays} from "../../libs/Arrays.sol";
 import {MinterEvent} from "../../libs/Events.sol";
-import {FixedPoint} from "../../libs/FixedPoint.sol";
-import {Math} from "../../libs/Math.sol";
+import {LibMath, FixedPoint} from "../libs/LibMath.sol";
 
 import {MinterState} from "../MinterState.sol";
 import {KrAsset} from "../MinterTypes.sol";
-
-uint256 constant ONE_HUNDRED_PERCENT = 1e18;
-uint256 constant ONE_USD = 1e18;
 
 /**
  * @title Calculation library for liquidation & fee values
  * @author Kresko
  */
-library LibCalc {
+library LibCalculation {
     using Arrays for address[];
-    using Math for uint8;
-    using Math for uint256;
+    using LibMath for uint8;
+    using LibMath for uint256;
+
     using FixedPoint for FixedPoint.Unsigned;
 
     /**
@@ -59,7 +56,7 @@ library LibCalc {
             // This is desired as they have more seizable value.
             if (
                 self.depositedCollateralAssets[_account].length > 1 &&
-                cFactor.isLessThan(FixedPoint.Unsigned(ONE_HUNDRED_PERCENT))
+                cFactor.isLessThan(FixedPoint.ONE_HUNDRED_PERCENT())
             ) {
                 // cFactor^4 is the diminishing factor (cFactor = 1 == nothing happens)
                 return krAssetSide.mul(cFactor.pow(4)).add(collateralSide);
@@ -68,6 +65,23 @@ library LibCalc {
                 return krAssetSide.add(collateralSide);
             }
         }
+    }
+
+    /**
+     * @notice Calculate amount of collateral to seize during the liquidation process.
+     * @param _liquidationIncentiveMultiplier The liquidation incentive multiplier.
+     * @param _collateralOraclePriceUSD The address of the collateral asset to be seized.
+     * @param _kreskoAssetRepayAmountUSD Kresko asset amount being repaid in exchange for the seized collateral.
+     */
+    function calculateAmountToSeize(
+        FixedPoint.Unsigned memory _liquidationIncentiveMultiplier,
+        FixedPoint.Unsigned memory _collateralOraclePriceUSD,
+        FixedPoint.Unsigned memory _kreskoAssetRepayAmountUSD
+    ) internal pure returns (FixedPoint.Unsigned memory) {
+        // Seize amount = (repay amount USD * liquidation incentive / collateral price USD).
+        // Denominate seize amount in collateral type
+        // Apply liquidation incentive multiplier
+        return _kreskoAssetRepayAmountUSD.mul(_liquidationIncentiveMultiplier).div(_collateralOraclePriceUSD);
     }
 
     function getValueUnderForAssetPair(
@@ -145,7 +159,7 @@ library LibCalc {
             // We see that:
             //   transferAmount <= feeValue / oraclePrice < depositAmount
             //   transferAmount < depositAmount
-            transferAmount = self.collateralAssets[_collateralAssetAddress].decimals._fromCollateralFixedPointAmount(
+            transferAmount = self.collateralAssets[_collateralAssetAddress].decimals.fromCollateralFixedPointAmount(
                 _feeValue.div(oraclePrice)
             );
             feeValuePaid = _feeValue;

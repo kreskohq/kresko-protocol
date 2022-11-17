@@ -31,6 +31,10 @@ contract StateFacet is IStateFacet {
         return ms().ammOracle;
     }
 
+    function extOracleDecimals() external view returns (uint8) {
+        return ms().extOracleDecimals;
+    }
+
     function minimumCollateralizationRatio() external view returns (FixedPoint.Unsigned memory) {
         return ms().minimumCollateralizationRatio;
     }
@@ -55,7 +59,8 @@ contract StateFacet is IStateFacet {
                 s.liquidationIncentiveMultiplier,
                 s.minimumDebtValue,
                 s.liquidationThreshold,
-                s.feeRecipient
+                s.feeRecipient,
+                s.extOracleDecimals
             );
     }
 

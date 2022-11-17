@@ -6,9 +6,9 @@ import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
 
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
-import {Math} from "../../libs/Math.sol";
+import {LibMath, FixedPoint} from "../libs/LibMath.sol";
+import {LibCalculation} from "../libs/LibCalculation.sol";
 import {WadRay} from "../../libs/WadRay.sol";
-import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {MinterEvent} from "../../libs/Events.sol";
 
 import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
@@ -25,8 +25,8 @@ import {irs} from "../InterestRateState.sol";
  */
 contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
     using Arrays for address[];
-    using Math for uint8;
-    using Math for FixedPoint.Unsigned;
+    using LibMath for uint8;
+    using LibMath for FixedPoint.Unsigned;
     using WadRay for uint256;
     using FixedPoint for FixedPoint.Unsigned;
     using SafeERC20Upgradeable for IERC20Upgradeable;
@@ -95,8 +95,12 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         uint256 seizedAmount = _liquidateAssets(
             _account,
             _repayAmount,
-            s.collateralAssets[_collateralAssetToSeize].decimals._fromCollateralFixedPointAmount(
-                s.liquidationIncentiveMultiplier._calculateAmountToSeize(collateralPriceUSD, repayAmountUSD)
+            s.collateralAssets[_collateralAssetToSeize].decimals.fromCollateralFixedPointAmount(
+                LibCalculation.calculateAmountToSeize(
+                    s.liquidationIncentiveMultiplier,
+                    collateralPriceUSD,
+                    repayAmountUSD
+                )
             ),
             _repayKreskoAsset,
             _mintedKreskoAssetIndex,

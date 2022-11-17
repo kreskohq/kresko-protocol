@@ -10,7 +10,7 @@ import {
     FluxPriceAggregator__factory,
     FluxPriceFeed__factory,
 } from "types";
-import { TestKreskoAssetArgs, defaultKrAssetArgs, TestKreskoAssetUpdate, InputArgs } from "../mocks";
+import { TestKreskoAssetArgs, defaultKrAssetArgs, TestKreskoAssetUpdate, InputArgs, InputArgsSimple } from "../mocks";
 import roles from "../roles";
 import { getMockOracleFor, setPrice, setMarketOpen } from "./general";
 
@@ -133,13 +133,13 @@ export const updateKrAsset = async (address: string, args: TestKreskoAssetUpdate
     return asset;
 };
 
-export const mintKrAsset = async (args: InputArgs) => {
+export const mintKrAsset = async (args: InputArgsSimple) => {
     const convert = typeof args.amount === "string" || typeof args.amount === "number";
     const { user, asset, amount } = args;
     return hre.Diamond.connect(user).mintKreskoAsset(user.address, asset.address, convert ? toBig(+amount) : amount);
 };
 
-export const burnKrAsset = async (args: InputArgs) => {
+export const burnKrAsset = async (args: InputArgsSimple) => {
     const convert = typeof args.amount === "string" || typeof args.amount === "number";
     const { user, asset, amount } = args;
     const kIndex = await hre.Diamond.getMintedKreskoAssetsIndex(user.address, asset.address);

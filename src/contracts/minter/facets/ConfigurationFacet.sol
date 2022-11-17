@@ -56,6 +56,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         updateMinimumCollateralizationRatio(args.minimumCollateralizationRatio);
         updateMinimumDebtValue(args.minimumDebtValue);
         updateLiquidationThreshold(args.liquidationThreshold);
+        updateExtOracleDecimals(args.extOracleDecimals);
 
         /// @dev Revoke the operator role
         Authorization.revokeRole(Role.OPERATOR, msg.sender);
@@ -145,6 +146,14 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
     function updateAMMOracle(address _ammOracle) external onlyOwner {
         ms().ammOracle = _ammOracle;
         emit MinterEvent.AMMOracleUpdated(_ammOracle);
+    }
+
+    /**
+     * @notice Sets the decimal precision of external oracle
+     * @param _decimals Amount of decimals
+     */
+    function updateExtOracleDecimals(uint8 _decimals) public onlyOwner {
+        ms().extOracleDecimals = _decimals;
     }
 
     /* -------------------------------------------------------------------------- */

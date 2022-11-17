@@ -4,6 +4,8 @@ pragma solidity >=0.8.14;
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SignedSafeMathUpgradeable.sol";
 
+/* solhint-disable  func-name-mixedcase */
+
 /**
  * @title Library for fixed point arithmetic on uints
  */
@@ -770,4 +772,12 @@ library FixedPoint {
     }
 
     // ------------------- Additional Fixed Point math functions specific to Kresko protocol -------------------
+
+    function ONE_HUNDRED_PERCENT() internal pure returns (FixedPoint.Unsigned memory) {
+        return FixedPoint.Unsigned(1e18);
+    }
+
+    function ONE_USD() internal pure returns (FixedPoint.Unsigned memory) {
+        return FixedPoint.Unsigned(1e18);
+    }
 }

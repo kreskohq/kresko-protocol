@@ -7,12 +7,11 @@ import {SafeERC20Upgradeable, IERC20Upgradeable} from "@openzeppelin/contracts-u
 import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
 import {Arrays} from "../../libs/Arrays.sol";
 import {MinterEvent} from "../../libs/Events.sol";
-import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {Error} from "../../libs/Errors.sol";
-import {Math} from "../../libs/Math.sol";
+import {LibMath, FixedPoint} from "../libs/LibMath.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 
-import {LibCalc} from "./LibCalculation.sol";
+import {LibCalculation} from "./LibCalculation.sol";
 import {KrAsset} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
 import {irs} from "../InterestRateState.sol";
@@ -20,13 +19,13 @@ import {irs} from "../InterestRateState.sol";
 library LibMint {
     using Arrays for address[];
 
-    using Math for uint8;
-    using Math for uint256;
+    using LibMath for uint8;
+    using LibMath for uint256;
     using WadRay for uint256;
 
     using FixedPoint for FixedPoint.Unsigned;
     using SafeERC20Upgradeable for IERC20Upgradeable;
-    using LibCalc for MinterState;
+    using LibCalculation for MinterState;
 
     /// @notice Mint kresko assets with stability rate updates.
     /// @dev Updates the principal in MinterState and stability rate adjusted values in InterestRateState

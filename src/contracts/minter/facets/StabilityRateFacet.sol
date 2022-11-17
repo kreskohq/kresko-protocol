@@ -10,6 +10,7 @@ import {irs} from "../InterestRateState.sol";
 import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
 import {MinterModifiers, DiamondModifiers, Error} from "../../shared/Modifiers.sol";
 import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
+import "hardhat/console.sol";
 
 /* solhint-disable var-name-mixedcase */
 /* solhint-disable func-name-mixedcase */
@@ -145,7 +146,7 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
         if (_amount > maxRepayment) {
             repaymentValue = maxRepayment;
         } else {
-            repaymentValue = _amount;
+            repaymentValue = ms().getKrAssetValue(_asset, _amount, true).rawValue;
         }
 
         // Transfer the accrued interest

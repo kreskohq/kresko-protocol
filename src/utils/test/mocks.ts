@@ -17,9 +17,11 @@ export type TestCollateralAssetUpdate = {
 };
 export type InputArgs = {
     user: SignerWithAddress;
-    asset: KrAsset | Collateral;
+    asset: (KrAsset | Collateral) | { address: string; contract: any; mocks: any };
     amount: string | number | BigNumber;
 };
+
+export type InputArgsSimple = Omit<InputArgs, "asset"> & { asset: { address: string } };
 
 export type TestKreskoAssetArgs = {
     name: string;

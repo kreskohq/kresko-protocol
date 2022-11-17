@@ -48,6 +48,7 @@ export const getMinterInitializer = async (
             minimumCollateralizationRatio: toFixedPoint(process.env.MINIMUM_COLLATERALIZATION_RATIO),
             minimumDebtValue: toFixedPoint(process.env.MINIMUM_DEBT_VALUE, 8),
             liquidationThreshold: toFixedPoint(process.env.LIQUIDATION_THRESHOLD),
+            extOracleDecimals: 8,
         },
     };
 };

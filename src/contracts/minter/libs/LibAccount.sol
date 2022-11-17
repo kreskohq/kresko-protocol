@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 
-import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {MinterState} from "../MinterState.sol";
 import {KrAsset, CollateralAsset} from "../MinterTypes.sol";
 import {RebaseMath, Rebase} from "../../shared/Rebase.sol";
 import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
 import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
 import {irs} from "../InterestRateState.sol";
+import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {WadRay} from "../../libs/WadRay.sol";
+import "hardhat/console.sol";
 
 library LibAccount {
     using FixedPoint for FixedPoint.Unsigned;
@@ -198,10 +199,13 @@ library LibAccount {
         address _account,
         address _asset
     ) internal view returns (uint256 assetAmount, uint256 kissAmount) {
+        // console.log(self.getKreskoAssetDebtScaled(_account, _asset));
+        // console.log(self.getKreskoAssetDebtPrincipal(_account, _asset));
+
         assetAmount =
             self.getKreskoAssetDebtScaled(_account, _asset) -
             self.getKreskoAssetDebtPrincipal(_account, _asset);
-        kissAmount = self.getKrAssetValue(_asset, assetAmount, true).rawValue * 10**10;
+        kissAmount = self.getKrAssetValue(_asset, assetAmount, true).rawValue * 10**18 - self.extOracleDecimals;
     }
 
     /**

@@ -78,6 +78,7 @@ struct MinterInitArgs {
     address operator;
     address council;
     address feeRecipient;
+    uint8 extOracleDecimals;
     uint256 liquidationIncentiveMultiplier;
     uint256 minimumCollateralizationRatio;
     uint256 minimumDebtValue;
@@ -94,6 +95,7 @@ struct MinterParams {
     FixedPoint.Unsigned minimumDebtValue;
     FixedPoint.Unsigned liquidationThreshold;
     address feeRecipient;
+    uint8 extOracleDecimals;
 }
 
 /**
