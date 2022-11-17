@@ -31,6 +31,78 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
         uint128 priceRateDelta;
     }
 
+    /* -------------------------------------------------------------------------- */
+    /*                              ASSET STATE WRITES                            */
+    /* -------------------------------------------------------------------------- */
+
+    /**
+     * @notice Initialize an asset with stability rate setup values
+     * @param _asset asset to setup
+     * @param _setup setup parameters
+     */
+    function initializeStabilityRateForAsset(address _asset, StabilityRateSetup memory _setup) external onlyOwner {
+        require(irs().srAssets[_asset].asset == address(0), Error.STABILITY_RATES_ALREADY_INITIALIZED);
+        require(WadRay.RAY >= _setup.optimalPriceRate, Error.INVALID_OPTIMAL_RATE);
+        require(WadRay.RAY >= _setup.priceRateDelta, Error.INVALID_PRICE_RATE_DELTA);
+
+        irs().srAssets[_asset] = StabilityRateConfig({
+            debtIndex: uint128(WadRay.RAY),
+            stabilityRateBase: _setup.stabilityRateBase,
+            // solhint-disable not-rely-on-time
+            lastUpdateTimestamp: uint40(block.timestamp),
+            asset: _asset,
+            rateSlope1: _setup.rateSlope1,
+            rateSlope2: _setup.rateSlope2,
+            optimalPriceRate: _setup.optimalPriceRate,
+            priceRateDelta: _setup.priceRateDelta,
+            stabilityRate: uint128(WadRay.RAY)
+        });
+
+        emit InterestRateEvent.StabilityRateConfigured(
+            _asset,
+            _setup.stabilityRateBase,
+            _setup.priceRateDelta,
+            _setup.rateSlope1,
+            _setup.rateSlope2
+        );
+    }
+
+    /**
+     * @notice Configure existing stability rate values
+     * @param _asset asset to configure
+     * @param _setup setup parameters
+     */
+    function configureStabilityRatesForAsset(address _asset, StabilityRateSetup memory _setup) external onlyOwner {
+        require(irs().srAssets[_asset].asset == _asset, Error.STABILITY_RATES_NOT_INITIALIZED);
+        require(WadRay.RAY >= _setup.optimalPriceRate, Error.INVALID_OPTIMAL_RATE);
+        require(WadRay.RAY >= _setup.priceRateDelta, Error.INVALID_PRICE_RATE_DELTA);
+
+        irs().srAssets[_asset].rateSlope1 = _setup.rateSlope1;
+        irs().srAssets[_asset].rateSlope2 = _setup.rateSlope2;
+        irs().srAssets[_asset].optimalPriceRate = _setup.optimalPriceRate;
+        irs().srAssets[_asset].priceRateDelta = _setup.priceRateDelta;
+        irs().srAssets[_asset].stabilityRateBase = _setup.stabilityRateBase;
+
+        emit InterestRateEvent.StabilityRateConfigured(
+            _asset,
+            _setup.stabilityRateBase,
+            _setup.priceRateDelta,
+            _setup.rateSlope1,
+            _setup.rateSlope2
+        );
+    }
+
+    /// @notice Updates the debt index and stability rates for an asset
+    /// @param _asset asset to update rate and index for
+    function updateStabilityRateAndIndexForAsset(address _asset) external {
+        irs().srAssets[_asset].updateDebtIndex();
+        irs().srAssets[_asset].updateStabilityRate();
+    }
+
+    /* -------------------------------------------------------------------------- */
+    /*                                REPAYMENT                                   */
+    /* -------------------------------------------------------------------------- */
+
     /**
      * @notice Repays accrued stability rate interest for a single asset
      * @param _account Account to repay interest for
@@ -57,6 +129,10 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
         }
         emit InterestRateEvent.StabilityRateInterestBatchRepaid(_account, repaymentValue);
     }
+
+    /* -------------------------------------------------------------------------- */
+    /*                                   VIEWS                                    */
+    /* -------------------------------------------------------------------------- */
 
     /**
      * @notice Gets the current stability rate for an asset
@@ -87,53 +163,6 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
      */
     function getDebtIndexForAsset(address _asset) external view returns (uint256 debtIndex) {
         return irs().srAssets[_asset].getNormalizedDebtIndex();
-    }
-
-    /// @notice Updates the debt index and stability rates for an asset
-    /// @param _asset asset to update rate and index for
-    function updateStabilityRateAndIndexForAsset(address _asset) external {
-        irs().srAssets[_asset].updateDebtIndex();
-        irs().srAssets[_asset].updateStabilityRate();
-    }
-
-    /**
-     * @notice Initialize an asset with stability rate setup values
-     * @param _asset asset to setup
-     * @param _setup setup parameters
-     */
-    function initializeStabilityRateForAsset(address _asset, StabilityRateSetup memory _setup) external onlyOwner {
-        require(irs().srAssets[_asset].asset == address(0), Error.STABILITY_RATES_ALREADY_INITIALIZED);
-        require(WadRay.RAY >= _setup.optimalPriceRate, Error.INVALID_OPTIMAL_RATE);
-        require(WadRay.RAY >= _setup.priceRateDelta, Error.INVALID_PRICE_RATE_DELTA);
-
-        irs().srAssets[_asset] = StabilityRateConfig({
-            debtIndex: uint128(WadRay.RAY),
-            stabilityRateBase: _setup.stabilityRateBase,
-            // solhint-disable not-rely-on-time
-            lastUpdateTimestamp: uint40(block.timestamp),
-            asset: _asset,
-            rateSlope1: _setup.rateSlope1,
-            rateSlope2: _setup.rateSlope2,
-            optimalPriceRate: _setup.optimalPriceRate,
-            priceRateDelta: _setup.priceRateDelta,
-            stabilityRate: uint128(WadRay.RAY)
-        });
-    }
-
-    /**
-     * @notice Configure existing stability rate values
-     * @param _asset asset to configure
-     * @param _setup setup parameters
-     */
-    function configureStabilityRatesForAsset(address _asset, StabilityRateSetup memory _setup) external onlyOwner {
-        require(irs().srAssets[_asset].asset == _asset, Error.STABILITY_RATES_NOT_INITIALIZED);
-        require(WadRay.RAY >= _setup.optimalPriceRate, Error.INVALID_OPTIMAL_RATE);
-        require(WadRay.RAY >= _setup.priceRateDelta, Error.INVALID_PRICE_RATE_DELTA);
-        irs().srAssets[_asset].rateSlope1 = _setup.rateSlope1;
-        irs().srAssets[_asset].rateSlope2 = _setup.rateSlope2;
-        irs().srAssets[_asset].optimalPriceRate = _setup.optimalPriceRate;
-        irs().srAssets[_asset].priceRateDelta = _setup.priceRateDelta;
-        irs().srAssets[_asset].stabilityRateBase = _setup.stabilityRateBase;
     }
 
     /**

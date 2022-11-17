@@ -268,6 +268,16 @@ library InterestRateEvent {
     /**
      * @dev Emitted when @param account repaid their @param asset interest @param value
      */
+    event StabilityRateConfigured(
+        address indexed asset,
+        uint256 indexed stabilityRateBase,
+        uint256 indexed priceRateDelta,
+        uint256 rateSlope1,
+        uint256 rateSlope2
+    );
+    /**
+     * @dev Emitted when @param account repaid their @param asset interest @param value
+     */
     event StabilityRateInterestRepaid(address indexed account, address indexed asset, uint256 value);
     /**
      * @dev Emitted when @param account repaid all interest @param value
