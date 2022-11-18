@@ -1,7 +1,7 @@
 import { fromBig, getInternalEvent, toBig } from "@kreskolabs/lib";
 import { defaultCloseFee, defaultCollateralArgs, defaultKrAssetArgs, Fee, Role, withFixture } from "@test-utils";
 import { Error } from "@utils/test/errors";
-import { calcIndexAdjustedAmount, getNormalizedAmount } from "@utils/test/helpers/calculations";
+import { toScaledAmount, fromScaledAmount } from "@utils/test/helpers/calculations";
 import { depositCollateral, withdrawCollateral } from "@utils/test/helpers/collaterals";
 import {
     addMockKreskoAsset,
@@ -855,7 +855,7 @@ describe("Minter", function () {
                     // Ensure that the value inside protocol matches the value before rebase
                     const valueAfterRebase = await userOne.getAccountKrAssetValue(users.userOne.address);
                     expect(valueAfterRebase.rawValue).to.bignumber.equal(
-                        await calcIndexAdjustedAmount(valueBeforeRebase.rawValue, this.krAsset),
+                        await toScaledAmount(valueBeforeRebase.rawValue, this.krAsset),
                     );
                 });
 
@@ -879,7 +879,7 @@ describe("Minter", function () {
                     // Ensure that the value inside protocol matches the value before rebase
                     const valueAfterRebase = await userOne.getAccountKrAssetValue(users.userOne.address);
                     expect(valueAfterRebase.rawValue).to.bignumber.equal(
-                        await calcIndexAdjustedAmount(valueBeforeRebase.rawValue, this.krAsset),
+                        await toScaledAmount(valueBeforeRebase.rawValue, this.krAsset),
                     );
                 });
                 it("when minted after positive rebase", async function () {
@@ -905,7 +905,7 @@ describe("Minter", function () {
                     // Ensure that value after mint matches what is expected
                     const valueAfterRebase = await userOne.getAccountKrAssetValue(users.userOne.address);
                     expect(valueAfterRebase.rawValue).to.bignumber.equal(
-                        await calcIndexAdjustedAmount(valueBeforeRebase.rawValue, this.krAsset),
+                        await toScaledAmount(valueBeforeRebase.rawValue, this.krAsset),
                     );
                 });
 
@@ -932,7 +932,7 @@ describe("Minter", function () {
                     // Ensure that value after mint matches what is expected
                     const valueAfterRebase = await userOne.getAccountKrAssetValue(users.userOne.address);
                     expect(valueAfterRebase.rawValue).to.bignumber.equal(
-                        await calcIndexAdjustedAmount(valueBeforeRebase.rawValue, this.krAsset),
+                        await toScaledAmount(valueBeforeRebase.rawValue, this.krAsset),
                     );
                 });
             });
@@ -983,12 +983,12 @@ describe("Minter", function () {
 
                     // Ensure debt usd values match
                     const debtValueAfterFirstRebase = await userOne.getAccountKrAssetValue(users.userOne.address);
-                    expect(
-                        await getNormalizedAmount(debtValueAfterFirstRebase.rawValue, this.krAsset),
-                    ).to.bignumber.equal(debtValueAfterFirstMint.rawValue);
-                    expect(
-                        await getNormalizedAmount(debtValueAfterFirstRebase.rawValue, this.krAsset),
-                    ).to.bignumber.equal(valueBeforeRebase.rawValue);
+                    expect(await fromScaledAmount(debtValueAfterFirstRebase.rawValue, this.krAsset)).to.bignumber.equal(
+                        debtValueAfterFirstMint.rawValue,
+                    );
+                    expect(await fromScaledAmount(debtValueAfterFirstRebase.rawValue, this.krAsset)).to.bignumber.equal(
+                        valueBeforeRebase.rawValue,
+                    );
 
                     // Mint after rebase
                     await userOne.mintKreskoAsset(users.userOne.address, this.krAsset.address, mintAmountAfterRebase);
@@ -1002,7 +1002,7 @@ describe("Minter", function () {
                     // Ensure debt usd values match
                     const debtValueAfterSecondMint = await userOne.getAccountKrAssetValue(users.userOne.address);
                     expect(
-                        await getNormalizedAmount(debtValueAfterSecondMint.rawValue, this.krAsset),
+                        await fromScaledAmount(debtValueAfterSecondMint.rawValue, this.krAsset),
                     ).to.bignumber.closeTo(debtValueAfterFirstMint.rawValue.mul(2), INTEREST_RATE_PRICE_DELTA);
                     expect(debtValueAfterSecondMint.rawValue).to.bignumber.closeTo(
                         valueBeforeRebase.rawValue.mul(2),
@@ -1056,10 +1056,10 @@ describe("Minter", function () {
                     // Ensure debt usd values match
                     const debtValueAfterFirstRebase = await userOne.getAccountKrAssetValue(users.userOne.address);
                     expect(debtValueAfterFirstRebase.rawValue).to.bignumber.equal(
-                        await calcIndexAdjustedAmount(debtValueAfterFirstMint.rawValue, this.krAsset),
+                        await toScaledAmount(debtValueAfterFirstMint.rawValue, this.krAsset),
                     );
                     expect(debtValueAfterFirstRebase.rawValue).to.bignumber.equal(
-                        await calcIndexAdjustedAmount(valueBeforeRebase.rawValue, this.krAsset),
+                        await toScaledAmount(valueBeforeRebase.rawValue, this.krAsset),
                     );
 
                     // Mint after rebase
@@ -1068,11 +1068,11 @@ describe("Minter", function () {
                     // Ensure debt usd values match
                     const debtValueAfterSecondMint = await userOne.getAccountKrAssetValue(users.userOne.address);
                     expect(debtValueAfterSecondMint.rawValue).to.bignumber.closeTo(
-                        await calcIndexAdjustedAmount(debtValueAfterFirstMint.rawValue.mul(2), this.krAsset),
+                        await toScaledAmount(debtValueAfterFirstMint.rawValue.mul(2), this.krAsset),
                         INTEREST_RATE_PRICE_DELTA,
                     );
                     expect(debtValueAfterSecondMint.rawValue).to.bignumber.closeTo(
-                        await calcIndexAdjustedAmount(valueBeforeRebase.rawValue.mul(2), this.krAsset),
+                        await toScaledAmount(valueBeforeRebase.rawValue.mul(2), this.krAsset),
                         INTEREST_RATE_PRICE_DELTA,
                     );
                 });
@@ -1210,7 +1210,7 @@ describe("Minter", function () {
                 // Confirm the user's minted kresko asset amount has been updated
                 const userOneDebt = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
                 expect(userOneDebt).to.closeTo(
-                    await calcIndexAdjustedAmount(this.mintAmount.sub(burnAmount), this.krAsset),
+                    await toScaledAmount(this.mintAmount.sub(burnAmount), this.krAsset),
                     INTEREST_RATE_DELTA,
                 );
             });

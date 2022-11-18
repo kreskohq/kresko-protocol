@@ -55,6 +55,7 @@ library LibRepay {
         // Decrease the scaled debt and set user asset's last debt index
         irs().srAssetsUser[_account][_kreskoAsset].debtScaled -= uint128(amountScaled);
         irs().srAssetsUser[_account][_kreskoAsset].lastDebtIndex = uint128(newDebtIndex);
+        irs().srAssetsUser[_account][_kreskoAsset].lastUpdateTimestamp = uint40(block.timestamp);
         // Update the stability rate for the asset
         irs().srAssets[_kreskoAsset].updateStabilityRate();
     }
@@ -86,12 +87,12 @@ library LibRepay {
         // Transfer the accrued interest
         IERC20Upgradeable(irs().KISS).safeTransferFrom(msg.sender, self.feeRecipient, repaymentValue);
 
-        // Reset the debt to match principal as the account just repaid all accrued interest
+        // Update scaled values for the user
         irs().srAssetsUser[_account][_asset].debtScaled = uint128(
             self.getKreskoAssetDebtPrincipal(_account, _asset).wadToRay().rayDiv(newDebtIndex)
         );
-        // Update the last debt index
         irs().srAssetsUser[_account][_asset].lastDebtIndex = uint128(newDebtIndex);
+        irs().srAssetsUser[_account][_asset].lastUpdateTimestamp = uint40(block.timestamp);
 
         // Update stability rates
         irs().srAssets[_asset].updateStabilityRate();

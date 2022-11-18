@@ -156,10 +156,10 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
         IERC20Upgradeable(irs().KISS).safeTransferFrom(msg.sender, ms().feeRecipient, _usdAmount);
         uint256 assetAmount = _usdAmount.divByExtOraclePrice(ms().kreskoAssets[_asset].uintPrice());
         uint256 amountScaled = assetAmount.wadToRay().rayDiv(newDebtIndex);
-        // Reduce the scaled debt
+        // Update scaled values for the user
         irs().srAssetsUser[_account][_asset].debtScaled -= uint128(amountScaled);
-        // Update the last debt index
         irs().srAssetsUser[_account][_asset].lastDebtIndex = uint128(newDebtIndex);
+        irs().srAssetsUser[_account][_asset].lastUpdateTimestamp = uint40(block.timestamp);
         // Update stability rate for asset
         irs().srAssets[_asset].updateStabilityRate();
         // Emit event with the account, asset and amount repaid
@@ -254,5 +254,27 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
      */
     function KISS() external view returns (address) {
         return irs().KISS;
+    }
+
+    /**
+     * @notice Get user stability rate data for an asset
+     * @return lastDebtIndex the previous debt index for the user
+     * @return lastUpdateTimestamp the previous timestamp for any interaction with account debt
+     */
+    function getAccountStabilityRateData(address _account, address _asset)
+        external
+        view
+        returns (uint128 lastDebtIndex, uint40 lastUpdateTimestamp)
+    {
+        lastDebtIndex = irs().srAssetsUser[_account][_asset].lastDebtIndex;
+        lastUpdateTimestamp = irs().srAssetsUser[_account][_asset].lastUpdateTimestamp;
+    }
+
+    /**
+     * @notice Get latest rate update timestamp for an asset
+     * @return lastUpdateTimestamp the previous timestamp for any interaction with account debt
+     */
+    function latestStabilityRateUpdateForAsset(address _asset) external view returns (uint40 lastUpdateTimestamp) {
+        lastUpdateTimestamp = irs().srAssets[_asset].lastUpdateTimestamp;
     }
 }

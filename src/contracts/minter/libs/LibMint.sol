@@ -50,9 +50,10 @@ library LibMint {
         require(amountScaled != 0, Error.INVALID_SCALED_AMOUNT);
         // Increase principal debt
         self.kreskoAssetDebt[_account][_kreskoAsset] += issued;
-        // Increase scaled debt
+        // Update scaled values for the user
         irs().srAssetsUser[_account][_kreskoAsset].debtScaled += uint128(amountScaled);
         irs().srAssetsUser[_account][_kreskoAsset].lastDebtIndex = uint128(newDebtIndex);
+        irs().srAssetsUser[_account][_kreskoAsset].lastUpdateTimestamp = uint40(block.timestamp);
         // Update the global rate for the asset
         irs().srAssets[_kreskoAsset].updateStabilityRate();
     }

@@ -88,6 +88,19 @@ contract AccountStateFacet is IAccountStateFacet {
         return ms().getKreskoAssetDebtInterest(_account, _asset);
     }
 
+    /**
+     * @notice Get `_account` interest amount for `_asset`
+     * @param _account The account to query amount for
+     * @return kissAmount the interest denominated in KISS, ignores K-factor
+     */
+    function kreskoAssetDebtInterestTotal(address _account) external view returns (uint256 kissAmount) {
+        address[] memory mintedKreskoAssets = ms().mintedKreskoAssets[_account];
+        for (uint256 i; i < mintedKreskoAssets.length; i++) {
+            (, uint256 kissAmountForAsset) = ms().getKreskoAssetDebtInterest(_account, mintedKreskoAssets[i]);
+            kissAmount += kissAmountForAsset;
+        }
+    }
+
     /* -------------------------------------------------------------------------- */
     /*                                 Collateral                                 */
     /* -------------------------------------------------------------------------- */

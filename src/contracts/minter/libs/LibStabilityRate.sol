@@ -12,6 +12,7 @@ import {LibKrAsset} from "../libs/LibKrAsset.sol";
 
 import {StabilityRateConfig} from "../InterestRateState.sol";
 import {ms} from "../MinterStorage.sol";
+import "hardhat/console.sol";
 
 /* solhint-disable not-rely-on-time */
 
@@ -74,10 +75,9 @@ library LibStabilityRate {
     function getPriceRate(StabilityRateConfig storage asset) internal view returns (uint256 priceRate) {
         FixedPoint.Unsigned memory oraclePrice = ms().getKrAssetValue(asset.asset, 1 ether, true);
         FixedPoint.Unsigned memory ammPrice = ms().getKrAssetAMMPrice(asset.asset, 1 ether);
-
         // no pair, no effect
         if (ammPrice.rawValue == 0) {
-            return 1 ether;
+            return 0;
         }
         return ammPrice.div(oraclePrice).div(10).rawValue;
     }
@@ -94,24 +94,26 @@ library LibStabilityRate {
     function calculateStabilityRate(StabilityRateConfig storage asset) internal view returns (uint256 stabilityRate) {
         uint256 priceRate = asset.getPriceRate(); // 0.95 RAY = -5% PREMIUM, 1.05 RAY = +5% PREMIUM
 
-        // If AMM price > priceRate + delta
+        // Return base rate if no AMM price exists
+        if (priceRate == 0) {
+            return asset.stabilityRateBase;
+        }
+        // If AMM price > priceRate + delta, eg. AMM price is higher than oracle price
         if (priceRate > asset.optimalPriceRate + asset.priceRateDelta) {
             uint256 excessRate = priceRate - WadRay.RAY;
             stabilityRate =
                 asset.stabilityRateBase.rayDiv(priceRate.percentMul(125e2)) +
                 ((WadRay.RAY - excessRate).rayMul(asset.rateSlope1));
-            // If AMM price < pricaRate + delta
+            // If AMM price < pricaRate + delta, AMM price is lower than oracle price
         } else if (priceRate < asset.optimalPriceRate - asset.priceRateDelta) {
             uint256 multiplier = (WadRay.RAY - priceRate).rayDiv(asset.priceRateDelta);
             stabilityRate =
                 (asset.stabilityRateBase + asset.rateSlope1) +
                 WadRay.RAY.rayMul(multiplier).rayMul(asset.rateSlope2);
-            // Default case, if premium is within optimal range
+            // Default case, AMM price is within optimal range of oracle price
         } else {
             stabilityRate = asset.stabilityRateBase + (priceRate.rayMul(asset.rateSlope1));
         }
-
-        return stabilityRate;
     }
 
     /**

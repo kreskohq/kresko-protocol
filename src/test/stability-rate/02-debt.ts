@@ -1,11 +1,11 @@
-import { toBig } from "@kreskolabs/lib/dist/numbers";
+import { fromBig, toBig } from "@kreskolabs/lib/dist/numbers";
 import { oneRay } from "@kreskolabs/lib/dist/numbers/wadray";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { defaultCollateralArgs, defaultKrAssetArgs, withFixture } from "@utils/test";
 import { addLiquidity, getTWAPUpdaterFor, swap } from "@utils/test/helpers/amm";
-import { ONE_YEAR } from "@utils/test/helpers/calculations";
+import { ONE_YEAR, toScaledAmount, toScaledAmountUser } from "@utils/test/helpers/calculations";
 import { depositCollateral } from "@utils/test/helpers/collaterals";
-import { burnKrAsset, mintKrAsset } from "@utils/test/helpers/krassets";
+import { addMockKreskoAsset, burnKrAsset, mintKrAsset } from "@utils/test/helpers/krassets";
 import { expect } from "chai";
 import hre from "hardhat";
 import { KISS } from "types";
@@ -109,22 +109,22 @@ describe.only("Stability Rates", function () {
                 amount: mintAmount,
                 user: userTwo,
             });
+
+            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
             const debt = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
-            expect(debt).to.bignumber.closeTo(mintAmount, 10);
 
-            const year = 60 * 60 * 24 * 365;
-            await time.increase(year);
-            const debtIndex = await hre.Diamond.getDebtIndexForAsset(this.krAsset.address);
+            expect(debt).to.bignumber.equal(await toScaledAmountUser(userTwo, mintAmount, this.krAsset));
 
-            expect(debtIndex.gt(oneRay)).to.be.true;
+            await time.increase(+ONE_YEAR);
 
             const debtAfterYear = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
-            expect(debtAfterYear).to.bignumber.closeTo(mintAmount.rayMul(debtIndex), oneRay.div(10000));
+            expect(debtAfterYear).to.not.bignumber.equal(debt);
+            expect(debtAfterYear).to.bignumber.equal(await toScaledAmountUser(userTwo, mintAmount, this.krAsset));
         });
 
         it("calculates correct debt amount when amm price < oracle", async function () {
             await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
-            const premiumPercentage = 98; // 98% eg. -2% premium
+            const premiumPercentage = 95; // 95% eg. -5% premium
             const krAssetAmount = toBig(1);
             const collateralAmount = toBig(10).div(100).mul(premiumPercentage);
 
@@ -157,22 +157,17 @@ describe.only("Stability Rates", function () {
                 amount: mintAmount,
                 user: userTwo,
             });
+            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
             const debt = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
-            expect(debt).to.bignumber.closeTo(mintAmount, 10);
+            expect(debt).to.bignumber.equal(await toScaledAmountUser(userTwo, mintAmount, this.krAsset));
 
-            const year = 60 * 60 * 24 * 365;
-            await time.increase(year);
-            const debtIndex = await hre.Diamond.getDebtIndexForAsset(this.krAsset.address);
-
-            expect(debtIndex.gt(oneRay)).to.be.true;
+            await time.increase(+ONE_YEAR);
 
             const debtAfterYear = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
-            expect(debtAfterYear).to.bignumber.closeTo(mintAmount.rayMul(debtIndex), oneRay.div(10000));
+            expect(debtAfterYear).to.bignumber.equal(await toScaledAmountUser(userTwo, mintAmount, this.krAsset));
         });
 
         it("calculates correct rate index after a year for amm price == oracle", async function () {
-            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
-
             await updateTWAP();
             await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
 
@@ -187,17 +182,17 @@ describe.only("Stability Rates", function () {
                 amount: mintAmount,
                 user: userTwo,
             });
-            const debt = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
-            expect(debt).to.bignumber.closeTo(mintAmount, 10);
 
-            const year = 60 * 60 * 24 * 365;
-            await time.increase(year);
+            const debt = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
+            expect(debt).to.bignumber.equal(await toScaledAmountUser(userTwo, mintAmount, this.krAsset));
+
+            await time.increase(+ONE_YEAR);
             const debtIndex = await hre.Diamond.getDebtIndexForAsset(this.krAsset.address);
 
             expect(debtIndex.gt(oneRay)).to.be.true;
 
             const debtAfterYear = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
-            expect(debtAfterYear).to.bignumber.closeTo(mintAmount.rayMul(debtIndex), oneRay.div(10000));
+            expect(debtAfterYear).to.bignumber.equal(await toScaledAmountUser(userTwo, mintAmount, this.krAsset));
         });
     });
     describe("#debt calculation - repay", async () => {
@@ -244,23 +239,27 @@ describe.only("Stability Rates", function () {
                 user: userTwo,
             });
             const debt = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
-            expect(debt).to.bignumber.closeTo(mintAmount, 10);
+            expect(debt).to.bignumber.equal(await toScaledAmountUser(userTwo, mintAmount, this.krAsset));
 
             await time.increase(ONE_YEAR);
-            const debtIndex = await hre.Diamond.getDebtIndexForAsset(this.krAsset.address);
-
-            expect(debtIndex.gt(oneRay)).to.be.true;
 
             const debtAfterYear = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
-            const halfBalanceAfterYear = (await this.krAsset.contract.balanceOf(userTwo.address)).div(2);
+            const principalBefore = await hre.Diamond.kreskoAssetDebtPrincipal(userTwo.address, this.krAsset.address);
+            const burnAmount = mintAmount.div(2);
 
             await burnKrAsset({
                 asset: this.krAsset,
-                amount: halfBalanceAfterYear,
+                amount: burnAmount,
                 user: userTwo,
             });
             const debtAfterBurn = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
-            expect(debtAfterBurn).to.bignumber.closeTo(debtAfterYear.sub(halfBalanceAfterYear), oneRay.div(10000));
+            const principalAfter = await hre.Diamond.kreskoAssetDebtPrincipal(userTwo.address, this.krAsset.address);
+
+            expect(principalAfter).to.equal(principalBefore.sub(burnAmount));
+            expect(debtAfterBurn).to.bignumber.closeTo(
+                debtAfterYear.sub(burnAmount),
+                hre.ethers.utils.parseUnits("10", "gwei"),
+            );
         });
 
         it("calculates correct repay amount when amm price > oracle", async function () {
@@ -286,7 +285,7 @@ describe.only("Stability Rates", function () {
             });
 
             await updateTWAP();
-            // await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
+            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
 
             await depositCollateral({
                 asset: this.collateral,
@@ -359,7 +358,9 @@ describe.only("Stability Rates", function () {
 
     describe("#debt calculation - repay interest", async () => {
         const depositAmount = hre.toBig(100);
+        const depositAmountBig = hre.toBig(10000);
         const mintAmount = hre.toBig(10);
+        const mintAmountSmall = hre.toBig(2);
         beforeEach(async function () {
             await this.collateral.setBalance(userTwo, depositAmount);
         });
@@ -541,22 +542,90 @@ describe.only("Stability Rates", function () {
             expect(debtAfter).to.be.closeTo(debtBefore.sub(repaymentAmountAsset), RATE_DELTA);
         });
 
-        // it("can batch repay all interest for multiple assets with KISS", async function () {
-        //     const KISS = await hre.ethers.getContract<KISS>("KISS");
-        //     await KISS.connect(userTwo).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
+        it("can view total interest for multiple assets", async function () {
+            const KISS = await hre.ethers.getContract<KISS>("KISS");
+            await KISS.connect(userTwo).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
+            await this.collateral.setBalance(userTwo, depositAmountBig);
+            // Deposit a bit more to cover the mints
+            await depositCollateral({
+                asset: this.collateral,
+                amount: depositAmountBig,
+                user: userTwo,
+            });
+            // Create few krAssets
+            const krAssets = await Promise.all(
+                ["krasset2"].map(name =>
+                    addMockKreskoAsset({
+                        name: name,
+                        symbol: name,
+                        marketOpen: true,
+                        factor: 1,
+                        closeFee: 0,
+                        openFee: 0,
+                        price: 10,
+                        supplyLimit: 2_000,
+                    }),
+                ),
+            );
 
-        //     await depositCollateral({
-        //         asset: this.collateral,
-        //         amount: depositAmount,
-        //         user: userTwo,
-        //     });
+            // mint small amount of each krasset
+            await Promise.all(
+                krAssets.map(krAsset =>
+                    mintKrAsset({
+                        asset: krAsset,
+                        amount: mintAmountSmall,
+                        user: userTwo,
+                    }),
+                ),
+            );
+            const totalInterestBefore = await hre.Diamond.kreskoAssetDebtInterestTotal(userTwo.address);
+            // increase time
+            await time.increase(ONE_YEAR);
 
-        //     await mintKrAsset({
-        //         asset: this.krAsset,
-        //         amount: mintAmount,
-        //         user: userTwo,
-        //     });
-        //     await time.increase(ONE_YEAR);
-        // });
+            const totalInterest = await hre.Diamond.kreskoAssetDebtInterestTotal(userTwo.address);
+        });
+
+        it("can batch repay all interest for multiple assets with KISS", async function () {
+            const KISS = await hre.ethers.getContract<KISS>("KISS");
+            await KISS.connect(userTwo).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
+            await this.collateral.setBalance(userTwo, depositAmountBig);
+            // Deposit a bit more to cover the mints
+            await depositCollateral({
+                asset: this.collateral,
+                amount: depositAmountBig,
+                user: userTwo,
+            });
+
+            // Create few krAssets
+            const krAssets = (
+                await Promise.all(
+                    ["krasset2", "krasset3", "krasset4"].map(name =>
+                        addMockKreskoAsset({
+                            name: name,
+                            symbol: name,
+                            marketOpen: true,
+                            factor: 1,
+                            closeFee: 0,
+                            openFee: 0,
+                            price: 10,
+                            supplyLimit: 2_000,
+                        }),
+                    ),
+                )
+            ).concat(this.krAsset);
+
+            // mint small amount of each krasset
+            await Promise.all(
+                krAssets.map(krAsset =>
+                    mintKrAsset({
+                        asset: krAsset,
+                        amount: mintAmountSmall,
+                        user: userTwo,
+                    }),
+                ),
+            );
+            // increase time
+            await time.increase(ONE_YEAR);
+        });
     });
 });

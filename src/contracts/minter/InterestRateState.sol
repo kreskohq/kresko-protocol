@@ -38,6 +38,7 @@ struct StabilityRateConfig {
 struct StabilityRateUser {
     uint128 debtScaled;
     uint128 lastDebtIndex;
+    uint40 lastUpdateTimestamp;
 }
 
 // Storage layout
