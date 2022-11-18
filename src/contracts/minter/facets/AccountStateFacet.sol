@@ -5,7 +5,7 @@ import {IAccountStateFacet} from "../interfaces/IAccountStateFacet.sol";
 import {Action, Fee, KrAsset, CollateralAsset, FixedPoint} from "../MinterTypes.sol";
 import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
 import {Error} from "../../libs/Errors.sol";
-import {LibMath} from "../libs/LibMath.sol";
+import {LibDecimals} from "../libs/LibDecimals.sol";
 import {ms} from "../MinterStorage.sol";
 
 /**
@@ -14,9 +14,9 @@ import {ms} from "../MinterStorage.sol";
  * @notice Views concerning account state
  */
 contract AccountStateFacet is IAccountStateFacet {
-    using LibMath for uint256;
-    using LibMath for uint8;
-    using LibMath for FixedPoint.Unsigned;
+    using LibDecimals for uint256;
+    using LibDecimals for uint8;
+    using LibDecimals for FixedPoint.Unsigned;
     using FixedPoint for FixedPoint.Unsigned;
     using FixedPoint for int256;
     using FixedPoint for uint256;

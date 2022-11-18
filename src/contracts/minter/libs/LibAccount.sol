@@ -7,7 +7,8 @@ import {RebaseMath, Rebase} from "../../shared/Rebase.sol";
 import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
 import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
 import {irs} from "../InterestRateState.sol";
-import {LibMath, FixedPoint} from "../libs/LibMath.sol";
+import {FixedPoint} from "../../libs/FixedPoint.sol";
+import {LibDecimals} from "../libs/LibDecimals.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 import "hardhat/console.sol";
 
@@ -15,7 +16,7 @@ library LibAccount {
     using FixedPoint for FixedPoint.Unsigned;
     using RebaseMath for uint256;
     using WadRay for uint256;
-    using LibMath for FixedPoint.Unsigned;
+    using LibDecimals for FixedPoint.Unsigned;
 
     /**
      * @notice Gets an array of Kresko assets the account has minted.
@@ -184,6 +185,7 @@ library LibAccount {
         address _account,
         address _asset
     ) internal view returns (uint256 assetAmount, uint256 kissAmount) {
+        // console.log("debt scaled", self.getKreskoAssetDebtScaled(_account, _asset));
         assetAmount =
             self.getKreskoAssetDebtScaled(_account, _asset) -
             self.getKreskoAssetDebtPrincipal(_account, _asset);

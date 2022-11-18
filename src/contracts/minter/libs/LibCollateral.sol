@@ -3,7 +3,8 @@ pragma solidity >=0.8.14;
 import {AggregatorV2V3Interface} from "../../vendor/flux/interfaces/AggregatorV2V3Interface.sol";
 import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
 import {MinterEvent} from "../../libs/Events.sol";
-import {LibMath, FixedPoint} from "../libs/LibMath.sol";
+import {FixedPoint} from "../../libs/FixedPoint.sol";
+import {LibDecimals} from "../libs/LibDecimals.sol";
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
 
@@ -16,7 +17,7 @@ import {MinterState} from "../MinterState.sol";
  */
 library LibCollateral {
     using FixedPoint for FixedPoint.Unsigned;
-    using LibMath for uint8;
+    using LibDecimals for uint8;
     using Arrays for address[];
 
     /**

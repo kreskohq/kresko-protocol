@@ -11,6 +11,8 @@ import hre from "hardhat";
 import { KISS } from "types";
 import { UniswapMath } from "types/typechain/src/contracts/test/markets";
 
+const RATE_DELTA = hre.ethers.utils.parseUnits("100", "gwei");
+
 describe("Stability Rates", function () {
     withFixture(["minter-test", "stability-rate-debt", "uniswap"]);
     let users: Users;
@@ -484,7 +486,8 @@ describe("Stability Rates", function () {
             expect(accruedInterest.assetAmount).to.bignumber.eq(0);
             expect(debt).to.bignumber.eq(principalDebt);
         });
-        it("can repay partial interest with KISS", async function () {
+
+        it.only("can repay partial interest with KISS", async function () {
             const KISS = await hre.ethers.getContract<KISS>("KISS");
             await KISS.connect(userTwo).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
 
@@ -512,10 +515,10 @@ describe("Stability Rates", function () {
                 this.krAsset.address,
             );
             // get the principal before repayment
+            const debtBefore = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
 
             const repaymentAmount = accruedInterestBefore.kissAmount.div(5);
-
-            const scaledDebtBefore = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
+            const repaymentAmountAsset = accruedInterestBefore.assetAmount.div(5);
 
             // repay accrued interest
             await hre.Diamond.connect(userTwo).repayStabilityRateInterestPartial(
@@ -523,23 +526,19 @@ describe("Stability Rates", function () {
                 this.krAsset.address,
                 repaymentAmount,
             );
-            const principalDebt = await hre.Diamond.kreskoAssetDebtPrincipal(userTwo.address, this.krAsset.address);
-            const scaledDebt = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
+            // get values after repayment
+            const debtAfter = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
 
-            console.log("repayment amount:", fromBig(repaymentAmount));
-            console.log("scaled debt after:", fromBig(scaledDebt));
-            console.log("principal debt after:", fromBig(principalDebt));
             const accruedInterestAfter = await hre.Diamond.kreskoAssetDebtInterest(
                 userTwo.address,
                 this.krAsset.address,
             );
-            // // get values after repayment
-            // const debt = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
 
-            // expect(accruedInterestAfter.kissAmount).to.bignumber.eq(
-            //     accruedInterestAfter.kissAmount.sub(repaymentAmount),
-            // );
-            // expect(debt).to.bignumber.eq(principalDebt);
+            expect(accruedInterestAfter.kissAmount).to.be.closeTo(
+                accruedInterestBefore.kissAmount.sub(repaymentAmount),
+                RATE_DELTA,
+            );
+            expect(debtAfter).to.be.closeTo(debtBefore.sub(repaymentAmountAsset), RATE_DELTA);
         });
     });
 });

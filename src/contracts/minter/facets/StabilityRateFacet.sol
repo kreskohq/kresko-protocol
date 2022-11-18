@@ -4,6 +4,7 @@ pragma solidity >=0.8.14;
 import {WadRay} from "../../libs/WadRay.sol";
 import {InterestRateEvent} from "../../libs/Events.sol";
 import {LibStabilityRate} from "../libs/LibStabilityRate.sol";
+import {LibDecimals, FixedPoint} from "../libs/LibDecimals.sol";
 import {StabilityRateConfig} from "../InterestRateState.sol";
 import {ms} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";
@@ -25,6 +26,10 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using WadRay for uint256;
     using LibStabilityRate for StabilityRateConfig;
+    using LibDecimals for FixedPoint.Unsigned;
+    using LibDecimals for uint256;
+    using FixedPoint for uint256;
+    using FixedPoint for FixedPoint.Unsigned;
 
     // Stability Rate setup struct
     struct StabilityRateSetup {
@@ -126,33 +131,31 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
     function repayStabilityRateInterestPartial(
         address _account,
         address _asset,
-        uint256 _amount
+        uint256 _usdAmount
     ) external nonReentrant kreskoAssetExists(_asset) returns (uint256 repaymentValue) {
         // Update debt index for the asset
         uint256 newDebtIndex = irs().srAssets[_asset].updateDebtIndex();
 
         // Get the accrued interest in repayment token
-        (, uint256 maxRepayment) = ms().getKreskoAssetDebtInterest(_account, _asset);
+        (, uint256 maxKissAmount) = ms().getKreskoAssetDebtInterest(_account, _asset);
 
         // If no interest has accrued or 0 was supplied - no further operations needed
         // Do not revert because we want the preserve new debt index and stability rate
-        if (maxRepayment == 0 || _amount == 0) {
+        if (maxKissAmount == 0 || _usdAmount == 0) {
             // Update stability rate for asset
             irs().srAssets[_asset].updateStabilityRate();
             return 0;
         }
 
         // In overflow we can repay all interest
-        if (_amount > maxRepayment) {
-            repaymentValue = maxRepayment;
-        } else {
-            repaymentValue = ms().getKrAssetValue(_asset, _amount, true).rawValue;
+        if (_usdAmount > maxKissAmount) {
+            _usdAmount = maxKissAmount;
         }
 
         // Transfer the accrued interest
-        IERC20Upgradeable(irs().KISS).safeTransferFrom(msg.sender, ms().feeRecipient, repaymentValue);
-        uint256 amountScaled = repaymentValue.wadToRay().rayDiv(newDebtIndex);
-
+        IERC20Upgradeable(irs().KISS).safeTransferFrom(msg.sender, ms().feeRecipient, _usdAmount);
+        uint256 assetAmount = _usdAmount.divByExtOraclePrice(ms().kreskoAssets[_asset].uintPrice());
+        uint256 amountScaled = assetAmount.wadToRay().rayDiv(newDebtIndex);
         // Reduce the scaled debt
         irs().srAssetsUser[_account][_asset].debtScaled -= uint128(amountScaled);
         // Update the last debt index

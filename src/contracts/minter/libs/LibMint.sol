@@ -8,7 +8,8 @@ import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
 import {Arrays} from "../../libs/Arrays.sol";
 import {MinterEvent} from "../../libs/Events.sol";
 import {Error} from "../../libs/Errors.sol";
-import {LibMath, FixedPoint} from "../libs/LibMath.sol";
+import {FixedPoint} from "../../libs/FixedPoint.sol";
+import {LibDecimals} from "../libs/LibDecimals.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 
 import {LibCalculation} from "./LibCalculation.sol";
@@ -19,8 +20,8 @@ import {irs} from "../InterestRateState.sol";
 library LibMint {
     using Arrays for address[];
 
-    using LibMath for uint8;
-    using LibMath for uint256;
+    using LibDecimals for uint8;
+    using LibDecimals for uint256;
     using WadRay for uint256;
 
     using FixedPoint for FixedPoint.Unsigned;
@@ -47,7 +48,6 @@ library LibMint {
         // Calculate debt index scaled value
         uint256 amountScaled = issued.wadToRay().rayDiv(newDebtIndex);
         require(amountScaled != 0, Error.INVALID_SCALED_AMOUNT);
-
         // Increase principal debt
         self.kreskoAssetDebt[_account][_kreskoAsset] += issued;
         // Increase scaled debt

@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 import {CollateralAsset, KrAsset} from "../MinterTypes.sol";
-import {FixedPoint} from "../../libs/FixedPoint.sol";
+import {LibDecimals, FixedPoint} from "../libs/LibDecimals.sol";
 import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
 
 library LibUtils {
     using FixedPoint for int256;
     using FixedPoint for uint256;
     using FixedPoint for FixedPoint.Unsigned;
+    using LibDecimals for int256;
 
     /**
      * @notice Amount of non rebasing tokens -> amount of rebasing tokens
@@ -64,6 +65,20 @@ library LibUtils {
     }
 
     /**
+     * @notice Get the price of @param asset in uint256
+     */
+    function uintPriceWad(CollateralAsset memory asset) internal view returns (uint256) {
+        return asset.oracle.latestAnswer().fromIntPriceToWad();
+    }
+
+    /**
+     * @notice Get the price of @param asset in uint256
+     */
+    function uintPriceWad(KrAsset memory asset) internal view returns (uint256) {
+        return asset.oracle.latestAnswer().fromIntPriceToWad();
+    }
+
+    /**
      * @notice Get the price of @param asset in FixedPoint.Unsigned
      */
     function fixedPointPrice(CollateralAsset memory asset) internal view returns (FixedPoint.Unsigned memory) {
@@ -81,14 +96,14 @@ library LibUtils {
      * @notice Get value of @param amount of @param asset in uint256
      */
     function uintUSD(CollateralAsset memory asset, uint256 amount) internal view returns (uint256) {
-        return uint256(asset.oracle.latestAnswer()) * amount;
+        return asset.uintPrice() * amount;
     }
 
     /**
      * @notice Get value of @param amount of @param asset in uint256
      */
     function uintUSD(KrAsset memory asset, uint256 amount) internal view returns (uint256) {
-        return uint256(asset.oracle.latestAnswer()) * amount;
+        return asset.uintPrice() * amount;
     }
 
     /**

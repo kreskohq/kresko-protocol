@@ -3,8 +3,8 @@ pragma solidity >=0.8.14;
 
 import {Arrays} from "../../libs/Arrays.sol";
 import {MinterEvent} from "../../libs/Events.sol";
-import {LibMath, FixedPoint} from "../libs/LibMath.sol";
-
+import {LibDecimals} from "../libs/LibDecimals.sol";
+import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {MinterState} from "../MinterState.sol";
 import {KrAsset} from "../MinterTypes.sol";
 
@@ -14,8 +14,8 @@ import {KrAsset} from "../MinterTypes.sol";
  */
 library LibCalculation {
     using Arrays for address[];
-    using LibMath for uint8;
-    using LibMath for uint256;
+    using LibDecimals for uint8;
+    using LibDecimals for uint256;
 
     using FixedPoint for FixedPoint.Unsigned;
 

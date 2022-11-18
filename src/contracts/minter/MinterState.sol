@@ -8,7 +8,7 @@ import {LibCalculation} from "./libs/LibCalculation.sol";
 import {LibRepay} from "./libs/LibRepay.sol";
 import {LibMint} from "./libs/LibMint.sol";
 import {FixedPoint} from "../libs/FixedPoint.sol";
-import {Action, SafetyState, CollateralAsset, KrAsset, FixedPoint} from "./MinterTypes.sol";
+import {Action, SafetyState, CollateralAsset, KrAsset} from "./MinterTypes.sol";
 
 /* solhint-disable state-visibility */
 using LibCalculation for MinterState global;

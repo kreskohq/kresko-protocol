@@ -7,7 +7,7 @@ import {AggregatorV2V3Interface} from "../../vendor/flux/interfaces/AggregatorV2
 import {IUniswapV2Pair} from "../../vendor/uniswap/v2-core/interfaces/IUniswapV2Pair.sol";
 import {IKrStaking} from "../../staking/interfaces/IKrStaking.sol";
 import {IKresko} from "../interfaces/IKresko.sol";
-import {LibMath, FixedPoint} from "../libs/LibMath.sol";
+import {LibDecimals, FixedPoint} from "../libs/LibDecimals.sol";
 
 import {KrAsset, CollateralAsset} from "../MinterTypes.sol";
 import {MinterState, ms} from "../MinterStorage.sol";
@@ -20,7 +20,7 @@ import {MinterState, ms} from "../MinterStorage.sol";
  * @author Kresko
  */
 library LibUI {
-    using LibMath for uint256;
+    using LibDecimals for uint256;
     using FixedPoint for FixedPoint.Unsigned;
 
     struct CollateralAssetInfoUser {

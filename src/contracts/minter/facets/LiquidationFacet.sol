@@ -6,7 +6,7 @@ import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
 
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
-import {LibMath, FixedPoint} from "../libs/LibMath.sol";
+import {LibDecimals, FixedPoint} from "../libs/LibDecimals.sol";
 import {LibCalculation} from "../libs/LibCalculation.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 import {MinterEvent} from "../../libs/Events.sol";
@@ -25,8 +25,8 @@ import {irs} from "../InterestRateState.sol";
  */
 contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
     using Arrays for address[];
-    using LibMath for uint8;
-    using LibMath for FixedPoint.Unsigned;
+    using LibDecimals for uint8;
+    using LibDecimals for FixedPoint.Unsigned;
     using WadRay for uint256;
     using FixedPoint for FixedPoint.Unsigned;
     using FixedPoint for uint256;
