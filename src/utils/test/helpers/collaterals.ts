@@ -57,7 +57,7 @@ export const addMockCollateralAsset = async (
         hre.collaterals.push(asset);
         hre.allAssets.push(asset);
     } else {
-        hre.collaterals = hre.collaterals.map(c => (c.address === c.address ? asset : c));
+        hre.collaterals = hre.collaterals.map(c => (c.address === asset.address ? asset : c));
         hre.allAssets = hre.allAssets.map(c => (c.address === asset.address && c.collateral ? asset : c));
     }
     return asset;
@@ -82,7 +82,7 @@ export const updateCollateralAsset = async (address: string, args: TestCollatera
         hre.collaterals.push(asset);
         hre.allAssets.push(asset);
     } else {
-        hre.collaterals = hre.collaterals.map(c => (c.address === c.address ? asset : c));
+        hre.collaterals = hre.collaterals.map(c => (c.address === asset.address ? asset : c));
         hre.allAssets = hre.allAssets.map(c => (c.address === asset.address && c.collateral ? asset : c));
     }
     return asset;

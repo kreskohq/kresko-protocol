@@ -13,6 +13,7 @@ import {DiamondModifiers, MinterModifiers} from "../../shared/Modifiers.sol";
 import {Action, FixedPoint, KrAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";
+import "hardhat/console.sol";
 
 /**
  * @author Kresko
@@ -56,8 +57,9 @@ contract BurnFacet is DiamondModifiers, MinterModifiers, IBurnFacet {
             _burnAmount = debtAmount;
         }
 
-        // If sender repays all debt, has repaid all interest, remove it from minted assets array.
-        if (irs().srAssetsUser[_account][_kreskoAsset].debtScaled == _burnAmount) {
+        // If sender repays all principal debt of asset with no stability rate, remove it from minted assets array.
+        // For assets with stability rate the revomal is done when repaying interest
+        if (irs().srAssets[_kreskoAsset].asset == address(0) && _burnAmount == debtAmount) {
             s.mintedKreskoAssets[_account].removeAddress(_kreskoAsset, _mintedKreskoAssetIndex);
         }
         // Charge the burn fee from collateral of _account

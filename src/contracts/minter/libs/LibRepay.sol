@@ -94,6 +94,11 @@ library LibRepay {
         irs().srAssetsUser[_account][_asset].lastDebtIndex = uint128(newDebtIndex);
         irs().srAssetsUser[_account][_asset].lastUpdateTimestamp = uint40(block.timestamp);
 
+        // Remove from minted kresko assets if debt is cleared
+        if (self.getKreskoAssetDebtPrincipal(_account, _asset) == 0) {
+            self.mintedKreskoAssets[_account].removeAddress(_asset, self.getMintedKreskoAssetsIndex(_account, _asset));
+        }
+
         // Update stability rates
         irs().srAssets[_asset].updateStabilityRate();
         // Emit event with the account, asset and amount repaid

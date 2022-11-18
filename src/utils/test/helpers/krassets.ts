@@ -103,7 +103,7 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
         hre.krAssets.push(asset);
         hre.allAssets.push(asset);
     } else {
-        hre.krAssets = hre.krAssets.map(c => (c.address === c.address ? asset : c));
+        hre.krAssets = hre.krAssets.map(c => (c.address === asset.address ? asset : c));
         hre.allAssets = hre.allAssets.map(c => (c.address === asset.address && c.collateral ? asset : c));
     }
     return asset;
@@ -191,7 +191,7 @@ export const addMockKreskoAssetWithAMMPair = async (
         hre.krAssets.push(asset);
         hre.allAssets.push(asset);
     } else {
-        hre.krAssets = hre.krAssets.map(c => (c.address === c.address ? asset : c));
+        hre.krAssets = hre.krAssets.map(c => (c.address === asset.address ? asset : c));
         hre.allAssets = hre.allAssets.map(c => (c.address === asset.address && c.collateral ? asset : c));
     }
     return asset;
@@ -218,7 +218,7 @@ export const updateKrAsset = async (address: string, args: TestKreskoAssetUpdate
         hre.krAssets.push(asset);
         hre.allAssets.push(asset);
     } else {
-        hre.krAssets = hre.krAssets.map(c => (c.address === c.address ? asset : c));
+        hre.krAssets = hre.krAssets.map(c => (c.address === asset.address ? asset : c));
         hre.allAssets = hre.allAssets.map(c => (c.address === asset.address && c.collateral ? asset : c));
     }
     return asset;

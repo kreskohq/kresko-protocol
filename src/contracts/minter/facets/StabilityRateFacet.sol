@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity >=0.8.14;
 
+import {Arrays} from "../../libs/Arrays.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 import {InterestRateEvent} from "../../libs/Events.sol";
 import {LibStabilityRate} from "../libs/LibStabilityRate.sol";
@@ -23,6 +24,7 @@ import "hardhat/console.sol";
  * @dev Uses both MinterState (ms) and InterestRateState (irs)
  */
 contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
+    using Arrays for address[];
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using WadRay for uint256;
     using LibStabilityRate for StabilityRateConfig;
@@ -162,6 +164,14 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
         irs().srAssetsUser[_account][_asset].lastUpdateTimestamp = uint40(block.timestamp);
         // Update stability rate for asset
         irs().srAssets[_asset].updateStabilityRate();
+
+        // Remove from minted kresko assets if debt is cleared
+        if (
+            ms().getKreskoAssetDebtPrincipal(_account, _asset) == 0 &&
+            irs().srAssetsUser[_account][_asset].debtScaled == 0
+        ) {
+            ms().mintedKreskoAssets[_account].removeAddress(_asset, ms().getMintedKreskoAssetsIndex(_account, _asset));
+        }
         // Emit event with the account, asset and amount repaid
         emit InterestRateEvent.StabilityRateInterestRepaid(_account, _asset, repaymentValue);
     }

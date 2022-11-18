@@ -42,10 +42,16 @@ export const calcDebtIndex = async (asset: Asset, prevDebtIndex: BigNumber, last
 };
 
 export const fromScaledAmount = async (amount: BigNumber, asset: Asset) => {
-    return amount.rayDiv(await hre.Diamond.getDebtIndexForAsset(asset.address));
+    return amount
+        .wadToRay()
+        .rayDiv(await hre.Diamond.getDebtIndexForAsset(asset.address))
+        .rayToWad();
 };
-export const toScaledAmount = async (amount: BigNumber, asset: KrAsset) => {
-    return amount.rayMul(await hre.Diamond.getDebtIndexForAsset(asset.address));
+export const toScaledAmount = async (amount: BigNumber, asset: KrAsset, prevDebtIndex?: BigNumber) => {
+    const debtIndex = await hre.Diamond.getDebtIndexForAsset(asset.address);
+    return prevDebtIndex
+        ? amount.wadToRay().rayDiv(prevDebtIndex).rayMul(debtIndex).rayToWad()
+        : amount.wadToRay().rayMul(debtIndex).rayToWad();
 };
 
 export const toScaledAmountUser = async (user: SignerWithAddress, amount: BigNumber, asset: KrAsset) => {
@@ -56,7 +62,7 @@ export const toScaledAmountUser = async (user: SignerWithAddress, amount: BigNum
 export const fromScaledAmountUser = async (user: SignerWithAddress, amount: BigNumber, asset: KrAsset) => {
     const [lastDebtIndex] = await hre.Diamond.getAccountStabilityRateData(user.address, asset.address);
     const debtIndex = await hre.Diamond.getDebtIndexForAsset(asset.address);
-    return amount.rayMul(lastDebtIndex).rayDiv(debtIndex);
+    return amount.wadToRay().rayMul(lastDebtIndex).rayDiv(debtIndex).rayToWad();
 };
 
 export const calcCompoundedInterest = (
