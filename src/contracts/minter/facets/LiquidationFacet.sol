@@ -27,6 +27,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
     using Arrays for address[];
     using LibDecimals for uint8;
     using LibDecimals for FixedPoint.Unsigned;
+    using LibDecimals for uint256;
     using WadRay for uint256;
     using FixedPoint for FixedPoint.Unsigned;
     using FixedPoint for uint256;

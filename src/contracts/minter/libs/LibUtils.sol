@@ -67,15 +67,15 @@ library LibUtils {
     /**
      * @notice Get the price of @param asset in uint256
      */
-    function uintPriceWad(CollateralAsset memory asset) internal view returns (uint256) {
-        return asset.oracle.latestAnswer().fromIntPriceToWad();
+    function wadPrice(CollateralAsset memory asset) internal view returns (uint256) {
+        return asset.oracle.latestAnswer().oraclePriceToWad();
     }
 
     /**
      * @notice Get the price of @param asset in uint256
      */
-    function uintPriceWad(KrAsset memory asset) internal view returns (uint256) {
-        return asset.oracle.latestAnswer().fromIntPriceToWad();
+    function wadPrice(KrAsset memory asset) internal view returns (uint256) {
+        return asset.oracle.latestAnswer().oraclePriceToWad();
     }
 
     /**

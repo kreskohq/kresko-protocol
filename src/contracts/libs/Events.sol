@@ -188,6 +188,39 @@ library MinterEvent {
         uint256 collateralSent
     );
 
+    /**
+     * @notice Emitted when a liquidation of interest occurs.
+     * @param account The address of the account being liquidated.
+     * @param liquidator The account performing the liquidation.
+     * @param repayKreskoAsset The address of the Kresko asset being paid back to the protocol by the liquidator.
+     * @param repayUSD The value of the repay Kresko asset being paid back to the protocol by the liquidator.
+     * @param seizedCollateralAsset The address of the collateral asset being seized from the account by the liquidator.
+     * @param collateralSent The amount of the seized collateral asset being seized from the account by the liquidator.
+     */
+    event InterestLiquidationOccurred(
+        address indexed account,
+        address indexed liquidator,
+        address indexed repayKreskoAsset,
+        uint256 repayUSD,
+        address seizedCollateralAsset,
+        uint256 collateralSent
+    );
+    /**
+     * @notice Emitted when a batch liquidation of interest occurs.
+     * @param account The address of the account being liquidated.
+     * @param liquidator The account performing the liquidation.
+     * @param seizedCollateralAsset The address of the collateral asset being seized from the account by the liquidator.
+     * @param repayUSD The value of the repay Kresko asset being paid back to the protocol by the liquidator.
+     * @param collateralSent The amount of the seized collateral asset being seized from the account by the liquidator.
+     */
+    event BatchInterestLiquidationOccurred(
+        address indexed account,
+        address indexed liquidator,
+        address indexed seizedCollateralAsset,
+        uint256 repayUSD,
+        uint256 collateralSent
+    );
+
     /* -------------------------------------------------------------------------- */
     /*                                Parameters                                  */
     /* -------------------------------------------------------------------------- */
