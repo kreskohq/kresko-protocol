@@ -95,6 +95,7 @@ describe("Stability Rates", function () {
 
             await updateTWAP();
             const priceRate = await hre.Diamond.getPriceRateForAsset(this.krAsset.address);
+            // TODO: calc exact values instead of closeTo
             expect(priceRate).to.bignumber.closeTo(expectedPriceRate, oneRay.div(100));
         });
 
@@ -238,6 +239,7 @@ describe("Stability Rates", function () {
 
             await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
             const debtIndex = await hre.Diamond.getDebtIndexForAsset(this.krAsset.address);
+            // TODO: calc exact values instead of closeTo
             expect(debtIndex).to.be.bignumber.closeTo(
                 calcCompoundedInterest(stabilityRate, currentTimestamp, lastUpdateTimestamp),
                 oneRay.div(1000),
@@ -277,6 +279,7 @@ describe("Stability Rates", function () {
 
             await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
             const debtIndex = await hre.Diamond.getDebtIndexForAsset(this.krAsset.address);
+            // TODO: calc exact values instead of closeTo
             expect(debtIndex).to.be.bignumber.closeTo(
                 calcCompoundedInterest(stabilityRate, currentTimestamp, lastUpdateTimestamp),
                 oneRay.div(1000),
@@ -298,6 +301,7 @@ describe("Stability Rates", function () {
 
             await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
             const sRateIndexAfter = await hre.Diamond.getDebtIndexForAsset(this.krAsset.address);
+            // TODO: calc exact values instead of closeTo
             expect(sRateIndexAfter).to.be.bignumber.closeTo(
                 calcCompoundedInterest(stabilityRate, currentTimestamp, lastUpdateTimestamp),
                 oneRay.div(1000),

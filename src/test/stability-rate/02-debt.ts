@@ -1,9 +1,9 @@
-import { fromBig, toBig } from "@kreskolabs/lib/dist/numbers";
+import { toBig } from "@kreskolabs/lib/dist/numbers";
 import { oneRay } from "@kreskolabs/lib/dist/numbers/wadray";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { defaultCollateralArgs, defaultKrAssetArgs, withFixture } from "@utils/test";
 import { addLiquidity, getTWAPUpdaterFor, swap } from "@utils/test/helpers/amm";
-import { calcCompoundedInterest, getBlockTimestamp, ONE_YEAR } from "@utils/test/helpers/calculations";
+import { ONE_YEAR } from "@utils/test/helpers/calculations";
 import { depositCollateral } from "@utils/test/helpers/collaterals";
 import { burnKrAsset, mintKrAsset } from "@utils/test/helpers/krassets";
 import { expect } from "chai";
@@ -13,7 +13,7 @@ import { UniswapMath } from "types/typechain/src/contracts/test/markets";
 
 const RATE_DELTA = hre.ethers.utils.parseUnits("100", "gwei");
 
-describe("Stability Rates", function () {
+describe.only("Stability Rates", function () {
     withFixture(["minter-test", "stability-rate-debt", "uniswap"]);
     let users: Users;
     let UniMath: UniswapMath;
@@ -364,7 +364,7 @@ describe("Stability Rates", function () {
             await this.collateral.setBalance(userTwo, depositAmount);
         });
 
-        it("should be able to view account principal debt for asset", async function () {
+        it("can view account principal debt for asset", async function () {
             await depositCollateral({
                 asset: this.collateral,
                 amount: depositAmount,
@@ -390,7 +390,7 @@ describe("Stability Rates", function () {
             expect(principalDebtAfterOneYear).to.bignumber.equal(expectedPrincipalDebt);
         });
 
-        it("should be able to view account scaled debt for asset", async function () {
+        it("can view account scaled debt for asset", async function () {
             await depositCollateral({
                 asset: this.collateral,
                 amount: depositAmount,
@@ -417,7 +417,7 @@ describe("Stability Rates", function () {
             expect(scaledDebt).to.bignumber.equal(expectedScaledDebt);
         });
 
-        it("should be able to view accrued interest in KISS", async function () {
+        it("can view accrued interest in KISS", async function () {
             await depositCollateral({
                 asset: this.collateral,
                 amount: depositAmount,
@@ -487,7 +487,7 @@ describe("Stability Rates", function () {
             expect(debt).to.bignumber.eq(principalDebt);
         });
 
-        it.only("can repay partial interest with KISS", async function () {
+        it("can repay partial interest with KISS", async function () {
             const KISS = await hre.ethers.getContract<KISS>("KISS");
             await KISS.connect(userTwo).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
 
@@ -528,17 +528,35 @@ describe("Stability Rates", function () {
             );
             // get values after repayment
             const debtAfter = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
-
             const accruedInterestAfter = await hre.Diamond.kreskoAssetDebtInterest(
                 userTwo.address,
                 this.krAsset.address,
             );
 
+            // TODO: calc exact values instead of closeTo
             expect(accruedInterestAfter.kissAmount).to.be.closeTo(
                 accruedInterestBefore.kissAmount.sub(repaymentAmount),
                 RATE_DELTA,
             );
             expect(debtAfter).to.be.closeTo(debtBefore.sub(repaymentAmountAsset), RATE_DELTA);
         });
+
+        // it("can batch repay all interest for multiple assets with KISS", async function () {
+        //     const KISS = await hre.ethers.getContract<KISS>("KISS");
+        //     await KISS.connect(userTwo).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
+
+        //     await depositCollateral({
+        //         asset: this.collateral,
+        //         amount: depositAmount,
+        //         user: userTwo,
+        //     });
+
+        //     await mintKrAsset({
+        //         asset: this.krAsset,
+        //         amount: mintAmount,
+        //         user: userTwo,
+        //     });
+        //     await time.increase(ONE_YEAR);
+        // });
     });
 });
