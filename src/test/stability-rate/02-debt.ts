@@ -888,7 +888,8 @@ describe("Stability Rates", function () {
             expect(accruedInterest.kissAmount).to.eq(0);
             expect((await hre.Diamond.getMintedKreskoAssets(userTwo.address)).length).to.eq(0);
         });
-        it("can fully close the princip a position in single transaction using the helper function", async function () {
+
+        it("can fully close all positions and interest in single transaction using the helper function", async function () {
             const KISS = await hre.ethers.getContract<KISS>("KISS");
             await KISS.connect(userTwo).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
             const kissAmount = (await hre.Diamond.minimumDebtValue()).rawValue.mul(10 ** 10).mul(2);
@@ -908,7 +909,7 @@ describe("Stability Rates", function () {
             await KISS.connect(userOne).transfer(userTwo.address, kissAmount);
 
             const krAssets = await Promise.all(
-                ["krasset2", "krasset3", "krasset4", "krasset5", "krasset6", "krasset7", "krasset8"].map(
+                ["krasset2", "krasset3", "krasset4"].map(
                     async name =>
                         await addMockKreskoAsset({
                             name: name,
