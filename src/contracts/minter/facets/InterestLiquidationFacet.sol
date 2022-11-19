@@ -37,6 +37,7 @@ contract InterestLiquidationFacet is DiamondModifiers {
     /**
      * @notice Attempts to batch liquidate all interest accrued from account in a unhealthy position
      * @notice Liquidator must the KISS required and have the contract approved to spend it
+     * @notice Checks liquidatable status on each iteration liquidating only what is necessary
      * @param _account The account to attempt to liquidate.
      * @param _collateralAssetToSeize The address of the collateral asset to be seized.
      */
