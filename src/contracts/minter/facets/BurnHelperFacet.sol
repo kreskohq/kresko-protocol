@@ -22,7 +22,7 @@ contract BurnHelperFacet is DiamondModifiers, MinterModifiers {
 
     /**
      * @notice Burns all Kresko asset debt and repays interest.
-     * @notice Account must have enough of krAsset to burn it and ennough KISS to cover interest
+     * @notice Account must have enough of krAsset balance to burn and ennough KISS to cover interest
      * @param _account The address to close the position for
      * @param _kreskoAsset The address of the Kresko asset.
      */
@@ -65,7 +65,7 @@ contract BurnHelperFacet is DiamondModifiers, MinterModifiers {
 
     /**
      * @notice Attempts to close all debt positions and interest
-     * @notice Account must have enough of krAsset to burn it and ennough KISS to cover interest
+     * @notice Account must have enough of krAsset balance to burn and ennough KISS to cover interest
      * @param _account The address to close the positions for
      */
     function batchCloseKrAssetDebtPositions(address _account)

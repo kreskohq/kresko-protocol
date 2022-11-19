@@ -35,8 +35,8 @@ contract InterestLiquidationFacet is DiamondModifiers {
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
     /**
-     * @notice Attempts to batch liquidate all interest accrued from account in a unhealthy position
-     * @notice Liquidator must the KISS required and have the contract approved to spend it
+     * @notice Attempts to batch liquidate all interest accrued for an account in a unhealthy position
+     * @notice Liquidator must have the KISS balance required and have the contract approved to spend it
      * @notice Checks liquidatable status on each iteration liquidating only what is necessary
      * @param _account The account to attempt to liquidate.
      * @param _collateralAssetToSeize The address of the collateral asset to be seized.
@@ -88,8 +88,8 @@ contract InterestLiquidationFacet is DiamondModifiers {
     }
 
     /**
-     * @notice Attempts to liquidate all interest accrued from account in a unhealthy position
-     * @notice Liquidator must the KISS required and have the contract approved to spend it
+     * @notice Attempts to liquidate all interest accrued for an account in a unhealthy position
+     * @notice Liquidator must have the KISS balance required and have the contract approved to spend it
      * @param _account The account to attempt to liquidate.
      * @param _repayKreskoAsset The address of the Kresko asset to be repaid.
      * @param _collateralAssetToSeize The address of the collateral asset to be seized.
