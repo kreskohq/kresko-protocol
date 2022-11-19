@@ -141,6 +141,20 @@ library MinterEvent {
     event KreskoAssetBurned(address indexed account, address indexed kreskoAsset, uint256 indexed amount);
 
     /**
+     * @notice Emitted when an account burns a Kresko asset.
+     * @param account The address of the account burning the Kresko asset.
+     * @param kreskoAsset The address of the Kresko asset.
+     * @param amount The amount of the Kresko asset that was burned.
+     * @param interestRepaid The amount of the KISS repaid due to interest accrual
+     */
+    event DebtPositionClosed(
+        address indexed account,
+        address indexed kreskoAsset,
+        uint256 indexed amount,
+        uint256 interestRepaid
+    );
+
+    /**
      * @notice Emitted when an account pays a close fee with a collateral asset upon burning a Kresko asset.
      * @dev This can be emitted multiple times for a single Kresko asset burn.
      * @param account The address of the account burning the Kresko asset.

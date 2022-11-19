@@ -24,6 +24,7 @@ export const minterFacets = [
     "SafetyCouncilFacet",
     "AccountStateFacet",
     "LiquidationFacet",
+    "BurnHelperFacet",
     "InterestLiquidationFacet",
     "CollateralAssetFacet",
     "MintFacet",

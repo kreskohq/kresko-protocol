@@ -8,6 +8,7 @@ import { depositCollateral } from "@utils/test/helpers/collaterals";
 import { EventContract } from "@utils/test/helpers/events";
 import { addMockKreskoAsset, mintKrAsset } from "@utils/test/helpers/krassets";
 import { expect } from "chai";
+import { Error } from "@utils/test/errors";
 import hre, { fromBig } from "hardhat";
 import { KISS } from "types";
 import {
@@ -15,7 +16,7 @@ import {
     InterestLiquidationOccurredEventObject,
 } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
-describe.only("Stability Rates", function () {
+describe("Stability Rates", function () {
     withFixture(["minter-test", "stability-rate-liquidation", "uniswap"]);
     let users: Users;
     let liquidator: SignerWithAddress;
@@ -86,7 +87,65 @@ describe.only("Stability Rates", function () {
                 ),
             );
         });
+        it("cannot liquidate accrued interest of healthy account", async function () {
+            await this.collateral.setBalance(userTwo, depositAmount);
+            // Deposit a bit more to cover the mints
+            await depositCollateral({
+                asset: this.collateral,
+                amount: depositAmount,
+                user: userTwo,
+            });
 
+            // mint each krasset
+            await Promise.all(
+                krAssets.map(krAsset =>
+                    mintKrAsset({
+                        asset: krAsset,
+                        amount: mintAmount,
+                        user: userTwo,
+                    }),
+                ),
+            );
+
+            await time.increase(ONE_YEAR);
+            const krAsset = krAssets[0];
+
+            expect(await hre.Diamond.isAccountLiquidatable(userTwo.address)).to.be.false;
+            await expect(
+                hre.Diamond.connect(liquidator).liquidateInterest(
+                    userTwo.address,
+                    krAsset.address,
+                    this.collateral.address,
+                ),
+            ).to.be.revertedWith(Error.NOT_LIQUIDATABLE);
+        });
+        it("cannot batch liquidate accrued interest of healthy account", async function () {
+            await this.collateral.setBalance(userTwo, depositAmount);
+            // Deposit a bit more to cover the mints
+            await depositCollateral({
+                asset: this.collateral,
+                amount: depositAmount,
+                user: userTwo,
+            });
+
+            // mint each krasset
+            await Promise.all(
+                krAssets.map(krAsset =>
+                    mintKrAsset({
+                        asset: krAsset,
+                        amount: mintAmount,
+                        user: userTwo,
+                    }),
+                ),
+            );
+
+            await time.increase(ONE_YEAR);
+
+            expect(await hre.Diamond.isAccountLiquidatable(userTwo.address)).to.be.false;
+            await expect(
+                hre.Diamond.connect(liquidator).batchLiquidateInterest(userTwo.address, this.collateral.address),
+            ).to.be.revertedWith(Error.NOT_LIQUIDATABLE);
+        });
         it("can liquidate accrued interest of unhealthy account", async function () {
             const KISS = await hre.ethers.getContract<KISS>("KISS");
             await KISS.connect(liquidator).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
@@ -131,7 +190,7 @@ describe.only("Stability Rates", function () {
                 user: liquidator,
             });
             // liquidatable value total before
-            const accruedInterestUSD = fromBig(
+            const accruedKissInterest = fromBig(
                 (await hre.Diamond.kreskoAssetDebtInterest(userTwo.address, krAsset.address)).kissAmount,
             );
 
@@ -169,14 +228,14 @@ describe.only("Stability Rates", function () {
             expect(accountCollateralAfter).to.equal(accountCollateralBefore.sub(event.collateralSent));
             const liquidationIncentive = fromBig((await hre.Diamond.liquidationIncentiveMultiplier()).rawValue);
             const expectedCollateral =
-                (accruedInterestUSD / fromBig(await this.collateral.getPrice(), 8)) * liquidationIncentive;
+                (accruedKissInterest / fromBig(await this.collateral.getPrice(), 8)) * liquidationIncentive;
             // event validation
             expect(event.account).to.equal(userTwo.address);
             expect(event.liquidator).to.equal(liquidator.address);
             expect(event.repayKreskoAsset).to.equal(krAsset.address);
             expect(event.seizedCollateralAsset).to.equal(this.collateral.address);
             expect(fromBig(event.collateralSent).toFixed(6)).to.equal(expectedCollateral.toFixed(6));
-            expect(fromBig(event.repayUSD)).to.closeTo(accruedInterestUSD, 0.0001);
+            expect(fromBig(event.repayUSD)).to.closeTo(accruedKissInterest, 0.0001);
             // liquidator received collateral
             expect(await this.collateral.contract.balanceOf(liquidator.address)).to.equal(event.collateralSent);
         });
@@ -214,11 +273,11 @@ describe.only("Stability Rates", function () {
             // should be liquidatable
             expect(await hre.Diamond.isAccountLiquidatable(userTwo.address)).to.be.true;
 
-            const interestUSDTotal = fromBig(await hre.Diamond.kreskoAssetDebtInterestTotal(userTwo.address));
+            const interestKissTotal = fromBig(await hre.Diamond.kreskoAssetDebtInterestTotal(userTwo.address));
             // Liquidator mints KISS
             await mintKrAsset({
                 asset: KISS,
-                amount: interestUSDTotal + 1,
+                amount: interestKissTotal + 1,
                 user: liquidator,
             });
 
@@ -230,7 +289,7 @@ describe.only("Stability Rates", function () {
                 this.collateral.address,
             );
 
-            const interestUSDTotalAfter = fromBig(await hre.Diamond.kreskoAssetDebtInterestTotal(userTwo.address));
+            const interestKissTotalAfter = fromBig(await hre.Diamond.kreskoAssetDebtInterestTotal(userTwo.address));
 
             expect(await hre.Diamond.isAccountLiquidatable(userTwo.address)).to.be.false;
 
@@ -242,7 +301,7 @@ describe.only("Stability Rates", function () {
             const repayUSD = fromBig(event.repayUSD);
 
             // interest accrued changes
-            expect(interestUSDTotalAfter).to.closeTo(interestUSDTotal - fromBig(event.repayUSD), 0.0001);
+            expect(interestKissTotalAfter).to.closeTo(interestKissTotal - fromBig(event.repayUSD), 0.0001);
             const liquidationIncentive = fromBig((await hre.Diamond.liquidationIncentiveMultiplier()).rawValue);
             const expectedCollateral = (repayUSD / fromBig(await this.collateral.getPrice(), 8)) * liquidationIncentive;
             // event validation
@@ -250,7 +309,7 @@ describe.only("Stability Rates", function () {
             expect(event.liquidator).to.equal(liquidator.address);
             expect(event.seizedCollateralAsset).to.equal(this.collateral.address);
             expect(fromBig(event.collateralSent)).to.closeTo(expectedCollateral, 0.0001);
-            expect(repayUSD).to.closeTo(interestUSDTotal - interestUSDTotalAfter, 0.0001);
+            expect(repayUSD).to.closeTo(interestKissTotal - interestKissTotalAfter, 0.0001);
             // liquidator received collateral
             expect(await this.collateral.contract.balanceOf(liquidator.address)).to.equal(event.collateralSent);
         });

@@ -852,5 +852,97 @@ describe("Stability Rates", function () {
             const debt = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
             expect(debt).to.eq(expectedDebtAfterOneYear);
         });
+
+        it.only("can fully close a position in single transaction using the helper function", async function () {
+            const KISS = await hre.ethers.getContract<KISS>("KISS");
+            await KISS.connect(userTwo).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
+            const minDebtAmount = (await hre.Diamond.minimumDebtValue()).rawValue.mul(10 ** 10);
+
+            await depositCollateral({
+                asset: this.collateral,
+                amount: depositAmount,
+                user: userTwo,
+            });
+
+            await mintKrAsset({
+                asset: KISS,
+                amount: minDebtAmount,
+                user: userOne,
+            });
+
+            await KISS.connect(userOne).transfer(userTwo.address, minDebtAmount);
+
+            await mintKrAsset({
+                asset: this.krAsset,
+                amount: mintAmount,
+                user: userTwo,
+            });
+            await time.increase(ONE_YEAR);
+
+            await hre.Diamond.connect(userTwo).closeKrAssetDebtPosition(userTwo.address, this.krAsset.address);
+
+            expect(await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address)).to.eq(0);
+            expect(await hre.Diamond.kreskoAssetDebtPrincipal(userTwo.address, this.krAsset.address)).to.eq(0);
+            const accruedInterest = await hre.Diamond.kreskoAssetDebtInterest(userTwo.address, this.krAsset.address);
+            expect(accruedInterest.assetAmount).to.eq(0);
+            expect(accruedInterest.kissAmount).to.eq(0);
+            expect((await hre.Diamond.getMintedKreskoAssets(userTwo.address)).length).to.eq(0);
+        });
+        it.only("can fully close the princip a position in single transaction using the helper function", async function () {
+            const KISS = await hre.ethers.getContract<KISS>("KISS");
+            await KISS.connect(userTwo).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
+            const kissAmount = (await hre.Diamond.minimumDebtValue()).rawValue.mul(10 ** 10).mul(2);
+
+            await depositCollateral({
+                asset: this.collateral,
+                amount: depositAmount,
+                user: userTwo,
+            });
+
+            await mintKrAsset({
+                asset: KISS,
+                amount: kissAmount,
+                user: userOne,
+            });
+
+            await KISS.connect(userOne).transfer(userTwo.address, kissAmount);
+
+            const krAssets = await Promise.all(
+                ["krasset2", "krasset3", "krasset4", "krasset5", "krasset6", "krasset7", "krasset8"].map(
+                    async name =>
+                        await addMockKreskoAsset({
+                            name: name,
+                            symbol: name,
+                            marketOpen: true,
+                            factor: 1,
+                            closeFee: 0,
+                            openFee: 0,
+                            price: 10,
+                            supplyLimit: 2_000,
+                            stabilityRateBase: BASIS_POINT.mul(1000), // 10%
+                        }),
+                ),
+            );
+            // mint small amount of each krasset
+            await Promise.all(
+                krAssets.map(krAsset =>
+                    mintKrAsset({
+                        asset: krAsset,
+                        amount: mintAmountSmall,
+                        user: userTwo,
+                    }),
+                ),
+            );
+            await time.increase(ONE_YEAR);
+
+            // ~1M gas with 8 krAssets
+            // console.log(+(await tx.wait()).gasUsed);
+            await hre.Diamond.connect(userTwo).batchCloseKrAssetDebtPositions(userTwo.address);
+
+            const accruedInterest = await hre.Diamond.kreskoAssetDebtInterestTotal(userTwo.address);
+            expect(accruedInterest).to.eq(0);
+            expect((await hre.Diamond.getAccountKrAssetValue(userTwo.address)).rawValue).to.eq(0);
+            expect((await hre.Diamond.getMintedKreskoAssets(userTwo.address)).length).to.eq(0);
+        });
     });
 });

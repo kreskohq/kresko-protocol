@@ -68,8 +68,10 @@ contract InterestLiquidationFacet is DiamondModifiers {
             }
         }
 
+        emit InterestRateEvent.StabilityRateInterestBatchRepaid(_account, kissAmountToRepay);
+
         // Perform the liquidation
-        uint256 seizeAmount = _liquidateInterest(
+        uint256 collateralAmount = _liquidateInterest(
             _account,
             _collateralAssetToSeize,
             ms().getDepositedCollateralAssetIndex(_account, _collateralAssetToSeize),
@@ -81,10 +83,8 @@ contract InterestLiquidationFacet is DiamondModifiers {
             msg.sender,
             _collateralAssetToSeize,
             kissAmountToRepay,
-            seizeAmount
+            collateralAmount
         );
-
-        emit InterestRateEvent.StabilityRateInterestBatchRepaid(_account, kissAmountToRepay);
     }
 
     /**
@@ -112,7 +112,7 @@ contract InterestLiquidationFacet is DiamondModifiers {
         uint256 mintedKreskoAssetIndex = ms().getMintedKreskoAssetsIndex(_account, _repayKreskoAsset);
 
         // Perform the liquidation
-        uint256 seizeAmount = _liquidateInterest(
+        uint256 collateralAmount = _liquidateInterest(
             _account,
             _collateralAssetToSeize,
             ms().getDepositedCollateralAssetIndex(_account, _collateralAssetToSeize),
@@ -130,7 +130,7 @@ contract InterestLiquidationFacet is DiamondModifiers {
             _repayKreskoAsset,
             kissAmountToRepay,
             _collateralAssetToSeize,
-            seizeAmount
+            collateralAmount
         );
     }
 
