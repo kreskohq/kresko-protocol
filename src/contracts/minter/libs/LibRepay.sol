@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 
-// solhint-disable-next-line
+// solhint-disable not-rely-on-time
 
 import {Arrays} from "../../libs/Arrays.sol";
 import {MinterEvent, InterestRateEvent} from "../../libs/Events.sol";
