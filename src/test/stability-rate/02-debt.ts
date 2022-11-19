@@ -853,7 +853,7 @@ describe("Stability Rates", function () {
             expect(debt).to.eq(expectedDebtAfterOneYear);
         });
 
-        it.only("can fully close a position in single transaction using the helper function", async function () {
+        it("can fully close a position in single transaction using the helper function", async function () {
             const KISS = await hre.ethers.getContract<KISS>("KISS");
             await KISS.connect(userTwo).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
             const minDebtAmount = (await hre.Diamond.minimumDebtValue()).rawValue.mul(10 ** 10);
@@ -888,7 +888,7 @@ describe("Stability Rates", function () {
             expect(accruedInterest.kissAmount).to.eq(0);
             expect((await hre.Diamond.getMintedKreskoAssets(userTwo.address)).length).to.eq(0);
         });
-        it.only("can fully close the princip a position in single transaction using the helper function", async function () {
+        it("can fully close the princip a position in single transaction using the helper function", async function () {
             const KISS = await hre.ethers.getContract<KISS>("KISS");
             await KISS.connect(userTwo).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
             const kissAmount = (await hre.Diamond.minimumDebtValue()).rawValue.mul(10 ** 10).mul(2);
