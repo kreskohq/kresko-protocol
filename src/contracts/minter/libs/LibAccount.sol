@@ -10,7 +10,6 @@ import {irs} from "../InterestRateState.sol";
 import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {LibDecimals} from "../libs/LibDecimals.sol";
 import {WadRay} from "../../libs/WadRay.sol";
-import "hardhat/console.sol";
 
 library LibAccount {
     using FixedPoint for FixedPoint.Unsigned;
@@ -74,6 +73,25 @@ library LibAccount {
     }
 
     /**
+     * @notice Calculates if an account's current collateral value is under its minimum collateral value.
+     * @dev Returns true if the account's current collateral value is below the minimum collateral value.
+     * required to consider the position healthy.
+     * @param _account The account to check.
+     * @param _valueLiquidated Value liquidated, eg. in a batch liquidation
+     * @return A boolean indicating if the account can be liquidated.
+     */
+    function isAccountLiquidatable(
+        MinterState storage self,
+        address _account,
+        FixedPoint.Unsigned memory _valueLiquidated
+    ) internal view returns (bool) {
+        return
+            self.getAccountCollateralValue(_account).sub(_valueLiquidated).isLessThan(
+                self.getAccountMinimumCollateralValueAtRatio(_account, self.liquidationThreshold)
+            );
+    }
+
+    /**
      * @notice Gets the collateral value of a particular account.
      * @dev O(# of different deposited collateral assets by account) complexity.
      * @param _account The account to calculate the collateral value for.
@@ -93,8 +111,6 @@ library LibAccount {
                 asset,
                 self.getCollateralDeposits(_account, asset),
                 false // Take the collateral factor into consideration.
-                // TODO: should this take the collateral factor into account?
-                // TODO: PANU: add a param bool _ignoreCollateralFactor or rename the func?
             );
             totalCollateralValue = totalCollateralValue.add(collateralValue);
         }
@@ -185,7 +201,6 @@ library LibAccount {
         address _account,
         address _asset
     ) internal view returns (uint256 assetAmount, uint256 kissAmount) {
-        // console.log("debt scaled", self.getKreskoAssetDebtScaled(_account, _asset));
         assetAmount =
             self.getKreskoAssetDebtScaled(_account, _asset) -
             self.getKreskoAssetDebtPrincipal(_account, _asset);

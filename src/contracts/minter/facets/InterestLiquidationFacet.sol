@@ -51,10 +51,16 @@ contract InterestLiquidationFacet is DiamondModifiers {
         address[] memory mintedKreskoAssets = ms().getMintedKreskoAssets(_account);
 
         // Loop all minted assets and add up all interest value
-        uint256 repaymentUSD;
+        uint256 kissAmountToRepay;
         for (uint256 i; i < mintedKreskoAssets.length; i++) {
+            if (
+                !ms().isAccountLiquidatable(
+                    _account,
+                    kissAmountToRepay.fromWadPriceToFixedPoint().mul(ms().liquidationIncentiveMultiplier)
+                )
+            ) break;
             address repayKreskoAsset = mintedKreskoAssets[i];
-            repaymentUSD += ms().repayFullStabilityRateInterest(_account, repayKreskoAsset);
+            kissAmountToRepay += ms().repayFullStabilityRateInterest(_account, repayKreskoAsset);
             // If the liquidation repays the user's entire Kresko asset balance, remove it from minted assets array.
             if (ms().kreskoAssetDebt[_account][repayKreskoAsset] == 0) {
                 ms().mintedKreskoAssets[_account].removeAddress(repayKreskoAsset, i);
@@ -66,18 +72,18 @@ contract InterestLiquidationFacet is DiamondModifiers {
             _account,
             _collateralAssetToSeize,
             ms().getDepositedCollateralAssetIndex(_account, _collateralAssetToSeize),
-            repaymentUSD
+            kissAmountToRepay
         );
 
         emit MinterEvent.BatchInterestLiquidationOccurred(
             _account,
             msg.sender,
             _collateralAssetToSeize,
-            repaymentUSD,
+            kissAmountToRepay,
             seizeAmount
         );
 
-        emit InterestRateEvent.StabilityRateInterestBatchRepaid(_account, repaymentUSD);
+        emit InterestRateEvent.StabilityRateInterestBatchRepaid(_account, kissAmountToRepay);
     }
 
     /**
@@ -101,7 +107,7 @@ contract InterestLiquidationFacet is DiamondModifiers {
         // Collateral exists
         require(ms().collateralAssets[_collateralAssetToSeize].exists, Error.COLLATERAL_DOESNT_EXIST);
 
-        uint256 repaymentUSD = ms().repayFullStabilityRateInterest(_account, _repayKreskoAsset);
+        uint256 kissAmountToRepay = ms().repayFullStabilityRateInterest(_account, _repayKreskoAsset);
         uint256 mintedKreskoAssetIndex = ms().getMintedKreskoAssetsIndex(_account, _repayKreskoAsset);
 
         // Perform the liquidation
@@ -109,7 +115,7 @@ contract InterestLiquidationFacet is DiamondModifiers {
             _account,
             _collateralAssetToSeize,
             ms().getDepositedCollateralAssetIndex(_account, _collateralAssetToSeize),
-            repaymentUSD
+            kissAmountToRepay
         );
 
         // If the liquidation repays the user's entire Kresko asset balance, remove it from minted assets array.
@@ -121,7 +127,7 @@ contract InterestLiquidationFacet is DiamondModifiers {
             _account,
             msg.sender,
             _repayKreskoAsset,
-            repaymentUSD,
+            kissAmountToRepay,
             _collateralAssetToSeize,
             seizeAmount
         );
@@ -132,7 +138,7 @@ contract InterestLiquidationFacet is DiamondModifiers {
         address _account,
         address _collateralAssetToSeize,
         uint256 _depositedCollateralAssetIndex,
-        uint256 repaymentUSD
+        uint256 kissAmountToRepay
     ) internal returns (uint256 seizeAmount) {
         MinterState storage s = ms();
 
@@ -140,7 +146,7 @@ contract InterestLiquidationFacet is DiamondModifiers {
             LibCalculation.calculateAmountToSeize(
                 s.liquidationIncentiveMultiplier,
                 s.collateralAssets[_collateralAssetToSeize].fixedPointPrice(),
-                repaymentUSD.fromWadPriceToFixedPoint()
+                kissAmountToRepay.fromWadPriceToFixedPoint()
             )
         );
 

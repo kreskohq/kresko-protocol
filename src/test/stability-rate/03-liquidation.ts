@@ -1,4 +1,4 @@
-import { getInternalEvent, getNamedEvent } from "@kreskolabs/lib";
+import { getInternalEvent } from "@kreskolabs/lib";
 import { toBig } from "@kreskolabs/lib/dist/numbers";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { BASIS_POINT, defaultCollateralArgs, defaultKrAssetArgs, withFixture } from "@utils/test";
@@ -11,13 +11,11 @@ import { expect } from "chai";
 import hre, { fromBig } from "hardhat";
 import { KISS } from "types";
 import {
-    InterestLiquidationOccurredEvent,
+    BatchInterestLiquidationOccurredEventObject,
     InterestLiquidationOccurredEventObject,
 } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
-const RATE_DELTA = hre.ethers.utils.parseUnits("100", "gwei");
-
-describe("Stability Rates", function () {
+describe.only("Stability Rates", function () {
     withFixture(["minter-test", "stability-rate-liquidation", "uniswap"]);
     let users: Users;
     let liquidator: SignerWithAddress;
@@ -67,25 +65,11 @@ describe("Stability Rates", function () {
     describe("#stability rate - liquidation", async () => {
         const depositAmount = hre.toBig(100);
         const mintAmount = hre.toBig(10);
-
+        let krAssets: KrAsset[];
         beforeEach(async function () {
             await this.collateral.setBalance(userTwo, depositAmount);
-        });
-
-        it.only("can liquidate accrued interest of unhealthy position", async function () {
-            const KISS = await hre.ethers.getContract<KISS>("KISS");
-            await KISS.connect(liquidator).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
-
-            await this.collateral.setBalance(userTwo, depositAmount);
-            // Deposit a bit more to cover the mints
-            await depositCollateral({
-                asset: this.collateral,
-                amount: depositAmount,
-                user: userTwo,
-            });
-
             // Create few krAssets
-            const krAssets = await Promise.all(
+            krAssets = await Promise.all(
                 ["krasset2", "krasset3", "krasset4"].map(
                     async name =>
                         await addMockKreskoAsset({
@@ -101,6 +85,20 @@ describe("Stability Rates", function () {
                         }),
                 ),
             );
+        });
+
+        it("can liquidate accrued interest of unhealthy account", async function () {
+            const KISS = await hre.ethers.getContract<KISS>("KISS");
+            await KISS.connect(liquidator).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
+
+            await this.collateral.setBalance(userTwo, depositAmount);
+            // Deposit a bit more to cover the mints
+            await depositCollateral({
+                asset: this.collateral,
+                amount: depositAmount,
+                user: userTwo,
+            });
+
             // mint each krasset
             await Promise.all(
                 krAssets.map(krAsset =>
@@ -136,9 +134,28 @@ describe("Stability Rates", function () {
             const accruedInterestUSD = fromBig(
                 (await hre.Diamond.kreskoAssetDebtInterest(userTwo.address, krAsset.address)).kissAmount,
             );
+
+            const accountCollateralBefore = await hre.Diamond.collateralDeposits(
+                userTwo.address,
+                this.collateral.address,
+            );
+            // Wipe seized collateral balance before liquidation for easy comparison
+            await this.collateral.setBalance(liquidator, toBig(0));
+
+            // Liquidate
             const tx = await hre.Diamond.connect(liquidator).liquidateInterest(
                 userTwo.address,
                 krAsset.address,
+                this.collateral.address,
+            );
+
+            // Should all be wiped
+            const interestAccruedAfterLiq = await hre.Diamond.kreskoAssetDebtInterest(userTwo.address, krAsset.address);
+            expect(interestAccruedAfterLiq.kissAmount).to.eq(0);
+            expect(interestAccruedAfterLiq.assetAmount).to.eq(0);
+
+            const accountCollateralAfter = await hre.Diamond.collateralDeposits(
+                userTwo.address,
                 this.collateral.address,
             );
 
@@ -147,15 +164,95 @@ describe("Stability Rates", function () {
                 EventContract(),
                 "InterestLiquidationOccurred",
             );
+
+            // validate interest accrual changes
+            expect(accountCollateralAfter).to.equal(accountCollateralBefore.sub(event.collateralSent));
             const liquidationIncentive = fromBig((await hre.Diamond.liquidationIncentiveMultiplier()).rawValue);
             const expectedCollateral =
                 (accruedInterestUSD / fromBig(await this.collateral.getPrice(), 8)) * liquidationIncentive;
+            // event validation
             expect(event.account).to.equal(userTwo.address);
             expect(event.liquidator).to.equal(liquidator.address);
             expect(event.repayKreskoAsset).to.equal(krAsset.address);
             expect(event.seizedCollateralAsset).to.equal(this.collateral.address);
             expect(fromBig(event.collateralSent).toFixed(6)).to.equal(expectedCollateral.toFixed(6));
             expect(fromBig(event.repayUSD)).to.closeTo(accruedInterestUSD, 0.0001);
+            // liquidator received collateral
+            expect(await this.collateral.contract.balanceOf(liquidator.address)).to.equal(event.collateralSent);
+        });
+
+        it("can batch liquidate accrued interest of unhealthy account", async function () {
+            const KISS = await hre.ethers.getContract<KISS>("KISS");
+            await KISS.connect(liquidator).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
+
+            await this.collateral.setBalance(userTwo, depositAmount);
+            // Deposit a bit more to cover the mints
+            await depositCollateral({
+                asset: this.collateral,
+                amount: depositAmount,
+                user: userTwo,
+            });
+
+            // mint each krasset
+            await Promise.all(
+                krAssets.map(krAsset =>
+                    mintKrAsset({
+                        asset: krAsset,
+                        amount: mintAmount,
+                        user: userTwo,
+                    }),
+                ),
+            );
+
+            // Up the asset prices
+            const newPrice = 15;
+            krAssets.map(asset => asset.setPrice(newPrice));
+            // increase time so account is liquidatable
+            expect(await hre.Diamond.isAccountLiquidatable(userTwo.address)).to.be.false;
+            await time.increase(ONE_YEAR * 4);
+
+            // should be liquidatable
+            expect(await hre.Diamond.isAccountLiquidatable(userTwo.address)).to.be.true;
+
+            const interestUSDTotal = fromBig(await hre.Diamond.kreskoAssetDebtInterestTotal(userTwo.address));
+            // Liquidator mints KISS
+            await mintKrAsset({
+                asset: KISS,
+                amount: interestUSDTotal + 1,
+                user: liquidator,
+            });
+
+            // Wipe seized collateral balance before liquidation for easy comparison
+            await this.collateral.setBalance(liquidator, toBig(0));
+            // Liquidate
+            const tx = await hre.Diamond.connect(liquidator).batchLiquidateInterest(
+                userTwo.address,
+                this.collateral.address,
+            );
+
+            const interestUSDTotalAfter = fromBig(await hre.Diamond.kreskoAssetDebtInterestTotal(userTwo.address));
+
+            expect(await hre.Diamond.isAccountLiquidatable(userTwo.address)).to.be.false;
+
+            const event = await getInternalEvent<BatchInterestLiquidationOccurredEventObject>(
+                tx,
+                EventContract(),
+                "BatchInterestLiquidationOccurred",
+            );
+            const repayUSD = fromBig(event.repayUSD);
+
+            // interest accrued changes
+            expect(interestUSDTotalAfter).to.closeTo(interestUSDTotal - fromBig(event.repayUSD), 0.0001);
+            const liquidationIncentive = fromBig((await hre.Diamond.liquidationIncentiveMultiplier()).rawValue);
+            const expectedCollateral = (repayUSD / fromBig(await this.collateral.getPrice(), 8)) * liquidationIncentive;
+            // event validation
+            expect(event.account).to.equal(userTwo.address);
+            expect(event.liquidator).to.equal(liquidator.address);
+            expect(event.seizedCollateralAsset).to.equal(this.collateral.address);
+            expect(fromBig(event.collateralSent)).to.closeTo(expectedCollateral, 0.0001);
+            expect(repayUSD).to.closeTo(interestUSDTotal - interestUSDTotalAfter, 0.0001);
+            // liquidator received collateral
+            expect(await this.collateral.contract.balanceOf(liquidator.address)).to.equal(event.collateralSent);
         });
     });
 });
