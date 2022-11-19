@@ -83,7 +83,8 @@ library LibDecimals {
     }
 
     /**
-     * @notice converts an uint256 with extOracleDecimals into a number with 18 decimals
+     * @notice Divides an uint256 @param _numerator with @param _price
+     * @dev returns 18 decimals
      * @param _price value with extOracleDecimals
      * @param _numerator value to divide with
      */
@@ -94,7 +95,7 @@ library LibDecimals {
     }
 
     /**
-     * @notice converts an uint256 with extOracleDecimals into a number with 18 decimals
+     * @notice Converts an uint256 with extOracleDecimals into a number with 18 decimals
      * @param _price value with extOracleDecimals
      */
     function fromWadPriceToUint(uint256 _price) internal view returns (uint256 normalizedOracleValue) {
@@ -104,7 +105,7 @@ library LibDecimals {
     }
 
     /**
-     * @notice converts an uint256 with extOracleDecimals into a number with 18 decimals
+     * @notice Converts an uint256 with extOracleDecimals into a number with 18 decimals
      * @param _price value with extOracleDecimals
      */
     function fromWadPriceToFixedPoint(uint256 _price)
@@ -118,7 +119,7 @@ library LibDecimals {
     }
 
     /**
-     * @notice converts an uint256 with extOracleDecimals into a number with 18 decimals
+     * @notice Converts an uint256 with extOracleDecimals into a number with 18 decimals
      * @param _price value with extOracleDecimals
      */
     function oraclePriceToWad(uint256 _price) internal view returns (uint256 normalizedOracleValue) {
@@ -128,7 +129,7 @@ library LibDecimals {
     }
 
     /**
-     * @notice converts an uint256 with extOracleDecimals into a number with 18 decimals
+     * @notice Converts an uint256 with extOracleDecimals into a number with 18 decimals
      * @param _price value with extOracleDecimals
      */
     function oraclePriceToWad(int256 _price) internal view returns (uint256 normalizedOracleValue) {
@@ -138,7 +139,7 @@ library LibDecimals {
     }
 
     /**
-     * @notice converts an Unsigned FixedPoint number with extOracleDecimals into an uint256 with 18 decimals
+     * @notice Converts an Unsigned FixedPoint number with extOracleDecimals into an uint256 with 18 decimals
      * @param _price value with extOracleDecimals
      */
     function fromFixedPointPriceToWad(FixedPoint.Unsigned memory _price)

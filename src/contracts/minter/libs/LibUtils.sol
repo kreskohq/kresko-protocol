@@ -21,7 +21,7 @@ library LibUtils {
 
     /**
      * @notice Amount of non rebasing tokens -> amount of rebasing tokens
-     * @dev if collateral is not a kresko asset, return 0
+     * @dev if collateral is not a kresko asset, returns the input
      * @param asset the collateral asset struct
      * @param amount the amount to convert
      */
@@ -41,7 +41,7 @@ library LibUtils {
 
     /**
      * @notice Amount of rebasing tokens -> amount of non rebasing tokens
-     * @dev if collateral is not a kresko asset, return 0
+     * @dev if collateral is not a kresko asset, returns the input
      * @param asset the collateral asset struct
      * @param amount the amount to convert
      */
