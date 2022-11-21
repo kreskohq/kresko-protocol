@@ -157,7 +157,6 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers, IStabilityRate
         // Update scaled values for the user
         irs().srUserInfo[_account][_kreskoAsset].debtScaled -= uint128(amountScaled);
         irs().srUserInfo[_account][_kreskoAsset].lastDebtIndex = uint128(newDebtIndex);
-        irs().srUserInfo[_account][_kreskoAsset].lastUpdateTimestamp = uint40(block.timestamp);
         // Update stability rate for asset
         irs().srAssets[_kreskoAsset].updateStabilityRate();
 
@@ -241,15 +240,6 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers, IStabilityRate
     }
 
     /**
-     * @notice Get total accrued stability fee
-     * @param _asset asset to view the total accrued for
-     */
-    function getTotalStabilityFeeAccrued(address _asset) external view returns (uint256) {
-        uint256 totalSupply = IERC20Upgradeable(_asset).totalSupply();
-        return totalSupply.rayMul(irs().srAssets[_asset].getNormalizedDebtIndex()) - totalSupply;
-    }
-
-    /**
      * @notice The configured address of KISS
      */
     function kiss() external view returns (address) {
@@ -258,23 +248,15 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers, IStabilityRate
 
     /**
      * @notice Get user stability rate data for an asset
+     * @param _account asset to view configuration for
+     * @param _asset asset to view configuration for
      * @return lastDebtIndex the previous debt index for the user
-     * @return lastUpdateTimestamp the previous timestamp for any interaction with account debt
      */
-    function getAccountStabilityRateData(address _account, address _asset)
+    function getLastDebtIndexForAccount(address _account, address _asset)
         external
         view
-        returns (uint128 lastDebtIndex, uint40 lastUpdateTimestamp)
+        returns (uint128 lastDebtIndex)
     {
-        lastDebtIndex = irs().srUserInfo[_account][_asset].lastDebtIndex;
-        lastUpdateTimestamp = irs().srUserInfo[_account][_asset].lastUpdateTimestamp;
-    }
-
-    /**
-     * @notice Get latest rate update timestamp for an asset
-     * @return lastUpdateTimestamp the previous timestamp for any interaction with account debt
-     */
-    function latestStabilityRateUpdateForAsset(address _asset) external view returns (uint40 lastUpdateTimestamp) {
-        lastUpdateTimestamp = irs().srAssets[_asset].lastUpdateTimestamp;
+        return irs().srUserInfo[_account][_asset].lastDebtIndex;
     }
 }

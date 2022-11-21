@@ -32,14 +32,7 @@ interface IStabilityRateFacet {
 
     function getStabilityRateConfigurationForAsset(address _asset) external view returns (StabilityRateConfig memory);
 
-    function getTotalStabilityFeeAccrued(address _asset) external view returns (uint256);
-
     function kiss() external view returns (address);
 
-    function getAccountStabilityRateData(address _account, address _asset)
-        external
-        view
-        returns (uint128 lastDebtIndex, uint40 lastUpdateTimestamp);
-
-    function latestStabilityRateUpdateForAsset(address _asset) external view returns (uint40 lastUpdateTimestamp);
+    function getLastDebtIndexForAccount(address _account, address _asset) external view returns (uint128 lastDebtIndex);
 }

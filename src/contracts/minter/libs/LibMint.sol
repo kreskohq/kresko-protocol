@@ -54,7 +54,6 @@ library LibMint {
         // Update scaled values for the user
         irs().srUserInfo[_account][_kreskoAsset].debtScaled += uint128(amountScaled);
         irs().srUserInfo[_account][_kreskoAsset].lastDebtIndex = uint128(newDebtIndex);
-        irs().srUserInfo[_account][_kreskoAsset].lastUpdateTimestamp = uint40(block.timestamp);
         // Update the global rate for the asset
         irs().srAssets[_kreskoAsset].updateStabilityRate();
     }

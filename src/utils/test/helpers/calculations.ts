@@ -55,12 +55,12 @@ export const toScaledAmount = async (amount: BigNumber, asset: KrAsset, prevDebt
 };
 
 export const toScaledAmountUser = async (user: SignerWithAddress, amount: BigNumber, asset: KrAsset) => {
-    const [lastDebtIndex] = await hre.Diamond.getAccountStabilityRateData(user.address, asset.address);
+    const lastDebtIndex = await hre.Diamond.getLastDebtIndexForAccount(user.address, asset.address);
     const debtIndex = await hre.Diamond.getDebtIndexForAsset(asset.address);
     return amount.wadToRay().rayDiv(lastDebtIndex).rayMul(debtIndex).rayToWad();
 };
 export const fromScaledAmountUser = async (user: SignerWithAddress, amount: BigNumber, asset: KrAsset) => {
-    const [lastDebtIndex] = await hre.Diamond.getAccountStabilityRateData(user.address, asset.address);
+    const lastDebtIndex = await hre.Diamond.getLastDebtIndexForAccount(user.address, asset.address);
     const debtIndex = await hre.Diamond.getDebtIndexForAsset(asset.address);
     return amount.wadToRay().rayMul(lastDebtIndex).rayDiv(debtIndex).rayToWad();
 };

@@ -155,7 +155,6 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
             // Update scaled values for the user
             irs().srUserInfo[_account][_repayKreskoAsset].debtScaled -= uint128(amountScaled);
             irs().srUserInfo[_account][_repayKreskoAsset].lastDebtIndex = uint128(newDebtIndex);
-            irs().srUserInfo[_account][_repayKreskoAsset].lastUpdateTimestamp = uint40(block.timestamp);
 
             // Update the global stability rate
             irs().srAssets[_repayKreskoAsset].updateStabilityRate();

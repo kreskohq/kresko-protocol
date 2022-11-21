@@ -55,7 +55,6 @@ library LibRepay {
         // Decrease the scaled debt and set user asset's last debt index
         irs().srUserInfo[_account][_kreskoAsset].debtScaled -= uint128(amountScaled);
         irs().srUserInfo[_account][_kreskoAsset].lastDebtIndex = uint128(newDebtIndex);
-        irs().srUserInfo[_account][_kreskoAsset].lastUpdateTimestamp = uint40(block.timestamp);
         // Update the stability rate for the asset
         irs().srAssets[_kreskoAsset].updateStabilityRate();
     }
@@ -92,7 +91,6 @@ library LibRepay {
             self.getKreskoAssetDebtPrincipal(_account, _kreskoAsset).wadToRay().rayDiv(newDebtIndex)
         );
         irs().srUserInfo[_account][_kreskoAsset].lastDebtIndex = uint128(newDebtIndex);
-        irs().srUserInfo[_account][_kreskoAsset].lastUpdateTimestamp = uint40(block.timestamp);
 
         // Remove from minted kresko assets if debt is cleared
         if (self.getKreskoAssetDebtPrincipal(_account, _kreskoAsset) == 0) {
