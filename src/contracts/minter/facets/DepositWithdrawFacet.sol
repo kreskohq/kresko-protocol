@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 
-import {ICollateralAssetFacet} from "../interfaces/ICollateralAssetFacet.sol";
+import {IDepositWithdrawFacet} from "../interfaces/IDepositWithdrawFacet.sol";
 
 import {Error} from "../../libs/Errors.sol";
 import {Role} from "../../libs/Authorization.sol";
@@ -14,10 +14,10 @@ import {irs} from "../InterestRateState.sol";
 
 /**
  * @author Kresko
- * @title CollateralAssetFacet
- * @notice Main end-user functionality concerning collateral assets within the Kresko protocol
+ * @title DepositWithdrawFacet
+ * @notice Main end-user functionality concerning collateral asset deposits and withdrawals within the Kresko protocol
  */
-contract CollateralAssetFacet is DiamondModifiers, MinterModifiers, ICollateralAssetFacet {
+contract DepositWithdrawFacet is DiamondModifiers, MinterModifiers, IDepositWithdrawFacet {
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using FixedPoint for FixedPoint.Unsigned;
 
@@ -29,22 +29,22 @@ contract CollateralAssetFacet is DiamondModifiers, MinterModifiers, ICollateralA
      * @notice Deposits collateral into the protocol.
      * @param _account The user to deposit collateral for.
      * @param _collateralAsset The address of the collateral asset.
-     * @param _amount The amount of the collateral asset to deposit.
+     * @param _depositAmount The amount of the collateral asset to deposit.
      */
     function depositCollateral(
         address _account,
         address _collateralAsset,
-        uint256 _amount
+        uint256 _depositAmount
     ) external nonReentrant collateralAssetExists(_collateralAsset) {
         if (ms().safetyStateSet) {
             ensureNotPaused(_collateralAsset, Action.Deposit);
         }
 
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
-        IERC20Upgradeable(_collateralAsset).safeTransferFrom(msg.sender, address(this), _amount);
+        IERC20Upgradeable(_collateralAsset).safeTransferFrom(msg.sender, address(this), _depositAmount);
 
         // Record the collateral deposit.
-        ms().recordCollateralDeposit(_account, _collateralAsset, _amount);
+        ms().recordCollateralDeposit(_account, _collateralAsset, _depositAmount);
     }
 
     /**
@@ -52,31 +52,31 @@ contract CollateralAssetFacet is DiamondModifiers, MinterModifiers, ICollateralA
      * @dev Requires the post-withdrawal collateral value to violate minimum collateral requirement.
      * @param _account The address to withdraw assets for.
      * @param _collateralAsset The address of the collateral asset.
-     * @param _amount The amount of the collateral asset to withdraw.
+     * @param _withdrawAmount The amount of the collateral asset to withdraw.
      * @param _depositedCollateralAssetIndex The index of the collateral asset in the sender's deposited collateral
      * assets array. Only needed if withdrawing the entire deposit of a particular collateral asset.
      */
     function withdrawCollateral(
         address _account,
         address _collateralAsset,
-        uint256 _amount,
+        uint256 _withdrawAmount,
         uint256 _depositedCollateralAssetIndex
     ) external nonReentrant collateralAssetExists(_collateralAsset) onlyRoleIf(_account != msg.sender, Role.MANAGER) {
         if (ms().safetyStateSet) {
             ensureNotPaused(_collateralAsset, Action.Withdraw);
         }
 
-        uint256 depositAmount = ms().getCollateralDeposits(_account, _collateralAsset);
-        _amount = (_amount > depositAmount ? depositAmount : _amount);
+        uint256 collateralDeposits = ms().getCollateralDeposits(_account, _collateralAsset);
+        _withdrawAmount = (_withdrawAmount > collateralDeposits ? collateralDeposits : _withdrawAmount);
         ms().verifyAndRecordCollateralWithdrawal(
             _account,
             _collateralAsset,
-            _amount,
-            depositAmount,
+            _withdrawAmount,
+            collateralDeposits,
             _depositedCollateralAssetIndex
         );
 
-        IERC20Upgradeable(_collateralAsset).safeTransfer(_account, _amount);
+        IERC20Upgradeable(_collateralAsset).safeTransfer(_account, _withdrawAmount);
     }
 
     /// @dev Simple check for the enabled flag

@@ -52,9 +52,9 @@ library LibMint {
         // Increase principal debt
         self.kreskoAssetDebt[_account][_kreskoAsset] += issued;
         // Update scaled values for the user
-        irs().srAssetsUser[_account][_kreskoAsset].debtScaled += uint128(amountScaled);
-        irs().srAssetsUser[_account][_kreskoAsset].lastDebtIndex = uint128(newDebtIndex);
-        irs().srAssetsUser[_account][_kreskoAsset].lastUpdateTimestamp = uint40(block.timestamp);
+        irs().srUserInfo[_account][_kreskoAsset].debtScaled += uint128(amountScaled);
+        irs().srUserInfo[_account][_kreskoAsset].lastDebtIndex = uint128(newDebtIndex);
+        irs().srUserInfo[_account][_kreskoAsset].lastUpdateTimestamp = uint40(block.timestamp);
         // Update the global rate for the asset
         irs().srAssets[_kreskoAsset].updateStabilityRate();
     }
@@ -100,7 +100,7 @@ library LibMint {
             // Remove the transferAmount from the stored deposit for the account.
             self.collateralDeposits[_account][collateralAssetAddress] -= self
                 .collateralAssets[collateralAssetAddress]
-                .toStaticAmount(transferAmount);
+                .toNonRebasingAmount(transferAmount);
 
             // Transfer the fee to the feeRecipient.
             IERC20Upgradeable(collateralAssetAddress).safeTransfer(self.feeRecipient, transferAmount);

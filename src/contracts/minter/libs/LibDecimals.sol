@@ -83,72 +83,79 @@ library LibDecimals {
     }
 
     /**
-     * @notice Divides an uint256 @param _numerator with @param _price
-     * @dev returns 18 decimals
-     * @param _price value with extOracleDecimals
-     * @param _numerator value to divide with
+     * @notice Divides an uint256 @param _value with @param _priceWithOracleDecimals
+     * @param _value Left side value of the division
+     * @param wadValue result with 18 decimals
      */
-    function divByPrice(uint256 _numerator, uint256 _price) internal view returns (uint256 normalizedOracleValue) {
+    function divByPrice(uint256 _value, uint256 _priceWithOracleDecimals) internal view returns (uint256 wadValue) {
         uint8 oracleDecimals = ms().extOracleDecimals;
-        if (oracleDecimals >= 18) return _price;
-        return (_numerator / _price) * 10**(oracleDecimals);
+        if (oracleDecimals >= 18) return _priceWithOracleDecimals;
+        return (_value / _priceWithOracleDecimals) * 10**(oracleDecimals);
     }
 
     /**
      * @notice Converts an uint256 with extOracleDecimals into a number with 18 decimals
-     * @param _price value with extOracleDecimals
+     * @param _wadPrice value with extOracleDecimals
      */
-    function fromWadPriceToUint(uint256 _price) internal view returns (uint256 normalizedOracleValue) {
+    function fromWadPriceToUint(uint256 _wadPrice) internal view returns (uint256 priceWithOracleDecimals) {
         uint8 oracleDecimals = ms().extOracleDecimals;
-        if (oracleDecimals >= 18) return _price;
-        return _price / 10**(18 - oracleDecimals);
+        if (oracleDecimals == 18) return _wadPrice;
+        return _wadPrice / 10**(18 - oracleDecimals);
     }
 
     /**
-     * @notice Converts an uint256 with extOracleDecimals into a number with 18 decimals
-     * @param _price value with extOracleDecimals
+     * @notice Converts an 18 decimal price to a FixedPoint with extOracleDecimals
+     * @param _wadPrice value with extOracleDecimals
+     * @return priceWithOracleDecimals FixedPoint value with extOracleDecimals
      */
-    function fromWadPriceToFixedPoint(uint256 _price)
+    function fromWadPriceToFixedPoint(uint256 _wadPrice)
         internal
         view
-        returns (FixedPoint.Unsigned memory normalizedOracleValue)
+        returns (FixedPoint.Unsigned memory priceWithOracleDecimals)
     {
         uint8 oracleDecimals = ms().extOracleDecimals;
-        if (oracleDecimals >= 18) return FixedPoint.Unsigned(_price);
-        return FixedPoint.Unsigned(_price / 10**(18 - oracleDecimals));
+        if (oracleDecimals == 18) {
+            return FixedPoint.Unsigned(_wadPrice);
+        }
+        return FixedPoint.Unsigned(_wadPrice / 10**(18 - oracleDecimals));
     }
 
     /**
      * @notice Converts an uint256 with extOracleDecimals into a number with 18 decimals
-     * @param _price value with extOracleDecimals
+     * @param _priceWithOracleDecimals value with extOracleDecimals
+     * @return wadPrice price with 18 decimals
      */
-    function oraclePriceToWad(uint256 _price) internal view returns (uint256 normalizedOracleValue) {
+    function oraclePriceToWad(uint256 _priceWithOracleDecimals) internal view returns (uint256 wadPrice) {
         uint8 oracleDecimals = ms().extOracleDecimals;
-        if (oracleDecimals >= 18) return _price;
-        return _price * 10**(18 - oracleDecimals);
+        if (oracleDecimals == 18) {
+            return _priceWithOracleDecimals;
+        }
+        return _priceWithOracleDecimals * 10**(18 - oracleDecimals);
     }
 
     /**
-     * @notice Converts an uint256 with extOracleDecimals into a number with 18 decimals
-     * @param _price value with extOracleDecimals
+     * @notice Converts an int256 with extOracleDecimals into a number with 18 decimals
+     * @param _priceWithOracleDecimals value with extOracleDecimals
+     * @return wadPrice price with 18 decimals
      */
-    function oraclePriceToWad(int256 _price) internal view returns (uint256 normalizedOracleValue) {
+    function oraclePriceToWad(int256 _priceWithOracleDecimals) internal view returns (uint256 wadPrice) {
         uint8 oracleDecimals = ms().extOracleDecimals;
-        if (oracleDecimals >= 18) return uint256(_price);
-        return uint256(_price) * 10**(18 - oracleDecimals);
+        if (oracleDecimals >= 18) return uint256(_priceWithOracleDecimals);
+        return uint256(_priceWithOracleDecimals) * 10**(18 - oracleDecimals);
     }
 
     /**
-     * @notice Converts an Unsigned FixedPoint number with extOracleDecimals into an uint256 with 18 decimals
-     * @param _price value with extOracleDecimals
+     * @notice Converts an int256 with extOracleDecimals into a number with 18 decimals
+     * @param _priceWithOracleDecimals value with extOracleDecimals
+     * @return wadPrice price with 18 decimals
      */
-    function fromFixedPointPriceToWad(FixedPoint.Unsigned memory _price)
+    function fromFixedPointPriceToWad(FixedPoint.Unsigned memory _priceWithOracleDecimals)
         internal
         view
-        returns (uint256 normalizedOracleValue)
+        returns (uint256 wadPrice)
     {
         uint8 oracleDecimals = ms().extOracleDecimals;
-        if (oracleDecimals >= 18) return _price.rawValue;
-        return _price.rawValue * 10**(18 - oracleDecimals);
+        if (oracleDecimals == 18) return _priceWithOracleDecimals.rawValue;
+        return _priceWithOracleDecimals.rawValue * 10**(18 - oracleDecimals);
     }
 }

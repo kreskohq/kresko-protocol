@@ -6,13 +6,20 @@ import {Action} from "../MinterTypes.sol";
 import {IAccountStateFacet} from "./IAccountStateFacet.sol";
 import {IConfigurationFacet} from "./IConfigurationFacet.sol";
 import {IBurnFacet} from "./IBurnFacet.sol";
+import {IBurnHelperFacet} from "./IBurnHelperFacet.sol";
 import {IMintFacet} from "./IMintFacet.sol";
-import {ICollateralAssetFacet} from "./ICollateralAssetFacet.sol";
+import {IDepositWithdrawFacet} from "./IDepositWithdrawFacet.sol";
+import {ISafetyCouncilFacet} from "./ISafetyCouncilFacet.sol";
 import {IStateFacet} from "./IStateFacet.sol";
+import {IStabilityRateFacet} from "./IStabilityRateFacet.sol";
+import {IInterestLiquidationFacet} from "./IInterestLiquidationFacet.sol";
 import {ILiquidationFacet} from "./ILiquidationFacet.sol";
 import {IAuthorizationFacet} from "../../diamond/interfaces/IAuthorizationFacet.sol";
 import {IOwnershipFacet} from "../../diamond/interfaces/IOwnershipFacet.sol";
 import {KrAsset, CollateralAsset} from "../MinterTypes.sol";
+import "../../libs/Events.sol";
+
+// THIS INTERFACE EXISTS FOR TYPECHAIN PURPOSES
 
 /* solhint-disable no-empty-blocks */
 interface IKresko is
@@ -20,17 +27,15 @@ interface IKresko is
     IStateFacet,
     ILiquidationFacet,
     IConfigurationFacet,
-    ICollateralAssetFacet,
+    IDepositWithdrawFacet,
     IMintFacet,
     IBurnFacet,
+    IBurnHelperFacet,
     IAuthorizationFacet,
-    IOwnershipFacet
+    IOwnershipFacet,
+    IStabilityRateFacet,
+    ISafetyCouncilFacet,
+    IInterestLiquidationFacet
 {
-    function kreskoAssets(address _asset) external view returns (KrAsset memory);
-
-    function kreskoAssetDebt(address _account, address _asset) external view returns (uint256);
-
-    function collateralDeposits(address _account, address _asset) external view returns (uint256);
-
-    function collateralAssets(address _asset) external view returns (CollateralAsset memory);
+    //
 }

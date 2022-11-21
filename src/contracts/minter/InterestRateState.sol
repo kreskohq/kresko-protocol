@@ -46,9 +46,9 @@ struct InterestRateState {
     // asset address -> asset data
     mapping(address => StabilityRateConfig) srAssets;
     // account address -> asset address -> user data
-    mapping(address => mapping(address => StabilityRateUser)) srAssetsUser;
-    // interest rate repayment token is KISS
-    address KISS;
+    mapping(address => mapping(address => StabilityRateUser)) srUserInfo;
+    // interest repayment token is KISS
+    address kiss;
 }
 
 // Storage position

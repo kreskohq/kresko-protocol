@@ -73,9 +73,7 @@ library LibAccount {
     }
 
     /**
-     * @notice Calculates if an account's current collateral value is under its minimum collateral value.
-     * @dev Returns true if the account's current collateral value is below the minimum collateral value.
-     * required to consider the position healthy.
+     * @notice Overload function for calculating liquidatable status with a future liquidated collateral value
      * @param _account The account to check.
      * @param _valueLiquidated Value liquidated, eg. in a batch liquidation
      * @return A boolean indicating if the account can be liquidated.
@@ -95,15 +93,13 @@ library LibAccount {
      * @notice Gets the collateral value of a particular account.
      * @dev O(# of different deposited collateral assets by account) complexity.
      * @param _account The account to calculate the collateral value for.
-     * @return The collateral value of a particular account.
+     * @return totalCollateralValue The collateral value of a particular account.
      */
     function getAccountCollateralValue(MinterState storage self, address _account)
         internal
         view
-        returns (FixedPoint.Unsigned memory)
+        returns (FixedPoint.Unsigned memory totalCollateralValue)
     {
-        FixedPoint.Unsigned memory totalCollateralValue = FixedPoint.Unsigned(0);
-
         address[] memory assets = self.depositedCollateralAssets[_account];
         for (uint256 i = 0; i < assets.length; i++) {
             address asset = assets[i];
@@ -166,7 +162,7 @@ library LibAccount {
         address _account,
         address _asset
     ) internal view returns (uint256) {
-        uint256 debt = self.kreskoAssets[_asset].toRebasingAmount(irs().srAssetsUser[_account][_asset].debtScaled);
+        uint256 debt = self.kreskoAssets[_asset].toRebasingAmount(irs().srUserInfo[_account][_asset].debtScaled);
         if (debt == 0) {
             return 0;
         }

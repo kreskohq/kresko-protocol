@@ -6,6 +6,7 @@ import {Error} from "../../libs/Errors.sol";
 import {Role} from "../../libs/Authorization.sol";
 import {MinterEvent} from "../../libs/Events.sol";
 
+import {IBurnHelperFacet} from "../interfaces/IBurnHelperFacet.sol";
 import {DiamondModifiers, MinterModifiers} from "../../shared/Modifiers.sol";
 import {Action, FixedPoint} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
@@ -16,7 +17,7 @@ import {irs} from "../InterestRateState.sol";
  * @title BurnHelperFacet
  * @notice Helper functions for reducing positions
  */
-contract BurnHelperFacet is DiamondModifiers, MinterModifiers {
+contract BurnHelperFacet is DiamondModifiers, MinterModifiers, IBurnHelperFacet {
     using FixedPoint for FixedPoint.Unsigned;
     using Arrays for address[];
 
@@ -38,20 +39,18 @@ contract BurnHelperFacet is DiamondModifiers, MinterModifiers {
         }
 
         // Get accounts principal debt
-        uint256 burnAmount = s.getKreskoAssetDebtPrincipal(_account, _kreskoAsset);
-        require(burnAmount != 0, Error.ZERO_BURN);
-
-        // If sender repays all principal debt of asset with no stability rate, remove it from minted assets array.
-        // For assets with stability rate the revomal is done when repaying interest
+        uint256 principalDebt = s.getKreskoAssetDebtPrincipal(_account, _kreskoAsset);
+        require(principalDebt != 0, Error.ZERO_BURN);
 
         // Charge the burn fee from collateral of _account
-        s.chargeCloseFee(_account, _kreskoAsset, burnAmount);
+        s.chargeCloseFee(_account, _kreskoAsset, principalDebt);
 
         // Record the burn
-        s.repay(_kreskoAsset, s.kreskoAssets[_kreskoAsset].anchor, burnAmount, _account);
+        s.repay(_kreskoAsset, s.kreskoAssets[_kreskoAsset].anchor, principalDebt, _account);
         uint256 kissRepayAmount = ms().repayFullStabilityRateInterest(_account, _kreskoAsset);
 
-        // If sender repays all principal debt of asset with no stability rate, remove it from minted assets array.
+        // If all all principal debt of asset with NO stability rate configured
+        // -> remove it from minted assets array.
         // For assets with stability rate the revomal is done when repaying interest
         if (irs().srAssets[_kreskoAsset].asset == address(0)) {
             s.mintedKreskoAssets[_account].removeAddress(
@@ -59,8 +58,8 @@ contract BurnHelperFacet is DiamondModifiers, MinterModifiers {
                 ms().getMintedKreskoAssetsIndex(_account, _kreskoAsset)
             );
         }
-        // Emit logs
-        emit MinterEvent.DebtPositionClosed(_account, _kreskoAsset, burnAmount, kissRepayAmount);
+
+        emit MinterEvent.DebtPositionClosed(_account, _kreskoAsset, principalDebt, kissRepayAmount);
     }
 
     /**

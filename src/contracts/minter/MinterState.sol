@@ -64,7 +64,7 @@ struct MinterState {
     /*                                Kresko Assets                               */
     /* -------------------------------------------------------------------------- */
 
-    /// @notice Mapping of Kresko asset token address to information on the Kresko asset.
+    /// @notice Mapping of kresko asset token address to information on the Kresko asset.
     mapping(address => KrAsset) kreskoAssets;
     /// @notice Mapping of account -> krAsset -> debt amount owed to the protocol
     mapping(address => mapping(address => uint256)) kreskoAssetDebt;

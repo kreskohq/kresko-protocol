@@ -38,7 +38,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
 
     /**
      * @notice Attempts to liquidate an account by repaying the portion of the account's Kresko asset
-     *         debt, receiving in return a portion of the account's collateral at a discounted rate.
+     *         princpal debt, receiving in return a portion of the account's collateral at a discounted rate.
      * @param _account The account to attempt to liquidate.
      * @param _repayKreskoAsset The address of the Kresko asset to be repaid.
      * @param _repayAmount The amount of the Kresko asset to be repaid.
@@ -70,6 +70,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         }
 
         // Repay amount USD = repay amount * KR asset USD exchange rate.
+
         FixedPoint.Unsigned memory repayAmountUSD = s.kreskoAssets[_repayKreskoAsset].fixedPointUSD(_repayAmount);
         // Get the scaled debt amount
         uint256 krAssetDebt = s.getKreskoAssetDebtPrincipal(_account, _repayKreskoAsset);
@@ -152,9 +153,9 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
             uint256 amountScaled = destroyed.wadToRay().rayDiv(newDebtIndex);
 
             // Update scaled values for the user
-            irs().srAssetsUser[_account][_repayKreskoAsset].debtScaled -= uint128(amountScaled);
-            irs().srAssetsUser[_account][_repayKreskoAsset].lastDebtIndex = uint128(newDebtIndex);
-            irs().srAssetsUser[_account][_repayKreskoAsset].lastUpdateTimestamp = uint40(block.timestamp);
+            irs().srUserInfo[_account][_repayKreskoAsset].debtScaled -= uint128(amountScaled);
+            irs().srUserInfo[_account][_repayKreskoAsset].lastDebtIndex = uint128(newDebtIndex);
+            irs().srUserInfo[_account][_repayKreskoAsset].lastUpdateTimestamp = uint40(block.timestamp);
 
             // Update the global stability rate
             irs().srAssets[_repayKreskoAsset].updateStabilityRate();
@@ -171,7 +172,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         if (collateralDeposit > _seizeAmount) {
             s.collateralDeposits[_account][_collateralAssetToSeize] -= ms()
                 .collateralAssets[_collateralAssetToSeize]
-                .toStaticAmount(_seizeAmount);
+                .toNonRebasingAmount(_seizeAmount);
         } else {
             // This clause means user either has collateralDeposits equal or less than the _seizeAmount
             _seizeAmount = collateralDeposit;

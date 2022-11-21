@@ -28,7 +28,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         log: !process.env.TEST,
     });
 
-    await hre.Diamond.updateKISS(KISSContract.address);
+    await hre.Diamond.updateKiss(KISSContract.address);
     logger.success("Succesfully created KISS");
 };
 func.skip = async hre => {

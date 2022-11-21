@@ -33,19 +33,19 @@ library LibRepay {
     /// @dev Updates the principal in MinterState and stability rate adjusted values in InterestRateState
     /// @param _kreskoAsset the asset being repaid
     /// @param _anchor the anchor token of the asset being repaid
-    /// @param _amount the asset amount being burned
+    /// @param _burnAmount the asset amount being burned
     /// @param _account the account the debt is subtracted from
     function repay(
         MinterState storage self,
         address _kreskoAsset,
         address _anchor,
-        uint256 _amount,
+        uint256 _burnAmount,
         address _account
     ) internal {
         // Update global debt index for the asset
         uint256 newDebtIndex = irs().srAssets[_kreskoAsset].updateDebtIndex();
         // Get the possibly rebalanced amount of destroyed tokens
-        uint256 destroyed = IKreskoAssetIssuer(_anchor).destroy(_amount, msg.sender);
+        uint256 destroyed = IKreskoAssetIssuer(_anchor).destroy(_burnAmount, msg.sender);
         // Calculate the debt index scaled amount
         uint256 amountScaled = destroyed.wadToRay().rayDiv(newDebtIndex);
         require(amountScaled != 0, Error.INVALID_SCALED_AMOUNT);
@@ -53,9 +53,9 @@ library LibRepay {
         // Decrease the principal debt
         self.kreskoAssetDebt[_account][_kreskoAsset] -= destroyed;
         // Decrease the scaled debt and set user asset's last debt index
-        irs().srAssetsUser[_account][_kreskoAsset].debtScaled -= uint128(amountScaled);
-        irs().srAssetsUser[_account][_kreskoAsset].lastDebtIndex = uint128(newDebtIndex);
-        irs().srAssetsUser[_account][_kreskoAsset].lastUpdateTimestamp = uint40(block.timestamp);
+        irs().srUserInfo[_account][_kreskoAsset].debtScaled -= uint128(amountScaled);
+        irs().srUserInfo[_account][_kreskoAsset].lastDebtIndex = uint128(newDebtIndex);
+        irs().srUserInfo[_account][_kreskoAsset].lastUpdateTimestamp = uint40(block.timestamp);
         // Update the stability rate for the asset
         irs().srAssets[_kreskoAsset].updateStabilityRate();
     }
@@ -63,46 +63,49 @@ library LibRepay {
     /**
      * @notice Repays accrued stability rate interest for a single asset
      * @param _account Account to repay interest for
-     * @param _asset Kresko asset to repay interest for
-     * @return repaymentValue amount repaid
+     * @param _kreskoAsset Kresko asset to repay interest for
+     * @return kissRepayAmount amount repaid
      */
     function repayFullStabilityRateInterest(
         MinterState storage self,
         address _account,
-        address _asset
-    ) internal returns (uint256 repaymentValue) {
+        address _kreskoAsset
+    ) internal returns (uint256 kissRepayAmount) {
         // Update debt index for the asset
-        uint256 newDebtIndex = irs().srAssets[_asset].updateDebtIndex();
+        uint256 newDebtIndex = irs().srAssets[_kreskoAsset].updateDebtIndex();
         // Get the accrued interest in repayment token
-        (, repaymentValue) = self.getKreskoAssetDebtInterest(_account, _asset);
+        (, kissRepayAmount) = self.getKreskoAssetDebtInterest(_account, _kreskoAsset);
 
         // If no interest has accrued no further operations needed
         // Do not revert because we want the preserve new debt index and stability rate
-        if (repaymentValue == 0) {
+        if (kissRepayAmount == 0) {
             // Update stability rate for asset
-            irs().srAssets[_asset].updateStabilityRate();
+            irs().srAssets[_kreskoAsset].updateStabilityRate();
             return 0;
         }
 
         // Transfer the accrued interest
-        IERC20Upgradeable(irs().KISS).safeTransferFrom(msg.sender, self.feeRecipient, repaymentValue);
+        IERC20Upgradeable(irs().kiss).safeTransferFrom(msg.sender, self.feeRecipient, kissRepayAmount);
 
         // Update scaled values for the user
-        irs().srAssetsUser[_account][_asset].debtScaled = uint128(
-            self.getKreskoAssetDebtPrincipal(_account, _asset).wadToRay().rayDiv(newDebtIndex)
+        irs().srUserInfo[_account][_kreskoAsset].debtScaled = uint128(
+            self.getKreskoAssetDebtPrincipal(_account, _kreskoAsset).wadToRay().rayDiv(newDebtIndex)
         );
-        irs().srAssetsUser[_account][_asset].lastDebtIndex = uint128(newDebtIndex);
-        irs().srAssetsUser[_account][_asset].lastUpdateTimestamp = uint40(block.timestamp);
+        irs().srUserInfo[_account][_kreskoAsset].lastDebtIndex = uint128(newDebtIndex);
+        irs().srUserInfo[_account][_kreskoAsset].lastUpdateTimestamp = uint40(block.timestamp);
 
         // Remove from minted kresko assets if debt is cleared
-        if (self.getKreskoAssetDebtPrincipal(_account, _asset) == 0) {
-            self.mintedKreskoAssets[_account].removeAddress(_asset, self.getMintedKreskoAssetsIndex(_account, _asset));
+        if (self.getKreskoAssetDebtPrincipal(_account, _kreskoAsset) == 0) {
+            self.mintedKreskoAssets[_account].removeAddress(
+                _kreskoAsset,
+                self.getMintedKreskoAssetsIndex(_account, _kreskoAsset)
+            );
         }
 
         // Update stability rates
-        irs().srAssets[_asset].updateStabilityRate();
+        irs().srAssets[_kreskoAsset].updateStabilityRate();
         // Emit event with the account, asset and amount repaid
-        emit InterestRateEvent.StabilityRateInterestRepaid(_account, _asset, repaymentValue);
+        emit InterestRateEvent.StabilityRateInterestRepaid(_account, _kreskoAsset, kissRepayAmount);
     }
 
     /**
@@ -111,17 +114,17 @@ library LibRepay {
      *   in reverse order of the account's deposited collateral assets array.
      * @param _account The account to charge the close fee from.
      * @param _kreskoAsset The address of the kresko asset being burned.
-     * @param _kreskoAssetAmountBurned The amount of the kresko asset being burned.
+     * @param _burnAmount The amount of the kresko asset being burned.
      */
     function chargeCloseFee(
         MinterState storage self,
         address _account,
         address _kreskoAsset,
-        uint256 _kreskoAssetAmountBurned
+        uint256 _burnAmount
     ) internal {
         KrAsset memory krAsset = self.kreskoAssets[_kreskoAsset];
         // Calculate the value of the fee according to the value of the krAssets being burned.
-        FixedPoint.Unsigned memory feeValue = krAsset.fixedPointUSD(_kreskoAssetAmountBurned).mul(krAsset.closeFee);
+        FixedPoint.Unsigned memory feeValue = krAsset.fixedPointUSD(_burnAmount).mul(krAsset.closeFee);
 
         // Do nothing if the fee value is 0.
         if (feeValue.rawValue == 0) {
@@ -147,7 +150,7 @@ library LibRepay {
             // Remove the transferAmount from the stored deposit for the account.
             self.collateralDeposits[_account][collateralAssetAddress] -= self
                 .collateralAssets[collateralAssetAddress]
-                .toStaticAmount(transferAmount);
+                .toNonRebasingAmount(transferAmount);
 
             // Transfer the fee to the feeRecipient.
             IERC20Upgradeable(collateralAssetAddress).safeTransfer(self.feeRecipient, transferAmount);

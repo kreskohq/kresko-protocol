@@ -127,6 +127,7 @@ library Error {
     string public constant KISS_NOT_SET = "607"; // the debt index is > max uint128
     string public constant STABILITY_RATE_REPAYMENT_AMOUNT_ZERO = "608"; // interest being repaid cannot be 0
     string public constant STABILITY_RATE_INTEREST_IS_ZERO = "609"; // account must have accrued interest to repay it
+    string public constant INTEREST_REPAY_NOT_PARTIAL = "610"; // account must have accrued interest to repay it
 
     /* -------------------------------------------------------------------------- */
     /*                              7. AMM ORACLE                                 */

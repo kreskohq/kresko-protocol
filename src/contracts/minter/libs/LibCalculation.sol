@@ -87,13 +87,13 @@ library LibCalculation {
     function getValueUnderForAssetPair(
         MinterState storage self,
         address _account,
-        address _krAsset,
+        address _kreskoAsset,
         address _collateralAsset
     ) internal view returns (FixedPoint.Unsigned memory) {
         // Minimum collateral value required for the krAsset position
         FixedPoint.Unsigned memory minCollateralValue = self.getMinimumCollateralValueAtRatio(
-            _krAsset,
-            self.getKreskoAssetDebtPrincipal(_account, _krAsset),
+            _kreskoAsset,
+            self.getKreskoAssetDebtPrincipal(_account, _kreskoAsset),
             self.liquidationThreshold
         );
         // Collateral value for this position
@@ -121,7 +121,7 @@ library LibCalculation {
 
     /**
      * @notice Calculates the fee to be taken from a user's deposited collateral assets.
-     * @param _collateralAssetAddress The collateral asset from which to take to the fee.
+     * @param _collateralAsset The collateral asset from which to take to the fee.
      * @param _account The owner of the collateral.
      * @param _feeValue The original value of the fee.
      * @param _collateralAssetIndex The collateral asset's index in the user's depositedCollateralAssets array.
@@ -131,16 +131,16 @@ library LibCalculation {
      */
     function calcFee(
         MinterState storage self,
-        address _collateralAssetAddress,
+        address _collateralAsset,
         address _account,
         FixedPoint.Unsigned memory _feeValue,
         uint256 _collateralAssetIndex
     ) internal returns (uint256 transferAmount, FixedPoint.Unsigned memory feeValuePaid) {
-        uint256 depositAmount = self.getCollateralDeposits(_account, _collateralAssetAddress);
+        uint256 depositAmount = self.getCollateralDeposits(_account, _collateralAsset);
 
         // Don't take the collateral asset's collateral factor into consideration.
         (FixedPoint.Unsigned memory depositValue, FixedPoint.Unsigned memory oraclePrice) = self
-            .getCollateralValueAndOraclePrice(_collateralAssetAddress, depositAmount, true);
+            .getCollateralValueAndOraclePrice(_collateralAsset, depositAmount, true);
 
         // If feeValue < depositValue, the entire fee can be charged for this collateral asset.
         if (_feeValue.isLessThan(depositValue)) {
@@ -158,7 +158,7 @@ library LibCalculation {
             // We see that:
             //   transferAmount <= feeValue / oraclePrice < depositAmount
             //   transferAmount < depositAmount
-            transferAmount = self.collateralAssets[_collateralAssetAddress].decimals.fromCollateralFixedPointAmount(
+            transferAmount = self.collateralAssets[_collateralAsset].decimals.fromCollateralFixedPointAmount(
                 _feeValue.div(oraclePrice)
             );
             feeValuePaid = _feeValue;
@@ -168,7 +168,7 @@ library LibCalculation {
             transferAmount = depositAmount;
             feeValuePaid = depositValue;
             // Because the entire deposit is taken, remove it from the depositCollateralAssets array.
-            self.depositedCollateralAssets[_account].removeAddress(_collateralAssetAddress, _collateralAssetIndex);
+            self.depositedCollateralAssets[_account].removeAddress(_collateralAsset, _collateralAssetIndex);
         }
 
         return (transferAmount, feeValuePaid);

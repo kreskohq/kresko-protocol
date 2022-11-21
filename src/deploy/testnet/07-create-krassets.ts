@@ -15,7 +15,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         decimals: 18,
     });
 
-    await hre.Diamond.updateKISS(KISSContract.address);
+    await hre.Diamond.updateKiss(KISSContract.address);
 
     for (const krAsset of krAssets) {
         const isDeployed = await hre.deployments.getOrNull(krAsset.symbol);
@@ -24,7 +24,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         logger.log(`Deploying krAsset ${krAsset.name}`);
         const asset = await createKrAsset(krAsset.name, krAsset.symbol);
         // Configure stability rates
-        await hre.Diamond.initializeStabilityRateForAsset(asset.address, defaultKrAssetArgs.stabilityRates);
+        await hre.Diamond.setupStabilityRateParams(asset.address, defaultKrAssetArgs.stabilityRates);
         logger.log(`Deployed ${krAsset.name}`);
     }
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 
-interface ICollateralAssetFacet {
+interface IDepositWithdrawFacet {
     function depositCollateral(
         address _account,
         address _collateralAsset,

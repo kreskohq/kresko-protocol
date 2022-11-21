@@ -1,8 +1,8 @@
+import { oneRay } from "@kreskolabs/lib/dist/numbers/wadray";
 import { expect } from "@test/chai";
 import { defaultCollateralArgs, defaultKrAssetArgs, withFixture } from "@utils/test";
-import { oneRay } from "@kreskolabs/lib/dist/numbers/wadray";
-import { StabilityRateFacet } from "types/typechain/src/contracts/minter/facets/StabilityRateFacet";
 import hre from "hardhat";
+import { StabilityRateParamsStruct } from "types/typechain/src/contracts/minter/facets/StabilityRateFacet";
 
 describe("Interest Rates", function () {
     withFixture(["minter-test", "interest-rate"]);
@@ -28,7 +28,7 @@ describe("Interest Rates", function () {
         });
 
         it("configures correct stability rates", async function () {
-            const configuration: StabilityRateFacet.StabilityRateSetupStruct = {
+            const configuration: StabilityRateParamsStruct = {
                 stabilityRateBase: oneRay,
                 rateSlope1: oneRay.mul(10),
                 rateSlope2: oneRay.mul(50),
@@ -36,7 +36,7 @@ describe("Interest Rates", function () {
                 priceRateDelta: oneRay.div(100).mul(10),
             };
 
-            await hre.Diamond.configureStabilityRatesForAsset(this.krAsset.address, configuration);
+            await hre.Diamond.updateStabilityRateParams(this.krAsset.address, configuration);
 
             const config = await hre.Diamond.getStabilityRateConfigurationForAsset(this.krAsset.address);
 
@@ -53,26 +53,25 @@ describe("Interest Rates", function () {
             expect(config.priceRateDelta).to.bignumber.equal(configuration.priceRateDelta);
         });
         it("cant set incorrect values", async function () {
-            const incorrectOptimalRate: StabilityRateFacet.StabilityRateSetupStruct = {
+            const incorrectOptimalRate: StabilityRateParamsStruct = {
                 stabilityRateBase: oneRay,
                 rateSlope1: oneRay.mul(10),
                 rateSlope2: oneRay.mul(50),
                 optimalPriceRate: oneRay.add(1),
                 priceRateDelta: oneRay.div(100).mul(10),
             };
-            const incorrectExcessRate: StabilityRateFacet.StabilityRateSetupStruct = {
+            const incorrectExcessRate: StabilityRateParamsStruct = {
                 stabilityRateBase: oneRay,
                 rateSlope1: oneRay.mul(10),
                 rateSlope2: oneRay.mul(50),
                 optimalPriceRate: oneRay,
                 priceRateDelta: oneRay.add(1),
             };
-            await expect(
-                hre.Diamond.initializeStabilityRateForAsset(this.krAsset.address, defaultKrAssetArgs.stabilityRates),
-            ).to.be.reverted;
-            await expect(hre.Diamond.configureStabilityRatesForAsset(this.krAsset.address, incorrectOptimalRate)).to.be
+            await expect(hre.Diamond.setupStabilityRateParams(this.krAsset.address, defaultKrAssetArgs.stabilityRates))
+                .to.be.reverted;
+            await expect(hre.Diamond.updateStabilityRateParams(this.krAsset.address, incorrectOptimalRate)).to.be
                 .reverted;
-            await expect(hre.Diamond.configureStabilityRatesForAsset(this.krAsset.address, incorrectExcessRate)).to.be
+            await expect(hre.Diamond.updateStabilityRateParams(this.krAsset.address, incorrectExcessRate)).to.be
                 .reverted;
         });
     });

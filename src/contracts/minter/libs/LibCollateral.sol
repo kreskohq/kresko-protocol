@@ -75,11 +75,11 @@ library LibCollateral {
         MinterState storage self,
         address _account,
         address _collateralAsset,
-        uint256 _amount,
-        uint256 _depositAmount,
+        uint256 _withdrawAmount,
+        uint256 _collateralDeposits,
         uint256 _depositedCollateralAssetIndex
     ) internal {
-        require(_amount > 0, Error.ZERO_WITHDRAW);
+        require(_withdrawAmount > 0, Error.ZERO_WITHDRAW);
         require(
             _depositedCollateralAssetIndex <= self.depositedCollateralAssets[_account].length - 1,
             Error.ARRAY_OUT_OF_BOUNDS
@@ -94,7 +94,7 @@ library LibCollateral {
         // Get the collateral value that the account will lose as a result of this withdrawal.
         (FixedPoint.Unsigned memory withdrawnCollateralValue, ) = self.getCollateralValueAndOraclePrice(
             _collateralAsset,
-            _amount,
+            _withdrawAmount,
             false // Take the collateral factor into consideration.
         );
         // Get the account's minimum collateral value.
@@ -109,17 +109,17 @@ library LibCollateral {
         );
 
         // Record the withdrawal.
-        self.collateralDeposits[_account][_collateralAsset] = self.collateralAssets[_collateralAsset].toStaticAmount(
-            _depositAmount - _amount
-        );
+        self.collateralDeposits[_account][_collateralAsset] = self
+            .collateralAssets[_collateralAsset]
+            .toNonRebasingAmount(_collateralDeposits - _withdrawAmount);
 
         // If the user is withdrawing all of the collateral asset, remove the collateral asset
         // from the user's deposited collateral assets array.
-        if (_amount == _depositAmount) {
+        if (_withdrawAmount == _collateralDeposits) {
             self.depositedCollateralAssets[_account].removeAddress(_collateralAsset, _depositedCollateralAssetIndex);
         }
 
-        emit MinterEvent.CollateralWithdrawn(_account, _collateralAsset, _amount);
+        emit MinterEvent.CollateralWithdrawn(_account, _collateralAsset, _collateralDeposits);
     }
 
     /**
@@ -127,18 +127,18 @@ library LibCollateral {
      * @dev Token transfers are expected to be done by the caller.
      * @param _account The address of the collateral asset.
      * @param _collateralAsset The address of the collateral asset.
-     * @param _amount The amount of the collateral asset deposited.
+     * @param _depositAmount The amount of the collateral asset deposited.
      */
     function recordCollateralDeposit(
         MinterState storage self,
         address _account,
         address _collateralAsset,
-        uint256 _amount
+        uint256 _depositAmount
     ) internal {
         // Because the depositedCollateralAssets[_account] is pushed to if the existing
         // deposit amount is 0, require the amount to be > 0. Otherwise, the depositedCollateralAssets[_account]
         // could be filled with duplicates, causing collateral to be double-counted in the collateral value.
-        require(_amount > 0, Error.ZERO_DEPOSIT);
+        require(_depositAmount > 0, Error.ZERO_DEPOSIT);
 
         // If the account does not have an existing deposit for this collateral asset,
         // push it to the list of the account's deposited collateral assets.
@@ -150,9 +150,9 @@ library LibCollateral {
         unchecked {
             self.collateralDeposits[_account][_collateralAsset] = self
                 .collateralAssets[_collateralAsset]
-                .toStaticAmount(existingDepositAmount + _amount);
+                .toNonRebasingAmount(existingDepositAmount + _depositAmount);
         }
 
-        emit MinterEvent.CollateralDeposited(_account, _collateralAsset, _amount);
+        emit MinterEvent.CollateralDeposited(_account, _collateralAsset, _depositAmount);
     }
 }

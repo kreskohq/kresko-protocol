@@ -31,14 +31,14 @@ contract MintFacet is DiamondModifiers, MinterModifiers, IMintFacet {
      * @notice Mints new Kresko assets.
      * @param _account The address to mint assets for.
      * @param _kreskoAsset The address of the Kresko asset.
-     * @param _amount The amount of the Kresko asset to be minted.
+     * @param _mintAmount The amount of the Kresko asset to be minted.
      */
     function mintKreskoAsset(
         address _account,
         address _kreskoAsset,
-        uint256 _amount
+        uint256 _mintAmount
     ) external nonReentrant kreskoAssetExists(_kreskoAsset) onlyRoleIf(_account != msg.sender, Role.MANAGER) {
-        require(_amount > 0, Error.ZERO_MINT);
+        require(_mintAmount > 0, Error.ZERO_MINT);
 
         MinterState storage s = ms();
         if (s.safetyStateSet) {
@@ -50,12 +50,12 @@ contract MintFacet is DiamondModifiers, MinterModifiers, IMintFacet {
 
         require(krAsset.oracle.latestMarketOpen(), Error.KRASSET_MARKET_CLOSED);
         require(
-            IKreskoAsset(_kreskoAsset).totalSupply() + _amount <= krAsset.supplyLimit,
+            IKreskoAsset(_kreskoAsset).totalSupply() + _mintAmount <= krAsset.supplyLimit,
             Error.KRASSET_MAX_SUPPLY_REACHED
         );
 
         if (krAsset.openFee.rawValue > 0) {
-            s.chargeOpenFee(_account, _kreskoAsset, _amount);
+            s.chargeOpenFee(_account, _kreskoAsset, _mintAmount);
         }
         {
             // Get the account's current minimum collateral value required to maintain current debts.
@@ -64,7 +64,7 @@ contract MintFacet is DiamondModifiers, MinterModifiers, IMintFacet {
             require(
                 s
                     .getAccountMinimumCollateralValueAtRatio(_account, s.minimumCollateralizationRatio)
-                    .add(s.getMinimumCollateralValueAtRatio(_kreskoAsset, _amount, s.minimumCollateralizationRatio))
+                    .add(s.getMinimumCollateralValueAtRatio(_kreskoAsset, _mintAmount, s.minimumCollateralizationRatio))
                     .isLessThanOrEqual(s.getAccountCollateralValue(_account)),
                 Error.KRASSET_COLLATERAL_LOW
             );
@@ -73,7 +73,7 @@ contract MintFacet is DiamondModifiers, MinterModifiers, IMintFacet {
         // The synthetic asset debt position must be greater than the minimum debt position value
         uint256 existingDebt = s.getKreskoAssetDebtScaled(_account, _kreskoAsset);
         require(
-            krAsset.fixedPointUSD(existingDebt + _amount).isGreaterThanOrEqual(s.minimumDebtValue),
+            krAsset.fixedPointUSD(existingDebt + _mintAmount).isGreaterThanOrEqual(s.minimumDebtValue),
             Error.KRASSET_MINT_AMOUNT_LOW
         );
 
@@ -84,10 +84,10 @@ contract MintFacet is DiamondModifiers, MinterModifiers, IMintFacet {
         }
 
         // Record the mint.
-        s.mint(_kreskoAsset, krAsset.anchor, _amount, _account);
+        s.mint(_kreskoAsset, krAsset.anchor, _mintAmount, _account);
 
         // Emit logs
-        emit MinterEvent.KreskoAssetMinted(_account, _kreskoAsset, _amount);
+        emit MinterEvent.KreskoAssetMinted(_account, _kreskoAsset, _mintAmount);
     }
 
     /// @dev Simple check for the enabled flag

@@ -10,12 +10,20 @@ import {StabilityRateConfig} from "../InterestRateState.sol";
 import {ms} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";
 import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
+import {IStabilityRateFacet} from "../interfaces/IStabilityRateFacet.sol";
 import {MinterModifiers, DiamondModifiers, Error} from "../../shared/Modifiers.sol";
 import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
-import "hardhat/console.sol";
 
 /* solhint-disable var-name-mixedcase */
-/* solhint-disable func-name-mixedcase */
+
+// Stability Rate setup params
+struct StabilityRateParams {
+    uint128 stabilityRateBase;
+    uint128 rateSlope1;
+    uint128 rateSlope2;
+    uint128 optimalPriceRate;
+    uint128 priceRateDelta;
+}
 
 /**
  * @title Stability rate facet
@@ -23,7 +31,7 @@ import "hardhat/console.sol";
  * @notice Stability rate related views and state operations
  * @dev Uses both MinterState (ms) and InterestRateState (irs)
  */
-contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
+contract StabilityRateFacet is MinterModifiers, DiamondModifiers, IStabilityRateFacet {
     using Arrays for address[];
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using WadRay for uint256;
@@ -32,15 +40,6 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
     using LibDecimals for uint256;
     using FixedPoint for uint256;
     using FixedPoint for FixedPoint.Unsigned;
-
-    // Stability Rate setup struct
-    struct StabilityRateSetup {
-        uint128 stabilityRateBase;
-        uint128 rateSlope1;
-        uint128 rateSlope2;
-        uint128 optimalPriceRate;
-        uint128 priceRateDelta;
-    }
 
     /* -------------------------------------------------------------------------- */
     /*                              ASSET STATE WRITES                            */
@@ -51,8 +50,8 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
      * @param _asset asset to setup
      * @param _setup setup parameters
      */
-    function initializeStabilityRateForAsset(address _asset, StabilityRateSetup memory _setup) external onlyOwner {
-        require(irs().KISS != address(0), Error.KISS_NOT_SET);
+    function setupStabilityRateParams(address _asset, StabilityRateParams memory _setup) external onlyOwner {
+        require(irs().kiss != address(0), Error.KISS_NOT_SET);
         require(irs().srAssets[_asset].asset == address(0), Error.STABILITY_RATES_ALREADY_INITIALIZED);
         require(WadRay.RAY >= _setup.optimalPriceRate, Error.INVALID_OPTIMAL_RATE);
         require(WadRay.RAY >= _setup.priceRateDelta, Error.INVALID_PRICE_RATE_DELTA);
@@ -84,7 +83,7 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
      * @param _asset asset to configure
      * @param _setup setup parameters
      */
-    function configureStabilityRatesForAsset(address _asset, StabilityRateSetup memory _setup) external onlyOwner {
+    function updateStabilityRateParams(address _asset, StabilityRateParams memory _setup) external onlyOwner {
         require(irs().srAssets[_asset].asset == _asset, Error.STABILITY_RATES_NOT_INITIALIZED);
         require(WadRay.RAY >= _setup.optimalPriceRate, Error.INVALID_OPTIMAL_RATE);
         require(WadRay.RAY >= _setup.priceRateDelta, Error.INVALID_PRICE_RATE_DELTA);
@@ -113,11 +112,11 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
 
     /**
      * @notice Sets the protocol AMM oracle address
-     * @param _KISS  The address of the oracle
+     * @param _kiss  The address of the oracle
      */
-    function updateKISS(address _KISS) external onlyOwner {
-        irs().KISS = _KISS;
-        emit InterestRateEvent.KISSUpdated(_KISS);
+    function updateKiss(address _kiss) external onlyOwner {
+        irs().kiss = _kiss;
+        emit InterestRateEvent.KISSUpdated(_kiss);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -127,84 +126,75 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
     /**
      * @notice Repays part of accrued stability rate interest for a single asset
      * @param _account Account to repay interest for
-     * @param _asset Kresko asset to repay interest for
-     * @return repaymentValue value repaid
+     * @param _kreskoAsset Kresko asset to repay interest for
+     * @param _kissRepayAmount USD value to repay (KISS)
      */
     function repayStabilityRateInterestPartial(
         address _account,
-        address _asset,
-        uint256 _usdAmount
-    ) external nonReentrant kreskoAssetExists(_asset) returns (uint256 repaymentValue) {
+        address _kreskoAsset,
+        uint256 _kissRepayAmount
+    ) external nonReentrant kreskoAssetExists(_kreskoAsset) {
         // Update debt index for the asset
-        uint256 newDebtIndex = irs().srAssets[_asset].updateDebtIndex();
+        uint256 newDebtIndex = irs().srAssets[_kreskoAsset].updateDebtIndex();
 
         // Get the accrued interest in repayment token
-        (, uint256 maxKissAmount) = ms().getKreskoAssetDebtInterest(_account, _asset);
+        (, uint256 maxKissRepayAmount) = ms().getKreskoAssetDebtInterest(_account, _kreskoAsset);
+        require(_kissRepayAmount < maxKissRepayAmount, Error.INTEREST_REPAY_NOT_PARTIAL);
 
-        // If no interest has accrued or 0 was supplied - no further operations needed
+        // If no interest has accrued or 0 amount was supplied as parameter - no further operations needed
         // Do not revert because we want the preserve new debt index and stability rate
-        if (maxKissAmount == 0 || _usdAmount == 0) {
+        // Also removes the need to check if the kresko asset exists as the maxKissAmount will return 0
+        if (_kissRepayAmount == 0 || maxKissRepayAmount == 0) {
             // Update stability rate for asset
-            irs().srAssets[_asset].updateStabilityRate();
-            return 0;
-        }
-
-        // In overflow we can repay all interest
-        if (_usdAmount > maxKissAmount) {
-            _usdAmount = maxKissAmount;
+            irs().srAssets[_kreskoAsset].updateStabilityRate();
+            return;
         }
 
         // Transfer the accrued interest
-        IERC20Upgradeable(irs().KISS).safeTransferFrom(msg.sender, ms().feeRecipient, _usdAmount);
-        uint256 assetAmount = _usdAmount.divByPrice(ms().kreskoAssets[_asset].uintPrice());
+        IERC20Upgradeable(irs().kiss).safeTransferFrom(msg.sender, ms().feeRecipient, _kissRepayAmount);
+        uint256 assetAmount = _kissRepayAmount.divByPrice(ms().kreskoAssets[_kreskoAsset].uintPrice());
         uint256 amountScaled = assetAmount.wadToRay().rayDiv(newDebtIndex);
         // Update scaled values for the user
-        irs().srAssetsUser[_account][_asset].debtScaled -= uint128(amountScaled);
-        irs().srAssetsUser[_account][_asset].lastDebtIndex = uint128(newDebtIndex);
-        irs().srAssetsUser[_account][_asset].lastUpdateTimestamp = uint40(block.timestamp);
+        irs().srUserInfo[_account][_kreskoAsset].debtScaled -= uint128(amountScaled);
+        irs().srUserInfo[_account][_kreskoAsset].lastDebtIndex = uint128(newDebtIndex);
+        irs().srUserInfo[_account][_kreskoAsset].lastUpdateTimestamp = uint40(block.timestamp);
         // Update stability rate for asset
-        irs().srAssets[_asset].updateStabilityRate();
+        irs().srAssets[_kreskoAsset].updateStabilityRate();
 
-        // Remove from minted kresko assets if debt is cleared
-        if (
-            ms().getKreskoAssetDebtPrincipal(_account, _asset) == 0 &&
-            irs().srAssetsUser[_account][_asset].debtScaled == 0
-        ) {
-            ms().mintedKreskoAssets[_account].removeAddress(_asset, ms().getMintedKreskoAssetsIndex(_account, _asset));
-        }
         // Emit event with the account, asset and amount repaid
-        emit InterestRateEvent.StabilityRateInterestRepaid(_account, _asset, repaymentValue);
+        emit InterestRateEvent.StabilityRateInterestRepaid(_account, _kreskoAsset, _kissRepayAmount);
     }
 
     /**
      * @notice Repays accrued stability rate interest for a single asset
      * @param _account Account to repay interest for
-     * @param _asset Kresko asset to repay interest for
-     * @return repaymentValue value repaid
+     * @param _kreskoAsset Kresko asset to repay interest for
+     * @return kissRepayAmount KISS value repaid
      */
-    function repayFullStabilityRateInterest(address _account, address _asset)
+    function repayFullStabilityRateInterest(address _account, address _kreskoAsset)
         external
         nonReentrant
-        kreskoAssetExists(_asset)
-        returns (uint256 repaymentValue)
+        kreskoAssetExists(_kreskoAsset)
+        returns (uint256 kissRepayAmount)
     {
-        return ms().repayFullStabilityRateInterest(_account, _asset);
+        return ms().repayFullStabilityRateInterest(_account, _kreskoAsset);
     }
 
     /**
      * @notice Repays all accrued stability rate interest for an account
      * @param _account Account to repay all asset interests for
+     * @return kissRepayAmount KISS value repaid
      */
     function batchRepayFullStabilityRateInterest(address _account)
         external
         nonReentrant
-        returns (uint256 repaymentValue)
+        returns (uint256 kissRepayAmount)
     {
         address[] memory mintedKreskoAssets = ms().getMintedKreskoAssets(_account);
         for (uint256 i; i < mintedKreskoAssets.length; i++) {
-            repaymentValue += ms().repayFullStabilityRateInterest(_account, mintedKreskoAssets[i]);
+            kissRepayAmount += ms().repayFullStabilityRateInterest(_account, mintedKreskoAssets[i]);
         }
-        emit InterestRateEvent.StabilityRateInterestBatchRepaid(_account, repaymentValue);
+        emit InterestRateEvent.StabilityRateInterestBatchRepaid(_account, kissRepayAmount);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -262,8 +252,8 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
     /**
      * @notice The configured address of KISS
      */
-    function KISS() external view returns (address) {
-        return irs().KISS;
+    function kiss() external view returns (address) {
+        return irs().kiss;
     }
 
     /**
@@ -276,8 +266,8 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
         view
         returns (uint128 lastDebtIndex, uint40 lastUpdateTimestamp)
     {
-        lastDebtIndex = irs().srAssetsUser[_account][_asset].lastDebtIndex;
-        lastUpdateTimestamp = irs().srAssetsUser[_account][_asset].lastUpdateTimestamp;
+        lastDebtIndex = irs().srUserInfo[_account][_asset].lastDebtIndex;
+        lastUpdateTimestamp = irs().srUserInfo[_account][_asset].lastUpdateTimestamp;
     }
 
     /**

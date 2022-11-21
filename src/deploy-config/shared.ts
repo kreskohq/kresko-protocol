@@ -20,18 +20,18 @@ export const diamondFacets = [
 export const anchorTokenPrefix = "a";
 
 export const minterFacets = [
-    "ConfigurationFacet",
-    "SafetyCouncilFacet",
     "AccountStateFacet",
-    "LiquidationFacet",
-    "BurnHelperFacet",
-    "InterestLiquidationFacet",
-    "CollateralAssetFacet",
-    "MintFacet",
     "BurnFacet",
+    "BurnHelperFacet",
+    "ConfigurationFacet",
+    "DepositWithdrawFacet",
+    "InterestLiquidationFacet",
+    "LiquidationFacet",
+    "MintFacet",
+    "SafetyCouncilFacet",
     "StateFacet",
-    "UIDataProviderFacet",
     "StabilityRateFacet",
+    "UIDataProviderFacet",
 ];
 
 export const getMinterInitializer = async (
