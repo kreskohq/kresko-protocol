@@ -84,7 +84,7 @@ const config: HardhatUserConfig = {
     external: {
         contracts: [
             {
-                artifacts: "node_modules/@kreskolabs/gnosis-safe-contracts/build/artifacts",
+                artifacts: "./node_modules/@kreskolabs/gnosis-safe-contracts/build/artifacts",
             },
         ],
     },
@@ -113,8 +113,8 @@ const config: HardhatUserConfig = {
     diamondAbi: [
         {
             name: "Kresko",
-            include: ["facets*"],
-            exclude: ["vendor", "test/*", "interfaces/*", "KreskoAsset", "KreskoAssetAnchor", "KrStaking"],
+            include: ["facets/*"],
+            exclude: ["vendor", "test/*", "interfaces/*", "krasset/*", "KrStaking"],
             strict: false,
         },
     ],

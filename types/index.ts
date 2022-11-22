@@ -55,3 +55,12 @@ export type GnosisSafeDeployment = {
     };
     abi: any;
 }
+
+export type InterestRateConfig = {
+    debtRateBase: BigNumber,
+    reserveFactor: BigNumber,
+    rateSlope1: BigNumber,
+    rateSlope2: BigNumber,
+    optimalPriceRate: BigNumber,
+    excessPriceRate: BigNumber,
+}

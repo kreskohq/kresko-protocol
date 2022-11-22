@@ -9,7 +9,6 @@ import "./libraries/UniswapV2Library.sol";
 import "./libraries/SafeMath.sol";
 import "@uniswap/lib/contracts/libraries/TransferHelper.sol";
 
-import "hardhat/console.sol";
 
 contract UniswapV2Router02 is IUniswapV2Router02 {
     using SafeMath for uint256;

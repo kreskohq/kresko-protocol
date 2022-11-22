@@ -16,6 +16,7 @@ import type {
     Kresko,
     IERC20MetadataUpgradeable,
     ERC20Upgradeable,
+    UniswapV2Oracle,
 } from "types/typechain";
 import type { BytesLike } from "ethers";
 import type { GnosisSafeL2 } from "./typechain/GnosisSafeL2";
@@ -104,8 +105,8 @@ declare module "mocha" {
         // @todo DEPRECATING
         admin: string;
         userOne: string;
-        UniFactory: UniswapV2Factory;
-        UniRouter: UniswapV2Router02;
+        UniV2Factory: UniswapV2Factory;
+        UniV2Router: UniswapV2Router02;
         lpPair: UniswapV2Pair;
         userTwo: string;
         treasury: string;
@@ -226,9 +227,12 @@ declare module "hardhat/types/runtime" {
         uniPairs: {
             [name: string]: UniswapV2Pair;
         };
+        UniV2Oracle: UniswapV2Oracle;
         /* -------------------------------------------------------------------------- */
         /*                             Misc / Deprecating                             */
         /* -------------------------------------------------------------------------- */
+        UniV2Factory: UniswapV2Factory;
+        UniV2Router: UniswapV2Router02;
         utils: typeof import("ethers/lib/utils");
         // @todo DEPRECATING
         priceFeeds: {

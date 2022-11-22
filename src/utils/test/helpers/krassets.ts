@@ -14,6 +14,11 @@ import { TestKreskoAssetArgs, defaultKrAssetArgs, TestKreskoAssetUpdate, InputAr
 import roles from "../roles";
 import { getMockOracleFor, setPrice, setMarketOpen } from "./general";
 
+export const getDebtIndexAdjustedBalance = async (user: SignerWithAddress, asset: KrAsset) => {
+    const balance = await asset.contract.balanceOf(user.address);
+    return [balance, balance.rayMul(await hre.Diamond.getDebtIndexForAsset(asset.address))];
+};
+
 export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAssetArgs): Promise<KrAsset> => {
     const users = await getUsers();
     const { name, symbol, price, marketOpen, factor, supplyLimit, closeFee, openFee } = args;
@@ -48,6 +53,7 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
         toFixedPoint(openFee),
     );
     await krAsset.grantRole(roles.OPERATOR, akrAsset.address);
+    await hre.Diamond.initializeStabilityRateForAsset(krAsset.address, defaultKrAssetArgs.stabilityRates);
 
     const krAssetHasOperator = await krAsset.hasRole(roles.OPERATOR, hre.Diamond.address);
     const akrAssetHasOperator = await akrAsset.hasRole(roles.OPERATOR, hre.Diamond.address);
@@ -74,7 +80,14 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
         priceFeed: FluxPriceFeed__factory.connect(Oracle.address, users.deployer),
         mocks,
         anchor: KreskoAssetAnchor__factory.connect(akrAsset.address, users.deployer),
-        setPrice: price => setPrice(OracleAggregator, price),
+        setPrice: price => setPrice(mocks, price),
+        setBalance: async (user, amount) => {
+            const totalSupply = await krAsset.totalSupply();
+            await mocks.contract.setVariable("_totalSupply", totalSupply.add(amount));
+            await mocks.contract.setVariable("_balances", {
+                [user.address]: amount,
+            });
+        },
         getPrice: () => OracleAggregator.latestAnswer(),
         setMarketOpen: marketOpen => setMarketOpen(OracleAggregator, marketOpen),
         getMarketOpen: () => OracleAggregator.latestMarketOpen(),

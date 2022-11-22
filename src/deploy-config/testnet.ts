@@ -137,7 +137,7 @@ export const assets: { [asset: string]: Asset } = {
         decimals: 18,
         price: async () => toBig(await getPriceFromTwelveData("QQQ"), 8),
         marketOpen: async () => {
-            return true;  // TODO:
+            return true; // TODO:
         },
         oracle: {
             name: "QQQUSD",
@@ -153,7 +153,7 @@ export const assets: { [asset: string]: Asset } = {
         decimals: 18,
         price: async () => toBig(await getPriceFromTwelveData("IAU"), 8),
         marketOpen: async () => {
-            return true;  // TODO:
+            return true; // TODO:
         },
         oracle: {
             name: "GOLDUSD",
@@ -169,7 +169,7 @@ export const assets: { [asset: string]: Asset } = {
         decimals: 18,
         price: async () => toBig(await getPriceFromTwelveData("GME"), 8),
         marketOpen: async () => {
-            return true;  // TODO:
+            return true; // TODO:
         },
         oracle: {
             name: "GMEUSD",

@@ -141,8 +141,6 @@ export const networks = (mnemonic: string) => ({
         accounts: { mnemonic, count: 100 },
         url: RPC.optimism.goerli.default,
         chainId: chainIds.opgoerli,
-        saveDeployments: true,
-        tags: ["testnet"],
     },
     kovan: {
         chainId: chainIds.kovan,

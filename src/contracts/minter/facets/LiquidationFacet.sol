@@ -2,11 +2,12 @@
 pragma solidity >=0.8.14;
 
 import {ILiquidationFacet} from "../interfaces/ILiquidationFacet.sol";
-import {IKreskoAssetIssuer} from "../../krAsset/IKreskoAssetIssuer.sol";
+import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
 
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
 import {Math} from "../../libs/Math.sol";
+import {WadRay} from "../../libs/WadRay.sol";
 import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {MinterEvent} from "../../libs/Events.sol";
 
@@ -15,12 +16,18 @@ import {DiamondModifiers} from "../../shared/Modifiers.sol";
 
 import {Constants, KrAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
-import "hardhat/console.sol";
+import {irs} from "../InterestRateState.sol";
 
+/**
+ * @author Kresko
+ * @title LiquidationFacet
+ * @notice Main end-user functionality concerning liquidations within the Kresko protocol
+ */
 contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
     using Arrays for address[];
     using Math for uint8;
     using Math for FixedPoint.Unsigned;
+    using WadRay for uint256;
     using FixedPoint for FixedPoint.Unsigned;
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
@@ -62,8 +69,8 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
             FixedPoint.Unsigned(uint256(s.kreskoAssets[_repayKreskoAsset].oracle.latestAnswer()))
         );
 
-        // Get the token debt amount
-        uint256 krAssetDebt = s.getKreskoAssetDebt(_account, _repayKreskoAsset);
+        // Get the scaled debt amount
+        uint256 krAssetDebt = s.getKreskoAssetDebtPrincipal(_account, _repayKreskoAsset);
         // Avoid stack too deep error
         {
             // Liquidator may not repay more value than what the liquidation pair allows
@@ -131,11 +138,23 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
     ) internal returns (uint256) {
         MinterState storage s = ms();
         KrAsset memory krAsset = s.kreskoAssets[_repayKreskoAsset];
-        // Subtract repaid Kresko assets from liquidated user's recorded debt.
-        s.kreskoAssetDebt[_account][_repayKreskoAsset] -= IKreskoAssetIssuer(krAsset.anchor).destroy(
-            _repayAmount,
-            msg.sender
-        );
+
+        {
+            // Subtract repaid Kresko assets from liquidated user's recorded debt.
+            uint256 destroyed = IKreskoAssetIssuer(krAsset.anchor).destroy(_repayAmount, msg.sender);
+            s.kreskoAssetDebt[_account][_repayKreskoAsset] -= destroyed;
+
+            // Update stability rate values
+            uint256 newDebtIndex = irs().srAssets[_repayKreskoAsset].updateDebtIndex();
+            uint256 amountScaled = destroyed.wadToRay().rayDiv(newDebtIndex);
+
+            // Update user scaled debt and last index
+            irs().srAssetsUser[_account][_repayKreskoAsset].debtScaled -= uint128(amountScaled);
+            irs().srAssetsUser[_account][_repayKreskoAsset].lastDebtIndex = uint128(newDebtIndex);
+
+            // Update the global stability rate
+            irs().srAssets[_repayKreskoAsset].updateStabilityRate();
+        }
 
         // If the liquidation repays the user's entire Kresko asset balance, remove it from minted assets array.
         if (s.kreskoAssetDebt[_account][_repayKreskoAsset] == 0) {

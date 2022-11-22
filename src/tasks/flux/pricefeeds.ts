@@ -9,7 +9,7 @@ task("deployone:fluxpricefeed")
     .addParam("description", "The description of the contract")
     .addOptionalParam("validator", "The validator allowed to post data to the contract")
     .addOptionalParam("wait", "wait confirmations", 1, types.int)
-    .addOptionalParam("log", "log information", true, types.boolean)
+    .addOptionalParam("log", "log information", !process.env.TEST, types.boolean)
     .setAction(async function (taskArgs: TaskArguments, hre) {
         const { deploy, getNamedAccounts, priceFeeds } = hre;
         const { admin, deployer } = await getNamedAccounts();
@@ -32,7 +32,7 @@ task("deployone:fluxpricefeed")
         }
 
         // TODO: used for local testing with kresko-oracle
-        const kreskoOracleAddr = "0xB76982b8e49CEf7dc984c8e2CB87000422aE73bB"
+        const kreskoOracleAddr = "0xB76982b8e49CEf7dc984c8e2CB87000422aE73bB";
         const kreskoOracleHasValidatorRole = await PriceFeed.hasRole(VALIDATOR_ROLE, kreskoOracleAddr);
         if (!kreskoOracleHasValidatorRole) {
             await PriceFeed.connect(users.admin).grantRole(VALIDATOR_ROLE, kreskoOracleAddr);

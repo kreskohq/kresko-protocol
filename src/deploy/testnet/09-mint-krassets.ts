@@ -20,7 +20,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     await kresko
         .connect(users.deployer)
-        .mintKreskoAsset(users.deployer.address, (await hre.ethers.getContract("KISS")).address, toBig(800_000_000));
+        .mintKreskoAsset(users.deployer.address, (await hre.ethers.getContract("KISS")).address, toBig(1200_000_000));
 
     for (const krAsset of krAssets) {
         const asset = await hre.ethers.getContract<KreskoAsset>(krAsset.symbol);

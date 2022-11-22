@@ -12,6 +12,10 @@ import {KrAsset} from "../MinterTypes.sol";
 uint256 constant ONE_HUNDRED_PERCENT = 1e18;
 uint256 constant ONE_USD = 1e18;
 
+/**
+ * @title Calculation library for liquidation & fee values
+ * @author Kresko
+ */
 library LibCalc {
     using Arrays for address[];
     using Math for uint8;
@@ -75,7 +79,7 @@ library LibCalc {
         // Minimum collateral value required for the krAsset position
         FixedPoint.Unsigned memory minCollateralValue = self.getMinimumCollateralValueAtRatio(
             _krAsset,
-            self.getKreskoAssetDebt(_account, _krAsset),
+            self.getKreskoAssetDebtPrincipal(_account, _krAsset),
             self.liquidationThreshold
         );
         // Collateral value for this position

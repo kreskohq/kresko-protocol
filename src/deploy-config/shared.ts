@@ -24,9 +24,11 @@ export const minterFacets = [
     "SafetyCouncilFacet",
     "AccountStateFacet",
     "LiquidationFacet",
-    "ActionFacet",
+    "CollateralAssetFacet",
+    "KreskoAssetFacet",
     "StateFacet",
     "UIDataProviderFacet",
+    "StabilityRateFacet",
 ];
 
 export const getMinterInitializer = async (

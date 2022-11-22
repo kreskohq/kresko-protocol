@@ -107,7 +107,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             break;
         }
         default: {
-
             await deploy("SimulateTxAccessor", {
                 from: deployer,
                 args: [],

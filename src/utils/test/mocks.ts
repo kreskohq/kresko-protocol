@@ -1,5 +1,6 @@
 import { anchorTokenPrefix } from "@deploy-config/shared";
 import { toBig, toFixedPoint } from "@kreskolabs/lib/dist/numbers";
+import { HALF_PERCENTAGE, PERCENTAGE_FACTOR, oneRay, HALF_RAY } from "@kreskolabs/lib/dist/numbers/wadray";
 
 export type TestCollateralAssetArgs = {
     name: string;
@@ -23,7 +24,7 @@ export type InputArgs = {
 export type TestKreskoAssetArgs = {
     name: string;
     symbol?: string;
-    wrapperSymbol?: string;
+    anchorSymbol?: string;
     price: number;
     marketOpen: boolean;
     oracle?: string;
@@ -63,6 +64,14 @@ export const defaultKrAssetArgs = {
     supplyLimit: defaultSupplyLimit,
     closeFee: defaultCloseFee,
     openFee: defaultOpenFee,
+    stabilityRates: {
+        stabilityRateBase: oneRay.div(10000).mul(25), // 0.25%
+        reserveFactor: PERCENTAGE_FACTOR, // 100%
+        rateSlope1: oneRay.div(1000).mul(3),
+        rateSlope2: oneRay.div(1000).mul(30),
+        optimalPriceRate: oneRay, // price parity = 1 ray
+        priceRateDelta: oneRay.div(1000).mul(25), // 2.5% delta
+    },
 };
 
 export const defaultCollateralArgs = {

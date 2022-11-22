@@ -11,13 +11,14 @@ import hre from "hardhat";
 import { getInternalEvent, fromBig, toBig } from "@kreskolabs/lib";
 import { executeContractCallWithSigners } from "@utils/gnosis/utils/execution";
 import { Error } from "@utils/test/errors";
-import { addMockCollateralAsset } from "@utils/test/helpers/collaterals";
+import { addMockCollateralAsset, depositCollateral, withdrawCollateral } from "@utils/test/helpers/collaterals";
 import { expect } from "chai";
 import { MinterEvent__factory } from "types";
 import type {
     CollateralDepositedEventObject,
     CollateralWithdrawnEventObject,
 } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
+import { BigNumber } from "ethers";
 
 describe("Minter", function () {
     let users: Users;
@@ -495,46 +496,26 @@ describe("Minter", function () {
                     });
 
                     it("should allow withdraws that exceed deposits and only send the user total deposit available", async function () {
-                        const userOneInitialCollateralBalance = await this.collateral.contract.balanceOf(
-                            users.userOne.address,
-                        );
+                        const user = users.userFour;
 
-                        // First repay Kresko assets so we can withdraw all collateral
-                        await expect(
-                            hre.Diamond.connect(users.userOne).burnKreskoAsset(
-                                users.userOne.address,
-                                this.krAsset.address,
-                                this.mintAmount,
-                                0,
-                            ),
-                        ).to.not.be.reverted;
+                        await this.collateral.setBalance(user, BigNumber.from(0));
+                        await this.collateral.setBalance(user, toBig(1000));
+                        await this.collateral.contract
+                            .connect(user)
+                            .approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
 
-                        // The burn fee was taken from deposited collateral, so fetch the current deposited amount
-                        const currentAmountDeposited = await hre.Diamond.collateralDeposits(
-                            users.userOne.address,
-                            this.collateral.address,
-                        );
+                        await depositCollateral({
+                            asset: this.collateral,
+                            amount: toBig(1000),
+                            user,
+                        });
 
-                        const overflowWithdrawAmount = currentAmountDeposited.add(toBig(10));
-                        await hre.Diamond.connect(users.userOne).withdrawCollateral(
-                            users.userOne.address,
-                            this.collateral.address,
-                            overflowWithdrawAmount,
-                            0,
-                        );
-
-                        // Check that the user's full deposited amount was withdrawn instead of the overflow amount
-                        const userOneBalanceAfterOverflowWithdraw = await this.collateral.contract.balanceOf(
-                            users.userOne.address,
-                        );
-                        expect(userOneBalanceAfterOverflowWithdraw).eq(
-                            userOneInitialCollateralBalance.add(currentAmountDeposited),
-                        );
-
-                        const kreskoCollateralBalanceAfterOverflowWithdraw = await this.collateral.contract.balanceOf(
-                            hre.Diamond.address,
-                        );
-                        expect(kreskoCollateralBalanceAfterOverflowWithdraw).eq(0);
+                        await withdrawCollateral({
+                            asset: this.collateral,
+                            amount: toBig(1010),
+                            user,
+                        });
+                        expect(await this.collateral.contract.balanceOf(user.address)).to.equal(toBig(1000));
                     });
 
                     it("should revert if withdrawing an amount of 0", async function () {

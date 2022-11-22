@@ -18,7 +18,10 @@ using LibAccount for MinterState global;
 using LibRepay for MinterState global;
 using LibMint for MinterState global;
 
-/// @title Complete storage layout for the minter state
+/**
+ * @title Storage layout for the minter state
+ * @author Kresko
+ */
 struct MinterState {
     /* -------------------------------------------------------------------------- */
     /*                               Initialization                               */
@@ -33,6 +36,8 @@ struct MinterState {
 
     /// @notice The recipient of protocol fees.
     address feeRecipient;
+    /// @notice The AMM oracle address.
+    address ammOracle;
     /// @notice The factor used to calculate the incentive a liquidator receives in the form of seized collateral.
     FixedPoint.Unsigned liquidationIncentiveMultiplier;
     /// @notice The absolute minimum ratio of collateral value to debt value used to calculate collateral requirements.

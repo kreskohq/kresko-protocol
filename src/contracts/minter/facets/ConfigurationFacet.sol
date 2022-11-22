@@ -3,9 +3,9 @@ pragma solidity >=0.8.14;
 
 import {IERC165} from "../../shared/IERC165.sol";
 import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
-import {IKreskoAssetAnchor} from "../../krAsset/IKreskoAssetAnchor.sol";
-import {IKreskoAsset} from "../../krAsset/IKreskoAsset.sol";
-import {IKreskoAssetIssuer} from "../../krAsset/IKreskoAssetIssuer.sol";
+import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
+import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
+import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
 import {IKISS} from "../../kiss/interfaces/IKISS.sol";
 
 import {IConfigurationFacet} from "../interfaces/IConfigurationFacet.sol";
@@ -24,11 +24,11 @@ import {MinterInitArgs, CollateralAsset, KrAsset, AggregatorV2V3Interface, Fixed
 import {ms} from "../MinterStorage.sol";
 
 /**
- * @title Functionality for `Role.OPERATOR` level actions
  * @author Kresko
+ * @title ConfigurationFacet
+ * @notice Functionality for `Role.OPERATOR` level actions.
  * @notice Can be only initialized by the `Role.ADMIN`
  */
-
 contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfigurationFacet {
     using FixedPoint for FixedPoint.Unsigned;
 
@@ -62,6 +62,10 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         ms().initializations = 1;
         ms().domainSeparator = Meta.domainSeparator("Kresko Minter", "V1");
         emit GeneralEvent.Initialized(args.operator, 1);
+    }
+
+    function setAmmOracle(address _ammOracle) external onlyOwner {
+        ms().ammOracle = _ammOracle;
     }
 
     /**

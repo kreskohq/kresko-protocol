@@ -3,6 +3,7 @@ import { createKrAsset } from "@scripts/create-krasset";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import { testnetConfigs } from "@deploy-config/testnet";
 import { getLogger } from "@kreskolabs/lib/dist/utils";
+import { defaultKrAssetArgs } from "@utils/test";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("deploy-krasset");
@@ -13,12 +14,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
         logger.log(`Deploying krAsset ${krAsset.name}`);
         if (krAsset.name === "KISS") {
-            await hre.run("deploy-kiss", {
+            const { contract } = await hre.run("deploy-kiss", {
                 amount: krAsset.mintAmount,
                 decimals: 18,
             });
+            await hre.Diamond.initializeStabilityRateForAsset(contract.address, defaultKrAssetArgs.stabilityRates);
         } else {
-            await createKrAsset(krAsset.name, krAsset.symbol);
+            const asset = await createKrAsset(krAsset.name, krAsset.symbol);
+            await hre.Diamond.initializeStabilityRateForAsset(asset.address, defaultKrAssetArgs.stabilityRates);
         }
         logger.log(`Deployed ${krAsset.name}`);
     }

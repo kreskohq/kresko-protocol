@@ -29,7 +29,7 @@ const getLiqAmount = async (user: SignerWithAddress, krAsset: any, collateral: a
         console.log("Max Liquidatable Value:", maxLiquidatableValue);
         console.log("Max Liquidatable KrAsset Amount:", maxLiquidatableValue / krAssetPrice);
     }
-    return maxLiquidatableValue / krAssetPrice;
+    return Math.min(maxLiquidatableValue / krAssetPrice);
 };
 
 export const liquidate = async (user: SignerWithAddress, krAsset: any, collateral: any) => {
@@ -37,25 +37,33 @@ export const liquidate = async (user: SignerWithAddress, krAsset: any, collatera
     const debtBefore = hre.fromBig(await hre.Diamond.kreskoAssetDebt(user.address, krAsset.address));
 
     const liqAmount = await getLiqAmount(user, krAsset, collateral);
-    await mintKrAsset({
-        user: hre.users.liquidator,
-        asset: krAsset,
-        amount: liqAmount,
-    });
+    if (liqAmount > 0) {
+        await mintKrAsset({
+            user: hre.users.liquidator,
+            asset: krAsset,
+            amount: liqAmount,
+        });
 
-    const tx = await hre.Diamond.connect(hre.users.liquidator).liquidate(
-        user.address,
-        krAsset.address,
-        hre.toBig(liqAmount),
-        collateral.address,
-        await hre.Diamond.getMintedKreskoAssetsIndex(user.address, krAsset.address),
-        await hre.Diamond.getDepositedCollateralAssetIndex(user.address, collateral.address),
-    );
-    const depositsAfter = hre.fromBig(await hre.Diamond.collateralDeposits(user.address, collateral.address));
-    const debtAfter = hre.fromBig(await hre.Diamond.kreskoAssetDebt(user.address, krAsset.address));
-    return {
-        collateralSeized: depositsBefore - depositsAfter,
-        debtRepaid: debtBefore - debtAfter,
-        tx,
-    };
+        const tx = await hre.Diamond.connect(hre.users.liquidator).liquidate(
+            user.address,
+            krAsset.address,
+            hre.toBig(liqAmount),
+            collateral.address,
+            await hre.Diamond.getMintedKreskoAssetsIndex(user.address, krAsset.address),
+            await hre.Diamond.getDepositedCollateralAssetIndex(user.address, collateral.address),
+        );
+        const depositsAfter = hre.fromBig(await hre.Diamond.collateralDeposits(user.address, collateral.address));
+        const debtAfter = hre.fromBig(await hre.Diamond.kreskoAssetDebt(user.address, krAsset.address));
+        return {
+            collateralSeized: depositsBefore - depositsAfter,
+            debtRepaid: debtBefore - debtAfter,
+            tx,
+        };
+    } else {
+        return {
+            collateralSeized: 0,
+            debtRepaid: 0,
+            tx: new Error("Not liquidatable"),
+        };
+    }
 };

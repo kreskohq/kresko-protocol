@@ -5,16 +5,20 @@ pragma solidity >=0.8.14;
  * @title Library for median calculation. Returns 0 if input array is empty.
  */
 library Median {
-    function median(uint256[] memory array, uint256 length) internal pure returns(uint256) {
+    function median(uint256[] memory array, uint256 length) internal pure returns (uint256) {
         require(array.length == length, "length != array.length");
-        if(length == 0) {
+        if (length == 0) {
             return 0;
         }
         sort(array, 0, length);
-        return length % 2 == 0 ? (array[length/2-1]+array[length/2])/2 : array[length/2];
+        return length % 2 == 0 ? (array[length / 2 - 1] + array[length / 2]) / 2 : array[length / 2];
     }
 
-    function sort(uint256[] memory array, uint256 begin, uint256 end) internal pure {
+    function sort(
+        uint256[] memory array,
+        uint256 begin,
+        uint256 end
+    ) internal pure {
         if (begin < end) {
             uint256 j = begin;
             uint256 pivot = array[j];
@@ -29,7 +33,11 @@ library Median {
         }
     }
 
-    function swap(uint256[] memory array, uint256 i, uint256 j) internal pure {
+    function swap(
+        uint256[] memory array,
+        uint256 i,
+        uint256 j
+    ) internal pure {
         (array[i], array[j]) = (array[j], array[i]);
     }
 }

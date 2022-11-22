@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 import {AggregatorV2V3Interface} from "../../vendor/flux/interfaces/AggregatorV2V3Interface.sol";
-import {IKreskoAssetAnchor} from "../../krAsset/IKreskoAssetAnchor.sol";
+import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
 import {MinterEvent} from "../../libs/Events.sol";
 import {Math} from "../../libs/Math.sol";
 import {Arrays} from "../../libs/Arrays.sol";
@@ -11,6 +11,10 @@ import {Error} from "../../libs/Errors.sol";
 import {CollateralAsset} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
 
+/**
+ * @title Library for collateral related operations
+ * @author Kresko
+ */
 library LibCollateral {
     using FixedPoint for FixedPoint.Unsigned;
     using Math for uint8;

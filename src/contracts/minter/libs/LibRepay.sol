@@ -8,20 +8,57 @@ import {MinterEvent} from "../../libs/Events.sol";
 import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {Math} from "../../libs/Math.sol";
 import {Error} from "../../libs/Errors.sol";
+import {WadRay} from "../../libs/WadRay.sol";
+
 import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
+import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
 
 import {LibCalc} from "./LibCalculation.sol";
 import {KrAsset} from "../MinterTypes.sol";
+import {irs} from "../InterestRateState.sol";
 import {MinterState} from "../MinterState.sol";
 
 library LibRepay {
     using Arrays for address[];
+
     using Math for uint8;
     using Math for uint256;
+    using WadRay for uint256;
+
     using FixedPoint for FixedPoint.Unsigned;
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using LibCalc for MinterState;
+
+    /// @notice Repay user kresko asset debt with stability rate updates.
+    /// @dev Updates the principal in MinterState and stability rate adjusted values in InterestRateState
+    /// @param _kreskoAsset the asset being repaid
+    /// @param _anchor the anchor token of the asset being repaid
+    /// @param _amount the asset amount being burned
+    /// @param _account the account the debt is subtracted from
+    function repay(
+        MinterState storage self,
+        address _kreskoAsset,
+        address _anchor,
+        uint256 _amount,
+        address _account
+    ) internal {
+        // Update global debt index for the asset
+        uint256 newDebtIndex = irs().srAssets[_kreskoAsset].updateDebtIndex();
+        // Get the possibly rebalanced amount of destroyed tokens
+        uint256 destroyed = IKreskoAssetIssuer(_anchor).destroy(_amount, msg.sender);
+        // Calculate the debt index scaled amount
+        uint256 amountScaled = destroyed.wadToRay().rayDiv(newDebtIndex);
+        require(amountScaled != 0, Error.INVALID_SCALED_AMOUNT);
+
+        // Decrease the principal debt
+        self.kreskoAssetDebt[_account][_kreskoAsset] -= destroyed;
+        // Decrease the scaled debt and set user asset's last debt index
+        irs().srAssetsUser[_account][_kreskoAsset].debtScaled -= uint128(amountScaled);
+        irs().srAssetsUser[_account][_kreskoAsset].lastDebtIndex = uint128(newDebtIndex);
+        // Update the global rate for the asset
+        irs().srAssets[_kreskoAsset].updateStabilityRate();
+    }
 
     /**
      * @notice Charges the protocol close fee based off the value of the burned asset.

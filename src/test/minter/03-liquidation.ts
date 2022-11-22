@@ -19,6 +19,7 @@ import hre from "hardhat";
 import { MinterEvent__factory } from "types/typechain";
 import { LiquidationOccurredEvent } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
+const INTEREST_RATE_DELTA = 0.01;
 describe("Minter", function () {
     withFixture(["minter-test", "integration"]);
     let users: Users;
@@ -294,7 +295,7 @@ describe("Minter", function () {
                 );
 
                 // Ensure we are repaying more than debt
-                const repayAmount = krAssetDebtUserOne.add(1);
+                const repayAmount = krAssetDebtUserOne.add(hre.toBig(1));
 
                 // Liquidation should fail
                 await expect(
@@ -458,9 +459,9 @@ describe("Minter", function () {
                     userToLiquidateAmounts.krAssetCollateralDeposits,
                 );
 
-                // 1 = collateral value === debt value * MCR
-                expect(await getHealthFactor(userToLiquidate)).to.equal(1.5);
-                expect(await getHealthFactor(userToLiquidateTwo)).to.equal(1.5);
+                // 1.5 = collateral value === debt value * MCR
+                expect(await getHealthFactor(userToLiquidate)).to.lessThanOrEqual(1.51);
+                expect(await getHealthFactor(userToLiquidateTwo)).to.lessThanOrEqual(1.51);
                 // not liquidatable
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidate.address)).to.be.false;
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidateTwo.address)).to.be.false;
@@ -475,7 +476,19 @@ describe("Minter", function () {
                 await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
 
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidate.address)).to.be.false;
-                await expect(liquidate(userToLiquidate, this.krAsset, this.collateral)).to.be.reverted;
+                await expect(
+                    hre.Diamond.connect(hre.users.liquidator).liquidate(
+                        userToLiquidate.address,
+                        this.krAsset.address,
+                        1,
+                        this.collateral.address,
+                        await hre.Diamond.getMintedKreskoAssetsIndex(userToLiquidate.address, this.krAsset.address),
+                        await hre.Diamond.getDepositedCollateralAssetIndex(
+                            userToLiquidate.address,
+                            this.collateral.address,
+                        ),
+                    ),
+                ).to.be.revertedWith(Error.NOT_LIQUIDATABLE);
             });
 
             it("should not allow liquidation of healthy accounts after a negative rebase", async function () {
@@ -488,7 +501,20 @@ describe("Minter", function () {
                 await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
 
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidate.address)).to.be.false;
-                await expect(liquidate(userToLiquidate, this.krAsset, this.collateral)).to.be.reverted;
+
+                await expect(
+                    hre.Diamond.connect(hre.users.liquidator).liquidate(
+                        userToLiquidate.address,
+                        this.krAsset.address,
+                        1,
+                        this.collateral.address,
+                        await hre.Diamond.getMintedKreskoAssetsIndex(userToLiquidate.address, this.krAsset.address),
+                        await hre.Diamond.getDepositedCollateralAssetIndex(
+                            userToLiquidate.address,
+                            this.collateral.address,
+                        ),
+                    ),
+                ).to.be.revertedWith(Error.NOT_LIQUIDATABLE);
             });
             it("should allow liquidations of unhealthy accounts after a positive rebase", async function () {
                 // Rebase params
@@ -573,10 +599,13 @@ describe("Minter", function () {
                 );
                 results.userTwoHFAfter = await getHealthFactor(userToLiquidateTwo);
 
-                expect(results.userTwoHFAfter).to.equal(results.userOneHFAfter);
-                expect(results.collateralSeized * denominator).to.equal(results.collateralSeizedRebase);
-                expect(results.debtRepaid * denominator).to.equal(results.debtRepaidRebase);
-                expect(results.userOneValueAfter).to.equal(results.userTwoValueAfter);
+                expect(results.userTwoHFAfter).to.closeTo(results.userOneHFAfter, INTEREST_RATE_DELTA);
+                expect(results.collateralSeized * denominator).to.closeTo(
+                    results.collateralSeizedRebase,
+                    INTEREST_RATE_DELTA,
+                );
+                expect(results.debtRepaid * denominator).to.closeTo(results.debtRepaidRebase, INTEREST_RATE_DELTA);
+                expect(results.userOneValueAfter).to.closeTo(results.userTwoValueAfter, INTEREST_RATE_DELTA);
             });
             it("should liquidate correct amount of assets after a negative rebase", async function () {
                 // Change price to make user position unhealthy
@@ -631,10 +660,13 @@ describe("Minter", function () {
                 );
                 results.userTwoHFAfter = await getHealthFactor(userToLiquidateTwo);
 
-                expect(results.userTwoHFAfter).to.equal(results.userOneHFAfter);
-                expect(results.collateralSeized / denominator).to.equal(results.collateralSeizedRebase);
-                expect(results.debtRepaid / denominator).to.equal(results.debtRepaidRebase);
-                expect(results.userOneValueAfter).to.equal(results.userTwoValueAfter);
+                expect(results.userTwoHFAfter).to.closeTo(results.userOneHFAfter, INTEREST_RATE_DELTA);
+                expect(results.collateralSeized / denominator).to.closeTo(
+                    results.collateralSeizedRebase,
+                    INTEREST_RATE_DELTA,
+                );
+                expect(results.debtRepaid / denominator).to.closeTo(results.debtRepaidRebase, INTEREST_RATE_DELTA);
+                expect(results.userOneValueAfter).to.closeTo(results.userTwoValueAfter, INTEREST_RATE_DELTA);
             });
         });
     });

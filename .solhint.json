@@ -4,7 +4,7 @@
     "rules": {
         "code-complexity": ["error", 7],
         "func-visibility": ["warn", { "ignoreConstructors": true }],
-        "compiler-version": ["error", ">=0.8.14"],
+        "compiler-version": ["error", "<=0.8.17"],
         "no-inline-assembly": ["off"],
         "max-line-length": ["warn", 120],
         "prettier/prettier": ["error"],

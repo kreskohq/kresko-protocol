@@ -20,8 +20,9 @@ specifiers:
   '@kreskolabs/configs': ^1.3.3
   '@kreskolabs/gnosis-safe-contracts': 1.3.3
   '@kreskolabs/hardhat-deploy': ^2.2.0
-  '@kreskolabs/lib': ^1.4.3
+  '@kreskolabs/lib': ^1.5.2
   '@kreskolabs/openzeppelin-diamond': ^2.0.0
+  '@nomicfoundation/hardhat-network-helpers': ^1.0.6
   '@nomiclabs/hardhat-ethers': npm:hardhat-deploy-ethers@^0.3.0-beta.13
   '@nomiclabs/hardhat-etherscan': ^3.0.3
   '@nomiclabs/hardhat-web3': ^2.0.0
@@ -99,13 +100,14 @@ devDependencies:
   '@kreskolabs/hardhat-deploy': 2.2.0
   '@kreskolabs/lib': 1.5.2
   '@kreskolabs/openzeppelin-diamond': 2.0.0
+  '@nomicfoundation/hardhat-network-helpers': 1.0.6_hardhat@2.11.2
   '@nomiclabs/hardhat-ethers': /hardhat-deploy-ethers/0.3.0-beta.13_liuail6phkx7un26teqxcf6yx4
   '@nomiclabs/hardhat-etherscan': 3.1.1_hardhat@2.11.2
   '@nomiclabs/hardhat-web3': 2.0.0_hardhat@2.11.2+web3@1.8.0
   '@openzeppelin/contracts': 4.7.3
   '@openzeppelin/contracts-upgradeable': 4.7.3
   '@openzeppelin/test-helpers': 0.5.16
-  '@panukresko/hardhat': 0.3.1_hxw5dsgvhdlftutz32cmbwsh6y
+  '@panukresko/hardhat': 0.3.1_2bdytvoba7cafufhnzt53hwiym
   '@rari-capital/solmate': 6.4.0
   '@solidity-parser/parser': 0.14.3
   '@solidstate/hardhat-4byte-uploader': 1.0.2_hardhat@2.11.2
@@ -536,7 +538,7 @@ packages:
     dependencies:
       '@resolver-engine/imports': 0.3.3
       '@resolver-engine/imports-fs': 0.3.3
-      '@typechain/ethers-v5': 2.0.0_typechain@3.0.0
+      '@typechain/ethers-v5': 2.0.0_hvhmgvgv65f7ns5nchpmx3azgq
       '@types/mkdirp': 0.5.2
       '@types/node-fetch': 2.6.2
       ethers: 5.7.1
@@ -1203,6 +1205,15 @@ packages:
       - supports-color
     dev: true
 
+  /@nomicfoundation/hardhat-network-helpers/1.0.6_hardhat@2.11.2:
+    resolution: {integrity: sha512-a35iVD4ycF6AoTfllAnKm96IPIzzHpgKX/ep4oKc2bsUKFfMlacWdyntgC/7d5blyCTXfFssgNAvXDZfzNWVGQ==}
+    peerDependencies:
+      hardhat: ^2.9.5
+    dependencies:
+      ethereumjs-util: 7.1.5
+      hardhat: 2.11.2_mwhvu7sfp6vq5ryuwb6hlbjfka
+    dev: true
+
   /@nomicfoundation/solidity-analyzer-darwin-arm64/0.0.3:
     resolution: {integrity: sha512-W+bIiNiZmiy+MTYFZn3nwjyPUO6wfWJ0lnXx2zZrM8xExKObMrhCh50yy8pQING24mHfpPFCn89wEB/iG7vZDw==}
     engines: {node: '>= 10'}
@@ -1399,10 +1410,12 @@ packages:
       ts-interface-checker: 0.1.13
     dev: true
 
-  /@panukresko/hardhat-anvil/0.3.1_53bcvfa7ua5tuy3gznjdxknfe4:
+  /@panukresko/hardhat-anvil/0.3.1_2bdytvoba7cafufhnzt53hwiym:
     resolution: {integrity: sha512-S81RzoJC08A1qWZpfYc/yjxdtil/xgQUizfvx2LdfC7IhuIXdC1stYi+bUBR4NOdEF/a+9KF8gQTCxWZfA+75w==}
     peerDependencies:
+      '@nomiclabs/hardhat-ethers': npm:hardhat-deploy-ethers@^0.3.0-beta.13
       ethereum-waffle: ^3.2.0
+      ethers: ^5.6.8
       hardhat: ^2.9.9
     dependencies:
       '@nomiclabs/hardhat-ethers': /hardhat-deploy-ethers/0.3.0-beta.13_liuail6phkx7un26teqxcf6yx4
@@ -1418,15 +1431,15 @@ packages:
       hardhat: 2.11.2_mwhvu7sfp6vq5ryuwb6hlbjfka
       ts-interface-checker: 0.1.13
     transitivePeerDependencies:
-      - bufferutil
       - supports-color
-      - utf-8-validate
     dev: true
 
-  /@panukresko/hardhat-forge/0.3.1_53bcvfa7ua5tuy3gznjdxknfe4:
+  /@panukresko/hardhat-forge/0.3.1_2bdytvoba7cafufhnzt53hwiym:
     resolution: {integrity: sha512-rG40F67rDpbhIsufXuqMzyg2wjMaH1wD2reh+zPGbZxUi0MUHGrr9kuhWLB5faqWN9IIiEw4d1HTWBHSZ+uQ/w==}
     peerDependencies:
+      '@nomiclabs/hardhat-ethers': npm:hardhat-deploy-ethers@^0.3.0-beta.13
       ethereum-waffle: ^3.2.0
+      ethers: ^5.6.8
       hardhat: ^2.9.9
     dependencies:
       '@nomiclabs/hardhat-ethers': /hardhat-deploy-ethers/0.3.0-beta.13_liuail6phkx7un26teqxcf6yx4
@@ -1444,22 +1457,21 @@ packages:
       true-case-path: 2.2.1
       ts-interface-checker: 0.1.13
     transitivePeerDependencies:
-      - bufferutil
       - supports-color
-      - utf-8-validate
     dev: true
 
-  /@panukresko/hardhat/0.3.1_hxw5dsgvhdlftutz32cmbwsh6y:
+  /@panukresko/hardhat/0.3.1_2bdytvoba7cafufhnzt53hwiym:
     resolution: {integrity: sha512-f8Nn+zue5sy1opOcCNQqtz8ABYhHlW+vna3ZZUYUbHl28vSp78UfzP7ad5kGpQdKRbnrAzkl4xOKMph6Jr0mYQ==}
     peerDependencies:
       '@nomiclabs/hardhat-ethers': npm:hardhat-deploy-ethers@^0.3.0-beta.13
       ethereum-waffle: ^3.2.0
+      ethers: ^5.6.8
       hardhat: ^2.9.9
     dependencies:
       '@nomiclabs/hardhat-ethers': /hardhat-deploy-ethers/0.3.0-beta.13_liuail6phkx7un26teqxcf6yx4
       '@panukresko/easy-foundryup': 0.3.1
-      '@panukresko/hardhat-anvil': 0.3.1_53bcvfa7ua5tuy3gznjdxknfe4
-      '@panukresko/hardhat-forge': 0.3.1_53bcvfa7ua5tuy3gznjdxknfe4
+      '@panukresko/hardhat-anvil': 0.3.1_2bdytvoba7cafufhnzt53hwiym
+      '@panukresko/hardhat-forge': 0.3.1_2bdytvoba7cafufhnzt53hwiym
       '@types/sinon-chai': 3.2.8
       '@types/web3': 1.0.19
       camelcase-keys: 7.0.2
@@ -1469,9 +1481,7 @@ packages:
       hardhat: 2.11.2_mwhvu7sfp6vq5ryuwb6hlbjfka
       ts-interface-checker: 0.1.13
     transitivePeerDependencies:
-      - bufferutil
       - supports-color
-      - utf-8-validate
     dev: true
 
   /@rari-capital/solmate/6.4.0:
@@ -1838,16 +1848,14 @@ packages:
       typescript: 4.8.4
     dev: true
 
-  /@typechain/ethers-v5/2.0.0_typechain@3.0.0:
+  /@typechain/ethers-v5/2.0.0_hvhmgvgv65f7ns5nchpmx3azgq:
     resolution: {integrity: sha512-0xdCkyGOzdqh4h5JSf+zoWx85IusEjDcPIwNEHP8mrWSnCae4rvrqB+/gtpdNfX7zjlFlZiMeePn2r63EI3Lrw==}
     peerDependencies:
+      ethers: ^5.0.0
       typechain: ^3.0.0
     dependencies:
       ethers: 5.7.1
       typechain: 3.0.0_typescript@4.8.4
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
     dev: true
 
   /@typechain/hardhat/6.1.3_hdc77mquumuyu4r5wip4q5ohha:
@@ -1976,7 +1984,7 @@ packages:
   /@types/node-fetch/2.6.2:
     resolution: {integrity: sha512-DHqhlq5jeESLy19TYhLakJ07kNumXWjcDdxXsLUMJZ6ue8VZJj4kLPQVE/2mdHh3xZziNF1xppu5lwmS53HR+A==}
     dependencies:
-      '@types/node': 13.13.52
+      '@types/node': 14.18.32
       form-data: 3.0.1
     dev: true
 
@@ -4267,8 +4275,8 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
     dependencies:
-      is-text-path: 1.0.1
       JSONStream: 1.3.5
+      is-text-path: 1.0.1
       lodash: 4.17.21
       meow: 8.1.2
       split2: 3.2.2

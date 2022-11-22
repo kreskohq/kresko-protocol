@@ -4,22 +4,59 @@ pragma solidity >=0.8.14;
 // solhint-disable-next-line
 import {SafeERC20Upgradeable, IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
+import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
 import {Arrays} from "../../libs/Arrays.sol";
 import {MinterEvent} from "../../libs/Events.sol";
 import {FixedPoint} from "../../libs/FixedPoint.sol";
+import {Error} from "../../libs/Errors.sol";
 import {Math} from "../../libs/Math.sol";
+import {WadRay} from "../../libs/WadRay.sol";
 
 import {LibCalc} from "./LibCalculation.sol";
 import {KrAsset} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
+import {irs} from "../InterestRateState.sol";
 
 library LibMint {
     using Arrays for address[];
+
     using Math for uint8;
     using Math for uint256;
+    using WadRay for uint256;
+
     using FixedPoint for FixedPoint.Unsigned;
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using LibCalc for MinterState;
+
+    /// @notice Mint kresko assets with stability rate updates.
+    /// @dev Updates the principal in MinterState and stability rate adjusted values in InterestRateState
+    /// @param _kreskoAsset the asset being repaid
+    /// @param _anchor the anchor token of the asset being repaid
+    /// @param _amount the asset amount being burned
+    /// @param _account the account the debt is subtracted from
+    function mint(
+        MinterState storage self,
+        address _kreskoAsset,
+        address _anchor,
+        uint256 _amount,
+        address _account
+    ) internal {
+        // Update global debt index for the asset
+        uint256 newDebtIndex = irs().srAssets[_kreskoAsset].updateDebtIndex();
+        // Get possibly rebalanced amount of kresko asset
+        uint256 issued = IKreskoAssetIssuer(_anchor).issue(_amount, _account);
+        // Calculate debt index scaled value
+        uint256 amountScaled = issued.wadToRay().rayDiv(newDebtIndex);
+        require(amountScaled != 0, Error.INVALID_SCALED_AMOUNT);
+
+        // Increase principal debt
+        self.kreskoAssetDebt[_account][_kreskoAsset] += issued;
+        // Increase scaled debt
+        irs().srAssetsUser[_account][_kreskoAsset].debtScaled += uint128(amountScaled);
+        irs().srAssetsUser[_account][_kreskoAsset].lastDebtIndex = uint128(newDebtIndex);
+        // Update the global rate for the asset
+        irs().srAssets[_kreskoAsset].updateStabilityRate();
+    }
 
     /**
      * @notice Charges the protocol open fee based off the value of the minted asset.

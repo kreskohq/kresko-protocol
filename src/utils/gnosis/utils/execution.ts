@@ -4,6 +4,7 @@ import { Contract, utils, BigNumber, BigNumberish, Signer, PopulatedTransaction 
 import { TypedDataSigner } from "@ethersproject/abstract-signer";
 import { constants } from "ethers";
 import { GnosisSafeL2 } from "types";
+import { ethers } from "hardhat";
 
 export const EIP_DOMAIN = {
     EIP712Domain: [

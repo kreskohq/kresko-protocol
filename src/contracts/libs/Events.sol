@@ -3,6 +3,12 @@ pragma solidity >=0.8.14;
 import {IDiamondCutFacet} from "../diamond/interfaces/IDiamondCutFacet.sol";
 import {Action} from "../minter/MinterTypes.sol";
 
+/**
+ * @author Kresko
+ * @title Events
+ * @notice Event definitions
+ */
+
 library GeneralEvent {
     /**
      * @dev Triggered when the contract has been deployed
