@@ -12,13 +12,10 @@ const func: DeployFunction = async function (hre) {
     const prices = await Promise.all(assets.map(asset => asset.price()));
     const decimals = assets.map(() => 8);
     const marketOpens = await Promise.all(assets.map(asset => asset.marketOpen()));
-
-    const tx = await factory.transmit(pricePairs, decimals, prices, marketOpens, feedValidator.address);
-    console.log(tx.hash);
-
+    await factory.transmit(pricePairs, decimals, prices, marketOpens, feedValidator.address);
     logger.success("All price feeds deployed");
 };
 
-func.tags = ["testnet", "oracle-factory"];
+func.tags = ["testnet", "oracles"];
 
 export default func;

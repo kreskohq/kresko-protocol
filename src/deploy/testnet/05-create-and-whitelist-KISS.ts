@@ -1,6 +1,7 @@
 import { assets, testnetConfigs } from "@deploy-config/testnet";
 import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import { getLogger } from "@kreskolabs/lib/dist/utils";
+import { getOracle } from "@utils/general";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -13,18 +14,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     });
 
     logger.log(`whitelisting KISS`);
-
+    const oracleAddress = await getOracle(assets.KISS.oracle.description, hre);
     await hre.run("add-krasset", {
         symbol: assets.KISS.symbol,
         kFactor: assets.KISS.kFactor,
         supplyLimit: 2_000_000_000,
-        oracleAddr: (await hre.ethers.getContract(assets.KISS.oracle.name)).address,
+        oracleAddr: oracleAddress,
     });
 
     await hre.run("add-collateral", {
         symbol: assets.KISS.symbol,
         cFactor: assets.KISS.cFactor,
-        oracleAddr: (await hre.ethers.getContract(assets.KISS.oracle.name)).address,
+        oracleAddr: oracleAddress,
         log: !process.env.TEST,
     });
 
