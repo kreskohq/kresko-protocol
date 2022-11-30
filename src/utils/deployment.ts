@@ -7,10 +7,10 @@ export const deployWithSignatures =
     (hre: HardhatRuntimeEnvironment) =>
     async <T extends Contract>(name: string, options?: DeployOptions): Promise<DeployResultWithSignatures<T>> => {
         const { getNamedAccounts, deployments, ethers } = hre;
-        const { admin } = await getNamedAccounts();
+        const { testnetAdmin } = await getNamedAccounts();
         const { deploy } = deployments;
         const defaultOptions = {
-            from: admin,
+            from: testnetAdmin,
             log: true,
         };
         const deployment = await deploy(name, options ? { ...options } : defaultOptions);

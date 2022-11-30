@@ -2,6 +2,9 @@ export const users = {
     deployer: {
         default: 0,
     },
+    testnetAdmin: {
+        default: 0,
+    },
     admin: {
         default: 1,
     },

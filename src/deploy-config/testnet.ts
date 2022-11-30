@@ -12,7 +12,9 @@ import {
     SignMessageLib,
     SimulateTxAccessor,
 } from "./gnosis-safe";
-
+export const oracles = {
+    testnet: ["USD", "OPUSD", "SNXUSD", "ETHUSD", "GMEUSD", "TSLAUSD", "QQQUSD", "GOLDUSD"],
+};
 export const assets: { [asset: string]: Asset } = {
     DAI: {
         name: "Dai",
