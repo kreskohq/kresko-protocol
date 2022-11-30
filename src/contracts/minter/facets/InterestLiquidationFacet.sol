@@ -135,7 +135,7 @@ contract InterestLiquidationFacet is DiamondModifiers, IInterestLiquidationFacet
             _repayKreskoAsset,
             kissRepayAmount, // without the liquidation bonus
             _collateralAssetToSeize,
-            collateralAmountSeized // nwith the liquidation bonus
+            collateralAmountSeized // with the liquidation bonus
         );
     }
 
