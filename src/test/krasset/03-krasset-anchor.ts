@@ -1,19 +1,18 @@
 import hre from "hardhat";
 import { expect } from "@test/chai";
-import { withFixture, Role, defaultMintAmount } from "@utils/test";
+import { withFixture, Role, defaultMintAmount, defaultKrAssetArgs } from "@utils/test";
 import { KreskoAssetAnchor } from "types/typechain/src/contracts/kreskoasset/KreskoAssetAnchor";
 
 describe("KreskoAssetAnchor", () => {
     let KreskoAsset: KreskoAsset;
     let KreskoAssetAnchor: KreskoAssetAnchor;
     let addr: Addresses;
-    before(async function () {
-        addr = await hre.getAddresses();
-    });
     withFixture(["minter-test", "krAsset"]);
     beforeEach(async function () {
-        KreskoAsset = hre.krAssets[0].contract;
-        KreskoAssetAnchor = hre.krAssets[0].anchor;
+        addr = await hre.getAddresses();
+        const asset = hre.krAssets.find(asset => asset.deployArgs.symbol === defaultKrAssetArgs.symbol);
+        KreskoAsset = asset.contract;
+        KreskoAssetAnchor = asset.anchor;
         // Grant minting rights for test deployer
         await Promise.all([
             KreskoAsset.grantRole(Role.OPERATOR, addr.deployer),

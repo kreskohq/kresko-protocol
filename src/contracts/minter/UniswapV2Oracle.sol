@@ -25,7 +25,7 @@ contract UniswapV2Oracle {
     IUniswapV2Factory public immutable factory;
     address public owner;
 
-    constructor(address _factory) public {
+    constructor(address _factory) {
         factory = IUniswapV2Factory(_factory);
         owner = msg.sender;
     }
@@ -69,12 +69,12 @@ contract UniswapV2Oracle {
     /**
      * @notice Initializes an AMM pair to the oracle
      * @param _pairAddress Pair address
-     * @param _krAsset Kresko asset in the pair
+     * @param _kreskoAsset Kresko asset in the pair
      * @param _updatePeriod Update period (TWAP)
      */
     function initPair(
         address _pairAddress,
-        address _krAsset,
+        address _kreskoAsset,
         uint256 _updatePeriod
     ) external {
         require(msg.sender == owner, Error.NOT_OWNER);
@@ -86,8 +86,8 @@ contract UniswapV2Oracle {
         address token0 = pair.token0();
         address token1 = pair.token1();
         require(token0 != address(0) && token1 != address(0), Error.PAIR_DOES_NOT_EXIST);
-        if (_krAsset == token0 || _krAsset == token1) {
-            krAssets[_krAsset] = _pairAddress;
+        if (_kreskoAsset == token0 || _kreskoAsset == token1) {
+            krAssets[_kreskoAsset] = _pairAddress;
         }
 
         (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast) = pair.getReserves();
@@ -142,15 +142,15 @@ contract UniswapV2Oracle {
 
     /**
      * @notice Get the AMM price for an amount of krAsset
-     * @param _krAsset Kresko asset address
+     * @param _kreskoAsset Kresko asset address
      * @param _amountIn Amount to get value for
      */
-    function consultKrAsset(address _krAsset, uint256 _amountIn) external view returns (uint256 amountOut) {
-        PairData memory data = pairs[krAssets[_krAsset]];
-        if (_krAsset == data.token0) {
+    function consultKrAsset(address _kreskoAsset, uint256 _amountIn) external view returns (uint256 amountOut) {
+        PairData memory data = pairs[krAssets[_kreskoAsset]];
+        if (_kreskoAsset == data.token0) {
             amountOut = data.price0Average.mul(_amountIn).decode144();
         } else {
-            if (_krAsset != data.token1) {
+            if (_kreskoAsset != data.token1) {
                 amountOut = 0;
             } else {
                 amountOut = data.price1Average.mul(_amountIn).decode144();

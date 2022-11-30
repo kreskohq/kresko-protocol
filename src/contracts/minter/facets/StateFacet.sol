@@ -31,6 +31,10 @@ contract StateFacet is IStateFacet {
         return ms().ammOracle;
     }
 
+    function extOracleDecimals() external view returns (uint8) {
+        return ms().extOracleDecimals;
+    }
+
     function minimumCollateralizationRatio() external view returns (FixedPoint.Unsigned memory) {
         return ms().minimumCollateralizationRatio;
     }
@@ -55,7 +59,8 @@ contract StateFacet is IStateFacet {
                 s.liquidationIncentiveMultiplier,
                 s.minimumDebtValue,
                 s.liquidationThreshold,
-                s.feeRecipient
+                s.feeRecipient,
+                s.extOracleDecimals
             );
     }
 
@@ -63,20 +68,20 @@ contract StateFacet is IStateFacet {
     /*                                   Assets                                   */
     /* -------------------------------------------------------------------------- */
     /**
-     * @notice Returns true if the @param _krAsset exists in the protocol
+     * @notice Returns true if the @param _kreskoAsset exists in the protocol
      * @return exists boolean indicating if the asset exists
      */
-    function krAssetExists(address _krAsset) external view returns (bool exists) {
-        return ms().kreskoAssets[_krAsset].exists;
+    function krAssetExists(address _kreskoAsset) external view returns (bool exists) {
+        return ms().kreskoAssets[_kreskoAsset].exists;
     }
 
     /**
      * @notice Get the state of a specific krAsset
-     * @param _asset Address of the asset.
+     * @param _kreskoAsset Address of the asset.
      * @return asset State of assets `KrAsset` struct
      */
-    function kreskoAsset(address _asset) external view returns (KrAsset memory asset) {
-        return ms().kreskoAsset(_asset);
+    function kreskoAsset(address _kreskoAsset) external view returns (KrAsset memory asset) {
+        return ms().kreskoAsset(_kreskoAsset);
     }
 
     /**
@@ -89,11 +94,11 @@ contract StateFacet is IStateFacet {
 
     /**
      * @notice Get the state of a specific collateral asset
-     * @param _asset Address of the asset.
+     * @param _collateralAsset Address of the asset.
      * @return asset State of assets `CollateralAsset` struct
      */
-    function collateralAsset(address _asset) external view returns (CollateralAsset memory asset) {
-        return ms().collateralAssets[_asset];
+    function collateralAsset(address _collateralAsset) external view returns (CollateralAsset memory asset) {
+        return ms().collateralAssets[_collateralAsset];
     }
 
     /**

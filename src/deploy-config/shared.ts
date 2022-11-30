@@ -20,15 +20,18 @@ export const diamondFacets = [
 export const anchorTokenPrefix = "a";
 
 export const minterFacets = [
-    "ConfigurationFacet",
-    "SafetyCouncilFacet",
     "AccountStateFacet",
+    "BurnFacet",
+    "BurnHelperFacet",
+    "ConfigurationFacet",
+    "DepositWithdrawFacet",
+    "InterestLiquidationFacet",
     "LiquidationFacet",
-    "CollateralAssetFacet",
-    "KreskoAssetFacet",
+    "MintFacet",
+    "SafetyCouncilFacet",
     "StateFacet",
-    "UIDataProviderFacet",
     "StabilityRateFacet",
+    "UIDataProviderFacet",
 ];
 
 export const getMinterInitializer = async (
@@ -48,6 +51,7 @@ export const getMinterInitializer = async (
             minimumCollateralizationRatio: toFixedPoint(process.env.MINIMUM_COLLATERALIZATION_RATIO),
             minimumDebtValue: toFixedPoint(process.env.MINIMUM_DEBT_VALUE, 8),
             liquidationThreshold: toFixedPoint(process.env.LIQUIDATION_THRESHOLD),
+            extOracleDecimals: 8,
         },
     };
 };

@@ -31,10 +31,12 @@ import {ms} from "../MinterStorage.sol";
  */
 contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfigurationFacet {
     using FixedPoint for FixedPoint.Unsigned;
+    using FixedPoint for uint256;
 
     /* -------------------------------------------------------------------------- */
-    /*                                 Initializer                                */
+    /*                                 Initialize                                 */
     /* -------------------------------------------------------------------------- */
+
     function initialize(MinterInitArgs calldata args) external onlyOwner {
         require(ms().initializations == 0, Error.ALREADY_INITIALIZED);
         Authorization._grantRole(Role.OPERATOR, args.operator);
@@ -55,6 +57,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         updateMinimumCollateralizationRatio(args.minimumCollateralizationRatio);
         updateMinimumDebtValue(args.minimumDebtValue);
         updateLiquidationThreshold(args.liquidationThreshold);
+        updateExtOracleDecimals(args.extOracleDecimals);
 
         /// @dev Revoke the operator role
         Authorization.revokeRole(Role.OPERATOR, msg.sender);
@@ -64,9 +67,98 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         emit GeneralEvent.Initialized(args.operator, 1);
     }
 
-    function setAmmOracle(address _ammOracle) external onlyOwner {
-        ms().ammOracle = _ammOracle;
+    /**
+     * @notice Updates the fee recipient.
+     * @param _feeRecipient The new fee recipient.
+     */
+    function updateFeeRecipient(address _feeRecipient) public override onlyRole(Role.OPERATOR) {
+        require(_feeRecipient != address(0), Error.ADDRESS_INVALID_FEERECIPIENT);
+        ms().feeRecipient = _feeRecipient;
+        emit MinterEvent.FeeRecipientUpdated(_feeRecipient);
     }
+
+    /**
+     * @notice Updates the liquidation incentive multiplier.
+     * @param _liquidationIncentiveMultiplier The new liquidation incentive multiplie.
+     */
+    function updateLiquidationIncentiveMultiplier(uint256 _liquidationIncentiveMultiplier)
+        public
+        override
+        onlyRole(Role.OPERATOR)
+    {
+        require(
+            _liquidationIncentiveMultiplier >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
+            Error.PARAM_LIQUIDATION_INCENTIVE_LOW
+        );
+        require(
+            _liquidationIncentiveMultiplier <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER,
+            Error.PARAM_LIQUIDATION_INCENTIVE_HIGH
+        );
+        ms().liquidationIncentiveMultiplier = _liquidationIncentiveMultiplier.toFixedPoint();
+        emit MinterEvent.LiquidationIncentiveMultiplierUpdated(_liquidationIncentiveMultiplier);
+    }
+
+    /**
+     * @dev Updates the contract's collateralization ratio.
+     * @param _minimumCollateralizationRatio The new minimum collateralization ratio as a raw value
+     * for a FixedPoint.Unsigned.
+     */
+    function updateMinimumCollateralizationRatio(uint256 _minimumCollateralizationRatio)
+        public
+        override
+        onlyRole(Role.OPERATOR)
+    {
+        require(
+            _minimumCollateralizationRatio >= Constants.MIN_COLLATERALIZATION_RATIO,
+            Error.PARAM_MIN_COLLATERAL_RATIO_LOW
+        );
+        ms().minimumCollateralizationRatio = _minimumCollateralizationRatio.toFixedPoint();
+        emit MinterEvent.MinimumCollateralizationRatioUpdated(_minimumCollateralizationRatio);
+    }
+
+    /**
+     * @dev Updates the contract's minimum debt value.
+     * @param _minimumDebtValue The new minimum debt value as a raw value for a FixedPoint.Unsigned.
+     */
+    function updateMinimumDebtValue(uint256 _minimumDebtValue) public override onlyRole(Role.OPERATOR) {
+        require(_minimumDebtValue <= Constants.MAX_DEBT_VALUE, Error.PARAM_MIN_DEBT_AMOUNT_HIGH);
+        ms().minimumDebtValue = _minimumDebtValue.toFixedPoint();
+        emit MinterEvent.MinimumDebtValueUpdated(_minimumDebtValue);
+    }
+
+    /**
+     * @dev Updates the contract's liquidation threshold value
+     * @param _liquidationThreshold The new liquidation threshold value
+     */
+    function updateLiquidationThreshold(uint256 _liquidationThreshold) public override onlyRole(Role.OPERATOR) {
+        // Liquidation threshold cannot be greater than minimum collateralization ratio
+        FixedPoint.Unsigned memory newThreshold = _liquidationThreshold.toFixedPoint();
+        require(newThreshold.isLessThanOrEqual(ms().minimumCollateralizationRatio), Error.INVALID_LT);
+
+        ms().liquidationThreshold = newThreshold;
+        emit MinterEvent.LiquidationThresholdUpdated(_liquidationThreshold);
+    }
+
+    /**
+     * @notice Sets the protocol AMM oracle address
+     * @param _ammOracle  The address of the oracle
+     */
+    function updateAMMOracle(address _ammOracle) external onlyOwner {
+        ms().ammOracle = _ammOracle;
+        emit MinterEvent.AMMOracleUpdated(_ammOracle);
+    }
+
+    /**
+     * @notice Sets the decimal precision of external oracle
+     * @param _decimals Amount of decimals
+     */
+    function updateExtOracleDecimals(uint8 _decimals) public onlyOwner {
+        ms().extOracleDecimals = _decimals;
+    }
+
+    /* -------------------------------------------------------------------------- */
+    /*                                 COLLATERAL                                 */
+    /* -------------------------------------------------------------------------- */
 
     /**
      * @notice Adds a collateral asset to the protocol.
@@ -126,14 +218,14 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         if (_anchor != address(0)) {
             ms().collateralAssets[_collateralAsset].anchor = _anchor;
         }
-        ms().collateralAssets[_collateralAsset].factor = FixedPoint.Unsigned(_factor);
+        ms().collateralAssets[_collateralAsset].factor = _factor.toFixedPoint();
         ms().collateralAssets[_collateralAsset].oracle = AggregatorV2V3Interface(_oracle);
 
         emit MinterEvent.CollateralAssetUpdated(_collateralAsset, _factor, _oracle, _anchor);
     }
 
     /* -------------------------------------------------------------------------- */
-    /*                                    Write                                   */
+    /*                               Kresko Assets                                */
     /* -------------------------------------------------------------------------- */
     /**
      * @notice Adds a Kresko asset to the protocol.
@@ -173,12 +265,12 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
 
         // Store details.
         ms().kreskoAssets[_krAsset] = KrAsset({
-            kFactor: FixedPoint.Unsigned(_kFactor),
+            kFactor: _kFactor.toFixedPoint(),
             oracle: AggregatorV2V3Interface(_oracle),
             anchor: _anchor,
             supplyLimit: _supplyLimit,
-            closeFee: FixedPoint.Unsigned(_closeFee),
-            openFee: FixedPoint.Unsigned(_openFee),
+            closeFee: _closeFee.toFixedPoint(),
+            openFee: _openFee.toFixedPoint(),
             exists: true
         });
         emit MinterEvent.KreskoAssetAdded(_krAsset, _anchor, _oracle, _kFactor, _supplyLimit, _closeFee, _openFee);
@@ -218,85 +310,12 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             krAsset.oracle = AggregatorV2V3Interface(_oracle);
         }
 
-        krAsset.kFactor = FixedPoint.Unsigned(_kFactor);
+        krAsset.kFactor = _kFactor.toFixedPoint();
         krAsset.supplyLimit = _supplyLimit;
-        krAsset.closeFee = FixedPoint.Unsigned(_closeFee);
-        krAsset.openFee = FixedPoint.Unsigned(_openFee);
+        krAsset.closeFee = _closeFee.toFixedPoint();
+        krAsset.openFee = _openFee.toFixedPoint();
         ms().kreskoAssets[_krAsset] = krAsset;
 
         emit MinterEvent.KreskoAssetUpdated(_krAsset, _anchor, _oracle, _kFactor, _supplyLimit, _closeFee, _openFee);
-    }
-
-    /**
-     * @notice Updates the fee recipient.
-     * @param _feeRecipient The new fee recipient.
-     */
-    function updateFeeRecipient(address _feeRecipient) public override onlyRole(Role.OPERATOR) {
-        require(_feeRecipient != address(0), Error.ADDRESS_INVALID_FEERECIPIENT);
-        ms().feeRecipient = _feeRecipient;
-        emit MinterEvent.FeeRecipientUpdated(_feeRecipient);
-    }
-
-    /**
-     * @notice Updates the liquidation incentive multiplier.
-     * @param _liquidationIncentiveMultiplier The new liquidation incentive multiplie.
-     */
-    function updateLiquidationIncentiveMultiplier(uint256 _liquidationIncentiveMultiplier)
-        public
-        override
-        onlyRole(Role.OPERATOR)
-    {
-        require(
-            _liquidationIncentiveMultiplier >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
-            Error.PARAM_LIQUIDATION_INCENTIVE_LOW
-        );
-        require(
-            _liquidationIncentiveMultiplier <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER,
-            Error.PARAM_LIQUIDATION_INCENTIVE_HIGH
-        );
-        ms().liquidationIncentiveMultiplier = FixedPoint.Unsigned(_liquidationIncentiveMultiplier);
-        emit MinterEvent.LiquidationIncentiveMultiplierUpdated(_liquidationIncentiveMultiplier);
-    }
-
-    /**
-     * @dev Updates the contract's collateralization ratio.
-     * @param _minimumCollateralizationRatio The new minimum collateralization ratio as a raw value
-     * for a FixedPoint.Unsigned.
-     */
-    function updateMinimumCollateralizationRatio(uint256 _minimumCollateralizationRatio)
-        public
-        override
-        onlyRole(Role.OPERATOR)
-    {
-        require(
-            _minimumCollateralizationRatio >= Constants.MIN_COLLATERALIZATION_RATIO,
-            Error.PARAM_MIN_COLLATERAL_RATIO_LOW
-        );
-        ms().minimumCollateralizationRatio = FixedPoint.Unsigned(_minimumCollateralizationRatio);
-        emit MinterEvent.MinimumCollateralizationRatioUpdated(_minimumCollateralizationRatio);
-    }
-
-    /**
-     * @dev Updates the contract's minimum debt value.
-     * @param _minimumDebtValue The new minimum debt value as a raw value for a FixedPoint.Unsigned.
-     */
-    function updateMinimumDebtValue(uint256 _minimumDebtValue) public override onlyRole(Role.OPERATOR) {
-        require(_minimumDebtValue <= Constants.MAX_DEBT_VALUE, Error.PARAM_MIN_DEBT_AMOUNT_HIGH);
-        ms().minimumDebtValue = FixedPoint.Unsigned(_minimumDebtValue);
-        emit MinterEvent.MinimumDebtValueUpdated(_minimumDebtValue);
-    }
-
-    /**
-     * @dev Updates the contract's liquidation threshold value
-     * @param _liquidationThreshold The new liquidation threshold value
-     */
-    function updateLiquidationThreshold(uint256 _liquidationThreshold) public override onlyRole(Role.OPERATOR) {
-        // Liquidation threshold cannot be greater than minimum collateralization ratio
-        require(
-            FixedPoint.Unsigned(_liquidationThreshold).isLessThanOrEqual(ms().minimumCollateralizationRatio),
-            Error.INVALID_LT
-        );
-        ms().liquidationThreshold = FixedPoint.Unsigned(_liquidationThreshold);
-        emit MinterEvent.LiquidationThresholdUpdated(_liquidationThreshold);
     }
 }

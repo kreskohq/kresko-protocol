@@ -4,6 +4,7 @@ pragma solidity >=0.8.14;
 import {AggregatorV2V3Interface} from "../vendor/flux/interfaces/AggregatorV2V3Interface.sol";
 import {FixedPoint} from "../libs/FixedPoint.sol";
 import {IKreskoAssetAnchor} from "../kreskoasset/IKreskoAssetAnchor.sol";
+import {LibAssetUtility} from "./libs/LibAssetUtility.sol";
 
 /* solhint-disable state-visibility */
 
@@ -78,6 +79,7 @@ struct MinterInitArgs {
     address operator;
     address council;
     address feeRecipient;
+    uint8 extOracleDecimals;
     uint256 liquidationIncentiveMultiplier;
     uint256 minimumCollateralizationRatio;
     uint256 minimumDebtValue;
@@ -94,6 +96,7 @@ struct MinterParams {
     FixedPoint.Unsigned minimumDebtValue;
     FixedPoint.Unsigned liquidationThreshold;
     address feeRecipient;
+    uint8 extOracleDecimals;
 }
 
 /**
@@ -116,7 +119,7 @@ struct KrAsset {
     FixedPoint.Unsigned openFee;
     bool exists;
 }
-
+using LibAssetUtility for KrAsset global;
 /**
  * @notice Information on a token that can be used as collateral.
  * @dev Setting the factor to zero effectively makes the asset useless as collateral while still allowing
@@ -134,6 +137,7 @@ struct CollateralAsset {
     uint8 decimals;
     bool exists;
 }
+using LibAssetUtility for CollateralAsset global;
 
 /// @notice Configuration for pausing `Action`
 struct Pause {

@@ -48,7 +48,7 @@ if (!mnemonic) {
 /*                                Config helpers                              */
 /* -------------------------------------------------------------------------- */
 
-import { reporters } from "mocha";
+// import { reporters } from "mocha";
 
 /* -------------------------------------------------------------------------- */
 /*                                    Tasks                                   */
@@ -69,7 +69,7 @@ const config: HardhatUserConfig = {
     networks: networks(mnemonic),
     namedAccounts: users,
     mocha: {
-        reporter: reporters.Spec,
+        reporter: "mochawesome",
         timeout: process.env.CI ? 45000 : 15000,
     },
     paths: {

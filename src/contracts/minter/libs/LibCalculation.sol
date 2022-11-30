@@ -3,23 +3,20 @@ pragma solidity >=0.8.14;
 
 import {Arrays} from "../../libs/Arrays.sol";
 import {MinterEvent} from "../../libs/Events.sol";
+import {LibDecimals} from "../libs/LibDecimals.sol";
 import {FixedPoint} from "../../libs/FixedPoint.sol";
-import {Math} from "../../libs/Math.sol";
-
 import {MinterState} from "../MinterState.sol";
 import {KrAsset} from "../MinterTypes.sol";
-
-uint256 constant ONE_HUNDRED_PERCENT = 1e18;
-uint256 constant ONE_USD = 1e18;
 
 /**
  * @title Calculation library for liquidation & fee values
  * @author Kresko
  */
-library LibCalc {
+library LibCalculation {
     using Arrays for address[];
-    using Math for uint8;
-    using Math for uint256;
+    using LibDecimals for uint8;
+    using LibDecimals for uint256;
+
     using FixedPoint for FixedPoint.Unsigned;
 
     /**
@@ -59,7 +56,7 @@ library LibCalc {
             // This is desired as they have more seizable value.
             if (
                 self.depositedCollateralAssets[_account].length > 1 &&
-                cFactor.isLessThan(FixedPoint.Unsigned(ONE_HUNDRED_PERCENT))
+                cFactor.isLessThan(FixedPoint.ONE_HUNDRED_PERCENT())
             ) {
                 // cFactor^4 is the diminishing factor (cFactor = 1 == nothing happens)
                 return krAssetSide.mul(cFactor.pow(4)).add(collateralSide);
@@ -70,16 +67,33 @@ library LibCalc {
         }
     }
 
+    /**
+     * @notice Calculate amount of collateral to seize during the liquidation process.
+     * @param _liquidationIncentiveMultiplier The liquidation incentive multiplier.
+     * @param _collateralOraclePriceUSD The address of the collateral asset to be seized.
+     * @param _kreskoAssetRepayAmountUSD Kresko asset amount being repaid in exchange for the seized collateral.
+     */
+    function calculateAmountToSeize(
+        FixedPoint.Unsigned memory _liquidationIncentiveMultiplier,
+        FixedPoint.Unsigned memory _collateralOraclePriceUSD,
+        FixedPoint.Unsigned memory _kreskoAssetRepayAmountUSD
+    ) internal pure returns (FixedPoint.Unsigned memory) {
+        // Seize amount = (repay amount USD * liquidation incentive / collateral price USD).
+        // Denominate seize amount in collateral type
+        // Apply liquidation incentive multiplier
+        return _kreskoAssetRepayAmountUSD.mul(_liquidationIncentiveMultiplier).div(_collateralOraclePriceUSD);
+    }
+
     function getValueUnderForAssetPair(
         MinterState storage self,
         address _account,
-        address _krAsset,
+        address _kreskoAsset,
         address _collateralAsset
     ) internal view returns (FixedPoint.Unsigned memory) {
         // Minimum collateral value required for the krAsset position
         FixedPoint.Unsigned memory minCollateralValue = self.getMinimumCollateralValueAtRatio(
-            _krAsset,
-            self.getKreskoAssetDebtPrincipal(_account, _krAsset),
+            _kreskoAsset,
+            self.getKreskoAssetDebtPrincipal(_account, _kreskoAsset),
             self.liquidationThreshold
         );
         // Collateral value for this position
@@ -107,28 +121,27 @@ library LibCalc {
 
     /**
      * @notice Calculates the fee to be taken from a user's deposited collateral assets.
-     * @param _collateralAssetAddress The collateral asset from which to take to the fee.
+     * @param _collateralAsset The collateral asset from which to take to the fee.
      * @param _account The owner of the collateral.
      * @param _feeValue The original value of the fee.
      * @param _collateralAssetIndex The collateral asset's index in the user's depositedCollateralAssets array.
-     * @return The transfer amount to be received as a uint256 and a FixedPoint.Unsigned
-     * representing the fee value paid.
+     *
+     * @return transferAmount to be received as a uint256
+     * @return feeValuePaid FixedPoint.Unsigned representing the fee value paid.
      */
     function calcFee(
         MinterState storage self,
-        address _collateralAssetAddress,
+        address _collateralAsset,
         address _account,
         FixedPoint.Unsigned memory _feeValue,
         uint256 _collateralAssetIndex
-    ) internal returns (uint256, FixedPoint.Unsigned memory) {
-        uint256 depositAmount = self.getCollateralDeposits(_account, _collateralAssetAddress);
+    ) internal returns (uint256 transferAmount, FixedPoint.Unsigned memory feeValuePaid) {
+        uint256 depositAmount = self.getCollateralDeposits(_account, _collateralAsset);
 
         // Don't take the collateral asset's collateral factor into consideration.
         (FixedPoint.Unsigned memory depositValue, FixedPoint.Unsigned memory oraclePrice) = self
-            .getCollateralValueAndOraclePrice(_collateralAssetAddress, depositAmount, true);
+            .getCollateralValueAndOraclePrice(_collateralAsset, depositAmount, true);
 
-        FixedPoint.Unsigned memory feeValuePaid;
-        uint256 transferAmount;
         // If feeValue < depositValue, the entire fee can be charged for this collateral asset.
         if (_feeValue.isLessThan(depositValue)) {
             // We want to make sure that transferAmount is < depositAmount.
@@ -145,7 +158,7 @@ library LibCalc {
             // We see that:
             //   transferAmount <= feeValue / oraclePrice < depositAmount
             //   transferAmount < depositAmount
-            transferAmount = self.collateralAssets[_collateralAssetAddress].decimals._fromCollateralFixedPointAmount(
+            transferAmount = self.collateralAssets[_collateralAsset].decimals.fromCollateralFixedPointAmount(
                 _feeValue.div(oraclePrice)
             );
             feeValuePaid = _feeValue;
@@ -155,7 +168,7 @@ library LibCalc {
             transferAmount = depositAmount;
             feeValuePaid = depositValue;
             // Because the entire deposit is taken, remove it from the depositCollateralAssets array.
-            self.depositedCollateralAssets[_account].removeAddress(_collateralAssetAddress, _collateralAssetIndex);
+            self.depositedCollateralAssets[_account].removeAddress(_collateralAsset, _collateralAssetIndex);
         }
 
         return (transferAmount, feeValuePaid);

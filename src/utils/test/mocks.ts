@@ -17,9 +17,11 @@ export type TestCollateralAssetUpdate = {
 };
 export type InputArgs = {
     user: SignerWithAddress;
-    asset: KrAsset | Collateral;
+    asset: (KrAsset | Collateral) | { address: string; contract: any; mocks: any };
     amount: string | number | BigNumber;
 };
+
+export type InputArgsSimple = Omit<InputArgs, "asset"> & { asset: { address: string } };
 
 export type TestKreskoAssetArgs = {
     name: string;
@@ -32,6 +34,7 @@ export type TestKreskoAssetArgs = {
     supplyLimit: number;
     closeFee: number;
     openFee: number;
+    stabilityRateBase?: BigNumber;
 };
 export type TestKreskoAssetUpdate = {
     name: string;
@@ -53,7 +56,8 @@ export const defaultMintAmount = toBig(100, defaultDecimals);
 export const defaultSupplyLimit = 10000;
 export const defaultCloseFee = 0.02; // 2%
 export const defaultOpenFee = 0; // 0%
-
+export const BASIS_POINT = oneRay.div(10000);
+export const ONE_PERCENT = oneRay.div(100);
 export const defaultKrAssetArgs = {
     name: "KreskoAsset",
     symbol: "KreskoAsset",
@@ -65,12 +69,11 @@ export const defaultKrAssetArgs = {
     closeFee: defaultCloseFee,
     openFee: defaultOpenFee,
     stabilityRates: {
-        stabilityRateBase: oneRay.div(10000).mul(25), // 0.25%
-        reserveFactor: PERCENTAGE_FACTOR, // 100%
-        rateSlope1: oneRay.div(1000).mul(3),
-        rateSlope2: oneRay.div(1000).mul(30),
+        stabilityRateBase: BASIS_POINT.mul(25), // 0.25%
+        rateSlope1: ONE_PERCENT.div(10).mul(3), // 0.3
+        rateSlope2: ONE_PERCENT.div(10).mul(30), // 3
         optimalPriceRate: oneRay, // price parity = 1 ray
-        priceRateDelta: oneRay.div(1000).mul(25), // 2.5% delta
+        priceRateDelta: ONE_PERCENT.div(10).mul(25), // 2.5% delta
     },
 };
 

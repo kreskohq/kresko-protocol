@@ -33,47 +33,49 @@ library LibStabilityRate {
      * @notice Cumulates the stability rate from previous update and multiplies the debt index with it.
      * @dev Updates the updated timestamp
      * @dev New debt index cannot overflow uint128
-     * @param asset configuration for the asset
+     * @param self configuration for the asset
      * @return newDebtIndex the updated index
      */
-    function updateDebtIndex(StabilityRateConfig storage asset) internal returns (uint256 newDebtIndex) {
-        newDebtIndex = asset.debtIndex;
+    function updateDebtIndex(StabilityRateConfig storage self) internal returns (uint256 newDebtIndex) {
+        if (self.asset == address(0)) return WadRay.RAY;
+
+        newDebtIndex = self.debtIndex;
         // only cumulating if there is any assets minted and rate is over 0
-        if (IERC20Upgradeable(asset.asset).totalSupply() != 0) {
-            uint256 cumulatedStabilityRate = asset.calculateCompoundedInterest(block.timestamp);
-            newDebtIndex = cumulatedStabilityRate.rayMul(asset.debtIndex);
+        if (IERC20Upgradeable(self.asset).totalSupply() != 0) {
+            uint256 cumulatedStabilityRate = self.calculateCompoundedInterest(block.timestamp);
+            newDebtIndex = cumulatedStabilityRate.rayMul(self.debtIndex);
             require(newDebtIndex <= type(uint128).max, Error.DEBT_INDEX_OVERFLOW);
-            asset.debtIndex = uint128(newDebtIndex);
+            self.debtIndex = uint128(newDebtIndex);
         }
 
-        asset.lastUpdateTimestamp = uint40(block.timestamp);
-        return newDebtIndex;
+        self.lastUpdateTimestamp = uint40(block.timestamp);
     }
 
     /**
      * @notice Updates the current stability rate for an asset
      * @dev New stability rate cannot overflow uint128
-     * @param asset rate configuration for the asset
+     * @param self rate configuration for the asset
      */
-    function updateStabilityRate(StabilityRateConfig storage asset) internal {
-        uint256 stabilityRate = calculateStabilityRate(asset);
+    function updateStabilityRate(StabilityRateConfig storage self) internal {
+        if (self.asset == address(0)) return;
+
+        uint256 stabilityRate = calculateStabilityRate(self);
         require(stabilityRate <= type(uint128).max, Error.STABILITY_RATE_OVERFLOW);
-        asset.stabilityRate = uint128(stabilityRate);
+        self.stabilityRate = uint128(stabilityRate);
     }
 
     /**
      * @notice Get the current price rate between AMM and oracle pricing
      * @dev Raw return value of ammPrice == 0 when no AMM pair exists OR liquidity of the pair does not qualify
-     * @param asset rate configuration for the asset
+     * @param self rate configuration for the asset
      * @return priceRate the current price rate
      */
-    function getPriceRate(StabilityRateConfig storage asset) internal view returns (uint256 priceRate) {
-        FixedPoint.Unsigned memory oraclePrice = ms().getKrAssetValue(asset.asset, 1 ether, true);
-        FixedPoint.Unsigned memory ammPrice = ms().getKrAssetAMMPrice(asset.asset, 1 ether);
-
+    function getPriceRate(StabilityRateConfig storage self) internal view returns (uint256 priceRate) {
+        FixedPoint.Unsigned memory oraclePrice = ms().getKrAssetValue(self.asset, 1 ether, true);
+        FixedPoint.Unsigned memory ammPrice = ms().getKrAssetAMMPrice(self.asset, 1 ether);
         // no pair, no effect
         if (ammPrice.rawValue == 0) {
-            return 1 ether;
+            return 0;
         }
         return ammPrice.div(oraclePrice).div(10).rawValue;
     }
@@ -84,30 +86,32 @@ library LibStabilityRate {
      * case 1: AMM premium > optimal + delta
      * case 2: AMM premium < optimal - delta
      * case 3: AMM premium <= optimal + delta && AMM premium >= optimal - delta
-     * @param asset rate configuration for the asset
+     * @param self rate configuration for the asset
      * @return stabilityRate the current stability rate
      */
-    function calculateStabilityRate(StabilityRateConfig storage asset) internal view returns (uint256 stabilityRate) {
-        uint256 priceRate = asset.getPriceRate(); // 0.95 RAY = -5% PREMIUM, 1.05 RAY = +5% PREMIUM
+    function calculateStabilityRate(StabilityRateConfig storage self) internal view returns (uint256 stabilityRate) {
+        uint256 priceRate = self.getPriceRate(); // 0.95 RAY = -5% PREMIUM, 1.05 RAY = +5% PREMIUM
 
-        // If AMM price > priceRate + delta
-        if (priceRate > asset.optimalPriceRate + asset.priceRateDelta) {
+        // Return base rate if no AMM price exists
+        if (priceRate == 0) {
+            return self.stabilityRateBase;
+        }
+        // If AMM price > priceRate + delta, eg. AMM price is higher than oracle price
+        if (priceRate > self.optimalPriceRate + self.priceRateDelta) {
             uint256 excessRate = priceRate - WadRay.RAY;
             stabilityRate =
-                asset.stabilityRateBase.rayDiv(priceRate.percentMul(125e2)) +
-                ((WadRay.RAY - excessRate).rayMul(asset.rateSlope1));
-            // If AMM price < pricaRate + delta
-        } else if (priceRate < asset.optimalPriceRate - asset.priceRateDelta) {
-            uint256 multiplier = (WadRay.RAY - priceRate).rayDiv(asset.priceRateDelta);
+                self.stabilityRateBase.rayDiv(priceRate.percentMul(125e2)) +
+                ((WadRay.RAY - excessRate).rayMul(self.rateSlope1));
+            // If AMM price < pricaRate + delta, AMM price is lower than oracle price
+        } else if (priceRate < self.optimalPriceRate - self.priceRateDelta) {
+            uint256 multiplier = (WadRay.RAY - priceRate).rayDiv(self.priceRateDelta);
             stabilityRate =
-                (asset.stabilityRateBase + asset.rateSlope1) +
-                WadRay.RAY.rayMul(multiplier).rayMul(asset.rateSlope2);
-            // Default case, if premium is within optimal range
+                (self.stabilityRateBase + self.rateSlope1) +
+                WadRay.RAY.rayMul(multiplier).rayMul(self.rateSlope2);
+            // Default case, AMM price is within optimal range of oracle price
         } else {
-            stabilityRate = asset.stabilityRateBase + (priceRate.rayMul(asset.rateSlope1));
+            stabilityRate = self.stabilityRateBase + (priceRate.rayMul(self.rateSlope1));
         }
-
-        return stabilityRate;
     }
 
     /**
@@ -121,17 +125,17 @@ library LibStabilityRate {
      * The Aave whitepaper contains reference to the approximation
      * with a table showing the margin of error per different time periods
      *
-     * @param asset rate configuration for the asset
-     * @param currentTimestamp The timestamp of the last update of the interest
+     * @param self rate configuration for the asset
+     * @param _currentTimestamp The timestamp of the last update of the interest
      * @return The interest rate compounded during the timeDelta, in ray
      **/
-    function calculateCompoundedInterest(StabilityRateConfig storage asset, uint256 currentTimestamp)
+    function calculateCompoundedInterest(StabilityRateConfig storage self, uint256 _currentTimestamp)
         internal
         view
         returns (uint256)
     {
         //solium-disable-next-line
-        uint256 exp = currentTimestamp - uint256(asset.lastUpdateTimestamp);
+        uint256 exp = _currentTimestamp - uint256(self.lastUpdateTimestamp);
 
         if (exp == 0) {
             return WadRay.RAY;
@@ -146,8 +150,8 @@ library LibStabilityRate {
 
             expMinusTwo = exp > 2 ? exp - 2 : 0;
 
-            basePowerTwo = asset.stabilityRate.rayMul(asset.stabilityRate) / (SECONDS_PER_YEAR * SECONDS_PER_YEAR);
-            basePowerThree = basePowerTwo.rayMul(asset.stabilityRate) / SECONDS_PER_YEAR;
+            basePowerTwo = self.stabilityRate.rayMul(self.stabilityRate) / (SECONDS_PER_YEAR * SECONDS_PER_YEAR);
+            basePowerThree = basePowerTwo.rayMul(self.stabilityRate) / SECONDS_PER_YEAR;
         }
 
         uint256 secondTerm = exp * expMinusOne * basePowerTwo;
@@ -159,23 +163,24 @@ library LibStabilityRate {
             thirdTerm /= 6;
         }
 
-        return WadRay.RAY + (asset.stabilityRate * exp) / SECONDS_PER_YEAR + secondTerm + thirdTerm;
+        return WadRay.RAY + (self.stabilityRate * exp) / SECONDS_PER_YEAR + secondTerm + thirdTerm;
     }
 
     /**
      * @dev Returns the ongoing normalized debt index for the borrowers
      * A value of 1e27 means there is no interest. As time passes, the interest is accrued
      * A value of 2*1e27 means that for each unit of debt, one unit worth of interest has been accumulated
-     * @param asset rate configuration for the asset
+     * @param self rate configuration for the asset
      * @return The normalized debt index. expressed in ray
      **/
-    function getNormalizedDebtIndex(StabilityRateConfig storage asset) internal view returns (uint256) {
+    function getNormalizedDebtIndex(StabilityRateConfig storage self) internal view returns (uint256) {
+        if (self.asset == address(0)) return WadRay.RAY;
         //solium-disable-next-line
-        if (asset.lastUpdateTimestamp == uint40(block.timestamp)) {
+        if (self.lastUpdateTimestamp == uint40(block.timestamp)) {
             //if the index was updated in the same block, no need to perform any calculation
-            return asset.debtIndex;
+            return self.debtIndex;
         }
 
-        return asset.calculateCompoundedInterest(block.timestamp).rayMul(asset.debtIndex);
+        return self.calculateCompoundedInterest(block.timestamp).rayMul(self.debtIndex);
     }
 }

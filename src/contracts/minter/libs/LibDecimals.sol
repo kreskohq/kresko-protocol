@@ -1,13 +1,12 @@
-// SPDX-License-Identifier: AGPL-3.0-only
+// SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
-
-import {FixedPoint} from "./FixedPoint.sol";
+import {ms} from "../MinterStorage.sol";
+import {FixedPoint} from "../../libs/FixedPoint.sol";
 
 /**
- * @title Library for Kresko specific math involving floating point arithmetic
+ * @title Library for Kresko specific decimals
  */
-
-library Math {
+library LibDecimals {
     using FixedPoint for FixedPoint.Unsigned;
 
     /**
@@ -18,7 +17,7 @@ library Math {
      * @param _amount The amount of the collateral asset.
      * @return A FixedPoint.Unsigned of amount scaled according to the collateral asset's decimals.
      */
-    function _toCollateralFixedPointAmount(uint256 _collateralAssetDecimals, uint256 _amount)
+    function toCollateralFixedPointAmount(uint256 _collateralAssetDecimals, uint256 _amount)
         internal
         pure
         returns (FixedPoint.Unsigned memory)
@@ -56,7 +55,7 @@ library Math {
      * @param _fixedPointAmount The fixed point amount of the collateral asset.
      * @return An amount that is compatible with the collateral asset's decimals.
      */
-    function _fromCollateralFixedPointAmount(
+    function fromCollateralFixedPointAmount(
         uint256 _collateralAssetDecimals,
         FixedPoint.Unsigned memory _fixedPointAmount
     ) internal pure returns (uint256) {
@@ -84,18 +83,79 @@ library Math {
     }
 
     /**
-    //  * @notice Calculate amount of collateral to seize during the liquidation process.
-    //  * @param _collateralOraclePriceUSD The address of the collateral asset to be seized.
-    //  * @param _kreskoAssetRepayAmountUSD Kresko asset amount being repaid in exchange for the seized collateral.
-    //  */
-    function _calculateAmountToSeize(
-        FixedPoint.Unsigned memory _liquidationIncentiveMultiplier,
-        FixedPoint.Unsigned memory _collateralOraclePriceUSD,
-        FixedPoint.Unsigned memory _kreskoAssetRepayAmountUSD
-    ) internal pure returns (FixedPoint.Unsigned memory) {
-        // Seize amount = (repay amount USD * liquidation incentive / collateral price USD).
-        // Denominate seize amount in collateral type
-        // Apply liquidation incentive multiplier
-        return _kreskoAssetRepayAmountUSD.mul(_liquidationIncentiveMultiplier).div(_collateralOraclePriceUSD);
+     * @notice Divides an uint256 @param _value with @param _priceWithOracleDecimals
+     * @param _value Left side value of the division
+     * @param wadValue result with 18 decimals
+     */
+    function divByPrice(uint256 _value, uint256 _priceWithOracleDecimals) internal view returns (uint256 wadValue) {
+        uint8 oracleDecimals = ms().extOracleDecimals;
+        if (oracleDecimals >= 18) return _priceWithOracleDecimals;
+        return (_value / _priceWithOracleDecimals) * 10**(oracleDecimals);
+    }
+
+    /**
+     * @notice Converts an uint256 with extOracleDecimals into a number with 18 decimals
+     * @param _wadPrice value with extOracleDecimals
+     */
+    function fromWadPriceToUint(uint256 _wadPrice) internal view returns (uint256 priceWithOracleDecimals) {
+        uint8 oracleDecimals = ms().extOracleDecimals;
+        if (oracleDecimals == 18) return _wadPrice;
+        return _wadPrice / 10**(18 - oracleDecimals);
+    }
+
+    /**
+     * @notice Converts an 18 decimal price to a FixedPoint with extOracleDecimals
+     * @param _wadPrice value with extOracleDecimals
+     * @return priceWithOracleDecimals FixedPoint value with extOracleDecimals
+     */
+    function fromWadPriceToFixedPoint(uint256 _wadPrice)
+        internal
+        view
+        returns (FixedPoint.Unsigned memory priceWithOracleDecimals)
+    {
+        uint8 oracleDecimals = ms().extOracleDecimals;
+        if (oracleDecimals == 18) {
+            return FixedPoint.Unsigned(_wadPrice);
+        }
+        return FixedPoint.Unsigned(_wadPrice / 10**(18 - oracleDecimals));
+    }
+
+    /**
+     * @notice Converts an uint256 with extOracleDecimals into a number with 18 decimals
+     * @param _priceWithOracleDecimals value with extOracleDecimals
+     * @return wadPrice price with 18 decimals
+     */
+    function oraclePriceToWad(uint256 _priceWithOracleDecimals) internal view returns (uint256 wadPrice) {
+        uint8 oracleDecimals = ms().extOracleDecimals;
+        if (oracleDecimals == 18) {
+            return _priceWithOracleDecimals;
+        }
+        return _priceWithOracleDecimals * 10**(18 - oracleDecimals);
+    }
+
+    /**
+     * @notice Converts an int256 with extOracleDecimals into a number with 18 decimals
+     * @param _priceWithOracleDecimals value with extOracleDecimals
+     * @return wadPrice price with 18 decimals
+     */
+    function oraclePriceToWad(int256 _priceWithOracleDecimals) internal view returns (uint256 wadPrice) {
+        uint8 oracleDecimals = ms().extOracleDecimals;
+        if (oracleDecimals >= 18) return uint256(_priceWithOracleDecimals);
+        return uint256(_priceWithOracleDecimals) * 10**(18 - oracleDecimals);
+    }
+
+    /**
+     * @notice Converts an int256 with extOracleDecimals into a number with 18 decimals
+     * @param _priceWithOracleDecimals value with extOracleDecimals
+     * @return wadPrice price with 18 decimals
+     */
+    function fromFixedPointPriceToWad(FixedPoint.Unsigned memory _priceWithOracleDecimals)
+        internal
+        view
+        returns (uint256 wadPrice)
+    {
+        uint8 oracleDecimals = ms().extOracleDecimals;
+        if (oracleDecimals == 18) return _priceWithOracleDecimals.rawValue;
+        return _priceWithOracleDecimals.rawValue * 10**(18 - oracleDecimals);
     }
 }

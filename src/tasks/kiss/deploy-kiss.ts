@@ -28,6 +28,7 @@ task("deploy-kiss")
                 price: 1,
                 factor: 1,
                 supplyLimit: 1_000_000_000,
+                marketOpen: true,
                 closeFee: defaultKrAssetArgs.closeFee,
                 openFee: defaultKrAssetArgs.openFee,
             },

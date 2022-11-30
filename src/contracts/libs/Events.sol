@@ -3,6 +3,8 @@ pragma solidity >=0.8.14;
 import {IDiamondCutFacet} from "../diamond/interfaces/IDiamondCutFacet.sol";
 import {Action} from "../minter/MinterTypes.sol";
 
+/* solhint-disable var-name-mixedcase */
+
 /**
  * @author Kresko
  * @title Events
@@ -72,6 +74,12 @@ library MinterEvent {
      */
     event CollateralWithdrawn(address indexed account, address indexed collateralAsset, uint256 indexed amount);
 
+    /**
+     * @notice Emitted when AMM oracle is set.
+     * @param ammOracle The address of the AMM oracle.
+     */
+    event AMMOracleUpdated(address indexed ammOracle);
+
     /* -------------------------------------------------------------------------- */
     /*                                Kresko Assets                               */
     /* -------------------------------------------------------------------------- */
@@ -133,6 +141,20 @@ library MinterEvent {
     event KreskoAssetBurned(address indexed account, address indexed kreskoAsset, uint256 indexed amount);
 
     /**
+     * @notice Emitted when an account burns a Kresko asset.
+     * @param account The address of the account burning the Kresko asset.
+     * @param kreskoAsset The address of the Kresko asset.
+     * @param amount The amount of the Kresko asset that was burned.
+     * @param interestRepaid The amount of the KISS repaid due to interest accrual
+     */
+    event DebtPositionClosed(
+        address indexed account,
+        address indexed kreskoAsset,
+        uint256 indexed amount,
+        uint256 interestRepaid
+    );
+
+    /**
      * @notice Emitted when an account pays a close fee with a collateral asset upon burning a Kresko asset.
      * @dev This can be emitted multiple times for a single Kresko asset burn.
      * @param account The address of the account burning the Kresko asset.
@@ -177,6 +199,39 @@ library MinterEvent {
         address indexed repayKreskoAsset,
         uint256 repayAmount,
         address seizedCollateralAsset,
+        uint256 collateralSent
+    );
+
+    /**
+     * @notice Emitted when a liquidation of interest occurs.
+     * @param account The address of the account being liquidated.
+     * @param liquidator The account performing the liquidation.
+     * @param repayKreskoAsset The address of the Kresko asset being paid back to the protocol by the liquidator.
+     * @param repayUSD The value of the repay Kresko asset being paid back to the protocol by the liquidator.
+     * @param seizedCollateralAsset The address of the collateral asset being seized from the account by the liquidator.
+     * @param collateralSent The amount of the seized collateral asset being seized from the account by the liquidator.
+     */
+    event InterestLiquidationOccurred(
+        address indexed account,
+        address indexed liquidator,
+        address indexed repayKreskoAsset,
+        uint256 repayUSD,
+        address seizedCollateralAsset,
+        uint256 collateralSent
+    );
+    /**
+     * @notice Emitted when a batch liquidation of interest occurs.
+     * @param account The address of the account being liquidated.
+     * @param liquidator The account performing the liquidation.
+     * @param seizedCollateralAsset The address of the collateral asset being seized from the account by the liquidator.
+     * @param repayUSD The value of the repay Kresko asset being paid back to the protocol by the liquidator.
+     * @param collateralSent The amount of the seized collateral asset being seized from the account by the liquidator.
+     */
+    event BatchInterestLiquidationOccurred(
+        address indexed account,
+        address indexed liquidator,
+        address indexed seizedCollateralAsset,
+        uint256 repayUSD,
         uint256 collateralSent
     );
 
@@ -262,4 +317,31 @@ library AuthEvent {
      *   - if using `renounceRole`, it is the role bearer (i.e. `account`)
      */
     event RoleRevoked(bytes32 indexed role, address indexed account, address indexed sender);
+}
+
+library InterestRateEvent {
+    /**
+     * @dev Emitted when @param account repaid their @param asset interest @param value
+     */
+    event StabilityRateConfigured(
+        address indexed asset,
+        uint256 indexed stabilityRateBase,
+        uint256 indexed priceRateDelta,
+        uint256 rateSlope1,
+        uint256 rateSlope2
+    );
+    /**
+     * @dev Emitted when @param account repaid their @param asset interest @param value
+     */
+    event StabilityRateInterestRepaid(address indexed account, address indexed asset, uint256 value);
+    /**
+     * @dev Emitted when @param account repaid all interest @param value
+     */
+    event StabilityRateInterestBatchRepaid(address indexed account, uint256 value);
+
+    /**
+     * @notice Emitted when KISS address is set.
+     * @param KISS The address of KISS.
+     */
+    event KISSUpdated(address indexed KISS);
 }

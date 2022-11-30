@@ -1,18 +1,21 @@
 import { toBig } from "@kreskolabs/lib/dist/numbers";
-import { oneRay } from "@kreskolabs/lib/dist/numbers/wadray";
+import { oneRay, ONE_YEAR } from "@kreskolabs/lib/dist/numbers/wadray";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
-import { defaultCollateralArgs, defaultKrAssetArgs, withFixture } from "@utils/test";
+import { BASIS_POINT, defaultCollateralArgs, defaultKrAssetArgs, withFixture } from "@utils/test";
 import { addLiquidity, getAMMPrices, getTWAPUpdaterFor, swap } from "@utils/test/helpers/amm";
 import {
-    calcCompoundedInterest,
+    calcDebtIndex,
     calcExpectedStabilityRateHighPremium,
     calcExpectedStabilityRateLowPremium,
     calcExpectedStabilityRateNoPremium,
     getBlockTimestamp,
+    oraclePriceToWad,
+    toScaledAmount,
 } from "@utils/test/helpers/calculations";
 import { depositCollateral } from "@utils/test/helpers/collaterals";
-import { mintKrAsset } from "@utils/test/helpers/krassets";
+import { addMockKreskoAsset, mintKrAsset } from "@utils/test/helpers/krassets";
 import { expect } from "chai";
+import { BigNumber } from "ethers";
 import hre from "hardhat";
 import { UniswapMath } from "types/typechain/src/contracts/test/markets";
 
@@ -57,9 +60,86 @@ describe("Stability Rates", function () {
         await hre.UniV2Oracle.initPair(pair.address, this.krAsset.address, 60 * 60);
         await updateTWAP();
     });
-    describe("#price-rate", async () => {
-        it("calculates correct price rates when there is no amm price");
+    describe("#no-amm-prices", async () => {
         it("calculates correct price rates when the amm liquidity does not qualify");
+        it("calculates correct rates and debt when there is no amm price", async function () {
+            const krAssetAmount = toBig(1);
+            const krAssetNoBaseRate = await addMockKreskoAsset({
+                name: "krasset2",
+                symbol: "krasset2",
+                marketOpen: true,
+                factor: 1,
+                closeFee: 0,
+                openFee: 0,
+                stabilityRateBase: BigNumber.from(0),
+                price: 10,
+                supplyLimit: 2_000,
+            });
+            const krAssetWithBaseRate = await addMockKreskoAsset({
+                name: "krasset2",
+                symbol: "krasset2",
+                marketOpen: true,
+                factor: 1,
+                closeFee: 0,
+                openFee: 0,
+                stabilityRateBase: BASIS_POINT.mul(20),
+                price: 10,
+                supplyLimit: 2_000,
+            });
+
+            // Asset
+            await mintKrAsset({ user: userOne, asset: krAssetNoBaseRate, amount: krAssetAmount });
+            await mintKrAsset({ user: userOne, asset: krAssetWithBaseRate, amount: krAssetAmount });
+
+            const lastUpdateTimestamp = await getBlockTimestamp();
+            const debtIndexBefore = await hre.Diamond.getDebtIndexForAsset(krAssetWithBaseRate.address);
+            await time.increase(+ONE_YEAR);
+
+            // asset with no base rate and no amm price
+            const debtIndexNoBaseRate = await hre.Diamond.getDebtIndexForAsset(krAssetNoBaseRate.address);
+            const debtScaledNoBaseRate = await hre.Diamond.kreskoAssetDebt(userOne.address, krAssetNoBaseRate.address);
+            const debtPrincipalNoBaseRate = await hre.Diamond.kreskoAssetDebtPrincipal(
+                userOne.address,
+                krAssetNoBaseRate.address,
+            );
+            const debtInterestNoBaseRate = await hre.Diamond.kreskoAssetDebtInterest(
+                userOne.address,
+                krAssetNoBaseRate.address,
+            );
+            expect(debtIndexNoBaseRate).to.equal(oneRay);
+            expect(debtScaledNoBaseRate).to.equal(debtPrincipalNoBaseRate);
+            expect(debtInterestNoBaseRate.kissAmount).to.equal(0);
+            expect(debtInterestNoBaseRate.assetAmount).to.equal(0);
+
+            // asset with base rate and no amm price
+            const debtIndexWithBaseRate = await hre.Diamond.getDebtIndexForAsset(krAssetWithBaseRate.address);
+            const debtScaledWithBaseRate = await hre.Diamond.kreskoAssetDebt(
+                userOne.address,
+                krAssetWithBaseRate.address,
+            );
+            const debtPrincipalWithBaseRate = await hre.Diamond.kreskoAssetDebtPrincipal(
+                userOne.address,
+                krAssetWithBaseRate.address,
+            );
+            const debtInterestWithBaseRate = await hre.Diamond.kreskoAssetDebtInterest(
+                userOne.address,
+                krAssetWithBaseRate.address,
+            );
+
+            const expectedScaledDebt = await toScaledAmount(debtPrincipalWithBaseRate, krAssetWithBaseRate);
+            const expectedDebtIndex = await calcDebtIndex(krAssetWithBaseRate, debtIndexBefore, lastUpdateTimestamp);
+            const expectedAssetInterest = debtScaledWithBaseRate.sub(debtPrincipalWithBaseRate);
+            const expectedKissInterestAmount = await oraclePriceToWad(
+                hre.Diamond.getKrAssetValue(krAssetWithBaseRate.address, expectedAssetInterest, true),
+            );
+
+            expect(debtIndexWithBaseRate).to.equal(expectedDebtIndex);
+            expect(debtScaledWithBaseRate).to.equal(expectedScaledDebt);
+            expect(debtInterestWithBaseRate.assetAmount).to.equal(expectedAssetInterest);
+            expect(debtInterestWithBaseRate.kissAmount).to.equal(expectedKissInterestAmount);
+        });
+    });
+    describe("#price-rate", async () => {
         it("calculates correct price rates when amm == oracle", async function () {
             await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
 
@@ -127,8 +207,6 @@ describe("Stability Rates", function () {
         });
     });
     describe("#stability-rate", async () => {
-        it("calculates correct stability rates when there is no amm price");
-        it("calculates correct stability rates when the amm liquidity does not qualify");
         it("calculates correct stability rates when amm == oracle", async function () {
             await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
             await updateTWAP();
@@ -203,8 +281,6 @@ describe("Stability Rates", function () {
         });
     });
     describe("#debt-index", async () => {
-        it("calculates correct debt index when there is no amm price");
-        it("calculates correct debt index when the amm liquidity does not qualify");
         it("calculates correct debt index after a year when amm price > oracle", async function () {
             await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
             const premiumPercentage = 105; // 105% eg. 5% premium
@@ -228,19 +304,16 @@ describe("Stability Rates", function () {
 
             await updateTWAP();
             await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
-
-            const year = 60 * 60 * 24 * 365;
-            const stabilityRate = await hre.Diamond.getStabilityRateForAsset(this.krAsset.address);
+            const debtIndexBefore = await hre.Diamond.getDebtIndexForAsset(this.krAsset.address);
 
             const lastUpdateTimestamp = await getBlockTimestamp();
-            await time.increase(year);
-            const currentTimestamp = await getBlockTimestamp();
+            await time.increase(+ONE_YEAR);
 
-            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
-            const debtIndex = await hre.Diamond.getDebtIndexForAsset(this.krAsset.address);
-            expect(debtIndex).to.be.bignumber.closeTo(
-                calcCompoundedInterest(stabilityRate, currentTimestamp, lastUpdateTimestamp),
-                oneRay.div(1000),
+            const debtIndexAfter = await hre.Diamond.getDebtIndexForAsset(this.krAsset.address);
+
+            expect(debtIndexAfter).to.not.equal(debtIndexBefore);
+            expect(debtIndexAfter).to.be.bignumber.equal(
+                await calcDebtIndex(this.krAsset, debtIndexBefore, lastUpdateTimestamp),
             );
         });
 
@@ -267,40 +340,29 @@ describe("Stability Rates", function () {
 
             await updateTWAP();
             await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
-
-            const year = 60 * 60 * 24 * 365;
-            const stabilityRate = await hre.Diamond.getStabilityRateForAsset(this.krAsset.address);
+            const debtIndexBefore = await hre.Diamond.getDebtIndexForAsset(this.krAsset.address);
 
             const lastUpdateTimestamp = await getBlockTimestamp();
-            await time.increase(year);
-            const currentTimestamp = await getBlockTimestamp();
+            await time.increase(+ONE_YEAR);
 
-            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
-            const debtIndex = await hre.Diamond.getDebtIndexForAsset(this.krAsset.address);
-            expect(debtIndex).to.be.bignumber.closeTo(
-                calcCompoundedInterest(stabilityRate, currentTimestamp, lastUpdateTimestamp),
-                oneRay.div(1000),
+            const debtIndexAfter = await hre.Diamond.getDebtIndexForAsset(this.krAsset.address);
+            expect(debtIndexAfter).to.not.equal(debtIndexBefore);
+            expect(debtIndexAfter).to.be.bignumber.equal(
+                await calcDebtIndex(this.krAsset, debtIndexBefore, lastUpdateTimestamp),
             );
         });
 
         it("calculates correct debt index after a year for amm price == oracle", async function () {
-            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
-
             await updateTWAP();
             await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
-
-            const year = 60 * 60 * 24 * 365;
-            const stabilityRate = await hre.Diamond.getStabilityRateForAsset(this.krAsset.address);
+            const debtIndexBefore = await hre.Diamond.getDebtIndexForAsset(this.krAsset.address);
 
             const lastUpdateTimestamp = await getBlockTimestamp();
-            await time.increase(year);
-            const currentTimestamp = await getBlockTimestamp();
-
-            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
-            const sRateIndexAfter = await hre.Diamond.getDebtIndexForAsset(this.krAsset.address);
-            expect(sRateIndexAfter).to.be.bignumber.closeTo(
-                calcCompoundedInterest(stabilityRate, currentTimestamp, lastUpdateTimestamp),
-                oneRay.div(1000),
+            await time.increase(+ONE_YEAR);
+            const debtIndexAfter = await hre.Diamond.getDebtIndexForAsset(this.krAsset.address);
+            expect(debtIndexAfter).to.not.equal(debtIndexBefore);
+            expect(debtIndexAfter).to.be.bignumber.equal(
+                await calcDebtIndex(this.krAsset, debtIndexBefore, lastUpdateTimestamp),
             );
         });
     });

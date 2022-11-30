@@ -1,14 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 
+// solhint-disable not-rely-on-time
+
 import {ILiquidationFacet} from "../interfaces/ILiquidationFacet.sol";
 import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
 
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
-import {Math} from "../../libs/Math.sol";
+import {LibDecimals, FixedPoint} from "../libs/LibDecimals.sol";
+import {LibCalculation} from "../libs/LibCalculation.sol";
 import {WadRay} from "../../libs/WadRay.sol";
-import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {MinterEvent} from "../../libs/Events.sol";
 
 import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
@@ -25,15 +27,18 @@ import {irs} from "../InterestRateState.sol";
  */
 contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
     using Arrays for address[];
-    using Math for uint8;
-    using Math for FixedPoint.Unsigned;
+    using LibDecimals for uint8;
+    using LibDecimals for FixedPoint.Unsigned;
+    using LibDecimals for uint256;
     using WadRay for uint256;
     using FixedPoint for FixedPoint.Unsigned;
+    using FixedPoint for uint256;
+    using FixedPoint for int256;
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
     /**
      * @notice Attempts to liquidate an account by repaying the portion of the account's Kresko asset
-     *         debt, receiving in return a portion of the account's collateral at a discounted rate.
+     *         princpal debt, receiving in return a portion of the account's collateral at a discounted rate.
      * @param _account The account to attempt to liquidate.
      * @param _repayKreskoAsset The address of the Kresko asset to be repaid.
      * @param _repayAmount The amount of the Kresko asset to be repaid.
@@ -65,10 +70,8 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         }
 
         // Repay amount USD = repay amount * KR asset USD exchange rate.
-        FixedPoint.Unsigned memory repayAmountUSD = FixedPoint.Unsigned(_repayAmount).mul(
-            FixedPoint.Unsigned(uint256(s.kreskoAssets[_repayKreskoAsset].oracle.latestAnswer()))
-        );
 
+        FixedPoint.Unsigned memory repayAmountUSD = s.kreskoAssets[_repayKreskoAsset].fixedPointUSD(_repayAmount);
         // Get the scaled debt amount
         uint256 krAssetDebt = s.getKreskoAssetDebtPrincipal(_account, _repayKreskoAsset);
         // Avoid stack too deep error
@@ -84,9 +87,6 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
             require(repayAmountUSD.isLessThanOrEqual(maxLiquidation), Error.LIQUIDATION_OVERFLOW);
         }
 
-        FixedPoint.Unsigned memory collateralPriceUSD = FixedPoint.Unsigned(
-            uint256(s.collateralAssets[_collateralAssetToSeize].oracle.latestAnswer())
-        );
         // Charge burn fee from the liquidated user
         s.chargeCloseFee(_account, _repayKreskoAsset, _repayAmount);
 
@@ -95,8 +95,12 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         uint256 seizedAmount = _liquidateAssets(
             _account,
             _repayAmount,
-            s.collateralAssets[_collateralAssetToSeize].decimals._fromCollateralFixedPointAmount(
-                s.liquidationIncentiveMultiplier._calculateAmountToSeize(collateralPriceUSD, repayAmountUSD)
+            s.collateralAssets[_collateralAssetToSeize].decimals.fromCollateralFixedPointAmount(
+                LibCalculation.calculateAmountToSeize(
+                    s.liquidationIncentiveMultiplier,
+                    s.collateralAssets[_collateralAssetToSeize].fixedPointPrice(),
+                    repayAmountUSD
+                )
             ),
             _repayKreskoAsset,
             _mintedKreskoAssetIndex,
@@ -148,9 +152,9 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
             uint256 newDebtIndex = irs().srAssets[_repayKreskoAsset].updateDebtIndex();
             uint256 amountScaled = destroyed.wadToRay().rayDiv(newDebtIndex);
 
-            // Update user scaled debt and last index
-            irs().srAssetsUser[_account][_repayKreskoAsset].debtScaled -= uint128(amountScaled);
-            irs().srAssetsUser[_account][_repayKreskoAsset].lastDebtIndex = uint128(newDebtIndex);
+            // Update scaled values for the user
+            irs().srUserInfo[_account][_repayKreskoAsset].debtScaled -= uint128(amountScaled);
+            irs().srUserInfo[_account][_repayKreskoAsset].lastDebtIndex = uint128(newDebtIndex);
 
             // Update the global stability rate
             irs().srAssets[_repayKreskoAsset].updateStabilityRate();
@@ -165,10 +169,9 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         uint256 collateralDeposit = s.getCollateralDeposits(_account, _collateralAssetToSeize);
 
         if (collateralDeposit > _seizeAmount) {
-            s.collateralDeposits[_account][_collateralAssetToSeize] -= s.normalizeCollateralAmount(
-                _seizeAmount,
-                _collateralAssetToSeize
-            );
+            s.collateralDeposits[_account][_collateralAssetToSeize] -= ms()
+                .collateralAssets[_collateralAssetToSeize]
+                .toNonRebasingAmount(_seizeAmount);
         } else {
             // This clause means user either has collateralDeposits equal or less than the _seizeAmount
             _seizeAmount = collateralDeposit;

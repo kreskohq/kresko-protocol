@@ -5,7 +5,7 @@ import {IAccountStateFacet} from "../interfaces/IAccountStateFacet.sol";
 import {Action, Fee, KrAsset, CollateralAsset, FixedPoint} from "../MinterTypes.sol";
 import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
 import {Error} from "../../libs/Errors.sol";
-import {Math} from "../../libs/Math.sol";
+import {LibDecimals} from "../libs/LibDecimals.sol";
 import {ms} from "../MinterStorage.sol";
 
 /**
@@ -14,10 +14,12 @@ import {ms} from "../MinterStorage.sol";
  * @notice Views concerning account state
  */
 contract AccountStateFacet is IAccountStateFacet {
-    using Math for uint256;
-    using Math for uint8;
-    using Math for FixedPoint.Unsigned;
+    using LibDecimals for uint256;
+    using LibDecimals for uint8;
+    using LibDecimals for FixedPoint.Unsigned;
     using FixedPoint for FixedPoint.Unsigned;
+    using FixedPoint for int256;
+    using FixedPoint for uint256;
 
     /* -------------------------------------------------------------------------- */
     /*                                  KrAssets                                  */
@@ -84,6 +86,19 @@ contract AccountStateFacet is IAccountStateFacet {
         returns (uint256 assetAmount, uint256 kissAmount)
     {
         return ms().getKreskoAssetDebtInterest(_account, _asset);
+    }
+
+    /**
+     * @notice Get `_account` interest amount for `_asset`
+     * @param _account The account to query amount for
+     * @return kissAmount the interest denominated in KISS, ignores K-factor
+     */
+    function kreskoAssetDebtInterestTotal(address _account) external view returns (uint256 kissAmount) {
+        address[] memory mintedKreskoAssets = ms().mintedKreskoAssets[_account];
+        for (uint256 i; i < mintedKreskoAssets.length; i++) {
+            (, uint256 kissAmountForAsset) = ms().getKreskoAssetDebtInterest(_account, mintedKreskoAssets[i]);
+            kissAmount += kissAmountForAsset;
+        }
     }
 
     /* -------------------------------------------------------------------------- */
@@ -210,10 +225,9 @@ contract AccountStateFacet is IAccountStateFacet {
         KrAsset memory krAsset = ms().kreskoAssets[_kreskoAsset];
 
         // Calculate the value of the fee according to the value of the krAsset
-        FixedPoint.Unsigned memory feeValue = FixedPoint
-            .Unsigned(uint256(krAsset.oracle.latestAnswer()))
-            .mul(FixedPoint.Unsigned(_kreskoAssetAmount))
-            .mul(Fee(_feeType) == Fee.Open ? krAsset.openFee : krAsset.closeFee);
+        FixedPoint.Unsigned memory feeValue = krAsset.fixedPointUSD(_kreskoAssetAmount).mul(
+            Fee(_feeType) == Fee.Open ? krAsset.openFee : krAsset.closeFee
+        );
 
         address[] memory accountCollateralAssets = ms().depositedCollateralAssets[_account];
 
@@ -239,9 +253,9 @@ contract AccountStateFacet is IAccountStateFacet {
             uint256 transferAmount;
             // If feeValue < depositValue, the entire fee can be charged for this collateral asset.
             if (feeValue.isLessThan(depositValue)) {
-                transferAmount = ms().collateralAssets[collateralAssetAddress].decimals._fromCollateralFixedPointAmount(
-                        feeValue.div(oraclePrice)
-                    );
+                transferAmount = ms().collateralAssets[collateralAssetAddress].decimals.fromCollateralFixedPointAmount(
+                    feeValue.div(oraclePrice)
+                );
                 feeValuePaid = feeValue;
             } else {
                 transferAmount = depositAmount;

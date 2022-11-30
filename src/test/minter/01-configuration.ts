@@ -1,3 +1,4 @@
+import { smock } from "@defi-wonderland/smock";
 import { toFixedPoint } from "@kreskolabs/lib";
 import { expect } from "@test/chai";
 import {
@@ -10,6 +11,7 @@ import {
 import { addMockCollateralAsset } from "@utils/test/helpers/collaterals";
 import { addMockKreskoAsset } from "@utils/test/helpers/krassets";
 import hre from "hardhat";
+import { UniswapV2Oracle } from "types";
 
 describe("Minter", function () {
     let users: Users;
@@ -71,6 +73,18 @@ describe("Minter", function () {
             expect(hre.fromBig(values.supplyLimit)).to.equal(defaultKrAssetArgs.supplyLimit);
             expect(hre.fromBig(values.closeFee.rawValue)).to.equal(defaultKrAssetArgs.closeFee);
             expect(hre.fromBig(values.openFee.rawValue)).to.equal(defaultKrAssetArgs.openFee);
+        });
+
+        it("can update AMM oracle", async function () {
+            const ammOracle = await smock.fake<UniswapV2Oracle>("UniswapV2Oracle");
+            await hre.Diamond.updateAMMOracle(ammOracle.address);
+            expect(await hre.Diamond.ammOracle()).to.equal(ammOracle.address);
+        });
+
+        it("can update external oracle decimals", async function () {
+            const decimals = 8;
+            await hre.Diamond.updateExtOracleDecimals(decimals);
+            expect(await hre.Diamond.extOracleDecimals()).to.equal(decimals);
         });
 
         it("can update values of a kresko asset", async function () {

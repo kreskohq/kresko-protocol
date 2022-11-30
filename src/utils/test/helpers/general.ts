@@ -4,7 +4,7 @@ import { FluxPriceAggregator__factory } from "types/typechain";
 import { getUsers } from "@utils/general";
 import { defaultCloseFee, defaultOracleDecimals, defaultOraclePrice } from "../mocks";
 import { toBig } from "@kreskolabs/lib";
-import { calcDebtIndex, getBlockTimestamp, getNormalizedAmount } from "./calculations";
+import { calcDebtIndex, getBlockTimestamp, fromScaledAmount } from "./calculations";
 /* -------------------------------------------------------------------------- */
 /*                                  GENERAL                                   */
 /* -------------------------------------------------------------------------- */

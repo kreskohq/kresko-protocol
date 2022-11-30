@@ -1,13 +1,38 @@
 {
+	"console.log": {
+		"prefix": "clg",
+		"description": "console.log",
+		"scope": "typescript",
+		"body": [
+			"console.log($1);"
+		]
+	},
+	"spdxpragma": {
+		"prefix": "spdxpragma",
+		"description": "spdxpragma",
+		"scope": "solidity",
+		"body": [
+			"// SPDX-License-Identifier: MIT",
+			"pragma solidity >=0.8.14;"
+		]
+	},
+	"hhc": {
+		"prefix": "hhc",
+		"description": "hhc",
+		"scope": "solidity",
+		"body": [
+			"import \"hardhat/console.sol\";"
+		]
+	},
 	"natfunc": {
 		"prefix": "natfunc",
 		"description": "natfunc",
 		"scope": "solidity",
 		"body": [
 			"/**",
-			"* @notice general details",
-			"* @dev dev details",
-			"* @param _param explain _param",
+			"* @notice $1",
+			"* @dev $2",
+			"* @param $3",
 			"*/"
 		]
 	},
@@ -17,10 +42,10 @@
 		"scope": "solidity",
 		"body": [
 			"/** ",
-			"* @title Contract title",
+			"* @title $1",
 			"* @author Kresko",
-			"* @notice High level explanation of this contract",
-			"* @dev Explain any developer details",
+			"* @notice $2",
+			"* @dev $3",
 			"*/"
 		]
 	}

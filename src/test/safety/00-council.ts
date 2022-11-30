@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { getInternalEvent } from "@kreskolabs/lib/dist/events";
-import { Action } from "@test-utils";
+import { Action, defaultCollateralArgs, defaultKrAssetArgs } from "@test-utils";
 import { executeContractCallWithSigners } from "@utils/gnosis/utils/execution";
 import { withFixture } from "@utils/test";
 import { expect } from "chai";
@@ -13,8 +13,8 @@ describe("Safety Council", function () {
     withFixture(["minter-test", "integration"]);
     let users: Users;
     beforeEach(async function () {
-        this.collateral = this.collaterals[0];
-        this.krAsset = this.krAssets[0];
+        this.collateral = hre.collaterals.find(asset => asset.deployArgs.name === defaultCollateralArgs.name);
+        this.krAsset = hre.krAssets.find(asset => asset.deployArgs.symbol === defaultKrAssetArgs.symbol);
 
         // These are the 5 signers on the SafetyCouncil multisig
         const { deployer, devTwo, extOne, extTwo, extThree } = await hre.ethers.getNamedSigners();

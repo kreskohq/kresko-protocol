@@ -13,6 +13,7 @@ packages/**/*
 src/contracts/vendor/**/*
 src/contracts/test/**/*
 src/utils/**/*
+mochawesome-report/**/*
 
 # files
 .solcover.js
