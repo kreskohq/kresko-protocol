@@ -13,7 +13,6 @@ import {DiamondModifiers, MinterModifiers} from "../../shared/Modifiers.sol";
 import {Action, FixedPoint, KrAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";
-import "hardhat/console.sol";
 
 /**
  * @author Kresko
