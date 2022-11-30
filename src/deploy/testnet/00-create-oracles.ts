@@ -84,6 +84,8 @@ const func: DeployFunction = async function (hre) {
     logger.success("All price feeds deployed");
 };
 
+func.skip = async () => true;
+
 // func.skip = async hre => {
 //     const assets = [...testnetConfigs[hre.network.name].collaterals, ...testnetConfigs[hre.network.name].krAssets];
 
