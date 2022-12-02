@@ -1,6 +1,6 @@
 import { anchorTokenPrefix } from "@deploy-config/shared";
 import { toBig, toFixedPoint } from "@kreskolabs/lib/dist/numbers";
-import { HALF_PERCENTAGE, PERCENTAGE_FACTOR, oneRay, HALF_RAY } from "@kreskolabs/lib/dist/numbers/wadray";
+import { oneRay } from "@kreskolabs/lib/dist/numbers/wadray";
 
 export type TestCollateralAssetArgs = {
     name: string;
@@ -53,7 +53,7 @@ export const defaultDecimals = 18;
 export const defaultDepositAmount = toBig(10, defaultDecimals);
 export const defaultMintAmount = toBig(100, defaultDecimals);
 
-export const defaultSupplyLimit = 10000;
+export const defaultSupplyLimit = 100000;
 export const defaultCloseFee = 0.02; // 2%
 export const defaultOpenFee = 0; // 0%
 export const BASIS_POINT = oneRay.div(10000);

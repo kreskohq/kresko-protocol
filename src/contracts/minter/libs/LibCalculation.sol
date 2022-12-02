@@ -32,39 +32,52 @@ library LibCalculation {
         address _repayKreskoAsset,
         address _collateralAssetToSeize
     ) internal view returns (FixedPoint.Unsigned memory maxLiquidatableUSD) {
-        // Underwater value for this asset pair
-        FixedPoint.Unsigned memory collateralSide = self.getValueUnderForAssetPair(
+        FixedPoint.Unsigned memory minCollateralRequired = self.getAccountMinimumCollateralValueAtRatio(
             _account,
+            self.liquidationThreshold
+        );
+        FixedPoint.Unsigned memory accountCollateralValue = self.getAccountCollateralValue(_account);
+
+        // Account is not liquidatable
+        if (accountCollateralValue.isGreaterThanOrEqual(minCollateralRequired)) {
+            return FixedPoint.Unsigned(0);
+        }
+
+        FixedPoint.Unsigned memory valueGainedPerUSDRepaid = self.calcValueGainedPerUSDRepaid(
             _repayKreskoAsset,
             _collateralAssetToSeize
         );
 
-        if (collateralSide.rawValue == 0) {
-            return FixedPoint.Unsigned(0);
-        } else {
-            FixedPoint.Unsigned memory cFactor = self.collateralAssets[_collateralAssetToSeize].factor;
-            KrAsset memory krAsset = self.kreskoAssets[_repayKreskoAsset];
+        // Max repayment value for this pair
+        maxLiquidatableUSD = minCollateralRequired.sub(accountCollateralValue).div(valueGainedPerUSDRepaid);
 
-            // Max repayment value for this pair
-            FixedPoint.Unsigned memory krAssetSide = collateralSide
-                .mul(self.liquidationThreshold)
-                .mul(self.liquidationIncentiveMultiplier)
-                .mul(krAsset.kFactor)
-                .div(cFactor);
+        // Diminish liquidatable value for assets with lower cFactor
+        // This is desired as they have more seizable value.
+        FixedPoint.Unsigned memory cFactor = self.collateralAssets[_collateralAssetToSeize].factor;
 
-            // Diminish liquidatable value for assets with lower cFactor
-            // This is desired as they have more seizable value.
-            if (
-                self.depositedCollateralAssets[_account].length > 1 &&
-                cFactor.isLessThan(FixedPoint.ONE_HUNDRED_PERCENT())
-            ) {
-                // cFactor^4 is the diminishing factor (cFactor = 1 == nothing happens)
-                return krAssetSide.mul(cFactor.pow(4)).add(collateralSide);
-            } else {
-                // For single CDP accounts and seized collaterals with a cFactor of 1
-                return krAssetSide.add(collateralSide);
-            }
+        if (
+            self.depositedCollateralAssets[_account].length > 1 && cFactor.isLessThan(FixedPoint.ONE_HUNDRED_PERCENT())
+        ) {
+            // cFactor^4 is the diminishing factor (cFactor = 1 == nothing happens)
+            return maxLiquidatableUSD.mul(cFactor.pow(4));
         }
+    }
+
+    function calcValueGainedPerUSDRepaid(
+        MinterState storage self,
+        address _repayKreskoAsset,
+        address _collateralToSeize
+    ) internal view returns (FixedPoint.Unsigned memory) {
+        KrAsset memory krAsset = self.kreskoAssets[_repayKreskoAsset];
+        FixedPoint.Unsigned memory cFactor = self.collateralAssets[_collateralToSeize].factor;
+        return
+            krAsset
+                .kFactor
+                .mul(self.liquidationThreshold)
+                .mul(FixedPoint.ONE_HUNDRED_PERCENT().sub(krAsset.closeFee))
+                .mul(cFactor)
+                .div(self.liquidationIncentiveMultiplier)
+                .sub(FixedPoint.ONE_USD());
     }
 
     /**
@@ -82,41 +95,6 @@ library LibCalculation {
         // Denominate seize amount in collateral type
         // Apply liquidation incentive multiplier
         return _kreskoAssetRepayAmountUSD.mul(_liquidationIncentiveMultiplier).div(_collateralOraclePriceUSD);
-    }
-
-    function getValueUnderForAssetPair(
-        MinterState storage self,
-        address _account,
-        address _kreskoAsset,
-        address _collateralAsset
-    ) internal view returns (FixedPoint.Unsigned memory) {
-        // Minimum collateral value required for the krAsset position
-        FixedPoint.Unsigned memory minCollateralValue = self.getMinimumCollateralValueAtRatio(
-            _kreskoAsset,
-            self.getKreskoAssetDebtPrincipal(_account, _kreskoAsset),
-            self.liquidationThreshold
-        );
-        // Collateral value for this position
-        FixedPoint.Unsigned memory collateralValueAccount = self.getAccountCollateralValue(_account);
-
-        (FixedPoint.Unsigned memory collateralAssetValueAvailable, ) = self.getCollateralValueAndOraclePrice(
-            _collateralAsset,
-            self.getCollateralDeposits(_account, _collateralAsset),
-            false // take cFactor into consideration
-        );
-        if (minCollateralValue.isLessThan(collateralValueAccount)) {
-            return FixedPoint.Unsigned(0);
-        }
-
-        FixedPoint.Unsigned memory valueUnder = minCollateralValue.sub(collateralValueAccount);
-
-        if (valueUnder.isGreaterThanOrEqual(collateralAssetValueAvailable)) {
-            return collateralAssetValueAvailable;
-        } else if (valueUnder.isLessThan(self.minimumDebtValue)) {
-            return self.minimumDebtValue;
-        } else {
-            return valueUnder;
-        }
     }
 
     /**
