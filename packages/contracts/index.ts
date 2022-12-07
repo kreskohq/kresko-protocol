@@ -1,5 +1,5 @@
 import * as deploymentsJson from "./deployments/deployments.json";
-
+import * as oracleJson from "./deployments/oracles.json" 
 export interface ContractExport {
     address: string;
     abi: any[];
@@ -15,9 +15,18 @@ export interface Export {
 export type MultiExport = {
     [chainId: string]: Export[];
   };
+export type Oracles = {
+    asset: string;
+    assetType: string
+    feed: string;
+    address: string;
+}[]
 
 const deployments: MultiExport = deploymentsJson;
 
+const oracles: Oracles = oracleJson;
+
 export * from "./types";
 export { deployments };
+export { oracles };
 export default deployments;

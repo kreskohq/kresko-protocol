@@ -19,8 +19,8 @@ contract FluxPriceFeed is AccessControl, AggregatorV2V3Interface {
         uint64 timestamp;
         bool marketOpen;
     }
-    mapping(uint32 => Transmission) /* aggregator round ID */
-        internal s_transmissions;
+    mapping(uint32 => Transmission) s_transmissions; /* aggregator round ID */
+       
 
     /**
      * @param _validator the initial validator that can post data to this contract
