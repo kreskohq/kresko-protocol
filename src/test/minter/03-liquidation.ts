@@ -11,10 +11,10 @@ import {
 import { expect } from "@test/chai";
 
 import { Error } from "@utils/test/errors";
-import { getInternalEvent } from "@kreskolabs/lib";
-import { depositCollateral } from "@utils/test/helpers/collaterals";
+import { getInternalEvent, toBig } from "@kreskolabs/lib";
+import { addMockCollateralAsset, depositCollateral } from "@utils/test/helpers/collaterals";
 import { mintKrAsset } from "@utils/test/helpers/krassets";
-import { liquidate } from "@utils/test/helpers/liquidations";
+import { calcExpectedMaxLiquidatableValue, liquidate } from "@utils/test/helpers/liquidations";
 import hre from "hardhat";
 import { MinterEvent__factory } from "types/typechain";
 import { LiquidationOccurredEvent } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
@@ -35,14 +35,13 @@ describe("Minter", function () {
         this.collateral = hre.collaterals.find(c => c.deployArgs.name === defaultCollateralArgs.name);
         this.collateral = await this.collateral.update(collateralArgs);
         this.collateral.setPrice(collateralArgs.price);
-        await this.collateral.update(collateralArgs);
 
         // Set up mock KreskoAsset
         const krAssetArgs = {
             name: "KreskoAsset",
             price: 11, // $11
             factor: 1,
-            supplyLimit: 1000000,
+            supplyLimit: 100000000,
             closeFee: defaultCloseFee,
             openFee: defaultOpenFee,
         };
@@ -64,9 +63,7 @@ describe("Minter", function () {
 
         // -------------------------------- Set up userOne deposit/debt --------------------------------
 
-        await this.collateral.mocks.contract.setVariable("_balances", {
-            [hre.users.liquidator.address]: hre.toBig(100000000),
-        });
+        await this.collateral.setBalance(hre.users.liquidator, hre.toBig(100000000));
         await this.collateral.mocks.contract.setVariable("_allowances", {
             [hre.users.liquidator.address]: {
                 [hre.Diamond.address]: hre.toBig(100000000),
@@ -74,9 +71,7 @@ describe("Minter", function () {
         });
         // Deposit collateral
         this.defaultDepositAmount = 20; // 20 * $10 = $200 in collateral asset value
-        await this.collateral.mocks.contract.setVariable("_balances", {
-            [hre.users.userOne.address]: hre.toBig(this.defaultDepositAmount),
-        });
+        await this.collateral.setBalance(hre.users.userOne, hre.toBig(this.defaultDepositAmount));
         await this.collateral.mocks.contract.setVariable("_allowances", {
             [hre.users.userOne.address]: {
                 [hre.Diamond.address]: hre.toBig(this.defaultDepositAmount),
@@ -94,6 +89,102 @@ describe("Minter", function () {
             user: hre.users.userOne,
             amount: this.defaultMintAmount,
             asset: this.krAsset,
+        });
+    });
+    describe("#maxLiquidatableValue", function () {
+        let user: SignerWithAddress;
+        let newCollateral: Collateral;
+        const collateralPrice = 10;
+        const krAssetPrice = 10;
+        const collateralPriceAfter = 135 / (20 * 50);
+        beforeEach(async function () {
+            user = hre.users.userOne;
+            this.collateral.setPrice(collateralPrice);
+            this.krAsset.setPrice(krAssetPrice);
+            await this.collateral.setBalance(hre.users.userOne, hre.toBig(this.defaultDepositAmount * 100));
+            await this.collateral.mocks.contract.setVariable("_allowances", {
+                [hre.users.userOne.address]: {
+                    [hre.Diamond.address]: hre.toBig(this.defaultDepositAmount * 100),
+                },
+            });
+
+            newCollateral = await addMockCollateralAsset({ name: "Coll", decimals: 8, price: 10, factor: 0.9 });
+            await newCollateral.setBalance(hre.users.userOne, hre.toBig(this.defaultDepositAmount * 100, 8));
+            await newCollateral.mocks.contract.setVariable("_allowances", {
+                [hre.users.userOne.address]: {
+                    [hre.Diamond.address]: hre.toBig(this.defaultDepositAmount * 100, 8),
+                },
+            });
+        });
+
+        it("calculates correct max liquidation with single market cdp", async function () {
+            await depositCollateral({
+                user: hre.users.userOne,
+                amount: this.defaultDepositAmount * 49,
+                asset: this.collateral,
+            });
+
+            this.collateral.setPrice(collateralPriceAfter);
+            expect(await hre.Diamond.isAccountLiquidatable(user.address)).to.be.true;
+
+            const expectedMaxLiquidatableValue = await calcExpectedMaxLiquidatableValue(
+                user,
+                this.krAsset,
+                this.collateral,
+            );
+            expect(expectedMaxLiquidatableValue.gt(0)).to.be.true;
+            const maxLiquidatableValue = await hre.Diamond.calculateMaxLiquidatableValueForAssets(
+                user.address,
+                this.krAsset.address,
+                this.collateral.address,
+            );
+
+            expect(expectedMaxLiquidatableValue).to.equal(maxLiquidatableValue.rawValue);
+        });
+        it("calculates correct max liquidation with multiple cdps", async function () {
+            await depositCollateral({
+                user: hre.users.userOne,
+                amount: this.defaultDepositAmount * 49,
+                asset: this.collateral,
+            });
+
+            await depositCollateral({
+                user: hre.users.userOne,
+                amount: toBig(0.1, 8),
+                asset: newCollateral,
+            });
+
+            this.collateral.setPrice(collateralPriceAfter);
+            expect(await hre.Diamond.isAccountLiquidatable(user.address)).to.be.true;
+
+            const expectedMaxLiquidatableValue = await calcExpectedMaxLiquidatableValue(
+                user,
+                this.krAsset,
+                this.collateral,
+            );
+            expect(expectedMaxLiquidatableValue.gt(0)).to.be.true;
+            const maxLiquidatableValue = await hre.Diamond.calculateMaxLiquidatableValueForAssets(
+                user.address,
+                this.krAsset.address,
+                this.collateral.address,
+            );
+
+            expect(expectedMaxLiquidatableValue).to.equal(maxLiquidatableValue.rawValue);
+
+            const expectedMaxLiquidatableValueNewCollateral = await calcExpectedMaxLiquidatableValue(
+                user,
+                this.krAsset,
+                newCollateral,
+            );
+
+            expect(expectedMaxLiquidatableValueNewCollateral.gt(0)).to.be.true;
+            const maxLiquidatableValueNewCollateral = await hre.Diamond.calculateMaxLiquidatableValueForAssets(
+                user.address,
+                this.krAsset.address,
+                newCollateral.address,
+            );
+
+            expect(expectedMaxLiquidatableValueNewCollateral).to.equal(maxLiquidatableValueNewCollateral.rawValue);
         });
     });
 
@@ -527,9 +618,9 @@ describe("Minter", function () {
 
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidate.address)).to.be.false;
 
-                this.collateral.setPrice(rebasePrice * 2);
+                this.collateral.setPrice(5);
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidate.address)).to.be.true;
-                await expect(liquidate(userToLiquidate, this.krAsset, this.collateral)).to.not.be.reverted;
+                await liquidate(userToLiquidate, this.krAsset, this.collateral);
             });
             it("should allow liquidations of unhealthy accounts after a negative rebase", async function () {
                 // Rebase params
