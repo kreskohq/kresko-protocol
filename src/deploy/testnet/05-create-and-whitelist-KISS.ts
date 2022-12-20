@@ -1,4 +1,4 @@
-import { assets, testnetConfigs } from "@deploy-config/testnet";
+import { assets, testnetConfigs } from "@deploy-config/testnet-goerli";
 import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import { getLogger } from "@kreskolabs/lib/dist/utils";
 import { getOracle } from "@utils/general";
@@ -20,12 +20,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         kFactor: assets.KISS.kFactor,
         supplyLimit: 2_000_000_000,
         oracleAddr: oracleAddress,
+        marketStatusOracleAddr: oracleAddress,
     });
 
     await hre.run("add-collateral", {
         symbol: assets.KISS.symbol,
         cFactor: assets.KISS.cFactor,
         oracleAddr: oracleAddress,
+        marketStatusOracleAddr: oracleAddress,
         log: !process.env.TEST,
     });
 

@@ -607,6 +607,7 @@ describe("Minter", function () {
                     this.krAsset.anchor.address,
                     hre.toBig(1),
                     assetInfo.oracle,
+                    assetInfo.oracle,
                 );
 
                 // Allowance for Kresko
@@ -1101,6 +1102,7 @@ describe("Minter", function () {
                     this.krAsset.contract.address,
                     this.krAsset.anchor.address,
                     hre.toBig(1),
+                    assetInfo.oracle,
                     assetInfo.oracle,
                 );
 

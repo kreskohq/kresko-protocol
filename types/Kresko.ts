@@ -111,9 +111,32 @@ export type StabilityRateConfigStructOutput = [
   lastUpdateTimestamp: number;
 };
 
+export type StabilityRateParamsStruct = {
+  stabilityRateBase: PromiseOrValue<BigNumberish>;
+  rateSlope1: PromiseOrValue<BigNumberish>;
+  rateSlope2: PromiseOrValue<BigNumberish>;
+  optimalPriceRate: PromiseOrValue<BigNumberish>;
+  priceRateDelta: PromiseOrValue<BigNumberish>;
+};
+
+export type StabilityRateParamsStructOutput = [
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  BigNumber
+] & {
+  stabilityRateBase: BigNumber;
+  rateSlope1: BigNumber;
+  rateSlope2: BigNumber;
+  optimalPriceRate: BigNumber;
+  priceRateDelta: BigNumber;
+};
+
 export type CollateralAssetStruct = {
   factor: FixedPoint.UnsignedStruct;
   oracle: PromiseOrValue<string>;
+  marketStatusOracle: PromiseOrValue<string>;
   anchor: PromiseOrValue<string>;
   decimals: PromiseOrValue<BigNumberish>;
   exists: PromiseOrValue<boolean>;
@@ -123,11 +146,13 @@ export type CollateralAssetStructOutput = [
   FixedPoint.UnsignedStructOutput,
   string,
   string,
+  string,
   number,
   boolean
 ] & {
   factor: FixedPoint.UnsignedStructOutput;
   oracle: string;
+  marketStatusOracle: string;
   anchor: string;
   decimals: number;
   exists: boolean;
@@ -161,6 +186,7 @@ export type MinterParamsStructOutput = [
 export type KrAssetStruct = {
   kFactor: FixedPoint.UnsignedStruct;
   oracle: PromiseOrValue<string>;
+  marketStatusOracle: PromiseOrValue<string>;
   supplyLimit: PromiseOrValue<BigNumberish>;
   anchor: PromiseOrValue<string>;
   closeFee: FixedPoint.UnsignedStruct;
@@ -171,6 +197,7 @@ export type KrAssetStruct = {
 export type KrAssetStructOutput = [
   FixedPoint.UnsignedStructOutput,
   string,
+  string,
   BigNumber,
   string,
   FixedPoint.UnsignedStructOutput,
@@ -179,6 +206,7 @@ export type KrAssetStructOutput = [
 ] & {
   kFactor: FixedPoint.UnsignedStructOutput;
   oracle: string;
+  marketStatusOracle: string;
   supplyLimit: BigNumber;
   anchor: string;
   closeFee: FixedPoint.UnsignedStructOutput;
@@ -216,30 +244,6 @@ export declare namespace FixedPoint {
   export type UnsignedStruct = { rawValue: PromiseOrValue<BigNumberish> };
 
   export type UnsignedStructOutput = [BigNumber] & { rawValue: BigNumber };
-}
-
-export declare namespace StabilityRateFacet {
-  export type StabilityRateSetupStruct = {
-    stabilityRateBase: PromiseOrValue<BigNumberish>;
-    rateSlope1: PromiseOrValue<BigNumberish>;
-    rateSlope2: PromiseOrValue<BigNumberish>;
-    optimalPriceRate: PromiseOrValue<BigNumberish>;
-    priceRateDelta: PromiseOrValue<BigNumberish>;
-  };
-
-  export type StabilityRateSetupStructOutput = [
-    BigNumber,
-    BigNumber,
-    BigNumber,
-    BigNumber,
-    BigNumber
-  ] & {
-    stabilityRateBase: BigNumber;
-    rateSlope1: BigNumber;
-    rateSlope2: BigNumber;
-    optimalPriceRate: BigNumber;
-    priceRateDelta: BigNumber;
-  };
 }
 
 export declare namespace LibUI {
@@ -589,20 +593,22 @@ export interface KreskoInterface extends utils.Interface {
     "kreskoAssetDebtInterestTotal(address)": FunctionFragment;
     "kreskoAssetDebtPrincipal(address,address)": FunctionFragment;
     "burnKreskoAsset(address,address,uint256,uint256)": FunctionFragment;
-    "depositCollateral(address,address,uint256)": FunctionFragment;
-    "withdrawCollateral(address,address,uint256,uint256)": FunctionFragment;
-    "addCollateralAsset(address,address,uint256,address)": FunctionFragment;
-    "addKreskoAsset(address,address,uint256,address,uint256,uint256,uint256)": FunctionFragment;
+    "batchCloseKrAssetDebtPositions(address)": FunctionFragment;
+    "closeKrAssetDebtPosition(address,address)": FunctionFragment;
+    "addCollateralAsset(address,address,uint256,address,address)": FunctionFragment;
+    "addKreskoAsset(address,address,uint256,address,address,uint256,uint256,uint256)": FunctionFragment;
     "initialize((address,address,address,uint8,uint256,uint256,uint256,uint256))": FunctionFragment;
     "updateAMMOracle(address)": FunctionFragment;
-    "updateCollateralAsset(address,address,uint256,address)": FunctionFragment;
+    "updateCollateralAsset(address,address,uint256,address,address)": FunctionFragment;
     "updateExtOracleDecimals(uint8)": FunctionFragment;
     "updateFeeRecipient(address)": FunctionFragment;
-    "updateKreskoAsset(address,address,uint256,address,uint256,uint256,uint256)": FunctionFragment;
+    "updateKreskoAsset(address,address,uint256,address,address,uint256,uint256,uint256)": FunctionFragment;
     "updateLiquidationIncentiveMultiplier(uint256)": FunctionFragment;
     "updateLiquidationThreshold(uint256)": FunctionFragment;
     "updateMinimumCollateralizationRatio(uint256)": FunctionFragment;
     "updateMinimumDebtValue(uint256)": FunctionFragment;
+    "depositCollateral(address,address,uint256)": FunctionFragment;
+    "withdrawCollateral(address,address,uint256,uint256)": FunctionFragment;
     "batchLiquidateInterest(address,address)": FunctionFragment;
     "liquidateInterest(address,address,address)": FunctionFragment;
     "calculateMaxLiquidatableValueForAssets(address,address,address)": FunctionFragment;
@@ -613,21 +619,19 @@ export interface KreskoInterface extends utils.Interface {
     "safetyStateFor(address,uint8)": FunctionFragment;
     "safetyStateSet()": FunctionFragment;
     "toggleAssetsPaused(address[],uint8,bool,uint256)": FunctionFragment;
-    "KISS()": FunctionFragment;
     "batchRepayFullStabilityRateInterest(address)": FunctionFragment;
-    "configureStabilityRatesForAsset(address,(uint128,uint128,uint128,uint128,uint128))": FunctionFragment;
-    "getAccountStabilityRateData(address,address)": FunctionFragment;
     "getDebtIndexForAsset(address)": FunctionFragment;
+    "getLastDebtIndexForAccount(address,address)": FunctionFragment;
     "getPriceRateForAsset(address)": FunctionFragment;
     "getStabilityRateConfigurationForAsset(address)": FunctionFragment;
     "getStabilityRateForAsset(address)": FunctionFragment;
-    "getTotalStabilityFeeAccrued(address)": FunctionFragment;
-    "initializeStabilityRateForAsset(address,(uint128,uint128,uint128,uint128,uint128))": FunctionFragment;
-    "latestStabilityRateUpdateForAsset(address)": FunctionFragment;
+    "kiss()": FunctionFragment;
     "repayFullStabilityRateInterest(address,address)": FunctionFragment;
     "repayStabilityRateInterestPartial(address,address,uint256)": FunctionFragment;
-    "updateKISS(address)": FunctionFragment;
+    "setupStabilityRateParams(address,(uint128,uint128,uint128,uint128,uint128))": FunctionFragment;
+    "updateKiss(address)": FunctionFragment;
     "updateStabilityRateAndIndexForAsset(address)": FunctionFragment;
+    "updateStabilityRateParams(address,(uint128,uint128,uint128,uint128,uint128))": FunctionFragment;
     "ammOracle()": FunctionFragment;
     "collateralAsset(address)": FunctionFragment;
     "collateralExists(address)": FunctionFragment;
@@ -690,8 +694,8 @@ export interface KreskoInterface extends utils.Interface {
       | "kreskoAssetDebtInterestTotal"
       | "kreskoAssetDebtPrincipal"
       | "burnKreskoAsset"
-      | "depositCollateral"
-      | "withdrawCollateral"
+      | "batchCloseKrAssetDebtPositions"
+      | "closeKrAssetDebtPosition"
       | "addCollateralAsset"
       | "addKreskoAsset"
       | "initialize"
@@ -704,6 +708,8 @@ export interface KreskoInterface extends utils.Interface {
       | "updateLiquidationThreshold"
       | "updateMinimumCollateralizationRatio"
       | "updateMinimumDebtValue"
+      | "depositCollateral"
+      | "withdrawCollateral"
       | "batchLiquidateInterest"
       | "liquidateInterest"
       | "calculateMaxLiquidatableValueForAssets"
@@ -714,21 +720,19 @@ export interface KreskoInterface extends utils.Interface {
       | "safetyStateFor"
       | "safetyStateSet"
       | "toggleAssetsPaused"
-      | "KISS"
       | "batchRepayFullStabilityRateInterest"
-      | "configureStabilityRatesForAsset"
-      | "getAccountStabilityRateData"
       | "getDebtIndexForAsset"
+      | "getLastDebtIndexForAccount"
       | "getPriceRateForAsset"
       | "getStabilityRateConfigurationForAsset"
       | "getStabilityRateForAsset"
-      | "getTotalStabilityFeeAccrued"
-      | "initializeStabilityRateForAsset"
-      | "latestStabilityRateUpdateForAsset"
+      | "kiss"
       | "repayFullStabilityRateInterest"
       | "repayStabilityRateInterestPartial"
-      | "updateKISS"
+      | "setupStabilityRateParams"
+      | "updateKiss"
       | "updateStabilityRateAndIndexForAsset"
+      | "updateStabilityRateParams"
       | "ammOracle"
       | "collateralAsset"
       | "collateralExists"
@@ -909,21 +913,12 @@ export interface KreskoInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "depositCollateral",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    functionFragment: "batchCloseKrAssetDebtPositions",
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "withdrawCollateral",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    functionFragment: "closeKrAssetDebtPosition",
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "addCollateralAsset",
@@ -931,6 +926,7 @@ export interface KreskoInterface extends utils.Interface {
       PromiseOrValue<string>,
       PromiseOrValue<string>,
       PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
       PromiseOrValue<string>
     ]
   ): string;
@@ -940,6 +936,7 @@ export interface KreskoInterface extends utils.Interface {
       PromiseOrValue<string>,
       PromiseOrValue<string>,
       PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
       PromiseOrValue<string>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>,
@@ -960,6 +957,7 @@ export interface KreskoInterface extends utils.Interface {
       PromiseOrValue<string>,
       PromiseOrValue<string>,
       PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
       PromiseOrValue<string>
     ]
   ): string;
@@ -977,6 +975,7 @@ export interface KreskoInterface extends utils.Interface {
       PromiseOrValue<string>,
       PromiseOrValue<string>,
       PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
       PromiseOrValue<string>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>,
@@ -998,6 +997,23 @@ export interface KreskoInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "updateMinimumDebtValue",
     values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "depositCollateral",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "withdrawCollateral",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "batchLiquidateInterest",
@@ -1063,25 +1079,17 @@ export interface KreskoInterface extends utils.Interface {
       PromiseOrValue<BigNumberish>
     ]
   ): string;
-  encodeFunctionData(functionFragment: "KISS", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "batchRepayFullStabilityRateInterest",
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "configureStabilityRatesForAsset",
-    values: [
-      PromiseOrValue<string>,
-      StabilityRateFacet.StabilityRateSetupStruct
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getAccountStabilityRateData",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
     functionFragment: "getDebtIndexForAsset",
     values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getLastDebtIndexForAccount",
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getPriceRateForAsset",
@@ -1095,21 +1103,7 @@ export interface KreskoInterface extends utils.Interface {
     functionFragment: "getStabilityRateForAsset",
     values: [PromiseOrValue<string>]
   ): string;
-  encodeFunctionData(
-    functionFragment: "getTotalStabilityFeeAccrued",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "initializeStabilityRateForAsset",
-    values: [
-      PromiseOrValue<string>,
-      StabilityRateFacet.StabilityRateSetupStruct
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "latestStabilityRateUpdateForAsset",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "kiss", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "repayFullStabilityRateInterest",
     values: [PromiseOrValue<string>, PromiseOrValue<string>]
@@ -1123,12 +1117,20 @@ export interface KreskoInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "updateKISS",
+    functionFragment: "setupStabilityRateParams",
+    values: [PromiseOrValue<string>, StabilityRateParamsStruct]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "updateKiss",
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "updateStabilityRateAndIndexForAsset",
     values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "updateStabilityRateParams",
+    values: [PromiseOrValue<string>, StabilityRateParamsStruct]
   ): string;
   encodeFunctionData(functionFragment: "ammOracle", values?: undefined): string;
   encodeFunctionData(
@@ -1356,11 +1358,11 @@ export interface KreskoInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "depositCollateral",
+    functionFragment: "batchCloseKrAssetDebtPositions",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "withdrawCollateral",
+    functionFragment: "closeKrAssetDebtPosition",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -1409,6 +1411,14 @@ export interface KreskoInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "depositCollateral",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawCollateral",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "batchLiquidateInterest",
     data: BytesLike
   ): Result;
@@ -1445,21 +1455,16 @@ export interface KreskoInterface extends utils.Interface {
     functionFragment: "toggleAssetsPaused",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "KISS", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "batchRepayFullStabilityRateInterest",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "configureStabilityRatesForAsset",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getAccountStabilityRateData",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "getDebtIndexForAsset",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getLastDebtIndexForAccount",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -1474,18 +1479,7 @@ export interface KreskoInterface extends utils.Interface {
     functionFragment: "getStabilityRateForAsset",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "getTotalStabilityFeeAccrued",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "initializeStabilityRateForAsset",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "latestStabilityRateUpdateForAsset",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "kiss", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "repayFullStabilityRateInterest",
     data: BytesLike
@@ -1494,9 +1488,17 @@ export interface KreskoInterface extends utils.Interface {
     functionFragment: "repayStabilityRateInterestPartial",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "updateKISS", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "setupStabilityRateParams",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "updateKiss", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "updateStabilityRateAndIndexForAsset",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "updateStabilityRateParams",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "ammOracle", data: BytesLike): Result;
@@ -1866,18 +1868,14 @@ export interface Kresko extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    depositCollateral(
+    batchCloseKrAssetDebtPositions(
       _account: PromiseOrValue<string>,
-      _collateralAsset: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    withdrawCollateral(
+    closeKrAssetDebtPosition(
       _account: PromiseOrValue<string>,
-      _collateralAsset: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
-      _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
+      _kreskoAsset: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -1885,7 +1883,8 @@ export interface Kresko extends BaseContract {
       _collateralAsset: PromiseOrValue<string>,
       _anchor: PromiseOrValue<string>,
       _factor: PromiseOrValue<BigNumberish>,
-      _oracle: PromiseOrValue<string>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -1893,7 +1892,8 @@ export interface Kresko extends BaseContract {
       _krAsset: PromiseOrValue<string>,
       _anchor: PromiseOrValue<string>,
       _kFactor: PromiseOrValue<BigNumberish>,
-      _oracle: PromiseOrValue<string>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
       _supplyLimit: PromiseOrValue<BigNumberish>,
       _closeFee: PromiseOrValue<BigNumberish>,
       _openFee: PromiseOrValue<BigNumberish>,
@@ -1914,7 +1914,8 @@ export interface Kresko extends BaseContract {
       _collateralAsset: PromiseOrValue<string>,
       _anchor: PromiseOrValue<string>,
       _factor: PromiseOrValue<BigNumberish>,
-      _oracle: PromiseOrValue<string>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -1932,7 +1933,8 @@ export interface Kresko extends BaseContract {
       _krAsset: PromiseOrValue<string>,
       _anchor: PromiseOrValue<string>,
       _kFactor: PromiseOrValue<BigNumberish>,
-      _oracle: PromiseOrValue<string>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
       _supplyLimit: PromiseOrValue<BigNumberish>,
       _closeFee: PromiseOrValue<BigNumberish>,
       _openFee: PromiseOrValue<BigNumberish>,
@@ -1956,6 +1958,21 @@ export interface Kresko extends BaseContract {
 
     updateMinimumDebtValue(
       _minimumDebtValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    depositCollateral(
+      _account: PromiseOrValue<string>,
+      _collateralAsset: PromiseOrValue<string>,
+      _depositAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    withdrawCollateral(
+      _account: PromiseOrValue<string>,
+      _collateralAsset: PromiseOrValue<string>,
+      _withdrawAmount: PromiseOrValue<BigNumberish>,
+      _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -2001,7 +2018,7 @@ export interface Kresko extends BaseContract {
     mintKreskoAsset(
       _account: PromiseOrValue<string>,
       _kreskoAsset: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
+      _mintAmount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -2027,34 +2044,21 @@ export interface Kresko extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    KISS(overrides?: CallOverrides): Promise<[string]>;
-
     batchRepayFullStabilityRateInterest(
       _account: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    configureStabilityRatesForAsset(
-      _asset: PromiseOrValue<string>,
-      _setup: StabilityRateFacet.StabilityRateSetupStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    getAccountStabilityRateData(
-      _account: PromiseOrValue<string>,
-      _asset: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, number] & {
-        lastDebtIndex: BigNumber;
-        lastUpdateTimestamp: number;
-      }
-    >;
-
     getDebtIndexForAsset(
       _asset: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { debtIndex: BigNumber }>;
+
+    getLastDebtIndexForAccount(
+      _account: PromiseOrValue<string>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { lastDebtIndex: BigNumber }>;
 
     getPriceRateForAsset(
       _asset: PromiseOrValue<string>,
@@ -2071,37 +2075,29 @@ export interface Kresko extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { stabilityRate: BigNumber }>;
 
-    getTotalStabilityFeeAccrued(
-      _asset: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    initializeStabilityRateForAsset(
-      _asset: PromiseOrValue<string>,
-      _setup: StabilityRateFacet.StabilityRateSetupStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    latestStabilityRateUpdateForAsset(
-      _asset: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[number] & { lastUpdateTimestamp: number }>;
+    kiss(overrides?: CallOverrides): Promise<[string]>;
 
     repayFullStabilityRateInterest(
       _account: PromiseOrValue<string>,
-      _asset: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     repayStabilityRateInterestPartial(
       _account: PromiseOrValue<string>,
-      _asset: PromiseOrValue<string>,
-      _usdAmount: PromiseOrValue<BigNumberish>,
+      _kreskoAsset: PromiseOrValue<string>,
+      _kissRepayAmount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    updateKISS(
-      _KISS: PromiseOrValue<string>,
+    setupStabilityRateParams(
+      _asset: PromiseOrValue<string>,
+      _setup: StabilityRateParamsStruct,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    updateKiss(
+      _kiss: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -2110,10 +2106,16 @@ export interface Kresko extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    updateStabilityRateParams(
+      _asset: PromiseOrValue<string>,
+      _setup: StabilityRateParamsStruct,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     ammOracle(overrides?: CallOverrides): Promise<[string]>;
 
     collateralAsset(
-      _asset: PromiseOrValue<string>,
+      _collateralAsset: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<
       [CollateralAssetStructOutput] & { asset: CollateralAssetStructOutput }
@@ -2158,12 +2160,12 @@ export interface Kresko extends BaseContract {
     >;
 
     krAssetExists(
-      _krAsset: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<[boolean] & { exists: boolean }>;
 
     kreskoAsset(
-      _asset: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<[KrAssetStructOutput] & { asset: KrAssetStructOutput }>;
 
@@ -2447,18 +2449,14 @@ export interface Kresko extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  depositCollateral(
+  batchCloseKrAssetDebtPositions(
     _account: PromiseOrValue<string>,
-    _collateralAsset: PromiseOrValue<string>,
-    _amount: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  withdrawCollateral(
+  closeKrAssetDebtPosition(
     _account: PromiseOrValue<string>,
-    _collateralAsset: PromiseOrValue<string>,
-    _amount: PromiseOrValue<BigNumberish>,
-    _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
+    _kreskoAsset: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -2466,7 +2464,8 @@ export interface Kresko extends BaseContract {
     _collateralAsset: PromiseOrValue<string>,
     _anchor: PromiseOrValue<string>,
     _factor: PromiseOrValue<BigNumberish>,
-    _oracle: PromiseOrValue<string>,
+    _priceFeedOracle: PromiseOrValue<string>,
+    _marketStatusOracle: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -2474,7 +2473,8 @@ export interface Kresko extends BaseContract {
     _krAsset: PromiseOrValue<string>,
     _anchor: PromiseOrValue<string>,
     _kFactor: PromiseOrValue<BigNumberish>,
-    _oracle: PromiseOrValue<string>,
+    _priceFeedOracle: PromiseOrValue<string>,
+    _marketStatusOracle: PromiseOrValue<string>,
     _supplyLimit: PromiseOrValue<BigNumberish>,
     _closeFee: PromiseOrValue<BigNumberish>,
     _openFee: PromiseOrValue<BigNumberish>,
@@ -2495,7 +2495,8 @@ export interface Kresko extends BaseContract {
     _collateralAsset: PromiseOrValue<string>,
     _anchor: PromiseOrValue<string>,
     _factor: PromiseOrValue<BigNumberish>,
-    _oracle: PromiseOrValue<string>,
+    _priceFeedOracle: PromiseOrValue<string>,
+    _marketStatusOracle: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -2513,7 +2514,8 @@ export interface Kresko extends BaseContract {
     _krAsset: PromiseOrValue<string>,
     _anchor: PromiseOrValue<string>,
     _kFactor: PromiseOrValue<BigNumberish>,
-    _oracle: PromiseOrValue<string>,
+    _priceFeedOracle: PromiseOrValue<string>,
+    _marketStatusOracle: PromiseOrValue<string>,
     _supplyLimit: PromiseOrValue<BigNumberish>,
     _closeFee: PromiseOrValue<BigNumberish>,
     _openFee: PromiseOrValue<BigNumberish>,
@@ -2537,6 +2539,21 @@ export interface Kresko extends BaseContract {
 
   updateMinimumDebtValue(
     _minimumDebtValue: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  depositCollateral(
+    _account: PromiseOrValue<string>,
+    _collateralAsset: PromiseOrValue<string>,
+    _depositAmount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  withdrawCollateral(
+    _account: PromiseOrValue<string>,
+    _collateralAsset: PromiseOrValue<string>,
+    _withdrawAmount: PromiseOrValue<BigNumberish>,
+    _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -2578,7 +2595,7 @@ export interface Kresko extends BaseContract {
   mintKreskoAsset(
     _account: PromiseOrValue<string>,
     _kreskoAsset: PromiseOrValue<string>,
-    _amount: PromiseOrValue<BigNumberish>,
+    _mintAmount: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -2604,31 +2621,18 @@ export interface Kresko extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  KISS(overrides?: CallOverrides): Promise<string>;
-
   batchRepayFullStabilityRateInterest(
     _account: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  configureStabilityRatesForAsset(
-    _asset: PromiseOrValue<string>,
-    _setup: StabilityRateFacet.StabilityRateSetupStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  getAccountStabilityRateData(
-    _account: PromiseOrValue<string>,
+  getDebtIndexForAsset(
     _asset: PromiseOrValue<string>,
     overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, number] & {
-      lastDebtIndex: BigNumber;
-      lastUpdateTimestamp: number;
-    }
-  >;
+  ): Promise<BigNumber>;
 
-  getDebtIndexForAsset(
+  getLastDebtIndexForAccount(
+    _account: PromiseOrValue<string>,
     _asset: PromiseOrValue<string>,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
@@ -2648,37 +2652,29 @@ export interface Kresko extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  getTotalStabilityFeeAccrued(
-    _asset: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  initializeStabilityRateForAsset(
-    _asset: PromiseOrValue<string>,
-    _setup: StabilityRateFacet.StabilityRateSetupStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  latestStabilityRateUpdateForAsset(
-    _asset: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<number>;
+  kiss(overrides?: CallOverrides): Promise<string>;
 
   repayFullStabilityRateInterest(
     _account: PromiseOrValue<string>,
-    _asset: PromiseOrValue<string>,
+    _kreskoAsset: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   repayStabilityRateInterestPartial(
     _account: PromiseOrValue<string>,
-    _asset: PromiseOrValue<string>,
-    _usdAmount: PromiseOrValue<BigNumberish>,
+    _kreskoAsset: PromiseOrValue<string>,
+    _kissRepayAmount: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  updateKISS(
-    _KISS: PromiseOrValue<string>,
+  setupStabilityRateParams(
+    _asset: PromiseOrValue<string>,
+    _setup: StabilityRateParamsStruct,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  updateKiss(
+    _kiss: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -2687,10 +2683,16 @@ export interface Kresko extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  updateStabilityRateParams(
+    _asset: PromiseOrValue<string>,
+    _setup: StabilityRateParamsStruct,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   ammOracle(overrides?: CallOverrides): Promise<string>;
 
   collateralAsset(
-    _asset: PromiseOrValue<string>,
+    _collateralAsset: PromiseOrValue<string>,
     overrides?: CallOverrides
   ): Promise<CollateralAssetStructOutput>;
 
@@ -2727,12 +2729,12 @@ export interface Kresko extends BaseContract {
   ): Promise<FixedPoint.UnsignedStructOutput>;
 
   krAssetExists(
-    _krAsset: PromiseOrValue<string>,
+    _kreskoAsset: PromiseOrValue<string>,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
   kreskoAsset(
-    _asset: PromiseOrValue<string>,
+    _kreskoAsset: PromiseOrValue<string>,
     overrides?: CallOverrides
   ): Promise<KrAssetStructOutput>;
 
@@ -3010,18 +3012,14 @@ export interface Kresko extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    depositCollateral(
+    batchCloseKrAssetDebtPositions(
       _account: PromiseOrValue<string>,
-      _collateralAsset: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    withdrawCollateral(
+    closeKrAssetDebtPosition(
       _account: PromiseOrValue<string>,
-      _collateralAsset: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
-      _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
+      _kreskoAsset: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -3029,7 +3027,8 @@ export interface Kresko extends BaseContract {
       _collateralAsset: PromiseOrValue<string>,
       _anchor: PromiseOrValue<string>,
       _factor: PromiseOrValue<BigNumberish>,
-      _oracle: PromiseOrValue<string>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -3037,7 +3036,8 @@ export interface Kresko extends BaseContract {
       _krAsset: PromiseOrValue<string>,
       _anchor: PromiseOrValue<string>,
       _kFactor: PromiseOrValue<BigNumberish>,
-      _oracle: PromiseOrValue<string>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
       _supplyLimit: PromiseOrValue<BigNumberish>,
       _closeFee: PromiseOrValue<BigNumberish>,
       _openFee: PromiseOrValue<BigNumberish>,
@@ -3058,7 +3058,8 @@ export interface Kresko extends BaseContract {
       _collateralAsset: PromiseOrValue<string>,
       _anchor: PromiseOrValue<string>,
       _factor: PromiseOrValue<BigNumberish>,
-      _oracle: PromiseOrValue<string>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -3076,7 +3077,8 @@ export interface Kresko extends BaseContract {
       _krAsset: PromiseOrValue<string>,
       _anchor: PromiseOrValue<string>,
       _kFactor: PromiseOrValue<BigNumberish>,
-      _oracle: PromiseOrValue<string>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
       _supplyLimit: PromiseOrValue<BigNumberish>,
       _closeFee: PromiseOrValue<BigNumberish>,
       _openFee: PromiseOrValue<BigNumberish>,
@@ -3100,6 +3102,21 @@ export interface Kresko extends BaseContract {
 
     updateMinimumDebtValue(
       _minimumDebtValue: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    depositCollateral(
+      _account: PromiseOrValue<string>,
+      _collateralAsset: PromiseOrValue<string>,
+      _depositAmount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    withdrawCollateral(
+      _account: PromiseOrValue<string>,
+      _collateralAsset: PromiseOrValue<string>,
+      _withdrawAmount: PromiseOrValue<BigNumberish>,
+      _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -3141,7 +3158,7 @@ export interface Kresko extends BaseContract {
     mintKreskoAsset(
       _account: PromiseOrValue<string>,
       _kreskoAsset: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
+      _mintAmount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -3167,31 +3184,18 @@ export interface Kresko extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    KISS(overrides?: CallOverrides): Promise<string>;
-
     batchRepayFullStabilityRateInterest(
       _account: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    configureStabilityRatesForAsset(
-      _asset: PromiseOrValue<string>,
-      _setup: StabilityRateFacet.StabilityRateSetupStruct,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    getAccountStabilityRateData(
-      _account: PromiseOrValue<string>,
-      _asset: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, number] & {
-        lastDebtIndex: BigNumber;
-        lastUpdateTimestamp: number;
-      }
-    >;
-
     getDebtIndexForAsset(
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getLastDebtIndexForAccount(
+      _account: PromiseOrValue<string>,
       _asset: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -3211,37 +3215,29 @@ export interface Kresko extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getTotalStabilityFeeAccrued(
-      _asset: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    initializeStabilityRateForAsset(
-      _asset: PromiseOrValue<string>,
-      _setup: StabilityRateFacet.StabilityRateSetupStruct,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    latestStabilityRateUpdateForAsset(
-      _asset: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<number>;
+    kiss(overrides?: CallOverrides): Promise<string>;
 
     repayFullStabilityRateInterest(
       _account: PromiseOrValue<string>,
-      _asset: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     repayStabilityRateInterestPartial(
       _account: PromiseOrValue<string>,
-      _asset: PromiseOrValue<string>,
-      _usdAmount: PromiseOrValue<BigNumberish>,
+      _kreskoAsset: PromiseOrValue<string>,
+      _kissRepayAmount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<void>;
 
-    updateKISS(
-      _KISS: PromiseOrValue<string>,
+    setupStabilityRateParams(
+      _asset: PromiseOrValue<string>,
+      _setup: StabilityRateParamsStruct,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    updateKiss(
+      _kiss: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -3250,10 +3246,16 @@ export interface Kresko extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    updateStabilityRateParams(
+      _asset: PromiseOrValue<string>,
+      _setup: StabilityRateParamsStruct,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     ammOracle(overrides?: CallOverrides): Promise<string>;
 
     collateralAsset(
-      _asset: PromiseOrValue<string>,
+      _collateralAsset: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<CollateralAssetStructOutput>;
 
@@ -3290,12 +3292,12 @@ export interface Kresko extends BaseContract {
     ): Promise<FixedPoint.UnsignedStructOutput>;
 
     krAssetExists(
-      _krAsset: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     kreskoAsset(
-      _asset: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<KrAssetStructOutput>;
 
@@ -3598,18 +3600,14 @@ export interface Kresko extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    depositCollateral(
+    batchCloseKrAssetDebtPositions(
       _account: PromiseOrValue<string>,
-      _collateralAsset: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    withdrawCollateral(
+    closeKrAssetDebtPosition(
       _account: PromiseOrValue<string>,
-      _collateralAsset: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
-      _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
+      _kreskoAsset: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -3617,7 +3615,8 @@ export interface Kresko extends BaseContract {
       _collateralAsset: PromiseOrValue<string>,
       _anchor: PromiseOrValue<string>,
       _factor: PromiseOrValue<BigNumberish>,
-      _oracle: PromiseOrValue<string>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -3625,7 +3624,8 @@ export interface Kresko extends BaseContract {
       _krAsset: PromiseOrValue<string>,
       _anchor: PromiseOrValue<string>,
       _kFactor: PromiseOrValue<BigNumberish>,
-      _oracle: PromiseOrValue<string>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
       _supplyLimit: PromiseOrValue<BigNumberish>,
       _closeFee: PromiseOrValue<BigNumberish>,
       _openFee: PromiseOrValue<BigNumberish>,
@@ -3646,7 +3646,8 @@ export interface Kresko extends BaseContract {
       _collateralAsset: PromiseOrValue<string>,
       _anchor: PromiseOrValue<string>,
       _factor: PromiseOrValue<BigNumberish>,
-      _oracle: PromiseOrValue<string>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -3664,7 +3665,8 @@ export interface Kresko extends BaseContract {
       _krAsset: PromiseOrValue<string>,
       _anchor: PromiseOrValue<string>,
       _kFactor: PromiseOrValue<BigNumberish>,
-      _oracle: PromiseOrValue<string>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
       _supplyLimit: PromiseOrValue<BigNumberish>,
       _closeFee: PromiseOrValue<BigNumberish>,
       _openFee: PromiseOrValue<BigNumberish>,
@@ -3688,6 +3690,21 @@ export interface Kresko extends BaseContract {
 
     updateMinimumDebtValue(
       _minimumDebtValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    depositCollateral(
+      _account: PromiseOrValue<string>,
+      _collateralAsset: PromiseOrValue<string>,
+      _depositAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    withdrawCollateral(
+      _account: PromiseOrValue<string>,
+      _collateralAsset: PromiseOrValue<string>,
+      _withdrawAmount: PromiseOrValue<BigNumberish>,
+      _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -3729,7 +3746,7 @@ export interface Kresko extends BaseContract {
     mintKreskoAsset(
       _account: PromiseOrValue<string>,
       _kreskoAsset: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
+      _mintAmount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -3755,26 +3772,18 @@ export interface Kresko extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    KISS(overrides?: CallOverrides): Promise<BigNumber>;
-
     batchRepayFullStabilityRateInterest(
       _account: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    configureStabilityRatesForAsset(
-      _asset: PromiseOrValue<string>,
-      _setup: StabilityRateFacet.StabilityRateSetupStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    getAccountStabilityRateData(
-      _account: PromiseOrValue<string>,
+    getDebtIndexForAsset(
       _asset: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getDebtIndexForAsset(
+    getLastDebtIndexForAccount(
+      _account: PromiseOrValue<string>,
       _asset: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -3794,37 +3803,29 @@ export interface Kresko extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getTotalStabilityFeeAccrued(
-      _asset: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    initializeStabilityRateForAsset(
-      _asset: PromiseOrValue<string>,
-      _setup: StabilityRateFacet.StabilityRateSetupStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    latestStabilityRateUpdateForAsset(
-      _asset: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    kiss(overrides?: CallOverrides): Promise<BigNumber>;
 
     repayFullStabilityRateInterest(
       _account: PromiseOrValue<string>,
-      _asset: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     repayStabilityRateInterestPartial(
       _account: PromiseOrValue<string>,
-      _asset: PromiseOrValue<string>,
-      _usdAmount: PromiseOrValue<BigNumberish>,
+      _kreskoAsset: PromiseOrValue<string>,
+      _kissRepayAmount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    updateKISS(
-      _KISS: PromiseOrValue<string>,
+    setupStabilityRateParams(
+      _asset: PromiseOrValue<string>,
+      _setup: StabilityRateParamsStruct,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    updateKiss(
+      _kiss: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -3833,10 +3834,16 @@ export interface Kresko extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    updateStabilityRateParams(
+      _asset: PromiseOrValue<string>,
+      _setup: StabilityRateParamsStruct,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     ammOracle(overrides?: CallOverrides): Promise<BigNumber>;
 
     collateralAsset(
-      _asset: PromiseOrValue<string>,
+      _collateralAsset: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -3868,12 +3875,12 @@ export interface Kresko extends BaseContract {
     ): Promise<BigNumber>;
 
     krAssetExists(
-      _krAsset: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     kreskoAsset(
-      _asset: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -4116,18 +4123,14 @@ export interface Kresko extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    depositCollateral(
+    batchCloseKrAssetDebtPositions(
       _account: PromiseOrValue<string>,
-      _collateralAsset: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    withdrawCollateral(
+    closeKrAssetDebtPosition(
       _account: PromiseOrValue<string>,
-      _collateralAsset: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
-      _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
+      _kreskoAsset: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -4135,7 +4138,8 @@ export interface Kresko extends BaseContract {
       _collateralAsset: PromiseOrValue<string>,
       _anchor: PromiseOrValue<string>,
       _factor: PromiseOrValue<BigNumberish>,
-      _oracle: PromiseOrValue<string>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -4143,7 +4147,8 @@ export interface Kresko extends BaseContract {
       _krAsset: PromiseOrValue<string>,
       _anchor: PromiseOrValue<string>,
       _kFactor: PromiseOrValue<BigNumberish>,
-      _oracle: PromiseOrValue<string>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
       _supplyLimit: PromiseOrValue<BigNumberish>,
       _closeFee: PromiseOrValue<BigNumberish>,
       _openFee: PromiseOrValue<BigNumberish>,
@@ -4164,7 +4169,8 @@ export interface Kresko extends BaseContract {
       _collateralAsset: PromiseOrValue<string>,
       _anchor: PromiseOrValue<string>,
       _factor: PromiseOrValue<BigNumberish>,
-      _oracle: PromiseOrValue<string>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -4182,7 +4188,8 @@ export interface Kresko extends BaseContract {
       _krAsset: PromiseOrValue<string>,
       _anchor: PromiseOrValue<string>,
       _kFactor: PromiseOrValue<BigNumberish>,
-      _oracle: PromiseOrValue<string>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
       _supplyLimit: PromiseOrValue<BigNumberish>,
       _closeFee: PromiseOrValue<BigNumberish>,
       _openFee: PromiseOrValue<BigNumberish>,
@@ -4206,6 +4213,21 @@ export interface Kresko extends BaseContract {
 
     updateMinimumDebtValue(
       _minimumDebtValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    depositCollateral(
+      _account: PromiseOrValue<string>,
+      _collateralAsset: PromiseOrValue<string>,
+      _depositAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdrawCollateral(
+      _account: PromiseOrValue<string>,
+      _collateralAsset: PromiseOrValue<string>,
+      _withdrawAmount: PromiseOrValue<BigNumberish>,
+      _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -4247,7 +4269,7 @@ export interface Kresko extends BaseContract {
     mintKreskoAsset(
       _account: PromiseOrValue<string>,
       _kreskoAsset: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
+      _mintAmount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -4273,26 +4295,18 @@ export interface Kresko extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    KISS(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     batchRepayFullStabilityRateInterest(
       _account: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    configureStabilityRatesForAsset(
-      _asset: PromiseOrValue<string>,
-      _setup: StabilityRateFacet.StabilityRateSetupStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    getAccountStabilityRateData(
-      _account: PromiseOrValue<string>,
+    getDebtIndexForAsset(
       _asset: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getDebtIndexForAsset(
+    getLastDebtIndexForAccount(
+      _account: PromiseOrValue<string>,
       _asset: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -4312,37 +4326,29 @@ export interface Kresko extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getTotalStabilityFeeAccrued(
-      _asset: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    initializeStabilityRateForAsset(
-      _asset: PromiseOrValue<string>,
-      _setup: StabilityRateFacet.StabilityRateSetupStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    latestStabilityRateUpdateForAsset(
-      _asset: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    kiss(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     repayFullStabilityRateInterest(
       _account: PromiseOrValue<string>,
-      _asset: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     repayStabilityRateInterestPartial(
       _account: PromiseOrValue<string>,
-      _asset: PromiseOrValue<string>,
-      _usdAmount: PromiseOrValue<BigNumberish>,
+      _kreskoAsset: PromiseOrValue<string>,
+      _kissRepayAmount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    updateKISS(
-      _KISS: PromiseOrValue<string>,
+    setupStabilityRateParams(
+      _asset: PromiseOrValue<string>,
+      _setup: StabilityRateParamsStruct,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    updateKiss(
+      _kiss: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -4351,10 +4357,16 @@ export interface Kresko extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
+    updateStabilityRateParams(
+      _asset: PromiseOrValue<string>,
+      _setup: StabilityRateParamsStruct,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     ammOracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     collateralAsset(
-      _asset: PromiseOrValue<string>,
+      _collateralAsset: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -4386,12 +4398,12 @@ export interface Kresko extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     krAssetExists(
-      _krAsset: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     kreskoAsset(
-      _asset: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

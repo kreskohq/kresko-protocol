@@ -2,7 +2,7 @@ import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import type { KrStaking, MockERC20, UniswapV2Factory } from "types";
 import { getLogger } from "@kreskolabs/lib/dist/utils";
-import { testnetConfigs } from "@deploy-config/testnet";
+import { testnetConfigs } from "@deploy-config/testnet-goerli";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("deploy-staking");
@@ -14,6 +14,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const pools = config.stakingPools;
     const [token0, token1] = pools[0].lpToken;
+    const [rewardToken1, rewardToken2] = config.rewardTokens;
 
     const Token0 = await ethers.getContract<MockERC20>(token0.symbol);
     const Token1 = await ethers.getContract<MockERC20>(token1.symbol);
@@ -23,15 +24,26 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         throw new Error("No pools deployed and trying to initialize staking");
     }
 
-    const [rewardToken1, rewardToken2] = config.rewardTokens;
-    const RewardToken1 = await ethers.getContract<MockERC20>(rewardToken1.symbol);
-    const RewardToken2 = await ethers.getContract<MockERC20>(rewardToken2.symbol);
+    const Reward1: MockERC20 = await hre.run("deploy-token", {
+        name: rewardToken1.name,
+        symbol: rewardToken1.symbol,
+        log: true,
+        amount: rewardToken1.mintAmount,
+        decimals: rewardToken1.decimals,
+    });
+    const Reward2: MockERC20 = await hre.run("deploy-token", {
+        name: rewardToken2.name,
+        symbol: rewardToken2.symbol,
+        log: true,
+        amount: rewardToken2.mintAmount,
+        decimals: rewardToken2.decimals,
+    });
 
     const [perBlock1, perBlock2] = config.rewardsPerBlock;
 
     const Staking: KrStaking = await hre.run("deploy-staking", {
         stakingToken: InitialStakingToken,
-        rewardTokens: `${RewardToken1.address},${RewardToken2.address}`,
+        rewardTokens: `${Reward1.address},${Reward2.address}`,
         rewardPerBlocks: `${perBlock1},${perBlock2}`,
     });
 

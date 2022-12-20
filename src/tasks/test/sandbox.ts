@@ -1,4 +1,4 @@
-import { testnetConfigs } from "@deploy-config/testnet";
+import { testnetConfigs } from "@deploy-config/testnet-goerli";
 import { getLogger } from "@kreskolabs/lib/dist/utils";
 import { task } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";

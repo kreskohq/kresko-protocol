@@ -27,6 +27,7 @@ export const addMockCollateralAsset = async (
         hre.ethers.constants.AddressZero,
         cFactor,
         OracleAggregator.address,
+        OracleAggregator.address,
     );
     const mocks = {
         contract: Collateral,
@@ -70,6 +71,7 @@ export const updateCollateralAsset = async (address: string, args: TestCollatera
         collateral.address,
         hre.ethers.constants.AddressZero,
         toFixedPoint(args.factor),
+        args.oracle || collateral.priceAggregator.address,
         args.oracle || collateral.priceAggregator.address,
     );
     const asset: Collateral = {

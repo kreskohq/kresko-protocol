@@ -187,7 +187,6 @@ const defaultParams: Omit<KreskoConstructor, "feeRecipient"> = {
     liquidationIncentive: "1.1",
     minimumCollateralizationRatio: "1.5",
     minimumDebtValue: "10",
-    minimumLiquidationThreshold: "1.5",
     liquidationThreshold: "1.4",
 };
 

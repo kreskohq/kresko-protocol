@@ -1,7 +1,7 @@
 import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import { createKrAsset } from "@scripts/create-krasset";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
-import { testnetConfigs, assets } from "@deploy-config/testnet";
+import { testnetConfigs, assets } from "@deploy-config/testnet-goerli";
 import { getLogger } from "@kreskolabs/lib/dist/utils";
 import { defaultKrAssetArgs } from "@utils/test";
 

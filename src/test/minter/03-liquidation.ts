@@ -59,6 +59,7 @@ describe("Minter", function () {
             this.krAsset.anchor.address,
             hre.toBig(1),
             assetInfo.oracle,
+            assetInfo.oracle,
         );
 
         // -------------------------------- Set up userOne deposit/debt --------------------------------

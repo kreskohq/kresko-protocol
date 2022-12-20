@@ -1,6 +1,6 @@
 import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import type { FluxPriceFeed } from "types";
-import { testnetConfigs } from "@deploy-config/testnet";
+import { testnetConfigs } from "@deploy-config/testnet-goerli";
 import { getLogger } from "@kreskolabs/lib/dist/utils";
 import { JStoFixed } from "@kreskolabs/lib";
 
