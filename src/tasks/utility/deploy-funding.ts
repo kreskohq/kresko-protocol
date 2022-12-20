@@ -11,19 +11,18 @@ task("deploy-funding", "funds a set of accounts", async (_, hre) => {
 
     const funder = signers[52];
 
-    const OP = await getContract<MockERC20>("OP");
     const WETH = await getContract<WETH>("WETH");
     const KISS = await getContract<KISS>("KISS");
 
-    const tokens: TokenStruct[] = [
-        {
-            amount: toBig(500),
-            token: OP.address,
-        },
-    ];
+    // const tokens: TokenStruct[] = [
+    //     {
+    //         amount: toBig(500),
+    //         token: OP.address,
+    //     },
+    // ];
     const [Multisender] = await hre.deploy<Multisender>("Multisender", {
         from: deployer.address,
-        args: [tokens, WETH.address, KISS.address],
+        args: [[], WETH.address, KISS.address],
     });
 
     if (!(await Multisender.owners(funder.address))) {

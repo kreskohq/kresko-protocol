@@ -59,12 +59,10 @@ contract UIDataProviderFacet {
         result = new LibUI.PairData[](_pairAddresses.length);
         for (uint256 i; i < _pairAddresses.length; i++) {
             IUniswapV2Pair pair = IUniswapV2Pair(_pairAddresses[i]);
-            IERC20Upgradeable tkn0 = IERC20Upgradeable(pair.token0());
-            IERC20Upgradeable tkn1 = IERC20Upgradeable(pair.token1());
             (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
             result[i] = LibUI.PairData({
-                decimals0: tkn0.decimals(),
-                decimals1: tkn1.decimals(),
+                decimals0: IERC20Upgradeable(pair.token0()).decimals(),
+                decimals1: IERC20Upgradeable(pair.token1()).decimals(),
                 totalSupply: pair.totalSupply(),
                 reserve0: reserve0,
                 reserve1: reserve1
@@ -72,18 +70,19 @@ contract UIDataProviderFacet {
         }
     }
 
-    function batchPrices(address[] memory _assets, address[] memory _oracles)
-        public
-        view
-        returns (LibUI.Price[] memory result)
-    {
-        return LibUI.batchPrices(_assets, _oracles);
+    function batchOracleValues(
+        address[] memory _assets,
+        address[] memory _oracles,
+        address[] memory _marketStatusOracles
+    ) public view returns (LibUI.Price[] memory result) {
+        return LibUI.batchOracleValues(_assets, _oracles, _marketStatusOracles);
     }
 
     function getTokenData(
         address[] memory _allTokens,
         address[] memory _assets,
-        address[] memory _oracles
+        address[] memory _priceFeeds,
+        address[] memory _marketStatusOracles
     ) external view returns (LibUI.TokenMetadata[] memory metadatas, LibUI.Price[] memory prices) {
         metadatas = new LibUI.TokenMetadata[](_allTokens.length);
         for (uint256 i; i < _allTokens.length; i++) {
@@ -94,6 +93,6 @@ contract UIDataProviderFacet {
                 totalSupply: IERC20Upgradeable(_allTokens[i]).totalSupply()
             });
         }
-        prices = LibUI.batchPrices(_assets, _oracles);
+        prices = LibUI.batchOracleValues(_assets, _priceFeeds, _marketStatusOracles);
     }
 }

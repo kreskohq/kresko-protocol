@@ -8,6 +8,7 @@ import {IUniswapV2Pair} from "../../vendor/uniswap/v2-core/interfaces/IUniswapV2
 import {IKrStaking} from "../../staking/interfaces/IKrStaking.sol";
 import {IKresko} from "../interfaces/IKresko.sol";
 import {LibDecimals, FixedPoint} from "../libs/LibDecimals.sol";
+import {Error} from "../../libs/Errors.sol";
 
 import {KrAsset, CollateralAsset} from "../MinterTypes.sol";
 import {MinterState, ms} from "../MinterStorage.sol";
@@ -47,6 +48,7 @@ library LibUI {
         uint8 decimals;
         string symbol;
         string name;
+        bool marketOpen;
     }
 
     struct ProtocolParams {
@@ -67,6 +69,7 @@ library LibUI {
         FixedPoint.Unsigned kFactor;
         string symbol;
         string name;
+        bool marketOpen;
     }
 
     struct KreskoUser {
@@ -106,6 +109,7 @@ library LibUI {
         uint256 timestamp;
         address assetAddress;
         uint80 roundId;
+        bool marketOpen;
     }
 
     struct Allowance {
@@ -214,16 +218,21 @@ library LibUI {
         }
     }
 
-    function batchPrices(address[] memory _assets, address[] memory _oracles)
-        internal
-        view
-        returns (Price[] memory result)
-    {
+    function batchOracleValues(
+        address[] memory _assets,
+        address[] memory _priceFeeds,
+        address[] memory _marketStatusFeeds
+    ) internal view returns (Price[] memory result) {
+        require(_marketStatusFeeds.length == _priceFeeds.length, Error.PRICEFEEDS_MUST_MATCH_STATUS_FEEDS);
         result = new Price[](_assets.length);
         for (uint256 i; i < _assets.length; i++) {
-            (uint80 roundId, int256 answer, , , uint256 updatedAt, ) = AggregatorV2V3Interface(_oracles[i])
-                .latestRoundData();
-            result[i] = Price(uint256(answer), updatedAt, _assets[i], roundId);
+            result[i] = Price({
+                price: uint256(AggregatorV2V3Interface(_priceFeeds[i]).latestAnswer()),
+                timestamp: AggregatorV2V3Interface(_priceFeeds[i]).latestTimestamp(),
+                assetAddress: _assets[i],
+                roundId: uint80(AggregatorV2V3Interface(_priceFeeds[i]).latestRound()),
+                marketOpen: AggregatorV2V3Interface(_marketStatusFeeds[i]).latestMarketOpen()
+            });
         }
     }
 
@@ -242,6 +251,7 @@ library LibUI {
                 openFee: krAsset.openFee,
                 kFactor: krAsset.kFactor,
                 price: uint256(krAsset.oracle.latestAnswer()),
+                marketOpen: krAsset.marketStatusOracle.latestMarketOpen(),
                 symbol: IERC20Upgradeable(assetAddress).symbol(),
                 name: IERC20Upgradeable(assetAddress).name()
             });
@@ -270,6 +280,7 @@ library LibUI {
                 cFactor: collateralAsset.factor,
                 decimals: decimals,
                 price: price.rawValue,
+                marketOpen: collateralAsset.marketStatusOracle.latestMarketOpen(),
                 symbol: IERC20Upgradeable(assetAddress).symbol(),
                 name: IERC20Upgradeable(assetAddress).name()
             });

@@ -252,13 +252,21 @@ export declare namespace LibUI {
     timestamp: PromiseOrValue<BigNumberish>;
     assetAddress: PromiseOrValue<string>;
     roundId: PromiseOrValue<BigNumberish>;
+    marketOpen: PromiseOrValue<boolean>;
   };
 
-  export type PriceStructOutput = [BigNumber, BigNumber, string, BigNumber] & {
+  export type PriceStructOutput = [
+    BigNumber,
+    BigNumber,
+    string,
+    BigNumber,
+    boolean
+  ] & {
     price: BigNumber;
     timestamp: BigNumber;
     assetAddress: string;
     roundId: BigNumber;
+    marketOpen: boolean;
   };
 
   export type KrAssetInfoUserStruct = {
@@ -432,6 +440,7 @@ export declare namespace LibUI {
     decimals: PromiseOrValue<BigNumberish>;
     symbol: PromiseOrValue<string>;
     name: PromiseOrValue<string>;
+    marketOpen: PromiseOrValue<boolean>;
   };
 
   export type CollateralAssetInfoStructOutput = [
@@ -443,7 +452,8 @@ export declare namespace LibUI {
     FixedPoint.UnsignedStructOutput,
     number,
     string,
-    string
+    string,
+    boolean
   ] & {
     assetAddress: string;
     oracleAddress: string;
@@ -454,6 +464,7 @@ export declare namespace LibUI {
     decimals: number;
     symbol: string;
     name: string;
+    marketOpen: boolean;
   };
 
   export type KrAssetInfoStruct = {
@@ -467,6 +478,7 @@ export declare namespace LibUI {
     kFactor: FixedPoint.UnsignedStruct;
     symbol: PromiseOrValue<string>;
     name: PromiseOrValue<string>;
+    marketOpen: PromiseOrValue<boolean>;
   };
 
   export type KrAssetInfoStructOutput = [
@@ -479,7 +491,8 @@ export declare namespace LibUI {
     FixedPoint.UnsignedStructOutput,
     FixedPoint.UnsignedStructOutput,
     string,
-    string
+    string,
+    boolean
   ] & {
     oracleAddress: string;
     assetAddress: string;
@@ -491,6 +504,7 @@ export declare namespace LibUI {
     kFactor: FixedPoint.UnsignedStructOutput;
     symbol: string;
     name: string;
+    marketOpen: boolean;
   };
 
   export type ProtocolParamsStruct = {
@@ -648,11 +662,11 @@ export interface KreskoInterface extends utils.Interface {
     "minimumCollateralizationRatio()": FunctionFragment;
     "minimumDebtValue()": FunctionFragment;
     "minterInitializations()": FunctionFragment;
-    "batchPrices(address[],address[])": FunctionFragment;
+    "batchOracleValues(address[],address[],address[])": FunctionFragment;
     "getAccountData(address,address[],address)": FunctionFragment;
     "getGlobalData(address[],address[])": FunctionFragment;
     "getPairsData(address[])": FunctionFragment;
-    "getTokenData(address[],address[],address[])": FunctionFragment;
+    "getTokenData(address[],address[],address[],address[])": FunctionFragment;
   };
 
   getFunction(
@@ -749,7 +763,7 @@ export interface KreskoInterface extends utils.Interface {
       | "minimumCollateralizationRatio"
       | "minimumDebtValue"
       | "minterInitializations"
-      | "batchPrices"
+      | "batchOracleValues"
       | "getAccountData"
       | "getGlobalData"
       | "getPairsData"
@@ -1202,8 +1216,12 @@ export interface KreskoInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "batchPrices",
-    values: [PromiseOrValue<string>[], PromiseOrValue<string>[]]
+    functionFragment: "batchOracleValues",
+    values: [
+      PromiseOrValue<string>[],
+      PromiseOrValue<string>[],
+      PromiseOrValue<string>[]
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "getAccountData",
@@ -1224,6 +1242,7 @@ export interface KreskoInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "getTokenData",
     values: [
+      PromiseOrValue<string>[],
       PromiseOrValue<string>[],
       PromiseOrValue<string>[],
       PromiseOrValue<string>[]
@@ -1563,7 +1582,7 @@ export interface KreskoInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "batchPrices",
+    functionFragment: "batchOracleValues",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -2187,9 +2206,10 @@ export interface Kresko extends BaseContract {
 
     minterInitializations(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    batchPrices(
+    batchOracleValues(
       _assets: PromiseOrValue<string>[],
       _oracles: PromiseOrValue<string>[],
+      _marketStatusOracles: PromiseOrValue<string>[],
       overrides?: CallOverrides
     ): Promise<
       [LibUI.PriceStructOutput[]] & { result: LibUI.PriceStructOutput[] }
@@ -2238,7 +2258,8 @@ export interface Kresko extends BaseContract {
     getTokenData(
       _allTokens: PromiseOrValue<string>[],
       _assets: PromiseOrValue<string>[],
-      _oracles: PromiseOrValue<string>[],
+      _priceFeeds: PromiseOrValue<string>[],
+      _marketStatusOracles: PromiseOrValue<string>[],
       overrides?: CallOverrides
     ): Promise<
       [LibUI.TokenMetadataStructOutput[], LibUI.PriceStructOutput[]] & {
@@ -2756,9 +2777,10 @@ export interface Kresko extends BaseContract {
 
   minterInitializations(overrides?: CallOverrides): Promise<BigNumber>;
 
-  batchPrices(
+  batchOracleValues(
     _assets: PromiseOrValue<string>[],
     _oracles: PromiseOrValue<string>[],
+    _marketStatusOracles: PromiseOrValue<string>[],
     overrides?: CallOverrides
   ): Promise<LibUI.PriceStructOutput[]>;
 
@@ -2803,7 +2825,8 @@ export interface Kresko extends BaseContract {
   getTokenData(
     _allTokens: PromiseOrValue<string>[],
     _assets: PromiseOrValue<string>[],
-    _oracles: PromiseOrValue<string>[],
+    _priceFeeds: PromiseOrValue<string>[],
+    _marketStatusOracles: PromiseOrValue<string>[],
     overrides?: CallOverrides
   ): Promise<
     [LibUI.TokenMetadataStructOutput[], LibUI.PriceStructOutput[]] & {
@@ -3319,9 +3342,10 @@ export interface Kresko extends BaseContract {
 
     minterInitializations(overrides?: CallOverrides): Promise<BigNumber>;
 
-    batchPrices(
+    batchOracleValues(
       _assets: PromiseOrValue<string>[],
       _oracles: PromiseOrValue<string>[],
+      _marketStatusOracles: PromiseOrValue<string>[],
       overrides?: CallOverrides
     ): Promise<LibUI.PriceStructOutput[]>;
 
@@ -3366,7 +3390,8 @@ export interface Kresko extends BaseContract {
     getTokenData(
       _allTokens: PromiseOrValue<string>[],
       _assets: PromiseOrValue<string>[],
-      _oracles: PromiseOrValue<string>[],
+      _priceFeeds: PromiseOrValue<string>[],
+      _marketStatusOracles: PromiseOrValue<string>[],
       overrides?: CallOverrides
     ): Promise<
       [LibUI.TokenMetadataStructOutput[], LibUI.PriceStructOutput[]] & {
@@ -3898,9 +3923,10 @@ export interface Kresko extends BaseContract {
 
     minterInitializations(overrides?: CallOverrides): Promise<BigNumber>;
 
-    batchPrices(
+    batchOracleValues(
       _assets: PromiseOrValue<string>[],
       _oracles: PromiseOrValue<string>[],
+      _marketStatusOracles: PromiseOrValue<string>[],
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -3925,7 +3951,8 @@ export interface Kresko extends BaseContract {
     getTokenData(
       _allTokens: PromiseOrValue<string>[],
       _assets: PromiseOrValue<string>[],
-      _oracles: PromiseOrValue<string>[],
+      _priceFeeds: PromiseOrValue<string>[],
+      _marketStatusOracles: PromiseOrValue<string>[],
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
@@ -4425,9 +4452,10 @@ export interface Kresko extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    batchPrices(
+    batchOracleValues(
       _assets: PromiseOrValue<string>[],
       _oracles: PromiseOrValue<string>[],
+      _marketStatusOracles: PromiseOrValue<string>[],
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -4452,7 +4480,8 @@ export interface Kresko extends BaseContract {
     getTokenData(
       _allTokens: PromiseOrValue<string>[],
       _assets: PromiseOrValue<string>[],
-      _oracles: PromiseOrValue<string>[],
+      _priceFeeds: PromiseOrValue<string>[],
+      _marketStatusOracles: PromiseOrValue<string>[],
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
