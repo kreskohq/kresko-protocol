@@ -47,8 +47,8 @@ contract MintFacet is DiamondModifiers, MinterModifiers, IMintFacet {
 
         // Enforce krAsset's total supply limit
         KrAsset memory krAsset = s.kreskoAssets[_kreskoAsset];
+        require(krAsset.marketStatusOracle.latestMarketOpen(), Error.KRASSET_MARKET_CLOSED);
 
-        require(krAsset.oracle.latestMarketOpen(), Error.KRASSET_MARKET_CLOSED);
         require(
             IKreskoAsset(_kreskoAsset).totalSupply() + _mintAmount <= krAsset.supplyLimit,
             Error.KRASSET_MAX_SUPPLY_REACHED

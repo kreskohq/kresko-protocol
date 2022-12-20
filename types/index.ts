@@ -7,11 +7,12 @@ export type Fixtures = "diamond";
 export type Asset = {
     name: string;
     symbol: string;
-    price: () => Promise<BigNumber>;
-    marketOpen: () => Promise<boolean>;
-    oracle: {
+    price?: () => Promise<BigNumber>;
+    marketOpen?: () => Promise<boolean>;
+    oracle?: {
         name: string;
         description: string;
+        chainlink?: string
     };
     cFactor?: number;
     kFactor?: number;

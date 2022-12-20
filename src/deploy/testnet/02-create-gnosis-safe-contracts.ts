@@ -1,7 +1,7 @@
 import { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import { getLogger } from "@kreskolabs/lib/dist/utils";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { testnetConfigs } from "@deploy-config/testnet";
+import { testnetConfigs } from "@deploy-config/testnet-goerli";
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const { deployments, getNamedAccounts } = hre;

@@ -8,13 +8,14 @@ task("add-krasset")
     .addParam("symbol", "Name of the asset")
     .addParam("kFactor", "kFactor for the asset", 1000, types.float)
     .addParam("oracleAddr", "Price feed address")
+    .addParam("marketStatusOracleAddr", "Market status oracle address")
     .addParam("supplyLimit", "Supply limit", defaultSupplyLimit, types.int)
     .addOptionalParam("log", "Log outputs", false, types.boolean)
     .addOptionalParam("wait", "Log outputs", 1, types.int)
     .setAction(async function (taskArgs: TaskArguments, hre) {
         const { ethers, users } = hre;
         const kresko = hre.Diamond.connect(users.operator);
-        const { symbol, kFactor, oracleAddr, supplyLimit, log } = taskArgs;
+        const { symbol, kFactor, oracleAddr, supplyLimit, marketStatusOracleAddr, log } = taskArgs;
         const logger = getLogger("add-krasset", log);
         if (kFactor == 1000) {
             console.error("Invalid kFactor for", symbol);
@@ -35,6 +36,7 @@ task("add-krasset")
                 !asset.anchor ? KrAsset.address : asset.anchor.address,
                 toFixedPoint(kFactor),
                 oracleAddr,
+                marketStatusOracleAddr,
                 toFixedPoint(supplyLimit),
                 toFixedPoint(0.02),
                 toFixedPoint(0),

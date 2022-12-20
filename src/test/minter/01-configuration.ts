@@ -114,6 +114,7 @@ describe("Minter", function () {
                 anchor.address,
                 update.factor,
                 newPriceFeed.address,
+                newPriceFeed.address,
                 hre.toBig(update.supplyLimit),
                 update.closeFee,
                 update.openFee,

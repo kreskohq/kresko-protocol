@@ -113,6 +113,7 @@ struct MinterParams {
 struct KrAsset {
     FixedPoint.Unsigned kFactor;
     AggregatorV2V3Interface oracle;
+    AggregatorV2V3Interface marketStatusOracle;
     uint256 supplyLimit;
     address anchor;
     FixedPoint.Unsigned closeFee;
@@ -133,6 +134,7 @@ using LibAssetUtility for KrAsset global;
 struct CollateralAsset {
     FixedPoint.Unsigned factor;
     AggregatorV2V3Interface oracle;
+    AggregatorV2V3Interface marketStatusOracle;
     address anchor;
     uint8 decimals;
     bool exists;

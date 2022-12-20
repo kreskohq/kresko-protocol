@@ -68,6 +68,7 @@ export const leverageKrAsset = async (
             collateralToUse.anchor ? collateralToUse.anchor.address : ethers.constants.AddressZero,
             hre.toBig(1),
             collateralToUse.priceFeed.address,
+            collateralToUse.priceFeed.address,
         );
     }
     await hre.Diamond.connect(user).depositCollateral(
@@ -81,6 +82,7 @@ export const leverageKrAsset = async (
             krAsset.anchor.address,
             toBig(1),
             krAsset.priceFeed.address,
+            krAsset.priceFeed.address,
             hre.toBig(1_000_000),
             defaultCloseFee,
             0,
@@ -93,6 +95,7 @@ export const leverageKrAsset = async (
             krAsset.address,
             krAsset.anchor.address,
             toBig(1),
+            krAsset.priceFeed.address,
             krAsset.priceFeed.address,
         );
     }

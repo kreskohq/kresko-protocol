@@ -1,4 +1,4 @@
-import { testnetConfigs } from "@deploy-config/testnet";
+import { testnetConfigs } from "@deploy-config/testnet-goerli";
 import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import { fromBig, toBig } from "@kreskolabs/lib";
 import { getLogger } from "@kreskolabs/lib/dist/utils";
@@ -37,6 +37,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     }
 };
 func.tags = ["testnet", "mint-krassets"];
+func.dependencies = ["collaterals"];
 
 func.skip = async hre => {
     const logger = getLogger("mint-krassets");

@@ -1,4 +1,4 @@
-import { testnetConfigs } from "@deploy-config/testnet";
+import { testnetConfigs } from "@deploy-config/testnet-goerli";
 import { getLogger } from "@kreskolabs/lib/dist/utils";
 import { task } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
@@ -16,7 +16,7 @@ task("update-oracles").setAction(async function (_taskArgs: TaskArguments, hre) 
         if (contract.address === hre.ethers.constants.AddressZero || fluxFeed === hre.ethers.constants.AddressZero) {
             throw new Error(`0 addr ${collateral.symbol}`);
         }
-        await Kresko.updateCollateralAsset(contract.address, asset.anchor, asset.factor.rawValue, fluxFeed);
+        await Kresko.updateCollateralAsset(contract.address, asset.anchor, asset.factor.rawValue, fluxFeed, fluxFeed);
     }
     for (const krAsset of testnetConfigs[hre.network.name].krAssets) {
         const fluxFeed = await factory.addressOfPricePair(krAsset.oracle.description, 8, feedValidator.address);
@@ -29,6 +29,7 @@ task("update-oracles").setAction(async function (_taskArgs: TaskArguments, hre) 
             contract.address,
             asset.anchor,
             asset.kFactor.rawValue,
+            fluxFeed,
             fluxFeed,
             asset.supplyLimit,
             asset.closeFee.rawValue,
