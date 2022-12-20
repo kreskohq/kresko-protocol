@@ -19,7 +19,8 @@ export type Oracles = {
     asset: string;
     assetType: string
     feed: string;
-    address: string;
+    inhouse: string;
+    chainlink: string;
 }[]
 
 const deployments: MultiExport = deploymentsJson;

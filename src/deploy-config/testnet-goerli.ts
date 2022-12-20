@@ -95,7 +95,7 @@ export const assets: { [asset: string]: Asset } = {
         marketOpen: async () => {
             return true;
         },
-        oracle: oracles.EURO,
+        oracle: oracles.ETH,
         cFactor: 0.9,
         mintAmount: 100_000,
         testAsset: true,

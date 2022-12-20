@@ -17,4 +17,6 @@ const func: DeployFunction = async function (hre) {
 
 func.tags = ["minter-test", "mock-assets"];
 func.dependencies = ["minter-init"];
+
+func.skip = async hre => hre.network.name !== "hardhat";
 export default func;

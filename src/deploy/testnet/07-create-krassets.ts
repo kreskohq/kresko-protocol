@@ -1,9 +1,8 @@
+import { assets, testnetConfigs } from "@deploy-config/testnet-goerli";
 import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
+import { getLogger } from "@kreskolabs/lib/dist/utils";
 import { createKrAsset } from "@scripts/create-krasset";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
-import { testnetConfigs, assets } from "@deploy-config/testnet-goerli";
-import { getLogger } from "@kreskolabs/lib/dist/utils";
-import { defaultKrAssetArgs } from "@utils/test";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("deploy-krasset");
@@ -22,9 +21,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         if (isDeployed != null) continue;
         // Deploy the asset
         logger.log(`Deploying krAsset ${krAsset.name}`);
-        const asset = await createKrAsset(krAsset.name, krAsset.symbol);
+        await createKrAsset(krAsset.name, krAsset.symbol);
         // Configure stability rates
-        await hre.Diamond.setupStabilityRateParams(asset.address, defaultKrAssetArgs.stabilityRates);
         logger.log(`Deployed ${krAsset.name}`);
     }
 
