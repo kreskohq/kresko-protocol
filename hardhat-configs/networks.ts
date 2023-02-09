@@ -1,4 +1,4 @@
-import { utils } from "ethers";
+import { ethers, utils } from "ethers";
 import { INFURA_API_KEY, RPC, ALCHEMY_API_KEY_GOERLI } from "@kreskolabs/configs";
 const parseUnits = utils.parseUnits;
 
@@ -141,6 +141,7 @@ export const networks = (mnemonic: string) => ({
         accounts: { mnemonic, count: 100 },
         url: RPC.optimism.goerli.default,
         chainId: chainIds.opgoerli,
+        gasPrice: +ethers.utils.parseUnits("0.001", "gwei"),
     },
     kovan: {
         chainId: chainIds.kovan,

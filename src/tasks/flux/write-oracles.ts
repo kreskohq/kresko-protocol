@@ -17,8 +17,8 @@ task("write-oracles").setAction(async function (_taskArgs: TaskArguments, hre) {
             asset: collateral.symbol,
             assetType: "collateral",
             feed: collateral.oracle.description,
-            inhouse: fluxFeed,
-            chainlink: collateral.oracle.chainlink,
+            marketstatus: fluxFeed,
+            pricefeed: collateral.oracle.chainlink ? collateral.oracle.chainlink : fluxFeed,
         });
     }
     for (const krAsset of testnetConfigs[hre.network.name].krAssets) {
@@ -27,8 +27,8 @@ task("write-oracles").setAction(async function (_taskArgs: TaskArguments, hre) {
             asset: krAsset.symbol,
             assetType: "krAsset",
             feed: krAsset.oracle.description,
-            inhouse: fluxFeed,
-            chainlink: krAsset.oracle.chainlink,
+            marketstatus: fluxFeed,
+            pricefeed: krAsset.oracle.chainlink ? krAsset.oracle.chainlink : fluxFeed,
         });
     }
 
@@ -37,8 +37,8 @@ task("write-oracles").setAction(async function (_taskArgs: TaskArguments, hre) {
         asset: "KISS",
         assetType: "KISS",
         feed: "KISS/USD",
-        inhouse: fluxFeedKiss,
-        chainlink: fluxFeedKiss,
+        marketstatus: fluxFeedKiss,
+        pricefeed: fluxFeedKiss,
     });
     writeFileSync("packages/contracts/deployments/oracles.json", JSON.stringify(values));
     logger.success("Price feeds written to packages/contracts/deployments");

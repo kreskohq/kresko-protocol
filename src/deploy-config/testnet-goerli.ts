@@ -24,50 +24,120 @@ export const oracles = {
         name: "EURUSD",
         description: "EUR/USD",
         chainlink: "0x619AeaaF08dF3645e138C611bddCaE465312Ef6B",
+        createFlux: false,
     },
     DAI: {
         name: "DAI/USD",
         description: "DAI/USD",
         chainlink: "0x31856c9a2A73aAee6100Aed852650f75c5F539D0",
+        createFlux: false,
+    },
+    AMC: {
+        name: "AMC/USD",
+        description: "AMC/USD",
+        createFlux: true,
+    },
+    QQQ: {
+        name: "QQQ/USD",
+        description: "QQQ/USD",
+        createFlux: true,
+    },
+    IAU: {
+        name: "IAU/USD",
+        description: "IAU/USD",
+        createFlux: true,
+    },
+    AAPL: {
+        name: "AAPL/USD",
+        description: "AAPL/USD",
+        createFlux: true,
+    },
+    USO: {
+        name: "USO/USD",
+        description: "USO/USD",
+        createFlux: true,
+    },
+    BABA: {
+        name: "BABA/USD",
+        description: "BABA/USD",
+        createFlux: true,
+    },
+    MSTR: {
+        name: "MSTR/USD",
+        description: "MSTR/USD",
+        createFlux: true,
+    },
+    OP: {
+        name: "OP/USD",
+        description: "OP/USD",
+        createFlux: true,
+    },
+    GME: {
+        name: "GME/USD",
+        description: "GME/USD",
+        createFlux: true,
+    },
+    COIN: {
+        name: "COIN/USD",
+        description: "COIN/USD",
+        createFlux: true,
     },
     BTC: {
         name: "BTCUSD",
         description: "BTC/USD",
         chainlink: "0xC16679B963CeB52089aD2d95312A5b85E318e9d2",
+        createFlux: false,
     },
     TSLA: {
         name: "TSLAUSD",
         description: "TSLA/USD",
-        chainlink: "0x3D8faBBa4D954326AaF04E6dc8Dbae6Ab4EcF2E4",
+        createFlux: true,
+        // chainlink: "0x3D8faBBa4D954326AaF04E6dc8Dbae6Ab4EcF2E4",
     },
     USDT: {
         name: "USDT/USD",
         description: "USDT/USD",
         chainlink: "0x2e2147bCd571CE816382485E59Cd145A2b7CA451",
+        createFlux: false,
     },
     ETH: {
         name: "ETHUSD",
         description: "ETH/USD",
         chainlink: "0x57241A37733983F97C4Ab06448F244A1E0Ca0ba8",
+        createFlux: true,
+        price: async () => toBig(await getPriceFromTwelveData("ETH/USD"), 8),
+        marketOpen: async () => {
+            return true;
+        },
     },
     SNX: {
         name: "SNXUSD",
         description: "SNX/USD",
         chainlink: "0x89A7630f46B8c35A7fBBC4f6e4783f1E2DC715c6",
+        createFlux: false,
     },
     KISS: {
         name: "KISSUSD",
         description: "KISS/USD",
+        createFlux: false, // created separately
+        price: async () => {
+            return toBig("1", 8);
+        },
+        marketOpen: async () => {
+            return true;
+        },
     },
     WTI: {
         name: "WTIUSD",
         description: "WTI/USD",
         chainlink: "0xf3d88dBea0ea9DB336773EDe5Cc9bb3BB89Bc418",
+        createFlux: true,
     },
     XAU: {
         name: "XAUUSD",
         description: "XAU/USD",
         chainlink: "0xA8828D339CEFEBf99934e5fdd938d1B4B9730bc3",
+        createFlux: false,
     },
 };
 
@@ -226,12 +296,12 @@ export const assets: { [asset: string]: Asset } = {
         decimals: 18,
         mintAmount: 1_000_000,
     },
-    krREWARD2: {
-        name: "Kresko Testnet Staking Reward 2",
-        symbol: "krREWARD2",
-        decimals: 18,
-        mintAmount: 1_000_000,
-    },
+    // krREWARD2: {
+    //     name: "Kresko Testnet Staking Reward 2",
+    //     symbol: "krREWARD2",
+    //     decimals: 18,
+    //     mintAmount: 1_000_000,
+    // },
 };
 
 const defaultPools: [Asset, Asset, number][] = [

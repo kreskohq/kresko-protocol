@@ -23,7 +23,7 @@ if (process.env.FOUNDRY === "true") {
     require("@panukresko/hardhat-anvil");
     require("@panukresko/hardhat-forge");
 }
-
+require("@nomiclabs/hardhat-etherscan");
 import "hardhat-interface-generator";
 import "hardhat-contract-sizer";
 // import "hardhat-preprocessor";
@@ -131,6 +131,11 @@ const config: HardhatUserConfig = {
             files: ["./src/test/**/*"],
             verbose: false,
         },
+    },
+    etherscan: {
+        // Your API key for Etherscan
+        // Obtain one at https://etherscan.io/
+        apiKey: "6FQE7Z7HTJJU1CZF82K3WMYJW7214Q1X8Y",
     },
 };
 
