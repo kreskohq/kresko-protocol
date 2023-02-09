@@ -18,24 +18,7 @@ import {LibUI, IKresko, IKrStaking, IUniswapV2Pair, IERC20Upgradeable, Aggregato
  * @notice UI data aggregation views
  */
 contract UIDataProviderFacet {
-    function getGlobalData(address[] memory _collateralAssets, address[] memory _krAssets)
-        external
-        view
-        returns (
-            LibUI.CollateralAssetInfo[] memory collateralAssets,
-            LibUI.krAssetInfo[] memory krAssets,
-            LibUI.ProtocolParams memory protocolParams
-        )
-    {
-        collateralAssets = LibUI.collateralAssetInfos(_collateralAssets);
-        krAssets = LibUI.krAssetInfos(_krAssets);
-        protocolParams = LibUI.ProtocolParams({
-            minCollateralRatio: ms().minimumCollateralizationRatio.rawValue,
-            liqMultiplier: ms().liquidationIncentiveMultiplier.rawValue,
-            minDebtValue: ms().minimumDebtValue.rawValue,
-            liquidationThreshold: ms().liquidationThreshold.rawValue
-        });
-    }
+
 
     function getAccountData(
         address _account,
@@ -53,21 +36,6 @@ contract UIDataProviderFacet {
         user = LibUI.kreskoUser(_account);
         balances = LibUI.getBalances(_tokens, _account);
         stakingData = LibUI.getStakingData(_account, _staking);
-    }
-
-    function getPairsData(address[] memory _pairAddresses) external view returns (LibUI.PairData[] memory result) {
-        result = new LibUI.PairData[](_pairAddresses.length);
-        for (uint256 i; i < _pairAddresses.length; i++) {
-            IUniswapV2Pair pair = IUniswapV2Pair(_pairAddresses[i]);
-            (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
-            result[i] = LibUI.PairData({
-                decimals0: IERC20Upgradeable(pair.token0()).decimals(),
-                decimals1: IERC20Upgradeable(pair.token1()).decimals(),
-                totalSupply: pair.totalSupply(),
-                reserve0: reserve0,
-                reserve1: reserve1
-            });
-        }
     }
 
     function batchOracleValues(

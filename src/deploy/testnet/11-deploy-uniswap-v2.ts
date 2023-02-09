@@ -22,6 +22,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     } else {
         WETHAddress = WETHDeployment.address;
     }
+
+    console.log("unirouter", UniFactory.address, WETHAddress);
     const [UniRouter] = await deploy<UniswapV2Router02>("UniswapV2Router02", {
         from: deployer,
         args: [UniFactory.address, WETHAddress],

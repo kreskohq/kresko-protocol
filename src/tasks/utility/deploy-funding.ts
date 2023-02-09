@@ -1,14 +1,18 @@
-import { testnetConfigs, assets as goerliAssets, oracles } from "@deploy-config/testnet-goerli";
-import { fromBig, toBig } from "@kreskolabs/lib";
-import { getLogger } from "@kreskolabs/lib/dist/utils";
 import { task } from "hardhat/config";
-import { FluxPriceFeedFactory, KISS, MockERC20, Multisender, WETH } from "types";
-import { TokenStruct } from "types/typechain/src/contracts/test/Multisender";
+import { KISS, Multisender, UniswapV2Pair__factory, WETH } from "types";
 
 task("deploy-funding", "funds a set of accounts", async (_, hre) => {
     const { getContract, getSigners } = hre.ethers;
-    const { deployer } = await hre.getUsers();
-    const { feedValidator } = await hre.ethers.getNamedSigners();
+    // const { deployer } = await hre.getUsers();
+    const { feedValidator, deployer, funder } = await hre.ethers.getNamedSigners();
+    const INIT_CODE_HASH = hre.ethers.utils.keccak256(UniswapV2Pair__factory.bytecode);
+    console.log(INIT_CODE_HASH);
+    const KISS = await hre.ethers.getContract<KISS>("KISS");
+    const WETH = await hre.ethers.getContract<WETH>("WETH");
+    const Multisender = await hre.ethers.getContract<Multisender>("Multisender");
+
+    const amount = hre.ethers.utils.parseEther("0.0001");
+    await Multisender.distribute(["0x9f9C2242805675E12d33E0EEda82050DaaF5e516"], amount, amount, amount);
     // const factory = await getContract<FluxPriceFeedFactory>("FluxPriceFeedFactory");
     // //
     // const assets = [
@@ -16,7 +20,7 @@ task("deploy-funding", "funds a set of accounts", async (_, hre) => {
     //     ...testnetConfigs[hre.network.name].krAssets,
     //     goerliAssets.KISS,
     // ];
-    console.log(deployer);
+    // console.log(deployer.pri);
     // const logger = getLogger("create-oracle-factory");
     // const pricePairs = assets.map(asset => asset.oracle.description);
     // const prices = await Promise.all(assets.map(asset => asset.price()));

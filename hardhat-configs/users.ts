@@ -24,7 +24,7 @@ export const users = {
         default: 10,
     },
     feedValidator: {
-        default: 20,
+        default: "0x4601716Ce33313D03dFDC5621E41937B0befe018",
     },
     // test users
     userOne: {

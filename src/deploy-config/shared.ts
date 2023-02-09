@@ -32,6 +32,7 @@ export const minterFacets = [
     "StateFacet",
     "StabilityRateFacet",
     "UIDataProviderFacet",
+    "UIDataProviderFacet2",
 ];
 
 export const getMinterInitializer = async (

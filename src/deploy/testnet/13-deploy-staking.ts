@@ -14,7 +14,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const pools = config.stakingPools;
     const [token0, token1] = pools[0].lpToken;
-    const [rewardToken1, rewardToken2] = config.rewardTokens;
+    const [rewardToken1] = config.rewardTokens;
 
     const Token0 = await ethers.getContract<MockERC20>(token0.symbol);
     const Token1 = await ethers.getContract<MockERC20>(token1.symbol);
@@ -31,20 +31,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         amount: rewardToken1.mintAmount,
         decimals: rewardToken1.decimals,
     });
-    const Reward2: MockERC20 = await hre.run("deploy-token", {
-        name: rewardToken2.name,
-        symbol: rewardToken2.symbol,
-        log: true,
-        amount: rewardToken2.mintAmount,
-        decimals: rewardToken2.decimals,
-    });
 
-    const [perBlock1, perBlock2] = config.rewardsPerBlock;
+    const [perBlock1] = config.rewardsPerBlock;
 
     const Staking: KrStaking = await hre.run("deploy-staking", {
         stakingToken: InitialStakingToken,
-        rewardTokens: `${Reward1.address},${Reward2.address}`,
-        rewardPerBlocks: `${perBlock1},${perBlock2}`,
+        rewardTokens: `${Reward1.address}`,
+        rewardPerBlocks: `${perBlock1}`,
     });
 
     logger.success("Succesfully deployed Staking contract @", Staking.address);

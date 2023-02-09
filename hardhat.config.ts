@@ -91,7 +91,7 @@ const config: HardhatUserConfig = {
     typechain: {
         outDir: "types/typechain",
         target: "ethers-v5",
-        alwaysGenerateOverloads: false,
+        alwaysGenerateOverloads: true,
         dontOverrideCompile: false,
         discriminateTypes: false,
         tsNocheck: true,
@@ -107,7 +107,7 @@ const config: HardhatUserConfig = {
         alphaSort: true,
         disambiguatePaths: false,
         runOnCompile: true,
-        except: ["vendor"],
+        // except: ["vendor"],
     },
     //@ts-ignore
     diamondAbi: [

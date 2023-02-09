@@ -12,15 +12,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const users = await hre.getUsers();
     const { deployer } = await hre.getNamedAccounts();
 
-    const DAI = await hre.ethers.getContract<MockERC20>("DAI");
+    // const DAI = await hre.ethers.getContract<MockERC20>("DAI");
 
-    await DAI.mint(users.deployer.address, toBig(2_500_000_000));
-    await DAI.approve(kresko.address, hre.ethers.constants.MaxUint256);
-    await kresko.connect(users.deployer).depositCollateral(users.deployer.address, DAI.address, toBig(2_500_000_000));
+    // await DAI.mint(users.deployer.address, toBig(2_500_000_000));
+    // await DAI.approve(kresko.address, hre.ethers.constants.MaxUint256);
+    // await kresko.connect(users.deployer).depositCollateral(users.deployer.address, DAI.address, toBig(2_500_000_000));
 
-    await kresko
-        .connect(users.deployer)
-        .mintKreskoAsset(users.deployer.address, (await hre.ethers.getContract("KISS")).address, toBig(1200_000_000));
+    // await kresko
+    //     .connect(users.deployer)
+    //     .mintKreskoAsset(users.deployer.address, (await hre.ethers.getContract("KISS")).address, toBig(1200_000_000));
 
     for (const krAsset of krAssets) {
         const asset = await hre.ethers.getContract<KreskoAsset>(krAsset.symbol);

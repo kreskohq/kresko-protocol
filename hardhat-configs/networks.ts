@@ -142,6 +142,7 @@ export const networks = (mnemonic: string) => ({
         url: RPC.optimism.goerli.default,
         chainId: chainIds.opgoerli,
         gasPrice: +ethers.utils.parseUnits("0.001", "gwei"),
+        allowUnlimitedContractSize: true,
     },
     kovan: {
         chainId: chainIds.kovan,

@@ -18,7 +18,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             (amountB * hre.fromBig(await assetB.price(), 8)) / hre.fromBig(await assetA.price(), 8),
             2,
         );
-
+        if (assetB.symbol === "krTSLA") {
+            continue;
+        }
         const token0 = await hre.ethers.getContract(assetA.symbol);
         const token1 = await hre.ethers.getContract(assetB.symbol);
         const pairAddress = await Factory.getPair(token0.address, token1.address);

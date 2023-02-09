@@ -9,12 +9,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const krAssets = testnetConfigs[hre.network.name].krAssets;
 
     // Create KISS first
-    const { contract: KISSContract } = await hre.run("deploy-kiss", {
-        amount: assets.KISS.mintAmount,
-        decimals: 18,
-    });
+    // const { contract: KISSContract } = await hre.run("deploy-kiss", {
+    //     amount: assets.KISS.mintAmount,
+    //     decimals: 18,
+    // });
 
-    await hre.Diamond.updateKiss(KISSContract.address);
+    // await hre.Diamond.updateKiss(KISSContract.address);
 
     for (const krAsset of krAssets) {
         const isDeployed = await hre.deployments.getOrNull(krAsset.symbol);

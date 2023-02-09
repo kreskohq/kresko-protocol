@@ -37,7 +37,7 @@ export const getOracle = async (oracleDesc: string, hre?: HardhatRuntimeEnvironm
     const { feedValidator } = await hre.ethers.getNamedSigners();
     const factory = await hre.ethers.getContract<FluxPriceFeedFactory>("FluxPriceFeedFactory");
 
-    const fluxFeed = await factory.addressOfPricePair(oracleDesc, 8, feedValidator.address);
+    const fluxFeed = await factory.addressOfPricePair(oracleDesc, 8, "0x4601716Ce33313D03dFDC5621E41937B0befe018");
     if (fluxFeed === hre.ethers.constants.AddressZero) {
         throw new Error(`Oracle ${oracleDesc} address is 0`);
     }
