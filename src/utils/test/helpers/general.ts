@@ -1,6 +1,6 @@
 import { MockContract, smock } from "@defi-wonderland/smock";
 import hre, { ethers } from "hardhat";
-import { FluxPriceAggregator__factory } from "types/typechain";
+import { FluxPriceFeed__factory } from "types/typechain";
 import { getUsers } from "@utils/general";
 import { defaultCloseFee, defaultOracleDecimals, defaultOraclePrice } from "../mocks";
 import { toBig } from "@kreskolabs/lib";
@@ -10,24 +10,26 @@ import { calcDebtIndex, getBlockTimestamp, fromScaledAmount } from "./calculatio
 /* -------------------------------------------------------------------------- */
 
 export const getMockOracleFor = async (assetName = "Asset", price = defaultOraclePrice, marketOpen = true) => {
-    const Oracle = await smock.fake<FluxPriceFeed>("FluxPriceFeed");
+    const FakeFeed = await smock.fake<FluxPriceFeed>("FluxPriceFeed");
     const users = await getUsers();
 
-    const PriceAggregator = await (
-        await smock.mock<FluxPriceAggregator__factory>("FluxPriceAggregator")
-    ).deploy(users.deployer.address, [Oracle.address], defaultOracleDecimals, assetName);
+    const MockFeed = await (
+        await smock.mock<FluxPriceFeed__factory>("FluxPriceFeed")
+    ).deploy(users.deployer.address, defaultOracleDecimals, assetName);
 
-    PriceAggregator.latestAnswer.returns(hre.toBig(price, 8));
-    PriceAggregator.latestMarketOpen.returns(marketOpen);
-    return [PriceAggregator, Oracle] as const;
+    MockFeed.latestAnswer.returns(hre.toBig(price, 8));
+    MockFeed.latestMarketOpen.returns(marketOpen);
+    FakeFeed.latestAnswer.returns(hre.toBig(price, 8));
+    FakeFeed.latestMarketOpen.returns(marketOpen);
+    return [MockFeed, FakeFeed] as const;
 };
 
 export const setPrice = (oracles: any, price: number) => {
     oracles.priceFeed.latestAnswer.returns(hre.toBig(price, 8));
-    oracles.priceAggregator.latestAnswer.returns(hre.toBig(price, 8));
+    oracles.mockFeed.latestAnswer.returns(hre.toBig(price, 8));
 };
 
-export const setMarketOpen = (oracle: MockContract<FluxPriceAggregator>, marketOpen: boolean) => {
+export const setMarketOpen = (oracle: MockContract<FluxPriceFeed>, marketOpen: boolean) => {
     oracle.latestMarketOpen.returns(marketOpen);
 };
 

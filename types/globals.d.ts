@@ -30,14 +30,13 @@ declare global {
         kresko: () => Promise<KrAssetStructOutput>;
         mocks?: {
             contract: MockContract<KreskoAsset>;
-            priceAggregator: MockContract<FluxPriceAggregator>;
+            mockFeed: MockContract<FluxPriceFeed>;
             priceFeed: FakeContract<FluxPriceFeed>;
             anchor?: MockContract<KreskoAssetAnchor>;
         };
         anchor?: KreskoAssetAnchor;
-        priceAggregator: FluxPriceAggregator;
         priceFeed: FluxPriceFeed;
-        setBalance?: (user: SignerWithAddress, balance: BigNumber) =>Promise<void> 
+        setBalance?: (user: SignerWithAddress, balance: BigNumber) =>Promise<void>
         setPrice?: (price: number) => void;
         getPrice?: () => Promise<BigNumber>;
         setMarketOpen?: (marketOpen: boolean) => void;
@@ -53,11 +52,9 @@ declare global {
         kresko: () => Promise<CollateralAssetStruct>;
         mocks?: {
             contract: MockContract<ERC20Upgradeable>;
-            priceAggregator: MockContract<FluxPriceAggregator>;
             priceFeed: FakeContract<FluxPriceFeed>;
             anchor?: MockContract<KreskoAssetAnchor>;
         };
-        priceAggregator: FluxPriceAggregator;
         priceFeed: FluxPriceFeed;
         anchor?: KreskoAssetAnchor;
         setPrice?: (price: number) => void;
@@ -74,9 +71,9 @@ declare global {
     /*                                   Oracles                                  */
     /* -------------------------------------------------------------------------- */
     type FluxPriceFeed = import("types/typechain").FluxPriceFeed;
-    type FluxPriceAggregator = import("types/typechain").FluxPriceAggregator;
+
+    type FluxPriceFeedFactory = import("types/typechain").FluxPriceFeedFactory;
     type AggregatorV2V3Interface = import("types/typechain").AggregatorV2V3Interface;
-    type FeedsRegistry = import("types/typechain").FeedsRegistry;
 
     /* -------------------------------------------------------------------------- */
     /*                               Misc Contracts                               */

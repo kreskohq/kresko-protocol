@@ -1,7 +1,7 @@
 import { Address } from "@kreskolabs/hardhat-deploy/types";
 
 export * from "./typechain";
-export { Kresko } from "./Kresko";
+export { Kresko } from "./typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 export type Fixtures = "diamond";
 
 export type Asset = {

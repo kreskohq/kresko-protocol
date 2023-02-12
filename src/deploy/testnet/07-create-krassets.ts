@@ -1,4 +1,4 @@
-import { assets, testnetConfigs } from "@deploy-config/testnet-goerli";
+import { testnetConfigs } from "@deploy-config/testnet-goerli";
 import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import { getLogger } from "@kreskolabs/lib/dist/utils";
 import { createKrAsset } from "@scripts/create-krasset";
@@ -7,14 +7,6 @@ import type { HardhatRuntimeEnvironment } from "hardhat/types";
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("deploy-krasset");
     const krAssets = testnetConfigs[hre.network.name].krAssets;
-
-    // Create KISS first
-    // const { contract: KISSContract } = await hre.run("deploy-kiss", {
-    //     amount: assets.KISS.mintAmount,
-    //     decimals: 18,
-    // });
-
-    // await hre.Diamond.updateKiss(KISSContract.address);
 
     for (const krAsset of krAssets) {
         const isDeployed = await hre.deployments.getOrNull(krAsset.symbol);

@@ -37,7 +37,7 @@ contract UIDataProviderFacet2 {
         });
     }
 
-      function getPairsData(address[] memory _pairAddresses) external view returns (LibUI.PairData[] memory result) {
+    function getPairsData(address[] memory _pairAddresses) external view returns (LibUI.PairData[] memory result) {
         result = new LibUI.PairData[](_pairAddresses.length);
         for (uint256 i; i < _pairAddresses.length; i++) {
             IUniswapV2Pair pair = IUniswapV2Pair(_pairAddresses[i]);
@@ -51,6 +51,4 @@ contract UIDataProviderFacet2 {
             });
         }
     }
-
-
 }

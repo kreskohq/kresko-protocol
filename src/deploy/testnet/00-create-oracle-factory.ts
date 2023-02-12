@@ -5,7 +5,9 @@ import type { FluxPriceFeedFactory } from "types";
 
 const func: DeployFunction = async function (hre) {
     const { feedValidator } = await hre.ethers.getNamedSigners();
-    const [factory] = await hre.deploy<FluxPriceFeedFactory>("FluxPriceFeedFactory");
+    const [factory] = await hre.deploy<FluxPriceFeedFactory>("FluxPriceFeedFactory", {
+        from: feedValidator.address,
+    });
     const assets = [
         ...testnetConfigs[hre.network.name].collaterals,
         ...testnetConfigs[hre.network.name].krAssets,
@@ -32,7 +34,5 @@ const func: DeployFunction = async function (hre) {
 };
 
 func.tags = ["testnet", "oracles"];
-
-func.skip = async () => true;
 
 export default func;

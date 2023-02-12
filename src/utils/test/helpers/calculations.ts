@@ -1,6 +1,6 @@
 import { RAY } from "@kreskolabs/lib/dist/numbers/wadray";
 import { BigNumber } from "ethers";
-import { FixedPoint } from "types/Kresko";
+import { FixedPoint } from "types/typechain/src/contracts/minter/facets/AccountStateFacet";
 export const ONE_YEAR = 60 * 60 * 24 * 365;
 
 export const getBlockTimestamp = async () => {
@@ -9,7 +9,7 @@ export const getBlockTimestamp = async () => {
     return BigNumber.from(data.timestamp);
 };
 
-export const oraclePriceToWad = async (price: Promise<FixedPoint.UnsignedStruct>): Promise<BigNumber> =>
+export const oraclePriceToWad = async (price: Promise<FixedPoint.UnsignedStructOutput>): Promise<BigNumber> =>
     (await price).rawValue.mul(10 ** (18 - (await hre.Diamond.extOracleDecimals())));
 
 export const calcExpectedStabilityRateNoPremium = (priceRate: BigNumber, krAssetArgs: any) => {

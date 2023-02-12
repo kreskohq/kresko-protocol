@@ -1510,6 +1510,7 @@ describe("Minter", function () {
 
                     // Adjust price according to rebase params
                     const assetPrice = await this.krAsset.getPrice();
+
                     const newPrice = hre.fromBig(assetPrice.div(denominator), 8);
                     this.krAsset.setPrice(newPrice);
                     await this.krAsset.contract.rebase(hre.toBig(denominator), positive);

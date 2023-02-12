@@ -65,7 +65,7 @@ import "hardhat-configs/extensions";
 /*                               CONFIGURATION                                */
 /* -------------------------------------------------------------------------- */
 const config: HardhatUserConfig = {
-    solidity: compilers,
+    solidity: { compilers },
     networks: networks(mnemonic),
     namedAccounts: users,
     mocha: {

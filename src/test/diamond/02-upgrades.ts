@@ -31,7 +31,7 @@ describe("Diamond", function () {
 
             const [SmockInitializer] = await hre.deploy<SmockInit>("SmockInit");
 
-            const signatures = hre.getSignatures(SmockFacet__factory.abi);
+            const signatures = hre.getSignatures([...SmockFacet__factory.abi]);
 
             const Cut: FacetCut = {
                 facetAddress: SmockFacet.address,
@@ -48,7 +48,7 @@ describe("Diamond", function () {
             // Succesfully added the new operator through the initialization contract
             expect(isTestOperator).to.equal(true);
 
-            const Facet = await hre.ethers.getContractAt(SmockFacet__factory.abi, hre.Diamond.address);
+            const Facet = await hre.ethers.getContractAt([...SmockFacet__factory.abi], hre.Diamond.address);
 
             // Ensure facet has it's own storage
             const operatorFromNewStorage = await Facet.operator(); // Retrieved from SmockStorage
@@ -208,7 +208,7 @@ describe("Diamond", function () {
 
             const [SmockInitializer] = await hre.deploy<SmockInit>("SmockInit");
 
-            const signatures = hre.getSignatures(SmockFacet__factory.abi);
+            const signatures = hre.getSignatures([...SmockFacet__factory.abi]);
 
             const Cut: FacetCut = {
                 facetAddress: SmockFacet.address,
@@ -228,7 +228,7 @@ describe("Diamond", function () {
             const Factory2 = await smock.mock<SmockFacet2__factory>("SmockFacet2");
             const SmockFacet2 = await Factory2.deploy();
 
-            const signatures2 = hre.getSignatures(SmockFacet2__factory.abi);
+            const signatures2 = hre.getSignatures([...SmockFacet2__factory.abi]);
 
             const Cut2: FacetCut = {
                 facetAddress: SmockFacet2.address,

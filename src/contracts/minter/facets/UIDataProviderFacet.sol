@@ -18,8 +18,6 @@ import {LibUI, IKresko, IKrStaking, IUniswapV2Pair, IERC20Upgradeable, Aggregato
  * @notice UI data aggregation views
  */
 contract UIDataProviderFacet {
-
-
     function getAccountData(
         address _account,
         address[] memory _tokens,

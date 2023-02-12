@@ -1,5 +1,5 @@
-import { ethers, utils } from "ethers";
-import { INFURA_API_KEY, RPC, ALCHEMY_API_KEY_GOERLI } from "@kreskolabs/configs";
+import { ALCHEMY_API_KEY_GOERLI, INFURA_API_KEY, RPC } from "@kreskolabs/configs";
+import { utils } from "ethers";
 const parseUnits = utils.parseUnits;
 
 export const chainIds = {
@@ -141,15 +141,13 @@ export const networks = (mnemonic: string) => ({
         accounts: { mnemonic, count: 100 },
         url: RPC.optimism.goerli.default,
         chainId: chainIds.opgoerli,
-        gasPrice: +ethers.utils.parseUnits("0.001", "gwei"),
-        allowUnlimitedContractSize: true,
+        gasPrice: +parseUnits("0.001", "gwei"),
     },
     kovan: {
         chainId: chainIds.kovan,
         url: `https://eth-kovan.alchemyapi.io/v2/${ALCHEMY_API_KEY_GOERLI}`,
-        gasPrice: Number(parseUnits("10", "gwei")),
+        gasPrice: +parseUnits("10", "gwei"),
         deploy: ["./src/deploy/kovan"],
-        live: true,
     },
     moonbeam: {
         chainId: chainIds.moonbeam,

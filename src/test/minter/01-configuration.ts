@@ -88,9 +88,9 @@ describe("Minter", function () {
         });
 
         it("can update values of a kresko asset", async function () {
-            const { contract, anchor, priceAggregator } = await addMockKreskoAsset();
+            const { contract, anchor, priceFeed } = await addMockKreskoAsset();
 
-            const oracleAnswer = hre.fromBig(await priceAggregator.latestAnswer(), 8);
+            const oracleAnswer = hre.fromBig(await priceFeed.latestAnswer(), 8);
             const kreskoAnswer = hre.fromBig(
                 (await hre.Diamond.getKrAssetValue(contract.address, hre.toBig(1), true)).rawValue,
                 8,

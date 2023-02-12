@@ -2,7 +2,7 @@ import hre from "hardhat";
 import { smock } from "@defi-wonderland/smock";
 import { getUsers } from "@utils/general";
 import { toFixedPoint, toBig } from "@kreskolabs/lib";
-import { ERC20Upgradeable__factory, FluxPriceAggregator__factory, FluxPriceFeed__factory } from "types";
+import { ERC20Upgradeable__factory, FluxPriceFeed__factory } from "types";
 import { TestCollateralAssetArgs, defaultCollateralArgs, TestCollateralAssetUpdate, InputArgs } from "../mocks";
 import { getMockOracleFor, setPrice } from "./general";
 
@@ -12,7 +12,7 @@ export const addMockCollateralAsset = async (
     const users = await getUsers();
 
     const { name, price, factor, decimals } = args;
-    const [OracleAggregator, Oracle] = await getMockOracleFor(name, price);
+    const [MockOracle, FakeOracle] = await getMockOracleFor(name, price);
 
     const Collateral = await (await smock.mock<ERC20Upgradeable__factory>("ERC20Upgradeable")).deploy();
     await Collateral.setVariable("_initialized", 0);
@@ -26,24 +26,23 @@ export const addMockCollateralAsset = async (
         Collateral.address,
         hre.ethers.constants.AddressZero,
         cFactor,
-        OracleAggregator.address,
-        OracleAggregator.address,
+        MockOracle.address,
+        MockOracle.address,
     );
     const mocks = {
         contract: Collateral,
-        priceAggregator: OracleAggregator,
-        priceFeed: Oracle,
+        mockFeed: MockOracle,
+        priceFeed: FakeOracle,
     };
     const asset: Collateral = {
         address: Collateral.address,
         contract: ERC20Upgradeable__factory.connect(Collateral.address, users.deployer),
         kresko: () => hre.Diamond.collateralAsset(Collateral.address),
-        priceAggregator: FluxPriceAggregator__factory.connect(OracleAggregator.address, users.deployer),
-        priceFeed: FluxPriceFeed__factory.connect(Oracle.address, users.deployer),
+        priceFeed: FluxPriceFeed__factory.connect(FakeOracle.address, users.deployer),
         deployArgs: args,
         mocks,
         setPrice: price => setPrice(mocks, price),
-        getPrice: () => OracleAggregator.latestAnswer(),
+        getPrice: () => MockOracle.latestAnswer(),
         setBalance: async (user, amount) => {
             const totalSupply = await Collateral.totalSupply();
             await mocks.contract.setVariable("_totalSupply", totalSupply.add(amount));
@@ -71,8 +70,8 @@ export const updateCollateralAsset = async (address: string, args: TestCollatera
         collateral.address,
         hre.ethers.constants.AddressZero,
         toFixedPoint(args.factor),
-        args.oracle || collateral.priceAggregator.address,
-        args.oracle || collateral.priceAggregator.address,
+        args.oracle || collateral.priceFeed.address,
+        args.oracle || collateral.priceFeed.address,
     );
     const asset: Collateral = {
         deployArgs: { ...collateral.deployArgs, ...args },

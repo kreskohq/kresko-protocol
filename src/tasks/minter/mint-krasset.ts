@@ -1,5 +1,4 @@
 import { fromBig } from "@kreskolabs/lib";
-import { krAsset } from "hardhat";
 import { task, types } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
 import type { ERC20PresetMinterPauser, KreskoAsset } from "types";

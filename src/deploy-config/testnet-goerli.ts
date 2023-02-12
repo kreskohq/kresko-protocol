@@ -195,7 +195,7 @@ export const assets: { [asset: string]: Asset } = {
             return true;
         },
         oracle: oracles.KISS,
-        cFactor: 1,
+        cFactor: 0.95,
         kFactor: 1,
         mintAmount: 50_000_000,
     },
@@ -325,11 +325,11 @@ const defaultStakingPools: StakingPoolConfig[] = [
         allocPoint: 750,
         startBlock: 0,
     },
-    // {
-    //     lpToken: [assets.KISS, assets.krTSLA],
-    //     allocPoint: 1000,
-    //     startBlock: 0,
-    // },
+    {
+        lpToken: [assets.KISS, assets.krTSLA],
+        allocPoint: 1000,
+        startBlock: 0,
+    },
     {
         lpToken: [assets.KISS, assets.krXAU],
         allocPoint: 750,
