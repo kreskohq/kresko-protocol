@@ -22,7 +22,7 @@ Create local .env file:
 cp .env.example .env
 ```
 
-Populate the following fields into your .env file with testing values:
+Example values:
 
 ```sh
 MNEMONIC=your mnemonic here
@@ -34,7 +34,7 @@ FEE_RECIPIENT_ADDRESS=0x0000000000000000000000000000000000000FEE
 
 ```
 
-Run the test suite with:
+Running tests: 
 
 ```sh
 pnpm test
@@ -42,23 +42,16 @@ pnpm test
 
 ### Deployment
 
-It's possible to run the local deployment setup without a local server started with:
-
+Compileand dry-run the deployments on hardhat-network:
 ```sh
 pnpm deploy
 ```
 
-The contracts are deployable to a variety of blockchain networks (full list in package.json). For example, deploy the contracts to the Aurora testnet with:
-
+Deploying to external networks:
 ```sh
-pnpm deploy --network opgoerli
+pnpm deploy --network <network>
 ```
 
-After a proxy upgrade or deployment to a new network the contract addresses and ABIs can be updated with:
-
-```sh
-pnpm publish:contracts-frontend
-```
 
 ### Contributions
 
