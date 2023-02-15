@@ -100,6 +100,17 @@ export const networks = (mnemonic: string) => ({
         chainId: chainIds.celotest,
         tags: ["celotest"],
     },
+    ganache: {
+        accounts: {
+            mnemonic,
+            count: 52,
+        },
+        companionNetworks: {
+            live: "opgoerli",
+        },
+        url: "http://127.0.0.1:8545",
+        tags: ["test"],
+    },
     hardhat: {
         accounts: {
             mnemonic,

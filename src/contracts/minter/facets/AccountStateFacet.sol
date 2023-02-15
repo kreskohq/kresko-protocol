@@ -178,9 +178,11 @@ contract AccountStateFacet is IAccountStateFacet {
         if (collateralValue.rawValue == 0) {
             return FixedPoint.Unsigned(0);
         }
-        ratio = collateralValue.div(
-            getAccountMinimumCollateralValueAtRatio(_account, ms().minimumCollateralizationRatio)
-        );
+        FixedPoint.Unsigned memory krAssetValue = ms().getAccountKrAssetValue(_account);
+        if (krAssetValue.rawValue == 0) {
+            return FixedPoint.Unsigned(0);
+        }
+        ratio = collateralValue.div(krAssetValue);
     }
 
     function getAccountSingleCollateralValueAndRealValue(address _account, address _asset)

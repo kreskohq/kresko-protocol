@@ -51,6 +51,9 @@ library LibCalculation {
         // Max repayment value for this pair
         maxLiquidatableUSD = minCollateralRequired.sub(accountCollateralValue).div(valueGainedPerUSDRepaid);
 
+        if (maxLiquidatableUSD.isLessThan(self.minimumDebtValue)) {
+            return self.minimumDebtValue;
+        }
         // Diminish liquidatable value for assets with lower cFactor
         // This is desired as they have more seizable value.
         FixedPoint.Unsigned memory cFactor = self.collateralAssets[_collateralAssetToSeize].factor;
