@@ -20,7 +20,6 @@ export const addMockCollateralAsset = async (
     Collateral.name.returns(name);
     Collateral.symbol.returns(name);
     Collateral.decimals.returns(decimals);
-
     const cFactor = toFixedPoint(factor);
     await hre.Diamond.connect(users.operator).addCollateralAsset(
         Collateral.address,

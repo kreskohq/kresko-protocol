@@ -2,11 +2,11 @@ const oldCompilerSettings = {
     settings: {
         optimizer: {
             enabled: true,
-            runs: 10,
+            runs: 200,
         },
         outputSelection: {
             "*": {
-                "*": ["evm.methodIdentifiers", "devdoc", "userdoc", "evm.gasEstimates"],
+                "*": ["metadata", "evm.methodIdentifiers", "devdoc", "userdoc", "evm.gasEstimates"],
             },
         },
     },
@@ -15,17 +15,17 @@ export const compilers = [
     {
         version: "0.8.14",
         settings: {
-            viaIR: true,
+            // viaIR: true,
             optimizer: {
                 enabled: true,
-                runs: 10,
-                details: {
-                    deduplicate: true,
-                    yul: true,
-                    yulDetails: {
-                        stackAllocation: true,
-                    },
-                },
+                runs: 200,
+                // details: {
+                //     deduplicate: true,
+                //     yul: true,
+                //     yulDetails: {
+                //         stackAllocation: true,
+                //     },
+                // },
             },
             outputSelection: {
                 "*": {
@@ -56,7 +56,7 @@ export const compilers = [
         settings: {
             optimizer: {
                 enabled: true,
-                runs: 10,
+                runs: 200,
             },
         },
     },
@@ -65,7 +65,7 @@ export const compilers = [
         settings: {
             optimizer: {
                 enabled: true,
-                runs: 10,
+                runs: 200,
             },
         },
     },

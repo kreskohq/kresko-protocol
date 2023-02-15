@@ -1,12 +1,12 @@
 import hre from "hardhat";
-import { getMinterInitializer } from "@deploy-config/shared";
+import { diamondFacets, getMinterInitializer, minterFacets } from "@deploy-config/shared";
 import { Role, withFixture, Error } from "@utils/test";
 import type { ConfigurationFacet } from "types/typechain";
 import { expect } from "@test/chai";
 
-describe("Minter", function () {
+describe("Minter - Init", () => {
     withFixture(["minter-init"]);
-    describe("#initialization", async () => {
+    describe("#initialization", () => {
         it("sets correct initial state", async function () {
             expect(await hre.Diamond.minterInitializations()).to.equal(1);
 
@@ -39,12 +39,17 @@ describe("Minter", function () {
                 facetAddress,
                 functionSelectors,
             }));
-            expect(facetsOnChain).to.have.deep.members(
-                hre.DiamondDeployment.facets.map(f => ({
-                    facetAddress: f.facetAddress,
-                    functionSelectors: f.functionSelectors,
-                })),
+            const expectedFacets = await Promise.all(
+                minterFacets.concat(diamondFacets).map(async name => {
+                    const deployment = await hre.deployments.get(name);
+                    return {
+                        facetAddress: deployment.address,
+                        functionSelectors: facetsOnChain.find(f => f.facetAddress === deployment.address)
+                            .functionSelectors,
+                    };
+                }),
             );
+            expect(facetsOnChain).to.have.deep.members(expectedFacets);
         });
     });
 });

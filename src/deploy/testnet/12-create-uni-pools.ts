@@ -27,6 +27,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
         if (assetB.symbol === "WETH") {
             await (await hre.ethers.getContract<WETH>("WETH"))["deposit(uint256)"](hre.toBig(amountB));
+        } else if (assetA.symbol === "WETH") {
+            await (await hre.ethers.getContract<WETH>("WETH"))["deposit(uint256)"](hre.toBig(amountA));
         }
         if (pairAddress === ethers.constants.AddressZero) {
             const pair = await hre.run("add-liquidity-v2", {

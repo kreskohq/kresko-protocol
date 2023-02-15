@@ -9,7 +9,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const { ethers, getNamedAccounts, deploy, deployments } = hre;
 
     const logger = getLogger("create-diamond");
-
     // #1 Do not use `add-facets.ts` for the initial diamond, set the initial facets in the constructor
     const InitialFacets: FacetCut[] = [];
     const ABIs = [];
@@ -32,6 +31,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             from: deployer,
             log: true,
         });
+
         const args = hre.getAddFacetArgs(FacetContract, sigs);
         const Artifact = await deployments.getArtifact(facet);
         InitialFacets.push(args.facetCut);

@@ -24,7 +24,7 @@ export const users = {
         default: 10,
     },
     feedValidator: {
-        default: process.env.FEED_VALIDATOR,
+        default: process.env.FEED_VALIDATOR || 11,
     },
     // test users
     userOne: {

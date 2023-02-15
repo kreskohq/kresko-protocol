@@ -13,16 +13,13 @@ import { addMockKreskoAsset } from "@utils/test/helpers/krassets";
 import hre from "hardhat";
 import { UniswapV2Oracle } from "types";
 
-describe("Minter", function () {
-    let users: Users;
-    before(async function () {
-        users = await hre.getUsers();
-    });
+describe("Minter - Configuration", () => {
     withFixture(["minter-init"]);
-    describe("#configuration", function () {
+
+    describe("#configuration", () => {
         it("can modify all parameters", async function () {
-            const Diamond = hre.Diamond.connect(users.operator);
-            const update = getNewMinterParams(users.operator.address);
+            const Diamond = hre.Diamond.connect(hre.users.operator);
+            const update = getNewMinterParams(hre.users.operator.address);
             await expect(Diamond.updateLiquidationIncentiveMultiplier(update.liquidationIncentiveMultiplier)).to.not.be
                 .reverted;
             await expect(Diamond.updateMinimumCollateralizationRatio(update.minimumCollateralizationRatio)).to.not.be
@@ -109,7 +106,7 @@ describe("Minter", function () {
 
             const [newPriceFeed] = await getMockOracleFor(await contract.name(), update.price);
 
-            await hre.Diamond.connect(users.operator).updateKreskoAsset(
+            await hre.Diamond.connect(hre.users.operator).updateKreskoAsset(
                 contract.address,
                 anchor.address,
                 update.factor,

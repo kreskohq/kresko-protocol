@@ -15,13 +15,7 @@ import { Error } from "@utils/test";
 import { addFacet } from "@scripts/add-facet";
 import { removeFacet } from "@scripts/remove-facet";
 
-describe("Diamond", function () {
-    let addr: Addresses;
-    let users: Users;
-    before(async function () {
-        addr = await hre.getAddresses();
-        users = await hre.getUsers();
-    });
+describe("Diamond", () => {
     withFixture(["diamond-init"]);
 
     describe("#upgrades", () => {
@@ -39,11 +33,11 @@ describe("Diamond", function () {
                 action: FacetCutAction.Add,
             };
 
-            const initData = await SmockInitializer.populateTransaction.initialize(addr.userOne);
+            const initData = await SmockInitializer.populateTransaction.initialize(hre.addr.userOne);
 
             await hre.Diamond.diamondCut([Cut], initData.to, initData.data);
             const TEST_OPERATOR_ROLE = hre.ethers.utils.id("kresko.test.operator");
-            const isTestOperator = await hre.Diamond.hasRole(TEST_OPERATOR_ROLE, addr.userOne);
+            const isTestOperator = await hre.Diamond.hasRole(TEST_OPERATOR_ROLE, hre.addr.userOne);
 
             // Succesfully added the new operator through the initialization contract
             expect(isTestOperator).to.equal(true);
@@ -52,14 +46,14 @@ describe("Diamond", function () {
 
             // Ensure facet has it's own storage
             const operatorFromNewStorage = await Facet.operator(); // Retrieved from SmockStorage
-            expect(operatorFromNewStorage).to.equal(addr.userOne);
+            expect(operatorFromNewStorage).to.equal(hre.addr.userOne);
         });
 
         it("can remove a facet", async function () {
             const NewFacet = await addFacet<SmockFacet>({
                 name: "SmockFacet",
                 initializerName: "SmockInit",
-                initializerArgs: addr.userOne,
+                initializerArgs: hre.addr.userOne,
             });
             const facetsBefore = await hre.Diamond.facets();
             expect(facetsBefore.filter(f => f.facetAddress === NewFacet.address).length).to.equal(1);
@@ -76,10 +70,10 @@ describe("Diamond", function () {
 
             // Check there is no pending owner
             let pendingOwner = await hre.Diamond.pendingOwner();
-            expect(pendingOwner).to.equal(addr.ZERO);
+            expect(pendingOwner).to.equal(hre.ethers.constants.AddressZero);
 
             // Transfer to eg. wrong address
-            const wrongOwner = addr.nonadmin;
+            const wrongOwner = hre.addr.nonadmin;
             await hre.Diamond.transferOwnership(wrongOwner);
 
             // Ensure
@@ -94,13 +88,13 @@ describe("Diamond", function () {
             const functions = await hre.Diamond.facetFunctionSelectors(facetAddress);
 
             const Cut: FacetCut = {
-                facetAddress: addr.ZERO,
+                facetAddress: hre.ethers.constants.AddressZero,
                 action: FacetCutAction.Remove,
                 functionSelectors: [signature],
             };
 
             // We will set a correct owner with delegatecall into the Diamond itself with the cut transaction
-            const correctOwner = addr.userOne;
+            const correctOwner = hre.addr.userOne;
             const initData = await hre.Diamond.populateTransaction.transferOwnership(correctOwner);
 
             const tx = await hre.Diamond.diamondCut([Cut], initData.to, initData.data);
@@ -112,17 +106,17 @@ describe("Diamond", function () {
 
             // Ensure delegatecall did set the correct pending owner with the cut
             const filter = hre.Diamond.filters["PendingOwnershipTransfer(address,address)"](
-                addr.deployer,
+                hre.addr.deployer,
                 correctOwner,
             );
             const [event] = await hre.Diamond.queryFilter(filter);
 
             const { previousOwner, newOwner } = event.args;
-            expect(previousOwner).to.equal(addr.deployer);
+            expect(previousOwner).to.equal(hre.addr.deployer);
             expect(newOwner).to.equal(correctOwner);
 
             // Ensure there is no function to accept the ownership
-            await expect(hre.Diamond.connect(users.nonadmin).acceptOwnership()).to.be.revertedWith(
+            await expect(hre.Diamond.connect(hre.users.nonadmin).acceptOwnership()).to.be.revertedWith(
                 Error.DIAMOND_INVALID_FUNCTION_SIGNATURE,
             );
         });
@@ -131,10 +125,10 @@ describe("Diamond", function () {
             // Same as above but instead replace the function
             // Check there is no pending owner
             let pendingOwner = await hre.Diamond.pendingOwner();
-            expect(pendingOwner).to.equal(addr.ZERO);
+            expect(pendingOwner).to.equal(hre.ethers.constants.AddressZero);
 
             // Transfer to eg. wrong address
-            const wrongOwner = addr.nonadmin;
+            const wrongOwner = hre.addr.nonadmin;
             await hre.Diamond.transferOwnership(wrongOwner);
 
             // Ensure
@@ -149,7 +143,7 @@ describe("Diamond", function () {
 
             const [NewOwnershipFacet, allOwnershipFacetSignatures] = await hre.deploy("DiamondOwnershipFacet2", {
                 contract: "DiamondOwnershipFacet",
-                from: addr.deployer,
+                from: hre.addr.deployer,
             });
 
             // Only replace a single function, we could replace all of them
@@ -160,14 +154,14 @@ describe("Diamond", function () {
             };
 
             // We will set a correct owner with delegatecall into the Diamond itself with the cut transaction
-            const correctOwner = addr.userOne;
+            const correctOwner = hre.addr.userOne;
             const initData = await hre.Diamond.populateTransaction.transferOwnership(correctOwner);
 
             const tx = await hre.Diamond.diamondCut([Cut], initData.to, initData.data);
             await tx.wait();
 
             // Ensure function exists and revert is for invalid address instead of missing function
-            await expect(hre.Diamond.connect(users.nonadmin).acceptOwnership()).to.be.revertedWith(
+            await expect(hre.Diamond.connect(hre.users.nonadmin).acceptOwnership()).to.be.revertedWith(
                 Error.DIAMOND_INVALID_PENDING_OWNER,
             );
 
@@ -182,7 +176,7 @@ describe("Diamond", function () {
             expect(functionsOldFacet.length).to.equal(allOwnershipFacetSignatures.length - 1);
 
             // Ensure correct owner can now accept the ownership
-            expect(hre.Diamond.connect(users.userOne).acceptOwnership());
+            expect(hre.Diamond.connect(hre.users.userOne).acceptOwnership());
             const currentOwner = await hre.Diamond.owner();
             expect(currentOwner).to.equal(correctOwner);
         });
@@ -216,7 +210,7 @@ describe("Diamond", function () {
                 action: FacetCutAction.Add,
             };
 
-            const initData = await SmockInitializer.populateTransaction.initialize(addr.userOne);
+            const initData = await SmockInitializer.populateTransaction.initialize(hre.addr.userOne);
             await hre.Diamond.diamondCut([Cut], initData.to, initData.data);
 
             const Diamond = await hre.ethers.getContractAt<SmockFacet>("SmockFacet", hre.Diamond.address);

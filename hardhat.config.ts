@@ -119,12 +119,12 @@ const config: HardhatUserConfig = {
         },
     ],
     //@ts-ignore
-    foundry: {
-        cachePath: "forge/cache",
-        buildInfo: true,
-        forgeOnly: false,
-        cacheVacuum: 0,
-    },
+    // foundry: {
+    //     cachePath: "forge/cache",
+    //     buildInfo: true,
+    //     forgeOnly: false,
+    //     cacheVacuum: 0,
+    // },
     watcher: {
         test: {
             tasks: [{ command: "test", params: { testFiles: ["{path}"] } }],
@@ -132,10 +132,11 @@ const config: HardhatUserConfig = {
             verbose: false,
         },
     },
+    //@ts-ignore
     etherscan: {
         // Your API key for Etherscan
         // Obtain one at https://etherscan.io/
-        apiKey: "6FQE7Z7HTJJU1CZF82K3WMYJW7214Q1X8Y",
+        apiKey: process.env.ETHERSCAN_API_KEY,
     },
 };
 

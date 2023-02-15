@@ -100,17 +100,6 @@ export const networks = (mnemonic: string) => ({
         chainId: chainIds.celotest,
         tags: ["celotest"],
     },
-    ganache: {
-        accounts: {
-            mnemonic,
-            count: 52,
-        },
-        companionNetworks: {
-            live: "opgoerli",
-        },
-        url: "http://127.0.0.1:8545",
-        tags: ["test"],
-    },
     hardhat: {
         accounts: {
             mnemonic,
@@ -133,6 +122,7 @@ export const networks = (mnemonic: string) => ({
         url: RPC.eth.mainnet.infura,
         chainId: chainIds.ethereum,
         tags: ["ethereum"],
+        live: true,
     },
     op: {
         accounts: { mnemonic, count: 100 },
@@ -147,12 +137,14 @@ export const networks = (mnemonic: string) => ({
         chainId: chainIds.opkovan,
         saveDeployments: true,
         tags: ["testnet"],
+        live: true,
     },
     opgoerli: {
         accounts: { mnemonic, count: 100 },
         url: RPC.optimism.goerli.default,
         chainId: chainIds.opgoerli,
         gasPrice: +parseUnits("0.001", "gwei"),
+        live: true,
     },
     kovan: {
         chainId: chainIds.kovan,

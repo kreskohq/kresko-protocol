@@ -22,61 +22,57 @@ import {
 const INTEREST_RATE_DELTA = hre.toBig("0.000001");
 const INTEREST_RATE_PRICE_DELTA = hre.toBig("0.0001", 8);
 
-describe("Minter", function () {
-    let users: Users;
-    before(async function () {
-        users = await hre.getUsers();
-    });
+describe("Minter", () => {
+    withFixture(["minter-test"]);
 
-    withFixture(["minter-test", "integration"]);
     beforeEach(async function () {
         this.collateral = this.collaterals.find(c => c.deployArgs.name === defaultCollateralArgs.name);
         this.krAsset = this.krAssets.find(c => c.deployArgs.name === defaultKrAssetArgs.name);
 
-        await this.krAsset.contract.grantRole(Role.OPERATOR, users.deployer.address);
+        await this.krAsset.contract.grantRole(Role.OPERATOR, hre.users.deployer.address);
         this.krAsset.setPrice(this.krAsset.deployArgs.price);
         this.krAsset.setMarketOpen(this.krAsset.deployArgs.marketOpen);
 
         // Load account with collateral
         this.initialBalance = toBig(100000);
-        await this.collateral.setBalance(users.userOne, this.initialBalance);
+        await this.collateral.setBalance(hre.users.userOne, this.initialBalance);
         await this.collateral.mocks.contract.setVariable("_allowances", {
-            [users.userOne.address]: {
+            [hre.users.userOne.address]: {
                 [hre.Diamond.address]: this.initialBalance,
             },
         });
         this.collateral.setPrice(this.collateral.deployArgs.price);
 
         // User deposits 10,000 collateral
-        await depositCollateral({ amount: 10_000, user: users.userOne, asset: this.collateral });
+        await depositCollateral({ amount: 10_000, user: hre.users.userOne, asset: this.collateral });
     });
 
-    describe("#mint+burn", function () {
-        describe("#mint", function () {
+    describe("#mint+burn", () => {
+        describe("#mint", () => {
             it("should allow users to mint whitelisted Kresko assets backed by collateral", async function () {
                 // Initially the Kresko asset's total supply should be 0
                 const kreskoAssetTotalSupplyBefore = await this.krAsset.contract.totalSupply();
                 expect(kreskoAssetTotalSupplyBefore).to.equal(0);
                 // Initially, the array of the user's minted kresko assets should be empty.
-                const mintedKreskoAssetsBefore = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                const mintedKreskoAssetsBefore = await hre.Diamond.getMintedKreskoAssets(hre.users.userOne.address);
                 expect(mintedKreskoAssetsBefore).to.deep.equal([]);
 
                 // Mint Kresko asset
                 const mintAmount = toBig(1);
-                await hre.Diamond.connect(users.userOne).mintKreskoAsset(
-                    users.userOne.address,
+                await hre.Diamond.connect(hre.users.userOne).mintKreskoAsset(
+                    hre.users.userOne.address,
                     this.krAsset.address,
                     mintAmount,
                 );
 
                 // Confirm the array of the user's minted Kresko assets has been pushed to.
-                const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(hre.users.userOne.address);
                 expect(mintedKreskoAssetsAfter).to.deep.equal([this.krAsset.address]);
                 // Confirm the amount minted is recorded for the user.
-                const amountMinted = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                const amountMinted = await hre.Diamond.kreskoAssetDebt(hre.users.userOne.address, this.krAsset.address);
                 expect(amountMinted).to.equal(mintAmount);
                 // Confirm the user's Kresko asset balance has increased
-                const userBalance = await this.krAsset.mocks.contract.balanceOf(users.userOne.address);
+                const userBalance = await this.krAsset.mocks.contract.balanceOf(hre.users.userOne.address);
                 expect(userBalance).to.equal(mintAmount);
                 // Confirm that the Kresko asset's total supply increased as expected
                 const kreskoAssetTotalSupplyAfter = await this.krAsset.contract.totalSupply();
@@ -89,30 +85,30 @@ describe("Minter", function () {
                 expect(kreskoAssetTotalSupplyInitial).to.equal(0);
 
                 // Initially, the array of the user's minted kresko assets should be empty.
-                const mintedKreskoAssetsInitial = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                const mintedKreskoAssetsInitial = await hre.Diamond.getMintedKreskoAssets(hre.users.userOne.address);
                 expect(mintedKreskoAssetsInitial).to.deep.equal([]);
 
                 // Mint Kresko asset
                 const firstMintAmount = toBig(5);
-                await hre.Diamond.connect(users.userOne).mintKreskoAsset(
-                    users.userOne.address,
+                await hre.Diamond.connect(hre.users.userOne).mintKreskoAsset(
+                    hre.users.userOne.address,
                     this.krAsset.address,
                     firstMintAmount,
                 );
 
                 // Confirm the array of the user's minted Kresko assets has been pushed to.
-                const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(hre.users.userOne.address);
                 expect(mintedKreskoAssetsAfter).to.deep.equal([this.krAsset.address]);
 
                 // Confirm the amount minted is recorded for the user.
                 const amountMintedAfter = await hre.Diamond.kreskoAssetDebt(
-                    users.userOne.address,
+                    hre.users.userOne.address,
                     this.krAsset.address,
                 );
                 expect(amountMintedAfter).to.equal(firstMintAmount);
 
                 // Confirm the Kresko Asset as been minted to the user from Kresko.sol
-                const userBalanceAfter = await this.krAsset.contract.balanceOf(users.userOne.address);
+                const userBalanceAfter = await this.krAsset.contract.balanceOf(hre.users.userOne.address);
                 expect(userBalanceAfter).to.equal(amountMintedAfter);
 
                 // Confirm that the Kresko asset's total supply increased as expected
@@ -122,25 +118,25 @@ describe("Minter", function () {
                 // ------------------------ Second mint ------------------------
                 // Mint Kresko asset
                 const secondMintAmount = toBig(5);
-                await hre.Diamond.connect(users.userOne).mintKreskoAsset(
-                    users.userOne.address,
+                await hre.Diamond.connect(hre.users.userOne).mintKreskoAsset(
+                    hre.users.userOne.address,
                     this.krAsset.address,
                     secondMintAmount,
                 );
 
                 // Confirm the array of the user's minted Kresko assets is unchanged
-                const mintedKreskoAssetsFinal = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                const mintedKreskoAssetsFinal = await hre.Diamond.getMintedKreskoAssets(hre.users.userOne.address);
                 expect(mintedKreskoAssetsFinal).to.deep.equal([this.krAsset.address]);
 
                 // Confirm the second mint amount is recorded for the user
                 const amountMintedFinal = await hre.Diamond.kreskoAssetDebt(
-                    users.userOne.address,
+                    hre.users.userOne.address,
                     this.krAsset.address,
                 );
                 expect(amountMintedFinal).to.closeTo(firstMintAmount.add(secondMintAmount), INTEREST_RATE_DELTA);
 
                 // Confirm the Kresko Asset as been minted to the user from Kresko.sol
-                const userBalanceFinal = await this.krAsset.contract.balanceOf(users.userOne.address);
+                const userBalanceFinal = await this.krAsset.contract.balanceOf(hre.users.userOne.address);
                 expect(userBalanceFinal).to.closeTo(amountMintedFinal, INTEREST_RATE_DELTA);
 
                 // Confirm that the Kresko asset's total supply increased as expected
@@ -156,28 +152,28 @@ describe("Minter", function () {
                 const kreskoAssetTotalSupplyInitial = await this.krAsset.contract.totalSupply();
                 expect(kreskoAssetTotalSupplyInitial).to.equal(0);
                 // Initially, the array of the user's minted kresko assets should be empty.
-                const mintedKreskoAssetsInitial = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                const mintedKreskoAssetsInitial = await hre.Diamond.getMintedKreskoAssets(hre.users.userOne.address);
                 expect(mintedKreskoAssetsInitial).to.deep.equal([]);
 
                 // Mint Kresko asset
                 const firstMintAmount = toBig(1);
-                await hre.Diamond.connect(users.userOne).mintKreskoAsset(
-                    users.userOne.address,
+                await hre.Diamond.connect(hre.users.userOne).mintKreskoAsset(
+                    hre.users.userOne.address,
                     this.krAsset.address,
                     firstMintAmount,
                 );
 
                 // Confirm the array of the user's minted Kresko assets has been pushed to.
-                const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(hre.users.userOne.address);
                 expect(mintedKreskoAssetsAfter).to.deep.equal([this.krAsset.address]);
                 // Confirm the amount minted is recorded for the user.
                 const amountMintedAfter = await hre.Diamond.kreskoAssetDebt(
-                    users.userOne.address,
+                    hre.users.userOne.address,
                     this.krAsset.address,
                 );
                 expect(amountMintedAfter).to.equal(firstMintAmount);
                 // Confirm the Kresko Asset as been minted to the user from Kresko.sol
-                const userBalanceAfter = await this.krAsset.contract.balanceOf(users.userOne.address);
+                const userBalanceAfter = await this.krAsset.contract.balanceOf(hre.users.userOne.address);
                 expect(userBalanceAfter).to.equal(amountMintedAfter);
                 // Confirm that the Kresko asset's total supply increased as expected
                 const kreskoAssetTotalSupplyAfter = await this.krAsset.contract.totalSupply();
@@ -199,23 +195,23 @@ describe("Minter", function () {
 
                 // Mint Kresko asset
                 const secondMintAmount = toBig(2);
-                await hre.Diamond.connect(users.userOne).mintKreskoAsset(
-                    users.userOne.address,
+                await hre.Diamond.connect(hre.users.userOne).mintKreskoAsset(
+                    hre.users.userOne.address,
                     secondKreskoAsset.address,
                     secondMintAmount,
                 );
 
                 // Confirm that the second address has been pushed to the array of the user's minted Kresko assets
-                const mintedKreskoAssetsFinal = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                const mintedKreskoAssetsFinal = await hre.Diamond.getMintedKreskoAssets(hre.users.userOne.address);
                 expect(mintedKreskoAssetsFinal).to.deep.equal([this.krAsset.address, secondKreskoAsset.address]);
                 // Confirm the second mint amount is recorded for the user
                 const amountMintedAssetTwo = await hre.Diamond.kreskoAssetDebt(
-                    users.userOne.address,
+                    hre.users.userOne.address,
                     secondKreskoAsset.address,
                 );
                 expect(amountMintedAssetTwo).to.equal(secondMintAmount);
                 // Confirm the Kresko Asset as been minted to the user from Kresko.sol
-                const userBalanceFinal = await secondKreskoAsset.balanceOf(users.userOne.address);
+                const userBalanceFinal = await secondKreskoAsset.balanceOf(hre.users.userOne.address);
                 expect(userBalanceFinal).to.equal(amountMintedAssetTwo);
                 // Confirm that the Kresko asset's total supply increased as expected
                 const secondKreskoAssetTotalSupply = await secondKreskoAsset.totalSupply();
@@ -225,7 +221,7 @@ describe("Minter", function () {
             it("should allow users to mint Kresko assets with USD value equal to the minimum debt value", async function () {
                 // Confirm that the user does not have an existing debt position for this Kresko asset
                 const initialKreskoAssetDebt = await hre.Diamond.kreskoAssetDebt(
-                    users.userOne.address,
+                    hre.users.userOne.address,
                     this.krAsset.address,
                 );
                 expect(initialKreskoAssetDebt).to.equal(0);
@@ -236,15 +232,15 @@ describe("Minter", function () {
                 const currMinimumDebtValue = await hre.Diamond.minimumDebtValue();
                 expect(fromBig(mintAmountUSDValue.rawValue, 8)).to.equal(Number(currMinimumDebtValue) / 10 ** 8);
 
-                await hre.Diamond.connect(users.userOne).mintKreskoAsset(
-                    users.userOne.address,
+                await hre.Diamond.connect(hre.users.userOne).mintKreskoAsset(
+                    hre.users.userOne.address,
                     this.krAsset.address,
                     mintAmount,
                 );
 
                 // Confirm that the mint was successful and user's balances have increased
                 const finalKreskoAssetDebt = await hre.Diamond.kreskoAssetDebt(
-                    users.userOne.address,
+                    hre.users.userOne.address,
                     this.krAsset.address,
                 );
                 expect(finalKreskoAssetDebt).to.equal(mintAmount);
@@ -252,27 +248,27 @@ describe("Minter", function () {
 
             it("should allow a trusted address to mint Kresko assets on behalf of another user", async function () {
                 // Grant userThree the MANAGER role
-                await hre.Diamond.connect(users.deployer).grantRole(Role.MANAGER, users.userThree.address);
-                expect(await hre.Diamond.hasRole(Role.MANAGER, users.userThree.address)).to.equal(true);
+                await hre.Diamond.connect(hre.users.deployer).grantRole(Role.MANAGER, hre.users.userThree.address);
+                expect(await hre.Diamond.hasRole(Role.MANAGER, hre.users.userThree.address)).to.equal(true);
 
                 // Initially the Kresko asset's total supply should be 0
                 const kreskoAssetTotalSupplyBefore = await this.krAsset.contract.totalSupply();
                 expect(kreskoAssetTotalSupplyBefore).to.equal(0);
                 // Initially, the array of the user's minted kresko assets should be empty.
-                const mintedKreskoAssetsBefore = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                const mintedKreskoAssetsBefore = await hre.Diamond.getMintedKreskoAssets(hre.users.userOne.address);
                 expect(mintedKreskoAssetsBefore).to.deep.equal([]);
 
                 // userThree (trusted contract) mints Kresko asset for userOne
                 const mintAmount = toBig(1);
-                await hre.Diamond.connect(users.userThree).mintKreskoAsset(
-                    users.userOne.address,
+                await hre.Diamond.connect(hre.users.userThree).mintKreskoAsset(
+                    hre.users.userOne.address,
                     this.krAsset.address,
                     mintAmount,
                 );
 
                 // Check that debt exists now for userOne
                 const userOneDebtFromUserThreeMint = await hre.Diamond.kreskoAssetDebt(
-                    users.userOne.address,
+                    hre.users.userOne.address,
                     this.krAsset.address,
                 );
                 expect(userOneDebtFromUserThreeMint).to.equal(mintAmount);
@@ -280,18 +276,18 @@ describe("Minter", function () {
 
             it("should emit KreskoAssetMinted event", async function () {
                 const mintAmount = toBig(500);
-                const tx = await hre.Diamond.connect(users.userOne).mintKreskoAsset(
-                    users.userOne.address,
+                const tx = await hre.Diamond.connect(hre.users.userOne).mintKreskoAsset(
+                    hre.users.userOne.address,
                     this.krAsset.address,
                     mintAmount,
                 );
 
                 const event = await getInternalEvent<KreskoAssetMintedEventObject>(
                     tx,
-                    MinterEvent__factory.connect(hre.Diamond.address, users.userOne),
+                    MinterEvent__factory.connect(hre.Diamond.address, hre.users.userOne),
                     "KreskoAssetMinted",
                 );
-                expect(event.account).to.equal(users.userOne.address);
+                expect(event.account).to.equal(hre.users.userOne.address);
                 expect(event.kreskoAsset).to.equal(this.krAsset.address);
                 expect(event.amount).to.equal(mintAmount);
             });
@@ -302,26 +298,26 @@ describe("Minter", function () {
                 expect(kreskoAssetTotalSupplyBefore).to.equal(0);
 
                 // Initially, the array of the user's minted kresko assets should be empty.
-                const mintedKreskoAssetsBefore = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                const mintedKreskoAssetsBefore = await hre.Diamond.getMintedKreskoAssets(hre.users.userOne.address);
                 expect(mintedKreskoAssetsBefore).to.deep.equal([]);
 
                 // Mint Kresko asset
                 const mintAmount = toBig(1);
                 await expect(
-                    hre.Diamond.connect(users.userOne).mintKreskoAsset(
-                        users.userTwo.address,
+                    hre.Diamond.connect(hre.users.userOne).mintKreskoAsset(
+                        hre.users.userTwo.address,
                         this.krAsset.address,
                         mintAmount,
                     ),
                 ).to.be.revertedWith(
-                    `AccessControl: account ${users.userOne.address.toLowerCase()} is missing role 0x46925e0f0cc76e485772167edccb8dc449d43b23b55fc4e756b063f49099e6a0`,
+                    `AccessControl: account ${hre.users.userOne.address.toLowerCase()} is missing role 0x46925e0f0cc76e485772167edccb8dc449d43b23b55fc4e756b063f49099e6a0`,
                 );
             });
 
             it("should not allow users to mint Kresko assets if the resulting position's USD value is less than the minimum debt value", async function () {
                 // Confirm that the user does not have an existing debt position for this Kresko asset
                 const initialKreskoAssetDebt = await hre.Diamond.kreskoAssetDebt(
-                    users.userOne.address,
+                    hre.users.userOne.address,
                     this.krAsset.address,
                 );
                 expect(initialKreskoAssetDebt).to.equal(0);
@@ -334,8 +330,8 @@ describe("Minter", function () {
                 expect(Number(mintAmountUSDValue)).to.be.lessThan(Number(currMinimumDebtValue));
 
                 await expect(
-                    hre.Diamond.connect(users.userOne).mintKreskoAsset(
-                        users.userOne.address,
+                    hre.Diamond.connect(hre.users.userOne).mintKreskoAsset(
+                        hre.users.userOne.address,
                         this.krAsset.address,
                         mintAmount,
                     ),
@@ -345,8 +341,8 @@ describe("Minter", function () {
             it("should not allow users to mint non-whitelisted Kresko assets", async function () {
                 // Attempt to mint a non-deployed, non-whitelisted Kresko asset
                 await expect(
-                    hre.Diamond.connect(users.userOne).mintKreskoAsset(
-                        users.userOne.address,
+                    hre.Diamond.connect(hre.users.userOne).mintKreskoAsset(
+                        hre.users.userOne.address,
                         "0x0000000000000000000000000000000000000002",
                         toBig(1),
                     ),
@@ -357,7 +353,7 @@ describe("Minter", function () {
                 // We can ignore price and collateral factor as both this.collateral and this.krAsset both
                 // have the same price ($10) and same collateral factor (1)
                 const collateralAmountDeposited = await hre.Diamond.collateralDeposits(
-                    users.userOne.address,
+                    hre.users.userOne.address,
                     this.collateral.address,
                 );
                 // Apply 150% MCR and increase deposit amount to be above the maximum allowed by MCR
@@ -365,8 +361,8 @@ describe("Minter", function () {
                 const mintAmount = toBig(mcrAmount + 1);
 
                 await expect(
-                    hre.Diamond.connect(users.userOne).mintKreskoAsset(
-                        users.userOne.address,
+                    hre.Diamond.connect(hre.users.userOne).mintKreskoAsset(
+                        hre.users.userOne.address,
                         this.krAsset.address,
                         mintAmount,
                     ),
@@ -376,8 +372,8 @@ describe("Minter", function () {
             it("should not allow the minting of any Kresko asset amount over its maximum limit", async function () {
                 // User deposits another 10,000 collateral tokens, enabling mints of up to 20,000/1.5 = ~13,333 kresko asset tokens
                 await expect(
-                    hre.Diamond.connect(users.userOne).depositCollateral(
-                        users.userOne.address,
+                    hre.Diamond.connect(hre.users.userOne).depositCollateral(
+                        hre.users.userOne.address,
                         this.collateral.address,
                         toBig(10000),
                     ),
@@ -386,8 +382,8 @@ describe("Minter", function () {
                 const krAsset = await hre.Diamond.kreskoAsset(this.krAsset.address);
                 const overSupplyLimit = fromBig(krAsset.supplyLimit) + 1;
                 await expect(
-                    hre.Diamond.connect(users.userOne).mintKreskoAsset(
-                        users.userOne.address,
+                    hre.Diamond.connect(hre.users.userOne).mintKreskoAsset(
+                        hre.users.userOne.address,
                         this.krAsset.address,
                         toBig(overSupplyLimit),
                     ),
@@ -397,156 +393,156 @@ describe("Minter", function () {
             it("should not allow the minting of kreskoAssets if the market is closed", async function () {
                 this.krAsset.setMarketOpen(false);
                 await expect(
-                    hre.Diamond.connect(users.userOne).mintKreskoAsset(
-                        users.userOne.address,
+                    hre.Diamond.connect(hre.users.userOne).mintKreskoAsset(
+                        hre.users.userOne.address,
                         this.krAsset.address,
                         toBig(1),
                     ),
                 ).to.be.revertedWith(Error.KRASSET_MARKET_CLOSED);
 
                 // Confirm that the user has no minted krAssets
-                const mintedKreskoAssetsBefore = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                const mintedKreskoAssetsBefore = await hre.Diamond.getMintedKreskoAssets(hre.users.userOne.address);
                 expect(mintedKreskoAssetsBefore).to.deep.equal([]);
 
                 // Confirm that opening the market makes krAsset mintable again
                 this.krAsset.setMarketOpen(true);
-                await hre.Diamond.connect(users.userOne).mintKreskoAsset(
-                    users.userOne.address,
+                await hre.Diamond.connect(hre.users.userOne).mintKreskoAsset(
+                    hre.users.userOne.address,
                     this.krAsset.address,
                     toBig(1),
                 );
 
                 // Confirm the array of the user's minted Kresko assets has been pushed to
-                const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(hre.users.userOne.address);
                 expect(mintedKreskoAssetsAfter).to.deep.equal([this.krAsset.address]);
             });
         });
 
-        describe("#mint - rebase events", function () {
+        describe("#mint - rebase events", () => {
             const mintAmountInt = 40;
             const mintAmount = hre.toBig(mintAmountInt);
-            describe("debt amounts are calculated correctly", function () {
+            describe("debt amounts are calculated correctly", () => {
                 it("when minted before positive rebase", async function () {
-                    const userOne = hre.Diamond.connect(users.userOne);
+                    const userOne = hre.Diamond.connect(hre.users.userOne);
                     // Rebase params
                     const denominator = 4;
                     const positive = true;
 
                     // Mint before rebase
-                    await userOne.mintKreskoAsset(users.userOne.address, this.krAsset.address, mintAmount);
+                    await userOne.mintKreskoAsset(hre.users.userOne.address, this.krAsset.address, mintAmount);
 
-                    const balanceBefore = await this.krAsset.contract.balanceOf(users.userOne.address);
+                    const balanceBefore = await this.krAsset.contract.balanceOf(hre.users.userOne.address);
 
                     // Rebase the asset according to params
                     await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
 
                     // Ensure that the minted balance is adjusted by the rebase
                     const [balanceAfter, balanceAfterAdjusted] = await getDebtIndexAdjustedBalance(
-                        users.userOne,
+                        hre.users.userOne,
                         this.krAsset,
                     );
                     expect(balanceAfter).to.bignumber.equal(mintAmount.mul(denominator));
                     expect(balanceBefore).to.not.bignumber.equal(balanceAfter);
 
                     // Ensure that debt amount is also adjsuted by the rebase
-                    const debtAmount = await userOne.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                    const debtAmount = await userOne.kreskoAssetDebt(hre.users.userOne.address, this.krAsset.address);
                     expect(balanceAfterAdjusted).to.bignumber.equal(debtAmount);
                 });
 
                 it("when minted before negative rebase", async function () {
-                    const userOne = hre.Diamond.connect(users.userOne);
+                    const userOne = hre.Diamond.connect(hre.users.userOne);
                     // Rebase params
                     const denominator = 4;
                     const positive = false;
 
                     // Mint before rebase
-                    await userOne.mintKreskoAsset(users.userOne.address, this.krAsset.address, mintAmount);
+                    await userOne.mintKreskoAsset(hre.users.userOne.address, this.krAsset.address, mintAmount);
 
-                    const balanceBefore = await this.krAsset.contract.balanceOf(users.userOne.address);
+                    const balanceBefore = await this.krAsset.contract.balanceOf(hre.users.userOne.address);
 
                     // Rebase the asset according to params
                     await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
 
                     // Ensure that the minted balance is adjusted by the rebase
                     const [balanceAfter, balanceAfterAdjusted] = await getDebtIndexAdjustedBalance(
-                        users.userOne,
+                        hre.users.userOne,
                         this.krAsset,
                     );
                     expect(balanceAfter).to.bignumber.equal(mintAmount.div(denominator));
                     expect(balanceBefore).to.not.bignumber.equal(balanceAfter);
 
                     // Ensure that debt amount is also adjsuted by the rebase
-                    const debtAmount = await userOne.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                    const debtAmount = await userOne.kreskoAssetDebt(hre.users.userOne.address, this.krAsset.address);
                     expect(balanceAfterAdjusted).to.bignumber.equal(debtAmount);
                 });
 
                 it("when minted after positive rebase", async function () {
-                    const userOne = hre.Diamond.connect(users.userOne);
+                    const userOne = hre.Diamond.connect(hre.users.userOne);
 
                     // Rebase params
                     const denominator = 4;
                     const positive = true;
 
                     // Mint before rebase
-                    await userOne.mintKreskoAsset(users.userOne.address, this.krAsset.address, mintAmount);
+                    await userOne.mintKreskoAsset(hre.users.userOne.address, this.krAsset.address, mintAmount);
 
-                    const balanceBefore = await this.krAsset.contract.balanceOf(users.userOne.address);
+                    const balanceBefore = await this.krAsset.contract.balanceOf(hre.users.userOne.address);
 
                     // Rebase the asset according to params
                     await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
 
                     // Ensure that the minted balance is adjusted by the rebase
                     const [balanceAfter, balanceAfterAdjusted] = await getDebtIndexAdjustedBalance(
-                        users.userOne,
+                        hre.users.userOne,
                         this.krAsset,
                     );
                     expect(balanceAfter).to.bignumber.equal(mintAmount.mul(denominator));
                     expect(balanceBefore).to.not.bignumber.equal(balanceAfter);
 
                     // Ensure that debt amount is also adjusted by the rebase
-                    const debtAmount = await userOne.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                    const debtAmount = await userOne.kreskoAssetDebt(hre.users.userOne.address, this.krAsset.address);
                     expect(balanceAfterAdjusted).to.bignumber.equal(debtAmount);
                 });
 
                 it("when minted after negative rebase", async function () {
-                    const userOne = hre.Diamond.connect(users.userOne);
+                    const userOne = hre.Diamond.connect(hre.users.userOne);
 
                     // Rebase params
                     const denominator = 4;
                     const positive = false;
 
                     // Mint before rebase
-                    await userOne.mintKreskoAsset(users.userOne.address, this.krAsset.address, mintAmount);
+                    await userOne.mintKreskoAsset(hre.users.userOne.address, this.krAsset.address, mintAmount);
 
-                    const balanceBefore = await this.krAsset.contract.balanceOf(users.userOne.address);
+                    const balanceBefore = await this.krAsset.contract.balanceOf(hre.users.userOne.address);
 
                     // Rebase the asset according to params
                     await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
 
                     // Ensure that the minted balance is adjusted by the rebase
                     const [balanceAfter, balanceAfterAdjusted] = await getDebtIndexAdjustedBalance(
-                        users.userOne,
+                        hre.users.userOne,
                         this.krAsset,
                     );
                     expect(balanceAfter).to.bignumber.equal(mintAmount.div(denominator));
                     expect(balanceBefore).to.not.bignumber.equal(balanceAfter);
 
                     // Ensure that debt amount is also adjusted by the rebase
-                    const debtAmount = await userOne.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                    const debtAmount = await userOne.kreskoAssetDebt(hre.users.userOne.address, this.krAsset.address);
                     expect(balanceAfterAdjusted).to.bignumber.equal(debtAmount);
                 });
             });
 
-            describe("debt values are calculated correctly", function () {
+            describe("debt values are calculated correctly", () => {
                 it("when mint is made before positive rebase", async function () {
-                    const userOne = hre.Diamond.connect(users.userOne);
+                    const userOne = hre.Diamond.connect(hre.users.userOne);
                     // Rebase params
                     const denominator = 4;
                     const positive = true;
 
                     // Mint before rebase
-                    await userOne.mintKreskoAsset(users.userOne.address, this.krAsset.address, mintAmount);
-                    const valueBeforeRebase = await userOne.getAccountKrAssetValue(users.userOne.address);
+                    await userOne.mintKreskoAsset(hre.users.userOne.address, this.krAsset.address, mintAmount);
+                    const valueBeforeRebase = await userOne.getAccountKrAssetValue(hre.users.userOne.address);
 
                     // Adjust price accordingly
                     const assetPrice = await this.krAsset.getPrice();
@@ -556,21 +552,21 @@ describe("Minter", function () {
                     await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
 
                     // Ensure that the value inside protocol matches the value before rebase
-                    const valueAfterRebase = await userOne.getAccountKrAssetValue(users.userOne.address);
+                    const valueAfterRebase = await userOne.getAccountKrAssetValue(hre.users.userOne.address);
                     expect(valueAfterRebase.rawValue).to.bignumber.equal(
                         await toScaledAmount(valueBeforeRebase.rawValue, this.krAsset),
                     );
                 });
 
                 it("when mint is made before negative rebase", async function () {
-                    const userOne = hre.Diamond.connect(users.userOne);
+                    const userOne = hre.Diamond.connect(hre.users.userOne);
                     // Rebase params
                     const denominator = 4;
                     const positive = false;
 
                     // Mint before rebase
-                    await userOne.mintKreskoAsset(users.userOne.address, this.krAsset.address, mintAmount);
-                    const valueBeforeRebase = await userOne.getAccountKrAssetValue(users.userOne.address);
+                    await userOne.mintKreskoAsset(hre.users.userOne.address, this.krAsset.address, mintAmount);
+                    const valueBeforeRebase = await userOne.getAccountKrAssetValue(hre.users.userOne.address);
 
                     // Adjust price accordingly
                     const assetPrice = await this.krAsset.getPrice();
@@ -580,13 +576,13 @@ describe("Minter", function () {
                     await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
 
                     // Ensure that the value inside protocol matches the value before rebase
-                    const valueAfterRebase = await userOne.getAccountKrAssetValue(users.userOne.address);
+                    const valueAfterRebase = await userOne.getAccountKrAssetValue(hre.users.userOne.address);
                     expect(valueAfterRebase.rawValue).to.bignumber.equal(
                         await toScaledAmount(valueBeforeRebase.rawValue, this.krAsset),
                     );
                 });
                 it("when minted after positive rebase", async function () {
-                    const userOne = hre.Diamond.connect(users.userOne);
+                    const userOne = hre.Diamond.connect(hre.users.userOne);
 
                     // Rebase params
                     const denominator = 4;
@@ -603,17 +599,17 @@ describe("Minter", function () {
                     this.krAsset.setPrice(hre.fromBig(assetPrice, 8) / denominator);
                     await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
 
-                    await userOne.mintKreskoAsset(users.userOne.address, this.krAsset.address, equalMintAmount);
+                    await userOne.mintKreskoAsset(hre.users.userOne.address, this.krAsset.address, equalMintAmount);
 
                     // Ensure that value after mint matches what is expected
-                    const valueAfterRebase = await userOne.getAccountKrAssetValue(users.userOne.address);
+                    const valueAfterRebase = await userOne.getAccountKrAssetValue(hre.users.userOne.address);
                     expect(valueAfterRebase.rawValue).to.bignumber.equal(
                         await toScaledAmount(valueBeforeRebase.rawValue, this.krAsset),
                     );
                 });
 
                 it("when minted after negative rebase", async function () {
-                    const userOne = hre.Diamond.connect(users.userOne);
+                    const userOne = hre.Diamond.connect(hre.users.userOne);
 
                     // Rebase params
                     const denominator = 4;
@@ -630,19 +626,19 @@ describe("Minter", function () {
                     this.krAsset.setPrice(hre.fromBig(assetPrice.mul(denominator), 8));
                     await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
 
-                    await userOne.mintKreskoAsset(users.userOne.address, this.krAsset.address, equalMintAmount);
+                    await userOne.mintKreskoAsset(hre.users.userOne.address, this.krAsset.address, equalMintAmount);
 
                     // Ensure that value after mint matches what is expected
-                    const valueAfterRebase = await userOne.getAccountKrAssetValue(users.userOne.address);
+                    const valueAfterRebase = await userOne.getAccountKrAssetValue(hre.users.userOne.address);
                     expect(valueAfterRebase.rawValue).to.bignumber.equal(
                         await toScaledAmount(valueBeforeRebase.rawValue, this.krAsset),
                     );
                 });
             });
 
-            describe("debt values and amounts are calculated correctly", function () {
+            describe("debt values and amounts are calculated correctly", () => {
                 it("when minted before and after a positive rebase", async function () {
-                    const userOne = hre.Diamond.connect(users.userOne);
+                    const userOne = hre.Diamond.connect(hre.users.userOne);
                     const assetPrice = await this.krAsset.getPrice();
 
                     // Rebase params
@@ -656,15 +652,15 @@ describe("Minter", function () {
                     const valueBeforeRebase = await userOne.getKrAssetValue(this.krAsset.address, mintAmount, false);
 
                     // Mint before rebase
-                    await userOne.mintKreskoAsset(users.userOne.address, this.krAsset.address, mintAmount);
+                    await userOne.mintKreskoAsset(hre.users.userOne.address, this.krAsset.address, mintAmount);
 
                     // Get results
-                    const balanceAfterFirstMint = await this.krAsset.contract.balanceOf(users.userOne.address);
+                    const balanceAfterFirstMint = await this.krAsset.contract.balanceOf(hre.users.userOne.address);
                     const debtAmountAfterFirstMint = await userOne.kreskoAssetDebt(
-                        users.userOne.address,
+                        hre.users.userOne.address,
                         this.krAsset.address,
                     );
-                    const debtValueAfterFirstMint = await userOne.getAccountKrAssetValue(users.userOne.address);
+                    const debtValueAfterFirstMint = await userOne.getAccountKrAssetValue(hre.users.userOne.address);
 
                     // Assert
                     expect(balanceAfterFirstMint).to.bignumber.equal(debtAmountAfterFirstMint);
@@ -676,16 +672,16 @@ describe("Minter", function () {
 
                     // Ensure debt amounts and balances match
                     const [balanceAfterFirstRebase, balanceAfterFirstRebaseAdjusted] =
-                        await getDebtIndexAdjustedBalance(users.userOne, this.krAsset);
+                        await getDebtIndexAdjustedBalance(hre.users.userOne, this.krAsset);
                     const debtAmountAfterFirstRebase = await userOne.kreskoAssetDebt(
-                        users.userOne.address,
+                        hre.users.userOne.address,
                         this.krAsset.address,
                     );
                     expect(balanceAfterFirstRebase).to.bignumber.equal(mintAmountAfterRebase);
                     expect(balanceAfterFirstRebaseAdjusted).to.bignumber.equal(debtAmountAfterFirstRebase);
 
                     // Ensure debt usd values match
-                    const debtValueAfterFirstRebase = await userOne.getAccountKrAssetValue(users.userOne.address);
+                    const debtValueAfterFirstRebase = await userOne.getAccountKrAssetValue(hre.users.userOne.address);
                     expect(await fromScaledAmount(debtValueAfterFirstRebase.rawValue, this.krAsset)).to.bignumber.equal(
                         debtValueAfterFirstMint.rawValue,
                     );
@@ -694,16 +690,20 @@ describe("Minter", function () {
                     );
 
                     // Mint after rebase
-                    await userOne.mintKreskoAsset(users.userOne.address, this.krAsset.address, mintAmountAfterRebase);
+                    await userOne.mintKreskoAsset(
+                        hre.users.userOne.address,
+                        this.krAsset.address,
+                        mintAmountAfterRebase,
+                    );
 
                     // Ensure debt amounts and balances match
-                    const balanceAfterSecondMint = await this.krAsset.contract.balanceOf(users.userOne.address);
+                    const balanceAfterSecondMint = await this.krAsset.contract.balanceOf(hre.users.userOne.address);
 
                     // Ensure balance matches
                     const expectedBalanceAfterSecondMint = balanceAfterFirstRebase.add(mintAmountAfterRebase);
                     expect(balanceAfterSecondMint).to.bignumber.equal(expectedBalanceAfterSecondMint);
                     // Ensure debt usd values match
-                    const debtValueAfterSecondMint = await userOne.getAccountKrAssetValue(users.userOne.address);
+                    const debtValueAfterSecondMint = await userOne.getAccountKrAssetValue(hre.users.userOne.address);
                     expect(
                         await fromScaledAmount(debtValueAfterSecondMint.rawValue, this.krAsset),
                     ).to.bignumber.closeTo(debtValueAfterFirstMint.rawValue.mul(2), INTEREST_RATE_PRICE_DELTA);
@@ -714,7 +714,7 @@ describe("Minter", function () {
                 });
 
                 it("when minted before and after a negative rebase", async function () {
-                    const userOne = hre.Diamond.connect(users.userOne);
+                    const userOne = hre.Diamond.connect(hre.users.userOne);
                     const assetPrice = await this.krAsset.getPrice();
 
                     // Rebase params
@@ -728,15 +728,15 @@ describe("Minter", function () {
                     const valueBeforeRebase = await userOne.getKrAssetValue(this.krAsset.address, mintAmount, false);
 
                     // Mint before rebase
-                    await userOne.mintKreskoAsset(users.userOne.address, this.krAsset.address, mintAmount);
+                    await userOne.mintKreskoAsset(hre.users.userOne.address, this.krAsset.address, mintAmount);
 
                     // Get results
-                    const balanceAfterFirstMint = await this.krAsset.contract.balanceOf(users.userOne.address);
+                    const balanceAfterFirstMint = await this.krAsset.contract.balanceOf(hre.users.userOne.address);
                     const debtAmountAfterFirstMint = await userOne.kreskoAssetDebt(
-                        users.userOne.address,
+                        hre.users.userOne.address,
                         this.krAsset.address,
                     );
-                    const debtValueAfterFirstMint = await userOne.getAccountKrAssetValue(users.userOne.address);
+                    const debtValueAfterFirstMint = await userOne.getAccountKrAssetValue(hre.users.userOne.address);
 
                     // Assert
                     expect(balanceAfterFirstMint).to.bignumber.equal(debtAmountAfterFirstMint);
@@ -748,16 +748,16 @@ describe("Minter", function () {
 
                     // Ensure debt amounts and balances match
                     const [balanceAfterFirstRebase, balanceAfterFirstRebaseAdjusted] =
-                        await getDebtIndexAdjustedBalance(users.userOne, this.krAsset);
+                        await getDebtIndexAdjustedBalance(hre.users.userOne, this.krAsset);
                     const debtAmountAfterFirstRebase = await userOne.kreskoAssetDebt(
-                        users.userOne.address,
+                        hre.users.userOne.address,
                         this.krAsset.address,
                     );
                     expect(balanceAfterFirstRebase).to.bignumber.equal(mintAmountAfterRebase);
                     expect(balanceAfterFirstRebaseAdjusted).to.bignumber.equal(debtAmountAfterFirstRebase);
 
                     // Ensure debt usd values match
-                    const debtValueAfterFirstRebase = await userOne.getAccountKrAssetValue(users.userOne.address);
+                    const debtValueAfterFirstRebase = await userOne.getAccountKrAssetValue(hre.users.userOne.address);
                     expect(debtValueAfterFirstRebase.rawValue).to.bignumber.equal(
                         await toScaledAmount(debtValueAfterFirstMint.rawValue, this.krAsset),
                     );
@@ -766,10 +766,14 @@ describe("Minter", function () {
                     );
 
                     // Mint after rebase
-                    await userOne.mintKreskoAsset(users.userOne.address, this.krAsset.address, mintAmountAfterRebase);
+                    await userOne.mintKreskoAsset(
+                        hre.users.userOne.address,
+                        this.krAsset.address,
+                        mintAmountAfterRebase,
+                    );
 
                     // Ensure debt usd values match
-                    const debtValueAfterSecondMint = await userOne.getAccountKrAssetValue(users.userOne.address);
+                    const debtValueAfterSecondMint = await userOne.getAccountKrAssetValue(hre.users.userOne.address);
                     expect(debtValueAfterSecondMint.rawValue).to.bignumber.closeTo(
                         await toScaledAmount(debtValueAfterFirstMint.rawValue.mul(2), this.krAsset),
                         INTEREST_RATE_PRICE_DELTA,
@@ -782,37 +786,39 @@ describe("Minter", function () {
             });
         });
 
-        describe("#burn", function () {
+        describe("#burn", () => {
             beforeEach(async function () {
                 // Create userOne debt position
                 this.mintAmount = toBig(2);
-                await hre.Diamond.connect(users.userOne).mintKreskoAsset(
-                    users.userOne.address,
+                await hre.Diamond.connect(hre.users.userOne).mintKreskoAsset(
+                    hre.users.userOne.address,
                     this.krAsset.address,
                     this.mintAmount,
                 );
 
                 // Load userThree with Kresko Assets
                 await this.collateral.mocks.contract.setVariable("_balances", {
-                    [users.userThree.address]: this.initialBalance,
+                    [hre.users.userThree.address]: this.initialBalance,
                 });
                 await this.collateral.mocks.contract.setVariable("_allowances", {
-                    [users.userThree.address]: {
+                    [hre.users.userThree.address]: {
                         [hre.Diamond.address]: this.initialBalance,
                     },
                 });
-                expect(await this.collateral.contract.balanceOf(users.userThree.address)).to.equal(this.initialBalance);
+                expect(await this.collateral.contract.balanceOf(hre.users.userThree.address)).to.equal(
+                    this.initialBalance,
+                );
 
                 await expect(
-                    hre.Diamond.connect(users.userThree).depositCollateral(
-                        users.userThree.address,
+                    hre.Diamond.connect(hre.users.userThree).depositCollateral(
+                        hre.users.userThree.address,
                         this.collateral.address,
                         toBig(10000),
                     ),
                 ).not.to.be.reverted;
 
-                await hre.Diamond.connect(users.userThree).mintKreskoAsset(
-                    users.userThree.address,
+                await hre.Diamond.connect(hre.users.userThree).mintKreskoAsset(
+                    hre.users.userThree.address,
                     this.krAsset.address,
                     this.mintAmount,
                 );
@@ -824,15 +830,15 @@ describe("Minter", function () {
                 // Burn Kresko asset
                 const burnAmount = toBig(1);
                 const kreskoAssetIndex = 0;
-                await hre.Diamond.connect(users.userOne).burnKreskoAsset(
-                    users.userOne.address,
+                await hre.Diamond.connect(hre.users.userOne).burnKreskoAsset(
+                    hre.users.userOne.address,
                     this.krAsset.address,
                     burnAmount,
                     kreskoAssetIndex,
                 );
 
                 // Confirm the user no long holds the burned Kresko asset amount
-                const userBalance = await this.krAsset.contract.balanceOf(users.userOne.address);
+                const userBalance = await this.krAsset.contract.balanceOf(hre.users.userOne.address);
                 expect(userBalance).to.equal(this.mintAmount.sub(burnAmount));
 
                 // Confirm that the Kresko asset's total supply decreased as expected
@@ -840,11 +846,11 @@ describe("Minter", function () {
                 expect(kreskoAssetTotalSupplyAfter).to.equal(kreskoAssetTotalSupplyBefore.sub(burnAmount));
 
                 // Confirm the array of the user's minted Kresko assets still contains the asset's address
-                const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(hre.users.userOne.address);
                 expect(mintedKreskoAssetsAfter).to.deep.equal([this.krAsset.address]);
 
                 // Confirm the user's minted kresko asset amount has been updated
-                const userDebt = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                const userDebt = await hre.Diamond.kreskoAssetDebt(hre.users.userOne.address, this.krAsset.address);
                 expect(userDebt).to.closeTo(this.mintAmount.sub(burnAmount), INTEREST_RATE_DELTA);
             });
 
@@ -853,32 +859,32 @@ describe("Minter", function () {
             // const kreskoAssetTotalSupplyBefore = await this.krAsset.contract.totalSupply();
             // // Burn Kresko asset
             // const kreskoAssetIndex = 0;
-            // await hre.Diamond.connect(users.userOne).burnKreskoAsset(
-            //     users.userOne.address,
+            // await hre.Diamond.connect(hre.users.userOne).burnKreskoAsset(
+            //     hre.users.userOne.address,
             //     this.krAsset.address,
             //     this.mintAmount,
             //     kreskoAssetIndex,
             // );
             // // Confirm the user no long holds the burned Kresko asset amount
-            // const userBalance = await this.krAsset.contract.balanceOf(users.userOne.address);
+            // const userBalance = await this.krAsset.contract.balanceOf(hre.users.userOne.address);
             // expect(userBalance).to.equal(0);
             // // Confirm that the Kresko asset's total supply decreased as expected
             // const kreskoAssetTotalSupplyAfter = await this.krAsset.contract.totalSupply();
             // expect(kreskoAssetTotalSupplyAfter).to.equal(kreskoAssetTotalSupplyBefore.sub(this.mintAmount));
             // // Confirm the array of the user's minted Kresko assets no longer contains the asset's address
-            // const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+            // const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(hre.users.userOne.address);
             // expect(mintedKreskoAssetsAfter).to.deep.equal([]);
             // // Confirm the user's minted kresko asset amount has been updated
             // const userDebt = await hre.Diamond.kreskoAssetDebt(
-            //     users.userOne.address,
+            //     hre.users.userOne.address,
             //     this.krAsset.contract.address,
             // );
             // expect(userDebt).to.equal(0);
 
             it("should allow trusted address to burn its own Kresko asset balances on behalf of another user", async function () {
                 // Grant userThree the MANAGER role
-                await hre.Diamond.connect(users.deployer).grantRole(Role.MANAGER, users.userThree.address);
-                expect(await hre.Diamond.hasRole(Role.MANAGER, users.userThree.address)).to.equal(true);
+                await hre.Diamond.connect(hre.users.deployer).grantRole(Role.MANAGER, hre.users.userThree.address);
+                expect(await hre.Diamond.hasRole(Role.MANAGER, hre.users.userThree.address)).to.equal(true);
 
                 const kreskoAssetTotalSupplyBefore = await this.krAsset.contract.totalSupply();
 
@@ -888,8 +894,8 @@ describe("Minter", function () {
 
                 // User three burns it's KreskoAsset to reduce userOnes debt
                 await expect(
-                    hre.Diamond.connect(users.userThree).burnKreskoAsset(
-                        users.userOne.address,
+                    hre.Diamond.connect(hre.users.userThree).burnKreskoAsset(
+                        hre.users.userOne.address,
                         this.krAsset.address,
                         burnAmount,
                         kreskoAssetIndex,
@@ -897,64 +903,64 @@ describe("Minter", function () {
                 ).to.not.be.reverted;
 
                 // Confirm the userOne had no effect on it's kreskoAsset balance
-                const userOneBalance = await this.krAsset.contract.balanceOf(users.userOne.address);
+                const userOneBalance = await this.krAsset.contract.balanceOf(hre.users.userOne.address);
                 expect(userOneBalance).to.equal(this.mintAmount);
 
                 // Confirm the userThree no long holds the burned Kresko asset amount
-                const userThreeBalance = await this.krAsset.contract.balanceOf(users.userThree.address);
+                const userThreeBalance = await this.krAsset.contract.balanceOf(hre.users.userThree.address);
                 expect(userThreeBalance).to.equal(this.mintAmount.sub(burnAmount));
                 // Confirm that the Kresko asset's total supply decreased as expected
                 const kreskoAssetTotalSupplyAfter = await this.krAsset.contract.totalSupply();
                 expect(kreskoAssetTotalSupplyAfter).to.equal(kreskoAssetTotalSupplyBefore.sub(burnAmount));
                 // Confirm the array of the user's minted Kresko assets still contains the asset's address
-                const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(hre.users.userOne.address);
                 expect(mintedKreskoAssetsAfter).to.deep.equal([this.krAsset.address]);
                 // Confirm the user's minted kresko asset amount has been updated
-                const userOneDebt = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                const userOneDebt = await hre.Diamond.kreskoAssetDebt(hre.users.userOne.address, this.krAsset.address);
                 expect(userOneDebt).to.closeTo(this.mintAmount.sub(burnAmount), INTEREST_RATE_DELTA);
             });
 
             it("should allow trusted address to burn the full balance of its Kresko asset on behalf another user");
             // Grant userThree the MANAGER role
-            // await hre.Diamond.connect(users.deployer).grantRole(Role.MANAGER, users.userThree.address);
-            // expect(await hre.Diamond.hasRole(Role.MANAGER, users.userThree.address)).to.equal(true);
+            // await hre.Diamond.connect(hre.users.deployer).grantRole(Role.MANAGER, hre.users.userThree.address);
+            // expect(await hre.Diamond.hasRole(Role.MANAGER, hre.users.userThree.address)).to.equal(true);
 
             // const kreskoAssetTotalSupplyBefore = await this.krAsset.contract.totalSupply();
 
             // // User three burns the whole mintAmount of Kresko asset to repay userOne's debt
             // const kreskoAssetIndex = 0;
-            // await hre.Diamond.connect(users.userThree).burnKreskoAsset(
-            //     users.userOne.address,
+            // await hre.Diamond.connect(hre.users.userThree).burnKreskoAsset(
+            //     hre.users.userOne.address,
             //     this.krAsset.address,
             //     this.mintAmount,
             //     kreskoAssetIndex,
             // );
 
             // // Confirm the userOne holds the initial minted amount of Kresko assets
-            // const userOneBalance = await this.krAsset.contract.balanceOf(users.userOne.address);
+            // const userOneBalance = await this.krAsset.contract.balanceOf(hre.users.userOne.address);
             // expect(userOneBalance).to.equal(this.mintAmount);
-            // const userThreeBalance = await this.krAsset.contract.balanceOf(users.userThree.address);
+            // const userThreeBalance = await this.krAsset.contract.balanceOf(hre.users.userThree.address);
             // expect(userThreeBalance).to.equal(0);
             // // Confirm that the Kresko asset's total supply decreased as expected
             // const kreskoAssetTotalSupplyAfter = await this.krAsset.contract.totalSupply();
             // expect(kreskoAssetTotalSupplyAfter).to.equal(kreskoAssetTotalSupplyBefore.sub(this.mintAmount));
             // // Confirm the array of the user's minted Kresko assets no longer contains the asset's address
-            // const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+            // const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(hre.users.userOne.address);
             // expect(mintedKreskoAssetsAfter).to.deep.equal([]);
             // // Confirm the user's minted kresko asset amount has been updated
             // const userOneDebt = await hre.Diamond.kreskoAssetDebt(
-            //     users.userOne.address,
+            //     hre.users.userOne.address,
             //     this.krAsset.contract.address,
             // );
             // expect(userOneDebt).to.equal(0);
 
             it("should burn up to the minimum debt position amount if the requested burn would result in a position under the minimum debt value", async function () {
-                const userBalanceBefore = await this.krAsset.contract.balanceOf(users.userOne.address);
+                const userBalanceBefore = await this.krAsset.contract.balanceOf(hre.users.userOne.address);
                 const kreskoAssetTotalSupplyBefore = await this.krAsset.contract.totalSupply();
 
                 // Calculate actual burn amount
                 const userOneDebt = await hre.Diamond.kreskoAssetDebtPrincipal(
-                    users.userOne.address,
+                    hre.users.userOne.address,
                     this.krAsset.address,
                 );
 
@@ -965,15 +971,15 @@ describe("Minter", function () {
 
                 // Burn Kresko asset
                 const kreskoAssetIndex = 0;
-                await hre.Diamond.connect(users.userOne).burnKreskoAsset(
-                    users.userOne.address,
+                await hre.Diamond.connect(hre.users.userOne).burnKreskoAsset(
+                    hre.users.userOne.address,
                     this.krAsset.address,
                     burnAmount,
                     kreskoAssetIndex,
                 );
 
                 // Confirm the user holds the expected Kresko asset amount
-                const userBalance = await this.krAsset.contract.balanceOf(users.userOne.address);
+                const userBalance = await this.krAsset.contract.balanceOf(hre.users.userOne.address);
 
                 // expect(fromBig(userBalance)).to.equal(fromBig(userBalanceBefore.sub(burnAmount)));
                 expect(userBalance).eq(userBalanceBefore.sub(burnAmount));
@@ -983,12 +989,12 @@ describe("Minter", function () {
                 expect(kreskoAssetTotalSupplyAfter).eq(kreskoAssetTotalSupplyBefore.sub(burnAmount));
 
                 // Confirm the array of the user's minted Kresko assets still contains the asset's address
-                const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(hre.users.userOne.address);
                 expect(mintedKreskoAssetsAfter).to.deep.equal([this.krAsset.address]);
 
                 // Confirm the user's minted kresko asset amount has been updated
                 const newUserDebt = await hre.Diamond.kreskoAssetDebtPrincipal(
-                    users.userOne.address,
+                    hre.users.userOne.address,
                     this.krAsset.address,
                 );
                 expect(newUserDebt).to.be.equal(userOneDebt.sub(burnAmount));
@@ -996,8 +1002,8 @@ describe("Minter", function () {
 
             it("should emit KreskoAssetBurned event", async function () {
                 const kreskoAssetIndex = 0;
-                const tx = await hre.Diamond.connect(users.userOne).burnKreskoAsset(
-                    users.userOne.address,
+                const tx = await hre.Diamond.connect(hre.users.userOne).burnKreskoAsset(
+                    hre.users.userOne.address,
                     this.krAsset.address,
                     this.mintAmount.div(5),
                     kreskoAssetIndex,
@@ -1005,10 +1011,10 @@ describe("Minter", function () {
 
                 const event = await getInternalEvent<KreskoAssetBurnedEvent["args"]>(
                     tx,
-                    MinterEvent__factory.connect(hre.Diamond.address, users.userOne),
+                    MinterEvent__factory.connect(hre.Diamond.address, hre.users.userOne),
                     "KreskoAssetBurned",
                 );
-                expect(event.account).to.equal(users.userOne.address);
+                expect(event.account).to.equal(hre.users.userOne.address);
                 expect(event.kreskoAsset).to.equal(this.krAsset.address);
                 expect(event.amount).to.equal(this.mintAmount.div(5));
             });
@@ -1017,8 +1023,8 @@ describe("Minter", function () {
                 const secondMintAmount = 1;
                 const burnAmount = this.mintAmount.add(secondMintAmount);
 
-                await hre.Diamond.connect(users.userOne).mintKreskoAsset(
-                    users.userOne.address,
+                await hre.Diamond.connect(hre.users.userOne).mintKreskoAsset(
+                    hre.users.userOne.address,
                     this.krAsset.address,
                     secondMintAmount,
                 );
@@ -1026,8 +1032,8 @@ describe("Minter", function () {
                 const kreskoAssetIndex = 0;
 
                 await expect(
-                    hre.Diamond.connect(users.userOne).burnKreskoAsset(
-                        users.userOne.address,
+                    hre.Diamond.connect(hre.users.userOne).burnKreskoAsset(
+                        hre.users.userOne.address,
                         this.krAsset.address,
                         burnAmount,
                         kreskoAssetIndex,
@@ -1039,8 +1045,8 @@ describe("Minter", function () {
                 const kreskoAssetIndex = 0;
 
                 await expect(
-                    hre.Diamond.connect(users.userOne).burnKreskoAsset(
-                        users.userOne.address,
+                    hre.Diamond.connect(hre.users.userOne).burnKreskoAsset(
+                        hre.users.userOne.address,
                         this.krAsset.address,
                         0,
                         kreskoAssetIndex,
@@ -1052,25 +1058,25 @@ describe("Minter", function () {
                 const kreskoAssetIndex = 0;
 
                 await expect(
-                    hre.Diamond.connect(users.userThree).burnKreskoAsset(
-                        users.userOne.address,
+                    hre.Diamond.connect(hre.users.userThree).burnKreskoAsset(
+                        hre.users.userOne.address,
                         this.krAsset.address,
                         100,
                         kreskoAssetIndex,
                     ),
                 ).to.be.revertedWith(
-                    `AccessControl: account ${users.userThree.address.toLowerCase()} is missing role 0x46925e0f0cc76e485772167edccb8dc449d43b23b55fc4e756b063f49099e6a0`,
+                    `AccessControl: account ${hre.users.userThree.address.toLowerCase()} is missing role 0x46925e0f0cc76e485772167edccb8dc449d43b23b55fc4e756b063f49099e6a0`,
                 );
             });
 
             it("should not allow users to burn more kresko assets than they hold as debt", async function () {
                 const kreskoAssetIndex = 0;
-                const debt = await hre.Diamond.kreskoAssetDebt(users.userOne.address, this.krAsset.address);
+                const debt = await hre.Diamond.kreskoAssetDebt(hre.users.userOne.address, this.krAsset.address);
                 const burnAmount = debt.add(hre.toBig(1));
 
                 await expect(
-                    hre.Diamond.connect(users.userOne).burnKreskoAsset(
-                        users.userOne.address,
+                    hre.Diamond.connect(hre.users.userOne).burnKreskoAsset(
+                        hre.users.userOne.address,
                         this.krAsset.address,
                         burnAmount,
                         kreskoAssetIndex,
@@ -1078,7 +1084,7 @@ describe("Minter", function () {
                 ).to.be.reverted;
             });
 
-            describe("Protocol open fee", async function () {
+            describe("Protocol open fee", () => {
                 it("should charge the protocol open fee with a single collateral asset if the deposit amount is sufficient and emit CloseFeePaid event", async function () {
                     const openFee = 0.01;
                     const openFeeBig = toBig(openFee); // use toBig() to emulate closeFee's 18 decimals on contract
@@ -1103,8 +1109,8 @@ describe("Minter", function () {
                     );
 
                     // Mint Kresko asset
-                    const tx = await hre.Diamond.connect(users.userOne).mintKreskoAsset(
-                        users.userOne.address,
+                    const tx = await hre.Diamond.connect(hre.users.userOne).mintKreskoAsset(
+                        hre.users.userOne.address,
                         this.krAsset.address,
                         mintAmount,
                     );
@@ -1132,10 +1138,10 @@ describe("Minter", function () {
                     // Ensure the emitted event is as expected.
                     const event = await getInternalEvent<OpenFeePaidEventObject>(
                         tx,
-                        MinterEvent__factory.connect(hre.Diamond.address, users.userOne),
+                        MinterEvent__factory.connect(hre.Diamond.address, hre.users.userOne),
                         "OpenFeePaid",
                     );
-                    expect(event.account).to.equal(users.userOne.address);
+                    expect(event.account).to.equal(hre.users.userOne.address);
                     expect(event.paymentCollateralAsset).to.equal(this.collateral.address);
                     expect(event.paymentAmount).to.equal(toBig(normalizedExpectedCollateralFeeAmount));
                     const expectedFeeValueNormalizedA = expectedFeeValue.div(10 ** 10); // Normalize krAsset price's 10**10 decimals on contract
@@ -1144,7 +1150,7 @@ describe("Minter", function () {
 
                     // Now verify that calcExpectedFee function returns accurate fee amount
                     const feeRes = await hre.Diamond.calcExpectedFee(
-                        users.userOne.address,
+                        hre.users.userOne.address,
                         this.krAsset.address,
                         mintAmount,
                         Fee.OPEN,
@@ -1154,7 +1160,7 @@ describe("Minter", function () {
                     expect(openFeeAmount).eq(normalizedExpectedCollateralFeeAmount);
                 });
             });
-            describe("Protocol close fee", async function () {
+            describe("Protocol close fee", () => {
                 it("should charge the protocol close fee with a single collateral asset if the deposit amount is sufficient and emit CloseFeePaid event", async function () {
                     const burnAmount = toBig(1);
                     const burnValue = burnAmount.mul(this.krAsset.deployArgs.price);
@@ -1172,8 +1178,8 @@ describe("Minter", function () {
 
                     // Burn Kresko asset
                     const kreskoAssetIndex = 0;
-                    const tx = await hre.Diamond.connect(users.userOne).burnKreskoAsset(
-                        users.userOne.address,
+                    const tx = await hre.Diamond.connect(hre.users.userOne).burnKreskoAsset(
+                        hre.users.userOne.address,
                         this.krAsset.address,
                         burnAmount,
                         kreskoAssetIndex,
@@ -1202,10 +1208,10 @@ describe("Minter", function () {
                     // Ensure the emitted event is as expected.
                     const event = await getInternalEvent<CloseFeePaidEventObject>(
                         tx,
-                        MinterEvent__factory.connect(hre.Diamond.address, users.userOne),
+                        MinterEvent__factory.connect(hre.Diamond.address, hre.users.userOne),
                         "CloseFeePaid",
                     );
-                    expect(event.account).to.equal(users.userOne.address);
+                    expect(event.account).to.equal(hre.users.userOne.address);
                     expect(event.paymentCollateralAsset).to.equal(this.collateral.address);
                     expect(event.paymentAmount).to.equal(toBig(normalizedExpectedCollateralFeeAmount));
                     const expectedFeeValueNormalizedA = expectedFeeValue.div(10 ** 10); // Normalize krAsset price's 10**10 decimals on contract
@@ -1221,12 +1227,16 @@ describe("Minter", function () {
                         burnAmount * this.krAsset.deployArgs.price * this.krAsset.deployArgs.closeFee,
                         8,
                     );
-                    await mintKrAsset({ user: users.userThree, asset: this.krAsset, amount: hre.toBig(mintAmount) });
-                    await withdrawCollateral({ user: users.userThree, asset: this.collateral, amount: wAmount });
+                    await mintKrAsset({
+                        user: hre.users.userThree,
+                        asset: this.krAsset,
+                        amount: hre.toBig(mintAmount),
+                    });
+                    await withdrawCollateral({ user: hre.users.userThree, asset: this.collateral, amount: wAmount });
 
                     const event = await getInternalEvent<CloseFeePaidEventObject>(
-                        await burnKrAsset({ user: users.userThree, asset: this.krAsset, amount: burnAmount }),
-                        MinterEvent__factory.connect(hre.Diamond.address, users.userThree),
+                        await burnKrAsset({ user: hre.users.userThree, asset: this.krAsset, amount: burnAmount }),
+                        MinterEvent__factory.connect(hre.Diamond.address, hre.users.userThree),
                         "CloseFeePaid",
                     );
 
@@ -1241,10 +1251,10 @@ describe("Minter", function () {
                     await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
                     const burnAmountRebase = burnAmount * denominator;
 
-                    await withdrawCollateral({ user: users.userThree, asset: this.collateral, amount: wAmount });
+                    await withdrawCollateral({ user: hre.users.userThree, asset: this.collateral, amount: wAmount });
                     const eventAfterRebase = await getInternalEvent<CloseFeePaidEventObject>(
-                        await burnKrAsset({ user: users.userThree, asset: this.krAsset, amount: burnAmountRebase }),
-                        MinterEvent__factory.connect(hre.Diamond.address, users.userOne),
+                        await burnKrAsset({ user: hre.users.userThree, asset: this.krAsset, amount: burnAmountRebase }),
+                        MinterEvent__factory.connect(hre.Diamond.address, hre.users.userOne),
                         "CloseFeePaid",
                     );
                     expect(eventAfterRebase.paymentCollateralAsset).to.equal(event.paymentCollateralAsset);
@@ -1260,12 +1270,16 @@ describe("Minter", function () {
                         burnAmount * this.krAsset.deployArgs.price * this.krAsset.deployArgs.closeFee,
                         8,
                     );
-                    await mintKrAsset({ user: users.userThree, asset: this.krAsset, amount: hre.toBig(mintAmount) });
-                    await withdrawCollateral({ user: users.userThree, asset: this.collateral, amount: wAmount });
+                    await mintKrAsset({
+                        user: hre.users.userThree,
+                        asset: this.krAsset,
+                        amount: hre.toBig(mintAmount),
+                    });
+                    await withdrawCollateral({ user: hre.users.userThree, asset: this.collateral, amount: wAmount });
 
                     const event = await getInternalEvent<CloseFeePaidEventObject>(
-                        await burnKrAsset({ user: users.userThree, asset: this.krAsset, amount: burnAmount }),
-                        MinterEvent__factory.connect(hre.Diamond.address, users.userThree),
+                        await burnKrAsset({ user: hre.users.userThree, asset: this.krAsset, amount: burnAmount }),
+                        MinterEvent__factory.connect(hre.Diamond.address, hre.users.userThree),
                         "CloseFeePaid",
                     );
 
@@ -1280,10 +1294,10 @@ describe("Minter", function () {
                     await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
                     const burnAmountRebase = burnAmount / denominator;
 
-                    await withdrawCollateral({ user: users.userThree, asset: this.collateral, amount: wAmount });
+                    await withdrawCollateral({ user: hre.users.userThree, asset: this.collateral, amount: wAmount });
                     const eventAfterRebase = await getInternalEvent<CloseFeePaidEventObject>(
-                        await burnKrAsset({ user: users.userThree, asset: this.krAsset, amount: burnAmountRebase }),
-                        MinterEvent__factory.connect(hre.Diamond.address, users.userOne),
+                        await burnKrAsset({ user: hre.users.userThree, asset: this.krAsset, amount: burnAmountRebase }),
+                        MinterEvent__factory.connect(hre.Diamond.address, hre.users.userOne),
                         "CloseFeePaid",
                     );
                     expect(eventAfterRebase.paymentCollateralAsset).to.equal(event.paymentCollateralAsset);
@@ -1293,17 +1307,17 @@ describe("Minter", function () {
             });
         });
 
-        describe("#burn - rebase events", function () {
+        describe("#burn - rebase events", () => {
             const mintAmountInt = 40;
             const mintAmount = hre.toBig(mintAmountInt);
 
             beforeEach(async function () {
-                await mintKrAsset({ asset: this.krAsset, amount: mintAmountInt, user: users.userOne });
+                await mintKrAsset({ asset: this.krAsset, amount: mintAmountInt, user: hre.users.userOne });
             });
 
-            describe("debt amounts are calculated correctly", function () {
+            describe("debt amounts are calculated correctly", () => {
                 it("when repaying all debt after a positive rebase", async function () {
-                    const userOne = hre.Diamond.connect(users.userOne);
+                    const userOne = hre.Diamond.connect(hre.users.userOne);
 
                     // Rebase params
                     const denominator = 4;
@@ -1317,22 +1331,24 @@ describe("Minter", function () {
 
                     // Pay half of debt
                     const debt = await hre.Diamond.kreskoAssetDebtPrincipal(
-                        users.userOne.address,
+                        hre.users.userOne.address,
                         this.krAsset.address,
                     );
                     const repayAmount = debt;
-                    await userOne.burnKreskoAsset(users.userOne.address, this.krAsset.address, repayAmount, 0);
+                    await userOne.burnKreskoAsset(hre.users.userOne.address, this.krAsset.address, repayAmount, 0);
 
                     // Debt value after half repayment
                     const debtAfter = await hre.Diamond.kreskoAssetDebtPrincipal(
-                        users.userOne.address,
+                        hre.users.userOne.address,
                         this.krAsset.address,
                     );
 
                     expect(debtAfter).to.bignumber.equal(0);
 
                     const expectedBalanceAfterBurn = 0;
-                    const balanceAfterBurn = hre.fromBig(await this.krAsset.contract.balanceOf(users.userOne.address));
+                    const balanceAfterBurn = hre.fromBig(
+                        await this.krAsset.contract.balanceOf(hre.users.userOne.address),
+                    );
                     expect(balanceAfterBurn).to.equal(expectedBalanceAfterBurn);
 
                     // Anchor krAssets should equal balance * denominator
@@ -1341,7 +1357,7 @@ describe("Minter", function () {
                 });
 
                 it("when repaying partial debt after a positive rebase", async function () {
-                    const userOne = hre.Diamond.connect(users.userOne);
+                    const userOne = hre.Diamond.connect(hre.users.userOne);
 
                     // Rebase params
                     const denominator = 4;
@@ -1355,15 +1371,15 @@ describe("Minter", function () {
 
                     // Pay half of debt
                     const debt = await hre.Diamond.kreskoAssetDebtPrincipal(
-                        users.userOne.address,
+                        hre.users.userOne.address,
                         this.krAsset.address,
                     );
                     const repayAmount = debt.div(2);
-                    await userOne.burnKreskoAsset(users.userOne.address, this.krAsset.address, repayAmount, 0);
+                    await userOne.burnKreskoAsset(hre.users.userOne.address, this.krAsset.address, repayAmount, 0);
 
                     // Debt value after half repayment
                     const debtAfter = await hre.Diamond.kreskoAssetDebtPrincipal(
-                        users.userOne.address,
+                        hre.users.userOne.address,
                         this.krAsset.address,
                     );
 
@@ -1374,7 +1390,7 @@ describe("Minter", function () {
 
                     // Should be all burned
                     const expectedBalanceAfter = mintAmount.mul(denominator).sub(repayAmount);
-                    const balanceAfterBurn = await this.krAsset.contract.balanceOf(users.userOne.address);
+                    const balanceAfterBurn = await this.krAsset.contract.balanceOf(hre.users.userOne.address);
                     expect(balanceAfterBurn).to.bignumber.equal(expectedBalanceAfter);
 
                     // All wkrAssets should be burned
@@ -1384,7 +1400,7 @@ describe("Minter", function () {
                 });
 
                 it("when repaying all debt after a negative rebase", async function () {
-                    const userOne = hre.Diamond.connect(users.userOne);
+                    const userOne = hre.Diamond.connect(hre.users.userOne);
 
                     // Rebase params
                     const denominator = 4;
@@ -1398,15 +1414,15 @@ describe("Minter", function () {
 
                     // Pay half of debt
                     const debt = await hre.Diamond.kreskoAssetDebtPrincipal(
-                        users.userOne.address,
+                        hre.users.userOne.address,
                         this.krAsset.address,
                     );
                     const repayAmount = debt;
-                    await userOne.burnKreskoAsset(users.userOne.address, this.krAsset.address, repayAmount, 0);
+                    await userOne.burnKreskoAsset(hre.users.userOne.address, this.krAsset.address, repayAmount, 0);
 
                     // Debt value after half repayment
                     const debtAfter = await hre.Diamond.kreskoAssetDebtPrincipal(
-                        users.userOne.address,
+                        hre.users.userOne.address,
                         this.krAsset.address,
                     );
 
@@ -1416,7 +1432,9 @@ describe("Minter", function () {
                     expect(debtAfter).to.bignumber.equal(expectedDebt);
 
                     const expectedBalanceAfterBurn = 0;
-                    const balanceAfterBurn = hre.fromBig(await this.krAsset.contract.balanceOf(users.userOne.address));
+                    const balanceAfterBurn = hre.fromBig(
+                        await this.krAsset.contract.balanceOf(hre.users.userOne.address),
+                    );
                     expect(balanceAfterBurn).to.equal(expectedBalanceAfterBurn);
 
                     // Anchor krAssets should equal balance * denominator
@@ -1425,7 +1443,7 @@ describe("Minter", function () {
                 });
 
                 it("when repaying partial debt after a negative rebase", async function () {
-                    const userOne = hre.Diamond.connect(users.userOne);
+                    const userOne = hre.Diamond.connect(hre.users.userOne);
 
                     // Rebase params
                     const denominator = 4;
@@ -1439,15 +1457,15 @@ describe("Minter", function () {
 
                     // Pay half of debt
                     const debt = await hre.Diamond.kreskoAssetDebtPrincipal(
-                        users.userOne.address,
+                        hre.users.userOne.address,
                         this.krAsset.address,
                     );
                     const repayAmount = debt.div(2);
-                    await userOne.burnKreskoAsset(users.userOne.address, this.krAsset.address, repayAmount, 0);
+                    await userOne.burnKreskoAsset(hre.users.userOne.address, this.krAsset.address, repayAmount, 0);
 
                     // Debt value after half repayment
                     const debtAfter = await hre.Diamond.kreskoAssetDebtPrincipal(
-                        users.userOne.address,
+                        hre.users.userOne.address,
                         this.krAsset.address,
                     );
 
@@ -1458,7 +1476,7 @@ describe("Minter", function () {
 
                     // Should be all burned
                     const expectedBalanceAfter = mintAmount.div(denominator).sub(repayAmount);
-                    const balanceAfterBurn = await this.krAsset.contract.balanceOf(users.userOne.address);
+                    const balanceAfterBurn = await this.krAsset.contract.balanceOf(hre.users.userOne.address);
                     expect(balanceAfterBurn).to.bignumber.equal(expectedBalanceAfter);
 
                     // All wkrAssets should be burned
@@ -1468,9 +1486,9 @@ describe("Minter", function () {
                 });
             });
 
-            describe("debt value and mintedKreskoAssets book-keeping is calculated correctly", function () {
+            describe("debt value and mintedKreskoAssets book-keeping is calculated correctly", () => {
                 it("when repaying all debt after a positive rebase", async function () {
-                    const userOne = hre.Diamond.connect(users.userOne);
+                    const userOne = hre.Diamond.connect(hre.users.userOne);
 
                     // Rebase params
                     const denominator = 4;
@@ -1483,11 +1501,11 @@ describe("Minter", function () {
                     this.krAsset.setPrice(newPrice);
                     await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
 
-                    await userOne.burnKreskoAsset(users.userOne.address, this.krAsset.address, fullRepayAmount, 0);
+                    await userOne.burnKreskoAsset(hre.users.userOne.address, this.krAsset.address, fullRepayAmount, 0);
 
                     // Debt value after half repayment
                     const debtAfter = await hre.Diamond.kreskoAssetDebtPrincipal(
-                        users.userOne.address,
+                        hre.users.userOne.address,
                         this.krAsset.address,
                     );
                     const debtValueAfter = (await hre.Diamond.getKrAssetValue(this.krAsset.address, debtAfter, false))
@@ -1496,11 +1514,13 @@ describe("Minter", function () {
                     expect(debtValueAfter).to.equal(0);
 
                     // Should still contain minted krAsset
-                    const mintedKreskoAssetsAfterBurn = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                    const mintedKreskoAssetsAfterBurn = await hre.Diamond.getMintedKreskoAssets(
+                        hre.users.userOne.address,
+                    );
                     expect(mintedKreskoAssetsAfterBurn).to.contain(this.krAsset.address);
                 });
                 it("when repaying partial debt after a positive rebase", async function () {
-                    const userOne = hre.Diamond.connect(users.userOne);
+                    const userOne = hre.Diamond.connect(hre.users.userOne);
 
                     // Rebase params
                     const denominator = 4;
@@ -1516,20 +1536,22 @@ describe("Minter", function () {
                     await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
 
                     // Should contain minted krAsset
-                    const mintedKreskoAssetsBeforeBurn = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                    const mintedKreskoAssetsBeforeBurn = await hre.Diamond.getMintedKreskoAssets(
+                        hre.users.userOne.address,
+                    );
                     expect(mintedKreskoAssetsBeforeBurn).to.contain(this.krAsset.address);
 
                     // Burn assets
                     // Pay half of debt
                     const debt = await hre.Diamond.kreskoAssetDebtPrincipal(
-                        users.userOne.address,
+                        hre.users.userOne.address,
                         this.krAsset.address,
                     );
-                    await userOne.burnKreskoAsset(users.userOne.address, this.krAsset.address, debt.div(2), 0);
+                    await userOne.burnKreskoAsset(hre.users.userOne.address, this.krAsset.address, debt.div(2), 0);
 
                     // Debt value after half repayment
                     const debtAfter = await hre.Diamond.kreskoAssetDebtPrincipal(
-                        users.userOne.address,
+                        hre.users.userOne.address,
                         this.krAsset.address,
                     );
                     const debtValueAfter = (await hre.Diamond.getKrAssetValue(this.krAsset.address, debtAfter, false))
@@ -1540,11 +1562,13 @@ describe("Minter", function () {
                     expect(debtValueAfter).to.equal(expectedValue);
 
                     // Should still contain minted krAsset
-                    const mintedKreskoAssetsAfterBurn = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                    const mintedKreskoAssetsAfterBurn = await hre.Diamond.getMintedKreskoAssets(
+                        hre.users.userOne.address,
+                    );
                     expect(mintedKreskoAssetsAfterBurn).to.contain(this.krAsset.address);
                 });
                 it("when repaying all debt after a negative rebase", async function () {
-                    const userOne = hre.Diamond.connect(users.userOne);
+                    const userOne = hre.Diamond.connect(hre.users.userOne);
 
                     // Rebase params
                     const denominator = 4;
@@ -1557,11 +1581,11 @@ describe("Minter", function () {
                     this.krAsset.setPrice(newPrice);
                     await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
 
-                    await userOne.burnKreskoAsset(users.userOne.address, this.krAsset.address, fullRepayAmount, 0);
+                    await userOne.burnKreskoAsset(hre.users.userOne.address, this.krAsset.address, fullRepayAmount, 0);
 
                     // Debt value after half repayment
                     const debtAfter = await hre.Diamond.kreskoAssetDebtPrincipal(
-                        users.userOne.address,
+                        hre.users.userOne.address,
                         this.krAsset.address,
                     );
                     const debtValueAfter = (await hre.Diamond.getKrAssetValue(this.krAsset.address, debtAfter, false))
@@ -1569,11 +1593,13 @@ describe("Minter", function () {
 
                     expect(debtValueAfter).to.equal(0);
                     // Should still contain minted krAsset
-                    const mintedKreskoAssetsAfterBurn = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                    const mintedKreskoAssetsAfterBurn = await hre.Diamond.getMintedKreskoAssets(
+                        hre.users.userOne.address,
+                    );
                     expect(mintedKreskoAssetsAfterBurn).to.contain(this.krAsset.address);
                 });
                 it("when repaying partial debt after a negative rebase", async function () {
-                    const userOne = hre.Diamond.connect(users.userOne);
+                    const userOne = hre.Diamond.connect(hre.users.userOne);
 
                     // Rebase params
                     const denominator = 4;
@@ -1589,14 +1615,14 @@ describe("Minter", function () {
 
                     // Pay half of debt
                     const debt = await hre.Diamond.kreskoAssetDebtPrincipal(
-                        users.userOne.address,
+                        hre.users.userOne.address,
                         this.krAsset.address,
                     );
-                    await userOne.burnKreskoAsset(users.userOne.address, this.krAsset.address, debt.div(2), 0);
+                    await userOne.burnKreskoAsset(hre.users.userOne.address, this.krAsset.address, debt.div(2), 0);
 
                     // Debt value after half repayment
                     const debtAfter = await hre.Diamond.kreskoAssetDebtPrincipal(
-                        users.userOne.address,
+                        hre.users.userOne.address,
                         this.krAsset.address,
                     );
                     const debtValueAfter = (await hre.Diamond.getKrAssetValue(this.krAsset.address, debtAfter, false))
@@ -1607,7 +1633,9 @@ describe("Minter", function () {
                     expect(debtValueAfter).to.equal(expectedValue);
 
                     // Should still contain minted krAsset
-                    const mintedKreskoAssetsAfterBurn = await hre.Diamond.getMintedKreskoAssets(users.userOne.address);
+                    const mintedKreskoAssetsAfterBurn = await hre.Diamond.getMintedKreskoAssets(
+                        hre.users.userOne.address,
+                    );
                     expect(mintedKreskoAssetsAfterBurn).to.contain(this.krAsset.address);
                 });
             });
