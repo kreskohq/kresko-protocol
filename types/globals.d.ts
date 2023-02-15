@@ -2,9 +2,9 @@ import { DeployResult } from "@kreskolabs/hardhat-deploy/types";
 import type { BytesLike } from "ethers";
 import { FakeContract, MockContract } from "@defi-wonderland/smock";
 import { ERC20Upgradeable__factory } from "./typechain/factories/src/contracts/shared";
-import { KreskoAsset__factory, KreskoAssetAnchor__factory } from "./typechain/factories/src/contracts/krAsset";
+import { KreskoAsset__factory, KreskoAssetAnchor__factory } from "./typechain/factories/src/contracts/kreskoasset";
 import { KrAssetStructOutput } from "./Kresko";
-import {KreskoAssetAnchor} from "types/typechain/src/contracts/krAsset"
+import {KreskoAssetAnchor} from "types/typechain/src/contracts/kreskoasset"
 import { CollateralAssetStruct } from "./typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 import {
     TestKreskoAssetUpdate,
@@ -30,15 +30,17 @@ declare global {
         kresko: () => Promise<KrAssetStructOutput>;
         mocks?: {
             contract: MockContract<KreskoAsset>;
-            priceAggregator: MockContract<FluxPriceAggregator>;
+            mockFeed: MockContract<FluxPriceFeed>;
             priceFeed: FakeContract<FluxPriceFeed>;
             anchor?: MockContract<KreskoAssetAnchor>;
         };
         anchor?: KreskoAssetAnchor;
-        priceAggregator: FluxPriceAggregator;
         priceFeed: FluxPriceFeed;
+        setBalance?: (user: SignerWithAddress, balance: BigNumber) =>Promise<void>
         setPrice?: (price: number) => void;
         getPrice?: () => Promise<BigNumber>;
+        setMarketOpen?: (marketOpen: boolean) => void;
+        getMarketOpen?: () => Promise<boolean>;
         update?: (update: TestKreskoAssetUpdate) => Promise<KrAsset>;
     };
     type Collateral = {
@@ -50,14 +52,13 @@ declare global {
         kresko: () => Promise<CollateralAssetStruct>;
         mocks?: {
             contract: MockContract<ERC20Upgradeable>;
-            priceAggregator: MockContract<FluxPriceAggregator>;
             priceFeed: FakeContract<FluxPriceFeed>;
             anchor?: MockContract<KreskoAssetAnchor>;
         };
-        priceAggregator: FluxPriceAggregator;
         priceFeed: FluxPriceFeed;
         anchor?: KreskoAssetAnchor;
         setPrice?: (price: number) => void;
+        setBalance?: (user: SignerWithAddress, amount: BigNumber) => Promise<void>;
         getPrice?: () => Promise<BigNumber>;
         update?: (update: TestCollateralAssetUpdate) => Promise<CollateralAsset>;
     };
@@ -70,9 +71,9 @@ declare global {
     /*                                   Oracles                                  */
     /* -------------------------------------------------------------------------- */
     type FluxPriceFeed = import("types/typechain").FluxPriceFeed;
-    type FluxPriceAggregator = import("types/typechain").FluxPriceAggregator;
+
+    type FluxPriceFeedFactory = import("types/typechain").FluxPriceFeedFactory;
     type AggregatorV2V3Interface = import("types/typechain").AggregatorV2V3Interface;
-    type FeedsRegistry = import("types/typechain").FeedsRegistry;
 
     /* -------------------------------------------------------------------------- */
     /*                               Misc Contracts                               */
@@ -134,7 +135,6 @@ declare global {
         liquidationIncentive: BigNumberish;
         minimumCollateralizationRatio: BigNumberish;
         minimumDebtValue: BigNumberish;
-        minimumLiquidationThreshold: BigNumberish;
         liquidationThreshold: BigNumberish;
     }
     interface KreskoAssetInitializer {

@@ -7,9 +7,9 @@ import {MinterParams, FixedPoint, KrAsset, CollateralAsset} from "../MinterTypes
 import {MinterState, ms} from "../MinterStorage.sol";
 
 /**
- * @title View functions for protocol parameters and asset values
  * @author Kresko
- * @dev Structs do not create views for members.
+ * @title View functions for protocol parameters and asset values
+ * @dev As structs do not create views for members, we must expose most of the state values explicitly.
  */
 contract StateFacet is IStateFacet {
     function domainSeparator() external view returns (bytes32) {
@@ -25,6 +25,14 @@ contract StateFacet is IStateFacet {
     /* -------------------------------------------------------------------------- */
     function feeRecipient() external view returns (address) {
         return ms().feeRecipient;
+    }
+
+    function ammOracle() external view returns (address) {
+        return ms().ammOracle;
+    }
+
+    function extOracleDecimals() external view returns (uint8) {
+        return ms().extOracleDecimals;
     }
 
     function minimumCollateralizationRatio() external view returns (FixedPoint.Unsigned memory) {
@@ -51,7 +59,8 @@ contract StateFacet is IStateFacet {
                 s.liquidationIncentiveMultiplier,
                 s.minimumDebtValue,
                 s.liquidationThreshold,
-                s.feeRecipient
+                s.feeRecipient,
+                s.extOracleDecimals
             );
     }
 
@@ -59,20 +68,20 @@ contract StateFacet is IStateFacet {
     /*                                   Assets                                   */
     /* -------------------------------------------------------------------------- */
     /**
-     * @notice Returns true if the @param _krAsset exists in the protocol
+     * @notice Returns true if the @param _kreskoAsset exists in the protocol
      * @return exists boolean indicating if the asset exists
      */
-    function krAssetExists(address _krAsset) external view returns (bool exists) {
-        return ms().kreskoAssets[_krAsset].exists;
+    function krAssetExists(address _kreskoAsset) external view returns (bool exists) {
+        return ms().kreskoAssets[_kreskoAsset].exists;
     }
 
     /**
      * @notice Get the state of a specific krAsset
-     * @param _asset Address of the asset.
+     * @param _kreskoAsset Address of the asset.
      * @return asset State of assets `KrAsset` struct
      */
-    function kreskoAsset(address _asset) external view returns (KrAsset memory asset) {
-        return ms().kreskoAsset(_asset);
+    function kreskoAsset(address _kreskoAsset) external view returns (KrAsset memory asset) {
+        return ms().kreskoAsset(_kreskoAsset);
     }
 
     /**
@@ -85,11 +94,11 @@ contract StateFacet is IStateFacet {
 
     /**
      * @notice Get the state of a specific collateral asset
-     * @param _asset Address of the asset.
+     * @param _collateralAsset Address of the asset.
      * @return asset State of assets `CollateralAsset` struct
      */
-    function collateralAsset(address _asset) external view returns (CollateralAsset memory asset) {
-        return ms().collateralAssets[_asset];
+    function collateralAsset(address _collateralAsset) external view returns (CollateralAsset memory asset) {
+        return ms().collateralAssets[_collateralAsset];
     }
 
     /**

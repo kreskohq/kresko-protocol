@@ -1,22 +1,17 @@
 import hre from "hardhat";
 import { expect } from "@test/chai";
 import { Error, Role, withFixture } from "@utils/test";
-import { testnetConfigs } from "@deploy-config/testnet";
+import { testnetConfigs } from "@deploy-config/testnet-goerli";
 import { anchorTokenPrefix } from "@deploy-config/shared";
-import type { KreskoAssetAnchor } from "types/typechain/src/contracts/krAsset/KreskoAssetAnchor";
+import type { KreskoAssetAnchor } from "types/typechain/src/contracts/kreskoasset/KreskoAssetAnchor";
 
 const { name, symbol } = testnetConfigs.hardhat.krAssets[0];
 
 describe("KreskoAsset", function () {
     let KreskoAsset: KreskoAsset;
     let KreskoAssetAnchor: KreskoAssetAnchor;
-
-    let addr: Addresses;
-    beforeEach(async function () {
-        addr = await hre.getAddresses();
-    });
-
     withFixture(["minter-test", "kresko-assets", "collaterals"]);
+
     describe("#initialization - anchor", () => {
         beforeEach(async function () {
             const deployment = this.krAssets.find(k => k.deployArgs.name === name);
@@ -25,7 +20,7 @@ describe("KreskoAsset", function () {
         });
         it("cant initialize twice", async function () {
             await expect(
-                KreskoAsset.initialize(name, symbol, 18, addr.deployer, hre.Diamond.address),
+                KreskoAsset.initialize(name, symbol, 18, hre.addr.deployer, hre.Diamond.address),
             ).to.be.revertedWith(Error.ALREADY_INITIALIZED_OZ);
         });
 
@@ -35,7 +30,7 @@ describe("KreskoAsset", function () {
             const KreskoAssetImpl = await hre.ethers.getContractAt("KreskoAsset", implementationAddress);
 
             await expect(
-                KreskoAssetImpl.initialize(name, symbol, 18, addr.deployer, hre.Diamond.address),
+                KreskoAssetImpl.initialize(name, symbol, 18, hre.addr.deployer, hre.Diamond.address),
             ).to.be.revertedWith(Error.ALREADY_INITIALIZED_OZ);
         });
 
@@ -43,10 +38,10 @@ describe("KreskoAsset", function () {
             expect(await KreskoAsset.name()).to.equal(name);
             expect(await KreskoAsset.symbol()).to.equal(symbol);
             expect(await KreskoAsset.kresko()).to.equal(hre.Diamond.address);
-            expect(await KreskoAsset.hasRole(Role.ADMIN, addr.deployer)).to.equal(true);
+            expect(await KreskoAsset.hasRole(Role.ADMIN, hre.addr.deployer)).to.equal(true);
             expect(await KreskoAsset.hasRole(Role.OPERATOR, hre.Diamond.address)).to.equal(true);
 
-            expect(await KreskoAsset.totalSupply()).to.equal(0);
+            expect(await KreskoAsset.totalSupply()).to.equal("200000000000000000000");
             expect(await KreskoAsset.isRebased()).to.equal(false);
 
             const rebaseInfo = await KreskoAsset.rebaseInfo();
@@ -73,7 +68,7 @@ describe("KreskoAsset", function () {
         });
         it("cant initialize twice", async function () {
             await expect(
-                KreskoAssetAnchor.initialize(KreskoAsset.address, name, symbol, addr.deployer),
+                KreskoAssetAnchor.initialize(KreskoAsset.address, name, symbol, hre.addr.deployer),
             ).to.be.revertedWith(Error.ALREADY_INITIALIZED_OZ);
         });
 
@@ -86,7 +81,7 @@ describe("KreskoAsset", function () {
             );
 
             await expect(
-                KreskoAssetAnchorImpl.initialize(KreskoAsset.address, name, symbol, addr.deployer),
+                KreskoAssetAnchorImpl.initialize(KreskoAsset.address, name, symbol, hre.addr.deployer),
             ).to.be.revertedWith(Error.ALREADY_INITIALIZED_OZ);
         });
 
@@ -104,10 +99,10 @@ describe("KreskoAsset", function () {
             expect(await KreskoAssetAnchor.name()).to.equal(name);
             expect(await KreskoAssetAnchor.symbol()).to.equal(anchorTokenPrefix + symbol);
             expect(await KreskoAssetAnchor.asset()).to.equal(KreskoAsset.address);
-            expect(await KreskoAssetAnchor.hasRole(Role.ADMIN, addr.deployer)).to.equal(true);
+            expect(await KreskoAssetAnchor.hasRole(Role.ADMIN, hre.addr.deployer)).to.equal(true);
             expect(await KreskoAssetAnchor.hasRole(Role.OPERATOR, hre.Diamond.address)).to.equal(true);
 
-            expect(await KreskoAssetAnchor.totalSupply()).to.equal(0);
+            expect(await KreskoAssetAnchor.totalSupply()).to.equal("200000000000000000000");
             expect(await KreskoAssetAnchor.totalAssets()).to.equal(await KreskoAsset.totalSupply());
 
             const rebaseInfo = await KreskoAsset.rebaseInfo();

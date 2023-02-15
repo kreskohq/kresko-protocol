@@ -12,7 +12,6 @@ import {Error} from "../libs/Errors.sol";
 
 import {initializeDiamondCut} from "./libs/LibDiamondCut.sol";
 import {ds} from "./DiamondStorage.sol";
-import "hardhat/console.sol";
 
 contract Diamond {
     struct Initialization {

@@ -3,7 +3,7 @@ pragma solidity >=0.8.14;
 
 import "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
 
-import {IKreskoAssetIssuer} from "../krAsset/IKreskoAssetIssuer.sol";
+import {IKreskoAssetIssuer} from "../kreskoasset/IKreskoAssetIssuer.sol";
 import {IKISS} from "./interfaces/IKISS.sol";
 import {Role} from "../libs/Authorization.sol";
 
@@ -96,7 +96,6 @@ contract KISS is IKISS, IKreskoAssetIssuer, ERC20PresetMinterPauser {
     /**
      * @notice Overrides `AccessControl.grantRole` for following:
      * * Implement a cooldown period of `OPERATOR_ROLE_PERIOD` minutes for setting a new OPERATOR_ROLE
-     * * Limited to 2 role members (Converter & Kresko)
      * * EOA cannot be granted the operator role
      *
      * @notice OPERATOR_ROLE can still be revoked without this cooldown period
@@ -109,37 +108,37 @@ contract KISS is IKISS, IKreskoAssetIssuer, ERC20PresetMinterPauser {
         override(AccessControl, IAccessControl)
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        // Handle OPERATOR_ROLE explicitly
-        if (_role == Role.OPERATOR) {
-            require(_to.code.length > 0, "KISS: EOA");
-            if (pendingOperator != address(0)) {
-                // Ensure cooldown period
-
-                require(operatorRoleTimestamp < block.timestamp, "KISS: !OPERATOR_ROLE_PERIOD");
-                // Grant role
-                _grantRole(Role.OPERATOR, pendingOperator);
-                emit NewMinter(_msgSender());
-                // Reset pending owner
-                // No need to touch the timestamp (next call will just trigger the cooldown period)
-                pendingOperator = address(0);
-            } else if (operatorRoleTimestamp != 0) {
-                // Do not allow more than 2 minters
-                require(getRoleMemberCount(Role.OPERATOR) <= 1, "KISS: !minterRevoked");
-                // Set the timestamp for the cooldown period
-                operatorRoleTimestamp = block.timestamp + OPERATOR_ROLE_PERIOD;
-                // Set the pending minter, execution to upper clause next call
-                pendingOperator = _to;
-                emit NewMinterInitiated(_to, operatorRoleTimestamp);
-            } else {
-                // Initialize converter
-                _grantRole(Role.OPERATOR, _to);
-                emit NewMinter(_to);
-                // Set the timestamp, execution is not coming here again
-                operatorRoleTimestamp = block.timestamp;
-            }
-        } else {
-            // Default behavior
+        // Default behavior
+        if (_role != Role.OPERATOR) {
             _grantRole(_role, _to);
+            return;
+        }
+
+        // Handle operator role
+        require(_to.code.length > 0, "KISS: EOA");
+        if (pendingOperator != address(0)) {
+            // Ensure cooldown period
+            require(operatorRoleTimestamp < block.timestamp, "KISS: !OPERATOR_ROLE_PERIOD");
+            // Grant role
+            _grantRole(Role.OPERATOR, pendingOperator);
+            emit NewMinter(_msgSender());
+            // Reset pending owner
+            // No need to touch the timestamp (next call will just trigger the cooldown period)
+            pendingOperator = address(0);
+        } else if (operatorRoleTimestamp != 0) {
+            // Do not allow more than 2 minters
+            require(getRoleMemberCount(Role.OPERATOR) <= 1, "KISS: !minterRevoked");
+            // Set the timestamp for the cooldown period
+            operatorRoleTimestamp = block.timestamp + OPERATOR_ROLE_PERIOD;
+            // Set the pending minter, execution to upper clause next call
+            pendingOperator = _to;
+            emit NewMinterInitiated(_to, operatorRoleTimestamp);
+        } else {
+            // Initialize converter
+            _grantRole(Role.OPERATOR, _to);
+            emit NewMinter(_to);
+            // Set the timestamp, execution is not coming here again
+            operatorRoleTimestamp = block.timestamp;
         }
     }
 
@@ -150,24 +149,6 @@ contract KISS is IKISS, IKreskoAssetIssuer, ERC20PresetMinterPauser {
     function decimals() public view override returns (uint8) {
         return _decimals;
     }
-
-    /* -------------------------------------------------------------------------- */
-    /*                                    Testnet                                 */
-    /* -------------------------------------------------------------------------- */
-
-    function convertToShares(uint256 assets) external view returns (uint256) {
-        return assets;
-    }
-
-    function convertToAssets(uint256 shares) external view returns (uint256) {
-        return shares;
-    }
-
-    /**
-     * @notice Switch metadata
-     * @param _newName new token name
-     * @param _newSymbol new token symbol
-     */
 
     /**
      * @dev Returns the name of the token.
@@ -184,8 +165,19 @@ contract KISS is IKISS, IKreskoAssetIssuer, ERC20PresetMinterPauser {
         return _symbol;
     }
 
+    /* -------------------------------------------------------------------------- */
+    /*                                   TESTNET                                  */
+    /* -------------------------------------------------------------------------- */
     function setMetadata(string memory _newName, string memory _newSymbol) external onlyRole(DEFAULT_ADMIN_ROLE) {
         _name = _newSymbol;
         _symbol = _newName;
+    }
+
+    function convertToShares(uint256 assets) external pure returns (uint256) {
+        return assets;
+    }
+
+    function convertToAssets(uint256 shares) external pure returns (uint256) {
+        return shares;
     }
 }

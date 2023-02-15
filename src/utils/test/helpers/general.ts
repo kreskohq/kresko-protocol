@@ -1,27 +1,36 @@
 import { MockContract, smock } from "@defi-wonderland/smock";
 import hre, { ethers } from "hardhat";
-import { FluxPriceAggregator__factory } from "types/typechain";
+import { FluxPriceFeed__factory } from "types/typechain";
 import { getUsers } from "@utils/general";
 import { defaultCloseFee, defaultOracleDecimals, defaultOraclePrice } from "../mocks";
 import { toBig } from "@kreskolabs/lib";
+import { calcDebtIndex, getBlockTimestamp, fromScaledAmount } from "./calculations";
 /* -------------------------------------------------------------------------- */
 /*                                  GENERAL                                   */
 /* -------------------------------------------------------------------------- */
 
-export const getMockOracleFor = async (assetName = "Asset", price = defaultOraclePrice) => {
-    const Oracle = await smock.fake<FluxPriceFeed>("FluxPriceFeed");
+export const getMockOracleFor = async (assetName = "Asset", price = defaultOraclePrice, marketOpen = true) => {
+    const FakeFeed = await smock.fake<FluxPriceFeed>("FluxPriceFeed");
     const users = await getUsers();
 
-    const PriceAggregator = await (
-        await smock.mock<FluxPriceAggregator__factory>("FluxPriceAggregator")
-    ).deploy(users.deployer.address, [Oracle.address], defaultOracleDecimals, assetName);
+    const MockFeed = await (
+        await smock.mock<FluxPriceFeed__factory>("FluxPriceFeed")
+    ).deploy(users.deployer.address, defaultOracleDecimals, assetName);
 
-    PriceAggregator.latestAnswer.returns(hre.toBig(price, 8));
-    return [PriceAggregator, Oracle] as const;
+    MockFeed.latestAnswer.returns(hre.toBig(price, 8));
+    MockFeed.latestMarketOpen.returns(marketOpen);
+    FakeFeed.latestAnswer.returns(hre.toBig(price, 8));
+    FakeFeed.latestMarketOpen.returns(marketOpen);
+    return [MockFeed, FakeFeed] as const;
 };
 
-export const setPrice = (oracle: MockContract<FluxPriceAggregator>, price: number) => {
-    oracle.latestAnswer.returns(hre.toBig(price, 8));
+export const setPrice = (oracles: any, price: number) => {
+    oracles.priceFeed.latestAnswer.returns(hre.toBig(price, 8));
+    oracles.mockFeed.latestAnswer.returns(hre.toBig(price, 8));
+};
+
+export const setMarketOpen = (oracle: MockContract<FluxPriceFeed>, marketOpen: boolean) => {
+    oracle.latestMarketOpen.returns(marketOpen);
 };
 
 export const getHealthFactor = async (user: SignerWithAddress) => {
@@ -61,6 +70,7 @@ export const leverageKrAsset = async (
             collateralToUse.anchor ? collateralToUse.anchor.address : ethers.constants.AddressZero,
             hre.toBig(1),
             collateralToUse.priceFeed.address,
+            collateralToUse.priceFeed.address,
         );
     }
     await hre.Diamond.connect(user).depositCollateral(
@@ -73,6 +83,7 @@ export const leverageKrAsset = async (
             krAsset.address,
             krAsset.anchor.address,
             toBig(1),
+            krAsset.priceFeed.address,
             krAsset.priceFeed.address,
             hre.toBig(1_000_000),
             defaultCloseFee,
@@ -87,6 +98,7 @@ export const leverageKrAsset = async (
             krAsset.anchor.address,
             toBig(1),
             krAsset.priceFeed.address,
+            krAsset.priceFeed.address,
         );
     }
     await hre.Diamond.connect(user).depositCollateral(user.address, krAsset.address, amount);
@@ -97,20 +109,19 @@ export const leverageKrAsset = async (
     });
     const accountCollateral = await hre.Diamond.getAccountCollateralValue(user.address);
 
-    const amountToWithdraw =
-        hre.fromBig(accountCollateral.rawValue.sub(accountMinCollateralRequired.rawValue), 8) / price;
+    const withdrawAmount =
+        hre.fromBig(accountCollateral.rawValue.sub(accountMinCollateralRequired.rawValue), 8) / price - 0.1;
+    const amountToWithdraw = hre.toBig(withdrawAmount).rayDiv(await hre.Diamond.getDebtIndexForAsset(krAsset.address));
 
-    if (amountToWithdraw > 0) {
+    if (amountToWithdraw.gt(0)) {
         await hre.Diamond.connect(user).withdrawCollateral(
             user.address,
             collateralToUse.address,
-            hre.toBig(amountToWithdraw),
+            amountToWithdraw,
             await hre.Diamond.getDepositedCollateralAssetIndex(user.address, collateralToUse.address),
         );
 
         // "burn" collateral not needed
-        await collateralToUse.contract
-            .connect(user)
-            .transfer(hre.ethers.constants.AddressZero, hre.toBig(amountToWithdraw));
+        await collateralToUse.contract.connect(user).transfer(hre.ethers.constants.AddressZero, amountToWithdraw);
     }
 };

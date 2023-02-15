@@ -1,3 +1,4 @@
+import { smock } from "@defi-wonderland/smock";
 import { toFixedPoint } from "@kreskolabs/lib";
 import { expect } from "@test/chai";
 import {
@@ -10,17 +11,15 @@ import {
 import { addMockCollateralAsset } from "@utils/test/helpers/collaterals";
 import { addMockKreskoAsset } from "@utils/test/helpers/krassets";
 import hre from "hardhat";
+import { UniswapV2Oracle } from "types";
 
-describe("Minter", function () {
-    let users: Users;
-    before(async function () {
-        users = await hre.getUsers();
-    });
+describe("Minter - Configuration", () => {
     withFixture(["minter-init"]);
-    describe("#configuration", function () {
+
+    describe("#configuration", () => {
         it("can modify all parameters", async function () {
-            const Diamond = hre.Diamond.connect(users.operator);
-            const update = getNewMinterParams(users.operator.address);
+            const Diamond = hre.Diamond.connect(hre.users.operator);
+            const update = getNewMinterParams(hre.users.operator.address);
             await expect(Diamond.updateLiquidationIncentiveMultiplier(update.liquidationIncentiveMultiplier)).to.not.be
                 .reverted;
             await expect(Diamond.updateMinimumCollateralizationRatio(update.minimumCollateralizationRatio)).to.not.be
@@ -73,10 +72,22 @@ describe("Minter", function () {
             expect(hre.fromBig(values.openFee.rawValue)).to.equal(defaultKrAssetArgs.openFee);
         });
 
-        it("can update values of a kresko asset", async function () {
-            const { contract, anchor, priceAggregator } = await addMockKreskoAsset();
+        it("can update AMM oracle", async function () {
+            const ammOracle = await smock.fake<UniswapV2Oracle>("UniswapV2Oracle");
+            await hre.Diamond.updateAMMOracle(ammOracle.address);
+            expect(await hre.Diamond.ammOracle()).to.equal(ammOracle.address);
+        });
 
-            const oracleAnswer = hre.fromBig(await priceAggregator.latestAnswer(), 8);
+        it("can update external oracle decimals", async function () {
+            const decimals = 8;
+            await hre.Diamond.updateExtOracleDecimals(decimals);
+            expect(await hre.Diamond.extOracleDecimals()).to.equal(decimals);
+        });
+
+        it("can update values of a kresko asset", async function () {
+            const { contract, anchor, priceFeed } = await addMockKreskoAsset();
+
+            const oracleAnswer = hre.fromBig(await priceFeed.latestAnswer(), 8);
             const kreskoAnswer = hre.fromBig(
                 (await hre.Diamond.getKrAssetValue(contract.address, hre.toBig(1), true)).rawValue,
                 8,
@@ -95,10 +106,11 @@ describe("Minter", function () {
 
             const [newPriceFeed] = await getMockOracleFor(await contract.name(), update.price);
 
-            await hre.Diamond.connect(users.operator).updateKreskoAsset(
+            await hre.Diamond.connect(hre.users.operator).updateKreskoAsset(
                 contract.address,
                 anchor.address,
                 update.factor,
+                newPriceFeed.address,
                 newPriceFeed.address,
                 hre.toBig(update.supplyLimit),
                 update.closeFee,

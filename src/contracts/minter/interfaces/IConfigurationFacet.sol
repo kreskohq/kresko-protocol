@@ -10,7 +10,8 @@ interface IConfigurationFacet {
         address _collateralAsset,
         address _anchor,
         uint256 _factor,
-        address _oracle
+        address _oracle,
+        address _marketStatusOracle
     ) external;
 
     function addKreskoAsset(
@@ -18,6 +19,7 @@ interface IConfigurationFacet {
         address _anchor,
         uint256 _kFactor,
         address _oracle,
+        address _marketStatusOracle,
         uint256 _supplyLimit,
         uint256 _closeFee,
         uint256 _openFee
@@ -27,7 +29,8 @@ interface IConfigurationFacet {
         address _collateralAsset,
         address _anchor,
         uint256 _factor,
-        address _oracle
+        address _oracle,
+        address _marketStatusOracle
     ) external;
 
     function updateFeeRecipient(address _feeRecipient) external;
@@ -37,6 +40,7 @@ interface IConfigurationFacet {
         address _anchor,
         uint256 _kFactor,
         address _oracle,
+        address _marketStatusOracle,
         uint256 _supplyLimit,
         uint256 _closeFee,
         uint256 _openFee
@@ -49,4 +53,8 @@ interface IConfigurationFacet {
     function updateMinimumDebtValue(uint256 _minimumDebtValue) external;
 
     function updateLiquidationThreshold(uint256 _minimumDebtValue) external;
+
+    function updateAMMOracle(address _ammOracle) external;
+
+    function updateExtOracleDecimals(uint8 _decimals) external;
 }

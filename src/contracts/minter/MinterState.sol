@@ -4,21 +4,24 @@ pragma solidity >=0.8.14;
 import {LibKrAsset} from "./libs/LibKrAsset.sol";
 import {LibAccount} from "./libs/LibAccount.sol";
 import {LibCollateral} from "./libs/LibCollateral.sol";
-import {LibCalc} from "./libs/LibCalculation.sol";
+import {LibCalculation} from "./libs/LibCalculation.sol";
 import {LibRepay} from "./libs/LibRepay.sol";
 import {LibMint} from "./libs/LibMint.sol";
-import {Action, SafetyState, CollateralAsset, KrAsset, FixedPoint} from "./MinterTypes.sol";
+import {FixedPoint} from "../libs/FixedPoint.sol";
+import {Action, SafetyState, CollateralAsset, KrAsset} from "./MinterTypes.sol";
 
 /* solhint-disable state-visibility */
-
-using LibCalc for MinterState global;
+using LibCalculation for MinterState global;
 using LibKrAsset for MinterState global;
 using LibCollateral for MinterState global;
 using LibAccount for MinterState global;
 using LibRepay for MinterState global;
 using LibMint for MinterState global;
 
-/// @title Complete storage layout for the minter state
+/**
+ * @title Storage layout for the minter state
+ * @author Kresko
+ */
 struct MinterState {
     /* -------------------------------------------------------------------------- */
     /*                               Initialization                               */
@@ -61,10 +64,14 @@ struct MinterState {
     /*                                Kresko Assets                               */
     /* -------------------------------------------------------------------------- */
 
-    /// @notice Mapping of Kresko asset token address to information on the Kresko asset.
+    /// @notice Mapping of kresko asset token address to information on the Kresko asset.
     mapping(address => KrAsset) kreskoAssets;
     /// @notice Mapping of account -> krAsset -> debt amount owed to the protocol
     mapping(address => mapping(address => uint256)) kreskoAssetDebt;
     /// @notice Mapping of account -> addresses of borrowed krAssets
     mapping(address => address[]) mintedKreskoAssets;
+    /// @notice The AMM oracle address.
+    address ammOracle;
+    /// @notice Offchain oracle decimals
+    uint8 extOracleDecimals;
 }

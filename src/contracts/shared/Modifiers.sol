@@ -10,6 +10,7 @@ import {ms} from "../minter/MinterStorage.sol";
 
 import {ENTERED, NOT_ENTERED} from "../diamond/DiamondTypes.sol";
 import {ds} from "../diamond/DiamondStorage.sol";
+import {AggregatorV2V3Interface} from "../vendor/flux/interfaces/AggregatorV2V3Interface.sol";
 
 abstract contract DiamondModifiers {
     /**

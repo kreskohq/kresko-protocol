@@ -1,7 +1,7 @@
 {
     "name": "@kreskolabs/contracts",
     "description": "Typechain and contract deployments for front-end",
-    "version": "1.4.9",
+    "version": "3.0.1",
     "author": {
         "name": "Kresko Labs",
         "url": "https://www.kresko.fi"
@@ -15,7 +15,7 @@
         "typechain"
     ],
     "scripts": {
-        "build": "npx tsc && npm version patch",
+        "build": "tsc && npm version patch",
         "clean": "rm -rf deployments && rm -rf types"
     },
     "files": [

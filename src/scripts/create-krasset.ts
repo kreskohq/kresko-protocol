@@ -10,7 +10,7 @@ export async function createKrAsset(name: string, symbol, decimals = 18) {
     const kresko = hre.Diamond;
     const deploy = hre.deploy;
 
-    const underlyingSymbol = anchorTokenPrefix + symbol;
+    const anchorSymbol = anchorTokenPrefix + symbol;
 
     const kreskoAssetInitArgs = [name, symbol, decimals, deployer.address, kresko.address];
 
@@ -28,9 +28,9 @@ export async function createKrAsset(name: string, symbol, decimals = 18) {
         },
     });
 
-    const kreskoAssetAnchorInitArgs = [KreskoAsset.address, name, underlyingSymbol, deployer.address];
+    const kreskoAssetAnchorInitArgs = [KreskoAsset.address, name, anchorSymbol, deployer.address];
 
-    const [KreskoAssetAnchor] = await hre.deploy(underlyingSymbol, {
+    const [KreskoAssetAnchor] = await hre.deploy(anchorSymbol, {
         from: deployer.address,
         log: true,
         contract: "KreskoAssetAnchor",
@@ -55,7 +55,7 @@ export async function createKrAsset(name: string, symbol, decimals = 18) {
             name,
             symbol,
             decimals,
-            wrapperSymbol: underlyingSymbol,
+            anchorSymbol,
         },
     };
 

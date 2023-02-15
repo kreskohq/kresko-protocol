@@ -1,5 +1,6 @@
+import { ALCHEMY_API_KEY_GOERLI, INFURA_API_KEY, RPC } from "@kreskolabs/configs";
 import { utils } from "ethers";
-import { INFURA_API_KEY, RPC, ALCHEMY_API_KEY_GOERLI } from "@kreskolabs/configs";
+import { HttpNetworkUserConfig } from "hardhat/types";
 const parseUnits = utils.parseUnits;
 
 export const chainIds = {
@@ -33,7 +34,7 @@ export const chainIds = {
     xdai: 100,
 };
 
-export const networks = (mnemonic: string) => ({
+export const networks = (mnemonic: string): { [key: string]: HttpNetworkUserConfig } => ({
     aurora: {
         accounts: {
             mnemonic,
@@ -106,7 +107,6 @@ export const networks = (mnemonic: string) => ({
             count: 100,
         },
         saveDeployments: true,
-        allowUnlimitedContractSize: true,
     },
     localhost: {
         accounts: {
@@ -115,13 +115,13 @@ export const networks = (mnemonic: string) => ({
         },
         saveDeployments: true,
         chainId: chainIds.hardhat,
-        allowUnlimitedContractSize: true,
     },
     ethereum: {
         accounts: { mnemonic },
         url: RPC.eth.mainnet.infura,
         chainId: chainIds.ethereum,
         tags: ["ethereum"],
+        live: true,
     },
     op: {
         accounts: { mnemonic, count: 100 },
@@ -136,20 +136,20 @@ export const networks = (mnemonic: string) => ({
         chainId: chainIds.opkovan,
         saveDeployments: true,
         tags: ["testnet"],
+        live: true,
     },
     opgoerli: {
         accounts: { mnemonic, count: 100 },
         url: RPC.optimism.goerli.default,
         chainId: chainIds.opgoerli,
-        saveDeployments: true,
-        tags: ["testnet"],
+        gasPrice: +parseUnits("0.001", "gwei"),
+        live: true,
     },
     kovan: {
         chainId: chainIds.kovan,
         url: `https://eth-kovan.alchemyapi.io/v2/${ALCHEMY_API_KEY_GOERLI}`,
-        gasPrice: Number(parseUnits("10", "gwei")),
+        gasPrice: +parseUnits("10", "gwei"),
         deploy: ["./src/deploy/kovan"],
-        live: true,
     },
     moonbeam: {
         chainId: chainIds.moonbeam,

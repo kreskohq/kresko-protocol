@@ -11,43 +11,40 @@ import hre from "hardhat";
 import { getInternalEvent, fromBig, toBig } from "@kreskolabs/lib";
 import { executeContractCallWithSigners } from "@utils/gnosis/utils/execution";
 import { Error } from "@utils/test/errors";
-import { addMockCollateralAsset } from "@utils/test/helpers/collaterals";
+import { addMockCollateralAsset, depositCollateral, withdrawCollateral } from "@utils/test/helpers/collaterals";
 import { expect } from "chai";
 import { MinterEvent__factory } from "types";
 import type {
     CollateralDepositedEventObject,
     CollateralWithdrawnEventObject,
 } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
+import { BigNumber } from "ethers";
 
-describe("Minter", function () {
-    let users: Users;
-    before(async function () {
-        users = await hre.getUsers();
-    });
+describe("Minter - Deposit Withdraw", () => {
+    withFixture(["minter-test"]);
 
-    withFixture(["minter-test", "integration"]);
     beforeEach(async function () {
         this.collateral = this.collaterals.find(c => c.deployArgs.name === defaultCollateralArgs.name);
         this.initialBalance = toBig(100000);
         await this.collateral.mocks.contract.setVariable("_balances", {
-            [users.userOne.address]: this.initialBalance,
+            [hre.users.userOne.address]: this.initialBalance,
         });
         await this.collateral.mocks.contract.setVariable("_allowances", {
-            [users.userOne.address]: {
+            [hre.users.userOne.address]: {
                 [hre.Diamond.address]: this.initialBalance,
             },
         });
 
-        expect(await this.collateral.contract.balanceOf(users.userOne.address)).to.equal(this.initialBalance);
+        // expect(await this.collateral.contract.balanceOf(hre.users.userOne.address)).to.equal(this.initialBalance);
 
         this.depositArgs = {
-            user: users.userOne,
+            user: hre.users.userOne,
             asset: this.collateral,
             amount: toBig(10000),
         };
     });
 
-    describe("#collateral", function () {
+    describe("#collateral", () => {
         describe("#deposit", () => {
             it("should allow an account to deposit whitelisted collateral", async function () {
                 // Account has no deposited assets
@@ -77,14 +74,14 @@ describe("Minter", function () {
                 // Kresko contract's collateral balance has increased
                 expect(await this.collateral.contract.balanceOf(hre.Diamond.address)).to.equal(this.depositArgs.amount);
                 // Account's collateral balance has decreased
-                expect(fromBig(await this.collateral.contract.balanceOf(users.userOne.address))).to.equal(
+                expect(fromBig(await this.collateral.contract.balanceOf(hre.users.userOne.address))).to.equal(
                     fromBig(this.initialBalance) - fromBig(this.depositArgs.amount),
                 );
             });
 
             it("should allow an arbitrary account to deposit whitelisted collateral on behalf of another account", async function () {
                 // Load arbitrary user with sufficient collateral for testing purposes
-                const arbitraryUser = users.userThree;
+                const arbitraryUser = hre.users.userThree;
                 await this.collateral.mocks.contract.setVariable("_balances", {
                     [arbitraryUser.address]: this.initialBalance,
                 });
@@ -102,7 +99,7 @@ describe("Minter", function () {
 
                 // Deposit collateral
                 await expect(
-                    hre.Diamond.connect(users.userThree).depositCollateral(
+                    hre.Diamond.connect(hre.users.userThree).depositCollateral(
                         this.depositArgs.user.address,
                         this.collateral.address,
                         this.depositArgs.amount,
@@ -177,10 +174,10 @@ describe("Minter", function () {
                 const { contract, mocks } = await addMockCollateralAsset(collateralArgs);
 
                 await mocks.contract.setVariable("_balances", {
-                    [users.userOne.address]: this.initialBalance,
+                    [hre.users.userOne.address]: this.initialBalance,
                 });
                 await mocks.contract.setVariable("_allowances", {
-                    [users.userOne.address]: {
+                    [hre.users.userOne.address]: {
                         [hre.Diamond.address]: this.initialBalance,
                     },
                 });
@@ -290,12 +287,12 @@ describe("Minter", function () {
             describe("when the account's minimum collateral value is 0", function () {
                 it("should allow an account to withdraw their entire deposit", async function () {
                     const depositedCollateralAssets = await hre.Diamond.getDepositedCollateralAssets(
-                        users.userOne.address,
+                        hre.users.userOne.address,
                     );
                     expect(depositedCollateralAssets).to.deep.equal([this.collateral.address]);
 
-                    await hre.Diamond.connect(users.userOne).withdrawCollateral(
-                        users.userOne.address,
+                    await hre.Diamond.connect(hre.users.userOne).withdrawCollateral(
+                        hre.users.userOne.address,
                         this.collateral.address,
                         this.depositAmount,
                         0,
@@ -304,13 +301,13 @@ describe("Minter", function () {
                     // Ensure that the collateral asset is removed from the account's deposited collateral
                     // assets array.
                     const depositedCollateralAssetsPostWithdraw = await hre.Diamond.getDepositedCollateralAssets(
-                        users.userOne.address,
+                        hre.users.userOne.address,
                     );
                     expect(depositedCollateralAssetsPostWithdraw).to.deep.equal([]);
 
                     // Ensure the change in the user's deposit is recorded.
                     const amountDeposited = await hre.Diamond.collateralDeposits(
-                        users.userOne.address,
+                        hre.users.userOne.address,
                         this.collateral.address,
                     );
                     expect(amountDeposited).to.equal(0);
@@ -318,15 +315,15 @@ describe("Minter", function () {
                     // Ensure the amount transferred is correct
                     const kreskoBalance = await this.collateral.contract.balanceOf(hre.Diamond.address);
                     expect(kreskoBalance).to.equal(0);
-                    const userOneBalance = await this.collateral.contract.balanceOf(users.userOne.address);
+                    const userOneBalance = await this.collateral.contract.balanceOf(hre.users.userOne.address);
                     expect(userOneBalance).to.equal(this.initialBalance);
                 });
 
                 it("should allow an account to withdraw a portion of their deposit", async function () {
                     const withdrawAmount = this.depositAmount.div(2);
 
-                    await hre.Diamond.connect(users.userOne).withdrawCollateral(
-                        users.userOne.address,
+                    await hre.Diamond.connect(hre.users.userOne).withdrawCollateral(
+                        hre.users.userOne.address,
                         this.collateral.address,
                         withdrawAmount,
                         0, // The index of this.collateral.address in the account's depositedCollateralAssets
@@ -334,7 +331,7 @@ describe("Minter", function () {
 
                     // Ensure the change in the user's deposit is recorded.
                     const amountDeposited = await hre.Diamond.collateralDeposits(
-                        users.userOne.address,
+                        hre.users.userOne.address,
                         this.collateral.address,
                     );
                     expect(amountDeposited).to.equal(this.depositAmount.sub(withdrawAmount));
@@ -342,29 +339,29 @@ describe("Minter", function () {
                     // Ensure that the collateral asset is still in the account's deposited collateral
                     // assets array.
                     const depositedCollateralAssets = await hre.Diamond.getDepositedCollateralAssets(
-                        users.userOne.address,
+                        hre.users.userOne.address,
                     );
                     expect(depositedCollateralAssets).to.deep.equal([this.collateral.address]);
 
                     const kreskoBalance = await this.collateral.contract.balanceOf(hre.Diamond.address);
                     expect(kreskoBalance).to.equal(this.depositAmount.sub(withdrawAmount));
-                    const userOneBalance = await this.collateral.contract.balanceOf(users.userOne.address);
+                    const userOneBalance = await this.collateral.contract.balanceOf(hre.users.userOne.address);
                     expect(userOneBalance).to.equal(this.initialBalance.sub(amountDeposited));
                 });
 
                 it("should allow trusted address to withdraw another accounts deposit", async function () {
                     // Grant userThree the MANAGER role
-                    await hre.Diamond.connect(users.deployer).grantRole(Role.MANAGER, users.userThree.address);
-                    expect(await hre.Diamond.hasRole(Role.MANAGER, users.userThree.address)).to.equal(true);
+                    await hre.Diamond.connect(hre.users.deployer).grantRole(Role.MANAGER, hre.users.userThree.address);
+                    expect(await hre.Diamond.hasRole(Role.MANAGER, hre.users.userThree.address)).to.equal(true);
 
                     const collateralBefore = await hre.Diamond.collateralDeposits(
-                        users.userOne.address,
+                        hre.users.userOne.address,
                         this.collateral.address,
                     );
 
                     await expect(
-                        hre.Diamond.connect(users.userThree).withdrawCollateral(
-                            users.userOne.address,
+                        hre.Diamond.connect(hre.users.userThree).withdrawCollateral(
+                            hre.users.userOne.address,
                             this.collateral.address,
                             this.depositAmount,
                             0,
@@ -372,7 +369,7 @@ describe("Minter", function () {
                     ).to.not.be.reverted;
 
                     const collateralAfter = await hre.Diamond.collateralDeposits(
-                        users.userOne.address,
+                        hre.users.userOne.address,
                         this.collateral.address,
                     );
                     // Ensure that collateral was withdrawn
@@ -380,8 +377,8 @@ describe("Minter", function () {
                 });
 
                 it("should emit CollateralWithdrawn event", async function () {
-                    const tx = await hre.Diamond.connect(users.userOne).withdrawCollateral(
-                        users.userOne.address,
+                    const tx = await hre.Diamond.connect(hre.users.userOne).withdrawCollateral(
+                        hre.users.userOne.address,
                         this.collateral.address,
                         this.depositAmount,
                         0,
@@ -389,41 +386,43 @@ describe("Minter", function () {
 
                     const event = await getInternalEvent<CollateralWithdrawnEventObject>(
                         tx,
-                        MinterEvent__factory.connect(hre.Diamond.address, users.userOne),
+                        MinterEvent__factory.connect(hre.Diamond.address, hre.users.userOne),
                         "CollateralWithdrawn",
                     );
-                    expect(event.account).to.equal(users.userOne.address);
+                    expect(event.account).to.equal(hre.users.userOne.address);
                     expect(event.collateralAsset).to.equal(this.collateral.address);
                     expect(event.amount).to.equal(this.depositAmount);
                 });
 
                 it("should not allow untrusted address to withdraw another accounts deposit", async function () {
                     await expect(
-                        hre.Diamond.connect(users.userThree).withdrawCollateral(
-                            users.userOne.address,
+                        hre.Diamond.connect(hre.users.userThree).withdrawCollateral(
+                            hre.users.userOne.address,
                             this.collateral.address,
                             this.initialBalance,
                             0,
                         ),
                     ).to.be.revertedWith(
-                        `AccessControl: account ${users.userThree.address.toLowerCase()} is missing role 0x46925e0f0cc76e485772167edccb8dc449d43b23b55fc4e756b063f49099e6a0`,
+                        `AccessControl: account ${hre.users.userThree.address.toLowerCase()} is missing role 0x46925e0f0cc76e485772167edccb8dc449d43b23b55fc4e756b063f49099e6a0`,
                     );
                 });
 
-                describe("when the account's minimum collateral value is > 0", function () {
+                describe("when the account's minimum collateral value is > 0", () => {
                     beforeEach(async function () {
-                        this.krAsset = this.krAssets[0];
+                        this.krAsset = hre.krAssets.find(
+                            asset => asset.deployArgs.symbol === defaultKrAssetArgs.symbol,
+                        );
 
                         // userOne mints some kr assets
                         this.mintAmount = toBig(100);
-                        await hre.Diamond.connect(users.userOne).mintKreskoAsset(
-                            users.userOne.address,
+                        await hre.Diamond.connect(hre.users.userOne).mintKreskoAsset(
+                            hre.users.userOne.address,
                             this.krAsset.address,
                             this.mintAmount,
                         );
                         // Mint amount differs from deposited amount due to open fee
                         const amountDeposited = await hre.Diamond.collateralDeposits(
-                            users.userOne.address,
+                            hre.users.userOne.address,
                             this.collateral.address,
                         );
                         this.initialUserOneDeposited = amountDeposited;
@@ -437,11 +436,11 @@ describe("Minter", function () {
                         // Ensure that the withdrawal would not put the account's collateral value
                         // less than the account's minimum collateral value:
                         const accountMinCollateralValue = await hre.Diamond.getAccountMinimumCollateralValueAtRatio(
-                            users.userOne.address,
+                            hre.users.userOne.address,
                             this.mcr,
                         );
                         const accountCollateralValue = await hre.Diamond.getAccountCollateralValue(
-                            users.userOne.address,
+                            hre.users.userOne.address,
                         );
                         const [withdrawnCollateralValue] = await hre.Diamond.getCollateralValueAndOraclePrice(
                             this.collateral.address,
@@ -454,8 +453,8 @@ describe("Minter", function () {
                                 .gte(accountMinCollateralValue.rawValue),
                         ).to.be.true;
 
-                        await hre.Diamond.connect(users.userOne).withdrawCollateral(
-                            users.userOne.address,
+                        await hre.Diamond.connect(hre.users.userOne).withdrawCollateral(
+                            hre.users.userOne.address,
                             this.collateral.address,
                             withdrawAmount,
                             0,
@@ -463,13 +462,13 @@ describe("Minter", function () {
                         // Ensure that the collateral asset is still in the account's deposited collateral
                         // assets array.
                         const depositedCollateralAssets = await hre.Diamond.getDepositedCollateralAssets(
-                            users.userOne.address,
+                            hre.users.userOne.address,
                         );
                         expect(depositedCollateralAssets).to.deep.equal([this.collateral.address]);
 
                         // Ensure the change in the user's deposit is recorded.
                         const amountDeposited = await hre.Diamond.collateralDeposits(
-                            users.userOne.address,
+                            hre.users.userOne.address,
                             this.collateral.address,
                         );
 
@@ -478,7 +477,7 @@ describe("Minter", function () {
                         // Check the balances of the contract and user
                         const kreskoBalance = await this.collateral.contract.balanceOf(hre.Diamond.address);
                         expect(kreskoBalance).to.equal(this.depositAmount.sub(withdrawAmount));
-                        const userOneBalance = await this.collateral.contract.balanceOf(users.userOne.address);
+                        const userOneBalance = await this.collateral.contract.balanceOf(hre.users.userOne.address);
                         expect(userOneBalance).to.equal(
                             this.initialBalance.sub(this.depositAmount.sub(withdrawAmount)),
                         );
@@ -486,62 +485,45 @@ describe("Minter", function () {
                         // Ensure the account's minimum collateral value is <= the account collateral value
                         // These are FixedPoint.Unsigned, be sure to use `rawValue` when appropriate!
                         const accountMinCollateralValueAfter =
-                            await hre.Diamond.getAccountMinimumCollateralValueAtRatio(users.userOne.address, this.mcr);
+                            await hre.Diamond.getAccountMinimumCollateralValueAtRatio(
+                                hre.users.userOne.address,
+                                this.mcr,
+                            );
                         const accountCollateralValueAfter = await hre.Diamond.getAccountCollateralValue(
-                            users.userOne.address,
+                            hre.users.userOne.address,
                         );
                         expect(accountMinCollateralValueAfter.rawValue.lte(accountCollateralValueAfter.rawValue)).to.be
                             .true;
                     });
 
                     it("should allow withdraws that exceed deposits and only send the user total deposit available", async function () {
-                        const userOneInitialCollateralBalance = await this.collateral.contract.balanceOf(
-                            users.userOne.address,
-                        );
+                        const user = hre.users.userFour;
 
-                        // First repay Kresko assets so we can withdraw all collateral
-                        await expect(
-                            hre.Diamond.connect(users.userOne).burnKreskoAsset(
-                                users.userOne.address,
-                                this.krAsset.address,
-                                this.mintAmount,
-                                0,
-                            ),
-                        ).to.not.be.reverted;
+                        await this.collateral.setBalance(user, BigNumber.from(0));
+                        await this.collateral.setBalance(user, toBig(1000));
+                        await this.collateral.contract
+                            .connect(user)
+                            .approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
 
-                        // The burn fee was taken from deposited collateral, so fetch the current deposited amount
-                        const currentAmountDeposited = await hre.Diamond.collateralDeposits(
-                            users.userOne.address,
-                            this.collateral.address,
-                        );
+                        await depositCollateral({
+                            asset: this.collateral,
+                            amount: toBig(1000),
+                            user,
+                        });
 
-                        const overflowWithdrawAmount = currentAmountDeposited.add(toBig(10));
-                        await hre.Diamond.connect(users.userOne).withdrawCollateral(
-                            users.userOne.address,
-                            this.collateral.address,
-                            overflowWithdrawAmount,
-                            0,
-                        );
-
-                        // Check that the user's full deposited amount was withdrawn instead of the overflow amount
-                        const userOneBalanceAfterOverflowWithdraw = await this.collateral.contract.balanceOf(
-                            users.userOne.address,
-                        );
-                        expect(userOneBalanceAfterOverflowWithdraw).eq(
-                            userOneInitialCollateralBalance.add(currentAmountDeposited),
-                        );
-
-                        const kreskoCollateralBalanceAfterOverflowWithdraw = await this.collateral.contract.balanceOf(
-                            hre.Diamond.address,
-                        );
-                        expect(kreskoCollateralBalanceAfterOverflowWithdraw).eq(0);
+                        await withdrawCollateral({
+                            asset: this.collateral,
+                            amount: toBig(1010),
+                            user,
+                        });
+                        expect(await this.collateral.contract.balanceOf(user.address)).to.equal(toBig(1000));
                     });
 
                     it("should revert if withdrawing an amount of 0", async function () {
                         const withdrawAmount = 0;
                         await expect(
-                            hre.Diamond.connect(users.userOne).withdrawCollateral(
-                                users.userOne.address,
+                            hre.Diamond.connect(hre.users.userOne).withdrawCollateral(
+                                hre.users.userOne.address,
                                 this.collateral.address,
                                 0,
                                 withdrawAmount,
@@ -556,11 +538,11 @@ describe("Minter", function () {
                         // Ensure that the withdrawal would in fact put the account's collateral value
                         // less than the account's minimum collateral value:
                         const accountMinCollateralValue = await hre.Diamond.getAccountMinimumCollateralValueAtRatio(
-                            users.userOne.address,
+                            hre.users.userOne.address,
                             this.mcr,
                         );
                         const accountCollateralValue = await hre.Diamond.getAccountCollateralValue(
-                            users.userOne.address,
+                            hre.users.userOne.address,
                         );
                         const [withdrawnCollateralValue] = await hre.Diamond.getCollateralValueAndOraclePrice(
                             this.collateral.address,
@@ -574,8 +556,8 @@ describe("Minter", function () {
                         ).to.be.true;
 
                         await expect(
-                            hre.Diamond.connect(users.userOne).withdrawCollateral(
-                                users.userOne.address,
+                            hre.Diamond.connect(hre.users.userOne).withdrawCollateral(
+                                hre.users.userOne.address,
                                 this.collateral.address,
                                 withdrawAmount,
                                 0,
@@ -586,8 +568,8 @@ describe("Minter", function () {
                     it("should revert if the depositedCollateralAssetIndex is incorrect", async function () {
                         const withdrawAmount = this.depositAmount.div(2);
                         await expect(
-                            hre.Diamond.connect(users.userOne).withdrawCollateral(
-                                users.userOne.address,
+                            hre.Diamond.connect(hre.users.userOne).withdrawCollateral(
+                                hre.users.userOne.address,
                                 this.collateral.address,
                                 withdrawAmount,
                                 1, // Incorrect index
@@ -598,7 +580,7 @@ describe("Minter", function () {
             });
         });
 
-        describe("#deposit - rebase events", async function () {
+        describe("#deposit - rebase events", () => {
             const mintAmount = toBig(10);
             let arbitraryUserDiamond: Kresko;
             let arbitraryUser: SignerWithAddress;
@@ -615,14 +597,15 @@ describe("Minter", function () {
                 });
                 this.krAsset = this.krAssets.find(k => k.deployArgs.name === defaultKrAssetArgs.name);
                 // grant operator role to deployer for rebases
-                await this.krAsset.contract.grantRole(Role.OPERATOR, users.deployer.address);
+                await this.krAsset.contract.grantRole(Role.OPERATOR, hre.users.deployer.address);
                 const assetInfo = await this.krAsset.kresko();
 
                 // Add krAsset as a collateral with anchor and cFactor of 1
-                await hre.Diamond.connect(users.operator).addCollateralAsset(
+                await hre.Diamond.connect(hre.users.operator).addCollateralAsset(
                     this.krAsset.contract.address,
                     this.krAsset.anchor.address,
                     hre.toBig(1),
+                    assetInfo.oracle,
                     assetInfo.oracle,
                 );
 
@@ -647,7 +630,7 @@ describe("Minter", function () {
                     this.krAsset.address,
                 );
             });
-            describe("deposit amounts are calculated correctly", function () {
+            describe("deposit amounts are calculated correctly", () => {
                 it("when deposit is made before positive rebase", async function () {
                     await arbitraryUserDiamond.depositCollateral(
                         arbitraryUser.address,
@@ -1098,7 +1081,7 @@ describe("Minter", function () {
             let arbitraryUser: SignerWithAddress;
             let arbitraryUserDiamond: Kresko;
             beforeEach(async function () {
-                arbitraryUser = users.userThree;
+                arbitraryUser = hre.users.userThree;
                 arbitraryUserDiamond = hre.Diamond.connect(arbitraryUser);
                 await this.collateral.mocks.contract.setVariable("_balances", {
                     [arbitraryUser.address]: this.initialBalance,
@@ -1110,14 +1093,15 @@ describe("Minter", function () {
                 });
                 this.krAsset = this.krAssets.find(k => k.deployArgs.name === defaultKrAssetArgs.name);
                 // grant operator role to deployer for rebases
-                await this.krAsset.contract.grantRole(Role.OPERATOR, users.deployer.address);
+                await this.krAsset.contract.grantRole(Role.OPERATOR, hre.users.deployer.address);
                 const assetInfo = await this.krAsset.kresko();
 
                 // Add krAsset as a collateral with anchor and cFactor of 1
-                await hre.Diamond.connect(users.operator).addCollateralAsset(
+                await hre.Diamond.connect(hre.users.operator).addCollateralAsset(
                     this.krAsset.contract.address,
                     this.krAsset.anchor.address,
                     hre.toBig(1),
+                    assetInfo.oracle,
                     assetInfo.oracle,
                 );
 

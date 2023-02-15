@@ -10,13 +10,14 @@ task("add-collateral")
     .addParam("symbol", "Name of the collateral")
     .addParam("cFactor", "cFactor for the collateral", 1000, types.float)
     .addParam("oracleAddr", "Price feed address")
+    .addParam("marketStatusOracleAddr", "Market status oracle address")
     .addOptionalParam("nrwt", "Non rebasing wrapper token?")
     .addOptionalParam("log", "Log outputs", false, types.boolean)
     .addOptionalParam("wait", "wait confirmations", 1, types.int)
     .setAction(async function (taskArgs: TaskArguments, hre) {
         const { ethers, users } = hre;
         const kresko = hre.Diamond.connect(users.operator);
-        const { symbol, cFactor, oracleAddr, log } = taskArgs;
+        const { symbol, cFactor, oracleAddr, marketStatusOracleAddr, log } = taskArgs;
 
         const logger = getLogger("add-collateral", log);
 
@@ -41,6 +42,7 @@ task("add-collateral")
                 anchor?.address ?? ethers.constants.AddressZero,
                 toFixedPoint(cFactor),
                 oracleAddr,
+                marketStatusOracleAddr,
             );
             await tx.wait();
             if (log) {

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+pragma solidity <0.9.0;
 
 /* solhint-disable max-line-length */
 
@@ -49,7 +49,7 @@ library Error {
     string public constant COLLATERAL_WITHDRAW_OVERFLOW = "209"; // Withdraw amount cannot reduce accounts collateral value under minCollateralValue
     string public constant KRASSET_INVALID_FACTOR = "210"; // kFactor must be greater than 1FP
     string public constant KRASSET_BURN_AMOUNT_OVERFLOW = "211"; // Repaying more than account has debt
-    string public constant KRASSET_EXISTS = "212"; // Asset is already added
+    string public constant KRASSET_EXISTS = "212"; // KrAsset is already added
     string public constant PARAM_CLOSE_FEE_TOO_HIGH = "213"; // "Close fee exceeds MAX_CLOSE_FEE"
     string public constant PARAM_LIQUIDATION_INCENTIVE_LOW = "214"; // "Liquidation incentive less than MIN_LIQUIDATION_INCENTIVE_MULTIPLIER"
     string public constant PARAM_LIQUIDATION_INCENTIVE_HIGH = "215"; // "Liquidation incentive greater than MAX_LIQUIDATION_INCENTIVE_MULTIPLIER"
@@ -61,8 +61,7 @@ library Error {
     string public constant KRASSET_SYMBOL_EXISTS = "221"; // KrAsset with this symbol is already within the protocl
     string public constant KRASSET_COLLATERAL_LOW = "222"; // Collateral deposits do not cover the amount being minted
     string public constant KRASSET_MINT_AMOUNT_LOW = "223"; // Debt position must be greater than the minimum debt position value
-    string public constant KRASSET_MAX_SUPPLY_REACHED = "224"; // Asset being minted has reached its current supply limit
-
+    string public constant KRASSET_MAX_SUPPLY_REACHED = "224"; // KrAsset being minted has reached its current supply limit
     string public constant SELF_LIQUIDATION = "225"; // Account cannot liquidate itself
     string public constant ZERO_REPAY = "226"; // Account cannot liquidate itself
     string public constant STALE_PRICE = "227"; // Price for the asset is stale
@@ -80,6 +79,7 @@ library Error {
     string public constant INVALID_FEE_TYPE = "239"; // "Invalid fee type
     string public constant KRASSET_INVALID_ANCHOR = "240"; // krAsset anchor does not support the correct interfaceId
     string public constant KRASSET_INVALID_CONTRACT = "241"; // krAsset does not support the correct interfaceId
+    string public constant KRASSET_MARKET_CLOSED = "242"; // KrAsset's market is currently closed
 
     /* -------------------------------------------------------------------------- */
     /*                                   3. Staking                               */
@@ -96,6 +96,7 @@ library Error {
     /* -------------------------------------------------------------------------- */
 
     string public constant ARRAY_OUT_OF_BOUNDS = "400"; // Array out of bounds error
+    string public constant PRICEFEEDS_MUST_MATCH_STATUS_FEEDS = "401"; // Supplied price feeds must match status feeds in length
 
     /* -------------------------------------------------------------------------- */
     /*                                   5. KrAsset                               */
@@ -112,4 +113,32 @@ library Error {
     string public constant WITHDRAW_OVERFLOW = "508"; // trying to destroy more than allowed
     string public constant ZERO_SHARES = "509"; // amount of shares must be greater than 0
     string public constant ZERO_ASSETS = "510"; // amount of assets must be greater than 0
+    string public constant INVALID_SCALED_AMOUNT = "511"; // amount of debt scaled must be greater than 0
+
+    /* -------------------------------------------------------------------------- */
+    /*                              6. STABILITY RATES                            */
+    /* -------------------------------------------------------------------------- */
+
+    string public constant STABILITY_RATES_ALREADY_INITIALIZED = "601"; // stability rates for the asset are already initialized
+    string public constant INVALID_OPTIMAL_RATE = "602"; // the optimal price rate configured is less than 1e27 for the asset
+    string public constant INVALID_PRICE_RATE_DELTA = "603"; // the price rate delta configured is less than 1e27 for the asset
+    string public constant STABILITY_RATES_NOT_INITIALIZED = "604"; // the stability rates for the asset are not initialized
+    string public constant STABILITY_RATE_OVERFLOW = "605"; // the stability rates is > max uint128
+    string public constant DEBT_INDEX_OVERFLOW = "606"; // the debt index is > max uint128
+    string public constant KISS_NOT_SET = "607"; // the debt index is > max uint128
+    string public constant STABILITY_RATE_REPAYMENT_AMOUNT_ZERO = "608"; // interest being repaid cannot be 0
+    string public constant STABILITY_RATE_INTEREST_IS_ZERO = "609"; // account must have accrued interest to repay it
+    string public constant INTEREST_REPAY_NOT_PARTIAL = "610"; // account must have accrued interest to repay it
+
+    /* -------------------------------------------------------------------------- */
+    /*                              7. AMM ORACLE                                 */
+    /* -------------------------------------------------------------------------- */
+
+    string public constant PAIR_ADDRESS_IS_ZERO = "701"; // Pair address to configure cannot be zero
+    string public constant INVALID_UPDATE_PERIOD = "702"; // Update period must be greater than the minimum
+    string public constant PAIR_ALREADY_EXISTS = "703"; // Pair with the address is already initialized
+    string public constant PAIR_DOES_NOT_EXIST = "704"; // Pair supplied does not exist
+    string public constant INVALID_LIQUIDITY = "706"; // Pair initializaition requires that the pair has liquidity
+    string public constant UPDATE_PERIOD_NOT_FINISHED = "707"; // Update can only be called once per update period
+    string public constant INVALID_PAIR = "708"; // Pair being consulted does not have the token that the price was requested for
 }

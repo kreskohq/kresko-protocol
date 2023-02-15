@@ -1,7 +1,7 @@
 import { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import { getLogger } from "@kreskolabs/lib/dist/utils";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { testnetConfigs } from "@deploy-config/testnet";
+import { testnetConfigs } from "@deploy-config/testnet-goerli";
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const { deployments, getNamedAccounts } = hre;
@@ -79,6 +79,30 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             //         address:   ReentrancyTransactionGuardContract.address,
             //     });
             // }
+
+            break;
+        }
+        case "hardhat": {
+            await deploy("GnosisSafeProxyFactory", {
+                from: deployer,
+                args: [],
+                log: true,
+                deterministicDeployment: true,
+            });
+
+            await deploy("GnosisSafe", {
+                from: deployer,
+                args: [],
+                log: true,
+                deterministicDeployment: true,
+            });
+
+            await deploy("GnosisSafeL2", {
+                from: deployer,
+                args: [],
+                log: true,
+                deterministicDeployment: true,
+            });
 
             break;
         }

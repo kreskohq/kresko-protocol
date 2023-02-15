@@ -1,16 +1,18 @@
 import { Address } from "@kreskolabs/hardhat-deploy/types";
 
 export * from "./typechain";
-export { Kresko } from "./Kresko";
+export { Kresko } from "./typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 export type Fixtures = "diamond";
 
 export type Asset = {
     name: string;
     symbol: string;
-    price: () => Promise<BigNumber>;
-    oracle: {
+    price?: () => Promise<BigNumber>;
+    marketOpen?: () => Promise<boolean>;
+    oracle?: {
         name: string;
         description: string;
+        chainlink?: string
     };
     cFactor?: number;
     kFactor?: number;
@@ -53,4 +55,13 @@ export type GnosisSafeDeployment = {
         opgoerli: string;
     };
     abi: any;
+}
+
+export type InterestRateConfig = {
+    debtRateBase: BigNumber,
+    reserveFactor: BigNumber,
+    rateSlope1: BigNumber,
+    rateSlope2: BigNumber,
+    optimalPriceRate: BigNumber,
+    excessPriceRate: BigNumber,
 }

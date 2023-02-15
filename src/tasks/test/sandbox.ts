@@ -1,18 +1,19 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { getLogger } from "@kreskolabs/lib/dist/utils";
 import { task } from "hardhat/config";
-import { TaskArguments } from "hardhat/types";
+import type { TaskArguments } from "hardhat/types";
 
-task("sandbox").setAction(async function (_taskArgs: TaskArguments, hre) {
-    const { ethers } = hre;
-    console.log(ethers.constants.AddressZero);
-    // const Kresko = await hre.ethers.getContract<Kresko>("Diamond");
-    // const users = await hre.getUsers();
-    // const data = await Kresko.getDepositedCollateralAssets(users.deployer.address);
+const TASK_NAME = "sandbox";
+const log = getLogger(TASK_NAME);
+// const provider = new ethers.providers.JsonRpcProvider("http://localhost:8545");
+task(TASK_NAME).setAction(async function (_taskArgs: TaskArguments, hre) {
+    // const { deployer, operator, funder } = await hre.ethers.getNamedSigners();
+    try {
+        log.log("Starting");
+        log.log("Finished");
+    } catch (e) {
+        log.error(e);
+    }
 
-    // const coll = await Kresko.collateralAsset("0xdE945BB222777d72F82d589Fa711Ba522A5FDec9");
-    // await Kresko.connect(users.operator).updateCollateralAsset(
-    //     "0xdE945BB222777d72F82d589Fa711Ba522A5FDec9",
-    //     coll.anchor,
-    //     0,
-    //     coll.oracle,
-    // );
+    return;
 });

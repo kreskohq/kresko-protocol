@@ -16,7 +16,7 @@ temp/**/*
 types/**/*
 packages/**/*
 src/contracts/vendor/**/*
-
+mochawesome-report/**/*
 # files
 coverage.json
 .solcover.js

@@ -2,11 +2,13 @@
 pragma solidity >=0.8.14;
 
 import {FixedPoint} from "../../libs/FixedPoint.sol";
+import {IUniswapV2Oracle} from "../interfaces/IUniswapV2Oracle.sol";
 import {KrAsset} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
 
 library LibKrAsset {
     using FixedPoint for FixedPoint.Unsigned;
+    using FixedPoint for uint256;
 
     /* -------------------------------------------------------------------------- */
     /*                                  Functions                                 */
@@ -34,15 +36,24 @@ library LibKrAsset {
         bool _ignoreKFactor
     ) internal view returns (FixedPoint.Unsigned memory) {
         KrAsset memory krAsset = self.kreskoAssets[_kreskoAsset];
-
-        FixedPoint.Unsigned memory oraclePrice = FixedPoint.Unsigned(uint256(krAsset.oracle.latestAnswer()));
-        FixedPoint.Unsigned memory value = FixedPoint.Unsigned(_amount).mul(oraclePrice);
+        FixedPoint.Unsigned memory value = krAsset.fixedPointUSD(_amount);
 
         if (!_ignoreKFactor) {
             value = value.mul(krAsset.kFactor);
         }
 
         return value;
+    }
+
+    function getKrAssetAMMPrice(
+        MinterState storage self,
+        address _kreskoAsset,
+        uint256 _amount
+    ) internal view returns (FixedPoint.Unsigned memory) {
+        if (self.ammOracle == address(0)) {
+            return FixedPoint.Unsigned(0);
+        }
+        return IUniswapV2Oracle(self.ammOracle).consultKrAsset(_kreskoAsset, _amount).toFixedPoint();
     }
 
     /**
@@ -59,9 +70,7 @@ library LibKrAsset {
         uint256 _amount,
         FixedPoint.Unsigned memory _ratio
     ) internal view returns (FixedPoint.Unsigned memory minCollateralValue) {
-        // Calculate the Kresko asset's value weighted by its k-factor.
-        FixedPoint.Unsigned memory weightedKreskoAssetValue = self.getKrAssetValue(_krAsset, _amount, false);
         // Calculate the collateral value required to back this Kresko asset amount at the given ratio
-        return weightedKreskoAssetValue.mul(_ratio);
+        return self.getKrAssetValue(_krAsset, _amount, false).mul(_ratio);
     }
 }

@@ -4,8 +4,8 @@
 
 import { toFixedPoint } from "@kreskolabs/lib";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
-import type { MinterInitArgsStruct } from "types/Kresko";
 import type { MinterInitializer } from "types";
+import { MinterInitArgsStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 
 // These function namings are ignored when generating ABI for the diamond
 const signatureFilters = ["init", "initializer"];
@@ -20,13 +20,19 @@ export const diamondFacets = [
 export const anchorTokenPrefix = "a";
 
 export const minterFacets = [
-    "ConfigurationFacet",
-    "SafetyCouncilFacet",
     "AccountStateFacet",
+    "BurnFacet",
+    "BurnHelperFacet",
+    "ConfigurationFacet",
+    "DepositWithdrawFacet",
+    "InterestLiquidationFacet",
     "LiquidationFacet",
-    "ActionFacet",
+    "MintFacet",
+    "SafetyCouncilFacet",
     "StateFacet",
+    "StabilityRateFacet",
     "UIDataProviderFacet",
+    "UIDataProviderFacet2",
 ];
 
 export const getMinterInitializer = async (
@@ -46,6 +52,7 @@ export const getMinterInitializer = async (
             minimumCollateralizationRatio: toFixedPoint(process.env.MINIMUM_COLLATERALIZATION_RATIO),
             minimumDebtValue: toFixedPoint(process.env.MINIMUM_DEBT_VALUE, 8),
             liquidationThreshold: toFixedPoint(process.env.LIQUIDATION_THRESHOLD),
+            extOracleDecimals: 8,
         },
     };
 };

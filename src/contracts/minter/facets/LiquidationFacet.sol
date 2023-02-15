@@ -1,13 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 
+// solhint-disable not-rely-on-time
+
 import {ILiquidationFacet} from "../interfaces/ILiquidationFacet.sol";
-import {IKreskoAssetIssuer} from "../../krAsset/IKreskoAssetIssuer.sol";
+import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
 
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
-import {Math} from "../../libs/Math.sol";
-import {FixedPoint} from "../../libs/FixedPoint.sol";
+import {LibDecimals, FixedPoint} from "../libs/LibDecimals.sol";
+import {LibCalculation} from "../libs/LibCalculation.sol";
+import {WadRay} from "../../libs/WadRay.sol";
 import {MinterEvent} from "../../libs/Events.sol";
 
 import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
@@ -15,18 +18,27 @@ import {DiamondModifiers} from "../../shared/Modifiers.sol";
 
 import {Constants, KrAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
-import "hardhat/console.sol";
+import {irs} from "../InterestRateState.sol";
 
+/**
+ * @author Kresko
+ * @title LiquidationFacet
+ * @notice Main end-user functionality concerning liquidations within the Kresko protocol
+ */
 contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
     using Arrays for address[];
-    using Math for uint8;
-    using Math for FixedPoint.Unsigned;
+    using LibDecimals for uint8;
+    using LibDecimals for FixedPoint.Unsigned;
+    using LibDecimals for uint256;
+    using WadRay for uint256;
     using FixedPoint for FixedPoint.Unsigned;
+    using FixedPoint for uint256;
+    using FixedPoint for int256;
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
     /**
      * @notice Attempts to liquidate an account by repaying the portion of the account's Kresko asset
-     *         debt, receiving in return a portion of the account's collateral at a discounted rate.
+     *         princpal debt, receiving in return a portion of the account's collateral at a discounted rate.
      * @param _account The account to attempt to liquidate.
      * @param _repayKreskoAsset The address of the Kresko asset to be repaid.
      * @param _repayAmount The amount of the Kresko asset to be repaid.
@@ -58,12 +70,10 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         }
 
         // Repay amount USD = repay amount * KR asset USD exchange rate.
-        FixedPoint.Unsigned memory repayAmountUSD = FixedPoint.Unsigned(_repayAmount).mul(
-            FixedPoint.Unsigned(uint256(s.kreskoAssets[_repayKreskoAsset].oracle.latestAnswer()))
-        );
 
-        // Get the token debt amount
-        uint256 krAssetDebt = s.getKreskoAssetDebt(_account, _repayKreskoAsset);
+        FixedPoint.Unsigned memory repayAmountUSD = s.kreskoAssets[_repayKreskoAsset].fixedPointUSD(_repayAmount);
+        // Get the scaled debt amount
+        uint256 krAssetDebt = s.getKreskoAssetDebtPrincipal(_account, _repayKreskoAsset);
         // Avoid stack too deep error
         {
             // Liquidator may not repay more value than what the liquidation pair allows
@@ -77,9 +87,6 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
             require(repayAmountUSD.isLessThanOrEqual(maxLiquidation), Error.LIQUIDATION_OVERFLOW);
         }
 
-        FixedPoint.Unsigned memory collateralPriceUSD = FixedPoint.Unsigned(
-            uint256(s.collateralAssets[_collateralAssetToSeize].oracle.latestAnswer())
-        );
         // Charge burn fee from the liquidated user
         s.chargeCloseFee(_account, _repayKreskoAsset, _repayAmount);
 
@@ -88,8 +95,12 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         uint256 seizedAmount = _liquidateAssets(
             _account,
             _repayAmount,
-            s.collateralAssets[_collateralAssetToSeize].decimals._fromCollateralFixedPointAmount(
-                s.liquidationIncentiveMultiplier._calculateAmountToSeize(collateralPriceUSD, repayAmountUSD)
+            s.collateralAssets[_collateralAssetToSeize].decimals.fromCollateralFixedPointAmount(
+                LibCalculation.calculateAmountToSeize(
+                    s.liquidationIncentiveMultiplier,
+                    s.collateralAssets[_collateralAssetToSeize].fixedPointPrice(),
+                    repayAmountUSD
+                )
             ),
             _repayKreskoAsset,
             _mintedKreskoAssetIndex,
@@ -102,7 +113,8 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
 
         emit MinterEvent.LiquidationOccurred(
             _account,
-            msg.sender,
+            // solhint-disable-next-line avoid-tx-origin
+            tx.origin,
             _repayKreskoAsset,
             _repayAmount,
             _collateralAssetToSeize,
@@ -131,11 +143,23 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
     ) internal returns (uint256) {
         MinterState storage s = ms();
         KrAsset memory krAsset = s.kreskoAssets[_repayKreskoAsset];
-        // Subtract repaid Kresko assets from liquidated user's recorded debt.
-        s.kreskoAssetDebt[_account][_repayKreskoAsset] -= IKreskoAssetIssuer(krAsset.anchor).destroy(
-            _repayAmount,
-            msg.sender
-        );
+
+        {
+            // Subtract repaid Kresko assets from liquidated user's recorded debt.
+            uint256 destroyed = IKreskoAssetIssuer(krAsset.anchor).destroy(_repayAmount, msg.sender);
+            s.kreskoAssetDebt[_account][_repayKreskoAsset] -= destroyed;
+
+            // Update stability rate values
+            uint256 newDebtIndex = irs().srAssets[_repayKreskoAsset].updateDebtIndex();
+            uint256 amountScaled = destroyed.wadToRay().rayDiv(newDebtIndex);
+
+            // Update scaled values for the user
+            irs().srUserInfo[_account][_repayKreskoAsset].debtScaled -= uint128(amountScaled);
+            irs().srUserInfo[_account][_repayKreskoAsset].lastDebtIndex = uint128(newDebtIndex);
+
+            // Update the global stability rate
+            irs().srAssets[_repayKreskoAsset].updateStabilityRate();
+        }
 
         // If the liquidation repays the user's entire Kresko asset balance, remove it from minted assets array.
         if (s.kreskoAssetDebt[_account][_repayKreskoAsset] == 0) {
@@ -146,10 +170,9 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         uint256 collateralDeposit = s.getCollateralDeposits(_account, _collateralAssetToSeize);
 
         if (collateralDeposit > _seizeAmount) {
-            s.collateralDeposits[_account][_collateralAssetToSeize] -= s.normalizeCollateralAmount(
-                _seizeAmount,
-                _collateralAssetToSeize
-            );
+            s.collateralDeposits[_account][_collateralAssetToSeize] -= ms()
+                .collateralAssets[_collateralAssetToSeize]
+                .toNonRebasingAmount(_seizeAmount);
         } else {
             // This clause means user either has collateralDeposits equal or less than the _seizeAmount
             _seizeAmount = collateralDeposit;

@@ -1,5 +1,6 @@
 import { anchorTokenPrefix } from "@deploy-config/shared";
 import { toBig, toFixedPoint } from "@kreskolabs/lib/dist/numbers";
+import { oneRay } from "@kreskolabs/lib/dist/numbers/wadray";
 
 export type TestCollateralAssetArgs = {
     name: string;
@@ -16,20 +17,24 @@ export type TestCollateralAssetUpdate = {
 };
 export type InputArgs = {
     user: SignerWithAddress;
-    asset: KrAsset | Collateral;
+    asset: (KrAsset | Collateral) | { address: string; contract: any; mocks: any };
     amount: string | number | BigNumber;
 };
+
+export type InputArgsSimple = Omit<InputArgs, "asset"> & { asset: { address: string } };
 
 export type TestKreskoAssetArgs = {
     name: string;
     symbol?: string;
-    wrapperSymbol?: string;
+    anchorSymbol?: string;
     price: number;
+    marketOpen: boolean;
     oracle?: string;
     factor: number;
     supplyLimit: number;
     closeFee: number;
     openFee: number;
+    stabilityRateBase?: BigNumber;
 };
 export type TestKreskoAssetUpdate = {
     name: string;
@@ -48,19 +53,28 @@ export const defaultDecimals = 18;
 export const defaultDepositAmount = toBig(10, defaultDecimals);
 export const defaultMintAmount = toBig(100, defaultDecimals);
 
-export const defaultSupplyLimit = 10000;
+export const defaultSupplyLimit = 100000;
 export const defaultCloseFee = 0.02; // 2%
 export const defaultOpenFee = 0; // 0%
-
+export const BASIS_POINT = oneRay.div(10000);
+export const ONE_PERCENT = oneRay.div(100);
 export const defaultKrAssetArgs = {
     name: "KreskoAsset",
     symbol: "KreskoAsset",
     anchorTokenPrefix: anchorTokenPrefix + "KreskoAsset",
     price: defaultOraclePrice,
+    marketOpen: true,
     factor: 1,
     supplyLimit: defaultSupplyLimit,
     closeFee: defaultCloseFee,
     openFee: defaultOpenFee,
+    stabilityRates: {
+        stabilityRateBase: BASIS_POINT.mul(25), // 0.25%
+        rateSlope1: ONE_PERCENT.div(10).mul(3), // 0.3
+        rateSlope2: ONE_PERCENT.div(10).mul(30), // 3
+        optimalPriceRate: oneRay, // price parity = 1 ray
+        priceRateDelta: ONE_PERCENT.div(10).mul(25), // 2.5% delta
+    },
 };
 
 export const defaultCollateralArgs = {
