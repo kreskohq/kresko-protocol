@@ -6,7 +6,7 @@ import type { FluxPriceFeedFactory } from "types";
 const func: DeployFunction = async function (hre) {
     const { deployer } = await hre.ethers.getNamedSigners();
     const feedValidator = new hre.ethers.Wallet(process.env.FEED_VALIDATOR_PK).connect(hre.ethers.provider);
-    if ((await hre.ethers.provider.getBalance(feedValidator.address)).eq(0)) {
+    if (hre.network.name === "hardhat" && (await hre.ethers.provider.getBalance(feedValidator.address)).eq(0)) {
         await deployer.sendTransaction({
             to: feedValidator.address,
             value: hre.ethers.utils.parseEther("10"),
