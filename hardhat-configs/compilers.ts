@@ -15,17 +15,17 @@ export const compilers = [
     {
         version: "0.8.14",
         settings: {
-            // viaIR: true,
+            viaIR: true,
             optimizer: {
                 enabled: true,
                 runs: 200,
-                // details: {
-                //     deduplicate: true,
-                //     yul: true,
-                //     yulDetails: {
-                //         stackAllocation: true,
-                //     },
-                // },
+                details: {
+                    deduplicate: true,
+                    yul: true,
+                    yulDetails: {
+                        stackAllocation: true,
+                    },
+                },
             },
             outputSelection: {
                 "*": {
