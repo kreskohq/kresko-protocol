@@ -9,9 +9,9 @@ import "tsconfig-paths/register";
 /* -------------------------------------------------------------------------- */
 import "solidity-coverage";
 
+import "hardhat-diamond-abi";
 /// @note comment diamond abi if enabling forge and anvil
 import "@typechain/hardhat";
-import "hardhat-diamond-abi";
 
 import "@kreskolabs/hardhat-deploy";
 import "@nomiclabs/hardhat-ethers";
@@ -83,6 +83,14 @@ const config: HardhatUserConfig = {
             },
         ],
     },
+    diamondAbi: [
+        {
+            name: "Kresko",
+            include: ["facets/*"],
+            exclude: ["vendor", "test/*", "interfaces/*", "krasset/*", "KrStaking"],
+            strict: false,
+        },
+    ],
     typechain: {
         outDir: "types/typechain",
         target: "ethers-v5",
@@ -90,7 +98,7 @@ const config: HardhatUserConfig = {
         dontOverrideCompile: false,
         discriminateTypes: false,
         tsNocheck: true,
-        externalArtifacts: ["artifacts/hardhat-diamond-abi/Kresko.sol/Kresko.json"],
+        externalArtifacts: ["./artifacts/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko.json"],
     },
     // gasReporter: {
     //     currency: "USD",
@@ -102,17 +110,9 @@ const config: HardhatUserConfig = {
         alphaSort: true,
         disambiguatePaths: false,
         runOnCompile: true,
-        // except: ["vendor"],
+        except: ["vendor"],
     },
-    //@ts-ignore
-    diamondAbi: [
-        {
-            name: "Kresko",
-            include: ["facets/*"],
-            exclude: ["vendor", "test/*", "interfaces/*", "krasset/*", "KrStaking"],
-            strict: false,
-        },
-    ],
+
     //@ts-ignore
     // foundry: {
     //     cachePath: "forge/cache",
