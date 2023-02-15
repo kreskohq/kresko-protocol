@@ -238,12 +238,6 @@ declare module "hardhat/types/runtime" {
         priceFeeds: {
             [description: string]: FluxPriceFeed;
         };
-        // @todo DEPRECATING
-        priceAggregators: {
-            [description: string]: FluxPriceAggregator;
-        };
-        // @todo DEPRECATING
-        priceFeedsRegistry: FeedsRegistry;
     }
 }
 

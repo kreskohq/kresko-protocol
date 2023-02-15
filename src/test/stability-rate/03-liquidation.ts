@@ -16,17 +16,15 @@ import {
     InterestLiquidationOccurredEventObject,
 } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
-describe("Stability Rates", function () {
-    withFixture(["minter-test", "stability-rate-liquidation", "uniswap"]);
-    let users: Users;
+describe("Stability Rates", () => {
+    withFixture(["minter-test", "uniswap"]);
     let liquidator: SignerWithAddress;
     let userTwo: SignerWithAddress;
 
     let updateTWAP: () => Promise<void>;
     beforeEach(async function () {
-        users = await hre.getUsers();
-        liquidator = users.deployer;
-        userTwo = users.userTwo;
+        liquidator = hre.users.deployer;
+        userTwo = hre.users.userTwo;
 
         this.krAsset = hre.krAssets.find(c => c.deployArgs.name === defaultKrAssetArgs.name);
         this.collateral = hre.collaterals.find(c => c.deployArgs.name === defaultCollateralArgs.name);
@@ -63,7 +61,7 @@ describe("Stability Rates", function () {
         await updateTWAP();
     });
 
-    describe("#stability rate - liquidation", async () => {
+    describe("#stability rate - liquidation", () => {
         const depositAmount = hre.toBig(100);
         const mintAmount = hre.toBig(10);
         let krAssets: KrAsset[];

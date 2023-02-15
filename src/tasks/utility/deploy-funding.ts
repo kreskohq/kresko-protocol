@@ -1,57 +1,25 @@
-import { toBig } from "@kreskolabs/lib";
+import { getLogger } from "@kreskolabs/lib/dist/utils";
 import { task } from "hardhat/config";
-import { KISS, MockERC20, Multisender, WETH } from "types";
+import { KISS, Multisender, WETH } from "types";
 import { TokenStruct } from "types/typechain/src/contracts/test/Multisender";
 
-task("deploy-funding", "funds a set of accounts", async (_, hre) => {
-    const { getContract, getSigners } = hre.ethers;
-    const { deployer } = await hre.getUsers();
+const TASK_NAME = "deploy-funding";
+task(TASK_NAME, "funds a set of accounts", async (_, hre) => {
+    const log = getLogger(TASK_NAME);
 
-    const signers = await getSigners();
+    const { deployer, funder } = await hre.ethers.getNamedSigners();
 
-    const funder = signers[52];
-
-    const OP = await getContract<MockERC20>("OP");
-    const WETH = await getContract<WETH>("WETH");
-    const KISS = await getContract<KISS>("KISS");
-
-    const tokens: TokenStruct[] = [
-        {
-            amount: toBig(500),
-            token: OP.address,
-        },
-    ];
+    const Tokens: TokenStruct[] = [];
+    const KISS = await hre.ethers.getContract<KISS>("KISS");
+    const WETH = await hre.ethers.getContract<WETH>("WETH");
     const [Multisender] = await hre.deploy<Multisender>("Multisender", {
         from: deployer.address,
-        args: [tokens, WETH.address, KISS.address],
+        args: [Tokens, WETH, KISS],
     });
 
-    if (!(await Multisender.owners(funder.address))) {
-        await Multisender.toggleOwners([funder.address]);
-    }
+    await Multisender.toggleOwners([funder.address]);
 
-    if ((await KISS.balanceOf(Multisender.address)).lt(toBig(500_000)))
-        await KISS.transfer(Multisender.address, toBig(10_000_000));
+    log.success(`Multisender deployed: ${Multisender.address} - funder is ${funder.address}`);
 
-    if ((await hre.ethers.provider.getBalance(Multisender.address)).lt(toBig(1.5))) {
-        console.log("Sending ether");
-        await deployer.sendTransaction({
-            to: Multisender.address,
-            data: "0x",
-            nonce: await deployer.getTransactionCount(),
-            value: toBig(2.5),
-        });
-    }
-
-    // const testUsers = signers.slice(31, 51).map(s => s.address);
-    // const wethAmount = toBig(2);
-    // const ethAmount = toBig(0.025);
-    // const kissAmount = toBig(10000);
-
-    // await Multisender.distribute(
-    //     testUsers.concat("0x379F97846a0293A7197E4B510B631e53F9e1202A"),
-    //     wethAmount,
-    //     ethAmount,
-    //     kissAmount,
-    // );
+    return Multisender;
 });

@@ -101,9 +101,10 @@ export async function removeFacet({ name, initializerName, initializerArgs }: Ar
         });
 
         // #5.5 Save the deployment output
-        await deployments.save("Diamond", DiamondDeployment);
         // Live network deployments should be released into the contracts-package.
         if (hre.network.live) {
+            await deployments.save("Diamond", DiamondDeployment);
+            hre.DiamondDeployment = DiamondDeployment;
             // TODO: Automate the release
             logger.log(
                 "New facets saved to deployment file, remember to make a release of the contracts package for frontend",
@@ -111,7 +112,6 @@ export async function removeFacet({ name, initializerName, initializerArgs }: Ar
         }
 
         // #5.6 Save the deployment and Diamond into runtime for later steps.
-        hre.DiamondDeployment = DiamondDeployment;
         hre.Diamond = await ethers.getContractAt<Kresko>("Kresko", DiamondDeployment.address);
 
         logger.success(1, " facet succesfully removed", "txHash:", receipt.transactionHash);
@@ -124,8 +124,6 @@ export async function removeFacet({ name, initializerName, initializerArgs }: Ar
             "txHash:",
             receipt.transactionHash,
         );
-
-        hre.DiamondDeployment = DiamondDeployment;
     } else {
         // if facet is still found found
         logger.error("Facet remove failed @ ", Facet.address);

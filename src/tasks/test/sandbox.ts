@@ -1,20 +1,19 @@
-import { testnetConfigs } from "@deploy-config/testnet-goerli";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { getLogger } from "@kreskolabs/lib/dist/utils";
 import { task } from "hardhat/config";
-import { TaskArguments } from "hardhat/types";
-import { FluxPriceFeedFactory } from "types";
+import type { TaskArguments } from "hardhat/types";
 
-task("sandbox").setAction(async function (_taskArgs: TaskArguments, hre) {
-    const { feedValidator } = await hre.ethers.getNamedSigners();
-    const factory = await hre.ethers.getContract<FluxPriceFeedFactory>("FluxPriceFeedFactory");
-    const logger = getLogger("sandbox");
-    for (const collateral of testnetConfigs[hre.network.name].collaterals) {
-        const fluxFeed = await factory.addressOfPricePair(collateral.oracle.description, 8, feedValidator.address);
-        console.log(collateral.symbol, fluxFeed);
+const TASK_NAME = "sandbox";
+const log = getLogger(TASK_NAME);
+// const provider = new ethers.providers.JsonRpcProvider("http://localhost:8545");
+task(TASK_NAME).setAction(async function (_taskArgs: TaskArguments, hre) {
+    // const { deployer, operator, funder } = await hre.ethers.getNamedSigners();
+    try {
+        log.log("Starting");
+        log.log("Finished");
+    } catch (e) {
+        log.error(e);
     }
-    for (const krAsset of testnetConfigs[hre.network.name].krAssets) {
-        const fluxFeed = await factory.addressOfPricePair(krAsset.oracle.description, 8, feedValidator.address);
-        console.log(krAsset.symbol, fluxFeed);
-    }
-    logger.success("All price feeds deployed");
+
+    return;
 });

@@ -1,33 +1,36 @@
 const oldCompilerSettings = {
-    optimizer: {
-        enabled: true,
-        runs: 800,
-    },
-    outputSelection: {
-        "*": {
-            "*": ["storageLayout", "evm.methodIdentifiers", "devdoc", "userdoc", "evm.gasEstimates"],
+    settings: {
+        optimizer: {
+            enabled: true,
+            runs: 200,
+        },
+        outputSelection: {
+            "*": {
+                "*": ["metadata", "evm.methodIdentifiers", "devdoc", "userdoc", "evm.gasEstimates"],
+            },
         },
     },
 };
-
-export const compilers = {
-    compilers: [
-        {
-            version: "0.8.14",
+export const compilers = [
+    {
+        version: "0.8.14",
+        settings: {
+            viaIR: true,
             optimizer: {
                 enabled: true,
-                runs: 800,
+                runs: 200,
                 details: {
+                    deduplicate: true,
                     yul: true,
                     yulDetails: {
                         stackAllocation: true,
                     },
                 },
             },
-            viaIR: true,
             outputSelection: {
                 "*": {
                     "*": [
+                        "metadata",
                         "abi",
                         "storageLayout",
                         "evm.methodIdentifiers",
@@ -39,21 +42,31 @@ export const compilers = {
                 },
             },
         },
-        {
-            version: "0.7.6",
-            ...oldCompilerSettings,
+    },
+    {
+        version: "0.7.6",
+        ...oldCompilerSettings,
+    },
+    {
+        version: "0.6.12",
+        ...oldCompilerSettings,
+    },
+    {
+        version: "0.6.6",
+        settings: {
+            optimizer: {
+                enabled: true,
+                runs: 200,
+            },
         },
-        {
-            version: "0.6.12",
-            ...oldCompilerSettings,
+    },
+    {
+        version: "0.5.16",
+        settings: {
+            optimizer: {
+                enabled: true,
+                runs: 200,
+            },
         },
-        {
-            version: "0.6.6",
-            ...oldCompilerSettings,
-        },
-        {
-            version: "0.5.16",
-            ...oldCompilerSettings,
-        },
-    ],
-};
+    },
+];

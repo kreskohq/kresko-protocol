@@ -1,5 +1,5 @@
+import { ALCHEMY_API_KEY_GOERLI, INFURA_API_KEY, RPC } from "@kreskolabs/configs";
 import { utils } from "ethers";
-import { INFURA_API_KEY, RPC, ALCHEMY_API_KEY_GOERLI } from "@kreskolabs/configs";
 const parseUnits = utils.parseUnits;
 
 export const chainIds = {
@@ -122,6 +122,7 @@ export const networks = (mnemonic: string) => ({
         url: RPC.eth.mainnet.infura,
         chainId: chainIds.ethereum,
         tags: ["ethereum"],
+        live: true,
     },
     op: {
         accounts: { mnemonic, count: 100 },
@@ -136,18 +137,20 @@ export const networks = (mnemonic: string) => ({
         chainId: chainIds.opkovan,
         saveDeployments: true,
         tags: ["testnet"],
+        live: true,
     },
     opgoerli: {
         accounts: { mnemonic, count: 100 },
         url: RPC.optimism.goerli.default,
         chainId: chainIds.opgoerli,
+        gasPrice: +parseUnits("0.001", "gwei"),
+        live: true,
     },
     kovan: {
         chainId: chainIds.kovan,
         url: `https://eth-kovan.alchemyapi.io/v2/${ALCHEMY_API_KEY_GOERLI}`,
-        gasPrice: Number(parseUnits("10", "gwei")),
+        gasPrice: +parseUnits("10", "gwei"),
         deploy: ["./src/deploy/kovan"],
-        live: true,
     },
     moonbeam: {
         chainId: chainIds.moonbeam,

@@ -5,7 +5,9 @@ import { task, types } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
 import type { MockERC20, UniswapV2Factory, UniswapV2Pair, UniswapV2Router02 } from "types";
 
-task("add-liquidity-v2")
+const TASK_NAME = "add-liquidity-v2";
+
+task(TASK_NAME)
     .addParam("tknA", "Token A address and value to provide", {}, types.json)
     .addParam("tknB", "Token B address and value to provide", {}, types.json)
     .addOptionalParam("factoryAddr", "Factory address")
@@ -14,11 +16,11 @@ task("add-liquidity-v2")
     .addOptionalParam("wait", "wait confirmations", 1, types.int)
     .addOptionalParam("skipIfLiqExists", "skip if pair exists and has balances", false, types.boolean)
     .setAction(async function (taskArgs: TaskArguments, hre) {
+        const { tknA, tknB, factoryAddr, routerAddr, log, skipIfLiqExists } = taskArgs;
+        const logger = getLogger(TASK_NAME, log);
+
         const { ethers, getNamedAccounts } = hre;
         const { deployer } = await getNamedAccounts();
-        const { tknA, tknB, factoryAddr, routerAddr, log, skipIfLiqExists } = taskArgs;
-
-        const logger = getLogger("addLiquidity", log);
 
         const TknA = await ethers.getContractAt<MockERC20>("MockERC20", tknA.address);
         const TknB = await ethers.getContractAt<MockERC20>("MockERC20", tknB.address);

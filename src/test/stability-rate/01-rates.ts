@@ -19,19 +19,18 @@ import { BigNumber } from "ethers";
 import hre from "hardhat";
 import { UniswapMath } from "types/typechain/src/contracts/test/markets";
 
-describe("Stability Rates", function () {
-    withFixture(["minter-test", "stability-rates", "uniswap"]);
-    let users: Users;
+describe("Stability Rates", () => {
+    withFixture(["minter-test", "uniswap"]);
+
     let UniMath: UniswapMath;
     let userOne: SignerWithAddress;
     let updateTWAP: () => Promise<void>;
     beforeEach(async function () {
-        users = await hre.getUsers();
-        userOne = users.deployer;
+        userOne = hre.users.deployer;
         this.krAsset = this.krAssets.find(c => c.deployArgs.name === defaultKrAssetArgs.name);
         this.collateral = this.collaterals.find(c => c.deployArgs.name === defaultCollateralArgs.name);
         [UniMath] = await hre.deploy<UniswapMath>("UniswapMath", {
-            from: users.deployer.address,
+            from: hre.users.deployer.address,
             args: [hre.UniV2Factory.address, hre.UniV2Router.address],
         });
 
@@ -60,8 +59,8 @@ describe("Stability Rates", function () {
         await hre.UniV2Oracle.initPair(pair.address, this.krAsset.address, 60 * 60);
         await updateTWAP();
     });
-    describe("#no-amm-prices", async () => {
-        it("calculates correct price rates when the amm liquidity does not qualify");
+    describe("#no-amm-prices", () => {
+        // it("calculates correct price rates when the amm liquidity does not qualify");
         it("calculates correct rates and debt when there is no amm price", async function () {
             const krAssetAmount = toBig(1);
             const krAssetNoBaseRate = await addMockKreskoAsset({
@@ -139,7 +138,7 @@ describe("Stability Rates", function () {
             expect(debtInterestWithBaseRate.kissAmount).to.equal(expectedKissInterestAmount);
         });
     });
-    describe("#price-rate", async () => {
+    describe("#price-rate", () => {
         it("calculates correct price rates when amm == oracle", async function () {
             await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
 
@@ -206,7 +205,7 @@ describe("Stability Rates", function () {
             expect(priceRate).to.bignumber.closeTo(expectedPriceRate, oneRay.div(100));
         });
     });
-    describe("#stability-rate", async () => {
+    describe("#stability-rate", () => {
         it("calculates correct stability rates when amm == oracle", async function () {
             await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
             await updateTWAP();
@@ -280,7 +279,7 @@ describe("Stability Rates", function () {
             );
         });
     });
-    describe("#debt-index", async () => {
+    describe("#debt-index", () => {
         it("calculates correct debt index after a year when amm price > oracle", async function () {
             await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
             const premiumPercentage = 105; // 105% eg. 5% premium

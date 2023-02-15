@@ -15,23 +15,21 @@ import { UniswapMath } from "types/typechain/src/contracts/test/markets";
 const RATE_DELTA = hre.ethers.utils.parseUnits("100", "gwei");
 
 describe("Stability Rates", function () {
-    withFixture(["minter-test", "stability-rate-debt", "uniswap"]);
-    let users: Users;
+    withFixture(["minter-test", "uniswap"]);
     let UniMath: UniswapMath;
     let userOne: SignerWithAddress;
     let userTwo: SignerWithAddress;
 
     let updateTWAP: () => Promise<void>;
     beforeEach(async function () {
-        users = await hre.getUsers();
-        userOne = users.deployer;
-        userTwo = users.userTwo;
+        userOne = hre.users.deployer;
+        userTwo = hre.users.userTwo;
 
         this.krAsset = hre.krAssets.find(c => c.deployArgs.name === defaultKrAssetArgs.name);
         this.collateral = hre.collaterals.find(c => c.deployArgs.name === defaultCollateralArgs.name);
 
         [UniMath] = await hre.deploy<UniswapMath>("UniswapMath", {
-            from: users.deployer.address,
+            from: hre.users.deployer.address,
             args: [hre.UniV2Factory.address, hre.UniV2Router.address],
         });
 
@@ -67,7 +65,7 @@ describe("Stability Rates", function () {
         await updateTWAP();
     });
 
-    describe("#debt calculation - mint", async () => {
+    describe("#debt calculation - mint", () => {
         const depositAmount = hre.toBig(1000);
         const mintAmount = hre.toBig(50);
 
@@ -196,7 +194,7 @@ describe("Stability Rates", function () {
             expect(debtAfterYear).to.bignumber.equal(await toScaledAmountUser(userTwo, mintAmount, this.krAsset));
         });
     });
-    describe("#debt calculation - repay", async () => {
+    describe("#debt calculation - repay", () => {
         const depositAmount = hre.toBig(100);
         const mintAmount = hre.toBig(10);
 
@@ -357,7 +355,7 @@ describe("Stability Rates", function () {
         });
     });
 
-    describe("#debt calculation - repay interest", async () => {
+    describe("#debt calculation - repay interest", () => {
         const depositAmount = hre.toBig(100);
         const depositAmountBig = hre.toBig(10000);
         const mintAmount = hre.toBig(10);

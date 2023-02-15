@@ -1,4 +1,4 @@
-import { removeFacet } from "@scripts/remove-facet";
+import { removeFacet } from "../../scripts/remove-facet";
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
 

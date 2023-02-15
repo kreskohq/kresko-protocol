@@ -4,12 +4,7 @@ import { toFixedPoint, toBig } from "@kreskolabs/lib";
 import { getUsers } from "@utils/general";
 import { expect } from "chai";
 import hre from "hardhat";
-import {
-    KreskoAsset__factory,
-    KreskoAssetAnchor__factory,
-    FluxPriceAggregator__factory,
-    FluxPriceFeed__factory,
-} from "types";
+import { KreskoAsset__factory, KreskoAssetAnchor__factory, FluxPriceFeed__factory } from "types";
 import { TestKreskoAssetArgs, defaultKrAssetArgs, TestKreskoAssetUpdate, InputArgs, InputArgsSimple } from "../mocks";
 import roles from "../roles";
 import { getMockOracleFor, setPrice, setMarketOpen } from "./general";
@@ -24,7 +19,7 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
     const { name, symbol, price, marketOpen, factor, supplyLimit, closeFee, openFee, stabilityRateBase } = args;
 
     // Create an oracle with price supplied
-    const [OracleAggregator, Oracle] = await getMockOracleFor(name, price, marketOpen);
+    const [MockOracle, Oracle] = await getMockOracleFor(name, price, marketOpen);
 
     // create the underlying rebasing krAsset
     const krAsset = await (await smock.mock<KreskoAsset__factory>("KreskoAsset")).deploy();
@@ -47,8 +42,8 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
         krAsset.address,
         akrAsset.address,
         kFactor,
-        OracleAggregator.address,
-        OracleAggregator.address,
+        MockOracle.address,
+        MockOracle.address,
         toBig(supplyLimit, await krAsset.decimals()),
         toFixedPoint(closeFee),
         toFixedPoint(openFee),
@@ -71,7 +66,7 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
     const mocks = {
         contract: krAsset,
         anchor: akrAsset,
-        priceAggregator: OracleAggregator,
+        mockFeed: MockOracle,
         priceFeed: Oracle,
     };
     const asset: KrAsset = {
@@ -81,7 +76,6 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
         kresko: async () => await hre.Diamond.kreskoAsset(krAsset.address),
         deployArgs: args,
         contract: KreskoAsset__factory.connect(krAsset.address, users.deployer),
-        priceAggregator: FluxPriceAggregator__factory.connect(OracleAggregator.address, users.deployer),
         priceFeed: FluxPriceFeed__factory.connect(Oracle.address, users.deployer),
         mocks,
         anchor: KreskoAssetAnchor__factory.connect(akrAsset.address, users.deployer),
@@ -93,9 +87,9 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
                 [user.address]: amount,
             });
         },
-        getPrice: () => OracleAggregator.latestAnswer(),
-        setMarketOpen: marketOpen => setMarketOpen(OracleAggregator, marketOpen),
-        getMarketOpen: () => OracleAggregator.latestMarketOpen(),
+        getPrice: () => MockOracle.latestAnswer(),
+        setMarketOpen: marketOpen => setMarketOpen(MockOracle, marketOpen),
+        getMarketOpen: () => MockOracle.latestMarketOpen(),
         update: update => updateKrAsset(krAsset.address, update),
     };
 
@@ -117,7 +111,7 @@ export const addMockKreskoAssetWithAMMPair = async (
     const { name, symbol, price, marketOpen, factor, supplyLimit, closeFee, openFee } = args;
 
     // Create an oracle with price supplied
-    const [OracleAggregator, Oracle] = await getMockOracleFor(name, price, marketOpen);
+    const [MockOracle, FakeOracle] = await getMockOracleFor(name, price, marketOpen);
 
     // create the underlying rebasing krAsset
     const krAsset = await (await smock.mock<KreskoAsset__factory>("KreskoAsset")).deploy();
@@ -140,8 +134,8 @@ export const addMockKreskoAssetWithAMMPair = async (
         krAsset.address,
         akrAsset.address,
         kFactor,
-        OracleAggregator.address,
-        OracleAggregator.address,
+        MockOracle.address,
+        MockOracle.address,
         toBig(supplyLimit, await krAsset.decimals()),
         toFixedPoint(closeFee),
         toFixedPoint(openFee),
@@ -160,8 +154,8 @@ export const addMockKreskoAssetWithAMMPair = async (
     const mocks = {
         contract: krAsset,
         anchor: akrAsset,
-        priceAggregator: OracleAggregator,
-        priceFeed: Oracle,
+        mockFeed: MockOracle,
+        priceFeed: FakeOracle,
     };
     const asset: KrAsset = {
         krAsset: true,
@@ -170,8 +164,7 @@ export const addMockKreskoAssetWithAMMPair = async (
         kresko: async () => await hre.Diamond.kreskoAsset(krAsset.address),
         deployArgs: args,
         contract: KreskoAsset__factory.connect(krAsset.address, users.deployer),
-        priceAggregator: FluxPriceAggregator__factory.connect(OracleAggregator.address, users.deployer),
-        priceFeed: FluxPriceFeed__factory.connect(Oracle.address, users.deployer),
+        priceFeed: FluxPriceFeed__factory.connect(FakeOracle.address, users.deployer),
         mocks,
         anchor: KreskoAssetAnchor__factory.connect(akrAsset.address, users.deployer),
         setPrice: price => setPrice(mocks, price),
@@ -182,9 +175,9 @@ export const addMockKreskoAssetWithAMMPair = async (
                 [user.address]: amount,
             });
         },
-        getPrice: () => OracleAggregator.latestAnswer(),
-        setMarketOpen: marketOpen => setMarketOpen(OracleAggregator, marketOpen),
-        getMarketOpen: () => OracleAggregator.latestMarketOpen(),
+        getPrice: () => MockOracle.latestAnswer(),
+        setMarketOpen: marketOpen => setMarketOpen(MockOracle, marketOpen),
+        getMarketOpen: () => MockOracle.latestMarketOpen(),
         update: update => updateKrAsset(krAsset.address, update),
     };
 
@@ -205,8 +198,8 @@ export const updateKrAsset = async (address: string, args: TestKreskoAssetUpdate
         krAsset.address,
         krAsset.mocks.anchor.address,
         toFixedPoint(args.factor),
-        args.oracle || krAsset.priceAggregator.address,
-        args.oracle || krAsset.priceAggregator.address,
+        args.oracle || krAsset.priceFeed.address,
+        args.oracle || krAsset.priceFeed.address,
         hre.toBig(args.supplyLimit, await krAsset.contract.decimals()),
         toFixedPoint(args.closeFee),
         toFixedPoint(args.openFee),

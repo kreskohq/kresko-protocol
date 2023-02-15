@@ -4,13 +4,13 @@ import { defaultCollateralArgs, defaultKrAssetArgs, withFixture } from "@utils/t
 import hre from "hardhat";
 import { StabilityRateParamsStruct } from "types/typechain/src/contracts/minter/facets/StabilityRateFacet";
 
-describe("Interest Rates", function () {
-    withFixture(["minter-test", "interest-rate"]);
-    beforeEach(async function () {
+describe("Interest Rates", () => {
+    withFixture(["minter-test"]);
+    beforeEach(function () {
         this.krAsset = this.krAssets.find(c => c.deployArgs.name === defaultKrAssetArgs.name);
         this.collateral = this.collaterals.find(c => c.deployArgs.name === defaultCollateralArgs.name);
     });
-    describe("#init", async () => {
+    describe("#init", () => {
         it("initializes correct stability rates", async function () {
             const config = await hre.Diamond.getStabilityRateConfigurationForAsset(this.krAsset.address);
 

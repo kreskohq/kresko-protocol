@@ -18,13 +18,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             (amountB * hre.fromBig(await assetB.price(), 8)) / hre.fromBig(await assetA.price(), 8),
             2,
         );
-
+        if (assetB.symbol === "krTSLA") {
+            continue;
+        }
         const token0 = await hre.ethers.getContract(assetA.symbol);
         const token1 = await hre.ethers.getContract(assetB.symbol);
         const pairAddress = await Factory.getPair(token0.address, token1.address);
 
         if (assetB.symbol === "WETH") {
             await (await hre.ethers.getContract<WETH>("WETH"))["deposit(uint256)"](hre.toBig(amountB));
+        } else if (assetA.symbol === "WETH") {
+            await (await hre.ethers.getContract<WETH>("WETH"))["deposit(uint256)"](hre.toBig(amountA));
         }
         if (pairAddress === ethers.constants.AddressZero) {
             const pair = await hre.run("add-liquidity-v2", {

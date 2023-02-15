@@ -1,5 +1,5 @@
 import * as deploymentsJson from "./deployments/deployments.json";
-import * as oracleJson from "./deployments/oracles.json" 
+import * as oracleJson from "./deployments/oracles.json"
 export interface ContractExport {
     address: string;
     abi: any[];
@@ -19,7 +19,8 @@ export type Oracles = {
     asset: string;
     assetType: string
     feed: string;
-    address: string;
+    marketstatus: string;
+    pricefeed: string;
 }[]
 
 const deployments: MultiExport = deploymentsJson;

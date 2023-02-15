@@ -6,26 +6,15 @@ import { JStoFixed } from "@kreskolabs/lib";
 
 const func: DeployFunction = async function (hre) {
     const logger = getLogger("deploy-oracle", !process.env.TEST);
-    const { getNamedAccounts } = hre;
-    const { deployer } = await hre.ethers.getNamedSigners();
+    const { deployer, feedValidator } = await hre.ethers.getNamedSigners();
 
     /* -------------------------------------------------------------------------- */
     /*                                  Validator                                 */
     /* -------------------------------------------------------------------------- */
-    const { priceFeedValidatorAurora, priceFeedValidatorOpKovan, priceFeedValidatorOpGoerli } =
-        await getNamedAccounts();
-
-    let validator = priceFeedValidatorAurora;
-
-    if (hre.network.name === "opkovan") {
-        validator = priceFeedValidatorOpKovan;
-    } else if (hre.network.name === "opgoerli") {
-        validator = priceFeedValidatorOpGoerli;
-    } else if (hre.network.name === "hardhat") {
+    if (hre.network.name === "hardhat") {
         // Fund validator with exactly 1.0 ether
-        validator = "0xB76982b8e49CEf7dc984c8e2CB87000422aE73bB";
         await deployer.sendTransaction({
-            to: validator,
+            to: feedValidator.address,
             value: hre.ethers.utils.parseEther("1.0"),
         });
     }
@@ -45,7 +34,7 @@ const func: DeployFunction = async function (hre) {
             const oracle = await hre.ethers.getContractAt<FluxPriceFeed>(
                 "FluxPriceFeed",
                 deployment.address,
-                validator,
+                feedValidator.address,
             );
 
             const marketOpen = await oracle.latestMarketOpen();
@@ -66,7 +55,7 @@ const func: DeployFunction = async function (hre) {
             name: asset.oracle.name,
             decimals: 8,
             description: asset.oracle.description,
-            validator,
+            validator: feedValidator.address,
         });
         const price = await asset.price();
         const marketOpen = await asset.marketOpen();

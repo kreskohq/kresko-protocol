@@ -24,50 +24,120 @@ export const oracles = {
         name: "EURUSD",
         description: "EUR/USD",
         chainlink: "0x619AeaaF08dF3645e138C611bddCaE465312Ef6B",
+        createFlux: false,
     },
     DAI: {
         name: "DAI/USD",
         description: "DAI/USD",
         chainlink: "0x31856c9a2A73aAee6100Aed852650f75c5F539D0",
+        createFlux: false,
+    },
+    AMC: {
+        name: "AMC/USD",
+        description: "AMC/USD",
+        createFlux: true,
+    },
+    QQQ: {
+        name: "QQQ/USD",
+        description: "QQQ/USD",
+        createFlux: true,
+    },
+    IAU: {
+        name: "IAU/USD",
+        description: "IAU/USD",
+        createFlux: true,
+    },
+    AAPL: {
+        name: "AAPL/USD",
+        description: "AAPL/USD",
+        createFlux: true,
+    },
+    USO: {
+        name: "USO/USD",
+        description: "USO/USD",
+        createFlux: true,
+    },
+    BABA: {
+        name: "BABA/USD",
+        description: "BABA/USD",
+        createFlux: true,
+    },
+    MSTR: {
+        name: "MSTR/USD",
+        description: "MSTR/USD",
+        createFlux: true,
+    },
+    OP: {
+        name: "OP/USD",
+        description: "OP/USD",
+        createFlux: true,
+    },
+    GME: {
+        name: "GME/USD",
+        description: "GME/USD",
+        createFlux: true,
+    },
+    COIN: {
+        name: "COIN/USD",
+        description: "COIN/USD",
+        createFlux: true,
     },
     BTC: {
         name: "BTCUSD",
         description: "BTC/USD",
         chainlink: "0xC16679B963CeB52089aD2d95312A5b85E318e9d2",
+        createFlux: false,
     },
     TSLA: {
         name: "TSLAUSD",
         description: "TSLA/USD",
-        chainlink: "0x3D8faBBa4D954326AaF04E6dc8Dbae6Ab4EcF2E4",
+        createFlux: true,
+        // chainlink: "0x3D8faBBa4D954326AaF04E6dc8Dbae6Ab4EcF2E4",
     },
     USDT: {
         name: "USDT/USD",
         description: "USDT/USD",
         chainlink: "0x2e2147bCd571CE816382485E59Cd145A2b7CA451",
+        createFlux: false,
     },
     ETH: {
         name: "ETHUSD",
         description: "ETH/USD",
         chainlink: "0x57241A37733983F97C4Ab06448F244A1E0Ca0ba8",
+        createFlux: true,
+        price: async () => toBig(await getPriceFromTwelveData("ETH/USD"), 8),
+        marketOpen: async () => {
+            return true;
+        },
     },
     SNX: {
         name: "SNXUSD",
         description: "SNX/USD",
         chainlink: "0x89A7630f46B8c35A7fBBC4f6e4783f1E2DC715c6",
+        createFlux: false,
     },
     KISS: {
         name: "KISSUSD",
         description: "KISS/USD",
+        createFlux: false, // created separately
+        price: async () => {
+            return toBig("1", 8);
+        },
+        marketOpen: async () => {
+            return true;
+        },
     },
     WTI: {
         name: "WTIUSD",
         description: "WTI/USD",
         chainlink: "0xf3d88dBea0ea9DB336773EDe5Cc9bb3BB89Bc418",
+        createFlux: true,
     },
     XAU: {
         name: "XAUUSD",
         description: "XAU/USD",
         chainlink: "0xA8828D339CEFEBf99934e5fdd938d1B4B9730bc3",
+        createFlux: false,
     },
 };
 
@@ -84,7 +154,7 @@ export const assets: { [asset: string]: Asset } = {
         },
         oracle: oracles.DAI,
         cFactor: 0.9,
-        mintAmount: 2_000_000_000,
+        mintAmount: 150_000_000,
         testAsset: true,
     },
     WETH: {
@@ -95,9 +165,9 @@ export const assets: { [asset: string]: Asset } = {
         marketOpen: async () => {
             return true;
         },
-        oracle: oracles.EURO,
+        oracle: oracles.ETH,
         cFactor: 0.9,
-        mintAmount: 100_000,
+        mintAmount: 5000,
         testAsset: true,
     },
     SNX: {
@@ -110,7 +180,7 @@ export const assets: { [asset: string]: Asset } = {
         },
         oracle: oracles.SNX,
         cFactor: 0.8,
-        mintAmount: 5_000_000,
+        mintAmount: 0,
         testAsset: true,
     },
     // KRASSETS
@@ -125,9 +195,9 @@ export const assets: { [asset: string]: Asset } = {
             return true;
         },
         oracle: oracles.KISS,
-        cFactor: 1,
+        cFactor: 0.95,
         kFactor: 1,
-        mintAmount: 1_000_000_000,
+        mintAmount: 50_000_000,
     },
     krBTC: {
         name: "Bitcoin",
@@ -140,7 +210,7 @@ export const assets: { [asset: string]: Asset } = {
         oracle: oracles.BTC,
         kFactor: 1.1,
         cFactor: 1,
-        mintAmount: 5_000,
+        mintAmount: 5,
     },
     krEUR: {
         name: "Euro",
@@ -166,7 +236,7 @@ export const assets: { [asset: string]: Asset } = {
         oracle: oracles.ETH,
         kFactor: 1.05,
         cFactor: 1,
-        mintAmount: 25_000,
+        mintAmount: 64,
     },
     krTSLA: {
         name: "Tesla, Inc.",
@@ -179,7 +249,7 @@ export const assets: { [asset: string]: Asset } = {
         oracle: oracles.TSLA,
         kFactor: 1.1,
         cFactor: 1,
-        mintAmount: 50_000,
+        mintAmount: 200,
     },
     krXAU: {
         name: "Gold Ounce",
@@ -190,9 +260,9 @@ export const assets: { [asset: string]: Asset } = {
             return true; // TODO:
         },
         oracle: oracles.XAU,
-        kFactor: 1,
+        kFactor: 1.05,
         cFactor: 1,
-        mintAmount: 25_000,
+        mintAmount: 27,
     },
     krWTI: {
         name: "West Texas Intermediate, Crude Oil",
@@ -205,7 +275,7 @@ export const assets: { [asset: string]: Asset } = {
         oracle: oracles.WTI,
         kFactor: 1.05,
         cFactor: 1,
-        mintAmount: 200_000,
+        mintAmount: 650,
     },
     krETHRATE: {
         name: "Stability Rate Test Token",
@@ -220,15 +290,9 @@ export const assets: { [asset: string]: Asset } = {
         cFactor: 1,
         mintAmount: 0,
     },
-    krREWARD1: {
-        name: "Kresko Testnet Staking Reward 1",
-        symbol: "krREWARD1",
-        decimals: 18,
-        mintAmount: 1_000_000,
-    },
-    krREWARD2: {
-        name: "Kresko Testnet Staking Reward 2",
-        symbol: "krREWARD2",
+    krREWARD: {
+        name: "Kresko Testnet Staking Reward",
+        symbol: "krREWARD",
         decimals: 18,
         mintAmount: 1_000_000,
     },
@@ -236,24 +300,24 @@ export const assets: { [asset: string]: Asset } = {
 
 const defaultPools: [Asset, Asset, number][] = [
     [assets.KISS, assets.krETH, assets.krETH.mintAmount],
-    [assets.KISS, assets.krTSLA, assets.krTSLA.mintAmount],
+    // [assets.KISS, assets.krTSLA, assets.krTSLA.mintAmount],
     [assets.KISS, assets.krXAU, assets.krXAU.mintAmount],
     [assets.KISS, assets.krWTI, assets.krWTI.mintAmount],
     [assets.KISS, assets.krBTC, assets.krBTC.mintAmount],
-    [assets.KISS, assets.WETH, 17_500],
-    [assets.KISS, assets.DAI, 200_000_000],
-    [assets.WETH, assets.DAI, 50_000_000],
+    [assets.KISS, assets.WETH, 3500],
+    [assets.KISS, assets.DAI, 20_000_000],
+    [assets.WETH, assets.DAI, 10_000_000],
 ];
 
 const defaultStakingPools: StakingPoolConfig[] = [
     {
         lpToken: [assets.KISS, assets.DAI],
-        allocPoint: 1000,
+        allocPoint: 750,
         startBlock: 0,
     },
     {
         lpToken: [assets.KISS, assets.WETH],
-        allocPoint: 1000,
+        allocPoint: 500,
         startBlock: 0,
     },
     {
@@ -263,7 +327,7 @@ const defaultStakingPools: StakingPoolConfig[] = [
     },
     {
         lpToken: [assets.KISS, assets.krTSLA],
-        allocPoint: 750,
+        allocPoint: 1000,
         startBlock: 0,
     },
     {
@@ -311,9 +375,9 @@ export const testnetConfigs: NetworkConfig = {
         krAssets: [assets.krTSLA, assets.krWTI, assets.krBTC, assets.krXAU, assets.krETH, assets.krETHRATE],
         pools: defaultPools,
         stakingPools: defaultStakingPools,
-        rewardTokens: [assets.krREWARD1, assets.krREWARD2],
-        rewardTokenAmounts: [1_000_000, 1_000_000],
-        rewardsPerBlock: [0.05, 0.025],
+        rewardTokens: [assets.krREWARD],
+        rewardTokenAmounts: [1_000_000],
+        rewardsPerBlock: [0.02],
         gnosisSafeDeployments: defaultGnosisSafeDeploymentsOPGoerli,
     },
     localhost: {
@@ -332,9 +396,9 @@ export const testnetConfigs: NetworkConfig = {
         krAssets: [assets.krTSLA, assets.krWTI, assets.krBTC, assets.krXAU, assets.krETH, assets.krETHRATE],
         pools: defaultPools,
         stakingPools: defaultStakingPools,
-        rewardTokens: [assets.krREWARD1, assets.krREWARD2],
-        rewardTokenAmounts: [1_000_000, 1_000_000],
-        rewardsPerBlock: [0.05, 0.025],
+        rewardTokens: [assets.krREWARD],
+        rewardTokenAmounts: [1_000_000],
+        rewardsPerBlock: [0.02],
         gnosisSafeDeployments: defaultGnosisSafeDeploymentsOPGoerli,
     },
     opgoerli: {
@@ -353,9 +417,9 @@ export const testnetConfigs: NetworkConfig = {
         krAssets: [assets.krTSLA, assets.krWTI, assets.krBTC, assets.krXAU, assets.krETH, assets.krETHRATE],
         pools: defaultPools,
         stakingPools: defaultStakingPools,
-        rewardTokens: [assets.krREWARD1, assets.krREWARD2],
-        rewardTokenAmounts: [1_000_000, 1_000_000],
-        rewardsPerBlock: [0.05, 0.025],
+        rewardTokens: [assets.krREWARD],
+        rewardTokenAmounts: [1_000_000],
+        rewardsPerBlock: [0.02],
         gnosisSafeDeployments: defaultGnosisSafeDeploymentsOPGoerli,
     },
 };

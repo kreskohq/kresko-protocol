@@ -35,7 +35,6 @@ task("deploy-kiss")
 
             kresko: async () => await hre.Diamond.kreskoAsset(KISSContract.address),
             getPrice: async () => hre.toBig(1, 8),
-            priceAggregator: undefined,
             priceFeed: undefined,
         };
 

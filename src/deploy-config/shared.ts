@@ -4,8 +4,8 @@
 
 import { toFixedPoint } from "@kreskolabs/lib";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
-import type { MinterInitArgsStruct } from "types/Kresko";
 import type { MinterInitializer } from "types";
+import { MinterInitArgsStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 
 // These function namings are ignored when generating ABI for the diamond
 const signatureFilters = ["init", "initializer"];
@@ -32,6 +32,7 @@ export const minterFacets = [
     "StateFacet",
     "StabilityRateFacet",
     "UIDataProviderFacet",
+    "UIDataProviderFacet2",
 ];
 
 export const getMinterInitializer = async (

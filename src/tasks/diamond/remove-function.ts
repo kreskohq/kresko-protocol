@@ -3,7 +3,6 @@ import { TaskArguments } from "hardhat/types";
 import { FacetCut, FacetCutAction } from "@kreskolabs/hardhat-deploy/dist/types";
 import { getLogger } from "@kreskolabs/lib/dist/utils";
 import { constants } from "ethers";
-import { Kresko } from "types";
 
 const TASK_NAME = "remove-function";
 

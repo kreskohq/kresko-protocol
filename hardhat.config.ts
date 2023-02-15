@@ -23,7 +23,7 @@ if (process.env.FOUNDRY === "true") {
     require("@panukresko/hardhat-anvil");
     require("@panukresko/hardhat-forge");
 }
-
+require("@nomiclabs/hardhat-etherscan");
 import "hardhat-interface-generator";
 import "hardhat-contract-sizer";
 // import "hardhat-preprocessor";
@@ -65,7 +65,7 @@ import "hardhat-configs/extensions";
 /*                               CONFIGURATION                                */
 /* -------------------------------------------------------------------------- */
 const config: HardhatUserConfig = {
-    solidity: compilers,
+    solidity: { compilers },
     networks: networks(mnemonic),
     namedAccounts: users,
     mocha: {
@@ -91,7 +91,7 @@ const config: HardhatUserConfig = {
     typechain: {
         outDir: "types/typechain",
         target: "ethers-v5",
-        alwaysGenerateOverloads: false,
+        alwaysGenerateOverloads: true,
         dontOverrideCompile: false,
         discriminateTypes: false,
         tsNocheck: true,
@@ -107,7 +107,7 @@ const config: HardhatUserConfig = {
         alphaSort: true,
         disambiguatePaths: false,
         runOnCompile: true,
-        except: ["vendor"],
+        // except: ["vendor"],
     },
     //@ts-ignore
     diamondAbi: [
@@ -119,18 +119,24 @@ const config: HardhatUserConfig = {
         },
     ],
     //@ts-ignore
-    foundry: {
-        cachePath: "forge/cache",
-        buildInfo: true,
-        forgeOnly: false,
-        cacheVacuum: 0,
-    },
+    // foundry: {
+    //     cachePath: "forge/cache",
+    //     buildInfo: true,
+    //     forgeOnly: false,
+    //     cacheVacuum: 0,
+    // },
     watcher: {
         test: {
             tasks: [{ command: "test", params: { testFiles: ["{path}"] } }],
             files: ["./src/test/**/*"],
             verbose: false,
         },
+    },
+    //@ts-ignore
+    etherscan: {
+        // Your API key for Etherscan
+        // Obtain one at https://etherscan.io/
+        apiKey: process.env.ETHERSCAN_API_KEY,
     },
 };
 

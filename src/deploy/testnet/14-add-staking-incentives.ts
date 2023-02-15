@@ -12,10 +12,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const Staking = await ethers.getContract<KrStaking>("KrStaking");
 
     const config = testnetConfigs[hre.network.name];
-    const [rewardToken1, rewardToken2] = config.rewardTokens;
+    const [rewardToken1] = config.rewardTokens;
     const Reward1 = await ethers.getContract<MockERC20>(rewardToken1.symbol);
-    const Reward2 = await ethers.getContract<MockERC20>(rewardToken2.symbol);
-    const RewardTokens = [Reward1.address, Reward2.address];
+    const RewardTokens = [Reward1.address];
 
     const Factory = await hre.ethers.getContract<UniswapV2Factory>("UniswapV2Factory");
 
@@ -35,34 +34,27 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         }
     }
 
-    const [amount1, amount2] = config.rewardTokenAmounts;
+    const [amount1] = config.rewardTokenAmounts;
     if (!(await Reward1.balanceOf(Staking.address)).gt(0)) {
         await Reward1.mint(Staking.address, hre.toBig(amount1));
     }
-    if (!(await Reward2.balanceOf(Staking.address)).gt(0)) {
-        const tx = await Reward2.mint(Staking.address, hre.toBig(amount2));
-        await tx.wait();
-    }
 
     const Reward1Bal = await Reward1.balanceOf(Staking.address);
-    const Reward2Bal = await Reward2.balanceOf(Staking.address);
 
     logger.success("Pools total", Number(await Staking.poolLength()));
-    logger.success("R1", fromBig(Reward1Bal), rewardToken1.symbol, "R2", fromBig(Reward2Bal), rewardToken2.symbol);
+    logger.success("R1", fromBig(Reward1Bal), rewardToken1.symbol);
     logger.success("Incentives added");
 };
 
 func.skip = async hre => {
     const Staking = await hre.ethers.getContract<KrStaking>("KrStaking");
     const config = testnetConfigs[hre.network.name];
-    const [rewardToken1, rewardToken2] = config.rewardTokens;
+    const [rewardToken1] = config.rewardTokens;
     const Reward1 = await hre.ethers.getContract<MockERC20>(rewardToken1.symbol);
-    const Reward2 = await hre.ethers.getContract<MockERC20>(rewardToken2.symbol);
     const Reward1Bal = await Reward1.balanceOf(Staking.address);
-    const Reward2Bal = await Reward2.balanceOf(Staking.address);
     const logger = getLogger("deploy-staking");
 
-    if (Reward1Bal.gt(0) && Reward2Bal.gt(0)) {
+    if (Reward1Bal.gt(0)) {
         logger.log("Skipping deploying staking");
         return true;
     }

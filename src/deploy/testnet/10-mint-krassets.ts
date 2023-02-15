@@ -14,9 +14,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const DAI = await hre.ethers.getContract<MockERC20>("DAI");
 
-    await DAI.mint(users.deployer.address, toBig(2_000_000_000));
+    await DAI.mint(users.deployer.address, toBig(2_500_000_000));
     await DAI.approve(kresko.address, hre.ethers.constants.MaxUint256);
-    await kresko.connect(users.deployer).depositCollateral(users.deployer.address, DAI.address, toBig(2_000_000_000));
+    await kresko.connect(users.deployer).depositCollateral(users.deployer.address, DAI.address, toBig(2_500_000_000));
 
     await kresko
         .connect(users.deployer)
