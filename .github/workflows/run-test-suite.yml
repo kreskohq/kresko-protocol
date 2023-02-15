@@ -44,6 +44,7 @@ jobs:
             - run: npm run test-ci
               env:
                   FEED_VALIDATOR: ${{ secrets.FEED_VALIDATOR }}
+                  FEED_VALIDATOR_PK: ${{ secrets.FEED_VALIDATOR_PK }}
                   FEE_RECIPIENT_ADDRESS: ${{ secrets.FEE_RECIPIENT_ADDRESS }}
                   MNEMONIC: ${{ secrets.MNEMONIC }}
                   BURN_FEE: 0.015
