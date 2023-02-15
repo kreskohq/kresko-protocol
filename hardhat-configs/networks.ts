@@ -1,5 +1,6 @@
 import { ALCHEMY_API_KEY_GOERLI, INFURA_API_KEY, RPC } from "@kreskolabs/configs";
 import { utils } from "ethers";
+import { HttpNetworkUserConfig } from "hardhat/types";
 const parseUnits = utils.parseUnits;
 
 export const chainIds = {
@@ -33,7 +34,7 @@ export const chainIds = {
     xdai: 100,
 };
 
-export const networks = (mnemonic: string) => ({
+export const networks = (mnemonic: string): { [key: string]: HttpNetworkUserConfig } => ({
     aurora: {
         accounts: {
             mnemonic,
@@ -106,7 +107,6 @@ export const networks = (mnemonic: string) => ({
             count: 100,
         },
         saveDeployments: true,
-        allowUnlimitedContractSize: true,
     },
     localhost: {
         accounts: {
@@ -115,7 +115,6 @@ export const networks = (mnemonic: string) => ({
         },
         saveDeployments: true,
         chainId: chainIds.hardhat,
-        allowUnlimitedContractSize: true,
     },
     ethereum: {
         accounts: { mnemonic },

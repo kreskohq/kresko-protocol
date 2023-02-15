@@ -1,4 +1,6 @@
-export const users = {
+import { HardhatUserConfig } from "hardhat/config";
+
+export const users: HardhatUserConfig["namedAccounts"] = {
     deployer: {
         default: 0,
     },

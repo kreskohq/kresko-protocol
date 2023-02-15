@@ -10,13 +10,15 @@ import "tsconfig-paths/register";
 import "solidity-coverage";
 
 /// @note comment diamond abi if enabling forge and anvil
-import "hardhat-diamond-abi";
 import "@typechain/hardhat";
+import "hardhat-diamond-abi";
 
 import "@kreskolabs/hardhat-deploy";
 import "@nomiclabs/hardhat-ethers";
 
 import "@nomiclabs/hardhat-web3";
+import "hardhat-contract-sizer";
+import "hardhat-interface-generator";
 import "hardhat-watcher";
 
 if (process.env.FOUNDRY === "true") {
@@ -24,8 +26,6 @@ if (process.env.FOUNDRY === "true") {
     require("@panukresko/hardhat-forge");
 }
 require("@nomiclabs/hardhat-etherscan");
-import "hardhat-interface-generator";
-import "hardhat-contract-sizer";
 // import "hardhat-preprocessor";
 // import "hardhat-watcher";
 // import "hardhat-gas-reporter";
@@ -33,8 +33,8 @@ import "hardhat-contract-sizer";
 /* -------------------------------------------------------------------------- */
 /*                                   Dotenv                                   */
 /* -------------------------------------------------------------------------- */
-import { resolve } from "path";
 import { config as dotenvConfig } from "dotenv";
+import { resolve } from "path";
 
 dotenvConfig({ path: resolve(__dirname, "./.env") });
 let mnemonic = process.env.MNEMONIC;
@@ -49,21 +49,19 @@ if (!mnemonic) {
 /* -------------------------------------------------------------------------- */
 
 // import { reporters } from "mocha";
-
-/* -------------------------------------------------------------------------- */
-/*                                    Tasks                                   */
-/* -------------------------------------------------------------------------- */
-
-import "./src/tasks";
+import { compilers, networks, users } from "hardhat-configs";
 /* -------------------------------------------------------------------------- */
 /*                              Extensions To HRE                             */
 /* -------------------------------------------------------------------------- */
-import { compilers, networks, users } from "hardhat-configs";
 import "hardhat-configs/extensions";
-
+/* -------------------------------------------------------------------------- */
+/*                                    Tasks                                   */
+/* -------------------------------------------------------------------------- */
+import "./src/tasks";
 /* -------------------------------------------------------------------------- */
 /*                               CONFIGURATION                                */
 /* -------------------------------------------------------------------------- */
+
 const config: HardhatUserConfig = {
     solidity: { compilers },
     networks: networks(mnemonic),
@@ -132,12 +130,7 @@ const config: HardhatUserConfig = {
             verbose: false,
         },
     },
-    //@ts-ignore
-    etherscan: {
-        // Your API key for Etherscan
-        // Obtain one at https://etherscan.io/
-        apiKey: process.env.ETHERSCAN_API_KEY,
-    },
+    verify: { etherscan: { apiKey: process.env.ETHERSCAN_API_KEY } },
 };
 
 export default config;

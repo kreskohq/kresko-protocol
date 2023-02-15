@@ -1,3 +1,5 @@
+import { SolcUserConfig } from "hardhat/types";
+
 const oldCompilerSettings = {
     settings: {
         optimizer: {
@@ -11,7 +13,7 @@ const oldCompilerSettings = {
         },
     },
 };
-export const compilers = [
+export const compilers: SolcUserConfig[] = [
     {
         version: "0.8.14",
         settings: {
