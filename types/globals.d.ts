@@ -1,18 +1,13 @@
-import { DeployResult } from "@kreskolabs/hardhat-deploy/types";
-import type { BytesLike } from "ethers";
 import { FakeContract, MockContract } from "@defi-wonderland/smock";
-import { ERC20Upgradeable__factory } from "./typechain/factories/src/contracts/shared";
-import { KreskoAsset__factory, KreskoAssetAnchor__factory } from "./typechain/factories/src/contracts/kreskoasset";
-import { KrAssetStructOutput } from "./Kresko";
-import {KreskoAssetAnchor} from "types/typechain/src/contracts/kreskoasset"
-import { CollateralAssetStruct } from "./typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
+import { DeployResult } from "@kreskolabs/hardhat-deploy/types";
 import {
-    TestKreskoAssetUpdate,
-    TestKreskoAssetArgs,
-    TestCollateralAssetArgs,
-    TestCollateralAssetUpdate,
+  TestCollateralAssetArgs,
+  TestCollateralAssetUpdate, TestKreskoAssetArgs, TestKreskoAssetUpdate
 } from "@utils/test";
+import type { BytesLike } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { KreskoAssetAnchor } from "types/typechain/src/contracts/kreskoasset";
+import { CollateralAssetStruct, KrAssetStructOutput } from "./typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 
 declare global {
     const hre: HardhatRuntimeEnvironment;
@@ -21,7 +16,7 @@ declare global {
     /* -------------------------------------------------------------------------- */
     type Kresko = import("types/typechain").Kresko;
     type KreskoAsset = import("types/typechain").KreskoAsset;
-    type KrAsset = {
+    type TestKrAsset = {
         krAsset?: boolean;
         collateral?: boolean;
         address: string;
@@ -41,9 +36,9 @@ declare global {
         getPrice?: () => Promise<BigNumber>;
         setMarketOpen?: (marketOpen: boolean) => void;
         getMarketOpen?: () => Promise<boolean>;
-        update?: (update: TestKreskoAssetUpdate) => Promise<KrAsset>;
+        update?: (update: TestKreskoAssetUpdate) => Promise<TestKrAsset>;
     };
-    type Collateral = {
+    type TestCollateral = {
         address: string;
         collateral?: boolean;
         krAsset?: boolean;
@@ -60,13 +55,13 @@ declare global {
         setPrice?: (price: number) => void;
         setBalance?: (user: SignerWithAddress, amount: BigNumber) => Promise<void>;
         getPrice?: () => Promise<BigNumber>;
-        update?: (update: TestCollateralAssetUpdate) => Promise<CollateralAsset>;
+        update?: (update: TestCollateralAssetUpdate) => Promise<TestCollateral>;
     };
 
-    type KrAssets = KrAsset[];
-    type Collaterals = Collateral[];
+    type TestKrAssets = TestKrAsset[];
+    type TestCollaterals = TestCollateral[];
 
-    type Asset = Collateral | KrAsset;
+    type TestAsset = TestCollateral | TestKrAsset;
     /* -------------------------------------------------------------------------- */
     /*                                   Oracles                                  */
     /* -------------------------------------------------------------------------- */
@@ -91,36 +86,8 @@ declare global {
     /* -------------------------------------------------------------------------- */
     type Signer = import("ethers").Signer;
     type SignerWithAddress = import("@nomiclabs/hardhat-ethers/signers").SignerWithAddress;
-    type Users = {
-        deployer: SignerWithAddress;
-        owner: SignerWithAddress;
-        admin: SignerWithAddress;
-        operator: SignerWithAddress;
-        userOne: SignerWithAddress;
-        userTwo: SignerWithAddress;
-        userThree: SignerWithAddress;
-        userFour: SignerWithAddress;
-        nonadmin?: SignerWithAddress;
-        liquidator?: SignerWithAddress;
-        feedValidator?: SignerWithAddress;
-        treasury?: SignerWithAddress;
-    };
 
-    type Addresses = {
-        ZERO: string;
-        deployer: string;
-        owner: string;
-        admin: string;
-        operator: string;
-        userOne: string;
-        userTwo: string;
-        userThree: string;
-        userFour: string;
-        nonadmin?: string;
-        liquidator?: string;
-        feedValidator?: string;
-        treasury?: string;
-    };
+
     /* -------------------------------------------------------------------------- */
     /*                                 Deployments                                */
     /* -------------------------------------------------------------------------- */
@@ -162,4 +129,5 @@ declare global {
 
 }
 
-export {}
+export { };
+

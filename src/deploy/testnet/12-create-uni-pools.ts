@@ -31,7 +31,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             await (await hre.ethers.getContract<WETH>("WETH"))["deposit(uint256)"](hre.toBig(amountA));
         }
         if (pairAddress === ethers.constants.AddressZero) {
-            const pair = await hre.run("add-liquidity-v2", {
+            await hre.run("add-liquidity-v2", {
                 tknA: {
                     address: token0.address,
                     amount: amountA,
@@ -41,13 +41,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
                     amount: amountB,
                 },
             });
-            hre.uniPairs[`${token0.symbol}-${token1.symbol}`] = pair;
         } else {
             console.log("Pair Found", `${assetA.symbol}- ${assetB.symbol}`);
-            hre.uniPairs[`${token0.symbol}-${token1.symbol}`] = await ethers.getContractAt(
-                "UniswapV2Pair",
-                pairAddress,
-            );
         }
     }
 

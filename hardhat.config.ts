@@ -3,7 +3,6 @@
 
 import type { HardhatUserConfig } from "hardhat/types/config";
 import "tsconfig-paths/register";
-
 /* -------------------------------------------------------------------------- */
 /*                                   Plugins                                  */
 /* -------------------------------------------------------------------------- */
@@ -86,7 +85,7 @@ const config: HardhatUserConfig = {
     diamondAbi: [
         {
             name: "Kresko",
-            include: ["facets/*"],
+            include: ["facets/*", "MinterEvent", "InterestRateEvent"],
             exclude: ["vendor", "test/*", "interfaces/*", "krasset/*", "KrStaking"],
             strict: false,
         },

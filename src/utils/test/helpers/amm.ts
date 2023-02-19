@@ -7,15 +7,15 @@ import { getBlockTimestamp } from "./calculations";
 type AddLiquidityArgs = {
     user: SignerWithAddress;
     router: UniswapV2Router02;
-    token0: Collateral | KrAsset;
-    token1: Collateral | KrAsset;
+    token0: TestAsset;
+    token1: TestAsset;
     amount0: number | BigNumber;
     amount1: number | BigNumber;
 };
 type WithdrawLiquidityArgs = {
     user: SignerWithAddress;
-    token0: Collateral | KrAsset;
-    token1: Collateral | KrAsset;
+    token0: TestAsset;
+    token1: TestAsset;
 };
 
 export const addLiquidity = async (args: AddLiquidityArgs) => {
@@ -57,8 +57,8 @@ export const withdrawAllLiquidity = async (args: WithdrawLiquidityArgs) => {
 };
 type LPValueArgs = {
     user: SignerWithAddress;
-    token0: Collateral | KrAsset;
-    token1: Collateral | KrAsset;
+    token0: TestAsset;
+    token1: TestAsset;
     LPPair: UniswapV2Pair;
 };
 export const getLPTokenValue = async (args: LPValueArgs) => {
@@ -73,14 +73,14 @@ export const getLPTokenValue = async (args: LPValueArgs) => {
     return price * bal;
 };
 
-export const getPair = async (token0: Collateral | KrAsset, token1: Collateral | KrAsset) => {
+export const getPair = async (token0: TestAsset, token1: TestAsset) => {
     return hre.ethers.getContractAt(
         "UniswapV2Pair",
         await hre.UniV2Factory.getPair(token0.address, token1.address),
     ) as unknown as UniswapV2Pair;
 };
 
-export const getAMMPrices = async (tokenA: Collateral | KrAsset, tokenB: Collateral | KrAsset) => {
+export const getAMMPrices = async (tokenA: TestAsset, tokenB: TestAsset) => {
     const Pair = await getPair(tokenA, tokenB);
     const token0 = await Pair.token0();
     const reserves = await Pair.getReserves();
@@ -97,8 +97,8 @@ export const getAMMPrices = async (tokenA: Collateral | KrAsset, tokenB: Collate
 
 type LPValueArgsUsers = {
     users: SignerWithAddress[];
-    token0: Collateral | KrAsset;
-    token1: Collateral | KrAsset;
+    token0: TestAsset;
+    token1: TestAsset;
     LPPair: UniswapV2Pair;
 };
 export const getValuesForUsers = async (logDesc: string, args: LPValueArgsUsers) => {

@@ -64,7 +64,7 @@ describe("Stability Rates", () => {
     describe("#stability rate - liquidation", () => {
         const depositAmount = hre.toBig(100);
         const mintAmount = hre.toBig(10);
-        let krAssets: KrAsset[];
+        let krAssets: TestKrAsset[];
         beforeEach(async function () {
             await this.collateral.setBalance(userTwo, depositAmount);
             // Create few krAssets

@@ -1,37 +1,11 @@
-import { HardhatRuntimeEnvironment } from "hardhat/types";
+import type { HardhatRuntimeEnvironment, HardhatUsers } from "hardhat/types";
 import "@kreskolabs/hardhat-deploy";
 import "@nomiclabs/hardhat-ethers";
 import { FluxPriceFeedFactory } from "types/typechain/src/contracts/vendor/flux/FluxPriceFeedFactory";
-export const getUsers = async (hre?: HardhatRuntimeEnvironment): Promise<Users> => {
+export const getUsers = async (hre?: HardhatRuntimeEnvironment): Promise<HardhatUsers<SignerWithAddress>> => {
     if (!hre) hre = require("hardhat");
-    const {
-        deployer,
-        owner,
-        admin,
-        operator,
-        userOne,
-        userTwo,
-        userThree,
-        userFour,
-        nonadmin,
-        liquidator,
-        feedValidator,
-        treasury,
-    } = await hre.ethers.getNamedSigners();
-    return {
-        deployer,
-        owner,
-        admin,
-        operator,
-        userOne,
-        userTwo,
-        userThree,
-        userFour,
-        nonadmin,
-        liquidator,
-        feedValidator,
-        treasury,
-    };
+
+    return (await hre.ethers.getNamedSigners()) as HardhatUsers<SignerWithAddress>;
 };
 export const getOracle = async (oracleDesc: string, hre?: HardhatRuntimeEnvironment) => {
     const { feedValidator } = await hre.ethers.getNamedSigners();
@@ -43,37 +17,10 @@ export const getOracle = async (oracleDesc: string, hre?: HardhatRuntimeEnvironm
     }
     return fluxFeed;
 };
-export const getAddresses = async (hre?: HardhatRuntimeEnvironment): Promise<Addresses> => {
+export const getAddresses = async (hre?: HardhatRuntimeEnvironment): Promise<HardhatUsers<string>> => {
     if (!hre) hre = require("hardhat");
-    const {
-        deployer,
-        owner,
-        admin,
-        operator,
-        userOne,
-        userTwo,
-        userThree,
-        userFour,
-        nonadmin,
-        liquidator,
-        feedValidator,
-        treasury,
-    } = await hre.ethers.getNamedSigners();
-    return {
-        ZERO: hre.ethers.constants.AddressZero,
-        deployer: deployer.address,
-        owner: owner.address,
-        admin: admin.address,
-        operator: operator.address,
-        userOne: userOne.address,
-        userTwo: userTwo.address,
-        userThree: userThree.address,
-        userFour: userFour.address,
-        nonadmin: nonadmin.address,
-        liquidator: liquidator.address,
-        feedValidator: feedValidator.address,
-        treasury: treasury.address,
-    };
+
+    return (await hre.getNamedAccounts()) as HardhatUsers<string>;
 };
 
 export const randomContractAddress = (hre: HardhatRuntimeEnvironment) => {

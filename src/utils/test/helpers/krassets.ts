@@ -9,12 +9,12 @@ import { TestKreskoAssetArgs, defaultKrAssetArgs, TestKreskoAssetUpdate, InputAr
 import roles from "../roles";
 import { getMockOracleFor, setPrice, setMarketOpen } from "./general";
 
-export const getDebtIndexAdjustedBalance = async (user: SignerWithAddress, asset: KrAsset) => {
+export const getDebtIndexAdjustedBalance = async (user: SignerWithAddress, asset: TestKrAsset) => {
     const balance = await asset.contract.balanceOf(user.address);
     return [balance, balance.rayMul(await hre.Diamond.getDebtIndexForAsset(asset.address))];
 };
 
-export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAssetArgs): Promise<KrAsset> => {
+export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAssetArgs): Promise<TestKrAsset> => {
     const users = await getUsers();
     const { name, symbol, price, marketOpen, factor, supplyLimit, closeFee, openFee, stabilityRateBase } = args;
 
@@ -69,7 +69,7 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
         mockFeed: MockOracle,
         priceFeed: Oracle,
     };
-    const asset: KrAsset = {
+    const asset: TestKrAsset = {
         krAsset: true,
         address: krAsset.address,
         // @ts-ignore
@@ -106,7 +106,7 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
 
 export const addMockKreskoAssetWithAMMPair = async (
     args: TestKreskoAssetArgs = defaultKrAssetArgs,
-): Promise<KrAsset> => {
+): Promise<TestKrAsset> => {
     const users = await getUsers();
     const { name, symbol, price, marketOpen, factor, supplyLimit, closeFee, openFee } = args;
 
@@ -157,7 +157,7 @@ export const addMockKreskoAssetWithAMMPair = async (
         mockFeed: MockOracle,
         priceFeed: FakeOracle,
     };
-    const asset: KrAsset = {
+    const asset: TestKrAsset = {
         krAsset: true,
         address: krAsset.address,
         // @ts-ignore
@@ -205,7 +205,7 @@ export const updateKrAsset = async (address: string, args: TestKreskoAssetUpdate
         toFixedPoint(args.openFee),
     );
 
-    const asset: KrAsset = {
+    const asset: TestKrAsset = {
         deployArgs: { ...krAsset.deployArgs, ...args },
         ...krAsset,
     };

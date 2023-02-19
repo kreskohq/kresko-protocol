@@ -23,7 +23,6 @@ types/contracts
 _bin
 bin
 lib
-
 # secrets
 *interact.ethers
 *.env
@@ -38,6 +37,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 **/.DS_Store
+
+*ganache.js
 
 # OpenZeppelin
 .openzeppelin/dev-*.json

@@ -20,7 +20,7 @@ task("deploy-kiss")
         const hasRole = await KISSContract.hasRole(Role.OPERATOR, hre.Diamond.address);
         const kresko = await KISSContract.kresko();
 
-        const asset: KrAsset = {
+        const asset: TestKrAsset = {
             address: KISSContract.address,
             contract: KISSContract as unknown as KreskoAsset,
             deployArgs: {

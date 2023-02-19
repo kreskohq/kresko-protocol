@@ -93,7 +93,7 @@ describe("Minter", () => {
     });
     describe("#maxLiquidatableValue", () => {
         let user: SignerWithAddress;
-        let newCollateral: Collateral;
+        let newCollateral: TestCollateral;
         const collateralPrice = 10;
         const krAssetPrice = 10;
         const collateralPriceAfter = 135 / (20 * 50);

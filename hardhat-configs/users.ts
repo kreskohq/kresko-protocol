@@ -1,6 +1,5 @@
 import { HardhatUserConfig } from "hardhat/config";
-
-export const users: HardhatUserConfig["namedAccounts"] = {
+export const hardhatUsers = {
     deployer: {
         default: 0,
     },
@@ -96,3 +95,4 @@ export const users: HardhatUserConfig["namedAccounts"] = {
         default: 52,
     },
 };
+export const users: HardhatUserConfig["namedAccounts"] = hardhatUsers;

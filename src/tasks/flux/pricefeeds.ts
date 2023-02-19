@@ -11,7 +11,7 @@ task("deployone:fluxpricefeed")
     .addOptionalParam("wait", "wait confirmations", 1, types.int)
     .addOptionalParam("log", "log information", !process.env.TEST, types.boolean)
     .setAction(async function (taskArgs: TaskArguments, hre) {
-        const { deploy, getNamedAccounts, priceFeeds } = hre;
+        const { deploy, getNamedAccounts } = hre;
         const { admin, deployer } = await getNamedAccounts();
         const users = await getUsers();
 
@@ -38,6 +38,5 @@ task("deployone:fluxpricefeed")
             await PriceFeed.connect(users.admin).grantRole(VALIDATOR_ROLE, kreskoOracleAddr);
         }
 
-        priceFeeds[description] = PriceFeed;
         return PriceFeed;
     });

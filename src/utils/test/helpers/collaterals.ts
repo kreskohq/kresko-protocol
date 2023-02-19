@@ -8,48 +8,48 @@ import { getMockOracleFor, setPrice } from "./general";
 
 export const addMockCollateralAsset = async (
     args: TestCollateralAssetArgs = defaultCollateralArgs,
-): Promise<Collateral> => {
+): Promise<TestCollateral> => {
     const users = await getUsers();
 
     const { name, price, factor, decimals } = args;
     const [MockOracle, FakeOracle] = await getMockOracleFor(name, price);
 
-    const Collateral = await (await smock.mock<ERC20Upgradeable__factory>("ERC20Upgradeable")).deploy();
-    await Collateral.setVariable("_initialized", 0);
+    const TestCollateral = await (await smock.mock<ERC20Upgradeable__factory>("ERC20Upgradeable")).deploy();
+    await TestCollateral.setVariable("_initialized", 0);
 
-    Collateral.name.returns(name);
-    Collateral.symbol.returns(name);
-    Collateral.decimals.returns(decimals);
+    TestCollateral.name.returns(name);
+    TestCollateral.symbol.returns(name);
+    TestCollateral.decimals.returns(decimals);
     const cFactor = toFixedPoint(factor);
     await hre.Diamond.connect(users.operator).addCollateralAsset(
-        Collateral.address,
+        TestCollateral.address,
         hre.ethers.constants.AddressZero,
         cFactor,
         MockOracle.address,
         MockOracle.address,
     );
     const mocks = {
-        contract: Collateral,
+        contract: TestCollateral,
         mockFeed: MockOracle,
         priceFeed: FakeOracle,
     };
-    const asset: Collateral = {
-        address: Collateral.address,
-        contract: ERC20Upgradeable__factory.connect(Collateral.address, users.deployer),
-        kresko: () => hre.Diamond.collateralAsset(Collateral.address),
+    const asset: TestCollateral = {
+        address: TestCollateral.address,
+        contract: ERC20Upgradeable__factory.connect(TestCollateral.address, users.deployer),
+        kresko: () => hre.Diamond.collateralAsset(TestCollateral.address),
         priceFeed: FluxPriceFeed__factory.connect(FakeOracle.address, users.deployer),
         deployArgs: args,
         mocks,
         setPrice: price => setPrice(mocks, price),
         getPrice: () => MockOracle.latestAnswer(),
         setBalance: async (user, amount) => {
-            const totalSupply = await Collateral.totalSupply();
+            const totalSupply = await TestCollateral.totalSupply();
             await mocks.contract.setVariable("_totalSupply", totalSupply.add(amount));
             await mocks.contract.setVariable("_balances", {
                 [user.address]: amount,
             });
         },
-        update: update => updateCollateralAsset(Collateral.address, update),
+        update: update => updateCollateralAsset(TestCollateral.address, update),
     };
     const found = hre.collaterals.findIndex(c => c.address === asset.address);
     if (found === -1) {
@@ -72,7 +72,7 @@ export const updateCollateralAsset = async (address: string, args: TestCollatera
         args.oracle || collateral.priceFeed.address,
         args.oracle || collateral.priceFeed.address,
     );
-    const asset: Collateral = {
+    const asset: TestCollateral = {
         deployArgs: { ...collateral.deployArgs, ...args },
         ...collateral,
     };

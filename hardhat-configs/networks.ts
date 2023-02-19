@@ -1,7 +1,6 @@
 import { ALCHEMY_API_KEY_GOERLI, INFURA_API_KEY, RPC } from "@kreskolabs/configs";
-import { utils } from "ethers";
+import { parseUnits } from "ethers/lib/utils";
 import { HttpNetworkUserConfig } from "hardhat/types";
-const parseUnits = utils.parseUnits;
 
 export const chainIds = {
     aurora: 1313161554,
@@ -107,6 +106,16 @@ export const networks = (mnemonic: string): { [key: string]: HttpNetworkUserConf
             count: 100,
         },
         chainId: chainIds.hardhat,
+    },
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    ganache: {
+        url: "http://127.0.0.1:7545",
+        chainId: 1337,
+        accounts: { mnemonic, count: 100 },
+        companionNetworks: {
+            live: "opgoerli",
+        },
     },
     localhost: {
         accounts: {

@@ -125,6 +125,9 @@ const log = getLogger(TASK_NAME);
 task(TASK_NAME).setAction(async function (_taskArgs: TaskArguments, hre) {
     try {
         log.log("Starting");
+        console.log(hre.network.name);
+        const kresko = await hre.getContractOrFork<Kresko>("Diamond");
+        console.log(kresko.address);
         log.log("Finished");
     } catch (e) {
         log.error(e);
