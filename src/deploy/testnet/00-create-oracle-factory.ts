@@ -23,6 +23,7 @@ const func: DeployFunction = async function (hre) {
     const logger = getLogger("create-oracle-factory");
     const pricePairs = assets.map(asset => asset.oracle.description);
     const prices = await Promise.all(assets.map(asset => asset.price()));
+
     const decimals = assets.map(() => 8);
 
     const marketOpens = await Promise.all(assets.map(asset => asset.marketOpen()));

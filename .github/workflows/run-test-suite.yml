@@ -45,6 +45,7 @@ jobs:
               env:
                   FEED_VALIDATOR: ${{ secrets.FEED_VALIDATOR }}
                   FEED_VALIDATOR_PK: ${{ secrets.FEED_VALIDATOR_PK }}
+                  TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
                   FEE_RECIPIENT_ADDRESS: ${{ secrets.FEE_RECIPIENT_ADDRESS }}
                   ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
                   MNEMONIC: ${{ secrets.MNEMONIC }}
