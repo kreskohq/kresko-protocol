@@ -86,17 +86,17 @@ const config: HardhatUserConfig = {
     diamondAbi: [
         {
             name: "Kresko",
-            include: ["facets/*", "MinterEvent", "AuthEvent"],
+            include: ["facets/*"],
             exclude: ["vendor", "test/*", "interfaces/*", "krasset/*", "KrStaking"],
             strict: false,
         },
     ],
     typechain: {
-        outDir: "types/forged",
+        outDir: "types/typechain",
         target: "ethers-v5",
         alwaysGenerateOverloads: true,
         dontOverrideCompile: false,
-        discriminateTypes: true,
+        discriminateTypes: false,
         tsNocheck: true,
         externalArtifacts: ["./artifacts/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko.json"],
     },

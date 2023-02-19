@@ -46,6 +46,7 @@ jobs:
                   FEED_VALIDATOR: ${{ secrets.FEED_VALIDATOR }}
                   FEED_VALIDATOR_PK: ${{ secrets.FEED_VALIDATOR_PK }}
                   FEE_RECIPIENT_ADDRESS: ${{ secrets.FEE_RECIPIENT_ADDRESS }}
+                  ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
                   MNEMONIC: ${{ secrets.MNEMONIC }}
                   BURN_FEE: 0.015
                   LIQUIDATION_INCENTIVE: 1.05
