@@ -1,6 +1,5 @@
 import { anchorTokenPrefix } from "@deploy-config/shared";
-import { toBig, toFixedPoint } from "@kreskolabs/lib/dist/numbers";
-import { oneRay } from "@kreskolabs/lib/dist/numbers/wadray";
+import { toBig, toFixedPoint, oneRay } from "@kreskolabs/lib";
 
 export type TestCollateralAssetArgs = {
     name: string;

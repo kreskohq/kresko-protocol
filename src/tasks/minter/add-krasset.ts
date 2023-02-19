@@ -1,4 +1,4 @@
-import { getLogger } from "@kreskolabs/lib/dist/utils";
+import { getLogger } from "@kreskolabs/lib";
 import { toFixedPoint } from "@kreskolabs/lib";
 import { defaultSupplyLimit } from "@utils/test/mocks";
 import { task, types } from "hardhat/config";

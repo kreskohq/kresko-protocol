@@ -1,5 +1,5 @@
 import { FacetCut, FacetCutAction } from "@kreskolabs/hardhat-deploy/dist/types";
-import { getLogger } from "@kreskolabs/lib/dist/utils";
+import { getLogger } from "@kreskolabs/lib";
 
 type Args = {
     name: string;

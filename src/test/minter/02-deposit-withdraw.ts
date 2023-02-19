@@ -8,7 +8,8 @@ import {
     withFixture,
 } from "@test-utils";
 import hre from "hardhat";
-import { getInternalEvent, fromBig, toBig } from "@kreskolabs/lib";
+import { fromBig, toBig } from "@kreskolabs/lib";
+import { getInternalEvent } from "@kreskolabs/protocol-ts";
 import { executeContractCallWithSigners } from "@utils/gnosis/utils/execution";
 import { Error } from "@utils/test/errors";
 import { addMockCollateralAsset, depositCollateral, withdrawCollateral } from "@utils/test/helpers/collaterals";

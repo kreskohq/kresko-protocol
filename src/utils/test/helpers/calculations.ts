@@ -1,4 +1,4 @@
-import { RAY } from "@kreskolabs/lib/dist/numbers/wadray";
+import { RAY } from "@kreskolabs/lib";
 import { BigNumber } from "ethers";
 import { FixedPoint } from "types/typechain/src/contracts/minter/facets/AccountStateFacet";
 export const ONE_YEAR = 60 * 60 * 24 * 365;

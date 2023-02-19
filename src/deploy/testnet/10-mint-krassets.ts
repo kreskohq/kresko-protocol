@@ -1,7 +1,7 @@
 import { testnetConfigs } from "@deploy-config/testnet-goerli";
 import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import { fromBig, toBig } from "@kreskolabs/lib";
-import { getLogger } from "@kreskolabs/lib/dist/utils";
+import { getLogger } from "@kreskolabs/lib";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import type { KreskoAsset, MockERC20 } from "types";
 

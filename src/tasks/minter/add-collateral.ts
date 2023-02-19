@@ -1,6 +1,6 @@
 import type { TaskArguments } from "hardhat/types";
 import type { MockERC20 } from "types";
-import { getLogger } from "@kreskolabs/lib/dist/utils";
+import { getLogger } from "@kreskolabs/lib";
 import { toFixedPoint, fromBig } from "@kreskolabs/lib";
 
 import { task, types } from "hardhat/config";

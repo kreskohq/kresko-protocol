@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
-import { getNamedEvent } from "@kreskolabs/lib";
-import { getLogger } from "@kreskolabs/lib/dist/utils";
+import { getNamedEvent } from "@kreskolabs/protocol-ts";
+import { getLogger } from "@kreskolabs/lib";
 // import { executeContractCallWithSigners } from "@utils/gnosis";
 import { GnosisSafeL2 } from "types/typechain/src/contracts/vendor/gnosis/GnosisSafeL2";
 import {

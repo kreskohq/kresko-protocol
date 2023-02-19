@@ -1,4 +1,4 @@
-// import { getLogger } from "@kreskolabs/lib/dist/utils";
+// import { getLogger } from "@kreskolabs/lib";
 import { task } from "hardhat/config";
 // import { UniswapV2Pair__factory } from "types/typechain";
 // import { bytecode } from "artifacts/src/contracts/vendor/uniswap/v2-core/UniswapV2Pair.sol/UniswapV2Pair.json";

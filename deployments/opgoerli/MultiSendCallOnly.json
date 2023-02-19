@@ -1,19 +1,19 @@
 {
-  "address": "0xA1dabEF33b3B82c7814B6D82A79e50F4AC44102B",
-  "abi": [
-    {
-      "inputs": [
+    "address": "0xA1dabEF33b3B82c7814B6D82A79e50F4AC44102B",
+    "abi": [
         {
-          "internalType": "bytes",
-          "name": "transactions",
-          "type": "bytes"
+            "inputs": [
+                {
+                    "internalType": "bytes",
+                    "name": "transactions",
+                    "type": "bytes"
+                }
+            ],
+            "name": "multiSend",
+            "outputs": [],
+            "stateMutability": "payable",
+            "type": "function"
         }
-      ],
-      "name": "multiSend",
-      "outputs": [],
-      "stateMutability": "payable",
-      "type": "function"
-    }
-  ],
-  "numDeployments": 19
+    ],
+    "numDeployments": 19
 }

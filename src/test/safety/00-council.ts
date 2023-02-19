@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { getInternalEvent } from "@kreskolabs/lib/dist/events";
+import { getInternalEvent } from "@kreskolabs/protocol-ts";
 import { Action, defaultCollateralArgs, defaultKrAssetArgs } from "@test-utils";
 import { executeContractCallWithSigners } from "@utils/gnosis/utils/execution";
 import { withFixture } from "@utils/test";

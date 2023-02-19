@@ -1,4 +1,4 @@
-import { getLogger } from "@kreskolabs/lib/dist/utils";
+import { getLogger } from "@kreskolabs/lib";
 import { toBig } from "@kreskolabs/lib";
 import { deployWithSignatures } from "@utils/deployment";
 import { task, types } from "hardhat/config";

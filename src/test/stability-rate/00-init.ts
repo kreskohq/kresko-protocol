@@ -1,4 +1,4 @@
-import { oneRay } from "@kreskolabs/lib/dist/numbers/wadray";
+import { oneRay } from "@kreskolabs/lib";
 import { expect } from "@test/chai";
 import { defaultCollateralArgs, defaultKrAssetArgs, withFixture } from "@utils/test";
 import hre from "hardhat";

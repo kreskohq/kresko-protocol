@@ -18,6 +18,7 @@ deployments/hardhat
 deployments/localhost
 deployments/anvil
 types/typechain
+types/forged
 types/contracts
 _bin
 bin

@@ -1,7 +1,7 @@
 import type { KrStaking, MockERC20, UniswapV2Factory } from "types";
 import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
-import { getLogger } from "@kreskolabs/lib/dist/utils";
+import { getLogger } from "@kreskolabs/lib";
 import { fromBig } from "@kreskolabs/lib";
 import { testnetConfigs } from "@deploy-config/testnet-goerli";
 

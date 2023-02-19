@@ -34,7 +34,7 @@ FEE_RECIPIENT_ADDRESS=0x0000000000000000000000000000000000000FEE
 
 ```
 
-Run tests: 
+Run tests:
 
 ```sh
 pnpm test
@@ -43,15 +43,16 @@ pnpm test
 ### Deployment
 
 Compile and dry-run the deployments on hardhat-network:
+
 ```sh
 pnpm deploy
 ```
 
 Deploy to external networks:
+
 ```sh
 pnpm deploy --network <network>
 ```
-
 
 ### Contributions
 

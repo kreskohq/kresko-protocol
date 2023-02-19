@@ -1,5 +1,5 @@
-import { toBig } from "@kreskolabs/lib/dist/numbers";
-import { oneRay } from "@kreskolabs/lib/dist/numbers/wadray";
+import { toBig } from "@kreskolabs/lib";
+import { oneRay } from "@kreskolabs/lib";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { BASIS_POINT, defaultCollateralArgs, defaultKrAssetArgs, withFixture } from "@utils/test";
 import { addLiquidity, getTWAPUpdaterFor, swap } from "@utils/test/helpers/amm";

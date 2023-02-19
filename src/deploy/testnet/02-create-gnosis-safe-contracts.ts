@@ -1,5 +1,5 @@
 import { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
-import { getLogger } from "@kreskolabs/lib/dist/utils";
+import { getLogger } from "@kreskolabs/lib";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { testnetConfigs } from "@deploy-config/testnet-goerli";
 

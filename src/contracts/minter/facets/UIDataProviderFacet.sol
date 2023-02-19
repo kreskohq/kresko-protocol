@@ -10,6 +10,7 @@ pragma solidity >=0.8.14;
 /* solhint-disable func-visibility */
 
 import {ds, Error, Meta} from "../../shared/Modifiers.sol";
+import "../../libs/Events.sol";
 import {LibUI, IKresko, IKrStaking, IUniswapV2Pair, IERC20Upgradeable, AggregatorV2V3Interface, ms} from "../libs/LibUI.sol";
 
 /**

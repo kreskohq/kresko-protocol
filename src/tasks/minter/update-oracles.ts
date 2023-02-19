@@ -1,6 +1,6 @@
 import { testnetConfigs } from "@deploy-config/testnet-goerli";
-import { fromBig } from "@kreskolabs/lib/dist/numbers";
-import { getLogger } from "@kreskolabs/lib/dist/utils";
+import { fromBig } from "@kreskolabs/lib";
+import { getLogger } from "@kreskolabs/lib";
 import { task } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
 import { FluxPriceFeedFactory } from "types";

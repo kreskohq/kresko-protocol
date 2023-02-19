@@ -1,6 +1,6 @@
 import { FormatTypes, Fragment } from "@ethersproject/abi";
 import { FacetCut, FacetCutAction } from "@kreskolabs/hardhat-deploy/dist/types";
-import { fromBig, toBig } from "@kreskolabs/lib/dist/numbers";
+import { fromBig, toBig } from "@kreskolabs/lib";
 import { deployWithSignatures } from "@utils/deployment";
 import { getAddresses, getUsers } from "@utils/general";
 import { constants, ethers } from "ethers";

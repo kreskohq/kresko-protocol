@@ -1,4 +1,4 @@
-import { getLogger } from "@kreskolabs/lib/dist/utils";
+import { getLogger } from "@kreskolabs/lib";
 import { task, types } from "hardhat/config";
 
 task("latestAnswer", "Fetches the latest answer")

@@ -1,4 +1,5 @@
-import { fromBig, getInternalEvent, toBig } from "@kreskolabs/lib";
+import { fromBig, toBig } from "@kreskolabs/lib";
+import { getInternalEvent } from "@kreskolabs/protocol-ts";
 import { defaultCloseFee, defaultCollateralArgs, defaultKrAssetArgs, Fee, Role, withFixture } from "@test-utils";
 import { Error } from "@utils/test/errors";
 import { toScaledAmount, fromScaledAmount } from "@utils/test/helpers/calculations";

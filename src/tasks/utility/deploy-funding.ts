@@ -1,4 +1,4 @@
-import { getLogger } from "@kreskolabs/lib/dist/utils";
+import { getLogger } from "@kreskolabs/lib";
 import { task } from "hardhat/config";
 import { KISS, Multisender, WETH } from "types";
 import { TokenStruct } from "types/typechain/src/contracts/test/Multisender";

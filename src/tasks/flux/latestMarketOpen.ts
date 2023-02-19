@@ -1,4 +1,4 @@
-import { getLogger } from "@kreskolabs/lib/dist/utils";
+import { getLogger } from "@kreskolabs/lib";
 import { task, types } from "hardhat/config";
 
 task("latestMarketOpen", "Fetches the latest market open")

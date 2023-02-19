@@ -22,11 +22,9 @@ export const compilers: SolcUserConfig[] = [
                 enabled: true,
                 runs: 200,
                 details: {
+                    constantOptimizer: false,
                     deduplicate: true,
                     yul: true,
-                    yulDetails: {
-                        stackAllocation: true,
-                    },
                 },
             },
             outputSelection: {
