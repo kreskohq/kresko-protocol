@@ -1,7 +1,7 @@
 import hre from "hardhat";
 import { expect } from "@test/chai";
 import { smock } from "@defi-wonderland/smock";
-import { FacetCut, FacetCutAction } from "@kreskolabs/hardhat-deploy/dist/types";
+import { FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
 import {
     SmockFacet__factory,
     SmockInit,

@@ -1,4 +1,4 @@
-import { FacetCut, FacetCutAction } from "@kreskolabs/hardhat-deploy/dist/types";
+import { FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
 import { getLogger } from "@kreskolabs/lib";
 
 type Args = {

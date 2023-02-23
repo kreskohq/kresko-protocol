@@ -1,5 +1,5 @@
 import { FakeContract, MockContract } from "@defi-wonderland/smock";
-import { DeployResult } from "@kreskolabs/hardhat-deploy/types";
+import { DeployResult } from "hardhat-deploy/types";
 import {
   TestCollateralAssetArgs,
   TestCollateralAssetUpdate, TestKreskoAssetArgs, TestKreskoAssetUpdate

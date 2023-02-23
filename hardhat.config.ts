@@ -12,7 +12,7 @@ import "hardhat-diamond-abi";
 /// @note comment diamond abi if enabling forge and anvil
 import "@typechain/hardhat";
 
-import "@kreskolabs/hardhat-deploy";
+import "hardhat-deploy";
 import "@nomiclabs/hardhat-ethers";
 
 import "@nomiclabs/hardhat-web3";

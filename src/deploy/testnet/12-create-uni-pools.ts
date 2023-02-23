@@ -1,4 +1,4 @@
-import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
+import type { DeployFunction } from "hardhat-deploy/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import { UniswapV2Factory, WETH } from "types";
 import { getLogger } from "@kreskolabs/lib";

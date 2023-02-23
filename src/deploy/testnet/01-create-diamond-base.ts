@@ -1,6 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { DeployFunction, FacetCut } from "@kreskolabs/hardhat-deploy/types";
-import { mergeABIs } from "@kreskolabs/hardhat-deploy/dist/src/utils";
+import { DeployFunction, FacetCut } from "hardhat-deploy/types";
+import { mergeABIs } from "hardhat-deploy/dist/src/utils";
 import { getLogger } from "@kreskolabs/lib";
 import { diamondFacets } from "@deploy-config/shared";
 import type { Kresko } from "types/typechain";

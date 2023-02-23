@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { FormatTypes, Fragment } from "@ethersproject/abi";
-import { FacetCut, FacetCutAction } from "@kreskolabs/hardhat-deploy/dist/types";
-import { DeployOptions } from "@kreskolabs/hardhat-deploy/types";
+import { FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
+import { DeployOptions } from "hardhat-deploy/types";
 import { fromBig, toBig } from "@kreskolabs/lib";
 import { deployWithSignatures } from "@utils/deployment";
 import { getAddresses, getUsers } from "@utils/general";

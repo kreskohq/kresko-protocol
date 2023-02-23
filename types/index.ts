@@ -1,4 +1,4 @@
-import { Address } from "@kreskolabs/hardhat-deploy/types";
+import { Address } from "hardhat-deploy/types";
 
 export * from "./typechain";
 export { Kresko } from "./typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";

@@ -133,4 +133,4 @@ var Error;
     Error["INVALID_LIQUIDITY"] = "706";
     Error["UPDATE_PERIOD_NOT_FINISHED"] = "707";
     Error["INVALID_PAIR"] = "708";
-})(Error = exports.Error || (exports.Error = {}));
+})((Error = exports.Error || (exports.Error = {})));

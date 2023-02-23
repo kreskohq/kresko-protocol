@@ -1,7 +1,7 @@
 import hre from "hardhat";
-import { FacetCut, FacetCutAction } from "@kreskolabs/hardhat-deploy/dist/types";
+import { FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
 import { getLogger } from "@kreskolabs/lib";
-import { mergeABIs } from "@kreskolabs/hardhat-deploy/dist/src/utils";
+import { mergeABIs } from "hardhat-deploy/dist/src/utils";
 
 type Args = {
     name: string;

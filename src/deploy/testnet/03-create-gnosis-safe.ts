@@ -1,5 +1,5 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
+import { DeployFunction } from "hardhat-deploy/types";
 import { getNamedEvent } from "@kreskolabs/protocol-ts";
 import { getLogger } from "@kreskolabs/lib";
 // import { executeContractCallWithSigners } from "@utils/gnosis";

@@ -6,7 +6,7 @@ import { Fragment, FunctionFragment, JsonFragment } from "@ethersproject/abi";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { fromBig, toBig } from "@kreskolabs/lib";
 import type { Fixture } from "ethereum-waffle";
-import type { ABI, Deployment, DeployOptions, Facet, FacetCut } from "@kreskolabs/hardhat-deploy/dist/types";
+import type { ABI, Deployment, DeployOptions, Facet, FacetCut } from "hardhat-deploy/dist/types";
 
 import type {
   FluxPriceFeed,

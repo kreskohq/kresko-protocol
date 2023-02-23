@@ -1,5 +1,5 @@
 import type { HardhatRuntimeEnvironment, HardhatUsers } from "hardhat/types";
-import "@kreskolabs/hardhat-deploy";
+import "hardhat-deploy";
 import "@nomiclabs/hardhat-ethers";
 import { FluxPriceFeedFactory } from "types/typechain/src/contracts/vendor/flux/FluxPriceFeedFactory";
 export const getUsers = async (hre?: HardhatRuntimeEnvironment): Promise<HardhatUsers<SignerWithAddress>> => {

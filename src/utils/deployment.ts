@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { DeployOptions } from "@kreskolabs/hardhat-deploy/types";
+import type { DeployOptions } from "hardhat-deploy/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import SharedConfig from "@deploy-config/shared";
 

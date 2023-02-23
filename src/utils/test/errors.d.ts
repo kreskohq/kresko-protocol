@@ -97,6 +97,6 @@ export declare enum Error {
     PAIR_DOES_NOT_EXIST = "704",
     INVALID_LIQUIDITY = "706",
     UPDATE_PERIOD_NOT_FINISHED = "707",
-    INVALID_PAIR = "708"
+    INVALID_PAIR = "708",
 }
 //# sourceMappingURL=errors.d.ts.map

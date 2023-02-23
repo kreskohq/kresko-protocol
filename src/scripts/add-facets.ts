@@ -1,5 +1,5 @@
-import { mergeABIs } from "@kreskolabs/hardhat-deploy/dist/src/utils";
-import { FacetCut } from "@kreskolabs/hardhat-deploy/dist/types";
+import { mergeABIs } from "hardhat-deploy/dist/src/utils";
+import { FacetCut } from "hardhat-deploy/dist/types";
 import { getLogger } from "@kreskolabs/lib";
 import { constants } from "ethers";
 import hre from "hardhat";

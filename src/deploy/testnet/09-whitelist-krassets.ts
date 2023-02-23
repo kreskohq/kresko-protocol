@@ -1,6 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { testnetConfigs } from "@deploy-config/testnet-goerli";
-import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
+import type { DeployFunction } from "hardhat-deploy/types";
 import { getLogger } from "@kreskolabs/lib";
 import { getOracle } from "@utils/general";
 

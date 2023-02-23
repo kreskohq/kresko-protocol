@@ -1,5 +1,5 @@
 import { assets as goerliAssets, testnetConfigs } from "@deploy-config/testnet-goerli";
-import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
+import type { DeployFunction } from "hardhat-deploy/types";
 import { getLogger } from "@kreskolabs/lib";
 import type { FluxPriceFeedFactory } from "types";
 

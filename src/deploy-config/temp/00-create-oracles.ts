@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
+import type { DeployFunction } from "hardhat-deploy/types";
 import type { FluxPriceFeed } from "types";
 import { testnetConfigs } from "@deploy-config/testnet-goerli";
 import { getLogger } from "@kreskolabs/lib";
