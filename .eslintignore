@@ -15,6 +15,7 @@ src/contracts/test/**/*
 src/utils/**/*
 mochawesome-report/**/*
 ganache.js
+test/**/*
 
 # files
 .solcover.js

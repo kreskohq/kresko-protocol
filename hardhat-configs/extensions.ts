@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { FormatTypes, Fragment } from "@ethersproject/abi";
 import { FacetCut, FacetCutAction } from "@kreskolabs/hardhat-deploy/dist/types";
 import { DeployOptions } from "@kreskolabs/hardhat-deploy/types";
@@ -26,10 +27,10 @@ extendEnvironment(function (hre) {
     hre.getUsers = getUsers;
     hre.getAddresses = getAddresses;
     hre.forking = {
-        provider: new ethers.providers.JsonRpcProvider(networks(process.env.MNEMONIC).ganache.url),
+        provider: new ethers.providers.JsonRpcProvider(networks(process.env.MNEMONIC!).ganache.url),
         deploy: async <T extends Contract>(name: string, options?: DeployOptions) => {
             const signer = options ? hre.forking.provider.getSigner(options.from) : hre.users.deployer;
-            return (await (await hre.ethers.getContractFactory(name, signer)).deploy(options.args)) as T;
+            return (await (await hre.ethers.getContractFactory(name, signer)).deploy(options?.args)) as T;
         },
     };
 
@@ -80,7 +81,7 @@ extendEnvironment(function (hre) {
             ? {
                   _init: initializer.contract.address,
                   _calldata: initializer.contract.interface.encodeFunctionData(
-                      initializer.functionName,
+                      initializer.functionName!,
                       initializer.args,
                   ),
               }

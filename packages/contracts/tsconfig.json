@@ -1,14 +1,18 @@
 {
     "compilerOptions": {
-        "target": "es2016",
-        "module": "commonjs",
-        "lib": ["es2016", "es7", "es6", "dom"],
+        "target": "ES2020",
+        "module": "CommonJS",
         "declaration": true,
+        "declarationMap": true,
+        "moduleResolution": "node",
         "outDir": "dist",
+        "lib": ["ES2018", "DOM", "DOM.Iterable", "ES2019.Array", "ES2019.Object", "es2019"],
         "strict": true,
+        "baseUrl": ".",
+        "rootDirs": ["./src", "../../src/utils/test", "../../types/typechain"],
         "esModuleInterop": true,
-        "resolveJsonModule": true
+        "resolveJsonModule": true,
     },
-    "include": ["./types", "./deployments", "./index.ts"],
+    "include": ["./src"],
     "exclude": ["./node_modules", "./dist"]
 }

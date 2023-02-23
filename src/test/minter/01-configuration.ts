@@ -108,7 +108,7 @@ describe("Minter - Configuration", () => {
 
             await hre.Diamond.connect(hre.users.operator).updateKreskoAsset(
                 contract.address,
-                anchor.address,
+                anchor!.address,
                 update.factor,
                 newPriceFeed.address,
                 newPriceFeed.address,

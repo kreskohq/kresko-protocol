@@ -27,6 +27,9 @@ export const hardhatUsers = {
     feedValidator: {
         default: process.env.FEED_VALIDATOR || 11,
     },
+    testnetFunder: {
+        default: process.env.FUNDER || 12,
+    },
     // test users
     userOne: {
         default: 31,

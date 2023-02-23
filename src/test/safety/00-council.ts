@@ -12,8 +12,8 @@ import { SafetyStateChangeEventObject } from "types/typechain/src/contracts/libs
 describe("Safety Council", () => {
     withFixture(["minter-test", "integration"]);
     beforeEach(async function () {
-        this.collateral = hre.collaterals.find(asset => asset.deployArgs.name === defaultCollateralArgs.name);
-        this.krAsset = hre.krAssets.find(asset => asset.deployArgs.symbol === defaultKrAssetArgs.symbol);
+        this.collateral = hre.collaterals.find(asset => asset.deployArgs!.name === defaultCollateralArgs.name)!;
+        this.krAsset = hre.krAssets.find(asset => asset.deployArgs!.symbol === defaultKrAssetArgs.symbol)!;
 
         // These are the 5 signers on the SafetyCouncil multisig
         const { deployer, devTwo, extOne, extTwo, extThree } = await hre.ethers.getNamedSigners();

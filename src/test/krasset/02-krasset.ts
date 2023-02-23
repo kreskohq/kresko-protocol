@@ -8,7 +8,7 @@ describe("KreskoAsset", () => {
     withFixture(["minter-test", "krAsset"]);
 
     beforeEach(async function () {
-        KreskoAsset = hre.krAssets.find(asset => asset.deployArgs.symbol === defaultKrAssetArgs.symbol).contract;
+        KreskoAsset = hre.krAssets.find(asset => asset.deployArgs!.symbol === defaultKrAssetArgs.symbol)!.contract;
         // Grant minting rights for test deployer
         await KreskoAsset.grantRole(Role.OPERATOR, hre.addr.deployer);
     });

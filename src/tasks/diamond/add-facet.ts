@@ -58,6 +58,9 @@ task(TASK_NAME)
                 }
                 const [InitializerContract] = await hre.deploy(initializerName);
                 const tx = await InitializerContract.populateTransaction.initialize(initializerArgs);
+                if (!tx.to || !tx.data) {
+                    throw new Error("Initializer transaction is missing to or data");
+                }
                 initializer = [tx.to, tx.data];
             } else {
                 initializer = [constants.AddressZero, "0x"];
@@ -65,6 +68,9 @@ task(TASK_NAME)
             }
         } else {
             const tx = await Facet.populateTransaction.initialize(initializerArgs);
+            if (!tx.to || !tx.data) {
+                throw new Error("Initializer transaction is missing to or data");
+            }
             initializer = [tx.to, tx.data];
         }
         const tx = await Diamond.diamondCut([Cut], ...initializer);

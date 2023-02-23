@@ -28,7 +28,7 @@ const server = spawn("ganache-cli", [
     "--fork",
     options.fork.url,
     "--mnemonic",
-    options.wallet.mnemonic,
+    options.wallet.mnemonic!,
     "--defaultBalanceEther",
     options.wallet.defaultBalance.toString(),
     "--unlock",

@@ -1,33 +1,35 @@
 {
-    "name": "@kreskolabs/contracts",
-    "description": "Typechain and contract deployments for front-end",
-    "version": "3.0.15",
-    "author": {
-        "name": "Kresko Labs",
-        "url": "https://www.kresko.fi"
-    },
-    "keywords": [
-        "blockchain",
-        "ethereum",
-        "hardhat",
-        "smart-contracts",
-        "solidity",
-        "typechain"
-    ],
-    "scripts": {
-        "build": "tsup && npm version patch",
-        "clean": "rm -rf dist && rm -rf deployments && rm -rf types"
-    },
-    "files": [
-        "dist"
-    ],
-    "license": "ISC",
-    "main": "dist/index.js",
-    "types": "dist/index.d.ts",
-    "devDependencies": {
-        "typescript": "^4.5.2"
-    },
-    "dependencies": {
-        "tsup": "^6.6.3"
-    }
+  "name": "@kreskolabs/contracts",
+  "description": "Typechain and contract deployments for front-end",
+  "version": "3.4.10",
+  "author": {
+    "name": "Kresko Labs",
+    "url": "https://www.kresko.fi"
+  },
+  "keywords": [
+    "blockchain",
+    "ethereum",
+    "hardhat",
+    "smart-contracts",
+    "solidity",
+    "typechain"
+  ],
+  "scripts": {
+    "build": "tsup && npm version patch",
+    "clean": "rm -rf dist && rm -rf deployments && rm -rf types"
+  },
+  "license": "ISC",
+  "main": "./dist/packages/contracts/src/index.js",
+  "types": "./dist/packages/contracts/src/index.d.ts",
+  "sources": [
+    "./src/**/*"
+  ],
+  "devDependencies": {
+    "tsc-alias": "^1.8.2",
+    "typescript": "^4.9.5"
+  },
+  "dependencies": {
+    "@kreskolabs/contracts": "3.4.0",
+    "tsup": "^6.6.3"
+  }
 }

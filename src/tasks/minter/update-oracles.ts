@@ -11,10 +11,10 @@ task("update-oracles").setAction(async function (_taskArgs: TaskArguments, hre) 
     const logger = getLogger("sandbox");
     const Kresko = (await hre.ethers.getContract<Kresko>("Diamond")).connect(operator);
     for (const collateral of testnetConfigs[hre.network.name].collaterals) {
-        const fluxFeed = await factory.addressOfPricePair(collateral.oracle.description, 8, feedValidator.address);
+        const fluxFeed = await factory.addressOfPricePair(collateral.oracle!.description, 8, feedValidator.address);
         const contract = await hre.ethers.getContract(collateral.symbol);
         const asset = await Kresko.collateralAsset(contract.address);
-        const id = await factory.getId(collateral.oracle.description, 8, feedValidator.address);
+        const id = await factory.getId(collateral.oracle!.description, 8, feedValidator.address);
         const latest = await factory.valueFor(id);
         console.log(
             `adding collateral ${collateral.symbol}`,
@@ -24,25 +24,25 @@ task("update-oracles").setAction(async function (_taskArgs: TaskArguments, hre) 
         if (contract.address === hre.ethers.constants.AddressZero || fluxFeed === hre.ethers.constants.AddressZero) {
             throw new Error(`0 addr ${collateral.symbol}`);
         }
-        const priceFeed = collateral.oracle.chainlink ? collateral.oracle.chainlink : fluxFeed;
+        const priceFeed = collateral.oracle!.chainlink ? collateral.oracle!.chainlink : fluxFeed;
         await Kresko.updateCollateralAsset(contract.address, asset.anchor, asset.factor.rawValue, priceFeed, fluxFeed);
     }
     for (const krAsset of testnetConfigs[hre.network.name].krAssets) {
-        const fluxFeed = await factory.addressOfPricePair(krAsset.oracle.description, 8, feedValidator.address);
+        const fluxFeed = await factory.addressOfPricePair(krAsset.oracle!.description, 8, feedValidator.address);
         const contract = await hre.ethers.getContract(krAsset.symbol);
         if (contract.address === hre.ethers.constants.AddressZero || fluxFeed === hre.ethers.constants.AddressZero) {
             throw new Error(`0 addr ${krAsset.symbol}`);
         }
         const asset = await Kresko.kreskoAsset(contract.address);
 
-        const id = await factory.getId(krAsset.oracle.description, 8, feedValidator.address);
+        const id = await factory.getId(krAsset.oracle!.description, 8, feedValidator.address);
         const latest = await factory.valueFor(id);
         console.log(
             `adding collateral ${krAsset.symbol}`,
             "fluxfeed info",
             `price: ${fromBig(latest[0], 8)} marketOpen: ${latest[1]}`,
         );
-        const priceFeed = krAsset.oracle.chainlink ? krAsset.oracle.chainlink : fluxFeed;
+        const priceFeed = krAsset.oracle!.chainlink ? krAsset.oracle!.chainlink : fluxFeed;
         await Kresko.updateKreskoAsset(
             contract.address,
             asset.anchor,

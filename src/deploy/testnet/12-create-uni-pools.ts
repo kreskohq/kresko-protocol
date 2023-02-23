@@ -15,7 +15,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         const [assetA, assetB, amountB] = pool;
         logger.log(`Adding liquidity ${assetA.name}-${assetB.name}`);
         const amountA = JStoFixed(
-            (amountB * hre.fromBig(await assetB.price(), 8)) / hre.fromBig(await assetA.price(), 8),
+            (amountB * hre.fromBig(await assetB.price!(), 8)) / hre.fromBig(await assetA.price!(), 8),
             2,
         );
         if (assetB.symbol === "krTSLA") {

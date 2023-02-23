@@ -27,22 +27,22 @@ describe("Minter", () => {
     withFixture(["minter-test"]);
 
     beforeEach(async function () {
-        this.collateral = this.collaterals.find(c => c.deployArgs.name === defaultCollateralArgs.name);
-        this.krAsset = this.krAssets.find(c => c.deployArgs.name === defaultKrAssetArgs.name);
+        this.collateral = this.collaterals.find(c => c.deployArgs!.name === defaultCollateralArgs.name)!;
+        this.krAsset = this.krAssets.find(c => c.deployArgs!.name === defaultKrAssetArgs.name)!;
 
         await this.krAsset.contract.grantRole(Role.OPERATOR, hre.users.deployer.address);
-        this.krAsset.setPrice(this.krAsset.deployArgs.price);
-        this.krAsset.setMarketOpen(this.krAsset.deployArgs.marketOpen);
+        this.krAsset.setPrice(this.krAsset.deployArgs!.price);
+        this.krAsset.setMarketOpen(this.krAsset.deployArgs!.marketOpen);
 
         // Load account with collateral
         this.initialBalance = toBig(100000);
         await this.collateral.setBalance(hre.users.userOne, this.initialBalance);
-        await this.collateral.mocks.contract.setVariable("_allowances", {
+        await this.collateral.mocks!.contract.setVariable("_allowances", {
             [hre.users.userOne.address]: {
                 [hre.Diamond.address]: this.initialBalance,
             },
         });
-        this.collateral.setPrice(this.collateral.deployArgs.price);
+        this.collateral.setPrice(this.collateral.deployArgs!.price);
 
         // User deposits 10,000 collateral
         await depositCollateral({ amount: 10_000, user: hre.users.userOne, asset: this.collateral });
@@ -798,10 +798,10 @@ describe("Minter", () => {
                 );
 
                 // Load userThree with Kresko Assets
-                await this.collateral.mocks.contract.setVariable("_balances", {
+                await this.collateral.mocks!.contract.setVariable("_balances", {
                     [hre.users.userThree.address]: this.initialBalance,
                 });
-                await this.collateral.mocks.contract.setVariable("_allowances", {
+                await this.collateral.mocks!.contract.setVariable("_allowances", {
                     [hre.users.userThree.address]: {
                         [hre.Diamond.address]: this.initialBalance,
                     },
@@ -967,7 +967,7 @@ describe("Minter", () => {
 
                 const minDebtValue = fromBig((await hre.Diamond.minimumDebtValue()).rawValue, 8);
 
-                const oraclePrice = this.krAsset.deployArgs.price;
+                const oraclePrice = this.krAsset.deployArgs!.price;
                 const burnAmount = hre.toBig(fromBig(userOneDebt) - minDebtValue / oraclePrice);
 
                 // Burn Kresko asset
@@ -1089,17 +1089,17 @@ describe("Minter", () => {
                 it("should charge the protocol open fee with a single collateral asset if the deposit amount is sufficient and emit CloseFeePaid event", async function () {
                     const openFee = 0.01;
                     const openFeeBig = toBig(openFee); // use toBig() to emulate closeFee's 18 decimals on contract
-                    this.krAsset = hre.krAssets.find(asset => asset.deployArgs.symbol === defaultKrAssetArgs.symbol);
+                    this.krAsset = hre.krAssets.find(asset => asset.deployArgs!.symbol === defaultKrAssetArgs.symbol)!;
 
                     await this.krAsset.update({
                         ...defaultKrAssetArgs,
                         openFee,
                     });
                     const mintAmount = toBig(1);
-                    const mintValue = mintAmount.mul(this.krAsset.deployArgs.price);
+                    const mintValue = mintAmount.mul(this.krAsset.deployArgs!.price);
 
                     const expectedFeeValue = mintValue.mul(openFeeBig);
-                    const expectedCollateralFeeAmount = expectedFeeValue.div(this.collateral.deployArgs.price);
+                    const expectedCollateralFeeAmount = expectedFeeValue.div(this.collateral.deployArgs!.price);
 
                     // Get the balances prior to the fee being charged.
                     const kreskoCollateralAssetBalanceBefore = await this.collateral.contract.balanceOf(
@@ -1164,10 +1164,10 @@ describe("Minter", () => {
             describe("Protocol close fee", () => {
                 it("should charge the protocol close fee with a single collateral asset if the deposit amount is sufficient and emit CloseFeePaid event", async function () {
                     const burnAmount = toBig(1);
-                    const burnValue = burnAmount.mul(this.krAsset.deployArgs.price);
-                    const closeFee = toBig(this.krAsset.deployArgs.closeFee); // use toBig() to emulate closeFee's 18 decimals on contract
+                    const burnValue = burnAmount.mul(this.krAsset.deployArgs!.price);
+                    const closeFee = toBig(this.krAsset.deployArgs!.closeFee); // use toBig() to emulate closeFee's 18 decimals on contract
                     const expectedFeeValue = burnValue.mul(closeFee);
-                    const expectedCollateralFeeAmount = expectedFeeValue.div(this.collateral.deployArgs.price);
+                    const expectedCollateralFeeAmount = expectedFeeValue.div(this.collateral.deployArgs!.price);
 
                     // Get the balances prior to the fee being charged.
                     const kreskoCollateralAssetBalanceBefore = await this.collateral.contract.balanceOf(
@@ -1223,9 +1223,9 @@ describe("Minter", () => {
                     const mintAmount = 10;
                     const wAmount = 1;
                     const burnAmount = 1;
-                    const expectedFeeAmount = hre.toBig(burnAmount * this.krAsset.deployArgs.closeFee);
+                    const expectedFeeAmount = hre.toBig(burnAmount * this.krAsset.deployArgs!.closeFee);
                     const expectedFeeValue = hre.toBig(
-                        burnAmount * this.krAsset.deployArgs.price * this.krAsset.deployArgs.closeFee,
+                        burnAmount * this.krAsset.deployArgs!.price * this.krAsset.deployArgs!.closeFee,
                         8,
                     );
                     await mintKrAsset({
@@ -1266,9 +1266,9 @@ describe("Minter", () => {
                     const mintAmount = 10;
                     const wAmount = 1;
                     const burnAmount = 1;
-                    const expectedFeeAmount = hre.toBig(burnAmount * this.krAsset.deployArgs.closeFee);
+                    const expectedFeeAmount = hre.toBig(burnAmount * this.krAsset.deployArgs!.closeFee);
                     const expectedFeeValue = hre.toBig(
-                        burnAmount * this.krAsset.deployArgs.price * this.krAsset.deployArgs.closeFee,
+                        burnAmount * this.krAsset.deployArgs!.price * this.krAsset.deployArgs!.closeFee,
                         8,
                     );
                     await mintKrAsset({
@@ -1353,7 +1353,7 @@ describe("Minter", () => {
                     expect(balanceAfterBurn).to.equal(expectedBalanceAfterBurn);
 
                     // Anchor krAssets should equal balance * denominator
-                    const wkrAssetBalanceKresko = await this.krAsset.anchor.balanceOf(hre.Diamond.address);
+                    const wkrAssetBalanceKresko = await this.krAsset.anchor!.balanceOf(hre.Diamond.address);
                     expect(wkrAssetBalanceKresko).to.closeTo(hre.toBig(expectedBalanceAfterBurn / denominator), 100000); // WEI
                 });
 
@@ -1396,7 +1396,7 @@ describe("Minter", () => {
 
                     // All wkrAssets should be burned
                     const expectedwkrBalance = mintAmount.sub(repayAmount.div(denominator));
-                    const wkrAssetBalanceKresko = await this.krAsset.anchor.balanceOf(hre.Diamond.address);
+                    const wkrAssetBalanceKresko = await this.krAsset.anchor!.balanceOf(hre.Diamond.address);
                     expect(wkrAssetBalanceKresko).to.equal(expectedwkrBalance);
                 });
 
@@ -1439,7 +1439,7 @@ describe("Minter", () => {
                     expect(balanceAfterBurn).to.equal(expectedBalanceAfterBurn);
 
                     // Anchor krAssets should equal balance * denominator
-                    const wkrAssetBalanceKresko = await this.krAsset.anchor.balanceOf(hre.Diamond.address);
+                    const wkrAssetBalanceKresko = await this.krAsset.anchor!.balanceOf(hre.Diamond.address);
                     expect(wkrAssetBalanceKresko).to.equal(hre.toBig(expectedBalanceAfterBurn * denominator)); // WEI
                 });
 
@@ -1482,7 +1482,7 @@ describe("Minter", () => {
 
                     // All wkrAssets should be burned
                     const expectedwkrBalance = mintAmount.sub(repayAmount.mul(denominator));
-                    const wkrAssetBalanceKresko = await this.krAsset.anchor.balanceOf(hre.Diamond.address);
+                    const wkrAssetBalanceKresko = await this.krAsset.anchor!.balanceOf(hre.Diamond.address);
                     expect(wkrAssetBalanceKresko).to.equal(expectedwkrBalance);
                 });
             });

@@ -1,10 +1,16 @@
 import { defineConfig } from 'tsup'
+
 export default defineConfig((opts) => {
   return {
-    entry: ['index.ts'],
+    entry: ['src/**/*.ts'],
+    // entry: ['src/index.ts', 'src/kresko.ts', 'src/types.ts', 'src/deployments/index.ts','src/typechain/index.ts','src/kresko/index.ts', 'src/error.ts'],
     format: ['cjs'],
+    target: 'es2020',
     dts: true,
-    target: 'esnext',
-    metafile: true,
+    minify: 'terser',
+    splitting: true,
+    treeshake: false,
+    metafile: false,
+    clean: true
   }
 })

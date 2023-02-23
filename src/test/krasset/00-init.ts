@@ -14,9 +14,9 @@ describe("KreskoAsset", function () {
 
     describe("#initialization - anchor", () => {
         beforeEach(async function () {
-            const deployment = this.krAssets.find(k => k.deployArgs.name === name);
-            KreskoAsset = deployment.contract;
-            KreskoAssetAnchor = deployment.anchor;
+            const deployment = this.krAssets!.find(k => k.deployArgs!.name === name)!;
+            KreskoAsset = deployment!.contract;
+            KreskoAssetAnchor = deployment!.anchor!;
         });
         it("cant initialize twice", async function () {
             await expect(
@@ -26,8 +26,9 @@ describe("KreskoAsset", function () {
 
         it("cant initialize implementation", async function () {
             const deployment = await hre.deployments.get(symbol);
-            const implementationAddress = deployment.implementation;
-            const KreskoAssetImpl = await hre.ethers.getContractAt("KreskoAsset", implementationAddress);
+            const implementationAddress = deployment!.implementation;
+            expect(implementationAddress).to.not.equal(hre.ethers.constants.AddressZero);
+            const KreskoAssetImpl = await hre.ethers.getContractAt("KreskoAsset", implementationAddress!);
 
             await expect(
                 KreskoAssetImpl.initialize(name, symbol, 18, hre.addr.deployer, hre.Diamond.address),
@@ -62,9 +63,9 @@ describe("KreskoAsset", function () {
 
     describe("#initialization - wrapped", () => {
         beforeEach(async function () {
-            const deployment = hre.krAssets.find(k => k.deployArgs.name === name);
-            KreskoAsset = deployment.contract;
-            KreskoAssetAnchor = deployment.anchor;
+            const deployment = hre.krAssets.find(k => k.deployArgs!.name === name);
+            KreskoAsset = deployment!.contract;
+            KreskoAssetAnchor = deployment!.anchor!;
         });
         it("cant initialize twice", async function () {
             await expect(
@@ -74,10 +75,12 @@ describe("KreskoAsset", function () {
 
         it("cant initialize implementation", async function () {
             const deployment = await hre.deployments.get(anchorTokenPrefix + symbol);
-            const implementationAddress = deployment.implementation;
+            const implementationAddress = deployment!.implementation;
+
+            expect(implementationAddress).to.not.equal(hre.ethers.constants.AddressZero);
             const KreskoAssetAnchorImpl = await hre.ethers.getContractAt<KreskoAssetAnchor>(
                 "KreskoAssetAnchor",
-                implementationAddress,
+                implementationAddress!,
             );
 
             await expect(

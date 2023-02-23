@@ -21,9 +21,9 @@ declare global {
         collateral?: boolean;
         address: string;
         contract: KreskoAsset;
-        deployArgs: TestKreskoAssetArgs;
+        deployArgs?: TestKreskoAssetArgs;
         kresko: () => Promise<KrAssetStructOutput>;
-        mocks?: {
+        mocks: {
             contract: MockContract<KreskoAsset>;
             mockFeed: MockContract<FluxPriceFeed>;
             priceFeed: FakeContract<FluxPriceFeed>;
@@ -31,12 +31,12 @@ declare global {
         };
         anchor?: KreskoAssetAnchor;
         priceFeed: FluxPriceFeed;
-        setBalance?: (user: SignerWithAddress, balance: BigNumber) =>Promise<void>
-        setPrice?: (price: number) => void;
-        getPrice?: () => Promise<BigNumber>;
-        setMarketOpen?: (marketOpen: boolean) => void;
-        getMarketOpen?: () => Promise<boolean>;
-        update?: (update: TestKreskoAssetUpdate) => Promise<TestKrAsset>;
+        setBalance: (user: SignerWithAddress, balance: BigNumber) =>Promise<void>
+        setPrice: (price: number) => void;
+        getPrice: () => Promise<BigNumber>;
+        setMarketOpen: (marketOpen: boolean) => void;
+        getMarketOpen: () => Promise<boolean>;
+        update: (update: TestKreskoAssetUpdate) => Promise<TestKrAsset>;
     };
     type TestCollateral = {
         address: string;
@@ -51,11 +51,11 @@ declare global {
             anchor?: MockContract<KreskoAssetAnchor>;
         };
         priceFeed: FluxPriceFeed;
-        anchor?: KreskoAssetAnchor;
-        setPrice?: (price: number) => void;
-        setBalance?: (user: SignerWithAddress, amount: BigNumber) => Promise<void>;
-        getPrice?: () => Promise<BigNumber>;
-        update?: (update: TestCollateralAssetUpdate) => Promise<TestCollateral>;
+        anchor: KreskoAssetAnchor;
+        setPrice: (price: number) => void;
+        setBalance: (user: SignerWithAddress, amount: BigNumber) => Promise<void>;
+        getPrice: () => Promise<BigNumber>;
+        update: (update: TestCollateralAssetUpdate) => Promise<TestCollateral>;
     };
 
     type TestKrAssets = TestKrAsset[];

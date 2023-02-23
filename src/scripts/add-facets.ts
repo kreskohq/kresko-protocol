@@ -1,9 +1,8 @@
-import hre from "hardhat";
+import { mergeABIs } from "@kreskolabs/hardhat-deploy/dist/src/utils";
 import { FacetCut } from "@kreskolabs/hardhat-deploy/dist/types";
 import { getLogger } from "@kreskolabs/lib";
-import { mergeABIs } from "@kreskolabs/hardhat-deploy/dist/src/utils";
 import { constants } from "ethers";
-
+import hre from "hardhat";
 type Args = {
     names: string[];
     initializerName?: string;
@@ -16,7 +15,6 @@ const logger = getLogger("add-facet");
 export async function addFacets({ names, initializerName, initializerArgs, log = true }: Args) {
     logger.log("Adding facets");
     logger.table(names);
-
     const { ethers, deployments, deploy, getNamedAccounts } = hre;
     const { deployer } = await getNamedAccounts();
 
@@ -108,6 +106,9 @@ export async function addFacets({ names, initializerName, initializerArgs, log =
         }
         // #5.5 Prepopulate the initialization tx - replacing the default set on #5.1.
         const tx = await InitializerContract.populateTransaction.initialize(initializerArgs || "0x");
+        if (!tx.to || !tx.data) {
+            throw new Error("Initializer transaction is missing to or data");
+        }
         initializer = [tx.to, tx.data];
     } else if (!FacetCuts.length) {
         logger.log("Skipping adding facets because they all exist");

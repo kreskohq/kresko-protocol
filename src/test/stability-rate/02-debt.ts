@@ -25,8 +25,8 @@ describe("Stability Rates", function () {
         userOne = hre.users.deployer;
         userTwo = hre.users.userTwo;
 
-        this.krAsset = hre.krAssets.find(c => c.deployArgs.name === defaultKrAssetArgs.name);
-        this.collateral = hre.collaterals.find(c => c.deployArgs.name === defaultCollateralArgs.name);
+        this.krAsset = hre.krAssets.find(c => c.deployArgs!.name === defaultKrAssetArgs.name)!;
+        this.collateral = hre.collaterals.find(c => c.deployArgs!.name === defaultCollateralArgs.name)!;
 
         [UniMath] = await hre.deploy<UniswapMath>("UniswapMath", {
             from: hre.users.deployer.address,
@@ -49,7 +49,7 @@ describe("Stability Rates", function () {
             amount: kLiq,
             user: userOne,
         });
-        const anchorBalance = await this.krAsset.anchor.balanceOf(hre.Diamond.address);
+        const anchorBalance = await this.krAsset.anchor!.balanceOf(hre.Diamond.address);
         expect(anchorBalance).to.equal(kLiq);
         // 1000/100 = krAsset amm price 10
         const pair = await addLiquidity({

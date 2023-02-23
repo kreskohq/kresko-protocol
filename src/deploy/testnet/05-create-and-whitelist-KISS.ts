@@ -14,6 +14,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     });
 
     logger.log(`whitelisting KISS`);
+    if (!assets.KISS.oracle) {
+        logger.warn(`skipping KISS as it has no oracle`);
+        return;
+    }
     const oracleAddress = await getOracle(assets.KISS.oracle.description, hre);
     await hre.run("add-krasset", {
         symbol: assets.KISS.symbol,

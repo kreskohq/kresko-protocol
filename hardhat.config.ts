@@ -95,7 +95,7 @@ const config: HardhatUserConfig = {
         target: "ethers-v5",
         alwaysGenerateOverloads: true,
         dontOverrideCompile: false,
-        discriminateTypes: false,
+        discriminateTypes: true,
         tsNocheck: true,
         externalArtifacts: ["./artifacts/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko.json"],
     },

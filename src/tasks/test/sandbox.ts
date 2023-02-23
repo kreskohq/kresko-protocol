@@ -123,11 +123,20 @@ const TASK_NAME = "sandbox";
 const log = getLogger(TASK_NAME);
 // const provider = new ethers.providers.JsonRpcProvider("http://localhost:8545");
 task(TASK_NAME).setAction(async function (_taskArgs: TaskArguments, hre) {
+    const { deployer, feedValidator, testnetFunder } = await hre.ethers.getNamedSigners();
     try {
         log.log("Starting");
-        console.log(hre.network.name);
-        const kresko = await hre.getContractOrFork<Kresko>("Diamond");
-        console.log(kresko.address);
+        await deployer.sendTransaction({
+            to: feedValidator.address,
+            value: hre.ethers.utils.parseEther("5"),
+        });
+        await deployer.sendTransaction({
+            to: testnetFunder.address,
+            value: hre.ethers.utils.parseEther("5"),
+        });
+        // console.log(hre.network.name);
+        // const kresko = await hre.getContractOrFork<Kresko>("Diamond");
+        // console.log(kresko.address);
         log.log("Finished");
     } catch (e) {
         log.error(e);

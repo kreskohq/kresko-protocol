@@ -20,7 +20,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             } else {
                 WETH = await hre.ethers.getContract<WETH>("WETH");
             }
-            await WETH["deposit(uint256)"](hre.toBig(collateral.mintAmount));
+            await WETH["deposit(uint256)"](hre.toBig(collateral.mintAmount!));
             continue;
         }
         if (isDeployed != null || !!collateral.kFactor) continue;

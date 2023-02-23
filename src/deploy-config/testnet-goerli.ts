@@ -299,11 +299,11 @@ export const assets: { [asset: string]: Asset } = {
 };
 
 const defaultPools: [Asset, Asset, number][] = [
-    [assets.KISS, assets.krETH, assets.krETH.mintAmount],
+    [assets.KISS, assets.krETH, assets.krETH.mintAmount!],
     // [assets.KISS, assets.krTSLA, assets.krTSLA.mintAmount],
-    [assets.KISS, assets.krXAU, assets.krXAU.mintAmount],
-    [assets.KISS, assets.krWTI, assets.krWTI.mintAmount],
-    [assets.KISS, assets.krBTC, assets.krBTC.mintAmount],
+    [assets.KISS, assets.krXAU, assets.krXAU.mintAmount!],
+    [assets.KISS, assets.krWTI, assets.krWTI.mintAmount!],
+    [assets.KISS, assets.krBTC, assets.krBTC.mintAmount!],
     [assets.KISS, assets.WETH, 3500],
     [assets.KISS, assets.DAI, 20_000_000],
     [assets.WETH, assets.DAI, 10_000_000],

@@ -1,0 +1,5 @@
+{
+  "name": "typechain",
+  "main": "./index.js",
+  "types": "./index.d.ts"
+}

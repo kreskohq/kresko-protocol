@@ -8,9 +8,9 @@ describe("KreskoAssetAnchor", () => {
     let KreskoAssetAnchor: KreskoAssetAnchor;
     withFixture(["minter-test", "krAsset"]);
     beforeEach(async function () {
-        const asset = hre.krAssets.find(asset => asset.deployArgs.symbol === defaultKrAssetArgs.symbol);
-        KreskoAsset = asset.contract;
-        KreskoAssetAnchor = asset.anchor;
+        const asset = hre.krAssets.find(asset => asset!.deployArgs!.symbol === defaultKrAssetArgs.symbol)!;
+        KreskoAsset = asset!.contract!;
+        KreskoAssetAnchor = asset!.anchor!;
 
         // Grant minting rights for test deployer
         await Promise.all([

@@ -97,10 +97,10 @@ declare module "mocha" {
     Multisig: GnosisSafeL2;
     Diamond: Kresko;
     DiamondDeployment: Deployment;
-    collaterals?: TestCollateral[];
-    collateral?: TestCollateral;
-    krAsset?: TestKrAsset;
-    krAssets?: TestKrAsset[];
+    collaterals: TestCollateral[];
+    collateral: TestCollateral;
+    krAsset: TestKrAsset;
+    krAssets: TestKrAsset[];
     /* -------------------------------------------------------------------------- */
     /*                              Misc / Deprecated                             */
     /* -------------------------------------------------------------------------- */
@@ -175,6 +175,7 @@ declare module "hardhat/types/runtime" {
     DiamondDeployment: Deployment;
     Diamond: Kresko;
     Multisig: GnosisSafeL2;
+
     krAssets: TestKrAsset[];
     collateral: TestCollateral;
     krAsset: TestKrAsset;

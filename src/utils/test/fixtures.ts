@@ -22,7 +22,7 @@ export const withFixture = (fixtureName: string[]) => {
                 krAssets: hre.krAssets,
             };
         })();
-        this.facets = fixture.facets;
+        this.facets = fixture.facets || [];
         this.collaterals = fixture.collaterals;
         this.krAssets = fixture.krAssets;
     });

@@ -35,7 +35,7 @@ describe("Diamond", () => {
 
             const initData = await SmockInitializer.populateTransaction.initialize(hre.addr.userOne);
 
-            await hre.Diamond.diamondCut([Cut], initData.to, initData.data);
+            await hre.Diamond.diamondCut([Cut], initData.to!, initData.data!);
             const TEST_OPERATOR_ROLE = hre.ethers.utils.id("kresko.test.operator");
             const isTestOperator = await hre.Diamond.hasRole(TEST_OPERATOR_ROLE, hre.addr.userOne);
 
@@ -97,7 +97,7 @@ describe("Diamond", () => {
             const correctOwner = hre.addr.userOne;
             const initData = await hre.Diamond.populateTransaction.transferOwnership(correctOwner);
 
-            const tx = await hre.Diamond.diamondCut([Cut], initData.to, initData.data);
+            const tx = await hre.Diamond.diamondCut([Cut], initData.to!, initData.data!);
             await tx.wait();
 
             // Ensure rest of the functions remain
@@ -157,7 +157,7 @@ describe("Diamond", () => {
             const correctOwner = hre.addr.userOne;
             const initData = await hre.Diamond.populateTransaction.transferOwnership(correctOwner);
 
-            const tx = await hre.Diamond.diamondCut([Cut], initData.to, initData.data);
+            const tx = await hre.Diamond.diamondCut([Cut], initData.to!, initData.data!);
             await tx.wait();
 
             // Ensure function exists and revert is for invalid address instead of missing function
@@ -189,7 +189,7 @@ describe("Diamond", () => {
 
             const tx = await SmockInit.populateTransaction.upgradeState();
 
-            await hre.Diamond.upgradeState(tx.to, tx.data);
+            await hre.Diamond.upgradeState(tx.to!, tx.data!);
             expect(await hre.Diamond.initialized()).to.equal(false);
         });
 
@@ -211,7 +211,7 @@ describe("Diamond", () => {
             };
 
             const initData = await SmockInitializer.populateTransaction.initialize(hre.addr.userOne);
-            await hre.Diamond.diamondCut([Cut], initData.to, initData.data);
+            await hre.Diamond.diamondCut([Cut], initData.to!, initData.data!);
 
             const Diamond = await hre.ethers.getContractAt<SmockFacet>("SmockFacet", hre.Diamond.address);
             const isInitialized = await Diamond.smockInitialized();
@@ -232,7 +232,7 @@ describe("Diamond", () => {
 
             // Initializer only sets the new extended value, does not touch old storage
             const initData2 = await SmockFacet2.populateTransaction.initialize();
-            await hre.Diamond.diamondCut([Cut2], initData2.to, initData2.data);
+            await hre.Diamond.diamondCut([Cut2], initData2.to!, initData2.data!);
 
             // Here we have appended the storage layout with the `extended` bool property.
             const DiamondExtended = await hre.ethers.getContractAt<SmockFacet2>("SmockFacet2", hre.Diamond.address);

@@ -1,5 +1,12 @@
 {
-    "exclude": ["temp", "mochawesome-report", "node_modules", "./packages/contracts/dist/**/*"],
+    "exclude": [
+        "temp",
+        "mochawesome-report",
+        "packages/**/*",
+        "node_modules/**/*.ts",
+        "cache/**/*",
+        "./packages/contracts/dist/**/*"
+    ],
     "compilerOptions": {
         "declaration": true,
         "declarationMap": true,
@@ -13,7 +20,7 @@
         "target": "ES2020",
         "lib": ["ES2018", "DOM", "DOM.Iterable", "ES2019.Array", "ES2019.Object", "es2019"],
         "resolveJsonModule": true,
-        "strict": false,
+        "strict": true,
         "esModuleInterop": true,
         "baseUrl": "./",
         "paths": {

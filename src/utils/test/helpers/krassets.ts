@@ -193,10 +193,10 @@ export const addMockKreskoAssetWithAMMPair = async (
 };
 export const updateKrAsset = async (address: string, args: TestKreskoAssetUpdate) => {
     const users = await getUsers();
-    const krAsset = hre.krAssets.find(c => c.address === address);
+    const krAsset = hre.krAssets.find(c => c.address === address)!;
     await hre.Diamond.connect(users.operator).updateKreskoAsset(
         krAsset.address,
-        krAsset.mocks.anchor.address,
+        krAsset.mocks.anchor!.address,
         toFixedPoint(args.factor),
         args.oracle || krAsset.priceFeed.address,
         args.oracle || krAsset.priceFeed.address,
@@ -206,6 +206,7 @@ export const updateKrAsset = async (address: string, args: TestKreskoAssetUpdate
     );
 
     const asset: TestKrAsset = {
+        // @ts-ignore
         deployArgs: { ...krAsset.deployArgs, ...args },
         ...krAsset,
     };

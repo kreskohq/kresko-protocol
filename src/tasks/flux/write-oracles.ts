@@ -14,6 +14,7 @@ task("write-oracles").setAction(async function (_taskArgs: TaskArguments, hre) {
     for (const collateral of testnetConfigs[hre.network.name].collaterals) {
         const contract = await hre.ethers.getContract(collateral.symbol);
         const collateralInfo = await Kresko.collateralAsset(contract.address);
+        if (!collateral.oracle) continue;
         values.push({
             asset: await contract.symbol(),
             assetAddress: contract.address,
@@ -26,6 +27,7 @@ task("write-oracles").setAction(async function (_taskArgs: TaskArguments, hre) {
     for (const krAsset of testnetConfigs[hre.network.name].krAssets) {
         const contract = await hre.ethers.getContract(krAsset.symbol);
         const krAssetInfo = await Kresko.collateralAsset(contract.address);
+        if (!krAsset.oracle) continue;
         values.push({
             asset: await contract.symbol(),
             assetAddress: contract.address,

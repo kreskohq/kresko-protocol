@@ -41,6 +41,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     // Encoded params for setup
     const creationTx = await MasterCopy.populateTransaction.setup(...creationArgs);
 
+    if (!creationTx.data) throw new Error("No data found in gnosis creationTx");
     const tx = await Factory.createProxy(MasterCopy.address, creationTx.data);
 
     const creationEvent = await getNamedEvent<ProxyCreationEvent>(tx, "ProxyCreation");

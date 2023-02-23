@@ -34,8 +34,11 @@ export async function removeFacet({ name, initializerName, initializerArgs }: Ar
         //  Throw if it does not exist
         throw new Error(`Trying to remove facet but no facet deployed @ ${hre.network.name} with name: ${name}`);
     }
-    const selectorsToRemove = (await Diamond.facets()).find(f => f.facetAddress === Facet.address).functionSelectors;
+    const selectorsToRemove = (await Diamond.facets()).find(f => f.facetAddress === Facet.address)?.functionSelectors;
 
+    if (!selectorsToRemove) {
+        throw new Error(`Trying to remove facet but no facet deployed @ ${hre.network.name} with name: ${name}`);
+    }
     // #3.2 Initialize the `FacetCut` object
     const FacetCut: FacetCut = {
         facetAddress: ethers.constants.AddressZero,
@@ -69,6 +72,9 @@ export async function removeFacet({ name, initializerName, initializerArgs }: Ar
         }
         // #4.5 Prepopulate the initialization tx - replacing the default set on #5.1.
         const tx = await InitializerContract.populateTransaction.initialize(initializerArgs || "0x");
+        if (!tx.to || !tx.data) {
+            throw new Error("Initializer transaction is missing to or data");
+        }
         initializer = [tx.to, tx.data];
     } else {
         // Ensure we know that no initializer was supplied for the facets

@@ -66,6 +66,10 @@ export async function addFacet<T extends Contract>({ name, initializerName, init
         } else {
             logger.log("Adding diamondCut initializer with arguments:", initializerArgs, InitializerContract.address);
             const tx = await InitializerContract.populateTransaction.initialize(initializerArgs || "0x");
+            if (!tx.to || !tx.data) {
+                throw new Error("Initializer contract does not have an address");
+            }
+
             initializer = [tx.to, tx.data];
         }
         // #4.5 Prepopulate the initialization tx - replacing the default set on #5.1.

@@ -31,7 +31,7 @@ describe("Minter - Init", () => {
 
             const tx = await initializerContract.populateTransaction.initialize(initializer.args);
 
-            await expect(hre.Diamond.upgradeState(tx.to, tx.data)).to.be.revertedWith(Error.ALREADY_INITIALIZED);
+            await expect(hre.Diamond.upgradeState(tx.to!, tx.data!)).to.be.revertedWith(Error.ALREADY_INITIALIZED);
         });
 
         it("configures all facets correctly", async function () {
@@ -44,7 +44,7 @@ describe("Minter - Init", () => {
                     const deployment = await hre.deployments.get(name);
                     return {
                         facetAddress: deployment.address,
-                        functionSelectors: facetsOnChain.find(f => f.facetAddress === deployment.address)
+                        functionSelectors: facetsOnChain.find(f => f.facetAddress === deployment.address)!
                             .functionSelectors,
                     };
                 }),

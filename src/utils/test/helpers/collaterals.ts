@@ -39,6 +39,7 @@ export const addMockCollateralAsset = async (
         kresko: () => hre.Diamond.collateralAsset(TestCollateral.address),
         priceFeed: FluxPriceFeed__factory.connect(FakeOracle.address, users.deployer),
         deployArgs: args,
+        anchor: {} as any,
         mocks,
         setPrice: price => setPrice(mocks, price),
         getPrice: () => MockOracle.latestAnswer(),
@@ -66,14 +67,15 @@ export const updateCollateralAsset = async (address: string, args: TestCollatera
     const users = await getUsers();
     const collateral = hre.collaterals.find(c => c.address === address);
     await hre.Diamond.connect(users.operator).updateCollateralAsset(
-        collateral.address,
+        collateral!.address,
         hre.ethers.constants.AddressZero,
         toFixedPoint(args.factor),
-        args.oracle || collateral.priceFeed.address,
-        args.oracle || collateral.priceFeed.address,
+        args.oracle || collateral!.priceFeed.address,
+        args.oracle || collateral!.priceFeed.address,
     );
+    // @ts-expect-error
     const asset: TestCollateral = {
-        deployArgs: { ...collateral.deployArgs, ...args },
+        deployArgs: { ...collateral!.deployArgs, ...args },
         ...collateral,
     };
 

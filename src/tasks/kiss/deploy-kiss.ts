@@ -20,7 +20,7 @@ task("deploy-kiss")
         const hasRole = await KISSContract.hasRole(Role.OPERATOR, hre.Diamond.address);
         const kresko = await KISSContract.kresko();
 
-        const asset: TestKrAsset = {
+        const asset = {
             address: KISSContract.address,
             contract: KISSContract as unknown as KreskoAsset,
             deployArgs: {
@@ -32,10 +32,10 @@ task("deploy-kiss")
                 closeFee: defaultKrAssetArgs.closeFee,
                 openFee: defaultKrAssetArgs.openFee,
             },
-
+            mocks: {} as any,
             kresko: async () => await hre.Diamond.kreskoAsset(KISSContract.address),
             getPrice: async () => hre.toBig(1, 8),
-            priceFeed: undefined,
+            priceFeed: {} as any,
         };
 
         if (!hasRole) {
@@ -44,10 +44,14 @@ task("deploy-kiss")
         const found = hre.krAssets.findIndex(c => c.address === asset.address);
 
         if (found === -1) {
+            // @ts-expect-error
             hre.krAssets.push(asset);
+            // @ts-expect-error
             hre.allAssets.push(asset);
         } else {
+            // @ts-expect-error
             hre.krAssets = hre.krAssets.map(c => (c.address === c.address ? asset : c));
+            // @ts-expect-error
             hre.allAssets = hre.allAssets.map(c => (c.address === asset.address && c.collateral ? asset : c));
         }
         return {
