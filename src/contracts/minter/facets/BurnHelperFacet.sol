@@ -27,15 +27,13 @@ contract BurnHelperFacet is DiamondModifiers, MinterModifiers, IBurnHelperFacet 
      * @param _account The address to close the position for
      * @param _kreskoAsset The address of the Kresko asset.
      */
-    function closeKrAssetDebtPosition(address _account, address _kreskoAsset)
-        public
-        nonReentrant
-        kreskoAssetExists(_kreskoAsset)
-        onlyRoleIf(_account != msg.sender, Role.MANAGER)
-    {
+    function closeKrAssetDebtPosition(
+        address _account,
+        address _kreskoAsset
+    ) public nonReentrant kreskoAssetExists(_kreskoAsset) onlyRoleIf(_account != msg.sender, Role.MANAGER) {
         MinterState storage s = ms();
         if (s.safetyStateSet) {
-            ensureNotPaused(_kreskoAsset, Action.Repay);
+            super.ensureNotPaused(_kreskoAsset, Action.Repay);
         }
 
         // Get accounts principal debt
@@ -67,18 +65,12 @@ contract BurnHelperFacet is DiamondModifiers, MinterModifiers, IBurnHelperFacet 
      * @notice Account must have enough of krAsset balance to burn and ennough KISS to cover interest
      * @param _account The address to close the positions for
      */
-    function batchCloseKrAssetDebtPositions(address _account)
-        external
-        onlyRoleIf(_account != msg.sender, Role.MANAGER)
-    {
+    function batchCloseKrAssetDebtPositions(
+        address _account
+    ) external onlyRoleIf(_account != msg.sender, Role.MANAGER) {
         address[] memory mintedKreskoAssets = ms().getMintedKreskoAssets(_account);
         for (uint256 i; i < mintedKreskoAssets.length; i++) {
             closeKrAssetDebtPosition(_account, mintedKreskoAssets[i]);
         }
-    }
-
-    /// @dev Simple check for the enabled flag
-    function ensureNotPaused(address _asset, Action _action) internal view {
-        require(!ms().safetyState[_asset][_action].pause.enabled, Error.ACTION_PAUSED_FOR_ASSET);
     }
 }

@@ -78,10 +78,7 @@ describe("KreskoAsset", function () {
             const implementationAddress = deployment!.implementation;
 
             expect(implementationAddress).to.not.equal(hre.ethers.constants.AddressZero);
-            const KreskoAssetAnchorImpl = await hre.ethers.getContractAt<KreskoAssetAnchor>(
-                "KreskoAssetAnchor",
-                implementationAddress!,
-            );
+            const KreskoAssetAnchorImpl = await hre.ethers.getContractAt("KreskoAssetAnchor", implementationAddress!);
 
             await expect(
                 KreskoAssetAnchorImpl.initialize(KreskoAsset.address, name, symbol, hre.addr.deployer),

@@ -1,7 +1,6 @@
 import { assets as goerliAssets, testnetConfigs } from "@deploy-config/testnet-goerli";
-import type { DeployFunction } from "hardhat-deploy/types";
 import { getLogger } from "@kreskolabs/lib";
-import type { FluxPriceFeedFactory } from "types";
+import type { DeployFunction } from "hardhat-deploy/types";
 
 const func: DeployFunction = async function (hre) {
     const { deployer } = await hre.ethers.getNamedSigners();
@@ -12,7 +11,7 @@ const func: DeployFunction = async function (hre) {
             value: hre.ethers.utils.parseEther("10"),
         });
     }
-    const [factory] = await hre.deploy<FluxPriceFeedFactory>("FluxPriceFeedFactory", {
+    const [factory] = await hre.deploy("FluxPriceFeedFactory", {
         from: feedValidator.address,
     });
     const assets = [

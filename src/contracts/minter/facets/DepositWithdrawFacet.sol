@@ -4,6 +4,7 @@ pragma solidity >=0.8.14;
 import {IDepositWithdrawFacet} from "../interfaces/IDepositWithdrawFacet.sol";
 
 import {Error} from "../../libs/Errors.sol";
+import {MinterEvent} from "../../libs/Events.sol";
 import {Role} from "../../libs/Authorization.sol";
 
 import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
@@ -37,7 +38,7 @@ contract DepositWithdrawFacet is DiamondModifiers, MinterModifiers, IDepositWith
         uint256 _depositAmount
     ) external nonReentrant collateralAssetExists(_collateralAsset) {
         if (ms().safetyStateSet) {
-            ensureNotPaused(_collateralAsset, Action.Deposit);
+            super.ensureNotPaused(_collateralAsset, Action.Deposit);
         }
 
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
@@ -45,6 +46,7 @@ contract DepositWithdrawFacet is DiamondModifiers, MinterModifiers, IDepositWith
 
         // Record the collateral deposit.
         ms().recordCollateralDeposit(_account, _collateralAsset, _depositAmount);
+        emit MinterEvent.CollateralDeposited(_account, _collateralAsset, _depositAmount);
     }
 
     /**
@@ -77,10 +79,6 @@ contract DepositWithdrawFacet is DiamondModifiers, MinterModifiers, IDepositWith
         );
 
         IERC20Upgradeable(_collateralAsset).safeTransfer(_account, _withdrawAmount);
-    }
-
-    /// @dev Simple check for the enabled flag
-    function ensureNotPaused(address _asset, Action _action) internal view {
-        require(!ms().safetyState[_asset][_action].pause.enabled, Error.ACTION_PAUSED_FOR_ASSET);
+        emit MinterEvent.CollateralWithdrawn(_account, _collateralAsset, _withdrawAmount);
     }
 }

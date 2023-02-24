@@ -12,7 +12,6 @@ import {
 } from "@utils/test/helpers/krassets";
 import { expect } from "chai";
 import hre from "hardhat";
-import { MinterEvent__factory } from "types";
 import {
     CloseFeePaidEventObject,
     KreskoAssetBurnedEvent,
@@ -285,7 +284,7 @@ describe("Minter", () => {
 
                 const event = await getInternalEvent<KreskoAssetMintedEventObject>(
                     tx,
-                    MinterEvent__factory.connect(hre.Diamond.address, hre.users.userOne),
+                    hre.Diamond,
                     "KreskoAssetMinted",
                 );
                 expect(event.account).to.equal(hre.users.userOne.address);
@@ -1012,7 +1011,7 @@ describe("Minter", () => {
 
                 const event = await getInternalEvent<KreskoAssetBurnedEvent["args"]>(
                     tx,
-                    MinterEvent__factory.connect(hre.Diamond.address, hre.users.userOne),
+                    hre.Diamond,
                     "KreskoAssetBurned",
                 );
                 expect(event.account).to.equal(hre.users.userOne.address);
@@ -1137,11 +1136,7 @@ describe("Minter", () => {
                     expect(feeRecipientBalanceIncrease).to.equal(toBig(normalizedExpectedCollateralFeeAmount));
 
                     // Ensure the emitted event is as expected.
-                    const event = await getInternalEvent<OpenFeePaidEventObject>(
-                        tx,
-                        MinterEvent__factory.connect(hre.Diamond.address, hre.users.userOne),
-                        "OpenFeePaid",
-                    );
+                    const event = await getInternalEvent<OpenFeePaidEventObject>(tx, hre.Diamond, "OpenFeePaid");
                     expect(event.account).to.equal(hre.users.userOne.address);
                     expect(event.paymentCollateralAsset).to.equal(this.collateral.address);
                     expect(event.paymentAmount).to.equal(toBig(normalizedExpectedCollateralFeeAmount));
@@ -1207,11 +1202,7 @@ describe("Minter", () => {
                     expect(feeRecipientBalanceIncrease).to.equal(toBig(normalizedExpectedCollateralFeeAmount));
 
                     // Ensure the emitted event is as expected.
-                    const event = await getInternalEvent<CloseFeePaidEventObject>(
-                        tx,
-                        MinterEvent__factory.connect(hre.Diamond.address, hre.users.userOne),
-                        "CloseFeePaid",
-                    );
+                    const event = await getInternalEvent<CloseFeePaidEventObject>(tx, hre.Diamond, "CloseFeePaid");
                     expect(event.account).to.equal(hre.users.userOne.address);
                     expect(event.paymentCollateralAsset).to.equal(this.collateral.address);
                     expect(event.paymentAmount).to.equal(toBig(normalizedExpectedCollateralFeeAmount));
@@ -1237,7 +1228,7 @@ describe("Minter", () => {
 
                     const event = await getInternalEvent<CloseFeePaidEventObject>(
                         await burnKrAsset({ user: hre.users.userThree, asset: this.krAsset, amount: burnAmount }),
-                        MinterEvent__factory.connect(hre.Diamond.address, hre.users.userThree),
+                        hre.Diamond,
                         "CloseFeePaid",
                     );
 
@@ -1255,7 +1246,7 @@ describe("Minter", () => {
                     await withdrawCollateral({ user: hre.users.userThree, asset: this.collateral, amount: wAmount });
                     const eventAfterRebase = await getInternalEvent<CloseFeePaidEventObject>(
                         await burnKrAsset({ user: hre.users.userThree, asset: this.krAsset, amount: burnAmountRebase }),
-                        MinterEvent__factory.connect(hre.Diamond.address, hre.users.userOne),
+                        hre.Diamond,
                         "CloseFeePaid",
                     );
                     expect(eventAfterRebase.paymentCollateralAsset).to.equal(event.paymentCollateralAsset);
@@ -1280,7 +1271,7 @@ describe("Minter", () => {
 
                     const event = await getInternalEvent<CloseFeePaidEventObject>(
                         await burnKrAsset({ user: hre.users.userThree, asset: this.krAsset, amount: burnAmount }),
-                        MinterEvent__factory.connect(hre.Diamond.address, hre.users.userThree),
+                        hre.Diamond,
                         "CloseFeePaid",
                     );
 
@@ -1298,7 +1289,7 @@ describe("Minter", () => {
                     await withdrawCollateral({ user: hre.users.userThree, asset: this.collateral, amount: wAmount });
                     const eventAfterRebase = await getInternalEvent<CloseFeePaidEventObject>(
                         await burnKrAsset({ user: hre.users.userThree, asset: this.krAsset, amount: burnAmountRebase }),
-                        MinterEvent__factory.connect(hre.Diamond.address, hre.users.userOne),
+                        hre.Diamond,
                         "CloseFeePaid",
                     );
                     expect(eventAfterRebase.paymentCollateralAsset).to.equal(event.paymentCollateralAsset);

@@ -1,21 +1,38 @@
-export * from './typechain';
+export type Split<S extends string, D extends string> = string extends S
+  ? string[]
+  : S extends ""
+  ? []
+  : S extends `${infer T}${D}${infer U}`
+  ? [T, ...Split<U, D>]
+  : [S];
+export type ExcludeType<T, E> = {
+  [K in keyof T]: T[K] extends E ? K : never;
+}[keyof T];
 
-// export {ERC20Upgradeable as ERC20} from '../../../types/typechain/src/contracts/shared/ERC20Upgradeable';
-// export {ERC4626Upgradeable as ERC4626} from '../../../types/typechain/src/contracts/shared/ERC4626Upgradeable';
-// export {Kresko} from '../../../types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
-// export {KreskoAsset} from '../../../types/typechain/src/contracts/kreskoasset/KreskoAsset';
-// export {KreskoAssetAnchor} from '../../../types/typechain/src/contracts/kreskoasset/KreskoAssetAnchor';
-// export {UniswapV2Oracle} from '../../../types/typechain/src/contracts/minter/UniswapV2Oracle';
-// export {KrStaking} from '../../../types/typechain/src/contracts/staking/KrStaking';
-// export {KrStakingHelper} from '../../../types/typechain/src/contracts/staking/KrStakingHelper';
-// export {UniswapMath} from '../../../types/typechain/src/contracts/test/markets/UniswapMath';
-// export {UniswapV2LiquidityMathLibrary} from '../../../types/typechain/src/contracts/test/markets/UniswapV2LiquidityMathLibrary';
-// export {UniswapV2Router02} from '../../../types/typechain/src/contracts/vendor/uniswap/v2-periphery/UniswapV2Router02';
-// export {UniswapV2Pair} from '../../../types/typechain/src/contracts/vendor/uniswap/v2-core/UniswapV2Pair';
-// export {UniswapV2Factory} from '../../../types/typechain/src/contracts/vendor/uniswap/v2-core/UniswapV2Factory';
-// export {WETH} from '../../../types/typechain/src/contracts/test/WETH';
-// export {Multisender} from '../../../types/typechain/src/contracts/test/Multisender';
-// export {FluxPriceFeed} from '../../../types/typechain/src/contracts/vendor/flux/FluxPriceFeed';
-// export {FluxPriceFeedFactory} from '../../../types/typechain/src/contracts/vendor/flux/FluxPriceFeedFactory';
-// export {KISS} from '../../../types/typechain/src/contracts/KISS';
-// export {GnosisSafeL2} from '../../../types/typechain/src/contracts/vendor/gnosis/GnosisSafeL2';
+export type MinEthersFactoryExt<C> = {
+  connect(address: string, signerOrProvider: any): C;
+};
+export type InferContractType<Factory> = Factory extends MinEthersFactoryExt<
+  infer C
+>
+  ? C
+  : unknown;
+
+type KeyValue<T = unknown> = {
+  [key: string]: T;
+};
+export type FactoryName<T extends KeyValue> = Exclude<keyof T, "factories">;
+export type ContractName<
+  T extends KeyValue,
+  Excludes = "factories" | "hardhatDiamondAbi"
+> = Split<
+  Exclude<keyof T extends string ? keyof T : never, Excludes>,
+  "__factory"
+>[0];
+
+export type GetContractTypes<T extends KeyValue> = {
+  [K in FactoryName<T> as `${Split<
+    K extends string ? K : never,
+    "__factory"
+  >[0]}`]: InferContractType<T[K]>;
+};

@@ -6,7 +6,6 @@ import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
 import {AggregatorV2V3Interface} from "../../vendor/flux/interfaces/AggregatorV2V3Interface.sol";
 import {IUniswapV2Pair} from "../../vendor/uniswap/v2-core/interfaces/IUniswapV2Pair.sol";
 import {IKrStaking} from "../../staking/interfaces/IKrStaking.sol";
-import {IKresko} from "../interfaces/IKresko.sol";
 import {LibDecimals, FixedPoint} from "../libs/LibDecimals.sol";
 import {Error} from "../../libs/Errors.sol";
 
@@ -258,11 +257,9 @@ library LibUI {
         }
     }
 
-    function collateralAssetInfos(address[] memory assetAddresses)
-        internal
-        view
-        returns (CollateralAssetInfo[] memory result)
-    {
+    function collateralAssetInfos(
+        address[] memory assetAddresses
+    ) internal view returns (CollateralAssetInfo[] memory result) {
         result = new CollateralAssetInfo[](assetAddresses.length);
         for (uint256 i; i < assetAddresses.length; i++) {
             address assetAddress = assetAddresses[i];
@@ -270,7 +267,7 @@ library LibUI {
             uint8 decimals = IERC20Upgradeable(assetAddress).decimals();
 
             (FixedPoint.Unsigned memory value, FixedPoint.Unsigned memory price) = ms()
-                .getCollateralValueAndOraclePrice(assetAddress, 1 * 10**decimals, false);
+                .getCollateralValueAndOraclePrice(assetAddress, 1 * 10 ** decimals, false);
 
             result[i] = CollateralAssetInfo({
                 value: value.rawValue,
@@ -287,11 +284,9 @@ library LibUI {
         }
     }
 
-    function collateralAssetInfoFor(address _account)
-        internal
-        view
-        returns (CollateralAssetInfoUser[] memory result, FixedPoint.Unsigned memory totalCollateralUSD)
-    {
+    function collateralAssetInfoFor(
+        address _account
+    ) internal view returns (CollateralAssetInfoUser[] memory result, FixedPoint.Unsigned memory totalCollateralUSD) {
         address[] memory collateralAssetAddresses = ms().getDepositedCollateralAssets(_account);
         if (collateralAssetAddresses.length > 0) {
             result = new CollateralAssetInfoUser[](collateralAssetAddresses.length);
@@ -322,11 +317,9 @@ library LibUI {
         }
     }
 
-    function krAssetInfoFor(address _account)
-        internal
-        view
-        returns (krAssetInfoUser[] memory result, FixedPoint.Unsigned memory totalDebtUSD)
-    {
+    function krAssetInfoFor(
+        address _account
+    ) internal view returns (krAssetInfoUser[] memory result, FixedPoint.Unsigned memory totalDebtUSD) {
         address[] memory krAssetAddresses = ms().mintedKreskoAssets[_account];
         if (krAssetAddresses.length > 0) {
             result = new krAssetInfoUser[](krAssetAddresses.length);

@@ -6,7 +6,6 @@ import { executeContractCallWithSigners } from "@utils/gnosis/utils/execution";
 import { withFixture } from "@utils/test";
 import { expect } from "chai";
 import hre from "hardhat";
-import { MinterEvent__factory } from "types";
 import { SafetyStateChangeEventObject } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
 describe("Safety Council", () => {
@@ -341,7 +340,7 @@ describe("Safety Council", () => {
 
                 const event = await getInternalEvent<SafetyStateChangeEventObject>(
                     tx,
-                    MinterEvent__factory.connect(hre.Diamond.address, hre.users.userOne),
+                    hre.Diamond,
                     "SafetyStateChange",
                 );
                 expect(event.action).to.equal(Action.DEPOSIT);

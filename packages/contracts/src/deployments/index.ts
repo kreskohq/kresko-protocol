@@ -10,11 +10,11 @@ export interface ContractExport {
 export interface Export {
     chainId: string;
     name: string;
-    contracts: { [name: string]: ContractExport };
+    contracts: { [key in DeploymentNames]: ContractExport };
 }
 
 export type MultiExport = {
-    [chainId: string]: Export[];
+    [chainId in DeployedChains]: typeof deploymentsJson[chainId][0];
   };
 export type Oracles = {
     asset: string;
@@ -27,7 +27,8 @@ export type Oracles = {
 const deployments = deploymentsJson;
 
 const oracles = oracleJson;
-export type ContractNames = keyof typeof deploymentsJson["420"][0]["contracts"];
+export type DeploymentNames = keyof typeof deploymentsJson["420"][0]["contracts"];
+export const opgoerli = deploymentsJson["420"][0]["contracts"];
 
 export type DeployedChains = keyof typeof deploymentsJson;
 

@@ -11,7 +11,7 @@ pragma solidity >=0.8.14;
 
 import {ds, Error, Meta} from "../../shared/Modifiers.sol";
 import {InterestRateEvent} from "../../libs/Events.sol";
-import {LibUI, IKresko, IKrStaking, IUniswapV2Pair, IERC20Upgradeable, AggregatorV2V3Interface, ms} from "../libs/LibUI.sol";
+import {LibUI, IKrStaking, IUniswapV2Pair, IERC20Upgradeable, AggregatorV2V3Interface, ms} from "../libs/LibUI.sol";
 
 /**
  * @author Kresko
@@ -26,11 +26,7 @@ contract UIDataProviderFacet {
     )
         external
         view
-        returns (
-            LibUI.KreskoUser memory user,
-            LibUI.Balance[] memory balances,
-            LibUI.StakingData[] memory stakingData
-        )
+        returns (LibUI.KreskoUser memory user, LibUI.Balance[] memory balances, LibUI.StakingData[] memory stakingData)
     {
         user = LibUI.kreskoUser(_account);
         balances = LibUI.getBalances(_tokens, _account);

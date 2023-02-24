@@ -135,7 +135,7 @@ task(TASK_NAME).setAction(async function (_taskArgs: TaskArguments, hre) {
             value: hre.ethers.utils.parseEther("5"),
         });
         // console.log(hre.network.name);
-        // const kresko = await hre.getContractOrFork<Kresko>("Diamond");
+        // const kresko = await hre.getContractOrFork("Kresko");
         // console.log(kresko.address);
         log.log("Finished");
     } catch (e) {

@@ -14,14 +14,17 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         case "opgoerli": {
             const config = testnetConfigs[hre.network.name];
             const gnosisSafeDeployments = config.gnosisSafeDeployments;
+            if (!gnosisSafeDeployments) {
+                throw new Error("No gnosis safe deployments found");
+            }
 
-            const simulateTxAccesorInfo = gnosisSafeDeployments!.find(i => i.contractName === "SimulateTxAccesor");
+            const simulateTxAccesorInfo = gnosisSafeDeployments.find(i => i.contractName === "SimulateTxAccesor")!;
             await deployments.save("SimulateTxAccessor", {
                 abi: simulateTxAccesorInfo!.abi,
                 address: simulateTxAccesorInfo!.networkAddresses.opgoerli,
             });
 
-            const gnosisSafeProxyFactoryInfo = gnosisSafeDeployments!.find(
+            const gnosisSafeProxyFactoryInfo = gnosisSafeDeployments.find(
                 i => i.contractName === "GnosisSafeProxyFactory",
             )!;
             await deployments.save("GnosisSafeProxyFactory", {
@@ -29,7 +32,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
                 address: gnosisSafeProxyFactoryInfo.networkAddresses.opgoerli,
             });
 
-            const compatibilityFallbackHandlerInfo = gnosisSafeDeployments!.find(
+            const compatibilityFallbackHandlerInfo = gnosisSafeDeployments.find(
                 i => i.contractName === "CompatibilityFallbackHandler",
             )!;
             await deployments.save("CompatibilityFallbackHandler", {

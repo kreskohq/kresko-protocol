@@ -2,7 +2,6 @@ import { defaultKrAssetArgs } from "@utils/test/mocks";
 import { Role } from "@utils/test/roles";
 import { task, types } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
-import type { KISS } from "types";
 
 task("deploy-kiss")
     .addOptionalParam("wait", "wait confirmations", 1, types.int)
@@ -10,7 +9,7 @@ task("deploy-kiss")
     .setAction(async function (taskArgs: TaskArguments, hre) {
         const users = await hre.getUsers();
 
-        const [KISSContract] = await hre.deploy<KISS>("KISS", {
+        const [KISSContract] = await hre.deploy("KISS", {
             from: users.deployer.address,
             contract: "KISS",
             log: true,
@@ -22,7 +21,7 @@ task("deploy-kiss")
 
         const asset = {
             address: KISSContract.address,
-            contract: KISSContract as unknown as KreskoAsset,
+            contract: KISSContract,
             deployArgs: {
                 name: "KISS",
                 price: 1,

@@ -4,10 +4,10 @@ import { toFixedPoint, toBig } from "@kreskolabs/lib";
 import { getUsers } from "@utils/general";
 import { expect } from "chai";
 import hre from "hardhat";
-import { KreskoAsset__factory, KreskoAssetAnchor__factory, FluxPriceFeed__factory } from "types";
 import { TestKreskoAssetArgs, defaultKrAssetArgs, TestKreskoAssetUpdate, InputArgs, InputArgsSimple } from "../mocks";
 import roles from "../roles";
 import { getMockOracleFor, setPrice, setMarketOpen } from "./general";
+import { FluxPriceFeed__factory, KreskoAssetAnchor__factory, KreskoAsset__factory } from "types/typechain";
 
 export const getDebtIndexAdjustedBalance = async (user: SignerWithAddress, asset: TestKrAsset) => {
     const balance = await asset.contract.balanceOf(user.address);

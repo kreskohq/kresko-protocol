@@ -1,4 +1,3 @@
-import type { UniswapV2Pair, UniswapV2Router02 } from "types";
 import hre from "hardhat";
 import { fromBig } from "@kreskolabs/lib";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
@@ -6,7 +5,7 @@ import { getBlockTimestamp } from "./calculations";
 
 type AddLiquidityArgs = {
     user: SignerWithAddress;
-    router: UniswapV2Router02;
+    router: UniV2Router;
     token0: TestAsset;
     token1: TestAsset;
     amount0: number | BigNumber;
@@ -59,7 +58,7 @@ type LPValueArgs = {
     user: SignerWithAddress;
     token0: TestAsset;
     token1: TestAsset;
-    LPPair: UniswapV2Pair;
+    LPPair: TC["UniswapV2Pair"];
 };
 export const getLPTokenValue = async (args: LPValueArgs) => {
     const { token0, token1, LPPair, user } = args;
@@ -74,10 +73,7 @@ export const getLPTokenValue = async (args: LPValueArgs) => {
 };
 
 export const getPair = async (token0: TestAsset, token1: TestAsset) => {
-    return hre.ethers.getContractAt(
-        "UniswapV2Pair",
-        await hre.UniV2Factory.getPair(token0.address, token1.address),
-    ) as unknown as UniswapV2Pair;
+    return hre.ethers.getContractAt("UniswapV2Pair", await hre.UniV2Factory.getPair(token0.address, token1.address));
 };
 
 export const getAMMPrices = async (tokenA: TestAsset, tokenB: TestAsset) => {
@@ -99,7 +95,7 @@ type LPValueArgsUsers = {
     users: SignerWithAddress[];
     token0: TestAsset;
     token1: TestAsset;
-    LPPair: UniswapV2Pair;
+    LPPair: TC["UniswapV2Pair"];
 };
 export const getValuesForUsers = async (logDesc: string, args: LPValueArgsUsers) => {
     const { token0, token1, LPPair, users } = args;
@@ -128,7 +124,7 @@ type SwapArgs = {
     user: SignerWithAddress;
     amount: number | BigNumber;
     route: string[];
-    router: UniswapV2Router02;
+    router: UniV2Router;
 };
 export const swap = async (args: SwapArgs) => {
     const { user, amount, router, route } = args;

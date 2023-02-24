@@ -14,17 +14,25 @@
     "solidity",
     "typechain"
   ],
+  "files": [
+    "dist",
+    "src"
+  ],
+  "publishConfig": {
+      "main": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+  },
   "scripts": {
     "build": "tsup && npm version patch",
     "clean": "rm -rf dist && rm -rf deployments && rm -rf types"
   },
   "license": "ISC",
-  "main": "./dist/packages/contracts/src/index.js",
-  "types": "./dist/packages/contracts/src/index.d.ts",
-  "sources": [
-    "./src/**/*"
-  ],
+  "main": ".src/index.ts",
+  "types": "./src/index.d.ts",
   "devDependencies": {
+    "@ethersproject/abstract-provider": "^5.7.0",
+    "@ethersproject/abstract-signer": "^5.7.0",
+    "@ethersproject/contracts": "^5.7.0",
     "tsc-alias": "^1.8.2",
     "typescript": "^4.9.5"
   },

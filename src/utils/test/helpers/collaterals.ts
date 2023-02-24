@@ -2,9 +2,9 @@ import hre from "hardhat";
 import { smock } from "@defi-wonderland/smock";
 import { getUsers } from "@utils/general";
 import { toFixedPoint, toBig } from "@kreskolabs/lib";
-import { ERC20Upgradeable__factory, FluxPriceFeed__factory } from "types";
 import { TestCollateralAssetArgs, defaultCollateralArgs, TestCollateralAssetUpdate, InputArgs } from "../mocks";
 import { getMockOracleFor, setPrice } from "./general";
+import { ERC20Upgradeable__factory, FluxPriceFeed__factory } from "types/typechain";
 
 export const addMockCollateralAsset = async (
     args: TestCollateralAssetArgs = defaultCollateralArgs,

@@ -1,15 +1,14 @@
-import type { HardhatRuntimeEnvironment, HardhatUsers } from "hardhat/types";
-import "hardhat-deploy";
 import "@nomiclabs/hardhat-ethers";
-import { FluxPriceFeedFactory } from "types/typechain/src/contracts/vendor/flux/FluxPriceFeedFactory";
+import "hardhat-deploy";
+import type { HardhatRuntimeEnvironment, HardhatUsers } from "hardhat/types";
 export const getUsers = async (hre?: HardhatRuntimeEnvironment): Promise<HardhatUsers<SignerWithAddress>> => {
     if (!hre) hre = require("hardhat");
 
     return (await hre!.ethers.getNamedSigners()) as HardhatUsers<SignerWithAddress>;
 };
-export const getOracle = async (oracleDesc: string, hre?: HardhatRuntimeEnvironment) => {
-    const { feedValidator } = await hre!.ethers.getNamedSigners();
-    const factory = await hre!.ethers.getContract<FluxPriceFeedFactory>("FluxPriceFeedFactory");
+export const getOracle = async (oracleDesc: string, hre: HardhatRuntimeEnvironment) => {
+    const { feedValidator } = await hre.ethers.getNamedSigners();
+    const factory = await hre.getContractOrFork("FluxPriceFeedFactory");
 
     const fluxFeed = await factory.addressOfPricePair(oracleDesc, 8, feedValidator.address);
     if (fluxFeed === hre!.ethers.constants.AddressZero) {

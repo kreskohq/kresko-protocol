@@ -1,5 +1,4 @@
-import { getLogger } from "@kreskolabs/lib";
-import { toFixedPoint } from "@kreskolabs/lib";
+import { getLogger, toFixedPoint } from "@kreskolabs/lib";
 import { defaultSupplyLimit } from "@utils/test/mocks";
 import { task, types } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
@@ -13,7 +12,7 @@ task("add-krasset")
     .addOptionalParam("log", "Log outputs", false, types.boolean)
     .addOptionalParam("wait", "Log outputs", 1, types.int)
     .setAction(async function (taskArgs: TaskArguments, hre) {
-        const { ethers, users } = hre;
+        const { users } = hre;
         const kresko = hre.Diamond.connect(users.operator);
         const { symbol, kFactor, oracleAddr, supplyLimit, marketStatusOracleAddr, log } = taskArgs;
         const logger = getLogger("add-krasset", log);
@@ -21,7 +20,8 @@ task("add-krasset")
             console.error("Invalid kFactor for", symbol);
             return;
         }
-        const KrAsset = await ethers.getContract<KreskoAsset>(symbol);
+
+        const KrAsset = await hre.getContractOrFork("KreskoAsset", symbol);
 
         const asset = hre.krAssets.find(k => k.address === KrAsset.address);
 

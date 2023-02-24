@@ -1,5 +1,0 @@
-{
-  "name": "deployments",
-  "main": "../dist/deployments/index.js",
-  "types": "../dist/deployments/index.d.ts"
-}

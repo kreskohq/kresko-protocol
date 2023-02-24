@@ -1,18 +1,16 @@
 import { testnetConfigs } from "@deploy-config/testnet-goerli";
-import { fromBig } from "@kreskolabs/lib";
-import { getLogger } from "@kreskolabs/lib";
+import { fromBig, getLogger } from "@kreskolabs/lib";
 import { task } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
-import { FluxPriceFeedFactory } from "types";
 
 task("update-oracles").setAction(async function (_taskArgs: TaskArguments, hre) {
     const { feedValidator, operator } = await hre.ethers.getNamedSigners();
-    const factory = await hre.ethers.getContract<FluxPriceFeedFactory>("FluxPriceFeedFactory");
+    const factory = await hre.getContractOrFork("FluxPriceFeedFactory");
     const logger = getLogger("sandbox");
-    const Kresko = (await hre.ethers.getContract<Kresko>("Diamond")).connect(operator);
+    const Kresko = (await hre.getContractOrFork("Kresko")).connect(operator);
     for (const collateral of testnetConfigs[hre.network.name].collaterals) {
         const fluxFeed = await factory.addressOfPricePair(collateral.oracle!.description, 8, feedValidator.address);
-        const contract = await hre.ethers.getContract(collateral.symbol);
+        const contract = await hre.getContractOrFork("ERC20Upgradeable", collateral.symbol);
         const asset = await Kresko.collateralAsset(contract.address);
         const id = await factory.getId(collateral.oracle!.description, 8, feedValidator.address);
         const latest = await factory.valueFor(id);
@@ -29,7 +27,7 @@ task("update-oracles").setAction(async function (_taskArgs: TaskArguments, hre) 
     }
     for (const krAsset of testnetConfigs[hre.network.name].krAssets) {
         const fluxFeed = await factory.addressOfPricePair(krAsset.oracle!.description, 8, feedValidator.address);
-        const contract = await hre.ethers.getContract(krAsset.symbol);
+        const contract = await hre.getContractOrFork("ERC20Upgradeable", krAsset.symbol);
         if (contract.address === hre.ethers.constants.AddressZero || fluxFeed === hre.ethers.constants.AddressZero) {
             throw new Error(`0 addr ${krAsset.symbol}`);
         }

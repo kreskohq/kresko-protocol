@@ -14,7 +14,7 @@ export const withFixture = (fixtureName: string[]) => {
             const result = await hre.deployments.fixture(fixtureName);
 
             if (result.Diamond) {
-                hre.Diamond = await hre.ethers.getContractAt<Kresko>("Kresko", result.Diamond.address);
+                hre.Diamond = await hre.getContractOrFork("Kresko");
             }
             return {
                 facets: result.Diamond ? result.Diamond.facets : [],

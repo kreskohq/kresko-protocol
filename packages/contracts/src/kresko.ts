@@ -1,1 +1,1 @@
-export * from '../../../types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
+export * from './typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';

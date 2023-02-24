@@ -17,14 +17,14 @@ task(TASK_NAME)
     .addOptionalParam("initParams", "Address to delegatecall to when adding the facet", "0x", types.string)
     .setAction(async function ({ name, initAddress, initParams }: TaskArguments, hre) {
         const logger = getLogger(TASK_NAME);
-        const { ethers, deployments, getUsers } = hre;
+        const { deployments, getUsers } = hre;
         const { deployer } = await getUsers();
 
         const Deployed = await hre.deployments.getOrNull("Diamond");
         if (!Deployed) {
             throw new Error(`No diamond deployed @ ${hre.network.name}`);
         }
-        const Diamond = await ethers.getContractAt<Kresko>("FullDiamond", Deployed.address);
+        const Diamond = await hre.getContractOrFork("Kresko");
         // Single facet addition, maps all functions contained
         const [Facet, Signatures] = await hre.deploy(name, {
             from: deployer.address,

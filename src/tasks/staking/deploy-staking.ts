@@ -1,9 +1,7 @@
 import { getLogger } from "@kreskolabs/lib";
 import { toBig } from "@kreskolabs/lib";
-import { deployWithSignatures } from "@utils/deployment";
 import { task, types } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
-import type { KrStaking } from "types";
 
 task("deploy-staking")
     .addParam("stakingToken", "Address of the token to be staked")
@@ -15,7 +13,6 @@ task("deploy-staking")
     .setAction(async function (taskArgs: TaskArguments, hre) {
         const { getNamedAccounts } = hre;
         const { deployer } = await getNamedAccounts();
-        const deploy = deployWithSignatures(hre);
         const { stakingToken, rewardTokens, rewardPerBlocks, startBlock, log } = taskArgs;
         const logger = getLogger("latestAnswer", log);
         const rewardTokenArr = rewardTokens.split(",");
@@ -25,7 +22,7 @@ task("deploy-staking")
             logger.error("Must provide reward per block for each token");
             throw new Error();
         } else {
-            const [Staking] = await deploy<KrStaking>("KrStaking", {
+            const [Staking] = await hre.deploy("KrStaking", {
                 from: deployer,
                 log: true,
                 proxy: {

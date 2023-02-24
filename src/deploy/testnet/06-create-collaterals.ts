@@ -14,11 +14,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         if (collateral.symbol === "WETH") {
             let WETH: WETH;
             if (!isDeployed) {
-                [WETH] = await hre.deploy<WETH>("WETH", {
+                [WETH] = await hre.deploy("WETH", {
                     from: hre.users.deployer.address,
                 });
             } else {
-                WETH = await hre.ethers.getContract<WETH>("WETH");
+                WETH = await hre.getContractOrFork("WETH");
             }
             await WETH["deposit(uint256)"](hre.toBig(collateral.mintAmount!));
             continue;

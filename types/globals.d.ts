@@ -1,26 +1,29 @@
 import { FakeContract, MockContract } from "@defi-wonderland/smock";
-import { DeployResult } from "hardhat-deploy/types";
 import {
-  TestCollateralAssetArgs,
-  TestCollateralAssetUpdate, TestKreskoAssetArgs, TestKreskoAssetUpdate
+    TestCollateralAssetArgs,
+    TestCollateralAssetUpdate,
+    TestKreskoAssetArgs,
+    TestKreskoAssetUpdate,
 } from "@utils/test";
 import type { BytesLike } from "ethers";
+import { DeployResult } from "hardhat-deploy/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { ContractTypes } from "types";
 import { KreskoAssetAnchor } from "types/typechain/src/contracts/kreskoasset";
-import { CollateralAssetStruct, KrAssetStructOutput } from "./typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
-
+import type * as Contracts from "./typechain";
+import { CollateralAssetStruct, KrAssetStructOutput } from "./typechain/src/contracts/minter/facets/StateFacet";
 declare global {
     const hre: HardhatRuntimeEnvironment;
     /* -------------------------------------------------------------------------- */
     /*                              Minter Contracts                              */
     /* -------------------------------------------------------------------------- */
-    type Kresko = import("types/typechain").Kresko;
-    type KreskoAsset = import("types/typechain").KreskoAsset;
+    export type TC = ContractTypes;
+
     type TestKrAsset = {
         krAsset?: boolean;
         collateral?: boolean;
         address: string;
-        contract: KreskoAsset;
+        contract: TC["KreskoAsset"];
         deployArgs?: TestKreskoAssetArgs;
         kresko: () => Promise<KrAssetStructOutput>;
         mocks: {
@@ -29,9 +32,9 @@ declare global {
             priceFeed: FakeContract<FluxPriceFeed>;
             anchor?: MockContract<KreskoAssetAnchor>;
         };
-        anchor?: KreskoAssetAnchor;
+        anchor: KreskoAssetAnchor;
         priceFeed: FluxPriceFeed;
-        setBalance: (user: SignerWithAddress, balance: BigNumber) =>Promise<void>
+        setBalance: (user: SignerWithAddress, balance: BigNumber) => Promise<void>;
         setPrice: (price: number) => void;
         getPrice: () => Promise<BigNumber>;
         setMarketOpen: (marketOpen: boolean) => void;
@@ -65,20 +68,21 @@ declare global {
     /* -------------------------------------------------------------------------- */
     /*                                   Oracles                                  */
     /* -------------------------------------------------------------------------- */
-    type FluxPriceFeed = import("types/typechain").FluxPriceFeed;
-
-    type FluxPriceFeedFactory = import("types/typechain").FluxPriceFeedFactory;
-    type AggregatorV2V3Interface = import("types/typechain").AggregatorV2V3Interface;
-
+    type FluxPriceFeed = TC["FluxPriceFeed"];
+    type FluxPriceFeedFactory = TC["FluxPriceFeedFactory"];
+    type UniV2Router = Contracts.UniswapV2Router02;
+    type UniV2Factory = Contracts.UniswapV2Factory;
     /* -------------------------------------------------------------------------- */
     /*                               Misc Contracts                               */
     /* -------------------------------------------------------------------------- */
+
     type Contract = import("ethers").Contract;
-
-    type WETH9 = import("types/typechain").WETH9;
-    type ERC20Upgradeable = import("types/typechain").ERC20Upgradeable;
-    type IERC20 = import("types/typechain").IERC20;
-
+    type GnosisSafeL2 = TC["GnosisSafeL2"];
+    type KreskoAsset = TC["KreskoAsset"];
+    type KrStaking = TC["KrStaking"];
+    type WETH9 = TC["WETH9"];
+    type ERC20Upgradeable = TC["ERC20Upgradeable"];
+    type IERC20 = TC["IERC20"];
     type BigNumberish = import("ethers").BigNumberish;
     type BigNumber = import("ethers").BigNumber;
     /* -------------------------------------------------------------------------- */
@@ -87,13 +91,13 @@ declare global {
     type Signer = import("ethers").Signer;
     type SignerWithAddress = import("@nomiclabs/hardhat-ethers/signers").SignerWithAddress;
 
-
     /* -------------------------------------------------------------------------- */
     /*                                 Deployments                                */
     /* -------------------------------------------------------------------------- */
     type Artifact = import("hardhat/types").Artifact;
 
-    type DeployResultWithSignatures<T extends Contract> = [T, string[], DeployResult];
+    // type DeployResultWithSignaturesUnknown<C extends Contract> = readonly [C, string[], DeployResult];
+    type DeployResultWithSignatures<T> = readonly [T, string[], DeployResult];
 
     type DiamondCutInitializer = [string, BytesLike];
 
@@ -126,8 +130,4 @@ declare global {
         live?: boolean;
         saveDeployments?: boolean;
     }
-
 }
-
-export { };
-

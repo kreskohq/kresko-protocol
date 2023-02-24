@@ -1,13 +1,12 @@
 import type { DeployFunction } from "hardhat-deploy/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import { getLogger } from "@kreskolabs/lib";
-import { UniswapV2Oracle } from "types";
 import { deployments } from "hardhat";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("UniV2Oracle", true);
 
-    const [UniV2Oracle] = await hre.deploy<UniswapV2Oracle>("UniswapV2Oracle", {
+    const [UniV2Oracle] = await hre.deploy("UniswapV2Oracle", {
         from: (await hre.getUsers()).deployer.address,
         args: [hre.UniV2Factory.address],
     });

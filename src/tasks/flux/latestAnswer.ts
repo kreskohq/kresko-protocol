@@ -6,7 +6,7 @@ task("latestAnswer", "Fetches the latest answer")
     .addOptionalParam("log", "log information", true, types.boolean)
     .setAction(async (_taskArgs, hre) => {
         const { contract, log } = _taskArgs;
-        const FluxPriceFeed = await hre.ethers.getContractAt<FluxPriceFeed>("FluxPriceFeed", contract);
+        const FluxPriceFeed = await hre.ethers.getContractAt("FluxPriceFeed", contract);
         const logger = getLogger("latestAnswer", log);
         const tx = await FluxPriceFeed.latestAnswer();
         logger.log("Price for", contract, ": ", tx.toString());

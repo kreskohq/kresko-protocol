@@ -10,7 +10,6 @@ import {ms} from "../minter/MinterStorage.sol";
 
 import {ENTERED, NOT_ENTERED} from "../diamond/DiamondTypes.sol";
 import {ds} from "../diamond/DiamondStorage.sol";
-import {AggregatorV2V3Interface} from "../vendor/flux/interfaces/AggregatorV2V3Interface.sol";
 
 abstract contract DiamondModifiers {
     /**
@@ -93,5 +92,10 @@ abstract contract MinterModifiers {
     modifier kreskoAssetDoesNotExist(address _kreskoAsset) {
         require(!ms().kreskoAssets[_kreskoAsset].exists, Error.KRASSET_EXISTS);
         _;
+    }
+
+    /// @dev Simple check for the enabled flag
+    function ensureNotPaused(address _asset, Action _action) internal view virtual {
+        require(!ms().safetyState[_asset][_action].pause.enabled, Error.ACTION_PAUSED_FOR_ASSET);
     }
 }

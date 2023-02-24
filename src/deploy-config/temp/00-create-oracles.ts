@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import type { DeployFunction } from "hardhat-deploy/types";
-import type { FluxPriceFeed } from "types";
 import { testnetConfigs } from "@deploy-config/testnet-goerli";
-import { getLogger } from "@kreskolabs/lib";
-import { JStoFixed } from "@kreskolabs/lib";
+import { JStoFixed, getLogger } from "@kreskolabs/lib";
+import type { DeployFunction } from "hardhat-deploy/types";
 
 const func: DeployFunction = async function (hre) {
     const logger = getLogger("deploy-oracle", !process.env.TEST);
@@ -32,11 +30,7 @@ const func: DeployFunction = async function (hre) {
         if (deployment != null) {
             logger.log(`Oracle already deployed for ${asset.symbol}`);
             logger.log(`Checking price..`);
-            const oracle = await hre.ethers.getContractAt<FluxPriceFeed>(
-                "FluxPriceFeed",
-                deployment.address,
-                feedValidator.address,
-            );
+            const oracle = await hre.ethers.getContractAt("FluxPriceFeed", deployment.address, feedValidator);
 
             const marketOpen = await oracle.latestMarketOpen();
             const price = await oracle.latestAnswer();
@@ -54,7 +48,7 @@ const func: DeployFunction = async function (hre) {
         logger.log(`Deploying oracle for ${asset.symbol}`);
         if (asset.oracle == null) throw new Error("Oracle not found");
         const feed: FluxPriceFeed = await hre.run("deployone:fluxpricefeed", {
-            name: asset.oracle.name,
+            deploymentName: asset.oracle.name,
             decimals: 8,
             description: asset.oracle.description,
             validator: feedValidator.address,
@@ -82,7 +76,7 @@ func.skip = async () => true;
 
 //     const lastOracle = assets[assets.length - 1].oracle.name;
 //     try {
-//         const oracle = await hre.ethers.getContract<FluxPriceFeed>(lastOracle);
+//         const oracle = await hre.getContractOrFork(lastOracle);
 
 //         const price = await oracle.latestAnswer();
 //         const marketOpen = await oracle.latestMarketOpen();

@@ -347,7 +347,7 @@ const defaultStakingPools: StakingPoolConfig[] = [
     },
 ];
 
-const defaultGnosisSafeDeploymentsOPGoerli: GnosisSafeDeployment[] = [
+const gnosisOPGoerli: GnosisSafeDeployment[] = [
     CompatibilityFallbackHandler,
     CreateCall,
     GnosisSafeL2,
@@ -378,7 +378,7 @@ export const testnetConfigs: NetworkConfig = {
         rewardTokens: [assets.krREWARD],
         rewardTokenAmounts: [1_000_000],
         rewardsPerBlock: [0.02],
-        gnosisSafeDeployments: defaultGnosisSafeDeploymentsOPGoerli,
+        gnosisSafeDeployments: gnosisOPGoerli,
     },
     localhost: {
         protocolParams: defaultParams,
@@ -399,7 +399,7 @@ export const testnetConfigs: NetworkConfig = {
         rewardTokens: [assets.krREWARD],
         rewardTokenAmounts: [1_000_000],
         rewardsPerBlock: [0.02],
-        gnosisSafeDeployments: defaultGnosisSafeDeploymentsOPGoerli,
+        gnosisSafeDeployments: gnosisOPGoerli,
     },
     opgoerli: {
         protocolParams: defaultParams,
@@ -420,6 +420,6 @@ export const testnetConfigs: NetworkConfig = {
         rewardTokens: [assets.krREWARD],
         rewardTokenAmounts: [1_000_000],
         rewardsPerBlock: [0.02],
-        gnosisSafeDeployments: defaultGnosisSafeDeploymentsOPGoerli,
+        gnosisSafeDeployments: gnosisOPGoerli,
     },
 };

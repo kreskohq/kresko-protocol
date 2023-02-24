@@ -1,10 +1,8 @@
+import { fromBig, getLogger, toFixedPoint } from "@kreskolabs/lib";
 import type { TaskArguments } from "hardhat/types";
-import type { MockERC20 } from "types";
-import { getLogger } from "@kreskolabs/lib";
-import { toFixedPoint, fromBig } from "@kreskolabs/lib";
 
-import { task, types } from "hardhat/config";
 import { anchorTokenPrefix } from "@deploy-config/shared";
+import { task, types } from "hardhat/config";
 
 task("add-collateral")
     .addParam("symbol", "Name of the collateral")
@@ -26,7 +24,7 @@ task("add-collateral")
             return;
         }
 
-        const Collateral = await ethers.getContract<MockERC20>(symbol);
+        const Collateral = await hre.getContractOrFork("ERC20Upgradeable", symbol);
 
         logger.log("Collateral address", Collateral.address);
 

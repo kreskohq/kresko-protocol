@@ -1,9 +1,7 @@
-import { getLogger } from "@kreskolabs/lib";
-import { fromBig, toBig } from "@kreskolabs/lib";
+import { fromBig, getLogger, toBig } from "@kreskolabs/lib";
 import { constants } from "ethers";
 import { task, types } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
-import type { MockERC20, UniswapV2Factory, UniswapV2Pair, UniswapV2Router02 } from "types";
 
 const TASK_NAME = "add-liquidity-v2";
 
@@ -22,20 +20,20 @@ task(TASK_NAME)
         const { ethers, getNamedAccounts } = hre;
         const { deployer } = await getNamedAccounts();
 
-        const TknA = await ethers.getContractAt<MockERC20>("MockERC20", tknA.address);
-        const TknB = await ethers.getContractAt<MockERC20>("MockERC20", tknB.address);
+        const TknA = await ethers.getContractAt("MockERC20", tknA.address);
+        const TknB = await ethers.getContractAt("MockERC20", tknB.address);
 
         const tknADec = await TknA.decimals();
         const tknBDec = await TknB.decimals();
 
-        let UniFactory: UniswapV2Factory;
-        let UniRouter: UniswapV2Router02;
+        let UniFactory: UniV2Factory;
+        let UniRouter: UniV2Router;
         if (factoryAddr && routerAddr) {
-            UniFactory = await ethers.getContractAt<UniswapV2Factory>("UniswapV2Factory", factoryAddr);
-            UniRouter = await ethers.getContractAt<UniswapV2Router02>("UniswapV2Router02", routerAddr);
+            UniFactory = await ethers.getContractAt("UniswapV2Factory", factoryAddr);
+            UniRouter = await ethers.getContractAt("UniswapV2Router02", routerAddr);
         } else {
-            UniFactory = await ethers.getContract<UniswapV2Factory>("UniswapV2Factory");
-            UniRouter = await ethers.getContract<UniswapV2Router02>("UniswapV2Router02");
+            UniFactory = await hre.getContractOrFork("UniswapV2Factory");
+            UniRouter = await hre.getContractOrFork("UniswapV2Router02");
         }
 
         const pairAddress = await UniFactory.getPair(TknA.address, tknB.address);
@@ -48,7 +46,7 @@ task(TASK_NAME)
                     tknB.name,
                     "since pair is created and has liquidity",
                 );
-                return await ethers.getContractAt<UniswapV2Pair>("UniswapV2Pair", pairAddress);
+                return await ethers.getContractAt("UniswapV2Pair", pairAddress);
             }
         } else {
             const approvalTknA = fromBig(await TknA.allowance(deployer, UniRouter.address), tknADec);
@@ -86,7 +84,7 @@ task(TASK_NAME)
             );
             await tx.wait();
 
-            const Pair = await ethers.getContractAt<UniswapV2Pair>(
+            const Pair = await ethers.getContractAt(
                 "UniswapV2Pair",
                 await UniFactory.getPair(TknA.address, TknB.address),
             );

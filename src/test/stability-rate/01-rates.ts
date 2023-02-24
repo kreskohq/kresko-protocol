@@ -29,7 +29,7 @@ describe("Stability Rates", () => {
         userOne = hre.users.deployer;
         this.krAsset = this.krAssets.find(c => c.deployArgs!.name === defaultKrAssetArgs.name)!;
         this.collateral = this.collaterals.find(c => c.deployArgs!.name === defaultCollateralArgs.name)!;
-        [UniMath] = await hre.deploy<UniswapMath>("UniswapMath", {
+        [UniMath] = await hre.deploy("UniswapMath", {
             from: hre.users.deployer.address,
             args: [hre.UniV2Factory.address, hre.UniV2Router.address],
         });

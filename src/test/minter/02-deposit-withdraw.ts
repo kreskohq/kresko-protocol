@@ -14,7 +14,6 @@ import { executeContractCallWithSigners } from "@utils/gnosis/utils/execution";
 import { Error } from "@utils/test/errors";
 import { addMockCollateralAsset, depositCollateral, withdrawCollateral } from "@utils/test/helpers/collaterals";
 import { expect } from "chai";
-import { MinterEvent__factory } from "types";
 import type {
     CollateralDepositedEventObject,
     CollateralWithdrawnEventObject,
@@ -218,7 +217,7 @@ describe("Minter - Deposit Withdraw", () => {
                 );
                 const event = await getInternalEvent<CollateralDepositedEventObject>(
                     tx,
-                    MinterEvent__factory.connect(hre.Diamond.address, this.depositArgs.user),
+                    hre.Diamond,
                     "CollateralDeposited",
                 );
                 expect(event.account).to.equal(this.depositArgs.user.address);
@@ -389,7 +388,7 @@ describe("Minter - Deposit Withdraw", () => {
 
                     const event = await getInternalEvent<CollateralWithdrawnEventObject>(
                         tx,
-                        MinterEvent__factory.connect(hre.Diamond.address, hre.users.userOne),
+                        hre.Diamond,
                         "CollateralWithdrawn",
                     );
                     expect(event.account).to.equal(hre.users.userOne.address);
@@ -586,7 +585,7 @@ describe("Minter - Deposit Withdraw", () => {
 
         describe("#deposit - rebase events", () => {
             const mintAmount = toBig(10);
-            let arbitraryUserDiamond: Kresko;
+            let arbitraryUserDiamond: typeof hre.Diamond;
             let arbitraryUser: SignerWithAddress;
             beforeEach(async function () {
                 arbitraryUser = hre.users.userThree;
@@ -1084,7 +1083,7 @@ describe("Minter - Deposit Withdraw", () => {
         describe("#withdraw - rebase events", () => {
             const mintAmount = hre.toBig(50);
             let arbitraryUser: SignerWithAddress;
-            let arbitraryUserDiamond: Kresko;
+            let arbitraryUserDiamond: typeof hre.Diamond;
             beforeEach(async function () {
                 arbitraryUser = hre.users.userThree;
                 arbitraryUserDiamond = hre.Diamond.connect(arbitraryUser);

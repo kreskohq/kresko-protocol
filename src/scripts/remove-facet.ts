@@ -1,11 +1,11 @@
-import { FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
 import { getLogger } from "@kreskolabs/lib";
+import { FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
 
 type Args = {
     name: string;
-    initializerName?: string;
+    initializerName?: keyof TC;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    initializerArgs?: any;
+    initializerArgs?: any[];
 };
 
 const logger = getLogger("remove-facet");
@@ -26,7 +26,7 @@ export async function removeFacet({ name, initializerName, initializerArgs }: Ar
     }
 
     // #2.1 Get contract instance with full ABI
-    const Diamond = await ethers.getContractAt<Kresko>("Kresko", DiamondDeployment.address);
+    const Diamond = await hre.getContractOrFork("Kresko");
 
     // #3.1 Get selectors of the facet
     const Facet = await hre.deployments.getOrNull(name);
@@ -55,7 +55,7 @@ export async function removeFacet({ name, initializerName, initializerArgs }: Ar
 
     if (initializerName) {
         // #4.2 If `initializerName` is supplied, try to get the existing deployment
-        const InitializerArtifact = await hre.deployments.getOrNull(initializerName);
+        const InitializerArtifact = await hre.getContractOrFork(initializerName);
 
         let InitializerContract: Contract;
         // #4.3 Deploy the initializer contract if it does not exist
@@ -63,7 +63,7 @@ export async function removeFacet({ name, initializerName, initializerArgs }: Ar
             [InitializerContract] = await hre.deploy(initializerName, { from: deployer.address, log: true });
         }
         // #4.4 Get the contract instance
-        InitializerContract = await hre.ethers.getContract(initializerName);
+        InitializerContract = await hre.getContractOrFork(initializerName);
         if (!initializerArgs || initializerArgs.length === 0) {
             // Ensure we know there are no parameters for the initializer supplied
             logger.warn("Adding diamondCut initializer with no arguments supplied");
@@ -118,7 +118,7 @@ export async function removeFacet({ name, initializerName, initializerArgs }: Ar
         }
 
         // #5.6 Save the deployment and Diamond into runtime for later steps.
-        hre.Diamond = await ethers.getContractAt<Kresko>("Kresko", DiamondDeployment.address);
+        hre.Diamond = await hre.getContractOrFork("Kresko");
 
         logger.success(1, " facet succesfully removed", "txHash:", receipt.transactionHash);
         logger.success(

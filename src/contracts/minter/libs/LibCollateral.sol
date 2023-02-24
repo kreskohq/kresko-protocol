@@ -2,11 +2,11 @@
 pragma solidity >=0.8.14;
 import {AggregatorV2V3Interface} from "../../vendor/flux/interfaces/AggregatorV2V3Interface.sol";
 import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
-import {MinterEvent} from "../../libs/Events.sol";
 import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {LibDecimals} from "../libs/LibDecimals.sol";
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
+import {MinterEvent} from "../../libs/Events.sol";
 
 import {CollateralAsset} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
@@ -119,7 +119,7 @@ library LibCollateral {
             self.depositedCollateralAssets[_account].removeAddress(_collateralAsset, _depositedCollateralAssetIndex);
         }
 
-        emit MinterEvent.CollateralWithdrawn(_account, _collateralAsset, _collateralDeposits);
+        emit MinterEvent.CollateralWithdrawn(_account, _collateralAsset, _withdrawAmount);
     }
 
     /**
