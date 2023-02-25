@@ -66,6 +66,7 @@ specifiers:
   hardhat-diamond-abi: ^3.0.0
   hardhat-gas-reporter: ^1.0.8
   hardhat-interface-generator: ^0.0.6
+  hardhat-packager: ^1.4.2
   hardhat-preprocessor: ^0.1.4
   hardhat-watcher: ^2.5.0
   husky: ^6.0.0
@@ -151,6 +152,7 @@ devDependencies:
   hardhat-diamond-abi: 3.0.1_hardhat@2.12.8-viair.0
   hardhat-gas-reporter: 1.0.9_f5iddmctn2j5hdj6e7xoftsluy
   hardhat-interface-generator: 0.0.6_hardhat@2.12.8-viair.0
+  hardhat-packager: 1.4.2_oud2rgeyhksaescqm4gtzex6ne
   hardhat-preprocessor: 0.1.5_hardhat@2.12.8-viair.0
   hardhat-watcher: 2.5.0_hardhat@2.12.8-viair.0
   husky: 6.0.0
@@ -5787,6 +5789,11 @@ packages:
       randomfill: 1.0.4
     dev: true
 
+  /crypto-random-string/2.0.0:
+    resolution: {integrity: sha512-v1plID3y9r/lPhviJ1wrXpLeyUIGAZ2SHNYTEapm7/8A9nLPoyvVp3RK/EPFqn5kEznyWgYZNsRtYYIWbuG8KA==}
+    engines: {node: '>=8'}
+    dev: true
+
   /css-select/5.1.0:
     resolution: {integrity: sha512-nwoRF1rvRRnnCqqY7updORDsuqKzqYJ28+oSMaJMMgOauh3fvwHqMS7EZpIPqK8GL+g9mKxF1vP/ZjSeNjEVHg==}
     dependencies:
@@ -6062,6 +6069,20 @@ packages:
 
   /defined/1.0.1:
     resolution: {integrity: sha512-hsBd2qSVCRE+5PmNdHt1uzyrFu5d3RwmFDKzyNZMFq/EwDNJF7Ee5+D5oEKF0hU6LhtoUF1macFvOe4AskQC1Q==}
+    dev: true
+
+  /del/6.1.1:
+    resolution: {integrity: sha512-ua8BhapfP0JUJKC/zV9yHHDW/rDoDxP4Zhn3AkA6/xT6gY7jYXJiaeyBZznYVujhZZET+UgcbZiQ7sN3WqcImg==}
+    engines: {node: '>=10'}
+    dependencies:
+      globby: 11.1.0
+      graceful-fs: 4.2.10
+      is-glob: 4.0.3
+      is-path-cwd: 2.2.0
+      is-path-inside: 3.0.3
+      p-map: 4.0.0
+      rimraf: 3.0.2
+      slash: 3.0.0
     dev: true
 
   /delay/5.0.0:
@@ -8363,6 +8384,21 @@ packages:
       hardhat: 2.12.8-viair.0_rmze6nocp5omds6gasaamv6iru
     dev: true
 
+  /hardhat-packager/1.4.2_oud2rgeyhksaescqm4gtzex6ne:
+    resolution: {integrity: sha512-6ZX+IMcO6i7Vf5gFrKtq+SwSi6AcLcqSVnX59gzhXGqR+sLL6J1C8EDFS8NCSYwmJkpCD0bb7QbNOd46JZxSGg==}
+    peerDependencies:
+      '@typechain/hardhat': 6.x
+      hardhat: 2.x
+      lodash: 4.x
+      typechain: 8.x
+    dependencies:
+      '@typechain/hardhat': 6.1.5_uqaqeifbp2ee5ha33uaap4e2py
+      fs-extra: 10.1.0
+      hardhat: 2.12.8-viair.0_rmze6nocp5omds6gasaamv6iru
+      tempy: 1.0.1
+      typechain: 8.1.1_typescript@5.0.0-beta
+    dev: true
+
   /hardhat-preprocessor/0.1.5_hardhat@2.12.8-viair.0:
     resolution: {integrity: sha512-j8m44mmPxpxAAd0G8fPHRHOas/INZdzptSur0TNJvMEGcFdLDhbHHxBcqZVQ/bmiW42q4gC60AP4CXn9EF018g==}
     peerDependencies:
@@ -9121,6 +9157,16 @@ packages:
 
   /is-obj/2.0.0:
     resolution: {integrity: sha512-drqDG3cbczxxEJRoOXcOjtdp1J/lyp1mNn0xaznRs8+muBhgQcrnbspox5X5fOw0HnMnbfDzvnEMEtqDEJEo8w==}
+    engines: {node: '>=8'}
+    dev: true
+
+  /is-path-cwd/2.2.0:
+    resolution: {integrity: sha512-w942bTcih8fdJPJmQHFzkS76NEP8Kzzvmw92cXsazb8intwLqPibPPdXf4ANdKV3rYMuuQYGIWtvz9JilB3NFQ==}
+    engines: {node: '>=6'}
+    dev: true
+
+  /is-path-inside/3.0.3:
+    resolution: {integrity: sha512-Fd4gABb+ycGAmKou8eMftCupSir5lRxqf4aD/vd0cD2qc4HL07OjCeuHMr8Ro4CoMaeCKDB0/ECBOVWjTwUvPQ==}
     engines: {node: '>=8'}
     dev: true
 
@@ -13266,6 +13312,22 @@ packages:
     resolution: {integrity: sha512-di2Hd1DB2Zfw6StGv861JoAF5h/uQVu/QJp2g8KVbtfKnoHdBQl5M32YWq6mnSYBQ1vFFrns5B1haWJL7rKaOQ==}
     dev: true
 
+  /temp-dir/2.0.0:
+    resolution: {integrity: sha512-aoBAniQmmwtcKp/7BzsH8Cxzv8OL736p7v1ihGb5e9DJ9kTwGWHrQrVB5+lfVDzfGrdRzXch+ig7LHaY1JTOrg==}
+    engines: {node: '>=8'}
+    dev: true
+
+  /tempy/1.0.1:
+    resolution: {integrity: sha512-biM9brNqxSc04Ee71hzFbryD11nX7VPhQQY32AdDmjFvodsRFz/3ufeoTZ6uYkRFfGo188tENcASNs3vTdsM0w==}
+    engines: {node: '>=10'}
+    dependencies:
+      del: 6.1.1
+      is-stream: 2.0.1
+      temp-dir: 2.0.0
+      type-fest: 0.16.0
+      unique-string: 2.0.0
+    dev: true
+
   /terser/5.16.4:
     resolution: {integrity: sha512-5yEGuZ3DZradbogeYQ1NaGz7rXVBDWujWlx1PT8efXO6Txn+eWbfKqB2bTDVmFXmePFkoLU6XI8UektMIEA0ug==}
     engines: {node: '>=10'}
@@ -13658,6 +13720,11 @@ packages:
     engines: {node: '>=4'}
     dev: true
 
+  /type-fest/0.16.0:
+    resolution: {integrity: sha512-eaBzG6MxNzEn9kiwvtre90cXaNLkmadMWa1zQMs3XORCXNbsH/OewwbxC5ia9dCxIxnTAsSxXJaa/p5y8DlvJg==}
+    engines: {node: '>=10'}
+    dev: true
+
   /type-fest/0.18.1:
     resolution: {integrity: sha512-OIAYXk8+ISY+qTOwkHtKqzAuxchoMiD9Udx+FSGQDuiRR+PJKJHc2NJAXlbhkGwTt/4/nKZxELY1w3ReWOL8mw==}
     engines: {node: '>=10'}
@@ -13851,6 +13918,13 @@ packages:
       get-value: 2.0.6
       is-extendable: 0.1.1
       set-value: 2.0.1
+    dev: true
+
+  /unique-string/2.0.0:
+    resolution: {integrity: sha512-uNaeirEPvpZWSgzwsPGtU2zVSTrn/8L5q/IexZmH0eH6SA73CmAA5U4GwORTxQAZs95TAXLNqeLoPPNO5gZfWg==}
+    engines: {node: '>=8'}
+    dependencies:
+      crypto-random-string: 2.0.0
     dev: true
 
   /universalify/0.1.2:

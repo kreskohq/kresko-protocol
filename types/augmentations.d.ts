@@ -2,26 +2,21 @@ import { Fragment, FunctionFragment, JsonFragment } from "@ethersproject/abi";
 import { fromBig, toBig } from "@kreskolabs/lib";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import type { Fixture } from "ethereum-waffle";
-import type { ABI, Deployment, DeployOptions, Facet, FacetCut } from "hardhat-deploy/dist/types";
-import { getContractFactory, HardhatRuntimeEnvironment } from "hardhat/types";
+import type { ABI, DeployOptions, Deployment, Facet, FacetCut } from "hardhat-deploy/dist/types";
 import "hardhat/types/config";
 import "mocha";
 
 import type { FakeContract, MockContract } from "@defi-wonderland/smock";
-import type { BaseContract, BytesLike, Contract, ContractFunction, ethers, providers } from "ethers";
+import type { BytesLike, Contract, providers } from "ethers";
 import { hardhatUsers } from "hardhat-configs/users";
 import type {
     ERC20Upgradeable,
-    FluxPriceFeed,
-    IERC20Upgradeable,
     UniswapV2Factory,
     UniswapV2Oracle,
     UniswapV2Pair,
     UniswapV2Router02,
 } from "types/typechain";
-import type { GnosisSafeL2 } from "./typechain";
 import * as Contracts from "./typechain";
-import { ContractTypes } from "types";
 /* ========================================================================== */
 /*                             TEST AUGMENTATIONS                             */
 /* ========================================================================== */
@@ -93,7 +88,7 @@ declare module "mocha" {
         /* -------------------------------------------------------------------------- */
         facets: Facet[];
         Multisig: GnosisSafeL2;
-        Diamond: TC["Diamond"];
+        Diamond: TC["Kresko"];
         DiamondDeployment: Deployment;
         collaterals: TestCollateral[];
         collateral: TestCollateral;
@@ -110,11 +105,11 @@ declare module "mocha" {
         pricefeed: Contracts.FluxPriceFeed;
         // @todo DEPRECATING
         Oracles: FakeContract[];
-        TKN1: Contracts.IERC20Upgradeable;
-        TKN2: Contracts.IERC20Upgradeable;
-        USDC: Contracts.IERC20Upgradeable;
+        TKN1: Contracts.ERC20Upgradeable;
+        TKN2: Contracts.ERC20Upgradeable;
+        USDC: Contracts.ERC20Upgradeable;
         krTSLA: Contracts.KreskoAsset;
-        Kresko: Contracts.Diamond;
+        Kresko: Contracts.Kresko;
         WETH10OraclePrice: number;
         WETH10Oracle: Contracts.FluxPriceFeed;
     }

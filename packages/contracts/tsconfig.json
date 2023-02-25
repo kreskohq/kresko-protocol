@@ -1,18 +1,18 @@
 {
     "compilerOptions": {
-        "target": "ES2020",
+        "target": "esnext",
         "module": "CommonJS",
         "declaration": true,
         "declarationMap": true,
         "moduleResolution": "node",
         "outDir": "dist",
-        "lib": ["ES2018", "DOM", "DOM.Iterable", "ES2019.Array", "ES2019.Object", "es2019"],
+        "lib": ["ES2018", "DOM", "DOM.Iterable", "ES2019.Array", "ES2019.Object", "es2019", "ESNext"],
         "strict": true,
-        "baseUrl": ".",
-        "rootDirs": ["./src", "../../src/utils/test", "../../types/typechain"],
+        "baseUrl": "./",
+        "rootDirs": ["src"],
         "esModuleInterop": true,
-        "resolveJsonModule": true,
+        "resolveJsonModule": true
     },
-    "include": ["./src"],
-    "exclude": ["./node_modules", "./dist"]
+    "include": ["src"],
+    "exclude": ["node_modules", "dist"]
 }

@@ -1,5 +1,5 @@
-import deploymentsJson from "./json/deployments.json";
-import oracleJson from "./json/oracles.json"
+import deployments from "./json/deployments.json";
+import oracles from "./json/oracles.json";
 
 export interface ContractExport {
     address: string;
@@ -14,22 +14,20 @@ export interface Export {
 }
 
 export type MultiExport = {
-    [chainId in DeployedChains]: typeof deploymentsJson[chainId][0];
-  };
+    [chainId in DeployedChains]: typeof deployments[chainId][0];
+};
 export type Oracles = {
     asset: string;
-    assetType: string
+    assetType: string;
     feed: string;
     marketstatus: string;
     pricefeed: string;
-}[]
-
-const deployments = deploymentsJson;
-
-const oracles = oracleJson;
-export type DeploymentNames = keyof typeof deploymentsJson["420"][0]["contracts"];
-export const opgoerli = deploymentsJson["420"][0]["contracts"];
-
-export type DeployedChains = keyof typeof deploymentsJson;
+}[];
 
 export { deployments, oracles };
+
+export type DeploymentNames = keyof typeof deployments["420"][0]["contracts"] extends string
+    ? keyof typeof deployments["420"][0]["contracts"]
+    : never;
+export const opgoerli = deployments["420"][0]["contracts"];
+export type DeployedChains = keyof typeof deployments;

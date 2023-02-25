@@ -257,9 +257,11 @@ library LibUI {
         }
     }
 
-    function collateralAssetInfos(
-        address[] memory assetAddresses
-    ) internal view returns (CollateralAssetInfo[] memory result) {
+    function collateralAssetInfos(address[] memory assetAddresses)
+        internal
+        view
+        returns (CollateralAssetInfo[] memory result)
+    {
         result = new CollateralAssetInfo[](assetAddresses.length);
         for (uint256 i; i < assetAddresses.length; i++) {
             address assetAddress = assetAddresses[i];
@@ -267,7 +269,7 @@ library LibUI {
             uint8 decimals = IERC20Upgradeable(assetAddress).decimals();
 
             (FixedPoint.Unsigned memory value, FixedPoint.Unsigned memory price) = ms()
-                .getCollateralValueAndOraclePrice(assetAddress, 1 * 10 ** decimals, false);
+                .getCollateralValueAndOraclePrice(assetAddress, 1 * 10**decimals, false);
 
             result[i] = CollateralAssetInfo({
                 value: value.rawValue,
@@ -284,9 +286,11 @@ library LibUI {
         }
     }
 
-    function collateralAssetInfoFor(
-        address _account
-    ) internal view returns (CollateralAssetInfoUser[] memory result, FixedPoint.Unsigned memory totalCollateralUSD) {
+    function collateralAssetInfoFor(address _account)
+        internal
+        view
+        returns (CollateralAssetInfoUser[] memory result, FixedPoint.Unsigned memory totalCollateralUSD)
+    {
         address[] memory collateralAssetAddresses = ms().getDepositedCollateralAssets(_account);
         if (collateralAssetAddresses.length > 0) {
             result = new CollateralAssetInfoUser[](collateralAssetAddresses.length);
@@ -317,9 +321,11 @@ library LibUI {
         }
     }
 
-    function krAssetInfoFor(
-        address _account
-    ) internal view returns (krAssetInfoUser[] memory result, FixedPoint.Unsigned memory totalDebtUSD) {
+    function krAssetInfoFor(address _account)
+        internal
+        view
+        returns (krAssetInfoUser[] memory result, FixedPoint.Unsigned memory totalDebtUSD)
+    {
         address[] memory krAssetAddresses = ms().mintedKreskoAssets[_account];
         if (krAssetAddresses.length > 0) {
             result = new krAssetInfoUser[](krAssetAddresses.length);

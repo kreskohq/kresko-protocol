@@ -34,12 +34,6 @@ export type Excludes =
 export type ContractTypes = GetContractTypes<typeof Contracts>;
 export type ContractNames = keyof ContractTypes;
 
-type shit = ContractNames extends keyof ContractTypes ? ContractTypes[ContractNames] : never;
-// export type Tester = {
-//     [key in ContractNames]: ReturnType<ContractTypes[key]["interface"]> extends ethers.ContractInterface
-//         ? ContractTypes[key]
-//         : never;
-// };
 export type ContractExports =
     | Contracts.Diamond
     | Contracts.Multisender

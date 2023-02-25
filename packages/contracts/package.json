@@ -1,43 +1,41 @@
 {
-  "name": "@kreskolabs/contracts",
-  "description": "Typechain and contract deployments for front-end",
-  "version": "3.4.10",
-  "author": {
-    "name": "Kresko Labs",
-    "url": "https://www.kresko.fi"
-  },
-  "keywords": [
-    "blockchain",
-    "ethereum",
-    "hardhat",
-    "smart-contracts",
-    "solidity",
-    "typechain"
-  ],
-  "files": [
-    "dist",
-    "src"
-  ],
-  "publishConfig": {
-      "main": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-  },
-  "scripts": {
-    "build": "tsup && npm version patch",
-    "clean": "rm -rf dist && rm -rf deployments && rm -rf types"
-  },
-  "license": "ISC",
-  "main": ".src/index.ts",
-  "types": "./src/index.d.ts",
-  "devDependencies": {
-    "@ethersproject/abstract-provider": "^5.7.0",
-    "@ethersproject/abstract-signer": "^5.7.0",
-    "@ethersproject/contracts": "^5.7.0",
-    "tsc-alias": "^1.8.2",
-    "typescript": "^4.9.5"
-  },
-  "dependencies": {
-    "@kreskolabs/contracts": "3.4.0",
-    "tsup": "^6.6.3"
-  }
+    "name": "@kreskolabs/contracts",
+    "description": "Typechain and contract deployments for front-end",
+    "version": "3.7.8",
+    "author": {
+        "name": "Kresko Labs",
+        "url": "https://www.kresko.fi"
+    },
+    "keywords": [
+        "blockchain",
+        "ethereum",
+        "hardhat",
+        "smart-contracts",
+        "solidity",
+        "typechain"
+    ],
+    "main": "./src/index.ts",
+    "types": "./src/index.ts",
+    "publishConfig": {
+        "directory": "dist",
+        "main": "./index.js",
+        "types": "./index.d.ts"
+    },
+    "scripts": {
+        "build": "rm -rf dist && tsc && npm version patch && cp package.json dist",
+        "postpublish": "rm dist/package.json",
+        "clean": "rm -rf dist"
+    },
+    "license": "ISC",
+    "devDependencies": {
+        "@ethersproject/abstract-provider": "^5.7.0",
+        "@ethersproject/abstract-signer": "^5.7.0",
+        "@ethersproject/contracts": "^5.7.0",
+        "tsc-alias": "^1.8.2",
+        "tsup": "^6.6.3",
+        "typescript": "5.0.0-beta"
+    },
+    "dependencies": {
+        "@kreskolabs/configs": "^5.5.0"
+    }
 }

@@ -45,6 +45,6 @@ task("write-oracles").setAction(async function (_taskArgs: TaskArguments, hre) {
         marketstatus: fluxFeedKiss,
         pricefeed: fluxFeedKiss,
     });
-    writeFileSync("packages/contracts/deployments/oracles.json", JSON.stringify(values));
-    logger.success("Price feeds written to packages/contracts/deployments");
+    writeFileSync("./packages/contracts/src/deployments/json/oracles.json", JSON.stringify(values));
+    logger.success("feeds: packages/contracts/src/deployments/json/oracles.json");
 });

@@ -81,9 +81,11 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
      * @notice Updates the liquidation incentive multiplier.
      * @param _liquidationIncentiveMultiplier The new liquidation incentive multiplie.
      */
-    function updateLiquidationIncentiveMultiplier(
-        uint256 _liquidationIncentiveMultiplier
-    ) public override onlyRole(Role.OPERATOR) {
+    function updateLiquidationIncentiveMultiplier(uint256 _liquidationIncentiveMultiplier)
+        public
+        override
+        onlyRole(Role.OPERATOR)
+    {
         require(
             _liquidationIncentiveMultiplier >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
             Error.PARAM_LIQUIDATION_INCENTIVE_LOW
@@ -101,9 +103,11 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
      * @param _minimumCollateralizationRatio The new minimum collateralization ratio as a raw value
      * for a FixedPoint.Unsigned.
      */
-    function updateMinimumCollateralizationRatio(
-        uint256 _minimumCollateralizationRatio
-    ) public override onlyRole(Role.OPERATOR) {
+    function updateMinimumCollateralizationRatio(uint256 _minimumCollateralizationRatio)
+        public
+        override
+        onlyRole(Role.OPERATOR)
+    {
         require(
             _minimumCollateralizationRatio >= Constants.MIN_COLLATERALIZATION_RATIO,
             Error.PARAM_MIN_COLLATERAL_RATIO_LOW
