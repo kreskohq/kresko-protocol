@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { RPC } from "@kreskolabs/configs";
 import { getLogger } from "@kreskolabs/lib";
+import { getAMMPairs } from "@kreskolabs/protocol-ts";
+import { ethers } from "ethers";
 import { task } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
+import { Kresko__factory } from "types/typechain";
 // import { FluxPriceFeed__factory } from "types";
 // import { flux } from "types/typechain/src/contracts/vendor";
 const oracles = [
@@ -125,15 +129,87 @@ const log = getLogger(TASK_NAME);
 task(TASK_NAME).setAction(async function (_taskArgs: TaskArguments, hre) {
     const { deployer, feedValidator, testnetFunder } = await hre.ethers.getNamedSigners();
     try {
-        log.log("Starting");
-        await deployer.sendTransaction({
-            to: feedValidator.address,
-            value: hre.ethers.utils.parseEther("5"),
-        });
-        await deployer.sendTransaction({
-            to: testnetFunder.address,
-            value: hre.ethers.utils.parseEther("5"),
-        });
+        const deployment = await hre.deployments.get("Diamond");
+        const kresko = {
+            address: deployment.address,
+            abi: Kresko__factory.abi,
+        };
+        const provider = new ethers.providers.JsonRpcProvider(RPC().optimism.goerli.quicknode);
+        const staking = await hre.getContractOrFork("KrStaking");
+        const assets = getAMMPairs("optimismGoerli");
+        const col = assets.filter(a => a.tokenA.collateral).map(a => a.tokenA.address);
+        const kr = assets.filter(a => a.tokenB.krAsset).map(a => a.tokenA.address);
+        const kresko2 = (await hre.getContractOrFork("Kresko")).connect(provider);
+        console.log("helo");
+        const multicall3 = await hre.getContractOrFork("Multicall3");
+        const tokens = [(await hre.getContractOrFork("KISS")).address];
+
+        console.log("helo", hre.network, kresko2.provider);
+        const events = await kresko2.queryFilter(kresko2.filters.KreskoAssetMinted(), 5933928, "latest");
+
+        const usersPre = [...new Set(events.map(e => e.args.account))];
+        const index = Math.floor(usersPre.length / 2);
+        const users = usersPre.slice(0, index);
+        const users2 = usersPre.slice(index, usersPre.length);
+
+        // console.log(hre.fromBig(underwater))
+        // // const is = await Diamond.isAccountLiquidatable('0xd21040ab567F989E0E751BE56f74ca38804e53e9')
+        console.time("nonsend");
+        const data2 = await Promise.all([
+            kresko2.getCollateralRatiosFor(users),
+            kresko2.getCollateralRatiosFor(users2),
+            kresko2.getCollateralRatiosFor(users2),
+            kresko2.getCollateralRatiosFor(users2),
+            kresko2.getCollateralRatiosFor(users2),
+            kresko2.getCollateralRatiosFor(users2),
+        ]);
+        console.timeEnd("nonsend");
+        console.time("multisend");
+        const data = await multicall3.callStatic.aggregate([
+            {
+                target: kresko.address,
+                callData: kresko2.interface.encodeFunctionData("getCollateralRatiosFor", [users]),
+            },
+            {
+                target: kresko.address,
+                callData: kresko2.interface.encodeFunctionData("getCollateralRatiosFor", [users2]),
+            },
+            {
+                target: kresko.address,
+                callData: kresko2.interface.encodeFunctionData("getCollateralRatiosFor", [users2]),
+            },
+            {
+                target: kresko.address,
+                callData: kresko2.interface.encodeFunctionData("getCollateralRatiosFor", [users2]),
+            },
+            {
+                target: kresko.address,
+                callData: kresko2.interface.encodeFunctionData("getCollateralRatiosFor", [users2]),
+            },
+            {
+                target: kresko.address,
+                callData: kresko2.interface.encodeFunctionData("getCollateralRatiosFor", [users2]),
+            },
+        ]);
+        console.timeEnd("multisend");
+
+        console.log(data.map(v => kresko2.interface.decodeFunctionResult("getCollateralRatiosFor", v.toString())));
+
+        console.log(data2.length);
+        // log.log("Starting");
+
+        // const call2 = kresko.interface.encodeFunctionData("getGlobalData");
+
+        // const result = await multisend.callStatic.multiSend(call1);
+
+        // await deployer.sendTransaction({
+        //     to: feedValidator.address,
+        //     value: hre.ethers.utils.parseEther("5"),
+        // });
+        // await deployer.sendTransaction({
+        //     to: testnetFunder.address,
+        //     value: hre.ethers.utils.parseEther("5"),
+        // });
         // console.log(hre.network.name);
         // const kresko = await hre.getContractOrFork("Kresko");
         // console.log(kresko.address);

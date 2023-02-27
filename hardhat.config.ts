@@ -78,6 +78,7 @@ import "hardhat-configs/extensions";
 /*                               CONFIGURATION                                */
 /* -------------------------------------------------------------------------- */
 
+console.log(process.env);
 const config: HardhatUserConfig = {
     solidity: { compilers },
     networks: networks(mnemonic),

@@ -138,7 +138,7 @@ export const networks = (mnemonic: string): { [key: string]: HttpNetworkUserConf
     },
     opgoerli: {
         accounts: { mnemonic, count: 100 },
-        url: RPC().optimism.goerli.default,
+        url: RPC().optimism.goerli.alchemy,
         chainId: chainIds.opgoerli,
         gasPrice: +parseUnits("0.001", "gwei"),
         live: true,
