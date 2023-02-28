@@ -4,5 +4,7 @@
 /* eslint-disable */
 import type * as markets from "./markets";
 export type { markets };
+export type { Funder } from "./Funder";
 export type { Multisender } from "./Multisender";
 export type { WETH } from "./WETH";
+export type { wBTC } from "./wBTC";

@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
-import { Role } from "@utils/test";
-import hre from "hardhat";
+import { Role } from "@utils/test/roles";
 import { anchorTokenPrefix } from "@deploy-config/shared";
 
 export async function createKrAsset(name: string, symbol, decimals = 18) {

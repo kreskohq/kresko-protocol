@@ -1,49 +1,46 @@
 export {};
+import { exec } from "child_process";
 // import { exec } from "child_process";
-// import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from "hardhat/builtin-tasks/task-names";
-// import { HardhatUserConfig, extendConfig, subtask } from "hardhat/config";
+import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from "hardhat/builtin-tasks/task-names";
+import { HardhatUserConfig, extendConfig, subtask } from "hardhat/config";
 // import { HardhatConfig } from "hardhat/types";
-// import { getFullyQualifiedName } from "hardhat/utils/contract-names";
+import { getFullyQualifiedName } from "hardhat/utils/contract-names";
+import path from "path";
 // import minimatch from "minimatch";
 // import path from "path";
-// import type { PublicConfig as RunTypeChainConfig } from "typechain";
-// export const coreExports = [
-//     "Kresko",
-//     "KrStaking",
-//     "KrStakingHelper",
-//     "KreskoAsset",
-//     "KreskoAssetAnchor",
-//     "UniswapV2Router02",
-//     "UniswapV2Factory",
-//     "UniswapMath",
-//     "UniswapV2Pair",
-//     "UniswapV2LiquidityMathLibrary",
-//     "Multisender",
-//     "FluxPriceFeedFactory",
-//     "FluxPriceFeed",
-//     "KISS",
-//     "UniswapV2Oracle",
-//     "ERC20Upgradeable",
-//     "WETH",
-// ];
-// // externalArtifacts: [
-// //     "./artifacts/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko.json",
-// //     `./artifacts/!(interfaces|forge|deployments)/**/+(${coreExports.join("|")}).json`,
-// // ],
+import type { PublicConfig as RunTypeChainConfig } from "typechain";
+export const coreExports = [
+    "Kresko",
+    "KrStaking",
+    "KrStakingHelper",
+    "KreskoAsset",
+    "KreskoAssetAnchor",
+    "UniswapV2Router02",
+    "UniswapV2Factory",
+    "UniswapMath",
+    "UniswapV2Pair",
+    "UniswapV2LiquidityMathLibrary",
+    "Multisender",
+    "FluxPriceFeedFactory",
+    "FluxPriceFeed",
+    "KISS",
+    "Funder",
+    "UniswapV2Oracle",
+    "ERC20Upgradeable",
+    "WETH",
+    "wBTC",
+];
+
 // // // externalArtifacts: [`/artifacts/!(interfaces|forge|deployments)/**/+(${coreExports.join("|")}).json`],
-// const currentPath = path.join(process.cwd());
+const currentPath = path.join(process.cwd());
 // const lightExports = ["Kresko", "KISS", "KreskoAsset"];
 
-// const glob = (exports: string) => {
-//     switch (exports) {
-//         case "light":
-//             return `${currentPath}/**!(interfaces)/(${lightExports.join("|")}).json`;
-//         case "core":
-//             return `${currentPath}/!(interfaces|forge|deployments)/**/+(${coreExports.join("|")}).json`;
-//         default:
-//             throw new Error(`Unknown export type: ${exports}`);
-//     }
-// };
+export const externalArtifacts = () => {
+    return [
+        "./artifacts/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko.json",
+        `./artifacts/!(interfaces|forge|deployments)/**/+(${coreExports.join("|")}).json`,
+    ];
+};
 
 // extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) => {
 //     // We apply our default config here. Any other kind of config resolution
@@ -144,7 +141,6 @@ export {};
 //         allFiles.push(...glob(cwd, typechainCfg.externalArtifacts, false));
 //     }
 
-//     console.log(allFiles);
 //     const typechainOptions: Omit<RunTypeChainConfig, "filesToProcess"> = {
 //         cwd,
 //         allFiles,
@@ -159,18 +155,17 @@ export {};
 //     };
 
 //     const { runTypeChain } = await import("typechain");
-// // @ts-expect-error
-// const result = await runTypeChain({
-//     ...typechainOptions,
-//     filesToProcess: needsFullRebuild ? allFiles : glob(cwd, artifactPaths), // only process changed files if not doing full rebuild
-// });
+//     const result = await runTypeChain({
+//         ...typechainOptions,
+//         filesToProcess: needsFullRebuild ? allFiles : glob(cwd, artifactPaths), // only process changed files if not doing full rebuild
+//     });
 
-// if (!quiet) {
-//     // eslint-disable-next-line no-console
-//     console.log(`Successfully generated ${result.filesGenerated} typings!`);
-// }
+//     if (!quiet) {
+//         // eslint-disable-next-line no-console
+//         console.log(`Successfully generated ${result.filesGenerated} typings!`);
+//     }
 
-// if this is not full rebuilding, always re-generate types for external artifacts
+//     // if this is not full rebuilding, always re-generate types for external artifacts
 //     if (!needsFullRebuild && typechainCfg.externalArtifacts) {
 //         const result = await runTypeChain({
 //             ...typechainOptions,
@@ -249,23 +244,37 @@ export {};
 //     },
 // );
 
-// exec(
-//     "npx hardhat export --export-all packages/contracts/src/deployments/json/deployments.json",
-//     (error, stdout, stderr) => {
-//         if (error) {
-//             console.error(`exec error: ${error}`);
-//             return;
-//         }
-//         console.log(`hh-deploy export: ${stdout}`);
-//     },
-// );
-// exec("npx hardhat write-oracles --network opgoerli", (error, stdout, stderr) => {
-//     if (error) {
-//         console.error(`exec error: ${error}`);
-//         return;
-//     }
-//     console.log(`hh-deploy export: ${stdout}`);
-// });
+export const exportDeployments = async () => {
+    return new Promise(async (resolve, reject) => {
+        await hre.run("typechain");
+        try {
+            exec(
+                "npx hardhat export --export-all packages/contracts/src/deployments/json/deployments.json",
+                async (error, stdout, stderr) => {
+                    if (error) {
+                        console.error(`exec error: ${error}`);
+                        return;
+                    }
+                    console.log(`hh-deploy export: ${stdout}`);
+
+                    await hre.run("write-oracles");
+                    resolve(true);
+                    // exec("npx hardhat write-oracles --network opgoerli", (error, stdout, stderr) => {
+                    //     if (error) {
+                    //         console.error(`exec error: ${error}`);
+                    //         return;
+                    //     }
+                    //     console.log(`hh-deploy export: ${stdout}`);
+                    //     resolve(true);
+                    // });
+                },
+            );
+        } catch (e) {
+            console.error("exports failed:", e);
+            reject(false);
+        }
+    });
+};
 // exec("typechain", [
 //     "--fork",
 //     options.fork.url,

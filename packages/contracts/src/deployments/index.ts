@@ -25,9 +25,9 @@ export type Oracles = {
 }[];
 
 export { deployments, oracles };
-
 export type DeploymentNames = keyof typeof deployments["420"][0]["contracts"] extends string
     ? keyof typeof deployments["420"][0]["contracts"]
     : never;
+// export type KrAssetNames = keyof typeof deployments["420"][0]["contracts"] extends string
 export const opgoerli = deployments["420"][0]["contracts"];
 export type DeployedChains = keyof typeof deployments;

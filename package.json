@@ -132,7 +132,7 @@
         "prettier": "prettier src --plugin=prettier-plugin-solidity --config ./.prettierrc --write \"**/*.{js,json,md,sol,ts}\"",
         "prettier:check": "prettier --plugin=prettier-plugin-solidity src --check --config ./.prettierrc \"**/*.{js,json,md,sol,ts}\"",
         "postinstall": "husky install",
-        "prepublish": "ts-node src/utils/export.ts core && cd packages/contracts && pnpm build",
+        "create-exports": "exp=true npx hardhat create-exports",
         "publish:packages": "cd packages/contracts && pnpm run build && pnpm publish --no-git-checks",
         "replace-facet": "hardhat replace-facet",
         "remove-facet": "hardhat remove-facet",

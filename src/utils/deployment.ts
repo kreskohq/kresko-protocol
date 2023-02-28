@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import SharedConfig from "@deploy-config/shared";
-import type { DeployOptions } from "hardhat-deploy/types";
-import type { HardhatRuntimeEnvironment } from "hardhat/types";
 
 export const getSignatures = async (name: keyof TC) => {
     const implementation = await hre.getContractOrFork(name);

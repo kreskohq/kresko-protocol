@@ -1,3 +1,4 @@
+import { anchorTokenPrefix } from "@deploy-config/shared";
 import { getLogger, toFixedPoint } from "@kreskolabs/lib";
 import { defaultSupplyLimit } from "@utils/test/mocks";
 import { task, types } from "hardhat/config";
@@ -23,7 +24,10 @@ task("add-krasset")
 
         const KrAsset = await hre.getContractOrFork("KreskoAsset", symbol);
 
-        const asset = hre.krAssets.find(k => k.address === KrAsset.address);
+        const anchor = await hre.getContractOrFork("KreskoAssetAnchor", `${anchorTokenPrefix}${symbol}`);
+        if (!anchor) {
+            throw new Error(`Anchor not found for ${symbol}`);
+        }
 
         const krAssetInfo = await kresko.kreskoAsset(KrAsset.address);
         const exists = krAssetInfo.exists;
@@ -33,7 +37,7 @@ task("add-krasset")
         } else {
             const tx = await kresko.addKreskoAsset(
                 KrAsset.address,
-                !asset?.anchor ? KrAsset.address : asset.anchor.address,
+                anchor.address,
                 toFixedPoint(kFactor),
                 oracleAddr,
                 marketStatusOracleAddr,

@@ -69,7 +69,7 @@ task(TASK_NAME)
             const tknAName = await TknA.name();
             const tknBName = await TknB.name();
 
-            logger.log("Adding liquidity for", tknAName, tknBName);
+            logger.log("Adding liquidity for", tknAName, tknBName, tknA.amount, tknB.amount);
 
             // Add initial LP (also creates the pair) according to oracle price
             const tx = await UniRouter.addLiquidity(

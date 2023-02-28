@@ -35,6 +35,16 @@ task("add-collateral")
         if (exists) {
             logger.warn(`Collateral ${symbol} already exists!`);
         } else {
+            logger.log(
+                "Adding collateral",
+                symbol,
+                "with cFactor",
+                cFactor,
+                "and oracle",
+                oracleAddr,
+                "and anchor",
+                anchor?.address ?? ethers.constants.AddressZero,
+            );
             const tx = await kresko.addCollateralAsset(
                 Collateral.address,
                 anchor?.address ?? ethers.constants.AddressZero,

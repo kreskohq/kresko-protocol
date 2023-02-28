@@ -61,6 +61,8 @@ if (!mnemonic) {
     mnemonic = "wealth";
 }
 const isExport = process.env.exp;
+let exportUtil: any;
+
 /* -------------------------------------------------------------------------- */
 /*                                    Tasks                                   */
 /* -------------------------------------------------------------------------- */
@@ -78,7 +80,6 @@ import "hardhat-configs/extensions";
 /*                               CONFIGURATION                                */
 /* -------------------------------------------------------------------------- */
 
-console.log(process.env);
 const config: HardhatUserConfig = {
     solidity: { compilers },
     networks: networks(mnemonic),
@@ -118,7 +119,9 @@ const config: HardhatUserConfig = {
         dontOverrideCompile: false,
         discriminateTypes: true,
         tsNocheck: true,
-        externalArtifacts: ["./artifacts/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko.json"],
+        externalArtifacts: exportUtil?.externalArtifacts() ?? [
+            "./artifacts/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko.json",
+        ],
     },
     contractSizer: {
         alphaSort: true,

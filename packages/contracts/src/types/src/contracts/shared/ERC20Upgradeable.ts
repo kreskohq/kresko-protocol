@@ -3,757 +3,519 @@
 /* tslint:disable */
 /* eslint-disable */
 import type {
-    BaseContract,
-    BigNumber,
-    BigNumberish,
-    BytesLike,
-    CallOverrides,
-    ContractTransaction,
-    Overrides,
-    PopulatedTransaction,
-    Signer,
-    utils,
+  BaseContract,
+  BigNumber,
+  BigNumberish,
+  BytesLike,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
-import type { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
+import type {
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
-import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent, PromiseOrValue } from "../../../common";
+import type {
+  TypedEventFilter,
+  TypedEvent,
+  TypedListener,
+  OnEvent,
+  PromiseOrValue,
+} from "../../../common";
 
 export interface ERC20UpgradeableInterface extends utils.Interface {
-    functions: {
-        "DOMAIN_SEPARATOR()": FunctionFragment;
-        "allowance(address,address)": FunctionFragment;
-        "approve(address,uint256)": FunctionFragment;
-        "balanceOf(address)": FunctionFragment;
-        "decimals()": FunctionFragment;
-        "name()": FunctionFragment;
-        "nonces(address)": FunctionFragment;
-        "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
-        "symbol()": FunctionFragment;
-        "totalSupply()": FunctionFragment;
-        "transfer(address,uint256)": FunctionFragment;
-        "transferFrom(address,address,uint256)": FunctionFragment;
-    };
+  functions: {
+    "DOMAIN_SEPARATOR()": FunctionFragment;
+    "allowance(address,address)": FunctionFragment;
+    "approve(address,uint256)": FunctionFragment;
+    "balanceOf(address)": FunctionFragment;
+    "decimals()": FunctionFragment;
+    "name()": FunctionFragment;
+    "nonces(address)": FunctionFragment;
+    "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
+    "symbol()": FunctionFragment;
+    "totalSupply()": FunctionFragment;
+    "transfer(address,uint256)": FunctionFragment;
+    "transferFrom(address,address,uint256)": FunctionFragment;
+  };
 
-    getFunction(
-        nameOrSignatureOrTopic:
-            | "DOMAIN_SEPARATOR"
-            | "DOMAIN_SEPARATOR()"
-            | "allowance"
-            | "allowance(address,address)"
-            | "approve"
-            | "approve(address,uint256)"
-            | "balanceOf"
-            | "balanceOf(address)"
-            | "decimals"
-            | "decimals()"
-            | "name"
-            | "name()"
-            | "nonces"
-            | "nonces(address)"
-            | "permit"
-            | "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)"
-            | "symbol"
-            | "symbol()"
-            | "totalSupply"
-            | "totalSupply()"
-            | "transfer"
-            | "transfer(address,uint256)"
-            | "transferFrom"
-            | "transferFrom(address,address,uint256)",
-    ): FunctionFragment;
+  getFunction(
+    nameOrSignatureOrTopic:
+      | "DOMAIN_SEPARATOR"
+      | "allowance"
+      | "approve"
+      | "balanceOf"
+      | "decimals"
+      | "name"
+      | "nonces"
+      | "permit"
+      | "symbol"
+      | "totalSupply"
+      | "transfer"
+      | "transferFrom"
+  ): FunctionFragment;
 
-    encodeFunctionData(functionFragment: "DOMAIN_SEPARATOR", values?: undefined): string;
-    encodeFunctionData(functionFragment: "DOMAIN_SEPARATOR()", values?: undefined): string;
-    encodeFunctionData(functionFragment: "allowance", values: [PromiseOrValue<string>, PromiseOrValue<string>]): string;
-    encodeFunctionData(
-        functionFragment: "allowance(address,address)",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "approve",
-        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "approve(address,uint256)",
-        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(functionFragment: "balanceOf", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "balanceOf(address)", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
-    encodeFunctionData(functionFragment: "decimals()", values?: undefined): string;
-    encodeFunctionData(functionFragment: "name", values?: undefined): string;
-    encodeFunctionData(functionFragment: "name()", values?: undefined): string;
-    encodeFunctionData(functionFragment: "nonces", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "nonces(address)", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(
-        functionFragment: "permit",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BytesLike>,
-            PromiseOrValue<BytesLike>,
-        ],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BytesLike>,
-            PromiseOrValue<BytesLike>,
-        ],
-    ): string;
-    encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
-    encodeFunctionData(functionFragment: "symbol()", values?: undefined): string;
-    encodeFunctionData(functionFragment: "totalSupply", values?: undefined): string;
-    encodeFunctionData(functionFragment: "totalSupply()", values?: undefined): string;
-    encodeFunctionData(
-        functionFragment: "transfer",
-        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "transfer(address,uint256)",
-        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "transferFrom",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "transferFrom(address,address,uint256)",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
+  encodeFunctionData(
+    functionFragment: "DOMAIN_SEPARATOR",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "allowance",
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "approve",
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "balanceOf",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
+  encodeFunctionData(functionFragment: "name", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "nonces",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "permit",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BytesLike>,
+      PromiseOrValue<BytesLike>
+    ]
+  ): string;
+  encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "totalSupply",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "transfer",
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "transferFrom",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
 
-    decodeFunctionResult(functionFragment: "DOMAIN_SEPARATOR", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "DOMAIN_SEPARATOR()", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "allowance(address,address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "approve(address,uint256)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "balanceOf(address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "decimals()", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "name()", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "nonces", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "nonces(address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "permit", data: BytesLike): Result;
-    decodeFunctionResult(
-        functionFragment: "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)",
-        data: BytesLike,
-    ): Result;
-    decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "symbol()", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "totalSupply", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "totalSupply()", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "transfer", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "transfer(address,uint256)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "transferFrom", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "transferFrom(address,address,uint256)", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "DOMAIN_SEPARATOR",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "nonces", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "permit", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "totalSupply",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "transfer", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "transferFrom",
+    data: BytesLike
+  ): Result;
 
-    events: {
-        "Approval(address,address,uint256)": EventFragment;
-        "Initialized(uint8)": EventFragment;
-        "Transfer(address,address,uint256)": EventFragment;
-    };
+  events: {
+    "Approval(address,address,uint256)": EventFragment;
+    "Initialized(uint8)": EventFragment;
+    "Transfer(address,address,uint256)": EventFragment;
+  };
 
-    getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "Approval(address,address,uint256)"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "Initialized"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "Initialized(uint8)"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "Transfer(address,address,uint256)"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Initialized"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
 }
 
 export interface ApprovalEventObject {
-    owner: string;
-    spender: string;
-    amount: BigNumber;
+  owner: string;
+  spender: string;
+  amount: BigNumber;
 }
-export type ApprovalEvent = TypedEvent<[string, string, BigNumber], ApprovalEventObject>;
+export type ApprovalEvent = TypedEvent<
+  [string, string, BigNumber],
+  ApprovalEventObject
+>;
 
 export type ApprovalEventFilter = TypedEventFilter<ApprovalEvent>;
 
 export interface InitializedEventObject {
-    version: number;
+  version: number;
 }
 export type InitializedEvent = TypedEvent<[number], InitializedEventObject>;
 
 export type InitializedEventFilter = TypedEventFilter<InitializedEvent>;
 
 export interface TransferEventObject {
-    from: string;
-    to: string;
-    amount: BigNumber;
+  from: string;
+  to: string;
+  amount: BigNumber;
 }
-export type TransferEvent = TypedEvent<[string, string, BigNumber], TransferEventObject>;
+export type TransferEvent = TypedEvent<
+  [string, string, BigNumber],
+  TransferEventObject
+>;
 
 export type TransferEventFilter = TypedEventFilter<TransferEvent>;
 
 export interface ERC20Upgradeable extends BaseContract {
-    connect(signerOrProvider: Signer | Provider | string): this;
-    attach(addressOrName: string): this;
-    deployed(): Promise<this>;
+  contractName: "ERC20Upgradeable";
 
-    interface: ERC20UpgradeableInterface;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
-    queryFilter<TEvent extends TypedEvent>(
-        event: TypedEventFilter<TEvent>,
-        fromBlockOrBlockhash?: string | number | undefined,
-        toBlock?: string | number | undefined,
-    ): Promise<Array<TEvent>>;
+  interface: ERC20UpgradeableInterface;
 
-    listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>;
-    listeners(eventName?: string): Array<Listener>;
-    removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this;
-    removeAllListeners(eventName?: string): this;
-    off: OnEvent<this>;
-    on: OnEvent<this>;
-    once: OnEvent<this>;
-    removeListener: OnEvent<this>;
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TEvent>>;
 
-    functions: {
-        DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<[string]>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-        "DOMAIN_SEPARATOR()"(overrides?: CallOverrides): Promise<[string]>;
-
-        allowance(
-            _owner: PromiseOrValue<string>,
-            _spender: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber]>;
-
-        "allowance(address,address)"(
-            _owner: PromiseOrValue<string>,
-            _spender: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber]>;
-
-        approve(
-            spender: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "approve(address,uint256)"(
-            spender: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        balanceOf(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
-
-        "balanceOf(address)"(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
-
-        decimals(overrides?: CallOverrides): Promise<[number]>;
-
-        "decimals()"(overrides?: CallOverrides): Promise<[number]>;
-
-        name(overrides?: CallOverrides): Promise<[string]>;
-
-        "name()"(overrides?: CallOverrides): Promise<[string]>;
-
-        nonces(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
-
-        "nonces(address)"(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
-
-        permit(
-            owner: PromiseOrValue<string>,
-            spender: PromiseOrValue<string>,
-            value: PromiseOrValue<BigNumberish>,
-            deadline: PromiseOrValue<BigNumberish>,
-            v: PromiseOrValue<BigNumberish>,
-            r: PromiseOrValue<BytesLike>,
-            s: PromiseOrValue<BytesLike>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)"(
-            owner: PromiseOrValue<string>,
-            spender: PromiseOrValue<string>,
-            value: PromiseOrValue<BigNumberish>,
-            deadline: PromiseOrValue<BigNumberish>,
-            v: PromiseOrValue<BigNumberish>,
-            r: PromiseOrValue<BytesLike>,
-            s: PromiseOrValue<BytesLike>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        symbol(overrides?: CallOverrides): Promise<[string]>;
-
-        "symbol()"(overrides?: CallOverrides): Promise<[string]>;
-
-        totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-        "totalSupply()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-        transfer(
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "transfer(address,uint256)"(
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        transferFrom(
-            from: PromiseOrValue<string>,
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "transferFrom(address,address,uint256)"(
-            from: PromiseOrValue<string>,
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-    };
-
-    DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<string>;
-
-    "DOMAIN_SEPARATOR()"(overrides?: CallOverrides): Promise<string>;
+  functions: {
+    DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<[string]>;
 
     allowance(
-        _owner: PromiseOrValue<string>,
-        _spender: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<BigNumber>;
-
-    "allowance(address,address)"(
-        _owner: PromiseOrValue<string>,
-        _spender: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<BigNumber>;
+      _owner: PromiseOrValue<string>,
+      _spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     approve(
-        spender: PromiseOrValue<string>,
-        amount: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    "approve(address,uint256)"(
-        spender: PromiseOrValue<string>,
-        amount: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+    balanceOf(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-    balanceOf(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+    decimals(overrides?: CallOverrides): Promise<[number]>;
 
-    "balanceOf(address)"(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+    name(overrides?: CallOverrides): Promise<[string]>;
 
-    decimals(overrides?: CallOverrides): Promise<number>;
-
-    "decimals()"(overrides?: CallOverrides): Promise<number>;
-
-    name(overrides?: CallOverrides): Promise<string>;
-
-    "name()"(overrides?: CallOverrides): Promise<string>;
-
-    nonces(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "nonces(address)"(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+    nonces(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     permit(
-        owner: PromiseOrValue<string>,
-        spender: PromiseOrValue<string>,
-        value: PromiseOrValue<BigNumberish>,
-        deadline: PromiseOrValue<BigNumberish>,
-        v: PromiseOrValue<BigNumberish>,
-        r: PromiseOrValue<BytesLike>,
-        s: PromiseOrValue<BytesLike>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      value: PromiseOrValue<BigNumberish>,
+      deadline: PromiseOrValue<BigNumberish>,
+      v: PromiseOrValue<BigNumberish>,
+      r: PromiseOrValue<BytesLike>,
+      s: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)"(
-        owner: PromiseOrValue<string>,
-        spender: PromiseOrValue<string>,
-        value: PromiseOrValue<BigNumberish>,
-        deadline: PromiseOrValue<BigNumberish>,
-        v: PromiseOrValue<BigNumberish>,
-        r: PromiseOrValue<BytesLike>,
-        s: PromiseOrValue<BytesLike>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+    symbol(overrides?: CallOverrides): Promise<[string]>;
 
-    symbol(overrides?: CallOverrides): Promise<string>;
-
-    "symbol()"(overrides?: CallOverrides): Promise<string>;
-
-    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "totalSupply()"(overrides?: CallOverrides): Promise<BigNumber>;
+    totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     transfer(
-        to: PromiseOrValue<string>,
-        amount: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "transfer(address,uint256)"(
-        to: PromiseOrValue<string>,
-        amount: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     transferFrom(
-        from: PromiseOrValue<string>,
-        to: PromiseOrValue<string>,
-        amount: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      from: PromiseOrValue<string>,
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
-
-    "transferFrom(address,address,uint256)"(
-        from: PromiseOrValue<string>,
-        to: PromiseOrValue<string>,
-        amount: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    callStatic: {
-        DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<string>;
-
-        "DOMAIN_SEPARATOR()"(overrides?: CallOverrides): Promise<string>;
-
-        allowance(
-            _owner: PromiseOrValue<string>,
-            _spender: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "allowance(address,address)"(
-            _owner: PromiseOrValue<string>,
-            _spender: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        approve(
-            spender: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<boolean>;
-
-        "approve(address,uint256)"(
-            spender: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<boolean>;
-
-        balanceOf(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        "balanceOf(address)"(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        decimals(overrides?: CallOverrides): Promise<number>;
-
-        "decimals()"(overrides?: CallOverrides): Promise<number>;
-
-        name(overrides?: CallOverrides): Promise<string>;
-
-        "name()"(overrides?: CallOverrides): Promise<string>;
-
-        nonces(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        "nonces(address)"(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        permit(
-            owner: PromiseOrValue<string>,
-            spender: PromiseOrValue<string>,
-            value: PromiseOrValue<BigNumberish>,
-            deadline: PromiseOrValue<BigNumberish>,
-            v: PromiseOrValue<BigNumberish>,
-            r: PromiseOrValue<BytesLike>,
-            s: PromiseOrValue<BytesLike>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)"(
-            owner: PromiseOrValue<string>,
-            spender: PromiseOrValue<string>,
-            value: PromiseOrValue<BigNumberish>,
-            deadline: PromiseOrValue<BigNumberish>,
-            v: PromiseOrValue<BigNumberish>,
-            r: PromiseOrValue<BytesLike>,
-            s: PromiseOrValue<BytesLike>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        symbol(overrides?: CallOverrides): Promise<string>;
-
-        "symbol()"(overrides?: CallOverrides): Promise<string>;
-
-        totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-        "totalSupply()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-        transfer(
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<boolean>;
-
-        "transfer(address,uint256)"(
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<boolean>;
-
-        transferFrom(
-            from: PromiseOrValue<string>,
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<boolean>;
-
-        "transferFrom(address,address,uint256)"(
-            from: PromiseOrValue<string>,
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<boolean>;
-    };
-
-    filters: {
-        "Approval(address,address,uint256)"(
-            owner?: PromiseOrValue<string> | null,
-            spender?: PromiseOrValue<string> | null,
-            amount?: null,
-        ): ApprovalEventFilter;
-        Approval(
-            owner?: PromiseOrValue<string> | null,
-            spender?: PromiseOrValue<string> | null,
-            amount?: null,
-        ): ApprovalEventFilter;
-
-        "Initialized(uint8)"(version?: null): InitializedEventFilter;
-        Initialized(version?: null): InitializedEventFilter;
-
-        "Transfer(address,address,uint256)"(
-            from?: PromiseOrValue<string> | null,
-            to?: PromiseOrValue<string> | null,
-            amount?: null,
-        ): TransferEventFilter;
-        Transfer(
-            from?: PromiseOrValue<string> | null,
-            to?: PromiseOrValue<string> | null,
-            amount?: null,
-        ): TransferEventFilter;
-    };
-
-    estimateGas: {
-        DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<BigNumber>;
-
-        "DOMAIN_SEPARATOR()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-        allowance(
-            _owner: PromiseOrValue<string>,
-            _spender: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "allowance(address,address)"(
-            _owner: PromiseOrValue<string>,
-            _spender: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        approve(
-            spender: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "approve(address,uint256)"(
-            spender: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        balanceOf(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        "balanceOf(address)"(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        decimals(overrides?: CallOverrides): Promise<BigNumber>;
-
-        "decimals()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-        name(overrides?: CallOverrides): Promise<BigNumber>;
-
-        "name()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-        nonces(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        "nonces(address)"(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        permit(
-            owner: PromiseOrValue<string>,
-            spender: PromiseOrValue<string>,
-            value: PromiseOrValue<BigNumberish>,
-            deadline: PromiseOrValue<BigNumberish>,
-            v: PromiseOrValue<BigNumberish>,
-            r: PromiseOrValue<BytesLike>,
-            s: PromiseOrValue<BytesLike>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)"(
-            owner: PromiseOrValue<string>,
-            spender: PromiseOrValue<string>,
-            value: PromiseOrValue<BigNumberish>,
-            deadline: PromiseOrValue<BigNumberish>,
-            v: PromiseOrValue<BigNumberish>,
-            r: PromiseOrValue<BytesLike>,
-            s: PromiseOrValue<BytesLike>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        symbol(overrides?: CallOverrides): Promise<BigNumber>;
-
-        "symbol()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-        totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-        "totalSupply()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-        transfer(
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "transfer(address,uint256)"(
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        transferFrom(
-            from: PromiseOrValue<string>,
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "transferFrom(address,address,uint256)"(
-            from: PromiseOrValue<string>,
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-    };
-
-    populateTransaction: {
-        DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "DOMAIN_SEPARATOR()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        allowance(
-            _owner: PromiseOrValue<string>,
-            _spender: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "allowance(address,address)"(
-            _owner: PromiseOrValue<string>,
-            _spender: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        approve(
-            spender: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "approve(address,uint256)"(
-            spender: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        balanceOf(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "balanceOf(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "decimals()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "name()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        nonces(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "nonces(address)"(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        permit(
-            owner: PromiseOrValue<string>,
-            spender: PromiseOrValue<string>,
-            value: PromiseOrValue<BigNumberish>,
-            deadline: PromiseOrValue<BigNumberish>,
-            v: PromiseOrValue<BigNumberish>,
-            r: PromiseOrValue<BytesLike>,
-            s: PromiseOrValue<BytesLike>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)"(
-            owner: PromiseOrValue<string>,
-            spender: PromiseOrValue<string>,
-            value: PromiseOrValue<BigNumberish>,
-            deadline: PromiseOrValue<BigNumberish>,
-            v: PromiseOrValue<BigNumberish>,
-            r: PromiseOrValue<BytesLike>,
-            s: PromiseOrValue<BytesLike>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "symbol()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "totalSupply()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        transfer(
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "transfer(address,uint256)"(
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        transferFrom(
-            from: PromiseOrValue<string>,
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "transferFrom(address,address,uint256)"(
-            from: PromiseOrValue<string>,
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-    };
+  };
+
+  DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<string>;
+
+  allowance(
+    _owner: PromiseOrValue<string>,
+    _spender: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  approve(
+    spender: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  balanceOf(
+    _account: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  decimals(overrides?: CallOverrides): Promise<number>;
+
+  name(overrides?: CallOverrides): Promise<string>;
+
+  nonces(
+    arg0: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  permit(
+    owner: PromiseOrValue<string>,
+    spender: PromiseOrValue<string>,
+    value: PromiseOrValue<BigNumberish>,
+    deadline: PromiseOrValue<BigNumberish>,
+    v: PromiseOrValue<BigNumberish>,
+    r: PromiseOrValue<BytesLike>,
+    s: PromiseOrValue<BytesLike>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  symbol(overrides?: CallOverrides): Promise<string>;
+
+  totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+  transfer(
+    to: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  transferFrom(
+    from: PromiseOrValue<string>,
+    to: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  callStatic: {
+    DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<string>;
+
+    allowance(
+      _owner: PromiseOrValue<string>,
+      _spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    approve(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    balanceOf(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    decimals(overrides?: CallOverrides): Promise<number>;
+
+    name(overrides?: CallOverrides): Promise<string>;
+
+    nonces(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    permit(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      value: PromiseOrValue<BigNumberish>,
+      deadline: PromiseOrValue<BigNumberish>,
+      v: PromiseOrValue<BigNumberish>,
+      r: PromiseOrValue<BytesLike>,
+      s: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    symbol(overrides?: CallOverrides): Promise<string>;
+
+    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+    transfer(
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    transferFrom(
+      from: PromiseOrValue<string>,
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+  };
+
+  filters: {
+    "Approval(address,address,uint256)"(
+      owner?: PromiseOrValue<string> | null,
+      spender?: PromiseOrValue<string> | null,
+      amount?: null
+    ): ApprovalEventFilter;
+    Approval(
+      owner?: PromiseOrValue<string> | null,
+      spender?: PromiseOrValue<string> | null,
+      amount?: null
+    ): ApprovalEventFilter;
+
+    "Initialized(uint8)"(version?: null): InitializedEventFilter;
+    Initialized(version?: null): InitializedEventFilter;
+
+    "Transfer(address,address,uint256)"(
+      from?: PromiseOrValue<string> | null,
+      to?: PromiseOrValue<string> | null,
+      amount?: null
+    ): TransferEventFilter;
+    Transfer(
+      from?: PromiseOrValue<string> | null,
+      to?: PromiseOrValue<string> | null,
+      amount?: null
+    ): TransferEventFilter;
+  };
+
+  estimateGas: {
+    DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<BigNumber>;
+
+    allowance(
+      _owner: PromiseOrValue<string>,
+      _spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    approve(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    balanceOf(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    decimals(overrides?: CallOverrides): Promise<BigNumber>;
+
+    name(overrides?: CallOverrides): Promise<BigNumber>;
+
+    nonces(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    permit(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      value: PromiseOrValue<BigNumberish>,
+      deadline: PromiseOrValue<BigNumberish>,
+      v: PromiseOrValue<BigNumberish>,
+      r: PromiseOrValue<BytesLike>,
+      s: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    symbol(overrides?: CallOverrides): Promise<BigNumber>;
+
+    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+    transfer(
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    transferFrom(
+      from: PromiseOrValue<string>,
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    allowance(
+      _owner: PromiseOrValue<string>,
+      _spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    approve(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    balanceOf(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    nonces(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    permit(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      value: PromiseOrValue<BigNumberish>,
+      deadline: PromiseOrValue<BigNumberish>,
+      v: PromiseOrValue<BigNumberish>,
+      r: PromiseOrValue<BytesLike>,
+      s: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    transfer(
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    transferFrom(
+      from: PromiseOrValue<string>,
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+  };
 }

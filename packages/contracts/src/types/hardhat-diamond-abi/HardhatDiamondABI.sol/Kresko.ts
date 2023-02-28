@@ -3,7527 +3,5180 @@
 /* tslint:disable */
 /* eslint-disable */
 import type {
-    BaseContract,
-    BigNumber,
-    BigNumberish,
-    BytesLike,
-    CallOverrides,
-    ContractTransaction,
-    Overrides,
-    PopulatedTransaction,
-    Signer,
-    utils,
+  BaseContract,
+  BigNumber,
+  BigNumberish,
+  BytesLike,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
-import type { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
+import type {
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
-import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent, PromiseOrValue } from "../../common";
+import type {
+  TypedEventFilter,
+  TypedEvent,
+  TypedListener,
+  OnEvent,
+  PromiseOrValue,
+} from "../../common";
 
 export type MinterInitArgsStruct = {
-    operator: PromiseOrValue<string>;
-    council: PromiseOrValue<string>;
-    feeRecipient: PromiseOrValue<string>;
-    extOracleDecimals: PromiseOrValue<BigNumberish>;
-    liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>;
-    minimumCollateralizationRatio: PromiseOrValue<BigNumberish>;
-    minimumDebtValue: PromiseOrValue<BigNumberish>;
-    liquidationThreshold: PromiseOrValue<BigNumberish>;
+  operator: PromiseOrValue<string>;
+  council: PromiseOrValue<string>;
+  feeRecipient: PromiseOrValue<string>;
+  extOracleDecimals: PromiseOrValue<BigNumberish>;
+  liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>;
+  minimumCollateralizationRatio: PromiseOrValue<BigNumberish>;
+  minimumDebtValue: PromiseOrValue<BigNumberish>;
+  liquidationThreshold: PromiseOrValue<BigNumberish>;
 };
 
 export type MinterInitArgsStructOutput = [
-    string,
-    string,
-    string,
-    number,
-    BigNumber,
-    BigNumber,
-    BigNumber,
-    BigNumber,
+  string,
+  string,
+  string,
+  number,
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  BigNumber
 ] & {
-    operator: string;
-    council: string;
-    feeRecipient: string;
-    extOracleDecimals: number;
-    liquidationIncentiveMultiplier: BigNumber;
-    minimumCollateralizationRatio: BigNumber;
-    minimumDebtValue: BigNumber;
-    liquidationThreshold: BigNumber;
+  operator: string;
+  council: string;
+  feeRecipient: string;
+  extOracleDecimals: number;
+  liquidationIncentiveMultiplier: BigNumber;
+  minimumCollateralizationRatio: BigNumber;
+  minimumDebtValue: BigNumber;
+  liquidationThreshold: BigNumber;
 };
 
 export type PauseStruct = {
-    enabled: PromiseOrValue<boolean>;
-    timestamp0: PromiseOrValue<BigNumberish>;
-    timestamp1: PromiseOrValue<BigNumberish>;
+  enabled: PromiseOrValue<boolean>;
+  timestamp0: PromiseOrValue<BigNumberish>;
+  timestamp1: PromiseOrValue<BigNumberish>;
 };
 
 export type PauseStructOutput = [boolean, BigNumber, BigNumber] & {
-    enabled: boolean;
-    timestamp0: BigNumber;
-    timestamp1: BigNumber;
+  enabled: boolean;
+  timestamp0: BigNumber;
+  timestamp1: BigNumber;
 };
 
 export type SafetyStateStruct = { pause: PauseStruct };
 
 export type SafetyStateStructOutput = [PauseStructOutput] & {
-    pause: PauseStructOutput;
+  pause: PauseStructOutput;
 };
 
 export type StabilityRateConfigStruct = {
-    debtIndex: PromiseOrValue<BigNumberish>;
-    optimalPriceRate: PromiseOrValue<BigNumberish>;
-    rateSlope1: PromiseOrValue<BigNumberish>;
-    rateSlope2: PromiseOrValue<BigNumberish>;
-    priceRateDelta: PromiseOrValue<BigNumberish>;
-    stabilityRate: PromiseOrValue<BigNumberish>;
-    stabilityRateBase: PromiseOrValue<BigNumberish>;
-    asset: PromiseOrValue<string>;
-    lastUpdateTimestamp: PromiseOrValue<BigNumberish>;
+  debtIndex: PromiseOrValue<BigNumberish>;
+  optimalPriceRate: PromiseOrValue<BigNumberish>;
+  rateSlope1: PromiseOrValue<BigNumberish>;
+  rateSlope2: PromiseOrValue<BigNumberish>;
+  priceRateDelta: PromiseOrValue<BigNumberish>;
+  stabilityRate: PromiseOrValue<BigNumberish>;
+  stabilityRateBase: PromiseOrValue<BigNumberish>;
+  asset: PromiseOrValue<string>;
+  lastUpdateTimestamp: PromiseOrValue<BigNumberish>;
 };
 
 export type StabilityRateConfigStructOutput = [
-    BigNumber,
-    BigNumber,
-    BigNumber,
-    BigNumber,
-    BigNumber,
-    BigNumber,
-    BigNumber,
-    string,
-    number,
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  string,
+  number
 ] & {
-    debtIndex: BigNumber;
-    optimalPriceRate: BigNumber;
-    rateSlope1: BigNumber;
-    rateSlope2: BigNumber;
-    priceRateDelta: BigNumber;
-    stabilityRate: BigNumber;
-    stabilityRateBase: BigNumber;
-    asset: string;
-    lastUpdateTimestamp: number;
+  debtIndex: BigNumber;
+  optimalPriceRate: BigNumber;
+  rateSlope1: BigNumber;
+  rateSlope2: BigNumber;
+  priceRateDelta: BigNumber;
+  stabilityRate: BigNumber;
+  stabilityRateBase: BigNumber;
+  asset: string;
+  lastUpdateTimestamp: number;
 };
 
 export type StabilityRateParamsStruct = {
-    stabilityRateBase: PromiseOrValue<BigNumberish>;
-    rateSlope1: PromiseOrValue<BigNumberish>;
-    rateSlope2: PromiseOrValue<BigNumberish>;
-    optimalPriceRate: PromiseOrValue<BigNumberish>;
-    priceRateDelta: PromiseOrValue<BigNumberish>;
+  stabilityRateBase: PromiseOrValue<BigNumberish>;
+  rateSlope1: PromiseOrValue<BigNumberish>;
+  rateSlope2: PromiseOrValue<BigNumberish>;
+  optimalPriceRate: PromiseOrValue<BigNumberish>;
+  priceRateDelta: PromiseOrValue<BigNumberish>;
 };
 
-export type StabilityRateParamsStructOutput = [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
-    stabilityRateBase: BigNumber;
-    rateSlope1: BigNumber;
-    rateSlope2: BigNumber;
-    optimalPriceRate: BigNumber;
-    priceRateDelta: BigNumber;
+export type StabilityRateParamsStructOutput = [
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  BigNumber
+] & {
+  stabilityRateBase: BigNumber;
+  rateSlope1: BigNumber;
+  rateSlope2: BigNumber;
+  optimalPriceRate: BigNumber;
+  priceRateDelta: BigNumber;
 };
 
 export type CollateralAssetStruct = {
-    factor: FixedPoint.UnsignedStruct;
-    oracle: PromiseOrValue<string>;
-    marketStatusOracle: PromiseOrValue<string>;
-    anchor: PromiseOrValue<string>;
-    decimals: PromiseOrValue<BigNumberish>;
-    exists: PromiseOrValue<boolean>;
+  factor: FixedPoint.UnsignedStruct;
+  oracle: PromiseOrValue<string>;
+  marketStatusOracle: PromiseOrValue<string>;
+  anchor: PromiseOrValue<string>;
+  decimals: PromiseOrValue<BigNumberish>;
+  exists: PromiseOrValue<boolean>;
 };
 
-export type CollateralAssetStructOutput = [FixedPoint.UnsignedStructOutput, string, string, string, number, boolean] & {
-    factor: FixedPoint.UnsignedStructOutput;
-    oracle: string;
-    marketStatusOracle: string;
-    anchor: string;
-    decimals: number;
-    exists: boolean;
+export type CollateralAssetStructOutput = [
+  FixedPoint.UnsignedStructOutput,
+  string,
+  string,
+  string,
+  number,
+  boolean
+] & {
+  factor: FixedPoint.UnsignedStructOutput;
+  oracle: string;
+  marketStatusOracle: string;
+  anchor: string;
+  decimals: number;
+  exists: boolean;
 };
 
 export type MinterParamsStruct = {
-    minimumCollateralizationRatio: FixedPoint.UnsignedStruct;
-    liquidationIncentiveMultiplier: FixedPoint.UnsignedStruct;
-    minimumDebtValue: FixedPoint.UnsignedStruct;
-    liquidationThreshold: FixedPoint.UnsignedStruct;
-    feeRecipient: PromiseOrValue<string>;
-    extOracleDecimals: PromiseOrValue<BigNumberish>;
+  minimumCollateralizationRatio: FixedPoint.UnsignedStruct;
+  liquidationIncentiveMultiplier: FixedPoint.UnsignedStruct;
+  minimumDebtValue: FixedPoint.UnsignedStruct;
+  liquidationThreshold: FixedPoint.UnsignedStruct;
+  feeRecipient: PromiseOrValue<string>;
+  extOracleDecimals: PromiseOrValue<BigNumberish>;
 };
 
 export type MinterParamsStructOutput = [
-    FixedPoint.UnsignedStructOutput,
-    FixedPoint.UnsignedStructOutput,
-    FixedPoint.UnsignedStructOutput,
-    FixedPoint.UnsignedStructOutput,
-    string,
-    number,
+  FixedPoint.UnsignedStructOutput,
+  FixedPoint.UnsignedStructOutput,
+  FixedPoint.UnsignedStructOutput,
+  FixedPoint.UnsignedStructOutput,
+  string,
+  number
 ] & {
-    minimumCollateralizationRatio: FixedPoint.UnsignedStructOutput;
-    liquidationIncentiveMultiplier: FixedPoint.UnsignedStructOutput;
-    minimumDebtValue: FixedPoint.UnsignedStructOutput;
-    liquidationThreshold: FixedPoint.UnsignedStructOutput;
-    feeRecipient: string;
-    extOracleDecimals: number;
+  minimumCollateralizationRatio: FixedPoint.UnsignedStructOutput;
+  liquidationIncentiveMultiplier: FixedPoint.UnsignedStructOutput;
+  minimumDebtValue: FixedPoint.UnsignedStructOutput;
+  liquidationThreshold: FixedPoint.UnsignedStructOutput;
+  feeRecipient: string;
+  extOracleDecimals: number;
 };
 
 export type KrAssetStruct = {
-    kFactor: FixedPoint.UnsignedStruct;
-    oracle: PromiseOrValue<string>;
-    marketStatusOracle: PromiseOrValue<string>;
-    supplyLimit: PromiseOrValue<BigNumberish>;
-    anchor: PromiseOrValue<string>;
-    closeFee: FixedPoint.UnsignedStruct;
-    openFee: FixedPoint.UnsignedStruct;
-    exists: PromiseOrValue<boolean>;
+  kFactor: FixedPoint.UnsignedStruct;
+  oracle: PromiseOrValue<string>;
+  marketStatusOracle: PromiseOrValue<string>;
+  supplyLimit: PromiseOrValue<BigNumberish>;
+  anchor: PromiseOrValue<string>;
+  closeFee: FixedPoint.UnsignedStruct;
+  openFee: FixedPoint.UnsignedStruct;
+  exists: PromiseOrValue<boolean>;
 };
 
 export type KrAssetStructOutput = [
-    FixedPoint.UnsignedStructOutput,
-    string,
-    string,
-    BigNumber,
-    string,
-    FixedPoint.UnsignedStructOutput,
-    FixedPoint.UnsignedStructOutput,
-    boolean,
+  FixedPoint.UnsignedStructOutput,
+  string,
+  string,
+  BigNumber,
+  string,
+  FixedPoint.UnsignedStructOutput,
+  FixedPoint.UnsignedStructOutput,
+  boolean
 ] & {
-    kFactor: FixedPoint.UnsignedStructOutput;
-    oracle: string;
-    marketStatusOracle: string;
-    supplyLimit: BigNumber;
-    anchor: string;
-    closeFee: FixedPoint.UnsignedStructOutput;
-    openFee: FixedPoint.UnsignedStructOutput;
-    exists: boolean;
+  kFactor: FixedPoint.UnsignedStructOutput;
+  oracle: string;
+  marketStatusOracle: string;
+  supplyLimit: BigNumber;
+  anchor: string;
+  closeFee: FixedPoint.UnsignedStructOutput;
+  openFee: FixedPoint.UnsignedStructOutput;
+  exists: boolean;
 };
 
 export declare namespace IDiamondCutFacet {
-    export type FacetCutStruct = {
-        facetAddress: PromiseOrValue<string>;
-        action: PromiseOrValue<BigNumberish>;
-        functionSelectors: PromiseOrValue<BytesLike>[];
-    };
+  export type FacetCutStruct = {
+    facetAddress: PromiseOrValue<string>;
+    action: PromiseOrValue<BigNumberish>;
+    functionSelectors: PromiseOrValue<BytesLike>[];
+  };
 
-    export type FacetCutStructOutput = [string, number, string[]] & {
-        facetAddress: string;
-        action: number;
-        functionSelectors: string[];
-    };
+  export type FacetCutStructOutput = [string, number, string[]] & {
+    facetAddress: string;
+    action: number;
+    functionSelectors: string[];
+  };
 }
 
 export declare namespace IDiamondLoupeFacet {
-    export type FacetStruct = {
-        facetAddress: PromiseOrValue<string>;
-        functionSelectors: PromiseOrValue<BytesLike>[];
-    };
+  export type FacetStruct = {
+    facetAddress: PromiseOrValue<string>;
+    functionSelectors: PromiseOrValue<BytesLike>[];
+  };
 
-    export type FacetStructOutput = [string, string[]] & {
-        facetAddress: string;
-        functionSelectors: string[];
-    };
+  export type FacetStructOutput = [string, string[]] & {
+    facetAddress: string;
+    functionSelectors: string[];
+  };
 }
 
 export declare namespace FixedPoint {
-    export type UnsignedStruct = { rawValue: PromiseOrValue<BigNumberish> };
+  export type UnsignedStruct = { rawValue: PromiseOrValue<BigNumberish> };
 
-    export type UnsignedStructOutput = [BigNumber] & { rawValue: BigNumber };
+  export type UnsignedStructOutput = [BigNumber] & { rawValue: BigNumber };
 }
 
 export declare namespace LibUI {
-    export type PriceStruct = {
-        price: PromiseOrValue<BigNumberish>;
-        timestamp: PromiseOrValue<BigNumberish>;
-        assetAddress: PromiseOrValue<string>;
-        roundId: PromiseOrValue<BigNumberish>;
-        marketOpen: PromiseOrValue<boolean>;
-    };
+  export type PriceStruct = {
+    price: PromiseOrValue<BigNumberish>;
+    timestamp: PromiseOrValue<BigNumberish>;
+    assetAddress: PromiseOrValue<string>;
+    roundId: PromiseOrValue<BigNumberish>;
+    marketOpen: PromiseOrValue<boolean>;
+  };
 
-    export type PriceStructOutput = [BigNumber, BigNumber, string, BigNumber, boolean] & {
-        price: BigNumber;
-        timestamp: BigNumber;
-        assetAddress: string;
-        roundId: BigNumber;
-        marketOpen: boolean;
-    };
+  export type PriceStructOutput = [
+    BigNumber,
+    BigNumber,
+    string,
+    BigNumber,
+    boolean
+  ] & {
+    price: BigNumber;
+    timestamp: BigNumber;
+    assetAddress: string;
+    roundId: BigNumber;
+    marketOpen: boolean;
+  };
 
-    export type KrAssetInfoUserStruct = {
-        assetAddress: PromiseOrValue<string>;
-        oracleAddress: PromiseOrValue<string>;
-        anchorAddress: PromiseOrValue<string>;
-        amount: PromiseOrValue<BigNumberish>;
-        amountUSD: FixedPoint.UnsignedStruct;
-        index: PromiseOrValue<BigNumberish>;
-        kFactor: FixedPoint.UnsignedStruct;
-        price: PromiseOrValue<BigNumberish>;
-        symbol: PromiseOrValue<string>;
-        name: PromiseOrValue<string>;
-        openFee: FixedPoint.UnsignedStruct;
-        closeFee: FixedPoint.UnsignedStruct;
-    };
+  export type KrAssetInfoUserStruct = {
+    assetAddress: PromiseOrValue<string>;
+    oracleAddress: PromiseOrValue<string>;
+    anchorAddress: PromiseOrValue<string>;
+    amount: PromiseOrValue<BigNumberish>;
+    amountUSD: FixedPoint.UnsignedStruct;
+    index: PromiseOrValue<BigNumberish>;
+    kFactor: FixedPoint.UnsignedStruct;
+    price: PromiseOrValue<BigNumberish>;
+    symbol: PromiseOrValue<string>;
+    name: PromiseOrValue<string>;
+    openFee: FixedPoint.UnsignedStruct;
+    closeFee: FixedPoint.UnsignedStruct;
+  };
 
-    export type KrAssetInfoUserStructOutput = [
-        string,
-        string,
-        string,
-        BigNumber,
-        FixedPoint.UnsignedStructOutput,
-        BigNumber,
-        FixedPoint.UnsignedStructOutput,
-        BigNumber,
-        string,
-        string,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
-    ] & {
-        assetAddress: string;
-        oracleAddress: string;
-        anchorAddress: string;
-        amount: BigNumber;
-        amountUSD: FixedPoint.UnsignedStructOutput;
-        index: BigNumber;
-        kFactor: FixedPoint.UnsignedStructOutput;
-        price: BigNumber;
-        symbol: string;
-        name: string;
-        openFee: FixedPoint.UnsignedStructOutput;
-        closeFee: FixedPoint.UnsignedStructOutput;
-    };
+  export type KrAssetInfoUserStructOutput = [
+    string,
+    string,
+    string,
+    BigNumber,
+    FixedPoint.UnsignedStructOutput,
+    BigNumber,
+    FixedPoint.UnsignedStructOutput,
+    BigNumber,
+    string,
+    string,
+    FixedPoint.UnsignedStructOutput,
+    FixedPoint.UnsignedStructOutput
+  ] & {
+    assetAddress: string;
+    oracleAddress: string;
+    anchorAddress: string;
+    amount: BigNumber;
+    amountUSD: FixedPoint.UnsignedStructOutput;
+    index: BigNumber;
+    kFactor: FixedPoint.UnsignedStructOutput;
+    price: BigNumber;
+    symbol: string;
+    name: string;
+    openFee: FixedPoint.UnsignedStructOutput;
+    closeFee: FixedPoint.UnsignedStructOutput;
+  };
 
-    export type CollateralAssetInfoUserStruct = {
-        assetAddress: PromiseOrValue<string>;
-        oracleAddress: PromiseOrValue<string>;
-        anchorAddress: PromiseOrValue<string>;
-        amount: PromiseOrValue<BigNumberish>;
-        amountUSD: FixedPoint.UnsignedStruct;
-        cFactor: FixedPoint.UnsignedStruct;
-        decimals: PromiseOrValue<BigNumberish>;
-        index: PromiseOrValue<BigNumberish>;
-        price: PromiseOrValue<BigNumberish>;
-        symbol: PromiseOrValue<string>;
-        name: PromiseOrValue<string>;
-    };
+  export type CollateralAssetInfoUserStruct = {
+    assetAddress: PromiseOrValue<string>;
+    oracleAddress: PromiseOrValue<string>;
+    anchorAddress: PromiseOrValue<string>;
+    amount: PromiseOrValue<BigNumberish>;
+    amountUSD: FixedPoint.UnsignedStruct;
+    cFactor: FixedPoint.UnsignedStruct;
+    decimals: PromiseOrValue<BigNumberish>;
+    index: PromiseOrValue<BigNumberish>;
+    price: PromiseOrValue<BigNumberish>;
+    symbol: PromiseOrValue<string>;
+    name: PromiseOrValue<string>;
+  };
 
-    export type CollateralAssetInfoUserStructOutput = [
-        string,
-        string,
-        string,
-        BigNumber,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
-        number,
-        BigNumber,
-        BigNumber,
-        string,
-        string,
-    ] & {
-        assetAddress: string;
-        oracleAddress: string;
-        anchorAddress: string;
-        amount: BigNumber;
-        amountUSD: FixedPoint.UnsignedStructOutput;
-        cFactor: FixedPoint.UnsignedStructOutput;
-        decimals: number;
-        index: BigNumber;
-        price: BigNumber;
-        symbol: string;
-        name: string;
-    };
+  export type CollateralAssetInfoUserStructOutput = [
+    string,
+    string,
+    string,
+    BigNumber,
+    FixedPoint.UnsignedStructOutput,
+    FixedPoint.UnsignedStructOutput,
+    number,
+    BigNumber,
+    BigNumber,
+    string,
+    string
+  ] & {
+    assetAddress: string;
+    oracleAddress: string;
+    anchorAddress: string;
+    amount: BigNumber;
+    amountUSD: FixedPoint.UnsignedStructOutput;
+    cFactor: FixedPoint.UnsignedStructOutput;
+    decimals: number;
+    index: BigNumber;
+    price: BigNumber;
+    symbol: string;
+    name: string;
+  };
 
-    export type KreskoUserStruct = {
-        krAssets: LibUI.KrAssetInfoUserStruct[];
-        collateralAssets: LibUI.CollateralAssetInfoUserStruct[];
-        healthFactor: FixedPoint.UnsignedStruct;
-        debtActualUSD: FixedPoint.UnsignedStruct;
-        debtUSD: FixedPoint.UnsignedStruct;
-        collateralActualUSD: FixedPoint.UnsignedStruct;
-        collateralUSD: FixedPoint.UnsignedStruct;
-        minCollateralUSD: FixedPoint.UnsignedStruct;
-        borrowingPowerUSD: FixedPoint.UnsignedStruct;
-    };
+  export type KreskoUserStruct = {
+    krAssets: LibUI.KrAssetInfoUserStruct[];
+    collateralAssets: LibUI.CollateralAssetInfoUserStruct[];
+    healthFactor: FixedPoint.UnsignedStruct;
+    debtActualUSD: FixedPoint.UnsignedStruct;
+    debtUSD: FixedPoint.UnsignedStruct;
+    collateralActualUSD: FixedPoint.UnsignedStruct;
+    collateralUSD: FixedPoint.UnsignedStruct;
+    minCollateralUSD: FixedPoint.UnsignedStruct;
+    borrowingPowerUSD: FixedPoint.UnsignedStruct;
+  };
 
-    export type KreskoUserStructOutput = [
-        LibUI.KrAssetInfoUserStructOutput[],
-        LibUI.CollateralAssetInfoUserStructOutput[],
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
-    ] & {
-        krAssets: LibUI.KrAssetInfoUserStructOutput[];
-        collateralAssets: LibUI.CollateralAssetInfoUserStructOutput[];
-        healthFactor: FixedPoint.UnsignedStructOutput;
-        debtActualUSD: FixedPoint.UnsignedStructOutput;
-        debtUSD: FixedPoint.UnsignedStructOutput;
-        collateralActualUSD: FixedPoint.UnsignedStructOutput;
-        collateralUSD: FixedPoint.UnsignedStructOutput;
-        minCollateralUSD: FixedPoint.UnsignedStructOutput;
-        borrowingPowerUSD: FixedPoint.UnsignedStructOutput;
-    };
+  export type KreskoUserStructOutput = [
+    LibUI.KrAssetInfoUserStructOutput[],
+    LibUI.CollateralAssetInfoUserStructOutput[],
+    FixedPoint.UnsignedStructOutput,
+    FixedPoint.UnsignedStructOutput,
+    FixedPoint.UnsignedStructOutput,
+    FixedPoint.UnsignedStructOutput,
+    FixedPoint.UnsignedStructOutput,
+    FixedPoint.UnsignedStructOutput,
+    FixedPoint.UnsignedStructOutput
+  ] & {
+    krAssets: LibUI.KrAssetInfoUserStructOutput[];
+    collateralAssets: LibUI.CollateralAssetInfoUserStructOutput[];
+    healthFactor: FixedPoint.UnsignedStructOutput;
+    debtActualUSD: FixedPoint.UnsignedStructOutput;
+    debtUSD: FixedPoint.UnsignedStructOutput;
+    collateralActualUSD: FixedPoint.UnsignedStructOutput;
+    collateralUSD: FixedPoint.UnsignedStructOutput;
+    minCollateralUSD: FixedPoint.UnsignedStructOutput;
+    borrowingPowerUSD: FixedPoint.UnsignedStructOutput;
+  };
 
-    export type BalanceStruct = {
-        token: PromiseOrValue<string>;
-        balance: PromiseOrValue<BigNumberish>;
-    };
+  export type BalanceStruct = {
+    token: PromiseOrValue<string>;
+    balance: PromiseOrValue<BigNumberish>;
+  };
 
-    export type BalanceStructOutput = [string, BigNumber] & {
-        token: string;
-        balance: BigNumber;
-    };
+  export type BalanceStructOutput = [string, BigNumber] & {
+    token: string;
+    balance: BigNumber;
+  };
 
-    export type StakingDataStruct = {
-        pid: PromiseOrValue<BigNumberish>;
-        depositToken: PromiseOrValue<string>;
-        totalDeposits: PromiseOrValue<BigNumberish>;
-        allocPoint: PromiseOrValue<BigNumberish>;
-        rewardPerBlocks: PromiseOrValue<BigNumberish>[];
-        lastRewardBlock: PromiseOrValue<BigNumberish>;
-        depositAmount: PromiseOrValue<BigNumberish>;
-        rewardTokens: PromiseOrValue<string>[];
-        rewardAmounts: PromiseOrValue<BigNumberish>[];
-    };
+  export type StakingDataStruct = {
+    pid: PromiseOrValue<BigNumberish>;
+    depositToken: PromiseOrValue<string>;
+    totalDeposits: PromiseOrValue<BigNumberish>;
+    allocPoint: PromiseOrValue<BigNumberish>;
+    rewardPerBlocks: PromiseOrValue<BigNumberish>[];
+    lastRewardBlock: PromiseOrValue<BigNumberish>;
+    depositAmount: PromiseOrValue<BigNumberish>;
+    rewardTokens: PromiseOrValue<string>[];
+    rewardAmounts: PromiseOrValue<BigNumberish>[];
+  };
 
-    export type StakingDataStructOutput = [
-        BigNumber,
-        string,
-        BigNumber,
-        BigNumber,
-        BigNumber[],
-        BigNumber,
-        BigNumber,
-        string[],
-        BigNumber[],
-    ] & {
-        pid: BigNumber;
-        depositToken: string;
-        totalDeposits: BigNumber;
-        allocPoint: BigNumber;
-        rewardPerBlocks: BigNumber[];
-        lastRewardBlock: BigNumber;
-        depositAmount: BigNumber;
-        rewardTokens: string[];
-        rewardAmounts: BigNumber[];
-    };
+  export type StakingDataStructOutput = [
+    BigNumber,
+    string,
+    BigNumber,
+    BigNumber,
+    BigNumber[],
+    BigNumber,
+    BigNumber,
+    string[],
+    BigNumber[]
+  ] & {
+    pid: BigNumber;
+    depositToken: string;
+    totalDeposits: BigNumber;
+    allocPoint: BigNumber;
+    rewardPerBlocks: BigNumber[];
+    lastRewardBlock: BigNumber;
+    depositAmount: BigNumber;
+    rewardTokens: string[];
+    rewardAmounts: BigNumber[];
+  };
 
-    export type TokenMetadataStruct = {
-        decimals: PromiseOrValue<BigNumberish>;
-        symbol: PromiseOrValue<string>;
-        name: PromiseOrValue<string>;
-        totalSupply: PromiseOrValue<BigNumberish>;
-    };
+  export type TokenMetadataStruct = {
+    decimals: PromiseOrValue<BigNumberish>;
+    symbol: PromiseOrValue<string>;
+    name: PromiseOrValue<string>;
+    totalSupply: PromiseOrValue<BigNumberish>;
+  };
 
-    export type TokenMetadataStructOutput = [number, string, string, BigNumber] & {
-        decimals: number;
-        symbol: string;
-        name: string;
-        totalSupply: BigNumber;
-    };
+  export type TokenMetadataStructOutput = [
+    number,
+    string,
+    string,
+    BigNumber
+  ] & {
+    decimals: number;
+    symbol: string;
+    name: string;
+    totalSupply: BigNumber;
+  };
 
-    export type CollateralAssetInfoStruct = {
-        assetAddress: PromiseOrValue<string>;
-        oracleAddress: PromiseOrValue<string>;
-        anchorAddress: PromiseOrValue<string>;
-        price: PromiseOrValue<BigNumberish>;
-        value: PromiseOrValue<BigNumberish>;
-        cFactor: FixedPoint.UnsignedStruct;
-        decimals: PromiseOrValue<BigNumberish>;
-        symbol: PromiseOrValue<string>;
-        name: PromiseOrValue<string>;
-        marketOpen: PromiseOrValue<boolean>;
-    };
+  export type CollateralAssetInfoStruct = {
+    assetAddress: PromiseOrValue<string>;
+    oracleAddress: PromiseOrValue<string>;
+    anchorAddress: PromiseOrValue<string>;
+    price: PromiseOrValue<BigNumberish>;
+    value: PromiseOrValue<BigNumberish>;
+    cFactor: FixedPoint.UnsignedStruct;
+    decimals: PromiseOrValue<BigNumberish>;
+    symbol: PromiseOrValue<string>;
+    name: PromiseOrValue<string>;
+    marketOpen: PromiseOrValue<boolean>;
+  };
 
-    export type CollateralAssetInfoStructOutput = [
-        string,
-        string,
-        string,
-        BigNumber,
-        BigNumber,
-        FixedPoint.UnsignedStructOutput,
-        number,
-        string,
-        string,
-        boolean,
-    ] & {
-        assetAddress: string;
-        oracleAddress: string;
-        anchorAddress: string;
-        price: BigNumber;
-        value: BigNumber;
-        cFactor: FixedPoint.UnsignedStructOutput;
-        decimals: number;
-        symbol: string;
-        name: string;
-        marketOpen: boolean;
-    };
+  export type CollateralAssetInfoStructOutput = [
+    string,
+    string,
+    string,
+    BigNumber,
+    BigNumber,
+    FixedPoint.UnsignedStructOutput,
+    number,
+    string,
+    string,
+    boolean
+  ] & {
+    assetAddress: string;
+    oracleAddress: string;
+    anchorAddress: string;
+    price: BigNumber;
+    value: BigNumber;
+    cFactor: FixedPoint.UnsignedStructOutput;
+    decimals: number;
+    symbol: string;
+    name: string;
+    marketOpen: boolean;
+  };
 
-    export type KrAssetInfoStruct = {
-        oracleAddress: PromiseOrValue<string>;
-        assetAddress: PromiseOrValue<string>;
-        anchorAddress: PromiseOrValue<string>;
-        price: PromiseOrValue<BigNumberish>;
-        value: PromiseOrValue<BigNumberish>;
-        openFee: FixedPoint.UnsignedStruct;
-        closeFee: FixedPoint.UnsignedStruct;
-        kFactor: FixedPoint.UnsignedStruct;
-        symbol: PromiseOrValue<string>;
-        name: PromiseOrValue<string>;
-        marketOpen: PromiseOrValue<boolean>;
-    };
+  export type KrAssetInfoStruct = {
+    oracleAddress: PromiseOrValue<string>;
+    assetAddress: PromiseOrValue<string>;
+    anchorAddress: PromiseOrValue<string>;
+    price: PromiseOrValue<BigNumberish>;
+    value: PromiseOrValue<BigNumberish>;
+    openFee: FixedPoint.UnsignedStruct;
+    closeFee: FixedPoint.UnsignedStruct;
+    kFactor: FixedPoint.UnsignedStruct;
+    symbol: PromiseOrValue<string>;
+    name: PromiseOrValue<string>;
+    marketOpen: PromiseOrValue<boolean>;
+  };
 
-    export type KrAssetInfoStructOutput = [
-        string,
-        string,
-        string,
-        BigNumber,
-        BigNumber,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
-        string,
-        string,
-        boolean,
-    ] & {
-        oracleAddress: string;
-        assetAddress: string;
-        anchorAddress: string;
-        price: BigNumber;
-        value: BigNumber;
-        openFee: FixedPoint.UnsignedStructOutput;
-        closeFee: FixedPoint.UnsignedStructOutput;
-        kFactor: FixedPoint.UnsignedStructOutput;
-        symbol: string;
-        name: string;
-        marketOpen: boolean;
-    };
+  export type KrAssetInfoStructOutput = [
+    string,
+    string,
+    string,
+    BigNumber,
+    BigNumber,
+    FixedPoint.UnsignedStructOutput,
+    FixedPoint.UnsignedStructOutput,
+    FixedPoint.UnsignedStructOutput,
+    string,
+    string,
+    boolean
+  ] & {
+    oracleAddress: string;
+    assetAddress: string;
+    anchorAddress: string;
+    price: BigNumber;
+    value: BigNumber;
+    openFee: FixedPoint.UnsignedStructOutput;
+    closeFee: FixedPoint.UnsignedStructOutput;
+    kFactor: FixedPoint.UnsignedStructOutput;
+    symbol: string;
+    name: string;
+    marketOpen: boolean;
+  };
 
-    export type ProtocolParamsStruct = {
-        liqMultiplier: PromiseOrValue<BigNumberish>;
-        minDebtValue: PromiseOrValue<BigNumberish>;
-        minCollateralRatio: PromiseOrValue<BigNumberish>;
-        liquidationThreshold: PromiseOrValue<BigNumberish>;
-    };
+  export type ProtocolParamsStruct = {
+    liqMultiplier: PromiseOrValue<BigNumberish>;
+    minDebtValue: PromiseOrValue<BigNumberish>;
+    minCollateralRatio: PromiseOrValue<BigNumberish>;
+    liquidationThreshold: PromiseOrValue<BigNumberish>;
+  };
 
-    export type ProtocolParamsStructOutput = [BigNumber, BigNumber, BigNumber, BigNumber] & {
-        liqMultiplier: BigNumber;
-        minDebtValue: BigNumber;
-        minCollateralRatio: BigNumber;
-        liquidationThreshold: BigNumber;
-    };
+  export type ProtocolParamsStructOutput = [
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
+  ] & {
+    liqMultiplier: BigNumber;
+    minDebtValue: BigNumber;
+    minCollateralRatio: BigNumber;
+    liquidationThreshold: BigNumber;
+  };
 
-    export type PairDataStruct = {
-        decimals0: PromiseOrValue<BigNumberish>;
-        decimals1: PromiseOrValue<BigNumberish>;
-        reserve0: PromiseOrValue<BigNumberish>;
-        reserve1: PromiseOrValue<BigNumberish>;
-        totalSupply: PromiseOrValue<BigNumberish>;
-    };
+  export type PairDataStruct = {
+    decimals0: PromiseOrValue<BigNumberish>;
+    decimals1: PromiseOrValue<BigNumberish>;
+    reserve0: PromiseOrValue<BigNumberish>;
+    reserve1: PromiseOrValue<BigNumberish>;
+    totalSupply: PromiseOrValue<BigNumberish>;
+  };
 
-    export type PairDataStructOutput = [number, number, BigNumber, BigNumber, BigNumber] & {
-        decimals0: number;
-        decimals1: number;
-        reserve0: BigNumber;
-        reserve1: BigNumber;
-        totalSupply: BigNumber;
-    };
+  export type PairDataStructOutput = [
+    number,
+    number,
+    BigNumber,
+    BigNumber,
+    BigNumber
+  ] & {
+    decimals0: number;
+    decimals1: number;
+    reserve0: BigNumber;
+    reserve1: BigNumber;
+    totalSupply: BigNumber;
+  };
 }
 
 export interface KreskoInterface extends utils.Interface {
-    functions: {
-        "getRoleAdmin(bytes32)": FunctionFragment;
-        "getRoleMember(bytes32,uint256)": FunctionFragment;
-        "getRoleMemberCount(bytes32)": FunctionFragment;
-        "grantRole(bytes32,address)": FunctionFragment;
-        "hasRole(bytes32,address)": FunctionFragment;
-        "renounceRole(bytes32,address)": FunctionFragment;
-        "revokeRole(bytes32,address)": FunctionFragment;
-        "diamondCut((address,uint8,bytes4[])[],address,bytes)": FunctionFragment;
-        "upgradeState(address,bytes)": FunctionFragment;
-        "facetAddress(bytes4)": FunctionFragment;
-        "facetAddresses()": FunctionFragment;
-        "facetFunctionSelectors(address)": FunctionFragment;
-        "facets()": FunctionFragment;
-        "acceptOwnership()": FunctionFragment;
-        "initialized()": FunctionFragment;
-        "owner()": FunctionFragment;
-        "pendingOwner()": FunctionFragment;
-        "transferOwnership(address)": FunctionFragment;
-        "setERC165(bytes4[],bytes4[])": FunctionFragment;
-        "supportsInterface(bytes4)": FunctionFragment;
-        "calcExpectedFee(address,address,uint256,uint256)": FunctionFragment;
-        "collateralDeposits(address,address)": FunctionFragment;
-        "getAccountCollateralRatio(address)": FunctionFragment;
-        "getAccountCollateralValue(address)": FunctionFragment;
-        "getAccountKrAssetValue(address)": FunctionFragment;
-        "getAccountMinimumCollateralValueAtRatio(address,(uint256))": FunctionFragment;
-        "getAccountSingleCollateralValueAndRealValue(address,address)": FunctionFragment;
-        "getCollateralRatiosFor(address[])": FunctionFragment;
-        "getDepositedCollateralAssetIndex(address,address)": FunctionFragment;
-        "getDepositedCollateralAssets(address)": FunctionFragment;
-        "getMintedKreskoAssets(address)": FunctionFragment;
-        "getMintedKreskoAssetsIndex(address,address)": FunctionFragment;
-        "kreskoAssetDebt(address,address)": FunctionFragment;
-        "kreskoAssetDebtInterest(address,address)": FunctionFragment;
-        "kreskoAssetDebtInterestTotal(address)": FunctionFragment;
-        "kreskoAssetDebtPrincipal(address,address)": FunctionFragment;
-        "burnKreskoAsset(address,address,uint256,uint256)": FunctionFragment;
-        "batchCloseKrAssetDebtPositions(address)": FunctionFragment;
-        "closeKrAssetDebtPosition(address,address)": FunctionFragment;
-        "addCollateralAsset(address,address,uint256,address,address)": FunctionFragment;
-        "addKreskoAsset(address,address,uint256,address,address,uint256,uint256,uint256)": FunctionFragment;
-        "initialize((address,address,address,uint8,uint256,uint256,uint256,uint256))": FunctionFragment;
-        "updateAMMOracle(address)": FunctionFragment;
-        "updateCollateralAsset(address,address,uint256,address,address)": FunctionFragment;
-        "updateExtOracleDecimals(uint8)": FunctionFragment;
-        "updateFeeRecipient(address)": FunctionFragment;
-        "updateKreskoAsset(address,address,uint256,address,address,uint256,uint256,uint256)": FunctionFragment;
-        "updateLiquidationIncentiveMultiplier(uint256)": FunctionFragment;
-        "updateLiquidationThreshold(uint256)": FunctionFragment;
-        "updateMinimumCollateralizationRatio(uint256)": FunctionFragment;
-        "updateMinimumDebtValue(uint256)": FunctionFragment;
-        "depositCollateral(address,address,uint256)": FunctionFragment;
-        "withdrawCollateral(address,address,uint256,uint256)": FunctionFragment;
-        "batchLiquidateInterest(address,address)": FunctionFragment;
-        "liquidateInterest(address,address,address)": FunctionFragment;
-        "calculateMaxLiquidatableValueForAssets(address,address,address)": FunctionFragment;
-        "isAccountLiquidatable(address)": FunctionFragment;
-        "liquidate(address,address,uint256,address,uint256,uint256)": FunctionFragment;
-        "mintKreskoAsset(address,address,uint256)": FunctionFragment;
-        "assetActionPaused(uint8,address)": FunctionFragment;
-        "safetyStateFor(address,uint8)": FunctionFragment;
-        "safetyStateSet()": FunctionFragment;
-        "toggleAssetsPaused(address[],uint8,bool,uint256)": FunctionFragment;
-        "batchRepayFullStabilityRateInterest(address)": FunctionFragment;
-        "getDebtIndexForAsset(address)": FunctionFragment;
-        "getLastDebtIndexForAccount(address,address)": FunctionFragment;
-        "getPriceRateForAsset(address)": FunctionFragment;
-        "getStabilityRateConfigurationForAsset(address)": FunctionFragment;
-        "getStabilityRateForAsset(address)": FunctionFragment;
-        "kiss()": FunctionFragment;
-        "repayFullStabilityRateInterest(address,address)": FunctionFragment;
-        "repayStabilityRateInterestPartial(address,address,uint256)": FunctionFragment;
-        "setupStabilityRateParams(address,(uint128,uint128,uint128,uint128,uint128))": FunctionFragment;
-        "updateKiss(address)": FunctionFragment;
-        "updateStabilityRateAndIndexForAsset(address)": FunctionFragment;
-        "updateStabilityRateParams(address,(uint128,uint128,uint128,uint128,uint128))": FunctionFragment;
-        "ammOracle()": FunctionFragment;
-        "collateralAsset(address)": FunctionFragment;
-        "collateralExists(address)": FunctionFragment;
-        "domainSeparator()": FunctionFragment;
-        "extOracleDecimals()": FunctionFragment;
-        "feeRecipient()": FunctionFragment;
-        "getAllParams()": FunctionFragment;
-        "getCollateralValueAndOraclePrice(address,uint256,bool)": FunctionFragment;
-        "getKrAssetValue(address,uint256,bool)": FunctionFragment;
-        "krAssetExists(address)": FunctionFragment;
-        "kreskoAsset(address)": FunctionFragment;
-        "liquidationIncentiveMultiplier()": FunctionFragment;
-        "liquidationThreshold()": FunctionFragment;
-        "minimumCollateralizationRatio()": FunctionFragment;
-        "minimumDebtValue()": FunctionFragment;
-        "minterInitializations()": FunctionFragment;
-        "batchOracleValues(address[],address[],address[])": FunctionFragment;
-        "getAccountData(address,address[],address)": FunctionFragment;
-        "getTokenData(address[],address[],address[],address[])": FunctionFragment;
-        "getGlobalData(address[],address[])": FunctionFragment;
-        "getPairsData(address[])": FunctionFragment;
-    };
+  functions: {
+    "getRoleAdmin(bytes32)": FunctionFragment;
+    "getRoleMember(bytes32,uint256)": FunctionFragment;
+    "getRoleMemberCount(bytes32)": FunctionFragment;
+    "grantRole(bytes32,address)": FunctionFragment;
+    "hasRole(bytes32,address)": FunctionFragment;
+    "renounceRole(bytes32,address)": FunctionFragment;
+    "revokeRole(bytes32,address)": FunctionFragment;
+    "diamondCut((address,uint8,bytes4[])[],address,bytes)": FunctionFragment;
+    "upgradeState(address,bytes)": FunctionFragment;
+    "facetAddress(bytes4)": FunctionFragment;
+    "facetAddresses()": FunctionFragment;
+    "facetFunctionSelectors(address)": FunctionFragment;
+    "facets()": FunctionFragment;
+    "acceptOwnership()": FunctionFragment;
+    "initialized()": FunctionFragment;
+    "owner()": FunctionFragment;
+    "pendingOwner()": FunctionFragment;
+    "transferOwnership(address)": FunctionFragment;
+    "setERC165(bytes4[],bytes4[])": FunctionFragment;
+    "supportsInterface(bytes4)": FunctionFragment;
+    "calcExpectedFee(address,address,uint256,uint256)": FunctionFragment;
+    "collateralDeposits(address,address)": FunctionFragment;
+    "getAccountCollateralRatio(address)": FunctionFragment;
+    "getAccountCollateralValue(address)": FunctionFragment;
+    "getAccountKrAssetValue(address)": FunctionFragment;
+    "getAccountMinimumCollateralValueAtRatio(address,(uint256))": FunctionFragment;
+    "getAccountSingleCollateralValueAndRealValue(address,address)": FunctionFragment;
+    "getCollateralRatiosFor(address[])": FunctionFragment;
+    "getDepositedCollateralAssetIndex(address,address)": FunctionFragment;
+    "getDepositedCollateralAssets(address)": FunctionFragment;
+    "getMintedKreskoAssets(address)": FunctionFragment;
+    "getMintedKreskoAssetsIndex(address,address)": FunctionFragment;
+    "kreskoAssetDebt(address,address)": FunctionFragment;
+    "kreskoAssetDebtInterest(address,address)": FunctionFragment;
+    "kreskoAssetDebtInterestTotal(address)": FunctionFragment;
+    "kreskoAssetDebtPrincipal(address,address)": FunctionFragment;
+    "burnKreskoAsset(address,address,uint256,uint256)": FunctionFragment;
+    "batchCloseKrAssetDebtPositions(address)": FunctionFragment;
+    "closeKrAssetDebtPosition(address,address)": FunctionFragment;
+    "addCollateralAsset(address,address,uint256,address,address)": FunctionFragment;
+    "addKreskoAsset(address,address,uint256,address,address,uint256,uint256,uint256)": FunctionFragment;
+    "initialize((address,address,address,uint8,uint256,uint256,uint256,uint256))": FunctionFragment;
+    "updateAMMOracle(address)": FunctionFragment;
+    "updateCollateralAsset(address,address,uint256,address,address)": FunctionFragment;
+    "updateExtOracleDecimals(uint8)": FunctionFragment;
+    "updateFeeRecipient(address)": FunctionFragment;
+    "updateKreskoAsset(address,address,uint256,address,address,uint256,uint256,uint256)": FunctionFragment;
+    "updateLiquidationIncentiveMultiplier(uint256)": FunctionFragment;
+    "updateLiquidationThreshold(uint256)": FunctionFragment;
+    "updateMinimumCollateralizationRatio(uint256)": FunctionFragment;
+    "updateMinimumDebtValue(uint256)": FunctionFragment;
+    "depositCollateral(address,address,uint256)": FunctionFragment;
+    "withdrawCollateral(address,address,uint256,uint256)": FunctionFragment;
+    "batchLiquidateInterest(address,address)": FunctionFragment;
+    "liquidateInterest(address,address,address)": FunctionFragment;
+    "calculateMaxLiquidatableValueForAssets(address,address,address)": FunctionFragment;
+    "isAccountLiquidatable(address)": FunctionFragment;
+    "liquidate(address,address,uint256,address,uint256,uint256)": FunctionFragment;
+    "mintKreskoAsset(address,address,uint256)": FunctionFragment;
+    "assetActionPaused(uint8,address)": FunctionFragment;
+    "safetyStateFor(address,uint8)": FunctionFragment;
+    "safetyStateSet()": FunctionFragment;
+    "toggleAssetsPaused(address[],uint8,bool,uint256)": FunctionFragment;
+    "batchRepayFullStabilityRateInterest(address)": FunctionFragment;
+    "getDebtIndexForAsset(address)": FunctionFragment;
+    "getLastDebtIndexForAccount(address,address)": FunctionFragment;
+    "getPriceRateForAsset(address)": FunctionFragment;
+    "getStabilityRateConfigurationForAsset(address)": FunctionFragment;
+    "getStabilityRateForAsset(address)": FunctionFragment;
+    "kiss()": FunctionFragment;
+    "repayFullStabilityRateInterest(address,address)": FunctionFragment;
+    "repayStabilityRateInterestPartial(address,address,uint256)": FunctionFragment;
+    "setupStabilityRateParams(address,(uint128,uint128,uint128,uint128,uint128))": FunctionFragment;
+    "updateKiss(address)": FunctionFragment;
+    "updateStabilityRateAndIndexForAsset(address)": FunctionFragment;
+    "updateStabilityRateParams(address,(uint128,uint128,uint128,uint128,uint128))": FunctionFragment;
+    "ammOracle()": FunctionFragment;
+    "collateralAsset(address)": FunctionFragment;
+    "collateralExists(address)": FunctionFragment;
+    "domainSeparator()": FunctionFragment;
+    "extOracleDecimals()": FunctionFragment;
+    "feeRecipient()": FunctionFragment;
+    "getAllParams()": FunctionFragment;
+    "getCollateralValueAndOraclePrice(address,uint256,bool)": FunctionFragment;
+    "getKrAssetValue(address,uint256,bool)": FunctionFragment;
+    "krAssetExists(address)": FunctionFragment;
+    "kreskoAsset(address)": FunctionFragment;
+    "liquidationIncentiveMultiplier()": FunctionFragment;
+    "liquidationThreshold()": FunctionFragment;
+    "minimumCollateralizationRatio()": FunctionFragment;
+    "minimumDebtValue()": FunctionFragment;
+    "minterInitializations()": FunctionFragment;
+    "batchOracleValues(address[],address[],address[])": FunctionFragment;
+    "getAccountData(address,address[],address)": FunctionFragment;
+    "getTokenData(address[],address[],address[],address[])": FunctionFragment;
+    "getGlobalData(address[],address[])": FunctionFragment;
+    "getPairsData(address[])": FunctionFragment;
+  };
 
-    getFunction(
-        nameOrSignatureOrTopic:
-            | "getRoleAdmin"
-            | "getRoleAdmin(bytes32)"
-            | "getRoleMember"
-            | "getRoleMember(bytes32,uint256)"
-            | "getRoleMemberCount"
-            | "getRoleMemberCount(bytes32)"
-            | "grantRole"
-            | "grantRole(bytes32,address)"
-            | "hasRole"
-            | "hasRole(bytes32,address)"
-            | "renounceRole"
-            | "renounceRole(bytes32,address)"
-            | "revokeRole"
-            | "revokeRole(bytes32,address)"
-            | "diamondCut"
-            | "diamondCut((address,uint8,bytes4[])[],address,bytes)"
-            | "upgradeState"
-            | "upgradeState(address,bytes)"
-            | "facetAddress"
-            | "facetAddress(bytes4)"
-            | "facetAddresses"
-            | "facetAddresses()"
-            | "facetFunctionSelectors"
-            | "facetFunctionSelectors(address)"
-            | "facets"
-            | "facets()"
-            | "acceptOwnership"
-            | "acceptOwnership()"
-            | "initialized"
-            | "initialized()"
-            | "owner"
-            | "owner()"
-            | "pendingOwner"
-            | "pendingOwner()"
-            | "transferOwnership"
-            | "transferOwnership(address)"
-            | "setERC165"
-            | "setERC165(bytes4[],bytes4[])"
-            | "supportsInterface"
-            | "supportsInterface(bytes4)"
-            | "calcExpectedFee"
-            | "calcExpectedFee(address,address,uint256,uint256)"
-            | "collateralDeposits"
-            | "collateralDeposits(address,address)"
-            | "getAccountCollateralRatio"
-            | "getAccountCollateralRatio(address)"
-            | "getAccountCollateralValue"
-            | "getAccountCollateralValue(address)"
-            | "getAccountKrAssetValue"
-            | "getAccountKrAssetValue(address)"
-            | "getAccountMinimumCollateralValueAtRatio"
-            | "getAccountMinimumCollateralValueAtRatio(address,(uint256))"
-            | "getAccountSingleCollateralValueAndRealValue"
-            | "getAccountSingleCollateralValueAndRealValue(address,address)"
-            | "getCollateralRatiosFor"
-            | "getCollateralRatiosFor(address[])"
-            | "getDepositedCollateralAssetIndex"
-            | "getDepositedCollateralAssetIndex(address,address)"
-            | "getDepositedCollateralAssets"
-            | "getDepositedCollateralAssets(address)"
-            | "getMintedKreskoAssets"
-            | "getMintedKreskoAssets(address)"
-            | "getMintedKreskoAssetsIndex"
-            | "getMintedKreskoAssetsIndex(address,address)"
-            | "kreskoAssetDebt"
-            | "kreskoAssetDebt(address,address)"
-            | "kreskoAssetDebtInterest"
-            | "kreskoAssetDebtInterest(address,address)"
-            | "kreskoAssetDebtInterestTotal"
-            | "kreskoAssetDebtInterestTotal(address)"
-            | "kreskoAssetDebtPrincipal"
-            | "kreskoAssetDebtPrincipal(address,address)"
-            | "burnKreskoAsset"
-            | "burnKreskoAsset(address,address,uint256,uint256)"
-            | "batchCloseKrAssetDebtPositions"
-            | "batchCloseKrAssetDebtPositions(address)"
-            | "closeKrAssetDebtPosition"
-            | "closeKrAssetDebtPosition(address,address)"
-            | "addCollateralAsset"
-            | "addCollateralAsset(address,address,uint256,address,address)"
-            | "addKreskoAsset"
-            | "addKreskoAsset(address,address,uint256,address,address,uint256,uint256,uint256)"
-            | "initialize"
-            | "initialize((address,address,address,uint8,uint256,uint256,uint256,uint256))"
-            | "updateAMMOracle"
-            | "updateAMMOracle(address)"
-            | "updateCollateralAsset"
-            | "updateCollateralAsset(address,address,uint256,address,address)"
-            | "updateExtOracleDecimals"
-            | "updateExtOracleDecimals(uint8)"
-            | "updateFeeRecipient"
-            | "updateFeeRecipient(address)"
-            | "updateKreskoAsset"
-            | "updateKreskoAsset(address,address,uint256,address,address,uint256,uint256,uint256)"
-            | "updateLiquidationIncentiveMultiplier"
-            | "updateLiquidationIncentiveMultiplier(uint256)"
-            | "updateLiquidationThreshold"
-            | "updateLiquidationThreshold(uint256)"
-            | "updateMinimumCollateralizationRatio"
-            | "updateMinimumCollateralizationRatio(uint256)"
-            | "updateMinimumDebtValue"
-            | "updateMinimumDebtValue(uint256)"
-            | "depositCollateral"
-            | "depositCollateral(address,address,uint256)"
-            | "withdrawCollateral"
-            | "withdrawCollateral(address,address,uint256,uint256)"
-            | "batchLiquidateInterest"
-            | "batchLiquidateInterest(address,address)"
-            | "liquidateInterest"
-            | "liquidateInterest(address,address,address)"
-            | "calculateMaxLiquidatableValueForAssets"
-            | "calculateMaxLiquidatableValueForAssets(address,address,address)"
-            | "isAccountLiquidatable"
-            | "isAccountLiquidatable(address)"
-            | "liquidate"
-            | "liquidate(address,address,uint256,address,uint256,uint256)"
-            | "mintKreskoAsset"
-            | "mintKreskoAsset(address,address,uint256)"
-            | "assetActionPaused"
-            | "assetActionPaused(uint8,address)"
-            | "safetyStateFor"
-            | "safetyStateFor(address,uint8)"
-            | "safetyStateSet"
-            | "safetyStateSet()"
-            | "toggleAssetsPaused"
-            | "toggleAssetsPaused(address[],uint8,bool,uint256)"
-            | "batchRepayFullStabilityRateInterest"
-            | "batchRepayFullStabilityRateInterest(address)"
-            | "getDebtIndexForAsset"
-            | "getDebtIndexForAsset(address)"
-            | "getLastDebtIndexForAccount"
-            | "getLastDebtIndexForAccount(address,address)"
-            | "getPriceRateForAsset"
-            | "getPriceRateForAsset(address)"
-            | "getStabilityRateConfigurationForAsset"
-            | "getStabilityRateConfigurationForAsset(address)"
-            | "getStabilityRateForAsset"
-            | "getStabilityRateForAsset(address)"
-            | "kiss"
-            | "kiss()"
-            | "repayFullStabilityRateInterest"
-            | "repayFullStabilityRateInterest(address,address)"
-            | "repayStabilityRateInterestPartial"
-            | "repayStabilityRateInterestPartial(address,address,uint256)"
-            | "setupStabilityRateParams"
-            | "setupStabilityRateParams(address,(uint128,uint128,uint128,uint128,uint128))"
-            | "updateKiss"
-            | "updateKiss(address)"
-            | "updateStabilityRateAndIndexForAsset"
-            | "updateStabilityRateAndIndexForAsset(address)"
-            | "updateStabilityRateParams"
-            | "updateStabilityRateParams(address,(uint128,uint128,uint128,uint128,uint128))"
-            | "ammOracle"
-            | "ammOracle()"
-            | "collateralAsset"
-            | "collateralAsset(address)"
-            | "collateralExists"
-            | "collateralExists(address)"
-            | "domainSeparator"
-            | "domainSeparator()"
-            | "extOracleDecimals"
-            | "extOracleDecimals()"
-            | "feeRecipient"
-            | "feeRecipient()"
-            | "getAllParams"
-            | "getAllParams()"
-            | "getCollateralValueAndOraclePrice"
-            | "getCollateralValueAndOraclePrice(address,uint256,bool)"
-            | "getKrAssetValue"
-            | "getKrAssetValue(address,uint256,bool)"
-            | "krAssetExists"
-            | "krAssetExists(address)"
-            | "kreskoAsset"
-            | "kreskoAsset(address)"
-            | "liquidationIncentiveMultiplier"
-            | "liquidationIncentiveMultiplier()"
-            | "liquidationThreshold"
-            | "liquidationThreshold()"
-            | "minimumCollateralizationRatio"
-            | "minimumCollateralizationRatio()"
-            | "minimumDebtValue"
-            | "minimumDebtValue()"
-            | "minterInitializations"
-            | "minterInitializations()"
-            | "batchOracleValues"
-            | "batchOracleValues(address[],address[],address[])"
-            | "getAccountData"
-            | "getAccountData(address,address[],address)"
-            | "getTokenData"
-            | "getTokenData(address[],address[],address[],address[])"
-            | "getGlobalData"
-            | "getGlobalData(address[],address[])"
-            | "getPairsData"
-            | "getPairsData(address[])",
-    ): FunctionFragment;
+  getFunction(
+    nameOrSignatureOrTopic:
+      | "getRoleAdmin"
+      | "getRoleMember"
+      | "getRoleMemberCount"
+      | "grantRole"
+      | "hasRole"
+      | "renounceRole"
+      | "revokeRole"
+      | "diamondCut"
+      | "upgradeState"
+      | "facetAddress"
+      | "facetAddresses"
+      | "facetFunctionSelectors"
+      | "facets"
+      | "acceptOwnership"
+      | "initialized"
+      | "owner"
+      | "pendingOwner"
+      | "transferOwnership"
+      | "setERC165"
+      | "supportsInterface"
+      | "calcExpectedFee"
+      | "collateralDeposits"
+      | "getAccountCollateralRatio"
+      | "getAccountCollateralValue"
+      | "getAccountKrAssetValue"
+      | "getAccountMinimumCollateralValueAtRatio"
+      | "getAccountSingleCollateralValueAndRealValue"
+      | "getCollateralRatiosFor"
+      | "getDepositedCollateralAssetIndex"
+      | "getDepositedCollateralAssets"
+      | "getMintedKreskoAssets"
+      | "getMintedKreskoAssetsIndex"
+      | "kreskoAssetDebt"
+      | "kreskoAssetDebtInterest"
+      | "kreskoAssetDebtInterestTotal"
+      | "kreskoAssetDebtPrincipal"
+      | "burnKreskoAsset"
+      | "batchCloseKrAssetDebtPositions"
+      | "closeKrAssetDebtPosition"
+      | "addCollateralAsset"
+      | "addKreskoAsset"
+      | "initialize"
+      | "updateAMMOracle"
+      | "updateCollateralAsset"
+      | "updateExtOracleDecimals"
+      | "updateFeeRecipient"
+      | "updateKreskoAsset"
+      | "updateLiquidationIncentiveMultiplier"
+      | "updateLiquidationThreshold"
+      | "updateMinimumCollateralizationRatio"
+      | "updateMinimumDebtValue"
+      | "depositCollateral"
+      | "withdrawCollateral"
+      | "batchLiquidateInterest"
+      | "liquidateInterest"
+      | "calculateMaxLiquidatableValueForAssets"
+      | "isAccountLiquidatable"
+      | "liquidate"
+      | "mintKreskoAsset"
+      | "assetActionPaused"
+      | "safetyStateFor"
+      | "safetyStateSet"
+      | "toggleAssetsPaused"
+      | "batchRepayFullStabilityRateInterest"
+      | "getDebtIndexForAsset"
+      | "getLastDebtIndexForAccount"
+      | "getPriceRateForAsset"
+      | "getStabilityRateConfigurationForAsset"
+      | "getStabilityRateForAsset"
+      | "kiss"
+      | "repayFullStabilityRateInterest"
+      | "repayStabilityRateInterestPartial"
+      | "setupStabilityRateParams"
+      | "updateKiss"
+      | "updateStabilityRateAndIndexForAsset"
+      | "updateStabilityRateParams"
+      | "ammOracle"
+      | "collateralAsset"
+      | "collateralExists"
+      | "domainSeparator"
+      | "extOracleDecimals"
+      | "feeRecipient"
+      | "getAllParams"
+      | "getCollateralValueAndOraclePrice"
+      | "getKrAssetValue"
+      | "krAssetExists"
+      | "kreskoAsset"
+      | "liquidationIncentiveMultiplier"
+      | "liquidationThreshold"
+      | "minimumCollateralizationRatio"
+      | "minimumDebtValue"
+      | "minterInitializations"
+      | "batchOracleValues"
+      | "getAccountData"
+      | "getTokenData"
+      | "getGlobalData"
+      | "getPairsData"
+  ): FunctionFragment;
 
-    encodeFunctionData(functionFragment: "getRoleAdmin", values: [PromiseOrValue<BytesLike>]): string;
-    encodeFunctionData(functionFragment: "getRoleAdmin(bytes32)", values: [PromiseOrValue<BytesLike>]): string;
-    encodeFunctionData(
-        functionFragment: "getRoleMember",
-        values: [PromiseOrValue<BytesLike>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "getRoleMember(bytes32,uint256)",
-        values: [PromiseOrValue<BytesLike>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(functionFragment: "getRoleMemberCount", values: [PromiseOrValue<BytesLike>]): string;
-    encodeFunctionData(functionFragment: "getRoleMemberCount(bytes32)", values: [PromiseOrValue<BytesLike>]): string;
-    encodeFunctionData(
-        functionFragment: "grantRole",
-        values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "grantRole(bytes32,address)",
-        values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "hasRole",
-        values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "hasRole(bytes32,address)",
-        values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "renounceRole",
-        values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "renounceRole(bytes32,address)",
-        values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "revokeRole",
-        values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "revokeRole(bytes32,address)",
-        values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "diamondCut",
-        values: [IDiamondCutFacet.FacetCutStruct[], PromiseOrValue<string>, PromiseOrValue<BytesLike>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "diamondCut((address,uint8,bytes4[])[],address,bytes)",
-        values: [IDiamondCutFacet.FacetCutStruct[], PromiseOrValue<string>, PromiseOrValue<BytesLike>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "upgradeState",
-        values: [PromiseOrValue<string>, PromiseOrValue<BytesLike>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "upgradeState(address,bytes)",
-        values: [PromiseOrValue<string>, PromiseOrValue<BytesLike>],
-    ): string;
-    encodeFunctionData(functionFragment: "facetAddress", values: [PromiseOrValue<BytesLike>]): string;
-    encodeFunctionData(functionFragment: "facetAddress(bytes4)", values: [PromiseOrValue<BytesLike>]): string;
-    encodeFunctionData(functionFragment: "facetAddresses", values?: undefined): string;
-    encodeFunctionData(functionFragment: "facetAddresses()", values?: undefined): string;
-    encodeFunctionData(functionFragment: "facetFunctionSelectors", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "facetFunctionSelectors(address)", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "facets", values?: undefined): string;
-    encodeFunctionData(functionFragment: "facets()", values?: undefined): string;
-    encodeFunctionData(functionFragment: "acceptOwnership", values?: undefined): string;
-    encodeFunctionData(functionFragment: "acceptOwnership()", values?: undefined): string;
-    encodeFunctionData(functionFragment: "initialized", values?: undefined): string;
-    encodeFunctionData(functionFragment: "initialized()", values?: undefined): string;
-    encodeFunctionData(functionFragment: "owner", values?: undefined): string;
-    encodeFunctionData(functionFragment: "owner()", values?: undefined): string;
-    encodeFunctionData(functionFragment: "pendingOwner", values?: undefined): string;
-    encodeFunctionData(functionFragment: "pendingOwner()", values?: undefined): string;
-    encodeFunctionData(functionFragment: "transferOwnership", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "transferOwnership(address)", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(
-        functionFragment: "setERC165",
-        values: [PromiseOrValue<BytesLike>[], PromiseOrValue<BytesLike>[]],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "setERC165(bytes4[],bytes4[])",
-        values: [PromiseOrValue<BytesLike>[], PromiseOrValue<BytesLike>[]],
-    ): string;
-    encodeFunctionData(functionFragment: "supportsInterface", values: [PromiseOrValue<BytesLike>]): string;
-    encodeFunctionData(functionFragment: "supportsInterface(bytes4)", values: [PromiseOrValue<BytesLike>]): string;
-    encodeFunctionData(
-        functionFragment: "calcExpectedFee",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-        ],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "calcExpectedFee(address,address,uint256,uint256)",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-        ],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "collateralDeposits",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "collateralDeposits(address,address)",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(functionFragment: "getAccountCollateralRatio", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(
-        functionFragment: "getAccountCollateralRatio(address)",
-        values: [PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(functionFragment: "getAccountCollateralValue", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(
-        functionFragment: "getAccountCollateralValue(address)",
-        values: [PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(functionFragment: "getAccountKrAssetValue", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "getAccountKrAssetValue(address)", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(
-        functionFragment: "getAccountMinimumCollateralValueAtRatio",
-        values: [PromiseOrValue<string>, FixedPoint.UnsignedStruct],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "getAccountMinimumCollateralValueAtRatio(address,(uint256))",
-        values: [PromiseOrValue<string>, FixedPoint.UnsignedStruct],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "getAccountSingleCollateralValueAndRealValue",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "getAccountSingleCollateralValueAndRealValue(address,address)",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(functionFragment: "getCollateralRatiosFor", values: [PromiseOrValue<string>[]]): string;
-    encodeFunctionData(
-        functionFragment: "getCollateralRatiosFor(address[])",
-        values: [PromiseOrValue<string>[]],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "getDepositedCollateralAssetIndex",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "getDepositedCollateralAssetIndex(address,address)",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(functionFragment: "getDepositedCollateralAssets", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(
-        functionFragment: "getDepositedCollateralAssets(address)",
-        values: [PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(functionFragment: "getMintedKreskoAssets", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "getMintedKreskoAssets(address)", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(
-        functionFragment: "getMintedKreskoAssetsIndex",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "getMintedKreskoAssetsIndex(address,address)",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "kreskoAssetDebt",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "kreskoAssetDebt(address,address)",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "kreskoAssetDebtInterest",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "kreskoAssetDebtInterest(address,address)",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(functionFragment: "kreskoAssetDebtInterestTotal", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(
-        functionFragment: "kreskoAssetDebtInterestTotal(address)",
-        values: [PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "kreskoAssetDebtPrincipal",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "kreskoAssetDebtPrincipal(address,address)",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "burnKreskoAsset",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-        ],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "burnKreskoAsset(address,address,uint256,uint256)",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-        ],
-    ): string;
-    encodeFunctionData(functionFragment: "batchCloseKrAssetDebtPositions", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(
-        functionFragment: "batchCloseKrAssetDebtPositions(address)",
-        values: [PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "closeKrAssetDebtPosition",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "closeKrAssetDebtPosition(address,address)",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "addCollateralAsset",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-        ],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "addCollateralAsset(address,address,uint256,address,address)",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-        ],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "addKreskoAsset",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-        ],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "addKreskoAsset(address,address,uint256,address,address,uint256,uint256,uint256)",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-        ],
-    ): string;
-    encodeFunctionData(functionFragment: "initialize", values: [MinterInitArgsStruct]): string;
-    encodeFunctionData(
-        functionFragment: "initialize((address,address,address,uint8,uint256,uint256,uint256,uint256))",
-        values: [MinterInitArgsStruct],
-    ): string;
-    encodeFunctionData(functionFragment: "updateAMMOracle", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "updateAMMOracle(address)", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(
-        functionFragment: "updateCollateralAsset",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-        ],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "updateCollateralAsset(address,address,uint256,address,address)",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-        ],
-    ): string;
-    encodeFunctionData(functionFragment: "updateExtOracleDecimals", values: [PromiseOrValue<BigNumberish>]): string;
-    encodeFunctionData(
-        functionFragment: "updateExtOracleDecimals(uint8)",
-        values: [PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(functionFragment: "updateFeeRecipient", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "updateFeeRecipient(address)", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(
-        functionFragment: "updateKreskoAsset",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-        ],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "updateKreskoAsset(address,address,uint256,address,address,uint256,uint256,uint256)",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-        ],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "updateLiquidationIncentiveMultiplier",
-        values: [PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "updateLiquidationIncentiveMultiplier(uint256)",
-        values: [PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(functionFragment: "updateLiquidationThreshold", values: [PromiseOrValue<BigNumberish>]): string;
-    encodeFunctionData(
-        functionFragment: "updateLiquidationThreshold(uint256)",
-        values: [PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "updateMinimumCollateralizationRatio",
-        values: [PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "updateMinimumCollateralizationRatio(uint256)",
-        values: [PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(functionFragment: "updateMinimumDebtValue", values: [PromiseOrValue<BigNumberish>]): string;
-    encodeFunctionData(
-        functionFragment: "updateMinimumDebtValue(uint256)",
-        values: [PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "depositCollateral",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "depositCollateral(address,address,uint256)",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "withdrawCollateral",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-        ],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "withdrawCollateral(address,address,uint256,uint256)",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-        ],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "batchLiquidateInterest",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "batchLiquidateInterest(address,address)",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "liquidateInterest",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "liquidateInterest(address,address,address)",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "calculateMaxLiquidatableValueForAssets",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "calculateMaxLiquidatableValueForAssets(address,address,address)",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(functionFragment: "isAccountLiquidatable", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "isAccountLiquidatable(address)", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(
-        functionFragment: "liquidate",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-        ],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "liquidate(address,address,uint256,address,uint256,uint256)",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-        ],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "mintKreskoAsset",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "mintKreskoAsset(address,address,uint256)",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "assetActionPaused",
-        values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "assetActionPaused(uint8,address)",
-        values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "safetyStateFor",
-        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "safetyStateFor(address,uint8)",
-        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(functionFragment: "safetyStateSet", values?: undefined): string;
-    encodeFunctionData(functionFragment: "safetyStateSet()", values?: undefined): string;
-    encodeFunctionData(
-        functionFragment: "toggleAssetsPaused",
-        values: [
-            PromiseOrValue<string>[],
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<boolean>,
-            PromiseOrValue<BigNumberish>,
-        ],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "toggleAssetsPaused(address[],uint8,bool,uint256)",
-        values: [
-            PromiseOrValue<string>[],
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<boolean>,
-            PromiseOrValue<BigNumberish>,
-        ],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "batchRepayFullStabilityRateInterest",
-        values: [PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "batchRepayFullStabilityRateInterest(address)",
-        values: [PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(functionFragment: "getDebtIndexForAsset", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "getDebtIndexForAsset(address)", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(
-        functionFragment: "getLastDebtIndexForAccount",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "getLastDebtIndexForAccount(address,address)",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(functionFragment: "getPriceRateForAsset", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "getPriceRateForAsset(address)", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(
-        functionFragment: "getStabilityRateConfigurationForAsset",
-        values: [PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "getStabilityRateConfigurationForAsset(address)",
-        values: [PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(functionFragment: "getStabilityRateForAsset", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "getStabilityRateForAsset(address)", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "kiss", values?: undefined): string;
-    encodeFunctionData(functionFragment: "kiss()", values?: undefined): string;
-    encodeFunctionData(
-        functionFragment: "repayFullStabilityRateInterest",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "repayFullStabilityRateInterest(address,address)",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "repayStabilityRateInterestPartial",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "repayStabilityRateInterestPartial(address,address,uint256)",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "setupStabilityRateParams",
-        values: [PromiseOrValue<string>, StabilityRateParamsStruct],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "setupStabilityRateParams(address,(uint128,uint128,uint128,uint128,uint128))",
-        values: [PromiseOrValue<string>, StabilityRateParamsStruct],
-    ): string;
-    encodeFunctionData(functionFragment: "updateKiss", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "updateKiss(address)", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(
-        functionFragment: "updateStabilityRateAndIndexForAsset",
-        values: [PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "updateStabilityRateAndIndexForAsset(address)",
-        values: [PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "updateStabilityRateParams",
-        values: [PromiseOrValue<string>, StabilityRateParamsStruct],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "updateStabilityRateParams(address,(uint128,uint128,uint128,uint128,uint128))",
-        values: [PromiseOrValue<string>, StabilityRateParamsStruct],
-    ): string;
-    encodeFunctionData(functionFragment: "ammOracle", values?: undefined): string;
-    encodeFunctionData(functionFragment: "ammOracle()", values?: undefined): string;
-    encodeFunctionData(functionFragment: "collateralAsset", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "collateralAsset(address)", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "collateralExists", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "collateralExists(address)", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "domainSeparator", values?: undefined): string;
-    encodeFunctionData(functionFragment: "domainSeparator()", values?: undefined): string;
-    encodeFunctionData(functionFragment: "extOracleDecimals", values?: undefined): string;
-    encodeFunctionData(functionFragment: "extOracleDecimals()", values?: undefined): string;
-    encodeFunctionData(functionFragment: "feeRecipient", values?: undefined): string;
-    encodeFunctionData(functionFragment: "feeRecipient()", values?: undefined): string;
-    encodeFunctionData(functionFragment: "getAllParams", values?: undefined): string;
-    encodeFunctionData(functionFragment: "getAllParams()", values?: undefined): string;
-    encodeFunctionData(
-        functionFragment: "getCollateralValueAndOraclePrice",
-        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>, PromiseOrValue<boolean>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "getCollateralValueAndOraclePrice(address,uint256,bool)",
-        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>, PromiseOrValue<boolean>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "getKrAssetValue",
-        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>, PromiseOrValue<boolean>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "getKrAssetValue(address,uint256,bool)",
-        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>, PromiseOrValue<boolean>],
-    ): string;
-    encodeFunctionData(functionFragment: "krAssetExists", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "krAssetExists(address)", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "kreskoAsset", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "kreskoAsset(address)", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "liquidationIncentiveMultiplier", values?: undefined): string;
-    encodeFunctionData(functionFragment: "liquidationIncentiveMultiplier()", values?: undefined): string;
-    encodeFunctionData(functionFragment: "liquidationThreshold", values?: undefined): string;
-    encodeFunctionData(functionFragment: "liquidationThreshold()", values?: undefined): string;
-    encodeFunctionData(functionFragment: "minimumCollateralizationRatio", values?: undefined): string;
-    encodeFunctionData(functionFragment: "minimumCollateralizationRatio()", values?: undefined): string;
-    encodeFunctionData(functionFragment: "minimumDebtValue", values?: undefined): string;
-    encodeFunctionData(functionFragment: "minimumDebtValue()", values?: undefined): string;
-    encodeFunctionData(functionFragment: "minterInitializations", values?: undefined): string;
-    encodeFunctionData(functionFragment: "minterInitializations()", values?: undefined): string;
-    encodeFunctionData(
-        functionFragment: "batchOracleValues",
-        values: [PromiseOrValue<string>[], PromiseOrValue<string>[], PromiseOrValue<string>[]],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "batchOracleValues(address[],address[],address[])",
-        values: [PromiseOrValue<string>[], PromiseOrValue<string>[], PromiseOrValue<string>[]],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "getAccountData",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>[], PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "getAccountData(address,address[],address)",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>[], PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "getTokenData",
-        values: [
-            PromiseOrValue<string>[],
-            PromiseOrValue<string>[],
-            PromiseOrValue<string>[],
-            PromiseOrValue<string>[],
-        ],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "getTokenData(address[],address[],address[],address[])",
-        values: [
-            PromiseOrValue<string>[],
-            PromiseOrValue<string>[],
-            PromiseOrValue<string>[],
-            PromiseOrValue<string>[],
-        ],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "getGlobalData",
-        values: [PromiseOrValue<string>[], PromiseOrValue<string>[]],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "getGlobalData(address[],address[])",
-        values: [PromiseOrValue<string>[], PromiseOrValue<string>[]],
-    ): string;
-    encodeFunctionData(functionFragment: "getPairsData", values: [PromiseOrValue<string>[]]): string;
-    encodeFunctionData(functionFragment: "getPairsData(address[])", values: [PromiseOrValue<string>[]]): string;
+  encodeFunctionData(
+    functionFragment: "getRoleAdmin",
+    values: [PromiseOrValue<BytesLike>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getRoleMember",
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getRoleMemberCount",
+    values: [PromiseOrValue<BytesLike>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "grantRole",
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "hasRole",
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "renounceRole",
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "revokeRole",
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "diamondCut",
+    values: [
+      IDiamondCutFacet.FacetCutStruct[],
+      PromiseOrValue<string>,
+      PromiseOrValue<BytesLike>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "upgradeState",
+    values: [PromiseOrValue<string>, PromiseOrValue<BytesLike>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "facetAddress",
+    values: [PromiseOrValue<BytesLike>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "facetAddresses",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "facetFunctionSelectors",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(functionFragment: "facets", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "acceptOwnership",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "initialized",
+    values?: undefined
+  ): string;
+  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "pendingOwner",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "transferOwnership",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setERC165",
+    values: [PromiseOrValue<BytesLike>[], PromiseOrValue<BytesLike>[]]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "supportsInterface",
+    values: [PromiseOrValue<BytesLike>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "calcExpectedFee",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "collateralDeposits",
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getAccountCollateralRatio",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getAccountCollateralValue",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getAccountKrAssetValue",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getAccountMinimumCollateralValueAtRatio",
+    values: [PromiseOrValue<string>, FixedPoint.UnsignedStruct]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getAccountSingleCollateralValueAndRealValue",
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getCollateralRatiosFor",
+    values: [PromiseOrValue<string>[]]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getDepositedCollateralAssetIndex",
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getDepositedCollateralAssets",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getMintedKreskoAssets",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getMintedKreskoAssetsIndex",
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "kreskoAssetDebt",
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "kreskoAssetDebtInterest",
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "kreskoAssetDebtInterestTotal",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "kreskoAssetDebtPrincipal",
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "burnKreskoAsset",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "batchCloseKrAssetDebtPositions",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "closeKrAssetDebtPosition",
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "addCollateralAsset",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "addKreskoAsset",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "initialize",
+    values: [MinterInitArgsStruct]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "updateAMMOracle",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "updateCollateralAsset",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "updateExtOracleDecimals",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "updateFeeRecipient",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "updateKreskoAsset",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "updateLiquidationIncentiveMultiplier",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "updateLiquidationThreshold",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "updateMinimumCollateralizationRatio",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "updateMinimumDebtValue",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "depositCollateral",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "withdrawCollateral",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "batchLiquidateInterest",
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "liquidateInterest",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "calculateMaxLiquidatableValueForAssets",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "isAccountLiquidatable",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "liquidate",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "mintKreskoAsset",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "assetActionPaused",
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "safetyStateFor",
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "safetyStateSet",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "toggleAssetsPaused",
+    values: [
+      PromiseOrValue<string>[],
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<boolean>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "batchRepayFullStabilityRateInterest",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getDebtIndexForAsset",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getLastDebtIndexForAccount",
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getPriceRateForAsset",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getStabilityRateConfigurationForAsset",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getStabilityRateForAsset",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(functionFragment: "kiss", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "repayFullStabilityRateInterest",
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "repayStabilityRateInterestPartial",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setupStabilityRateParams",
+    values: [PromiseOrValue<string>, StabilityRateParamsStruct]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "updateKiss",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "updateStabilityRateAndIndexForAsset",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "updateStabilityRateParams",
+    values: [PromiseOrValue<string>, StabilityRateParamsStruct]
+  ): string;
+  encodeFunctionData(functionFragment: "ammOracle", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "collateralAsset",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "collateralExists",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "domainSeparator",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "extOracleDecimals",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "feeRecipient",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getAllParams",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getCollateralValueAndOraclePrice",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<boolean>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getKrAssetValue",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<boolean>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "krAssetExists",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "kreskoAsset",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "liquidationIncentiveMultiplier",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "liquidationThreshold",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "minimumCollateralizationRatio",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "minimumDebtValue",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "minterInitializations",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "batchOracleValues",
+    values: [
+      PromiseOrValue<string>[],
+      PromiseOrValue<string>[],
+      PromiseOrValue<string>[]
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getAccountData",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>[],
+      PromiseOrValue<string>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getTokenData",
+    values: [
+      PromiseOrValue<string>[],
+      PromiseOrValue<string>[],
+      PromiseOrValue<string>[],
+      PromiseOrValue<string>[]
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getGlobalData",
+    values: [PromiseOrValue<string>[], PromiseOrValue<string>[]]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getPairsData",
+    values: [PromiseOrValue<string>[]]
+  ): string;
 
-    decodeFunctionResult(functionFragment: "getRoleAdmin", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getRoleAdmin(bytes32)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getRoleMember", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getRoleMember(bytes32,uint256)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getRoleMemberCount", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getRoleMemberCount(bytes32)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "grantRole(bytes32,address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "hasRole(bytes32,address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "renounceRole", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "renounceRole(bytes32,address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "revokeRole(bytes32,address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "diamondCut", data: BytesLike): Result;
-    decodeFunctionResult(
-        functionFragment: "diamondCut((address,uint8,bytes4[])[],address,bytes)",
-        data: BytesLike,
-    ): Result;
-    decodeFunctionResult(functionFragment: "upgradeState", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "upgradeState(address,bytes)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "facetAddress", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "facetAddress(bytes4)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "facetAddresses", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "facetAddresses()", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "facetFunctionSelectors", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "facetFunctionSelectors(address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "facets", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "facets()", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "acceptOwnership", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "acceptOwnership()", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "initialized", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "initialized()", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "owner()", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "pendingOwner", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "pendingOwner()", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "transferOwnership", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "transferOwnership(address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "setERC165", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "setERC165(bytes4[],bytes4[])", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "supportsInterface", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "supportsInterface(bytes4)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "calcExpectedFee", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "calcExpectedFee(address,address,uint256,uint256)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "collateralDeposits", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "collateralDeposits(address,address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getAccountCollateralRatio", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getAccountCollateralRatio(address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getAccountCollateralValue", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getAccountCollateralValue(address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getAccountKrAssetValue", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getAccountKrAssetValue(address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getAccountMinimumCollateralValueAtRatio", data: BytesLike): Result;
-    decodeFunctionResult(
-        functionFragment: "getAccountMinimumCollateralValueAtRatio(address,(uint256))",
-        data: BytesLike,
-    ): Result;
-    decodeFunctionResult(functionFragment: "getAccountSingleCollateralValueAndRealValue", data: BytesLike): Result;
-    decodeFunctionResult(
-        functionFragment: "getAccountSingleCollateralValueAndRealValue(address,address)",
-        data: BytesLike,
-    ): Result;
-    decodeFunctionResult(functionFragment: "getCollateralRatiosFor", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getCollateralRatiosFor(address[])", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getDepositedCollateralAssetIndex", data: BytesLike): Result;
-    decodeFunctionResult(
-        functionFragment: "getDepositedCollateralAssetIndex(address,address)",
-        data: BytesLike,
-    ): Result;
-    decodeFunctionResult(functionFragment: "getDepositedCollateralAssets", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getDepositedCollateralAssets(address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getMintedKreskoAssets", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getMintedKreskoAssets(address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getMintedKreskoAssetsIndex", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getMintedKreskoAssetsIndex(address,address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "kreskoAssetDebt", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "kreskoAssetDebt(address,address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "kreskoAssetDebtInterest", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "kreskoAssetDebtInterest(address,address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "kreskoAssetDebtInterestTotal", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "kreskoAssetDebtInterestTotal(address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "kreskoAssetDebtPrincipal", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "kreskoAssetDebtPrincipal(address,address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "burnKreskoAsset", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "burnKreskoAsset(address,address,uint256,uint256)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "batchCloseKrAssetDebtPositions", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "batchCloseKrAssetDebtPositions(address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "closeKrAssetDebtPosition", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "closeKrAssetDebtPosition(address,address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "addCollateralAsset", data: BytesLike): Result;
-    decodeFunctionResult(
-        functionFragment: "addCollateralAsset(address,address,uint256,address,address)",
-        data: BytesLike,
-    ): Result;
-    decodeFunctionResult(functionFragment: "addKreskoAsset", data: BytesLike): Result;
-    decodeFunctionResult(
-        functionFragment: "addKreskoAsset(address,address,uint256,address,address,uint256,uint256,uint256)",
-        data: BytesLike,
-    ): Result;
-    decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
-    decodeFunctionResult(
-        functionFragment: "initialize((address,address,address,uint8,uint256,uint256,uint256,uint256))",
-        data: BytesLike,
-    ): Result;
-    decodeFunctionResult(functionFragment: "updateAMMOracle", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "updateAMMOracle(address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "updateCollateralAsset", data: BytesLike): Result;
-    decodeFunctionResult(
-        functionFragment: "updateCollateralAsset(address,address,uint256,address,address)",
-        data: BytesLike,
-    ): Result;
-    decodeFunctionResult(functionFragment: "updateExtOracleDecimals", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "updateExtOracleDecimals(uint8)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "updateFeeRecipient", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "updateFeeRecipient(address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "updateKreskoAsset", data: BytesLike): Result;
-    decodeFunctionResult(
-        functionFragment: "updateKreskoAsset(address,address,uint256,address,address,uint256,uint256,uint256)",
-        data: BytesLike,
-    ): Result;
-    decodeFunctionResult(functionFragment: "updateLiquidationIncentiveMultiplier", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "updateLiquidationIncentiveMultiplier(uint256)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "updateLiquidationThreshold", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "updateLiquidationThreshold(uint256)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "updateMinimumCollateralizationRatio", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "updateMinimumCollateralizationRatio(uint256)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "updateMinimumDebtValue", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "updateMinimumDebtValue(uint256)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "depositCollateral", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "depositCollateral(address,address,uint256)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "withdrawCollateral", data: BytesLike): Result;
-    decodeFunctionResult(
-        functionFragment: "withdrawCollateral(address,address,uint256,uint256)",
-        data: BytesLike,
-    ): Result;
-    decodeFunctionResult(functionFragment: "batchLiquidateInterest", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "batchLiquidateInterest(address,address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "liquidateInterest", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "liquidateInterest(address,address,address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "calculateMaxLiquidatableValueForAssets", data: BytesLike): Result;
-    decodeFunctionResult(
-        functionFragment: "calculateMaxLiquidatableValueForAssets(address,address,address)",
-        data: BytesLike,
-    ): Result;
-    decodeFunctionResult(functionFragment: "isAccountLiquidatable", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "isAccountLiquidatable(address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "liquidate", data: BytesLike): Result;
-    decodeFunctionResult(
-        functionFragment: "liquidate(address,address,uint256,address,uint256,uint256)",
-        data: BytesLike,
-    ): Result;
-    decodeFunctionResult(functionFragment: "mintKreskoAsset", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "mintKreskoAsset(address,address,uint256)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "assetActionPaused", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "assetActionPaused(uint8,address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "safetyStateFor", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "safetyStateFor(address,uint8)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "safetyStateSet", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "safetyStateSet()", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "toggleAssetsPaused", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "toggleAssetsPaused(address[],uint8,bool,uint256)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "batchRepayFullStabilityRateInterest", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "batchRepayFullStabilityRateInterest(address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getDebtIndexForAsset", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getDebtIndexForAsset(address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getLastDebtIndexForAccount", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getLastDebtIndexForAccount(address,address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getPriceRateForAsset", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getPriceRateForAsset(address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getStabilityRateConfigurationForAsset", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getStabilityRateConfigurationForAsset(address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getStabilityRateForAsset", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getStabilityRateForAsset(address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "kiss", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "kiss()", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "repayFullStabilityRateInterest", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "repayFullStabilityRateInterest(address,address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "repayStabilityRateInterestPartial", data: BytesLike): Result;
-    decodeFunctionResult(
-        functionFragment: "repayStabilityRateInterestPartial(address,address,uint256)",
-        data: BytesLike,
-    ): Result;
-    decodeFunctionResult(functionFragment: "setupStabilityRateParams", data: BytesLike): Result;
-    decodeFunctionResult(
-        functionFragment: "setupStabilityRateParams(address,(uint128,uint128,uint128,uint128,uint128))",
-        data: BytesLike,
-    ): Result;
-    decodeFunctionResult(functionFragment: "updateKiss", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "updateKiss(address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "updateStabilityRateAndIndexForAsset", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "updateStabilityRateAndIndexForAsset(address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "updateStabilityRateParams", data: BytesLike): Result;
-    decodeFunctionResult(
-        functionFragment: "updateStabilityRateParams(address,(uint128,uint128,uint128,uint128,uint128))",
-        data: BytesLike,
-    ): Result;
-    decodeFunctionResult(functionFragment: "ammOracle", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "ammOracle()", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "collateralAsset", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "collateralAsset(address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "collateralExists", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "collateralExists(address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "domainSeparator", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "domainSeparator()", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "extOracleDecimals", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "extOracleDecimals()", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "feeRecipient", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "feeRecipient()", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getAllParams", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getAllParams()", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getCollateralValueAndOraclePrice", data: BytesLike): Result;
-    decodeFunctionResult(
-        functionFragment: "getCollateralValueAndOraclePrice(address,uint256,bool)",
-        data: BytesLike,
-    ): Result;
-    decodeFunctionResult(functionFragment: "getKrAssetValue", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getKrAssetValue(address,uint256,bool)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "krAssetExists", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "krAssetExists(address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "kreskoAsset", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "kreskoAsset(address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "liquidationIncentiveMultiplier", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "liquidationIncentiveMultiplier()", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "liquidationThreshold", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "liquidationThreshold()", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "minimumCollateralizationRatio", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "minimumCollateralizationRatio()", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "minimumDebtValue", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "minimumDebtValue()", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "minterInitializations", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "minterInitializations()", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "batchOracleValues", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "batchOracleValues(address[],address[],address[])", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getAccountData", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getAccountData(address,address[],address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getTokenData", data: BytesLike): Result;
-    decodeFunctionResult(
-        functionFragment: "getTokenData(address[],address[],address[],address[])",
-        data: BytesLike,
-    ): Result;
-    decodeFunctionResult(functionFragment: "getGlobalData", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getGlobalData(address[],address[])", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getPairsData", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getPairsData(address[])", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getRoleAdmin",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getRoleMember",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getRoleMemberCount",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "renounceRole",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "diamondCut", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "upgradeState",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "facetAddress",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "facetAddresses",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "facetFunctionSelectors",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "facets", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "acceptOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "initialized",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "pendingOwner",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "transferOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "setERC165", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "supportsInterface",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "calcExpectedFee",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "collateralDeposits",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getAccountCollateralRatio",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getAccountCollateralValue",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getAccountKrAssetValue",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getAccountMinimumCollateralValueAtRatio",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getAccountSingleCollateralValueAndRealValue",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getCollateralRatiosFor",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getDepositedCollateralAssetIndex",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getDepositedCollateralAssets",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getMintedKreskoAssets",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getMintedKreskoAssetsIndex",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "kreskoAssetDebt",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "kreskoAssetDebtInterest",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "kreskoAssetDebtInterestTotal",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "kreskoAssetDebtPrincipal",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "burnKreskoAsset",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "batchCloseKrAssetDebtPositions",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "closeKrAssetDebtPosition",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "addCollateralAsset",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "addKreskoAsset",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "updateAMMOracle",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "updateCollateralAsset",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "updateExtOracleDecimals",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "updateFeeRecipient",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "updateKreskoAsset",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "updateLiquidationIncentiveMultiplier",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "updateLiquidationThreshold",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "updateMinimumCollateralizationRatio",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "updateMinimumDebtValue",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "depositCollateral",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawCollateral",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "batchLiquidateInterest",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "liquidateInterest",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "calculateMaxLiquidatableValueForAssets",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "isAccountLiquidatable",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "liquidate", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "mintKreskoAsset",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "assetActionPaused",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "safetyStateFor",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "safetyStateSet",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "toggleAssetsPaused",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "batchRepayFullStabilityRateInterest",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getDebtIndexForAsset",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getLastDebtIndexForAccount",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getPriceRateForAsset",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getStabilityRateConfigurationForAsset",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getStabilityRateForAsset",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "kiss", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "repayFullStabilityRateInterest",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "repayStabilityRateInterestPartial",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setupStabilityRateParams",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "updateKiss", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "updateStabilityRateAndIndexForAsset",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "updateStabilityRateParams",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "ammOracle", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "collateralAsset",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "collateralExists",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "domainSeparator",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "extOracleDecimals",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "feeRecipient",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getAllParams",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getCollateralValueAndOraclePrice",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getKrAssetValue",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "krAssetExists",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "kreskoAsset",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "liquidationIncentiveMultiplier",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "liquidationThreshold",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "minimumCollateralizationRatio",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "minimumDebtValue",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "minterInitializations",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "batchOracleValues",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getAccountData",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getTokenData",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getGlobalData",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getPairsData",
+    data: BytesLike
+  ): Result;
 
-    events: {
-        "DiamondCut(tuple[],address,bytes)": EventFragment;
-        "OwnershipTransferred(address,address)": EventFragment;
-        "PendingOwnershipTransfer(address,address)": EventFragment;
-        "KISSUpdated(address)": EventFragment;
-        "StabilityRateConfigured(address,uint256,uint256,uint256,uint256)": EventFragment;
-        "StabilityRateInterestBatchRepaid(address,uint256)": EventFragment;
-        "StabilityRateInterestRepaid(address,address,uint256)": EventFragment;
-        "AMMOracleUpdated(address)": EventFragment;
-        "BatchInterestLiquidationOccurred(address,address,address,uint256,uint256)": EventFragment;
-        "CloseFeePaid(address,address,uint256,uint256)": EventFragment;
-        "CollateralAssetAdded(address,uint256,address,address,address)": EventFragment;
-        "CollateralAssetUpdated(address,uint256,address,address,address)": EventFragment;
-        "CollateralDeposited(address,address,uint256)": EventFragment;
-        "CollateralWithdrawn(address,address,uint256)": EventFragment;
-        "DebtPositionClosed(address,address,uint256,uint256)": EventFragment;
-        "FeeRecipientUpdated(address)": EventFragment;
-        "InterestLiquidationOccurred(address,address,address,uint256,address,uint256)": EventFragment;
-        "KreskoAssetAdded(address,address,address,address,uint256,uint256,uint256,uint256)": EventFragment;
-        "KreskoAssetBurned(address,address,uint256)": EventFragment;
-        "KreskoAssetMinted(address,address,uint256)": EventFragment;
-        "KreskoAssetUpdated(address,address,address,address,uint256,uint256,uint256,uint256)": EventFragment;
-        "LiquidationIncentiveMultiplierUpdated(uint256)": EventFragment;
-        "LiquidationOccurred(address,address,address,uint256,address,uint256)": EventFragment;
-        "LiquidationThresholdUpdated(uint256)": EventFragment;
-        "MinimumCollateralizationRatioUpdated(uint256)": EventFragment;
-        "MinimumDebtValueUpdated(uint256)": EventFragment;
-        "OpenFeePaid(address,address,uint256,uint256)": EventFragment;
-        "SafetyStateChange(uint8,address,string)": EventFragment;
-    };
+  events: {
+    "DiamondCut(tuple[],address,bytes)": EventFragment;
+    "OwnershipTransferred(address,address)": EventFragment;
+    "PendingOwnershipTransfer(address,address)": EventFragment;
+    "KISSUpdated(address)": EventFragment;
+    "StabilityRateConfigured(address,uint256,uint256,uint256,uint256)": EventFragment;
+    "StabilityRateInterestBatchRepaid(address,uint256)": EventFragment;
+    "StabilityRateInterestRepaid(address,address,uint256)": EventFragment;
+    "AMMOracleUpdated(address)": EventFragment;
+    "BatchInterestLiquidationOccurred(address,address,address,uint256,uint256)": EventFragment;
+    "CloseFeePaid(address,address,uint256,uint256)": EventFragment;
+    "CollateralAssetAdded(address,uint256,address,address,address)": EventFragment;
+    "CollateralAssetUpdated(address,uint256,address,address,address)": EventFragment;
+    "CollateralDeposited(address,address,uint256)": EventFragment;
+    "CollateralWithdrawn(address,address,uint256)": EventFragment;
+    "DebtPositionClosed(address,address,uint256,uint256)": EventFragment;
+    "FeeRecipientUpdated(address)": EventFragment;
+    "InterestLiquidationOccurred(address,address,address,uint256,address,uint256)": EventFragment;
+    "KreskoAssetAdded(address,address,address,address,uint256,uint256,uint256,uint256)": EventFragment;
+    "KreskoAssetBurned(address,address,uint256)": EventFragment;
+    "KreskoAssetMinted(address,address,uint256)": EventFragment;
+    "KreskoAssetUpdated(address,address,address,address,uint256,uint256,uint256,uint256)": EventFragment;
+    "LiquidationIncentiveMultiplierUpdated(uint256)": EventFragment;
+    "LiquidationOccurred(address,address,address,uint256,address,uint256)": EventFragment;
+    "LiquidationThresholdUpdated(uint256)": EventFragment;
+    "MinimumCollateralizationRatioUpdated(uint256)": EventFragment;
+    "MinimumDebtValueUpdated(uint256)": EventFragment;
+    "OpenFeePaid(address,address,uint256,uint256)": EventFragment;
+    "SafetyStateChange(uint8,address,string)": EventFragment;
+  };
 
-    getEvent(nameOrSignatureOrTopic: "DiamondCut"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "DiamondCut(tuple[],address,bytes)"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "OwnershipTransferred(address,address)"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "PendingOwnershipTransfer"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "PendingOwnershipTransfer(address,address)"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "KISSUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "KISSUpdated(address)"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "StabilityRateConfigured"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "StabilityRateConfigured(address,uint256,uint256,uint256,uint256)"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "StabilityRateInterestBatchRepaid"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "StabilityRateInterestBatchRepaid(address,uint256)"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "StabilityRateInterestRepaid"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "StabilityRateInterestRepaid(address,address,uint256)"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "AMMOracleUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "AMMOracleUpdated(address)"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "BatchInterestLiquidationOccurred"): EventFragment;
-    getEvent(
-        nameOrSignatureOrTopic: "BatchInterestLiquidationOccurred(address,address,address,uint256,uint256)",
-    ): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "CloseFeePaid"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "CloseFeePaid(address,address,uint256,uint256)"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "CollateralAssetAdded"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "CollateralAssetAdded(address,uint256,address,address,address)"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "CollateralAssetUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "CollateralAssetUpdated(address,uint256,address,address,address)"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "CollateralDeposited"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "CollateralDeposited(address,address,uint256)"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "CollateralWithdrawn"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "CollateralWithdrawn(address,address,uint256)"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "DebtPositionClosed"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "DebtPositionClosed(address,address,uint256,uint256)"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "FeeRecipientUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "FeeRecipientUpdated(address)"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "InterestLiquidationOccurred"): EventFragment;
-    getEvent(
-        nameOrSignatureOrTopic: "InterestLiquidationOccurred(address,address,address,uint256,address,uint256)",
-    ): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "KreskoAssetAdded"): EventFragment;
-    getEvent(
-        nameOrSignatureOrTopic: "KreskoAssetAdded(address,address,address,address,uint256,uint256,uint256,uint256)",
-    ): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "KreskoAssetBurned"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "KreskoAssetBurned(address,address,uint256)"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "KreskoAssetMinted"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "KreskoAssetMinted(address,address,uint256)"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "KreskoAssetUpdated"): EventFragment;
-    getEvent(
-        nameOrSignatureOrTopic: "KreskoAssetUpdated(address,address,address,address,uint256,uint256,uint256,uint256)",
-    ): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "LiquidationIncentiveMultiplierUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "LiquidationIncentiveMultiplierUpdated(uint256)"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "LiquidationOccurred"): EventFragment;
-    getEvent(
-        nameOrSignatureOrTopic: "LiquidationOccurred(address,address,address,uint256,address,uint256)",
-    ): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "LiquidationThresholdUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "LiquidationThresholdUpdated(uint256)"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "MinimumCollateralizationRatioUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "MinimumCollateralizationRatioUpdated(uint256)"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "MinimumDebtValueUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "MinimumDebtValueUpdated(uint256)"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "OpenFeePaid"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "OpenFeePaid(address,address,uint256,uint256)"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "SafetyStateChange"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "SafetyStateChange(uint8,address,string)"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "DiamondCut"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "PendingOwnershipTransfer"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "KISSUpdated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "StabilityRateConfigured"): EventFragment;
+  getEvent(
+    nameOrSignatureOrTopic: "StabilityRateInterestBatchRepaid"
+  ): EventFragment;
+  getEvent(
+    nameOrSignatureOrTopic: "StabilityRateInterestRepaid"
+  ): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "AMMOracleUpdated"): EventFragment;
+  getEvent(
+    nameOrSignatureOrTopic: "BatchInterestLiquidationOccurred"
+  ): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "CloseFeePaid"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "CollateralAssetAdded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "CollateralAssetUpdated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "CollateralDeposited"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "CollateralWithdrawn"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "DebtPositionClosed"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "FeeRecipientUpdated"): EventFragment;
+  getEvent(
+    nameOrSignatureOrTopic: "InterestLiquidationOccurred"
+  ): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "KreskoAssetAdded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "KreskoAssetBurned"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "KreskoAssetMinted"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "KreskoAssetUpdated"): EventFragment;
+  getEvent(
+    nameOrSignatureOrTopic: "LiquidationIncentiveMultiplierUpdated"
+  ): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "LiquidationOccurred"): EventFragment;
+  getEvent(
+    nameOrSignatureOrTopic: "LiquidationThresholdUpdated"
+  ): EventFragment;
+  getEvent(
+    nameOrSignatureOrTopic: "MinimumCollateralizationRatioUpdated"
+  ): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "MinimumDebtValueUpdated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "OpenFeePaid"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SafetyStateChange"): EventFragment;
 }
 
 export interface DiamondCutEventObject {
-    _diamondCut: IDiamondCutFacet.FacetCutStructOutput[];
-    _init: string;
-    _calldata: string;
+  _diamondCut: IDiamondCutFacet.FacetCutStructOutput[];
+  _init: string;
+  _calldata: string;
 }
 export type DiamondCutEvent = TypedEvent<
-    [IDiamondCutFacet.FacetCutStructOutput[], string, string],
-    DiamondCutEventObject
+  [IDiamondCutFacet.FacetCutStructOutput[], string, string],
+  DiamondCutEventObject
 >;
 
 export type DiamondCutEventFilter = TypedEventFilter<DiamondCutEvent>;
 
 export interface OwnershipTransferredEventObject {
-    previousOwner: string;
-    newOwner: string;
+  previousOwner: string;
+  newOwner: string;
 }
-export type OwnershipTransferredEvent = TypedEvent<[string, string], OwnershipTransferredEventObject>;
+export type OwnershipTransferredEvent = TypedEvent<
+  [string, string],
+  OwnershipTransferredEventObject
+>;
 
-export type OwnershipTransferredEventFilter = TypedEventFilter<OwnershipTransferredEvent>;
+export type OwnershipTransferredEventFilter =
+  TypedEventFilter<OwnershipTransferredEvent>;
 
 export interface PendingOwnershipTransferEventObject {
-    previousOwner: string;
-    newOwner: string;
+  previousOwner: string;
+  newOwner: string;
 }
-export type PendingOwnershipTransferEvent = TypedEvent<[string, string], PendingOwnershipTransferEventObject>;
+export type PendingOwnershipTransferEvent = TypedEvent<
+  [string, string],
+  PendingOwnershipTransferEventObject
+>;
 
-export type PendingOwnershipTransferEventFilter = TypedEventFilter<PendingOwnershipTransferEvent>;
+export type PendingOwnershipTransferEventFilter =
+  TypedEventFilter<PendingOwnershipTransferEvent>;
 
 export interface KISSUpdatedEventObject {
-    KISS: string;
+  KISS: string;
 }
 export type KISSUpdatedEvent = TypedEvent<[string], KISSUpdatedEventObject>;
 
 export type KISSUpdatedEventFilter = TypedEventFilter<KISSUpdatedEvent>;
 
 export interface StabilityRateConfiguredEventObject {
-    asset: string;
-    stabilityRateBase: BigNumber;
-    priceRateDelta: BigNumber;
-    rateSlope1: BigNumber;
-    rateSlope2: BigNumber;
+  asset: string;
+  stabilityRateBase: BigNumber;
+  priceRateDelta: BigNumber;
+  rateSlope1: BigNumber;
+  rateSlope2: BigNumber;
 }
 export type StabilityRateConfiguredEvent = TypedEvent<
-    [string, BigNumber, BigNumber, BigNumber, BigNumber],
-    StabilityRateConfiguredEventObject
+  [string, BigNumber, BigNumber, BigNumber, BigNumber],
+  StabilityRateConfiguredEventObject
 >;
 
-export type StabilityRateConfiguredEventFilter = TypedEventFilter<StabilityRateConfiguredEvent>;
+export type StabilityRateConfiguredEventFilter =
+  TypedEventFilter<StabilityRateConfiguredEvent>;
 
 export interface StabilityRateInterestBatchRepaidEventObject {
-    account: string;
-    value: BigNumber;
+  account: string;
+  value: BigNumber;
 }
 export type StabilityRateInterestBatchRepaidEvent = TypedEvent<
-    [string, BigNumber],
-    StabilityRateInterestBatchRepaidEventObject
+  [string, BigNumber],
+  StabilityRateInterestBatchRepaidEventObject
 >;
 
-export type StabilityRateInterestBatchRepaidEventFilter = TypedEventFilter<StabilityRateInterestBatchRepaidEvent>;
+export type StabilityRateInterestBatchRepaidEventFilter =
+  TypedEventFilter<StabilityRateInterestBatchRepaidEvent>;
 
 export interface StabilityRateInterestRepaidEventObject {
-    account: string;
-    asset: string;
-    value: BigNumber;
+  account: string;
+  asset: string;
+  value: BigNumber;
 }
 export type StabilityRateInterestRepaidEvent = TypedEvent<
-    [string, string, BigNumber],
-    StabilityRateInterestRepaidEventObject
+  [string, string, BigNumber],
+  StabilityRateInterestRepaidEventObject
 >;
 
-export type StabilityRateInterestRepaidEventFilter = TypedEventFilter<StabilityRateInterestRepaidEvent>;
+export type StabilityRateInterestRepaidEventFilter =
+  TypedEventFilter<StabilityRateInterestRepaidEvent>;
 
 export interface AMMOracleUpdatedEventObject {
-    ammOracle: string;
+  ammOracle: string;
 }
-export type AMMOracleUpdatedEvent = TypedEvent<[string], AMMOracleUpdatedEventObject>;
-
-export type AMMOracleUpdatedEventFilter = TypedEventFilter<AMMOracleUpdatedEvent>;
-
-export interface BatchInterestLiquidationOccurredEventObject {
-    account: string;
-    liquidator: string;
-    seizedCollateralAsset: string;
-    repayUSD: BigNumber;
-    collateralSent: BigNumber;
-}
-export type BatchInterestLiquidationOccurredEvent = TypedEvent<
-    [string, string, string, BigNumber, BigNumber],
-    BatchInterestLiquidationOccurredEventObject
+export type AMMOracleUpdatedEvent = TypedEvent<
+  [string],
+  AMMOracleUpdatedEventObject
 >;
 
-export type BatchInterestLiquidationOccurredEventFilter = TypedEventFilter<BatchInterestLiquidationOccurredEvent>;
+export type AMMOracleUpdatedEventFilter =
+  TypedEventFilter<AMMOracleUpdatedEvent>;
+
+export interface BatchInterestLiquidationOccurredEventObject {
+  account: string;
+  liquidator: string;
+  seizedCollateralAsset: string;
+  repayUSD: BigNumber;
+  collateralSent: BigNumber;
+}
+export type BatchInterestLiquidationOccurredEvent = TypedEvent<
+  [string, string, string, BigNumber, BigNumber],
+  BatchInterestLiquidationOccurredEventObject
+>;
+
+export type BatchInterestLiquidationOccurredEventFilter =
+  TypedEventFilter<BatchInterestLiquidationOccurredEvent>;
 
 export interface CloseFeePaidEventObject {
-    account: string;
-    paymentCollateralAsset: string;
-    paymentAmount: BigNumber;
-    paymentValue: BigNumber;
+  account: string;
+  paymentCollateralAsset: string;
+  paymentAmount: BigNumber;
+  paymentValue: BigNumber;
 }
-export type CloseFeePaidEvent = TypedEvent<[string, string, BigNumber, BigNumber], CloseFeePaidEventObject>;
+export type CloseFeePaidEvent = TypedEvent<
+  [string, string, BigNumber, BigNumber],
+  CloseFeePaidEventObject
+>;
 
 export type CloseFeePaidEventFilter = TypedEventFilter<CloseFeePaidEvent>;
 
 export interface CollateralAssetAddedEventObject {
-    collateralAsset: string;
-    factor: BigNumber;
-    oracle: string;
-    marketStatusOracle: string;
-    anchor: string;
+  collateralAsset: string;
+  factor: BigNumber;
+  oracle: string;
+  marketStatusOracle: string;
+  anchor: string;
 }
 export type CollateralAssetAddedEvent = TypedEvent<
-    [string, BigNumber, string, string, string],
-    CollateralAssetAddedEventObject
+  [string, BigNumber, string, string, string],
+  CollateralAssetAddedEventObject
 >;
 
-export type CollateralAssetAddedEventFilter = TypedEventFilter<CollateralAssetAddedEvent>;
+export type CollateralAssetAddedEventFilter =
+  TypedEventFilter<CollateralAssetAddedEvent>;
 
 export interface CollateralAssetUpdatedEventObject {
-    collateralAsset: string;
-    factor: BigNumber;
-    oracle: string;
-    marketStatusOracle: string;
-    anchor: string;
+  collateralAsset: string;
+  factor: BigNumber;
+  oracle: string;
+  marketStatusOracle: string;
+  anchor: string;
 }
 export type CollateralAssetUpdatedEvent = TypedEvent<
-    [string, BigNumber, string, string, string],
-    CollateralAssetUpdatedEventObject
+  [string, BigNumber, string, string, string],
+  CollateralAssetUpdatedEventObject
 >;
 
-export type CollateralAssetUpdatedEventFilter = TypedEventFilter<CollateralAssetUpdatedEvent>;
+export type CollateralAssetUpdatedEventFilter =
+  TypedEventFilter<CollateralAssetUpdatedEvent>;
 
 export interface CollateralDepositedEventObject {
-    account: string;
-    collateralAsset: string;
-    amount: BigNumber;
+  account: string;
+  collateralAsset: string;
+  amount: BigNumber;
 }
-export type CollateralDepositedEvent = TypedEvent<[string, string, BigNumber], CollateralDepositedEventObject>;
+export type CollateralDepositedEvent = TypedEvent<
+  [string, string, BigNumber],
+  CollateralDepositedEventObject
+>;
 
-export type CollateralDepositedEventFilter = TypedEventFilter<CollateralDepositedEvent>;
+export type CollateralDepositedEventFilter =
+  TypedEventFilter<CollateralDepositedEvent>;
 
 export interface CollateralWithdrawnEventObject {
-    account: string;
-    collateralAsset: string;
-    amount: BigNumber;
+  account: string;
+  collateralAsset: string;
+  amount: BigNumber;
 }
-export type CollateralWithdrawnEvent = TypedEvent<[string, string, BigNumber], CollateralWithdrawnEventObject>;
+export type CollateralWithdrawnEvent = TypedEvent<
+  [string, string, BigNumber],
+  CollateralWithdrawnEventObject
+>;
 
-export type CollateralWithdrawnEventFilter = TypedEventFilter<CollateralWithdrawnEvent>;
+export type CollateralWithdrawnEventFilter =
+  TypedEventFilter<CollateralWithdrawnEvent>;
 
 export interface DebtPositionClosedEventObject {
-    account: string;
-    kreskoAsset: string;
-    amount: BigNumber;
-    interestRepaid: BigNumber;
+  account: string;
+  kreskoAsset: string;
+  amount: BigNumber;
+  interestRepaid: BigNumber;
 }
-export type DebtPositionClosedEvent = TypedEvent<[string, string, BigNumber, BigNumber], DebtPositionClosedEventObject>;
+export type DebtPositionClosedEvent = TypedEvent<
+  [string, string, BigNumber, BigNumber],
+  DebtPositionClosedEventObject
+>;
 
-export type DebtPositionClosedEventFilter = TypedEventFilter<DebtPositionClosedEvent>;
+export type DebtPositionClosedEventFilter =
+  TypedEventFilter<DebtPositionClosedEvent>;
 
 export interface FeeRecipientUpdatedEventObject {
-    feeRecipient: string;
+  feeRecipient: string;
 }
-export type FeeRecipientUpdatedEvent = TypedEvent<[string], FeeRecipientUpdatedEventObject>;
+export type FeeRecipientUpdatedEvent = TypedEvent<
+  [string],
+  FeeRecipientUpdatedEventObject
+>;
 
-export type FeeRecipientUpdatedEventFilter = TypedEventFilter<FeeRecipientUpdatedEvent>;
+export type FeeRecipientUpdatedEventFilter =
+  TypedEventFilter<FeeRecipientUpdatedEvent>;
 
 export interface InterestLiquidationOccurredEventObject {
-    account: string;
-    liquidator: string;
-    repayKreskoAsset: string;
-    repayUSD: BigNumber;
-    seizedCollateralAsset: string;
-    collateralSent: BigNumber;
+  account: string;
+  liquidator: string;
+  repayKreskoAsset: string;
+  repayUSD: BigNumber;
+  seizedCollateralAsset: string;
+  collateralSent: BigNumber;
 }
 export type InterestLiquidationOccurredEvent = TypedEvent<
-    [string, string, string, BigNumber, string, BigNumber],
-    InterestLiquidationOccurredEventObject
+  [string, string, string, BigNumber, string, BigNumber],
+  InterestLiquidationOccurredEventObject
 >;
 
-export type InterestLiquidationOccurredEventFilter = TypedEventFilter<InterestLiquidationOccurredEvent>;
+export type InterestLiquidationOccurredEventFilter =
+  TypedEventFilter<InterestLiquidationOccurredEvent>;
 
 export interface KreskoAssetAddedEventObject {
-    kreskoAsset: string;
-    anchor: string;
-    oracle: string;
-    marketStatusOracle: string;
-    kFactor: BigNumber;
-    supplyLimit: BigNumber;
-    closeFee: BigNumber;
-    openFee: BigNumber;
+  kreskoAsset: string;
+  anchor: string;
+  oracle: string;
+  marketStatusOracle: string;
+  kFactor: BigNumber;
+  supplyLimit: BigNumber;
+  closeFee: BigNumber;
+  openFee: BigNumber;
 }
 export type KreskoAssetAddedEvent = TypedEvent<
-    [string, string, string, string, BigNumber, BigNumber, BigNumber, BigNumber],
-    KreskoAssetAddedEventObject
+  [string, string, string, string, BigNumber, BigNumber, BigNumber, BigNumber],
+  KreskoAssetAddedEventObject
 >;
 
-export type KreskoAssetAddedEventFilter = TypedEventFilter<KreskoAssetAddedEvent>;
+export type KreskoAssetAddedEventFilter =
+  TypedEventFilter<KreskoAssetAddedEvent>;
 
 export interface KreskoAssetBurnedEventObject {
-    account: string;
-    kreskoAsset: string;
-    amount: BigNumber;
+  account: string;
+  kreskoAsset: string;
+  amount: BigNumber;
 }
-export type KreskoAssetBurnedEvent = TypedEvent<[string, string, BigNumber], KreskoAssetBurnedEventObject>;
-
-export type KreskoAssetBurnedEventFilter = TypedEventFilter<KreskoAssetBurnedEvent>;
-
-export interface KreskoAssetMintedEventObject {
-    account: string;
-    kreskoAsset: string;
-    amount: BigNumber;
-}
-export type KreskoAssetMintedEvent = TypedEvent<[string, string, BigNumber], KreskoAssetMintedEventObject>;
-
-export type KreskoAssetMintedEventFilter = TypedEventFilter<KreskoAssetMintedEvent>;
-
-export interface KreskoAssetUpdatedEventObject {
-    kreskoAsset: string;
-    anchor: string;
-    oracle: string;
-    marketStatusOracle: string;
-    kFactor: BigNumber;
-    supplyLimit: BigNumber;
-    closeFee: BigNumber;
-    openFee: BigNumber;
-}
-export type KreskoAssetUpdatedEvent = TypedEvent<
-    [string, string, string, string, BigNumber, BigNumber, BigNumber, BigNumber],
-    KreskoAssetUpdatedEventObject
+export type KreskoAssetBurnedEvent = TypedEvent<
+  [string, string, BigNumber],
+  KreskoAssetBurnedEventObject
 >;
 
-export type KreskoAssetUpdatedEventFilter = TypedEventFilter<KreskoAssetUpdatedEvent>;
+export type KreskoAssetBurnedEventFilter =
+  TypedEventFilter<KreskoAssetBurnedEvent>;
+
+export interface KreskoAssetMintedEventObject {
+  account: string;
+  kreskoAsset: string;
+  amount: BigNumber;
+}
+export type KreskoAssetMintedEvent = TypedEvent<
+  [string, string, BigNumber],
+  KreskoAssetMintedEventObject
+>;
+
+export type KreskoAssetMintedEventFilter =
+  TypedEventFilter<KreskoAssetMintedEvent>;
+
+export interface KreskoAssetUpdatedEventObject {
+  kreskoAsset: string;
+  anchor: string;
+  oracle: string;
+  marketStatusOracle: string;
+  kFactor: BigNumber;
+  supplyLimit: BigNumber;
+  closeFee: BigNumber;
+  openFee: BigNumber;
+}
+export type KreskoAssetUpdatedEvent = TypedEvent<
+  [string, string, string, string, BigNumber, BigNumber, BigNumber, BigNumber],
+  KreskoAssetUpdatedEventObject
+>;
+
+export type KreskoAssetUpdatedEventFilter =
+  TypedEventFilter<KreskoAssetUpdatedEvent>;
 
 export interface LiquidationIncentiveMultiplierUpdatedEventObject {
-    liquidationIncentiveMultiplier: BigNumber;
+  liquidationIncentiveMultiplier: BigNumber;
 }
 export type LiquidationIncentiveMultiplierUpdatedEvent = TypedEvent<
-    [BigNumber],
-    LiquidationIncentiveMultiplierUpdatedEventObject
+  [BigNumber],
+  LiquidationIncentiveMultiplierUpdatedEventObject
 >;
 
 export type LiquidationIncentiveMultiplierUpdatedEventFilter =
-    TypedEventFilter<LiquidationIncentiveMultiplierUpdatedEvent>;
+  TypedEventFilter<LiquidationIncentiveMultiplierUpdatedEvent>;
 
 export interface LiquidationOccurredEventObject {
-    account: string;
-    liquidator: string;
-    repayKreskoAsset: string;
-    repayAmount: BigNumber;
-    seizedCollateralAsset: string;
-    collateralSent: BigNumber;
+  account: string;
+  liquidator: string;
+  repayKreskoAsset: string;
+  repayAmount: BigNumber;
+  seizedCollateralAsset: string;
+  collateralSent: BigNumber;
 }
 export type LiquidationOccurredEvent = TypedEvent<
-    [string, string, string, BigNumber, string, BigNumber],
-    LiquidationOccurredEventObject
+  [string, string, string, BigNumber, string, BigNumber],
+  LiquidationOccurredEventObject
 >;
 
-export type LiquidationOccurredEventFilter = TypedEventFilter<LiquidationOccurredEvent>;
+export type LiquidationOccurredEventFilter =
+  TypedEventFilter<LiquidationOccurredEvent>;
 
 export interface LiquidationThresholdUpdatedEventObject {
-    liquidationThreshold: BigNumber;
+  liquidationThreshold: BigNumber;
 }
-export type LiquidationThresholdUpdatedEvent = TypedEvent<[BigNumber], LiquidationThresholdUpdatedEventObject>;
+export type LiquidationThresholdUpdatedEvent = TypedEvent<
+  [BigNumber],
+  LiquidationThresholdUpdatedEventObject
+>;
 
-export type LiquidationThresholdUpdatedEventFilter = TypedEventFilter<LiquidationThresholdUpdatedEvent>;
+export type LiquidationThresholdUpdatedEventFilter =
+  TypedEventFilter<LiquidationThresholdUpdatedEvent>;
 
 export interface MinimumCollateralizationRatioUpdatedEventObject {
-    minimumCollateralizationRatio: BigNumber;
+  minimumCollateralizationRatio: BigNumber;
 }
 export type MinimumCollateralizationRatioUpdatedEvent = TypedEvent<
-    [BigNumber],
-    MinimumCollateralizationRatioUpdatedEventObject
+  [BigNumber],
+  MinimumCollateralizationRatioUpdatedEventObject
 >;
 
 export type MinimumCollateralizationRatioUpdatedEventFilter =
-    TypedEventFilter<MinimumCollateralizationRatioUpdatedEvent>;
+  TypedEventFilter<MinimumCollateralizationRatioUpdatedEvent>;
 
 export interface MinimumDebtValueUpdatedEventObject {
-    minimumDebtValue: BigNumber;
+  minimumDebtValue: BigNumber;
 }
-export type MinimumDebtValueUpdatedEvent = TypedEvent<[BigNumber], MinimumDebtValueUpdatedEventObject>;
+export type MinimumDebtValueUpdatedEvent = TypedEvent<
+  [BigNumber],
+  MinimumDebtValueUpdatedEventObject
+>;
 
-export type MinimumDebtValueUpdatedEventFilter = TypedEventFilter<MinimumDebtValueUpdatedEvent>;
+export type MinimumDebtValueUpdatedEventFilter =
+  TypedEventFilter<MinimumDebtValueUpdatedEvent>;
 
 export interface OpenFeePaidEventObject {
-    account: string;
-    paymentCollateralAsset: string;
-    paymentAmount: BigNumber;
-    paymentValue: BigNumber;
+  account: string;
+  paymentCollateralAsset: string;
+  paymentAmount: BigNumber;
+  paymentValue: BigNumber;
 }
-export type OpenFeePaidEvent = TypedEvent<[string, string, BigNumber, BigNumber], OpenFeePaidEventObject>;
+export type OpenFeePaidEvent = TypedEvent<
+  [string, string, BigNumber, BigNumber],
+  OpenFeePaidEventObject
+>;
 
 export type OpenFeePaidEventFilter = TypedEventFilter<OpenFeePaidEvent>;
 
 export interface SafetyStateChangeEventObject {
-    action: number;
-    asset: string;
-    description: string;
+  action: number;
+  asset: string;
+  description: string;
 }
-export type SafetyStateChangeEvent = TypedEvent<[number, string, string], SafetyStateChangeEventObject>;
+export type SafetyStateChangeEvent = TypedEvent<
+  [number, string, string],
+  SafetyStateChangeEventObject
+>;
 
-export type SafetyStateChangeEventFilter = TypedEventFilter<SafetyStateChangeEvent>;
+export type SafetyStateChangeEventFilter =
+  TypedEventFilter<SafetyStateChangeEvent>;
 
 export interface Kresko extends BaseContract {
-    connect(signerOrProvider: Signer | Provider | string): this;
-    attach(addressOrName: string): this;
-    deployed(): Promise<this>;
-
-    interface: KreskoInterface;
-
-    queryFilter<TEvent extends TypedEvent>(
-        event: TypedEventFilter<TEvent>,
-        fromBlockOrBlockhash?: string | number | undefined,
-        toBlock?: string | number | undefined,
-    ): Promise<Array<TEvent>>;
-
-    listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>;
-    listeners(eventName?: string): Array<Listener>;
-    removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this;
-    removeAllListeners(eventName?: string): this;
-    off: OnEvent<this>;
-    on: OnEvent<this>;
-    once: OnEvent<this>;
-    removeListener: OnEvent<this>;
-
-    functions: {
-        getRoleAdmin(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<[string]>;
-
-        "getRoleAdmin(bytes32)"(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<[string]>;
-
-        getRoleMember(
-            role: PromiseOrValue<BytesLike>,
-            index: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<[string]>;
-
-        "getRoleMember(bytes32,uint256)"(
-            role: PromiseOrValue<BytesLike>,
-            index: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<[string]>;
-
-        getRoleMemberCount(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<[BigNumber]>;
-
-        "getRoleMemberCount(bytes32)"(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<[BigNumber]>;
-
-        grantRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "grantRole(bytes32,address)"(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        hasRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[boolean]>;
-
-        "hasRole(bytes32,address)"(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[boolean]>;
-
-        renounceRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "renounceRole(bytes32,address)"(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        revokeRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "revokeRole(bytes32,address)"(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        diamondCut(
-            _diamondCut: IDiamondCutFacet.FacetCutStruct[],
-            _init: PromiseOrValue<string>,
-            _calldata: PromiseOrValue<BytesLike>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "diamondCut((address,uint8,bytes4[])[],address,bytes)"(
-            _diamondCut: IDiamondCutFacet.FacetCutStruct[],
-            _init: PromiseOrValue<string>,
-            _calldata: PromiseOrValue<BytesLike>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        upgradeState(
-            _init: PromiseOrValue<string>,
-            _calldata: PromiseOrValue<BytesLike>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "upgradeState(address,bytes)"(
-            _init: PromiseOrValue<string>,
-            _calldata: PromiseOrValue<BytesLike>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        facetAddress(
-            _functionSelector: PromiseOrValue<BytesLike>,
-            overrides?: CallOverrides,
-        ): Promise<[string] & { facetAddress_: string }>;
-
-        "facetAddress(bytes4)"(
-            _functionSelector: PromiseOrValue<BytesLike>,
-            overrides?: CallOverrides,
-        ): Promise<[string] & { facetAddress_: string }>;
-
-        facetAddresses(overrides?: CallOverrides): Promise<[string[]] & { facetAddresses_: string[] }>;
-
-        "facetAddresses()"(overrides?: CallOverrides): Promise<[string[]] & { facetAddresses_: string[] }>;
-
-        facetFunctionSelectors(
-            _facet: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[string[]] & { facetFunctionSelectors_: string[] }>;
-
-        "facetFunctionSelectors(address)"(
-            _facet: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[string[]] & { facetFunctionSelectors_: string[] }>;
-
-        facets(overrides?: CallOverrides): Promise<
-            [IDiamondLoupeFacet.FacetStructOutput[]] & {
-                facets_: IDiamondLoupeFacet.FacetStructOutput[];
-            }
-        >;
-
-        "facets()"(overrides?: CallOverrides): Promise<
-            [IDiamondLoupeFacet.FacetStructOutput[]] & {
-                facets_: IDiamondLoupeFacet.FacetStructOutput[];
-            }
-        >;
-
-        acceptOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
-
-        "acceptOwnership()"(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
-
-        initialized(overrides?: CallOverrides): Promise<[boolean]>;
-
-        "initialized()"(overrides?: CallOverrides): Promise<[boolean]>;
-
-        owner(overrides?: CallOverrides): Promise<[string]>;
-
-        "owner()"(overrides?: CallOverrides): Promise<[string]>;
-
-        pendingOwner(overrides?: CallOverrides): Promise<[string]>;
-
-        "pendingOwner()"(overrides?: CallOverrides): Promise<[string]>;
-
-        transferOwnership(
-            _newOwner: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "transferOwnership(address)"(
-            _newOwner: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        setERC165(
-            interfaceIds: PromiseOrValue<BytesLike>[],
-            interfaceIdsToRemove: PromiseOrValue<BytesLike>[],
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "setERC165(bytes4[],bytes4[])"(
-            interfaceIds: PromiseOrValue<BytesLike>[],
-            interfaceIdsToRemove: PromiseOrValue<BytesLike>[],
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        supportsInterface(_interfaceId: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<[boolean]>;
-
-        "supportsInterface(bytes4)"(
-            _interfaceId: PromiseOrValue<BytesLike>,
-            overrides?: CallOverrides,
-        ): Promise<[boolean]>;
-
-        calcExpectedFee(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _kreskoAssetAmount: PromiseOrValue<BigNumberish>,
-            _feeType: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<[string[], BigNumber[]]>;
-
-        "calcExpectedFee(address,address,uint256,uint256)"(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _kreskoAssetAmount: PromiseOrValue<BigNumberish>,
-            _feeType: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<[string[], BigNumber[]]>;
-
-        collateralDeposits(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber]>;
-
-        "collateralDeposits(address,address)"(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber]>;
-
-        getAccountCollateralRatio(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<
-            [FixedPoint.UnsignedStructOutput] & {
-                ratio: FixedPoint.UnsignedStructOutput;
-            }
-        >;
-
-        "getAccountCollateralRatio(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<
-            [FixedPoint.UnsignedStructOutput] & {
-                ratio: FixedPoint.UnsignedStructOutput;
-            }
-        >;
-
-        getAccountCollateralValue(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[FixedPoint.UnsignedStructOutput]>;
-
-        "getAccountCollateralValue(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[FixedPoint.UnsignedStructOutput]>;
-
-        getAccountKrAssetValue(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[FixedPoint.UnsignedStructOutput]>;
-
-        "getAccountKrAssetValue(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[FixedPoint.UnsignedStructOutput]>;
-
-        getAccountMinimumCollateralValueAtRatio(
-            _account: PromiseOrValue<string>,
-            _ratio: FixedPoint.UnsignedStruct,
-            overrides?: CallOverrides,
-        ): Promise<[FixedPoint.UnsignedStructOutput]>;
-
-        "getAccountMinimumCollateralValueAtRatio(address,(uint256))"(
-            _account: PromiseOrValue<string>,
-            _ratio: FixedPoint.UnsignedStruct,
-            overrides?: CallOverrides,
-        ): Promise<[FixedPoint.UnsignedStructOutput]>;
-
-        getAccountSingleCollateralValueAndRealValue(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<
-            [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
-                value: FixedPoint.UnsignedStructOutput;
-                realValue: FixedPoint.UnsignedStructOutput;
-            }
-        >;
-
-        "getAccountSingleCollateralValueAndRealValue(address,address)"(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<
-            [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
-                value: FixedPoint.UnsignedStructOutput;
-                realValue: FixedPoint.UnsignedStructOutput;
-            }
-        >;
-
-        getCollateralRatiosFor(
-            _accounts: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<[FixedPoint.UnsignedStructOutput[]]>;
-
-        "getCollateralRatiosFor(address[])"(
-            _accounts: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<[FixedPoint.UnsignedStructOutput[]]>;
-
-        getDepositedCollateralAssetIndex(
-            _account: PromiseOrValue<string>,
-            _collateralAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber] & { i: BigNumber }>;
-
-        "getDepositedCollateralAssetIndex(address,address)"(
-            _account: PromiseOrValue<string>,
-            _collateralAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber] & { i: BigNumber }>;
-
-        getDepositedCollateralAssets(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[string[]]>;
-
-        "getDepositedCollateralAssets(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[string[]]>;
-
-        getMintedKreskoAssets(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[string[]]>;
-
-        "getMintedKreskoAssets(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[string[]]>;
-
-        getMintedKreskoAssetsIndex(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber]>;
-
-        "getMintedKreskoAssetsIndex(address,address)"(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber]>;
-
-        kreskoAssetDebt(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber]>;
-
-        "kreskoAssetDebt(address,address)"(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber]>;
-
-        kreskoAssetDebtInterest(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber, BigNumber] & { assetAmount: BigNumber; kissAmount: BigNumber }>;
-
-        "kreskoAssetDebtInterest(address,address)"(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber, BigNumber] & { assetAmount: BigNumber; kissAmount: BigNumber }>;
-
-        kreskoAssetDebtInterestTotal(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber] & { kissAmount: BigNumber }>;
-
-        "kreskoAssetDebtInterestTotal(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber] & { kissAmount: BigNumber }>;
-
-        kreskoAssetDebtPrincipal(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber]>;
-
-        "kreskoAssetDebtPrincipal(address,address)"(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber]>;
-
-        burnKreskoAsset(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _burnAmount: PromiseOrValue<BigNumberish>,
-            _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "burnKreskoAsset(address,address,uint256,uint256)"(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _burnAmount: PromiseOrValue<BigNumberish>,
-            _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        batchCloseKrAssetDebtPositions(
-            _account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "batchCloseKrAssetDebtPositions(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        closeKrAssetDebtPosition(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "closeKrAssetDebtPosition(address,address)"(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        addCollateralAsset(
-            _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "addCollateralAsset(address,address,uint256,address,address)"(
-            _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        addKreskoAsset(
-            _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "addKreskoAsset(address,address,uint256,address,address,uint256,uint256,uint256)"(
-            _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        initialize(
-            args: MinterInitArgsStruct,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "initialize((address,address,address,uint8,uint256,uint256,uint256,uint256))"(
-            args: MinterInitArgsStruct,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        updateAMMOracle(
-            _ammOracle: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "updateAMMOracle(address)"(
-            _ammOracle: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        updateCollateralAsset(
-            _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "updateCollateralAsset(address,address,uint256,address,address)"(
-            _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        updateExtOracleDecimals(
-            _decimals: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "updateExtOracleDecimals(uint8)"(
-            _decimals: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        updateFeeRecipient(
-            _feeRecipient: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "updateFeeRecipient(address)"(
-            _feeRecipient: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        updateKreskoAsset(
-            _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "updateKreskoAsset(address,address,uint256,address,address,uint256,uint256,uint256)"(
-            _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        updateLiquidationIncentiveMultiplier(
-            _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "updateLiquidationIncentiveMultiplier(uint256)"(
-            _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        updateLiquidationThreshold(
-            _liquidationThreshold: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "updateLiquidationThreshold(uint256)"(
-            _liquidationThreshold: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        updateMinimumCollateralizationRatio(
-            _minimumCollateralizationRatio: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "updateMinimumCollateralizationRatio(uint256)"(
-            _minimumCollateralizationRatio: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        updateMinimumDebtValue(
-            _minimumDebtValue: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "updateMinimumDebtValue(uint256)"(
-            _minimumDebtValue: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        depositCollateral(
-            _account: PromiseOrValue<string>,
-            _collateralAsset: PromiseOrValue<string>,
-            _depositAmount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "depositCollateral(address,address,uint256)"(
-            _account: PromiseOrValue<string>,
-            _collateralAsset: PromiseOrValue<string>,
-            _depositAmount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        withdrawCollateral(
-            _account: PromiseOrValue<string>,
-            _collateralAsset: PromiseOrValue<string>,
-            _withdrawAmount: PromiseOrValue<BigNumberish>,
-            _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "withdrawCollateral(address,address,uint256,uint256)"(
-            _account: PromiseOrValue<string>,
-            _collateralAsset: PromiseOrValue<string>,
-            _withdrawAmount: PromiseOrValue<BigNumberish>,
-            _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        batchLiquidateInterest(
-            _account: PromiseOrValue<string>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "batchLiquidateInterest(address,address)"(
-            _account: PromiseOrValue<string>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        liquidateInterest(
-            _account: PromiseOrValue<string>,
-            _repayKreskoAsset: PromiseOrValue<string>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "liquidateInterest(address,address,address)"(
-            _account: PromiseOrValue<string>,
-            _repayKreskoAsset: PromiseOrValue<string>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        calculateMaxLiquidatableValueForAssets(
-            _account: PromiseOrValue<string>,
-            _repayKreskoAsset: PromiseOrValue<string>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<
-            [FixedPoint.UnsignedStructOutput] & {
-                maxLiquidatableUSD: FixedPoint.UnsignedStructOutput;
-            }
-        >;
-
-        "calculateMaxLiquidatableValueForAssets(address,address,address)"(
-            _account: PromiseOrValue<string>,
-            _repayKreskoAsset: PromiseOrValue<string>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<
-            [FixedPoint.UnsignedStructOutput] & {
-                maxLiquidatableUSD: FixedPoint.UnsignedStructOutput;
-            }
-        >;
-
-        isAccountLiquidatable(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[boolean]>;
-
-        "isAccountLiquidatable(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[boolean]>;
-
-        liquidate(
-            _account: PromiseOrValue<string>,
-            _repayKreskoAsset: PromiseOrValue<string>,
-            _repayAmount: PromiseOrValue<BigNumberish>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
-            _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "liquidate(address,address,uint256,address,uint256,uint256)"(
-            _account: PromiseOrValue<string>,
-            _repayKreskoAsset: PromiseOrValue<string>,
-            _repayAmount: PromiseOrValue<BigNumberish>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
-            _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        mintKreskoAsset(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _mintAmount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "mintKreskoAsset(address,address,uint256)"(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _mintAmount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        assetActionPaused(
-            _action: PromiseOrValue<BigNumberish>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[boolean]>;
-
-        "assetActionPaused(uint8,address)"(
-            _action: PromiseOrValue<BigNumberish>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[boolean]>;
-
-        safetyStateFor(
-            _asset: PromiseOrValue<string>,
-            _action: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<[SafetyStateStructOutput]>;
-
-        "safetyStateFor(address,uint8)"(
-            _asset: PromiseOrValue<string>,
-            _action: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<[SafetyStateStructOutput]>;
-
-        safetyStateSet(overrides?: CallOverrides): Promise<[boolean]>;
-
-        "safetyStateSet()"(overrides?: CallOverrides): Promise<[boolean]>;
-
-        toggleAssetsPaused(
-            _assets: PromiseOrValue<string>[],
-            _action: PromiseOrValue<BigNumberish>,
-            _withDuration: PromiseOrValue<boolean>,
-            _duration: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "toggleAssetsPaused(address[],uint8,bool,uint256)"(
-            _assets: PromiseOrValue<string>[],
-            _action: PromiseOrValue<BigNumberish>,
-            _withDuration: PromiseOrValue<boolean>,
-            _duration: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        batchRepayFullStabilityRateInterest(
-            _account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "batchRepayFullStabilityRateInterest(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        getDebtIndexForAsset(
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber] & { debtIndex: BigNumber }>;
-
-        "getDebtIndexForAsset(address)"(
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber] & { debtIndex: BigNumber }>;
-
-        getLastDebtIndexForAccount(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber] & { lastDebtIndex: BigNumber }>;
-
-        "getLastDebtIndexForAccount(address,address)"(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber] & { lastDebtIndex: BigNumber }>;
-
-        getPriceRateForAsset(
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber] & { priceRate: BigNumber }>;
-
-        "getPriceRateForAsset(address)"(
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber] & { priceRate: BigNumber }>;
-
-        getStabilityRateConfigurationForAsset(
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[StabilityRateConfigStructOutput]>;
-
-        "getStabilityRateConfigurationForAsset(address)"(
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[StabilityRateConfigStructOutput]>;
-
-        getStabilityRateForAsset(
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber] & { stabilityRate: BigNumber }>;
-
-        "getStabilityRateForAsset(address)"(
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber] & { stabilityRate: BigNumber }>;
-
-        kiss(overrides?: CallOverrides): Promise<[string]>;
-
-        "kiss()"(overrides?: CallOverrides): Promise<[string]>;
-
-        repayFullStabilityRateInterest(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "repayFullStabilityRateInterest(address,address)"(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        repayStabilityRateInterestPartial(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _kissRepayAmount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "repayStabilityRateInterestPartial(address,address,uint256)"(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _kissRepayAmount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        setupStabilityRateParams(
-            _asset: PromiseOrValue<string>,
-            _setup: StabilityRateParamsStruct,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "setupStabilityRateParams(address,(uint128,uint128,uint128,uint128,uint128))"(
-            _asset: PromiseOrValue<string>,
-            _setup: StabilityRateParamsStruct,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        updateKiss(
-            _kiss: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "updateKiss(address)"(
-            _kiss: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        updateStabilityRateAndIndexForAsset(
-            _asset: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "updateStabilityRateAndIndexForAsset(address)"(
-            _asset: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        updateStabilityRateParams(
-            _asset: PromiseOrValue<string>,
-            _setup: StabilityRateParamsStruct,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "updateStabilityRateParams(address,(uint128,uint128,uint128,uint128,uint128))"(
-            _asset: PromiseOrValue<string>,
-            _setup: StabilityRateParamsStruct,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        ammOracle(overrides?: CallOverrides): Promise<[string]>;
-
-        "ammOracle()"(overrides?: CallOverrides): Promise<[string]>;
-
-        collateralAsset(
-            _collateralAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[CollateralAssetStructOutput] & { asset: CollateralAssetStructOutput }>;
-
-        "collateralAsset(address)"(
-            _collateralAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[CollateralAssetStructOutput] & { asset: CollateralAssetStructOutput }>;
-
-        collateralExists(
-            _collateralAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[boolean] & { exists: boolean }>;
-
-        "collateralExists(address)"(
-            _collateralAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[boolean] & { exists: boolean }>;
-
-        domainSeparator(overrides?: CallOverrides): Promise<[string]>;
-
-        "domainSeparator()"(overrides?: CallOverrides): Promise<[string]>;
-
-        extOracleDecimals(overrides?: CallOverrides): Promise<[number]>;
-
-        "extOracleDecimals()"(overrides?: CallOverrides): Promise<[number]>;
-
-        feeRecipient(overrides?: CallOverrides): Promise<[string]>;
-
-        "feeRecipient()"(overrides?: CallOverrides): Promise<[string]>;
-
-        getAllParams(overrides?: CallOverrides): Promise<[MinterParamsStructOutput]>;
-
-        "getAllParams()"(overrides?: CallOverrides): Promise<[MinterParamsStructOutput]>;
-
-        getCollateralValueAndOraclePrice(
-            _collateralAsset: PromiseOrValue<string>,
-            _amount: PromiseOrValue<BigNumberish>,
-            _ignoreCollateralFactor: PromiseOrValue<boolean>,
-            overrides?: CallOverrides,
-        ): Promise<
-            [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
-                value: FixedPoint.UnsignedStructOutput;
-                oraclePrice: FixedPoint.UnsignedStructOutput;
-            }
-        >;
-
-        "getCollateralValueAndOraclePrice(address,uint256,bool)"(
-            _collateralAsset: PromiseOrValue<string>,
-            _amount: PromiseOrValue<BigNumberish>,
-            _ignoreCollateralFactor: PromiseOrValue<boolean>,
-            overrides?: CallOverrides,
-        ): Promise<
-            [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
-                value: FixedPoint.UnsignedStructOutput;
-                oraclePrice: FixedPoint.UnsignedStructOutput;
-            }
-        >;
-
-        getKrAssetValue(
-            _kreskoAsset: PromiseOrValue<string>,
-            _amount: PromiseOrValue<BigNumberish>,
-            _ignoreKFactor: PromiseOrValue<boolean>,
-            overrides?: CallOverrides,
-        ): Promise<
-            [FixedPoint.UnsignedStructOutput] & {
-                value: FixedPoint.UnsignedStructOutput;
-            }
-        >;
-
-        "getKrAssetValue(address,uint256,bool)"(
-            _kreskoAsset: PromiseOrValue<string>,
-            _amount: PromiseOrValue<BigNumberish>,
-            _ignoreKFactor: PromiseOrValue<boolean>,
-            overrides?: CallOverrides,
-        ): Promise<
-            [FixedPoint.UnsignedStructOutput] & {
-                value: FixedPoint.UnsignedStructOutput;
-            }
-        >;
-
-        krAssetExists(
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[boolean] & { exists: boolean }>;
-
-        "krAssetExists(address)"(
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[boolean] & { exists: boolean }>;
-
-        kreskoAsset(
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[KrAssetStructOutput] & { asset: KrAssetStructOutput }>;
-
-        "kreskoAsset(address)"(
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[KrAssetStructOutput] & { asset: KrAssetStructOutput }>;
-
-        liquidationIncentiveMultiplier(overrides?: CallOverrides): Promise<[FixedPoint.UnsignedStructOutput]>;
-
-        "liquidationIncentiveMultiplier()"(overrides?: CallOverrides): Promise<[FixedPoint.UnsignedStructOutput]>;
-
-        liquidationThreshold(overrides?: CallOverrides): Promise<[FixedPoint.UnsignedStructOutput]>;
-
-        "liquidationThreshold()"(overrides?: CallOverrides): Promise<[FixedPoint.UnsignedStructOutput]>;
-
-        minimumCollateralizationRatio(overrides?: CallOverrides): Promise<[FixedPoint.UnsignedStructOutput]>;
-
-        "minimumCollateralizationRatio()"(overrides?: CallOverrides): Promise<[FixedPoint.UnsignedStructOutput]>;
-
-        minimumDebtValue(overrides?: CallOverrides): Promise<[FixedPoint.UnsignedStructOutput]>;
-
-        "minimumDebtValue()"(overrides?: CallOverrides): Promise<[FixedPoint.UnsignedStructOutput]>;
-
-        minterInitializations(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-        "minterInitializations()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-        batchOracleValues(
-            _assets: PromiseOrValue<string>[],
-            _oracles: PromiseOrValue<string>[],
-            _marketStatusOracles: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<[LibUI.PriceStructOutput[]] & { result: LibUI.PriceStructOutput[] }>;
-
-        "batchOracleValues(address[],address[],address[])"(
-            _assets: PromiseOrValue<string>[],
-            _oracles: PromiseOrValue<string>[],
-            _marketStatusOracles: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<[LibUI.PriceStructOutput[]] & { result: LibUI.PriceStructOutput[] }>;
-
-        getAccountData(
-            _account: PromiseOrValue<string>,
-            _tokens: PromiseOrValue<string>[],
-            _staking: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<
-            [LibUI.KreskoUserStructOutput, LibUI.BalanceStructOutput[], LibUI.StakingDataStructOutput[]] & {
-                user: LibUI.KreskoUserStructOutput;
-                balances: LibUI.BalanceStructOutput[];
-                stakingData: LibUI.StakingDataStructOutput[];
-            }
-        >;
-
-        "getAccountData(address,address[],address)"(
-            _account: PromiseOrValue<string>,
-            _tokens: PromiseOrValue<string>[],
-            _staking: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<
-            [LibUI.KreskoUserStructOutput, LibUI.BalanceStructOutput[], LibUI.StakingDataStructOutput[]] & {
-                user: LibUI.KreskoUserStructOutput;
-                balances: LibUI.BalanceStructOutput[];
-                stakingData: LibUI.StakingDataStructOutput[];
-            }
-        >;
-
-        getTokenData(
-            _allTokens: PromiseOrValue<string>[],
-            _assets: PromiseOrValue<string>[],
-            _priceFeeds: PromiseOrValue<string>[],
-            _marketStatusOracles: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<
-            [LibUI.TokenMetadataStructOutput[], LibUI.PriceStructOutput[]] & {
-                metadatas: LibUI.TokenMetadataStructOutput[];
-                prices: LibUI.PriceStructOutput[];
-            }
-        >;
-
-        "getTokenData(address[],address[],address[],address[])"(
-            _allTokens: PromiseOrValue<string>[],
-            _assets: PromiseOrValue<string>[],
-            _priceFeeds: PromiseOrValue<string>[],
-            _marketStatusOracles: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<
-            [LibUI.TokenMetadataStructOutput[], LibUI.PriceStructOutput[]] & {
-                metadatas: LibUI.TokenMetadataStructOutput[];
-                prices: LibUI.PriceStructOutput[];
-            }
-        >;
-
-        getGlobalData(
-            _collateralAssets: PromiseOrValue<string>[],
-            _krAssets: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<
-            [
-                LibUI.CollateralAssetInfoStructOutput[],
-                LibUI.KrAssetInfoStructOutput[],
-                LibUI.ProtocolParamsStructOutput,
-            ] & {
-                collateralAssets: LibUI.CollateralAssetInfoStructOutput[];
-                krAssets: LibUI.KrAssetInfoStructOutput[];
-                protocolParams: LibUI.ProtocolParamsStructOutput;
-            }
-        >;
-
-        "getGlobalData(address[],address[])"(
-            _collateralAssets: PromiseOrValue<string>[],
-            _krAssets: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<
-            [
-                LibUI.CollateralAssetInfoStructOutput[],
-                LibUI.KrAssetInfoStructOutput[],
-                LibUI.ProtocolParamsStructOutput,
-            ] & {
-                collateralAssets: LibUI.CollateralAssetInfoStructOutput[];
-                krAssets: LibUI.KrAssetInfoStructOutput[];
-                protocolParams: LibUI.ProtocolParamsStructOutput;
-            }
-        >;
-
-        getPairsData(
-            _pairAddresses: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<[LibUI.PairDataStructOutput[]] & { result: LibUI.PairDataStructOutput[] }>;
-
-        "getPairsData(address[])"(
-            _pairAddresses: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<[LibUI.PairDataStructOutput[]] & { result: LibUI.PairDataStructOutput[] }>;
-    };
-
-    getRoleAdmin(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<string>;
-
-    "getRoleAdmin(bytes32)"(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<string>;
+  contractName: "Kresko";
+
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
+
+  interface: KreskoInterface;
+
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TEvent>>;
+
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
+
+  functions: {
+    getRoleAdmin(
+      role: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
 
     getRoleMember(
-        role: PromiseOrValue<BytesLike>,
-        index: PromiseOrValue<BigNumberish>,
-        overrides?: CallOverrides,
-    ): Promise<string>;
+      role: PromiseOrValue<BytesLike>,
+      index: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
 
-    "getRoleMember(bytes32,uint256)"(
-        role: PromiseOrValue<BytesLike>,
-        index: PromiseOrValue<BigNumberish>,
-        overrides?: CallOverrides,
-    ): Promise<string>;
-
-    getRoleMemberCount(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getRoleMemberCount(bytes32)"(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<BigNumber>;
+    getRoleMemberCount(
+      role: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     grantRole(
-        role: PromiseOrValue<BytesLike>,
-        account: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "grantRole(bytes32,address)"(
-        role: PromiseOrValue<BytesLike>,
-        account: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     hasRole(
-        role: PromiseOrValue<BytesLike>,
-        account: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<boolean>;
-
-    "hasRole(bytes32,address)"(
-        role: PromiseOrValue<BytesLike>,
-        account: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<boolean>;
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
     renounceRole(
-        role: PromiseOrValue<BytesLike>,
-        account: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "renounceRole(bytes32,address)"(
-        role: PromiseOrValue<BytesLike>,
-        account: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     revokeRole(
-        role: PromiseOrValue<BytesLike>,
-        account: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "revokeRole(bytes32,address)"(
-        role: PromiseOrValue<BytesLike>,
-        account: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     diamondCut(
-        _diamondCut: IDiamondCutFacet.FacetCutStruct[],
-        _init: PromiseOrValue<string>,
-        _calldata: PromiseOrValue<BytesLike>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "diamondCut((address,uint8,bytes4[])[],address,bytes)"(
-        _diamondCut: IDiamondCutFacet.FacetCutStruct[],
-        _init: PromiseOrValue<string>,
-        _calldata: PromiseOrValue<BytesLike>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      _diamondCut: IDiamondCutFacet.FacetCutStruct[],
+      _init: PromiseOrValue<string>,
+      _calldata: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     upgradeState(
-        _init: PromiseOrValue<string>,
-        _calldata: PromiseOrValue<BytesLike>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      _init: PromiseOrValue<string>,
+      _calldata: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    "upgradeState(address,bytes)"(
-        _init: PromiseOrValue<string>,
-        _calldata: PromiseOrValue<BytesLike>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    facetAddress(
+      _functionSelector: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[string] & { facetAddress_: string }>;
+
+    facetAddresses(
+      overrides?: CallOverrides
+    ): Promise<[string[]] & { facetAddresses_: string[] }>;
+
+    facetFunctionSelectors(
+      _facet: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[string[]] & { facetFunctionSelectors_: string[] }>;
+
+    facets(
+      overrides?: CallOverrides
+    ): Promise<
+      [IDiamondLoupeFacet.FacetStructOutput[]] & {
+        facets_: IDiamondLoupeFacet.FacetStructOutput[];
+      }
+    >;
+
+    acceptOwnership(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    facetAddress(_functionSelector: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<string>;
+    initialized(overrides?: CallOverrides): Promise<[boolean]>;
 
-    "facetAddress(bytes4)"(_functionSelector: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<string>;
+    owner(overrides?: CallOverrides): Promise<[string]>;
 
-    facetAddresses(overrides?: CallOverrides): Promise<string[]>;
-
-    "facetAddresses()"(overrides?: CallOverrides): Promise<string[]>;
-
-    facetFunctionSelectors(_facet: PromiseOrValue<string>, overrides?: CallOverrides): Promise<string[]>;
-
-    "facetFunctionSelectors(address)"(_facet: PromiseOrValue<string>, overrides?: CallOverrides): Promise<string[]>;
-
-    facets(overrides?: CallOverrides): Promise<IDiamondLoupeFacet.FacetStructOutput[]>;
-
-    "facets()"(overrides?: CallOverrides): Promise<IDiamondLoupeFacet.FacetStructOutput[]>;
-
-    acceptOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
-
-    "acceptOwnership()"(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
-
-    initialized(overrides?: CallOverrides): Promise<boolean>;
-
-    "initialized()"(overrides?: CallOverrides): Promise<boolean>;
-
-    owner(overrides?: CallOverrides): Promise<string>;
-
-    "owner()"(overrides?: CallOverrides): Promise<string>;
-
-    pendingOwner(overrides?: CallOverrides): Promise<string>;
-
-    "pendingOwner()"(overrides?: CallOverrides): Promise<string>;
+    pendingOwner(overrides?: CallOverrides): Promise<[string]>;
 
     transferOwnership(
-        _newOwner: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "transferOwnership(address)"(
-        _newOwner: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      _newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     setERC165(
-        interfaceIds: PromiseOrValue<BytesLike>[],
-        interfaceIdsToRemove: PromiseOrValue<BytesLike>[],
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      interfaceIds: PromiseOrValue<BytesLike>[],
+      interfaceIdsToRemove: PromiseOrValue<BytesLike>[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    "setERC165(bytes4[],bytes4[])"(
-        interfaceIds: PromiseOrValue<BytesLike>[],
-        interfaceIdsToRemove: PromiseOrValue<BytesLike>[],
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    supportsInterface(_interfaceId: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<boolean>;
-
-    "supportsInterface(bytes4)"(_interfaceId: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<boolean>;
+    supportsInterface(
+      _interfaceId: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
     calcExpectedFee(
-        _account: PromiseOrValue<string>,
-        _kreskoAsset: PromiseOrValue<string>,
-        _kreskoAssetAmount: PromiseOrValue<BigNumberish>,
-        _feeType: PromiseOrValue<BigNumberish>,
-        overrides?: CallOverrides,
-    ): Promise<[string[], BigNumber[]]>;
-
-    "calcExpectedFee(address,address,uint256,uint256)"(
-        _account: PromiseOrValue<string>,
-        _kreskoAsset: PromiseOrValue<string>,
-        _kreskoAssetAmount: PromiseOrValue<BigNumberish>,
-        _feeType: PromiseOrValue<BigNumberish>,
-        overrides?: CallOverrides,
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      _kreskoAssetAmount: PromiseOrValue<BigNumberish>,
+      _feeType: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
     ): Promise<[string[], BigNumber[]]>;
 
     collateralDeposits(
-        _account: PromiseOrValue<string>,
-        _asset: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<BigNumber>;
-
-    "collateralDeposits(address,address)"(
-        _account: PromiseOrValue<string>,
-        _asset: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<BigNumber>;
+      _account: PromiseOrValue<string>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     getAccountCollateralRatio(
-        _account: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<FixedPoint.UnsignedStructOutput>;
-
-    "getAccountCollateralRatio(address)"(
-        _account: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<FixedPoint.UnsignedStructOutput>;
-
-    getAccountCollateralValue(
-        _account: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<FixedPoint.UnsignedStructOutput>;
-
-    "getAccountCollateralValue(address)"(
-        _account: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<FixedPoint.UnsignedStructOutput>;
-
-    getAccountKrAssetValue(
-        _account: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<FixedPoint.UnsignedStructOutput>;
-
-    "getAccountKrAssetValue(address)"(
-        _account: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<FixedPoint.UnsignedStructOutput>;
-
-    getAccountMinimumCollateralValueAtRatio(
-        _account: PromiseOrValue<string>,
-        _ratio: FixedPoint.UnsignedStruct,
-        overrides?: CallOverrides,
-    ): Promise<FixedPoint.UnsignedStructOutput>;
-
-    "getAccountMinimumCollateralValueAtRatio(address,(uint256))"(
-        _account: PromiseOrValue<string>,
-        _ratio: FixedPoint.UnsignedStruct,
-        overrides?: CallOverrides,
-    ): Promise<FixedPoint.UnsignedStructOutput>;
-
-    getAccountSingleCollateralValueAndRealValue(
-        _account: PromiseOrValue<string>,
-        _asset: PromiseOrValue<string>,
-        overrides?: CallOverrides,
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
     ): Promise<
-        [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
-            value: FixedPoint.UnsignedStructOutput;
-            realValue: FixedPoint.UnsignedStructOutput;
-        }
+      [FixedPoint.UnsignedStructOutput] & {
+        ratio: FixedPoint.UnsignedStructOutput;
+      }
     >;
 
-    "getAccountSingleCollateralValueAndRealValue(address,address)"(
-        _account: PromiseOrValue<string>,
-        _asset: PromiseOrValue<string>,
-        overrides?: CallOverrides,
+    getAccountCollateralValue(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[FixedPoint.UnsignedStructOutput]>;
+
+    getAccountKrAssetValue(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[FixedPoint.UnsignedStructOutput]>;
+
+    getAccountMinimumCollateralValueAtRatio(
+      _account: PromiseOrValue<string>,
+      _ratio: FixedPoint.UnsignedStruct,
+      overrides?: CallOverrides
+    ): Promise<[FixedPoint.UnsignedStructOutput]>;
+
+    getAccountSingleCollateralValueAndRealValue(
+      _account: PromiseOrValue<string>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
     ): Promise<
-        [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
-            value: FixedPoint.UnsignedStructOutput;
-            realValue: FixedPoint.UnsignedStructOutput;
-        }
+      [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
+        value: FixedPoint.UnsignedStructOutput;
+        realValue: FixedPoint.UnsignedStructOutput;
+      }
     >;
 
     getCollateralRatiosFor(
-        _accounts: PromiseOrValue<string>[],
-        overrides?: CallOverrides,
-    ): Promise<FixedPoint.UnsignedStructOutput[]>;
-
-    "getCollateralRatiosFor(address[])"(
-        _accounts: PromiseOrValue<string>[],
-        overrides?: CallOverrides,
-    ): Promise<FixedPoint.UnsignedStructOutput[]>;
+      _accounts: PromiseOrValue<string>[],
+      overrides?: CallOverrides
+    ): Promise<[FixedPoint.UnsignedStructOutput[]]>;
 
     getDepositedCollateralAssetIndex(
-        _account: PromiseOrValue<string>,
-        _collateralAsset: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<BigNumber>;
+      _account: PromiseOrValue<string>,
+      _collateralAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { i: BigNumber }>;
 
-    "getDepositedCollateralAssetIndex(address,address)"(
-        _account: PromiseOrValue<string>,
-        _collateralAsset: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<BigNumber>;
+    getDepositedCollateralAssets(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[string[]]>;
 
-    getDepositedCollateralAssets(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<string[]>;
-
-    "getDepositedCollateralAssets(address)"(
-        _account: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<string[]>;
-
-    getMintedKreskoAssets(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<string[]>;
-
-    "getMintedKreskoAssets(address)"(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<string[]>;
+    getMintedKreskoAssets(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[string[]]>;
 
     getMintedKreskoAssetsIndex(
-        _account: PromiseOrValue<string>,
-        _kreskoAsset: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<BigNumber>;
-
-    "getMintedKreskoAssetsIndex(address,address)"(
-        _account: PromiseOrValue<string>,
-        _kreskoAsset: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<BigNumber>;
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     kreskoAssetDebt(
-        _account: PromiseOrValue<string>,
-        _asset: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<BigNumber>;
-
-    "kreskoAssetDebt(address,address)"(
-        _account: PromiseOrValue<string>,
-        _asset: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<BigNumber>;
+      _account: PromiseOrValue<string>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     kreskoAssetDebtInterest(
-        _account: PromiseOrValue<string>,
-        _asset: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<[BigNumber, BigNumber] & { assetAmount: BigNumber; kissAmount: BigNumber }>;
+      _account: PromiseOrValue<string>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber] & { assetAmount: BigNumber; kissAmount: BigNumber }
+    >;
 
-    "kreskoAssetDebtInterest(address,address)"(
-        _account: PromiseOrValue<string>,
-        _asset: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<[BigNumber, BigNumber] & { assetAmount: BigNumber; kissAmount: BigNumber }>;
-
-    kreskoAssetDebtInterestTotal(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "kreskoAssetDebtInterestTotal(address)"(
-        _account: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<BigNumber>;
+    kreskoAssetDebtInterestTotal(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { kissAmount: BigNumber }>;
 
     kreskoAssetDebtPrincipal(
-        _account: PromiseOrValue<string>,
-        _asset: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<BigNumber>;
-
-    "kreskoAssetDebtPrincipal(address,address)"(
-        _account: PromiseOrValue<string>,
-        _asset: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<BigNumber>;
+      _account: PromiseOrValue<string>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     burnKreskoAsset(
-        _account: PromiseOrValue<string>,
-        _kreskoAsset: PromiseOrValue<string>,
-        _burnAmount: PromiseOrValue<BigNumberish>,
-        _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "burnKreskoAsset(address,address,uint256,uint256)"(
-        _account: PromiseOrValue<string>,
-        _kreskoAsset: PromiseOrValue<string>,
-        _burnAmount: PromiseOrValue<BigNumberish>,
-        _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      _burnAmount: PromiseOrValue<BigNumberish>,
+      _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     batchCloseKrAssetDebtPositions(
-        _account: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "batchCloseKrAssetDebtPositions(address)"(
-        _account: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      _account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     closeKrAssetDebtPosition(
-        _account: PromiseOrValue<string>,
-        _kreskoAsset: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "closeKrAssetDebtPosition(address,address)"(
-        _account: PromiseOrValue<string>,
-        _kreskoAsset: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     addCollateralAsset(
-        _collateralAsset: PromiseOrValue<string>,
-        _anchor: PromiseOrValue<string>,
-        _factor: PromiseOrValue<BigNumberish>,
-        _priceFeedOracle: PromiseOrValue<string>,
-        _marketStatusOracle: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "addCollateralAsset(address,address,uint256,address,address)"(
-        _collateralAsset: PromiseOrValue<string>,
-        _anchor: PromiseOrValue<string>,
-        _factor: PromiseOrValue<BigNumberish>,
-        _priceFeedOracle: PromiseOrValue<string>,
-        _marketStatusOracle: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      _collateralAsset: PromiseOrValue<string>,
+      _anchor: PromiseOrValue<string>,
+      _factor: PromiseOrValue<BigNumberish>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     addKreskoAsset(
-        _krAsset: PromiseOrValue<string>,
-        _anchor: PromiseOrValue<string>,
-        _kFactor: PromiseOrValue<BigNumberish>,
-        _priceFeedOracle: PromiseOrValue<string>,
-        _marketStatusOracle: PromiseOrValue<string>,
-        _supplyLimit: PromiseOrValue<BigNumberish>,
-        _closeFee: PromiseOrValue<BigNumberish>,
-        _openFee: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "addKreskoAsset(address,address,uint256,address,address,uint256,uint256,uint256)"(
-        _krAsset: PromiseOrValue<string>,
-        _anchor: PromiseOrValue<string>,
-        _kFactor: PromiseOrValue<BigNumberish>,
-        _priceFeedOracle: PromiseOrValue<string>,
-        _marketStatusOracle: PromiseOrValue<string>,
-        _supplyLimit: PromiseOrValue<BigNumberish>,
-        _closeFee: PromiseOrValue<BigNumberish>,
-        _openFee: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      _krAsset: PromiseOrValue<string>,
+      _anchor: PromiseOrValue<string>,
+      _kFactor: PromiseOrValue<BigNumberish>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
+      _supplyLimit: PromiseOrValue<BigNumberish>,
+      _closeFee: PromiseOrValue<BigNumberish>,
+      _openFee: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     initialize(
-        args: MinterInitArgsStruct,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "initialize((address,address,address,uint8,uint256,uint256,uint256,uint256))"(
-        args: MinterInitArgsStruct,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      args: MinterInitArgsStruct,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     updateAMMOracle(
-        _ammOracle: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "updateAMMOracle(address)"(
-        _ammOracle: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      _ammOracle: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     updateCollateralAsset(
-        _collateralAsset: PromiseOrValue<string>,
-        _anchor: PromiseOrValue<string>,
-        _factor: PromiseOrValue<BigNumberish>,
-        _priceFeedOracle: PromiseOrValue<string>,
-        _marketStatusOracle: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "updateCollateralAsset(address,address,uint256,address,address)"(
-        _collateralAsset: PromiseOrValue<string>,
-        _anchor: PromiseOrValue<string>,
-        _factor: PromiseOrValue<BigNumberish>,
-        _priceFeedOracle: PromiseOrValue<string>,
-        _marketStatusOracle: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      _collateralAsset: PromiseOrValue<string>,
+      _anchor: PromiseOrValue<string>,
+      _factor: PromiseOrValue<BigNumberish>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     updateExtOracleDecimals(
-        _decimals: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "updateExtOracleDecimals(uint8)"(
-        _decimals: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      _decimals: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     updateFeeRecipient(
-        _feeRecipient: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "updateFeeRecipient(address)"(
-        _feeRecipient: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      _feeRecipient: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     updateKreskoAsset(
-        _krAsset: PromiseOrValue<string>,
-        _anchor: PromiseOrValue<string>,
-        _kFactor: PromiseOrValue<BigNumberish>,
-        _priceFeedOracle: PromiseOrValue<string>,
-        _marketStatusOracle: PromiseOrValue<string>,
-        _supplyLimit: PromiseOrValue<BigNumberish>,
-        _closeFee: PromiseOrValue<BigNumberish>,
-        _openFee: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "updateKreskoAsset(address,address,uint256,address,address,uint256,uint256,uint256)"(
-        _krAsset: PromiseOrValue<string>,
-        _anchor: PromiseOrValue<string>,
-        _kFactor: PromiseOrValue<BigNumberish>,
-        _priceFeedOracle: PromiseOrValue<string>,
-        _marketStatusOracle: PromiseOrValue<string>,
-        _supplyLimit: PromiseOrValue<BigNumberish>,
-        _closeFee: PromiseOrValue<BigNumberish>,
-        _openFee: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      _krAsset: PromiseOrValue<string>,
+      _anchor: PromiseOrValue<string>,
+      _kFactor: PromiseOrValue<BigNumberish>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
+      _supplyLimit: PromiseOrValue<BigNumberish>,
+      _closeFee: PromiseOrValue<BigNumberish>,
+      _openFee: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     updateLiquidationIncentiveMultiplier(
-        _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "updateLiquidationIncentiveMultiplier(uint256)"(
-        _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     updateLiquidationThreshold(
-        _liquidationThreshold: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "updateLiquidationThreshold(uint256)"(
-        _liquidationThreshold: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      _liquidationThreshold: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     updateMinimumCollateralizationRatio(
-        _minimumCollateralizationRatio: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "updateMinimumCollateralizationRatio(uint256)"(
-        _minimumCollateralizationRatio: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      _minimumCollateralizationRatio: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     updateMinimumDebtValue(
-        _minimumDebtValue: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "updateMinimumDebtValue(uint256)"(
-        _minimumDebtValue: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      _minimumDebtValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     depositCollateral(
-        _account: PromiseOrValue<string>,
-        _collateralAsset: PromiseOrValue<string>,
-        _depositAmount: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "depositCollateral(address,address,uint256)"(
-        _account: PromiseOrValue<string>,
-        _collateralAsset: PromiseOrValue<string>,
-        _depositAmount: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      _account: PromiseOrValue<string>,
+      _collateralAsset: PromiseOrValue<string>,
+      _depositAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     withdrawCollateral(
-        _account: PromiseOrValue<string>,
-        _collateralAsset: PromiseOrValue<string>,
-        _withdrawAmount: PromiseOrValue<BigNumberish>,
-        _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "withdrawCollateral(address,address,uint256,uint256)"(
-        _account: PromiseOrValue<string>,
-        _collateralAsset: PromiseOrValue<string>,
-        _withdrawAmount: PromiseOrValue<BigNumberish>,
-        _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      _account: PromiseOrValue<string>,
+      _collateralAsset: PromiseOrValue<string>,
+      _withdrawAmount: PromiseOrValue<BigNumberish>,
+      _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     batchLiquidateInterest(
-        _account: PromiseOrValue<string>,
-        _collateralAssetToSeize: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "batchLiquidateInterest(address,address)"(
-        _account: PromiseOrValue<string>,
-        _collateralAssetToSeize: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      _account: PromiseOrValue<string>,
+      _collateralAssetToSeize: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     liquidateInterest(
-        _account: PromiseOrValue<string>,
-        _repayKreskoAsset: PromiseOrValue<string>,
-        _collateralAssetToSeize: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "liquidateInterest(address,address,address)"(
-        _account: PromiseOrValue<string>,
-        _repayKreskoAsset: PromiseOrValue<string>,
-        _collateralAssetToSeize: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      _account: PromiseOrValue<string>,
+      _repayKreskoAsset: PromiseOrValue<string>,
+      _collateralAssetToSeize: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     calculateMaxLiquidatableValueForAssets(
-        _account: PromiseOrValue<string>,
-        _repayKreskoAsset: PromiseOrValue<string>,
-        _collateralAssetToSeize: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<FixedPoint.UnsignedStructOutput>;
+      _account: PromiseOrValue<string>,
+      _repayKreskoAsset: PromiseOrValue<string>,
+      _collateralAssetToSeize: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [FixedPoint.UnsignedStructOutput] & {
+        maxLiquidatableUSD: FixedPoint.UnsignedStructOutput;
+      }
+    >;
 
-    "calculateMaxLiquidatableValueForAssets(address,address,address)"(
-        _account: PromiseOrValue<string>,
-        _repayKreskoAsset: PromiseOrValue<string>,
-        _collateralAssetToSeize: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<FixedPoint.UnsignedStructOutput>;
-
-    isAccountLiquidatable(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
-
-    "isAccountLiquidatable(address)"(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
+    isAccountLiquidatable(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
     liquidate(
-        _account: PromiseOrValue<string>,
-        _repayKreskoAsset: PromiseOrValue<string>,
-        _repayAmount: PromiseOrValue<BigNumberish>,
-        _collateralAssetToSeize: PromiseOrValue<string>,
-        _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
-        _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "liquidate(address,address,uint256,address,uint256,uint256)"(
-        _account: PromiseOrValue<string>,
-        _repayKreskoAsset: PromiseOrValue<string>,
-        _repayAmount: PromiseOrValue<BigNumberish>,
-        _collateralAssetToSeize: PromiseOrValue<string>,
-        _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
-        _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      _account: PromiseOrValue<string>,
+      _repayKreskoAsset: PromiseOrValue<string>,
+      _repayAmount: PromiseOrValue<BigNumberish>,
+      _collateralAssetToSeize: PromiseOrValue<string>,
+      _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
+      _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     mintKreskoAsset(
-        _account: PromiseOrValue<string>,
-        _kreskoAsset: PromiseOrValue<string>,
-        _mintAmount: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "mintKreskoAsset(address,address,uint256)"(
-        _account: PromiseOrValue<string>,
-        _kreskoAsset: PromiseOrValue<string>,
-        _mintAmount: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      _mintAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     assetActionPaused(
-        _action: PromiseOrValue<BigNumberish>,
-        _asset: PromiseOrValue<string>,
-        overrides?: CallOverrides,
+      _action: PromiseOrValue<BigNumberish>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
+    safetyStateFor(
+      _asset: PromiseOrValue<string>,
+      _action: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[SafetyStateStructOutput]>;
+
+    safetyStateSet(overrides?: CallOverrides): Promise<[boolean]>;
+
+    toggleAssetsPaused(
+      _assets: PromiseOrValue<string>[],
+      _action: PromiseOrValue<BigNumberish>,
+      _withDuration: PromiseOrValue<boolean>,
+      _duration: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    batchRepayFullStabilityRateInterest(
+      _account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    getDebtIndexForAsset(
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { debtIndex: BigNumber }>;
+
+    getLastDebtIndexForAccount(
+      _account: PromiseOrValue<string>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { lastDebtIndex: BigNumber }>;
+
+    getPriceRateForAsset(
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { priceRate: BigNumber }>;
+
+    getStabilityRateConfigurationForAsset(
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[StabilityRateConfigStructOutput]>;
+
+    getStabilityRateForAsset(
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { stabilityRate: BigNumber }>;
+
+    kiss(overrides?: CallOverrides): Promise<[string]>;
+
+    repayFullStabilityRateInterest(
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    repayStabilityRateInterestPartial(
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      _kissRepayAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    setupStabilityRateParams(
+      _asset: PromiseOrValue<string>,
+      _setup: StabilityRateParamsStruct,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    updateKiss(
+      _kiss: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    updateStabilityRateAndIndexForAsset(
+      _asset: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    updateStabilityRateParams(
+      _asset: PromiseOrValue<string>,
+      _setup: StabilityRateParamsStruct,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    ammOracle(overrides?: CallOverrides): Promise<[string]>;
+
+    collateralAsset(
+      _collateralAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [CollateralAssetStructOutput] & { asset: CollateralAssetStructOutput }
+    >;
+
+    collateralExists(
+      _collateralAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean] & { exists: boolean }>;
+
+    domainSeparator(overrides?: CallOverrides): Promise<[string]>;
+
+    extOracleDecimals(overrides?: CallOverrides): Promise<[number]>;
+
+    feeRecipient(overrides?: CallOverrides): Promise<[string]>;
+
+    getAllParams(
+      overrides?: CallOverrides
+    ): Promise<[MinterParamsStructOutput]>;
+
+    getCollateralValueAndOraclePrice(
+      _collateralAsset: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
+      _ignoreCollateralFactor: PromiseOrValue<boolean>,
+      overrides?: CallOverrides
+    ): Promise<
+      [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
+        value: FixedPoint.UnsignedStructOutput;
+        oraclePrice: FixedPoint.UnsignedStructOutput;
+      }
+    >;
+
+    getKrAssetValue(
+      _kreskoAsset: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
+      _ignoreKFactor: PromiseOrValue<boolean>,
+      overrides?: CallOverrides
+    ): Promise<
+      [FixedPoint.UnsignedStructOutput] & {
+        value: FixedPoint.UnsignedStructOutput;
+      }
+    >;
+
+    krAssetExists(
+      _kreskoAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean] & { exists: boolean }>;
+
+    kreskoAsset(
+      _kreskoAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[KrAssetStructOutput] & { asset: KrAssetStructOutput }>;
+
+    liquidationIncentiveMultiplier(
+      overrides?: CallOverrides
+    ): Promise<[FixedPoint.UnsignedStructOutput]>;
+
+    liquidationThreshold(
+      overrides?: CallOverrides
+    ): Promise<[FixedPoint.UnsignedStructOutput]>;
+
+    minimumCollateralizationRatio(
+      overrides?: CallOverrides
+    ): Promise<[FixedPoint.UnsignedStructOutput]>;
+
+    minimumDebtValue(
+      overrides?: CallOverrides
+    ): Promise<[FixedPoint.UnsignedStructOutput]>;
+
+    minterInitializations(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    batchOracleValues(
+      _assets: PromiseOrValue<string>[],
+      _oracles: PromiseOrValue<string>[],
+      _marketStatusOracles: PromiseOrValue<string>[],
+      overrides?: CallOverrides
+    ): Promise<
+      [LibUI.PriceStructOutput[]] & { result: LibUI.PriceStructOutput[] }
+    >;
+
+    getAccountData(
+      _account: PromiseOrValue<string>,
+      _tokens: PromiseOrValue<string>[],
+      _staking: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [
+        LibUI.KreskoUserStructOutput,
+        LibUI.BalanceStructOutput[],
+        LibUI.StakingDataStructOutput[]
+      ] & {
+        user: LibUI.KreskoUserStructOutput;
+        balances: LibUI.BalanceStructOutput[];
+        stakingData: LibUI.StakingDataStructOutput[];
+      }
+    >;
+
+    getTokenData(
+      _allTokens: PromiseOrValue<string>[],
+      _assets: PromiseOrValue<string>[],
+      _priceFeeds: PromiseOrValue<string>[],
+      _marketStatusOracles: PromiseOrValue<string>[],
+      overrides?: CallOverrides
+    ): Promise<
+      [LibUI.TokenMetadataStructOutput[], LibUI.PriceStructOutput[]] & {
+        metadatas: LibUI.TokenMetadataStructOutput[];
+        prices: LibUI.PriceStructOutput[];
+      }
+    >;
+
+    getGlobalData(
+      _collateralAssets: PromiseOrValue<string>[],
+      _krAssets: PromiseOrValue<string>[],
+      overrides?: CallOverrides
+    ): Promise<
+      [
+        LibUI.CollateralAssetInfoStructOutput[],
+        LibUI.KrAssetInfoStructOutput[],
+        LibUI.ProtocolParamsStructOutput
+      ] & {
+        collateralAssets: LibUI.CollateralAssetInfoStructOutput[];
+        krAssets: LibUI.KrAssetInfoStructOutput[];
+        protocolParams: LibUI.ProtocolParamsStructOutput;
+      }
+    >;
+
+    getPairsData(
+      _pairAddresses: PromiseOrValue<string>[],
+      overrides?: CallOverrides
+    ): Promise<
+      [LibUI.PairDataStructOutput[]] & { result: LibUI.PairDataStructOutput[] }
+    >;
+  };
+
+  getRoleAdmin(
+    role: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  getRoleMember(
+    role: PromiseOrValue<BytesLike>,
+    index: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  getRoleMemberCount(
+    role: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  grantRole(
+    role: PromiseOrValue<BytesLike>,
+    account: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  hasRole(
+    role: PromiseOrValue<BytesLike>,
+    account: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  renounceRole(
+    role: PromiseOrValue<BytesLike>,
+    account: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  revokeRole(
+    role: PromiseOrValue<BytesLike>,
+    account: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  diamondCut(
+    _diamondCut: IDiamondCutFacet.FacetCutStruct[],
+    _init: PromiseOrValue<string>,
+    _calldata: PromiseOrValue<BytesLike>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  upgradeState(
+    _init: PromiseOrValue<string>,
+    _calldata: PromiseOrValue<BytesLike>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  facetAddress(
+    _functionSelector: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  facetAddresses(overrides?: CallOverrides): Promise<string[]>;
+
+  facetFunctionSelectors(
+    _facet: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<string[]>;
+
+  facets(
+    overrides?: CallOverrides
+  ): Promise<IDiamondLoupeFacet.FacetStructOutput[]>;
+
+  acceptOwnership(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  initialized(overrides?: CallOverrides): Promise<boolean>;
+
+  owner(overrides?: CallOverrides): Promise<string>;
+
+  pendingOwner(overrides?: CallOverrides): Promise<string>;
+
+  transferOwnership(
+    _newOwner: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setERC165(
+    interfaceIds: PromiseOrValue<BytesLike>[],
+    interfaceIdsToRemove: PromiseOrValue<BytesLike>[],
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  supportsInterface(
+    _interfaceId: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  calcExpectedFee(
+    _account: PromiseOrValue<string>,
+    _kreskoAsset: PromiseOrValue<string>,
+    _kreskoAssetAmount: PromiseOrValue<BigNumberish>,
+    _feeType: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<[string[], BigNumber[]]>;
+
+  collateralDeposits(
+    _account: PromiseOrValue<string>,
+    _asset: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  getAccountCollateralRatio(
+    _account: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<FixedPoint.UnsignedStructOutput>;
+
+  getAccountCollateralValue(
+    _account: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<FixedPoint.UnsignedStructOutput>;
+
+  getAccountKrAssetValue(
+    _account: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<FixedPoint.UnsignedStructOutput>;
+
+  getAccountMinimumCollateralValueAtRatio(
+    _account: PromiseOrValue<string>,
+    _ratio: FixedPoint.UnsignedStruct,
+    overrides?: CallOverrides
+  ): Promise<FixedPoint.UnsignedStructOutput>;
+
+  getAccountSingleCollateralValueAndRealValue(
+    _account: PromiseOrValue<string>,
+    _asset: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<
+    [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
+      value: FixedPoint.UnsignedStructOutput;
+      realValue: FixedPoint.UnsignedStructOutput;
+    }
+  >;
+
+  getCollateralRatiosFor(
+    _accounts: PromiseOrValue<string>[],
+    overrides?: CallOverrides
+  ): Promise<FixedPoint.UnsignedStructOutput[]>;
+
+  getDepositedCollateralAssetIndex(
+    _account: PromiseOrValue<string>,
+    _collateralAsset: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  getDepositedCollateralAssets(
+    _account: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<string[]>;
+
+  getMintedKreskoAssets(
+    _account: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<string[]>;
+
+  getMintedKreskoAssetsIndex(
+    _account: PromiseOrValue<string>,
+    _kreskoAsset: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  kreskoAssetDebt(
+    _account: PromiseOrValue<string>,
+    _asset: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  kreskoAssetDebtInterest(
+    _account: PromiseOrValue<string>,
+    _asset: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<
+    [BigNumber, BigNumber] & { assetAmount: BigNumber; kissAmount: BigNumber }
+  >;
+
+  kreskoAssetDebtInterestTotal(
+    _account: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  kreskoAssetDebtPrincipal(
+    _account: PromiseOrValue<string>,
+    _asset: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  burnKreskoAsset(
+    _account: PromiseOrValue<string>,
+    _kreskoAsset: PromiseOrValue<string>,
+    _burnAmount: PromiseOrValue<BigNumberish>,
+    _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  batchCloseKrAssetDebtPositions(
+    _account: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  closeKrAssetDebtPosition(
+    _account: PromiseOrValue<string>,
+    _kreskoAsset: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  addCollateralAsset(
+    _collateralAsset: PromiseOrValue<string>,
+    _anchor: PromiseOrValue<string>,
+    _factor: PromiseOrValue<BigNumberish>,
+    _priceFeedOracle: PromiseOrValue<string>,
+    _marketStatusOracle: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  addKreskoAsset(
+    _krAsset: PromiseOrValue<string>,
+    _anchor: PromiseOrValue<string>,
+    _kFactor: PromiseOrValue<BigNumberish>,
+    _priceFeedOracle: PromiseOrValue<string>,
+    _marketStatusOracle: PromiseOrValue<string>,
+    _supplyLimit: PromiseOrValue<BigNumberish>,
+    _closeFee: PromiseOrValue<BigNumberish>,
+    _openFee: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  initialize(
+    args: MinterInitArgsStruct,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  updateAMMOracle(
+    _ammOracle: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  updateCollateralAsset(
+    _collateralAsset: PromiseOrValue<string>,
+    _anchor: PromiseOrValue<string>,
+    _factor: PromiseOrValue<BigNumberish>,
+    _priceFeedOracle: PromiseOrValue<string>,
+    _marketStatusOracle: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  updateExtOracleDecimals(
+    _decimals: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  updateFeeRecipient(
+    _feeRecipient: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  updateKreskoAsset(
+    _krAsset: PromiseOrValue<string>,
+    _anchor: PromiseOrValue<string>,
+    _kFactor: PromiseOrValue<BigNumberish>,
+    _priceFeedOracle: PromiseOrValue<string>,
+    _marketStatusOracle: PromiseOrValue<string>,
+    _supplyLimit: PromiseOrValue<BigNumberish>,
+    _closeFee: PromiseOrValue<BigNumberish>,
+    _openFee: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  updateLiquidationIncentiveMultiplier(
+    _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  updateLiquidationThreshold(
+    _liquidationThreshold: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  updateMinimumCollateralizationRatio(
+    _minimumCollateralizationRatio: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  updateMinimumDebtValue(
+    _minimumDebtValue: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  depositCollateral(
+    _account: PromiseOrValue<string>,
+    _collateralAsset: PromiseOrValue<string>,
+    _depositAmount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  withdrawCollateral(
+    _account: PromiseOrValue<string>,
+    _collateralAsset: PromiseOrValue<string>,
+    _withdrawAmount: PromiseOrValue<BigNumberish>,
+    _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  batchLiquidateInterest(
+    _account: PromiseOrValue<string>,
+    _collateralAssetToSeize: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  liquidateInterest(
+    _account: PromiseOrValue<string>,
+    _repayKreskoAsset: PromiseOrValue<string>,
+    _collateralAssetToSeize: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  calculateMaxLiquidatableValueForAssets(
+    _account: PromiseOrValue<string>,
+    _repayKreskoAsset: PromiseOrValue<string>,
+    _collateralAssetToSeize: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<FixedPoint.UnsignedStructOutput>;
+
+  isAccountLiquidatable(
+    _account: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  liquidate(
+    _account: PromiseOrValue<string>,
+    _repayKreskoAsset: PromiseOrValue<string>,
+    _repayAmount: PromiseOrValue<BigNumberish>,
+    _collateralAssetToSeize: PromiseOrValue<string>,
+    _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
+    _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  mintKreskoAsset(
+    _account: PromiseOrValue<string>,
+    _kreskoAsset: PromiseOrValue<string>,
+    _mintAmount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  assetActionPaused(
+    _action: PromiseOrValue<BigNumberish>,
+    _asset: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  safetyStateFor(
+    _asset: PromiseOrValue<string>,
+    _action: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<SafetyStateStructOutput>;
+
+  safetyStateSet(overrides?: CallOverrides): Promise<boolean>;
+
+  toggleAssetsPaused(
+    _assets: PromiseOrValue<string>[],
+    _action: PromiseOrValue<BigNumberish>,
+    _withDuration: PromiseOrValue<boolean>,
+    _duration: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  batchRepayFullStabilityRateInterest(
+    _account: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  getDebtIndexForAsset(
+    _asset: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  getLastDebtIndexForAccount(
+    _account: PromiseOrValue<string>,
+    _asset: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  getPriceRateForAsset(
+    _asset: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  getStabilityRateConfigurationForAsset(
+    _asset: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<StabilityRateConfigStructOutput>;
+
+  getStabilityRateForAsset(
+    _asset: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  kiss(overrides?: CallOverrides): Promise<string>;
+
+  repayFullStabilityRateInterest(
+    _account: PromiseOrValue<string>,
+    _kreskoAsset: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  repayStabilityRateInterestPartial(
+    _account: PromiseOrValue<string>,
+    _kreskoAsset: PromiseOrValue<string>,
+    _kissRepayAmount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setupStabilityRateParams(
+    _asset: PromiseOrValue<string>,
+    _setup: StabilityRateParamsStruct,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  updateKiss(
+    _kiss: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  updateStabilityRateAndIndexForAsset(
+    _asset: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  updateStabilityRateParams(
+    _asset: PromiseOrValue<string>,
+    _setup: StabilityRateParamsStruct,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  ammOracle(overrides?: CallOverrides): Promise<string>;
+
+  collateralAsset(
+    _collateralAsset: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<CollateralAssetStructOutput>;
+
+  collateralExists(
+    _collateralAsset: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  domainSeparator(overrides?: CallOverrides): Promise<string>;
+
+  extOracleDecimals(overrides?: CallOverrides): Promise<number>;
+
+  feeRecipient(overrides?: CallOverrides): Promise<string>;
+
+  getAllParams(overrides?: CallOverrides): Promise<MinterParamsStructOutput>;
+
+  getCollateralValueAndOraclePrice(
+    _collateralAsset: PromiseOrValue<string>,
+    _amount: PromiseOrValue<BigNumberish>,
+    _ignoreCollateralFactor: PromiseOrValue<boolean>,
+    overrides?: CallOverrides
+  ): Promise<
+    [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
+      value: FixedPoint.UnsignedStructOutput;
+      oraclePrice: FixedPoint.UnsignedStructOutput;
+    }
+  >;
+
+  getKrAssetValue(
+    _kreskoAsset: PromiseOrValue<string>,
+    _amount: PromiseOrValue<BigNumberish>,
+    _ignoreKFactor: PromiseOrValue<boolean>,
+    overrides?: CallOverrides
+  ): Promise<FixedPoint.UnsignedStructOutput>;
+
+  krAssetExists(
+    _kreskoAsset: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  kreskoAsset(
+    _kreskoAsset: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<KrAssetStructOutput>;
+
+  liquidationIncentiveMultiplier(
+    overrides?: CallOverrides
+  ): Promise<FixedPoint.UnsignedStructOutput>;
+
+  liquidationThreshold(
+    overrides?: CallOverrides
+  ): Promise<FixedPoint.UnsignedStructOutput>;
+
+  minimumCollateralizationRatio(
+    overrides?: CallOverrides
+  ): Promise<FixedPoint.UnsignedStructOutput>;
+
+  minimumDebtValue(
+    overrides?: CallOverrides
+  ): Promise<FixedPoint.UnsignedStructOutput>;
+
+  minterInitializations(overrides?: CallOverrides): Promise<BigNumber>;
+
+  batchOracleValues(
+    _assets: PromiseOrValue<string>[],
+    _oracles: PromiseOrValue<string>[],
+    _marketStatusOracles: PromiseOrValue<string>[],
+    overrides?: CallOverrides
+  ): Promise<LibUI.PriceStructOutput[]>;
+
+  getAccountData(
+    _account: PromiseOrValue<string>,
+    _tokens: PromiseOrValue<string>[],
+    _staking: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<
+    [
+      LibUI.KreskoUserStructOutput,
+      LibUI.BalanceStructOutput[],
+      LibUI.StakingDataStructOutput[]
+    ] & {
+      user: LibUI.KreskoUserStructOutput;
+      balances: LibUI.BalanceStructOutput[];
+      stakingData: LibUI.StakingDataStructOutput[];
+    }
+  >;
+
+  getTokenData(
+    _allTokens: PromiseOrValue<string>[],
+    _assets: PromiseOrValue<string>[],
+    _priceFeeds: PromiseOrValue<string>[],
+    _marketStatusOracles: PromiseOrValue<string>[],
+    overrides?: CallOverrides
+  ): Promise<
+    [LibUI.TokenMetadataStructOutput[], LibUI.PriceStructOutput[]] & {
+      metadatas: LibUI.TokenMetadataStructOutput[];
+      prices: LibUI.PriceStructOutput[];
+    }
+  >;
+
+  getGlobalData(
+    _collateralAssets: PromiseOrValue<string>[],
+    _krAssets: PromiseOrValue<string>[],
+    overrides?: CallOverrides
+  ): Promise<
+    [
+      LibUI.CollateralAssetInfoStructOutput[],
+      LibUI.KrAssetInfoStructOutput[],
+      LibUI.ProtocolParamsStructOutput
+    ] & {
+      collateralAssets: LibUI.CollateralAssetInfoStructOutput[];
+      krAssets: LibUI.KrAssetInfoStructOutput[];
+      protocolParams: LibUI.ProtocolParamsStructOutput;
+    }
+  >;
+
+  getPairsData(
+    _pairAddresses: PromiseOrValue<string>[],
+    overrides?: CallOverrides
+  ): Promise<LibUI.PairDataStructOutput[]>;
+
+  callStatic: {
+    getRoleAdmin(
+      role: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    getRoleMember(
+      role: PromiseOrValue<BytesLike>,
+      index: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    getRoleMemberCount(
+      role: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    grantRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    hasRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
     ): Promise<boolean>;
 
-    "assetActionPaused(uint8,address)"(
-        _action: PromiseOrValue<BigNumberish>,
-        _asset: PromiseOrValue<string>,
-        overrides?: CallOverrides,
+    renounceRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    revokeRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    diamondCut(
+      _diamondCut: IDiamondCutFacet.FacetCutStruct[],
+      _init: PromiseOrValue<string>,
+      _calldata: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    upgradeState(
+      _init: PromiseOrValue<string>,
+      _calldata: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    facetAddress(
+      _functionSelector: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    facetAddresses(overrides?: CallOverrides): Promise<string[]>;
+
+    facetFunctionSelectors(
+      _facet: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<string[]>;
+
+    facets(
+      overrides?: CallOverrides
+    ): Promise<IDiamondLoupeFacet.FacetStructOutput[]>;
+
+    acceptOwnership(overrides?: CallOverrides): Promise<void>;
+
+    initialized(overrides?: CallOverrides): Promise<boolean>;
+
+    owner(overrides?: CallOverrides): Promise<string>;
+
+    pendingOwner(overrides?: CallOverrides): Promise<string>;
+
+    transferOwnership(
+      _newOwner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setERC165(
+      interfaceIds: PromiseOrValue<BytesLike>[],
+      interfaceIdsToRemove: PromiseOrValue<BytesLike>[],
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    supportsInterface(
+      _interfaceId: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    calcExpectedFee(
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      _kreskoAssetAmount: PromiseOrValue<BigNumberish>,
+      _feeType: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[string[], BigNumber[]]>;
+
+    collateralDeposits(
+      _account: PromiseOrValue<string>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getAccountCollateralRatio(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<FixedPoint.UnsignedStructOutput>;
+
+    getAccountCollateralValue(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<FixedPoint.UnsignedStructOutput>;
+
+    getAccountKrAssetValue(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<FixedPoint.UnsignedStructOutput>;
+
+    getAccountMinimumCollateralValueAtRatio(
+      _account: PromiseOrValue<string>,
+      _ratio: FixedPoint.UnsignedStruct,
+      overrides?: CallOverrides
+    ): Promise<FixedPoint.UnsignedStructOutput>;
+
+    getAccountSingleCollateralValueAndRealValue(
+      _account: PromiseOrValue<string>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
+        value: FixedPoint.UnsignedStructOutput;
+        realValue: FixedPoint.UnsignedStructOutput;
+      }
+    >;
+
+    getCollateralRatiosFor(
+      _accounts: PromiseOrValue<string>[],
+      overrides?: CallOverrides
+    ): Promise<FixedPoint.UnsignedStructOutput[]>;
+
+    getDepositedCollateralAssetIndex(
+      _account: PromiseOrValue<string>,
+      _collateralAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getDepositedCollateralAssets(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<string[]>;
+
+    getMintedKreskoAssets(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<string[]>;
+
+    getMintedKreskoAssetsIndex(
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    kreskoAssetDebt(
+      _account: PromiseOrValue<string>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    kreskoAssetDebtInterest(
+      _account: PromiseOrValue<string>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber] & { assetAmount: BigNumber; kissAmount: BigNumber }
+    >;
+
+    kreskoAssetDebtInterestTotal(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    kreskoAssetDebtPrincipal(
+      _account: PromiseOrValue<string>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    burnKreskoAsset(
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      _burnAmount: PromiseOrValue<BigNumberish>,
+      _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    batchCloseKrAssetDebtPositions(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    closeKrAssetDebtPosition(
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    addCollateralAsset(
+      _collateralAsset: PromiseOrValue<string>,
+      _anchor: PromiseOrValue<string>,
+      _factor: PromiseOrValue<BigNumberish>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    addKreskoAsset(
+      _krAsset: PromiseOrValue<string>,
+      _anchor: PromiseOrValue<string>,
+      _kFactor: PromiseOrValue<BigNumberish>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
+      _supplyLimit: PromiseOrValue<BigNumberish>,
+      _closeFee: PromiseOrValue<BigNumberish>,
+      _openFee: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    initialize(
+      args: MinterInitArgsStruct,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    updateAMMOracle(
+      _ammOracle: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    updateCollateralAsset(
+      _collateralAsset: PromiseOrValue<string>,
+      _anchor: PromiseOrValue<string>,
+      _factor: PromiseOrValue<BigNumberish>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    updateExtOracleDecimals(
+      _decimals: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    updateFeeRecipient(
+      _feeRecipient: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    updateKreskoAsset(
+      _krAsset: PromiseOrValue<string>,
+      _anchor: PromiseOrValue<string>,
+      _kFactor: PromiseOrValue<BigNumberish>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
+      _supplyLimit: PromiseOrValue<BigNumberish>,
+      _closeFee: PromiseOrValue<BigNumberish>,
+      _openFee: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    updateLiquidationIncentiveMultiplier(
+      _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    updateLiquidationThreshold(
+      _liquidationThreshold: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    updateMinimumCollateralizationRatio(
+      _minimumCollateralizationRatio: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    updateMinimumDebtValue(
+      _minimumDebtValue: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    depositCollateral(
+      _account: PromiseOrValue<string>,
+      _collateralAsset: PromiseOrValue<string>,
+      _depositAmount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    withdrawCollateral(
+      _account: PromiseOrValue<string>,
+      _collateralAsset: PromiseOrValue<string>,
+      _withdrawAmount: PromiseOrValue<BigNumberish>,
+      _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    batchLiquidateInterest(
+      _account: PromiseOrValue<string>,
+      _collateralAssetToSeize: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    liquidateInterest(
+      _account: PromiseOrValue<string>,
+      _repayKreskoAsset: PromiseOrValue<string>,
+      _collateralAssetToSeize: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    calculateMaxLiquidatableValueForAssets(
+      _account: PromiseOrValue<string>,
+      _repayKreskoAsset: PromiseOrValue<string>,
+      _collateralAssetToSeize: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<FixedPoint.UnsignedStructOutput>;
+
+    isAccountLiquidatable(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    liquidate(
+      _account: PromiseOrValue<string>,
+      _repayKreskoAsset: PromiseOrValue<string>,
+      _repayAmount: PromiseOrValue<BigNumberish>,
+      _collateralAssetToSeize: PromiseOrValue<string>,
+      _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
+      _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    mintKreskoAsset(
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      _mintAmount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    assetActionPaused(
+      _action: PromiseOrValue<BigNumberish>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
     ): Promise<boolean>;
 
     safetyStateFor(
-        _asset: PromiseOrValue<string>,
-        _action: PromiseOrValue<BigNumberish>,
-        overrides?: CallOverrides,
-    ): Promise<SafetyStateStructOutput>;
-
-    "safetyStateFor(address,uint8)"(
-        _asset: PromiseOrValue<string>,
-        _action: PromiseOrValue<BigNumberish>,
-        overrides?: CallOverrides,
+      _asset: PromiseOrValue<string>,
+      _action: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
     ): Promise<SafetyStateStructOutput>;
 
     safetyStateSet(overrides?: CallOverrides): Promise<boolean>;
 
-    "safetyStateSet()"(overrides?: CallOverrides): Promise<boolean>;
-
     toggleAssetsPaused(
-        _assets: PromiseOrValue<string>[],
-        _action: PromiseOrValue<BigNumberish>,
-        _withDuration: PromiseOrValue<boolean>,
-        _duration: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "toggleAssetsPaused(address[],uint8,bool,uint256)"(
-        _assets: PromiseOrValue<string>[],
-        _action: PromiseOrValue<BigNumberish>,
-        _withDuration: PromiseOrValue<boolean>,
-        _duration: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      _assets: PromiseOrValue<string>[],
+      _action: PromiseOrValue<BigNumberish>,
+      _withDuration: PromiseOrValue<boolean>,
+      _duration: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     batchRepayFullStabilityRateInterest(
-        _account: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    "batchRepayFullStabilityRateInterest(address)"(
-        _account: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    getDebtIndexForAsset(_asset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getDebtIndexForAsset(address)"(_asset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+    getDebtIndexForAsset(
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     getLastDebtIndexForAccount(
-        _account: PromiseOrValue<string>,
-        _asset: PromiseOrValue<string>,
-        overrides?: CallOverrides,
+      _account: PromiseOrValue<string>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "getLastDebtIndexForAccount(address,address)"(
-        _account: PromiseOrValue<string>,
-        _asset: PromiseOrValue<string>,
-        overrides?: CallOverrides,
+    getPriceRateForAsset(
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    getPriceRateForAsset(_asset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getPriceRateForAsset(address)"(_asset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
     getStabilityRateConfigurationForAsset(
-        _asset: PromiseOrValue<string>,
-        overrides?: CallOverrides,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
     ): Promise<StabilityRateConfigStructOutput>;
 
-    "getStabilityRateConfigurationForAsset(address)"(
-        _asset: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<StabilityRateConfigStructOutput>;
-
-    getStabilityRateForAsset(_asset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getStabilityRateForAsset(address)"(_asset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+    getStabilityRateForAsset(
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     kiss(overrides?: CallOverrides): Promise<string>;
 
-    "kiss()"(overrides?: CallOverrides): Promise<string>;
-
     repayFullStabilityRateInterest(
-        _account: PromiseOrValue<string>,
-        _kreskoAsset: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "repayFullStabilityRateInterest(address,address)"(
-        _account: PromiseOrValue<string>,
-        _kreskoAsset: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     repayStabilityRateInterestPartial(
-        _account: PromiseOrValue<string>,
-        _kreskoAsset: PromiseOrValue<string>,
-        _kissRepayAmount: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "repayStabilityRateInterestPartial(address,address,uint256)"(
-        _account: PromiseOrValue<string>,
-        _kreskoAsset: PromiseOrValue<string>,
-        _kissRepayAmount: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      _kissRepayAmount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     setupStabilityRateParams(
-        _asset: PromiseOrValue<string>,
-        _setup: StabilityRateParamsStruct,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "setupStabilityRateParams(address,(uint128,uint128,uint128,uint128,uint128))"(
-        _asset: PromiseOrValue<string>,
-        _setup: StabilityRateParamsStruct,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      _asset: PromiseOrValue<string>,
+      _setup: StabilityRateParamsStruct,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     updateKiss(
-        _kiss: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "updateKiss(address)"(
-        _kiss: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      _kiss: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     updateStabilityRateAndIndexForAsset(
-        _asset: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "updateStabilityRateAndIndexForAsset(address)"(
-        _asset: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     updateStabilityRateParams(
-        _asset: PromiseOrValue<string>,
-        _setup: StabilityRateParamsStruct,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "updateStabilityRateParams(address,(uint128,uint128,uint128,uint128,uint128))"(
-        _asset: PromiseOrValue<string>,
-        _setup: StabilityRateParamsStruct,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      _asset: PromiseOrValue<string>,
+      _setup: StabilityRateParamsStruct,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     ammOracle(overrides?: CallOverrides): Promise<string>;
 
-    "ammOracle()"(overrides?: CallOverrides): Promise<string>;
-
     collateralAsset(
-        _collateralAsset: PromiseOrValue<string>,
-        overrides?: CallOverrides,
+      _collateralAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
     ): Promise<CollateralAssetStructOutput>;
 
-    "collateralAsset(address)"(
-        _collateralAsset: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<CollateralAssetStructOutput>;
-
-    collateralExists(_collateralAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
-
-    "collateralExists(address)"(_collateralAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
+    collateralExists(
+      _collateralAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     domainSeparator(overrides?: CallOverrides): Promise<string>;
 
-    "domainSeparator()"(overrides?: CallOverrides): Promise<string>;
-
     extOracleDecimals(overrides?: CallOverrides): Promise<number>;
-
-    "extOracleDecimals()"(overrides?: CallOverrides): Promise<number>;
 
     feeRecipient(overrides?: CallOverrides): Promise<string>;
 
-    "feeRecipient()"(overrides?: CallOverrides): Promise<string>;
-
     getAllParams(overrides?: CallOverrides): Promise<MinterParamsStructOutput>;
 
-    "getAllParams()"(overrides?: CallOverrides): Promise<MinterParamsStructOutput>;
-
     getCollateralValueAndOraclePrice(
-        _collateralAsset: PromiseOrValue<string>,
-        _amount: PromiseOrValue<BigNumberish>,
-        _ignoreCollateralFactor: PromiseOrValue<boolean>,
-        overrides?: CallOverrides,
+      _collateralAsset: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
+      _ignoreCollateralFactor: PromiseOrValue<boolean>,
+      overrides?: CallOverrides
     ): Promise<
-        [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
-            value: FixedPoint.UnsignedStructOutput;
-            oraclePrice: FixedPoint.UnsignedStructOutput;
-        }
-    >;
-
-    "getCollateralValueAndOraclePrice(address,uint256,bool)"(
-        _collateralAsset: PromiseOrValue<string>,
-        _amount: PromiseOrValue<BigNumberish>,
-        _ignoreCollateralFactor: PromiseOrValue<boolean>,
-        overrides?: CallOverrides,
-    ): Promise<
-        [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
-            value: FixedPoint.UnsignedStructOutput;
-            oraclePrice: FixedPoint.UnsignedStructOutput;
-        }
+      [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
+        value: FixedPoint.UnsignedStructOutput;
+        oraclePrice: FixedPoint.UnsignedStructOutput;
+      }
     >;
 
     getKrAssetValue(
-        _kreskoAsset: PromiseOrValue<string>,
-        _amount: PromiseOrValue<BigNumberish>,
-        _ignoreKFactor: PromiseOrValue<boolean>,
-        overrides?: CallOverrides,
+      _kreskoAsset: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
+      _ignoreKFactor: PromiseOrValue<boolean>,
+      overrides?: CallOverrides
     ): Promise<FixedPoint.UnsignedStructOutput>;
 
-    "getKrAssetValue(address,uint256,bool)"(
-        _kreskoAsset: PromiseOrValue<string>,
-        _amount: PromiseOrValue<BigNumberish>,
-        _ignoreKFactor: PromiseOrValue<boolean>,
-        overrides?: CallOverrides,
-    ): Promise<FixedPoint.UnsignedStructOutput>;
+    krAssetExists(
+      _kreskoAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
-    krAssetExists(_kreskoAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
-
-    "krAssetExists(address)"(_kreskoAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
-
-    kreskoAsset(_kreskoAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<KrAssetStructOutput>;
-
-    "kreskoAsset(address)"(
-        _kreskoAsset: PromiseOrValue<string>,
-        overrides?: CallOverrides,
+    kreskoAsset(
+      _kreskoAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
     ): Promise<KrAssetStructOutput>;
 
-    liquidationIncentiveMultiplier(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
+    liquidationIncentiveMultiplier(
+      overrides?: CallOverrides
+    ): Promise<FixedPoint.UnsignedStructOutput>;
 
-    "liquidationIncentiveMultiplier()"(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
+    liquidationThreshold(
+      overrides?: CallOverrides
+    ): Promise<FixedPoint.UnsignedStructOutput>;
 
-    liquidationThreshold(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
+    minimumCollateralizationRatio(
+      overrides?: CallOverrides
+    ): Promise<FixedPoint.UnsignedStructOutput>;
 
-    "liquidationThreshold()"(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
-
-    minimumCollateralizationRatio(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
-
-    "minimumCollateralizationRatio()"(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
-
-    minimumDebtValue(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
-
-    "minimumDebtValue()"(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
+    minimumDebtValue(
+      overrides?: CallOverrides
+    ): Promise<FixedPoint.UnsignedStructOutput>;
 
     minterInitializations(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "minterInitializations()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     batchOracleValues(
-        _assets: PromiseOrValue<string>[],
-        _oracles: PromiseOrValue<string>[],
-        _marketStatusOracles: PromiseOrValue<string>[],
-        overrides?: CallOverrides,
-    ): Promise<LibUI.PriceStructOutput[]>;
-
-    "batchOracleValues(address[],address[],address[])"(
-        _assets: PromiseOrValue<string>[],
-        _oracles: PromiseOrValue<string>[],
-        _marketStatusOracles: PromiseOrValue<string>[],
-        overrides?: CallOverrides,
+      _assets: PromiseOrValue<string>[],
+      _oracles: PromiseOrValue<string>[],
+      _marketStatusOracles: PromiseOrValue<string>[],
+      overrides?: CallOverrides
     ): Promise<LibUI.PriceStructOutput[]>;
 
     getAccountData(
-        _account: PromiseOrValue<string>,
-        _tokens: PromiseOrValue<string>[],
-        _staking: PromiseOrValue<string>,
-        overrides?: CallOverrides,
+      _account: PromiseOrValue<string>,
+      _tokens: PromiseOrValue<string>[],
+      _staking: PromiseOrValue<string>,
+      overrides?: CallOverrides
     ): Promise<
-        [LibUI.KreskoUserStructOutput, LibUI.BalanceStructOutput[], LibUI.StakingDataStructOutput[]] & {
-            user: LibUI.KreskoUserStructOutput;
-            balances: LibUI.BalanceStructOutput[];
-            stakingData: LibUI.StakingDataStructOutput[];
-        }
-    >;
-
-    "getAccountData(address,address[],address)"(
-        _account: PromiseOrValue<string>,
-        _tokens: PromiseOrValue<string>[],
-        _staking: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<
-        [LibUI.KreskoUserStructOutput, LibUI.BalanceStructOutput[], LibUI.StakingDataStructOutput[]] & {
-            user: LibUI.KreskoUserStructOutput;
-            balances: LibUI.BalanceStructOutput[];
-            stakingData: LibUI.StakingDataStructOutput[];
-        }
+      [
+        LibUI.KreskoUserStructOutput,
+        LibUI.BalanceStructOutput[],
+        LibUI.StakingDataStructOutput[]
+      ] & {
+        user: LibUI.KreskoUserStructOutput;
+        balances: LibUI.BalanceStructOutput[];
+        stakingData: LibUI.StakingDataStructOutput[];
+      }
     >;
 
     getTokenData(
-        _allTokens: PromiseOrValue<string>[],
-        _assets: PromiseOrValue<string>[],
-        _priceFeeds: PromiseOrValue<string>[],
-        _marketStatusOracles: PromiseOrValue<string>[],
-        overrides?: CallOverrides,
+      _allTokens: PromiseOrValue<string>[],
+      _assets: PromiseOrValue<string>[],
+      _priceFeeds: PromiseOrValue<string>[],
+      _marketStatusOracles: PromiseOrValue<string>[],
+      overrides?: CallOverrides
     ): Promise<
-        [LibUI.TokenMetadataStructOutput[], LibUI.PriceStructOutput[]] & {
-            metadatas: LibUI.TokenMetadataStructOutput[];
-            prices: LibUI.PriceStructOutput[];
-        }
-    >;
-
-    "getTokenData(address[],address[],address[],address[])"(
-        _allTokens: PromiseOrValue<string>[],
-        _assets: PromiseOrValue<string>[],
-        _priceFeeds: PromiseOrValue<string>[],
-        _marketStatusOracles: PromiseOrValue<string>[],
-        overrides?: CallOverrides,
-    ): Promise<
-        [LibUI.TokenMetadataStructOutput[], LibUI.PriceStructOutput[]] & {
-            metadatas: LibUI.TokenMetadataStructOutput[];
-            prices: LibUI.PriceStructOutput[];
-        }
+      [LibUI.TokenMetadataStructOutput[], LibUI.PriceStructOutput[]] & {
+        metadatas: LibUI.TokenMetadataStructOutput[];
+        prices: LibUI.PriceStructOutput[];
+      }
     >;
 
     getGlobalData(
-        _collateralAssets: PromiseOrValue<string>[],
-        _krAssets: PromiseOrValue<string>[],
-        overrides?: CallOverrides,
+      _collateralAssets: PromiseOrValue<string>[],
+      _krAssets: PromiseOrValue<string>[],
+      overrides?: CallOverrides
     ): Promise<
-        [LibUI.CollateralAssetInfoStructOutput[], LibUI.KrAssetInfoStructOutput[], LibUI.ProtocolParamsStructOutput] & {
-            collateralAssets: LibUI.CollateralAssetInfoStructOutput[];
-            krAssets: LibUI.KrAssetInfoStructOutput[];
-            protocolParams: LibUI.ProtocolParamsStructOutput;
-        }
-    >;
-
-    "getGlobalData(address[],address[])"(
-        _collateralAssets: PromiseOrValue<string>[],
-        _krAssets: PromiseOrValue<string>[],
-        overrides?: CallOverrides,
-    ): Promise<
-        [LibUI.CollateralAssetInfoStructOutput[], LibUI.KrAssetInfoStructOutput[], LibUI.ProtocolParamsStructOutput] & {
-            collateralAssets: LibUI.CollateralAssetInfoStructOutput[];
-            krAssets: LibUI.KrAssetInfoStructOutput[];
-            protocolParams: LibUI.ProtocolParamsStructOutput;
-        }
+      [
+        LibUI.CollateralAssetInfoStructOutput[],
+        LibUI.KrAssetInfoStructOutput[],
+        LibUI.ProtocolParamsStructOutput
+      ] & {
+        collateralAssets: LibUI.CollateralAssetInfoStructOutput[];
+        krAssets: LibUI.KrAssetInfoStructOutput[];
+        protocolParams: LibUI.ProtocolParamsStructOutput;
+      }
     >;
 
     getPairsData(
-        _pairAddresses: PromiseOrValue<string>[],
-        overrides?: CallOverrides,
+      _pairAddresses: PromiseOrValue<string>[],
+      overrides?: CallOverrides
     ): Promise<LibUI.PairDataStructOutput[]>;
-
-    "getPairsData(address[])"(
-        _pairAddresses: PromiseOrValue<string>[],
-        overrides?: CallOverrides,
-    ): Promise<LibUI.PairDataStructOutput[]>;
-
-    callStatic: {
-        getRoleAdmin(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<string>;
-
-        "getRoleAdmin(bytes32)"(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<string>;
-
-        getRoleMember(
-            role: PromiseOrValue<BytesLike>,
-            index: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<string>;
-
-        "getRoleMember(bytes32,uint256)"(
-            role: PromiseOrValue<BytesLike>,
-            index: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<string>;
-
-        getRoleMemberCount(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        "getRoleMemberCount(bytes32)"(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        grantRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        "grantRole(bytes32,address)"(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        hasRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<boolean>;
-
-        "hasRole(bytes32,address)"(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<boolean>;
-
-        renounceRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        "renounceRole(bytes32,address)"(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        revokeRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        "revokeRole(bytes32,address)"(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        diamondCut(
-            _diamondCut: IDiamondCutFacet.FacetCutStruct[],
-            _init: PromiseOrValue<string>,
-            _calldata: PromiseOrValue<BytesLike>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        "diamondCut((address,uint8,bytes4[])[],address,bytes)"(
-            _diamondCut: IDiamondCutFacet.FacetCutStruct[],
-            _init: PromiseOrValue<string>,
-            _calldata: PromiseOrValue<BytesLike>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        upgradeState(
-            _init: PromiseOrValue<string>,
-            _calldata: PromiseOrValue<BytesLike>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        "upgradeState(address,bytes)"(
-            _init: PromiseOrValue<string>,
-            _calldata: PromiseOrValue<BytesLike>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        facetAddress(_functionSelector: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<string>;
-
-        "facetAddress(bytes4)"(
-            _functionSelector: PromiseOrValue<BytesLike>,
-            overrides?: CallOverrides,
-        ): Promise<string>;
-
-        facetAddresses(overrides?: CallOverrides): Promise<string[]>;
-
-        "facetAddresses()"(overrides?: CallOverrides): Promise<string[]>;
-
-        facetFunctionSelectors(_facet: PromiseOrValue<string>, overrides?: CallOverrides): Promise<string[]>;
-
-        "facetFunctionSelectors(address)"(_facet: PromiseOrValue<string>, overrides?: CallOverrides): Promise<string[]>;
-
-        facets(overrides?: CallOverrides): Promise<IDiamondLoupeFacet.FacetStructOutput[]>;
-
-        "facets()"(overrides?: CallOverrides): Promise<IDiamondLoupeFacet.FacetStructOutput[]>;
-
-        acceptOwnership(overrides?: CallOverrides): Promise<void>;
-
-        "acceptOwnership()"(overrides?: CallOverrides): Promise<void>;
-
-        initialized(overrides?: CallOverrides): Promise<boolean>;
-
-        "initialized()"(overrides?: CallOverrides): Promise<boolean>;
-
-        owner(overrides?: CallOverrides): Promise<string>;
-
-        "owner()"(overrides?: CallOverrides): Promise<string>;
-
-        pendingOwner(overrides?: CallOverrides): Promise<string>;
-
-        "pendingOwner()"(overrides?: CallOverrides): Promise<string>;
-
-        transferOwnership(_newOwner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
-
-        "transferOwnership(address)"(_newOwner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
-
-        setERC165(
-            interfaceIds: PromiseOrValue<BytesLike>[],
-            interfaceIdsToRemove: PromiseOrValue<BytesLike>[],
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        "setERC165(bytes4[],bytes4[])"(
-            interfaceIds: PromiseOrValue<BytesLike>[],
-            interfaceIdsToRemove: PromiseOrValue<BytesLike>[],
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        supportsInterface(_interfaceId: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<boolean>;
-
-        "supportsInterface(bytes4)"(
-            _interfaceId: PromiseOrValue<BytesLike>,
-            overrides?: CallOverrides,
-        ): Promise<boolean>;
-
-        calcExpectedFee(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _kreskoAssetAmount: PromiseOrValue<BigNumberish>,
-            _feeType: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<[string[], BigNumber[]]>;
-
-        "calcExpectedFee(address,address,uint256,uint256)"(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _kreskoAssetAmount: PromiseOrValue<BigNumberish>,
-            _feeType: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<[string[], BigNumber[]]>;
-
-        collateralDeposits(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "collateralDeposits(address,address)"(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        getAccountCollateralRatio(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<FixedPoint.UnsignedStructOutput>;
-
-        "getAccountCollateralRatio(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<FixedPoint.UnsignedStructOutput>;
-
-        getAccountCollateralValue(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<FixedPoint.UnsignedStructOutput>;
-
-        "getAccountCollateralValue(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<FixedPoint.UnsignedStructOutput>;
-
-        getAccountKrAssetValue(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<FixedPoint.UnsignedStructOutput>;
-
-        "getAccountKrAssetValue(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<FixedPoint.UnsignedStructOutput>;
-
-        getAccountMinimumCollateralValueAtRatio(
-            _account: PromiseOrValue<string>,
-            _ratio: FixedPoint.UnsignedStruct,
-            overrides?: CallOverrides,
-        ): Promise<FixedPoint.UnsignedStructOutput>;
-
-        "getAccountMinimumCollateralValueAtRatio(address,(uint256))"(
-            _account: PromiseOrValue<string>,
-            _ratio: FixedPoint.UnsignedStruct,
-            overrides?: CallOverrides,
-        ): Promise<FixedPoint.UnsignedStructOutput>;
-
-        getAccountSingleCollateralValueAndRealValue(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<
-            [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
-                value: FixedPoint.UnsignedStructOutput;
-                realValue: FixedPoint.UnsignedStructOutput;
-            }
-        >;
-
-        "getAccountSingleCollateralValueAndRealValue(address,address)"(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<
-            [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
-                value: FixedPoint.UnsignedStructOutput;
-                realValue: FixedPoint.UnsignedStructOutput;
-            }
-        >;
-
-        getCollateralRatiosFor(
-            _accounts: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<FixedPoint.UnsignedStructOutput[]>;
-
-        "getCollateralRatiosFor(address[])"(
-            _accounts: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<FixedPoint.UnsignedStructOutput[]>;
-
-        getDepositedCollateralAssetIndex(
-            _account: PromiseOrValue<string>,
-            _collateralAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "getDepositedCollateralAssetIndex(address,address)"(
-            _account: PromiseOrValue<string>,
-            _collateralAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        getDepositedCollateralAssets(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<string[]>;
-
-        "getDepositedCollateralAssets(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<string[]>;
-
-        getMintedKreskoAssets(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<string[]>;
-
-        "getMintedKreskoAssets(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<string[]>;
-
-        getMintedKreskoAssetsIndex(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "getMintedKreskoAssetsIndex(address,address)"(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        kreskoAssetDebt(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "kreskoAssetDebt(address,address)"(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        kreskoAssetDebtInterest(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber, BigNumber] & { assetAmount: BigNumber; kissAmount: BigNumber }>;
-
-        "kreskoAssetDebtInterest(address,address)"(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber, BigNumber] & { assetAmount: BigNumber; kissAmount: BigNumber }>;
-
-        kreskoAssetDebtInterestTotal(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        "kreskoAssetDebtInterestTotal(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        kreskoAssetDebtPrincipal(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "kreskoAssetDebtPrincipal(address,address)"(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        burnKreskoAsset(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _burnAmount: PromiseOrValue<BigNumberish>,
-            _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        "burnKreskoAsset(address,address,uint256,uint256)"(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _burnAmount: PromiseOrValue<BigNumberish>,
-            _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        batchCloseKrAssetDebtPositions(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
-
-        "batchCloseKrAssetDebtPositions(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        closeKrAssetDebtPosition(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        "closeKrAssetDebtPosition(address,address)"(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        addCollateralAsset(
-            _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        "addCollateralAsset(address,address,uint256,address,address)"(
-            _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        addKreskoAsset(
-            _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        "addKreskoAsset(address,address,uint256,address,address,uint256,uint256,uint256)"(
-            _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        initialize(args: MinterInitArgsStruct, overrides?: CallOverrides): Promise<void>;
-
-        "initialize((address,address,address,uint8,uint256,uint256,uint256,uint256))"(
-            args: MinterInitArgsStruct,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        updateAMMOracle(_ammOracle: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
-
-        "updateAMMOracle(address)"(_ammOracle: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
-
-        updateCollateralAsset(
-            _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        "updateCollateralAsset(address,address,uint256,address,address)"(
-            _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        updateExtOracleDecimals(_decimals: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<void>;
-
-        "updateExtOracleDecimals(uint8)"(
-            _decimals: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        updateFeeRecipient(_feeRecipient: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
-
-        "updateFeeRecipient(address)"(_feeRecipient: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
-
-        updateKreskoAsset(
-            _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        "updateKreskoAsset(address,address,uint256,address,address,uint256,uint256,uint256)"(
-            _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        updateLiquidationIncentiveMultiplier(
-            _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        "updateLiquidationIncentiveMultiplier(uint256)"(
-            _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        updateLiquidationThreshold(
-            _liquidationThreshold: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        "updateLiquidationThreshold(uint256)"(
-            _liquidationThreshold: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        updateMinimumCollateralizationRatio(
-            _minimumCollateralizationRatio: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        "updateMinimumCollateralizationRatio(uint256)"(
-            _minimumCollateralizationRatio: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        updateMinimumDebtValue(
-            _minimumDebtValue: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        "updateMinimumDebtValue(uint256)"(
-            _minimumDebtValue: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        depositCollateral(
-            _account: PromiseOrValue<string>,
-            _collateralAsset: PromiseOrValue<string>,
-            _depositAmount: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        "depositCollateral(address,address,uint256)"(
-            _account: PromiseOrValue<string>,
-            _collateralAsset: PromiseOrValue<string>,
-            _depositAmount: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        withdrawCollateral(
-            _account: PromiseOrValue<string>,
-            _collateralAsset: PromiseOrValue<string>,
-            _withdrawAmount: PromiseOrValue<BigNumberish>,
-            _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        "withdrawCollateral(address,address,uint256,uint256)"(
-            _account: PromiseOrValue<string>,
-            _collateralAsset: PromiseOrValue<string>,
-            _withdrawAmount: PromiseOrValue<BigNumberish>,
-            _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        batchLiquidateInterest(
-            _account: PromiseOrValue<string>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        "batchLiquidateInterest(address,address)"(
-            _account: PromiseOrValue<string>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        liquidateInterest(
-            _account: PromiseOrValue<string>,
-            _repayKreskoAsset: PromiseOrValue<string>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        "liquidateInterest(address,address,address)"(
-            _account: PromiseOrValue<string>,
-            _repayKreskoAsset: PromiseOrValue<string>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        calculateMaxLiquidatableValueForAssets(
-            _account: PromiseOrValue<string>,
-            _repayKreskoAsset: PromiseOrValue<string>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<FixedPoint.UnsignedStructOutput>;
-
-        "calculateMaxLiquidatableValueForAssets(address,address,address)"(
-            _account: PromiseOrValue<string>,
-            _repayKreskoAsset: PromiseOrValue<string>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<FixedPoint.UnsignedStructOutput>;
-
-        isAccountLiquidatable(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
-
-        "isAccountLiquidatable(address)"(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
-
-        liquidate(
-            _account: PromiseOrValue<string>,
-            _repayKreskoAsset: PromiseOrValue<string>,
-            _repayAmount: PromiseOrValue<BigNumberish>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
-            _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        "liquidate(address,address,uint256,address,uint256,uint256)"(
-            _account: PromiseOrValue<string>,
-            _repayKreskoAsset: PromiseOrValue<string>,
-            _repayAmount: PromiseOrValue<BigNumberish>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
-            _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        mintKreskoAsset(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _mintAmount: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        "mintKreskoAsset(address,address,uint256)"(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _mintAmount: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        assetActionPaused(
-            _action: PromiseOrValue<BigNumberish>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<boolean>;
-
-        "assetActionPaused(uint8,address)"(
-            _action: PromiseOrValue<BigNumberish>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<boolean>;
-
-        safetyStateFor(
-            _asset: PromiseOrValue<string>,
-            _action: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<SafetyStateStructOutput>;
-
-        "safetyStateFor(address,uint8)"(
-            _asset: PromiseOrValue<string>,
-            _action: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<SafetyStateStructOutput>;
-
-        safetyStateSet(overrides?: CallOverrides): Promise<boolean>;
-
-        "safetyStateSet()"(overrides?: CallOverrides): Promise<boolean>;
-
-        toggleAssetsPaused(
-            _assets: PromiseOrValue<string>[],
-            _action: PromiseOrValue<BigNumberish>,
-            _withDuration: PromiseOrValue<boolean>,
-            _duration: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        "toggleAssetsPaused(address[],uint8,bool,uint256)"(
-            _assets: PromiseOrValue<string>[],
-            _action: PromiseOrValue<BigNumberish>,
-            _withDuration: PromiseOrValue<boolean>,
-            _duration: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        batchRepayFullStabilityRateInterest(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "batchRepayFullStabilityRateInterest(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        getDebtIndexForAsset(_asset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        "getDebtIndexForAsset(address)"(_asset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        getLastDebtIndexForAccount(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "getLastDebtIndexForAccount(address,address)"(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        getPriceRateForAsset(_asset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        "getPriceRateForAsset(address)"(_asset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        getStabilityRateConfigurationForAsset(
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<StabilityRateConfigStructOutput>;
-
-        "getStabilityRateConfigurationForAsset(address)"(
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<StabilityRateConfigStructOutput>;
-
-        getStabilityRateForAsset(_asset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        "getStabilityRateForAsset(address)"(
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        kiss(overrides?: CallOverrides): Promise<string>;
-
-        "kiss()"(overrides?: CallOverrides): Promise<string>;
-
-        repayFullStabilityRateInterest(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "repayFullStabilityRateInterest(address,address)"(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        repayStabilityRateInterestPartial(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _kissRepayAmount: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        "repayStabilityRateInterestPartial(address,address,uint256)"(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _kissRepayAmount: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        setupStabilityRateParams(
-            _asset: PromiseOrValue<string>,
-            _setup: StabilityRateParamsStruct,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        "setupStabilityRateParams(address,(uint128,uint128,uint128,uint128,uint128))"(
-            _asset: PromiseOrValue<string>,
-            _setup: StabilityRateParamsStruct,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        updateKiss(_kiss: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
-
-        "updateKiss(address)"(_kiss: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
-
-        updateStabilityRateAndIndexForAsset(_asset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
-
-        "updateStabilityRateAndIndexForAsset(address)"(
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        updateStabilityRateParams(
-            _asset: PromiseOrValue<string>,
-            _setup: StabilityRateParamsStruct,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        "updateStabilityRateParams(address,(uint128,uint128,uint128,uint128,uint128))"(
-            _asset: PromiseOrValue<string>,
-            _setup: StabilityRateParamsStruct,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        ammOracle(overrides?: CallOverrides): Promise<string>;
-
-        "ammOracle()"(overrides?: CallOverrides): Promise<string>;
-
-        collateralAsset(
-            _collateralAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<CollateralAssetStructOutput>;
-
-        "collateralAsset(address)"(
-            _collateralAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<CollateralAssetStructOutput>;
-
-        collateralExists(_collateralAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
-
-        "collateralExists(address)"(
-            _collateralAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<boolean>;
-
-        domainSeparator(overrides?: CallOverrides): Promise<string>;
-
-        "domainSeparator()"(overrides?: CallOverrides): Promise<string>;
-
-        extOracleDecimals(overrides?: CallOverrides): Promise<number>;
-
-        "extOracleDecimals()"(overrides?: CallOverrides): Promise<number>;
-
-        feeRecipient(overrides?: CallOverrides): Promise<string>;
-
-        "feeRecipient()"(overrides?: CallOverrides): Promise<string>;
-
-        getAllParams(overrides?: CallOverrides): Promise<MinterParamsStructOutput>;
-
-        "getAllParams()"(overrides?: CallOverrides): Promise<MinterParamsStructOutput>;
-
-        getCollateralValueAndOraclePrice(
-            _collateralAsset: PromiseOrValue<string>,
-            _amount: PromiseOrValue<BigNumberish>,
-            _ignoreCollateralFactor: PromiseOrValue<boolean>,
-            overrides?: CallOverrides,
-        ): Promise<
-            [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
-                value: FixedPoint.UnsignedStructOutput;
-                oraclePrice: FixedPoint.UnsignedStructOutput;
-            }
-        >;
-
-        "getCollateralValueAndOraclePrice(address,uint256,bool)"(
-            _collateralAsset: PromiseOrValue<string>,
-            _amount: PromiseOrValue<BigNumberish>,
-            _ignoreCollateralFactor: PromiseOrValue<boolean>,
-            overrides?: CallOverrides,
-        ): Promise<
-            [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
-                value: FixedPoint.UnsignedStructOutput;
-                oraclePrice: FixedPoint.UnsignedStructOutput;
-            }
-        >;
-
-        getKrAssetValue(
-            _kreskoAsset: PromiseOrValue<string>,
-            _amount: PromiseOrValue<BigNumberish>,
-            _ignoreKFactor: PromiseOrValue<boolean>,
-            overrides?: CallOverrides,
-        ): Promise<FixedPoint.UnsignedStructOutput>;
-
-        "getKrAssetValue(address,uint256,bool)"(
-            _kreskoAsset: PromiseOrValue<string>,
-            _amount: PromiseOrValue<BigNumberish>,
-            _ignoreKFactor: PromiseOrValue<boolean>,
-            overrides?: CallOverrides,
-        ): Promise<FixedPoint.UnsignedStructOutput>;
-
-        krAssetExists(_kreskoAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
-
-        "krAssetExists(address)"(_kreskoAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
-
-        kreskoAsset(_kreskoAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<KrAssetStructOutput>;
-
-        "kreskoAsset(address)"(
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<KrAssetStructOutput>;
-
-        liquidationIncentiveMultiplier(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
-
-        "liquidationIncentiveMultiplier()"(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
-
-        liquidationThreshold(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
-
-        "liquidationThreshold()"(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
-
-        minimumCollateralizationRatio(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
-
-        "minimumCollateralizationRatio()"(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
-
-        minimumDebtValue(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
-
-        "minimumDebtValue()"(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
-
-        minterInitializations(overrides?: CallOverrides): Promise<BigNumber>;
-
-        "minterInitializations()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-        batchOracleValues(
-            _assets: PromiseOrValue<string>[],
-            _oracles: PromiseOrValue<string>[],
-            _marketStatusOracles: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<LibUI.PriceStructOutput[]>;
-
-        "batchOracleValues(address[],address[],address[])"(
-            _assets: PromiseOrValue<string>[],
-            _oracles: PromiseOrValue<string>[],
-            _marketStatusOracles: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<LibUI.PriceStructOutput[]>;
-
-        getAccountData(
-            _account: PromiseOrValue<string>,
-            _tokens: PromiseOrValue<string>[],
-            _staking: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<
-            [LibUI.KreskoUserStructOutput, LibUI.BalanceStructOutput[], LibUI.StakingDataStructOutput[]] & {
-                user: LibUI.KreskoUserStructOutput;
-                balances: LibUI.BalanceStructOutput[];
-                stakingData: LibUI.StakingDataStructOutput[];
-            }
-        >;
-
-        "getAccountData(address,address[],address)"(
-            _account: PromiseOrValue<string>,
-            _tokens: PromiseOrValue<string>[],
-            _staking: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<
-            [LibUI.KreskoUserStructOutput, LibUI.BalanceStructOutput[], LibUI.StakingDataStructOutput[]] & {
-                user: LibUI.KreskoUserStructOutput;
-                balances: LibUI.BalanceStructOutput[];
-                stakingData: LibUI.StakingDataStructOutput[];
-            }
-        >;
-
-        getTokenData(
-            _allTokens: PromiseOrValue<string>[],
-            _assets: PromiseOrValue<string>[],
-            _priceFeeds: PromiseOrValue<string>[],
-            _marketStatusOracles: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<
-            [LibUI.TokenMetadataStructOutput[], LibUI.PriceStructOutput[]] & {
-                metadatas: LibUI.TokenMetadataStructOutput[];
-                prices: LibUI.PriceStructOutput[];
-            }
-        >;
-
-        "getTokenData(address[],address[],address[],address[])"(
-            _allTokens: PromiseOrValue<string>[],
-            _assets: PromiseOrValue<string>[],
-            _priceFeeds: PromiseOrValue<string>[],
-            _marketStatusOracles: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<
-            [LibUI.TokenMetadataStructOutput[], LibUI.PriceStructOutput[]] & {
-                metadatas: LibUI.TokenMetadataStructOutput[];
-                prices: LibUI.PriceStructOutput[];
-            }
-        >;
-
-        getGlobalData(
-            _collateralAssets: PromiseOrValue<string>[],
-            _krAssets: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<
-            [
-                LibUI.CollateralAssetInfoStructOutput[],
-                LibUI.KrAssetInfoStructOutput[],
-                LibUI.ProtocolParamsStructOutput,
-            ] & {
-                collateralAssets: LibUI.CollateralAssetInfoStructOutput[];
-                krAssets: LibUI.KrAssetInfoStructOutput[];
-                protocolParams: LibUI.ProtocolParamsStructOutput;
-            }
-        >;
-
-        "getGlobalData(address[],address[])"(
-            _collateralAssets: PromiseOrValue<string>[],
-            _krAssets: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<
-            [
-                LibUI.CollateralAssetInfoStructOutput[],
-                LibUI.KrAssetInfoStructOutput[],
-                LibUI.ProtocolParamsStructOutput,
-            ] & {
-                collateralAssets: LibUI.CollateralAssetInfoStructOutput[];
-                krAssets: LibUI.KrAssetInfoStructOutput[];
-                protocolParams: LibUI.ProtocolParamsStructOutput;
-            }
-        >;
-
-        getPairsData(
-            _pairAddresses: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<LibUI.PairDataStructOutput[]>;
-
-        "getPairsData(address[])"(
-            _pairAddresses: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<LibUI.PairDataStructOutput[]>;
-    };
-
-    filters: {
-        "DiamondCut(tuple[],address,bytes)"(_diamondCut?: null, _init?: null, _calldata?: null): DiamondCutEventFilter;
-        DiamondCut(_diamondCut?: null, _init?: null, _calldata?: null): DiamondCutEventFilter;
-
-        "OwnershipTransferred(address,address)"(
-            previousOwner?: PromiseOrValue<string> | null,
-            newOwner?: PromiseOrValue<string> | null,
-        ): OwnershipTransferredEventFilter;
-        OwnershipTransferred(
-            previousOwner?: PromiseOrValue<string> | null,
-            newOwner?: PromiseOrValue<string> | null,
-        ): OwnershipTransferredEventFilter;
-
-        "PendingOwnershipTransfer(address,address)"(
-            previousOwner?: PromiseOrValue<string> | null,
-            newOwner?: PromiseOrValue<string> | null,
-        ): PendingOwnershipTransferEventFilter;
-        PendingOwnershipTransfer(
-            previousOwner?: PromiseOrValue<string> | null,
-            newOwner?: PromiseOrValue<string> | null,
-        ): PendingOwnershipTransferEventFilter;
-
-        "KISSUpdated(address)"(KISS?: PromiseOrValue<string> | null): KISSUpdatedEventFilter;
-        KISSUpdated(KISS?: PromiseOrValue<string> | null): KISSUpdatedEventFilter;
-
-        "StabilityRateConfigured(address,uint256,uint256,uint256,uint256)"(
-            asset?: PromiseOrValue<string> | null,
-            stabilityRateBase?: PromiseOrValue<BigNumberish> | null,
-            priceRateDelta?: PromiseOrValue<BigNumberish> | null,
-            rateSlope1?: null,
-            rateSlope2?: null,
-        ): StabilityRateConfiguredEventFilter;
-        StabilityRateConfigured(
-            asset?: PromiseOrValue<string> | null,
-            stabilityRateBase?: PromiseOrValue<BigNumberish> | null,
-            priceRateDelta?: PromiseOrValue<BigNumberish> | null,
-            rateSlope1?: null,
-            rateSlope2?: null,
-        ): StabilityRateConfiguredEventFilter;
-
-        "StabilityRateInterestBatchRepaid(address,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            value?: null,
-        ): StabilityRateInterestBatchRepaidEventFilter;
-        StabilityRateInterestBatchRepaid(
-            account?: PromiseOrValue<string> | null,
-            value?: null,
-        ): StabilityRateInterestBatchRepaidEventFilter;
-
-        "StabilityRateInterestRepaid(address,address,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            asset?: PromiseOrValue<string> | null,
-            value?: null,
-        ): StabilityRateInterestRepaidEventFilter;
-        StabilityRateInterestRepaid(
-            account?: PromiseOrValue<string> | null,
-            asset?: PromiseOrValue<string> | null,
-            value?: null,
-        ): StabilityRateInterestRepaidEventFilter;
-
-        "AMMOracleUpdated(address)"(ammOracle?: PromiseOrValue<string> | null): AMMOracleUpdatedEventFilter;
-        AMMOracleUpdated(ammOracle?: PromiseOrValue<string> | null): AMMOracleUpdatedEventFilter;
-
-        "BatchInterestLiquidationOccurred(address,address,address,uint256,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            liquidator?: PromiseOrValue<string> | null,
-            seizedCollateralAsset?: PromiseOrValue<string> | null,
-            repayUSD?: null,
-            collateralSent?: null,
-        ): BatchInterestLiquidationOccurredEventFilter;
-        BatchInterestLiquidationOccurred(
-            account?: PromiseOrValue<string> | null,
-            liquidator?: PromiseOrValue<string> | null,
-            seizedCollateralAsset?: PromiseOrValue<string> | null,
-            repayUSD?: null,
-            collateralSent?: null,
-        ): BatchInterestLiquidationOccurredEventFilter;
-
-        "CloseFeePaid(address,address,uint256,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            paymentCollateralAsset?: PromiseOrValue<string> | null,
-            paymentAmount?: PromiseOrValue<BigNumberish> | null,
-            paymentValue?: null,
-        ): CloseFeePaidEventFilter;
-        CloseFeePaid(
-            account?: PromiseOrValue<string> | null,
-            paymentCollateralAsset?: PromiseOrValue<string> | null,
-            paymentAmount?: PromiseOrValue<BigNumberish> | null,
-            paymentValue?: null,
-        ): CloseFeePaidEventFilter;
-
-        "CollateralAssetAdded(address,uint256,address,address,address)"(
-            collateralAsset?: PromiseOrValue<string> | null,
-            factor?: null,
-            oracle?: PromiseOrValue<string> | null,
-            marketStatusOracle?: PromiseOrValue<string> | null,
-            anchor?: null,
-        ): CollateralAssetAddedEventFilter;
-        CollateralAssetAdded(
-            collateralAsset?: PromiseOrValue<string> | null,
-            factor?: null,
-            oracle?: PromiseOrValue<string> | null,
-            marketStatusOracle?: PromiseOrValue<string> | null,
-            anchor?: null,
-        ): CollateralAssetAddedEventFilter;
-
-        "CollateralAssetUpdated(address,uint256,address,address,address)"(
-            collateralAsset?: PromiseOrValue<string> | null,
-            factor?: null,
-            oracle?: PromiseOrValue<string> | null,
-            marketStatusOracle?: PromiseOrValue<string> | null,
-            anchor?: null,
-        ): CollateralAssetUpdatedEventFilter;
-        CollateralAssetUpdated(
-            collateralAsset?: PromiseOrValue<string> | null,
-            factor?: null,
-            oracle?: PromiseOrValue<string> | null,
-            marketStatusOracle?: PromiseOrValue<string> | null,
-            anchor?: null,
-        ): CollateralAssetUpdatedEventFilter;
-
-        "CollateralDeposited(address,address,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            collateralAsset?: PromiseOrValue<string> | null,
-            amount?: PromiseOrValue<BigNumberish> | null,
-        ): CollateralDepositedEventFilter;
-        CollateralDeposited(
-            account?: PromiseOrValue<string> | null,
-            collateralAsset?: PromiseOrValue<string> | null,
-            amount?: PromiseOrValue<BigNumberish> | null,
-        ): CollateralDepositedEventFilter;
-
-        "CollateralWithdrawn(address,address,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            collateralAsset?: PromiseOrValue<string> | null,
-            amount?: PromiseOrValue<BigNumberish> | null,
-        ): CollateralWithdrawnEventFilter;
-        CollateralWithdrawn(
-            account?: PromiseOrValue<string> | null,
-            collateralAsset?: PromiseOrValue<string> | null,
-            amount?: PromiseOrValue<BigNumberish> | null,
-        ): CollateralWithdrawnEventFilter;
-
-        "DebtPositionClosed(address,address,uint256,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            kreskoAsset?: PromiseOrValue<string> | null,
-            amount?: PromiseOrValue<BigNumberish> | null,
-            interestRepaid?: null,
-        ): DebtPositionClosedEventFilter;
-        DebtPositionClosed(
-            account?: PromiseOrValue<string> | null,
-            kreskoAsset?: PromiseOrValue<string> | null,
-            amount?: PromiseOrValue<BigNumberish> | null,
-            interestRepaid?: null,
-        ): DebtPositionClosedEventFilter;
-
-        "FeeRecipientUpdated(address)"(feeRecipient?: PromiseOrValue<string> | null): FeeRecipientUpdatedEventFilter;
-        FeeRecipientUpdated(feeRecipient?: PromiseOrValue<string> | null): FeeRecipientUpdatedEventFilter;
-
-        "InterestLiquidationOccurred(address,address,address,uint256,address,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            liquidator?: PromiseOrValue<string> | null,
-            repayKreskoAsset?: PromiseOrValue<string> | null,
-            repayUSD?: null,
-            seizedCollateralAsset?: null,
-            collateralSent?: null,
-        ): InterestLiquidationOccurredEventFilter;
-        InterestLiquidationOccurred(
-            account?: PromiseOrValue<string> | null,
-            liquidator?: PromiseOrValue<string> | null,
-            repayKreskoAsset?: PromiseOrValue<string> | null,
-            repayUSD?: null,
-            seizedCollateralAsset?: null,
-            collateralSent?: null,
-        ): InterestLiquidationOccurredEventFilter;
-
-        "KreskoAssetAdded(address,address,address,address,uint256,uint256,uint256,uint256)"(
-            kreskoAsset?: PromiseOrValue<string> | null,
-            anchor?: null,
-            oracle?: PromiseOrValue<string> | null,
-            marketStatusOracle?: PromiseOrValue<string> | null,
-            kFactor?: null,
-            supplyLimit?: null,
-            closeFee?: null,
-            openFee?: null,
-        ): KreskoAssetAddedEventFilter;
-        KreskoAssetAdded(
-            kreskoAsset?: PromiseOrValue<string> | null,
-            anchor?: null,
-            oracle?: PromiseOrValue<string> | null,
-            marketStatusOracle?: PromiseOrValue<string> | null,
-            kFactor?: null,
-            supplyLimit?: null,
-            closeFee?: null,
-            openFee?: null,
-        ): KreskoAssetAddedEventFilter;
-
-        "KreskoAssetBurned(address,address,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            kreskoAsset?: PromiseOrValue<string> | null,
-            amount?: PromiseOrValue<BigNumberish> | null,
-        ): KreskoAssetBurnedEventFilter;
-        KreskoAssetBurned(
-            account?: PromiseOrValue<string> | null,
-            kreskoAsset?: PromiseOrValue<string> | null,
-            amount?: PromiseOrValue<BigNumberish> | null,
-        ): KreskoAssetBurnedEventFilter;
-
-        "KreskoAssetMinted(address,address,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            kreskoAsset?: PromiseOrValue<string> | null,
-            amount?: PromiseOrValue<BigNumberish> | null,
-        ): KreskoAssetMintedEventFilter;
-        KreskoAssetMinted(
-            account?: PromiseOrValue<string> | null,
-            kreskoAsset?: PromiseOrValue<string> | null,
-            amount?: PromiseOrValue<BigNumberish> | null,
-        ): KreskoAssetMintedEventFilter;
-
-        "KreskoAssetUpdated(address,address,address,address,uint256,uint256,uint256,uint256)"(
-            kreskoAsset?: PromiseOrValue<string> | null,
-            anchor?: null,
-            oracle?: PromiseOrValue<string> | null,
-            marketStatusOracle?: PromiseOrValue<string> | null,
-            kFactor?: null,
-            supplyLimit?: null,
-            closeFee?: null,
-            openFee?: null,
-        ): KreskoAssetUpdatedEventFilter;
-        KreskoAssetUpdated(
-            kreskoAsset?: PromiseOrValue<string> | null,
-            anchor?: null,
-            oracle?: PromiseOrValue<string> | null,
-            marketStatusOracle?: PromiseOrValue<string> | null,
-            kFactor?: null,
-            supplyLimit?: null,
-            closeFee?: null,
-            openFee?: null,
-        ): KreskoAssetUpdatedEventFilter;
-
-        "LiquidationIncentiveMultiplierUpdated(uint256)"(
-            liquidationIncentiveMultiplier?: PromiseOrValue<BigNumberish> | null,
-        ): LiquidationIncentiveMultiplierUpdatedEventFilter;
-        LiquidationIncentiveMultiplierUpdated(
-            liquidationIncentiveMultiplier?: PromiseOrValue<BigNumberish> | null,
-        ): LiquidationIncentiveMultiplierUpdatedEventFilter;
-
-        "LiquidationOccurred(address,address,address,uint256,address,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            liquidator?: PromiseOrValue<string> | null,
-            repayKreskoAsset?: PromiseOrValue<string> | null,
-            repayAmount?: null,
-            seizedCollateralAsset?: null,
-            collateralSent?: null,
-        ): LiquidationOccurredEventFilter;
-        LiquidationOccurred(
-            account?: PromiseOrValue<string> | null,
-            liquidator?: PromiseOrValue<string> | null,
-            repayKreskoAsset?: PromiseOrValue<string> | null,
-            repayAmount?: null,
-            seizedCollateralAsset?: null,
-            collateralSent?: null,
-        ): LiquidationOccurredEventFilter;
-
-        "LiquidationThresholdUpdated(uint256)"(
-            liquidationThreshold?: PromiseOrValue<BigNumberish> | null,
-        ): LiquidationThresholdUpdatedEventFilter;
-        LiquidationThresholdUpdated(
-            liquidationThreshold?: PromiseOrValue<BigNumberish> | null,
-        ): LiquidationThresholdUpdatedEventFilter;
-
-        "MinimumCollateralizationRatioUpdated(uint256)"(
-            minimumCollateralizationRatio?: PromiseOrValue<BigNumberish> | null,
-        ): MinimumCollateralizationRatioUpdatedEventFilter;
-        MinimumCollateralizationRatioUpdated(
-            minimumCollateralizationRatio?: PromiseOrValue<BigNumberish> | null,
-        ): MinimumCollateralizationRatioUpdatedEventFilter;
-
-        "MinimumDebtValueUpdated(uint256)"(
-            minimumDebtValue?: PromiseOrValue<BigNumberish> | null,
-        ): MinimumDebtValueUpdatedEventFilter;
-        MinimumDebtValueUpdated(
-            minimumDebtValue?: PromiseOrValue<BigNumberish> | null,
-        ): MinimumDebtValueUpdatedEventFilter;
-
-        "OpenFeePaid(address,address,uint256,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            paymentCollateralAsset?: PromiseOrValue<string> | null,
-            paymentAmount?: PromiseOrValue<BigNumberish> | null,
-            paymentValue?: null,
-        ): OpenFeePaidEventFilter;
-        OpenFeePaid(
-            account?: PromiseOrValue<string> | null,
-            paymentCollateralAsset?: PromiseOrValue<string> | null,
-            paymentAmount?: PromiseOrValue<BigNumberish> | null,
-            paymentValue?: null,
-        ): OpenFeePaidEventFilter;
-
-        "SafetyStateChange(uint8,address,string)"(
-            action?: PromiseOrValue<BigNumberish> | null,
-            asset?: PromiseOrValue<string> | null,
-            description?: PromiseOrValue<string> | null,
-        ): SafetyStateChangeEventFilter;
-        SafetyStateChange(
-            action?: PromiseOrValue<BigNumberish> | null,
-            asset?: PromiseOrValue<string> | null,
-            description?: PromiseOrValue<string> | null,
-        ): SafetyStateChangeEventFilter;
-    };
-
-    estimateGas: {
-        getRoleAdmin(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        "getRoleAdmin(bytes32)"(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        getRoleMember(
-            role: PromiseOrValue<BytesLike>,
-            index: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "getRoleMember(bytes32,uint256)"(
-            role: PromiseOrValue<BytesLike>,
-            index: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        getRoleMemberCount(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        "getRoleMemberCount(bytes32)"(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        grantRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "grantRole(bytes32,address)"(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        hasRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "hasRole(bytes32,address)"(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        renounceRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "renounceRole(bytes32,address)"(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        revokeRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "revokeRole(bytes32,address)"(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        diamondCut(
-            _diamondCut: IDiamondCutFacet.FacetCutStruct[],
-            _init: PromiseOrValue<string>,
-            _calldata: PromiseOrValue<BytesLike>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "diamondCut((address,uint8,bytes4[])[],address,bytes)"(
-            _diamondCut: IDiamondCutFacet.FacetCutStruct[],
-            _init: PromiseOrValue<string>,
-            _calldata: PromiseOrValue<BytesLike>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        upgradeState(
-            _init: PromiseOrValue<string>,
-            _calldata: PromiseOrValue<BytesLike>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "upgradeState(address,bytes)"(
-            _init: PromiseOrValue<string>,
-            _calldata: PromiseOrValue<BytesLike>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        facetAddress(_functionSelector: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        "facetAddress(bytes4)"(
-            _functionSelector: PromiseOrValue<BytesLike>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        facetAddresses(overrides?: CallOverrides): Promise<BigNumber>;
-
-        "facetAddresses()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-        facetFunctionSelectors(_facet: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        "facetFunctionSelectors(address)"(
-            _facet: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        facets(overrides?: CallOverrides): Promise<BigNumber>;
-
-        "facets()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-        acceptOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
-
-        "acceptOwnership()"(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
-
-        initialized(overrides?: CallOverrides): Promise<BigNumber>;
-
-        "initialized()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-        owner(overrides?: CallOverrides): Promise<BigNumber>;
-
-        "owner()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-        pendingOwner(overrides?: CallOverrides): Promise<BigNumber>;
-
-        "pendingOwner()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-        transferOwnership(
-            _newOwner: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "transferOwnership(address)"(
-            _newOwner: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        setERC165(
-            interfaceIds: PromiseOrValue<BytesLike>[],
-            interfaceIdsToRemove: PromiseOrValue<BytesLike>[],
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "setERC165(bytes4[],bytes4[])"(
-            interfaceIds: PromiseOrValue<BytesLike>[],
-            interfaceIdsToRemove: PromiseOrValue<BytesLike>[],
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        supportsInterface(_interfaceId: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        "supportsInterface(bytes4)"(
-            _interfaceId: PromiseOrValue<BytesLike>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        calcExpectedFee(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _kreskoAssetAmount: PromiseOrValue<BigNumberish>,
-            _feeType: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "calcExpectedFee(address,address,uint256,uint256)"(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _kreskoAssetAmount: PromiseOrValue<BigNumberish>,
-            _feeType: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        collateralDeposits(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "collateralDeposits(address,address)"(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        getAccountCollateralRatio(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        "getAccountCollateralRatio(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        getAccountCollateralValue(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        "getAccountCollateralValue(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        getAccountKrAssetValue(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        "getAccountKrAssetValue(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        getAccountMinimumCollateralValueAtRatio(
-            _account: PromiseOrValue<string>,
-            _ratio: FixedPoint.UnsignedStruct,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "getAccountMinimumCollateralValueAtRatio(address,(uint256))"(
-            _account: PromiseOrValue<string>,
-            _ratio: FixedPoint.UnsignedStruct,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        getAccountSingleCollateralValueAndRealValue(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "getAccountSingleCollateralValueAndRealValue(address,address)"(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        getCollateralRatiosFor(_accounts: PromiseOrValue<string>[], overrides?: CallOverrides): Promise<BigNumber>;
-
-        "getCollateralRatiosFor(address[])"(
-            _accounts: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        getDepositedCollateralAssetIndex(
-            _account: PromiseOrValue<string>,
-            _collateralAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "getDepositedCollateralAssetIndex(address,address)"(
-            _account: PromiseOrValue<string>,
-            _collateralAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        getDepositedCollateralAssets(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        "getDepositedCollateralAssets(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        getMintedKreskoAssets(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        "getMintedKreskoAssets(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        getMintedKreskoAssetsIndex(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "getMintedKreskoAssetsIndex(address,address)"(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        kreskoAssetDebt(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "kreskoAssetDebt(address,address)"(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        kreskoAssetDebtInterest(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "kreskoAssetDebtInterest(address,address)"(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        kreskoAssetDebtInterestTotal(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        "kreskoAssetDebtInterestTotal(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        kreskoAssetDebtPrincipal(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "kreskoAssetDebtPrincipal(address,address)"(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        burnKreskoAsset(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _burnAmount: PromiseOrValue<BigNumberish>,
-            _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "burnKreskoAsset(address,address,uint256,uint256)"(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _burnAmount: PromiseOrValue<BigNumberish>,
-            _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        batchCloseKrAssetDebtPositions(
-            _account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "batchCloseKrAssetDebtPositions(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        closeKrAssetDebtPosition(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "closeKrAssetDebtPosition(address,address)"(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        addCollateralAsset(
-            _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "addCollateralAsset(address,address,uint256,address,address)"(
-            _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        addKreskoAsset(
-            _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "addKreskoAsset(address,address,uint256,address,address,uint256,uint256,uint256)"(
-            _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        initialize(
-            args: MinterInitArgsStruct,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "initialize((address,address,address,uint8,uint256,uint256,uint256,uint256))"(
-            args: MinterInitArgsStruct,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        updateAMMOracle(
-            _ammOracle: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "updateAMMOracle(address)"(
-            _ammOracle: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        updateCollateralAsset(
-            _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "updateCollateralAsset(address,address,uint256,address,address)"(
-            _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        updateExtOracleDecimals(
-            _decimals: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "updateExtOracleDecimals(uint8)"(
-            _decimals: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        updateFeeRecipient(
-            _feeRecipient: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "updateFeeRecipient(address)"(
-            _feeRecipient: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        updateKreskoAsset(
-            _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "updateKreskoAsset(address,address,uint256,address,address,uint256,uint256,uint256)"(
-            _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        updateLiquidationIncentiveMultiplier(
-            _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "updateLiquidationIncentiveMultiplier(uint256)"(
-            _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        updateLiquidationThreshold(
-            _liquidationThreshold: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "updateLiquidationThreshold(uint256)"(
-            _liquidationThreshold: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        updateMinimumCollateralizationRatio(
-            _minimumCollateralizationRatio: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "updateMinimumCollateralizationRatio(uint256)"(
-            _minimumCollateralizationRatio: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        updateMinimumDebtValue(
-            _minimumDebtValue: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "updateMinimumDebtValue(uint256)"(
-            _minimumDebtValue: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        depositCollateral(
-            _account: PromiseOrValue<string>,
-            _collateralAsset: PromiseOrValue<string>,
-            _depositAmount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "depositCollateral(address,address,uint256)"(
-            _account: PromiseOrValue<string>,
-            _collateralAsset: PromiseOrValue<string>,
-            _depositAmount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        withdrawCollateral(
-            _account: PromiseOrValue<string>,
-            _collateralAsset: PromiseOrValue<string>,
-            _withdrawAmount: PromiseOrValue<BigNumberish>,
-            _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "withdrawCollateral(address,address,uint256,uint256)"(
-            _account: PromiseOrValue<string>,
-            _collateralAsset: PromiseOrValue<string>,
-            _withdrawAmount: PromiseOrValue<BigNumberish>,
-            _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        batchLiquidateInterest(
-            _account: PromiseOrValue<string>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "batchLiquidateInterest(address,address)"(
-            _account: PromiseOrValue<string>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        liquidateInterest(
-            _account: PromiseOrValue<string>,
-            _repayKreskoAsset: PromiseOrValue<string>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "liquidateInterest(address,address,address)"(
-            _account: PromiseOrValue<string>,
-            _repayKreskoAsset: PromiseOrValue<string>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        calculateMaxLiquidatableValueForAssets(
-            _account: PromiseOrValue<string>,
-            _repayKreskoAsset: PromiseOrValue<string>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "calculateMaxLiquidatableValueForAssets(address,address,address)"(
-            _account: PromiseOrValue<string>,
-            _repayKreskoAsset: PromiseOrValue<string>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        isAccountLiquidatable(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        "isAccountLiquidatable(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        liquidate(
-            _account: PromiseOrValue<string>,
-            _repayKreskoAsset: PromiseOrValue<string>,
-            _repayAmount: PromiseOrValue<BigNumberish>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
-            _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "liquidate(address,address,uint256,address,uint256,uint256)"(
-            _account: PromiseOrValue<string>,
-            _repayKreskoAsset: PromiseOrValue<string>,
-            _repayAmount: PromiseOrValue<BigNumberish>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
-            _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        mintKreskoAsset(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _mintAmount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "mintKreskoAsset(address,address,uint256)"(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _mintAmount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        assetActionPaused(
-            _action: PromiseOrValue<BigNumberish>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "assetActionPaused(uint8,address)"(
-            _action: PromiseOrValue<BigNumberish>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        safetyStateFor(
-            _asset: PromiseOrValue<string>,
-            _action: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "safetyStateFor(address,uint8)"(
-            _asset: PromiseOrValue<string>,
-            _action: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        safetyStateSet(overrides?: CallOverrides): Promise<BigNumber>;
-
-        "safetyStateSet()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-        toggleAssetsPaused(
-            _assets: PromiseOrValue<string>[],
-            _action: PromiseOrValue<BigNumberish>,
-            _withDuration: PromiseOrValue<boolean>,
-            _duration: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "toggleAssetsPaused(address[],uint8,bool,uint256)"(
-            _assets: PromiseOrValue<string>[],
-            _action: PromiseOrValue<BigNumberish>,
-            _withDuration: PromiseOrValue<boolean>,
-            _duration: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        batchRepayFullStabilityRateInterest(
-            _account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "batchRepayFullStabilityRateInterest(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        getDebtIndexForAsset(_asset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        "getDebtIndexForAsset(address)"(_asset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        getLastDebtIndexForAccount(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "getLastDebtIndexForAccount(address,address)"(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        getPriceRateForAsset(_asset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        "getPriceRateForAsset(address)"(_asset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        getStabilityRateConfigurationForAsset(
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "getStabilityRateConfigurationForAsset(address)"(
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        getStabilityRateForAsset(_asset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        "getStabilityRateForAsset(address)"(
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        kiss(overrides?: CallOverrides): Promise<BigNumber>;
-
-        "kiss()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-        repayFullStabilityRateInterest(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "repayFullStabilityRateInterest(address,address)"(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        repayStabilityRateInterestPartial(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _kissRepayAmount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "repayStabilityRateInterestPartial(address,address,uint256)"(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _kissRepayAmount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        setupStabilityRateParams(
-            _asset: PromiseOrValue<string>,
-            _setup: StabilityRateParamsStruct,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "setupStabilityRateParams(address,(uint128,uint128,uint128,uint128,uint128))"(
-            _asset: PromiseOrValue<string>,
-            _setup: StabilityRateParamsStruct,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        updateKiss(
-            _kiss: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "updateKiss(address)"(
-            _kiss: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        updateStabilityRateAndIndexForAsset(
-            _asset: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "updateStabilityRateAndIndexForAsset(address)"(
-            _asset: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        updateStabilityRateParams(
-            _asset: PromiseOrValue<string>,
-            _setup: StabilityRateParamsStruct,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "updateStabilityRateParams(address,(uint128,uint128,uint128,uint128,uint128))"(
-            _asset: PromiseOrValue<string>,
-            _setup: StabilityRateParamsStruct,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        ammOracle(overrides?: CallOverrides): Promise<BigNumber>;
-
-        "ammOracle()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-        collateralAsset(_collateralAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        "collateralAsset(address)"(
-            _collateralAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        collateralExists(_collateralAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        "collateralExists(address)"(
-            _collateralAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        domainSeparator(overrides?: CallOverrides): Promise<BigNumber>;
-
-        "domainSeparator()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-        extOracleDecimals(overrides?: CallOverrides): Promise<BigNumber>;
-
-        "extOracleDecimals()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-        feeRecipient(overrides?: CallOverrides): Promise<BigNumber>;
-
-        "feeRecipient()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-        getAllParams(overrides?: CallOverrides): Promise<BigNumber>;
-
-        "getAllParams()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-        getCollateralValueAndOraclePrice(
-            _collateralAsset: PromiseOrValue<string>,
-            _amount: PromiseOrValue<BigNumberish>,
-            _ignoreCollateralFactor: PromiseOrValue<boolean>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "getCollateralValueAndOraclePrice(address,uint256,bool)"(
-            _collateralAsset: PromiseOrValue<string>,
-            _amount: PromiseOrValue<BigNumberish>,
-            _ignoreCollateralFactor: PromiseOrValue<boolean>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        getKrAssetValue(
-            _kreskoAsset: PromiseOrValue<string>,
-            _amount: PromiseOrValue<BigNumberish>,
-            _ignoreKFactor: PromiseOrValue<boolean>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "getKrAssetValue(address,uint256,bool)"(
-            _kreskoAsset: PromiseOrValue<string>,
-            _amount: PromiseOrValue<BigNumberish>,
-            _ignoreKFactor: PromiseOrValue<boolean>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        krAssetExists(_kreskoAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        "krAssetExists(address)"(_kreskoAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        kreskoAsset(_kreskoAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        "kreskoAsset(address)"(_kreskoAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        liquidationIncentiveMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
-
-        "liquidationIncentiveMultiplier()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-        liquidationThreshold(overrides?: CallOverrides): Promise<BigNumber>;
-
-        "liquidationThreshold()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-        minimumCollateralizationRatio(overrides?: CallOverrides): Promise<BigNumber>;
-
-        "minimumCollateralizationRatio()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-        minimumDebtValue(overrides?: CallOverrides): Promise<BigNumber>;
-
-        "minimumDebtValue()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-        minterInitializations(overrides?: CallOverrides): Promise<BigNumber>;
-
-        "minterInitializations()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-        batchOracleValues(
-            _assets: PromiseOrValue<string>[],
-            _oracles: PromiseOrValue<string>[],
-            _marketStatusOracles: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "batchOracleValues(address[],address[],address[])"(
-            _assets: PromiseOrValue<string>[],
-            _oracles: PromiseOrValue<string>[],
-            _marketStatusOracles: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        getAccountData(
-            _account: PromiseOrValue<string>,
-            _tokens: PromiseOrValue<string>[],
-            _staking: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "getAccountData(address,address[],address)"(
-            _account: PromiseOrValue<string>,
-            _tokens: PromiseOrValue<string>[],
-            _staking: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        getTokenData(
-            _allTokens: PromiseOrValue<string>[],
-            _assets: PromiseOrValue<string>[],
-            _priceFeeds: PromiseOrValue<string>[],
-            _marketStatusOracles: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "getTokenData(address[],address[],address[],address[])"(
-            _allTokens: PromiseOrValue<string>[],
-            _assets: PromiseOrValue<string>[],
-            _priceFeeds: PromiseOrValue<string>[],
-            _marketStatusOracles: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        getGlobalData(
-            _collateralAssets: PromiseOrValue<string>[],
-            _krAssets: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        "getGlobalData(address[],address[])"(
-            _collateralAssets: PromiseOrValue<string>[],
-            _krAssets: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        getPairsData(_pairAddresses: PromiseOrValue<string>[], overrides?: CallOverrides): Promise<BigNumber>;
-
-        "getPairsData(address[])"(
-            _pairAddresses: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-    };
-
-    populateTransaction: {
-        getRoleAdmin(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "getRoleAdmin(bytes32)"(
-            role: PromiseOrValue<BytesLike>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        getRoleMember(
-            role: PromiseOrValue<BytesLike>,
-            index: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "getRoleMember(bytes32,uint256)"(
-            role: PromiseOrValue<BytesLike>,
-            index: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        getRoleMemberCount(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "getRoleMemberCount(bytes32)"(
-            role: PromiseOrValue<BytesLike>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        grantRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "grantRole(bytes32,address)"(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        hasRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "hasRole(bytes32,address)"(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        renounceRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "renounceRole(bytes32,address)"(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        revokeRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "revokeRole(bytes32,address)"(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        diamondCut(
-            _diamondCut: IDiamondCutFacet.FacetCutStruct[],
-            _init: PromiseOrValue<string>,
-            _calldata: PromiseOrValue<BytesLike>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "diamondCut((address,uint8,bytes4[])[],address,bytes)"(
-            _diamondCut: IDiamondCutFacet.FacetCutStruct[],
-            _init: PromiseOrValue<string>,
-            _calldata: PromiseOrValue<BytesLike>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        upgradeState(
-            _init: PromiseOrValue<string>,
-            _calldata: PromiseOrValue<BytesLike>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "upgradeState(address,bytes)"(
-            _init: PromiseOrValue<string>,
-            _calldata: PromiseOrValue<BytesLike>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        facetAddress(
-            _functionSelector: PromiseOrValue<BytesLike>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "facetAddress(bytes4)"(
-            _functionSelector: PromiseOrValue<BytesLike>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        facetAddresses(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "facetAddresses()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        facetFunctionSelectors(
-            _facet: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "facetFunctionSelectors(address)"(
-            _facet: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        facets(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "facets()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        acceptOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
-
-        "acceptOwnership()"(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
-
-        initialized(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "initialized()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "owner()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        pendingOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "pendingOwner()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        transferOwnership(
-            _newOwner: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "transferOwnership(address)"(
-            _newOwner: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        setERC165(
-            interfaceIds: PromiseOrValue<BytesLike>[],
-            interfaceIdsToRemove: PromiseOrValue<BytesLike>[],
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "setERC165(bytes4[],bytes4[])"(
-            interfaceIds: PromiseOrValue<BytesLike>[],
-            interfaceIdsToRemove: PromiseOrValue<BytesLike>[],
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        supportsInterface(
-            _interfaceId: PromiseOrValue<BytesLike>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "supportsInterface(bytes4)"(
-            _interfaceId: PromiseOrValue<BytesLike>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        calcExpectedFee(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _kreskoAssetAmount: PromiseOrValue<BigNumberish>,
-            _feeType: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "calcExpectedFee(address,address,uint256,uint256)"(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _kreskoAssetAmount: PromiseOrValue<BigNumberish>,
-            _feeType: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        collateralDeposits(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "collateralDeposits(address,address)"(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        getAccountCollateralRatio(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "getAccountCollateralRatio(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        getAccountCollateralValue(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "getAccountCollateralValue(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        getAccountKrAssetValue(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "getAccountKrAssetValue(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        getAccountMinimumCollateralValueAtRatio(
-            _account: PromiseOrValue<string>,
-            _ratio: FixedPoint.UnsignedStruct,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "getAccountMinimumCollateralValueAtRatio(address,(uint256))"(
-            _account: PromiseOrValue<string>,
-            _ratio: FixedPoint.UnsignedStruct,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        getAccountSingleCollateralValueAndRealValue(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "getAccountSingleCollateralValueAndRealValue(address,address)"(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        getCollateralRatiosFor(
-            _accounts: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "getCollateralRatiosFor(address[])"(
-            _accounts: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        getDepositedCollateralAssetIndex(
-            _account: PromiseOrValue<string>,
-            _collateralAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "getDepositedCollateralAssetIndex(address,address)"(
-            _account: PromiseOrValue<string>,
-            _collateralAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        getDepositedCollateralAssets(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "getDepositedCollateralAssets(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        getMintedKreskoAssets(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "getMintedKreskoAssets(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        getMintedKreskoAssetsIndex(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "getMintedKreskoAssetsIndex(address,address)"(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        kreskoAssetDebt(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "kreskoAssetDebt(address,address)"(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        kreskoAssetDebtInterest(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "kreskoAssetDebtInterest(address,address)"(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        kreskoAssetDebtInterestTotal(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "kreskoAssetDebtInterestTotal(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        kreskoAssetDebtPrincipal(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "kreskoAssetDebtPrincipal(address,address)"(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        burnKreskoAsset(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _burnAmount: PromiseOrValue<BigNumberish>,
-            _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "burnKreskoAsset(address,address,uint256,uint256)"(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _burnAmount: PromiseOrValue<BigNumberish>,
-            _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        batchCloseKrAssetDebtPositions(
-            _account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "batchCloseKrAssetDebtPositions(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        closeKrAssetDebtPosition(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "closeKrAssetDebtPosition(address,address)"(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        addCollateralAsset(
-            _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "addCollateralAsset(address,address,uint256,address,address)"(
-            _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        addKreskoAsset(
-            _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "addKreskoAsset(address,address,uint256,address,address,uint256,uint256,uint256)"(
-            _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        initialize(
-            args: MinterInitArgsStruct,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "initialize((address,address,address,uint8,uint256,uint256,uint256,uint256))"(
-            args: MinterInitArgsStruct,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        updateAMMOracle(
-            _ammOracle: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "updateAMMOracle(address)"(
-            _ammOracle: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        updateCollateralAsset(
-            _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "updateCollateralAsset(address,address,uint256,address,address)"(
-            _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        updateExtOracleDecimals(
-            _decimals: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "updateExtOracleDecimals(uint8)"(
-            _decimals: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        updateFeeRecipient(
-            _feeRecipient: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "updateFeeRecipient(address)"(
-            _feeRecipient: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        updateKreskoAsset(
-            _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "updateKreskoAsset(address,address,uint256,address,address,uint256,uint256,uint256)"(
-            _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        updateLiquidationIncentiveMultiplier(
-            _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "updateLiquidationIncentiveMultiplier(uint256)"(
-            _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        updateLiquidationThreshold(
-            _liquidationThreshold: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "updateLiquidationThreshold(uint256)"(
-            _liquidationThreshold: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        updateMinimumCollateralizationRatio(
-            _minimumCollateralizationRatio: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "updateMinimumCollateralizationRatio(uint256)"(
-            _minimumCollateralizationRatio: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        updateMinimumDebtValue(
-            _minimumDebtValue: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "updateMinimumDebtValue(uint256)"(
-            _minimumDebtValue: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        depositCollateral(
-            _account: PromiseOrValue<string>,
-            _collateralAsset: PromiseOrValue<string>,
-            _depositAmount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "depositCollateral(address,address,uint256)"(
-            _account: PromiseOrValue<string>,
-            _collateralAsset: PromiseOrValue<string>,
-            _depositAmount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        withdrawCollateral(
-            _account: PromiseOrValue<string>,
-            _collateralAsset: PromiseOrValue<string>,
-            _withdrawAmount: PromiseOrValue<BigNumberish>,
-            _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "withdrawCollateral(address,address,uint256,uint256)"(
-            _account: PromiseOrValue<string>,
-            _collateralAsset: PromiseOrValue<string>,
-            _withdrawAmount: PromiseOrValue<BigNumberish>,
-            _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        batchLiquidateInterest(
-            _account: PromiseOrValue<string>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "batchLiquidateInterest(address,address)"(
-            _account: PromiseOrValue<string>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        liquidateInterest(
-            _account: PromiseOrValue<string>,
-            _repayKreskoAsset: PromiseOrValue<string>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "liquidateInterest(address,address,address)"(
-            _account: PromiseOrValue<string>,
-            _repayKreskoAsset: PromiseOrValue<string>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        calculateMaxLiquidatableValueForAssets(
-            _account: PromiseOrValue<string>,
-            _repayKreskoAsset: PromiseOrValue<string>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "calculateMaxLiquidatableValueForAssets(address,address,address)"(
-            _account: PromiseOrValue<string>,
-            _repayKreskoAsset: PromiseOrValue<string>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        isAccountLiquidatable(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "isAccountLiquidatable(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        liquidate(
-            _account: PromiseOrValue<string>,
-            _repayKreskoAsset: PromiseOrValue<string>,
-            _repayAmount: PromiseOrValue<BigNumberish>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
-            _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "liquidate(address,address,uint256,address,uint256,uint256)"(
-            _account: PromiseOrValue<string>,
-            _repayKreskoAsset: PromiseOrValue<string>,
-            _repayAmount: PromiseOrValue<BigNumberish>,
-            _collateralAssetToSeize: PromiseOrValue<string>,
-            _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
-            _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        mintKreskoAsset(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _mintAmount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "mintKreskoAsset(address,address,uint256)"(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _mintAmount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        assetActionPaused(
-            _action: PromiseOrValue<BigNumberish>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "assetActionPaused(uint8,address)"(
-            _action: PromiseOrValue<BigNumberish>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        safetyStateFor(
-            _asset: PromiseOrValue<string>,
-            _action: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "safetyStateFor(address,uint8)"(
-            _asset: PromiseOrValue<string>,
-            _action: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        safetyStateSet(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "safetyStateSet()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        toggleAssetsPaused(
-            _assets: PromiseOrValue<string>[],
-            _action: PromiseOrValue<BigNumberish>,
-            _withDuration: PromiseOrValue<boolean>,
-            _duration: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "toggleAssetsPaused(address[],uint8,bool,uint256)"(
-            _assets: PromiseOrValue<string>[],
-            _action: PromiseOrValue<BigNumberish>,
-            _withDuration: PromiseOrValue<boolean>,
-            _duration: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        batchRepayFullStabilityRateInterest(
-            _account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "batchRepayFullStabilityRateInterest(address)"(
-            _account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        getDebtIndexForAsset(_asset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "getDebtIndexForAsset(address)"(
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        getLastDebtIndexForAccount(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "getLastDebtIndexForAccount(address,address)"(
-            _account: PromiseOrValue<string>,
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        getPriceRateForAsset(_asset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "getPriceRateForAsset(address)"(
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        getStabilityRateConfigurationForAsset(
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "getStabilityRateConfigurationForAsset(address)"(
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        getStabilityRateForAsset(
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "getStabilityRateForAsset(address)"(
-            _asset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        kiss(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "kiss()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        repayFullStabilityRateInterest(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "repayFullStabilityRateInterest(address,address)"(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        repayStabilityRateInterestPartial(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _kissRepayAmount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "repayStabilityRateInterestPartial(address,address,uint256)"(
-            _account: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _kissRepayAmount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        setupStabilityRateParams(
-            _asset: PromiseOrValue<string>,
-            _setup: StabilityRateParamsStruct,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "setupStabilityRateParams(address,(uint128,uint128,uint128,uint128,uint128))"(
-            _asset: PromiseOrValue<string>,
-            _setup: StabilityRateParamsStruct,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        updateKiss(
-            _kiss: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "updateKiss(address)"(
-            _kiss: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        updateStabilityRateAndIndexForAsset(
-            _asset: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "updateStabilityRateAndIndexForAsset(address)"(
-            _asset: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        updateStabilityRateParams(
-            _asset: PromiseOrValue<string>,
-            _setup: StabilityRateParamsStruct,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "updateStabilityRateParams(address,(uint128,uint128,uint128,uint128,uint128))"(
-            _asset: PromiseOrValue<string>,
-            _setup: StabilityRateParamsStruct,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        ammOracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "ammOracle()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        collateralAsset(
-            _collateralAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "collateralAsset(address)"(
-            _collateralAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        collateralExists(
-            _collateralAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "collateralExists(address)"(
-            _collateralAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        domainSeparator(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "domainSeparator()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        extOracleDecimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "extOracleDecimals()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        feeRecipient(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "feeRecipient()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        getAllParams(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "getAllParams()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        getCollateralValueAndOraclePrice(
-            _collateralAsset: PromiseOrValue<string>,
-            _amount: PromiseOrValue<BigNumberish>,
-            _ignoreCollateralFactor: PromiseOrValue<boolean>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "getCollateralValueAndOraclePrice(address,uint256,bool)"(
-            _collateralAsset: PromiseOrValue<string>,
-            _amount: PromiseOrValue<BigNumberish>,
-            _ignoreCollateralFactor: PromiseOrValue<boolean>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        getKrAssetValue(
-            _kreskoAsset: PromiseOrValue<string>,
-            _amount: PromiseOrValue<BigNumberish>,
-            _ignoreKFactor: PromiseOrValue<boolean>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "getKrAssetValue(address,uint256,bool)"(
-            _kreskoAsset: PromiseOrValue<string>,
-            _amount: PromiseOrValue<BigNumberish>,
-            _ignoreKFactor: PromiseOrValue<boolean>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        krAssetExists(_kreskoAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "krAssetExists(address)"(
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        kreskoAsset(_kreskoAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "kreskoAsset(address)"(
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        liquidationIncentiveMultiplier(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "liquidationIncentiveMultiplier()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        liquidationThreshold(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "liquidationThreshold()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        minimumCollateralizationRatio(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "minimumCollateralizationRatio()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        minimumDebtValue(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "minimumDebtValue()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        minterInitializations(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "minterInitializations()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        batchOracleValues(
-            _assets: PromiseOrValue<string>[],
-            _oracles: PromiseOrValue<string>[],
-            _marketStatusOracles: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "batchOracleValues(address[],address[],address[])"(
-            _assets: PromiseOrValue<string>[],
-            _oracles: PromiseOrValue<string>[],
-            _marketStatusOracles: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        getAccountData(
-            _account: PromiseOrValue<string>,
-            _tokens: PromiseOrValue<string>[],
-            _staking: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "getAccountData(address,address[],address)"(
-            _account: PromiseOrValue<string>,
-            _tokens: PromiseOrValue<string>[],
-            _staking: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        getTokenData(
-            _allTokens: PromiseOrValue<string>[],
-            _assets: PromiseOrValue<string>[],
-            _priceFeeds: PromiseOrValue<string>[],
-            _marketStatusOracles: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "getTokenData(address[],address[],address[],address[])"(
-            _allTokens: PromiseOrValue<string>[],
-            _assets: PromiseOrValue<string>[],
-            _priceFeeds: PromiseOrValue<string>[],
-            _marketStatusOracles: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        getGlobalData(
-            _collateralAssets: PromiseOrValue<string>[],
-            _krAssets: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "getGlobalData(address[],address[])"(
-            _collateralAssets: PromiseOrValue<string>[],
-            _krAssets: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        getPairsData(
-            _pairAddresses: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        "getPairsData(address[])"(
-            _pairAddresses: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-    };
+  };
+
+  filters: {
+    "DiamondCut(tuple[],address,bytes)"(
+      _diamondCut?: null,
+      _init?: null,
+      _calldata?: null
+    ): DiamondCutEventFilter;
+    DiamondCut(
+      _diamondCut?: null,
+      _init?: null,
+      _calldata?: null
+    ): DiamondCutEventFilter;
+
+    "OwnershipTransferred(address,address)"(
+      previousOwner?: PromiseOrValue<string> | null,
+      newOwner?: PromiseOrValue<string> | null
+    ): OwnershipTransferredEventFilter;
+    OwnershipTransferred(
+      previousOwner?: PromiseOrValue<string> | null,
+      newOwner?: PromiseOrValue<string> | null
+    ): OwnershipTransferredEventFilter;
+
+    "PendingOwnershipTransfer(address,address)"(
+      previousOwner?: PromiseOrValue<string> | null,
+      newOwner?: PromiseOrValue<string> | null
+    ): PendingOwnershipTransferEventFilter;
+    PendingOwnershipTransfer(
+      previousOwner?: PromiseOrValue<string> | null,
+      newOwner?: PromiseOrValue<string> | null
+    ): PendingOwnershipTransferEventFilter;
+
+    "KISSUpdated(address)"(
+      KISS?: PromiseOrValue<string> | null
+    ): KISSUpdatedEventFilter;
+    KISSUpdated(KISS?: PromiseOrValue<string> | null): KISSUpdatedEventFilter;
+
+    "StabilityRateConfigured(address,uint256,uint256,uint256,uint256)"(
+      asset?: PromiseOrValue<string> | null,
+      stabilityRateBase?: PromiseOrValue<BigNumberish> | null,
+      priceRateDelta?: PromiseOrValue<BigNumberish> | null,
+      rateSlope1?: null,
+      rateSlope2?: null
+    ): StabilityRateConfiguredEventFilter;
+    StabilityRateConfigured(
+      asset?: PromiseOrValue<string> | null,
+      stabilityRateBase?: PromiseOrValue<BigNumberish> | null,
+      priceRateDelta?: PromiseOrValue<BigNumberish> | null,
+      rateSlope1?: null,
+      rateSlope2?: null
+    ): StabilityRateConfiguredEventFilter;
+
+    "StabilityRateInterestBatchRepaid(address,uint256)"(
+      account?: PromiseOrValue<string> | null,
+      value?: null
+    ): StabilityRateInterestBatchRepaidEventFilter;
+    StabilityRateInterestBatchRepaid(
+      account?: PromiseOrValue<string> | null,
+      value?: null
+    ): StabilityRateInterestBatchRepaidEventFilter;
+
+    "StabilityRateInterestRepaid(address,address,uint256)"(
+      account?: PromiseOrValue<string> | null,
+      asset?: PromiseOrValue<string> | null,
+      value?: null
+    ): StabilityRateInterestRepaidEventFilter;
+    StabilityRateInterestRepaid(
+      account?: PromiseOrValue<string> | null,
+      asset?: PromiseOrValue<string> | null,
+      value?: null
+    ): StabilityRateInterestRepaidEventFilter;
+
+    "AMMOracleUpdated(address)"(
+      ammOracle?: PromiseOrValue<string> | null
+    ): AMMOracleUpdatedEventFilter;
+    AMMOracleUpdated(
+      ammOracle?: PromiseOrValue<string> | null
+    ): AMMOracleUpdatedEventFilter;
+
+    "BatchInterestLiquidationOccurred(address,address,address,uint256,uint256)"(
+      account?: PromiseOrValue<string> | null,
+      liquidator?: PromiseOrValue<string> | null,
+      seizedCollateralAsset?: PromiseOrValue<string> | null,
+      repayUSD?: null,
+      collateralSent?: null
+    ): BatchInterestLiquidationOccurredEventFilter;
+    BatchInterestLiquidationOccurred(
+      account?: PromiseOrValue<string> | null,
+      liquidator?: PromiseOrValue<string> | null,
+      seizedCollateralAsset?: PromiseOrValue<string> | null,
+      repayUSD?: null,
+      collateralSent?: null
+    ): BatchInterestLiquidationOccurredEventFilter;
+
+    "CloseFeePaid(address,address,uint256,uint256)"(
+      account?: PromiseOrValue<string> | null,
+      paymentCollateralAsset?: PromiseOrValue<string> | null,
+      paymentAmount?: PromiseOrValue<BigNumberish> | null,
+      paymentValue?: null
+    ): CloseFeePaidEventFilter;
+    CloseFeePaid(
+      account?: PromiseOrValue<string> | null,
+      paymentCollateralAsset?: PromiseOrValue<string> | null,
+      paymentAmount?: PromiseOrValue<BigNumberish> | null,
+      paymentValue?: null
+    ): CloseFeePaidEventFilter;
+
+    "CollateralAssetAdded(address,uint256,address,address,address)"(
+      collateralAsset?: PromiseOrValue<string> | null,
+      factor?: null,
+      oracle?: PromiseOrValue<string> | null,
+      marketStatusOracle?: PromiseOrValue<string> | null,
+      anchor?: null
+    ): CollateralAssetAddedEventFilter;
+    CollateralAssetAdded(
+      collateralAsset?: PromiseOrValue<string> | null,
+      factor?: null,
+      oracle?: PromiseOrValue<string> | null,
+      marketStatusOracle?: PromiseOrValue<string> | null,
+      anchor?: null
+    ): CollateralAssetAddedEventFilter;
+
+    "CollateralAssetUpdated(address,uint256,address,address,address)"(
+      collateralAsset?: PromiseOrValue<string> | null,
+      factor?: null,
+      oracle?: PromiseOrValue<string> | null,
+      marketStatusOracle?: PromiseOrValue<string> | null,
+      anchor?: null
+    ): CollateralAssetUpdatedEventFilter;
+    CollateralAssetUpdated(
+      collateralAsset?: PromiseOrValue<string> | null,
+      factor?: null,
+      oracle?: PromiseOrValue<string> | null,
+      marketStatusOracle?: PromiseOrValue<string> | null,
+      anchor?: null
+    ): CollateralAssetUpdatedEventFilter;
+
+    "CollateralDeposited(address,address,uint256)"(
+      account?: PromiseOrValue<string> | null,
+      collateralAsset?: PromiseOrValue<string> | null,
+      amount?: PromiseOrValue<BigNumberish> | null
+    ): CollateralDepositedEventFilter;
+    CollateralDeposited(
+      account?: PromiseOrValue<string> | null,
+      collateralAsset?: PromiseOrValue<string> | null,
+      amount?: PromiseOrValue<BigNumberish> | null
+    ): CollateralDepositedEventFilter;
+
+    "CollateralWithdrawn(address,address,uint256)"(
+      account?: PromiseOrValue<string> | null,
+      collateralAsset?: PromiseOrValue<string> | null,
+      amount?: PromiseOrValue<BigNumberish> | null
+    ): CollateralWithdrawnEventFilter;
+    CollateralWithdrawn(
+      account?: PromiseOrValue<string> | null,
+      collateralAsset?: PromiseOrValue<string> | null,
+      amount?: PromiseOrValue<BigNumberish> | null
+    ): CollateralWithdrawnEventFilter;
+
+    "DebtPositionClosed(address,address,uint256,uint256)"(
+      account?: PromiseOrValue<string> | null,
+      kreskoAsset?: PromiseOrValue<string> | null,
+      amount?: PromiseOrValue<BigNumberish> | null,
+      interestRepaid?: null
+    ): DebtPositionClosedEventFilter;
+    DebtPositionClosed(
+      account?: PromiseOrValue<string> | null,
+      kreskoAsset?: PromiseOrValue<string> | null,
+      amount?: PromiseOrValue<BigNumberish> | null,
+      interestRepaid?: null
+    ): DebtPositionClosedEventFilter;
+
+    "FeeRecipientUpdated(address)"(
+      feeRecipient?: PromiseOrValue<string> | null
+    ): FeeRecipientUpdatedEventFilter;
+    FeeRecipientUpdated(
+      feeRecipient?: PromiseOrValue<string> | null
+    ): FeeRecipientUpdatedEventFilter;
+
+    "InterestLiquidationOccurred(address,address,address,uint256,address,uint256)"(
+      account?: PromiseOrValue<string> | null,
+      liquidator?: PromiseOrValue<string> | null,
+      repayKreskoAsset?: PromiseOrValue<string> | null,
+      repayUSD?: null,
+      seizedCollateralAsset?: null,
+      collateralSent?: null
+    ): InterestLiquidationOccurredEventFilter;
+    InterestLiquidationOccurred(
+      account?: PromiseOrValue<string> | null,
+      liquidator?: PromiseOrValue<string> | null,
+      repayKreskoAsset?: PromiseOrValue<string> | null,
+      repayUSD?: null,
+      seizedCollateralAsset?: null,
+      collateralSent?: null
+    ): InterestLiquidationOccurredEventFilter;
+
+    "KreskoAssetAdded(address,address,address,address,uint256,uint256,uint256,uint256)"(
+      kreskoAsset?: PromiseOrValue<string> | null,
+      anchor?: null,
+      oracle?: PromiseOrValue<string> | null,
+      marketStatusOracle?: PromiseOrValue<string> | null,
+      kFactor?: null,
+      supplyLimit?: null,
+      closeFee?: null,
+      openFee?: null
+    ): KreskoAssetAddedEventFilter;
+    KreskoAssetAdded(
+      kreskoAsset?: PromiseOrValue<string> | null,
+      anchor?: null,
+      oracle?: PromiseOrValue<string> | null,
+      marketStatusOracle?: PromiseOrValue<string> | null,
+      kFactor?: null,
+      supplyLimit?: null,
+      closeFee?: null,
+      openFee?: null
+    ): KreskoAssetAddedEventFilter;
+
+    "KreskoAssetBurned(address,address,uint256)"(
+      account?: PromiseOrValue<string> | null,
+      kreskoAsset?: PromiseOrValue<string> | null,
+      amount?: PromiseOrValue<BigNumberish> | null
+    ): KreskoAssetBurnedEventFilter;
+    KreskoAssetBurned(
+      account?: PromiseOrValue<string> | null,
+      kreskoAsset?: PromiseOrValue<string> | null,
+      amount?: PromiseOrValue<BigNumberish> | null
+    ): KreskoAssetBurnedEventFilter;
+
+    "KreskoAssetMinted(address,address,uint256)"(
+      account?: PromiseOrValue<string> | null,
+      kreskoAsset?: PromiseOrValue<string> | null,
+      amount?: PromiseOrValue<BigNumberish> | null
+    ): KreskoAssetMintedEventFilter;
+    KreskoAssetMinted(
+      account?: PromiseOrValue<string> | null,
+      kreskoAsset?: PromiseOrValue<string> | null,
+      amount?: PromiseOrValue<BigNumberish> | null
+    ): KreskoAssetMintedEventFilter;
+
+    "KreskoAssetUpdated(address,address,address,address,uint256,uint256,uint256,uint256)"(
+      kreskoAsset?: PromiseOrValue<string> | null,
+      anchor?: null,
+      oracle?: PromiseOrValue<string> | null,
+      marketStatusOracle?: PromiseOrValue<string> | null,
+      kFactor?: null,
+      supplyLimit?: null,
+      closeFee?: null,
+      openFee?: null
+    ): KreskoAssetUpdatedEventFilter;
+    KreskoAssetUpdated(
+      kreskoAsset?: PromiseOrValue<string> | null,
+      anchor?: null,
+      oracle?: PromiseOrValue<string> | null,
+      marketStatusOracle?: PromiseOrValue<string> | null,
+      kFactor?: null,
+      supplyLimit?: null,
+      closeFee?: null,
+      openFee?: null
+    ): KreskoAssetUpdatedEventFilter;
+
+    "LiquidationIncentiveMultiplierUpdated(uint256)"(
+      liquidationIncentiveMultiplier?: PromiseOrValue<BigNumberish> | null
+    ): LiquidationIncentiveMultiplierUpdatedEventFilter;
+    LiquidationIncentiveMultiplierUpdated(
+      liquidationIncentiveMultiplier?: PromiseOrValue<BigNumberish> | null
+    ): LiquidationIncentiveMultiplierUpdatedEventFilter;
+
+    "LiquidationOccurred(address,address,address,uint256,address,uint256)"(
+      account?: PromiseOrValue<string> | null,
+      liquidator?: PromiseOrValue<string> | null,
+      repayKreskoAsset?: PromiseOrValue<string> | null,
+      repayAmount?: null,
+      seizedCollateralAsset?: null,
+      collateralSent?: null
+    ): LiquidationOccurredEventFilter;
+    LiquidationOccurred(
+      account?: PromiseOrValue<string> | null,
+      liquidator?: PromiseOrValue<string> | null,
+      repayKreskoAsset?: PromiseOrValue<string> | null,
+      repayAmount?: null,
+      seizedCollateralAsset?: null,
+      collateralSent?: null
+    ): LiquidationOccurredEventFilter;
+
+    "LiquidationThresholdUpdated(uint256)"(
+      liquidationThreshold?: PromiseOrValue<BigNumberish> | null
+    ): LiquidationThresholdUpdatedEventFilter;
+    LiquidationThresholdUpdated(
+      liquidationThreshold?: PromiseOrValue<BigNumberish> | null
+    ): LiquidationThresholdUpdatedEventFilter;
+
+    "MinimumCollateralizationRatioUpdated(uint256)"(
+      minimumCollateralizationRatio?: PromiseOrValue<BigNumberish> | null
+    ): MinimumCollateralizationRatioUpdatedEventFilter;
+    MinimumCollateralizationRatioUpdated(
+      minimumCollateralizationRatio?: PromiseOrValue<BigNumberish> | null
+    ): MinimumCollateralizationRatioUpdatedEventFilter;
+
+    "MinimumDebtValueUpdated(uint256)"(
+      minimumDebtValue?: PromiseOrValue<BigNumberish> | null
+    ): MinimumDebtValueUpdatedEventFilter;
+    MinimumDebtValueUpdated(
+      minimumDebtValue?: PromiseOrValue<BigNumberish> | null
+    ): MinimumDebtValueUpdatedEventFilter;
+
+    "OpenFeePaid(address,address,uint256,uint256)"(
+      account?: PromiseOrValue<string> | null,
+      paymentCollateralAsset?: PromiseOrValue<string> | null,
+      paymentAmount?: PromiseOrValue<BigNumberish> | null,
+      paymentValue?: null
+    ): OpenFeePaidEventFilter;
+    OpenFeePaid(
+      account?: PromiseOrValue<string> | null,
+      paymentCollateralAsset?: PromiseOrValue<string> | null,
+      paymentAmount?: PromiseOrValue<BigNumberish> | null,
+      paymentValue?: null
+    ): OpenFeePaidEventFilter;
+
+    "SafetyStateChange(uint8,address,string)"(
+      action?: PromiseOrValue<BigNumberish> | null,
+      asset?: PromiseOrValue<string> | null,
+      description?: PromiseOrValue<string> | null
+    ): SafetyStateChangeEventFilter;
+    SafetyStateChange(
+      action?: PromiseOrValue<BigNumberish> | null,
+      asset?: PromiseOrValue<string> | null,
+      description?: PromiseOrValue<string> | null
+    ): SafetyStateChangeEventFilter;
+  };
+
+  estimateGas: {
+    getRoleAdmin(
+      role: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getRoleMember(
+      role: PromiseOrValue<BytesLike>,
+      index: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getRoleMemberCount(
+      role: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    grantRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    hasRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    renounceRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    revokeRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    diamondCut(
+      _diamondCut: IDiamondCutFacet.FacetCutStruct[],
+      _init: PromiseOrValue<string>,
+      _calldata: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    upgradeState(
+      _init: PromiseOrValue<string>,
+      _calldata: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    facetAddress(
+      _functionSelector: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    facetAddresses(overrides?: CallOverrides): Promise<BigNumber>;
+
+    facetFunctionSelectors(
+      _facet: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    facets(overrides?: CallOverrides): Promise<BigNumber>;
+
+    acceptOwnership(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    initialized(overrides?: CallOverrides): Promise<BigNumber>;
+
+    owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    pendingOwner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    transferOwnership(
+      _newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setERC165(
+      interfaceIds: PromiseOrValue<BytesLike>[],
+      interfaceIdsToRemove: PromiseOrValue<BytesLike>[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    supportsInterface(
+      _interfaceId: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    calcExpectedFee(
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      _kreskoAssetAmount: PromiseOrValue<BigNumberish>,
+      _feeType: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    collateralDeposits(
+      _account: PromiseOrValue<string>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getAccountCollateralRatio(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getAccountCollateralValue(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getAccountKrAssetValue(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getAccountMinimumCollateralValueAtRatio(
+      _account: PromiseOrValue<string>,
+      _ratio: FixedPoint.UnsignedStruct,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getAccountSingleCollateralValueAndRealValue(
+      _account: PromiseOrValue<string>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getCollateralRatiosFor(
+      _accounts: PromiseOrValue<string>[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getDepositedCollateralAssetIndex(
+      _account: PromiseOrValue<string>,
+      _collateralAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getDepositedCollateralAssets(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getMintedKreskoAssets(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getMintedKreskoAssetsIndex(
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    kreskoAssetDebt(
+      _account: PromiseOrValue<string>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    kreskoAssetDebtInterest(
+      _account: PromiseOrValue<string>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    kreskoAssetDebtInterestTotal(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    kreskoAssetDebtPrincipal(
+      _account: PromiseOrValue<string>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    burnKreskoAsset(
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      _burnAmount: PromiseOrValue<BigNumberish>,
+      _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    batchCloseKrAssetDebtPositions(
+      _account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    closeKrAssetDebtPosition(
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    addCollateralAsset(
+      _collateralAsset: PromiseOrValue<string>,
+      _anchor: PromiseOrValue<string>,
+      _factor: PromiseOrValue<BigNumberish>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    addKreskoAsset(
+      _krAsset: PromiseOrValue<string>,
+      _anchor: PromiseOrValue<string>,
+      _kFactor: PromiseOrValue<BigNumberish>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
+      _supplyLimit: PromiseOrValue<BigNumberish>,
+      _closeFee: PromiseOrValue<BigNumberish>,
+      _openFee: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    initialize(
+      args: MinterInitArgsStruct,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    updateAMMOracle(
+      _ammOracle: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    updateCollateralAsset(
+      _collateralAsset: PromiseOrValue<string>,
+      _anchor: PromiseOrValue<string>,
+      _factor: PromiseOrValue<BigNumberish>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    updateExtOracleDecimals(
+      _decimals: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    updateFeeRecipient(
+      _feeRecipient: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    updateKreskoAsset(
+      _krAsset: PromiseOrValue<string>,
+      _anchor: PromiseOrValue<string>,
+      _kFactor: PromiseOrValue<BigNumberish>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
+      _supplyLimit: PromiseOrValue<BigNumberish>,
+      _closeFee: PromiseOrValue<BigNumberish>,
+      _openFee: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    updateLiquidationIncentiveMultiplier(
+      _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    updateLiquidationThreshold(
+      _liquidationThreshold: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    updateMinimumCollateralizationRatio(
+      _minimumCollateralizationRatio: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    updateMinimumDebtValue(
+      _minimumDebtValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    depositCollateral(
+      _account: PromiseOrValue<string>,
+      _collateralAsset: PromiseOrValue<string>,
+      _depositAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    withdrawCollateral(
+      _account: PromiseOrValue<string>,
+      _collateralAsset: PromiseOrValue<string>,
+      _withdrawAmount: PromiseOrValue<BigNumberish>,
+      _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    batchLiquidateInterest(
+      _account: PromiseOrValue<string>,
+      _collateralAssetToSeize: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    liquidateInterest(
+      _account: PromiseOrValue<string>,
+      _repayKreskoAsset: PromiseOrValue<string>,
+      _collateralAssetToSeize: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    calculateMaxLiquidatableValueForAssets(
+      _account: PromiseOrValue<string>,
+      _repayKreskoAsset: PromiseOrValue<string>,
+      _collateralAssetToSeize: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    isAccountLiquidatable(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    liquidate(
+      _account: PromiseOrValue<string>,
+      _repayKreskoAsset: PromiseOrValue<string>,
+      _repayAmount: PromiseOrValue<BigNumberish>,
+      _collateralAssetToSeize: PromiseOrValue<string>,
+      _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
+      _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    mintKreskoAsset(
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      _mintAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    assetActionPaused(
+      _action: PromiseOrValue<BigNumberish>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    safetyStateFor(
+      _asset: PromiseOrValue<string>,
+      _action: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    safetyStateSet(overrides?: CallOverrides): Promise<BigNumber>;
+
+    toggleAssetsPaused(
+      _assets: PromiseOrValue<string>[],
+      _action: PromiseOrValue<BigNumberish>,
+      _withDuration: PromiseOrValue<boolean>,
+      _duration: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    batchRepayFullStabilityRateInterest(
+      _account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    getDebtIndexForAsset(
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getLastDebtIndexForAccount(
+      _account: PromiseOrValue<string>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getPriceRateForAsset(
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getStabilityRateConfigurationForAsset(
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getStabilityRateForAsset(
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    kiss(overrides?: CallOverrides): Promise<BigNumber>;
+
+    repayFullStabilityRateInterest(
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    repayStabilityRateInterestPartial(
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      _kissRepayAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setupStabilityRateParams(
+      _asset: PromiseOrValue<string>,
+      _setup: StabilityRateParamsStruct,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    updateKiss(
+      _kiss: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    updateStabilityRateAndIndexForAsset(
+      _asset: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    updateStabilityRateParams(
+      _asset: PromiseOrValue<string>,
+      _setup: StabilityRateParamsStruct,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    ammOracle(overrides?: CallOverrides): Promise<BigNumber>;
+
+    collateralAsset(
+      _collateralAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    collateralExists(
+      _collateralAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    domainSeparator(overrides?: CallOverrides): Promise<BigNumber>;
+
+    extOracleDecimals(overrides?: CallOverrides): Promise<BigNumber>;
+
+    feeRecipient(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getAllParams(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getCollateralValueAndOraclePrice(
+      _collateralAsset: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
+      _ignoreCollateralFactor: PromiseOrValue<boolean>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getKrAssetValue(
+      _kreskoAsset: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
+      _ignoreKFactor: PromiseOrValue<boolean>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    krAssetExists(
+      _kreskoAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    kreskoAsset(
+      _kreskoAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    liquidationIncentiveMultiplier(
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    liquidationThreshold(overrides?: CallOverrides): Promise<BigNumber>;
+
+    minimumCollateralizationRatio(
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    minimumDebtValue(overrides?: CallOverrides): Promise<BigNumber>;
+
+    minterInitializations(overrides?: CallOverrides): Promise<BigNumber>;
+
+    batchOracleValues(
+      _assets: PromiseOrValue<string>[],
+      _oracles: PromiseOrValue<string>[],
+      _marketStatusOracles: PromiseOrValue<string>[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getAccountData(
+      _account: PromiseOrValue<string>,
+      _tokens: PromiseOrValue<string>[],
+      _staking: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getTokenData(
+      _allTokens: PromiseOrValue<string>[],
+      _assets: PromiseOrValue<string>[],
+      _priceFeeds: PromiseOrValue<string>[],
+      _marketStatusOracles: PromiseOrValue<string>[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getGlobalData(
+      _collateralAssets: PromiseOrValue<string>[],
+      _krAssets: PromiseOrValue<string>[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getPairsData(
+      _pairAddresses: PromiseOrValue<string>[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    getRoleAdmin(
+      role: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getRoleMember(
+      role: PromiseOrValue<BytesLike>,
+      index: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getRoleMemberCount(
+      role: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    grantRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    hasRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    renounceRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    revokeRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    diamondCut(
+      _diamondCut: IDiamondCutFacet.FacetCutStruct[],
+      _init: PromiseOrValue<string>,
+      _calldata: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    upgradeState(
+      _init: PromiseOrValue<string>,
+      _calldata: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    facetAddress(
+      _functionSelector: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    facetAddresses(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    facetFunctionSelectors(
+      _facet: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    facets(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    acceptOwnership(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    initialized(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    pendingOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    transferOwnership(
+      _newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setERC165(
+      interfaceIds: PromiseOrValue<BytesLike>[],
+      interfaceIdsToRemove: PromiseOrValue<BytesLike>[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    supportsInterface(
+      _interfaceId: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    calcExpectedFee(
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      _kreskoAssetAmount: PromiseOrValue<BigNumberish>,
+      _feeType: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    collateralDeposits(
+      _account: PromiseOrValue<string>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getAccountCollateralRatio(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getAccountCollateralValue(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getAccountKrAssetValue(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getAccountMinimumCollateralValueAtRatio(
+      _account: PromiseOrValue<string>,
+      _ratio: FixedPoint.UnsignedStruct,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getAccountSingleCollateralValueAndRealValue(
+      _account: PromiseOrValue<string>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getCollateralRatiosFor(
+      _accounts: PromiseOrValue<string>[],
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getDepositedCollateralAssetIndex(
+      _account: PromiseOrValue<string>,
+      _collateralAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getDepositedCollateralAssets(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getMintedKreskoAssets(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getMintedKreskoAssetsIndex(
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    kreskoAssetDebt(
+      _account: PromiseOrValue<string>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    kreskoAssetDebtInterest(
+      _account: PromiseOrValue<string>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    kreskoAssetDebtInterestTotal(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    kreskoAssetDebtPrincipal(
+      _account: PromiseOrValue<string>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    burnKreskoAsset(
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      _burnAmount: PromiseOrValue<BigNumberish>,
+      _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    batchCloseKrAssetDebtPositions(
+      _account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    closeKrAssetDebtPosition(
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    addCollateralAsset(
+      _collateralAsset: PromiseOrValue<string>,
+      _anchor: PromiseOrValue<string>,
+      _factor: PromiseOrValue<BigNumberish>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    addKreskoAsset(
+      _krAsset: PromiseOrValue<string>,
+      _anchor: PromiseOrValue<string>,
+      _kFactor: PromiseOrValue<BigNumberish>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
+      _supplyLimit: PromiseOrValue<BigNumberish>,
+      _closeFee: PromiseOrValue<BigNumberish>,
+      _openFee: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    initialize(
+      args: MinterInitArgsStruct,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    updateAMMOracle(
+      _ammOracle: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    updateCollateralAsset(
+      _collateralAsset: PromiseOrValue<string>,
+      _anchor: PromiseOrValue<string>,
+      _factor: PromiseOrValue<BigNumberish>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    updateExtOracleDecimals(
+      _decimals: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    updateFeeRecipient(
+      _feeRecipient: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    updateKreskoAsset(
+      _krAsset: PromiseOrValue<string>,
+      _anchor: PromiseOrValue<string>,
+      _kFactor: PromiseOrValue<BigNumberish>,
+      _priceFeedOracle: PromiseOrValue<string>,
+      _marketStatusOracle: PromiseOrValue<string>,
+      _supplyLimit: PromiseOrValue<BigNumberish>,
+      _closeFee: PromiseOrValue<BigNumberish>,
+      _openFee: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    updateLiquidationIncentiveMultiplier(
+      _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    updateLiquidationThreshold(
+      _liquidationThreshold: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    updateMinimumCollateralizationRatio(
+      _minimumCollateralizationRatio: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    updateMinimumDebtValue(
+      _minimumDebtValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    depositCollateral(
+      _account: PromiseOrValue<string>,
+      _collateralAsset: PromiseOrValue<string>,
+      _depositAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdrawCollateral(
+      _account: PromiseOrValue<string>,
+      _collateralAsset: PromiseOrValue<string>,
+      _withdrawAmount: PromiseOrValue<BigNumberish>,
+      _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    batchLiquidateInterest(
+      _account: PromiseOrValue<string>,
+      _collateralAssetToSeize: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    liquidateInterest(
+      _account: PromiseOrValue<string>,
+      _repayKreskoAsset: PromiseOrValue<string>,
+      _collateralAssetToSeize: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    calculateMaxLiquidatableValueForAssets(
+      _account: PromiseOrValue<string>,
+      _repayKreskoAsset: PromiseOrValue<string>,
+      _collateralAssetToSeize: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    isAccountLiquidatable(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    liquidate(
+      _account: PromiseOrValue<string>,
+      _repayKreskoAsset: PromiseOrValue<string>,
+      _repayAmount: PromiseOrValue<BigNumberish>,
+      _collateralAssetToSeize: PromiseOrValue<string>,
+      _mintedKreskoAssetIndex: PromiseOrValue<BigNumberish>,
+      _depositedCollateralAssetIndex: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    mintKreskoAsset(
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      _mintAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    assetActionPaused(
+      _action: PromiseOrValue<BigNumberish>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    safetyStateFor(
+      _asset: PromiseOrValue<string>,
+      _action: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    safetyStateSet(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    toggleAssetsPaused(
+      _assets: PromiseOrValue<string>[],
+      _action: PromiseOrValue<BigNumberish>,
+      _withDuration: PromiseOrValue<boolean>,
+      _duration: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    batchRepayFullStabilityRateInterest(
+      _account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getDebtIndexForAsset(
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getLastDebtIndexForAccount(
+      _account: PromiseOrValue<string>,
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getPriceRateForAsset(
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getStabilityRateConfigurationForAsset(
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getStabilityRateForAsset(
+      _asset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    kiss(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    repayFullStabilityRateInterest(
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    repayStabilityRateInterestPartial(
+      _account: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      _kissRepayAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setupStabilityRateParams(
+      _asset: PromiseOrValue<string>,
+      _setup: StabilityRateParamsStruct,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    updateKiss(
+      _kiss: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    updateStabilityRateAndIndexForAsset(
+      _asset: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    updateStabilityRateParams(
+      _asset: PromiseOrValue<string>,
+      _setup: StabilityRateParamsStruct,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    ammOracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    collateralAsset(
+      _collateralAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    collateralExists(
+      _collateralAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    domainSeparator(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    extOracleDecimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    feeRecipient(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getAllParams(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getCollateralValueAndOraclePrice(
+      _collateralAsset: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
+      _ignoreCollateralFactor: PromiseOrValue<boolean>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getKrAssetValue(
+      _kreskoAsset: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
+      _ignoreKFactor: PromiseOrValue<boolean>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    krAssetExists(
+      _kreskoAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    kreskoAsset(
+      _kreskoAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    liquidationIncentiveMultiplier(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    liquidationThreshold(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    minimumCollateralizationRatio(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    minimumDebtValue(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    minterInitializations(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    batchOracleValues(
+      _assets: PromiseOrValue<string>[],
+      _oracles: PromiseOrValue<string>[],
+      _marketStatusOracles: PromiseOrValue<string>[],
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getAccountData(
+      _account: PromiseOrValue<string>,
+      _tokens: PromiseOrValue<string>[],
+      _staking: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getTokenData(
+      _allTokens: PromiseOrValue<string>[],
+      _assets: PromiseOrValue<string>[],
+      _priceFeeds: PromiseOrValue<string>[],
+      _marketStatusOracles: PromiseOrValue<string>[],
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getGlobalData(
+      _collateralAssets: PromiseOrValue<string>[],
+      _krAssets: PromiseOrValue<string>[],
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getPairsData(
+      _pairAddresses: PromiseOrValue<string>[],
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+  };
 }

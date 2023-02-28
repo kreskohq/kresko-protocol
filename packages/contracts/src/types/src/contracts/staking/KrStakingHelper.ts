@@ -3,555 +3,382 @@
 /* tslint:disable */
 /* eslint-disable */
 import type {
-    BaseContract,
-    BigNumber,
-    BigNumberish,
-    BytesLike,
-    CallOverrides,
-    ContractTransaction,
-    Overrides,
-    PopulatedTransaction,
-    Signer,
-    utils,
+  BaseContract,
+  BigNumber,
+  BigNumberish,
+  BytesLike,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
-import type { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
+import type {
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
-import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent, PromiseOrValue } from "../../../common";
+import type {
+  TypedEventFilter,
+  TypedEvent,
+  TypedListener,
+  OnEvent,
+  PromiseOrValue,
+} from "../../../common";
 
 export interface KrStakingHelperInterface extends utils.Interface {
-    functions: {
-        "addLiquidityAndStake(address,address,uint256,uint256,uint256,uint256,address,uint256)": FunctionFragment;
-        "claimRewardsMulti(address)": FunctionFragment;
-        "factory()": FunctionFragment;
-        "router()": FunctionFragment;
-        "staking()": FunctionFragment;
-        "withdrawAndRemoveLiquidity(address,address,uint256,uint256,uint256,address,uint256)": FunctionFragment;
-    };
+  functions: {
+    "addLiquidityAndStake(address,address,uint256,uint256,uint256,uint256,address,uint256)": FunctionFragment;
+    "claimRewardsMulti(address)": FunctionFragment;
+    "factory()": FunctionFragment;
+    "router()": FunctionFragment;
+    "staking()": FunctionFragment;
+    "withdrawAndRemoveLiquidity(address,address,uint256,uint256,uint256,address,uint256)": FunctionFragment;
+  };
 
-    getFunction(
-        nameOrSignatureOrTopic:
-            | "addLiquidityAndStake"
-            | "addLiquidityAndStake(address,address,uint256,uint256,uint256,uint256,address,uint256)"
-            | "claimRewardsMulti"
-            | "claimRewardsMulti(address)"
-            | "factory"
-            | "factory()"
-            | "router"
-            | "router()"
-            | "staking"
-            | "staking()"
-            | "withdrawAndRemoveLiquidity"
-            | "withdrawAndRemoveLiquidity(address,address,uint256,uint256,uint256,address,uint256)",
-    ): FunctionFragment;
+  getFunction(
+    nameOrSignatureOrTopic:
+      | "addLiquidityAndStake"
+      | "claimRewardsMulti"
+      | "factory"
+      | "router"
+      | "staking"
+      | "withdrawAndRemoveLiquidity"
+  ): FunctionFragment;
 
-    encodeFunctionData(
-        functionFragment: "addLiquidityAndStake",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-        ],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "addLiquidityAndStake(address,address,uint256,uint256,uint256,uint256,address,uint256)",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-        ],
-    ): string;
-    encodeFunctionData(functionFragment: "claimRewardsMulti", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "claimRewardsMulti(address)", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "factory", values?: undefined): string;
-    encodeFunctionData(functionFragment: "factory()", values?: undefined): string;
-    encodeFunctionData(functionFragment: "router", values?: undefined): string;
-    encodeFunctionData(functionFragment: "router()", values?: undefined): string;
-    encodeFunctionData(functionFragment: "staking", values?: undefined): string;
-    encodeFunctionData(functionFragment: "staking()", values?: undefined): string;
-    encodeFunctionData(
-        functionFragment: "withdrawAndRemoveLiquidity",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-        ],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "withdrawAndRemoveLiquidity(address,address,uint256,uint256,uint256,address,uint256)",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-        ],
-    ): string;
+  encodeFunctionData(
+    functionFragment: "addLiquidityAndStake",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "claimRewardsMulti",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(functionFragment: "factory", values?: undefined): string;
+  encodeFunctionData(functionFragment: "router", values?: undefined): string;
+  encodeFunctionData(functionFragment: "staking", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "withdrawAndRemoveLiquidity",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
 
-    decodeFunctionResult(functionFragment: "addLiquidityAndStake", data: BytesLike): Result;
-    decodeFunctionResult(
-        functionFragment: "addLiquidityAndStake(address,address,uint256,uint256,uint256,uint256,address,uint256)",
-        data: BytesLike,
-    ): Result;
-    decodeFunctionResult(functionFragment: "claimRewardsMulti", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "claimRewardsMulti(address)", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "factory", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "factory()", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "router", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "router()", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "staking", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "staking()", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "withdrawAndRemoveLiquidity", data: BytesLike): Result;
-    decodeFunctionResult(
-        functionFragment: "withdrawAndRemoveLiquidity(address,address,uint256,uint256,uint256,address,uint256)",
-        data: BytesLike,
-    ): Result;
+  decodeFunctionResult(
+    functionFragment: "addLiquidityAndStake",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "claimRewardsMulti",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "factory", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "router", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "staking", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawAndRemoveLiquidity",
+    data: BytesLike
+  ): Result;
 
-    events: {
-        "ClaimRewardsMulti(address)": EventFragment;
-        "LiquidityAndStakeAdded(address,uint256,uint256)": EventFragment;
-        "LiquidityAndStakeRemoved(address,uint256,uint256)": EventFragment;
-    };
+  events: {
+    "ClaimRewardsMulti(address)": EventFragment;
+    "LiquidityAndStakeAdded(address,uint256,uint256)": EventFragment;
+    "LiquidityAndStakeRemoved(address,uint256,uint256)": EventFragment;
+  };
 
-    getEvent(nameOrSignatureOrTopic: "ClaimRewardsMulti"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "ClaimRewardsMulti(address)"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "LiquidityAndStakeAdded"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "LiquidityAndStakeAdded(address,uint256,uint256)"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "LiquidityAndStakeRemoved"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "LiquidityAndStakeRemoved(address,uint256,uint256)"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ClaimRewardsMulti"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "LiquidityAndStakeAdded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "LiquidityAndStakeRemoved"): EventFragment;
 }
 
 export interface ClaimRewardsMultiEventObject {
-    to: string;
+  to: string;
 }
-export type ClaimRewardsMultiEvent = TypedEvent<[string], ClaimRewardsMultiEventObject>;
-
-export type ClaimRewardsMultiEventFilter = TypedEventFilter<ClaimRewardsMultiEvent>;
-
-export interface LiquidityAndStakeAddedEventObject {
-    to: string;
-    amount: BigNumber;
-    pid: BigNumber;
-}
-export type LiquidityAndStakeAddedEvent = TypedEvent<[string, BigNumber, BigNumber], LiquidityAndStakeAddedEventObject>;
-
-export type LiquidityAndStakeAddedEventFilter = TypedEventFilter<LiquidityAndStakeAddedEvent>;
-
-export interface LiquidityAndStakeRemovedEventObject {
-    to: string;
-    amount: BigNumber;
-    pid: BigNumber;
-}
-export type LiquidityAndStakeRemovedEvent = TypedEvent<
-    [string, BigNumber, BigNumber],
-    LiquidityAndStakeRemovedEventObject
+export type ClaimRewardsMultiEvent = TypedEvent<
+  [string],
+  ClaimRewardsMultiEventObject
 >;
 
-export type LiquidityAndStakeRemovedEventFilter = TypedEventFilter<LiquidityAndStakeRemovedEvent>;
+export type ClaimRewardsMultiEventFilter =
+  TypedEventFilter<ClaimRewardsMultiEvent>;
+
+export interface LiquidityAndStakeAddedEventObject {
+  to: string;
+  amount: BigNumber;
+  pid: BigNumber;
+}
+export type LiquidityAndStakeAddedEvent = TypedEvent<
+  [string, BigNumber, BigNumber],
+  LiquidityAndStakeAddedEventObject
+>;
+
+export type LiquidityAndStakeAddedEventFilter =
+  TypedEventFilter<LiquidityAndStakeAddedEvent>;
+
+export interface LiquidityAndStakeRemovedEventObject {
+  to: string;
+  amount: BigNumber;
+  pid: BigNumber;
+}
+export type LiquidityAndStakeRemovedEvent = TypedEvent<
+  [string, BigNumber, BigNumber],
+  LiquidityAndStakeRemovedEventObject
+>;
+
+export type LiquidityAndStakeRemovedEventFilter =
+  TypedEventFilter<LiquidityAndStakeRemovedEvent>;
 
 export interface KrStakingHelper extends BaseContract {
-    connect(signerOrProvider: Signer | Provider | string): this;
-    attach(addressOrName: string): this;
-    deployed(): Promise<this>;
+  contractName: "KrStakingHelper";
 
-    interface: KrStakingHelperInterface;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
-    queryFilter<TEvent extends TypedEvent>(
-        event: TypedEventFilter<TEvent>,
-        fromBlockOrBlockhash?: string | number | undefined,
-        toBlock?: string | number | undefined,
-    ): Promise<Array<TEvent>>;
+  interface: KrStakingHelperInterface;
 
-    listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>;
-    listeners(eventName?: string): Array<Listener>;
-    removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this;
-    removeAllListeners(eventName?: string): this;
-    off: OnEvent<this>;
-    on: OnEvent<this>;
-    once: OnEvent<this>;
-    removeListener: OnEvent<this>;
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TEvent>>;
 
-    functions: {
-        addLiquidityAndStake(
-            tokenA: PromiseOrValue<string>,
-            tokenB: PromiseOrValue<string>,
-            amountADesired: PromiseOrValue<BigNumberish>,
-            amountBDesired: PromiseOrValue<BigNumberish>,
-            amountAMin: PromiseOrValue<BigNumberish>,
-            amountBMin: PromiseOrValue<BigNumberish>,
-            to: PromiseOrValue<string>,
-            deadline: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-        "addLiquidityAndStake(address,address,uint256,uint256,uint256,uint256,address,uint256)"(
-            tokenA: PromiseOrValue<string>,
-            tokenB: PromiseOrValue<string>,
-            amountADesired: PromiseOrValue<BigNumberish>,
-            amountBDesired: PromiseOrValue<BigNumberish>,
-            amountAMin: PromiseOrValue<BigNumberish>,
-            amountBMin: PromiseOrValue<BigNumberish>,
-            to: PromiseOrValue<string>,
-            deadline: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        claimRewardsMulti(
-            to: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "claimRewardsMulti(address)"(
-            to: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        factory(overrides?: CallOverrides): Promise<[string]>;
-
-        "factory()"(overrides?: CallOverrides): Promise<[string]>;
-
-        router(overrides?: CallOverrides): Promise<[string]>;
-
-        "router()"(overrides?: CallOverrides): Promise<[string]>;
-
-        staking(overrides?: CallOverrides): Promise<[string]>;
-
-        "staking()"(overrides?: CallOverrides): Promise<[string]>;
-
-        withdrawAndRemoveLiquidity(
-            tokenA: PromiseOrValue<string>,
-            tokenB: PromiseOrValue<string>,
-            liquidity: PromiseOrValue<BigNumberish>,
-            amountAMin: PromiseOrValue<BigNumberish>,
-            amountBMin: PromiseOrValue<BigNumberish>,
-            to: PromiseOrValue<string>,
-            deadline: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        "withdrawAndRemoveLiquidity(address,address,uint256,uint256,uint256,address,uint256)"(
-            tokenA: PromiseOrValue<string>,
-            tokenB: PromiseOrValue<string>,
-            liquidity: PromiseOrValue<BigNumberish>,
-            amountAMin: PromiseOrValue<BigNumberish>,
-            amountBMin: PromiseOrValue<BigNumberish>,
-            to: PromiseOrValue<string>,
-            deadline: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-    };
-
+  functions: {
     addLiquidityAndStake(
-        tokenA: PromiseOrValue<string>,
-        tokenB: PromiseOrValue<string>,
-        amountADesired: PromiseOrValue<BigNumberish>,
-        amountBDesired: PromiseOrValue<BigNumberish>,
-        amountAMin: PromiseOrValue<BigNumberish>,
-        amountBMin: PromiseOrValue<BigNumberish>,
-        to: PromiseOrValue<string>,
-        deadline: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    "addLiquidityAndStake(address,address,uint256,uint256,uint256,uint256,address,uint256)"(
-        tokenA: PromiseOrValue<string>,
-        tokenB: PromiseOrValue<string>,
-        amountADesired: PromiseOrValue<BigNumberish>,
-        amountBDesired: PromiseOrValue<BigNumberish>,
-        amountAMin: PromiseOrValue<BigNumberish>,
-        amountBMin: PromiseOrValue<BigNumberish>,
-        to: PromiseOrValue<string>,
-        deadline: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      tokenA: PromiseOrValue<string>,
+      tokenB: PromiseOrValue<string>,
+      amountADesired: PromiseOrValue<BigNumberish>,
+      amountBDesired: PromiseOrValue<BigNumberish>,
+      amountAMin: PromiseOrValue<BigNumberish>,
+      amountBMin: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     claimRewardsMulti(
-        to: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+      to: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    "claimRewardsMulti(address)"(
-        to: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    factory(overrides?: CallOverrides): Promise<[string]>;
+
+    router(overrides?: CallOverrides): Promise<[string]>;
+
+    staking(overrides?: CallOverrides): Promise<[string]>;
+
+    withdrawAndRemoveLiquidity(
+      tokenA: PromiseOrValue<string>,
+      tokenB: PromiseOrValue<string>,
+      liquidity: PromiseOrValue<BigNumberish>,
+      amountAMin: PromiseOrValue<BigNumberish>,
+      amountBMin: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
+  };
+
+  addLiquidityAndStake(
+    tokenA: PromiseOrValue<string>,
+    tokenB: PromiseOrValue<string>,
+    amountADesired: PromiseOrValue<BigNumberish>,
+    amountBDesired: PromiseOrValue<BigNumberish>,
+    amountAMin: PromiseOrValue<BigNumberish>,
+    amountBMin: PromiseOrValue<BigNumberish>,
+    to: PromiseOrValue<string>,
+    deadline: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  claimRewardsMulti(
+    to: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  factory(overrides?: CallOverrides): Promise<string>;
+
+  router(overrides?: CallOverrides): Promise<string>;
+
+  staking(overrides?: CallOverrides): Promise<string>;
+
+  withdrawAndRemoveLiquidity(
+    tokenA: PromiseOrValue<string>,
+    tokenB: PromiseOrValue<string>,
+    liquidity: PromiseOrValue<BigNumberish>,
+    amountAMin: PromiseOrValue<BigNumberish>,
+    amountBMin: PromiseOrValue<BigNumberish>,
+    to: PromiseOrValue<string>,
+    deadline: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  callStatic: {
+    addLiquidityAndStake(
+      tokenA: PromiseOrValue<string>,
+      tokenB: PromiseOrValue<string>,
+      amountADesired: PromiseOrValue<BigNumberish>,
+      amountBDesired: PromiseOrValue<BigNumberish>,
+      amountAMin: PromiseOrValue<BigNumberish>,
+      amountBMin: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    claimRewardsMulti(
+      to: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     factory(overrides?: CallOverrides): Promise<string>;
 
-    "factory()"(overrides?: CallOverrides): Promise<string>;
-
     router(overrides?: CallOverrides): Promise<string>;
-
-    "router()"(overrides?: CallOverrides): Promise<string>;
 
     staking(overrides?: CallOverrides): Promise<string>;
 
-    "staking()"(overrides?: CallOverrides): Promise<string>;
+    withdrawAndRemoveLiquidity(
+      tokenA: PromiseOrValue<string>,
+      tokenB: PromiseOrValue<string>,
+      liquidity: PromiseOrValue<BigNumberish>,
+      amountAMin: PromiseOrValue<BigNumberish>,
+      amountBMin: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+  };
+
+  filters: {
+    "ClaimRewardsMulti(address)"(
+      to?: PromiseOrValue<string> | null
+    ): ClaimRewardsMultiEventFilter;
+    ClaimRewardsMulti(
+      to?: PromiseOrValue<string> | null
+    ): ClaimRewardsMultiEventFilter;
+
+    "LiquidityAndStakeAdded(address,uint256,uint256)"(
+      to?: PromiseOrValue<string> | null,
+      amount?: PromiseOrValue<BigNumberish> | null,
+      pid?: PromiseOrValue<BigNumberish> | null
+    ): LiquidityAndStakeAddedEventFilter;
+    LiquidityAndStakeAdded(
+      to?: PromiseOrValue<string> | null,
+      amount?: PromiseOrValue<BigNumberish> | null,
+      pid?: PromiseOrValue<BigNumberish> | null
+    ): LiquidityAndStakeAddedEventFilter;
+
+    "LiquidityAndStakeRemoved(address,uint256,uint256)"(
+      to?: PromiseOrValue<string> | null,
+      amount?: PromiseOrValue<BigNumberish> | null,
+      pid?: PromiseOrValue<BigNumberish> | null
+    ): LiquidityAndStakeRemovedEventFilter;
+    LiquidityAndStakeRemoved(
+      to?: PromiseOrValue<string> | null,
+      amount?: PromiseOrValue<BigNumberish> | null,
+      pid?: PromiseOrValue<BigNumberish> | null
+    ): LiquidityAndStakeRemovedEventFilter;
+  };
+
+  estimateGas: {
+    addLiquidityAndStake(
+      tokenA: PromiseOrValue<string>,
+      tokenB: PromiseOrValue<string>,
+      amountADesired: PromiseOrValue<BigNumberish>,
+      amountBDesired: PromiseOrValue<BigNumberish>,
+      amountAMin: PromiseOrValue<BigNumberish>,
+      amountBMin: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    claimRewardsMulti(
+      to: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    factory(overrides?: CallOverrides): Promise<BigNumber>;
+
+    router(overrides?: CallOverrides): Promise<BigNumber>;
+
+    staking(overrides?: CallOverrides): Promise<BigNumber>;
 
     withdrawAndRemoveLiquidity(
-        tokenA: PromiseOrValue<string>,
-        tokenB: PromiseOrValue<string>,
-        liquidity: PromiseOrValue<BigNumberish>,
-        amountAMin: PromiseOrValue<BigNumberish>,
-        amountBMin: PromiseOrValue<BigNumberish>,
-        to: PromiseOrValue<string>,
-        deadline: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      tokenA: PromiseOrValue<string>,
+      tokenB: PromiseOrValue<string>,
+      liquidity: PromiseOrValue<BigNumberish>,
+      amountAMin: PromiseOrValue<BigNumberish>,
+      amountBMin: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
 
-    "withdrawAndRemoveLiquidity(address,address,uint256,uint256,uint256,address,uint256)"(
-        tokenA: PromiseOrValue<string>,
-        tokenB: PromiseOrValue<string>,
-        liquidity: PromiseOrValue<BigNumberish>,
-        amountAMin: PromiseOrValue<BigNumberish>,
-        amountBMin: PromiseOrValue<BigNumberish>,
-        to: PromiseOrValue<string>,
-        deadline: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+  populateTransaction: {
+    addLiquidityAndStake(
+      tokenA: PromiseOrValue<string>,
+      tokenB: PromiseOrValue<string>,
+      amountADesired: PromiseOrValue<BigNumberish>,
+      amountBDesired: PromiseOrValue<BigNumberish>,
+      amountAMin: PromiseOrValue<BigNumberish>,
+      amountBMin: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
 
-    callStatic: {
-        addLiquidityAndStake(
-            tokenA: PromiseOrValue<string>,
-            tokenB: PromiseOrValue<string>,
-            amountADesired: PromiseOrValue<BigNumberish>,
-            amountBDesired: PromiseOrValue<BigNumberish>,
-            amountAMin: PromiseOrValue<BigNumberish>,
-            amountBMin: PromiseOrValue<BigNumberish>,
-            to: PromiseOrValue<string>,
-            deadline: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
+    claimRewardsMulti(
+      to: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
 
-        "addLiquidityAndStake(address,address,uint256,uint256,uint256,uint256,address,uint256)"(
-            tokenA: PromiseOrValue<string>,
-            tokenB: PromiseOrValue<string>,
-            amountADesired: PromiseOrValue<BigNumberish>,
-            amountBDesired: PromiseOrValue<BigNumberish>,
-            amountAMin: PromiseOrValue<BigNumberish>,
-            amountBMin: PromiseOrValue<BigNumberish>,
-            to: PromiseOrValue<string>,
-            deadline: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
+    factory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-        claimRewardsMulti(to: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
+    router(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-        "claimRewardsMulti(address)"(to: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
+    staking(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-        factory(overrides?: CallOverrides): Promise<string>;
-
-        "factory()"(overrides?: CallOverrides): Promise<string>;
-
-        router(overrides?: CallOverrides): Promise<string>;
-
-        "router()"(overrides?: CallOverrides): Promise<string>;
-
-        staking(overrides?: CallOverrides): Promise<string>;
-
-        "staking()"(overrides?: CallOverrides): Promise<string>;
-
-        withdrawAndRemoveLiquidity(
-            tokenA: PromiseOrValue<string>,
-            tokenB: PromiseOrValue<string>,
-            liquidity: PromiseOrValue<BigNumberish>,
-            amountAMin: PromiseOrValue<BigNumberish>,
-            amountBMin: PromiseOrValue<BigNumberish>,
-            to: PromiseOrValue<string>,
-            deadline: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        "withdrawAndRemoveLiquidity(address,address,uint256,uint256,uint256,address,uint256)"(
-            tokenA: PromiseOrValue<string>,
-            tokenB: PromiseOrValue<string>,
-            liquidity: PromiseOrValue<BigNumberish>,
-            amountAMin: PromiseOrValue<BigNumberish>,
-            amountBMin: PromiseOrValue<BigNumberish>,
-            to: PromiseOrValue<string>,
-            deadline: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-    };
-
-    filters: {
-        "ClaimRewardsMulti(address)"(to?: PromiseOrValue<string> | null): ClaimRewardsMultiEventFilter;
-        ClaimRewardsMulti(to?: PromiseOrValue<string> | null): ClaimRewardsMultiEventFilter;
-
-        "LiquidityAndStakeAdded(address,uint256,uint256)"(
-            to?: PromiseOrValue<string> | null,
-            amount?: PromiseOrValue<BigNumberish> | null,
-            pid?: PromiseOrValue<BigNumberish> | null,
-        ): LiquidityAndStakeAddedEventFilter;
-        LiquidityAndStakeAdded(
-            to?: PromiseOrValue<string> | null,
-            amount?: PromiseOrValue<BigNumberish> | null,
-            pid?: PromiseOrValue<BigNumberish> | null,
-        ): LiquidityAndStakeAddedEventFilter;
-
-        "LiquidityAndStakeRemoved(address,uint256,uint256)"(
-            to?: PromiseOrValue<string> | null,
-            amount?: PromiseOrValue<BigNumberish> | null,
-            pid?: PromiseOrValue<BigNumberish> | null,
-        ): LiquidityAndStakeRemovedEventFilter;
-        LiquidityAndStakeRemoved(
-            to?: PromiseOrValue<string> | null,
-            amount?: PromiseOrValue<BigNumberish> | null,
-            pid?: PromiseOrValue<BigNumberish> | null,
-        ): LiquidityAndStakeRemovedEventFilter;
-    };
-
-    estimateGas: {
-        addLiquidityAndStake(
-            tokenA: PromiseOrValue<string>,
-            tokenB: PromiseOrValue<string>,
-            amountADesired: PromiseOrValue<BigNumberish>,
-            amountBDesired: PromiseOrValue<BigNumberish>,
-            amountAMin: PromiseOrValue<BigNumberish>,
-            amountBMin: PromiseOrValue<BigNumberish>,
-            to: PromiseOrValue<string>,
-            deadline: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "addLiquidityAndStake(address,address,uint256,uint256,uint256,uint256,address,uint256)"(
-            tokenA: PromiseOrValue<string>,
-            tokenB: PromiseOrValue<string>,
-            amountADesired: PromiseOrValue<BigNumberish>,
-            amountBDesired: PromiseOrValue<BigNumberish>,
-            amountAMin: PromiseOrValue<BigNumberish>,
-            amountBMin: PromiseOrValue<BigNumberish>,
-            to: PromiseOrValue<string>,
-            deadline: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        claimRewardsMulti(
-            to: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "claimRewardsMulti(address)"(
-            to: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        factory(overrides?: CallOverrides): Promise<BigNumber>;
-
-        "factory()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-        router(overrides?: CallOverrides): Promise<BigNumber>;
-
-        "router()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-        staking(overrides?: CallOverrides): Promise<BigNumber>;
-
-        "staking()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-        withdrawAndRemoveLiquidity(
-            tokenA: PromiseOrValue<string>,
-            tokenB: PromiseOrValue<string>,
-            liquidity: PromiseOrValue<BigNumberish>,
-            amountAMin: PromiseOrValue<BigNumberish>,
-            amountBMin: PromiseOrValue<BigNumberish>,
-            to: PromiseOrValue<string>,
-            deadline: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        "withdrawAndRemoveLiquidity(address,address,uint256,uint256,uint256,address,uint256)"(
-            tokenA: PromiseOrValue<string>,
-            tokenB: PromiseOrValue<string>,
-            liquidity: PromiseOrValue<BigNumberish>,
-            amountAMin: PromiseOrValue<BigNumberish>,
-            amountBMin: PromiseOrValue<BigNumberish>,
-            to: PromiseOrValue<string>,
-            deadline: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-    };
-
-    populateTransaction: {
-        addLiquidityAndStake(
-            tokenA: PromiseOrValue<string>,
-            tokenB: PromiseOrValue<string>,
-            amountADesired: PromiseOrValue<BigNumberish>,
-            amountBDesired: PromiseOrValue<BigNumberish>,
-            amountAMin: PromiseOrValue<BigNumberish>,
-            amountBMin: PromiseOrValue<BigNumberish>,
-            to: PromiseOrValue<string>,
-            deadline: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "addLiquidityAndStake(address,address,uint256,uint256,uint256,uint256,address,uint256)"(
-            tokenA: PromiseOrValue<string>,
-            tokenB: PromiseOrValue<string>,
-            amountADesired: PromiseOrValue<BigNumberish>,
-            amountBDesired: PromiseOrValue<BigNumberish>,
-            amountAMin: PromiseOrValue<BigNumberish>,
-            amountBMin: PromiseOrValue<BigNumberish>,
-            to: PromiseOrValue<string>,
-            deadline: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        claimRewardsMulti(
-            to: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "claimRewardsMulti(address)"(
-            to: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        factory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "factory()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        router(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "router()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        staking(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        "staking()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        withdrawAndRemoveLiquidity(
-            tokenA: PromiseOrValue<string>,
-            tokenB: PromiseOrValue<string>,
-            liquidity: PromiseOrValue<BigNumberish>,
-            amountAMin: PromiseOrValue<BigNumberish>,
-            amountBMin: PromiseOrValue<BigNumberish>,
-            to: PromiseOrValue<string>,
-            deadline: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        "withdrawAndRemoveLiquidity(address,address,uint256,uint256,uint256,address,uint256)"(
-            tokenA: PromiseOrValue<string>,
-            tokenB: PromiseOrValue<string>,
-            liquidity: PromiseOrValue<BigNumberish>,
-            amountAMin: PromiseOrValue<BigNumberish>,
-            amountBMin: PromiseOrValue<BigNumberish>,
-            to: PromiseOrValue<string>,
-            deadline: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-    };
+    withdrawAndRemoveLiquidity(
+      tokenA: PromiseOrValue<string>,
+      tokenB: PromiseOrValue<string>,
+      liquidity: PromiseOrValue<BigNumberish>,
+      amountAMin: PromiseOrValue<BigNumberish>,
+      amountBMin: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+  };
 }

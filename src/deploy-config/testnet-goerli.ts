@@ -170,6 +170,32 @@ export const assets: { [asset: string]: Asset } = {
         mintAmount: 5000,
         testAsset: true,
     },
+    OP: {
+        name: "OP",
+        symbol: "OP",
+        decimals: 18,
+        price: async () => toBig(await getPriceFromTwelveData("OPm/USD"), 8),
+        marketOpen: async () => {
+            return true;
+        },
+        oracle: oracles.OP,
+        cFactor: 0.9,
+        mintAmount: 5000,
+        testAsset: true,
+    },
+    wBTC: {
+        name: "Wrapped Bitcoin",
+        symbol: "wBTC",
+        decimals: 18,
+        price: async () => toBig(await getPriceFromTwelveData("BTC/USD"), 8),
+        marketOpen: async () => {
+            return true;
+        },
+        oracle: oracles.BTC,
+        cFactor: 0.9,
+        mintAmount: 415,
+        testAsset: true,
+    },
     SNX: {
         name: "Synthetix",
         symbol: "SNX",
@@ -251,6 +277,19 @@ export const assets: { [asset: string]: Asset } = {
         cFactor: 1,
         mintAmount: 200,
     },
+    krWTI: {
+        name: "West Texas Intermediate, Crude Oil",
+        symbol: "krWTI",
+        decimals: 18,
+        price: async () => toBig(await getPriceFromTwelveData("WTI/USD"), 8),
+        marketOpen: async () => {
+            return true; // TODO:
+        },
+        oracle: oracles.WTI,
+        kFactor: 1.05,
+        cFactor: 1,
+        mintAmount: 650,
+    },
     krXAU: {
         name: "Gold Ounce",
         symbol: "krXAU",
@@ -264,18 +303,57 @@ export const assets: { [asset: string]: Asset } = {
         cFactor: 1,
         mintAmount: 27,
     },
-    krWTI: {
-        name: "West Texas Intermediate, Crude Oil",
-        symbol: "krWTI",
+    krBABA: {
+        name: "Alibaba Group Holding Ltd",
+        symbol: "krBABA",
         decimals: 18,
         price: async () => toBig(await getPriceFromTwelveData("WTI/USD"), 8),
         marketOpen: async () => {
             return true; // TODO:
         },
-        oracle: oracles.WTI,
+        oracle: oracles.BABA,
         kFactor: 1.05,
         cFactor: 1,
-        mintAmount: 650,
+        mintAmount: 5700,
+    },
+    krMSTR: {
+        name: "MicroStrategy Inc",
+        symbol: "krMSTR",
+        decimals: 18,
+        price: async () => toBig(await getPriceFromTwelveData("WTI/USD"), 8),
+        marketOpen: async () => {
+            return true; // TODO:
+        },
+        oracle: oracles.MSTR,
+        kFactor: 1.15,
+        cFactor: 1,
+        mintAmount: 1885,
+    },
+    krGME: {
+        name: "GameStop Corp",
+        symbol: "krGME",
+        decimals: 18,
+        price: async () => toBig(await getPriceFromTwelveData("WTI/USD"), 8),
+        marketOpen: async () => {
+            return true; // TODO:
+        },
+        oracle: oracles.GME,
+        kFactor: 1.1,
+        cFactor: 1,
+        mintAmount: 25_000,
+    },
+    krQQQ: {
+        name: "Invesco QQQ Trust Series 1",
+        symbol: "krQQQ",
+        decimals: 18,
+        price: async () => toBig(await getPriceFromTwelveData("WTI/USD"), 8),
+        marketOpen: async () => {
+            return true; // TODO:
+        },
+        oracle: oracles.QQQ,
+        kFactor: 1.05,
+        cFactor: 1,
+        mintAmount: 1700,
     },
     krETHRATE: {
         name: "Stability Rate Test Token",
@@ -307,6 +385,16 @@ const defaultPools: [Asset, Asset, number][] = [
     [assets.KISS, assets.WETH, 3500],
     [assets.KISS, assets.DAI, 20_000_000],
     [assets.WETH, assets.DAI, 10_000_000],
+];
+
+export const batchALiquidity: [Asset, Asset, number][] = [
+    [assets.OP, assets.KISS, 2_500_000!],
+    [assets.KISS, assets.krGME, 25_000!],
+    [assets.KISS, assets.krBABA, 5700!],
+    [assets.KISS, assets.krQQQ, 1700!],
+    [assets.KISS, assets.krMSTR, 1885!],
+    [assets.KISS, assets.wBTC, 210!],
+    [assets.krBTC, assets.wBTC, 210!],
 ];
 
 const defaultStakingPools: StakingPoolConfig[] = [
@@ -342,6 +430,34 @@ const defaultStakingPools: StakingPoolConfig[] = [
     },
     {
         lpToken: [assets.KISS, assets.krBTC],
+        allocPoint: 750,
+        startBlock: 0,
+    },
+];
+
+export const batchAStakingPools: StakingPoolConfig[] = [
+    {
+        lpToken: [assets.KISS, assets.krGME],
+        allocPoint: 750,
+        startBlock: 0,
+    },
+    {
+        lpToken: [assets.KISS, assets.krBABA],
+        allocPoint: 750,
+        startBlock: 0,
+    },
+    {
+        lpToken: [assets.KISS, assets.krQQQ],
+        allocPoint: 750,
+        startBlock: 0,
+    },
+    {
+        lpToken: [assets.KISS, assets.krMSTR],
+        allocPoint: 750,
+        startBlock: 0,
+    },
+    {
+        lpToken: [assets.KISS, assets.wBTC],
         allocPoint: 750,
         startBlock: 0,
     },
@@ -404,17 +520,34 @@ export const testnetConfigs: NetworkConfig = {
     opgoerli: {
         protocolParams: defaultParams,
         collaterals: [
+            assets.OP,
             assets.DAI,
-            assets.krBTC,
             assets.WETH,
             assets.SNX,
             assets.krETH,
             assets.krWTI,
             assets.krXAU,
             assets.krTSLA,
+            assets.krBTC,
             assets.krETHRATE,
+            assets.krQQQ,
+            assets.krGME,
+            assets.krMSTR,
+            assets.krBABA,
+            assets.wBTC,
         ],
-        krAssets: [assets.krTSLA, assets.krWTI, assets.krBTC, assets.krXAU, assets.krETH, assets.krETHRATE],
+        krAssets: [
+            assets.krTSLA,
+            assets.krWTI,
+            assets.krBTC,
+            assets.krXAU,
+            assets.krETH,
+            assets.krETHRATE,
+            assets.krMSTR,
+            assets.krQQQ,
+            assets.krGME,
+            assets.krBABA,
+        ],
         pools: defaultPools,
         stakingPools: defaultStakingPools,
         rewardTokens: [assets.krREWARD],
