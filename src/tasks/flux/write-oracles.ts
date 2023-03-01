@@ -1,34 +1,39 @@
 import { testnetConfigs } from "@deploy-config/testnet-goerli";
-import { getLogger } from "@kreskolabs/lib/dist/utils";
+import { getLogger } from "@kreskolabs/lib";
 import { writeFileSync } from "fs";
 import { task } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
-import { FluxPriceFeedFactory } from "types";
 
 task("write-oracles").setAction(async function (_taskArgs: TaskArguments, hre) {
     const { feedValidator } = await hre.ethers.getNamedSigners();
-    const factory = await hre.ethers.getContract<FluxPriceFeedFactory>("FluxPriceFeedFactory");
+    const factory = await hre.getContractOrFork("FluxPriceFeedFactory");
     const logger = getLogger("write-oracles");
-
+    const Kresko = await hre.getContractOrFork("Kresko");
     const values = [];
     for (const collateral of testnetConfigs[hre.network.name].collaterals) {
-        const fluxFeed = await factory.addressOfPricePair(collateral.oracle.description, 8, feedValidator.address);
+        const contract = await hre.getContractOrFork("ERC20Upgradeable", collateral.symbol);
+        const collateralInfo = await Kresko.collateralAsset(contract.address);
+        if (!collateral.oracle) continue;
         values.push({
-            asset: collateral.symbol,
+            asset: await contract.symbol(),
+            assetAddress: contract.address,
             assetType: "collateral",
             feed: collateral.oracle.description,
-            marketstatus: fluxFeed,
-            pricefeed: collateral.oracle.chainlink ? collateral.oracle.chainlink : fluxFeed,
+            marketstatus: collateralInfo.marketStatusOracle,
+            pricefeed: collateralInfo.oracle,
         });
     }
     for (const krAsset of testnetConfigs[hre.network.name].krAssets) {
-        const fluxFeed = await factory.addressOfPricePair(krAsset.oracle.description, 8, feedValidator.address);
+        const contract = await hre.getContractOrFork("ERC20Upgradeable", krAsset.symbol);
+        const krAssetInfo = await Kresko.collateralAsset(contract.address);
+        if (!krAsset.oracle) continue;
         values.push({
-            asset: krAsset.symbol,
+            asset: await contract.symbol(),
+            assetAddress: contract.address,
             assetType: "krAsset",
             feed: krAsset.oracle.description,
-            marketstatus: fluxFeed,
-            pricefeed: krAsset.oracle.chainlink ? krAsset.oracle.chainlink : fluxFeed,
+            marketstatus: krAssetInfo.marketStatusOracle,
+            pricefeed: krAssetInfo.oracle,
         });
     }
 
@@ -40,6 +45,6 @@ task("write-oracles").setAction(async function (_taskArgs: TaskArguments, hre) {
         marketstatus: fluxFeedKiss,
         pricefeed: fluxFeedKiss,
     });
-    writeFileSync("packages/contracts/deployments/oracles.json", JSON.stringify(values));
-    logger.success("Price feeds written to packages/contracts/deployments");
+    writeFileSync("./packages/contracts/src/deployments/json/oracles.json", JSON.stringify(values));
+    logger.success("feeds: packages/contracts/src/deployments/json/oracles.json");
 });

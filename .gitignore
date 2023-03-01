@@ -18,11 +18,11 @@ deployments/hardhat
 deployments/localhost
 deployments/anvil
 types/typechain
+types/forged
 types/contracts
 _bin
 bin
 lib
-
 # secrets
 *interact.ethers
 *.env
@@ -38,6 +38,9 @@ yarn-debug.log*
 yarn-error.log*
 **/.DS_Store
 
+*ganache.js
+packages/contracts/dist
+packages/contracts/src/types/**/*
 # OpenZeppelin
 .openzeppelin/dev-*.json
 .openzeppelin/unknown-*.json

@@ -1,4 +1,4 @@
-import { RAY } from "@kreskolabs/lib/dist/numbers/wadray";
+import { RAY } from "@kreskolabs/lib";
 import { BigNumber } from "ethers";
 import { FixedPoint } from "types/typechain/src/contracts/minter/facets/AccountStateFacet";
 export const ONE_YEAR = 60 * 60 * 24 * 365;
@@ -35,31 +35,31 @@ export const calcExpectedStabilityRateHighPremium = (priceRate: BigNumber, krAss
         .add(krAssetArgs.stabilityRates.optimalPriceRate.sub(excessRate).rayMul(krAssetArgs.stabilityRates.rateSlope1));
 };
 
-export const calcDebtIndex = async (asset: Asset, prevDebtIndex: BigNumber, lastUpdate: BigNumber | number) => {
+export const calcDebtIndex = async (asset: TestAsset, prevDebtIndex: BigNumber, lastUpdate: BigNumber | number) => {
     const rate = await hre.Diamond.getStabilityRateForAsset(asset.address);
     const cumulatedRate = calcCompoundedInterest(rate, await getBlockTimestamp(), lastUpdate);
     return cumulatedRate.rayMul(prevDebtIndex);
 };
 
-export const fromScaledAmount = async (amount: BigNumber, asset: Asset) => {
+export const fromScaledAmount = async (amount: BigNumber, asset: TestAsset) => {
     return amount
         .wadToRay()
         .rayDiv(await hre.Diamond.getDebtIndexForAsset(asset.address))
         .rayToWad();
 };
-export const toScaledAmount = async (amount: BigNumber, asset: KrAsset, prevDebtIndex?: BigNumber) => {
+export const toScaledAmount = async (amount: BigNumber, asset: TestKrAsset, prevDebtIndex?: BigNumber) => {
     const debtIndex = await hre.Diamond.getDebtIndexForAsset(asset.address);
     return prevDebtIndex
         ? amount.wadToRay().rayDiv(prevDebtIndex).rayMul(debtIndex).rayToWad()
         : amount.wadToRay().rayMul(debtIndex).rayToWad();
 };
 
-export const toScaledAmountUser = async (user: SignerWithAddress, amount: BigNumber, asset: KrAsset) => {
+export const toScaledAmountUser = async (user: SignerWithAddress, amount: BigNumber, asset: TestKrAsset) => {
     const lastDebtIndex = await hre.Diamond.getLastDebtIndexForAccount(user.address, asset.address);
     const debtIndex = await hre.Diamond.getDebtIndexForAsset(asset.address);
     return amount.wadToRay().rayDiv(lastDebtIndex).rayMul(debtIndex).rayToWad();
 };
-export const fromScaledAmountUser = async (user: SignerWithAddress, amount: BigNumber, asset: KrAsset) => {
+export const fromScaledAmountUser = async (user: SignerWithAddress, amount: BigNumber, asset: TestKrAsset) => {
     const lastDebtIndex = await hre.Diamond.getLastDebtIndexForAccount(user.address, asset.address);
     const debtIndex = await hre.Diamond.getDebtIndexForAsset(asset.address);
     return amount.wadToRay().rayMul(lastDebtIndex).rayDiv(debtIndex).rayToWad();

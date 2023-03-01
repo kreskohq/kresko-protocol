@@ -1,5 +1,5 @@
-import { toBig } from "@kreskolabs/lib/dist/numbers";
-import { oneRay, ONE_YEAR } from "@kreskolabs/lib/dist/numbers/wadray";
+import { toBig } from "@kreskolabs/lib";
+import { oneRay, ONE_YEAR } from "@kreskolabs/lib";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { BASIS_POINT, defaultCollateralArgs, defaultKrAssetArgs, withFixture } from "@utils/test";
 import { addLiquidity, getAMMPrices, getTWAPUpdaterFor, swap } from "@utils/test/helpers/amm";
@@ -27,9 +27,9 @@ describe("Stability Rates", () => {
     let updateTWAP: () => Promise<void>;
     beforeEach(async function () {
         userOne = hre.users.deployer;
-        this.krAsset = this.krAssets.find(c => c.deployArgs.name === defaultKrAssetArgs.name);
-        this.collateral = this.collaterals.find(c => c.deployArgs.name === defaultCollateralArgs.name);
-        [UniMath] = await hre.deploy<UniswapMath>("UniswapMath", {
+        this.krAsset = this.krAssets.find(c => c.deployArgs!.name === defaultKrAssetArgs.name)!;
+        this.collateral = this.collaterals.find(c => c.deployArgs!.name === defaultCollateralArgs.name)!;
+        [UniMath] = await hre.deploy("UniswapMath", {
             from: hre.users.deployer.address,
             args: [hre.UniV2Factory.address, hre.UniV2Router.address],
         });

@@ -1,51 +1,51 @@
 {
-  "address": "0x98FFBBF51bb33A056B08ddf711f289936AafF717",
-  "abi": [
-    {
-      "anonymous": false,
-      "inputs": [
+    "address": "0x98FFBBF51bb33A056B08ddf711f289936AafF717",
+    "abi": [
         {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "msgHash",
-          "type": "bytes32"
-        }
-      ],
-      "name": "SignMsg",
-      "type": "event"
-    },
-    {
-      "inputs": [
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "msgHash",
+                    "type": "bytes32"
+                }
+            ],
+            "name": "SignMsg",
+            "type": "event"
+        },
         {
-          "internalType": "bytes",
-          "name": "message",
-          "type": "bytes"
-        }
-      ],
-      "name": "getMessageHash",
-      "outputs": [
+            "inputs": [
+                {
+                    "internalType": "bytes",
+                    "name": "message",
+                    "type": "bytes"
+                }
+            ],
+            "name": "getMessageHash",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
         {
-          "internalType": "bytes32",
-          "name": "",
-          "type": "bytes32"
+            "inputs": [
+                {
+                    "internalType": "bytes",
+                    "name": "_data",
+                    "type": "bytes"
+                }
+            ],
+            "name": "signMessage",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
         }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "bytes",
-          "name": "_data",
-          "type": "bytes"
-        }
-      ],
-      "name": "signMessage",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    }
-  ],
-  "numDeployments": 19
+    ],
+    "numDeployments": 19
 }

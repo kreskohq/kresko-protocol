@@ -35,7 +35,7 @@ contract BurnHelperFacet is DiamondModifiers, MinterModifiers, IBurnHelperFacet 
     {
         MinterState storage s = ms();
         if (s.safetyStateSet) {
-            ensureNotPaused(_kreskoAsset, Action.Repay);
+            super.ensureNotPaused(_kreskoAsset, Action.Repay);
         }
 
         // Get accounts principal debt
@@ -75,10 +75,5 @@ contract BurnHelperFacet is DiamondModifiers, MinterModifiers, IBurnHelperFacet 
         for (uint256 i; i < mintedKreskoAssets.length; i++) {
             closeKrAssetDebtPosition(_account, mintedKreskoAssets[i]);
         }
-    }
-
-    /// @dev Simple check for the enabled flag
-    function ensureNotPaused(address _asset, Action _action) internal view {
-        require(!ms().safetyState[_asset][_action].pause.enabled, Error.ACTION_PAUSED_FOR_ASSET);
     }
 }

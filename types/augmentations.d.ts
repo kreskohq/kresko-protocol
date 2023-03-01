@@ -1,27 +1,22 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Context } from "mocha";
-import { FunctionFragment } from "@ethersproject/abi";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { Fragment, FunctionFragment, JsonFragment } from "@ethersproject/abi";
 import { fromBig, toBig } from "@kreskolabs/lib";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import type { Fixture } from "ethereum-waffle";
-import type { ABI, Deployment, DeployOptions, Facet, FacetCut } from "@kreskolabs/hardhat-deploy/dist/types";
+import type { ABI, DeployOptions, Deployment, Facet, FacetCut } from "hardhat-deploy/dist/types";
+import "hardhat/types/config";
+import "mocha";
 
-import type {
-    FluxPriceFeed,
-    UniswapV2Pair,
-    UniswapV2Factory,
-    UniswapV2Router02,
-    Kresko,
-    IERC20MetadataUpgradeable,
-    ERC20Upgradeable,
-    UniswapV2Oracle,
-} from "types/typechain";
-import type { BytesLike } from "ethers";
-import type { GnosisSafeL2 } from "./typechain/GnosisSafeL2";
 import type { FakeContract, MockContract } from "@defi-wonderland/smock";
-
+import type { BytesLike, Contract, providers } from "ethers";
+import { hardhatUsers } from "hardhat-configs/users";
+import type {
+    ERC20Upgradeable,
+    UniswapV2Factory,
+    UniswapV2Oracle,
+    UniswapV2Pair,
+    UniswapV2Router02,
+} from "types/typechain";
+import * as Contracts from "./typechain";
 /* ========================================================================== */
 /*                             TEST AUGMENTATIONS                             */
 /* ========================================================================== */
@@ -59,7 +54,7 @@ declare module "mocha" {
         >;
         isProtocolSolvent: () => Promise<boolean>;
         addCollateralAsset: (marketPrice: number, factor?: number) => Promise<MockContract<ERC20Upgradeable>>;
-        addKrAsset: (marketPrice: number) => Promise<MockContract<KreskoAsset>>;
+        addKrAsset: (marketPrice: number) => Promise<MockContract<TC["KreskoAsset"]>>;
 
         /* -------------------------------------------------------------------------- */
         /*                               Users / Signers                              */
@@ -93,33 +88,30 @@ declare module "mocha" {
         /* -------------------------------------------------------------------------- */
         facets: Facet[];
         Multisig: GnosisSafeL2;
-        Diamond: Kresko;
+        Diamond: TC["Kresko"];
         DiamondDeployment: Deployment;
-        collaterals?: Collateral[];
-        collateral?: Collateral;
-        krAsset?: KrAsset;
-        krAssets?: KrAsset[];
+        collaterals: TestCollateral[];
+        collateral: TestCollateral;
+        krAsset: TestKrAsset;
+        krAssets: TestKrAsset[];
         /* -------------------------------------------------------------------------- */
         /*                              Misc / Deprecated                             */
         /* -------------------------------------------------------------------------- */
         // @todo DEPRECATING
-        admin: string;
-        userOne: string;
-        UniV2Factory: UniswapV2Factory;
-        UniV2Router: UniswapV2Router02;
-        lpPair: UniswapV2Pair;
-        userTwo: string;
+        UniV2Router: Contracts.UniswapV2Router02;
+        UniV2Factory: Contracts.UniswapV2Factory;
+        lpPair: Contracts.UniswapV2Pair;
         treasury: string;
-        pricefeed: FluxPriceFeed;
+        pricefeed: Contracts.FluxPriceFeed;
         // @todo DEPRECATING
-        Oracles: FakeContract<FluxPriceFeed>[];
-        TKN1: IERC20MetadataUpgradeable;
-        TKN2: IERC20MetadataUpgradeable;
-        USDC: IERC20MetadataUpgradeable;
-        krTSLA: KreskoAsset;
-        Kresko: Kresko;
+        Oracles: FakeContract[];
+        TKN1: Contracts.ERC20Upgradeable;
+        TKN2: Contracts.ERC20Upgradeable;
+        USDC: Contracts.ERC20Upgradeable;
+        krTSLA: Contracts.KreskoAsset;
+        Kresko: Contracts.Kresko;
         WETH10OraclePrice: number;
-        WETH10Oracle: FluxPriceFeed;
+        WETH10Oracle: Contracts.FluxPriceFeed;
     }
 }
 export {};
@@ -127,21 +119,57 @@ export {};
 /* ========================================================================== */
 /*                         HARDHAT RUNTIME EXTENSIONS                         */
 /* ========================================================================== */
+declare module "hardhat/types/config" {
+    // This is an example of an extension to one of the Hardhat config values.
+
+    // We extend the UserConfig type, which represents the config as written
+    // by the users. Things are normally optional here.
+    export interface ProjectPathsUserConfig {
+        exclude?: string[];
+    }
+
+    // We also extend the Config type, which represents the configuration
+    // after it has been resolved. This is the type used during the execution
+    // of tasks, tests and scripts.
+    // Normally, you don't want things to be optional here. As you can apply
+    // default values using the extendConfig function.
+    export interface ProjectPathsConfig {
+        exclude: string[];
+    }
+}
 
 declare module "hardhat/types/runtime" {
-    export interface HardhatRuntimeEnvironment {
+    export type HardhatUsers<T> = {
+        [key in keyof typeof hardhatUsers]: T;
+    };
+
+    interface HardhatRuntimeEnvironment {
         /* -------------------------------------------------------------------------- */
         /*                              Helper Functions                              */
         /* -------------------------------------------------------------------------- */
+
         fromBig: typeof fromBig;
         toBig: typeof toBig;
-        deploy: <T extends Contract>(name: string, options?: DeployOptions) => Promise<DeployResultWithSignatures<T>>;
+        getDeploymentOrNull: (deploymentName: string) => Promise<Deployment | null>;
+        getContractOrFork: <T extends keyof TC>(type: T, deploymentName?: string) => Promise<TC[T]>;
+        forking: {
+            provider: providers.JsonRpcProvider;
+            deploy: <T extends keyof TC>(
+                type: T,
+                options?: Partial<DeployOptions & { deploymentName?: string }>,
+            ) => Promise<TC[T]>;
+        };
+        deploy<T extends keyof TC>(
+            type: T,
+            options?: Omit<DeployOptions, "from"> & { deploymentName?: string; from?: string },
+        ): Promise<DeployResultWithSignatures<TC[T]>>;
+        // deploy<C extends Contract>(id: string, options?: DeployOptions): Promise<DeployResultWithSignaturesUnknown<C>>;
         getSignature: (jsonItem: Fragment | JsonFragment | string) => string | false;
         getSignatures: (abi: ABI) => string[];
         getSignaturesWithNames: (abi: ABI) => { name: string; sig: string }[];
         bytesCall: <T>(func: FunctionFragment, params: T) => string;
-        getAddFacetArgs: <T extends Contract>(
-            facet: T,
+        getAddFacetArgs: <T extends keyof TC>(
+            facet: TC[T],
             signatures?: string[],
             initializer?: {
                 contract: Contract;
@@ -155,75 +183,28 @@ declare module "hardhat/types/runtime" {
                 _calldata: BytesLike;
             };
         };
-        users: {
-            deployer: SignerWithAddress;
-            owner: SignerWithAddress;
-            admin: SignerWithAddress;
-            operator: SignerWithAddress;
-            userOne: SignerWithAddress;
-            userTwo: SignerWithAddress;
-            userThree: SignerWithAddress;
-            userFour: SignerWithAddress;
-            nonadmin?: SignerWithAddress;
-            liquidator?: SignerWithAddress;
-            treasury?: SignerWithAddress;
-        }
-        addr: {
-            deployer: string;
-            owner: string;
-            admin: string;
-            operator: string;
-            userOne: string;
-            userTwo: string;
-            userThree: string;
-            userFour: string;
-            nonadmin?: string;
-            liquidator?: string;
-            treasury?: string;
-        }
+        users: HardhatUsers<SignerWithAddress>;
+        addr: HardhatUsers<string>;
         /* -------------------------------------------------------------------------- */
         /*                                   General                                  */
         /* -------------------------------------------------------------------------- */
-        getUsers: () =>  Promise<{
-            deployer: SignerWithAddress;
-            owner: SignerWithAddress;
-            admin: SignerWithAddress;
-            operator: SignerWithAddress;
-            userOne: SignerWithAddress;
-            userTwo: SignerWithAddress;
-            userThree: SignerWithAddress;
-            userFour: SignerWithAddress;
-            nonadmin?: SignerWithAddress;
-            liquidator?: SignerWithAddress;
-            treasury?: SignerWithAddress;
-        }>;
-        getAddresses: () =>  Promise<{
-            ZERO: string;
-            deployer: string;
-            owner: string;
-            admin: string;
-            operator: string;
-            userOne: string;
-            userTwo: string;
-            userThree: string;
-            userFour: string;
-            nonadmin?: string;
-            liquidator?: string;
-            treasury?: string;
-        }>;
+        getUsers: () => Promise<HardhatUsers<SignerWithAddress>>;
+        getAddresses: () => Promise<HardhatUsers<string>>;
 
         /* -------------------------------------------------------------------------- */
         /*                                 Deployment                                 */
         /* -------------------------------------------------------------------------- */
+
         DiamondDeployment: Deployment;
-        Diamond: Kresko;
-        Multisig: GnosisSafeL2;
-        krAssets: KrAsset[];
-        collateral: Collateral;
-        krAsset: KrAsset;
-        collaterals: Collateral[];
-        allAssets: (KrAsset | Collateral)[];
-        facets: { name: string; address: string; functions: number }[]
+        Diamond: TC["Kresko"];
+        Multisig: TC["GnosisSafeL2"];
+
+        krAssets: TestKrAsset[];
+        collateral: TestCollateral;
+        krAsset: TestKrAsset;
+        collaterals: TestCollateral[];
+        allAssets: TestAsset[];
+        facets: { name: string; address: string; functions: number }[];
         uniPairs: {
             [name: string]: UniswapV2Pair;
         };
@@ -233,12 +214,5 @@ declare module "hardhat/types/runtime" {
         /* -------------------------------------------------------------------------- */
         UniV2Factory: UniswapV2Factory;
         UniV2Router: UniswapV2Router02;
-        utils: typeof import("ethers/lib/utils");
-        // @todo DEPRECATING
-        priceFeeds: {
-            [description: string]: FluxPriceFeed;
-        };
     }
 }
-
-export {};

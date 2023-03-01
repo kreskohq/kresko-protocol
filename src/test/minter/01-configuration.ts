@@ -11,7 +11,6 @@ import {
 import { addMockCollateralAsset } from "@utils/test/helpers/collaterals";
 import { addMockKreskoAsset } from "@utils/test/helpers/krassets";
 import hre from "hardhat";
-import { UniswapV2Oracle } from "types";
 
 describe("Minter - Configuration", () => {
     withFixture(["minter-init"]);
@@ -73,7 +72,7 @@ describe("Minter - Configuration", () => {
         });
 
         it("can update AMM oracle", async function () {
-            const ammOracle = await smock.fake<UniswapV2Oracle>("UniswapV2Oracle");
+            const ammOracle = await smock.fake<TC["UniswapV2Oracle"]>("UniswapV2Oracle");
             await hre.Diamond.updateAMMOracle(ammOracle.address);
             expect(await hre.Diamond.ammOracle()).to.equal(ammOracle.address);
         });
@@ -108,7 +107,7 @@ describe("Minter - Configuration", () => {
 
             await hre.Diamond.connect(hre.users.operator).updateKreskoAsset(
                 contract.address,
-                anchor.address,
+                anchor!.address,
                 update.factor,
                 newPriceFeed.address,
                 newPriceFeed.address,

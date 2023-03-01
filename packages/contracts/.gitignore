@@ -1,5 +1,4 @@
 dist
 .npmrc
 node_modules
-types
-deployments
+./src/types/**/*

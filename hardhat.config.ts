@@ -1,31 +1,29 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // Deployment
-
-import type { HardhatUserConfig } from "hardhat/types/config";
+import { HardhatUserConfig } from "hardhat/config";
+import { resolve } from "path";
 import "tsconfig-paths/register";
-
 /* -------------------------------------------------------------------------- */
 /*                                   Plugins                                  */
 /* -------------------------------------------------------------------------- */
-import "solidity-coverage";
+// import "solidity-coverage";
 
-import "hardhat-diamond-abi";
 /// @note comment diamond abi if enabling forge and anvil
-import "@typechain/hardhat";
-
-import "@kreskolabs/hardhat-deploy";
 import "@nomiclabs/hardhat-ethers";
-
+import "@typechain/hardhat";
+import "hardhat-deploy";
+import "hardhat-deploy-ethers";
+import "hardhat-diamond-abi";
+import "hardhat-packager";
+import "@nomiclabs/hardhat-etherscan";
 import "@nomiclabs/hardhat-web3";
 import "hardhat-contract-sizer";
 import "hardhat-interface-generator";
-import "hardhat-watcher";
+// import "hardhat-watcher";
 
-if (process.env.FOUNDRY === "true") {
-    require("@panukresko/hardhat-anvil");
-    require("@panukresko/hardhat-forge");
-}
 require("@nomiclabs/hardhat-etherscan");
+
 // import "hardhat-preprocessor";
 // import "hardhat-watcher";
 // import "hardhat-gas-reporter";
@@ -34,7 +32,6 @@ require("@nomiclabs/hardhat-etherscan");
 /*                                   Dotenv                                   */
 /* -------------------------------------------------------------------------- */
 import { config as dotenvConfig } from "dotenv";
-import { resolve } from "path";
 
 dotenvConfig({ path: resolve(__dirname, "./.env") });
 let mnemonic = process.env.MNEMONIC;
@@ -43,6 +40,8 @@ if (!mnemonic) {
     // Just a random word chosen from the BIP 39 list. Not sensitive.
     mnemonic = "wealth";
 }
+const isExport = process.env.exp;
+let exportUtil: any;
 
 /* -------------------------------------------------------------------------- */
 /*                                    Tasks                                   */
@@ -56,9 +55,20 @@ import { compilers, networks, users } from "hardhat-configs";
 /*                              Extensions To HRE                             */
 /* -------------------------------------------------------------------------- */
 import "hardhat-configs/extensions";
+
 /* -------------------------------------------------------------------------- */
 /*                               CONFIGURATION                                */
 /* -------------------------------------------------------------------------- */
+
+let externalArtifacts = ["./artifacts/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko.json"];
+let outDir = "types/typechain";
+if (isExport) {
+    console.log("isExport", isExport);
+    exportUtil = require("./src/utils/export");
+    externalArtifacts = exportUtil.externalArtifacts();
+    outDir = "packages/contracts/src/types/";
+}
+console.log("externalArtifacts", externalArtifacts);
 const config: HardhatUserConfig = {
     solidity: { compilers },
     networks: networks(mnemonic),
@@ -74,7 +84,6 @@ const config: HardhatUserConfig = {
         tests: "src/test",
         deploy: "src/deploy",
         deployments: "deployments",
-        imports: "forge/artifacts",
     },
     external: {
         contracts: [
@@ -86,48 +95,46 @@ const config: HardhatUserConfig = {
     diamondAbi: [
         {
             name: "Kresko",
-            include: ["facets/*"],
+            include: ["facets/*", "MinterEvent", "InterestRateEvent"],
             exclude: ["vendor", "test/*", "interfaces/*", "krasset/*", "KrStaking"],
             strict: false,
         },
     ],
     typechain: {
-        outDir: "types/typechain",
+        outDir,
         target: "ethers-v5",
-        alwaysGenerateOverloads: true,
+        alwaysGenerateOverloads: false,
         dontOverrideCompile: false,
-        discriminateTypes: false,
+        discriminateTypes: true,
         tsNocheck: true,
-        externalArtifacts: ["./artifacts/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko.json"],
+        externalArtifacts,
     },
-    // gasReporter: {
-    //     currency: "USD",
-    //     enabled: true,
-    //     showMethodSig: true,
-    //     src: "./src/contracts",
-    // },
     contractSizer: {
         alphaSort: true,
         disambiguatePaths: false,
         runOnCompile: true,
         except: ["vendor"],
     },
-
-    //@ts-ignore
-    // foundry: {
-    //     cachePath: "forge/cache",
-    //     buildInfo: true,
-    //     forgeOnly: false,
-    //     cacheVacuum: 0,
+    // watcher: {
+    //     test: {
+    //         tasks: [{ command: "test", params: { testFiles: ["{path}"] } }],
+    //         files: ["./src/test/**/*"],
+    //         verbose: false,
+    //     },
     // },
-    watcher: {
-        test: {
-            tasks: [{ command: "test", params: { testFiles: ["{path}"] } }],
-            files: ["./src/test/**/*"],
-            verbose: false,
+    verify: { etherscan: { apiKey: process.env.ETHERSCAN_API_KEY } },
+    etherscan: {
+        apiKey: {
+            optimisticGoerli: process.env.ETHERSCAN_API_KEY!,
         },
     },
-    verify: { etherscan: { apiKey: process.env.ETHERSCAN_API_KEY } },
+    //
+    // gasReporter: {
+    //     currency: "USD",
+    //     enabled: true,
+    //     showMethodSig: true,
+    //     src: "./src/contracts",
+    // },
 };
 
 export default config;

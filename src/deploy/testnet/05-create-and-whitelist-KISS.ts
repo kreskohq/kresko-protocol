@@ -1,6 +1,6 @@
 import { assets, testnetConfigs } from "@deploy-config/testnet-goerli";
-import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
-import { getLogger } from "@kreskolabs/lib/dist/utils";
+import type { DeployFunction } from "hardhat-deploy/types";
+import { getLogger } from "@kreskolabs/lib";
 import { getOracle } from "@utils/general";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -14,6 +14,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     });
 
     logger.log(`whitelisting KISS`);
+    if (!assets.KISS.oracle) {
+        logger.warn(`skipping KISS as it has no oracle`);
+        return;
+    }
     const oracleAddress = await getOracle(assets.KISS.oracle.description, hre);
     await hre.run("add-krasset", {
         symbol: assets.KISS.symbol,

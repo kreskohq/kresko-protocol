@@ -1,6 +1,6 @@
-import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
+import type { DeployFunction } from "hardhat-deploy/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
-import { getLogger } from "@kreskolabs/lib/dist/utils";
+import { getLogger } from "@kreskolabs/lib";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await hre.run("deploy-staking-helper", { log: true });

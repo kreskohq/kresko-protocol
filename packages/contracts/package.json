@@ -1,7 +1,7 @@
 {
     "name": "@kreskolabs/contracts",
     "description": "Typechain and contract deployments for front-end",
-    "version": "3.0.1",
+    "version": "3.7.15",
     "author": {
         "name": "Kresko Labs",
         "url": "https://www.kresko.fi"
@@ -14,17 +14,28 @@
         "solidity",
         "typechain"
     ],
-    "scripts": {
-        "build": "tsc && npm version patch",
-        "clean": "rm -rf deployments && rm -rf types"
+    "main": "./src/index.ts",
+    "types": "./src/index.ts",
+    "publishConfig": {
+        "directory": "dist",
+        "main": "./index.js",
+        "types": "./index.d.ts"
     },
-    "files": [
-        "dist"
-    ],
+    "scripts": {
+        "build": "rm -rf dist && tsc && npm version patch && cp package.json dist",
+        "postpublish": "rm dist/package.json",
+        "clean": "rm -rf dist"
+    },
     "license": "ISC",
-    "main": "dist/index.js",
-    "types": "dist/index.d.ts",
     "devDependencies": {
-        "typescript": "^4.5.2"
+        "@ethersproject/abstract-provider": "^5.7.0",
+        "@ethersproject/abstract-signer": "^5.7.0",
+        "@ethersproject/contracts": "^5.7.0",
+        "tsc-alias": "^1.8.2",
+        "tsup": "^6.6.3",
+        "typescript": "5.0.0-beta"
+    },
+    "dependencies": {
+        "@kreskolabs/configs": "^5.5.0"
     }
 }

@@ -1,9 +1,9 @@
 /// <reference types="chai" />
 declare namespace Chai {
-  // For BDD API
-  interface Assertion extends LanguageChains, NumericComparison, TypeComparison {
-    bignumber: Assertion;
-  }
+    // For BDD API
+    interface Assertion extends LanguageChains, NumericComparison, TypeComparison {
+        bignumber: Assertion;
+    }
 }
 
 declare module "chai-bignumber" {
@@ -13,4 +13,3 @@ declare module "chai-bignumber" {
 
     export = chaiBignumber;
 }
-

@@ -16,7 +16,7 @@ export const diamondFacets = [
     "DiamondOwnershipFacet",
     "AuthorizationFacet",
     "ERC165Facet",
-];
+] as const;
 export const anchorTokenPrefix = "a";
 
 export const minterFacets = [
@@ -33,13 +33,13 @@ export const minterFacets = [
     "StabilityRateFacet",
     "UIDataProviderFacet",
     "UIDataProviderFacet2",
-];
+] as const;
 
 export const getMinterInitializer = async (
     hre: HardhatRuntimeEnvironment,
 ): Promise<MinterInitializer<MinterInitArgsStruct>> => {
     const { treasury, operator } = hre.addr;
-    const Safe = await hre.deployments.getOrNull("Multisig");
+    const Safe = await hre.getContractOrFork("GnosisSafeL2");
     if (!Safe) throw new Error("GnosisSafe not deployed for Minter initialization");
 
     return {

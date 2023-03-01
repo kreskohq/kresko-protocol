@@ -1,6 +1,5 @@
 import { anchorTokenPrefix } from "@deploy-config/shared";
-import { toBig, toFixedPoint } from "@kreskolabs/lib/dist/numbers";
-import { oneRay } from "@kreskolabs/lib/dist/numbers/wadray";
+import { toBig, toFixedPoint, oneRay } from "@kreskolabs/lib";
 
 export type TestCollateralAssetArgs = {
     name: string;
@@ -17,7 +16,7 @@ export type TestCollateralAssetUpdate = {
 };
 export type InputArgs = {
     user: SignerWithAddress;
-    asset: (KrAsset | Collateral) | { address: string; contract: any; mocks: any };
+    asset: TestAsset | { address: string; contract: any; mocks: any };
     amount: string | number | BigNumber;
 };
 

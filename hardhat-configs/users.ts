@@ -1,6 +1,5 @@
 import { HardhatUserConfig } from "hardhat/config";
-
-export const users: HardhatUserConfig["namedAccounts"] = {
+export const hardhatUsers = {
     deployer: {
         default: 0,
     },
@@ -27,6 +26,9 @@ export const users: HardhatUserConfig["namedAccounts"] = {
     },
     feedValidator: {
         default: process.env.FEED_VALIDATOR || 11,
+    },
+    testnetFunder: {
+        default: process.env.FUNDER || 12,
     },
     // test users
     userOne: {
@@ -96,3 +98,4 @@ export const users: HardhatUserConfig["namedAccounts"] = {
         default: 52,
     },
 };
+export const users: HardhatUserConfig["namedAccounts"] = hardhatUsers;

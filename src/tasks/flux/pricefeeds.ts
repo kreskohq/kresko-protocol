@@ -1,26 +1,26 @@
-import { getLogger } from "@kreskolabs/lib/dist/utils";
+import { getLogger } from "@kreskolabs/lib";
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
 import { getUsers } from "@utils/general";
 
 task("deployone:fluxpricefeed")
     .addOptionalParam("decimals", "The number of decimals in the value posted", 8, types.int)
-    .addParam("name", "name of the contract")
+    .addParam("deploymentName", "name of the deployment", "FluxPriceFeed", types.string)
     .addParam("description", "The description of the contract")
     .addOptionalParam("validator", "The validator allowed to post data to the contract")
     .addOptionalParam("wait", "wait confirmations", 1, types.int)
     .addOptionalParam("log", "log information", !process.env.TEST, types.boolean)
     .setAction(async function (taskArgs: TaskArguments, hre) {
-        const { deploy, getNamedAccounts, priceFeeds } = hre;
+        const { deploy, getNamedAccounts } = hre;
         const { admin, deployer } = await getNamedAccounts();
         const users = await getUsers();
 
-        const { decimals, name, description, validator, log } = taskArgs;
+        const { decimals, deploymentName, description, validator, log } = taskArgs;
         const logger = getLogger("deployone:fluxpricefeed", log);
 
-        const [PriceFeed] = await deploy<FluxPriceFeed>(name, {
+        const [PriceFeed] = await deploy("FluxPriceFeed", {
             from: admin,
-            contract: "FluxPriceFeed",
+            deploymentName,
             args: [validator ? validator : deployer, decimals, description],
         });
 
@@ -38,6 +38,5 @@ task("deployone:fluxpricefeed")
             await PriceFeed.connect(users.admin).grantRole(VALIDATOR_ROLE, kreskoOracleAddr);
         }
 
-        priceFeeds[description] = PriceFeed;
         return PriceFeed;
     });

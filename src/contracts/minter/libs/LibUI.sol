@@ -6,7 +6,6 @@ import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
 import {AggregatorV2V3Interface} from "../../vendor/flux/interfaces/AggregatorV2V3Interface.sol";
 import {IUniswapV2Pair} from "../../vendor/uniswap/v2-core/interfaces/IUniswapV2Pair.sol";
 import {IKrStaking} from "../../staking/interfaces/IKrStaking.sol";
-import {IKresko} from "../interfaces/IKresko.sol";
 import {LibDecimals, FixedPoint} from "../libs/LibDecimals.sol";
 import {Error} from "../../libs/Errors.sol";
 

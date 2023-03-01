@@ -4,7 +4,7 @@ pragma solidity >=0.8.14;
 import {IERC165} from "../../shared/IERC165.sol";
 import {IDiamondCutFacet} from "../interfaces/IDiamondCutFacet.sol";
 import {IDiamondLoupeFacet} from "../interfaces/IDiamondLoupeFacet.sol";
-import {IOwnershipFacet} from "../interfaces/IOwnershipFacet.sol";
+import {IDiamondOwnershipFacet} from "../interfaces/IDiamondOwnershipFacet.sol";
 import {IAuthorizationFacet} from "../interfaces/IAuthorizationFacet.sol";
 
 import {GeneralEvent, AuthEvent} from "../../libs/Events.sol";
@@ -31,7 +31,7 @@ library LibOwnership {
         self.supportedInterfaces[type(IDiamondLoupeFacet).interfaceId] = true;
         self.supportedInterfaces[type(IERC165).interfaceId] = true;
         self.supportedInterfaces[type(IDiamondCutFacet).interfaceId] = true;
-        self.supportedInterfaces[type(IOwnershipFacet).interfaceId] = true;
+        self.supportedInterfaces[type(IDiamondOwnershipFacet).interfaceId] = true;
         self.supportedInterfaces[type(IAuthorizationFacet).interfaceId] = true;
 
         emit GeneralEvent.Deployed(_owner, self.storageVersion);

@@ -1,4 +1,4 @@
-import { getLogger } from "@kreskolabs/lib/dist/utils";
+import { getLogger } from "@kreskolabs/lib";
 import { fromBig } from "@kreskolabs/lib";
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
@@ -14,8 +14,8 @@ task("initialize-viewer")
         const logger = getLogger("deployViewer", log);
 
         const Staking = stakingAddr
-            ? await ethers.getContractAt<Kresko>("KrStaking", stakingAddr)
-            : await ethers.getContract<Kresko>("KrStaking");
+            ? await ethers.getContractAt("KrStaking", stakingAddr)
+            : await hre.getContractOrFork("KrStaking");
 
         if (log) {
             const [krAssets, collaterals, healthFactor, debtUSD, collateralUSD, minCollateralUSD] = (

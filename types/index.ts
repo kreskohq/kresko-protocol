@@ -1,7 +1,56 @@
-import { Address } from "@kreskolabs/hardhat-deploy/types";
+import { ContractName, GetContractTypes } from "@kreskolabs/configs";
+import { Address } from "hardhat-deploy/types";
+import type * as Contracts from "./typechain";
+import { ethers } from "ethers";
+export type Split<S extends string, D extends string> = string extends S
+    ? string[]
+    : S extends ""
+    ? []
+    : S extends `${infer T}${D}${infer U}`
+    ? [T, ...Split<U, D>]
+    : [S];
+export type Split2<S extends string, D extends string> = string extends S
+    ? string[]
+    : S extends never
+    ? []
+    : S extends `${infer T}${D}${infer U}`
+    ? [...Split<U, D>]
+    : [S];
 
-export * from "./typechain";
-export { Kresko } from "./typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
+export type ExcludeType<T, E> = { [K in keyof T]: T[K] extends E ? K : never }[keyof T];
+
+export type Excludes =
+    | "AccessControlEnumerableUpgradeable"
+    | "AccessControlUpgradeable"
+    | "FallbackManager"
+    | "BaseGuard"
+    | "Guard"
+    | "GuardManager"
+    | "ModuleManager"
+    | "OwnerManager"
+    | "EtherPaymentFallback"
+    | "StorageAccessible";
+
+export type ContractTypes = GetContractTypes<typeof Contracts>;
+export type ContractNames = keyof ContractTypes;
+
+export type ContractExports =
+    | Contracts.Diamond
+    | Contracts.Multisender
+    | Contracts.UniswapMath
+    | Contracts.UniswapV2LiquidityMathLibrary
+    | Contracts.WETH9
+    | Contracts.UniswapV2Pair
+    | Contracts.UniswapV2Factory
+    | Contracts.UniswapV2Router02
+    | Contracts.KreskoAsset
+    | Contracts.KreskoAssetAnchor
+    | Contracts.FluxPriceFeedFactory
+    | Contracts.FluxPriceFeed
+    | Contracts.UniswapV2Oracle
+    | Contracts.ERC20;
+
+// type x = ContractTypes["IKresko"];
 export type Fixtures = "diamond";
 
 export type Asset = {
@@ -12,7 +61,7 @@ export type Asset = {
     oracle?: {
         name: string;
         description: string;
-        chainlink?: string
+        chainlink?: string;
     };
     cFactor?: number;
     kFactor?: number;
@@ -42,7 +91,7 @@ export type NetworkConfig = {
 };
 
 export type MinterInitializer<A> = {
-    name: string;
+    name: "ConfigurationFacet";
     args: A;
 };
 
@@ -55,13 +104,13 @@ export type GnosisSafeDeployment = {
         opgoerli: string;
     };
     abi: any;
-}
+};
 
 export type InterestRateConfig = {
-    debtRateBase: BigNumber,
-    reserveFactor: BigNumber,
-    rateSlope1: BigNumber,
-    rateSlope2: BigNumber,
-    optimalPriceRate: BigNumber,
-    excessPriceRate: BigNumber,
-}
+    debtRateBase: BigNumber;
+    reserveFactor: BigNumber;
+    rateSlope1: BigNumber;
+    rateSlope2: BigNumber;
+    optimalPriceRate: BigNumber;
+    excessPriceRate: BigNumber;
+};

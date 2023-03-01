@@ -1,23 +1,24 @@
 {
-    "extends": "ts-node/node16/tsconfig.json",
-    "exclude": ["packages", "temp", "node_modules", "mochawesome-report"],
+    "exclude": ["temp", "mochawesome-report", "node_modules/**/*.ts", "cache/**/*"],
+    "include": ["hardhat.config.ts", "types", "src"],
     "compilerOptions": {
         "declaration": true,
+        "noErrorTruncation": true,
         "declarationMap": true,
         "forceConsistentCasingInFileNames": true,
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
-        "target": "ES2018",
-        "lib": ["ES2018", "DOM", "DOM.Iterable", "ES2019.Array", "ES2019.Object", "es2019"],
+        "skipDefaultLibCheck": true,
         "module": "CommonJS",
         "allowJs": true,
         "moduleResolution": "node",
         "noImplicitAny": true,
+        "target": "ES2020",
+        "lib": ["ES2018", "DOM", "DOM.Iterable", "ES2019.Array", "ES2019.Object", "ESNext"],
         "resolveJsonModule": true,
-        "strict": false,
+        "strict": true,
         "esModuleInterop": true,
         "baseUrl": "./",
-        "typeRoots": ["types"],
         "paths": {
             "@configs": ["hardhat-configs"],
             "@deploy-config/*": ["src/deploy-config/*"],
@@ -26,7 +27,8 @@
             "@tasks": ["src/tasks"],
             "@test/*": ["src/test/*"],
             "@scripts/*": ["src/scripts/*"],
-            "@test-utils": ["src/utils/test"]
+            "@test-utils": ["src/utils/test"],
+            "tslib": ["node_modules/tslib/tslib.d.ts"]
         }
     },
     "ts-node": { "files": true, "transpileOnly": true }

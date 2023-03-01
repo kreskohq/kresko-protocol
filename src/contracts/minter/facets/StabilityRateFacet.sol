@@ -31,7 +31,7 @@ struct StabilityRateParams {
  * @notice Stability rate related views and state operations
  * @dev Uses both MinterState (ms) and InterestRateState (irs)
  */
-contract StabilityRateFacet is MinterModifiers, DiamondModifiers, IStabilityRateFacet {
+contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
     using Arrays for address[];
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using WadRay for uint256;

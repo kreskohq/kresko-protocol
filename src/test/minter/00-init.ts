@@ -1,9 +1,7 @@
 import hre from "hardhat";
 import { diamondFacets, getMinterInitializer, minterFacets } from "@deploy-config/shared";
 import { Role, withFixture, Error } from "@utils/test";
-import type { ConfigurationFacet } from "types/typechain";
 import { expect } from "@test/chai";
-
 describe("Minter - Init", () => {
     withFixture(["minter-init"]);
     describe("#initialization", () => {
@@ -27,11 +25,11 @@ describe("Minter - Init", () => {
 
         it("cant initialize twice", async function () {
             const initializer = await getMinterInitializer(hre);
-            const initializerContract = await hre.ethers.getContract<ConfigurationFacet>(initializer.name);
+            const initializerContract = await hre.getContractOrFork(initializer.name);
 
             const tx = await initializerContract.populateTransaction.initialize(initializer.args);
 
-            await expect(hre.Diamond.upgradeState(tx.to, tx.data)).to.be.revertedWith(Error.ALREADY_INITIALIZED);
+            await expect(hre.Diamond.upgradeState(tx.to!, tx.data!)).to.be.revertedWith(Error.ALREADY_INITIALIZED);
         });
 
         it("configures all facets correctly", async function () {
@@ -40,11 +38,11 @@ describe("Minter - Init", () => {
                 functionSelectors,
             }));
             const expectedFacets = await Promise.all(
-                minterFacets.concat(diamondFacets).map(async name => {
+                [...minterFacets, ...diamondFacets].map(async name => {
                     const deployment = await hre.deployments.get(name);
                     return {
                         facetAddress: deployment.address,
-                        functionSelectors: facetsOnChain.find(f => f.facetAddress === deployment.address)
+                        functionSelectors: facetsOnChain.find(f => f.facetAddress === deployment.address)!
                             .functionSelectors,
                     };
                 }),

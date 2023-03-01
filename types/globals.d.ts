@@ -1,49 +1,47 @@
-import { DeployResult } from "@kreskolabs/hardhat-deploy/types";
-import type { BytesLike } from "ethers";
 import { FakeContract, MockContract } from "@defi-wonderland/smock";
-import { ERC20Upgradeable__factory } from "./typechain/factories/src/contracts/shared";
-import { KreskoAsset__factory, KreskoAssetAnchor__factory } from "./typechain/factories/src/contracts/kreskoasset";
-import { KrAssetStructOutput } from "./Kresko";
-import {KreskoAssetAnchor} from "types/typechain/src/contracts/kreskoasset"
-import { CollateralAssetStruct } from "./typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 import {
-    TestKreskoAssetUpdate,
-    TestKreskoAssetArgs,
     TestCollateralAssetArgs,
     TestCollateralAssetUpdate,
+    TestKreskoAssetArgs,
+    TestKreskoAssetUpdate,
 } from "@utils/test";
+import type { BytesLike } from "ethers";
+import { DeployResult } from "hardhat-deploy/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-
+import { ContractTypes } from "types";
+import { KreskoAssetAnchor } from "types/typechain/src/contracts/kreskoasset";
+import type * as Contracts from "./typechain";
+import { CollateralAssetStruct, KrAssetStructOutput } from "./typechain/src/contracts/minter/facets/StateFacet";
 declare global {
     const hre: HardhatRuntimeEnvironment;
     /* -------------------------------------------------------------------------- */
     /*                              Minter Contracts                              */
     /* -------------------------------------------------------------------------- */
-    type Kresko = import("types/typechain").Kresko;
-    type KreskoAsset = import("types/typechain").KreskoAsset;
-    type KrAsset = {
+    export type TC = ContractTypes;
+
+    type TestKrAsset = {
         krAsset?: boolean;
         collateral?: boolean;
         address: string;
-        contract: KreskoAsset;
-        deployArgs: TestKreskoAssetArgs;
+        contract: TC["KreskoAsset"];
+        deployArgs?: TestKreskoAssetArgs;
         kresko: () => Promise<KrAssetStructOutput>;
-        mocks?: {
+        mocks: {
             contract: MockContract<KreskoAsset>;
             mockFeed: MockContract<FluxPriceFeed>;
             priceFeed: FakeContract<FluxPriceFeed>;
             anchor?: MockContract<KreskoAssetAnchor>;
         };
-        anchor?: KreskoAssetAnchor;
+        anchor: KreskoAssetAnchor;
         priceFeed: FluxPriceFeed;
-        setBalance?: (user: SignerWithAddress, balance: BigNumber) =>Promise<void>
-        setPrice?: (price: number) => void;
-        getPrice?: () => Promise<BigNumber>;
-        setMarketOpen?: (marketOpen: boolean) => void;
-        getMarketOpen?: () => Promise<boolean>;
-        update?: (update: TestKreskoAssetUpdate) => Promise<KrAsset>;
+        setBalance: (user: SignerWithAddress, balance: BigNumber) => Promise<void>;
+        setPrice: (price: number) => void;
+        getPrice: () => Promise<BigNumber>;
+        setMarketOpen: (marketOpen: boolean) => void;
+        getMarketOpen: () => Promise<boolean>;
+        update: (update: TestKreskoAssetUpdate) => Promise<TestKrAsset>;
     };
-    type Collateral = {
+    type TestCollateral = {
         address: string;
         collateral?: boolean;
         krAsset?: boolean;
@@ -56,34 +54,35 @@ declare global {
             anchor?: MockContract<KreskoAssetAnchor>;
         };
         priceFeed: FluxPriceFeed;
-        anchor?: KreskoAssetAnchor;
-        setPrice?: (price: number) => void;
-        setBalance?: (user: SignerWithAddress, amount: BigNumber) => Promise<void>;
-        getPrice?: () => Promise<BigNumber>;
-        update?: (update: TestCollateralAssetUpdate) => Promise<CollateralAsset>;
+        anchor: KreskoAssetAnchor;
+        setPrice: (price: number) => void;
+        setBalance: (user: SignerWithAddress, amount: BigNumber) => Promise<void>;
+        getPrice: () => Promise<BigNumber>;
+        update: (update: TestCollateralAssetUpdate) => Promise<TestCollateral>;
     };
 
-    type KrAssets = KrAsset[];
-    type Collaterals = Collateral[];
+    type TestKrAssets = TestKrAsset[];
+    type TestCollaterals = TestCollateral[];
 
-    type Asset = Collateral | KrAsset;
+    type TestAsset = TestCollateral | TestKrAsset;
     /* -------------------------------------------------------------------------- */
     /*                                   Oracles                                  */
     /* -------------------------------------------------------------------------- */
-    type FluxPriceFeed = import("types/typechain").FluxPriceFeed;
-
-    type FluxPriceFeedFactory = import("types/typechain").FluxPriceFeedFactory;
-    type AggregatorV2V3Interface = import("types/typechain").AggregatorV2V3Interface;
-
+    type FluxPriceFeed = TC["FluxPriceFeed"];
+    type FluxPriceFeedFactory = TC["FluxPriceFeedFactory"];
+    type UniV2Router = Contracts.UniswapV2Router02;
+    type UniV2Factory = Contracts.UniswapV2Factory;
     /* -------------------------------------------------------------------------- */
     /*                               Misc Contracts                               */
     /* -------------------------------------------------------------------------- */
+
     type Contract = import("ethers").Contract;
-
-    type WETH9 = import("types/typechain").WETH9;
-    type ERC20Upgradeable = import("types/typechain").ERC20Upgradeable;
-    type IERC20 = import("types/typechain").IERC20;
-
+    type GnosisSafeL2 = TC["GnosisSafeL2"];
+    type KreskoAsset = TC["KreskoAsset"];
+    type KrStaking = TC["KrStaking"];
+    type WETH9 = TC["WETH9"];
+    type ERC20Upgradeable = TC["ERC20Upgradeable"];
+    type IERC20 = TC["IERC20"];
     type BigNumberish = import("ethers").BigNumberish;
     type BigNumber = import("ethers").BigNumber;
     /* -------------------------------------------------------------------------- */
@@ -91,42 +90,14 @@ declare global {
     /* -------------------------------------------------------------------------- */
     type Signer = import("ethers").Signer;
     type SignerWithAddress = import("@nomiclabs/hardhat-ethers/signers").SignerWithAddress;
-    type Users = {
-        deployer: SignerWithAddress;
-        owner: SignerWithAddress;
-        admin: SignerWithAddress;
-        operator: SignerWithAddress;
-        userOne: SignerWithAddress;
-        userTwo: SignerWithAddress;
-        userThree: SignerWithAddress;
-        userFour: SignerWithAddress;
-        nonadmin?: SignerWithAddress;
-        liquidator?: SignerWithAddress;
-        feedValidator?: SignerWithAddress;
-        treasury?: SignerWithAddress;
-    };
 
-    type Addresses = {
-        ZERO: string;
-        deployer: string;
-        owner: string;
-        admin: string;
-        operator: string;
-        userOne: string;
-        userTwo: string;
-        userThree: string;
-        userFour: string;
-        nonadmin?: string;
-        liquidator?: string;
-        feedValidator?: string;
-        treasury?: string;
-    };
     /* -------------------------------------------------------------------------- */
     /*                                 Deployments                                */
     /* -------------------------------------------------------------------------- */
     type Artifact = import("hardhat/types").Artifact;
 
-    type DeployResultWithSignatures<T extends Contract> = [T, string[], DeployResult];
+    // type DeployResultWithSignaturesUnknown<C extends Contract> = readonly [C, string[], DeployResult];
+    type DeployResultWithSignatures<T> = readonly [T, string[], DeployResult];
 
     type DiamondCutInitializer = [string, BytesLike];
 
@@ -159,7 +130,4 @@ declare global {
         live?: boolean;
         saveDeployments?: boolean;
     }
-
 }
-
-export {}

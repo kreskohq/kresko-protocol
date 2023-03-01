@@ -8,4 +8,5 @@ export * from "./test";
 export * from "./flux";
 export * from "./uniswap";
 export * from "./kiss";
+export * from "./create-exports";
 export * from "./fund-operator";

@@ -1,18 +1,22 @@
 import hre from "hardhat";
-import { FacetCut, FacetCutAction } from "@kreskolabs/hardhat-deploy/dist/types";
-import { getLogger } from "@kreskolabs/lib/dist/utils";
-import { mergeABIs } from "@kreskolabs/hardhat-deploy/dist/src/utils";
+import { FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
+import { getLogger } from "@kreskolabs/lib";
+import { mergeABIs } from "hardhat-deploy/dist/src/utils";
 
-type Args = {
-    name: string;
-    initializerName?: string;
+type Args<T> = {
+    name: T;
+    initializerName?: T;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     initializerArgs?: any;
 };
 
 const logger = getLogger("add-facet");
 
-export async function addFacet<T extends Contract>({ name, initializerName, initializerArgs }: Args) {
+export async function addFacet<T extends keyof TC>({
+    name,
+    initializerName,
+    initializerArgs,
+}: Args<T>): Promise<TC[T]> {
     logger.log(name);
 
     const { ethers, deployments, getUsers } = hre;
@@ -30,7 +34,7 @@ export async function addFacet<T extends Contract>({ name, initializerName, init
     }
 
     // #2.1 Get contract instance with full ABI
-    const Diamond = await ethers.getContractAt<Kresko>("Kresko", DiamondDeployment.address);
+    const Diamond = await hre.getContractOrFork("Kresko");
 
     // #3.1 Single facet addition, maps all functions contained except the string blobs in the `signatureFilters` array in `configs/shared`
     const [Facet, Signatures, deployment] = await hre.deploy(name);
@@ -59,13 +63,17 @@ export async function addFacet<T extends Contract>({ name, initializerName, init
             [InitializerContract] = await hre.deploy(initializerName, { from: deployer.address, log: true });
         }
         // #4.4 Get the contract instance
-        InitializerContract = await hre.ethers.getContract(initializerName);
+        InitializerContract = await hre.getContractOrFork(initializerName);
         if (!initializerArgs || initializerArgs.length === 0) {
             // Ensure we know there are no parameters for the initializer supplied
             logger.warn("Adding diamondCut initializer with no arguments supplied");
         } else {
             logger.log("Adding diamondCut initializer with arguments:", initializerArgs, InitializerContract.address);
             const tx = await InitializerContract.populateTransaction.initialize(initializerArgs || "0x");
+            if (!tx.to || !tx.data) {
+                throw new Error("Initializer contract does not have an address");
+            }
+
             initializer = [tx.to, tx.data];
         }
         // #4.5 Prepopulate the initialization tx - replacing the default set on #5.1.
@@ -121,7 +129,7 @@ export async function addFacet<T extends Contract>({ name, initializerName, init
 
         // #5.6 Save the deployment and Diamond into runtime for later steps.
         hre.DiamondDeployment = DiamondDeployment;
-        hre.Diamond = await ethers.getContractAt<Kresko>("Kresko", DiamondDeployment.address);
+        hre.Diamond = await hre.getContractOrFork("Kresko");
 
         logger.success(1, " facets succesfully added", "txHash:", receipt.transactionHash);
         logger.success(
@@ -135,5 +143,5 @@ export async function addFacet<T extends Contract>({ name, initializerName, init
         );
         hre.DiamondDeployment = DiamondDeployment;
     }
-    return Facet as T;
+    return Facet;
 }

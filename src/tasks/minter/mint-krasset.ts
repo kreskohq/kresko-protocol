@@ -1,18 +1,17 @@
 import { fromBig } from "@kreskolabs/lib";
 import { task, types } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
-import type { ERC20PresetMinterPauser, KreskoAsset } from "types";
 task("mint-krasset")
-    .addParam("name", "Name of the krAsset")
+    .addParam("deploymentName", "Deployment name of the krAsset")
     .addOptionalParam("amount", "Amount to mint in decimal", 1000, types.float)
     .addOptionalParam("wait", "wait confirmations", 1, types.int)
     .setAction(async function (taskArgs: TaskArguments, hre) {
         const { deployer } = await hre.ethers.getNamedSigners();
 
         const address = await deployer.getAddress();
-        const Kresko = await hre.ethers.getContract<Kresko>("Diamond");
+        const Kresko = await hre.getContractOrFork("Kresko");
 
-        const KrAsset = await hre.ethers.getContract<KreskoAsset>(taskArgs.name);
+        const KrAsset = await hre.getContractOrFork("KreskoAsset", taskArgs.deploymentName);
         const KrAssetInfo = await Kresko.kreskoAsset(KrAsset.address);
 
         if (!KrAssetInfo.exists) {
@@ -22,7 +21,7 @@ task("mint-krasset")
         const mintValue = await Kresko.getKrAssetValue(KrAsset.address, mintAmount, true);
         const parsedValue = fromBig(mintValue.rawValue, 8) * 2;
 
-        const KISS = await hre.ethers.getContract<ERC20PresetMinterPauser>("KISS");
+        const KISS = await hre.getContractOrFork("KISS");
 
         const KISSAmount = hre.ethers.utils.parseUnits(String(parsedValue), await KISS.decimals());
 

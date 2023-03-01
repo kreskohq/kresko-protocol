@@ -1,5 +1,5 @@
 import { toBig } from "@kreskolabs/lib";
-import { getLogger } from "@kreskolabs/lib/dist/utils";
+import { getLogger } from "@kreskolabs/lib";
 import { task } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
 

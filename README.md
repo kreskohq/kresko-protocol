@@ -25,16 +25,25 @@ cp .env.example .env
 Example values:
 
 ```sh
-MNEMONIC=your mnemonic here
-LIQUIDATION_INCENTIVE=1.1
+MNEMONIC=
+FEED_VALIDATOR_PK=
+FEED_VALIDATOR=0x0000000000000000000000000000000000000F11
+FUNDER=0x0000000000000000000000000000000000000F22
+FUNDER_PK=
+LIQUIDATION_INCENTIVE=1.05
 LIQUIDATION_THRESHOLD=1.4
 MINIMUM_COLLATERALIZATION_RATIO=1.5
 MINIMUM_DEBT_VALUE=10
 FEE_RECIPIENT_ADDRESS=0x0000000000000000000000000000000000000FEE
+INFURA_API_KEY=
+ALCHEMY_API_KEY=
+TWELVE_DATA_API_KEY=
+ETHERSCAN_API_KEY=
+QUICKNODE_API_KEY=
 
 ```
 
-Run tests: 
+Run tests:
 
 ```sh
 pnpm test
@@ -43,15 +52,16 @@ pnpm test
 ### Deployment
 
 Compile and dry-run the deployments on hardhat-network:
+
 ```sh
 pnpm deploy
 ```
 
 Deploy to external networks:
+
 ```sh
 pnpm deploy --network <network>
 ```
-
 
 ### Contributions
 

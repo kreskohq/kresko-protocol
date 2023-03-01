@@ -4,7 +4,7 @@ import { FluxPriceFeed__factory } from "types/typechain";
 import { getUsers } from "@utils/general";
 import { defaultCloseFee, defaultOracleDecimals, defaultOraclePrice } from "../mocks";
 import { toBig } from "@kreskolabs/lib";
-import { calcDebtIndex, getBlockTimestamp, fromScaledAmount } from "./calculations";
+// import { calcDebtIndex, getBlockTimestamp, fromScaledAmount } from "./calculations";
 /* -------------------------------------------------------------------------- */
 /*                                  GENERAL                                   */
 /* -------------------------------------------------------------------------- */
@@ -29,7 +29,7 @@ export const setPrice = (oracles: any, price: number) => {
     oracles.mockFeed.latestAnswer.returns(hre.toBig(price, 8));
 };
 
-export const setMarketOpen = (oracle: MockContract<FluxPriceFeed>, marketOpen: boolean) => {
+export const setMarketOpen = <T extends "FluxPriceFeed">(oracle: MockContract<TC[T]>, marketOpen: boolean) => {
     oracle.latestMarketOpen.returns(marketOpen);
 };
 
@@ -42,8 +42,8 @@ export const getHealthFactor = async (user: SignerWithAddress) => {
 
 export const leverageKrAsset = async (
     user: SignerWithAddress,
-    krAsset: any,
-    collateralToUse: any,
+    krAsset: TestKrAsset,
+    collateralToUse: TestCollateral,
     amount: BigNumber,
 ) => {
     await collateralToUse.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
@@ -61,7 +61,7 @@ export const leverageKrAsset = async (
     const price = hre.fromBig(collateralValue.rawValue, 8);
     const collateralAmount = collateralValueRequired / price;
 
-    await collateralToUse.mocks.contract.setVariable("_balances", {
+    await collateralToUse.mocks?.contract.setVariable("_balances", {
         [user.address]: hre.toBig(collateralAmount),
     });
     if (!(await hre.Diamond.collateralAsset(collateralToUse.address)).exists) {

@@ -1,7 +1,6 @@
 import { ALCHEMY_API_KEY_GOERLI, INFURA_API_KEY, RPC } from "@kreskolabs/configs";
-import { utils } from "ethers";
+import { parseUnits } from "ethers/lib/utils";
 import { HttpNetworkUserConfig } from "hardhat/types";
-const parseUnits = utils.parseUnits;
 
 export const chainIds = {
     aurora: 1313161554,
@@ -106,50 +105,43 @@ export const networks = (mnemonic: string): { [key: string]: HttpNetworkUserConf
             mnemonic,
             count: 100,
         },
-        saveDeployments: true,
+        chainId: chainIds.hardhat,
+    },
+    ganache: {
+        url: "http://127.0.0.1:7545",
+        chainId: 1337,
+        accounts: { mnemonic, count: 100 },
+        companionNetworks: {
+            live: "opgoerli",
+        },
     },
     localhost: {
         accounts: {
             mnemonic,
             count: 100,
         },
-        saveDeployments: true,
         chainId: chainIds.hardhat,
     },
     ethereum: {
         accounts: { mnemonic },
-        url: RPC.eth.mainnet.infura,
+        url: RPC().eth.mainnet.infura,
         chainId: chainIds.ethereum,
         tags: ["ethereum"],
         live: true,
     },
     op: {
         accounts: { mnemonic, count: 100 },
-        url: RPC.optimism.mainnet.default,
+        url: RPC().optimism.mainnet.default,
         chainId: chainIds.op,
         saveDeployments: true,
         tags: ["mainnet"],
     },
-    opkovan: {
-        accounts: { mnemonic, count: 100 },
-        url: RPC.optimism.kovan.default,
-        chainId: chainIds.opkovan,
-        saveDeployments: true,
-        tags: ["testnet"],
-        live: true,
-    },
     opgoerli: {
         accounts: { mnemonic, count: 100 },
-        url: RPC.optimism.goerli.default,
+        url: RPC().optimism.goerli.alchemy,
         chainId: chainIds.opgoerli,
         gasPrice: +parseUnits("0.001", "gwei"),
         live: true,
-    },
-    kovan: {
-        chainId: chainIds.kovan,
-        url: `https://eth-kovan.alchemyapi.io/v2/${ALCHEMY_API_KEY_GOERLI}`,
-        gasPrice: +parseUnits("10", "gwei"),
-        deploy: ["./src/deploy/kovan"],
     },
     moonbeam: {
         chainId: chainIds.moonbeam,
@@ -192,7 +184,7 @@ export const networks = (mnemonic: string): { [key: string]: HttpNetworkUserConf
     },
     polygon: {
         accounts: { mnemonic },
-        url: RPC.polygon.mainnet.default,
+        url: RPC().polygon.mainnet.default,
         chainId: chainIds.polygon,
         tags: ["polygon"],
     },

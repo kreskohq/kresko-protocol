@@ -1,8 +1,6 @@
-import { getLogger } from "@kreskolabs/lib/dist/utils";
-import { deployWithSignatures } from "@utils/deployment";
+import { getLogger } from "@kreskolabs/lib";
 import { task, types } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
-import type { KrStaking, KrStakingHelper, UniswapV2Factory, UniswapV2Router02 } from "types";
 
 task("deploy-staking-helper")
     .addOptionalParam("routerAddr", "Address of uni router")
@@ -11,29 +9,29 @@ task("deploy-staking-helper")
     .addOptionalParam("wait", "wait confirmations", 1, types.int)
     .addOptionalParam("log", "log deploy information", true, types.boolean)
     .setAction(async function (taskArgs: TaskArguments, hre) {
-        const { getNamedAccounts, ethers } = hre;
+        const { getNamedAccounts } = hre;
         const { deployer } = await getNamedAccounts();
-        const deploy = deployWithSignatures(hre);
+
         const { routerAddr, factoryAddr, stakingAddr, log } = taskArgs;
         const logger = getLogger("deploy-staking-helper", log);
-        let Router: UniswapV2Router02;
-        let Factory: UniswapV2Factory;
-        let KrStaking: KrStaking;
+        let Router: UniV2Router;
+        let Factory: UniV2Factory;
+        let KrStaking: TC["KrStaking"];
 
         if (!routerAddr) {
-            Router = await ethers.getContract("UniswapV2Router02");
+            Router = await hre.getContractOrFork("UniswapV2Router02");
         } else {
-            Router = await ethers.getContractAt("UniswapV2Router02", routerAddr);
+            Router = await hre.ethers.getContractAt("UniswapV2Router02", routerAddr);
         }
         if (!factoryAddr) {
-            Factory = await ethers.getContract("UniswapV2Factory");
+            Factory = await hre.getContractOrFork("UniswapV2Factory");
         } else {
-            Factory = await ethers.getContractAt("UniswapV2Factory", factoryAddr);
+            Factory = await hre.ethers.getContractAt("UniswapV2Factory", factoryAddr);
         }
         if (!stakingAddr) {
-            KrStaking = await ethers.getContract("KrStaking");
+            KrStaking = await hre.getContractOrFork("KrStaking");
         } else {
-            KrStaking = await ethers.getContractAt("KrStaking", stakingAddr);
+            KrStaking = await hre.ethers.getContractAt("KrStaking", stakingAddr);
         }
 
         if (!Router) {
@@ -46,12 +44,11 @@ task("deploy-staking-helper")
             throw new Error("No factory found");
         }
 
-        const [KrStakingHelper] = await deploy<KrStakingHelper>("KrStakingHelper", {
+        const [KrStakingHelper] = await hre.deploy("KrStakingHelper", {
             args: [Router.address, Factory.address, KrStaking.address],
             log,
             from: deployer,
         });
-
         const OPERATOR_ROLE = await KrStaking.OPERATOR_ROLE();
         if (!(await KrStaking.hasRole(OPERATOR_ROLE, KrStakingHelper.address))) {
             logger.log("Granting operator role for", KrStakingHelper.address);

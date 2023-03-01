@@ -1,5 +1,5 @@
-import { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
-import { getLogger } from "@kreskolabs/lib/dist/utils";
+import { DeployFunction } from "hardhat-deploy/types";
+import { getLogger } from "@kreskolabs/lib";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { testnetConfigs } from "@deploy-config/testnet-goerli";
 
@@ -14,16 +14,19 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         case "opgoerli": {
             const config = testnetConfigs[hre.network.name];
             const gnosisSafeDeployments = config.gnosisSafeDeployments;
+            if (!gnosisSafeDeployments) {
+                throw new Error("No gnosis safe deployments found");
+            }
 
-            const simulateTxAccesorInfo = gnosisSafeDeployments.find(i => i.contractName === "SimulateTxAccesor");
+            const simulateTxAccesorInfo = gnosisSafeDeployments.find(i => i.contractName === "SimulateTxAccesor")!;
             await deployments.save("SimulateTxAccessor", {
-                abi: simulateTxAccesorInfo.abi,
-                address: simulateTxAccesorInfo.networkAddresses.opgoerli,
+                abi: simulateTxAccesorInfo!.abi,
+                address: simulateTxAccesorInfo!.networkAddresses.opgoerli,
             });
 
             const gnosisSafeProxyFactoryInfo = gnosisSafeDeployments.find(
                 i => i.contractName === "GnosisSafeProxyFactory",
-            );
+            )!;
             await deployments.save("GnosisSafeProxyFactory", {
                 abi: gnosisSafeProxyFactoryInfo.abi,
                 address: gnosisSafeProxyFactoryInfo.networkAddresses.opgoerli,
@@ -31,37 +34,37 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
             const compatibilityFallbackHandlerInfo = gnosisSafeDeployments.find(
                 i => i.contractName === "CompatibilityFallbackHandler",
-            );
+            )!;
             await deployments.save("CompatibilityFallbackHandler", {
                 abi: compatibilityFallbackHandlerInfo.abi,
                 address: compatibilityFallbackHandlerInfo.networkAddresses.opgoerli,
             });
 
-            const createCallInfo = gnosisSafeDeployments.find(i => i.contractName === "CreateCall");
+            const createCallInfo = gnosisSafeDeployments!.find(i => i.contractName === "CreateCall")!;
             await deployments.save("CreateCall", {
                 abi: createCallInfo.abi,
                 address: createCallInfo.networkAddresses.opgoerli,
             });
 
-            const multiSendInfo = gnosisSafeDeployments.find(i => i.contractName === "MultiSend");
+            const multiSendInfo = gnosisSafeDeployments!.find(i => i.contractName === "MultiSend")!;
             await deployments.save("MultiSend", {
                 abi: multiSendInfo.abi,
                 address: multiSendInfo.networkAddresses.opgoerli,
             });
 
-            const multiSendCallOnlyInfo = gnosisSafeDeployments.find(i => i.contractName === "MultiSendCallOnly");
+            const multiSendCallOnlyInfo = gnosisSafeDeployments!.find(i => i.contractName === "MultiSendCallOnly")!;
             await deployments.save("MultiSendCallOnly", {
                 abi: multiSendCallOnlyInfo.abi,
                 address: multiSendCallOnlyInfo.networkAddresses.opgoerli,
             });
 
-            const signMessageLibInfo = gnosisSafeDeployments.find(i => i.contractName === "SignMessageLib");
+            const signMessageLibInfo = gnosisSafeDeployments!.find(i => i.contractName === "SignMessageLib")!;
             await deployments.save("SignMessageLib", {
                 abi: signMessageLibInfo.abi,
                 address: signMessageLibInfo.networkAddresses.opgoerli,
             });
 
-            const gnosisSafeL2Info = gnosisSafeDeployments.find(i => i.contractName === "GnosisSafeL2");
+            const gnosisSafeL2Info = gnosisSafeDeployments!.find(i => i.contractName === "GnosisSafeL2")!;
             await deployments.save("GnosisSafeL2", {
                 abi: gnosisSafeL2Info.abi,
                 address: gnosisSafeL2Info.networkAddresses.opgoerli,
