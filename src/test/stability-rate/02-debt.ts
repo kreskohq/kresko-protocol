@@ -9,7 +9,6 @@ import { addMockKreskoAsset, burnKrAsset, mintKrAsset } from "@utils/test/helper
 import { expect } from "chai";
 import { BigNumber } from "ethers";
 import hre from "hardhat";
-import { KISS } from "types";
 import { UniswapMath } from "types/typechain/src/contracts/test/markets";
 
 const RATE_DELTA = hre.ethers.utils.parseUnits("100", "gwei");
@@ -25,10 +24,10 @@ describe("Stability Rates", function () {
         userOne = hre.users.deployer;
         userTwo = hre.users.userTwo;
 
-        this.krAsset = hre.krAssets.find(c => c.deployArgs.name === defaultKrAssetArgs.name);
-        this.collateral = hre.collaterals.find(c => c.deployArgs.name === defaultCollateralArgs.name);
+        this.krAsset = hre.krAssets.find(c => c.deployArgs!.name === defaultKrAssetArgs.name)!;
+        this.collateral = hre.collaterals.find(c => c.deployArgs!.name === defaultCollateralArgs.name)!;
 
-        [UniMath] = await hre.deploy<UniswapMath>("UniswapMath", {
+        [UniMath] = await hre.deploy("UniswapMath", {
             from: hre.users.deployer.address,
             args: [hre.UniV2Factory.address, hre.UniV2Router.address],
         });
@@ -49,7 +48,7 @@ describe("Stability Rates", function () {
             amount: kLiq,
             user: userOne,
         });
-        const anchorBalance = await this.krAsset.anchor.balanceOf(hre.Diamond.address);
+        const anchorBalance = await this.krAsset.anchor!.balanceOf(hre.Diamond.address);
         expect(anchorBalance).to.equal(kLiq);
         // 1000/100 = krAsset amm price 10
         const pair = await addLiquidity({
@@ -453,7 +452,7 @@ describe("Stability Rates", function () {
         });
 
         it("can repay full interest with KISS", async function () {
-            const KISS = await hre.ethers.getContract<KISS>("KISS");
+            const KISS = await hre.getContractOrFork("KISS");
             await KISS.connect(userTwo).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
 
             await depositCollateral({
@@ -489,7 +488,7 @@ describe("Stability Rates", function () {
         });
 
         it("can repay partial interest with KISS", async function () {
-            const KISS = await hre.ethers.getContract<KISS>("KISS");
+            const KISS = await hre.getContractOrFork("KISS");
             await KISS.connect(userTwo).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
 
             await depositCollateral({
@@ -543,7 +542,7 @@ describe("Stability Rates", function () {
         });
 
         it("can repay all interest for multiple assets in batch", async function () {
-            const KISS = await hre.ethers.getContract<KISS>("KISS");
+            const KISS = await hre.getContractOrFork("KISS");
             await KISS.connect(userTwo).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
             await this.collateral.setBalance(userTwo, depositAmountBig);
             // Deposit a bit more to cover the mints
@@ -605,7 +604,7 @@ describe("Stability Rates", function () {
         });
 
         it("can repay all interest and principal for a single asset", async function () {
-            const KISS = await hre.ethers.getContract<KISS>("KISS");
+            const KISS = await hre.getContractOrFork("KISS");
             await KISS.connect(userTwo).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
             const minDebtAmount = (await hre.Diamond.minimumDebtValue()).rawValue.mul(10 ** 10);
 
@@ -684,7 +683,7 @@ describe("Stability Rates", function () {
         });
 
         it("can batch repay interest and all debt", async function () {
-            const KISS = await hre.ethers.getContract<KISS>("KISS");
+            const KISS = await hre.getContractOrFork("KISS");
             await KISS.connect(userTwo).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
             const minDebtAmount = (await hre.Diamond.minimumDebtValue()).rawValue.mul(10 ** 10);
 
@@ -762,7 +761,7 @@ describe("Stability Rates", function () {
         });
 
         it("can open up a new debt positions after wiping all debt + interest", async function () {
-            const KISS = await hre.ethers.getContract<KISS>("KISS");
+            const KISS = await hre.getContractOrFork("KISS");
             await KISS.connect(userTwo).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
             const minDebtAmount = (await hre.Diamond.minimumDebtValue()).rawValue.mul(10 ** 10);
 
@@ -852,7 +851,7 @@ describe("Stability Rates", function () {
         });
 
         it("can fully close a position in single transaction using the helper function", async function () {
-            const KISS = await hre.ethers.getContract<KISS>("KISS");
+            const KISS = await hre.getContractOrFork("KISS");
             await KISS.connect(userTwo).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
             const minDebtAmount = (await hre.Diamond.minimumDebtValue()).rawValue.mul(10 ** 10);
 
@@ -888,7 +887,7 @@ describe("Stability Rates", function () {
         });
 
         it("can fully close all positions and interest in single transaction using the helper function", async function () {
-            const KISS = await hre.ethers.getContract<KISS>("KISS");
+            const KISS = await hre.getContractOrFork("KISS");
             await KISS.connect(userTwo).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
             const kissAmount = (await hre.Diamond.minimumDebtValue()).rawValue.mul(10 ** 10).mul(2);
 

@@ -7,6 +7,6 @@ task("transmit", "Submits an answer to a price feed")
     .addOptionalParam("wait", "wait confirmations", 1, types.int)
     .addOptionalParam("log", "log information", true, types.boolean)
     .setAction(async (_taskArgs, hre) => {
-        const FluxPriceFeed = await hre.ethers.getContractAt<FluxPriceFeed>("FluxPriceFeed", _taskArgs.contract);
+        const FluxPriceFeed = await hre.ethers.getContractAt("FluxPriceFeed", _taskArgs.contract);
         await FluxPriceFeed.transmit(_taskArgs.answer, _taskArgs.marketOpen);
     });

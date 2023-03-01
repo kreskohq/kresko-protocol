@@ -42,7 +42,7 @@ contract MintFacet is DiamondModifiers, MinterModifiers, IMintFacet {
 
         MinterState storage s = ms();
         if (s.safetyStateSet) {
-            ensureNotPaused(_kreskoAsset, Action.Borrow);
+            super.ensureNotPaused(_kreskoAsset, Action.Borrow);
         }
 
         // Enforce krAsset's total supply limit
@@ -88,10 +88,5 @@ contract MintFacet is DiamondModifiers, MinterModifiers, IMintFacet {
 
         // Emit logs
         emit MinterEvent.KreskoAssetMinted(_account, _kreskoAsset, _mintAmount);
-    }
-
-    /// @dev Simple check for the enabled flag
-    function ensureNotPaused(address _asset, Action _action) internal view {
-        require(!ms().safetyState[_asset][_action].pause.enabled, Error.ACTION_PAUSED_FOR_ASSET);
     }
 }

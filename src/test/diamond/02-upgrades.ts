@@ -1,19 +1,12 @@
-import hre from "hardhat";
-import { expect } from "@test/chai";
 import { smock } from "@defi-wonderland/smock";
-import { FacetCut, FacetCutAction } from "@kreskolabs/hardhat-deploy/dist/types";
-import {
-    SmockFacet__factory,
-    SmockInit,
-    SmockFacet,
-    SmockFacet2,
-    SmockInit__factory,
-    SmockFacet2__factory,
-} from "types";
-import { withFixture } from "@utils/test/fixtures";
-import { Error } from "@utils/test";
 import { addFacet } from "@scripts/add-facet";
 import { removeFacet } from "@scripts/remove-facet";
+import { expect } from "@test/chai";
+import { Error } from "@utils/test";
+import { withFixture } from "@utils/test/fixtures";
+import hre from "hardhat";
+import { FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
+import { SmockFacet2__factory, SmockFacet__factory, SmockInit__factory } from "types/typechain";
 
 describe("Diamond", () => {
     withFixture(["diamond-init"]);
@@ -23,7 +16,7 @@ describe("Diamond", () => {
             const Factory = await smock.mock<SmockFacet__factory>("SmockFacet");
             const SmockFacet = await Factory.deploy();
 
-            const [SmockInitializer] = await hre.deploy<SmockInit>("SmockInit");
+            const [SmockInitializer] = await hre.deploy("SmockInit");
 
             const signatures = hre.getSignatures([...SmockFacet__factory.abi]);
 
@@ -35,7 +28,7 @@ describe("Diamond", () => {
 
             const initData = await SmockInitializer.populateTransaction.initialize(hre.addr.userOne);
 
-            await hre.Diamond.diamondCut([Cut], initData.to, initData.data);
+            await hre.Diamond.diamondCut([Cut], initData.to!, initData.data!);
             const TEST_OPERATOR_ROLE = hre.ethers.utils.id("kresko.test.operator");
             const isTestOperator = await hre.Diamond.hasRole(TEST_OPERATOR_ROLE, hre.addr.userOne);
 
@@ -50,7 +43,7 @@ describe("Diamond", () => {
         });
 
         it("can remove a facet", async function () {
-            const NewFacet = await addFacet<SmockFacet>({
+            const NewFacet = await addFacet({
                 name: "SmockFacet",
                 initializerName: "SmockInit",
                 initializerArgs: hre.addr.userOne,
@@ -97,7 +90,7 @@ describe("Diamond", () => {
             const correctOwner = hre.addr.userOne;
             const initData = await hre.Diamond.populateTransaction.transferOwnership(correctOwner);
 
-            const tx = await hre.Diamond.diamondCut([Cut], initData.to, initData.data);
+            const tx = await hre.Diamond.diamondCut([Cut], initData.to!, initData.data!);
             await tx.wait();
 
             // Ensure rest of the functions remain
@@ -141,9 +134,8 @@ describe("Diamond", () => {
 
             const OldOwnershipFacet = await hre.Diamond.facetAddress(signature);
 
-            const [NewOwnershipFacet, allOwnershipFacetSignatures] = await hre.deploy("DiamondOwnershipFacet2", {
-                contract: "DiamondOwnershipFacet",
-                from: hre.addr.deployer,
+            const [NewOwnershipFacet, allOwnershipFacetSignatures] = await hre.deploy("DiamondOwnershipFacet", {
+                deploymentName: "DiamondOwnershipFacet2",
             });
 
             // Only replace a single function, we could replace all of them
@@ -157,7 +149,7 @@ describe("Diamond", () => {
             const correctOwner = hre.addr.userOne;
             const initData = await hre.Diamond.populateTransaction.transferOwnership(correctOwner);
 
-            const tx = await hre.Diamond.diamondCut([Cut], initData.to, initData.data);
+            const tx = await hre.Diamond.diamondCut([Cut], initData.to!, initData.data!);
             await tx.wait();
 
             // Ensure function exists and revert is for invalid address instead of missing function
@@ -189,7 +181,7 @@ describe("Diamond", () => {
 
             const tx = await SmockInit.populateTransaction.upgradeState();
 
-            await hre.Diamond.upgradeState(tx.to, tx.data);
+            await hre.Diamond.upgradeState(tx.to!, tx.data!);
             expect(await hre.Diamond.initialized()).to.equal(false);
         });
 
@@ -200,7 +192,7 @@ describe("Diamond", () => {
             const Factory = await smock.mock<SmockFacet__factory>("SmockFacet");
             const SmockFacet = await Factory.deploy();
 
-            const [SmockInitializer] = await hre.deploy<SmockInit>("SmockInit");
+            const [SmockInitializer] = await hre.deploy("SmockInit");
 
             const signatures = hre.getSignatures([...SmockFacet__factory.abi]);
 
@@ -211,9 +203,9 @@ describe("Diamond", () => {
             };
 
             const initData = await SmockInitializer.populateTransaction.initialize(hre.addr.userOne);
-            await hre.Diamond.diamondCut([Cut], initData.to, initData.data);
+            await hre.Diamond.diamondCut([Cut], initData.to!, initData.data!);
 
-            const Diamond = await hre.ethers.getContractAt<SmockFacet>("SmockFacet", hre.Diamond.address);
+            const Diamond = await hre.ethers.getContractAt("SmockFacet", hre.Diamond.address);
             const isInitialized = await Diamond.smockInitialized();
             expect(isInitialized).to.equal(true);
 
@@ -232,10 +224,10 @@ describe("Diamond", () => {
 
             // Initializer only sets the new extended value, does not touch old storage
             const initData2 = await SmockFacet2.populateTransaction.initialize();
-            await hre.Diamond.diamondCut([Cut2], initData2.to, initData2.data);
+            await hre.Diamond.diamondCut([Cut2], initData2.to!, initData2.data!);
 
             // Here we have appended the storage layout with the `extended` bool property.
-            const DiamondExtended = await hre.ethers.getContractAt<SmockFacet2>("SmockFacet2", hre.Diamond.address);
+            const DiamondExtended = await hre.ethers.getContractAt("SmockFacet2", hre.Diamond.address);
 
             const initializedAfterExtend = await DiamondExtended.getOldStructValueFromExtended();
 

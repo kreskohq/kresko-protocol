@@ -4,10 +4,10 @@ import { toFixedPoint, toBig } from "@kreskolabs/lib";
 import { getUsers } from "@utils/general";
 import { expect } from "chai";
 import hre from "hardhat";
-import { KreskoAsset__factory, KreskoAssetAnchor__factory, FluxPriceFeed__factory } from "types";
 import { TestKreskoAssetArgs, defaultKrAssetArgs, TestKreskoAssetUpdate, InputArgs, InputArgsSimple } from "../mocks";
 import roles from "../roles";
 import { getMockOracleFor, setPrice, setMarketOpen } from "./general";
+import { FluxPriceFeed__factory, KreskoAssetAnchor__factory, KreskoAsset__factory } from "types/typechain";
 
 export const getDebtIndexAdjustedBalance = async (user: SignerWithAddress, asset: TestKrAsset) => {
     const balance = await asset.contract.balanceOf(user.address);
@@ -193,10 +193,10 @@ export const addMockKreskoAssetWithAMMPair = async (
 };
 export const updateKrAsset = async (address: string, args: TestKreskoAssetUpdate) => {
     const users = await getUsers();
-    const krAsset = hre.krAssets.find(c => c.address === address);
+    const krAsset = hre.krAssets.find(c => c.address === address)!;
     await hre.Diamond.connect(users.operator).updateKreskoAsset(
         krAsset.address,
-        krAsset.mocks.anchor.address,
+        krAsset.mocks.anchor!.address,
         toFixedPoint(args.factor),
         args.oracle || krAsset.priceFeed.address,
         args.oracle || krAsset.priceFeed.address,
@@ -206,6 +206,7 @@ export const updateKrAsset = async (address: string, args: TestKreskoAssetUpdate
     );
 
     const asset: TestKrAsset = {
+        // @ts-ignore
         deployArgs: { ...krAsset.deployArgs, ...args },
         ...krAsset,
     };

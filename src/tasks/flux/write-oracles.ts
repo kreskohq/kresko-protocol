@@ -3,17 +3,17 @@ import { getLogger } from "@kreskolabs/lib";
 import { writeFileSync } from "fs";
 import { task } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
-import { FluxPriceFeedFactory } from "types";
 
 task("write-oracles").setAction(async function (_taskArgs: TaskArguments, hre) {
     const { feedValidator } = await hre.ethers.getNamedSigners();
-    const factory = await hre.ethers.getContract<FluxPriceFeedFactory>("FluxPriceFeedFactory");
+    const factory = await hre.getContractOrFork("FluxPriceFeedFactory");
     const logger = getLogger("write-oracles");
-    const Kresko = await hre.ethers.getContract<Kresko>("Diamond");
+    const Kresko = await hre.getContractOrFork("Kresko");
     const values = [];
     for (const collateral of testnetConfigs[hre.network.name].collaterals) {
-        const contract = await hre.ethers.getContract(collateral.symbol);
+        const contract = await hre.getContractOrFork("ERC20Upgradeable", collateral.symbol);
         const collateralInfo = await Kresko.collateralAsset(contract.address);
+        if (!collateral.oracle) continue;
         values.push({
             asset: await contract.symbol(),
             assetAddress: contract.address,
@@ -24,8 +24,9 @@ task("write-oracles").setAction(async function (_taskArgs: TaskArguments, hre) {
         });
     }
     for (const krAsset of testnetConfigs[hre.network.name].krAssets) {
-        const contract = await hre.ethers.getContract(krAsset.symbol);
+        const contract = await hre.getContractOrFork("ERC20Upgradeable", krAsset.symbol);
         const krAssetInfo = await Kresko.collateralAsset(contract.address);
+        if (!krAsset.oracle) continue;
         values.push({
             asset: await contract.symbol(),
             assetAddress: contract.address,
@@ -44,6 +45,6 @@ task("write-oracles").setAction(async function (_taskArgs: TaskArguments, hre) {
         marketstatus: fluxFeedKiss,
         pricefeed: fluxFeedKiss,
     });
-    writeFileSync("packages/contracts/deployments/oracles.json", JSON.stringify(values));
-    logger.success("Price feeds written to packages/contracts/deployments");
+    writeFileSync("./packages/contracts/src/deployments/json/oracles.json", JSON.stringify(values));
+    logger.success("feeds: packages/contracts/src/deployments/json/oracles.json");
 });

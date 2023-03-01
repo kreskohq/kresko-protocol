@@ -5,12 +5,10 @@ import { BASIS_POINT, defaultCollateralArgs, defaultKrAssetArgs, withFixture } f
 import { addLiquidity, getTWAPUpdaterFor } from "@utils/test/helpers/amm";
 import { ONE_YEAR } from "@utils/test/helpers/calculations";
 import { depositCollateral } from "@utils/test/helpers/collaterals";
-import { EventContract } from "@utils/test/helpers/events";
 import { addMockKreskoAsset, mintKrAsset } from "@utils/test/helpers/krassets";
 import { expect } from "chai";
 import { Error } from "@utils/test/errors";
 import hre, { fromBig } from "hardhat";
-import { KISS } from "types";
 import {
     BatchInterestLiquidationOccurredEventObject,
     InterestLiquidationOccurredEventObject,
@@ -26,8 +24,8 @@ describe("Stability Rates", () => {
         liquidator = hre.users.deployer;
         userTwo = hre.users.userTwo;
 
-        this.krAsset = hre.krAssets.find(c => c.deployArgs.name === defaultKrAssetArgs.name);
-        this.collateral = hre.collaterals.find(c => c.deployArgs.name === defaultCollateralArgs.name);
+        this.krAsset = hre.krAssets.find(c => c.deployArgs!.name === defaultKrAssetArgs.name)!;
+        this.collateral = hre.collaterals.find(c => c.deployArgs!.name === defaultCollateralArgs.name)!;
 
         const krAssetOraclePrice = 10;
         this.krAsset.setPrice(krAssetOraclePrice);
@@ -45,7 +43,7 @@ describe("Stability Rates", () => {
             amount: kLiq,
             user: liquidator,
         });
-        const anchorBalance = await this.krAsset.anchor.balanceOf(hre.Diamond.address);
+        const anchorBalance = await this.krAsset.anchor!.balanceOf(hre.Diamond.address);
         expect(anchorBalance).to.equal(kLiq);
         // 1000/100 = krAsset amm price 10
         const pair = await addLiquidity({
@@ -145,7 +143,7 @@ describe("Stability Rates", () => {
             ).to.be.revertedWith(Error.NOT_LIQUIDATABLE);
         });
         it("can liquidate accrued interest of unhealthy account", async function () {
-            const KISS = await hre.ethers.getContract<KISS>("KISS");
+            const KISS = await hre.getContractOrFork("KISS");
             await KISS.connect(liquidator).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
 
             await this.collateral.setBalance(userTwo, depositAmount);
@@ -218,7 +216,7 @@ describe("Stability Rates", () => {
 
             const event = await getInternalEvent<InterestLiquidationOccurredEventObject>(
                 tx,
-                EventContract(),
+                hre.Diamond,
                 "InterestLiquidationOccurred",
             );
 
@@ -239,7 +237,7 @@ describe("Stability Rates", () => {
         });
 
         it("can batch liquidate accrued interest of unhealthy account", async function () {
-            const KISS = await hre.ethers.getContract<KISS>("KISS");
+            const KISS = await hre.getContractOrFork("KISS");
             await KISS.connect(liquidator).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
 
             await this.collateral.setBalance(userTwo, depositAmount);
@@ -293,7 +291,7 @@ describe("Stability Rates", () => {
 
             const event = await getInternalEvent<BatchInterestLiquidationOccurredEventObject>(
                 tx,
-                EventContract(),
+                hre.Diamond,
                 "BatchInterestLiquidationOccurred",
             );
             const repayUSD = fromBig(event.repayUSD);

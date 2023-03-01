@@ -9,12 +9,13 @@ forge/
 temp/**/*
 types/**/*
 node_modules/
-packages/**/*
 src/contracts/vendor/**/*
 src/contracts/test/**/*
 src/utils/**/*
+packages
 mochawesome-report/**/*
 ganache.js
+test/**/*
 
 # files
 .solcover.js

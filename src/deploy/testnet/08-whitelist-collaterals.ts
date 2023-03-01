@@ -1,5 +1,5 @@
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
-import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
+import type { DeployFunction } from "hardhat-deploy/types";
 import { testnetConfigs } from "@deploy-config/testnet-goerli";
 import { getLogger } from "@kreskolabs/lib";
 import { getOracle } from "@utils/general";
@@ -9,6 +9,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const collaterals = testnetConfigs[hre.network.name].collaterals;
     for (const collateral of collaterals) {
+        if (!collateral.oracle) {
+            logger.warn(`skipping ${collateral.name}/${collateral.symbol} as it has no oracle`);
+            continue;
+        }
         logger.log(`whitelisting collateral: name ${collateral.name} || symbol ${collateral.symbol}`);
         const inHouseOracleAddr = await getOracle(collateral.oracle.description, hre);
         const oracleAddr =

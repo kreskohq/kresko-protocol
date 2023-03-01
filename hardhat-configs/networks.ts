@@ -107,8 +107,6 @@ export const networks = (mnemonic: string): { [key: string]: HttpNetworkUserConf
         },
         chainId: chainIds.hardhat,
     },
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
     ganache: {
         url: "http://127.0.0.1:7545",
         chainId: 1337,
@@ -138,25 +136,12 @@ export const networks = (mnemonic: string): { [key: string]: HttpNetworkUserConf
         saveDeployments: true,
         tags: ["mainnet"],
     },
-    opkovan: {
-        accounts: { mnemonic, count: 100 },
-        url: RPC().optimism.kovan.default,
-        chainId: chainIds.opkovan,
-        tags: ["testnet"],
-        live: true,
-    },
     opgoerli: {
         accounts: { mnemonic, count: 100 },
-        url: RPC().optimism.goerli.default,
+        url: RPC().optimism.goerli.alchemy,
         chainId: chainIds.opgoerli,
         gasPrice: +parseUnits("0.001", "gwei"),
         live: true,
-    },
-    kovan: {
-        chainId: chainIds.kovan,
-        url: `https://eth-kovan.alchemyapi.io/v2/${ALCHEMY_API_KEY_GOERLI}`,
-        gasPrice: +parseUnits("10", "gwei"),
-        deploy: ["./src/deploy/kovan"],
     },
     moonbeam: {
         chainId: chainIds.moonbeam,

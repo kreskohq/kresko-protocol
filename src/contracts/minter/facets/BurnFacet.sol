@@ -70,9 +70,4 @@ contract BurnFacet is DiamondModifiers, MinterModifiers, IBurnFacet {
         // Emit logs
         emit MinterEvent.KreskoAssetBurned(_account, _kreskoAsset, _burnAmount);
     }
-
-    /// @dev Simple check for the enabled flag
-    function ensureNotPaused(address _asset, Action _action) internal view {
-        require(!ms().safetyState[_asset][_action].pause.enabled, Error.ACTION_PAUSED_FOR_ASSET);
-    }
 }

@@ -1,23 +1,21 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
-import { Role } from "@utils/test";
-import hre from "hardhat";
+import { Role } from "@utils/test/roles";
 import { anchorTokenPrefix } from "@deploy-config/shared";
 
 export async function createKrAsset(name: string, symbol, decimals = 18) {
     const { deployer } = await hre.ethers.getNamedSigners();
-    const kresko = hre.Diamond;
-    const deploy = hre.deploy;
 
     const anchorSymbol = anchorTokenPrefix + symbol;
 
-    const kreskoAssetInitArgs = [name, symbol, decimals, deployer.address, kresko.address];
+    const Kresko = await hre.getContractOrFork("Kresko");
+    const kreskoAssetInitArgs = [name, symbol, decimals, deployer.address, Kresko.address];
 
-    const [KreskoAsset] = await deploy<KreskoAsset>(symbol, {
+    const [KreskoAsset] = await hre.deploy("KreskoAsset", {
         from: deployer.address,
         log: true,
-        contract: "KreskoAsset",
+        deploymentName: symbol,
         proxy: {
             owner: deployer.address,
             proxyContract: "OptimizedTransparentProxy",
@@ -30,10 +28,10 @@ export async function createKrAsset(name: string, symbol, decimals = 18) {
 
     const kreskoAssetAnchorInitArgs = [KreskoAsset.address, name, anchorSymbol, deployer.address];
 
-    const [KreskoAssetAnchor] = await hre.deploy(anchorSymbol, {
+    const [KreskoAssetAnchor] = await hre.deploy("KreskoAssetAnchor", {
         from: deployer.address,
         log: true,
-        contract: "KreskoAssetAnchor",
+        deploymentName: anchorSymbol,
         args: [KreskoAsset.address],
         proxy: {
             owner: deployer.address,

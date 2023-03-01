@@ -12,8 +12,8 @@ build/**/*
 forge/**/*
 node_modules/
 temp/**/*
-types/**/*
-packages/**/*
+types/typechain/**
+types/forged/**
 src/contracts/vendor/**/*
 mochawesome-report/**/*
 # files

@@ -1,14 +1,13 @@
-import { task, types } from "hardhat/config";
-import { TaskArguments } from "hardhat/types";
-import { FacetCut, FacetCutAction } from "@kreskolabs/hardhat-deploy/dist/types";
 import { getLogger } from "@kreskolabs/lib";
 import { constants } from "ethers";
-import { Kresko } from "types/typechain";
+import { FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
+import { task, types } from "hardhat/config";
+import { TaskArguments } from "hardhat/types";
 
 const TASK_NAME = "add-facet";
 
 export type AddFacetParams<T> = {
-    initializerName: string;
+    initializerName: keyof TC;
     initializerArgs: T;
 };
 
@@ -24,7 +23,7 @@ task(TASK_NAME)
     .addOptionalParam("initializerArgs", "Address to delegatecall to when adding the facet", "", types.json)
     .setAction(async function ({ name, initializerName, internalInitializer, initializerArgs }: TaskArguments, hre) {
         const logger = getLogger(TASK_NAME);
-        const { ethers, deployments, getUsers } = hre;
+        const { deployments, getUsers } = hre;
         const { deployer } = await getUsers();
 
         const DiamondDeployment = await hre.deployments.getOrNull("Diamond");
@@ -32,7 +31,7 @@ task(TASK_NAME)
             throw new Error(`Trying to add facet but no diamond deployed @ ${hre.network.name}`);
         }
 
-        const Diamond = await ethers.getContractAt<Kresko>("Kresko", DiamondDeployment.address);
+        const Diamond = await hre.getContractOrFork("Kresko");
 
         // Single facet addition, maps all functions contained
         const [Facet, Signatures] = await hre.deploy(name, {
@@ -58,6 +57,9 @@ task(TASK_NAME)
                 }
                 const [InitializerContract] = await hre.deploy(initializerName);
                 const tx = await InitializerContract.populateTransaction.initialize(initializerArgs);
+                if (!tx.to || !tx.data) {
+                    throw new Error("Initializer transaction is missing to or data");
+                }
                 initializer = [tx.to, tx.data];
             } else {
                 initializer = [constants.AddressZero, "0x"];
@@ -65,6 +67,9 @@ task(TASK_NAME)
             }
         } else {
             const tx = await Facet.populateTransaction.initialize(initializerArgs);
+            if (!tx.to || !tx.data) {
+                throw new Error("Initializer transaction is missing to or data");
+            }
             initializer = [tx.to, tx.data];
         }
         const tx = await Diamond.diamondCut([Cut], ...initializer);

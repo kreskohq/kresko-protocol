@@ -3,8 +3,6 @@
 import { Contract, utils, BigNumber, BigNumberish, Signer, PopulatedTransaction } from "ethers";
 import { TypedDataSigner } from "@ethersproject/abstract-signer";
 import { constants } from "ethers";
-import { GnosisSafeL2 } from "types";
-import { ethers } from "hardhat";
 
 export const EIP_DOMAIN = {
     EIP712Domain: [
@@ -131,7 +129,7 @@ export const signHash = async (signer: Signer, hash: string): Promise<SafeSignat
 
 export const safeSignMessage = async (
     signer: Signer,
-    safe: Contract,
+    safe: GnosisSafeL2,
     safeTx: SafeTransaction,
     chainId?: BigNumberish,
 ): Promise<SafeSignature> => {

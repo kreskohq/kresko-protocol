@@ -6,14 +6,13 @@ import { executeContractCallWithSigners } from "@utils/gnosis/utils/execution";
 import { withFixture } from "@utils/test";
 import { expect } from "chai";
 import hre from "hardhat";
-import { MinterEvent__factory } from "types";
 import { SafetyStateChangeEventObject } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
 describe("Safety Council", () => {
     withFixture(["minter-test", "integration"]);
     beforeEach(async function () {
-        this.collateral = hre.collaterals.find(asset => asset.deployArgs.name === defaultCollateralArgs.name);
-        this.krAsset = hre.krAssets.find(asset => asset.deployArgs.symbol === defaultKrAssetArgs.symbol);
+        this.collateral = hre.collaterals.find(asset => asset.deployArgs!.name === defaultCollateralArgs.name)!;
+        this.krAsset = hre.krAssets.find(asset => asset.deployArgs!.symbol === defaultKrAssetArgs.symbol)!;
 
         // These are the 5 signers on the SafetyCouncil multisig
         const { deployer, devTwo, extOne, extTwo, extThree } = await hre.ethers.getNamedSigners();
@@ -341,7 +340,7 @@ describe("Safety Council", () => {
 
                 const event = await getInternalEvent<SafetyStateChangeEventObject>(
                     tx,
-                    MinterEvent__factory.connect(hre.Diamond.address, hre.users.userOne),
+                    hre.Diamond,
                     "SafetyStateChange",
                 );
                 expect(event.action).to.equal(Action.DEPOSIT);

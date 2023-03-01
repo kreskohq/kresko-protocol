@@ -1,8 +1,7 @@
-import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
-import type { FluxPriceFeed } from "types";
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { testnetConfigs } from "@deploy-config/testnet-goerli";
-import { getLogger } from "@kreskolabs/lib";
-import { JStoFixed } from "@kreskolabs/lib";
+import { JStoFixed, getLogger } from "@kreskolabs/lib";
+import type { DeployFunction } from "hardhat-deploy/types";
 
 const func: DeployFunction = async function (hre) {
     const logger = getLogger("deploy-oracle", !process.env.TEST);
@@ -27,15 +26,11 @@ const func: DeployFunction = async function (hre) {
 
     for (let i = 0; i < assets.length; i++) {
         const asset = assets[i];
-        const deployment = await hre.deployments.getOrNull(asset.oracle.name);
+        const deployment = await hre.deployments.getOrNull(asset.oracle!.name);
         if (deployment != null) {
             logger.log(`Oracle already deployed for ${asset.symbol}`);
             logger.log(`Checking price..`);
-            const oracle = await hre.ethers.getContractAt<FluxPriceFeed>(
-                "FluxPriceFeed",
-                deployment.address,
-                feedValidator.address,
-            );
+            const oracle = await hre.ethers.getContractAt("FluxPriceFeed", deployment.address, feedValidator);
 
             const marketOpen = await oracle.latestMarketOpen();
             const price = await oracle.latestAnswer();
@@ -43,7 +38,7 @@ const func: DeployFunction = async function (hre) {
                 logger.log("Price found, skipping");
                 continue;
             } else {
-                const price = await asset.price();
+                const price = await asset.price!()!;
                 logger.log(`Price not found, transmitting.. ${asset.symbol} - ${price.toString()}`);
                 await oracle.transmit(price, marketOpen);
                 logger.success(`Price and market status transmitted`);
@@ -51,14 +46,15 @@ const func: DeployFunction = async function (hre) {
             }
         }
         logger.log(`Deploying oracle for ${asset.symbol}`);
+        if (asset.oracle == null) throw new Error("Oracle not found");
         const feed: FluxPriceFeed = await hre.run("deployone:fluxpricefeed", {
-            name: asset.oracle.name,
+            deploymentName: asset.oracle.name,
             decimals: 8,
             description: asset.oracle.description,
             validator: feedValidator.address,
         });
-        const price = await asset.price();
-        const marketOpen = await asset.marketOpen();
+        const price = await asset.price!();
+        const marketOpen = await asset.marketOpen!();
         await feed.transmit(price, marketOpen, {
             from: deployer.address,
         });
@@ -80,7 +76,7 @@ func.skip = async () => true;
 
 //     const lastOracle = assets[assets.length - 1].oracle.name;
 //     try {
-//         const oracle = await hre.ethers.getContract<FluxPriceFeed>(lastOracle);
+//         const oracle = await hre.getContractOrFork(lastOracle);
 
 //         const price = await oracle.latestAnswer();
 //         const marketOpen = await oracle.latestMarketOpen();

@@ -1,8 +1,7 @@
-import type { DeployFunction } from "@kreskolabs/hardhat-deploy/types";
-import type { HardhatRuntimeEnvironment } from "hardhat/types";
-import type { KrStaking, MockERC20, UniswapV2Factory } from "types";
-import { getLogger } from "@kreskolabs/lib";
 import { testnetConfigs } from "@deploy-config/testnet-goerli";
+import { getLogger } from "@kreskolabs/lib";
+import type { DeployFunction } from "hardhat-deploy/types";
+import type { HardhatRuntimeEnvironment } from "hardhat/types";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("deploy-staking");
@@ -10,21 +9,21 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const config = testnetConfigs[hre.network.name];
 
-    const Factory = await hre.ethers.getContract<UniswapV2Factory>("UniswapV2Factory");
+    const Factory = await hre.getContractOrFork("UniswapV2Factory");
 
     const pools = config.stakingPools;
     const [token0, token1] = pools[0].lpToken;
     const [rewardToken1] = config.rewardTokens;
 
-    const Token0 = await ethers.getContract<MockERC20>(token0.symbol);
-    const Token1 = await ethers.getContract<MockERC20>(token1.symbol);
+    const Token0 = await hre.getContractOrFork("ERC20Upgradeable", token0.symbol);
+    const Token1 = await hre.getContractOrFork("ERC20Upgradeable", token1.symbol);
     const InitialStakingToken = await Factory.getPair(Token0.address, Token1.address);
 
     if (InitialStakingToken === ethers.constants.AddressZero) {
         throw new Error("No pools deployed and trying to initialize staking");
     }
 
-    const Reward1: MockERC20 = await hre.run("deploy-token", {
+    const Reward1: typeof Token0 = await hre.run("deploy-token", {
         name: rewardToken1.name,
         symbol: rewardToken1.symbol,
         log: true,
