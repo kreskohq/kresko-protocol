@@ -24,10 +24,7 @@ task("add-krasset")
 
         const KrAsset = await hre.getContractOrFork("KreskoAsset", symbol);
 
-        const anchor = await hre.getContractOrFork("KreskoAssetAnchor", `${anchorTokenPrefix}${symbol}`);
-        if (!anchor) {
-            throw new Error(`Anchor not found for ${symbol}`);
-        }
+        const anchor = await hre.getDeploymentOrNull(`${anchorTokenPrefix}${symbol}`);
 
         const krAssetInfo = await kresko.kreskoAsset(KrAsset.address);
         const exists = krAssetInfo.exists;
@@ -37,7 +34,7 @@ task("add-krasset")
         } else {
             const tx = await kresko.addKreskoAsset(
                 KrAsset.address,
-                anchor.address,
+                anchor ? anchor.address : KrAsset.address,
                 toFixedPoint(kFactor),
                 oracleAddr,
                 marketStatusOracleAddr,

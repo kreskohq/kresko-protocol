@@ -76,7 +76,6 @@ extendEnvironment(function (hre) {
 
         const deployment = await hre.deployments.deploy(deploymentId, opts);
 
-        console.log(`Deployed ${type}, id: ${deploymentId}`);
         const implementation = await hre.getContractOrFork(type, deploymentId);
         return [
             implementation,

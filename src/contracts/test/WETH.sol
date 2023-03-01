@@ -6,6 +6,10 @@ import "../vendor/WETH9.sol";
 contract WETH is WETH9 {
     mapping(address => bool) public minters;
 
+    constructor() {
+        minters[msg.sender] = true;
+    }
+
     function deposit(uint256 amount) public {
         require(minters[msg.sender], "Not a minter");
         balanceOf[msg.sender] += amount;

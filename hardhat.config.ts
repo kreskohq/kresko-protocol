@@ -63,6 +63,7 @@ import "hardhat-configs/extensions";
 let externalArtifacts = ["./artifacts/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko.json"];
 let outDir = "types/typechain";
 if (isExport) {
+    console.log("isExport", isExport);
     exportUtil = require("./src/utils/export");
     externalArtifacts = exportUtil.externalArtifacts();
     outDir = "packages/contracts/src/types/";
