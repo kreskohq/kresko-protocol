@@ -31,13 +31,13 @@ contract Funder {
     }
 
     function isEligible(address account) public view returns (bool) {
-        return account.balance < 0.001 ether && kresko.getAccountKrAssetValue(account).rawValue > 0;
+        return account.balance < 0.001 ether && kresko.getAccountKrAssetValue(account).rawValue > 0 && !funded[account];
     }
 
     function distribute(address[] calldata accounts, uint256 ethAmount) external {
         require(owners[msg.sender], "!o");
         for (uint256 i; i < accounts.length; i++) {
-            if (funded[accounts[i]] || !isEligible(accounts[i])) continue;
+            if (!isEligible(accounts[i])) continue;
 
             funded[accounts[i]] = true;
             payable(accounts[i]).transfer(ethAmount);

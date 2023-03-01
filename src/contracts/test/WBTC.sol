@@ -6,7 +6,11 @@ import "../vendor/WETH9.sol";
 contract WBTC is WETH9 {
     mapping(address => bool) public minters;
 
-    constructor(string memory _name, string memory _symbol, uint8 _decimals) {
+    constructor(
+        string memory _name,
+        string memory _symbol,
+        uint8 _decimals
+    ) {
         minters[msg.sender] = true;
         symbol = _symbol;
         name = _name;

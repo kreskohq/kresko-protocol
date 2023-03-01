@@ -3,365 +3,239 @@
 /* tslint:disable */
 /* eslint-disable */
 import type {
-  BaseContract,
-  BigNumber,
-  BigNumberish,
-  BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PayableOverrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
+    BaseContract,
+    BigNumber,
+    BigNumberish,
+    BytesLike,
+    CallOverrides,
+    ContractTransaction,
+    Overrides,
+    PayableOverrides,
+    PopulatedTransaction,
+    Signer,
+    utils,
 } from "ethers";
-import type {
-  FunctionFragment,
-  Result,
-  EventFragment,
-} from "@ethersproject/abi";
+import type { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
-import type {
-  TypedEventFilter,
-  TypedEvent,
-  TypedListener,
-  OnEvent,
-  PromiseOrValue,
-} from "../../../common";
+import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent, PromiseOrValue } from "../../../common";
 
 export interface WETHInterface extends utils.Interface {
-  functions: {
-    "allowance(address,address)": FunctionFragment;
-    "approve(address,uint256)": FunctionFragment;
-    "balanceOf(address)": FunctionFragment;
-    "decimals()": FunctionFragment;
-    "deposit(uint256)": FunctionFragment;
-    "deposit()": FunctionFragment;
-    "minters(address)": FunctionFragment;
-    "name()": FunctionFragment;
-    "symbol()": FunctionFragment;
-    "totalSupply()": FunctionFragment;
-    "transfer(address,uint256)": FunctionFragment;
-    "transferFrom(address,address,uint256)": FunctionFragment;
-    "withdraw(uint256)": FunctionFragment;
-  };
+    functions: {
+        "allowance(address,address)": FunctionFragment;
+        "approve(address,uint256)": FunctionFragment;
+        "balanceOf(address)": FunctionFragment;
+        "decimals()": FunctionFragment;
+        "deposit(uint256)": FunctionFragment;
+        "deposit()": FunctionFragment;
+        "minters(address)": FunctionFragment;
+        "name()": FunctionFragment;
+        "symbol()": FunctionFragment;
+        "totalSupply()": FunctionFragment;
+        "transfer(address,uint256)": FunctionFragment;
+        "transferFrom(address,address,uint256)": FunctionFragment;
+        "withdraw(uint256)": FunctionFragment;
+    };
 
-  getFunction(
-    nameOrSignatureOrTopic:
-      | "allowance"
-      | "approve"
-      | "balanceOf"
-      | "decimals"
-      | "deposit(uint256)"
-      | "deposit()"
-      | "minters"
-      | "name"
-      | "symbol"
-      | "totalSupply"
-      | "transfer"
-      | "transferFrom"
-      | "withdraw"
-  ): FunctionFragment;
+    getFunction(
+        nameOrSignatureOrTopic:
+            | "allowance"
+            | "approve"
+            | "balanceOf"
+            | "decimals"
+            | "deposit(uint256)"
+            | "deposit()"
+            | "minters"
+            | "name"
+            | "symbol"
+            | "totalSupply"
+            | "transfer"
+            | "transferFrom"
+            | "withdraw",
+    ): FunctionFragment;
 
-  encodeFunctionData(
-    functionFragment: "allowance",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "approve",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "balanceOf",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "deposit(uint256)",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(functionFragment: "deposit()", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "minters",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(functionFragment: "name", values?: undefined): string;
-  encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "totalSupply",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transfer",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transferFrom",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "withdraw",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
+    encodeFunctionData(functionFragment: "allowance", values: [PromiseOrValue<string>, PromiseOrValue<string>]): string;
+    encodeFunctionData(
+        functionFragment: "approve",
+        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
+    ): string;
+    encodeFunctionData(functionFragment: "balanceOf", values: [PromiseOrValue<string>]): string;
+    encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
+    encodeFunctionData(functionFragment: "deposit(uint256)", values: [PromiseOrValue<BigNumberish>]): string;
+    encodeFunctionData(functionFragment: "deposit()", values?: undefined): string;
+    encodeFunctionData(functionFragment: "minters", values: [PromiseOrValue<string>]): string;
+    encodeFunctionData(functionFragment: "name", values?: undefined): string;
+    encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
+    encodeFunctionData(functionFragment: "totalSupply", values?: undefined): string;
+    encodeFunctionData(
+        functionFragment: "transfer",
+        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
+    ): string;
+    encodeFunctionData(
+        functionFragment: "transferFrom",
+        values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
+    ): string;
+    encodeFunctionData(functionFragment: "withdraw", values: [PromiseOrValue<BigNumberish>]): string;
 
-  decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "deposit(uint256)",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "deposit()", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "minters", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "totalSupply",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "transfer", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "transferFrom",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "deposit(uint256)", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "deposit()", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "minters", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "totalSupply", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "transfer", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "transferFrom", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
 
-  events: {
-    "Approval(address,address,uint256)": EventFragment;
-    "Deposit(address,uint256)": EventFragment;
-    "Transfer(address,address,uint256)": EventFragment;
-    "Withdrawal(address,uint256)": EventFragment;
-  };
+    events: {
+        "Approval(address,address,uint256)": EventFragment;
+        "Deposit(address,uint256)": EventFragment;
+        "Transfer(address,address,uint256)": EventFragment;
+        "Withdrawal(address,uint256)": EventFragment;
+    };
 
-  getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Deposit"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Withdrawal"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "Deposit"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "Withdrawal"): EventFragment;
 }
 
 export interface ApprovalEventObject {
-  src: string;
-  guy: string;
-  wad: BigNumber;
+    src: string;
+    guy: string;
+    wad: BigNumber;
 }
-export type ApprovalEvent = TypedEvent<
-  [string, string, BigNumber],
-  ApprovalEventObject
->;
+export type ApprovalEvent = TypedEvent<[string, string, BigNumber], ApprovalEventObject>;
 
 export type ApprovalEventFilter = TypedEventFilter<ApprovalEvent>;
 
 export interface DepositEventObject {
-  dst: string;
-  wad: BigNumber;
+    dst: string;
+    wad: BigNumber;
 }
 export type DepositEvent = TypedEvent<[string, BigNumber], DepositEventObject>;
 
 export type DepositEventFilter = TypedEventFilter<DepositEvent>;
 
 export interface TransferEventObject {
-  src: string;
-  dst: string;
-  wad: BigNumber;
+    src: string;
+    dst: string;
+    wad: BigNumber;
 }
-export type TransferEvent = TypedEvent<
-  [string, string, BigNumber],
-  TransferEventObject
->;
+export type TransferEvent = TypedEvent<[string, string, BigNumber], TransferEventObject>;
 
 export type TransferEventFilter = TypedEventFilter<TransferEvent>;
 
 export interface WithdrawalEventObject {
-  src: string;
-  wad: BigNumber;
+    src: string;
+    wad: BigNumber;
 }
-export type WithdrawalEvent = TypedEvent<
-  [string, BigNumber],
-  WithdrawalEventObject
->;
+export type WithdrawalEvent = TypedEvent<[string, BigNumber], WithdrawalEventObject>;
 
 export type WithdrawalEventFilter = TypedEventFilter<WithdrawalEvent>;
 
 export interface WETH extends BaseContract {
-  contractName: "WETH";
+    contractName: "WETH";
 
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+    connect(signerOrProvider: Signer | Provider | string): this;
+    attach(addressOrName: string): this;
+    deployed(): Promise<this>;
 
-  interface: WETHInterface;
+    interface: WETHInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+    queryFilter<TEvent extends TypedEvent>(
+        event: TypedEventFilter<TEvent>,
+        fromBlockOrBlockhash?: string | number | undefined,
+        toBlock?: string | number | undefined,
+    ): Promise<Array<TEvent>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+    listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>;
+    listeners(eventName?: string): Array<Listener>;
+    removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this;
+    removeAllListeners(eventName?: string): this;
+    off: OnEvent<this>;
+    on: OnEvent<this>;
+    once: OnEvent<this>;
+    removeListener: OnEvent<this>;
 
-  functions: {
+    functions: {
+        allowance(
+            arg0: PromiseOrValue<string>,
+            arg1: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<[BigNumber]>;
+
+        approve(
+            guy: PromiseOrValue<string>,
+            wad: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        balanceOf(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
+
+        decimals(overrides?: CallOverrides): Promise<[number]>;
+
+        "deposit(uint256)"(
+            amount: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        "deposit()"(overrides?: PayableOverrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
+
+        minters(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[boolean]>;
+
+        name(overrides?: CallOverrides): Promise<[string]>;
+
+        symbol(overrides?: CallOverrides): Promise<[string]>;
+
+        totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+        transfer(
+            dst: PromiseOrValue<string>,
+            wad: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        transferFrom(
+            src: PromiseOrValue<string>,
+            dst: PromiseOrValue<string>,
+            wad: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        withdraw(
+            wad: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+    };
+
     allowance(
-      arg0: PromiseOrValue<string>,
-      arg1: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    approve(
-      guy: PromiseOrValue<string>,
-      wad: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    balanceOf(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    decimals(overrides?: CallOverrides): Promise<[number]>;
-
-    "deposit(uint256)"(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    "deposit()"(
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    minters(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    name(overrides?: CallOverrides): Promise<[string]>;
-
-    symbol(overrides?: CallOverrides): Promise<[string]>;
-
-    totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    transfer(
-      dst: PromiseOrValue<string>,
-      wad: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    transferFrom(
-      src: PromiseOrValue<string>,
-      dst: PromiseOrValue<string>,
-      wad: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    withdraw(
-      wad: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-  };
-
-  allowance(
-    arg0: PromiseOrValue<string>,
-    arg1: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  approve(
-    guy: PromiseOrValue<string>,
-    wad: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  balanceOf(
-    arg0: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  decimals(overrides?: CallOverrides): Promise<number>;
-
-  "deposit(uint256)"(
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  "deposit()"(
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  minters(
-    arg0: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  name(overrides?: CallOverrides): Promise<string>;
-
-  symbol(overrides?: CallOverrides): Promise<string>;
-
-  totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-  transfer(
-    dst: PromiseOrValue<string>,
-    wad: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  transferFrom(
-    src: PromiseOrValue<string>,
-    dst: PromiseOrValue<string>,
-    wad: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  withdraw(
-    wad: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  callStatic: {
-    allowance(
-      arg0: PromiseOrValue<string>,
-      arg1: PromiseOrValue<string>,
-      overrides?: CallOverrides
+        arg0: PromiseOrValue<string>,
+        arg1: PromiseOrValue<string>,
+        overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     approve(
-      guy: PromiseOrValue<string>,
-      wad: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+        guy: PromiseOrValue<string>,
+        wad: PromiseOrValue<BigNumberish>,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
 
-    balanceOf(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    balanceOf(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
     decimals(overrides?: CallOverrides): Promise<number>;
 
     "deposit(uint256)"(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+        amount: PromiseOrValue<BigNumberish>,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
 
-    "deposit()"(overrides?: CallOverrides): Promise<void>;
+    "deposit()"(overrides?: PayableOverrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
-    minters(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+    minters(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
 
     name(overrides?: CallOverrides): Promise<string>;
 
@@ -370,181 +244,197 @@ export interface WETH extends BaseContract {
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
     transfer(
-      dst: PromiseOrValue<string>,
-      wad: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+        dst: PromiseOrValue<string>,
+        wad: PromiseOrValue<BigNumberish>,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
 
     transferFrom(
-      src: PromiseOrValue<string>,
-      dst: PromiseOrValue<string>,
-      wad: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+        src: PromiseOrValue<string>,
+        dst: PromiseOrValue<string>,
+        wad: PromiseOrValue<BigNumberish>,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
 
     withdraw(
-      wad: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-  };
+        wad: PromiseOrValue<BigNumberish>,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
 
-  filters: {
-    "Approval(address,address,uint256)"(
-      src?: PromiseOrValue<string> | null,
-      guy?: PromiseOrValue<string> | null,
-      wad?: null
-    ): ApprovalEventFilter;
-    Approval(
-      src?: PromiseOrValue<string> | null,
-      guy?: PromiseOrValue<string> | null,
-      wad?: null
-    ): ApprovalEventFilter;
+    callStatic: {
+        allowance(
+            arg0: PromiseOrValue<string>,
+            arg1: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<BigNumber>;
 
-    "Deposit(address,uint256)"(
-      dst?: PromiseOrValue<string> | null,
-      wad?: null
-    ): DepositEventFilter;
-    Deposit(
-      dst?: PromiseOrValue<string> | null,
-      wad?: null
-    ): DepositEventFilter;
+        approve(
+            guy: PromiseOrValue<string>,
+            wad: PromiseOrValue<BigNumberish>,
+            overrides?: CallOverrides,
+        ): Promise<boolean>;
 
-    "Transfer(address,address,uint256)"(
-      src?: PromiseOrValue<string> | null,
-      dst?: PromiseOrValue<string> | null,
-      wad?: null
-    ): TransferEventFilter;
-    Transfer(
-      src?: PromiseOrValue<string> | null,
-      dst?: PromiseOrValue<string> | null,
-      wad?: null
-    ): TransferEventFilter;
+        balanceOf(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    "Withdrawal(address,uint256)"(
-      src?: PromiseOrValue<string> | null,
-      wad?: null
-    ): WithdrawalEventFilter;
-    Withdrawal(
-      src?: PromiseOrValue<string> | null,
-      wad?: null
-    ): WithdrawalEventFilter;
-  };
+        decimals(overrides?: CallOverrides): Promise<number>;
 
-  estimateGas: {
-    allowance(
-      arg0: PromiseOrValue<string>,
-      arg1: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+        "deposit(uint256)"(amount: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<void>;
 
-    approve(
-      guy: PromiseOrValue<string>,
-      wad: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+        "deposit()"(overrides?: CallOverrides): Promise<void>;
 
-    balanceOf(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+        minters(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
 
-    decimals(overrides?: CallOverrides): Promise<BigNumber>;
+        name(overrides?: CallOverrides): Promise<string>;
 
-    "deposit(uint256)"(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+        symbol(overrides?: CallOverrides): Promise<string>;
 
-    "deposit()"(
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+        totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
-    minters(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+        transfer(
+            dst: PromiseOrValue<string>,
+            wad: PromiseOrValue<BigNumberish>,
+            overrides?: CallOverrides,
+        ): Promise<boolean>;
 
-    name(overrides?: CallOverrides): Promise<BigNumber>;
+        transferFrom(
+            src: PromiseOrValue<string>,
+            dst: PromiseOrValue<string>,
+            wad: PromiseOrValue<BigNumberish>,
+            overrides?: CallOverrides,
+        ): Promise<boolean>;
 
-    symbol(overrides?: CallOverrides): Promise<BigNumber>;
+        withdraw(wad: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<void>;
+    };
 
-    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+    filters: {
+        "Approval(address,address,uint256)"(
+            src?: PromiseOrValue<string> | null,
+            guy?: PromiseOrValue<string> | null,
+            wad?: null,
+        ): ApprovalEventFilter;
+        Approval(
+            src?: PromiseOrValue<string> | null,
+            guy?: PromiseOrValue<string> | null,
+            wad?: null,
+        ): ApprovalEventFilter;
 
-    transfer(
-      dst: PromiseOrValue<string>,
-      wad: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+        "Deposit(address,uint256)"(dst?: PromiseOrValue<string> | null, wad?: null): DepositEventFilter;
+        Deposit(dst?: PromiseOrValue<string> | null, wad?: null): DepositEventFilter;
 
-    transferFrom(
-      src: PromiseOrValue<string>,
-      dst: PromiseOrValue<string>,
-      wad: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+        "Transfer(address,address,uint256)"(
+            src?: PromiseOrValue<string> | null,
+            dst?: PromiseOrValue<string> | null,
+            wad?: null,
+        ): TransferEventFilter;
+        Transfer(
+            src?: PromiseOrValue<string> | null,
+            dst?: PromiseOrValue<string> | null,
+            wad?: null,
+        ): TransferEventFilter;
 
-    withdraw(
-      wad: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-  };
+        "Withdrawal(address,uint256)"(src?: PromiseOrValue<string> | null, wad?: null): WithdrawalEventFilter;
+        Withdrawal(src?: PromiseOrValue<string> | null, wad?: null): WithdrawalEventFilter;
+    };
 
-  populateTransaction: {
-    allowance(
-      arg0: PromiseOrValue<string>,
-      arg1: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    estimateGas: {
+        allowance(
+            arg0: PromiseOrValue<string>,
+            arg1: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<BigNumber>;
 
-    approve(
-      guy: PromiseOrValue<string>,
-      wad: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+        approve(
+            guy: PromiseOrValue<string>,
+            wad: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
 
-    balanceOf(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+        balanceOf(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        decimals(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "deposit(uint256)"(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+        "deposit(uint256)"(
+            amount: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
 
-    "deposit()"(
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+        "deposit()"(overrides?: PayableOverrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
 
-    minters(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+        minters(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        name(overrides?: CallOverrides): Promise<BigNumber>;
 
-    symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        symbol(overrides?: CallOverrides): Promise<BigNumber>;
 
-    totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
-    transfer(
-      dst: PromiseOrValue<string>,
-      wad: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+        transfer(
+            dst: PromiseOrValue<string>,
+            wad: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
 
-    transferFrom(
-      src: PromiseOrValue<string>,
-      dst: PromiseOrValue<string>,
-      wad: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+        transferFrom(
+            src: PromiseOrValue<string>,
+            dst: PromiseOrValue<string>,
+            wad: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
 
-    withdraw(
-      wad: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-  };
+        withdraw(
+            wad: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+    };
+
+    populateTransaction: {
+        allowance(
+            arg0: PromiseOrValue<string>,
+            arg1: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<PopulatedTransaction>;
+
+        approve(
+            guy: PromiseOrValue<string>,
+            wad: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        balanceOf(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+        decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+        "deposit(uint256)"(
+            amount: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        "deposit()"(overrides?: PayableOverrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
+
+        minters(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+        name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+        symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+        totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+        transfer(
+            dst: PromiseOrValue<string>,
+            wad: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        transferFrom(
+            src: PromiseOrValue<string>,
+            dst: PromiseOrValue<string>,
+            wad: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        withdraw(
+            wad: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+    };
 }

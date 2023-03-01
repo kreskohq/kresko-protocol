@@ -3,128 +3,112 @@
 /* tslint:disable */
 /* eslint-disable */
 import type {
-  BaseContract,
-  BigNumber,
-  BigNumberish,
-  BytesLike,
-  CallOverrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
+    BaseContract,
+    BigNumber,
+    BigNumberish,
+    BytesLike,
+    CallOverrides,
+    PopulatedTransaction,
+    Signer,
+    utils,
 } from "ethers";
 import type { FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
-import type {
-  TypedEventFilter,
-  TypedEvent,
-  TypedListener,
-  OnEvent,
-  PromiseOrValue,
-} from "../../../../common";
+import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent, PromiseOrValue } from "../../../../common";
 
-export interface UniswapV2LiquidityMathLibraryInterface
-  extends utils.Interface {
-  functions: {
-    "computeProfitMaximizingTrade(uint256,uint256,uint256,uint256)": FunctionFragment;
-  };
+export interface UniswapV2LiquidityMathLibraryInterface extends utils.Interface {
+    functions: {
+        "computeProfitMaximizingTrade(uint256,uint256,uint256,uint256)": FunctionFragment;
+    };
 
-  getFunction(
-    nameOrSignatureOrTopic: "computeProfitMaximizingTrade"
-  ): FunctionFragment;
+    getFunction(nameOrSignatureOrTopic: "computeProfitMaximizingTrade"): FunctionFragment;
 
-  encodeFunctionData(
-    functionFragment: "computeProfitMaximizingTrade",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
-  ): string;
+    encodeFunctionData(
+        functionFragment: "computeProfitMaximizingTrade",
+        values: [
+            PromiseOrValue<BigNumberish>,
+            PromiseOrValue<BigNumberish>,
+            PromiseOrValue<BigNumberish>,
+            PromiseOrValue<BigNumberish>,
+        ],
+    ): string;
 
-  decodeFunctionResult(
-    functionFragment: "computeProfitMaximizingTrade",
-    data: BytesLike
-  ): Result;
+    decodeFunctionResult(functionFragment: "computeProfitMaximizingTrade", data: BytesLike): Result;
 
-  events: {};
+    events: {};
 }
 
 export interface UniswapV2LiquidityMathLibrary extends BaseContract {
-  contractName: "UniswapV2LiquidityMathLibrary";
+    contractName: "UniswapV2LiquidityMathLibrary";
 
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+    connect(signerOrProvider: Signer | Provider | string): this;
+    attach(addressOrName: string): this;
+    deployed(): Promise<this>;
 
-  interface: UniswapV2LiquidityMathLibraryInterface;
+    interface: UniswapV2LiquidityMathLibraryInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+    queryFilter<TEvent extends TypedEvent>(
+        event: TypedEventFilter<TEvent>,
+        fromBlockOrBlockhash?: string | number | undefined,
+        toBlock?: string | number | undefined,
+    ): Promise<Array<TEvent>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+    listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>;
+    listeners(eventName?: string): Array<Listener>;
+    removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this;
+    removeAllListeners(eventName?: string): this;
+    off: OnEvent<this>;
+    on: OnEvent<this>;
+    once: OnEvent<this>;
+    removeListener: OnEvent<this>;
 
-  functions: {
+    functions: {
+        computeProfitMaximizingTrade(
+            truePriceTokenA: PromiseOrValue<BigNumberish>,
+            truePriceTokenB: PromiseOrValue<BigNumberish>,
+            reserveA: PromiseOrValue<BigNumberish>,
+            reserveB: PromiseOrValue<BigNumberish>,
+            overrides?: CallOverrides,
+        ): Promise<[boolean, BigNumber] & { aToB: boolean; amountIn: BigNumber }>;
+    };
+
     computeProfitMaximizingTrade(
-      truePriceTokenA: PromiseOrValue<BigNumberish>,
-      truePriceTokenB: PromiseOrValue<BigNumberish>,
-      reserveA: PromiseOrValue<BigNumberish>,
-      reserveB: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
+        truePriceTokenA: PromiseOrValue<BigNumberish>,
+        truePriceTokenB: PromiseOrValue<BigNumberish>,
+        reserveA: PromiseOrValue<BigNumberish>,
+        reserveB: PromiseOrValue<BigNumberish>,
+        overrides?: CallOverrides,
     ): Promise<[boolean, BigNumber] & { aToB: boolean; amountIn: BigNumber }>;
-  };
 
-  computeProfitMaximizingTrade(
-    truePriceTokenA: PromiseOrValue<BigNumberish>,
-    truePriceTokenB: PromiseOrValue<BigNumberish>,
-    reserveA: PromiseOrValue<BigNumberish>,
-    reserveB: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<[boolean, BigNumber] & { aToB: boolean; amountIn: BigNumber }>;
+    callStatic: {
+        computeProfitMaximizingTrade(
+            truePriceTokenA: PromiseOrValue<BigNumberish>,
+            truePriceTokenB: PromiseOrValue<BigNumberish>,
+            reserveA: PromiseOrValue<BigNumberish>,
+            reserveB: PromiseOrValue<BigNumberish>,
+            overrides?: CallOverrides,
+        ): Promise<[boolean, BigNumber] & { aToB: boolean; amountIn: BigNumber }>;
+    };
 
-  callStatic: {
-    computeProfitMaximizingTrade(
-      truePriceTokenA: PromiseOrValue<BigNumberish>,
-      truePriceTokenB: PromiseOrValue<BigNumberish>,
-      reserveA: PromiseOrValue<BigNumberish>,
-      reserveB: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[boolean, BigNumber] & { aToB: boolean; amountIn: BigNumber }>;
-  };
+    filters: {};
 
-  filters: {};
+    estimateGas: {
+        computeProfitMaximizingTrade(
+            truePriceTokenA: PromiseOrValue<BigNumberish>,
+            truePriceTokenB: PromiseOrValue<BigNumberish>,
+            reserveA: PromiseOrValue<BigNumberish>,
+            reserveB: PromiseOrValue<BigNumberish>,
+            overrides?: CallOverrides,
+        ): Promise<BigNumber>;
+    };
 
-  estimateGas: {
-    computeProfitMaximizingTrade(
-      truePriceTokenA: PromiseOrValue<BigNumberish>,
-      truePriceTokenB: PromiseOrValue<BigNumberish>,
-      reserveA: PromiseOrValue<BigNumberish>,
-      reserveB: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    computeProfitMaximizingTrade(
-      truePriceTokenA: PromiseOrValue<BigNumberish>,
-      truePriceTokenB: PromiseOrValue<BigNumberish>,
-      reserveA: PromiseOrValue<BigNumberish>,
-      reserveB: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-  };
+    populateTransaction: {
+        computeProfitMaximizingTrade(
+            truePriceTokenA: PromiseOrValue<BigNumberish>,
+            truePriceTokenB: PromiseOrValue<BigNumberish>,
+            reserveA: PromiseOrValue<BigNumberish>,
+            reserveB: PromiseOrValue<BigNumberish>,
+            overrides?: CallOverrides,
+        ): Promise<PopulatedTransaction>;
+    };
 }

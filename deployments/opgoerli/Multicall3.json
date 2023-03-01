@@ -1,592 +1,592 @@
 {
-  "address": "0x7FFcE0C2BEd18aDf44383FC2897B3061648F442C",
-  "abi": [
-    {
-      "inputs": [
+    "address": "0x7FFcE0C2BEd18aDf44383FC2897B3061648F442C",
+    "abi": [
         {
-          "components": [
-            {
-              "internalType": "address",
-              "name": "target",
-              "type": "address"
-            },
-            {
-              "internalType": "bytes",
-              "name": "callData",
-              "type": "bytes"
-            }
-          ],
-          "internalType": "struct Multicall3.Call[]",
-          "name": "calls",
-          "type": "tuple[]"
-        }
-      ],
-      "name": "aggregate",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "blockNumber",
-          "type": "uint256"
+            "inputs": [
+                {
+                    "components": [
+                        {
+                            "internalType": "address",
+                            "name": "target",
+                            "type": "address"
+                        },
+                        {
+                            "internalType": "bytes",
+                            "name": "callData",
+                            "type": "bytes"
+                        }
+                    ],
+                    "internalType": "struct Multicall3.Call[]",
+                    "name": "calls",
+                    "type": "tuple[]"
+                }
+            ],
+            "name": "aggregate",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "blockNumber",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "bytes[]",
+                    "name": "returnData",
+                    "type": "bytes[]"
+                }
+            ],
+            "stateMutability": "payable",
+            "type": "function"
         },
         {
-          "internalType": "bytes[]",
-          "name": "returnData",
-          "type": "bytes[]"
-        }
-      ],
-      "stateMutability": "payable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "components": [
-            {
-              "internalType": "address",
-              "name": "target",
-              "type": "address"
-            },
-            {
-              "internalType": "bool",
-              "name": "allowFailure",
-              "type": "bool"
-            },
-            {
-              "internalType": "bytes",
-              "name": "callData",
-              "type": "bytes"
-            }
-          ],
-          "internalType": "struct Multicall3.Call3[]",
-          "name": "calls",
-          "type": "tuple[]"
-        }
-      ],
-      "name": "aggregate3",
-      "outputs": [
-        {
-          "components": [
-            {
-              "internalType": "bool",
-              "name": "success",
-              "type": "bool"
-            },
-            {
-              "internalType": "bytes",
-              "name": "returnData",
-              "type": "bytes"
-            }
-          ],
-          "internalType": "struct Multicall3.Result[]",
-          "name": "returnData",
-          "type": "tuple[]"
-        }
-      ],
-      "stateMutability": "payable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "components": [
-            {
-              "internalType": "address",
-              "name": "target",
-              "type": "address"
-            },
-            {
-              "internalType": "bool",
-              "name": "allowFailure",
-              "type": "bool"
-            },
-            {
-              "internalType": "uint256",
-              "name": "value",
-              "type": "uint256"
-            },
-            {
-              "internalType": "bytes",
-              "name": "callData",
-              "type": "bytes"
-            }
-          ],
-          "internalType": "struct Multicall3.Call3Value[]",
-          "name": "calls",
-          "type": "tuple[]"
-        }
-      ],
-      "name": "aggregate3Value",
-      "outputs": [
-        {
-          "components": [
-            {
-              "internalType": "bool",
-              "name": "success",
-              "type": "bool"
-            },
-            {
-              "internalType": "bytes",
-              "name": "returnData",
-              "type": "bytes"
-            }
-          ],
-          "internalType": "struct Multicall3.Result[]",
-          "name": "returnData",
-          "type": "tuple[]"
-        }
-      ],
-      "stateMutability": "payable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "components": [
-            {
-              "internalType": "address",
-              "name": "target",
-              "type": "address"
-            },
-            {
-              "internalType": "bytes",
-              "name": "callData",
-              "type": "bytes"
-            }
-          ],
-          "internalType": "struct Multicall3.Call[]",
-          "name": "calls",
-          "type": "tuple[]"
-        }
-      ],
-      "name": "blockAndAggregate",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "blockNumber",
-          "type": "uint256"
+            "inputs": [
+                {
+                    "components": [
+                        {
+                            "internalType": "address",
+                            "name": "target",
+                            "type": "address"
+                        },
+                        {
+                            "internalType": "bool",
+                            "name": "allowFailure",
+                            "type": "bool"
+                        },
+                        {
+                            "internalType": "bytes",
+                            "name": "callData",
+                            "type": "bytes"
+                        }
+                    ],
+                    "internalType": "struct Multicall3.Call3[]",
+                    "name": "calls",
+                    "type": "tuple[]"
+                }
+            ],
+            "name": "aggregate3",
+            "outputs": [
+                {
+                    "components": [
+                        {
+                            "internalType": "bool",
+                            "name": "success",
+                            "type": "bool"
+                        },
+                        {
+                            "internalType": "bytes",
+                            "name": "returnData",
+                            "type": "bytes"
+                        }
+                    ],
+                    "internalType": "struct Multicall3.Result[]",
+                    "name": "returnData",
+                    "type": "tuple[]"
+                }
+            ],
+            "stateMutability": "payable",
+            "type": "function"
         },
         {
-          "internalType": "bytes32",
-          "name": "blockHash",
-          "type": "bytes32"
+            "inputs": [
+                {
+                    "components": [
+                        {
+                            "internalType": "address",
+                            "name": "target",
+                            "type": "address"
+                        },
+                        {
+                            "internalType": "bool",
+                            "name": "allowFailure",
+                            "type": "bool"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "value",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "bytes",
+                            "name": "callData",
+                            "type": "bytes"
+                        }
+                    ],
+                    "internalType": "struct Multicall3.Call3Value[]",
+                    "name": "calls",
+                    "type": "tuple[]"
+                }
+            ],
+            "name": "aggregate3Value",
+            "outputs": [
+                {
+                    "components": [
+                        {
+                            "internalType": "bool",
+                            "name": "success",
+                            "type": "bool"
+                        },
+                        {
+                            "internalType": "bytes",
+                            "name": "returnData",
+                            "type": "bytes"
+                        }
+                    ],
+                    "internalType": "struct Multicall3.Result[]",
+                    "name": "returnData",
+                    "type": "tuple[]"
+                }
+            ],
+            "stateMutability": "payable",
+            "type": "function"
         },
         {
-          "components": [
-            {
-              "internalType": "bool",
-              "name": "success",
-              "type": "bool"
-            },
-            {
-              "internalType": "bytes",
-              "name": "returnData",
-              "type": "bytes"
-            }
-          ],
-          "internalType": "struct Multicall3.Result[]",
-          "name": "returnData",
-          "type": "tuple[]"
-        }
-      ],
-      "stateMutability": "payable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "getBasefee",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "basefee",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "blockNumber",
-          "type": "uint256"
-        }
-      ],
-      "name": "getBlockHash",
-      "outputs": [
-        {
-          "internalType": "bytes32",
-          "name": "blockHash",
-          "type": "bytes32"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "getBlockNumber",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "blockNumber",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "getChainId",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "chainid",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "getCurrentBlockCoinbase",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "coinbase",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "getCurrentBlockDifficulty",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "difficulty",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "getCurrentBlockGasLimit",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "gaslimit",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "getCurrentBlockTimestamp",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "timestamp",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "addr",
-          "type": "address"
-        }
-      ],
-      "name": "getEthBalance",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "balance",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "getLastBlockHash",
-      "outputs": [
-        {
-          "internalType": "bytes32",
-          "name": "blockHash",
-          "type": "bytes32"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "bool",
-          "name": "requireSuccess",
-          "type": "bool"
+            "inputs": [
+                {
+                    "components": [
+                        {
+                            "internalType": "address",
+                            "name": "target",
+                            "type": "address"
+                        },
+                        {
+                            "internalType": "bytes",
+                            "name": "callData",
+                            "type": "bytes"
+                        }
+                    ],
+                    "internalType": "struct Multicall3.Call[]",
+                    "name": "calls",
+                    "type": "tuple[]"
+                }
+            ],
+            "name": "blockAndAggregate",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "blockNumber",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "bytes32",
+                    "name": "blockHash",
+                    "type": "bytes32"
+                },
+                {
+                    "components": [
+                        {
+                            "internalType": "bool",
+                            "name": "success",
+                            "type": "bool"
+                        },
+                        {
+                            "internalType": "bytes",
+                            "name": "returnData",
+                            "type": "bytes"
+                        }
+                    ],
+                    "internalType": "struct Multicall3.Result[]",
+                    "name": "returnData",
+                    "type": "tuple[]"
+                }
+            ],
+            "stateMutability": "payable",
+            "type": "function"
         },
         {
-          "components": [
-            {
-              "internalType": "address",
-              "name": "target",
-              "type": "address"
-            },
-            {
-              "internalType": "bytes",
-              "name": "callData",
-              "type": "bytes"
-            }
-          ],
-          "internalType": "struct Multicall3.Call[]",
-          "name": "calls",
-          "type": "tuple[]"
-        }
-      ],
-      "name": "tryAggregate",
-      "outputs": [
-        {
-          "components": [
-            {
-              "internalType": "bool",
-              "name": "success",
-              "type": "bool"
-            },
-            {
-              "internalType": "bytes",
-              "name": "returnData",
-              "type": "bytes"
-            }
-          ],
-          "internalType": "struct Multicall3.Result[]",
-          "name": "returnData",
-          "type": "tuple[]"
-        }
-      ],
-      "stateMutability": "payable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "bool",
-          "name": "requireSuccess",
-          "type": "bool"
+            "inputs": [],
+            "name": "getBasefee",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "basefee",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
         },
         {
-          "components": [
-            {
-              "internalType": "address",
-              "name": "target",
-              "type": "address"
-            },
-            {
-              "internalType": "bytes",
-              "name": "callData",
-              "type": "bytes"
-            }
-          ],
-          "internalType": "struct Multicall3.Call[]",
-          "name": "calls",
-          "type": "tuple[]"
-        }
-      ],
-      "name": "tryBlockAndAggregate",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "blockNumber",
-          "type": "uint256"
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "blockNumber",
+                    "type": "uint256"
+                }
+            ],
+            "name": "getBlockHash",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "blockHash",
+                    "type": "bytes32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
         },
         {
-          "internalType": "bytes32",
-          "name": "blockHash",
-          "type": "bytes32"
+            "inputs": [],
+            "name": "getBlockNumber",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "blockNumber",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
         },
         {
-          "components": [
-            {
-              "internalType": "bool",
-              "name": "success",
-              "type": "bool"
-            },
-            {
-              "internalType": "bytes",
-              "name": "returnData",
-              "type": "bytes"
-            }
-          ],
-          "internalType": "struct Multicall3.Result[]",
-          "name": "returnData",
-          "type": "tuple[]"
+            "inputs": [],
+            "name": "getChainId",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "chainid",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "getCurrentBlockCoinbase",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "coinbase",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "getCurrentBlockDifficulty",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "difficulty",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "getCurrentBlockGasLimit",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "gaslimit",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "getCurrentBlockTimestamp",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "timestamp",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "addr",
+                    "type": "address"
+                }
+            ],
+            "name": "getEthBalance",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "balance",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "getLastBlockHash",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "blockHash",
+                    "type": "bytes32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "bool",
+                    "name": "requireSuccess",
+                    "type": "bool"
+                },
+                {
+                    "components": [
+                        {
+                            "internalType": "address",
+                            "name": "target",
+                            "type": "address"
+                        },
+                        {
+                            "internalType": "bytes",
+                            "name": "callData",
+                            "type": "bytes"
+                        }
+                    ],
+                    "internalType": "struct Multicall3.Call[]",
+                    "name": "calls",
+                    "type": "tuple[]"
+                }
+            ],
+            "name": "tryAggregate",
+            "outputs": [
+                {
+                    "components": [
+                        {
+                            "internalType": "bool",
+                            "name": "success",
+                            "type": "bool"
+                        },
+                        {
+                            "internalType": "bytes",
+                            "name": "returnData",
+                            "type": "bytes"
+                        }
+                    ],
+                    "internalType": "struct Multicall3.Result[]",
+                    "name": "returnData",
+                    "type": "tuple[]"
+                }
+            ],
+            "stateMutability": "payable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "bool",
+                    "name": "requireSuccess",
+                    "type": "bool"
+                },
+                {
+                    "components": [
+                        {
+                            "internalType": "address",
+                            "name": "target",
+                            "type": "address"
+                        },
+                        {
+                            "internalType": "bytes",
+                            "name": "callData",
+                            "type": "bytes"
+                        }
+                    ],
+                    "internalType": "struct Multicall3.Call[]",
+                    "name": "calls",
+                    "type": "tuple[]"
+                }
+            ],
+            "name": "tryBlockAndAggregate",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "blockNumber",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "bytes32",
+                    "name": "blockHash",
+                    "type": "bytes32"
+                },
+                {
+                    "components": [
+                        {
+                            "internalType": "bool",
+                            "name": "success",
+                            "type": "bool"
+                        },
+                        {
+                            "internalType": "bytes",
+                            "name": "returnData",
+                            "type": "bytes"
+                        }
+                    ],
+                    "internalType": "struct Multicall3.Result[]",
+                    "name": "returnData",
+                    "type": "tuple[]"
+                }
+            ],
+            "stateMutability": "payable",
+            "type": "function"
         }
-      ],
-      "stateMutability": "payable",
-      "type": "function"
-    }
-  ],
-  "transactionHash": "0x4efdf61ea3ec982f1747759107cf6ff1aeb7e4fbf80210721e209bffb0bf8bd5",
-  "receipt": {
-    "to": null,
-    "from": "0xd21040ab567F989E0E751BE56f74ca38804e53e9",
-    "contractAddress": "0x7FFcE0C2BEd18aDf44383FC2897B3061648F442C",
-    "transactionIndex": 1,
-    "gasUsed": "811582",
-    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-    "blockHash": "0x06768d0db51b8384ed2bd62b7f9053eb9c181fe680676042e19b2eae4ef75607",
+    ],
     "transactionHash": "0x4efdf61ea3ec982f1747759107cf6ff1aeb7e4fbf80210721e209bffb0bf8bd5",
-    "logs": [],
-    "blockNumber": 5932739,
-    "cumulativeGasUsed": "811582",
-    "status": 1,
-    "byzantium": true
-  },
-  "args": [],
-  "numDeployments": 1,
-  "solcInputHash": "30e520ad8c0ff3988f6dd96755ed7d8b",
-  "metadata": "{\"compiler\":{\"version\":\"0.8.14+commit.80d49f37\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"callData\",\"type\":\"bytes\"}],\"internalType\":\"struct Multicall3.Call[]\",\"name\":\"calls\",\"type\":\"tuple[]\"}],\"name\":\"aggregate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\"},{\"internalType\":\"bytes[]\",\"name\":\"returnData\",\"type\":\"bytes[]\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"allowFailure\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"callData\",\"type\":\"bytes\"}],\"internalType\":\"struct Multicall3.Call3[]\",\"name\":\"calls\",\"type\":\"tuple[]\"}],\"name\":\"aggregate3\",\"outputs\":[{\"components\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"returnData\",\"type\":\"bytes\"}],\"internalType\":\"struct Multicall3.Result[]\",\"name\":\"returnData\",\"type\":\"tuple[]\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"allowFailure\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"callData\",\"type\":\"bytes\"}],\"internalType\":\"struct Multicall3.Call3Value[]\",\"name\":\"calls\",\"type\":\"tuple[]\"}],\"name\":\"aggregate3Value\",\"outputs\":[{\"components\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"returnData\",\"type\":\"bytes\"}],\"internalType\":\"struct Multicall3.Result[]\",\"name\":\"returnData\",\"type\":\"tuple[]\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"callData\",\"type\":\"bytes\"}],\"internalType\":\"struct Multicall3.Call[]\",\"name\":\"calls\",\"type\":\"tuple[]\"}],\"name\":\"blockAndAggregate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"},{\"components\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"returnData\",\"type\":\"bytes\"}],\"internalType\":\"struct Multicall3.Result[]\",\"name\":\"returnData\",\"type\":\"tuple[]\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getBasefee\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"basefee\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\"}],\"name\":\"getBlockHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getBlockNumber\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getChainId\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"chainid\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getCurrentBlockCoinbase\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"coinbase\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getCurrentBlockDifficulty\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"difficulty\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getCurrentBlockGasLimit\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"gaslimit\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getCurrentBlockTimestamp\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"}],\"name\":\"getEthBalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getLastBlockHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bool\",\"name\":\"requireSuccess\",\"type\":\"bool\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"callData\",\"type\":\"bytes\"}],\"internalType\":\"struct Multicall3.Call[]\",\"name\":\"calls\",\"type\":\"tuple[]\"}],\"name\":\"tryAggregate\",\"outputs\":[{\"components\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"returnData\",\"type\":\"bytes\"}],\"internalType\":\"struct Multicall3.Result[]\",\"name\":\"returnData\",\"type\":\"tuple[]\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bool\",\"name\":\"requireSuccess\",\"type\":\"bool\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"callData\",\"type\":\"bytes\"}],\"internalType\":\"struct Multicall3.Call[]\",\"name\":\"calls\",\"type\":\"tuple[]\"}],\"name\":\"tryBlockAndAggregate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"},{\"components\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"returnData\",\"type\":\"bytes\"}],\"internalType\":\"struct Multicall3.Result[]\",\"name\":\"returnData\",\"type\":\"tuple[]\"}],\"stateMutability\":\"payable\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"Michael Elliot <mike@makerdao.com>Joshua Levine <joshua@makerdao.com>Nick Johnson <arachnid@notdot.net>Andreas Bigger <andreas@nascent.xyz>Matt Solomon <matt@mattsolomon.dev>\",\"details\":\"Multicall & Multicall2 backwards-compatibleAggregate methods are marked `payable` to save 24 gas per call\",\"kind\":\"dev\",\"methods\":{\"aggregate((address,bytes)[])\":{\"params\":{\"calls\":\"An array of Call structs\"},\"returns\":{\"blockNumber\":\"The block number where the calls were executed\",\"returnData\":\"An array of bytes containing the responses\"}},\"aggregate3((address,bool,bytes)[])\":{\"params\":{\"calls\":\"An array of Call3 structs\"},\"returns\":{\"returnData\":\"An array of Result structs\"}},\"aggregate3Value((address,bool,uint256,bytes)[])\":{\"params\":{\"calls\":\"An array of Call3Value structs\"},\"returns\":{\"returnData\":\"An array of Result structs\"}},\"blockAndAggregate((address,bytes)[])\":{\"params\":{\"calls\":\"An array of Call structs\"},\"returns\":{\"blockHash\":\"The hash of the block where the calls were executed\",\"blockNumber\":\"The block number where the calls were executed\",\"returnData\":\"An array of Result structs\"}},\"getBlockHash(uint256)\":{\"params\":{\"blockNumber\":\"The block number\"}},\"tryAggregate(bool,(address,bytes)[])\":{\"params\":{\"calls\":\"An array of Call structs\",\"requireSuccess\":\"If true, require all calls to succeed\"},\"returns\":{\"returnData\":\"An array of Result structs\"}},\"tryBlockAndAggregate(bool,(address,bytes)[])\":{\"params\":{\"calls\":\"An array of Call structs\"},\"returns\":{\"blockHash\":\"The hash of the block where the calls were executed\",\"blockNumber\":\"The block number where the calls were executed\",\"returnData\":\"An array of Result structs\"}}},\"title\":\"Multicall3\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"aggregate((address,bytes)[])\":{\"notice\":\"Backwards-compatible call aggregation with Multicall\"},\"aggregate3((address,bool,bytes)[])\":{\"notice\":\"Aggregate calls, ensuring each returns success if required\"},\"aggregate3Value((address,bool,uint256,bytes)[])\":{\"notice\":\"Aggregate calls with a msg valueReverts if msg.value is less than the sum of the call values\"},\"blockAndAggregate((address,bytes)[])\":{\"notice\":\"Backwards-compatible with Multicall2Aggregate calls and allow failures using tryAggregate\"},\"getBasefee()\":{\"notice\":\"Gets the base fee of the given blockCan revert if the BASEFEE opcode is not implemented by the given chain\"},\"getBlockHash(uint256)\":{\"notice\":\"Returns the block hash for the given block number\"},\"getBlockNumber()\":{\"notice\":\"Returns the block number\"},\"getChainId()\":{\"notice\":\"Returns the chain id\"},\"getCurrentBlockCoinbase()\":{\"notice\":\"Returns the block coinbase\"},\"getCurrentBlockDifficulty()\":{\"notice\":\"Returns the block difficulty\"},\"getCurrentBlockGasLimit()\":{\"notice\":\"Returns the block gas limit\"},\"getCurrentBlockTimestamp()\":{\"notice\":\"Returns the block timestamp\"},\"getEthBalance(address)\":{\"notice\":\"Returns the (ETH) balance of a given address\"},\"getLastBlockHash()\":{\"notice\":\"Returns the block hash of the last block\"},\"tryAggregate(bool,(address,bytes)[])\":{\"notice\":\"Backwards-compatible with Multicall2Aggregate calls without requiring success\"},\"tryBlockAndAggregate(bool,(address,bytes)[])\":{\"notice\":\"Backwards-compatible with Multicall2Aggregate calls and allow failures using tryAggregate\"}},\"notice\":\"Aggregate results from multiple function calls\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"src/contracts/vendor/Multicall3.sol\":\"Multicall3\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"details\":{\"constantOptimizer\":false,\"cse\":true,\"deduplicate\":true,\"inliner\":true,\"jumpdestRemover\":true,\"orderLiterals\":true,\"peephole\":true,\"yul\":true,\"yulDetails\":{\"optimizerSteps\":\"dhfoDgvulfnTUtnIf[xa[r]EscLMcCTUtTOntnfDIulLculVcul [j]Tpeulxa[rul]xa[r]cLgvifCTUca[r]LSsTFOtfDnca[r]Iulc]jmul[jul] VcTOcul jmul\",\"stackAllocation\":true}},\"runs\":200},\"remappings\":[],\"viaIR\":true},\"sources\":{\"src/contracts/vendor/Multicall3.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.8.14;\\n\\n/// @title Multicall3\\n/// @notice Aggregate results from multiple function calls\\n/// @dev Multicall & Multicall2 backwards-compatible\\n/// @dev Aggregate methods are marked `payable` to save 24 gas per call\\n/// @author Michael Elliot <mike@makerdao.com>\\n/// @author Joshua Levine <joshua@makerdao.com>\\n/// @author Nick Johnson <arachnid@notdot.net>\\n/// @author Andreas Bigger <andreas@nascent.xyz>\\n/// @author Matt Solomon <matt@mattsolomon.dev>\\ncontract Multicall3 {\\n    struct Call {\\n        address target;\\n        bytes callData;\\n    }\\n\\n    struct Call3 {\\n        address target;\\n        bool allowFailure;\\n        bytes callData;\\n    }\\n\\n    struct Call3Value {\\n        address target;\\n        bool allowFailure;\\n        uint256 value;\\n        bytes callData;\\n    }\\n\\n    struct Result {\\n        bool success;\\n        bytes returnData;\\n    }\\n\\n    /// @notice Backwards-compatible call aggregation with Multicall\\n    /// @param calls An array of Call structs\\n    /// @return blockNumber The block number where the calls were executed\\n    /// @return returnData An array of bytes containing the responses\\n    function aggregate(Call[] calldata calls) public payable returns (uint256 blockNumber, bytes[] memory returnData) {\\n        blockNumber = block.number;\\n        uint256 length = calls.length;\\n        returnData = new bytes[](length);\\n        Call calldata call;\\n        for (uint256 i = 0; i < length;) {\\n            bool success;\\n            call = calls[i];\\n            (success, returnData[i]) = call.target.call(call.callData);\\n            require(success, \\\"Multicall3: call failed\\\");\\n            unchecked { ++i; }\\n        }\\n    }\\n\\n    /// @notice Backwards-compatible with Multicall2\\n    /// @notice Aggregate calls without requiring success\\n    /// @param requireSuccess If true, require all calls to succeed\\n    /// @param calls An array of Call structs\\n    /// @return returnData An array of Result structs\\n    function tryAggregate(bool requireSuccess, Call[] calldata calls) public payable returns (Result[] memory returnData) {\\n        uint256 length = calls.length;\\n        returnData = new Result[](length);\\n        Call calldata call;\\n        for (uint256 i = 0; i < length;) {\\n            Result memory result = returnData[i];\\n            call = calls[i];\\n            (result.success, result.returnData) = call.target.call(call.callData);\\n            if (requireSuccess) require(result.success, \\\"Multicall3: call failed\\\");\\n            unchecked { ++i; }\\n        }\\n    }\\n\\n    /// @notice Backwards-compatible with Multicall2\\n    /// @notice Aggregate calls and allow failures using tryAggregate\\n    /// @param calls An array of Call structs\\n    /// @return blockNumber The block number where the calls were executed\\n    /// @return blockHash The hash of the block where the calls were executed\\n    /// @return returnData An array of Result structs\\n    function tryBlockAndAggregate(bool requireSuccess, Call[] calldata calls) public payable returns (uint256 blockNumber, bytes32 blockHash, Result[] memory returnData) {\\n        blockNumber = block.number;\\n        blockHash = blockhash(block.number);\\n        returnData = tryAggregate(requireSuccess, calls);\\n    }\\n\\n    /// @notice Backwards-compatible with Multicall2\\n    /// @notice Aggregate calls and allow failures using tryAggregate\\n    /// @param calls An array of Call structs\\n    /// @return blockNumber The block number where the calls were executed\\n    /// @return blockHash The hash of the block where the calls were executed\\n    /// @return returnData An array of Result structs\\n    function blockAndAggregate(Call[] calldata calls) public payable returns (uint256 blockNumber, bytes32 blockHash, Result[] memory returnData) {\\n        (blockNumber, blockHash, returnData) = tryBlockAndAggregate(true, calls);\\n    }\\n\\n    /// @notice Aggregate calls, ensuring each returns success if required\\n    /// @param calls An array of Call3 structs\\n    /// @return returnData An array of Result structs\\n    function aggregate3(Call3[] calldata calls) public payable returns (Result[] memory returnData) {\\n        uint256 length = calls.length;\\n        returnData = new Result[](length);\\n        Call3 calldata calli;\\n        for (uint256 i = 0; i < length;) {\\n            Result memory result = returnData[i];\\n            calli = calls[i];\\n            (result.success, result.returnData) = calli.target.call(calli.callData);\\n            assembly {\\n                // Revert if the call fails and failure is not allowed\\n                // `allowFailure := calldataload(add(calli, 0x20))` and `success := mload(result)`\\n                if iszero(or(calldataload(add(calli, 0x20)), mload(result))) {\\n                    // set \\\"Error(string)\\\" signature: bytes32(bytes4(keccak256(\\\"Error(string)\\\")))\\n                    mstore(0x00, 0x08c379a000000000000000000000000000000000000000000000000000000000)\\n                    // set data offset\\n                    mstore(0x04, 0x0000000000000000000000000000000000000000000000000000000000000020)\\n                    // set length of revert string\\n                    mstore(0x24, 0x0000000000000000000000000000000000000000000000000000000000000017)\\n                    // set revert string: bytes32(abi.encodePacked(\\\"Multicall3: call failed\\\"))\\n                    mstore(0x44, 0x4d756c746963616c6c333a2063616c6c206661696c6564000000000000000000)\\n                    revert(0x00, 0x64)\\n                }\\n            }\\n            unchecked { ++i; }\\n        }\\n    }\\n\\n    /// @notice Aggregate calls with a msg value\\n    /// @notice Reverts if msg.value is less than the sum of the call values\\n    /// @param calls An array of Call3Value structs\\n    /// @return returnData An array of Result structs\\n    function aggregate3Value(Call3Value[] calldata calls) public payable returns (Result[] memory returnData) {\\n        uint256 valAccumulator;\\n        uint256 length = calls.length;\\n        returnData = new Result[](length);\\n        Call3Value calldata calli;\\n        for (uint256 i = 0; i < length;) {\\n            Result memory result = returnData[i];\\n            calli = calls[i];\\n            uint256 val = calli.value;\\n            // Humanity will be a Type V Kardashev Civilization before this overflows - andreas\\n            // ~ 10^25 Wei in existence << ~ 10^76 size uint fits in a uint256\\n            unchecked { valAccumulator += val; }\\n            (result.success, result.returnData) = calli.target.call{value: val}(calli.callData);\\n            assembly {\\n                // Revert if the call fails and failure is not allowed\\n                // `allowFailure := calldataload(add(calli, 0x20))` and `success := mload(result)`\\n                if iszero(or(calldataload(add(calli, 0x20)), mload(result))) {\\n                    // set \\\"Error(string)\\\" signature: bytes32(bytes4(keccak256(\\\"Error(string)\\\")))\\n                    mstore(0x00, 0x08c379a000000000000000000000000000000000000000000000000000000000)\\n                    // set data offset\\n                    mstore(0x04, 0x0000000000000000000000000000000000000000000000000000000000000020)\\n                    // set length of revert string\\n                    mstore(0x24, 0x0000000000000000000000000000000000000000000000000000000000000017)\\n                    // set revert string: bytes32(abi.encodePacked(\\\"Multicall3: call failed\\\"))\\n                    mstore(0x44, 0x4d756c746963616c6c333a2063616c6c206661696c6564000000000000000000)\\n                    revert(0x00, 0x84)\\n                }\\n            }\\n            unchecked { ++i; }\\n        }\\n        // Finally, make sure the msg.value = SUM(call[0...i].value)\\n        require(msg.value == valAccumulator, \\\"Multicall3: value mismatch\\\");\\n    }\\n\\n    /// @notice Returns the block hash for the given block number\\n    /// @param blockNumber The block number\\n    function getBlockHash(uint256 blockNumber) public view returns (bytes32 blockHash) {\\n        blockHash = blockhash(blockNumber);\\n    }\\n\\n    /// @notice Returns the block number\\n    function getBlockNumber() public view returns (uint256 blockNumber) {\\n        blockNumber = block.number;\\n    }\\n\\n    /// @notice Returns the block coinbase\\n    function getCurrentBlockCoinbase() public view returns (address coinbase) {\\n        coinbase = block.coinbase;\\n    }\\n\\n    /// @notice Returns the block difficulty\\n    function getCurrentBlockDifficulty() public view returns (uint256 difficulty) {\\n        difficulty = block.difficulty;\\n    }\\n\\n    /// @notice Returns the block gas limit\\n    function getCurrentBlockGasLimit() public view returns (uint256 gaslimit) {\\n        gaslimit = block.gaslimit;\\n    }\\n\\n    /// @notice Returns the block timestamp\\n    function getCurrentBlockTimestamp() public view returns (uint256 timestamp) {\\n        timestamp = block.timestamp;\\n    }\\n\\n    /// @notice Returns the (ETH) balance of a given address\\n    function getEthBalance(address addr) public view returns (uint256 balance) {\\n        balance = addr.balance;\\n    }\\n\\n    /// @notice Returns the block hash of the last block\\n    function getLastBlockHash() public view returns (bytes32 blockHash) {\\n        unchecked {\\n            blockHash = blockhash(block.number - 1);\\n        }\\n    }\\n\\n    /// @notice Gets the base fee of the given block\\n    /// @notice Can revert if the BASEFEE opcode is not implemented by the given chain\\n    function getBasefee() public view returns (uint256 basefee) {\\n        basefee = block.basefee;\\n    }\\n\\n    /// @notice Returns the chain id\\n    function getChainId() public view returns (uint256 chainid) {\\n        chainid = block.chainid;\\n    }\\n}\\n\",\"keccak256\":\"0xb5851dff96a3cd6cb4c664ff92f9b7d2653bf4fab00766c688f9026a8a00c6b9\",\"license\":\"MIT\"}},\"version\":1}",
-  "bytecode": "0x6080806040523461001657610dbd908161001c8239f35b600080fdfe60806040526004361015610013575b600080fd5b60003560e01c80630f28c97d14610153578063174dea711461014a578063252dba421461014157806327e86d6e146101385780633408e4701461012f578063399542e9146101265780633e64a6961461011d57806342cbb15c146101145780634d2301cc1461010b57806372425d9d1461010257806382ad56cb146100f957806386d516e8146100f0578063a8b0574e146100e7578063bce38bd7146100de578063c3077fa9146100d55763ee82ac5e146100cd57600080fd5b61000e610968565b5061000e6108cd565b5061000e6108a9565b5061000e61086f565b5061000e610835565b5061000e610764565b5061000e61072a565b5061000e6106e3565b5061000e61068b565b5061000e610651565b5061000e61062c565b5061000e61057f565b5061000e610540565b5061000e610460565b5061000e6102fe565b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051428152f35b9181601f8401121561000e5782359167ffffffffffffffff831161000e576020808501948460051b01011161000e57565b60207ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc82011261000e576004359067ffffffffffffffff821161000e576102079160040161018d565b9091565b91908251928382526000905b848210610262575092806020939411610255575b601f017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe016010190565b600083828401015261022b565b90602090818082850101519082860101520190610217565b908082519081815260208091019281808460051b8301019501936000915b8483106102a85750505050505090565b90919293949584806102da600193601f19868203018752828b518051151583520151906040908185820152019061020b565b9801930193019194939290610298565b9060206102fb92818152019061027a565b90565b50610308366101be565b600061031382610bb6565b91815b81811061033c576103388461032c853414610d21565b604051918291826102ea565b0390f35b6103468185610b2e565b51610352828488610cf1565b6000806040610386818501358099019861036b86610a7b565b926103796060880188610a85565b9390915180948193610ab8565b03925af191610393610ac6565b906103a8602094859384840152829015159052565b5191013517156103bb5750600101610316565b62461bcd60e51b60005260045260176024527f4d756c746963616c6c333a2063616c6c206661696c656400000000000000000060445260846000fd5b90604082019082526020604081840152835180925260608301928160608460051b8301019501936000915b8483106104325750505050505090565b9091929394958480610450600193605f198682030187528a5161020b565b9801930193019194939290610422565b5061046a366101be565b9061047c61047783610a0d565b6109bc565b828152917fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe06104aa82610a0d565b0160005b81811061052f57505060005b8181106104d057604051806103388643836103f7565b806105296000806104e46001958789610a4b565b816104fc6104f183610a7b565b926020810190610a85565b919061050d60405180948193610ab8565b03925af1610519610ac6565b6105238489610b2e565b52610b50565b016104ba565b8060606020809388010152016104ae565b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e5760206040516000194301408152f35b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051468152f35b9060407ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc83011261000e57600435801515810361000e57916024359067ffffffffffffffff821161000e576102079160040161018d565b6102fb939260609282526020820152816040820152019061027a565b5061033861064261063c366105b9565b91610c2b565b60405191829143404384610610565b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051488152f35b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051438152f35b73ffffffffffffffffffffffffffffffffffffffff81160361000e57565b503461000e576020367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020600435610721816106c5565b31604051908152f35b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051448152f35b5061076e366101be565b61077781610bb6565b9060005b818110610790576040518061033885826102ea565b61079a8184610b2e565b516107a6828487610cc1565b6000806107b283610a7b565b6107c482604061037981880188610a85565b03925af1916107d1610ac6565b906107e6602094859384840152829015159052565b5191013517156107f9575060010161077b565b62461bcd60e51b60005260045260176024527f4d756c746963616c6c333a2063616c6c206661696c656400000000000000000060445260646000fd5b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051458152f35b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051418152f35b506103386108b961063c366105b9565b60405191829160208352602083019061027a565b506108d7366101be565b6108e081610bb6565b9160005b8281106108fd5760405180610338864380409084610610565b8061096261090d60019387610b2e565b51610919838787610a4b565b6000808235610927816106c5565b8161093760209586810190610a85565b9190826040519384928337810182815203925af190610954610ac6565b908301521515809152610b50565b016108e4565b503461000e576020367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051600435408152f35b50634e487b7160e01b600052604160045260246000fd5b6040519190601f017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe016820167ffffffffffffffff811183821017610a0057604052565b610a086109a5565b604052565b60209067ffffffffffffffff8111610a27575b60051b0190565b610a2f6109a5565b610a20565b50634e487b7160e01b600052603260045260246000fd5b9190811015610a6e575b60051b81013590603e198136030182121561000e570190565b610a76610a34565b610a55565b356102fb816106c5565b903590601e198136030182121561000e570180359067ffffffffffffffff821161000e5760200191813603831361000e57565b908092918237016000815290565b3d15610b29573d9067ffffffffffffffff8211610b1c575b610b0f601f83017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0166020016109bc565b9182523d6000602084013e565b610b246109a5565b610ade565b606090565b6020918151811015610b43575b60051b010190565b610b4b610a34565b610b3b565b15610b5757565b6040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601760248201527f4d756c746963616c6c333a2063616c6c206661696c65640000000000000000006044820152606490fd5b90610bc361047783610a0d565b8281528092610bd4601f1991610a0d565b0190600090815b838110610be85750505050565b60209060408051908082019082821067ffffffffffffffff831117610c1e575b5284815282606081830152828501015201610bdb565b610c266109a5565b610c08565b929190610c3782610bb6565b9360005b838110610c485750505050565b80610c5560019288610b2e565b5183610c62838888610a4b565b6000808235610c70816106c5565b81610c8060209586810190610a85565b9190826040519384928337810182815203925af190610c9d610ac6565b908401521515809252610cb2575b5001610c3b565b610cbb90610b50565b38610cab565b9190811015610ce4575b60051b81013590605e198136030182121561000e570190565b610cec610a34565b610ccb565b9190811015610d14575b60051b81013590607e198136030182121561000e570190565b610d1c610a34565b610cfb565b15610d2857565b6040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601a60248201527f4d756c746963616c6c333a2076616c7565206d69736d617463680000000000006044820152606490fdfea2646970667358221220139e9482b9851dc4eb079e5ad7cb71870795bfa1bcec45321b9199628d2f465f64736f6c634300080e0033",
-  "deployedBytecode": "0x60806040526004361015610013575b600080fd5b60003560e01c80630f28c97d14610153578063174dea711461014a578063252dba421461014157806327e86d6e146101385780633408e4701461012f578063399542e9146101265780633e64a6961461011d57806342cbb15c146101145780634d2301cc1461010b57806372425d9d1461010257806382ad56cb146100f957806386d516e8146100f0578063a8b0574e146100e7578063bce38bd7146100de578063c3077fa9146100d55763ee82ac5e146100cd57600080fd5b61000e610968565b5061000e6108cd565b5061000e6108a9565b5061000e61086f565b5061000e610835565b5061000e610764565b5061000e61072a565b5061000e6106e3565b5061000e61068b565b5061000e610651565b5061000e61062c565b5061000e61057f565b5061000e610540565b5061000e610460565b5061000e6102fe565b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051428152f35b9181601f8401121561000e5782359167ffffffffffffffff831161000e576020808501948460051b01011161000e57565b60207ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc82011261000e576004359067ffffffffffffffff821161000e576102079160040161018d565b9091565b91908251928382526000905b848210610262575092806020939411610255575b601f017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe016010190565b600083828401015261022b565b90602090818082850101519082860101520190610217565b908082519081815260208091019281808460051b8301019501936000915b8483106102a85750505050505090565b90919293949584806102da600193601f19868203018752828b518051151583520151906040908185820152019061020b565b9801930193019194939290610298565b9060206102fb92818152019061027a565b90565b50610308366101be565b600061031382610bb6565b91815b81811061033c576103388461032c853414610d21565b604051918291826102ea565b0390f35b6103468185610b2e565b51610352828488610cf1565b6000806040610386818501358099019861036b86610a7b565b926103796060880188610a85565b9390915180948193610ab8565b03925af191610393610ac6565b906103a8602094859384840152829015159052565b5191013517156103bb5750600101610316565b62461bcd60e51b60005260045260176024527f4d756c746963616c6c333a2063616c6c206661696c656400000000000000000060445260846000fd5b90604082019082526020604081840152835180925260608301928160608460051b8301019501936000915b8483106104325750505050505090565b9091929394958480610450600193605f198682030187528a5161020b565b9801930193019194939290610422565b5061046a366101be565b9061047c61047783610a0d565b6109bc565b828152917fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe06104aa82610a0d565b0160005b81811061052f57505060005b8181106104d057604051806103388643836103f7565b806105296000806104e46001958789610a4b565b816104fc6104f183610a7b565b926020810190610a85565b919061050d60405180948193610ab8565b03925af1610519610ac6565b6105238489610b2e565b52610b50565b016104ba565b8060606020809388010152016104ae565b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e5760206040516000194301408152f35b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051468152f35b9060407ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc83011261000e57600435801515810361000e57916024359067ffffffffffffffff821161000e576102079160040161018d565b6102fb939260609282526020820152816040820152019061027a565b5061033861064261063c366105b9565b91610c2b565b60405191829143404384610610565b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051488152f35b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051438152f35b73ffffffffffffffffffffffffffffffffffffffff81160361000e57565b503461000e576020367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020600435610721816106c5565b31604051908152f35b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051448152f35b5061076e366101be565b61077781610bb6565b9060005b818110610790576040518061033885826102ea565b61079a8184610b2e565b516107a6828487610cc1565b6000806107b283610a7b565b6107c482604061037981880188610a85565b03925af1916107d1610ac6565b906107e6602094859384840152829015159052565b5191013517156107f9575060010161077b565b62461bcd60e51b60005260045260176024527f4d756c746963616c6c333a2063616c6c206661696c656400000000000000000060445260646000fd5b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051458152f35b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051418152f35b506103386108b961063c366105b9565b60405191829160208352602083019061027a565b506108d7366101be565b6108e081610bb6565b9160005b8281106108fd5760405180610338864380409084610610565b8061096261090d60019387610b2e565b51610919838787610a4b565b6000808235610927816106c5565b8161093760209586810190610a85565b9190826040519384928337810182815203925af190610954610ac6565b908301521515809152610b50565b016108e4565b503461000e576020367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051600435408152f35b50634e487b7160e01b600052604160045260246000fd5b6040519190601f017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe016820167ffffffffffffffff811183821017610a0057604052565b610a086109a5565b604052565b60209067ffffffffffffffff8111610a27575b60051b0190565b610a2f6109a5565b610a20565b50634e487b7160e01b600052603260045260246000fd5b9190811015610a6e575b60051b81013590603e198136030182121561000e570190565b610a76610a34565b610a55565b356102fb816106c5565b903590601e198136030182121561000e570180359067ffffffffffffffff821161000e5760200191813603831361000e57565b908092918237016000815290565b3d15610b29573d9067ffffffffffffffff8211610b1c575b610b0f601f83017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0166020016109bc565b9182523d6000602084013e565b610b246109a5565b610ade565b606090565b6020918151811015610b43575b60051b010190565b610b4b610a34565b610b3b565b15610b5757565b6040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601760248201527f4d756c746963616c6c333a2063616c6c206661696c65640000000000000000006044820152606490fd5b90610bc361047783610a0d565b8281528092610bd4601f1991610a0d565b0190600090815b838110610be85750505050565b60209060408051908082019082821067ffffffffffffffff831117610c1e575b5284815282606081830152828501015201610bdb565b610c266109a5565b610c08565b929190610c3782610bb6565b9360005b838110610c485750505050565b80610c5560019288610b2e565b5183610c62838888610a4b565b6000808235610c70816106c5565b81610c8060209586810190610a85565b9190826040519384928337810182815203925af190610c9d610ac6565b908401521515809252610cb2575b5001610c3b565b610cbb90610b50565b38610cab565b9190811015610ce4575b60051b81013590605e198136030182121561000e570190565b610cec610a34565b610ccb565b9190811015610d14575b60051b81013590607e198136030182121561000e570190565b610d1c610a34565b610cfb565b15610d2857565b6040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601a60248201527f4d756c746963616c6c333a2076616c7565206d69736d617463680000000000006044820152606490fdfea2646970667358221220139e9482b9851dc4eb079e5ad7cb71870795bfa1bcec45321b9199628d2f465f64736f6c634300080e0033",
-  "devdoc": {
-    "author": "Michael Elliot <mike@makerdao.com>Joshua Levine <joshua@makerdao.com>Nick Johnson <arachnid@notdot.net>Andreas Bigger <andreas@nascent.xyz>Matt Solomon <matt@mattsolomon.dev>",
-    "details": "Multicall & Multicall2 backwards-compatibleAggregate methods are marked `payable` to save 24 gas per call",
-    "kind": "dev",
-    "methods": {
-      "aggregate((address,bytes)[])": {
-        "params": {
-          "calls": "An array of Call structs"
-        },
-        "returns": {
-          "blockNumber": "The block number where the calls were executed",
-          "returnData": "An array of bytes containing the responses"
-        }
-      },
-      "aggregate3((address,bool,bytes)[])": {
-        "params": {
-          "calls": "An array of Call3 structs"
-        },
-        "returns": {
-          "returnData": "An array of Result structs"
-        }
-      },
-      "aggregate3Value((address,bool,uint256,bytes)[])": {
-        "params": {
-          "calls": "An array of Call3Value structs"
-        },
-        "returns": {
-          "returnData": "An array of Result structs"
-        }
-      },
-      "blockAndAggregate((address,bytes)[])": {
-        "params": {
-          "calls": "An array of Call structs"
-        },
-        "returns": {
-          "blockHash": "The hash of the block where the calls were executed",
-          "blockNumber": "The block number where the calls were executed",
-          "returnData": "An array of Result structs"
-        }
-      },
-      "getBlockHash(uint256)": {
-        "params": {
-          "blockNumber": "The block number"
-        }
-      },
-      "tryAggregate(bool,(address,bytes)[])": {
-        "params": {
-          "calls": "An array of Call structs",
-          "requireSuccess": "If true, require all calls to succeed"
-        },
-        "returns": {
-          "returnData": "An array of Result structs"
-        }
-      },
-      "tryBlockAndAggregate(bool,(address,bytes)[])": {
-        "params": {
-          "calls": "An array of Call structs"
-        },
-        "returns": {
-          "blockHash": "The hash of the block where the calls were executed",
-          "blockNumber": "The block number where the calls were executed",
-          "returnData": "An array of Result structs"
-        }
-      }
+    "receipt": {
+        "to": null,
+        "from": "0xd21040ab567F989E0E751BE56f74ca38804e53e9",
+        "contractAddress": "0x7FFcE0C2BEd18aDf44383FC2897B3061648F442C",
+        "transactionIndex": 1,
+        "gasUsed": "811582",
+        "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "blockHash": "0x06768d0db51b8384ed2bd62b7f9053eb9c181fe680676042e19b2eae4ef75607",
+        "transactionHash": "0x4efdf61ea3ec982f1747759107cf6ff1aeb7e4fbf80210721e209bffb0bf8bd5",
+        "logs": [],
+        "blockNumber": 5932739,
+        "cumulativeGasUsed": "811582",
+        "status": 1,
+        "byzantium": true
     },
-    "title": "Multicall3",
-    "version": 1
-  },
-  "userdoc": {
-    "kind": "user",
-    "methods": {
-      "aggregate((address,bytes)[])": {
-        "notice": "Backwards-compatible call aggregation with Multicall"
-      },
-      "aggregate3((address,bool,bytes)[])": {
-        "notice": "Aggregate calls, ensuring each returns success if required"
-      },
-      "aggregate3Value((address,bool,uint256,bytes)[])": {
-        "notice": "Aggregate calls with a msg valueReverts if msg.value is less than the sum of the call values"
-      },
-      "blockAndAggregate((address,bytes)[])": {
-        "notice": "Backwards-compatible with Multicall2Aggregate calls and allow failures using tryAggregate"
-      },
-      "getBasefee()": {
-        "notice": "Gets the base fee of the given blockCan revert if the BASEFEE opcode is not implemented by the given chain"
-      },
-      "getBlockHash(uint256)": {
-        "notice": "Returns the block hash for the given block number"
-      },
-      "getBlockNumber()": {
-        "notice": "Returns the block number"
-      },
-      "getChainId()": {
-        "notice": "Returns the chain id"
-      },
-      "getCurrentBlockCoinbase()": {
-        "notice": "Returns the block coinbase"
-      },
-      "getCurrentBlockDifficulty()": {
-        "notice": "Returns the block difficulty"
-      },
-      "getCurrentBlockGasLimit()": {
-        "notice": "Returns the block gas limit"
-      },
-      "getCurrentBlockTimestamp()": {
-        "notice": "Returns the block timestamp"
-      },
-      "getEthBalance(address)": {
-        "notice": "Returns the (ETH) balance of a given address"
-      },
-      "getLastBlockHash()": {
-        "notice": "Returns the block hash of the last block"
-      },
-      "tryAggregate(bool,(address,bytes)[])": {
-        "notice": "Backwards-compatible with Multicall2Aggregate calls without requiring success"
-      },
-      "tryBlockAndAggregate(bool,(address,bytes)[])": {
-        "notice": "Backwards-compatible with Multicall2Aggregate calls and allow failures using tryAggregate"
-      }
+    "args": [],
+    "numDeployments": 1,
+    "solcInputHash": "30e520ad8c0ff3988f6dd96755ed7d8b",
+    "metadata": "{\"compiler\":{\"version\":\"0.8.14+commit.80d49f37\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"callData\",\"type\":\"bytes\"}],\"internalType\":\"struct Multicall3.Call[]\",\"name\":\"calls\",\"type\":\"tuple[]\"}],\"name\":\"aggregate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\"},{\"internalType\":\"bytes[]\",\"name\":\"returnData\",\"type\":\"bytes[]\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"allowFailure\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"callData\",\"type\":\"bytes\"}],\"internalType\":\"struct Multicall3.Call3[]\",\"name\":\"calls\",\"type\":\"tuple[]\"}],\"name\":\"aggregate3\",\"outputs\":[{\"components\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"returnData\",\"type\":\"bytes\"}],\"internalType\":\"struct Multicall3.Result[]\",\"name\":\"returnData\",\"type\":\"tuple[]\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"allowFailure\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"callData\",\"type\":\"bytes\"}],\"internalType\":\"struct Multicall3.Call3Value[]\",\"name\":\"calls\",\"type\":\"tuple[]\"}],\"name\":\"aggregate3Value\",\"outputs\":[{\"components\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"returnData\",\"type\":\"bytes\"}],\"internalType\":\"struct Multicall3.Result[]\",\"name\":\"returnData\",\"type\":\"tuple[]\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"callData\",\"type\":\"bytes\"}],\"internalType\":\"struct Multicall3.Call[]\",\"name\":\"calls\",\"type\":\"tuple[]\"}],\"name\":\"blockAndAggregate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"},{\"components\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"returnData\",\"type\":\"bytes\"}],\"internalType\":\"struct Multicall3.Result[]\",\"name\":\"returnData\",\"type\":\"tuple[]\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getBasefee\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"basefee\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\"}],\"name\":\"getBlockHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getBlockNumber\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getChainId\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"chainid\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getCurrentBlockCoinbase\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"coinbase\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getCurrentBlockDifficulty\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"difficulty\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getCurrentBlockGasLimit\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"gaslimit\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getCurrentBlockTimestamp\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"}],\"name\":\"getEthBalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getLastBlockHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bool\",\"name\":\"requireSuccess\",\"type\":\"bool\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"callData\",\"type\":\"bytes\"}],\"internalType\":\"struct Multicall3.Call[]\",\"name\":\"calls\",\"type\":\"tuple[]\"}],\"name\":\"tryAggregate\",\"outputs\":[{\"components\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"returnData\",\"type\":\"bytes\"}],\"internalType\":\"struct Multicall3.Result[]\",\"name\":\"returnData\",\"type\":\"tuple[]\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bool\",\"name\":\"requireSuccess\",\"type\":\"bool\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"callData\",\"type\":\"bytes\"}],\"internalType\":\"struct Multicall3.Call[]\",\"name\":\"calls\",\"type\":\"tuple[]\"}],\"name\":\"tryBlockAndAggregate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"},{\"components\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"returnData\",\"type\":\"bytes\"}],\"internalType\":\"struct Multicall3.Result[]\",\"name\":\"returnData\",\"type\":\"tuple[]\"}],\"stateMutability\":\"payable\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"Michael Elliot <mike@makerdao.com>Joshua Levine <joshua@makerdao.com>Nick Johnson <arachnid@notdot.net>Andreas Bigger <andreas@nascent.xyz>Matt Solomon <matt@mattsolomon.dev>\",\"details\":\"Multicall & Multicall2 backwards-compatibleAggregate methods are marked `payable` to save 24 gas per call\",\"kind\":\"dev\",\"methods\":{\"aggregate((address,bytes)[])\":{\"params\":{\"calls\":\"An array of Call structs\"},\"returns\":{\"blockNumber\":\"The block number where the calls were executed\",\"returnData\":\"An array of bytes containing the responses\"}},\"aggregate3((address,bool,bytes)[])\":{\"params\":{\"calls\":\"An array of Call3 structs\"},\"returns\":{\"returnData\":\"An array of Result structs\"}},\"aggregate3Value((address,bool,uint256,bytes)[])\":{\"params\":{\"calls\":\"An array of Call3Value structs\"},\"returns\":{\"returnData\":\"An array of Result structs\"}},\"blockAndAggregate((address,bytes)[])\":{\"params\":{\"calls\":\"An array of Call structs\"},\"returns\":{\"blockHash\":\"The hash of the block where the calls were executed\",\"blockNumber\":\"The block number where the calls were executed\",\"returnData\":\"An array of Result structs\"}},\"getBlockHash(uint256)\":{\"params\":{\"blockNumber\":\"The block number\"}},\"tryAggregate(bool,(address,bytes)[])\":{\"params\":{\"calls\":\"An array of Call structs\",\"requireSuccess\":\"If true, require all calls to succeed\"},\"returns\":{\"returnData\":\"An array of Result structs\"}},\"tryBlockAndAggregate(bool,(address,bytes)[])\":{\"params\":{\"calls\":\"An array of Call structs\"},\"returns\":{\"blockHash\":\"The hash of the block where the calls were executed\",\"blockNumber\":\"The block number where the calls were executed\",\"returnData\":\"An array of Result structs\"}}},\"title\":\"Multicall3\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"aggregate((address,bytes)[])\":{\"notice\":\"Backwards-compatible call aggregation with Multicall\"},\"aggregate3((address,bool,bytes)[])\":{\"notice\":\"Aggregate calls, ensuring each returns success if required\"},\"aggregate3Value((address,bool,uint256,bytes)[])\":{\"notice\":\"Aggregate calls with a msg valueReverts if msg.value is less than the sum of the call values\"},\"blockAndAggregate((address,bytes)[])\":{\"notice\":\"Backwards-compatible with Multicall2Aggregate calls and allow failures using tryAggregate\"},\"getBasefee()\":{\"notice\":\"Gets the base fee of the given blockCan revert if the BASEFEE opcode is not implemented by the given chain\"},\"getBlockHash(uint256)\":{\"notice\":\"Returns the block hash for the given block number\"},\"getBlockNumber()\":{\"notice\":\"Returns the block number\"},\"getChainId()\":{\"notice\":\"Returns the chain id\"},\"getCurrentBlockCoinbase()\":{\"notice\":\"Returns the block coinbase\"},\"getCurrentBlockDifficulty()\":{\"notice\":\"Returns the block difficulty\"},\"getCurrentBlockGasLimit()\":{\"notice\":\"Returns the block gas limit\"},\"getCurrentBlockTimestamp()\":{\"notice\":\"Returns the block timestamp\"},\"getEthBalance(address)\":{\"notice\":\"Returns the (ETH) balance of a given address\"},\"getLastBlockHash()\":{\"notice\":\"Returns the block hash of the last block\"},\"tryAggregate(bool,(address,bytes)[])\":{\"notice\":\"Backwards-compatible with Multicall2Aggregate calls without requiring success\"},\"tryBlockAndAggregate(bool,(address,bytes)[])\":{\"notice\":\"Backwards-compatible with Multicall2Aggregate calls and allow failures using tryAggregate\"}},\"notice\":\"Aggregate results from multiple function calls\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"src/contracts/vendor/Multicall3.sol\":\"Multicall3\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"details\":{\"constantOptimizer\":false,\"cse\":true,\"deduplicate\":true,\"inliner\":true,\"jumpdestRemover\":true,\"orderLiterals\":true,\"peephole\":true,\"yul\":true,\"yulDetails\":{\"optimizerSteps\":\"dhfoDgvulfnTUtnIf[xa[r]EscLMcCTUtTOntnfDIulLculVcul [j]Tpeulxa[rul]xa[r]cLgvifCTUca[r]LSsTFOtfDnca[r]Iulc]jmul[jul] VcTOcul jmul\",\"stackAllocation\":true}},\"runs\":200},\"remappings\":[],\"viaIR\":true},\"sources\":{\"src/contracts/vendor/Multicall3.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.8.14;\\n\\n/// @title Multicall3\\n/// @notice Aggregate results from multiple function calls\\n/// @dev Multicall & Multicall2 backwards-compatible\\n/// @dev Aggregate methods are marked `payable` to save 24 gas per call\\n/// @author Michael Elliot <mike@makerdao.com>\\n/// @author Joshua Levine <joshua@makerdao.com>\\n/// @author Nick Johnson <arachnid@notdot.net>\\n/// @author Andreas Bigger <andreas@nascent.xyz>\\n/// @author Matt Solomon <matt@mattsolomon.dev>\\ncontract Multicall3 {\\n    struct Call {\\n        address target;\\n        bytes callData;\\n    }\\n\\n    struct Call3 {\\n        address target;\\n        bool allowFailure;\\n        bytes callData;\\n    }\\n\\n    struct Call3Value {\\n        address target;\\n        bool allowFailure;\\n        uint256 value;\\n        bytes callData;\\n    }\\n\\n    struct Result {\\n        bool success;\\n        bytes returnData;\\n    }\\n\\n    /// @notice Backwards-compatible call aggregation with Multicall\\n    /// @param calls An array of Call structs\\n    /// @return blockNumber The block number where the calls were executed\\n    /// @return returnData An array of bytes containing the responses\\n    function aggregate(Call[] calldata calls) public payable returns (uint256 blockNumber, bytes[] memory returnData) {\\n        blockNumber = block.number;\\n        uint256 length = calls.length;\\n        returnData = new bytes[](length);\\n        Call calldata call;\\n        for (uint256 i = 0; i < length;) {\\n            bool success;\\n            call = calls[i];\\n            (success, returnData[i]) = call.target.call(call.callData);\\n            require(success, \\\"Multicall3: call failed\\\");\\n            unchecked { ++i; }\\n        }\\n    }\\n\\n    /// @notice Backwards-compatible with Multicall2\\n    /// @notice Aggregate calls without requiring success\\n    /// @param requireSuccess If true, require all calls to succeed\\n    /// @param calls An array of Call structs\\n    /// @return returnData An array of Result structs\\n    function tryAggregate(bool requireSuccess, Call[] calldata calls) public payable returns (Result[] memory returnData) {\\n        uint256 length = calls.length;\\n        returnData = new Result[](length);\\n        Call calldata call;\\n        for (uint256 i = 0; i < length;) {\\n            Result memory result = returnData[i];\\n            call = calls[i];\\n            (result.success, result.returnData) = call.target.call(call.callData);\\n            if (requireSuccess) require(result.success, \\\"Multicall3: call failed\\\");\\n            unchecked { ++i; }\\n        }\\n    }\\n\\n    /// @notice Backwards-compatible with Multicall2\\n    /// @notice Aggregate calls and allow failures using tryAggregate\\n    /// @param calls An array of Call structs\\n    /// @return blockNumber The block number where the calls were executed\\n    /// @return blockHash The hash of the block where the calls were executed\\n    /// @return returnData An array of Result structs\\n    function tryBlockAndAggregate(bool requireSuccess, Call[] calldata calls) public payable returns (uint256 blockNumber, bytes32 blockHash, Result[] memory returnData) {\\n        blockNumber = block.number;\\n        blockHash = blockhash(block.number);\\n        returnData = tryAggregate(requireSuccess, calls);\\n    }\\n\\n    /// @notice Backwards-compatible with Multicall2\\n    /// @notice Aggregate calls and allow failures using tryAggregate\\n    /// @param calls An array of Call structs\\n    /// @return blockNumber The block number where the calls were executed\\n    /// @return blockHash The hash of the block where the calls were executed\\n    /// @return returnData An array of Result structs\\n    function blockAndAggregate(Call[] calldata calls) public payable returns (uint256 blockNumber, bytes32 blockHash, Result[] memory returnData) {\\n        (blockNumber, blockHash, returnData) = tryBlockAndAggregate(true, calls);\\n    }\\n\\n    /// @notice Aggregate calls, ensuring each returns success if required\\n    /// @param calls An array of Call3 structs\\n    /// @return returnData An array of Result structs\\n    function aggregate3(Call3[] calldata calls) public payable returns (Result[] memory returnData) {\\n        uint256 length = calls.length;\\n        returnData = new Result[](length);\\n        Call3 calldata calli;\\n        for (uint256 i = 0; i < length;) {\\n            Result memory result = returnData[i];\\n            calli = calls[i];\\n            (result.success, result.returnData) = calli.target.call(calli.callData);\\n            assembly {\\n                // Revert if the call fails and failure is not allowed\\n                // `allowFailure := calldataload(add(calli, 0x20))` and `success := mload(result)`\\n                if iszero(or(calldataload(add(calli, 0x20)), mload(result))) {\\n                    // set \\\"Error(string)\\\" signature: bytes32(bytes4(keccak256(\\\"Error(string)\\\")))\\n                    mstore(0x00, 0x08c379a000000000000000000000000000000000000000000000000000000000)\\n                    // set data offset\\n                    mstore(0x04, 0x0000000000000000000000000000000000000000000000000000000000000020)\\n                    // set length of revert string\\n                    mstore(0x24, 0x0000000000000000000000000000000000000000000000000000000000000017)\\n                    // set revert string: bytes32(abi.encodePacked(\\\"Multicall3: call failed\\\"))\\n                    mstore(0x44, 0x4d756c746963616c6c333a2063616c6c206661696c6564000000000000000000)\\n                    revert(0x00, 0x64)\\n                }\\n            }\\n            unchecked { ++i; }\\n        }\\n    }\\n\\n    /// @notice Aggregate calls with a msg value\\n    /// @notice Reverts if msg.value is less than the sum of the call values\\n    /// @param calls An array of Call3Value structs\\n    /// @return returnData An array of Result structs\\n    function aggregate3Value(Call3Value[] calldata calls) public payable returns (Result[] memory returnData) {\\n        uint256 valAccumulator;\\n        uint256 length = calls.length;\\n        returnData = new Result[](length);\\n        Call3Value calldata calli;\\n        for (uint256 i = 0; i < length;) {\\n            Result memory result = returnData[i];\\n            calli = calls[i];\\n            uint256 val = calli.value;\\n            // Humanity will be a Type V Kardashev Civilization before this overflows - andreas\\n            // ~ 10^25 Wei in existence << ~ 10^76 size uint fits in a uint256\\n            unchecked { valAccumulator += val; }\\n            (result.success, result.returnData) = calli.target.call{value: val}(calli.callData);\\n            assembly {\\n                // Revert if the call fails and failure is not allowed\\n                // `allowFailure := calldataload(add(calli, 0x20))` and `success := mload(result)`\\n                if iszero(or(calldataload(add(calli, 0x20)), mload(result))) {\\n                    // set \\\"Error(string)\\\" signature: bytes32(bytes4(keccak256(\\\"Error(string)\\\")))\\n                    mstore(0x00, 0x08c379a000000000000000000000000000000000000000000000000000000000)\\n                    // set data offset\\n                    mstore(0x04, 0x0000000000000000000000000000000000000000000000000000000000000020)\\n                    // set length of revert string\\n                    mstore(0x24, 0x0000000000000000000000000000000000000000000000000000000000000017)\\n                    // set revert string: bytes32(abi.encodePacked(\\\"Multicall3: call failed\\\"))\\n                    mstore(0x44, 0x4d756c746963616c6c333a2063616c6c206661696c6564000000000000000000)\\n                    revert(0x00, 0x84)\\n                }\\n            }\\n            unchecked { ++i; }\\n        }\\n        // Finally, make sure the msg.value = SUM(call[0...i].value)\\n        require(msg.value == valAccumulator, \\\"Multicall3: value mismatch\\\");\\n    }\\n\\n    /// @notice Returns the block hash for the given block number\\n    /// @param blockNumber The block number\\n    function getBlockHash(uint256 blockNumber) public view returns (bytes32 blockHash) {\\n        blockHash = blockhash(blockNumber);\\n    }\\n\\n    /// @notice Returns the block number\\n    function getBlockNumber() public view returns (uint256 blockNumber) {\\n        blockNumber = block.number;\\n    }\\n\\n    /// @notice Returns the block coinbase\\n    function getCurrentBlockCoinbase() public view returns (address coinbase) {\\n        coinbase = block.coinbase;\\n    }\\n\\n    /// @notice Returns the block difficulty\\n    function getCurrentBlockDifficulty() public view returns (uint256 difficulty) {\\n        difficulty = block.difficulty;\\n    }\\n\\n    /// @notice Returns the block gas limit\\n    function getCurrentBlockGasLimit() public view returns (uint256 gaslimit) {\\n        gaslimit = block.gaslimit;\\n    }\\n\\n    /// @notice Returns the block timestamp\\n    function getCurrentBlockTimestamp() public view returns (uint256 timestamp) {\\n        timestamp = block.timestamp;\\n    }\\n\\n    /// @notice Returns the (ETH) balance of a given address\\n    function getEthBalance(address addr) public view returns (uint256 balance) {\\n        balance = addr.balance;\\n    }\\n\\n    /// @notice Returns the block hash of the last block\\n    function getLastBlockHash() public view returns (bytes32 blockHash) {\\n        unchecked {\\n            blockHash = blockhash(block.number - 1);\\n        }\\n    }\\n\\n    /// @notice Gets the base fee of the given block\\n    /// @notice Can revert if the BASEFEE opcode is not implemented by the given chain\\n    function getBasefee() public view returns (uint256 basefee) {\\n        basefee = block.basefee;\\n    }\\n\\n    /// @notice Returns the chain id\\n    function getChainId() public view returns (uint256 chainid) {\\n        chainid = block.chainid;\\n    }\\n}\\n\",\"keccak256\":\"0xb5851dff96a3cd6cb4c664ff92f9b7d2653bf4fab00766c688f9026a8a00c6b9\",\"license\":\"MIT\"}},\"version\":1}",
+    "bytecode": "0x6080806040523461001657610dbd908161001c8239f35b600080fdfe60806040526004361015610013575b600080fd5b60003560e01c80630f28c97d14610153578063174dea711461014a578063252dba421461014157806327e86d6e146101385780633408e4701461012f578063399542e9146101265780633e64a6961461011d57806342cbb15c146101145780634d2301cc1461010b57806372425d9d1461010257806382ad56cb146100f957806386d516e8146100f0578063a8b0574e146100e7578063bce38bd7146100de578063c3077fa9146100d55763ee82ac5e146100cd57600080fd5b61000e610968565b5061000e6108cd565b5061000e6108a9565b5061000e61086f565b5061000e610835565b5061000e610764565b5061000e61072a565b5061000e6106e3565b5061000e61068b565b5061000e610651565b5061000e61062c565b5061000e61057f565b5061000e610540565b5061000e610460565b5061000e6102fe565b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051428152f35b9181601f8401121561000e5782359167ffffffffffffffff831161000e576020808501948460051b01011161000e57565b60207ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc82011261000e576004359067ffffffffffffffff821161000e576102079160040161018d565b9091565b91908251928382526000905b848210610262575092806020939411610255575b601f017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe016010190565b600083828401015261022b565b90602090818082850101519082860101520190610217565b908082519081815260208091019281808460051b8301019501936000915b8483106102a85750505050505090565b90919293949584806102da600193601f19868203018752828b518051151583520151906040908185820152019061020b565b9801930193019194939290610298565b9060206102fb92818152019061027a565b90565b50610308366101be565b600061031382610bb6565b91815b81811061033c576103388461032c853414610d21565b604051918291826102ea565b0390f35b6103468185610b2e565b51610352828488610cf1565b6000806040610386818501358099019861036b86610a7b565b926103796060880188610a85565b9390915180948193610ab8565b03925af191610393610ac6565b906103a8602094859384840152829015159052565b5191013517156103bb5750600101610316565b62461bcd60e51b60005260045260176024527f4d756c746963616c6c333a2063616c6c206661696c656400000000000000000060445260846000fd5b90604082019082526020604081840152835180925260608301928160608460051b8301019501936000915b8483106104325750505050505090565b9091929394958480610450600193605f198682030187528a5161020b565b9801930193019194939290610422565b5061046a366101be565b9061047c61047783610a0d565b6109bc565b828152917fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe06104aa82610a0d565b0160005b81811061052f57505060005b8181106104d057604051806103388643836103f7565b806105296000806104e46001958789610a4b565b816104fc6104f183610a7b565b926020810190610a85565b919061050d60405180948193610ab8565b03925af1610519610ac6565b6105238489610b2e565b52610b50565b016104ba565b8060606020809388010152016104ae565b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e5760206040516000194301408152f35b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051468152f35b9060407ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc83011261000e57600435801515810361000e57916024359067ffffffffffffffff821161000e576102079160040161018d565b6102fb939260609282526020820152816040820152019061027a565b5061033861064261063c366105b9565b91610c2b565b60405191829143404384610610565b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051488152f35b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051438152f35b73ffffffffffffffffffffffffffffffffffffffff81160361000e57565b503461000e576020367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020600435610721816106c5565b31604051908152f35b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051448152f35b5061076e366101be565b61077781610bb6565b9060005b818110610790576040518061033885826102ea565b61079a8184610b2e565b516107a6828487610cc1565b6000806107b283610a7b565b6107c482604061037981880188610a85565b03925af1916107d1610ac6565b906107e6602094859384840152829015159052565b5191013517156107f9575060010161077b565b62461bcd60e51b60005260045260176024527f4d756c746963616c6c333a2063616c6c206661696c656400000000000000000060445260646000fd5b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051458152f35b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051418152f35b506103386108b961063c366105b9565b60405191829160208352602083019061027a565b506108d7366101be565b6108e081610bb6565b9160005b8281106108fd5760405180610338864380409084610610565b8061096261090d60019387610b2e565b51610919838787610a4b565b6000808235610927816106c5565b8161093760209586810190610a85565b9190826040519384928337810182815203925af190610954610ac6565b908301521515809152610b50565b016108e4565b503461000e576020367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051600435408152f35b50634e487b7160e01b600052604160045260246000fd5b6040519190601f017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe016820167ffffffffffffffff811183821017610a0057604052565b610a086109a5565b604052565b60209067ffffffffffffffff8111610a27575b60051b0190565b610a2f6109a5565b610a20565b50634e487b7160e01b600052603260045260246000fd5b9190811015610a6e575b60051b81013590603e198136030182121561000e570190565b610a76610a34565b610a55565b356102fb816106c5565b903590601e198136030182121561000e570180359067ffffffffffffffff821161000e5760200191813603831361000e57565b908092918237016000815290565b3d15610b29573d9067ffffffffffffffff8211610b1c575b610b0f601f83017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0166020016109bc565b9182523d6000602084013e565b610b246109a5565b610ade565b606090565b6020918151811015610b43575b60051b010190565b610b4b610a34565b610b3b565b15610b5757565b6040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601760248201527f4d756c746963616c6c333a2063616c6c206661696c65640000000000000000006044820152606490fd5b90610bc361047783610a0d565b8281528092610bd4601f1991610a0d565b0190600090815b838110610be85750505050565b60209060408051908082019082821067ffffffffffffffff831117610c1e575b5284815282606081830152828501015201610bdb565b610c266109a5565b610c08565b929190610c3782610bb6565b9360005b838110610c485750505050565b80610c5560019288610b2e565b5183610c62838888610a4b565b6000808235610c70816106c5565b81610c8060209586810190610a85565b9190826040519384928337810182815203925af190610c9d610ac6565b908401521515809252610cb2575b5001610c3b565b610cbb90610b50565b38610cab565b9190811015610ce4575b60051b81013590605e198136030182121561000e570190565b610cec610a34565b610ccb565b9190811015610d14575b60051b81013590607e198136030182121561000e570190565b610d1c610a34565b610cfb565b15610d2857565b6040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601a60248201527f4d756c746963616c6c333a2076616c7565206d69736d617463680000000000006044820152606490fdfea2646970667358221220139e9482b9851dc4eb079e5ad7cb71870795bfa1bcec45321b9199628d2f465f64736f6c634300080e0033",
+    "deployedBytecode": "0x60806040526004361015610013575b600080fd5b60003560e01c80630f28c97d14610153578063174dea711461014a578063252dba421461014157806327e86d6e146101385780633408e4701461012f578063399542e9146101265780633e64a6961461011d57806342cbb15c146101145780634d2301cc1461010b57806372425d9d1461010257806382ad56cb146100f957806386d516e8146100f0578063a8b0574e146100e7578063bce38bd7146100de578063c3077fa9146100d55763ee82ac5e146100cd57600080fd5b61000e610968565b5061000e6108cd565b5061000e6108a9565b5061000e61086f565b5061000e610835565b5061000e610764565b5061000e61072a565b5061000e6106e3565b5061000e61068b565b5061000e610651565b5061000e61062c565b5061000e61057f565b5061000e610540565b5061000e610460565b5061000e6102fe565b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051428152f35b9181601f8401121561000e5782359167ffffffffffffffff831161000e576020808501948460051b01011161000e57565b60207ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc82011261000e576004359067ffffffffffffffff821161000e576102079160040161018d565b9091565b91908251928382526000905b848210610262575092806020939411610255575b601f017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe016010190565b600083828401015261022b565b90602090818082850101519082860101520190610217565b908082519081815260208091019281808460051b8301019501936000915b8483106102a85750505050505090565b90919293949584806102da600193601f19868203018752828b518051151583520151906040908185820152019061020b565b9801930193019194939290610298565b9060206102fb92818152019061027a565b90565b50610308366101be565b600061031382610bb6565b91815b81811061033c576103388461032c853414610d21565b604051918291826102ea565b0390f35b6103468185610b2e565b51610352828488610cf1565b6000806040610386818501358099019861036b86610a7b565b926103796060880188610a85565b9390915180948193610ab8565b03925af191610393610ac6565b906103a8602094859384840152829015159052565b5191013517156103bb5750600101610316565b62461bcd60e51b60005260045260176024527f4d756c746963616c6c333a2063616c6c206661696c656400000000000000000060445260846000fd5b90604082019082526020604081840152835180925260608301928160608460051b8301019501936000915b8483106104325750505050505090565b9091929394958480610450600193605f198682030187528a5161020b565b9801930193019194939290610422565b5061046a366101be565b9061047c61047783610a0d565b6109bc565b828152917fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe06104aa82610a0d565b0160005b81811061052f57505060005b8181106104d057604051806103388643836103f7565b806105296000806104e46001958789610a4b565b816104fc6104f183610a7b565b926020810190610a85565b919061050d60405180948193610ab8565b03925af1610519610ac6565b6105238489610b2e565b52610b50565b016104ba565b8060606020809388010152016104ae565b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e5760206040516000194301408152f35b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051468152f35b9060407ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc83011261000e57600435801515810361000e57916024359067ffffffffffffffff821161000e576102079160040161018d565b6102fb939260609282526020820152816040820152019061027a565b5061033861064261063c366105b9565b91610c2b565b60405191829143404384610610565b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051488152f35b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051438152f35b73ffffffffffffffffffffffffffffffffffffffff81160361000e57565b503461000e576020367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020600435610721816106c5565b31604051908152f35b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051448152f35b5061076e366101be565b61077781610bb6565b9060005b818110610790576040518061033885826102ea565b61079a8184610b2e565b516107a6828487610cc1565b6000806107b283610a7b565b6107c482604061037981880188610a85565b03925af1916107d1610ac6565b906107e6602094859384840152829015159052565b5191013517156107f9575060010161077b565b62461bcd60e51b60005260045260176024527f4d756c746963616c6c333a2063616c6c206661696c656400000000000000000060445260646000fd5b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051458152f35b503461000e576000367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051418152f35b506103386108b961063c366105b9565b60405191829160208352602083019061027a565b506108d7366101be565b6108e081610bb6565b9160005b8281106108fd5760405180610338864380409084610610565b8061096261090d60019387610b2e565b51610919838787610a4b565b6000808235610927816106c5565b8161093760209586810190610a85565b9190826040519384928337810182815203925af190610954610ac6565b908301521515809152610b50565b016108e4565b503461000e576020367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc011261000e576020604051600435408152f35b50634e487b7160e01b600052604160045260246000fd5b6040519190601f017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe016820167ffffffffffffffff811183821017610a0057604052565b610a086109a5565b604052565b60209067ffffffffffffffff8111610a27575b60051b0190565b610a2f6109a5565b610a20565b50634e487b7160e01b600052603260045260246000fd5b9190811015610a6e575b60051b81013590603e198136030182121561000e570190565b610a76610a34565b610a55565b356102fb816106c5565b903590601e198136030182121561000e570180359067ffffffffffffffff821161000e5760200191813603831361000e57565b908092918237016000815290565b3d15610b29573d9067ffffffffffffffff8211610b1c575b610b0f601f83017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0166020016109bc565b9182523d6000602084013e565b610b246109a5565b610ade565b606090565b6020918151811015610b43575b60051b010190565b610b4b610a34565b610b3b565b15610b5757565b6040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601760248201527f4d756c746963616c6c333a2063616c6c206661696c65640000000000000000006044820152606490fd5b90610bc361047783610a0d565b8281528092610bd4601f1991610a0d565b0190600090815b838110610be85750505050565b60209060408051908082019082821067ffffffffffffffff831117610c1e575b5284815282606081830152828501015201610bdb565b610c266109a5565b610c08565b929190610c3782610bb6565b9360005b838110610c485750505050565b80610c5560019288610b2e565b5183610c62838888610a4b565b6000808235610c70816106c5565b81610c8060209586810190610a85565b9190826040519384928337810182815203925af190610c9d610ac6565b908401521515809252610cb2575b5001610c3b565b610cbb90610b50565b38610cab565b9190811015610ce4575b60051b81013590605e198136030182121561000e570190565b610cec610a34565b610ccb565b9190811015610d14575b60051b81013590607e198136030182121561000e570190565b610d1c610a34565b610cfb565b15610d2857565b6040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601a60248201527f4d756c746963616c6c333a2076616c7565206d69736d617463680000000000006044820152606490fdfea2646970667358221220139e9482b9851dc4eb079e5ad7cb71870795bfa1bcec45321b9199628d2f465f64736f6c634300080e0033",
+    "devdoc": {
+        "author": "Michael Elliot <mike@makerdao.com>Joshua Levine <joshua@makerdao.com>Nick Johnson <arachnid@notdot.net>Andreas Bigger <andreas@nascent.xyz>Matt Solomon <matt@mattsolomon.dev>",
+        "details": "Multicall & Multicall2 backwards-compatibleAggregate methods are marked `payable` to save 24 gas per call",
+        "kind": "dev",
+        "methods": {
+            "aggregate((address,bytes)[])": {
+                "params": {
+                    "calls": "An array of Call structs"
+                },
+                "returns": {
+                    "blockNumber": "The block number where the calls were executed",
+                    "returnData": "An array of bytes containing the responses"
+                }
+            },
+            "aggregate3((address,bool,bytes)[])": {
+                "params": {
+                    "calls": "An array of Call3 structs"
+                },
+                "returns": {
+                    "returnData": "An array of Result structs"
+                }
+            },
+            "aggregate3Value((address,bool,uint256,bytes)[])": {
+                "params": {
+                    "calls": "An array of Call3Value structs"
+                },
+                "returns": {
+                    "returnData": "An array of Result structs"
+                }
+            },
+            "blockAndAggregate((address,bytes)[])": {
+                "params": {
+                    "calls": "An array of Call structs"
+                },
+                "returns": {
+                    "blockHash": "The hash of the block where the calls were executed",
+                    "blockNumber": "The block number where the calls were executed",
+                    "returnData": "An array of Result structs"
+                }
+            },
+            "getBlockHash(uint256)": {
+                "params": {
+                    "blockNumber": "The block number"
+                }
+            },
+            "tryAggregate(bool,(address,bytes)[])": {
+                "params": {
+                    "calls": "An array of Call structs",
+                    "requireSuccess": "If true, require all calls to succeed"
+                },
+                "returns": {
+                    "returnData": "An array of Result structs"
+                }
+            },
+            "tryBlockAndAggregate(bool,(address,bytes)[])": {
+                "params": {
+                    "calls": "An array of Call structs"
+                },
+                "returns": {
+                    "blockHash": "The hash of the block where the calls were executed",
+                    "blockNumber": "The block number where the calls were executed",
+                    "returnData": "An array of Result structs"
+                }
+            }
+        },
+        "title": "Multicall3",
+        "version": 1
     },
-    "notice": "Aggregate results from multiple function calls",
-    "version": 1
-  },
-  "storageLayout": {
-    "storage": [],
-    "types": null
-  }
+    "userdoc": {
+        "kind": "user",
+        "methods": {
+            "aggregate((address,bytes)[])": {
+                "notice": "Backwards-compatible call aggregation with Multicall"
+            },
+            "aggregate3((address,bool,bytes)[])": {
+                "notice": "Aggregate calls, ensuring each returns success if required"
+            },
+            "aggregate3Value((address,bool,uint256,bytes)[])": {
+                "notice": "Aggregate calls with a msg valueReverts if msg.value is less than the sum of the call values"
+            },
+            "blockAndAggregate((address,bytes)[])": {
+                "notice": "Backwards-compatible with Multicall2Aggregate calls and allow failures using tryAggregate"
+            },
+            "getBasefee()": {
+                "notice": "Gets the base fee of the given blockCan revert if the BASEFEE opcode is not implemented by the given chain"
+            },
+            "getBlockHash(uint256)": {
+                "notice": "Returns the block hash for the given block number"
+            },
+            "getBlockNumber()": {
+                "notice": "Returns the block number"
+            },
+            "getChainId()": {
+                "notice": "Returns the chain id"
+            },
+            "getCurrentBlockCoinbase()": {
+                "notice": "Returns the block coinbase"
+            },
+            "getCurrentBlockDifficulty()": {
+                "notice": "Returns the block difficulty"
+            },
+            "getCurrentBlockGasLimit()": {
+                "notice": "Returns the block gas limit"
+            },
+            "getCurrentBlockTimestamp()": {
+                "notice": "Returns the block timestamp"
+            },
+            "getEthBalance(address)": {
+                "notice": "Returns the (ETH) balance of a given address"
+            },
+            "getLastBlockHash()": {
+                "notice": "Returns the block hash of the last block"
+            },
+            "tryAggregate(bool,(address,bytes)[])": {
+                "notice": "Backwards-compatible with Multicall2Aggregate calls without requiring success"
+            },
+            "tryBlockAndAggregate(bool,(address,bytes)[])": {
+                "notice": "Backwards-compatible with Multicall2Aggregate calls and allow failures using tryAggregate"
+            }
+        },
+        "notice": "Aggregate results from multiple function calls",
+        "version": 1
+    },
+    "storageLayout": {
+        "storage": [],
+        "types": null
+    }
 }

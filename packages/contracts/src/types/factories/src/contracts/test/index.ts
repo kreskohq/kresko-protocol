@@ -5,4 +5,5 @@
 export * as markets from "./markets";
 export { Funder__factory } from "./Funder__factory";
 export { Multisender__factory } from "./Multisender__factory";
+export { WBTC__factory } from "./WBTC__factory";
 export { WETH__factory } from "./WETH__factory";

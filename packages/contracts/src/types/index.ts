@@ -31,7 +31,8 @@ export type { UniswapV2LiquidityMathLibrary } from "./src/contracts/test/markets
 export { UniswapV2LiquidityMathLibrary__factory } from "./factories/src/contracts/test/markets/UniswapV2LiquidityMathLibrary__factory";
 export type { Multisender } from "./src/contracts/test/Multisender";
 export { Multisender__factory } from "./factories/src/contracts/test/Multisender__factory";
-export type { wBTC } from "./src/contracts/test/wBTC";
+export type { WBTC } from "./src/contracts/test/WBTC";
+export { WBTC__factory } from "./factories/src/contracts/test/WBTC__factory";
 export type { WETH } from "./src/contracts/test/WETH";
 export { WETH__factory } from "./factories/src/contracts/test/WETH__factory";
 export type { FluxPriceFeed } from "./src/contracts/vendor/flux/FluxPriceFeed";

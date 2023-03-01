@@ -141,7 +141,7 @@ export type WithdrawalEvent = TypedEvent<[string, BigNumber], WithdrawalEventObj
 
 export type WithdrawalEventFilter = TypedEventFilter<WithdrawalEvent>;
 
-export interface wBTC extends BaseContract {
+export interface WBTC extends BaseContract {
     contractName: "WBTC";
 
     connect(signerOrProvider: Signer | Provider | string): this;

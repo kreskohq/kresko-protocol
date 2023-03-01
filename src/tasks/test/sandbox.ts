@@ -16,6 +16,9 @@ task(TASK_NAME).setAction(async function (_taskArgs: TaskArguments, hre) {
     const { deployer, testnetFunder, feedValidator } = await hre.ethers.getNamedSigners();
 
     try {
+        await hre.deploy("Funder", {
+            args: [(await hre.getContractOrFork("Kresko")).address],
+        });
         log.log("Finished");
     } catch (e) {
         log.error(e);

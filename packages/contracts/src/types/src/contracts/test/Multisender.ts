@@ -3,361 +3,272 @@
 /* tslint:disable */
 /* eslint-disable */
 import type {
-  BaseContract,
-  BigNumber,
-  BigNumberish,
-  BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
+    BaseContract,
+    BigNumber,
+    BigNumberish,
+    BytesLike,
+    CallOverrides,
+    ContractTransaction,
+    Overrides,
+    PopulatedTransaction,
+    Signer,
+    utils,
 } from "ethers";
-import type {
-  FunctionFragment,
-  Result,
-  EventFragment,
-} from "@ethersproject/abi";
+import type { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
-import type {
-  TypedEventFilter,
-  TypedEvent,
-  TypedListener,
-  OnEvent,
-  PromiseOrValue,
-} from "../../../common";
+import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent, PromiseOrValue } from "../../../common";
 
 export type TokenStruct = {
-  amount: PromiseOrValue<BigNumberish>;
-  token: PromiseOrValue<string>;
+    amount: PromiseOrValue<BigNumberish>;
+    token: PromiseOrValue<string>;
 };
 
 export type TokenStructOutput = [BigNumber, string] & {
-  amount: BigNumber;
-  token: string;
+    amount: BigNumber;
+    token: string;
 };
 
 export interface MultisenderInterface extends utils.Interface {
-  functions: {
-    "addToken((uint256,address))": FunctionFragment;
-    "distribute(address[],uint256,uint256,uint256)": FunctionFragment;
-    "drain()": FunctionFragment;
-    "drainERC20()": FunctionFragment;
-    "funded(address)": FunctionFragment;
-    "owners(address)": FunctionFragment;
-    "setTokens((uint256,address)[])": FunctionFragment;
-    "toggleOwners(address[])": FunctionFragment;
-  };
+    functions: {
+        "addToken((uint256,address))": FunctionFragment;
+        "distribute(address[],uint256,uint256,uint256)": FunctionFragment;
+        "drain()": FunctionFragment;
+        "drainERC20()": FunctionFragment;
+        "funded(address)": FunctionFragment;
+        "owners(address)": FunctionFragment;
+        "setTokens((uint256,address)[])": FunctionFragment;
+        "toggleOwners(address[])": FunctionFragment;
+    };
 
-  getFunction(
-    nameOrSignatureOrTopic:
-      | "addToken"
-      | "distribute"
-      | "drain"
-      | "drainERC20"
-      | "funded"
-      | "owners"
-      | "setTokens"
-      | "toggleOwners"
-  ): FunctionFragment;
+    getFunction(
+        nameOrSignatureOrTopic:
+            | "addToken"
+            | "distribute"
+            | "drain"
+            | "drainERC20"
+            | "funded"
+            | "owners"
+            | "setTokens"
+            | "toggleOwners",
+    ): FunctionFragment;
 
-  encodeFunctionData(
-    functionFragment: "addToken",
-    values: [TokenStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "distribute",
-    values: [
-      PromiseOrValue<string>[],
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
-  ): string;
-  encodeFunctionData(functionFragment: "drain", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "drainERC20",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "funded",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "owners",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setTokens",
-    values: [TokenStruct[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "toggleOwners",
-    values: [PromiseOrValue<string>[]]
-  ): string;
+    encodeFunctionData(functionFragment: "addToken", values: [TokenStruct]): string;
+    encodeFunctionData(
+        functionFragment: "distribute",
+        values: [
+            PromiseOrValue<string>[],
+            PromiseOrValue<BigNumberish>,
+            PromiseOrValue<BigNumberish>,
+            PromiseOrValue<BigNumberish>,
+        ],
+    ): string;
+    encodeFunctionData(functionFragment: "drain", values?: undefined): string;
+    encodeFunctionData(functionFragment: "drainERC20", values?: undefined): string;
+    encodeFunctionData(functionFragment: "funded", values: [PromiseOrValue<string>]): string;
+    encodeFunctionData(functionFragment: "owners", values: [PromiseOrValue<string>]): string;
+    encodeFunctionData(functionFragment: "setTokens", values: [TokenStruct[]]): string;
+    encodeFunctionData(functionFragment: "toggleOwners", values: [PromiseOrValue<string>[]]): string;
 
-  decodeFunctionResult(functionFragment: "addToken", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "distribute", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "drain", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "drainERC20", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "funded", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "owners", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "setTokens", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "toggleOwners",
-    data: BytesLike
-  ): Result;
+    decodeFunctionResult(functionFragment: "addToken", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "distribute", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "drain", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "drainERC20", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "funded", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "owners", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "setTokens", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "toggleOwners", data: BytesLike): Result;
 
-  events: {
-    "Funded(address)": EventFragment;
-  };
+    events: {
+        "Funded(address)": EventFragment;
+    };
 
-  getEvent(nameOrSignatureOrTopic: "Funded"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "Funded"): EventFragment;
 }
 
 export interface FundedEventObject {
-  account: string;
+    account: string;
 }
 export type FundedEvent = TypedEvent<[string], FundedEventObject>;
 
 export type FundedEventFilter = TypedEventFilter<FundedEvent>;
 
 export interface Multisender extends BaseContract {
-  contractName: "Multisender";
+    contractName: "Multisender";
 
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+    connect(signerOrProvider: Signer | Provider | string): this;
+    attach(addressOrName: string): this;
+    deployed(): Promise<this>;
 
-  interface: MultisenderInterface;
+    interface: MultisenderInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+    queryFilter<TEvent extends TypedEvent>(
+        event: TypedEventFilter<TEvent>,
+        fromBlockOrBlockhash?: string | number | undefined,
+        toBlock?: string | number | undefined,
+    ): Promise<Array<TEvent>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+    listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>;
+    listeners(eventName?: string): Array<Listener>;
+    removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this;
+    removeAllListeners(eventName?: string): this;
+    off: OnEvent<this>;
+    on: OnEvent<this>;
+    once: OnEvent<this>;
+    removeListener: OnEvent<this>;
 
-  functions: {
+    functions: {
+        addToken(
+            _token: TokenStruct,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        distribute(
+            accounts: PromiseOrValue<string>[],
+            wethAmount: PromiseOrValue<BigNumberish>,
+            ethAmount: PromiseOrValue<BigNumberish>,
+            kissAmount: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        drain(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
+
+        drainERC20(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
+
+        funded(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[boolean]>;
+
+        owners(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[boolean]>;
+
+        setTokens(
+            _tokens: TokenStruct[],
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        toggleOwners(
+            accounts: PromiseOrValue<string>[],
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+    };
+
     addToken(
-      _token: TokenStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+        _token: TokenStruct,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     distribute(
-      accounts: PromiseOrValue<string>[],
-      wethAmount: PromiseOrValue<BigNumberish>,
-      ethAmount: PromiseOrValue<BigNumberish>,
-      kissAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+        accounts: PromiseOrValue<string>[],
+        wethAmount: PromiseOrValue<BigNumberish>,
+        ethAmount: PromiseOrValue<BigNumberish>,
+        kissAmount: PromiseOrValue<BigNumberish>,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
-    drain(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    drain(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
-    drainERC20(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    drainERC20(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
-    funded(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+    funded(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
 
-    owners(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+    owners(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
 
     setTokens(
-      _tokens: TokenStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+        _tokens: TokenStruct[],
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     toggleOwners(
-      accounts: PromiseOrValue<string>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+        accounts: PromiseOrValue<string>[],
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
-  };
 
-  addToken(
-    _token: TokenStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+    callStatic: {
+        addToken(_token: TokenStruct, overrides?: CallOverrides): Promise<void>;
 
-  distribute(
-    accounts: PromiseOrValue<string>[],
-    wethAmount: PromiseOrValue<BigNumberish>,
-    ethAmount: PromiseOrValue<BigNumberish>,
-    kissAmount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+        distribute(
+            accounts: PromiseOrValue<string>[],
+            wethAmount: PromiseOrValue<BigNumberish>,
+            ethAmount: PromiseOrValue<BigNumberish>,
+            kissAmount: PromiseOrValue<BigNumberish>,
+            overrides?: CallOverrides,
+        ): Promise<void>;
 
-  drain(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+        drain(overrides?: CallOverrides): Promise<void>;
 
-  drainERC20(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+        drainERC20(overrides?: CallOverrides): Promise<void>;
 
-  funded(
-    arg0: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
+        funded(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
 
-  owners(
-    arg0: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
+        owners(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
 
-  setTokens(
-    _tokens: TokenStruct[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+        setTokens(_tokens: TokenStruct[], overrides?: CallOverrides): Promise<void>;
 
-  toggleOwners(
-    accounts: PromiseOrValue<string>[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+        toggleOwners(accounts: PromiseOrValue<string>[], overrides?: CallOverrides): Promise<void>;
+    };
 
-  callStatic: {
-    addToken(_token: TokenStruct, overrides?: CallOverrides): Promise<void>;
+    filters: {
+        "Funded(address)"(account?: PromiseOrValue<string> | null): FundedEventFilter;
+        Funded(account?: PromiseOrValue<string> | null): FundedEventFilter;
+    };
 
-    distribute(
-      accounts: PromiseOrValue<string>[],
-      wethAmount: PromiseOrValue<BigNumberish>,
-      ethAmount: PromiseOrValue<BigNumberish>,
-      kissAmount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    estimateGas: {
+        addToken(_token: TokenStruct, overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
 
-    drain(overrides?: CallOverrides): Promise<void>;
+        distribute(
+            accounts: PromiseOrValue<string>[],
+            wethAmount: PromiseOrValue<BigNumberish>,
+            ethAmount: PromiseOrValue<BigNumberish>,
+            kissAmount: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
 
-    drainERC20(overrides?: CallOverrides): Promise<void>;
+        drain(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
 
-    funded(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+        drainERC20(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
 
-    owners(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+        funded(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    setTokens(_tokens: TokenStruct[], overrides?: CallOverrides): Promise<void>;
+        owners(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    toggleOwners(
-      accounts: PromiseOrValue<string>[],
-      overrides?: CallOverrides
-    ): Promise<void>;
-  };
+        setTokens(
+            _tokens: TokenStruct[],
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
 
-  filters: {
-    "Funded(address)"(
-      account?: PromiseOrValue<string> | null
-    ): FundedEventFilter;
-    Funded(account?: PromiseOrValue<string> | null): FundedEventFilter;
-  };
+        toggleOwners(
+            accounts: PromiseOrValue<string>[],
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+    };
 
-  estimateGas: {
-    addToken(
-      _token: TokenStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    populateTransaction: {
+        addToken(
+            _token: TokenStruct,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
 
-    distribute(
-      accounts: PromiseOrValue<string>[],
-      wethAmount: PromiseOrValue<BigNumberish>,
-      ethAmount: PromiseOrValue<BigNumberish>,
-      kissAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+        distribute(
+            accounts: PromiseOrValue<string>[],
+            wethAmount: PromiseOrValue<BigNumberish>,
+            ethAmount: PromiseOrValue<BigNumberish>,
+            kissAmount: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
 
-    drain(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+        drain(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
 
-    drainERC20(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+        drainERC20(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
 
-    funded(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+        funded(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    owners(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+        owners(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    setTokens(
-      _tokens: TokenStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+        setTokens(
+            _tokens: TokenStruct[],
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
 
-    toggleOwners(
-      accounts: PromiseOrValue<string>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    addToken(
-      _token: TokenStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    distribute(
-      accounts: PromiseOrValue<string>[],
-      wethAmount: PromiseOrValue<BigNumberish>,
-      ethAmount: PromiseOrValue<BigNumberish>,
-      kissAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    drain(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    drainERC20(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    funded(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    owners(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    setTokens(
-      _tokens: TokenStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    toggleOwners(
-      accounts: PromiseOrValue<string>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-  };
+        toggleOwners(
+            accounts: PromiseOrValue<string>[],
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+    };
 }

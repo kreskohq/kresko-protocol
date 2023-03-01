@@ -62,7 +62,7 @@ export type TC = GetContractTypes<typeof Contracts> & {
     [key in Exclude<KreskoAssetNames, "KISS">]: Contracts.KreskoAsset;
 } & {
     Diamond: Contracts.Kresko;
-    wBTC: Contracts.wBTC;
+    wBTC: Contracts.WBTC;
 } & {
     [key in Exclude<CollateralAssetNames, KreskoAssetNames | "WETH" | "wBTC" | "KISS">]: Contracts.ERC20Upgradeable;
 };

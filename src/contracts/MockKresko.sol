@@ -43,6 +43,7 @@ import {UIDataProviderFacet} from "./minter/facets/UIDataProviderFacet.sol";
 import {UIDataProviderFacet2} from "./minter/facets/UIDataProviderFacet2.sol";
 import {MinterEvent} from "./libs/Events.sol";
 
+/* solhint-disable no-empty-blocks */
 abstract contract MockKresko is
     DepositWithdrawFacet,
     MintFacet,
@@ -62,4 +63,6 @@ abstract contract MockKresko is
     DiamondLoupeFacet,
     DiamondOwnershipFacet,
     ERC165Facet
-{}
+{
+    //
+}

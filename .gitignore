@@ -39,7 +39,8 @@ yarn-error.log*
 **/.DS_Store
 
 *ganache.js
-
+packages/contracts/dist
+packages/contracts/src/types/**/*
 # OpenZeppelin
 .openzeppelin/dev-*.json
 .openzeppelin/unknown-*.json

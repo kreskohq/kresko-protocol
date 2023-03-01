@@ -24,26 +24,6 @@ import "hardhat-interface-generator";
 
 require("@nomiclabs/hardhat-etherscan");
 
-export const coreExports = [
-    "Kresko",
-    "KrStaking",
-    "KrStakingHelper",
-    "KreskoAsset",
-    "KreskoAssetAnchor",
-    "UniswapV2Router02",
-    "UniswapV2Factory",
-    "UniswapMath",
-    "UniswapV2Pair",
-    "UniswapV2LiquidityMathLibrary",
-    "Multisender",
-    "FluxPriceFeedFactory",
-    "FluxPriceFeed",
-    "KISS",
-    "UniswapV2Oracle",
-    "ERC20Upgradeable",
-    "WETH",
-];
-
 // import "hardhat-preprocessor";
 // import "hardhat-watcher";
 // import "hardhat-gas-reporter";
@@ -80,6 +60,14 @@ import "hardhat-configs/extensions";
 /*                               CONFIGURATION                                */
 /* -------------------------------------------------------------------------- */
 
+let externalArtifacts = ["./artifacts/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko.json"];
+let outDir = "types/typechain";
+if (isExport) {
+    exportUtil = require("./src/utils/export");
+    externalArtifacts = exportUtil.externalArtifacts();
+    outDir = "packages/contracts/src/types/";
+}
+console.log("externalArtifacts", externalArtifacts);
 const config: HardhatUserConfig = {
     solidity: { compilers },
     networks: networks(mnemonic),
@@ -95,7 +83,6 @@ const config: HardhatUserConfig = {
         tests: "src/test",
         deploy: "src/deploy",
         deployments: "deployments",
-        // imports: "forge/artifacts",
     },
     external: {
         contracts: [
@@ -113,15 +100,13 @@ const config: HardhatUserConfig = {
         },
     ],
     typechain: {
-        outDir: isExport ? "packages/contracts/src/types/" : "types/typechain",
+        outDir,
         target: "ethers-v5",
         alwaysGenerateOverloads: false,
         dontOverrideCompile: false,
         discriminateTypes: true,
         tsNocheck: true,
-        externalArtifacts: exportUtil?.externalArtifacts() ?? [
-            "./artifacts/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko.json",
-        ],
+        externalArtifacts,
     },
     contractSizer: {
         alphaSort: true,
