@@ -355,6 +355,71 @@ export const assets: { [asset: string]: Asset } = {
         cFactor: 1,
         mintAmount: 1700,
     },
+    krCOIN: {
+        name: "Coinbase Global",
+        symbol: "krCOIN",
+        decimals: 18,
+        price: async () => toBig(await getPriceFromTwelveData("COIN"), 8),
+        marketOpen: async () => {
+            return true; // TODO:
+        },
+        oracle: oracles.COIN,
+        kFactor: 1.1,
+        cFactor: 1,
+        mintAmount: 1,
+    },
+    krAAPL: {
+        name: "Apple Inc.",
+        symbol: "krAAPL",
+        decimals: 18,
+        price: async () => toBig(await getPriceFromTwelveData("AAPL"), 8),
+        marketOpen: async () => {
+            return true; // TODO:
+        },
+        oracle: oracles.AAPL,
+        kFactor: 1.1,
+        cFactor: 1,
+        mintAmount: 1,
+    },
+    krAMC: {
+        name: "AMC Entertainment Holdings Inc.",
+        symbol: "krAMC",
+        decimals: 18,
+        price: async () => toBig(await getPriceFromTwelveData("AMC"), 8),
+        marketOpen: async () => {
+            return true; // TODO:
+        },
+        oracle: oracles.AMC,
+        kFactor: 1.1,
+        cFactor: 1,
+        mintAmount: 1,
+    },
+    krIAU: {
+        name: "iShares Gold Trust",
+        symbol: "krIAU",
+        decimals: 18,
+        price: async () => toBig(await getPriceFromTwelveData("IAU"), 8),
+        marketOpen: async () => {
+            return true; // TODO:
+        },
+        oracle: oracles.IAU,
+        kFactor: 1.1,
+        cFactor: 1,
+        mintAmount: 1,
+    },
+    krUSO: {
+        name: "United States Oil Fund",
+        symbol: "krUSO",
+        decimals: 18,
+        price: async () => toBig(await getPriceFromTwelveData("USO"), 8),
+        marketOpen: async () => {
+            return true; // TODO:
+        },
+        oracle: oracles.USO,
+        kFactor: 1.1,
+        cFactor: 1,
+        mintAmount: 1,
+    },
     krETHRATE: {
         name: "Stability Rate Test Token",
         symbol: "krETHRATE",
@@ -395,6 +460,13 @@ export const batchALiquidity: [Asset, Asset, number][] = [
     [assets.KISS, assets.krMSTR, 1885!],
     [assets.KISS, assets.wBTC, 210!],
     [assets.krBTC, assets.wBTC, 210!],
+];
+export const batchBLiquidity: [Asset, Asset, number][] = [
+    [assets.KISS, assets.krIAU, 1!],
+    [assets.KISS, assets.krAAPL, 1!],
+    [assets.KISS, assets.krCOIN, 1!],
+    [assets.KISS, assets.krUSO, 1!],
+    [assets.KISS, assets.krAMC, 1!],
 ];
 
 const defaultStakingPools: StakingPoolConfig[] = [
@@ -459,6 +531,33 @@ export const batchAStakingPools: StakingPoolConfig[] = [
     {
         lpToken: [assets.KISS, assets.wBTC],
         allocPoint: 750,
+        startBlock: 0,
+    },
+];
+export const batchBStakingPools: StakingPoolConfig[] = [
+    {
+        lpToken: [assets.KISS, assets.krCOIN],
+        allocPoint: 1250,
+        startBlock: 0,
+    },
+    {
+        lpToken: [assets.KISS, assets.krUSO],
+        allocPoint: 1250,
+        startBlock: 0,
+    },
+    {
+        lpToken: [assets.KISS, assets.krAAPL],
+        allocPoint: 1250,
+        startBlock: 0,
+    },
+    {
+        lpToken: [assets.KISS, assets.krAMC],
+        allocPoint: 1250,
+        startBlock: 0,
+    },
+    {
+        lpToken: [assets.KISS, assets.krIAU],
+        allocPoint: 1250,
         startBlock: 0,
     },
 ];
