@@ -2,7 +2,7 @@
 pragma solidity >=0.8.14;
 
 import {IDiamondCutFacet} from "../interfaces/IDiamondCutFacet.sol";
-import {DiamondModifiers} from "../../shared/Modifiers.sol";
+import {DiamondModifiers, Role} from "../../shared/Modifiers.sol";
 import {initializeDiamondCut} from "../libs/LibDiamondCut.sol";
 import {ds} from "../DiamondStorage.sol";
 
@@ -17,7 +17,7 @@ contract DiamondCutFacet is DiamondModifiers, IDiamondCutFacet {
         FacetCut[] calldata _diamondCut,
         address _init,
         bytes calldata _calldata
-    ) external override onlyOwner {
+    ) external override onlyRole(Role.OPERATOR) {
         ds().diamondCut(_diamondCut, _init, _calldata);
     }
 
@@ -25,7 +25,7 @@ contract DiamondCutFacet is DiamondModifiers, IDiamondCutFacet {
     /// @param _init The address of the contract or facet to execute _calldata
     /// @param _calldata A function call, including function selector and arguments
     /// - _calldata is executed with delegatecall on _init
-    function upgradeState(address _init, bytes calldata _calldata) external onlyOwner {
+    function upgradeState(address _init, bytes calldata _calldata) external onlyRole(Role.OPERATOR) {
         initializeDiamondCut(_init, _calldata);
     }
 }

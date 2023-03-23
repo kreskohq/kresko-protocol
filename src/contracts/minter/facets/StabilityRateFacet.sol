@@ -11,7 +11,7 @@ import {ms} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";
 import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
 import {IStabilityRateFacet} from "../interfaces/IStabilityRateFacet.sol";
-import {MinterModifiers, DiamondModifiers, Error} from "../../shared/Modifiers.sol";
+import {MinterModifiers, DiamondModifiers, Error, Role} from "../../shared/Modifiers.sol";
 import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
 
 /* solhint-disable var-name-mixedcase */
@@ -50,7 +50,7 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
      * @param _asset asset to setup
      * @param _setup setup parameters
      */
-    function setupStabilityRateParams(address _asset, StabilityRateParams memory _setup) external onlyOwner {
+    function setupStabilityRateParams(address _asset, StabilityRateParams memory _setup) external onlyRole(Role.OPERATOR) {
         require(irs().kiss != address(0), Error.KISS_NOT_SET);
         require(irs().srAssets[_asset].asset == address(0), Error.STABILITY_RATES_ALREADY_INITIALIZED);
         require(WadRay.RAY >= _setup.optimalPriceRate, Error.INVALID_OPTIMAL_RATE);
@@ -83,7 +83,7 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
      * @param _asset asset to configure
      * @param _setup setup parameters
      */
-    function updateStabilityRateParams(address _asset, StabilityRateParams memory _setup) external onlyOwner {
+    function updateStabilityRateParams(address _asset, StabilityRateParams memory _setup) external onlyRole(Role.OPERATOR) {
         require(irs().srAssets[_asset].asset == _asset, Error.STABILITY_RATES_NOT_INITIALIZED);
         require(WadRay.RAY >= _setup.optimalPriceRate, Error.INVALID_OPTIMAL_RATE);
         require(WadRay.RAY >= _setup.priceRateDelta, Error.INVALID_PRICE_RATE_DELTA);
@@ -114,7 +114,7 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
      * @notice Sets the protocol AMM oracle address
      * @param _kiss  The address of the oracle
      */
-    function updateKiss(address _kiss) external onlyOwner {
+    function updateKiss(address _kiss) external onlyRole(Role.OPERATOR) {
         irs().kiss = _kiss;
         emit InterestRateEvent.KISSUpdated(_kiss);
     }

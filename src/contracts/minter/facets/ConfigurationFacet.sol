@@ -143,7 +143,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
      * @notice Sets the protocol AMM oracle address
      * @param _ammOracle  The address of the oracle
      */
-    function updateAMMOracle(address _ammOracle) external onlyOwner {
+    function updateAMMOracle(address _ammOracle) external onlyRole(Role.OPERATOR) {
         ms().ammOracle = _ammOracle;
         emit MinterEvent.AMMOracleUpdated(_ammOracle);
     }
@@ -152,7 +152,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
      * @notice Sets the decimal precision of external oracle
      * @param _decimals Amount of decimals
      */
-    function updateExtOracleDecimals(uint8 _decimals) public onlyOwner {
+    function updateExtOracleDecimals(uint8 _decimals) public onlyRole(Role.OPERATOR) {
         ms().extOracleDecimals = _decimals;
     }
 

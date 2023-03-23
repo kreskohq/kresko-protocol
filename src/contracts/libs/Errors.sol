@@ -141,4 +141,19 @@ library Error {
     string public constant INVALID_LIQUIDITY = "706"; // Pair initializaition requires that the pair has liquidity
     string public constant UPDATE_PERIOD_NOT_FINISHED = "707"; // Update can only be called once per update period
     string public constant INVALID_PAIR = "708"; // Pair being consulted does not have the token that the price was requested for
+    string public constant CALLER_NOT_ADMIN = "709"; // Caller must be the admin
+    string public constant CONSTRUCTOR_INVALID_ADMIN = "710"; // Admin cannot be zero address in the constructor
+    string public constant CONSTRUCTOR_INVALID_FACTORY = "711"; // Factory cannot be the zero address
+
+    /* -------------------------------------------------------------------------- */
+    /*                              8. KISS                                 */
+    /* -------------------------------------------------------------------------- */
+
+    string public constant OPERATOR_WAIT_PERIOD_NOT_OVER = "800"; // Operator role has a cooldown period which has not passed
+    string public constant OPERATOR_LIMIT_REACHED = "801"; // More minters cannot be assigned before existing one is removed
+    string public constant CALLER_NOT_CONTRACT = "802"; // Caller of the function must be a contract
+    string public constant OPERATOR_NOT_CONTRACT = "803"; // Operator role can only be granted to a contract
+    string public constant KRESKO_NOT_CONTRACT = "804"; // Operator role can only be granted to a contract
+    string public constant ADMIN_NOT_A_CONTRACT = "805"; // Operator role can only be granted to a contract
+    string public constant OPERATOR_WAIT_PERIOD_TOO_SHORT = "806"; // Operator assignment cooldown period must be greater than 15 minutes
 }

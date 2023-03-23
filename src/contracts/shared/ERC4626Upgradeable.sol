@@ -4,7 +4,8 @@ pragma solidity >=0.8.14;
 import {FixedPointMathLib} from "@rari-capital/solmate/src/utils/FixedPointMathLib.sol";
 
 import {SafeERC20Upgradeable} from "./SafeERC20Upgradeable.sol";
-import {KreskoAsset, ERC20Upgradeable} from "../kreskoasset/KreskoAsset.sol";
+import {IKreskoAsset, IERC20Upgradeable} from "../kreskoasset/IKreskoAsset.sol";
+import {ERC20Upgradeable} from "../kreskoasset/KreskoAsset.sol";
 import {Error} from "../libs/Errors.sol";
 
 /* solhint-disable func-name-mixedcase */
@@ -17,7 +18,7 @@ import {Error} from "../libs/Errors.sol";
 /// @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/mixins/ERC4626.sol)
 /// @author Kresko (https://www.kresko.fi)
 abstract contract ERC4626Upgradeable is ERC20Upgradeable {
-    using SafeERC20Upgradeable for KreskoAsset;
+    using SafeERC20Upgradeable for IKreskoAsset;
     using FixedPointMathLib for uint256;
 
     /* -------------------------------------------------------------------------- */
@@ -48,14 +49,22 @@ abstract contract ERC4626Upgradeable is ERC20Upgradeable {
     /*                                 Immutables                                 */
     /* -------------------------------------------------------------------------- */
 
-    KreskoAsset public immutable asset;
+    IKreskoAsset public immutable asset;
 
-    constructor(KreskoAsset _asset) payable {
+    constructor(IKreskoAsset _asset) payable {
         asset = _asset;
     }
 
+    /**
+     * @notice Initializes the ERC4626.
+     *
+     * @param _asset The underlying (Kresko) Asset
+     * @param _name Name of the anchor token
+     * @param _symbol Symbol of the anchor token
+     * @dev decimals are read from the underlying asset
+     */
     function __ERC4626Upgradeable_init(
-        ERC20Upgradeable _asset,
+        IERC20Upgradeable _asset,
         string memory _name,
         string memory _symbol
     ) internal onlyInitializing {
@@ -218,12 +227,13 @@ abstract contract ERC4626Upgradeable is ERC20Upgradeable {
 
     /**
      * @notice Withdraw KreskoAssets for equivalent amount of anchor tokens
+     * @param assets Amount of KreskoAssets to withdraw
+     * @param receiver Address to send KreskoAssets to
+     * @param owner Address to burn shares from
+     * @return shares Amount of shares burned
+     * @dev shares are burned from owner, not msg.sender
      */
-    function withdraw(
-        uint256 assets,
-        address receiver,
-        address owner
-    ) public virtual returns (uint256 shares) {
+    function withdraw(uint256 assets, address receiver, address owner) public virtual returns (uint256 shares) {
         shares = previewWithdraw(assets); // No need to check for rounding error, previewWithdraw rounds up.
 
         if (msg.sender != owner) {
@@ -245,6 +255,9 @@ abstract contract ERC4626Upgradeable is ERC20Upgradeable {
 
     /**
      * @notice Mint shares of anchor tokens for equivalent amount of KreskoAssets
+     * @param shares Amount of shares to mint
+     * @param receiver Address to send shares to
+     * @return assets Amount of KreskoAssets redeemed
      */
     function mint(uint256 shares, address receiver) public virtual returns (uint256 assets) {
         assets = previewMint(shares); // No need to check for rounding error, previewMint rounds up.
@@ -261,12 +274,12 @@ abstract contract ERC4626Upgradeable is ERC20Upgradeable {
 
     /**
      * @notice Redeem shares of anchor for KreskoAssets
+     * @param shares Amount of shares to redeem
+     * @param receiver Address to send KreskoAssets to
+     * @param owner Address to burn shares from
+     * @return assets Amount of KreskoAssets redeemed
      */
-    function redeem(
-        uint256 shares,
-        address receiver,
-        address owner
-    ) public virtual returns (uint256 assets) {
+    function redeem(uint256 shares, address receiver, address owner) public virtual returns (uint256 assets) {
         if (msg.sender != owner) {
             uint256 allowed = _allowances[owner][msg.sender]; // Saves gas for limited approvals.
 

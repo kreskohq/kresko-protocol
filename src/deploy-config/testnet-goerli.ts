@@ -443,7 +443,7 @@ export const assets: { [asset: string]: Asset } = {
 
 const defaultPools: [Asset, Asset, number][] = [
     [assets.KISS, assets.krETH, assets.krETH.mintAmount!],
-    // [assets.KISS, assets.krTSLA, assets.krTSLA.mintAmount],
+    [assets.KISS, assets.krTSLA, assets.krTSLA.mintAmount!],
     [assets.KISS, assets.krXAU, assets.krXAU.mintAmount!],
     [assets.KISS, assets.krWTI, assets.krWTI.mintAmount!],
     [assets.KISS, assets.krBTC, assets.krBTC.mintAmount!],
@@ -537,27 +537,27 @@ export const batchAStakingPools: StakingPoolConfig[] = [
 export const batchBStakingPools: StakingPoolConfig[] = [
     {
         lpToken: [assets.KISS, assets.krCOIN],
-        allocPoint: 1250,
+        allocPoint: 1500,
         startBlock: 0,
     },
     {
         lpToken: [assets.KISS, assets.krUSO],
-        allocPoint: 1250,
+        allocPoint: 1500,
         startBlock: 0,
     },
     {
         lpToken: [assets.KISS, assets.krAAPL],
-        allocPoint: 1250,
+        allocPoint: 1500,
         startBlock: 0,
     },
     {
         lpToken: [assets.KISS, assets.krAMC],
-        allocPoint: 1250,
+        allocPoint: 1500,
         startBlock: 0,
     },
     {
         lpToken: [assets.KISS, assets.krIAU],
-        allocPoint: 1250,
+        allocPoint: 1500,
         startBlock: 0,
     },
 ];

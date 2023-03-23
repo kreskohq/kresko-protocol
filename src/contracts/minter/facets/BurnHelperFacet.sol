@@ -5,6 +5,7 @@ import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
 import {Role} from "../../libs/Authorization.sol";
 import {MinterEvent} from "../../libs/Events.sol";
+import {Meta} from "../../libs/Meta.sol";
 
 import {IBurnHelperFacet} from "../interfaces/IBurnHelperFacet.sol";
 import {DiamondModifiers, MinterModifiers} from "../../shared/Modifiers.sol";
@@ -27,12 +28,10 @@ contract BurnHelperFacet is DiamondModifiers, MinterModifiers, IBurnHelperFacet 
      * @param _account The address to close the position for
      * @param _kreskoAsset The address of the Kresko asset.
      */
-    function closeKrAssetDebtPosition(address _account, address _kreskoAsset)
-        public
-        nonReentrant
-        kreskoAssetExists(_kreskoAsset)
-        onlyRoleIf(_account != msg.sender, Role.MANAGER)
-    {
+    function closeKrAssetDebtPosition(
+        address _account,
+        address _kreskoAsset
+    ) public nonReentrant kreskoAssetExists(_kreskoAsset) onlyRoleIf(_account != Meta.msgSender(), Role.MANAGER) {
         MinterState storage s = ms();
         if (s.safetyStateSet) {
             super.ensureNotPaused(_kreskoAsset, Action.Repay);
@@ -67,10 +66,9 @@ contract BurnHelperFacet is DiamondModifiers, MinterModifiers, IBurnHelperFacet 
      * @notice Account must have enough of krAsset balance to burn and ennough KISS to cover interest
      * @param _account The address to close the positions for
      */
-    function batchCloseKrAssetDebtPositions(address _account)
-        external
-        onlyRoleIf(_account != msg.sender, Role.MANAGER)
-    {
+    function batchCloseKrAssetDebtPositions(
+        address _account
+    ) external onlyRoleIf(_account != Meta.msgSender(), Role.MANAGER) {
         address[] memory mintedKreskoAssets = ms().getMintedKreskoAssets(_account);
         for (uint256 i; i < mintedKreskoAssets.length; i++) {
             closeKrAssetDebtPosition(_account, mintedKreskoAssets[i]);

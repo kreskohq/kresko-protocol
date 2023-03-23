@@ -10,6 +10,7 @@ import {LibDecimals, FixedPoint} from "../libs/LibDecimals.sol";
 import {LibCalculation} from "../libs/LibCalculation.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 import {MinterEvent, InterestRateEvent} from "../../libs/Events.sol";
+import {Meta} from "../../libs/Meta.sol";
 
 import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
 import {DiamondModifiers} from "../../shared/Modifiers.sol";
@@ -43,7 +44,7 @@ contract InterestLiquidationFacet is DiamondModifiers, IInterestLiquidationFacet
      */
     function batchLiquidateInterest(address _account, address _collateralAssetToSeize) external nonReentrant {
         // Borrower cannot liquidate themselves
-        require(msg.sender != _account, Error.SELF_LIQUIDATION);
+        require(Meta.msgSender() != _account, Error.SELF_LIQUIDATION);
         // Check that this account is below its minimum collateralization ratio and can be liquidated.
         require(ms().isAccountLiquidatable(_account), Error.NOT_LIQUIDATABLE);
         // Collateral exists
