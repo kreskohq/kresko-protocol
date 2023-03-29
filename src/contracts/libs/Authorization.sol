@@ -22,7 +22,9 @@ import {ds} from "../diamond/DiamondStorage.sol";
 
 library Role {
     /// @dev role that grants other roles
-    bytes32 constant ADMIN = 0x00;
+    bytes32 constant DEFAULT_ADMIN = 0x00;
+    /// @dev  keccak256("kresko.roles.minter.admin")
+    bytes32 constant ADMIN = 0xb9dacdf02281f2e98ddbadaaf44db270b3d5a916342df47c59f77937a6bcd5d8;
     /// @dev keccak256("kresko.roles.minter.operator")
     bytes32 constant OPERATOR = 0x112e48a576fb3a75acc75d9fcf6e0bc670b27b1dbcd2463502e10e68cf57d6fd;
     /// @dev keccak256("kresko.roles.minter.manager")

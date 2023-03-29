@@ -39,7 +39,14 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
 
     function initialize(MinterInitArgs calldata args) external onlyOwner {
         require(ms().initializations == 0, Error.ALREADY_INITIALIZED);
-        Authorization._grantRole(Role.OPERATOR, args.operator);
+        // Temporarily set ADMIN role for deployer
+        Authorization._grantRole(Role.DEFAULT_ADMIN, msg.sender);
+        Authorization._grantRole(Role.ADMIN, msg.sender);
+
+        // Grant the admin role to admin
+        Authorization._grantRole(Role.DEFAULT_ADMIN, args.admin);
+        Authorization._grantRole(Role.ADMIN, args.admin);
+
         /**
          * @notice Council can be set only by this specific function.
          * Requirements:
@@ -49,29 +56,23 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
          */
         Authorization.setupSecurityCouncil(args.council);
 
-        /// @dev Temporarily set operator role for calling the update functions
-        Authorization._grantRole(Role.OPERATOR, msg.sender);
-
-        updateFeeRecipient(args.feeRecipient);
+        updateFeeRecipient(args.treasury);
         updateLiquidationIncentiveMultiplier(args.liquidationIncentiveMultiplier);
         updateMinimumCollateralizationRatio(args.minimumCollateralizationRatio);
         updateMinimumDebtValue(args.minimumDebtValue);
         updateLiquidationThreshold(args.liquidationThreshold);
         updateExtOracleDecimals(args.extOracleDecimals);
 
-        /// @dev Revoke the operator role
-        Authorization.revokeRole(Role.OPERATOR, msg.sender);
-
         ms().initializations = 1;
         ms().domainSeparator = Meta.domainSeparator("Kresko Minter", "V1");
-        emit GeneralEvent.Initialized(args.operator, 1);
+        emit GeneralEvent.Initialized(args.admin, 1);
     }
 
     /**
      * @notice Updates the fee recipient.
      * @param _feeRecipient The new fee recipient.
      */
-    function updateFeeRecipient(address _feeRecipient) public override onlyRole(Role.OPERATOR) {
+    function updateFeeRecipient(address _feeRecipient) public override onlyRole(Role.ADMIN) {
         require(_feeRecipient != address(0), Error.ADDRESS_INVALID_FEERECIPIENT);
         ms().feeRecipient = _feeRecipient;
         emit MinterEvent.FeeRecipientUpdated(_feeRecipient);
@@ -84,7 +85,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
     function updateLiquidationIncentiveMultiplier(uint256 _liquidationIncentiveMultiplier)
         public
         override
-        onlyRole(Role.OPERATOR)
+        onlyRole(Role.ADMIN)
     {
         require(
             _liquidationIncentiveMultiplier >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
@@ -106,7 +107,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
     function updateMinimumCollateralizationRatio(uint256 _minimumCollateralizationRatio)
         public
         override
-        onlyRole(Role.OPERATOR)
+        onlyRole(Role.ADMIN)
     {
         require(
             _minimumCollateralizationRatio >= Constants.MIN_COLLATERALIZATION_RATIO,
@@ -120,7 +121,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
      * @dev Updates the contract's minimum debt value.
      * @param _minimumDebtValue The new minimum debt value as a raw value for a FixedPoint.Unsigned.
      */
-    function updateMinimumDebtValue(uint256 _minimumDebtValue) public override onlyRole(Role.OPERATOR) {
+    function updateMinimumDebtValue(uint256 _minimumDebtValue) public override onlyRole(Role.ADMIN) {
         require(_minimumDebtValue <= Constants.MAX_DEBT_VALUE, Error.PARAM_MIN_DEBT_AMOUNT_HIGH);
         ms().minimumDebtValue = _minimumDebtValue.toFixedPoint();
         emit MinterEvent.MinimumDebtValueUpdated(_minimumDebtValue);
@@ -130,7 +131,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
      * @dev Updates the contract's liquidation threshold value
      * @param _liquidationThreshold The new liquidation threshold value
      */
-    function updateLiquidationThreshold(uint256 _liquidationThreshold) public override onlyRole(Role.OPERATOR) {
+    function updateLiquidationThreshold(uint256 _liquidationThreshold) public override onlyRole(Role.ADMIN) {
         // Liquidation threshold cannot be greater than minimum collateralization ratio
         FixedPoint.Unsigned memory newThreshold = _liquidationThreshold.toFixedPoint();
         require(newThreshold.isLessThanOrEqual(ms().minimumCollateralizationRatio), Error.INVALID_LT);
@@ -143,7 +144,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
      * @notice Sets the protocol AMM oracle address
      * @param _ammOracle  The address of the oracle
      */
-    function updateAMMOracle(address _ammOracle) external onlyRole(Role.OPERATOR) {
+    function updateAMMOracle(address _ammOracle) external onlyRole(Role.ADMIN) {
         ms().ammOracle = _ammOracle;
         emit MinterEvent.AMMOracleUpdated(_ammOracle);
     }
@@ -152,7 +153,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
      * @notice Sets the decimal precision of external oracle
      * @param _decimals Amount of decimals
      */
-    function updateExtOracleDecimals(uint8 _decimals) public onlyRole(Role.OPERATOR) {
+    function updateExtOracleDecimals(uint8 _decimals) public onlyRole(Role.ADMIN) {
         ms().extOracleDecimals = _decimals;
     }
 
@@ -176,7 +177,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         uint256 _factor,
         address _priceFeedOracle,
         address _marketStatusOracle
-    ) external nonReentrant onlyRole(Role.OPERATOR) collateralAssetDoesNotExist(_collateralAsset) {
+    ) external nonReentrant onlyRole(Role.ADMIN) collateralAssetDoesNotExist(_collateralAsset) {
         require(_collateralAsset != address(0), Error.ADDRESS_INVALID_COLLATERAL);
         require(_priceFeedOracle != address(0), Error.ADDRESS_INVALID_ORACLE);
         require(_factor <= FixedPoint.FP_SCALING_FACTOR, Error.COLLATERAL_INVALID_FACTOR);
@@ -221,7 +222,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         uint256 _factor,
         address _priceFeedOracle,
         address _marketStatusOracle
-    ) external onlyRole(Role.OPERATOR) collateralAssetExists(_collateralAsset) {
+    ) external onlyRole(Role.ADMIN) collateralAssetExists(_collateralAsset) {
         require(_priceFeedOracle != address(0), Error.ADDRESS_INVALID_ORACLE);
         // Setting the factor to 0 effectively sunsets a collateral asset, which is intentionally allowed.
         require(_factor <= FixedPoint.FP_SCALING_FACTOR, Error.COLLATERAL_INVALID_FACTOR);
@@ -271,7 +272,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         uint256 _supplyLimit,
         uint256 _closeFee,
         uint256 _openFee
-    ) external onlyRole(Role.OPERATOR) kreskoAssetDoesNotExist(_krAsset) {
+    ) external onlyRole(Role.ADMIN) kreskoAssetDoesNotExist(_krAsset) {
         require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, Error.KRASSET_INVALID_FACTOR);
         require(_priceFeedOracle != address(0), Error.ADDRESS_INVALID_ORACLE);
 
@@ -332,7 +333,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         uint256 _supplyLimit,
         uint256 _closeFee,
         uint256 _openFee
-    ) external onlyRole(Role.OPERATOR) kreskoAssetExists(_krAsset) {
+    ) external onlyRole(Role.ADMIN) kreskoAssetExists(_krAsset) {
         require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, Error.KRASSET_INVALID_FACTOR);
         require(_priceFeedOracle != address(0), Error.ADDRESS_INVALID_ORACLE);
         require(_closeFee <= Constants.MAX_CLOSE_FEE, Error.PARAM_CLOSE_FEE_TOO_HIGH);

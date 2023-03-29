@@ -76,9 +76,9 @@ enum Fee {
  * @notice Initialization arguments for the protocol
  */
 struct MinterInitArgs {
-    address operator;
+    address admin;
     address council;
-    address feeRecipient;
+    address treasury;
     uint8 extOracleDecimals;
     uint256 liquidationIncentiveMultiplier;
     uint256 minimumCollateralizationRatio;

@@ -8,7 +8,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const [UniV2Oracle] = await hre.deploy("UniswapV2Oracle", {
         from: (await hre.getUsers()).deployer.address,
-        args: [hre.UniV2Factory.address],
+        args: [hre.UniV2Factory.address, hre.users.deployer.address],
     });
     hre.UniV2Oracle = UniV2Oracle;
     await hre.Diamond.updateAMMOracle(UniV2Oracle.address);

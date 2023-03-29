@@ -13,10 +13,13 @@ import "../libs/Errors.sol";
  * This oracle is intended to be used with Kresko AMM.
  *
  * This oracle is updated by calling the `update` with the liquidity token address.
- * The prices can be queried by calling `consult` or `consultKrAsset` for quality-of-life with Kresko Assets, it does not need the pair address.
+ * The prices can be queried by calling `consult` or `consultKrAsset` for quality-of-life with Kresko Assets,
+ * it does not need the pair address.
  *
  * Bookkeeping is done in terms of time-weighted average prices, and that period has a lower bound of `minUpdatePeriod`.
- * Logic is pretty much what's laid out here: (https://github.com/Uniswap/v2-periphery/blob/master/contracts/examples/ExampleOracleSimple.sol)
+ * Logic is pretty much what's laid out in
+ * https://github.com/Uniswap/v2-periphery/blob/master/contracts/examples/ExampleOracleSimple.sol
+ *
  * This contract just extends some storage to deal with many pairs with their own configuration.
  *
  * @notice Kresko gives _NO GUARANTEES_ for the correctness of the prices provided by this oracle.
@@ -111,16 +114,22 @@ contract UniswapV2Oracle {
      */
     function currentBlockTimestamp() internal view returns (uint32) {
         // solhint-disable not-rely-on-time
-        return uint32(block.timestamp % 2 ** 32);
+        return uint32(block.timestamp % 2**32);
     }
 
     /**
      * @notice Produces the cumulative price using counterfactuals to save gas and avoid a call to sync.
      * @param _pairAddress Pair address
      */
-    function currentCumulativePrices(
-        address _pairAddress
-    ) internal view returns (uint256 price0Cumulative, uint256 price1Cumulative, uint32 blockTimestamp) {
+    function currentCumulativePrices(address _pairAddress)
+        internal
+        view
+        returns (
+            uint256 price0Cumulative,
+            uint256 price1Cumulative,
+            uint32 blockTimestamp
+        )
+    {
         blockTimestamp = currentBlockTimestamp();
         price0Cumulative = IUniswapV2Pair(_pairAddress).price0CumulativeLast();
         price1Cumulative = IUniswapV2Pair(_pairAddress).price1CumulativeLast();
@@ -151,7 +160,11 @@ contract UniswapV2Oracle {
      * @param _updatePeriod The update period (TWAP) for this AMM pair
      *
      */
-    function initPair(address _pairAddress, address _kreskoAsset, uint256 _updatePeriod) external onlyAdmin {
+    function initPair(
+        address _pairAddress,
+        address _kreskoAsset,
+        uint256 _updatePeriod
+    ) external onlyAdmin {
         require(_pairAddress != address(0), Error.PAIR_ADDRESS_IS_ZERO);
         require(_updatePeriod >= minUpdatePeriod, Error.INVALID_UPDATE_PERIOD);
         require(pairs[_pairAddress].token0 == address(0), Error.PAIR_ALREADY_EXISTS);

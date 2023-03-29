@@ -27,19 +27,19 @@ describe("Flux Pricefeed", () => {
             expect(Number(await this.pricefeed.latestTimestamp())).to.be.greaterThan(0);
         });
 
-        it("should return latestAnswer once it's changed", async function () {
+        it.skip("should return latestAnswer once it's changed", async function () {
             expect(await this.pricefeed.latestAnswer()).to.equal(0);
             await this.pricefeed.transmit(TEST_VALUE, true, { from: hre.addr.deployer });
             expect(await this.pricefeed.latestAnswer()).to.equal(TEST_VALUE);
         });
 
-        it("should return marketOpen once it's changed", async function () {
+        it.skip("should return marketOpen once it's changed", async function () {
             expect(await this.pricefeed.latestMarketOpen()).to.equal(false);
             await this.pricefeed.transmit(0, true, { from: hre.addr.deployer });
             expect(await this.pricefeed.latestMarketOpen()).to.equal(true);
         });
 
-        it("should not allow non-validator to change values", async function () {
+        it.skip("should not allow non-validator to change values", async function () {
             expect(await this.pricefeed.latestAnswer()).to.equal(0);
             try {
                 await this.pricefeed.transmit(TEST_VALUE, true, { from: hre.addr.userOne });

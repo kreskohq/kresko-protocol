@@ -573,6 +573,7 @@ const gnosisOPGoerli: GnosisSafeDeployment[] = [
     SignMessageLib,
     SimulateTxAccessor,
 ];
+
 export const testnetConfigs: NetworkConfig = {
     hardhat: {
         protocolParams: defaultParams,

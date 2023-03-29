@@ -1,19 +1,46 @@
 import { HardhatUserConfig } from "hardhat/config";
+
+if (!process.env.OPERATOR) {
+    throw new Error("OPERATOR not set");
+}
+if (!process.env.FEED_VALIDATOR) {
+    throw new Error("FEED_VALIDATOR not set");
+}
+if (!process.env.TREASURY) {
+    throw new Error("TREASURY not set");
+}
+if (!process.env.FUNDER) {
+    throw new Error("FUNDER not set");
+}
+if (!process.env.MULTISIG) {
+    throw new Error("MULTISIG not set");
+}
+
 export const hardhatUsers = {
+    // Dynamic
+    multisig: {
+        default: process.env.MULTISIG,
+        420: process.env.MULTISIG,
+    },
+    treasury: {
+        default: process.env.MULTISIG,
+        420: process.env.MULTISIG,
+    },
+    feedValidator: {
+        default: process.env.FEED_VALIDATOR,
+    },
+    testnetFunder: {
+        default: process.env.FUNDER,
+    },
+    // Derivative addresses
     deployer: {
         default: 0,
     },
-    testnetAdmin: {
-        default: 0,
-    },
     admin: {
-        default: 1,
+        default: 0,
     },
     owner: {
         default: 2,
-    },
-    operator: {
-        default: 3,
     },
     liquidator: {
         default: 4,
@@ -21,16 +48,7 @@ export const hardhatUsers = {
     nonadmin: {
         default: 5,
     },
-    treasury: {
-        default: 10,
-    },
-    feedValidator: {
-        default: process.env.FEED_VALIDATOR || 11,
-    },
-    testnetFunder: {
-        default: process.env.FUNDER || 12,
-    },
-    // test users
+    // Test users
     userOne: {
         default: 31,
     },

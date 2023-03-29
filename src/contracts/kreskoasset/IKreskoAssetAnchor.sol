@@ -10,9 +10,18 @@ interface IKreskoAssetAnchor is IKreskoAssetIssuer, IERC20Upgradeable, IAccessCo
 
     function deposit(uint256, address) external returns (uint256);
 
-    function withdraw(uint256, address, address) external returns (uint256);
+    function withdraw(
+        uint256,
+        address,
+        address
+    ) external returns (uint256);
 
-    function initialize(address _asset, string memory _name, string memory _symbol, address _admin) external;
+    function initialize(
+        address _asset,
+        string memory _name,
+        string memory _symbol,
+        address _admin
+    ) external;
 
     function maxDeposit(address) external view returns (uint256);
 
@@ -34,5 +43,9 @@ interface IKreskoAssetAnchor is IKreskoAssetIssuer, IERC20Upgradeable, IAccessCo
 
     function totalAssets() external view returns (uint256);
 
-    function reinitializeERC20(string memory _name, string memory _symbol, uint8 _version) external;
+    function reinitializeERC20(
+        string memory _name,
+        string memory _symbol,
+        uint8 _version
+    ) external;
 }

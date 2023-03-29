@@ -26,5 +26,9 @@ interface IKreskoAsset is IERC20Upgradeable, IAccessControlEnumerableUpgradeable
 
     function rebase(uint256 _denominator, bool _positive) external;
 
-    function reinitializeERC20(string memory _name, string memory _symbol, uint8 _version) external;
+    function reinitializeERC20(
+        string memory _name,
+        string memory _symbol,
+        uint8 _version
+    ) external;
 }

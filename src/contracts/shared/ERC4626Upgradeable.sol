@@ -233,7 +233,11 @@ abstract contract ERC4626Upgradeable is ERC20Upgradeable {
      * @return shares Amount of shares burned
      * @dev shares are burned from owner, not msg.sender
      */
-    function withdraw(uint256 assets, address receiver, address owner) public virtual returns (uint256 shares) {
+    function withdraw(
+        uint256 assets,
+        address receiver,
+        address owner
+    ) public virtual returns (uint256 shares) {
         shares = previewWithdraw(assets); // No need to check for rounding error, previewWithdraw rounds up.
 
         if (msg.sender != owner) {
@@ -279,7 +283,11 @@ abstract contract ERC4626Upgradeable is ERC20Upgradeable {
      * @param owner Address to burn shares from
      * @return assets Amount of KreskoAssets redeemed
      */
-    function redeem(uint256 shares, address receiver, address owner) public virtual returns (uint256 assets) {
+    function redeem(
+        uint256 shares,
+        address receiver,
+        address owner
+    ) public virtual returns (uint256 assets) {
         if (msg.sender != owner) {
             uint256 allowed = _allowances[owner][msg.sender]; // Saves gas for limited approvals.
 

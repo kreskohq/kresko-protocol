@@ -124,6 +124,12 @@ const config: HardhatUserConfig = {
             optimisticGoerli: process.env.ETHERSCAN_API_KEY!,
         },
     },
+    // subgraph: {
+    //     name: "MySubgraph", // Defaults to the name of the root folder of the hardhat project
+    //     product: "hosted-service" | "subgraph-studio", // Defaults to 'subgraph-studio'
+    //     indexEvents: true | false, // Defaults to false
+    //     allowSimpleName: true | false, // Defaults to `false` if product is `hosted-service` and `true` if product is `subgraph-studio`
+    // },
     // watcher: {
     //     test: {
     //         tasks: [{ command: "test", params: { testFiles: ["{path}"] } }],

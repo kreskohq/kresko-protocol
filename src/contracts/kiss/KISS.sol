@@ -58,7 +58,7 @@ contract KISS is IKISS, IKreskoAssetIssuer, ERC20PresetMinterPauser {
     ) ERC20PresetMinterPauser(name_, symbol_) {
         // Few sanity checks, we do not want EOA's here
         require(kresko_.code.length > 0, Error.KRESKO_NOT_CONTRACT);
-        require(admin_.code.length > 0, Error.ADMIN_NOT_A_CONTRACT);
+        // require(admin_.code.length > 0, Error.ADMIN_NOT_A_CONTRACT);
 
         // ERC20
         _name = name_;
@@ -72,22 +72,20 @@ contract KISS is IKISS, IKreskoAssetIssuer, ERC20PresetMinterPauser {
         // 15 minutes to wait before the operator can accept the role, this is the minimum value that can be set.
         pendingOperatorWaitPeriod = 15 minutes;
 
-        // Setup relationships
-        _setRoleAdmin(Role.OPERATOR, Role.ADMIN);
-
         // Setup the admin
-        _setupRole(DEFAULT_ADMIN_ROLE, admin_);
+        _setupRole(Role.DEFAULT_ADMIN, admin_);
         _setupRole(Role.ADMIN, admin_);
 
         // Setup the protocol
         kresko = kresko_;
         _setupRole(Role.OPERATOR, kresko_);
         _setupRole(MINTER_ROLE, kresko_);
+        _setupRole(PAUSER_ROLE, kresko_);
 
-        // Deployer does not need roles
+        // Deployer does not need roles, uncomment for mainnet
         renounceRole(MINTER_ROLE, msg.sender);
         renounceRole(PAUSER_ROLE, msg.sender);
-        renounceRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        // renounceRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     function supportsInterface(bytes4 interfaceId) public pure override returns (bool) {
@@ -105,10 +103,13 @@ contract KISS is IKISS, IKreskoAssetIssuer, ERC20PresetMinterPauser {
      * @param _to address to mint tokens to
      * @param _amount amount to mint
      */
-    function issue(
-        uint256 _amount,
-        address _to
-    ) public override onlyContract onlyRole(Role.OPERATOR) returns (uint256) {
+    function issue(uint256 _amount, address _to)
+        public
+        override
+        onlyContract
+        onlyRole(Role.OPERATOR)
+        returns (uint256)
+    {
         _mint(_to, _amount);
         return _amount;
     }

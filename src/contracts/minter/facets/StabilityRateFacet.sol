@@ -50,7 +50,7 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
      * @param _asset asset to setup
      * @param _setup setup parameters
      */
-    function setupStabilityRateParams(address _asset, StabilityRateParams memory _setup) external onlyRole(Role.OPERATOR) {
+    function setupStabilityRateParams(address _asset, StabilityRateParams memory _setup) external onlyRole(Role.ADMIN) {
         require(irs().kiss != address(0), Error.KISS_NOT_SET);
         require(irs().srAssets[_asset].asset == address(0), Error.STABILITY_RATES_ALREADY_INITIALIZED);
         require(WadRay.RAY >= _setup.optimalPriceRate, Error.INVALID_OPTIMAL_RATE);
@@ -83,7 +83,10 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
      * @param _asset asset to configure
      * @param _setup setup parameters
      */
-    function updateStabilityRateParams(address _asset, StabilityRateParams memory _setup) external onlyRole(Role.OPERATOR) {
+    function updateStabilityRateParams(address _asset, StabilityRateParams memory _setup)
+        external
+        onlyRole(Role.ADMIN)
+    {
         require(irs().srAssets[_asset].asset == _asset, Error.STABILITY_RATES_NOT_INITIALIZED);
         require(WadRay.RAY >= _setup.optimalPriceRate, Error.INVALID_OPTIMAL_RATE);
         require(WadRay.RAY >= _setup.priceRateDelta, Error.INVALID_PRICE_RATE_DELTA);
@@ -114,7 +117,7 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
      * @notice Sets the protocol AMM oracle address
      * @param _kiss  The address of the oracle
      */
-    function updateKiss(address _kiss) external onlyRole(Role.OPERATOR) {
+    function updateKiss(address _kiss) external onlyRole(Role.ADMIN) {
         irs().kiss = _kiss;
         emit InterestRateEvent.KISSUpdated(_kiss);
     }

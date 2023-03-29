@@ -10,10 +10,10 @@ describe("Minter - Init", () => {
 
             const { args } = await getMinterInitializer(hre);
 
-            expect(await hre.Diamond.hasRole(Role.OPERATOR, args.operator)).to.equal(true);
+            expect(await hre.Diamond.hasRole(Role.ADMIN, args.admin)).to.equal(true);
             expect(await hre.Diamond.hasRole(Role.SAFETY_COUNCIL, hre.Multisig.address)).to.equal(true);
 
-            expect(await hre.Diamond.feeRecipient()).to.equal(args.feeRecipient);
+            expect(await hre.Diamond.feeRecipient()).to.equal(args.treasury);
             expect((await hre.Diamond.liquidationIncentiveMultiplier()).rawValue).to.equal(
                 args.liquidationIncentiveMultiplier,
             );

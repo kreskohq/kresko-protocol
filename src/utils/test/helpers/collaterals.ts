@@ -21,7 +21,7 @@ export const addMockCollateralAsset = async (
     TestCollateral.symbol.returns(name);
     TestCollateral.decimals.returns(decimals);
     const cFactor = toFixedPoint(factor);
-    await hre.Diamond.connect(users.operator).addCollateralAsset(
+    await hre.Diamond.connect(users.deployer).addCollateralAsset(
         TestCollateral.address,
         hre.ethers.constants.AddressZero,
         cFactor,
@@ -66,7 +66,7 @@ export const addMockCollateralAsset = async (
 export const updateCollateralAsset = async (address: string, args: TestCollateralAssetUpdate) => {
     const users = await getUsers();
     const collateral = hre.collaterals.find(c => c.address === address);
-    await hre.Diamond.connect(users.operator).updateCollateralAsset(
+    await hre.Diamond.connect(users.deployer).updateCollateralAsset(
         collateral!.address,
         hre.ethers.constants.AddressZero,
         toFixedPoint(args.factor),

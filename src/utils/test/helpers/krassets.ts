@@ -38,7 +38,7 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
 
     // Add the asset to the protocol
     const kFactor = toFixedPoint(factor);
-    await hre.Diamond.connect(users.operator).addKreskoAsset(
+    await hre.Diamond.connect(users.deployer).addKreskoAsset(
         krAsset.address,
         akrAsset.address,
         kFactor,
@@ -130,7 +130,7 @@ export const addMockKreskoAssetWithAMMPair = async (
 
     // Add the asset to the protocol
     const kFactor = toFixedPoint(factor);
-    await hre.Diamond.connect(users.operator).addKreskoAsset(
+    await hre.Diamond.connect(users.deployer).addKreskoAsset(
         krAsset.address,
         akrAsset.address,
         kFactor,
@@ -194,7 +194,7 @@ export const addMockKreskoAssetWithAMMPair = async (
 export const updateKrAsset = async (address: string, args: TestKreskoAssetUpdate) => {
     const users = await getUsers();
     const krAsset = hre.krAssets.find(c => c.address === address)!;
-    await hre.Diamond.connect(users.operator).updateKreskoAsset(
+    await hre.Diamond.connect(users.deployer).updateKreskoAsset(
         krAsset.address,
         krAsset.mocks.anchor!.address,
         toFixedPoint(args.factor),

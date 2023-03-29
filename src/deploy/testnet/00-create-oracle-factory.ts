@@ -11,14 +11,17 @@ const func: DeployFunction = async function (hre) {
             value: hre.ethers.utils.parseEther("10"),
         });
     }
+
     const [factory] = await hre.deploy("FluxPriceFeedFactory", {
         from: feedValidator.address,
     });
+
     const assets = [
         ...testnetConfigs[hre.network.name].collaterals,
         ...testnetConfigs[hre.network.name].krAssets,
         goerliAssets.KISS,
     ];
+
     const logger = getLogger("create-oracle-factory");
     const pricePairs = assets.map(asset => asset.oracle!.description);
     const prices = await Promise.all(assets.map(asset => asset.price!()));

@@ -13,11 +13,18 @@ task("deploy-kiss")
             from: users.deployer.address,
             contract: "KISS",
             log: true,
-            args: ["KISS", "KISS", 18, hre.Diamond.address],
+            args: ["KISS", "KISS", 18, hre.users.multisig.address, hre.Diamond.address],
         });
 
         const hasRole = await KISSContract.hasRole(Role.OPERATOR, hre.Diamond.address);
-        const kresko = await KISSContract.kresko();
+        const hasRoleAdmin = await KISSContract.hasRole(Role.ADMIN, hre.users.multisig.address);
+
+        if (!hasRoleAdmin) {
+            throw new Error(`KISS admin role incorrect`);
+        }
+        if (!hasRole) {
+            throw new Error(`KISS operator role incorrect`);
+        }
 
         const asset = {
             address: KISSContract.address,
@@ -37,9 +44,6 @@ task("deploy-kiss")
             priceFeed: {} as any,
         };
 
-        if (!hasRole) {
-            throw new Error(`NO ROLE ${hre.Diamond.address} ${kresko}`);
-        }
         const found = hre.krAssets.findIndex(c => c.address === asset.address);
 
         if (found === -1) {

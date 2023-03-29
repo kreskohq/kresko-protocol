@@ -12,7 +12,7 @@ task("deploy-staking")
     .addOptionalParam("log", "log information", true, types.boolean)
     .setAction(async function (taskArgs: TaskArguments, hre) {
         const { getNamedAccounts } = hre;
-        const { deployer } = await getNamedAccounts();
+        const { deployer, multisig } = await getNamedAccounts();
         const { stakingToken, rewardTokens, rewardPerBlocks, startBlock, log } = taskArgs;
         const logger = getLogger("latestAnswer", log);
         const rewardTokenArr = rewardTokens.split(",");
@@ -36,6 +36,8 @@ task("deploy-staking")
                             stakingToken,
                             1000,
                             startBlock,
+                            multisig,
+                            multisig,
                         ],
                     },
                 },

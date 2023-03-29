@@ -17,6 +17,7 @@ export const diamondFacets = [
     "AuthorizationFacet",
     "ERC165Facet",
 ] as const;
+
 export const anchorTokenPrefix = "a";
 
 export const minterFacets = [
@@ -38,15 +39,15 @@ export const minterFacets = [
 export const getMinterInitializer = async (
     hre: HardhatRuntimeEnvironment,
 ): Promise<MinterInitializer<MinterInitArgsStruct>> => {
-    const { treasury, operator } = hre.addr;
+    const { treasury, admin } = hre.addr;
     const Safe = await hre.getContractOrFork("GnosisSafeL2");
     if (!Safe) throw new Error("GnosisSafe not deployed for Minter initialization");
 
     return {
         name: "ConfigurationFacet",
         args: {
-            feeRecipient: treasury,
-            operator,
+            admin,
+            treasury,
             council: Safe.address,
             liquidationIncentiveMultiplier: toFixedPoint(process.env.LIQUIDATION_INCENTIVE),
             minimumCollateralizationRatio: toFixedPoint(process.env.MINIMUM_COLLATERALIZATION_RATIO),

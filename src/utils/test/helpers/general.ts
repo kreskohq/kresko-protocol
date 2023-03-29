@@ -65,7 +65,7 @@ export const leverageKrAsset = async (
         [user.address]: hre.toBig(collateralAmount),
     });
     if (!(await hre.Diamond.collateralAsset(collateralToUse.address)).exists) {
-        await hre.Diamond.connect(hre.users.operator).addCollateralAsset(
+        await hre.Diamond.connect(hre.users.deployer).addCollateralAsset(
             collateralToUse.address,
             collateralToUse.anchor ? collateralToUse.anchor.address : ethers.constants.AddressZero,
             hre.toBig(1),
@@ -79,7 +79,7 @@ export const leverageKrAsset = async (
         hre.toBig(collateralAmount),
     );
     if (!(await hre.Diamond.kreskoAsset(krAsset.address)).exists) {
-        await hre.Diamond.connect(hre.users.operator).addKreskoAsset(
+        await hre.Diamond.connect(hre.users.deployer).addKreskoAsset(
             krAsset.address,
             krAsset.anchor.address,
             toBig(1),
@@ -93,7 +93,7 @@ export const leverageKrAsset = async (
     await hre.Diamond.connect(user).mintKreskoAsset(user.address, krAsset.address, amount);
 
     if (!(await hre.Diamond.collateralAsset(krAsset.address)).exists) {
-        await hre.Diamond.connect(hre.users.operator).addCollateralAsset(
+        await hre.Diamond.connect(hre.users.deployer).addCollateralAsset(
             krAsset.address,
             krAsset.anchor.address,
             toBig(1),

@@ -150,6 +150,7 @@ declare module "hardhat/types/runtime" {
 
         fromBig: typeof fromBig;
         toBig: typeof toBig;
+        admin: SignerWithAddress;
         getDeploymentOrNull: (deploymentName: string) => Promise<Deployment | null>;
         getContractOrFork: <T extends keyof TC>(type: T, deploymentName?: string) => Promise<TC[T]>;
         forking: {

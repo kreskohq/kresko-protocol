@@ -51,18 +51,15 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, AccessControlEnumerableUpgrade
         // This does nothing but doesn't hurt to make sure it's called
         __AccessControlEnumerable_init();
 
-        // Setup relationships
-        _setRoleAdmin(Role.OPERATOR, Role.ADMIN);
-
-        // Setup the admin
-        _setupRole(DEFAULT_ADMIN_ROLE, _admin);
+        // Default admin setup
+        _setupRole(Role.DEFAULT_ADMIN, _admin);
         _setupRole(Role.ADMIN, _admin);
+
+        _setupRole(Role.DEFAULT_ADMIN, msg.sender);
+        _setupRole(Role.ADMIN, msg.sender);
 
         // Setup the operator, which is the protocol linked to the main asset
         _setupRole(Role.OPERATOR, asset.kresko());
-
-        // Deployer does not need a role
-        _revokeRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     /**
@@ -109,10 +106,13 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, AccessControlEnumerableUpgrade
      * @notice Mints @param _assets of krAssets for @param _to,
      * @notice Mints relative @return _shares of wkrAssets
      */
-    function issue(
-        uint256 _assets,
-        address _to
-    ) public virtual override onlyRole(Role.OPERATOR) returns (uint256 shares) {
+    function issue(uint256 _assets, address _to)
+        public
+        virtual
+        override
+        onlyRole(Role.OPERATOR)
+        returns (uint256 shares)
+    {
         shares = super.issue(_assets, _to);
     }
 
@@ -120,10 +120,13 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, AccessControlEnumerableUpgrade
      * @notice Burns @param _assets of krAssets from @param _from,
      * @notice Burns relative @return _shares of wkrAssets
      */
-    function destroy(
-        uint256 _assets,
-        address _from
-    ) public virtual override onlyRole(Role.OPERATOR) returns (uint256 shares) {
+    function destroy(uint256 _assets, address _from)
+        public
+        virtual
+        override
+        onlyRole(Role.OPERATOR)
+        returns (uint256 shares)
+    {
         shares = super.destroy(_assets, _from);
     }
 
