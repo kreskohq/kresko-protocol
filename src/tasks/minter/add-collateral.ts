@@ -13,8 +13,11 @@ task("add-collateral")
     .addOptionalParam("log", "Log outputs", false, types.boolean)
     .addOptionalParam("wait", "wait confirmations", 1, types.int)
     .setAction(async function (taskArgs: TaskArguments, hre) {
-        const { ethers, users } = hre;
-        const kresko = hre.Diamond.connect(users.admin);
+        const { ethers } = hre;
+
+        const { deployer } = await ethers.getNamedSigners();
+
+        const kresko = hre.Diamond.connect(deployer);
         const { symbol, cFactor, oracleAddr, marketStatusOracleAddr, log } = taskArgs;
 
         const logger = getLogger("add-collateral", log);

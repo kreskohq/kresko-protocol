@@ -2,7 +2,7 @@ import { Fragment, FunctionFragment, JsonFragment } from "@ethersproject/abi";
 import { fromBig, toBig } from "@kreskolabs/lib";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import type { Fixture } from "ethereum-waffle";
-import type { ABI, DeployOptions, Deployment, Facet, FacetCut } from "hardhat-deploy/dist/types";
+import type { ABI, DeployOptions, Deployment, Facet, FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
 import "hardhat/types/config";
 import "mocha";
 
@@ -169,21 +169,22 @@ declare module "hardhat/types/runtime" {
         getSignatures: (abi: ABI) => string[];
         getSignaturesWithNames: (abi: ABI) => { name: string; sig: string }[];
         bytesCall: <T>(func: FunctionFragment, params: T) => string;
-        getAddFacetArgs: <T extends keyof TC>(
-            facet: TC[T],
+        getFacetCut: <T extends keyof TC>(
+            facet: T,
+            action: number,
             signatures?: string[],
             initializer?: {
                 contract: Contract;
                 functionName?: string;
                 args?: [string, BytesLike];
             },
-        ) => {
+        ) => Promise<{
             facetCut: FacetCut;
             initialization: {
                 _init: string;
                 _calldata: BytesLike;
             };
-        };
+        }>;
         users: HardhatUsers<SignerWithAddress>;
         addr: HardhatUsers<string>;
         /* -------------------------------------------------------------------------- */

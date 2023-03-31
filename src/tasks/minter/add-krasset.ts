@@ -13,9 +13,10 @@ task("add-krasset")
     .addOptionalParam("log", "Log outputs", false, types.boolean)
     .addOptionalParam("wait", "Log outputs", 1, types.int)
     .setAction(async function (taskArgs: TaskArguments, hre) {
-        const { users } = hre;
+        const { deployer } = await hre.ethers.getNamedSigners();
 
-        const kresko = hre.Diamond.connect(users.admin);
+        const kresko = hre.Diamond.connect(deployer);
+
         const { symbol, kFactor, oracleAddr, supplyLimit, marketStatusOracleAddr, log } = taskArgs;
         const logger = getLogger("add-krasset", log);
         if (kFactor == 1000) {

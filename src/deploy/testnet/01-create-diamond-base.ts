@@ -26,12 +26,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     // #2 Only Diamond-specific facets
     for (const facet of diamondFacets) {
-        const [FacetContract, sigs] = await deploy(facet, {
+        const [, sigs] = await deploy(facet, {
             from: deployer,
             log: true,
         });
 
-        const args = hre.getAddFacetArgs(FacetContract, sigs);
+        const args = await hre.getFacetCut(facet, 0, sigs);
         const Artifact = await deployments.getArtifact(facet);
         InitialFacets.push(args.facetCut);
         ABIs.push(Artifact.abi);

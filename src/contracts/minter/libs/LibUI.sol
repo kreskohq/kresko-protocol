@@ -8,9 +8,10 @@ import {IUniswapV2Pair} from "../../vendor/uniswap/v2-core/interfaces/IUniswapV2
 import {IKrStaking} from "../../staking/interfaces/IKrStaking.sol";
 import {LibDecimals, FixedPoint} from "../libs/LibDecimals.sol";
 import {Error} from "../../libs/Errors.sol";
-
+import {IUniswapV2Oracle} from "../interfaces/IUniswapV2Oracle.sol";
 import {KrAsset, CollateralAsset} from "../MinterTypes.sol";
 import {MinterState, ms} from "../MinterStorage.sol";
+import {irs} from "../InterestRateState.sol";
 
 /* solhint-disable contract-name-camelcase */
 /* solhint-disable var-name-mixedcase */
@@ -62,6 +63,9 @@ library LibUI {
         address assetAddress;
         address anchorAddress;
         uint256 price;
+        uint256 ammPrice;
+        uint256 priceRate;
+        uint256 stabilityRate;
         uint256 value;
         FixedPoint.Unsigned openFee;
         FixedPoint.Unsigned closeFee;
@@ -146,10 +150,14 @@ library LibUI {
         address oracleAddress;
         address anchorAddress;
         uint256 amount;
+        uint256 amountScaled;
+        uint256 priceRate;
+        uint256 stabilityRate;
         FixedPoint.Unsigned amountUSD;
         uint256 index;
         FixedPoint.Unsigned kFactor;
         uint256 price;
+        uint256 ammPrice;
         string symbol;
         string name;
         FixedPoint.Unsigned openFee;
@@ -240,7 +248,14 @@ library LibUI {
         for (uint256 i; i < assetAddresses.length; i++) {
             address assetAddress = assetAddresses[i];
             KrAsset memory krAsset = ms().kreskoAssets[assetAddress];
-
+            uint256 ammPrice;
+            uint256 stabilityRate;
+            uint256 priceRate;
+            if (irs().srAssets[assetAddress].asset != address(0)) {
+                ammPrice = IUniswapV2Oracle(ms().ammOracle).consultKrAsset(assetAddress, 1 ether);
+                stabilityRate = irs().srAssets[assetAddress].calculateStabilityRate();
+                priceRate = irs().srAssets[assetAddress].getPriceRate();
+            }
             result[i] = krAssetInfo({
                 value: ms().getKrAssetValue(assetAddress, 1 ether, false).rawValue,
                 oracleAddress: address(krAsset.oracle),
@@ -250,6 +265,9 @@ library LibUI {
                 openFee: krAsset.openFee,
                 kFactor: krAsset.kFactor,
                 price: uint256(krAsset.oracle.latestAnswer()),
+                stabilityRate: stabilityRate,
+                priceRate: priceRate,
+                ammPrice: ammPrice,
                 marketOpen: krAsset.marketStatusOracle.latestMarketOpen(),
                 symbol: IERC20Upgradeable(assetAddress).symbol(),
                 name: IERC20Upgradeable(assetAddress).name()
@@ -332,10 +350,18 @@ library LibUI {
             for (uint256 i; i < krAssetAddresses.length; i++) {
                 address assetAddress = krAssetAddresses[i];
                 KrAsset memory krAsset = ms().kreskoAssets[assetAddress];
-                uint256 amount = ms().getKreskoAssetDebtScaled(_account, assetAddress);
+                uint256 amount = ms().getKreskoAssetDebtPrincipal(_account, assetAddress);
+                uint256 amountScaled = ms().getKreskoAssetDebtScaled(_account, assetAddress);
 
                 FixedPoint.Unsigned memory amountUSD = ms().getKrAssetValue(assetAddress, amount, true);
-
+                uint256 ammPrice;
+                uint256 stabilityRate;
+                uint256 priceRate;
+                if (irs().srAssets[assetAddress].asset != address(0)) {
+                    stabilityRate = irs().srAssets[assetAddress].calculateStabilityRate();
+                    priceRate = irs().srAssets[assetAddress].getPriceRate();
+                    ammPrice = IUniswapV2Oracle(ms().ammOracle).consultKrAsset(assetAddress, 1 ether);
+                }
                 totalDebtUSD.add(amountUSD);
                 result[i] = krAssetInfoUser({
                     assetAddress: assetAddress,
@@ -344,10 +370,14 @@ library LibUI {
                     openFee: krAsset.openFee,
                     closeFee: krAsset.closeFee,
                     amount: amount,
+                    amountScaled: amountScaled,
                     amountUSD: amountUSD,
+                    stabilityRate: stabilityRate,
+                    priceRate: priceRate,
                     index: i,
                     kFactor: krAsset.kFactor,
                     price: uint256(krAsset.oracle.latestAnswer()),
+                    ammPrice: ammPrice,
                     symbol: IERC20Upgradeable(assetAddress).symbol(),
                     name: IERC20Upgradeable(assetAddress).name()
                 });

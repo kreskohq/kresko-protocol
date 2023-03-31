@@ -39,16 +39,16 @@ export const minterFacets = [
 export const getMinterInitializer = async (
     hre: HardhatRuntimeEnvironment,
 ): Promise<MinterInitializer<MinterInitArgsStruct>> => {
-    const { treasury, admin } = hre.addr;
+    const { treasury, admin, multisig } = await hre.getNamedAccounts();
     const Safe = await hre.getContractOrFork("GnosisSafeL2");
     if (!Safe) throw new Error("GnosisSafe not deployed for Minter initialization");
 
     return {
         name: "ConfigurationFacet",
         args: {
-            admin,
-            treasury,
-            council: Safe.address,
+            admin: admin,
+            treasury: treasury,
+            council: multisig,
             liquidationIncentiveMultiplier: toFixedPoint(process.env.LIQUIDATION_INCENTIVE),
             minimumCollateralizationRatio: toFixedPoint(process.env.MINIMUM_COLLATERALIZATION_RATIO),
             minimumDebtValue: toFixedPoint(process.env.MINIMUM_DEBT_VALUE, 8),

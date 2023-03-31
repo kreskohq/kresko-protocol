@@ -1731,7 +1731,7 @@ const _abi = [
                 components: [
                     {
                         internalType: "address",
-                        name: "operator",
+                        name: "admin",
                         type: "address",
                     },
                     {
@@ -1741,7 +1741,7 @@ const _abi = [
                     },
                     {
                         internalType: "address",
-                        name: "feeRecipient",
+                        name: "treasury",
                         type: "address",
                     },
                     {
@@ -3196,6 +3196,21 @@ const _abi = [
                                 type: "uint256",
                             },
                             {
+                                internalType: "uint256",
+                                name: "amountScaled",
+                                type: "uint256",
+                            },
+                            {
+                                internalType: "uint256",
+                                name: "priceRate",
+                                type: "uint256",
+                            },
+                            {
+                                internalType: "uint256",
+                                name: "stabilityRate",
+                                type: "uint256",
+                            },
+                            {
                                 components: [
                                     {
                                         internalType: "uint256",
@@ -3227,6 +3242,11 @@ const _abi = [
                             {
                                 internalType: "uint256",
                                 name: "price",
+                                type: "uint256",
+                            },
+                            {
+                                internalType: "uint256",
+                                name: "ammPrice",
                                 type: "uint256",
                             },
                             {
@@ -3693,6 +3713,21 @@ const _abi = [
                     {
                         internalType: "uint256",
                         name: "price",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "ammPrice",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "priceRate",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "stabilityRate",
                         type: "uint256",
                     },
                     {

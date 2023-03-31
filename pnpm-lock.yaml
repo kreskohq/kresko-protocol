@@ -11,7 +11,7 @@ specifiers:
   '@defi-wonderland/smock': ^2.3.1
   '@ethersproject/abi': ^5.6.3
   '@ethersproject/abstract-signer': ^5.6.2
-  '@ethersproject/bignumber': ^5.6.2
+  '@ethersproject/bignumber': ^5.7.0
   '@ethersproject/bytes': ^5.6.1
   '@ethersproject/contracts': ^5.6.2
   '@ethersproject/providers': ^5.6.8
@@ -57,7 +57,7 @@ specifiers:
   eslint: ^8.18.0
   eslint-config-prettier: ^8.5.0
   ethereum-waffle: ^3.4.4
-  ethers: ^5.6.8
+  ethers: ^5.7.2
   fs-extra: ^10.0.0
   hardhat: 2.12.8-viair.0
   hardhat-contract-sizer: ^2.5.1
@@ -97,7 +97,7 @@ devDependencies:
   '@codechecks/client': 0.1.12_typescript@5.0.0-beta
   '@commitlint/cli': 12.1.4
   '@commitlint/config-conventional': 12.1.4
-  '@defi-wonderland/smock': 2.3.4_5q4oc7xnjxvj4is5j2aj3afrga
+  '@defi-wonderland/smock': 2.3.4_mu6enm7pv3klvtyeaty34nqpfi
   '@ethersproject/abi': 5.7.0
   '@ethersproject/abstract-signer': 5.7.0
   '@ethersproject/bignumber': 5.7.0
@@ -107,11 +107,11 @@ devDependencies:
   '@ethersproject/solidity': 5.7.0
   '@ethersproject/units': 5.7.0
   '@kreskolabs/configs': 5.8.1
-  '@kreskolabs/gnosis-safe-contracts': 1.3.3_ethers@5.7.1
+  '@kreskolabs/gnosis-safe-contracts': 1.3.3_ethers@5.7.2
   '@kreskolabs/lib': 4.8.1
   '@kreskolabs/protocol-ts': 4.9.1
   '@nomicfoundation/hardhat-network-helpers': 1.0.6_hardhat@2.12.8-viair.0
-  '@nomiclabs/hardhat-ethers': 2.2.2_o72bpov3mzwft2yktclwf3jgtu
+  '@nomiclabs/hardhat-ethers': 2.2.2_mnd2jfkgzjnsrplpy2ssfajgou
   '@nomiclabs/hardhat-etherscan': 3.1.1_hardhat@2.12.8-viair.0
   '@nomiclabs/hardhat-web3': 2.0.0_jegdj3nyb47vo3ayci7jk7ojty
   '@openzeppelin/contracts': 4.7.3
@@ -123,8 +123,8 @@ devDependencies:
   '@sushiswap/core': 1.4.2
   '@sushiswap/core-sdk': 1.0.0-canary.34
   '@tsconfig/node16': 1.0.3
-  '@typechain/ethers-v5': 10.2.0_47ynytvredve47j2fpppokhaei
-  '@typechain/hardhat': 6.1.5_uqaqeifbp2ee5ha33uaap4e2py
+  '@typechain/ethers-v5': 10.2.0_enkcp7ei5yq57lqvqs546u6u2i
+  '@typechain/hardhat': 6.1.5_jsjwpwnlewyfbrmgrceq46huam
   '@types/chai': 4.3.3
   '@types/dotenv': 8.2.0
   '@types/fs-extra': 9.0.13
@@ -136,7 +136,7 @@ devDependencies:
   '@uniswap/sdk': 3.0.3_ikrax5idn6cixolfer6yrrrugu
   '@uniswap/v2-core': 1.0.1
   '@uniswap/v2-periphery': 1.1.0-beta.0
-  '@wagmi/core': 0.9.6_6zbowhzrc2tepik3rxefdmhx5u
+  '@wagmi/core': 0.9.6_yihpvsk6la6lrbbiedn62az35m
   chai: 4.3.6
   chai-bignumber: 3.1.0
   commitizen: 4.2.5
@@ -145,7 +145,7 @@ devDependencies:
   eslint: 8.25.0
   eslint-config-prettier: 8.5.0_eslint@8.25.0
   ethereum-waffle: 3.4.4_typescript@5.0.0-beta
-  ethers: 5.7.1
+  ethers: 5.7.2
   fs-extra: 10.1.0
   hardhat: 2.12.8-viair.0_rmze6nocp5omds6gasaamv6iru
   hardhat-contract-sizer: 2.6.1_hardhat@2.12.8-viair.0
@@ -557,7 +557,7 @@ packages:
     dependencies:
       '@jridgewell/trace-mapping': 0.3.9
 
-  /@defi-wonderland/smock/2.3.4_5q4oc7xnjxvj4is5j2aj3afrga:
+  /@defi-wonderland/smock/2.3.4_mu6enm7pv3klvtyeaty34nqpfi:
     resolution: {integrity: sha512-VYJbsoCOdFRyGkAwvaQhQRrU6V8AjK3five8xdbo41DEE9n3qXzUNBUxyD9HhXB/dWWPFWT21IGw5Ztl6Qw3Ew==}
     peerDependencies:
       '@ethersproject/abi': ^5
@@ -572,9 +572,9 @@ packages:
       '@nomicfoundation/ethereumjs-evm': 1.0.0
       '@nomicfoundation/ethereumjs-util': 8.0.0
       '@nomicfoundation/ethereumjs-vm': 6.0.0
-      '@nomiclabs/hardhat-ethers': 2.2.2_o72bpov3mzwft2yktclwf3jgtu
+      '@nomiclabs/hardhat-ethers': 2.2.2_mnd2jfkgzjnsrplpy2ssfajgou
       diff: 5.1.0
-      ethers: 5.7.1
+      ethers: 5.7.2
       hardhat: 2.12.8-viair.0_rmze6nocp5omds6gasaamv6iru
       lodash.isequal: 4.5.0
       lodash.isequalwith: 4.4.0
@@ -650,7 +650,7 @@ packages:
     engines: {node: '>=10.0'}
     dependencies:
       '@ethereum-waffle/provider': 3.4.4
-      ethers: 5.7.1
+      ethers: 5.7.2
     transitivePeerDependencies:
       - bufferutil
       - encoding
@@ -664,10 +664,10 @@ packages:
     dependencies:
       '@resolver-engine/imports': 0.3.3
       '@resolver-engine/imports-fs': 0.3.3
-      '@typechain/ethers-v5': 2.0.0_hvhmgvgv65f7ns5nchpmx3azgq
+      '@typechain/ethers-v5': 2.0.0_qm5qgbtbzj2awa7q5l4ce4se5a
       '@types/mkdirp': 0.5.2
       '@types/node-fetch': 2.6.2
-      ethers: 5.7.1
+      ethers: 5.7.2
       mkdirp: 0.5.6
       node-fetch: 2.6.7
       solc: 0.6.12
@@ -698,7 +698,7 @@ packages:
     engines: {node: '>=10.0'}
     dependencies:
       '@ethersproject/abi': 5.7.0
-      ethers: 5.7.1
+      ethers: 5.7.2
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -709,7 +709,7 @@ packages:
     engines: {node: '>=10.0'}
     dependencies:
       '@ethereum-waffle/ens': 3.4.4
-      ethers: 5.7.1
+      ethers: 5.7.2
       ganache-core: 2.13.2
       patch-package: 6.4.7
       postinstall-postinstall: 2.1.0
@@ -1190,12 +1190,12 @@ packages:
       '@kreskolabs/configs': 5.8.1
     dev: true
 
-  /@kreskolabs/gnosis-safe-contracts/1.3.3_ethers@5.7.1:
+  /@kreskolabs/gnosis-safe-contracts/1.3.3_ethers@5.7.2:
     resolution: {integrity: sha512-spH/p5fI3nIOxm2sKiGfRQDN6VqcNS9R/oIrgYgHj7FNvEonpGjscoSOvF2oWi7o9W5hVXFHNay7G4SiqYIgPQ==}
     peerDependencies:
       ethers: ^5.1.4
     dependencies:
-      ethers: 5.7.1
+      ethers: 5.7.2
     dev: true
 
   /@kreskolabs/lib/4.8.1:
@@ -1593,13 +1593,13 @@ packages:
       '@nomicfoundation/solidity-analyzer-win32-ia32-msvc': 0.1.0
       '@nomicfoundation/solidity-analyzer-win32-x64-msvc': 0.1.0
 
-  /@nomiclabs/hardhat-ethers/2.2.2_o72bpov3mzwft2yktclwf3jgtu:
+  /@nomiclabs/hardhat-ethers/2.2.2_mnd2jfkgzjnsrplpy2ssfajgou:
     resolution: {integrity: sha512-NLDlDFL2us07C0jB/9wzvR0kuLivChJWCXTKcj3yqjZqMoYp7g7wwS157F70VHx/+9gHIBGzak5pKDwG8gEefA==}
     peerDependencies:
       ethers: ^5.0.0
       hardhat: ^2.0.0
     dependencies:
-      ethers: 5.7.1
+      ethers: 5.7.2
       hardhat: 2.12.8-viair.0_rmze6nocp5omds6gasaamv6iru
     dev: true
 
@@ -2195,7 +2195,7 @@ packages:
   /@tsconfig/node16/1.0.3:
     resolution: {integrity: sha512-yOlFc+7UtL/89t2ZhjPvvB/DeAr3r+Dq58IgzsFkOAvVC6NMJXmCGjbptdXdR9qsX7pKcTL+s87FtYREi2dEEQ==}
 
-  /@typechain/ethers-v5/10.2.0_47ynytvredve47j2fpppokhaei:
+  /@typechain/ethers-v5/10.2.0_enkcp7ei5yq57lqvqs546u6u2i:
     resolution: {integrity: sha512-ikaq0N/w9fABM+G01OFmU3U3dNnyRwEahkdvi9mqy1a3XwKiPZaF/lu54OcNaEWnpvEYyhhS0N7buCtLQqC92w==}
     peerDependencies:
       '@ethersproject/abi': ^5.0.0
@@ -2208,24 +2208,24 @@ packages:
       '@ethersproject/abi': 5.7.0
       '@ethersproject/bytes': 5.7.0
       '@ethersproject/providers': 5.7.1
-      ethers: 5.7.1
+      ethers: 5.7.2
       lodash: 4.17.21
       ts-essentials: 7.0.3_typescript@5.0.0-beta
       typechain: 8.1.1_typescript@5.0.0-beta
       typescript: 5.0.0-beta
     dev: true
 
-  /@typechain/ethers-v5/2.0.0_hvhmgvgv65f7ns5nchpmx3azgq:
+  /@typechain/ethers-v5/2.0.0_qm5qgbtbzj2awa7q5l4ce4se5a:
     resolution: {integrity: sha512-0xdCkyGOzdqh4h5JSf+zoWx85IusEjDcPIwNEHP8mrWSnCae4rvrqB+/gtpdNfX7zjlFlZiMeePn2r63EI3Lrw==}
     peerDependencies:
       ethers: ^5.0.0
       typechain: ^3.0.0
     dependencies:
-      ethers: 5.7.1
+      ethers: 5.7.2
       typechain: 3.0.0_typescript@5.0.0-beta
     dev: true
 
-  /@typechain/hardhat/6.1.5_uqaqeifbp2ee5ha33uaap4e2py:
+  /@typechain/hardhat/6.1.5_jsjwpwnlewyfbrmgrceq46huam:
     resolution: {integrity: sha512-lg7LW4qDZpxFMknp3Xool61Fg6Lays8F8TXdFGBG+MxyYcYU5795P1U2XdStuzGq9S2Dzdgh+1jGww9wvZ6r4Q==}
     peerDependencies:
       '@ethersproject/abi': ^5.4.7
@@ -2237,8 +2237,8 @@ packages:
     dependencies:
       '@ethersproject/abi': 5.7.0
       '@ethersproject/providers': 5.7.1
-      '@typechain/ethers-v5': 10.2.0_47ynytvredve47j2fpppokhaei
-      ethers: 5.7.1
+      '@typechain/ethers-v5': 10.2.0_enkcp7ei5yq57lqvqs546u6u2i
+      ethers: 5.7.2
       fs-extra: 9.1.0
       hardhat: 2.12.8-viair.0_rmze6nocp5omds6gasaamv6iru
       typechain: 8.1.1_typescript@5.0.0-beta
@@ -2634,7 +2634,7 @@ packages:
       typescript: 5.0.0-beta
     dev: true
 
-  /@wagmi/connectors/0.2.6_sq5rzjmkg66zxnqn2jz36jazxi:
+  /@wagmi/connectors/0.2.6_jqyanyxkxzqslcrkfckssrocu4:
     resolution: {integrity: sha512-I7tsKgbwF6o5aUu6gQk4YMo7fe3iLAgmbFT06/FHlSLKIxI16qkKwjTt04k9WhdDRDYaJH+DqUEyam1jP+jvIg==}
     peerDependencies:
       '@wagmi/core': '>=0.9.x'
@@ -2650,12 +2650,12 @@ packages:
       '@ledgerhq/connect-kit-loader': 1.0.2
       '@safe-global/safe-apps-provider': 0.15.2
       '@safe-global/safe-apps-sdk': 7.10.0
-      '@wagmi/core': 0.9.6_6zbowhzrc2tepik3rxefdmhx5u
+      '@wagmi/core': 0.9.6_yihpvsk6la6lrbbiedn62az35m
       '@walletconnect/ethereum-provider': 1.8.0
       '@walletconnect/universal-provider': 2.3.3_7k2zcej43e6fiq3akrb6sz3xa4
       '@web3modal/standalone': 2.1.1
       abitype: 0.3.0_typescript@5.0.0-beta
-      ethers: 5.7.1
+      ethers: 5.7.2
       eventemitter3: 4.0.7
       typescript: 5.0.0-beta
     transitivePeerDependencies:
@@ -2674,7 +2674,7 @@ packages:
       - zod
     dev: true
 
-  /@wagmi/core/0.9.6_6zbowhzrc2tepik3rxefdmhx5u:
+  /@wagmi/core/0.9.6_yihpvsk6la6lrbbiedn62az35m:
     resolution: {integrity: sha512-TGAnA9sNjm3s8evBVxN3yRjZqKGBlhFW1Bk2nX1C1UtlrA5uTIPDWGxHw0CAPmSnE4MLL89Um4JA12jubNqLZg==}
     peerDependencies:
       ethers: '>=5.5.1 <6'
@@ -2684,9 +2684,9 @@ packages:
         optional: true
     dependencies:
       '@wagmi/chains': 0.2.8_typescript@5.0.0-beta
-      '@wagmi/connectors': 0.2.6_sq5rzjmkg66zxnqn2jz36jazxi
+      '@wagmi/connectors': 0.2.6_jqyanyxkxzqslcrkfckssrocu4
       abitype: 0.3.0_typescript@5.0.0-beta
-      ethers: 5.7.1
+      ethers: 5.7.2
       eventemitter3: 4.0.7
       typescript: 5.0.0-beta
       zustand: 4.3.3
@@ -6667,7 +6667,7 @@ packages:
       '@ethereum-waffle/compiler': 3.4.4_typescript@5.0.0-beta
       '@ethereum-waffle/mock-contract': 3.4.4
       '@ethereum-waffle/provider': 3.4.4
-      ethers: 5.7.1
+      ethers: 5.7.2
     transitivePeerDependencies:
       - bufferutil
       - encoding
@@ -6852,44 +6852,6 @@ packages:
       setimmediate: 1.0.4
       uuid: 2.0.1
       xmlhttprequest: 1.8.0
-    dev: true
-
-  /ethers/5.7.1:
-    resolution: {integrity: sha512-5krze4dRLITX7FpU8J4WscXqADiKmyeNlylmmDLbS95DaZpBhDe2YSwRQwKXWNyXcox7a3gBgm/MkGXV1O1S/Q==}
-    dependencies:
-      '@ethersproject/abi': 5.7.0
-      '@ethersproject/abstract-provider': 5.7.0
-      '@ethersproject/abstract-signer': 5.7.0
-      '@ethersproject/address': 5.7.0
-      '@ethersproject/base64': 5.7.0
-      '@ethersproject/basex': 5.7.0
-      '@ethersproject/bignumber': 5.7.0
-      '@ethersproject/bytes': 5.7.0
-      '@ethersproject/constants': 5.7.0
-      '@ethersproject/contracts': 5.7.0
-      '@ethersproject/hash': 5.7.0
-      '@ethersproject/hdnode': 5.7.0
-      '@ethersproject/json-wallets': 5.7.0
-      '@ethersproject/keccak256': 5.7.0
-      '@ethersproject/logger': 5.7.0
-      '@ethersproject/networks': 5.7.1
-      '@ethersproject/pbkdf2': 5.7.0
-      '@ethersproject/properties': 5.7.0
-      '@ethersproject/providers': 5.7.1
-      '@ethersproject/random': 5.7.0
-      '@ethersproject/rlp': 5.7.0
-      '@ethersproject/sha2': 5.7.0
-      '@ethersproject/signing-key': 5.7.0
-      '@ethersproject/solidity': 5.7.0
-      '@ethersproject/strings': 5.7.0
-      '@ethersproject/transactions': 5.7.0
-      '@ethersproject/units': 5.7.0
-      '@ethersproject/wallet': 5.7.0
-      '@ethersproject/web': 5.7.1
-      '@ethersproject/wordlists': 5.7.0
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
     dev: true
 
   /ethers/5.7.2:
@@ -7998,7 +7960,7 @@ packages:
       hardhat: ^2.12.0
       hardhat-deploy: ^0.11.23
     dependencies:
-      '@nomiclabs/hardhat-ethers': 2.2.2_o72bpov3mzwft2yktclwf3jgtu
+      '@nomiclabs/hardhat-ethers': 2.2.2_mnd2jfkgzjnsrplpy2ssfajgou
       hardhat: 2.12.8-viair.0_rmze6nocp5omds6gasaamv6iru
       hardhat-deploy: 0.11.23
     dev: true
@@ -8032,7 +7994,7 @@ packages:
       hardhat: ^2.0.0
     dependencies:
       debug: 4.3.4
-      ethers: 5.7.1
+      ethers: 5.7.2
       hardhat: 2.12.8-viair.0_rmze6nocp5omds6gasaamv6iru
     transitivePeerDependencies:
       - bufferutil
@@ -8070,7 +8032,7 @@ packages:
       lodash: 4.x
       typechain: 8.x
     dependencies:
-      '@typechain/hardhat': 6.1.5_uqaqeifbp2ee5ha33uaap4e2py
+      '@typechain/hardhat': 6.1.5_jsjwpwnlewyfbrmgrceq46huam
       fs-extra: 10.1.0
       hardhat: 2.12.8-viair.0_rmze6nocp5omds6gasaamv6iru
       tempy: 1.0.1

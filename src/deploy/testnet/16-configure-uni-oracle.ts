@@ -5,10 +5,12 @@ import { deployments } from "hardhat";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("UniV2Oracle", true);
+    const { deployer } = await hre.getNamedAccounts();
+    const Factory = await deployments.get("UniswapV2Factory");
 
     const [UniV2Oracle] = await hre.deploy("UniswapV2Oracle", {
-        from: (await hre.getUsers()).deployer.address,
-        args: [hre.UniV2Factory.address, hre.users.deployer.address],
+        from: deployer,
+        args: [Factory.address, deployer],
     });
     hre.UniV2Oracle = UniV2Oracle;
     await hre.Diamond.updateAMMOracle(UniV2Oracle.address);

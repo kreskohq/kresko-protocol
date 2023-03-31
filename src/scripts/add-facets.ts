@@ -50,7 +50,7 @@ export async function addFacets({ names, initializerName, initializerArgs, log =
         const [FacetContract, sigs, FacetDeployment] = await deploy(facet, { log, from: deployer });
 
         // #4.4 Convert the address and signatures into the required `FacetCut` type and push into the array.
-        const { facetCut } = hre.getAddFacetArgs(FacetContract, sigs);
+        const { facetCut } = await hre.getFacetCut(facet, 0, sigs);
 
         // #4.5 Ensure functions do not exist
         const existingFacet = facetsBefore.find(f => f.facetAddress === FacetContract.address);

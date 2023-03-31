@@ -38,6 +38,7 @@ export const hardhatUsers = {
     },
     admin: {
         default: 0,
+        420: process.env.MULTISIG,
     },
     owner: {
         default: 2,

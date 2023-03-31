@@ -1,203 +1,51 @@
 [
     {
-        "asset": "OP",
-        "assetAddress": "0x8FD5B2702b02F68F88c10D9315426d503e5d4010",
+        "asset": "",
+        "assetAddress": "0xd70c0ee63a73a6Fb4d5728739A103bC8b39e9401",
         "assetType": "collateral",
-        "feed": "OP/USD",
-        "marketstatus": "0x201877A0271BABEE1EB4CB10A4Ad3841d470ed9C",
-        "pricefeed": "0x201877A0271BABEE1EB4CB10A4Ad3841d470ed9C"
+        "feed": "ETH/USD",
+        "marketstatus": "0x03F5285B18D7bF4E123b48c120a2e4A9C98d07a4",
+        "pricefeed": "0x03F5285B18D7bF4E123b48c120a2e4A9C98d07a4"
     },
     {
         "asset": "DAI",
-        "assetAddress": "0x3451E572ebD8bc292097593361744a1f8E321d8A",
+        "assetAddress": "0x7ff84e6d3111327ED63eb97691Bf469C7fcE832F",
         "assetType": "collateral",
         "feed": "DAI/USD",
         "marketstatus": "0xD66D1405dCC754b0Fba9D879Dd131c1C1C547b5E",
         "pricefeed": "0x31856c9a2A73aAee6100Aed852650f75c5F539D0"
     },
     {
-        "asset": "WETH",
-        "assetAddress": "0x028854b28861A8c32c14B9079Eb7e22642ab9512",
-        "assetType": "collateral",
-        "feed": "ETH/USD",
-        "marketstatus": "0x03F5285B18D7bF4E123b48c120a2e4A9C98d07a4",
-        "pricefeed": "0x03F5285B18D7bF4E123b48c120a2e4A9C98d07a4"
-    },
-    {
-        "asset": "SNX",
-        "assetAddress": "0xDFCA4432c1572038F944F13b610B8c3dd9b1DBd8",
-        "assetType": "collateral",
-        "feed": "SNX/USD",
-        "marketstatus": "0x527E72fc56Cd81baeF889cB15B5f16b44C2C1B66",
-        "pricefeed": "0x527E72fc56Cd81baeF889cB15B5f16b44C2C1B66"
-    },
-    {
         "asset": "krETH",
-        "assetAddress": "0x3b96b644CAe06987A4f2133F1E146c7dE5ceF3ac",
+        "assetAddress": "0xbb37d6016f97Dd369eCB76e2A5036DacD8770f8b",
         "assetType": "collateral",
         "feed": "ETH/USD",
         "marketstatus": "0x03F5285B18D7bF4E123b48c120a2e4A9C98d07a4",
         "pricefeed": "0x03F5285B18D7bF4E123b48c120a2e4A9C98d07a4"
-    },
-    {
-        "asset": "krWTI",
-        "assetAddress": "0x65b301612C9Ca76ccB495722D7F02CD3acab5d2e",
-        "assetType": "collateral",
-        "feed": "WTI/USD",
-        "marketstatus": "0x93d656D80CB8F263c309b7Fa4a78a6821D08C3d0",
-        "pricefeed": "0x93d656D80CB8F263c309b7Fa4a78a6821D08C3d0"
-    },
-    {
-        "asset": "krXAU",
-        "assetAddress": "0xFC382404b498f891377d7C2C62d24b61407F7A7a",
-        "assetType": "collateral",
-        "feed": "XAU/USD",
-        "marketstatus": "0xBBfcFE2FF22481F05BeFa8DAdA47942341d2B134",
-        "pricefeed": "0xBBfcFE2FF22481F05BeFa8DAdA47942341d2B134"
     },
     {
         "asset": "krTSLA",
-        "assetAddress": "0x7Df1BE079F99066117F8214656B005068Ef2cA5F",
+        "assetAddress": "0x3502B0329a45011C8FEE033B8eEe6BDA89c03081",
         "assetType": "collateral",
         "feed": "TSLA/USD",
         "marketstatus": "0x1b9D6508052F263fC0640B39D1c898921e5C703F",
         "pricefeed": "0x1b9D6508052F263fC0640B39D1c898921e5C703F"
     },
     {
-        "asset": "krBTC",
-        "assetAddress": "0x6a6A2f61a665B817DA48F0356C47406BD03127c3",
-        "assetType": "collateral",
-        "feed": "BTC/USD",
-        "marketstatus": "0x2764f4151aD29bDeF119A3a0B2529F94F7B2B879",
-        "pricefeed": "0x2764f4151aD29bDeF119A3a0B2529F94F7B2B879"
-    },
-    {
-        "asset": "krETHRATE",
-        "assetAddress": "0xBDAd13ac55E0DD5E6a4ca07D325b351F838E3a31",
-        "assetType": "collateral",
-        "feed": "ETH/USD",
-        "marketstatus": "0x03F5285B18D7bF4E123b48c120a2e4A9C98d07a4",
-        "pricefeed": "0x03F5285B18D7bF4E123b48c120a2e4A9C98d07a4"
-    },
-    {
-        "asset": "krQQQ",
-        "assetAddress": "0x5e77642C99179a0928F3d4c040Fe011972E77289",
-        "assetType": "collateral",
-        "feed": "QQQ/USD",
-        "marketstatus": "0xC6854e36f5f5746CE916Fbc478E497c806c3211f",
-        "pricefeed": "0xC6854e36f5f5746CE916Fbc478E497c806c3211f"
-    },
-    {
-        "asset": "krGME",
-        "assetAddress": "0x4e67575C8339B78a1eE9e20773a80B8f154BB1B2",
-        "assetType": "collateral",
-        "feed": "GME/USD",
-        "marketstatus": "0x40A21CEDC30c6827B1333c9285DE9d1A24F502d1",
-        "pricefeed": "0x40A21CEDC30c6827B1333c9285DE9d1A24F502d1"
-    },
-    {
-        "asset": "krMSTR",
-        "assetAddress": "0x0834439C570B191414d099a69cCD161f4eA657CE",
-        "assetType": "collateral",
-        "feed": "MSTR/USD",
-        "marketstatus": "0x73B1e35F3a62D4E46ED12F15d7316b0509c66ad7",
-        "pricefeed": "0x73B1e35F3a62D4E46ED12F15d7316b0509c66ad7"
-    },
-    {
-        "asset": "krBABA",
-        "assetAddress": "0x8f66c9D3309323420706D989B9418926fAa90f93",
-        "assetType": "collateral",
-        "feed": "BABA/USD",
-        "marketstatus": "0xB20a177220d2aA9e48Dedc8ae20e3a45E72a7Cae",
-        "pricefeed": "0xB20a177220d2aA9e48Dedc8ae20e3a45E72a7Cae"
-    },
-    {
-        "asset": "wBTC",
-        "assetAddress": "0xD8e369c218648e879095b70cF2A4a98cC2a3720c",
-        "assetType": "collateral",
-        "feed": "BTC/USD",
-        "marketstatus": "0x2764f4151aD29bDeF119A3a0B2529F94F7B2B879",
-        "pricefeed": "0x2764f4151aD29bDeF119A3a0B2529F94F7B2B879"
-    },
-    {
         "asset": "krTSLA",
-        "assetAddress": "0x7Df1BE079F99066117F8214656B005068Ef2cA5F",
+        "assetAddress": "0x3502B0329a45011C8FEE033B8eEe6BDA89c03081",
         "assetType": "krAsset",
         "feed": "TSLA/USD",
         "marketstatus": "0x1b9D6508052F263fC0640B39D1c898921e5C703F",
         "pricefeed": "0x1b9D6508052F263fC0640B39D1c898921e5C703F"
     },
     {
-        "asset": "krWTI",
-        "assetAddress": "0x65b301612C9Ca76ccB495722D7F02CD3acab5d2e",
-        "assetType": "krAsset",
-        "feed": "WTI/USD",
-        "marketstatus": "0x93d656D80CB8F263c309b7Fa4a78a6821D08C3d0",
-        "pricefeed": "0x93d656D80CB8F263c309b7Fa4a78a6821D08C3d0"
-    },
-    {
-        "asset": "krBTC",
-        "assetAddress": "0x6a6A2f61a665B817DA48F0356C47406BD03127c3",
-        "assetType": "krAsset",
-        "feed": "BTC/USD",
-        "marketstatus": "0x2764f4151aD29bDeF119A3a0B2529F94F7B2B879",
-        "pricefeed": "0x2764f4151aD29bDeF119A3a0B2529F94F7B2B879"
-    },
-    {
-        "asset": "krXAU",
-        "assetAddress": "0xFC382404b498f891377d7C2C62d24b61407F7A7a",
-        "assetType": "krAsset",
-        "feed": "XAU/USD",
-        "marketstatus": "0xBBfcFE2FF22481F05BeFa8DAdA47942341d2B134",
-        "pricefeed": "0xBBfcFE2FF22481F05BeFa8DAdA47942341d2B134"
-    },
-    {
         "asset": "krETH",
-        "assetAddress": "0x3b96b644CAe06987A4f2133F1E146c7dE5ceF3ac",
+        "assetAddress": "0xbb37d6016f97Dd369eCB76e2A5036DacD8770f8b",
         "assetType": "krAsset",
         "feed": "ETH/USD",
         "marketstatus": "0x03F5285B18D7bF4E123b48c120a2e4A9C98d07a4",
         "pricefeed": "0x03F5285B18D7bF4E123b48c120a2e4A9C98d07a4"
-    },
-    {
-        "asset": "krETHRATE",
-        "assetAddress": "0xBDAd13ac55E0DD5E6a4ca07D325b351F838E3a31",
-        "assetType": "krAsset",
-        "feed": "ETH/USD",
-        "marketstatus": "0x03F5285B18D7bF4E123b48c120a2e4A9C98d07a4",
-        "pricefeed": "0x03F5285B18D7bF4E123b48c120a2e4A9C98d07a4"
-    },
-    {
-        "asset": "krMSTR",
-        "assetAddress": "0x0834439C570B191414d099a69cCD161f4eA657CE",
-        "assetType": "krAsset",
-        "feed": "MSTR/USD",
-        "marketstatus": "0x73B1e35F3a62D4E46ED12F15d7316b0509c66ad7",
-        "pricefeed": "0x73B1e35F3a62D4E46ED12F15d7316b0509c66ad7"
-    },
-    {
-        "asset": "krQQQ",
-        "assetAddress": "0x5e77642C99179a0928F3d4c040Fe011972E77289",
-        "assetType": "krAsset",
-        "feed": "QQQ/USD",
-        "marketstatus": "0xC6854e36f5f5746CE916Fbc478E497c806c3211f",
-        "pricefeed": "0xC6854e36f5f5746CE916Fbc478E497c806c3211f"
-    },
-    {
-        "asset": "krGME",
-        "assetAddress": "0x4e67575C8339B78a1eE9e20773a80B8f154BB1B2",
-        "assetType": "krAsset",
-        "feed": "GME/USD",
-        "marketstatus": "0x40A21CEDC30c6827B1333c9285DE9d1A24F502d1",
-        "pricefeed": "0x40A21CEDC30c6827B1333c9285DE9d1A24F502d1"
-    },
-    {
-        "asset": "krBABA",
-        "assetAddress": "0x8f66c9D3309323420706D989B9418926fAa90f93",
-        "assetType": "krAsset",
-        "feed": "BABA/USD",
-        "marketstatus": "0xB20a177220d2aA9e48Dedc8ae20e3a45E72a7Cae",
-        "pricefeed": "0xB20a177220d2aA9e48Dedc8ae20e3a45E72a7Cae"
     },
     {
         "asset": "KISS",

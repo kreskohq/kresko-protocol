@@ -451,6 +451,11 @@ const defaultPools: [Asset, Asset, number][] = [
     [assets.KISS, assets.DAI, 20_000_000],
     [assets.WETH, assets.DAI, 10_000_000],
 ];
+const poolsExt: [Asset, Asset, number][] = [
+    [assets.KISS, assets.DAI, 2_500_500!],
+    [assets.KISS, assets.krETH, assets.krETH.mintAmount!],
+    [assets.KISS, assets.krTSLA, assets.krTSLA.mintAmount!],
+];
 
 export const batchALiquidity: [Asset, Asset, number][] = [
     [assets.OP, assets.KISS, 2_500_000!],
@@ -503,6 +508,24 @@ const defaultStakingPools: StakingPoolConfig[] = [
     {
         lpToken: [assets.KISS, assets.krBTC],
         allocPoint: 750,
+        startBlock: 0,
+    },
+];
+
+const stakingPoolsExt: StakingPoolConfig[] = [
+    {
+        lpToken: [assets.KISS, assets.DAI],
+        allocPoint: 1500,
+        startBlock: 0,
+    },
+    {
+        lpToken: [assets.KISS, assets.krETH],
+        allocPoint: 1000,
+        startBlock: 0,
+    },
+    {
+        lpToken: [assets.KISS, assets.krTSLA],
+        allocPoint: 1000,
         startBlock: 0,
     },
 ];
@@ -619,37 +642,39 @@ export const testnetConfigs: NetworkConfig = {
     },
     opgoerli: {
         protocolParams: defaultParams,
-        collaterals: [
-            assets.OP,
-            assets.DAI,
-            assets.WETH,
-            assets.SNX,
-            assets.krETH,
-            assets.krWTI,
-            assets.krXAU,
-            assets.krTSLA,
-            assets.krBTC,
-            assets.krETHRATE,
-            assets.krQQQ,
-            assets.krGME,
-            assets.krMSTR,
-            assets.krBABA,
-            assets.wBTC,
-        ],
-        krAssets: [
-            assets.krTSLA,
-            assets.krWTI,
-            assets.krBTC,
-            assets.krXAU,
-            assets.krETH,
-            assets.krETHRATE,
-            assets.krMSTR,
-            assets.krQQQ,
-            assets.krGME,
-            assets.krBABA,
-        ],
-        pools: defaultPools,
-        stakingPools: defaultStakingPools,
+        collaterals: [assets.WETH, assets.DAI, assets.krETH, assets.krTSLA],
+        krAssets: [assets.krTSLA, assets.krETH],
+        // collaterals: [
+        //     assets.OP,
+        //     assets.DAI,
+        //     assets.WETH,
+        //     assets.SNX,
+        //     assets.krETH,
+        //     assets.krWTI,
+        //     assets.krXAU,
+        //     assets.krTSLA,
+        //     assets.krBTC,
+        //     assets.krETHRATE,
+        //     assets.krQQQ,
+        //     assets.krGME,
+        //     assets.krMSTR,
+        //     assets.krBABA,
+        //     assets.wBTC,
+        // ],
+        // krAssets: [
+        //     assets.krTSLA,
+        //     assets.krWTI,
+        //     assets.krBTC,
+        //     assets.krXAU,
+        //     assets.krETH,
+        //     assets.krETHRATE,
+        //     assets.krMSTR,
+        //     assets.krQQQ,
+        //     assets.krGME,
+        //     assets.krBABA,
+        // ],
+        pools: poolsExt,
+        stakingPools: stakingPoolsExt,
         rewardTokens: [assets.krREWARD],
         rewardTokenAmounts: [1_000_000],
         rewardsPerBlock: [0.02],

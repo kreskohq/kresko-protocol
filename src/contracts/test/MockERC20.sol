@@ -5,6 +5,7 @@ import {ERC20} from "@rari-capital/solmate/src/tokens/ERC20.sol";
 
 contract MockERC20 is ERC20 {
     mapping(address => bool) public minters;
+    address public owner;
 
     constructor(
         string memory _name,
@@ -14,6 +15,13 @@ contract MockERC20 is ERC20 {
     ) ERC20(_name, _symbol, _decimals) {
         _mint(msg.sender, _initialSupply);
         minters[msg.sender] = true;
+        owner = msg.sender;
+    }
+
+    function reinitializeERC20(string memory _name, string memory _symbol) external {
+        require(msg.sender == owner, "!owner");
+        name = _name;
+        symbol = _symbol;
     }
 
     function toggleMinters(address[] calldata _minters) external {

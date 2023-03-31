@@ -99,8 +99,9 @@ extendEnvironment(function (hre) {
                     !SharedConfig.signatureFilters.some(s => s.indexOf(f.name.toLowerCase()) > -1),
             )
             .map(ethers.utils.Interface.getSighash);
-    hre.getAddFacetArgs = (
-        facet,
+    hre.getFacetCut = async (
+        facetName,
+        action: FacetCutAction,
         selectors?: string[],
         initializer?: {
             contract: Contract;
@@ -108,6 +109,7 @@ extendEnvironment(function (hre) {
             args?: unknown[];
         },
     ) => {
+        const facet = await hre.getContractOrFork(facetName);
         selectors =
             selectors && selectors.length
                 ? selectors
@@ -116,7 +118,7 @@ extendEnvironment(function (hre) {
 
         const facetCut: FacetCut = {
             facetAddress: facet.address,
-            action: FacetCutAction.Add,
+            action,
             functionSelectors: selectors,
         };
         const initialization = initializer

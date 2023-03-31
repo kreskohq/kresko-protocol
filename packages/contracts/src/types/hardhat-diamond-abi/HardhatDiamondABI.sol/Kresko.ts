@@ -19,9 +19,9 @@ import type { Listener, Provider } from "@ethersproject/providers";
 import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent, PromiseOrValue } from "../../common";
 
 export type MinterInitArgsStruct = {
-    operator: PromiseOrValue<string>;
+    admin: PromiseOrValue<string>;
     council: PromiseOrValue<string>;
-    feeRecipient: PromiseOrValue<string>;
+    treasury: PromiseOrValue<string>;
     extOracleDecimals: PromiseOrValue<BigNumberish>;
     liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>;
     minimumCollateralizationRatio: PromiseOrValue<BigNumberish>;
@@ -39,9 +39,9 @@ export type MinterInitArgsStructOutput = [
     BigNumber,
     BigNumber,
 ] & {
-    operator: string;
+    admin: string;
     council: string;
-    feeRecipient: string;
+    treasury: string;
     extOracleDecimals: number;
     liquidationIncentiveMultiplier: BigNumber;
     minimumCollateralizationRatio: BigNumber;
@@ -245,10 +245,14 @@ export declare namespace LibUI {
         oracleAddress: PromiseOrValue<string>;
         anchorAddress: PromiseOrValue<string>;
         amount: PromiseOrValue<BigNumberish>;
+        amountScaled: PromiseOrValue<BigNumberish>;
+        priceRate: PromiseOrValue<BigNumberish>;
+        stabilityRate: PromiseOrValue<BigNumberish>;
         amountUSD: FixedPoint.UnsignedStruct;
         index: PromiseOrValue<BigNumberish>;
         kFactor: FixedPoint.UnsignedStruct;
         price: PromiseOrValue<BigNumberish>;
+        ammPrice: PromiseOrValue<BigNumberish>;
         symbol: PromiseOrValue<string>;
         name: PromiseOrValue<string>;
         openFee: FixedPoint.UnsignedStruct;
@@ -260,9 +264,13 @@ export declare namespace LibUI {
         string,
         string,
         BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
         FixedPoint.UnsignedStructOutput,
         BigNumber,
         FixedPoint.UnsignedStructOutput,
+        BigNumber,
         BigNumber,
         string,
         string,
@@ -273,10 +281,14 @@ export declare namespace LibUI {
         oracleAddress: string;
         anchorAddress: string;
         amount: BigNumber;
+        amountScaled: BigNumber;
+        priceRate: BigNumber;
+        stabilityRate: BigNumber;
         amountUSD: FixedPoint.UnsignedStructOutput;
         index: BigNumber;
         kFactor: FixedPoint.UnsignedStructOutput;
         price: BigNumber;
+        ammPrice: BigNumber;
         symbol: string;
         name: string;
         openFee: FixedPoint.UnsignedStructOutput;
@@ -457,6 +469,9 @@ export declare namespace LibUI {
         assetAddress: PromiseOrValue<string>;
         anchorAddress: PromiseOrValue<string>;
         price: PromiseOrValue<BigNumberish>;
+        ammPrice: PromiseOrValue<BigNumberish>;
+        priceRate: PromiseOrValue<BigNumberish>;
+        stabilityRate: PromiseOrValue<BigNumberish>;
         value: PromiseOrValue<BigNumberish>;
         openFee: FixedPoint.UnsignedStruct;
         closeFee: FixedPoint.UnsignedStruct;
@@ -472,6 +487,9 @@ export declare namespace LibUI {
         string,
         BigNumber,
         BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
         FixedPoint.UnsignedStructOutput,
         FixedPoint.UnsignedStructOutput,
         FixedPoint.UnsignedStructOutput,
@@ -483,6 +501,9 @@ export declare namespace LibUI {
         assetAddress: string;
         anchorAddress: string;
         price: BigNumber;
+        ammPrice: BigNumber;
+        priceRate: BigNumber;
+        stabilityRate: BigNumber;
         value: BigNumber;
         openFee: FixedPoint.UnsignedStructOutput;
         closeFee: FixedPoint.UnsignedStructOutput;

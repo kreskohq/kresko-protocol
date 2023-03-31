@@ -13,15 +13,13 @@ export const coreExports = [
     "UniswapMath",
     "UniswapV2Pair",
     "UniswapV2LiquidityMathLibrary",
-    "Multisender",
     "FluxPriceFeedFactory",
     "FluxPriceFeed",
     "KISS",
-    "Funder",
+    "FunderTestnetExtended",
     "UniswapV2Oracle",
     "ERC20Upgradeable",
     "WETH",
-    "WBTC",
 ];
 function getFQNamesFromCompilationOutput(compileSolOutput: any): string[] {
     const allFQNNamesNested = compileSolOutput.artifactsEmittedPerJob.map((a: any) => {
