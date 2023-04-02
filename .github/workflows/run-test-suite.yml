@@ -48,6 +48,7 @@ jobs:
                   TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
                   FEE_RECIPIENT_ADDRESS: ${{ secrets.FEE_RECIPIENT_ADDRESS }}
                   ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
+                  FUNDER: ${{ secrets.FUNDER }}
                   MNEMONIC: ${{ secrets.MNEMONIC }}
                   TREASURY: ${{ secrets.TREASURY }}
                   MULTISIG: ${{ secrets.MULTISIG }}
