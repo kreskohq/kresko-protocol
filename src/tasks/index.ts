@@ -2,6 +2,7 @@ export * from "./add-facet";
 export * from "./deploy-funder";
 export * from "./deploy-kiss";
 export * from "./deploy-price-feed";
+export * from "./deploy-token";
 export * from "./deploy-staking";
 export * from "./deploy-staking-helper";
 export * from "./fund-operator";
