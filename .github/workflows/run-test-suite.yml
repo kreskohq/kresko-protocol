@@ -41,7 +41,7 @@ jobs:
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-            - run: npm run test-ci
+            - run: npm run test:ci
               env:
                   FEED_VALIDATOR: ${{ secrets.FEED_VALIDATOR }}
                   FEED_VALIDATOR_PK: ${{ secrets.FEED_VALIDATOR_PK }}
