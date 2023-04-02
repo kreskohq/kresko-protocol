@@ -1,7 +1,7 @@
 import hre from "hardhat";
 import { expect } from "@test/chai";
 import { Error, Role, withFixture } from "@utils/test";
-import { testnetConfigs } from "@deploy-config/testnet-goerli";
+import { testnetConfigs } from "@deploy-config/opgoerli";
 import { anchorTokenPrefix } from "@deploy-config/shared";
 import type { KreskoAssetAnchor } from "types/typechain/src/contracts/kreskoasset/KreskoAssetAnchor";
 
@@ -53,7 +53,7 @@ describe("KreskoAsset", function () {
         it("can reinitialize metadata", async function () {
             const newName = "foo";
             const newSymbol = "bar";
-            await expect(KreskoAsset.updateMetaData(newName, newSymbol, 2)).to.not.be.revertedWith(
+            await expect(KreskoAsset.reinitializeERC20(newName, newSymbol, 2)).to.not.be.revertedWith(
                 Error.ALREADY_INITIALIZED_OZ,
             );
             expect(await KreskoAsset.name()).to.equal(newName);
@@ -88,7 +88,7 @@ describe("KreskoAsset", function () {
         it("can reinitialize metadata", async function () {
             const newName = "foo";
             const newSymbol = "bar";
-            await expect(KreskoAssetAnchor.updateMetaData(newName, newSymbol, 2)).to.not.be.revertedWith(
+            await expect(KreskoAssetAnchor.reinitializeERC20(newName, newSymbol, 2)).to.not.be.revertedWith(
                 Error.ALREADY_INITIALIZED_OZ,
             );
             expect(await KreskoAssetAnchor.name()).to.equal(newName);

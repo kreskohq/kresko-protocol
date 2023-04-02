@@ -39,20 +39,30 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IE
      * @param _name The name of the KreskoAsset.
      * @param _symbol The symbol of the KreskoAsset.
      * @param _decimals Decimals for the asset.
-     * @param _owner The owner of this contract.
-     * @param _kresko The mint/burn operator.
+     * @param _admin The adminstrator of this contract.
+     * @param _kresko The protocol, can perform mint and burn.
      */
     function initialize(
         string memory _name,
         string memory _symbol,
         uint8 _decimals,
-        address _owner,
+        address _admin,
         address _kresko
     ) external initializer {
+        // ERC20
         __ERC20Upgradeable_init(_name, _symbol, _decimals);
+
+        // This does nothing but doesn't hurt to make sure it's called
         __AccessControlEnumerable_init();
-        _setupRole(Role.ADMIN, _owner);
-        _setRoleAdmin(Role.OPERATOR, Role.ADMIN);
+
+        // Setup the admin
+        _setupRole(Role.DEFAULT_ADMIN, msg.sender);
+        _setupRole(Role.ADMIN, msg.sender);
+
+        _setupRole(Role.DEFAULT_ADMIN, _admin);
+        _setupRole(Role.ADMIN, _admin);
+
+        // Setup the protocol
         _setupRole(Role.OPERATOR, _kresko);
         kresko = _kresko;
     }
@@ -68,18 +78,20 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IE
         override(AccessControlEnumerableUpgradeable, IERC165)
         returns (bool)
     {
-        return
-            interfaceId != 0xffffffff &&
-            (interfaceId == type(IKreskoAsset).interfaceId || interfaceId == 0x01ffc9a7 || interfaceId == 0x36372b07);
+        return (interfaceId != 0xffffffff &&
+            (interfaceId == type(IKreskoAsset).interfaceId ||
+                interfaceId == 0x01ffc9a7 ||
+                interfaceId == 0x36372b07 ||
+                super.supportsInterface(interfaceId)));
     }
 
     /**
-     * @notice Updates metadata for the token in case eg. ticker change
+     * @notice Updates ERC20 metadata for the token in case eg. a ticker change
      * @param _name new name for the asset
      * @param _symbol new symbol for the asset
      * @param _version number that must be greater than latest emitted `Initialized` version
      */
-    function updateMetaData(
+    function reinitializeERC20(
         string memory _name,
         string memory _symbol,
         uint8 _version
@@ -144,7 +156,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IE
      * @param _positive supply increasing/reducing rebase
      * @dev denumerator values 0 and 1 ether will disable the rebase
      */
-    function rebase(uint256 _denominator, bool _positive) external onlyRole(Role.OPERATOR) {
+    function rebase(uint256 _denominator, bool _positive) external onlyRole(Role.ADMIN) {
         require(_denominator >= 1 ether, Error.REBASING_DENOMINATOR_LOW);
         if (_denominator == 1 ether) {
             isRebased = false;

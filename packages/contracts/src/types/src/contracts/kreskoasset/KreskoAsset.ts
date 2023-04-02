@@ -41,6 +41,7 @@ export interface KreskoAssetInterface extends utils.Interface {
         "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
         "rebase(uint256,bool)": FunctionFragment;
         "rebaseInfo()": FunctionFragment;
+        "reinitializeERC20(string,string,uint8)": FunctionFragment;
         "renounceRole(bytes32,address)": FunctionFragment;
         "revokeRole(bytes32,address)": FunctionFragment;
         "supportsInterface(bytes4)": FunctionFragment;
@@ -48,7 +49,6 @@ export interface KreskoAssetInterface extends utils.Interface {
         "totalSupply()": FunctionFragment;
         "transfer(address,uint256)": FunctionFragment;
         "transferFrom(address,address,uint256)": FunctionFragment;
-        "updateMetaData(string,string,uint8)": FunctionFragment;
     };
 
     getFunction(
@@ -74,14 +74,14 @@ export interface KreskoAssetInterface extends utils.Interface {
             | "permit"
             | "rebase"
             | "rebaseInfo"
+            | "reinitializeERC20"
             | "renounceRole"
             | "revokeRole"
             | "supportsInterface"
             | "symbol"
             | "totalSupply"
             | "transfer"
-            | "transferFrom"
-            | "updateMetaData",
+            | "transferFrom",
     ): FunctionFragment;
 
     encodeFunctionData(functionFragment: "DEFAULT_ADMIN_ROLE", values?: undefined): string;
@@ -147,6 +147,10 @@ export interface KreskoAssetInterface extends utils.Interface {
     ): string;
     encodeFunctionData(functionFragment: "rebaseInfo", values?: undefined): string;
     encodeFunctionData(
+        functionFragment: "reinitializeERC20",
+        values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
+    ): string;
+    encodeFunctionData(
         functionFragment: "renounceRole",
         values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>],
     ): string;
@@ -163,10 +167,6 @@ export interface KreskoAssetInterface extends utils.Interface {
     ): string;
     encodeFunctionData(
         functionFragment: "transferFrom",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "updateMetaData",
         values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
     ): string;
 
@@ -191,6 +191,7 @@ export interface KreskoAssetInterface extends utils.Interface {
     decodeFunctionResult(functionFragment: "permit", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "rebase", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "rebaseInfo", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "reinitializeERC20", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "renounceRole", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "supportsInterface", data: BytesLike): Result;
@@ -198,7 +199,6 @@ export interface KreskoAssetInterface extends utils.Interface {
     decodeFunctionResult(functionFragment: "totalSupply", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "transfer", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "transferFrom", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "updateMetaData", data: BytesLike): Result;
 
     events: {
         "Approval(address,address,uint256)": EventFragment;
@@ -346,7 +346,7 @@ export interface KreskoAsset extends BaseContract {
             _name: PromiseOrValue<string>,
             _symbol: PromiseOrValue<string>,
             _decimals: PromiseOrValue<BigNumberish>,
-            _owner: PromiseOrValue<string>,
+            _admin: PromiseOrValue<string>,
             _kresko: PromiseOrValue<string>,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<ContractTransaction>;
@@ -386,6 +386,13 @@ export interface KreskoAsset extends BaseContract {
             overrides?: CallOverrides,
         ): Promise<[boolean, BigNumber] & { positive: boolean; denominator: BigNumber }>;
 
+        reinitializeERC20(
+            _name: PromiseOrValue<string>,
+            _symbol: PromiseOrValue<string>,
+            _version: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
         renounceRole(
             role: PromiseOrValue<BytesLike>,
             account: PromiseOrValue<string>,
@@ -414,13 +421,6 @@ export interface KreskoAsset extends BaseContract {
             _from: PromiseOrValue<string>,
             _to: PromiseOrValue<string>,
             _amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        updateMetaData(
-            _name: PromiseOrValue<string>,
-            _symbol: PromiseOrValue<string>,
-            _version: PromiseOrValue<BigNumberish>,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<ContractTransaction>;
     };
@@ -477,7 +477,7 @@ export interface KreskoAsset extends BaseContract {
         _name: PromiseOrValue<string>,
         _symbol: PromiseOrValue<string>,
         _decimals: PromiseOrValue<BigNumberish>,
-        _owner: PromiseOrValue<string>,
+        _admin: PromiseOrValue<string>,
         _kresko: PromiseOrValue<string>,
         overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
@@ -517,6 +517,13 @@ export interface KreskoAsset extends BaseContract {
         overrides?: CallOverrides,
     ): Promise<[boolean, BigNumber] & { positive: boolean; denominator: BigNumber }>;
 
+    reinitializeERC20(
+        _name: PromiseOrValue<string>,
+        _symbol: PromiseOrValue<string>,
+        _version: PromiseOrValue<BigNumberish>,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
     renounceRole(
         role: PromiseOrValue<BytesLike>,
         account: PromiseOrValue<string>,
@@ -545,13 +552,6 @@ export interface KreskoAsset extends BaseContract {
         _from: PromiseOrValue<string>,
         _to: PromiseOrValue<string>,
         _amount: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    updateMetaData(
-        _name: PromiseOrValue<string>,
-        _symbol: PromiseOrValue<string>,
-        _version: PromiseOrValue<BigNumberish>,
         overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
@@ -608,7 +608,7 @@ export interface KreskoAsset extends BaseContract {
             _name: PromiseOrValue<string>,
             _symbol: PromiseOrValue<string>,
             _decimals: PromiseOrValue<BigNumberish>,
-            _owner: PromiseOrValue<string>,
+            _admin: PromiseOrValue<string>,
             _kresko: PromiseOrValue<string>,
             overrides?: CallOverrides,
         ): Promise<void>;
@@ -648,6 +648,13 @@ export interface KreskoAsset extends BaseContract {
             overrides?: CallOverrides,
         ): Promise<[boolean, BigNumber] & { positive: boolean; denominator: BigNumber }>;
 
+        reinitializeERC20(
+            _name: PromiseOrValue<string>,
+            _symbol: PromiseOrValue<string>,
+            _version: PromiseOrValue<BigNumberish>,
+            overrides?: CallOverrides,
+        ): Promise<void>;
+
         renounceRole(
             role: PromiseOrValue<BytesLike>,
             account: PromiseOrValue<string>,
@@ -678,13 +685,6 @@ export interface KreskoAsset extends BaseContract {
             _amount: PromiseOrValue<BigNumberish>,
             overrides?: CallOverrides,
         ): Promise<boolean>;
-
-        updateMetaData(
-            _name: PromiseOrValue<string>,
-            _symbol: PromiseOrValue<string>,
-            _version: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
     };
 
     filters: {
@@ -800,7 +800,7 @@ export interface KreskoAsset extends BaseContract {
             _name: PromiseOrValue<string>,
             _symbol: PromiseOrValue<string>,
             _decimals: PromiseOrValue<BigNumberish>,
-            _owner: PromiseOrValue<string>,
+            _admin: PromiseOrValue<string>,
             _kresko: PromiseOrValue<string>,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<BigNumber>;
@@ -838,6 +838,13 @@ export interface KreskoAsset extends BaseContract {
 
         rebaseInfo(overrides?: CallOverrides): Promise<BigNumber>;
 
+        reinitializeERC20(
+            _name: PromiseOrValue<string>,
+            _symbol: PromiseOrValue<string>,
+            _version: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
         renounceRole(
             role: PromiseOrValue<BytesLike>,
             account: PromiseOrValue<string>,
@@ -866,13 +873,6 @@ export interface KreskoAsset extends BaseContract {
             _from: PromiseOrValue<string>,
             _to: PromiseOrValue<string>,
             _amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        updateMetaData(
-            _name: PromiseOrValue<string>,
-            _symbol: PromiseOrValue<string>,
-            _version: PromiseOrValue<BigNumberish>,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<BigNumber>;
     };
@@ -930,7 +930,7 @@ export interface KreskoAsset extends BaseContract {
             _name: PromiseOrValue<string>,
             _symbol: PromiseOrValue<string>,
             _decimals: PromiseOrValue<BigNumberish>,
-            _owner: PromiseOrValue<string>,
+            _admin: PromiseOrValue<string>,
             _kresko: PromiseOrValue<string>,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<PopulatedTransaction>;
@@ -968,6 +968,13 @@ export interface KreskoAsset extends BaseContract {
 
         rebaseInfo(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+        reinitializeERC20(
+            _name: PromiseOrValue<string>,
+            _symbol: PromiseOrValue<string>,
+            _version: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
         renounceRole(
             role: PromiseOrValue<BytesLike>,
             account: PromiseOrValue<string>,
@@ -999,13 +1006,6 @@ export interface KreskoAsset extends BaseContract {
             _from: PromiseOrValue<string>,
             _to: PromiseOrValue<string>,
             _amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        updateMetaData(
-            _name: PromiseOrValue<string>,
-            _symbol: PromiseOrValue<string>,
-            _version: PromiseOrValue<BigNumberish>,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<PopulatedTransaction>;
     };

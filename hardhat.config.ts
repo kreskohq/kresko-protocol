@@ -62,13 +62,16 @@ import "hardhat-configs/extensions";
 
 let externalArtifacts = ["./artifacts/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko.json"];
 let outDir = "types/typechain";
+
 if (isExport) {
     console.log("isExport", isExport);
     exportUtil = require("./src/utils/export");
     externalArtifacts = exportUtil.externalArtifacts();
     outDir = "packages/contracts/src/types/";
 }
+
 console.log("externalArtifacts", externalArtifacts);
+
 const config: HardhatUserConfig = {
     solidity: { compilers },
     networks: networks(mnemonic),
@@ -115,6 +118,18 @@ const config: HardhatUserConfig = {
         runOnCompile: true,
         except: ["vendor"],
     },
+    verify: { etherscan: { apiKey: process.env.ETHERSCAN_API_KEY } },
+    etherscan: {
+        apiKey: {
+            optimisticGoerli: process.env.ETHERSCAN_API_KEY!,
+        },
+    },
+    // subgraph: {
+    //     name: "MySubgraph", // Defaults to the name of the root folder of the hardhat project
+    //     product: "hosted-service" | "subgraph-studio", // Defaults to 'subgraph-studio'
+    //     indexEvents: true | false, // Defaults to false
+    //     allowSimpleName: true | false, // Defaults to `false` if product is `hosted-service` and `true` if product is `subgraph-studio`
+    // },
     // watcher: {
     //     test: {
     //         tasks: [{ command: "test", params: { testFiles: ["{path}"] } }],
@@ -122,12 +137,6 @@ const config: HardhatUserConfig = {
     //         verbose: false,
     //     },
     // },
-    verify: { etherscan: { apiKey: process.env.ETHERSCAN_API_KEY } },
-    etherscan: {
-        apiKey: {
-            optimisticGoerli: process.env.ETHERSCAN_API_KEY!,
-        },
-    },
     //
     // gasReporter: {
     //     currency: "USD",

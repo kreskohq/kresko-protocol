@@ -17,8 +17,8 @@ describe("Minter - Configuration", () => {
 
     describe("#configuration", () => {
         it("can modify all parameters", async function () {
-            const Diamond = hre.Diamond.connect(hre.users.operator);
-            const update = getNewMinterParams(hre.users.operator.address);
+            const Diamond = hre.Diamond.connect(hre.users.deployer);
+            const update = getNewMinterParams(hre.users.treasury.address);
             await expect(Diamond.updateLiquidationIncentiveMultiplier(update.liquidationIncentiveMultiplier)).to.not.be
                 .reverted;
             await expect(Diamond.updateMinimumCollateralizationRatio(update.minimumCollateralizationRatio)).to.not.be
@@ -105,7 +105,7 @@ describe("Minter - Configuration", () => {
 
             const [newPriceFeed] = await getMockOracleFor(await contract.name(), update.price);
 
-            await hre.Diamond.connect(hre.users.operator).updateKreskoAsset(
+            await hre.Diamond.connect(hre.users.deployer).updateKreskoAsset(
                 contract.address,
                 anchor!.address,
                 update.factor,

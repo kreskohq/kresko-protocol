@@ -53,7 +53,7 @@ describe("Minter", () => {
         const assetInfo = await this.krAsset!.kresko();
 
         // Add krAsset as a collateral with anchor and cFactor of 1
-        await hre.Diamond.connect(hre.users.operator).addCollateralAsset(
+        await hre.Diamond.connect(hre.users.deployer).addCollateralAsset(
             this.krAsset!.contract.address,
             this.krAsset!.anchor!.address,
             hre.toBig(1),

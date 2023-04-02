@@ -1,6 +1,5 @@
 import hre from "hardhat";
 import { smock } from "@defi-wonderland/smock";
-import { getUsers } from "@utils/general";
 import { toFixedPoint, toBig } from "@kreskolabs/lib";
 import { TestCollateralAssetArgs, defaultCollateralArgs, TestCollateralAssetUpdate, InputArgs } from "../mocks";
 import { getMockOracleFor, setPrice } from "./general";
@@ -9,8 +8,7 @@ import { ERC20Upgradeable__factory, FluxPriceFeed__factory } from "types/typecha
 export const addMockCollateralAsset = async (
     args: TestCollateralAssetArgs = defaultCollateralArgs,
 ): Promise<TestCollateral> => {
-    const users = await getUsers();
-
+    const { deployer } = await hre.ethers.getNamedSigners();
     const { name, price, factor, decimals } = args;
     const [MockOracle, FakeOracle] = await getMockOracleFor(name, price);
 
@@ -21,7 +19,8 @@ export const addMockCollateralAsset = async (
     TestCollateral.symbol.returns(name);
     TestCollateral.decimals.returns(decimals);
     const cFactor = toFixedPoint(factor);
-    await hre.Diamond.connect(users.operator).addCollateralAsset(
+
+    await hre.Diamond.connect(deployer).addCollateralAsset(
         TestCollateral.address,
         hre.ethers.constants.AddressZero,
         cFactor,
@@ -35,9 +34,9 @@ export const addMockCollateralAsset = async (
     };
     const asset: TestCollateral = {
         address: TestCollateral.address,
-        contract: ERC20Upgradeable__factory.connect(TestCollateral.address, users.deployer),
+        contract: ERC20Upgradeable__factory.connect(TestCollateral.address, deployer),
         kresko: () => hre.Diamond.collateralAsset(TestCollateral.address),
-        priceFeed: FluxPriceFeed__factory.connect(FakeOracle.address, users.deployer),
+        priceFeed: FluxPriceFeed__factory.connect(FakeOracle.address, deployer),
         deployArgs: args,
         anchor: {} as any,
         mocks,
@@ -64,9 +63,10 @@ export const addMockCollateralAsset = async (
 };
 
 export const updateCollateralAsset = async (address: string, args: TestCollateralAssetUpdate) => {
-    const users = await getUsers();
+    const { deployer } = await hre.ethers.getNamedSigners();
     const collateral = hre.collaterals.find(c => c.address === address);
-    await hre.Diamond.connect(users.operator).updateCollateralAsset(
+
+    await hre.Diamond.connect(deployer).updateCollateralAsset(
         collateral!.address,
         hre.ethers.constants.AddressZero,
         toFixedPoint(args.factor),

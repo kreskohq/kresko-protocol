@@ -10,34 +10,55 @@ import {Role} from "../libs/Authorization.sol";
 
 import {IKreskoAssetIssuer} from "./IKreskoAssetIssuer.sol";
 import {IKreskoAssetAnchor} from "./IKreskoAssetAnchor.sol";
-import {ERC4626Upgradeable, KreskoAsset} from "../shared/ERC4626Upgradeable.sol";
+import {ERC4626Upgradeable, IKreskoAsset} from "../shared/ERC4626Upgradeable.sol";
 
 /* solhint-disable no-empty-blocks */
 
 /**
- * @title Kresko Asset Anchor - pro-rata representation of the underlying kresko asset.
+ * @title Kresko Asset Anchor
+ * Pro-rata representation of the underlying kresko asset.
  * Based on ERC-4626 by Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/mixins/ERC4626.sol)
- * @author Kresko
  *
- * @notice Main purpose of this token is to provide a stable reference for the underlying rebasing KreskoAsset.
- * Enables easier normalized book-keeping and integration with external contracts.
+ * @notice Main purpose of this token is to represent a static amount of the possibly rebased underlying KreskoAsset.
+ * Main use-cases are normalized book-keeping, bridging and integration with external contracts.
+ *
+ * @author Kresko
  */
 contract KreskoAssetAnchor is ERC4626Upgradeable, AccessControlEnumerableUpgradeable {
     /* -------------------------------------------------------------------------- */
     /*                                 Immutables                                 */
     /* -------------------------------------------------------------------------- */
-    constructor(KreskoAsset _asset) payable ERC4626Upgradeable(_asset) {}
+    constructor(IKreskoAsset _asset) payable ERC4626Upgradeable(_asset) {}
 
+    /**
+     * @notice Initializes the Kresko Asset Anchor.
+     *
+     * @param _asset The underlying (Kresko) Asset
+     * @param _name Name of the anchor token
+     * @param _symbol Symbol of the anchor token
+     * @param _admin The adminstrator of this contract.
+     * @dev Decimals are not supplied as they are read from the underlying Kresko Asset
+     */
     function initialize(
-        KreskoAsset _asset,
+        IKreskoAsset _asset,
         string memory _name,
         string memory _symbol,
-        address _owner
+        address _admin
     ) external initializer {
+        // ERC4626
         __ERC4626Upgradeable_init(_asset, _name, _symbol);
+
+        // This does nothing but doesn't hurt to make sure it's called
         __AccessControlEnumerable_init();
-        _setupRole(Role.ADMIN, _owner);
-        _setRoleAdmin(Role.OPERATOR, Role.ADMIN);
+
+        // Default admin setup
+        _setupRole(Role.DEFAULT_ADMIN, _admin);
+        _setupRole(Role.ADMIN, _admin);
+
+        _setupRole(Role.DEFAULT_ADMIN, msg.sender);
+        _setupRole(Role.ADMIN, msg.sender);
+
+        // Setup the operator, which is the protocol linked to the main asset
         _setupRole(Role.OPERATOR, asset.kresko());
     }
 
@@ -51,16 +72,17 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, AccessControlEnumerableUpgrade
             (interfaceId == type(IKreskoAssetAnchor).interfaceId ||
                 interfaceId == type(IKreskoAssetIssuer).interfaceId ||
                 interfaceId == 0x01ffc9a7 ||
-                interfaceId == 0x36372b07);
+                interfaceId == 0x36372b07 ||
+                super.supportsInterface(interfaceId));
     }
 
     /**
-     * @notice Updates metadata for the token in case eg. ticker change
+     * @notice Updates ERC20 metadata for the token in case eg. a ticker change
      * @param _name new name for the asset
      * @param _symbol new symbol for the asset
      * @param _version number that must be greater than latest emitted `Initialized` version
      */
-    function updateMetaData(
+    function reinitializeERC20(
         string memory _name,
         string memory _symbol,
         uint8 _version

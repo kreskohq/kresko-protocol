@@ -17,6 +17,7 @@ export const diamondFacets = [
     "AuthorizationFacet",
     "ERC165Facet",
 ] as const;
+
 export const anchorTokenPrefix = "a";
 
 export const minterFacets = [
@@ -35,19 +36,26 @@ export const minterFacets = [
     "UIDataProviderFacet2",
 ] as const;
 
+export const getDeploymentUsers = async (hre: HardhatRuntimeEnvironment) => {
+    const users = await hre.getNamedAccounts();
+    const Safe = await hre.getContractOrFork("GnosisSafeL2");
+    if (!Safe) throw new Error("GnosisSafe not deployed for Minter initialization");
+
+    const multisig = hre.network.live ? users.multisig : Safe.address;
+    const treasury = hre.network.live ? users.treasury : Safe.address;
+    return { admin: users.admin, multisig, treasury };
+};
 export const getMinterInitializer = async (
     hre: HardhatRuntimeEnvironment,
 ): Promise<MinterInitializer<MinterInitArgsStruct>> => {
-    const { treasury, operator } = hre.addr;
-    const Safe = await hre.getContractOrFork("GnosisSafeL2");
-    if (!Safe) throw new Error("GnosisSafe not deployed for Minter initialization");
+    const { treasury, admin, multisig } = await getDeploymentUsers(hre);
 
     return {
         name: "ConfigurationFacet",
         args: {
-            feeRecipient: treasury,
-            operator,
-            council: Safe.address,
+            admin,
+            treasury,
+            council: multisig,
             liquidationIncentiveMultiplier: toFixedPoint(process.env.LIQUIDATION_INCENTIVE),
             minimumCollateralizationRatio: toFixedPoint(process.env.MINIMUM_COLLATERALIZATION_RATIO),
             minimumDebtValue: toFixedPoint(process.env.MINIMUM_DEBT_VALUE, 8),

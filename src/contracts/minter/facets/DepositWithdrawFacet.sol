@@ -6,6 +6,7 @@ import {IDepositWithdrawFacet} from "../interfaces/IDepositWithdrawFacet.sol";
 import {Error} from "../../libs/Errors.sol";
 import {MinterEvent} from "../../libs/Events.sol";
 import {Role} from "../../libs/Authorization.sol";
+import {Meta} from "../../libs/Meta.sol";
 
 import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
 import {DiamondModifiers, MinterModifiers} from "../../shared/Modifiers.sol";
@@ -42,7 +43,7 @@ contract DepositWithdrawFacet is DiamondModifiers, MinterModifiers, IDepositWith
         }
 
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
-        IERC20Upgradeable(_collateralAsset).safeTransferFrom(msg.sender, address(this), _depositAmount);
+        IERC20Upgradeable(_collateralAsset).safeTransferFrom(Meta.msgSender(), address(this), _depositAmount);
 
         // Record the collateral deposit.
         ms().recordCollateralDeposit(_account, _collateralAsset, _depositAmount);
@@ -63,7 +64,12 @@ contract DepositWithdrawFacet is DiamondModifiers, MinterModifiers, IDepositWith
         address _collateralAsset,
         uint256 _withdrawAmount,
         uint256 _depositedCollateralAssetIndex
-    ) external nonReentrant collateralAssetExists(_collateralAsset) onlyRoleIf(_account != msg.sender, Role.MANAGER) {
+    )
+        external
+        nonReentrant
+        collateralAssetExists(_collateralAsset)
+        onlyRoleIf(_account != Meta.msgSender(), Role.MANAGER)
+    {
         if (ms().safetyStateSet) {
             ensureNotPaused(_collateralAsset, Action.Withdraw);
         }

@@ -96,6 +96,7 @@ library LibStabilityRate {
         if (priceRate == 0) {
             return self.stabilityRateBase;
         }
+
         // If AMM price > priceRate + delta, eg. AMM price is higher than oracle price
         if (priceRate > self.optimalPriceRate + self.priceRateDelta) {
             uint256 excessRate = priceRate - WadRay.RAY;

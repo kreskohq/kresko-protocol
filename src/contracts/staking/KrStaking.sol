@@ -83,12 +83,17 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
         uint256[] calldata _rewardPerBlocks,
         IERC20 _depositToken,
         uint128 _allocPoint,
-        uint128 _startBlock
+        uint128 _startBlock,
+        address _admin,
+        address _operator
     ) external initializer {
         require(_rewardPerBlocks.length == _rewardTokens.length, "Reward tokens must have a rewardPerBlock value");
 
         __AccessControl_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(DEFAULT_ADMIN_ROLE, _admin);
+        _setupRole(OPERATOR_ROLE, _operator);
+        _setupRole(OPERATOR_ROLE, msg.sender);
 
         // Set initial reward tokens and allocations
         for (uint256 i; i < _rewardTokens.length; i++) {
@@ -381,7 +386,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
     function setRewardPerBlockFor(address _rewardToken, uint256 _rewardPerBlock)
         external
         payable
-        onlyRole(DEFAULT_ADMIN_ROLE)
+        onlyRole(OPERATOR_ROLE)
     {
         rewardPerBlockFor[_rewardToken] = _rewardPerBlock;
     }
@@ -398,7 +403,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
         IERC20 _depositToken,
         uint128 _allocPoint,
         uint128 _startBlock
-    ) external payable onlyRole(DEFAULT_ADMIN_ROLE) ensurePoolDoesNotExist(_depositToken) {
+    ) external payable onlyRole(OPERATOR_ROLE) ensurePoolDoesNotExist(_depositToken) {
         require(_rewardTokens.length > 0, "KR: !rewardTokens");
 
         totalAllocPoint += _allocPoint;
@@ -423,7 +428,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
     function setPool(uint256 _pid, uint128 _newAllocPoint)
         external
         payable
-        onlyRole(DEFAULT_ADMIN_ROLE)
+        onlyRole(OPERATOR_ROLE)
         ensurePoolExists(_pid)
     {
         totalAllocPoint -= _poolInfo[_pid].allocPoint + _newAllocPoint;
@@ -504,7 +509,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
      * @notice A rescue function for missent msg.value
      * @notice Since we are using payable functions to save gas on calls
      */
-    function rescueNative() external payable onlyRole(DEFAULT_ADMIN_ROLE) {
+    function rescueNative() external payable onlyRole(OPERATOR_ROLE) {
         payable(msg.sender).transfer(address(this).balance);
     }
 
@@ -515,7 +520,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
     function rescueNonPoolToken(IERC20 _tokenToRescue, uint256 _amount)
         external
         payable
-        onlyRole(DEFAULT_ADMIN_ROLE)
+        onlyRole(OPERATOR_ROLE)
         ensurePoolDoesNotExist(_tokenToRescue)
     {
         _tokenToRescue.safeTransfer(msg.sender, _amount);

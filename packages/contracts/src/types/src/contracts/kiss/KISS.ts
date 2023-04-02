@@ -23,7 +23,6 @@ export interface KISSInterface extends utils.Interface {
         "DEFAULT_ADMIN_ROLE()": FunctionFragment;
         "MINTER_ROLE()": FunctionFragment;
         "OPERATOR_ROLE()": FunctionFragment;
-        "OPERATOR_ROLE_PERIOD()": FunctionFragment;
         "PAUSER_ROLE()": FunctionFragment;
         "allowance(address,address)": FunctionFragment;
         "approve(address,uint256)": FunctionFragment;
@@ -43,15 +42,18 @@ export interface KISSInterface extends utils.Interface {
         "increaseAllowance(address,uint256)": FunctionFragment;
         "issue(uint256,address)": FunctionFragment;
         "kresko()": FunctionFragment;
+        "maxOperators()": FunctionFragment;
         "mint(address,uint256)": FunctionFragment;
         "name()": FunctionFragment;
-        "operatorRoleTimestamp()": FunctionFragment;
         "pause()": FunctionFragment;
         "paused()": FunctionFragment;
         "pendingOperator()": FunctionFragment;
+        "pendingOperatorUnlockTime()": FunctionFragment;
+        "pendingOperatorWaitPeriod()": FunctionFragment;
         "renounceRole(bytes32,address)": FunctionFragment;
         "revokeRole(bytes32,address)": FunctionFragment;
-        "setMetadata(string,string)": FunctionFragment;
+        "setMaxOperators(uint256)": FunctionFragment;
+        "setPendingOperatorWaitPeriod(uint256)": FunctionFragment;
         "supportsInterface(bytes4)": FunctionFragment;
         "symbol()": FunctionFragment;
         "totalSupply()": FunctionFragment;
@@ -65,7 +67,6 @@ export interface KISSInterface extends utils.Interface {
             | "DEFAULT_ADMIN_ROLE"
             | "MINTER_ROLE"
             | "OPERATOR_ROLE"
-            | "OPERATOR_ROLE_PERIOD"
             | "PAUSER_ROLE"
             | "allowance"
             | "approve"
@@ -85,15 +86,18 @@ export interface KISSInterface extends utils.Interface {
             | "increaseAllowance"
             | "issue"
             | "kresko"
+            | "maxOperators"
             | "mint"
             | "name"
-            | "operatorRoleTimestamp"
             | "pause"
             | "paused"
             | "pendingOperator"
+            | "pendingOperatorUnlockTime"
+            | "pendingOperatorWaitPeriod"
             | "renounceRole"
             | "revokeRole"
-            | "setMetadata"
+            | "setMaxOperators"
+            | "setPendingOperatorWaitPeriod"
             | "supportsInterface"
             | "symbol"
             | "totalSupply"
@@ -105,7 +109,6 @@ export interface KISSInterface extends utils.Interface {
     encodeFunctionData(functionFragment: "DEFAULT_ADMIN_ROLE", values?: undefined): string;
     encodeFunctionData(functionFragment: "MINTER_ROLE", values?: undefined): string;
     encodeFunctionData(functionFragment: "OPERATOR_ROLE", values?: undefined): string;
-    encodeFunctionData(functionFragment: "OPERATOR_ROLE_PERIOD", values?: undefined): string;
     encodeFunctionData(functionFragment: "PAUSER_ROLE", values?: undefined): string;
     encodeFunctionData(functionFragment: "allowance", values: [PromiseOrValue<string>, PromiseOrValue<string>]): string;
     encodeFunctionData(
@@ -152,15 +155,17 @@ export interface KISSInterface extends utils.Interface {
         values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>],
     ): string;
     encodeFunctionData(functionFragment: "kresko", values?: undefined): string;
+    encodeFunctionData(functionFragment: "maxOperators", values?: undefined): string;
     encodeFunctionData(
         functionFragment: "mint",
         values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
     ): string;
     encodeFunctionData(functionFragment: "name", values?: undefined): string;
-    encodeFunctionData(functionFragment: "operatorRoleTimestamp", values?: undefined): string;
     encodeFunctionData(functionFragment: "pause", values?: undefined): string;
     encodeFunctionData(functionFragment: "paused", values?: undefined): string;
     encodeFunctionData(functionFragment: "pendingOperator", values?: undefined): string;
+    encodeFunctionData(functionFragment: "pendingOperatorUnlockTime", values?: undefined): string;
+    encodeFunctionData(functionFragment: "pendingOperatorWaitPeriod", values?: undefined): string;
     encodeFunctionData(
         functionFragment: "renounceRole",
         values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>],
@@ -169,9 +174,10 @@ export interface KISSInterface extends utils.Interface {
         functionFragment: "revokeRole",
         values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>],
     ): string;
+    encodeFunctionData(functionFragment: "setMaxOperators", values: [PromiseOrValue<BigNumberish>]): string;
     encodeFunctionData(
-        functionFragment: "setMetadata",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>],
+        functionFragment: "setPendingOperatorWaitPeriod",
+        values: [PromiseOrValue<BigNumberish>],
     ): string;
     encodeFunctionData(functionFragment: "supportsInterface", values: [PromiseOrValue<BytesLike>]): string;
     encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
@@ -189,7 +195,6 @@ export interface KISSInterface extends utils.Interface {
     decodeFunctionResult(functionFragment: "DEFAULT_ADMIN_ROLE", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "MINTER_ROLE", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "OPERATOR_ROLE", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "OPERATOR_ROLE_PERIOD", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "PAUSER_ROLE", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
@@ -209,15 +214,18 @@ export interface KISSInterface extends utils.Interface {
     decodeFunctionResult(functionFragment: "increaseAllowance", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "issue", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "kresko", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "maxOperators", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "operatorRoleTimestamp", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "pendingOperator", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "pendingOperatorUnlockTime", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "pendingOperatorWaitPeriod", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "renounceRole", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "setMetadata", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "setMaxOperators", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "setPendingOperatorWaitPeriod", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "supportsInterface", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "totalSupply", data: BytesLike): Result;
@@ -227,8 +235,10 @@ export interface KISSInterface extends utils.Interface {
 
     events: {
         "Approval(address,address,uint256)": EventFragment;
-        "NewMinter(address)": EventFragment;
-        "NewMinterInitiated(address,uint256)": EventFragment;
+        "NewMaxOperators(uint256)": EventFragment;
+        "NewOperator(address)": EventFragment;
+        "NewOperatorInitialized(address,uint256)": EventFragment;
+        "NewPendingOperatorWaitPeriod(uint256)": EventFragment;
         "Paused(address)": EventFragment;
         "RoleAdminChanged(bytes32,bytes32,bytes32)": EventFragment;
         "RoleGranted(bytes32,address,address)": EventFragment;
@@ -238,8 +248,10 @@ export interface KISSInterface extends utils.Interface {
     };
 
     getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "NewMinter"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "NewMinterInitiated"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "NewMaxOperators"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "NewOperator"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "NewOperatorInitialized"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "NewPendingOperatorWaitPeriod"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "Paused"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "RoleAdminChanged"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "RoleGranted"): EventFragment;
@@ -257,20 +269,34 @@ export type ApprovalEvent = TypedEvent<[string, string, BigNumber], ApprovalEven
 
 export type ApprovalEventFilter = TypedEventFilter<ApprovalEvent>;
 
-export interface NewMinterEventObject {
-    newMinter: string;
+export interface NewMaxOperatorsEventObject {
+    newMaxOperators: BigNumber;
 }
-export type NewMinterEvent = TypedEvent<[string], NewMinterEventObject>;
+export type NewMaxOperatorsEvent = TypedEvent<[BigNumber], NewMaxOperatorsEventObject>;
 
-export type NewMinterEventFilter = TypedEventFilter<NewMinterEvent>;
+export type NewMaxOperatorsEventFilter = TypedEventFilter<NewMaxOperatorsEvent>;
 
-export interface NewMinterInitiatedEventObject {
-    pendingNewMinter: string;
+export interface NewOperatorEventObject {
+    newOperator: string;
+}
+export type NewOperatorEvent = TypedEvent<[string], NewOperatorEventObject>;
+
+export type NewOperatorEventFilter = TypedEventFilter<NewOperatorEvent>;
+
+export interface NewOperatorInitializedEventObject {
+    pendingNewOperator: string;
     unlockTimestamp: BigNumber;
 }
-export type NewMinterInitiatedEvent = TypedEvent<[string, BigNumber], NewMinterInitiatedEventObject>;
+export type NewOperatorInitializedEvent = TypedEvent<[string, BigNumber], NewOperatorInitializedEventObject>;
 
-export type NewMinterInitiatedEventFilter = TypedEventFilter<NewMinterInitiatedEvent>;
+export type NewOperatorInitializedEventFilter = TypedEventFilter<NewOperatorInitializedEvent>;
+
+export interface NewPendingOperatorWaitPeriodEventObject {
+    newPeriod: BigNumber;
+}
+export type NewPendingOperatorWaitPeriodEvent = TypedEvent<[BigNumber], NewPendingOperatorWaitPeriodEventObject>;
+
+export type NewPendingOperatorWaitPeriodEventFilter = TypedEventFilter<NewPendingOperatorWaitPeriodEvent>;
 
 export interface PausedEventObject {
     account: string;
@@ -353,8 +379,6 @@ export interface KISS extends BaseContract {
 
         OPERATOR_ROLE(overrides?: CallOverrides): Promise<[string]>;
 
-        OPERATOR_ROLE_PERIOD(overrides?: CallOverrides): Promise<[BigNumber]>;
-
         PAUSER_ROLE(overrides?: CallOverrides): Promise<[string]>;
 
         allowance(
@@ -436,21 +460,25 @@ export interface KISS extends BaseContract {
 
         kresko(overrides?: CallOverrides): Promise<[string]>;
 
+        maxOperators(overrides?: CallOverrides): Promise<[BigNumber]>;
+
         mint(
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
+            _to: PromiseOrValue<string>,
+            _amount: PromiseOrValue<BigNumberish>,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<ContractTransaction>;
 
         name(overrides?: CallOverrides): Promise<[string]>;
-
-        operatorRoleTimestamp(overrides?: CallOverrides): Promise<[BigNumber]>;
 
         pause(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
         paused(overrides?: CallOverrides): Promise<[boolean]>;
 
         pendingOperator(overrides?: CallOverrides): Promise<[string]>;
+
+        pendingOperatorUnlockTime(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+        pendingOperatorWaitPeriod(overrides?: CallOverrides): Promise<[BigNumber]>;
 
         renounceRole(
             role: PromiseOrValue<BytesLike>,
@@ -464,9 +492,13 @@ export interface KISS extends BaseContract {
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<ContractTransaction>;
 
-        setMetadata(
-            _newName: PromiseOrValue<string>,
-            _newSymbol: PromiseOrValue<string>,
+        setMaxOperators(
+            _maxOperators: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        setPendingOperatorWaitPeriod(
+            _newPeriod: PromiseOrValue<BigNumberish>,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<ContractTransaction>;
 
@@ -497,8 +529,6 @@ export interface KISS extends BaseContract {
     MINTER_ROLE(overrides?: CallOverrides): Promise<string>;
 
     OPERATOR_ROLE(overrides?: CallOverrides): Promise<string>;
-
-    OPERATOR_ROLE_PERIOD(overrides?: CallOverrides): Promise<BigNumber>;
 
     PAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
 
@@ -581,21 +611,25 @@ export interface KISS extends BaseContract {
 
     kresko(overrides?: CallOverrides): Promise<string>;
 
+    maxOperators(overrides?: CallOverrides): Promise<BigNumber>;
+
     mint(
-        to: PromiseOrValue<string>,
-        amount: PromiseOrValue<BigNumberish>,
+        _to: PromiseOrValue<string>,
+        _amount: PromiseOrValue<BigNumberish>,
         overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     name(overrides?: CallOverrides): Promise<string>;
-
-    operatorRoleTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
 
     pause(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
     paused(overrides?: CallOverrides): Promise<boolean>;
 
     pendingOperator(overrides?: CallOverrides): Promise<string>;
+
+    pendingOperatorUnlockTime(overrides?: CallOverrides): Promise<BigNumber>;
+
+    pendingOperatorWaitPeriod(overrides?: CallOverrides): Promise<BigNumber>;
 
     renounceRole(
         role: PromiseOrValue<BytesLike>,
@@ -609,9 +643,13 @@ export interface KISS extends BaseContract {
         overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
-    setMetadata(
-        _newName: PromiseOrValue<string>,
-        _newSymbol: PromiseOrValue<string>,
+    setMaxOperators(
+        _maxOperators: PromiseOrValue<BigNumberish>,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    setPendingOperatorWaitPeriod(
+        _newPeriod: PromiseOrValue<BigNumberish>,
         overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
@@ -642,8 +680,6 @@ export interface KISS extends BaseContract {
         MINTER_ROLE(overrides?: CallOverrides): Promise<string>;
 
         OPERATOR_ROLE(overrides?: CallOverrides): Promise<string>;
-
-        OPERATOR_ROLE_PERIOD(overrides?: CallOverrides): Promise<BigNumber>;
 
         PAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
 
@@ -723,21 +759,25 @@ export interface KISS extends BaseContract {
 
         kresko(overrides?: CallOverrides): Promise<string>;
 
+        maxOperators(overrides?: CallOverrides): Promise<BigNumber>;
+
         mint(
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
+            _to: PromiseOrValue<string>,
+            _amount: PromiseOrValue<BigNumberish>,
             overrides?: CallOverrides,
         ): Promise<void>;
 
         name(overrides?: CallOverrides): Promise<string>;
-
-        operatorRoleTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
 
         pause(overrides?: CallOverrides): Promise<void>;
 
         paused(overrides?: CallOverrides): Promise<boolean>;
 
         pendingOperator(overrides?: CallOverrides): Promise<string>;
+
+        pendingOperatorUnlockTime(overrides?: CallOverrides): Promise<BigNumber>;
+
+        pendingOperatorWaitPeriod(overrides?: CallOverrides): Promise<BigNumber>;
 
         renounceRole(
             role: PromiseOrValue<BytesLike>,
@@ -751,9 +791,10 @@ export interface KISS extends BaseContract {
             overrides?: CallOverrides,
         ): Promise<void>;
 
-        setMetadata(
-            _newName: PromiseOrValue<string>,
-            _newSymbol: PromiseOrValue<string>,
+        setMaxOperators(_maxOperators: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<void>;
+
+        setPendingOperatorWaitPeriod(
+            _newPeriod: PromiseOrValue<BigNumberish>,
             overrides?: CallOverrides,
         ): Promise<void>;
 
@@ -791,14 +832,23 @@ export interface KISS extends BaseContract {
             value?: null,
         ): ApprovalEventFilter;
 
-        "NewMinter(address)"(newMinter?: null): NewMinterEventFilter;
-        NewMinter(newMinter?: null): NewMinterEventFilter;
+        "NewMaxOperators(uint256)"(newMaxOperators?: null): NewMaxOperatorsEventFilter;
+        NewMaxOperators(newMaxOperators?: null): NewMaxOperatorsEventFilter;
 
-        "NewMinterInitiated(address,uint256)"(
-            pendingNewMinter?: null,
+        "NewOperator(address)"(newOperator?: PromiseOrValue<string> | null): NewOperatorEventFilter;
+        NewOperator(newOperator?: PromiseOrValue<string> | null): NewOperatorEventFilter;
+
+        "NewOperatorInitialized(address,uint256)"(
+            pendingNewOperator?: PromiseOrValue<string> | null,
             unlockTimestamp?: null,
-        ): NewMinterInitiatedEventFilter;
-        NewMinterInitiated(pendingNewMinter?: null, unlockTimestamp?: null): NewMinterInitiatedEventFilter;
+        ): NewOperatorInitializedEventFilter;
+        NewOperatorInitialized(
+            pendingNewOperator?: PromiseOrValue<string> | null,
+            unlockTimestamp?: null,
+        ): NewOperatorInitializedEventFilter;
+
+        "NewPendingOperatorWaitPeriod(uint256)"(newPeriod?: null): NewPendingOperatorWaitPeriodEventFilter;
+        NewPendingOperatorWaitPeriod(newPeriod?: null): NewPendingOperatorWaitPeriodEventFilter;
 
         "Paused(address)"(account?: null): PausedEventFilter;
         Paused(account?: null): PausedEventFilter;
@@ -857,8 +907,6 @@ export interface KISS extends BaseContract {
         MINTER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
 
         OPERATOR_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
-
-        OPERATOR_ROLE_PERIOD(overrides?: CallOverrides): Promise<BigNumber>;
 
         PAUSER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -941,21 +989,25 @@ export interface KISS extends BaseContract {
 
         kresko(overrides?: CallOverrides): Promise<BigNumber>;
 
+        maxOperators(overrides?: CallOverrides): Promise<BigNumber>;
+
         mint(
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
+            _to: PromiseOrValue<string>,
+            _amount: PromiseOrValue<BigNumberish>,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<BigNumber>;
 
         name(overrides?: CallOverrides): Promise<BigNumber>;
-
-        operatorRoleTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
 
         pause(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
 
         paused(overrides?: CallOverrides): Promise<BigNumber>;
 
         pendingOperator(overrides?: CallOverrides): Promise<BigNumber>;
+
+        pendingOperatorUnlockTime(overrides?: CallOverrides): Promise<BigNumber>;
+
+        pendingOperatorWaitPeriod(overrides?: CallOverrides): Promise<BigNumber>;
 
         renounceRole(
             role: PromiseOrValue<BytesLike>,
@@ -969,9 +1021,13 @@ export interface KISS extends BaseContract {
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<BigNumber>;
 
-        setMetadata(
-            _newName: PromiseOrValue<string>,
-            _newSymbol: PromiseOrValue<string>,
+        setMaxOperators(
+            _maxOperators: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        setPendingOperatorWaitPeriod(
+            _newPeriod: PromiseOrValue<BigNumberish>,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<BigNumber>;
 
@@ -1003,8 +1059,6 @@ export interface KISS extends BaseContract {
         MINTER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
         OPERATOR_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        OPERATOR_ROLE_PERIOD(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
         PAUSER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1087,21 +1141,25 @@ export interface KISS extends BaseContract {
 
         kresko(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+        maxOperators(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
         mint(
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
+            _to: PromiseOrValue<string>,
+            _amount: PromiseOrValue<BigNumberish>,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<PopulatedTransaction>;
 
         name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        operatorRoleTimestamp(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
         pause(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
 
         paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
         pendingOperator(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+        pendingOperatorUnlockTime(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+        pendingOperatorWaitPeriod(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
         renounceRole(
             role: PromiseOrValue<BytesLike>,
@@ -1115,9 +1173,13 @@ export interface KISS extends BaseContract {
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<PopulatedTransaction>;
 
-        setMetadata(
-            _newName: PromiseOrValue<string>,
-            _newSymbol: PromiseOrValue<string>,
+        setMaxOperators(
+            _maxOperators: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        setPendingOperatorWaitPeriod(
+            _newPeriod: PromiseOrValue<BigNumberish>,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<PopulatedTransaction>;
 

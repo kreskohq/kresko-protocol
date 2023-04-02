@@ -5,14 +5,11 @@ import * as Contracts from "./types";
 import { DeploymentNames, opgoerli } from "./deployments";
 
 export type KreskoAssetNames =
-    | Exclude<
-          Split<SplitReverse<keyof typeof opgoerli, "kr">, "_">[0],
-          "Implementation" | "Proxy" | "krREWARD" | "krETHRATE"
-      >
+    | Exclude<Split<SplitReverse<keyof typeof opgoerli, "kr">, "_">[0], "Implementation" | "Proxy" | "krCUBE">
     | "KISS";
 
-export type AllTokenDeployments = Pick<typeof opgoerli, KreskoAssetNames | "WETH" | "DAI" | "OP" | "wBTC">;
-export type AllTokenNames = keyof Pick<typeof opgoerli, KreskoAssetNames | "WETH" | "DAI" | "OP" | "wBTC">;
+export type AllTokenDeployments = Pick<typeof opgoerli, KreskoAssetNames | "WETH" | "DAI">;
+export type AllTokenNames = keyof Pick<typeof opgoerli, KreskoAssetNames | "WETH" | "DAI">;
 
 export type CollateralAssetNames = keyof AllTokenDeployments;
 
@@ -62,9 +59,8 @@ export type TC = GetContractTypes<typeof Contracts> & {
     [key in Exclude<KreskoAssetNames, "KISS">]: Contracts.KreskoAsset;
 } & {
     Diamond: Contracts.Kresko;
-    wBTC: Contracts.WBTC;
 } & {
-    [key in Exclude<CollateralAssetNames, KreskoAssetNames | "WETH" | "wBTC" | "KISS">]: Contracts.ERC20Upgradeable;
+    [key in Exclude<CollateralAssetNames, KreskoAssetNames | "KISS">]: Contracts.ERC20Upgradeable;
 };
 
 export function getInstance<T extends keyof TC>(name: T): TC[T] {

@@ -73,7 +73,7 @@ export interface KrStakingInterface extends utils.Interface {
         "getRoleAdmin(bytes32)": FunctionFragment;
         "grantRole(bytes32,address)": FunctionFragment;
         "hasRole(bytes32,address)": FunctionFragment;
-        "initialize(address[],uint256[],address,uint128,uint128)": FunctionFragment;
+        "initialize(address[],uint256[],address,uint128,uint128,address,address)": FunctionFragment;
         "massUpdatePools()": FunctionFragment;
         "pendingRewards(uint256,address)": FunctionFragment;
         "poolInfo(uint256)": FunctionFragment;
@@ -170,6 +170,8 @@ export interface KrStakingInterface extends utils.Interface {
             PromiseOrValue<string>,
             PromiseOrValue<BigNumberish>,
             PromiseOrValue<BigNumberish>,
+            PromiseOrValue<string>,
+            PromiseOrValue<string>,
         ],
     ): string;
     encodeFunctionData(functionFragment: "massUpdatePools", values?: undefined): string;
@@ -440,6 +442,8 @@ export interface KrStaking extends BaseContract {
             _depositToken: PromiseOrValue<string>,
             _allocPoint: PromiseOrValue<BigNumberish>,
             _startBlock: PromiseOrValue<BigNumberish>,
+            _admin: PromiseOrValue<string>,
+            _operator: PromiseOrValue<string>,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<ContractTransaction>;
 
@@ -590,6 +594,8 @@ export interface KrStaking extends BaseContract {
         _depositToken: PromiseOrValue<string>,
         _allocPoint: PromiseOrValue<BigNumberish>,
         _startBlock: PromiseOrValue<BigNumberish>,
+        _admin: PromiseOrValue<string>,
+        _operator: PromiseOrValue<string>,
         overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
@@ -734,6 +740,8 @@ export interface KrStaking extends BaseContract {
             _depositToken: PromiseOrValue<string>,
             _allocPoint: PromiseOrValue<BigNumberish>,
             _startBlock: PromiseOrValue<BigNumberish>,
+            _admin: PromiseOrValue<string>,
+            _operator: PromiseOrValue<string>,
             overrides?: CallOverrides,
         ): Promise<void>;
 
@@ -961,6 +969,8 @@ export interface KrStaking extends BaseContract {
             _depositToken: PromiseOrValue<string>,
             _allocPoint: PromiseOrValue<BigNumberish>,
             _startBlock: PromiseOrValue<BigNumberish>,
+            _admin: PromiseOrValue<string>,
+            _operator: PromiseOrValue<string>,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<BigNumber>;
 
@@ -1103,6 +1113,8 @@ export interface KrStaking extends BaseContract {
             _depositToken: PromiseOrValue<string>,
             _allocPoint: PromiseOrValue<BigNumberish>,
             _startBlock: PromiseOrValue<BigNumberish>,
+            _admin: PromiseOrValue<string>,
+            _operator: PromiseOrValue<string>,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<PopulatedTransaction>;
 

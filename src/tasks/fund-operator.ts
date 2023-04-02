@@ -2,11 +2,11 @@ import { toBig } from "@kreskolabs/lib";
 import { getLogger } from "@kreskolabs/lib";
 import { task } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
+import { TASK_FUND_OPERATOR } from "./names";
 
-const TASK_NAME = "fund-operator";
+const log = getLogger(TASK_FUND_OPERATOR);
 
-const log = getLogger(TASK_NAME);
-task(TASK_NAME).setAction(async function (taskArgs: TaskArguments, hre) {
+task(TASK_FUND_OPERATOR).setAction(async function (taskArgs: TaskArguments, hre) {
     const users = await hre.ethers.getNamedSigners();
     const tx = await users.deployer.sendTransaction({
         to: users.operator.address,
