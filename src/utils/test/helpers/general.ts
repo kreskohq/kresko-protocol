@@ -1,7 +1,6 @@
 import { MockContract, smock } from "@defi-wonderland/smock";
 import hre, { ethers } from "hardhat";
 import { FluxPriceFeed__factory } from "types/typechain";
-import { getUsers } from "@utils/general";
 import { defaultCloseFee, defaultOracleDecimals, defaultOraclePrice } from "../mocks";
 import { toBig } from "@kreskolabs/lib";
 // import { calcDebtIndex, getBlockTimestamp, fromScaledAmount } from "./calculations";
@@ -11,11 +10,11 @@ import { toBig } from "@kreskolabs/lib";
 
 export const getMockOracleFor = async (assetName = "Asset", price = defaultOraclePrice, marketOpen = true) => {
     const FakeFeed = await smock.fake<FluxPriceFeed>("FluxPriceFeed");
-    const users = await getUsers();
+    const { deployer } = await hre.ethers.getNamedSigners();
 
     const MockFeed = await (
         await smock.mock<FluxPriceFeed__factory>("FluxPriceFeed")
-    ).deploy(users.deployer.address, defaultOracleDecimals, assetName);
+    ).deploy(deployer.address, defaultOracleDecimals, assetName);
 
     MockFeed.latestAnswer.returns(hre.toBig(price, 8));
     MockFeed.latestMarketOpen.returns(marketOpen);

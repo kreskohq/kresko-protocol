@@ -1,16 +1,13 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
 import { Role } from "@utils/test/roles";
-import { anchorTokenPrefix } from "@deploy-config/shared";
+import { anchorTokenPrefix, getDeploymentUsers } from "@deploy-config/shared";
 
-export async function createKrAsset(name: string, symbol, decimals = 18) {
-    const { deployer, admin } = await hre.ethers.getNamedSigners();
-
+export async function createKrAsset(name: string, symbol: string, decimals = 18) {
+    const { deployer } = await hre.ethers.getNamedSigners();
+    const { admin } = await getDeploymentUsers(hre);
     const anchorSymbol = anchorTokenPrefix + symbol;
 
     const Kresko = await hre.getContractOrFork("Kresko");
-    const kreskoAssetInitArgs = [name, symbol, decimals, admin.address, Kresko.address];
+    const kreskoAssetInitArgs = [name, symbol, decimals, admin, Kresko.address];
 
     const [KreskoAsset] = await hre.deploy("KreskoAsset", {
         from: deployer.address,
@@ -26,7 +23,7 @@ export async function createKrAsset(name: string, symbol, decimals = 18) {
         },
     });
 
-    const kreskoAssetAnchorInitArgs = [KreskoAsset.address, name, anchorSymbol, admin.address];
+    const kreskoAssetAnchorInitArgs = [KreskoAsset.address, name, anchorSymbol, admin];
 
     const [KreskoAssetAnchor] = await hre.deploy("KreskoAssetAnchor", {
         from: deployer.address,
@@ -45,13 +42,14 @@ export async function createKrAsset(name: string, symbol, decimals = 18) {
 
     await KreskoAsset.grantRole(Role.OPERATOR, KreskoAssetAnchor.address);
 
-    const asset: KrAsset = {
+    const asset: TestKrAsset = {
         address: KreskoAsset.address,
         contract: KreskoAsset,
         anchor: KreskoAssetAnchor,
         deployArgs: {
             name,
             symbol,
+            // @ts-expect-error
             decimals,
             anchorSymbol,
         },

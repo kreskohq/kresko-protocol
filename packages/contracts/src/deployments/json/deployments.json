@@ -13952,7 +13952,7 @@
                     ]
                 },
                 "UniswapV2Oracle": {
-                    "address": "0x48A88C2E4cBedCf0A4Fe86BC803D892E1a41d5A4",
+                    "address": "0x1B855054ebd895Cf9E08587b537D6864f947620F",
                     "abi": [
                         {
                             "inputs": [
@@ -14225,11 +14225,130 @@
                             "type": "function"
                         },
                         {
+                            "inputs": [
+                                {
+                                    "internalType": "address",
+                                    "name": "_erc20",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "address",
+                                    "name": "_to",
+                                    "type": "address"
+                                }
+                            ],
+                            "name": "drainERC20",
+                            "outputs": [],
+                            "stateMutability": "nonpayable",
+                            "type": "function"
+                        },
+                        {
                             "inputs": [],
                             "name": "factory",
                             "outputs": [
                                 {
                                     "internalType": "contract IUniswapV2Factory",
+                                    "name": "",
+                                    "type": "address"
+                                }
+                            ],
+                            "stateMutability": "view",
+                            "type": "function"
+                        },
+                        {
+                            "inputs": [
+                                {
+                                    "internalType": "address",
+                                    "name": "_kreskoAsset",
+                                    "type": "address"
+                                }
+                            ],
+                            "name": "getKrAssetPair",
+                            "outputs": [
+                                {
+                                    "components": [
+                                        {
+                                            "components": [
+                                                {
+                                                    "internalType": "uint224",
+                                                    "name": "_x",
+                                                    "type": "uint224"
+                                                }
+                                            ],
+                                            "internalType": "struct UQ.uq112x112",
+                                            "name": "price0Average",
+                                            "type": "tuple"
+                                        },
+                                        {
+                                            "components": [
+                                                {
+                                                    "internalType": "uint224",
+                                                    "name": "_x",
+                                                    "type": "uint224"
+                                                }
+                                            ],
+                                            "internalType": "struct UQ.uq112x112",
+                                            "name": "price1Average",
+                                            "type": "tuple"
+                                        },
+                                        {
+                                            "internalType": "address",
+                                            "name": "token0",
+                                            "type": "address"
+                                        },
+                                        {
+                                            "internalType": "address",
+                                            "name": "token1",
+                                            "type": "address"
+                                        },
+                                        {
+                                            "internalType": "uint256",
+                                            "name": "price0CumulativeLast",
+                                            "type": "uint256"
+                                        },
+                                        {
+                                            "internalType": "uint256",
+                                            "name": "price1CumulativeLast",
+                                            "type": "uint256"
+                                        },
+                                        {
+                                            "internalType": "uint32",
+                                            "name": "blockTimestampLast",
+                                            "type": "uint32"
+                                        },
+                                        {
+                                            "internalType": "uint256",
+                                            "name": "updatePeriod",
+                                            "type": "uint256"
+                                        }
+                                    ],
+                                    "internalType": "struct UniswapV2Oracle.PairData",
+                                    "name": "",
+                                    "type": "tuple"
+                                }
+                            ],
+                            "stateMutability": "view",
+                            "type": "function"
+                        },
+                        {
+                            "inputs": [],
+                            "name": "incentiveAmount",
+                            "outputs": [
+                                {
+                                    "internalType": "uint256",
+                                    "name": "",
+                                    "type": "uint256"
+                                }
+                            ],
+                            "stateMutability": "view",
+                            "type": "function"
+                        },
+                        {
+                            "inputs": [],
+                            "name": "incentiveToken",
+                            "outputs": [
+                                {
+                                    "internalType": "contract IERC20",
                                     "name": "",
                                     "type": "address"
                                 }
@@ -14376,6 +14495,24 @@
                         {
                             "inputs": [
                                 {
+                                    "internalType": "address",
+                                    "name": "_newIncentiveToken",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "amount",
+                                    "type": "uint256"
+                                }
+                            ],
+                            "name": "setIncentiveToken",
+                            "outputs": [],
+                            "stateMutability": "nonpayable",
+                            "type": "function"
+                        },
+                        {
+                            "inputs": [
+                                {
                                     "internalType": "uint256",
                                     "name": "_minUpdatePeriod",
                                     "type": "uint256"
@@ -14395,6 +14532,19 @@
                                 }
                             ],
                             "name": "update",
+                            "outputs": [],
+                            "stateMutability": "nonpayable",
+                            "type": "function"
+                        },
+                        {
+                            "inputs": [
+                                {
+                                    "internalType": "address",
+                                    "name": "_kreskoAsset",
+                                    "type": "address"
+                                }
+                            ],
+                            "name": "updateWithIncentive",
                             "outputs": [],
                             "stateMutability": "nonpayable",
                             "type": "function"

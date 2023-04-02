@@ -11,12 +11,12 @@ type Args = {
     log?: boolean;
 };
 
-const logger = getLogger("add-facet");
 export async function addFacets({ names, initializerName, initializerArgs, log = true }: Args) {
+    const logger = getLogger("add-facet", log);
+
     logger.log("Adding facets");
     logger.table(names);
-    const { deployments, deploy, getNamedAccounts } = hre;
-    const { deployer } = await getNamedAccounts();
+    const { deployer } = await hre.getNamedAccounts();
 
     /* -------------------------------------------------------------------------- */
     /*                                    Setup                                   */
@@ -47,7 +47,7 @@ export async function addFacets({ names, initializerName, initializerArgs, log =
     const deploymentInfo: { name: string; address: string; functions: number }[] = [];
     for (const facet of names) {
         // #4.3 Deploy each facet contract
-        const [FacetContract, sigs, FacetDeployment] = await deploy(facet, { log, from: deployer });
+        const [FacetContract, sigs, FacetDeployment] = await hre.deploy(facet, { log, from: deployer });
 
         // #4.4 Convert the address and signatures into the required `FacetCut` type and push into the array.
         const { facetCut } = await hre.getFacetCut(facet, 0, sigs);
@@ -159,7 +159,7 @@ export async function addFacets({ names, initializerName, initializerArgs, log =
             });
 
             // #6.5 Save the deployment output
-            await deployments.save("Diamond", DiamondDeployment);
+            await hre.deployments.save("Diamond", DiamondDeployment);
             // Live network deployments should be released into the contracts-package.
             if (hre.network.live) {
                 // TODO: Automate the release

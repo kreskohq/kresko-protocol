@@ -42,7 +42,6 @@ export const networks = (mnemonic: string): { [key: string]: HttpNetworkUserConf
         chainId: chainIds.aurora,
         url: `https://mainnet.aurora.dev`,
         deploy: ["./src/deploy/aurora"],
-        live: true,
     },
     auroratest: {
         accounts: {
@@ -52,7 +51,6 @@ export const networks = (mnemonic: string): { [key: string]: HttpNetworkUserConf
         url: `https://aurora-testnet.infura.io/v3/${INFURA_API_KEY}`,
         deploy: ["./src/deploy/auroratest"],
         gasPrice: 0,
-        live: true,
     },
     arbitrum: {
         accounts: { mnemonic },
@@ -106,10 +104,11 @@ export const networks = (mnemonic: string): { [key: string]: HttpNetworkUserConf
             count: 100,
         },
         chainId: chainIds.hardhat,
+        tags: ["local"],
     },
     ganache: {
         url: "http://127.0.0.1:7545",
-        chainId: 1337,
+        chainId: chainIds.hardhat,
         accounts: { mnemonic, count: 100 },
         companionNetworks: {
             live: "opgoerli",
@@ -121,13 +120,13 @@ export const networks = (mnemonic: string): { [key: string]: HttpNetworkUserConf
             count: 100,
         },
         chainId: chainIds.hardhat,
+        tags: ["local"],
     },
     ethereum: {
         accounts: { mnemonic },
         url: RPC().eth.mainnet.infura,
         chainId: chainIds.ethereum,
         tags: ["ethereum"],
-        live: true,
     },
     op: {
         accounts: { mnemonic, count: 100 },
@@ -140,8 +139,7 @@ export const networks = (mnemonic: string): { [key: string]: HttpNetworkUserConf
         accounts: { mnemonic, count: 100 },
         url: RPC().optimism.goerli.alchemy,
         chainId: chainIds.opgoerli,
-        gasPrice: +parseUnits("0.001", "gwei"),
-        live: true,
+        gasPrice: +parseUnits("0.0001", "gwei"),
     },
     moonbeam: {
         chainId: chainIds.moonbeam,

@@ -144,6 +144,7 @@ library Error {
     string public constant CALLER_NOT_ADMIN = "709"; // Caller must be the admin
     string public constant CONSTRUCTOR_INVALID_ADMIN = "710"; // Admin cannot be zero address in the constructor
     string public constant CONSTRUCTOR_INVALID_FACTORY = "711"; // Factory cannot be the zero address
+    string public constant NO_INCENTIVES_LEFT = "712"; // No incentives left for updating the price
 
     /* -------------------------------------------------------------------------- */
     /*                              8. KISS                                 */

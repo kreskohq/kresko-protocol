@@ -17,6 +17,7 @@ import type {
     UniswapV2Router02,
 } from "types/typechain";
 import * as Contracts from "./typechain";
+import { checkAddress } from "@scripts/check-address";
 /* ========================================================================== */
 /*                             TEST AUGMENTATIONS                             */
 /* ========================================================================== */
@@ -151,6 +152,7 @@ declare module "hardhat/types/runtime" {
         fromBig: typeof fromBig;
         toBig: typeof toBig;
         admin: SignerWithAddress;
+        checkAddress: typeof checkAddress;
         getDeploymentOrNull: (deploymentName: string) => Promise<Deployment | null>;
         getContractOrFork: <T extends keyof TC>(type: T, deploymentName?: string) => Promise<TC[T]>;
         forking: {
@@ -190,8 +192,6 @@ declare module "hardhat/types/runtime" {
         /* -------------------------------------------------------------------------- */
         /*                                   General                                  */
         /* -------------------------------------------------------------------------- */
-        getUsers: () => Promise<HardhatUsers<SignerWithAddress>>;
-        getAddresses: () => Promise<HardhatUsers<string>>;
 
         /* -------------------------------------------------------------------------- */
         /*                                 Deployment                                 */

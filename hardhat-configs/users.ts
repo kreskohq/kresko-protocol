@@ -18,16 +18,19 @@ if (!process.env.MULTISIG) {
 
 export const hardhatUsers = {
     // Dynamic
+    admin: {
+        default: 0,
+        420: process.env.MULTISIG,
+    },
     multisig: {
-        default: process.env.MULTISIG,
+        default: 0,
         420: process.env.MULTISIG,
     },
     treasury: {
-        default: process.env.MULTISIG,
-        420: process.env.MULTISIG,
+        default: process.env.TREASURY,
     },
     feedValidator: {
-        default: process.env.FEED_VALIDATOR,
+        default: `privatekey://${process.env.FEED_VALIDATOR_PK}`,
     },
     testnetFunder: {
         default: process.env.FUNDER,
@@ -35,10 +38,6 @@ export const hardhatUsers = {
     // Derivative addresses
     deployer: {
         default: 0,
-    },
-    admin: {
-        default: 0,
-        420: process.env.MULTISIG,
     },
     owner: {
         default: 2,

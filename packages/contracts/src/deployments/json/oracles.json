@@ -1,6 +1,6 @@
 [
     {
-        "asset": "",
+        "asset": "WETH",
         "assetAddress": "0xd70c0ee63a73a6Fb4d5728739A103bC8b39e9401",
         "assetType": "collateral",
         "feed": "ETH/USD",

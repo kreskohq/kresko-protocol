@@ -4,6 +4,7 @@ pragma experimental ABIEncoderV2;
 
 import "../vendor/uniswap/v2-periphery/libraries/UQ.sol";
 import "../vendor/uniswap/v2-periphery/libraries/UniswapV2Library.sol";
+import "../vendor/uniswap/v2-core/interfaces/IERC20.sol";
 import "../libs/Errors.sol";
 
 /**
@@ -48,6 +49,10 @@ contract UniswapV2Oracle {
     /* -------------------------------------------------------------------------- */
 
     IUniswapV2Factory public immutable factory;
+
+    IERC20 public incentiveToken;
+    uint256 public incentiveAmount = 3 ether;
+
     address public admin;
     uint256 public minUpdatePeriod = 15 minutes;
 
@@ -89,6 +94,23 @@ contract UniswapV2Oracle {
     modifier onlyAdmin() {
         require(msg.sender == admin, Error.CALLER_NOT_ADMIN);
         _;
+    }
+
+    /**
+     *
+     * @param _newIncentiveToken new incentive token for updater
+     */
+    function setIncentiveToken(address _newIncentiveToken, uint256 amount) external onlyAdmin {
+        incentiveToken = IERC20(_newIncentiveToken);
+        incentiveAmount = amount;
+    }
+
+    /**
+     *
+     * @param _erc20 drain any sent tokens
+     */
+    function drainERC20(address _erc20, address _to) external onlyAdmin {
+        IERC20(_erc20).transfer(_to, IERC20(_erc20).balanceOf(address(this)));
     }
 
     /**
@@ -255,6 +277,54 @@ contract UniswapV2Oracle {
             data.updatePeriod,
             timeElapsed
         );
+    }
+
+    /**
+     * Get the current data for a pair
+     * @param _kreskoAsset Kresko Asset in the pair we want to get pair data for
+     */
+    function getKrAssetPair(address _kreskoAsset) external view returns (PairData memory) {
+        return pairs[krAssets[_kreskoAsset]];
+    }
+
+    /**
+     * Update pair data with incentives sent
+     * @param _kreskoAsset Kresko Asset in the pair we want to update pair data for
+     */
+    function updateWithIncentive(address _kreskoAsset) external {
+        PairData storage data = pairs[krAssets[_kreskoAsset]];
+        // Ensure that the pair exists
+        require(data.blockTimestampLast != 0, Error.PAIR_DOES_NOT_EXIST);
+        (uint256 price0Cumulative, uint256 price1Cumulative, uint32 blockTimestamp) = currentCumulativePrices(
+            krAssets[_kreskoAsset]
+        );
+
+        uint32 timeElapsed = blockTimestamp - data.blockTimestampLast; // overflow is desired
+        // Ensure that at least one full period has passed since the last update
+        require(timeElapsed >= data.updatePeriod, Error.UPDATE_PERIOD_NOT_FINISHED);
+
+        // Overflow is desired, casting never truncates
+        // Cumulative price is in (uq112x112 price * seconds) units so we simply wrap it after division by time elapsed
+        data.price0Average = UQ.uq112x112(uint224((price0Cumulative - data.price0CumulativeLast) / timeElapsed));
+        data.price1Average = UQ.uq112x112(uint224((price1Cumulative - data.price1CumulativeLast) / timeElapsed));
+
+        // Update the cumulative prices
+        data.price0CumulativeLast = price0Cumulative;
+        data.price1CumulativeLast = price1Cumulative;
+        data.blockTimestampLast = blockTimestamp;
+
+        emit NewPrice(
+            data.token0,
+            data.token1,
+            blockTimestamp,
+            data.price0Average,
+            data.price1Average,
+            data.updatePeriod,
+            timeElapsed
+        );
+
+        require(incentiveToken.balanceOf(address(this)) > 3 ether, Error.NO_INCENTIVES_LEFT);
+        incentiveToken.transfer(msg.sender, 3 ether);
     }
 
     /**

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { FormatTypes, Fragment } from "@ethersproject/abi";
 import { fromBig, toBig } from "@kreskolabs/lib";
+import { checkAddress } from "@scripts/check-address";
 import { getAddresses, getUsers } from "@utils/general";
 import { constants, ethers } from "ethers";
 import { FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
@@ -9,11 +10,12 @@ import SharedConfig from "src/deploy-config/shared";
 import { networks } from "./networks";
 
 extendEnvironment(async function (hre) {
+    // for testing
     hre.users = await getUsers(hre);
     hre.addr = await getAddresses(hre);
 });
 
-// We can access these values from deploy scripts / hardhat run scripts
+// Simply access these extensions from hre
 extendEnvironment(function (hre) {
     /* -------------------------------------------------------------------------- */
     /*                                   VALUES                                   */
@@ -22,8 +24,7 @@ extendEnvironment(function (hre) {
     hre.collaterals = [];
     hre.krAssets = [];
     hre.allAssets = [];
-    hre.getUsers = getUsers;
-    hre.getAddresses = getAddresses;
+    hre.checkAddress = checkAddress;
     hre.forking = {
         provider: new ethers.providers.JsonRpcProvider(networks(process.env.MNEMONIC!).ganache.url),
         deploy: async (name, options) => {
