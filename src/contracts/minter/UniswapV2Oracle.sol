@@ -136,22 +136,16 @@ contract UniswapV2Oracle {
      */
     function currentBlockTimestamp() internal view returns (uint32) {
         // solhint-disable not-rely-on-time
-        return uint32(block.timestamp % 2**32);
+        return uint32(block.timestamp % 2 ** 32);
     }
 
     /**
      * @notice Produces the cumulative price using counterfactuals to save gas and avoid a call to sync.
      * @param _pairAddress Pair address
      */
-    function currentCumulativePrices(address _pairAddress)
-        internal
-        view
-        returns (
-            uint256 price0Cumulative,
-            uint256 price1Cumulative,
-            uint32 blockTimestamp
-        )
-    {
+    function currentCumulativePrices(
+        address _pairAddress
+    ) internal view returns (uint256 price0Cumulative, uint256 price1Cumulative, uint32 blockTimestamp) {
         blockTimestamp = currentBlockTimestamp();
         price0Cumulative = IUniswapV2Pair(_pairAddress).price0CumulativeLast();
         price1Cumulative = IUniswapV2Pair(_pairAddress).price1CumulativeLast();
@@ -182,11 +176,7 @@ contract UniswapV2Oracle {
      * @param _updatePeriod The update period (TWAP) for this AMM pair
      *
      */
-    function initPair(
-        address _pairAddress,
-        address _kreskoAsset,
-        uint256 _updatePeriod
-    ) external onlyAdmin {
+    function initPair(address _pairAddress, address _kreskoAsset, uint256 _updatePeriod) external onlyAdmin {
         require(_pairAddress != address(0), Error.PAIR_ADDRESS_IS_ZERO);
         require(_updatePeriod >= minUpdatePeriod, Error.INVALID_UPDATE_PERIOD);
         require(pairs[_pairAddress].token0 == address(0), Error.PAIR_ALREADY_EXISTS);

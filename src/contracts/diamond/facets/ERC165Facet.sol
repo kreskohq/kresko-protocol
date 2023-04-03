@@ -26,10 +26,10 @@ contract ERC165Facet is DiamondModifiers, IERC165 {
     /// @param interfaceIds list of interface id to set as supported
     /// @param interfaceIdsToRemove list of interface id to unset as supported.
     /// Technically, you can remove support of ERC165 by having the IERC165 id itself being part of that array.
-    function setERC165(bytes4[] calldata interfaceIds, bytes4[] calldata interfaceIdsToRemove)
-        external
-        onlyRole(Role.ADMIN)
-    {
+    function setERC165(
+        bytes4[] calldata interfaceIds,
+        bytes4[] calldata interfaceIdsToRemove
+    ) external onlyRole(Role.ADMIN) {
         DiamondState storage s = ds();
 
         for (uint256 i = 0; i < interfaceIds.length; i++) {

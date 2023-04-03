@@ -26,11 +26,7 @@ contract UIDataProviderFacet {
     )
         external
         view
-        returns (
-            LibUI.KreskoUser memory user,
-            LibUI.Balance[] memory balances,
-            LibUI.StakingData[] memory stakingData
-        )
+        returns (LibUI.KreskoUser memory user, LibUI.Balance[] memory balances, LibUI.StakingData[] memory stakingData)
     {
         user = LibUI.kreskoUser(_account);
         balances = LibUI.getBalances(_tokens, _account);

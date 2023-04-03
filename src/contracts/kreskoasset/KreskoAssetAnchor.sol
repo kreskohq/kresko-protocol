@@ -106,13 +106,10 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, AccessControlEnumerableUpgrade
      * @notice Mints @param _assets of krAssets for @param _to,
      * @notice Mints relative @return _shares of wkrAssets
      */
-    function issue(uint256 _assets, address _to)
-        public
-        virtual
-        override
-        onlyRole(Role.OPERATOR)
-        returns (uint256 shares)
-    {
+    function issue(
+        uint256 _assets,
+        address _to
+    ) public virtual override onlyRole(Role.OPERATOR) returns (uint256 shares) {
         shares = super.issue(_assets, _to);
     }
 
@@ -120,13 +117,10 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, AccessControlEnumerableUpgrade
      * @notice Burns @param _assets of krAssets from @param _from,
      * @notice Burns relative @return _shares of wkrAssets
      */
-    function destroy(uint256 _assets, address _from)
-        public
-        virtual
-        override
-        onlyRole(Role.OPERATOR)
-        returns (uint256 shares)
-    {
+    function destroy(
+        uint256 _assets,
+        address _from
+    ) public virtual override onlyRole(Role.OPERATOR) returns (uint256 shares) {
         shares = super.destroy(_assets, _from);
     }
 

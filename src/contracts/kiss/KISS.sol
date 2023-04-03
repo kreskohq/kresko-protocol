@@ -103,13 +103,10 @@ contract KISS is IKISS, IKreskoAssetIssuer, ERC20PresetMinterPauser {
      * @param _to address to mint tokens to
      * @param _amount amount to mint
      */
-    function issue(uint256 _amount, address _to)
-        public
-        override
-        onlyContract
-        onlyRole(Role.OPERATOR)
-        returns (uint256)
-    {
+    function issue(
+        uint256 _amount,
+        address _to
+    ) public override onlyContract onlyRole(Role.OPERATOR) returns (uint256) {
         _mint(_to, _amount);
         return _amount;
     }

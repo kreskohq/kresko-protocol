@@ -14,11 +14,7 @@ library Median {
         return length % 2 == 0 ? (array[length / 2 - 1] + array[length / 2]) / 2 : array[length / 2];
     }
 
-    function sort(
-        uint256[] memory array,
-        uint256 begin,
-        uint256 end
-    ) internal pure {
+    function sort(uint256[] memory array, uint256 begin, uint256 end) internal pure {
         if (begin < end) {
             uint256 j = begin;
             uint256 pivot = array[j];
@@ -33,11 +29,7 @@ library Median {
         }
     }
 
-    function swap(
-        uint256[] memory array,
-        uint256 i,
-        uint256 j
-    ) internal pure {
+    function swap(uint256[] memory array, uint256 i, uint256 j) internal pure {
         (array[i], array[j]) = (array[j], array[i]);
     }
 }

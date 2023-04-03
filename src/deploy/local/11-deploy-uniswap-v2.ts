@@ -35,7 +35,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     hre.UniV2Factory = UniFactory;
     hre.UniV2Router = UniRouter;
 
-    logger.table(contracts);
+    console.table(contracts);
     logger.success("Succesfully deployed uniswap contracts");
 };
 

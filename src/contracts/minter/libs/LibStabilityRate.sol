@@ -130,11 +130,10 @@ library LibStabilityRate {
      * @param _currentTimestamp The timestamp of the last update of the interest
      * @return The interest rate compounded during the timeDelta, in ray
      **/
-    function calculateCompoundedInterest(StabilityRateConfig storage self, uint256 _currentTimestamp)
-        internal
-        view
-        returns (uint256)
-    {
+    function calculateCompoundedInterest(
+        StabilityRateConfig storage self,
+        uint256 _currentTimestamp
+    ) internal view returns (uint256) {
         //solium-disable-next-line
         uint256 exp = _currentTimestamp - uint256(self.lastUpdateTimestamp);
 

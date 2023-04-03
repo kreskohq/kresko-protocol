@@ -114,11 +114,7 @@ contract ERC20Upgradeable is Initializable, IERC20Upgradeable {
         return true;
     }
 
-    function transferFrom(
-        address from,
-        address to,
-        uint256 amount
-    ) public virtual returns (bool) {
+    function transferFrom(address from, address to, uint256 amount) public virtual returns (bool) {
         uint256 allowed = _allowances[from][msg.sender]; // Saves gas for limited approvals.
 
         if (allowed != type(uint256).max) _allowances[from][msg.sender] = allowed - amount;

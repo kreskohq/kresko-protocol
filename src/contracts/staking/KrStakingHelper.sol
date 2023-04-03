@@ -14,11 +14,7 @@ contract KrStakingHelper {
     IUniswapV2Factory public factory;
     IKrStaking public staking;
 
-    constructor(
-        IUniswapV2Router02 _router,
-        IUniswapV2Factory _factory,
-        IKrStaking _staking
-    ) {
+    constructor(IUniswapV2Router02 _router, IUniswapV2Factory _factory, IKrStaking _staking) {
         router = _router;
         factory = _factory;
         staking = _staking;

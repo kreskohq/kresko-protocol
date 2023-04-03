@@ -80,11 +80,10 @@ contract AccountStateFacet is IAccountStateFacet {
      * @return assetAmount the interest denominated in _asset
      * @return kissAmount the interest denominated in KISS, ignores K-factor
      */
-    function kreskoAssetDebtInterest(address _account, address _asset)
-        external
-        view
-        returns (uint256 assetAmount, uint256 kissAmount)
-    {
+    function kreskoAssetDebtInterest(
+        address _account,
+        address _asset
+    ) external view returns (uint256 assetAmount, uint256 kissAmount) {
         return ms().getKreskoAssetDebtInterest(_account, _asset);
     }
 
@@ -130,11 +129,10 @@ contract AccountStateFacet is IAccountStateFacet {
      * @param _collateralAsset The asset lookup address.
      * @return i = index of the minted collateral asset.
      */
-    function getDepositedCollateralAssetIndex(address _account, address _collateralAsset)
-        external
-        view
-        returns (uint256 i)
-    {
+    function getDepositedCollateralAssetIndex(
+        address _account,
+        address _collateralAsset
+    ) external view returns (uint256 i) {
         for (i; i < ms().depositedCollateralAssets[_account].length; i++) {
             if (ms().depositedCollateralAssets[_account][i] == _collateralAsset) {
                 break;
@@ -161,11 +159,10 @@ contract AccountStateFacet is IAccountStateFacet {
      * @param _ratio The collateralization ratio required: higher ratio = more collateral required
      * @return The minimum collateral value of a particular account.
      */
-    function getAccountMinimumCollateralValueAtRatio(address _account, FixedPoint.Unsigned memory _ratio)
-        public
-        view
-        returns (FixedPoint.Unsigned memory)
-    {
+    function getAccountMinimumCollateralValueAtRatio(
+        address _account,
+        FixedPoint.Unsigned memory _ratio
+    ) public view returns (FixedPoint.Unsigned memory) {
         return ms().getAccountMinimumCollateralValueAtRatio(_account, _ratio);
     }
 
@@ -185,11 +182,10 @@ contract AccountStateFacet is IAccountStateFacet {
         ratio = collateralValue.div(krAssetValue);
     }
 
-    function getAccountSingleCollateralValueAndRealValue(address _account, address _asset)
-        external
-        view
-        returns (FixedPoint.Unsigned memory value, FixedPoint.Unsigned memory realValue)
-    {
+    function getAccountSingleCollateralValueAndRealValue(
+        address _account,
+        address _asset
+    ) external view returns (FixedPoint.Unsigned memory value, FixedPoint.Unsigned memory realValue) {
         uint256 depositAmount = ms().getCollateralDeposits(_account, _asset);
         return ms().getCollateralValueAndOraclePrice(_asset, depositAmount, false);
     }

@@ -277,11 +277,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
      * @param _pid in `_poolInfo`
      * @param _amount amount of tokens to deposit
      */
-    function deposit(
-        address _to,
-        uint256 _pid,
-        uint256 _amount
-    ) external payable nonReentrant ensurePoolExists(_pid) {
+    function deposit(address _to, uint256 _pid, uint256 _amount) external payable nonReentrant ensurePoolExists(_pid) {
         PoolInfo memory pool = updatePool(_pid);
         UserInfo storage user = _userInfo[_pid][_to];
 
@@ -306,11 +302,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
      * @param _amount amount to withdraw
      * @param _rewardRecipient address to send rewards to
      */
-    function withdraw(
-        uint256 _pid,
-        uint256 _amount,
-        address _rewardRecipient
-    ) external payable nonReentrant {
+    function withdraw(uint256 _pid, uint256 _amount, address _rewardRecipient) external payable nonReentrant {
         require(_amount > 0, "KR: 0-withdraw");
         require(_rewardRecipient != address(0), "KR: !rewardRecipient");
 
@@ -383,11 +375,10 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
      * @param _rewardToken token to adjust the drip for
      * @param _rewardPerBlock tokens to drip per block
      */
-    function setRewardPerBlockFor(address _rewardToken, uint256 _rewardPerBlock)
-        external
-        payable
-        onlyRole(OPERATOR_ROLE)
-    {
+    function setRewardPerBlockFor(
+        address _rewardToken,
+        uint256 _rewardPerBlock
+    ) external payable onlyRole(OPERATOR_ROLE) {
         rewardPerBlockFor[_rewardToken] = _rewardPerBlock;
     }
 
@@ -425,12 +416,10 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
      * @param _pid pool to modify
      * @param _newAllocPoint new allocation (weight) for rewards
      */
-    function setPool(uint256 _pid, uint128 _newAllocPoint)
-        external
-        payable
-        onlyRole(OPERATOR_ROLE)
-        ensurePoolExists(_pid)
-    {
+    function setPool(
+        uint256 _pid,
+        uint128 _newAllocPoint
+    ) external payable onlyRole(OPERATOR_ROLE) ensurePoolExists(_pid) {
         totalAllocPoint -= _poolInfo[_pid].allocPoint + _newAllocPoint;
         _poolInfo[_pid].allocPoint = _newAllocPoint;
     }
@@ -517,12 +506,10 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
      * @notice A rescue function for missent tokens / airdrops
      * @notice This cannot withdraw any deposits due `ensurePoolDoesNotExist` modifier.
      */
-    function rescueNonPoolToken(IERC20 _tokenToRescue, uint256 _amount)
-        external
-        payable
-        onlyRole(OPERATOR_ROLE)
-        ensurePoolDoesNotExist(_tokenToRescue)
-    {
+    function rescueNonPoolToken(
+        IERC20 _tokenToRescue,
+        uint256 _amount
+    ) external payable onlyRole(OPERATOR_ROLE) ensurePoolDoesNotExist(_tokenToRescue) {
         _tokenToRescue.safeTransfer(msg.sender, _amount);
     }
 
@@ -538,11 +525,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
      * @param user users info in the @param pool
      * @param recipient user to send rewards to
      */
-    function sendRewards(
-        PoolInfo memory pool,
-        UserInfo memory user,
-        address recipient
-    ) internal {
+    function sendRewards(PoolInfo memory pool, UserInfo memory user, address recipient) internal {
         for (uint256 rewardIndex; rewardIndex < pool.rewardTokens.length; rewardIndex++) {
             uint256 rewardDebt = (user.amount * pool.accRewardPerShares[rewardIndex]) / 1e12;
             uint256 pending = rewardDebt - user.rewardDebts[rewardIndex];

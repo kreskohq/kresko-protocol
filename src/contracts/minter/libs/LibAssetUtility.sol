@@ -50,11 +50,10 @@ library LibAssetUtility {
      * @param self the collateral asset struct
      * @param _maybeRebasedAmount the amount to convert
      */
-    function toNonRebasingAmount(CollateralAsset memory self, uint256 _maybeRebasedAmount)
-        internal
-        view
-        returns (uint256)
-    {
+    function toNonRebasingAmount(
+        CollateralAsset memory self,
+        uint256 _maybeRebasedAmount
+    ) internal view returns (uint256) {
         if (self.anchor == address(0)) return _maybeRebasedAmount;
         return IKreskoAssetAnchor(self.anchor).convertToShares(_maybeRebasedAmount);
     }
@@ -118,22 +117,20 @@ library LibAssetUtility {
     /**
      * @notice Get value for @param _assetAmount of @param self in FixedPoint.Unsigned
      */
-    function fixedPointUSD(CollateralAsset memory self, uint256 _assetAmount)
-        internal
-        view
-        returns (FixedPoint.Unsigned memory)
-    {
+    function fixedPointUSD(
+        CollateralAsset memory self,
+        uint256 _assetAmount
+    ) internal view returns (FixedPoint.Unsigned memory) {
         return self.fixedPointPrice().mul(_assetAmount.toFixedPoint());
     }
 
     /**
      * @notice Get value for @param _assetAmount of @param self in FixedPoint.Unsigned
      */
-    function fixedPointUSD(KrAsset memory self, uint256 _assetAmount)
-        internal
-        view
-        returns (FixedPoint.Unsigned memory)
-    {
+    function fixedPointUSD(
+        KrAsset memory self,
+        uint256 _assetAmount
+    ) internal view returns (FixedPoint.Unsigned memory) {
         return self.fixedPointPrice().mul(_assetAmount.toFixedPoint());
     }
 }

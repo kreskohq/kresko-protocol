@@ -18,9 +18,10 @@ interface IStabilityRateFacet {
         uint256 _kissRepayAmount
     ) external;
 
-    function repayFullStabilityRateInterest(address _account, address _kreskoAsset)
-        external
-        returns (uint256 kissRepayAmount);
+    function repayFullStabilityRateInterest(
+        address _account,
+        address _kreskoAsset
+    ) external returns (uint256 kissRepayAmount);
 
     function batchRepayFullStabilityRateInterest(address _account) external returns (uint256 kissRepayAmount);
 

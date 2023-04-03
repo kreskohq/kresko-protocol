@@ -1,7 +1,7 @@
-import { ContractName, GetContractTypes } from "@kreskolabs/configs";
+import { GetContractTypes } from "@kreskolabs/configs";
 import { Address } from "hardhat-deploy/types";
 import type * as Contracts from "./typechain";
-import { ethers } from "ethers";
+
 export type Split<S extends string, D extends string> = string extends S
     ? string[]
     : S extends ""

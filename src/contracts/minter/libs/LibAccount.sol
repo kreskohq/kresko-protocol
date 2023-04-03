@@ -22,11 +22,10 @@ library LibAccount {
      * @param _account The account to get the minted Kresko assets for.
      * @return An array of addresses of Kresko assets the account has minted.
      */
-    function getMintedKreskoAssets(MinterState storage self, address _account)
-        internal
-        view
-        returns (address[] memory)
-    {
+    function getMintedKreskoAssets(
+        MinterState storage self,
+        address _account
+    ) internal view returns (address[] memory) {
         return self.mintedKreskoAssets[_account];
     }
 
@@ -35,11 +34,10 @@ library LibAccount {
      * @param _account The account to get the deposited collateral assets for.
      * @return An array of addresses of collateral assets the account has deposited.
      */
-    function getDepositedCollateralAssets(MinterState storage self, address _account)
-        internal
-        view
-        returns (address[] memory)
-    {
+    function getDepositedCollateralAssets(
+        MinterState storage self,
+        address _account
+    ) internal view returns (address[] memory) {
         return self.depositedCollateralAssets[_account];
     }
 
@@ -95,11 +93,10 @@ library LibAccount {
      * @param _account The account to calculate the collateral value for.
      * @return totalCollateralValue The collateral value of a particular account.
      */
-    function getAccountCollateralValue(MinterState storage self, address _account)
-        internal
-        view
-        returns (FixedPoint.Unsigned memory totalCollateralValue)
-    {
+    function getAccountCollateralValue(
+        MinterState storage self,
+        address _account
+    ) internal view returns (FixedPoint.Unsigned memory totalCollateralValue) {
         address[] memory assets = self.depositedCollateralAssets[_account];
         for (uint256 i = 0; i < assets.length; i++) {
             address asset = assets[i];
@@ -136,11 +133,10 @@ library LibAccount {
      * @param _account The account to calculate the Kresko asset value for.
      * @return value The Kresko asset value of a particular account.
      */
-    function getAccountKrAssetValue(MinterState storage self, address _account)
-        internal
-        view
-        returns (FixedPoint.Unsigned memory value)
-    {
+    function getAccountKrAssetValue(
+        MinterState storage self,
+        address _account
+    ) internal view returns (FixedPoint.Unsigned memory value) {
         address[] memory assets = self.mintedKreskoAssets[_account];
         for (uint256 i = 0; i < assets.length; i++) {
             address asset = assets[i];

@@ -20,11 +20,7 @@ contract Multisender {
 
     event Funded(address indexed account);
 
-    constructor(
-        Token[] memory _tokens,
-        address _weth,
-        address _kiss
-    ) {
+    constructor(Token[] memory _tokens, address _weth, address _kiss) {
         owners[msg.sender] = true;
 
         for (uint256 i; i < _tokens.length; i++) {

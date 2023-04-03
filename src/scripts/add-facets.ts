@@ -15,7 +15,7 @@ export async function addFacets({ names, initializerName, initializerArgs, log =
     const logger = getLogger("add-facet", log);
 
     logger.log("Adding facets");
-    logger.table(names);
+    console.table(names);
     const { deployer } = await hre.getNamedAccounts();
 
     /* -------------------------------------------------------------------------- */
@@ -69,7 +69,7 @@ export async function addFacets({ names, initializerName, initializerArgs, log =
         deploymentInfo.push({ name: facet, address: FacetDeployment.address, functions: sigs.length });
     }
     logger.success("Facets on-chain:");
-    logger.table(deploymentInfo);
+    console.table(deploymentInfo);
 
     /* -------------------------------------------------------------------------- */
     /*                             Handle Initializer                             */
@@ -102,7 +102,7 @@ export async function addFacets({ names, initializerName, initializerArgs, log =
             logger.warn("Adding diamondCut initializer with no arguments supplied");
         } else {
             logger.log("Initializer arguments:");
-            logger.table(initializerArgs);
+            console.table(initializerArgs);
         }
         // #5.5 Prepopulate the initialization tx - replacing the default set on #5.1.
         const tx = await InitializerContract.populateTransaction.initialize(initializerArgs || "0x");

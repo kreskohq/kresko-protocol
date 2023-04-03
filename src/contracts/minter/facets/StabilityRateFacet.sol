@@ -83,10 +83,10 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
      * @param _asset asset to configure
      * @param _setup setup parameters
      */
-    function updateStabilityRateParams(address _asset, StabilityRateParams memory _setup)
-        external
-        onlyRole(Role.ADMIN)
-    {
+    function updateStabilityRateParams(
+        address _asset,
+        StabilityRateParams memory _setup
+    ) external onlyRole(Role.ADMIN) {
         require(irs().srAssets[_asset].asset == _asset, Error.STABILITY_RATES_NOT_INITIALIZED);
         require(WadRay.RAY >= _setup.optimalPriceRate, Error.INVALID_OPTIMAL_RATE);
         require(WadRay.RAY >= _setup.priceRateDelta, Error.INVALID_PRICE_RATE_DELTA);
@@ -173,12 +173,10 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
      * @param _kreskoAsset Kresko asset to repay interest for
      * @return kissRepayAmount KISS value repaid
      */
-    function repayFullStabilityRateInterest(address _account, address _kreskoAsset)
-        external
-        nonReentrant
-        kreskoAssetExists(_kreskoAsset)
-        returns (uint256 kissRepayAmount)
-    {
+    function repayFullStabilityRateInterest(
+        address _account,
+        address _kreskoAsset
+    ) external nonReentrant kreskoAssetExists(_kreskoAsset) returns (uint256 kissRepayAmount) {
         return ms().repayFullStabilityRateInterest(_account, _kreskoAsset);
     }
 
@@ -187,11 +185,9 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
      * @param _account Account to repay all asset interests for
      * @return kissRepayAmount KISS value repaid
      */
-    function batchRepayFullStabilityRateInterest(address _account)
-        external
-        nonReentrant
-        returns (uint256 kissRepayAmount)
-    {
+    function batchRepayFullStabilityRateInterest(
+        address _account
+    ) external nonReentrant returns (uint256 kissRepayAmount) {
         address[] memory mintedKreskoAssets = ms().getMintedKreskoAssets(_account);
         for (uint256 i; i < mintedKreskoAssets.length; i++) {
             kissRepayAmount += ms().repayFullStabilityRateInterest(_account, mintedKreskoAssets[i]);
@@ -255,11 +251,10 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
      * @param _asset asset to view configuration for
      * @return lastDebtIndex the previous debt index for the user
      */
-    function getLastDebtIndexForAccount(address _account, address _asset)
-        external
-        view
-        returns (uint128 lastDebtIndex)
-    {
+    function getLastDebtIndexForAccount(
+        address _account,
+        address _asset
+    ) external view returns (uint128 lastDebtIndex) {
         return irs().srUserInfo[_account][_asset].lastDebtIndex;
     }
 }

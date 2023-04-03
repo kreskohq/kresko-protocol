@@ -26,24 +26,11 @@ interface IKrStaking {
 
     function poolLength() external view returns (uint256);
 
-    function deposit(
-        address _to,
-        uint256 _pid,
-        uint256 _amount
-    ) external;
+    function deposit(address _to, uint256 _pid, uint256 _amount) external;
 
-    function withdrawFor(
-        address _for,
-        uint256 _pid,
-        uint256 _amount,
-        address _claimRewardsTo
-    ) external;
+    function withdrawFor(address _for, uint256 _pid, uint256 _amount, address _claimRewardsTo) external;
 
-    function claimFor(
-        address _for,
-        uint256 _pid,
-        address _rewardRecipient
-    ) external;
+    function claimFor(address _for, uint256 _pid, address _rewardRecipient) external;
 
     function allPendingRewards(address) external view returns (Reward[] memory);
 

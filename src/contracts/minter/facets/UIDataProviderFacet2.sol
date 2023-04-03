@@ -18,7 +18,10 @@ import {LibUI, IKrStaking, IUniswapV2Pair, IERC20Upgradeable, AggregatorV2V3Inte
  * @notice UI data aggregation views
  */
 contract UIDataProviderFacet2 {
-    function getGlobalData(address[] memory _collateralAssets, address[] memory _krAssets)
+    function getGlobalData(
+        address[] memory _collateralAssets,
+        address[] memory _krAssets
+    )
         external
         view
         returns (
