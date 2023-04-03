@@ -112,18 +112,15 @@
     "scripts": {
         "clean": "TS_NODE_TRANSPILE_ONLY=1 hardhat clean && forge clean",
         "recompile": "TS_NODE_TRANSPILE_ONLY=1 hardhat clean && TS_NODE_TRANSPILE_ONLY=1 hardhat compile",
-        "recompile:forge": "FOUNDRY=true hardhat clean && forge build && typechain --input-dir forge/artifacts './forge/artifacts/**/*.json' --out-dir types/forged --target=ethers-v5 --always-generate-overloads --discriminate-types",
         "compile": "TS_NODE_TRANSPILE_ONLY=1 hardhat compile",
-        "compile:forge": "FOUNDRY=true forge build && typechain --input-dir forge/artifacts './forge/artifacts/**/*.json' --out-dir types/forged --target=ethers-v5 --always-generate-overloads --discriminate-types",
+        "compile:forge": "forge build && typechain --input-dir forge/artifacts './forge/artifacts/**/*.json' --out-dir types/forged --target=ethers-v5 --always-generate-overloads --discriminate-types",
         "deploy": "hardhat deploy",
         "coverage": "hardhat coverage --solcoverjs ./.solcover.js --temp artifacts --testfiles \"./test/**/*.ts\"",
         "test": "TEST=true hardhat test --deploy-fixture",
         "test:ci": "TEST=true CI=true hardhat test --deploy-fixture",
-        "test:anvil": "TEST=true FOUNDRY=true hardhat test",
         "typechain": "hardhat typechain",
         "commit": "git-cz",
         "local": "hardhat node",
-        "local:anvil": "FOUNDRY=true hardhat node",
         "lint": "npm run lint:sol && npm run lint:ts && npm run prettier:check",
         "lint:sol": "TS_NODE_TRANSPILE_ONLY=1 solhint --config .solhint.json --max-warnings 0 './src/contracts/**/**/*.sol'",
         "lint:ts": "eslint src --config ./.eslintrc.yaml --ignore-path ./.eslintignore --ext .js,.ts .",
@@ -135,12 +132,7 @@
         "c:export": "exp=true npx hardhat create-exports",
         "kr:add-facet": "hardhat facet:add",
         "kr:replace-facet": "hardhat facet:replace",
-        "kr:remove-facet": "hardhat facet:remove",
-        "helper:dabi": "TS_NODE_TRANSPILE_ONLY=1 hardhat clean && forge clean && hardhat compile",
-        "helper:interface": "TS_NODE_TRANSPILE_ONLY=1 npx hardhat gen-interface"
+        "kr:remove-facet": "hardhat facet:remove"
     },
-    "packageManager": "pnpm@7.11.0",
-    "dependencies": {
-        "@graphprotocol/hardhat-graph": "0.1.0-alpha.2"
-    }
+    "packageManager": "pnpm@7.11.0"
 }
