@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
-import "@openzeppelin/contracts-upgradeable/access/IAccessControlEnumerableUpgradeable.sol";
+import {IAccessControlEnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/IAccessControlEnumerableUpgradeable.sol";
 import {IERC165} from "../shared/IERC165.sol";
 import {IERC20Upgradeable} from "../shared/IERC20Upgradeable.sol";
 import {IKreskoAssetIssuer} from "./IKreskoAssetIssuer.sol";

@@ -47,7 +47,10 @@ export async function addFacets({ names, initializerName, initializerArgs, log =
     const deploymentInfo: { name: string; address: string; functions: number }[] = [];
     for (const facet of names) {
         // #4.3 Deploy each facet contract
-        const [FacetContract, sigs, FacetDeployment] = await hre.deploy(facet, { log, from: deployer });
+        const [FacetContract, sigs, FacetDeployment] = await hre.deploy(facet, {
+            log,
+            from: deployer,
+        });
 
         // #4.4 Convert the address and signatures into the required `FacetCut` type and push into the array.
         const { facetCut } = await hre.getFacetCut(facet, 0, sigs);
@@ -66,7 +69,11 @@ export async function addFacets({ names, initializerName, initializerArgs, log =
         // #4.6 Push their ABI into a separate array for deployment output later on.
         ABIs.push(FacetDeployment.abi);
 
-        deploymentInfo.push({ name: facet, address: FacetDeployment.address, functions: sigs.length });
+        deploymentInfo.push({
+            name: facet,
+            address: FacetDeployment.address,
+            functions: sigs.length,
+        });
     }
     logger.success("Facets on-chain:");
     console.table(deploymentInfo);
@@ -86,7 +93,10 @@ export async function addFacets({ names, initializerName, initializerArgs, log =
         // #5.3 Deploy the initializer contract if it does not exist
         if (!InitializerArtifact) {
             logger.log("Initializer deployment not found for", initializerName, "...deploying");
-            [InitializerContract] = await hre.deploy(initializerName, { from: deployer, log });
+            [InitializerContract] = await hre.deploy(initializerName, {
+                from: deployer,
+                log,
+            });
             logger.success(
                 initializerName,
                 "succesfully deployed",

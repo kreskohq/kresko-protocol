@@ -50,7 +50,10 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         facetAddress: f.facetAddress,
         functionSelectors: f.functionSelectors,
     }));
-    deployment.abi = mergeABIs([deployment.abi, ...ABIs], { check: true, skipSupportsInterface: false });
+    deployment.abi = mergeABIs([deployment.abi, ...ABIs], {
+        check: true,
+        skipSupportsInterface: false,
+    });
     await hre.deployments.save("Diamond", deployment);
     // #3 Eventhough we have the full ABI from the `diamondAbi` extension already, bookkeep the current status in deployment separately
     // #4 Using `add-facets.ts` will do this automatically - check #1 why we are not using it here.

@@ -59,7 +59,10 @@ export async function addFacet<T extends keyof TC>({
         let InitializerContract: Contract;
         // #4.3 Deploy the initializer contract if it does not exist
         if (!InitializerArtifact) {
-            [InitializerContract] = await hre.deploy(initializerName, { from: deployer.address, log: true });
+            [InitializerContract] = await hre.deploy(initializerName, {
+                from: deployer.address,
+                log: true,
+            });
         }
         // #4.4 Get the contract instance
         InitializerContract = await hre.getContractOrFork(initializerName);

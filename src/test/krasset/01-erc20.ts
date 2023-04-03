@@ -47,7 +47,7 @@ describe("KreskoAsset", () => {
             );
 
             // Check total supply and all account balances unchanged
-            expect(await this.krAsset!.contract.totalSupply()).to.equal(0);
+            expect(await this.krAsset.contract.totalSupply()).to.equal(0);
             expect(await this.krAsset!.contract.balanceOf(this.owner.address)).to.equal(0);
             expect(await this.krAsset!.contract.balanceOf(hre.users.userOne.address)).to.equal(0);
         });

@@ -2,6 +2,7 @@ import hre from "hardhat";
 import { diamondFacets, getMinterInitializer, minterFacets } from "@deploy-config/shared";
 import { Role, withFixture, Error } from "@utils/test";
 import { expect } from "@test/chai";
+
 describe("Minter - Init", () => {
     withFixture(["minter-init"]);
     describe("#initialization", () => {
@@ -24,6 +25,7 @@ describe("Minter - Init", () => {
         });
 
         it("cant initialize twice", async function () {
+            expect(await hre.Diamond.minterInitializations()).to.equal(1);
             const initializer = await getMinterInitializer(hre);
             const initializerContract = await hre.getContractOrFork(initializer.name);
 

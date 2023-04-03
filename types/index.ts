@@ -17,7 +17,9 @@ export type Split2<S extends string, D extends string> = string extends S
     ? [...Split<U, D>]
     : [S];
 
-export type ExcludeType<T, E> = { [K in keyof T]: T[K] extends E ? K : never }[keyof T];
+export type ExcludeType<T, E> = {
+    [K in keyof T]: T[K] extends E ? K : never;
+}[keyof T];
 
 export type Excludes =
     | "AccessControlEnumerableUpgradeable"

@@ -2,10 +2,10 @@
 pragma solidity >=0.7.6;
 pragma experimental ABIEncoderV2;
 
-import "../vendor/uniswap/v2-periphery/libraries/UQ.sol";
-import "../vendor/uniswap/v2-periphery/libraries/UniswapV2Library.sol";
-import "../vendor/uniswap/v2-core/interfaces/IERC20.sol";
-import "../libs/Errors.sol";
+import {UQ} from "../vendor/uniswap/v2-periphery/libraries/UQ.sol";
+import {IUniswapV2Factory, IUniswapV2Pair} from "../vendor/uniswap/v2-periphery/libraries/UniswapV2Library.sol";
+import {IERC20} from "../vendor/uniswap/v2-core/interfaces/IERC20.sol";
+import {Error} from "../libs/Errors.sol";
 
 /**
  * @title Kresko AMM Oracle (Uniswap V2)

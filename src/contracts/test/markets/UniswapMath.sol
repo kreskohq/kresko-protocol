@@ -1,8 +1,9 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity >=0.6.6;
 
-import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
-import "@uniswap/lib/contracts/libraries/TransferHelper.sol";
-import "./UniswapV2LiquidityMathLibrary.sol";
+import {IUniswapV2Router02} from "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
+import {TransferHelper} from "@uniswap/lib/contracts/libraries/TransferHelper.sol";
+import {UniswapV2LiquidityMathLibrary, SafeMath, Babylonian, UniswapV2Library} from "./UniswapV2LiquidityMathLibrary.sol";
 
 contract UniswapMath {
     using SafeMath for uint256;

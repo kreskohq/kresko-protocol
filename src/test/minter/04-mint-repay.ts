@@ -44,7 +44,11 @@ describe("Minter", () => {
         this.collateral.setPrice(this.collateral.deployArgs!.price);
 
         // User deposits 10,000 collateral
-        await depositCollateral({ amount: 10_000, user: hre.users.userOne, asset: this.collateral });
+        await depositCollateral({
+            amount: 10_000,
+            user: hre.users.userOne,
+            asset: this.collateral,
+        });
     });
 
     describe("#mint+burn", () => {
@@ -1224,10 +1228,18 @@ describe("Minter", () => {
                         asset: this.krAsset,
                         amount: hre.toBig(mintAmount),
                     });
-                    await withdrawCollateral({ user: hre.users.userThree, asset: this.collateral, amount: wAmount });
+                    await withdrawCollateral({
+                        user: hre.users.userThree,
+                        asset: this.collateral,
+                        amount: wAmount,
+                    });
 
                     const event = await getInternalEvent<CloseFeePaidEventObject>(
-                        await burnKrAsset({ user: hre.users.userThree, asset: this.krAsset, amount: burnAmount }),
+                        await burnKrAsset({
+                            user: hre.users.userThree,
+                            asset: this.krAsset,
+                            amount: burnAmount,
+                        }),
                         hre.Diamond,
                         "CloseFeePaid",
                     );
@@ -1243,9 +1255,17 @@ describe("Minter", () => {
                     await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
                     const burnAmountRebase = burnAmount * denominator;
 
-                    await withdrawCollateral({ user: hre.users.userThree, asset: this.collateral, amount: wAmount });
+                    await withdrawCollateral({
+                        user: hre.users.userThree,
+                        asset: this.collateral,
+                        amount: wAmount,
+                    });
                     const eventAfterRebase = await getInternalEvent<CloseFeePaidEventObject>(
-                        await burnKrAsset({ user: hre.users.userThree, asset: this.krAsset, amount: burnAmountRebase }),
+                        await burnKrAsset({
+                            user: hre.users.userThree,
+                            asset: this.krAsset,
+                            amount: burnAmountRebase,
+                        }),
                         hre.Diamond,
                         "CloseFeePaid",
                     );
@@ -1267,10 +1287,18 @@ describe("Minter", () => {
                         asset: this.krAsset,
                         amount: hre.toBig(mintAmount),
                     });
-                    await withdrawCollateral({ user: hre.users.userThree, asset: this.collateral, amount: wAmount });
+                    await withdrawCollateral({
+                        user: hre.users.userThree,
+                        asset: this.collateral,
+                        amount: wAmount,
+                    });
 
                     const event = await getInternalEvent<CloseFeePaidEventObject>(
-                        await burnKrAsset({ user: hre.users.userThree, asset: this.krAsset, amount: burnAmount }),
+                        await burnKrAsset({
+                            user: hre.users.userThree,
+                            asset: this.krAsset,
+                            amount: burnAmount,
+                        }),
                         hre.Diamond,
                         "CloseFeePaid",
                     );
@@ -1286,9 +1314,17 @@ describe("Minter", () => {
                     await this.krAsset.contract.rebase(hre.toBig(denominator), positive);
                     const burnAmountRebase = burnAmount / denominator;
 
-                    await withdrawCollateral({ user: hre.users.userThree, asset: this.collateral, amount: wAmount });
+                    await withdrawCollateral({
+                        user: hre.users.userThree,
+                        asset: this.collateral,
+                        amount: wAmount,
+                    });
                     const eventAfterRebase = await getInternalEvent<CloseFeePaidEventObject>(
-                        await burnKrAsset({ user: hre.users.userThree, asset: this.krAsset, amount: burnAmountRebase }),
+                        await burnKrAsset({
+                            user: hre.users.userThree,
+                            asset: this.krAsset,
+                            amount: burnAmountRebase,
+                        }),
                         hre.Diamond,
                         "CloseFeePaid",
                     );
@@ -1304,7 +1340,11 @@ describe("Minter", () => {
             const mintAmount = hre.toBig(mintAmountInt);
 
             beforeEach(async function () {
-                await mintKrAsset({ asset: this.krAsset, amount: mintAmountInt, user: hre.users.userOne });
+                await mintKrAsset({
+                    asset: this.krAsset,
+                    amount: mintAmountInt,
+                    user: hre.users.userOne,
+                });
             });
 
             describe("debt amounts are calculated correctly", () => {

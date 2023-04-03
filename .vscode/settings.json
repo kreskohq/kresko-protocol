@@ -1,31 +1,22 @@
 {
-    "solidity-va.parser.parseImports": false,
-    "solidity-va.outline.decorations": true,
-    "solidity-va.whatsNew.disabled": true,
-    "solidity-va.codelens.ftrace.enable": false,
-    "solidity-va.preview.markdown": true,
-    "solidity-va.preview.dot": false,
-    "solidity-va.diagnostics.cdili_json.import": true,
-    "solidity-va.deco.statevars": false,
-    "solidity-va.deco.arguments": false,
     "mochaExplorer.require": ["ts-node/register", "tsconfig-paths/register"],
     "mochaExplorer.files": ["./src/test/**/*.ts"],
     "mochaExplorer.timeout": 120000,
     "mochaExplorer.multiFileSuites": true,
-    "files.exclude": {
-    },
-    "solidity-va.hover": false,
-    "solidity-va.codelens.enable": true,
     "typescript.tsdk": "node_modules/typescript/lib",
-    "solidity-va.deco.warn.reserved": true,
-    "solidity-va.deco.warn.externalCalls": false,
-    "solidity-va.outline.imports.show": false,
-    "solidity-va.codelens.graph.enable": false,
-    "solidity-va.codelens.graphThis.enable": false,
-    "solidity-va.codelens.flatten.enable": true,
-    "solidity-va.codelens.uml.enable": false,
-    "solidity-va.codelens.drawio.enable": true,
-    "solidity-va.debug.parser.showExceptions": false,
-    "inline-bookmarks.view.showVisibleFilesOnly": false,
-    "solidity.defaultCompiler": "remote"
+    "files.exclude": {},
+    "search.exclude": {
+        "**/bower_components": true,
+        "**/*.code-search": true,
+        "pnpm-lock.yaml": true,
+        "mochawesome-report": true,
+        "**/deployments/**": true,
+        "packages/contracts/pnpm-lock.yaml": true
+    },
+    "editor.formatOnSave": true,
+    "prettier.documentSelectors": ["**/*.sol"],
+    "solidity.formatter": "prettier",
+    "[solidity]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    }
 }

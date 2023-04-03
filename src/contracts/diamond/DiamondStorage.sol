@@ -5,7 +5,7 @@
 
 pragma solidity >=0.8.14;
 
-import "./DiamondState.sol";
+import {DiamondState} from "./DiamondState.sol";
 
 // Storage position
 bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("kresko.diamond.storage");

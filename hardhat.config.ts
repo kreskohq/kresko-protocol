@@ -9,17 +9,16 @@ import "tsconfig-paths/register";
 /* -------------------------------------------------------------------------- */
 // import "solidity-coverage";
 
-import "@nomiclabs/hardhat-ethers";
 import "hardhat-diamond-abi";
 // note: hardhat-diamond-abi should always be exported before typechain if used together
 import "@typechain/hardhat";
+import "@nomiclabs/hardhat-ethers";
 import "hardhat-deploy";
 import "hardhat-deploy-ethers";
 import "@nomiclabs/hardhat-etherscan";
 import "@nomiclabs/hardhat-web3";
 import "hardhat-contract-sizer";
 import "hardhat-interface-generator";
-require("@nomiclabs/hardhat-etherscan");
 
 // import "hardhat-preprocessor";
 // import "hardhat-watcher";

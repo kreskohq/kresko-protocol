@@ -1,5 +1,4 @@
 # folders
-.vscode
 artifacts/**/*
 build/
 cache/

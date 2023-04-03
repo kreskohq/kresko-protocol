@@ -84,7 +84,11 @@ describe("Stability Rates", function () {
                 collateralAmount,
                 krAssetAmount,
             );
-            await mintKrAsset({ user: userOne, asset: this.krAsset, amount: amountIn });
+            await mintKrAsset({
+                user: userOne,
+                asset: this.krAsset,
+                amount: amountIn,
+            });
 
             await swap({
                 amount: amountIn,
@@ -132,7 +136,11 @@ describe("Stability Rates", function () {
                 collateralAmount,
                 krAssetAmount,
             );
-            await mintKrAsset({ user: userOne, asset: this.krAsset, amount: amountIn });
+            await mintKrAsset({
+                user: userOne,
+                asset: this.krAsset,
+                amount: amountIn,
+            });
 
             await swap({
                 amount: amountIn,
@@ -272,7 +280,11 @@ describe("Stability Rates", function () {
                 collateralAmount,
                 krAssetAmount,
             );
-            await mintKrAsset({ user: userOne, asset: this.krAsset, amount: amountIn });
+            await mintKrAsset({
+                user: userOne,
+                asset: this.krAsset,
+                amount: amountIn,
+            });
 
             // dump asset, decreases price
             await swap({

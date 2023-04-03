@@ -87,8 +87,16 @@ describe("Stability Rates", () => {
             });
 
             // Asset
-            await mintKrAsset({ user: userOne, asset: krAssetNoBaseRate, amount: krAssetAmount });
-            await mintKrAsset({ user: userOne, asset: krAssetWithBaseRate, amount: krAssetAmount });
+            await mintKrAsset({
+                user: userOne,
+                asset: krAssetNoBaseRate,
+                amount: krAssetAmount,
+            });
+            await mintKrAsset({
+                user: userOne,
+                asset: krAssetWithBaseRate,
+                amount: krAssetAmount,
+            });
 
             const lastUpdateTimestamp = await getBlockTimestamp();
             const debtIndexBefore = await hre.Diamond.getDebtIndexForAsset(krAssetWithBaseRate.address);
@@ -189,7 +197,11 @@ describe("Stability Rates", () => {
                 collateralAmount,
                 krAssetAmount,
             );
-            await mintKrAsset({ user: userOne, asset: this.krAsset, amount: amountIn });
+            await mintKrAsset({
+                user: userOne,
+                asset: this.krAsset,
+                amount: amountIn,
+            });
 
             await swap({
                 amount: amountIn,
@@ -259,7 +271,11 @@ describe("Stability Rates", () => {
                 collateralAmount,
                 krAssetAmount,
             );
-            await mintKrAsset({ user: userOne, asset: this.krAsset, amount: amountIn });
+            await mintKrAsset({
+                user: userOne,
+                asset: this.krAsset,
+                amount: amountIn,
+            });
 
             await swap({
                 amount: amountIn,
@@ -292,7 +308,11 @@ describe("Stability Rates", () => {
                 collateralAmount,
                 krAssetAmount,
             );
-            await mintKrAsset({ user: userOne, asset: this.krAsset, amount: amountIn });
+            await mintKrAsset({
+                user: userOne,
+                asset: this.krAsset,
+                amount: amountIn,
+            });
 
             await swap({
                 amount: amountIn,
@@ -328,7 +348,11 @@ describe("Stability Rates", () => {
                 collateralAmount,
                 krAssetAmount,
             );
-            await mintKrAsset({ user: userOne, asset: this.krAsset, amount: amountIn });
+            await mintKrAsset({
+                user: userOne,
+                asset: this.krAsset,
+                amount: amountIn,
+            });
 
             await swap({
                 amount: amountIn,

@@ -14,7 +14,7 @@ export interface Export {
 }
 
 export type MultiExport = {
-    [chainId in DeployedChains]: typeof deployments[chainId][0];
+    [chainId in DeployedChains]: (typeof deployments)[chainId][0];
 };
 export type Oracles = {
     asset: string;
@@ -25,8 +25,8 @@ export type Oracles = {
 }[];
 
 export { deployments, oracles };
-export type DeploymentNames = keyof typeof deployments["420"][0]["contracts"] extends string
-    ? keyof typeof deployments["420"][0]["contracts"]
+export type DeploymentNames = keyof (typeof deployments)["420"][0]["contracts"] extends string
+    ? keyof (typeof deployments)["420"][0]["contracts"]
     : never;
 // export type KrAssetNames = keyof typeof deployments["420"][0]["contracts"] extends string
 export const opgoerli = deployments["420"][0]["contracts"];

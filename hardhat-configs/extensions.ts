@@ -145,5 +145,8 @@ extendEnvironment(function (hre) {
                     f.type === "function" &&
                     !SharedConfig.signatureFilters.some(s => s.indexOf(f.name.toLowerCase()) > -1),
             )
-            .map(fragment => ({ name: fragment.name, sig: ethers.utils.Interface.getSighash(fragment) }));
+            .map(fragment => ({
+                name: fragment.name,
+                sig: ethers.utils.Interface.getSighash(fragment),
+            }));
 });

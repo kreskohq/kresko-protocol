@@ -1,10 +1,10 @@
 import { getLogger } from "@kreskolabs/lib";
 import { getNamedEvent } from "@kreskolabs/protocol-ts";
+import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-// import { executeContractCallWithSigners } from "@utils/gnosis";
-import { BigNumber } from "@ethersproject/bignumber";
 import { ProxyCreationEvent } from "types/typechain/src/contracts/vendor/gnosis/GnosisSafeProxyFactory";
+// import { executeContractCallWithSigners } from "@utils/gnosis";
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const logger = getLogger("multisig");

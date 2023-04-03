@@ -1,7 +1,8 @@
+// SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 
-import "./MockERC20.sol";
-import "./WETH.sol";
+import {MockERC20} from "./MockERC20.sol";
+import {WETH} from "./WETH.sol";
 
 /* solhint-disable no-empty-blocks */
 

@@ -28,13 +28,17 @@ describe("Flux Pricefeed", () => {
     describe("functionality", () => {
         it("should initialize timestamp value once the initial answer is submitted", async function () {
             expect(await this.pricefeed.latestTimestamp()).to.equal(0);
-            await this.pricefeed.transmit(TEST_VALUE, true, { from: this.deployer.address });
+            await this.pricefeed.transmit(TEST_VALUE, true, {
+                from: this.deployer.address,
+            });
             expect(Number(await this.pricefeed.latestTimestamp())).to.be.greaterThan(0);
         });
 
         it.skip("should return latestAnswer once it's changed", async function () {
             expect(await this.pricefeed.latestAnswer()).to.equal(0);
-            await this.pricefeed.transmit(TEST_VALUE, true, { from: this.deployer.address });
+            await this.pricefeed.transmit(TEST_VALUE, true, {
+                from: this.deployer.address,
+            });
             expect(await this.pricefeed.latestAnswer()).to.equal(TEST_VALUE);
         });
 
@@ -62,7 +66,9 @@ describe("Flux Pricefeed", () => {
         });
 
         it("should return latestRoundData correctly", async function () {
-            await this.pricefeed.transmit(TEST_VALUE, true, { from: this.deployer.address });
+            await this.pricefeed.transmit(TEST_VALUE, true, {
+                from: this.deployer.address,
+            });
             const roundDataCall = await this.pricefeed.latestRoundData();
             const roundData = {
                 roundId: roundDataCall[0].toNumber(),
@@ -81,7 +87,9 @@ describe("Flux Pricefeed", () => {
         });
 
         it("should return getRoundData correctly", async function () {
-            await this.pricefeed.transmit(TEST_VALUE, true, { from: this.deployer.address });
+            await this.pricefeed.transmit(TEST_VALUE, true, {
+                from: this.deployer.address,
+            });
             const roundDataCall = await this.pricefeed.getRoundData(1);
             const roundData = {
                 roundId: roundDataCall[0].toNumber(),
@@ -100,17 +108,23 @@ describe("Flux Pricefeed", () => {
         });
 
         it("should return getAnswer correctly", async function () {
-            await this.pricefeed.transmit(TEST_VALUE, true, { from: this.deployer.address });
+            await this.pricefeed.transmit(TEST_VALUE, true, {
+                from: this.deployer.address,
+            });
             expect(await this.pricefeed.getAnswer(1)).to.equal(TEST_VALUE);
         });
 
         it("should return marketOpen correctly", async function () {
-            await this.pricefeed.transmit(TEST_VALUE, true, { from: this.deployer.address });
+            await this.pricefeed.transmit(TEST_VALUE, true, {
+                from: this.deployer.address,
+            });
             expect(await this.pricefeed.getMarketOpen(1)).to.equal(true);
         });
 
         it("should return latestRound correctly", async function () {
-            await this.pricefeed.transmit(TEST_VALUE, true, { from: this.deployer.address });
+            await this.pricefeed.transmit(TEST_VALUE, true, {
+                from: this.deployer.address,
+            });
             expect(await this.pricefeed.latestRound()).to.equal(1);
         });
     });

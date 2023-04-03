@@ -1,9 +1,10 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity >=0.8.14;
 
-import "./MockERC20.sol";
-import "./WETH.sol";
-import {MockKresko} from "../MockKresko.sol";
-import {FixedPoint} from "../minter/MinterTypes.sol";
+import {MockERC20} from "./MockERC20.sol";
+import {WETH} from "./WETH.sol";
+import {IAccountStateFacet, FixedPoint} from "../minter/interfaces/IAccountStateFacet.sol";
+
 /* solhint-disable no-empty-blocks */
 
 struct Token {
@@ -14,14 +15,14 @@ struct Token {
 contract FunderTestnetExtended {
     mapping(address => bool) public owners;
     mapping(address => bool) public funded;
-    MockKresko public kresko;
+    IAccountStateFacet public kresko;
     MockERC20 public tokenToFund;
     uint256 public fundAmount = 10000 ether;
     event Funded(address indexed account);
 
     constructor(address _kresko, address _tokenToFund) {
         owners[msg.sender] = true;
-        kresko = MockKresko(_kresko);
+        kresko = IAccountStateFacet(_kresko);
         tokenToFund = MockERC20(_tokenToFund);
     }
 

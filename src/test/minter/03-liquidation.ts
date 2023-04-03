@@ -108,7 +108,12 @@ describe("Minter", () => {
                 },
             });
 
-            newCollateral = await addMockCollateralAsset({ name: "Coll", decimals: 8, price: 10, factor: 0.9 });
+            newCollateral = await addMockCollateralAsset({
+                name: "Coll",
+                decimals: 8,
+                price: 10,
+                factor: 0.9,
+            });
             await newCollateral.setBalance(hre.users.userOne, hre.toBig(this.defaultDepositAmount * 100, 8));
             await newCollateral.mocks!.contract.setVariable("_allowances", {
                 [hre.users.userOne.address]: {

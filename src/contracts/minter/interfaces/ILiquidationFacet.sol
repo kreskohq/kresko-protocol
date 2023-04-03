@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 
-import "../../libs/FixedPoint.sol";
+import {FixedPoint} from "../../libs/FixedPoint.sol";
 
 interface ILiquidationFacet {
     function calculateMaxLiquidatableValueForAssets(

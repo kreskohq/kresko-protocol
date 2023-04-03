@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity >=0.8.14;
 
 import {ERC20} from "@rari-capital/solmate/src/tokens/ERC20.sol";
@@ -15,7 +15,6 @@ contract MockERC20 is ERC20 {
     ) ERC20(_name, _symbol, _decimals) {
         _mint(msg.sender, _initialSupply);
         minters[msg.sender] = true;
-        owner = msg.sender;
     }
 
     function reinitializeERC20(string memory _name, string memory _symbol) external {

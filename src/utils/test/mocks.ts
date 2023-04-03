@@ -20,7 +20,9 @@ export type InputArgs = {
     amount: string | number | BigNumber;
 };
 
-export type InputArgsSimple = Omit<InputArgs, "asset"> & { asset: { address: string } };
+export type InputArgsSimple = Omit<InputArgs, "asset"> & {
+    asset: { address: string };
+};
 
 export type TestKreskoAssetArgs = {
     name: string;

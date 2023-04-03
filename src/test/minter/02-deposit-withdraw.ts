@@ -1132,7 +1132,7 @@ describe("Minter - Deposit Withdraw", () => {
                 );
             });
             describe("withdraw amounts are calculated correctly", () => {
-                it("when withdrawing a deposit made before positiveing rebase", async function () {
+                it("when withdrawing a deposit made before positive rebase", async function () {
                     // Rebase params
                     const denominator = 4;
                     const positive = true;
@@ -1222,7 +1222,7 @@ describe("Minter - Deposit Withdraw", () => {
                     expect(finalDeposits).to.equal(0);
                     expect(finalBalance).to.equal(rebasedDepositAmount);
                 });
-                it("when withdrawing a deposit made after an positiveing rebase", async function () {
+                it("when withdrawing a deposit made after an positive rebase", async function () {
                     // Rebase params
                     const denominator = 4;
                     const positive = true;
@@ -1315,7 +1315,7 @@ describe("Minter - Deposit Withdraw", () => {
                     expect(finalDeposits).to.equal(0);
                     expect(finalBalance).to.equal(rebasedDepositAmount);
                 });
-                it("when withdrawing a deposit made before and after a positiveing rebase", async function () {
+                it("when withdrawing a deposit made before and after a positive rebase", async function () {
                     // Rebase params
                     const denominator = 4;
                     const positive = true;
@@ -1481,7 +1481,7 @@ describe("Minter - Deposit Withdraw", () => {
                 });
             });
             describe("withdraw usd values are calculated correctly", () => {
-                it("when withdrawing a deposit made before positiveing rebase", async function () {
+                it("when withdrawing a deposit made before positive rebase", async function () {
                     // Rebase params
                     const denominator = 4;
                     const positive = true;
@@ -1636,7 +1636,7 @@ describe("Minter - Deposit Withdraw", () => {
                         depositAmount,
                     );
                 });
-                it("when withdrawing a deposit made before and after a positiveing rebase", async function () {
+                it("when withdrawing a deposit made before and after a positive rebase", async function () {
                     // Rebase params
                     const denominator = 4;
                     const positive = true;

@@ -1,7 +1,8 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity >=0.5.0;
 
-import "@uniswap/lib/contracts/libraries/Babylonian.sol";
-import "../../vendor/uniswap/v2-periphery/libraries/UniswapV2Library.sol";
+import {Babylonian} from "@uniswap/lib/contracts/libraries/Babylonian.sol";
+import {UniswapV2Library, SafeMath, IUniswapV2Pair, IUniswapV2Factory} from "../../vendor/uniswap/v2-periphery/libraries/UniswapV2Library.sol";
 
 // library containing some math for dealing with the liquidity shares of a pair, e.g. computing their exact value
 // in terms of the underlying tokens

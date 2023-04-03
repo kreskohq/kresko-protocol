@@ -24,7 +24,6 @@ export const compilers: SolcUserConfig[] = [
                 details: {
                     constantOptimizer: false,
                     deduplicate: true,
-                    yul: true,
                 },
             },
             outputSelection: {

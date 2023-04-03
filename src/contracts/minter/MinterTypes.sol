@@ -56,7 +56,6 @@ enum Action {
     Borrow,
     Liquidation
 }
-
 /**
  * @dev Fee types
  *

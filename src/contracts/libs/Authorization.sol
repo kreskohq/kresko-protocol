@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 
-import "../vendor/gnosis/IGnosisSafeL2.sol";
-import "./Strings.sol";
+import {IGnosisSafeL2} from "../vendor/gnosis/IGnosisSafeL2.sol";
+import {Strings} from "./Strings.sol";
 import {AuthEvent} from "./Events.sol";
 import {EnumerableSet} from "./EnumerableSet.sol";
 import {Error} from "./Errors.sol";
