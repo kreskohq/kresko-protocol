@@ -9,19 +9,16 @@ import "tsconfig-paths/register";
 /* -------------------------------------------------------------------------- */
 // import "solidity-coverage";
 
-/// @note comment diamond abi if enabling forge and anvil
 import "@nomiclabs/hardhat-ethers";
+import "hardhat-diamond-abi";
+// note: hardhat-diamond-abi should always be exported before typechain if used together
 import "@typechain/hardhat";
 import "hardhat-deploy";
 import "hardhat-deploy-ethers";
-import "hardhat-diamond-abi";
-import "hardhat-packager";
 import "@nomiclabs/hardhat-etherscan";
 import "@nomiclabs/hardhat-web3";
 import "hardhat-contract-sizer";
 import "hardhat-interface-generator";
-// import "hardhat-watcher";
-
 require("@nomiclabs/hardhat-etherscan");
 
 // import "hardhat-preprocessor";

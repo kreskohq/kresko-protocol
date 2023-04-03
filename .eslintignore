@@ -9,6 +9,7 @@ forge/
 temp/**/*
 types/**/*
 node_modules/
+deployments/**
 src/contracts/vendor/**/*
 src/contracts/test/**/*
 src/utils/**/*
