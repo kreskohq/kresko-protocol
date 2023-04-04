@@ -50,6 +50,7 @@ specifiers:
   hardhat-contract-sizer: ^2.5.1
   hardhat-deploy: ^0.11.25
   hardhat-deploy-ethers: 0.4.0-next.1
+  hardhat-deploy-tenderly: ^0.2.0
   hardhat-diamond-abi: ^3.0.0
   hardhat-gas-reporter: ^1.0.8
   hardhat-interface-generator: ^0.0.6
@@ -120,6 +121,7 @@ devDependencies:
   hardhat-contract-sizer: 2.8.0_hardhat@2.13.0
   hardhat-deploy: 0.11.25
   hardhat-deploy-ethers: 0.4.0-next.1_dkqjfpq6zafy5xjwibdqwrdjua
+  hardhat-deploy-tenderly: 0.2.0_aglwtrxwgkr3vm5i4nz3gkugy4
   hardhat-diamond-abi: 3.0.1_hardhat@2.13.0
   hardhat-gas-reporter: 1.0.9_hardhat@2.13.0
   hardhat-interface-generator: 0.0.6_hardhat@2.13.0
@@ -6968,6 +6970,20 @@ packages:
       '@nomiclabs/hardhat-ethers': 2.2.2_wknqauzjtp3mhprkntsmqpccee
       hardhat: 2.13.0_5o75j5ygh43aewe2xahjobrg7m
       hardhat-deploy: 0.11.25
+    dev: true
+
+  /hardhat-deploy-tenderly/0.2.0_aglwtrxwgkr3vm5i4nz3gkugy4:
+    resolution: {integrity: sha512-obJm+Wh7tRsLRFgmZkkUGC1/RU37J2gHQfCt+ndbSswW5XCjSOIu6tkShhYp147HqOPml84X2qX6qZku1ykIZQ==}
+    peerDependencies:
+      hardhat: ^2.0.0
+      hardhat-deploy: ^0.11.10
+    dependencies:
+      axios: 0.24.0
+      hardhat: 2.13.0_5o75j5ygh43aewe2xahjobrg7m
+      hardhat-deploy: 0.11.25
+      js-yaml: 4.1.0
+    transitivePeerDependencies:
+      - debug
     dev: true
 
   /hardhat-deploy/0.11.25:
