@@ -23,7 +23,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             cFactor: collateral.cFactor,
             oracleAddr: oracleAddr,
             marketStatusOracleAddr: inHouseOracleAddr,
-            log: !process.env.TEST,
+            log: true,
         });
     }
 

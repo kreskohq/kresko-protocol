@@ -33,7 +33,7 @@ const mnemonic = process.env.MNEMONIC;
 if (!mnemonic) {
     throw new Error("No mnemonic set");
 }
-const isExport = process.env.exp;
+const isExport = process.env.EXPORT;
 let exportUtil: any;
 
 /* -------------------------------------------------------------------------- */
