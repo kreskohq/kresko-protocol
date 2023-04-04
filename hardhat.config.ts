@@ -7,7 +7,6 @@ import "tsconfig-paths/register";
 /* -------------------------------------------------------------------------- */
 /*                                   Plugins                                  */
 /* -------------------------------------------------------------------------- */
-// import "solidity-coverage";
 
 import "hardhat-diamond-abi";
 // note: hardhat-diamond-abi should always be exported before typechain if used together
@@ -19,7 +18,7 @@ import "@nomiclabs/hardhat-etherscan";
 import "@nomiclabs/hardhat-web3";
 import "hardhat-contract-sizer";
 import "hardhat-interface-generator";
-
+import "solidity-coverage";
 // import "hardhat-preprocessor";
 // import "hardhat-watcher";
 // import "hardhat-gas-reporter";
@@ -30,11 +29,9 @@ import "hardhat-interface-generator";
 import { config as dotenvConfig } from "dotenv";
 
 dotenvConfig({ path: resolve(__dirname, "./.env") });
-let mnemonic = process.env.MNEMONIC;
+const mnemonic = process.env.MNEMONIC;
 if (!mnemonic) {
-    console.log(`No mnemonic set, using default value.`);
-    // Just a random word chosen from the BIP 39 list. Not sensitive.
-    mnemonic = "wealth";
+    throw new Error("No mnemonic set");
 }
 const isExport = process.env.exp;
 let exportUtil: any;
@@ -46,7 +43,7 @@ import "./src/tasks";
 /* -------------------------------------------------------------------------- */
 /*                                Config helpers                              */
 /* -------------------------------------------------------------------------- */
-import { compilers, networks, users } from "hardhat-configs";
+import { compilers, handleForking, networks, users } from "hardhat-configs";
 /* -------------------------------------------------------------------------- */
 /*                              Extensions To HRE                             */
 /* -------------------------------------------------------------------------- */
@@ -70,7 +67,7 @@ console.log("externalArtifacts", externalArtifacts);
 
 const config: HardhatUserConfig = {
     solidity: { compilers },
-    networks: networks(mnemonic),
+    networks: handleForking(networks(mnemonic)),
     namedAccounts: users,
     mocha: {
         reporter: "mochawesome",

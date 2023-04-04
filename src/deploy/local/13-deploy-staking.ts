@@ -43,6 +43,8 @@ const deploy: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 };
 
 deploy.skip = async hre => {
+    if (process.env.COVERAGE) return true;
+
     const skip = (await hre.deployments.getOrNull("KrStaking")) != null;
     if (skip) {
         logger.log("Skipping deploying staking");

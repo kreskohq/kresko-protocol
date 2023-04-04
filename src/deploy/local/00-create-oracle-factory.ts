@@ -5,16 +5,16 @@ import type { DeployFunction } from "hardhat-deploy/types";
 const logger = getLogger("create-oracle-factory");
 
 const deploy: DeployFunction = async function (hre) {
-    const { deployer } = await hre.ethers.getNamedSigners();
-    const feedValidator = new hre.ethers.Wallet(process.env.FEED_VALIDATOR_PK!).connect(hre.ethers.provider);
-    if (hre.network.name === "hardhat" && (await hre.ethers.provider.getBalance(feedValidator.address)).eq(0)) {
+    if (hre.network.live) {
+        throw new Error("Trying to use local deployment script on live network.");
+    }
+
+    const { deployer, feedValidator } = await hre.ethers.getNamedSigners();
+    if (hre.network.name === "hardhat") {
         await deployer.sendTransaction({
             to: feedValidator.address,
             value: hre.ethers.utils.parseEther("10"),
         });
-    }
-    if (hre.network.live) {
-        throw new Error("Trying to use local deployment script on live network.");
     }
 
     const [factory] = await hre.deploy("FluxPriceFeedFactory", {

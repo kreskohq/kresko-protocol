@@ -4,7 +4,7 @@ import { expect } from "@test/chai";
 import { defaultKrAssetArgs, Role, withFixture } from "@utils/test";
 import hre from "hardhat";
 describe("KreskoAsset", () => {
-    withFixture(["minter-test", "krAsset"]);
+    withFixture(["minter-test", "kresko-assets", "collaterals"]);
 
     beforeEach(async function () {
         this.owner = hre.users.deployer;

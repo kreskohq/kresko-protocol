@@ -7,7 +7,6 @@ import { constants, ethers } from "ethers";
 import { FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
 import { extendEnvironment } from "hardhat/config";
 import SharedConfig from "src/deploy-config/shared";
-import { networks } from "./networks";
 
 extendEnvironment(async function (hre) {
     // for testing
@@ -25,21 +24,25 @@ extendEnvironment(function (hre) {
     hre.krAssets = [];
     hre.allAssets = [];
     hre.checkAddress = checkAddress;
-    hre.forking = {
-        provider: new ethers.providers.JsonRpcProvider(networks(process.env.MNEMONIC!).ganache.url),
-        deploy: async (name, options) => {
-            const signer = options ? hre.forking.provider.getSigner(options.from) : hre.users.deployer;
-            return (await hre.deploy(name, { ...options, from: await signer.getAddress() }))[0];
-        },
-    };
+    // hre.forking = {
+    //     provider: new ethers.providers.JsonRpcProvider(
+    //         (networks(process.env.MNEMONIC!).ganache as HttpNetworkConfig).url,
+    //     ),
+    //     deploy: async (name, options) => {
+    //         const signer = options ? hre.forking.provider.getSigner(options.from) : hre.users.deployer;
+    //         return (await hre.deploy(name, { ...options, from: await signer.getAddress() }))[0];
+    //     },
+    // };
     hre.getDeploymentOrNull = async deploymentName => {
-        const isFork = !hre.network.config.live && hre.companionNetworks["live"];
+        const isFork = !hre.network.live && hre.companionNetworks["live"];
         const deployment = !isFork
             ? await hre.deployments.getOrNull(deploymentName)
             : await hre.companionNetworks["live"].deployments.getOrNull(deploymentName);
 
         if (!deployment && deploymentName === "Kresko") {
-            return await hre.deployments.getOrNull("Diamond");
+            return !isFork
+                ? await hre.deployments.getOrNull("Diamond")
+                : await hre.companionNetworks["live"].deployments.getOrNull("Diamond");
         }
         return deployment;
     };

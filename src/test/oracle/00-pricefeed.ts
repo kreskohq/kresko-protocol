@@ -4,7 +4,7 @@ import { withFixture } from "@utils/test";
 import hre from "hardhat";
 
 describe("Flux Pricefeed", () => {
-    withFixture(["minter-test", "flux-feed"]);
+    withFixture(["minter-test"]);
 
     const TEST_VALUE = 100;
 

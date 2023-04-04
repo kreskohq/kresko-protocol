@@ -42,8 +42,10 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const [, _signatures, deployment] = await hre.deploy("Diamond", {
         from: deployer,
+        log: true,
         args: [deployer, InitialFacets, []],
     });
+
     const Diamond = await hre.getContractOrFork("Kresko");
 
     deployment.facets = (await Diamond.facets()).map(f => ({
@@ -65,7 +67,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     logger.success("Diamond deployed @", Diamond.address, "with", deployment.facets.length, "facets");
 };
 
-deploy.tags = ["minter-test", "local", "diamond-init", "all"];
+deploy.tags = ["local", "minter-test", "diamond-init", "all"];
 deploy.skip = async hre => hre.network.live;
 
 export default deploy;

@@ -1,6 +1,6 @@
-import { ALCHEMY_API_KEY_GOERLI, INFURA_API_KEY, RPC } from "@kreskolabs/configs";
+import { INFURA_API_KEY, RPC } from "@kreskolabs/configs";
 import { parseUnits } from "ethers/lib/utils";
-import { HttpNetworkUserConfig } from "hardhat/types";
+import { HttpNetworkConfig, NetworksUserConfig } from "hardhat/types";
 
 export const chainIds = {
     aurora: 1313161554,
@@ -32,8 +32,7 @@ export const chainIds = {
     polygontest: 80001,
     xdai: 100,
 };
-
-export const networks = (mnemonic: string): { [key: string]: HttpNetworkUserConfig } => ({
+export const networks = (mnemonic: string): NetworksUserConfig => ({
     aurora: {
         accounts: {
             mnemonic,
@@ -103,16 +102,12 @@ export const networks = (mnemonic: string): { [key: string]: HttpNetworkUserConf
             mnemonic,
             count: 100,
         },
+        blockGasLimit: process.env.TEST ? 1599510662935 : 32000000,
+        allowUnlimitedContractSize: !!process.env.TEST,
+        initialBaseFeePerGas: process.env.TEST ? 0 : undefined,
+        gasPrice: process.env.TEST ? 1 : undefined,
         chainId: chainIds.hardhat,
         tags: ["local"],
-    },
-    ganache: {
-        url: "http://127.0.0.1:7545",
-        chainId: chainIds.hardhat,
-        accounts: { mnemonic, count: 100 },
-        companionNetworks: {
-            live: "opgoerli",
-        },
     },
     localhost: {
         accounts: {
@@ -193,3 +188,22 @@ export const networks = (mnemonic: string): { [key: string]: HttpNetworkUserConf
         tags: ["xdai"],
     },
 });
+
+export const handleForking = (networkConfig: ReturnType<typeof networks>) =>
+    process.env.FORKING
+        ? {
+              ...networkConfig,
+              hardhat: {
+                  ...networkConfig.hardhat,
+                  forking: {
+                      url: (networkConfig[process.env.FORKING] as HttpNetworkConfig).url,
+                      blockNumber: process.env.FORKING_BLOCKNUMBER
+                          ? parseInt(process.env.FORKING_BLOCKNUMBER)
+                          : undefined,
+                  },
+                  companionNetworks: {
+                      live: process.env.FORKING,
+                  },
+              },
+          }
+        : networkConfig;

@@ -105,12 +105,13 @@
         "compile": "TS_NODE_TRANSPILE_ONLY=1 hardhat compile",
         "compile:forge": "forge build && typechain --input-dir forge/artifacts './forge/artifacts/**/*.json' --out-dir types/forged --target=ethers-v5 --always-generate-overloads --discriminate-types",
         "deploy": "hardhat deploy",
-        "coverage": "hardhat coverage --solcoverjs ./.solcover.js --temp artifacts --testfiles \"./test/**/*.ts\"",
+        "coverage": "HARDHAT_DEPLOY_FIXTURE=true COVERAGE=true hardhat coverage",
         "test": "TEST=true hardhat test --deploy-fixture",
         "test:ci": "TEST=true CI=true hardhat test --deploy-fixture",
         "typechain": "hardhat typechain",
         "commit": "git-cz",
         "local": "hardhat node",
+        "deploy:fork": "FORKING=opgoerli hardhat deploy",
         "lint": "npm run lint:sol && npm run lint:ts && npm run prettier:check",
         "lint:sol": "TS_NODE_TRANSPILE_ONLY=1 solhint --config .solhint.json --max-warnings 0 './src/contracts/**/**/*.sol'",
         "lint:ts": "eslint src --config ./.eslintrc.yaml --ignore-path ./.eslintignore --ext .js,.ts .",
@@ -124,6 +125,6 @@
         "kr:replace-facet": "hardhat facet:replace",
         "kr:remove-facet": "hardhat facet:remove"
     },
-    "packageManager": "pnpm@7.11.0",
+    "packageManager": "pnpm@7.29.3",
     "dependencies": {}
 }

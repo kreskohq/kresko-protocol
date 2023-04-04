@@ -5,7 +5,7 @@ import hre from "hardhat";
 describe("KreskoAsset", () => {
     let KreskoAsset: KreskoAsset;
 
-    withFixture(["minter-test", "krAsset"]);
+    withFixture(["minter-test", "kresko-assets", "collaterals"]);
 
     beforeEach(async function () {
         KreskoAsset = hre.krAssets.find(asset => asset.deployArgs!.symbol === defaultKrAssetArgs.symbol)!.contract;

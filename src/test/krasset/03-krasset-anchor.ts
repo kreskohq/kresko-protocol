@@ -6,7 +6,7 @@ import { KreskoAssetAnchor } from "types/typechain/src/contracts/kreskoasset/Kre
 describe("KreskoAssetAnchor", () => {
     let KreskoAsset: KreskoAsset;
     let KreskoAssetAnchor: KreskoAssetAnchor;
-    withFixture(["minter-test", "krAsset"]);
+    withFixture(["minter-test", "kresko-assets", "collaterals"]);
     beforeEach(async function () {
         const asset = hre.krAssets.find(asset => asset!.deployArgs!.symbol === defaultKrAssetArgs.symbol)!;
         KreskoAsset = asset!.contract!;

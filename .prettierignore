@@ -1,21 +1,22 @@
 # folders
-artifacts/**/*
+artifacts/
 build/
 cache/
 coverage/
-bind/**/*
-dist/**/*
-bin/**/*
-lib/**/*
-build/**/*
-forge/**/*
+bind/
+dist/
+bin/
+lib/
+build/
+forge/
 node_modules/
-temp/**/*
-types/typechain/**
-types/forged/**
-deployments/**
-src/contracts/vendor/**/*
-mochawesome-report/**/*
+temp/
+types/typechain/
+types/forged/
+deployments/
+src/contracts/vendor/
+mochawesome-report/
 # files
 coverage.json
 .solcover.js
+*.json

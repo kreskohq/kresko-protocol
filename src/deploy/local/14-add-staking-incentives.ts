@@ -44,6 +44,8 @@ const deploy: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 };
 
 deploy.skip = async hre => {
+    if (process.env.COVERAGE) return true;
+
     const Staking = await hre.getContractOrFork("KrStaking");
     const config = testnetConfigs[hre.network.name];
     const [rewardToken1] = config.rewardTokens;
