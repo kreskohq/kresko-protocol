@@ -43,6 +43,7 @@ FEED_VALIDATOR=0x0000000000000000000000000000000000000005
 FEED_VALIDATOR_PK=
 FUNDER=0x0000000000000000000000000000000000000006
 FUNDER_PK=
+TENDERLY_ACCESS_TOKEN=
 
 ```
 
@@ -74,10 +75,9 @@ pnpm deploy --network <network>
 
 ### Forking
 
-- value of `process.env.FORKING` maps to network key and it's setup within `hardhat-configs/networks`
-- set a specific block with `process.env.FORKING_BLOCKNUMBER`
-- HRE is extended with helpers to get live deployments within the forked network (https://github.com/wighawag/hardhat-deploy#companionnetworks)
-
+-   value of `process.env.FORKING` maps to network key and it's setup within `hardhat-configs/networks`
+-   set a specific block with `process.env.FORKING_BLOCKNUMBER`
+-   HRE is extended with helpers to get live deployments within the forked network (https://github.com/wighawag/hardhat-deploy#companionnetworks)
 
 Run deploy in fork
 
@@ -85,7 +85,7 @@ Run deploy in fork
 pnpm fork:deploy
 ```
 
-Run tests with `--grep Forking` 
+Run tests with `--grep Forking`
 
 ```sh
 pnpm fork:test
@@ -96,7 +96,6 @@ Run `00-sandbox.ts` in the fork
 ```sh
 pnpm fork:sandbox
 ```
-
 
 ## Notes about the usage of [ERC-2535](https://eips.ethereum.org/EIPS/eip-2535) (Diamond)
 
