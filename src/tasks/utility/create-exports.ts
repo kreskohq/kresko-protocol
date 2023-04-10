@@ -7,6 +7,7 @@ const logger = getLogger(TASK_CREATE_EXPORTS);
 
 task(TASK_CREATE_EXPORTS).setAction(async function () {
     const exportUtil = await import("../../utils/export");
+
     logger.log("Creating exports...");
     await exportUtil.exportDeployments();
     logger.log("Done!");

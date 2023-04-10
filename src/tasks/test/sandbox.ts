@@ -1,37 +1,32 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { getLogger } from "@kreskolabs/lib";
-import { defaultKrAssetArgs } from "@utils/test/mocks";
 import { task } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
+import { TASK_SANDBOX } from "../names";
+// import fetch from "node-fetch";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 
-const TASK_NAME = "sandbox";
-const log = getLogger(TASK_NAME);
-task(TASK_NAME).setAction(async function (_taskArgs: TaskArguments, hre) {
-    const { deployer } = await hre.ethers.getNamedSigners();
+const log = getLogger(TASK_SANDBOX);
+task(TASK_SANDBOX).setAction(async function (_taskArgs: TaskArguments, hre) {
+    const all = await hre.deployments.all();
 
-    const Diamond = await hre.getContractOrFork("Kresko");
-    const krETH = (await hre.ethers.getContract("krETH")) as KreskoAsset;
-    const krTSLA = (await hre.ethers.getContract("krTSLA")) as KreskoAsset;
+    // for (const [key, deployment] of Object.entries(all)) {
+    //     console.log("verifying", key, deployment.address);
+    //     // await hre.tenderly.verifyMultiCompilerAPI(data);
 
-    const UniOracle = await hre.getContractOrFork("UniswapV2Oracle");
-
-    await UniOracle.update("0x311F38234E3A9EAC1AF2a3b618924b0D46E73C13");
-    await UniOracle.update("0xB267127D5FE72bdbEE86A204A0f1A9Ad14BE75Ee");
-
-    // await UniOracle.initPair("0x311F38234E3A9EAC1AF2a3b618924b0D46E73C13", krETH.address, 60 * 30);
-    // await UniOracle.initPair("0xB267127D5FE72bdbEE86A204A0f1A9Ad14BE75Ee", krTSLA.address, 60 * 30);
-    // console.log("Configured UniV2Oracle");
-
-    // await Diamond.setupStabilityRateParams(krTSLA.address, defaultKrAssetArgs.stabilityRates);
-    // await Diamond.setupStabilityRateParams(krETH.address, defaultKrAssetArgs.stabilityRates);
-    // console.log("Configured stability rates");
-
-    try {
-        console.log(Diamond.address);
-        log.log("Finished");
-    } catch (e) {
-        log.error(e);
-    }
+    //     await fetch("https://api.tenderly.co/api/v1/account/kresko/project/protocol/address", {
+    //         method: "POST",
+    //         headers: {
+    //             "Content-Type": "application/json",
+    //             "X-Access-Key": "Q0kvF3DHtaRG2FWuoNCHtU0NKWV6xeO4",
+    //         },
+    //         body: JSON.stringify({
+    //             address: deployment.address,
+    //             display_name: key,
+    //             network_id: "420",
+    //         }),
+    //     });
+    // }
 
     return;
 });

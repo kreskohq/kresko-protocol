@@ -19,7 +19,8 @@ import "@nomiclabs/hardhat-web3";
 import "hardhat-contract-sizer";
 import "hardhat-interface-generator";
 import "solidity-coverage";
-import "hardhat-deploy-tenderly";
+import * as tdly from "@tenderly/hardhat-tenderly";
+tdly.setup();
 // import "hardhat-preprocessor";
 // import "hardhat-watcher";
 // import "hardhat-gas-reporter";
@@ -119,8 +120,9 @@ const config: HardhatUserConfig = {
         },
     },
     tenderly: {
-        project: "synth-protocol",
+        project: "protocol",
         username: "kresko",
+        privateVerification: true,
     },
     // subgraph: {
     //     name: "MySubgraph", // Defaults to the name of the root folder of the hardhat project

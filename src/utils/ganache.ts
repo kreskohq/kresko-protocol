@@ -1,4 +1,4 @@
-import { RPC } from "@kreskolabs/configs";
+import { RPC_URL } from "@kreskolabs/configs";
 import { spawn } from "child_process";
 import dotenv from "dotenv";
 dotenv.config();
@@ -11,7 +11,7 @@ const options = {
         lock: false,
     },
     fork: {
-        url: `${RPC().optimism.goerli.alchemy}@5561222`,
+        url: `${RPC_URL().optimismGoerli.alchemy}@5561222`,
     },
     server: {
         port: 7545,

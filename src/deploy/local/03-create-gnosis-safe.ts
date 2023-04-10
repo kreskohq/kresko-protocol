@@ -1,5 +1,4 @@
-import { getLogger } from "@kreskolabs/lib";
-import { getNamedEvent } from "@kreskolabs/protocol-ts";
+import { getLogger, getNamedEvent } from "@kreskolabs/lib";
 import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";

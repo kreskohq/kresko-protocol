@@ -20,6 +20,7 @@ export * from "./utility";
 export * from "./test";
 export * from "./vendor";
 export * from "./clean";
+export * from "./test";
 export * from "./utility/create-exports";
 export * from "./fund-operator";
 

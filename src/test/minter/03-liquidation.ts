@@ -11,8 +11,7 @@ import {
 import { expect } from "@test/chai";
 
 import { Error } from "@utils/test/errors";
-import { toBig } from "@kreskolabs/lib";
-import { getInternalEvent } from "@kreskolabs/protocol-ts";
+import { toBig, getInternalEvent } from "@kreskolabs/lib";
 import { addMockCollateralAsset, depositCollateral } from "@utils/test/helpers/collaterals";
 import { mintKrAsset } from "@utils/test/helpers/krassets";
 import { calcExpectedMaxLiquidatableValue, liquidate } from "@utils/test/helpers/liquidations";

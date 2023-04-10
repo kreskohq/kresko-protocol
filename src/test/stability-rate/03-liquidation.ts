@@ -1,5 +1,4 @@
-import { getInternalEvent } from "@kreskolabs/protocol-ts";
-import { toBig } from "@kreskolabs/lib";
+import { toBig, getInternalEvent } from "@kreskolabs/lib";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { BASIS_POINT, defaultCollateralArgs, defaultKrAssetArgs, withFixture } from "@utils/test";
 import { addLiquidity, getTWAPUpdaterFor } from "@utils/test/helpers/amm";
