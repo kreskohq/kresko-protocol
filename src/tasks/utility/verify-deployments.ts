@@ -10,6 +10,10 @@ task(TASK_VERIFY_DEPLOYMENTS).setAction(async function () {
         throw new Error("This task is only for live networks");
     }
 
+    if (!process.env.TENDERLY_ACCESS_TOKEN) {
+        throw new Error("TENDERLY_ACCESS_TOKEN not found");
+    }
+
     const all = await hre.deployments.all();
 
     if (Object.keys(all).length === 0) {
@@ -29,7 +33,7 @@ task(TASK_VERIFY_DEPLOYMENTS).setAction(async function () {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "X-Access-Key": "Q0kvF3DHtaRG2FWuoNCHtU0NKWV6xeO4",
+                "X-Access-Key": process.env.TENDERLY_ACCESS_TOKEN,
             },
             body: JSON.stringify({
                 address: deployment.address,
