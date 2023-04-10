@@ -5,9 +5,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 /** Deployment stub */
 const deploy: DeployFunction = async () => {
     // const { deployer } = await hre.getNamedAccounts();
-    const Kresko = await hre.getContractOrFork("Kresko");
-    console.log(Kresko.address);
-    hre.ethers.utils;
+    // const Kresko = await hre.getContractOrFork("Kresko");
     // const KISS = await hre.getContractOrFork("KISS");
     // const krETH = await hre.getContractOrFork("KreskoAsset", "krETH");
 };

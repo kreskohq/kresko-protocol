@@ -8,25 +8,7 @@ import { TASK_SANDBOX } from "../names";
 
 const log = getLogger(TASK_SANDBOX);
 task(TASK_SANDBOX).setAction(async function (_taskArgs: TaskArguments, hre) {
-    const all = await hre.deployments.all();
-
-    // for (const [key, deployment] of Object.entries(all)) {
-    //     console.log("verifying", key, deployment.address);
-    //     // await hre.tenderly.verifyMultiCompilerAPI(data);
-
-    //     await fetch("https://api.tenderly.co/api/v1/account/kresko/project/protocol/address", {
-    //         method: "POST",
-    //         headers: {
-    //             "Content-Type": "application/json",
-    //             "X-Access-Key": "Q0kvF3DHtaRG2FWuoNCHtU0NKWV6xeO4",
-    //         },
-    //         body: JSON.stringify({
-    //             address: deployment.address,
-    //             display_name: key,
-    //             network_id: "420",
-    //         }),
-    //     });
-    // }
-
+    log.log("running sandbox task");
+    // const all = await hre.deployments.all();
     return;
 });
