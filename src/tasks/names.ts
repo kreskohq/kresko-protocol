@@ -26,4 +26,3 @@ export const TASK_PRINT_DEPLOYMENTS = "misc:print-deployments";
 export const TASK_CREATE_EXPORTS = "misc:create-exports";
 export const TASK_VERIFY_DEPLOYMENTS = "misc:verify-deployments";
 export const TASK_WRITE_ORACLE_JSON = "misc:write-oracles";
-export const TASK_SANDBOX = "sandbox";

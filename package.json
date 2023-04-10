@@ -120,8 +120,7 @@
         "kr:remove-facet": "hardhat facet:remove",
         "fork:test": "FORKING=opgoerli hardhat test --grep Forking",
         "fork:deploy": "FORKING=opgoerli hardhat deploy",
-        "fork:sandbox": "FORKING=opgoerli hardhat deploy --tags sandbox",
-        "sandbox": "hardhat deploy --tags sandbox"
+        "fork:sandbox": "FORKING=opgoerli hardhat deploy --tags sandbox"
     },
     "packageManager": "pnpm@7.29.3"
 }

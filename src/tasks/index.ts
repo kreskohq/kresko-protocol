@@ -17,11 +17,7 @@ export * from "./upgrade-staking";
 export * from "./whitelist-collateral";
 export * from "./whitelist-krasset";
 export * from "./utility";
-export * from "./test";
 export * from "./vendor";
 export * from "./clean";
-export * from "./test";
-export * from "./utility/create-exports";
 export * from "./fund-operator";
-
 export * from "./names";
