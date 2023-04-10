@@ -2,39 +2,6 @@ import { INFURA_API_KEY, RPC_URL, ETHERSCAN, chains } from "@kreskolabs/configs"
 import { parseUnits } from "ethers/lib/utils";
 import { HttpNetworkConfig, NetworksUserConfig } from "hardhat/types";
 
-/** @deprecated */
-export const chainIds = {
-    aurora: 1313161554,
-    auroraTestnet: 1313161555,
-    avalanche: 43114,
-    avalancheTestnet: 43113,
-    arbitrum: 42161,
-    bsc: 56,
-    bsctest: 97,
-    celo: 42220,
-    celotest: 44787,
-    optimism: 10,
-    opgoerli: 420,
-    ethereum: 1,
-    sepolia: 11155111,
-    goerli: 5,
-    kovan: 42,
-    moonbeam: 1284,
-    moonriver: 1285,
-    moonbase: 1287,
-    rinkeby: 4,
-    ropsten: 3,
-    hardhat: 1337,
-    fantom: 2100,
-    harmony: 1666600000,
-    harmonyTestnet: 1666700000,
-    polygon: 137,
-    polygonMumbai: 80001,
-    polygonZkEvm: 1101,
-    polygonZkEvmTestnet: 1442,
-    xdai: 100,
-};
-
 export const networks = (mnemonic: string): NetworksUserConfig => ({
     hardhat: {
         accounts: {
@@ -45,7 +12,7 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
         allowUnlimitedContractSize: !!process.env.CI,
         initialBaseFeePerGas: process.env.CI ? 0 : undefined,
         gasPrice: process.env.CI ? 1 : undefined,
-        chainId: chainIds.hardhat,
+        chainId: chains.localhost.id,
         tags: ["local"],
     },
     localhost: {
@@ -53,7 +20,7 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
             mnemonic,
             count: 100,
         },
-        chainId: chainIds.hardhat,
+        chainId: chains.localhost.id,
         tags: ["local"],
     },
     ethereum: {
@@ -165,97 +132,7 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
             etherscan: ETHERSCAN.polygonZkEvmTestnet.config,
         },
     },
-    xdai: {
-        accounts: { mnemonic },
-        url: "https://rpc.xdaichain.com",
-        chainId: chainIds.xdai,
-        tags: ["xdai"],
-    },
-    aurora: {
-        accounts: {
-            mnemonic,
-        },
-        gasPrice: 0,
-        chainId: chainIds.aurora,
-        url: `https://mainnet.aurora.dev`,
-        deploy: ["./src/deploy/aurora"],
-    },
-    auroraTestnet: {
-        accounts: {
-            mnemonic,
-        },
-        chainId: chainIds.auroraTestnet,
-        url: `https://aurora-testnet.infura.io/v3/${INFURA_API_KEY}`,
-        deploy: ["./src/deploy/auroraTestnet"],
-        gasPrice: 0,
-    },
-    avalanche: {
-        accounts: { mnemonic },
-        url: "https://api.avax.network/ext/bc/C/rpc",
-        chainId: chainIds.avalanche,
-        tags: ["avalanche"],
-    },
-    avalancheTestnet: {
-        accounts: { mnemonic },
-        url: "https://api.avax-test.network/ext/bc/C/rpc",
-        chainId: chainIds.avalancheTestnet,
-        tags: ["avalancheTestnet"],
-    },
-    bsc: {
-        accounts: { mnemonic },
-        url: "https://bsc-dataseed.binance.org",
-        chainId: chainIds.bsc,
-        tags: ["bsc"],
-    },
-    bsctest: {
-        accounts: { mnemonic },
-        url: "https://data-seed-prebsc-2-s3.binance.org:8545",
-        chainId: chainIds.bsctest,
-        tags: ["bsctest"],
-    },
-    celo: {
-        url: "https://forno.celo.org",
-        chainId: chainIds.celo,
-        tags: ["celo"],
-    },
-    celotest: {
-        url: "https://alfajores-forno.celo-testnet.org",
-        chainId: chainIds.celotest,
-        tags: ["celotest"],
-    },
-    moonbeam: {
-        chainId: chainIds.moonbeam,
-        url: "https://rpc.api.moonbeam.network",
-        tags: ["moonbeam"],
-    },
-    moonriver: {
-        chainId: chainIds.moonriver,
-        url: "https://rpc.moonriver.moonbeam.network",
-        tags: ["moonriver"],
-    },
-    moonbase: {
-        chainId: chainIds.moonbase,
-        url: "https://rpc.api.moonbase.moonbeam.network",
-        tags: ["moonbase"],
-    },
-    fantom: {
-        accounts: { mnemonic },
-        url: "https://rpcapi.fantom.network",
-        chainId: chainIds.fantom,
-        tags: ["fantom"],
-    },
-    harmony: {
-        accounts: { mnemonic },
-        url: "https://api.s0.t.hmny.io",
-        chainId: chainIds.harmony,
-        tags: ["harmony"],
-    },
-    harmonyTestnet: {
-        accounts: { mnemonic },
-        url: "https://api.s0.b.hmny.io",
-        chainId: chainIds.harmonyTestnet,
-        tags: ["harmonyTestnet"],
-    },
+    ...networksPartialConfig(mnemonic),
 });
 
 export const handleForking = (networkConfig: ReturnType<typeof networks>) =>
@@ -276,3 +153,97 @@ export const handleForking = (networkConfig: ReturnType<typeof networks>) =>
               },
           }
         : networkConfig;
+
+export const networksPartialConfig = (mnemonic: string) => ({
+    xdai: {
+        accounts: { mnemonic },
+        url: "https://rpc.xdaichain.com",
+        chainId: 100,
+        tags: ["xdai"],
+    },
+    aurora: {
+        accounts: {
+            mnemonic,
+        },
+        gasPrice: 0,
+        chainId: 1313161554,
+        url: `https://mainnet.aurora.dev`,
+        tags: ["aurora"],
+    },
+    auroraTestnet: {
+        accounts: {
+            mnemonic,
+        },
+        chainId: 1313161555,
+        url: `https://aurora-testnet.infura.io/v3/${INFURA_API_KEY()}`,
+        tags: ["auroraTestnet"],
+        gasPrice: 0,
+    },
+    avalanche: {
+        accounts: { mnemonic },
+        url: "https://api.avax.network/ext/bc/C/rpc",
+        chainId: 43114,
+        tags: ["avalanche"],
+    },
+    avalancheTestnet: {
+        accounts: { mnemonic },
+        url: "https://api.avax-test.network/ext/bc/C/rpc",
+        chainId: 43113,
+        tags: ["avalancheTestnet"],
+    },
+    bsc: {
+        accounts: { mnemonic },
+        url: "https://bsc-dataseed.binance.org",
+        chainId: 56,
+        tags: ["bsc"],
+    },
+    bsctest: {
+        accounts: { mnemonic },
+        url: "https://data-seed-prebsc-2-s3.binance.org:8545",
+        chainId: 97,
+        tags: ["bsctest"],
+    },
+    celo: {
+        url: "https://forno.celo.org",
+        chainId: 42220,
+        tags: ["celo"],
+    },
+    celotest: {
+        url: "https://alfajores-forno.celo-testnet.org",
+        chainId: 44787,
+        tags: ["celotest"],
+    },
+    moonbeam: {
+        chainId: 1284,
+        url: "https://rpc.api.moonbeam.network",
+        tags: ["moonbeam"],
+    },
+    moonriver: {
+        chainId: 1285,
+        url: "https://rpc.moonriver.moonbeam.network",
+        tags: ["moonriver"],
+    },
+    moonbase: {
+        chainId: 1287,
+        url: "https://rpc.api.moonbase.moonbeam.network",
+        tags: ["moonbase"],
+    },
+    fantom: {
+        accounts: { mnemonic },
+        url: "https://rpcapi.fantom.network",
+        chainId: 2100,
+        tags: ["fantom"],
+    },
+    harmony: {
+        accounts: { mnemonic },
+        url: "https://api.s0.t.hmny.io",
+        chainId: 1666600000,
+        tags: ["harmony"],
+    },
+    harmonyTestnet: {
+        accounts: { mnemonic },
+        url: "https://api.s0.b.hmny.io",
+        chainId: 1666700000,
+        tags: ["harmonyTestnet"],
+    },
+});

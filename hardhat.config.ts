@@ -21,6 +21,7 @@ import "hardhat-interface-generator";
 import "solidity-coverage";
 import * as tdly from "@tenderly/hardhat-tenderly";
 tdly.setup();
+
 // import "hardhat-preprocessor";
 // import "hardhat-watcher";
 // import "hardhat-gas-reporter";
@@ -113,7 +114,6 @@ const config: HardhatUserConfig = {
         runOnCompile: true,
         except: ["vendor"],
     },
-    verify: { etherscan: { apiKey: process.env.ETHERSCAN_API_KEY } },
     etherscan: {
         apiKey: {
             optimisticGoerli: process.env.ETHERSCAN_API_KEY!,
