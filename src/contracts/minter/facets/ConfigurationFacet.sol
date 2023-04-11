@@ -93,6 +93,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             _liquidationIncentiveMultiplier <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER,
             Error.PARAM_LIQUIDATION_INCENTIVE_HIGH
         );
+
         ms().liquidationIncentiveMultiplier = _liquidationIncentiveMultiplier.toFixedPoint();
         emit MinterEvent.LiquidationIncentiveMultiplierUpdated(_liquidationIncentiveMultiplier);
     }
