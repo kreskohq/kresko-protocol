@@ -29,7 +29,7 @@ task(TASK_WHITELIST_KRASSET)
         const kresko = await hre.getContractOrFork("Kresko");
 
         const KrAsset = await hre.getContractOrFork("KreskoAsset", symbol);
-        const KrAssetAnchor = await hre.getDeploymentOrNull(`${anchorTokenPrefix}${symbol}`);
+        const KrAssetAnchor = await hre.getDeploymentOrFork(`${anchorTokenPrefix}${symbol}`);
 
         const krAssetInfo = await kresko.kreskoAsset(KrAsset.address);
         const exists = krAssetInfo.exists;

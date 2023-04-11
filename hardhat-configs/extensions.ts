@@ -33,7 +33,7 @@ extendEnvironment(function (hre) {
     //         return (await hre.deploy(name, { ...options, from: await signer.getAddress() }))[0];
     //     },
     // };
-    hre.getDeploymentOrNull = async deploymentName => {
+    hre.getDeploymentOrFork = async deploymentName => {
         const isFork = !hre.network.live && hre.companionNetworks["live"];
         const deployment = !isFork
             ? await hre.deployments.getOrNull(deploymentName)
@@ -51,7 +51,7 @@ extendEnvironment(function (hre) {
     /* -------------------------------------------------------------------------- */
     hre.getContractOrFork = async (type, deploymentName) => {
         const deploymentId = deploymentName ? deploymentName : type;
-        const deployment = await hre.getDeploymentOrNull(deploymentId);
+        const deployment = await hre.getDeploymentOrFork(deploymentId);
 
         if (!deployment) {
             throw new Error(`${deploymentId} not deployed on ${hre.network.name} network`);
@@ -121,7 +121,7 @@ extendEnvironment(function (hre) {
                   hre.getSignatures(facet.interface.format(FormatTypes.json) as any[]);
 
         const facetCut: FacetCut = {
-            facetAddress: facet.address,
+            facetAddress: action === FacetCutAction.Remove ? hre.ethers.constants.AddressZero : facet.address,
             action,
             functionSelectors: selectors,
         };
