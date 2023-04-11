@@ -1,5 +1,22 @@
 import { getLogger } from "@kreskolabs/lib";
 import { BigNumber } from "ethers";
+import { existsSync, mkdirSync, rmSync } from "fs";
+import path from "path";
+
+/** @note folders supplied will be cleared */
+export const getOutDir = (...ids: string[]) => {
+    for (const id of ids) {
+        const dir = path.join("out", id);
+        // create the directory if it does not exist
+
+        if (existsSync(dir)) {
+            rmSync(dir, { recursive: true });
+        }
+        getLogger("task-utils").log(`creating ${dir} directory`);
+        mkdirSync(dir, { recursive: true });
+    }
+    return ids.map(id => path.join("out", id));
+};
 
 /** @description Log hre context information to console and gets common signers + contracts */
 export const getDeployedContext = async () => {

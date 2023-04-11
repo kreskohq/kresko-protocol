@@ -94,7 +94,7 @@ const config: HardhatUserConfig = {
     diamondAbi: [
         {
             name: "Kresko",
-            include: ["facets/*", "MinterEvent", "InterestRateEvent"],
+            include: ["facets/*", "MinterEvent", "InterestRateEvent", "GeneralEvent"],
             exclude: ["vendor", "test/*", "interfaces/*", "krasset/*", "KrStaking"],
             strict: false,
         },
