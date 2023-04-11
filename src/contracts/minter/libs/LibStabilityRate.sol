@@ -83,35 +83,28 @@ library LibStabilityRate {
     /**
      * @notice Calculate new stability rate from the current price rate
      * @dev Separate calculations exist for following cases:
-     * case 1: AMM premium > optimal + delta
-     * case 2: AMM premium < optimal - delta
-     * case 3: AMM premium <= optimal + delta && AMM premium >= optimal - delta
+     * case 1: AMM premium < optimal
+     * case 2: AMM premium > optimal
      * @param self rate configuration for the asset
      * @return stabilityRate the current stability rate
      */
     function calculateStabilityRate(StabilityRateConfig storage self) internal view returns (uint256 stabilityRate) {
         uint256 priceRate = self.getPriceRate(); // 0.95 RAY = -5% PREMIUM, 1.05 RAY = +5% PREMIUM
-
         // Return base rate if no AMM price exists
         if (priceRate == 0) {
             return self.stabilityRateBase;
         }
+        bool rateIsGTOptimal = priceRate > self.optimalPriceRate;
 
-        // If AMM price > priceRate + delta, eg. AMM price is higher than oracle price
-        if (priceRate > self.optimalPriceRate + self.priceRateDelta) {
-            uint256 excessRate = priceRate - WadRay.RAY;
-            stabilityRate =
-                self.stabilityRateBase.rayDiv(priceRate.percentMul(125e2)) +
-                ((WadRay.RAY - excessRate).rayMul(self.rateSlope1));
-            // If AMM price < pricaRate + delta, AMM price is lower than oracle price
-        } else if (priceRate < self.optimalPriceRate - self.priceRateDelta) {
-            uint256 multiplier = (WadRay.RAY - priceRate).rayDiv(self.priceRateDelta);
-            stabilityRate =
-                (self.stabilityRateBase + self.rateSlope1) +
-                WadRay.RAY.rayMul(multiplier).rayMul(self.rateSlope2);
-            // Default case, AMM price is within optimal range of oracle price
+        uint256 rateDiff = rateIsGTOptimal ? priceRate - self.optimalPriceRate : self.optimalPriceRate - priceRate;
+        uint256 rateDiffAdjusted = rateDiff.rayMul(self.rateSlope2.rayDiv(self.rateSlope1 + self.priceRateDelta));
+
+        if (!rateIsGTOptimal) {
+            // Case: AMM price is lower than priceRate
+            return self.stabilityRateBase + rateDiffAdjusted;
         } else {
-            stabilityRate = self.stabilityRateBase + (priceRate.rayMul(self.rateSlope1));
+            // Case: AMM price is higher than priceRate
+            return self.stabilityRateBase.rayDiv(WadRay.RAY + rateDiffAdjusted);
         }
     }
 

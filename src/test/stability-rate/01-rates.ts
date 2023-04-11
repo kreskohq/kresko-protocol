@@ -1,14 +1,11 @@
-import { toBig } from "@kreskolabs/lib";
-import { oneRay, ONE_YEAR } from "@kreskolabs/lib";
+import { ONE_YEAR, fromBig, oneRay, toBig } from "@kreskolabs/lib";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
-import { BASIS_POINT, defaultCollateralArgs, defaultKrAssetArgs, withFixture } from "@utils/test";
+import { BASIS_POINT, ONE_PERCENT, defaultCollateralArgs, defaultKrAssetArgs, withFixture } from "@utils/test";
 import { addLiquidity, getAMMPrices, getTWAPUpdaterFor, swap } from "@utils/test/helpers/amm";
 import {
     calcDebtIndex,
-    calcExpectedStabilityRateHighPremium,
-    calcExpectedStabilityRateLowPremium,
-    calcExpectedStabilityRateNoPremium,
     getBlockTimestamp,
+    getExpectedStabilityRate,
     oraclePriceToWad,
     toScaledAmount,
 } from "@utils/test/helpers/calculations";
@@ -19,6 +16,7 @@ import { BigNumber } from "ethers";
 import hre from "hardhat";
 import { UniswapMath } from "types/typechain/src/contracts/test/markets";
 
+const BPS = 0.0001;
 describe("Stability Rates", () => {
     withFixture(["minter-test", "uniswap"]);
 
@@ -151,7 +149,7 @@ describe("Stability Rates", () => {
             await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
 
             const ammPricesOptimal = await getAMMPrices(this.collateral, this.krAsset);
-            expect(ammPricesOptimal.price0).to.be.closeTo(10, 0.05);
+            expect(ammPricesOptimal.price0).to.be.closeTo(this.krAsset.deployArgs!.price, 0.05);
 
             const priceRate = await hre.Diamond.getPriceRateForAsset(this.krAsset.address);
             expect(priceRate).to.bignumber.equal(oneRay);
@@ -159,9 +157,12 @@ describe("Stability Rates", () => {
 
         it("calculates correct price rates when amm > oracle", async function () {
             const premiumPercentage = 105; // 105% eg. 5% premium
-            const expectedPriceRate = oneRay.div(100).mul(premiumPercentage);
+
+            const expectedPriceRate = ONE_PERCENT.mul(premiumPercentage).mul(997).div(1000);
+            const expectedPrice = this.krAsset.deployArgs!.price * (premiumPercentage / 100);
+
             const krAssetAmount = toBig(1);
-            const collateralAmount = toBig(10).div(100).mul(premiumPercentage);
+            const collateralAmount = toBig(1).mul(premiumPercentage).div(this.krAsset.deployArgs!.price);
 
             const [amountIn] = await UniMath.profitMaximizingTrade(
                 this.collateral.address,
@@ -178,18 +179,21 @@ describe("Stability Rates", () => {
                 user: userOne,
             });
             const ammPricesUpPremium = await getAMMPrices(this.collateral, this.krAsset);
-            expect(ammPricesUpPremium.price0).to.be.closeTo(10.5, 0.05);
+            expect(ammPricesUpPremium.price0).to.be.closeTo(expectedPrice, 0.05);
 
             await updateTWAP();
             const priceRate = await hre.Diamond.getPriceRateForAsset(this.krAsset.address);
-            expect(priceRate).to.bignumber.closeTo(expectedPriceRate, oneRay.div(100));
+            expect(priceRate).to.bignumber.closeTo(expectedPriceRate, BASIS_POINT);
         });
 
         it("calculates correct price rates when amm < oracle ", async function () {
             const premiumPercentage = 95; // 95% eg. 5% below oracle price
-            const expectedPriceRate = oneRay.div(100).mul(premiumPercentage);
+
+            const expectedPriceRate = ONE_PERCENT.mul(premiumPercentage).mul(1003).div(1000);
+            const expectedPrice = this.krAsset.deployArgs!.price * (premiumPercentage / 100);
+
             const krAssetAmount = toBig(1);
-            const collateralAmount = toBig(10).div(100).mul(premiumPercentage);
+            const collateralAmount = toBig(1).mul(premiumPercentage).div(this.krAsset.deployArgs!.price);
 
             const [amountIn] = await UniMath.profitMaximizingTrade(
                 this.collateral.address,
@@ -209,29 +213,33 @@ describe("Stability Rates", () => {
                 router: hre.UniV2Router,
                 user: userOne,
             });
+
             const ammRates = await getAMMPrices(this.collateral, this.krAsset);
-            expect(ammRates.price0).to.be.closeTo(9.5, 0.05);
+            expect(ammRates.price0).to.be.closeTo(expectedPrice, 0.05);
 
             await updateTWAP();
             const priceRate = await hre.Diamond.getPriceRateForAsset(this.krAsset.address);
-            expect(priceRate).to.bignumber.closeTo(expectedPriceRate, oneRay.div(100));
+            expect(priceRate).to.bignumber.closeTo(expectedPriceRate, BASIS_POINT);
         });
     });
     describe("#stability-rate", () => {
-        it("calculates correct stability rates when amm == oracle", async function () {
-            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
+        it("calculates correct stability rate when amm == oracle", async function () {
             await updateTWAP();
-            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
             const stabilityRate = await hre.Diamond.getStabilityRateForAsset(this.krAsset.address);
             const priceRate = await hre.Diamond.getPriceRateForAsset(this.krAsset.address);
-            expect(stabilityRate).to.bignumber.equal(calcExpectedStabilityRateNoPremium(priceRate, defaultKrAssetArgs));
+
+            expect(priceRate).to.bignumber.equal(oneRay);
+
+            expect(stabilityRate).to.bignumber.equal(
+                getExpectedStabilityRate(priceRate, defaultKrAssetArgs.stabilityRates),
+            );
         });
 
-        it("calculates correct stability rates when amm > oracle", async function () {
-            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
+        it("calculates correct stability rate when amm > oracle", async function () {
             const premiumPercentage = 105; // 105% eg. 5% premium
+
             const krAssetAmount = toBig(1);
-            const collateralAmount = toBig(10).div(100).mul(premiumPercentage);
+            const collateralAmount = toBig(1).mul(premiumPercentage).div(this.krAsset.deployArgs!.price);
 
             const [amountIn] = await UniMath.profitMaximizingTrade(
                 this.collateral.address,
@@ -239,6 +247,7 @@ describe("Stability Rates", () => {
                 collateralAmount,
                 krAssetAmount,
             );
+
             await this.collateral.setBalance(userOne, amountIn);
 
             await swap({
@@ -249,21 +258,22 @@ describe("Stability Rates", () => {
             });
 
             await updateTWAP();
-            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
+            const priceRateActual = await hre.Diamond.getPriceRateForAsset(this.krAsset.address);
+            const priceRateDecimal = fromBig(priceRateActual, 27);
 
+            const expectedPriceRateDecimal = fromBig(ONE_PERCENT.mul(premiumPercentage).mul(997).div(1000), 27);
+            expect(priceRateDecimal).to.closeTo(expectedPriceRateDecimal, BPS);
+
+            const expectedStabilityRate = getExpectedStabilityRate(priceRateActual, defaultKrAssetArgs.stabilityRates);
             const stabilityRate = await hre.Diamond.getStabilityRateForAsset(this.krAsset.address);
-            const priceRate = await hre.Diamond.getPriceRateForAsset(this.krAsset.address);
-
-            expect(stabilityRate).to.bignumber.equal(
-                calcExpectedStabilityRateHighPremium(priceRate, defaultKrAssetArgs),
-            );
+            expect(stabilityRate).to.bignumber.equal(expectedStabilityRate);
         });
 
         it("calculates correct stability rates when amm < oracle ", async function () {
-            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
             const premiumPercentage = 95; // 95% eg. -5% premium
+
             const krAssetAmount = toBig(1);
-            const collateralAmount = toBig(10).div(100).mul(premiumPercentage);
+            const collateralAmount = toBig(1).mul(premiumPercentage).div(this.krAsset.deployArgs!.price);
 
             const [amountIn] = await UniMath.profitMaximizingTrade(
                 this.collateral.address,
@@ -271,6 +281,7 @@ describe("Stability Rates", () => {
                 collateralAmount,
                 krAssetAmount,
             );
+
             await mintKrAsset({
                 user: userOne,
                 asset: this.krAsset,
@@ -285,22 +296,24 @@ describe("Stability Rates", () => {
             });
 
             await updateTWAP();
-            await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
+            const priceRateActual = await hre.Diamond.getPriceRateForAsset(this.krAsset.address);
+            const priceRateDecimal = fromBig(priceRateActual, 27);
 
+            const expectedPriceRateDecimal = fromBig(ONE_PERCENT.mul(premiumPercentage).mul(1003).div(1000), 27);
+            expect(priceRateDecimal).to.closeTo(expectedPriceRateDecimal, BPS);
+
+            const expectedStabilityRate = getExpectedStabilityRate(priceRateActual, defaultKrAssetArgs.stabilityRates);
             const stabilityRate = await hre.Diamond.getStabilityRateForAsset(this.krAsset.address);
-            const priceRate = await hre.Diamond.getPriceRateForAsset(this.krAsset.address);
-
-            expect(stabilityRate).to.bignumber.equal(
-                calcExpectedStabilityRateLowPremium(priceRate, defaultKrAssetArgs),
-            );
+            expect(stabilityRate).to.bignumber.equal(expectedStabilityRate);
         });
     });
     describe("#debt-index", () => {
         it("calculates correct debt index after a year when amm price > oracle", async function () {
             await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
             const premiumPercentage = 105; // 105% eg. 5% premium
+
             const krAssetAmount = toBig(1);
-            const collateralAmount = toBig(10).div(100).mul(premiumPercentage);
+            const collateralAmount = toBig(1).mul(premiumPercentage).div(this.krAsset.deployArgs!.price);
 
             const [amountIn] = await UniMath.profitMaximizingTrade(
                 this.collateral.address,
@@ -339,8 +352,9 @@ describe("Stability Rates", () => {
         it("calculates correct debt index after year when amm price < oracle", async function () {
             await hre.Diamond.updateStabilityRateAndIndexForAsset(this.krAsset.address);
             const premiumPercentage = 90; // 90% eg. -10% premium
+
             const krAssetAmount = toBig(1);
-            const collateralAmount = toBig(10).div(100).mul(premiumPercentage);
+            const collateralAmount = toBig(1).mul(premiumPercentage).div(this.krAsset.deployArgs!.price);
 
             const [amountIn] = await UniMath.profitMaximizingTrade(
                 this.collateral.address,
