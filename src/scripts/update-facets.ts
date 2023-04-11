@@ -1,5 +1,5 @@
 import { getLogger } from "@kreskolabs/lib";
-import hre, { ethers } from "hardhat";
+import { writeFileSync } from "fs";
 import { FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
 type Args = {
     facetNames: readonly (keyof TC)[];
@@ -105,7 +105,7 @@ export async function updateFacets({ facetNames, multisig = false, log = true }:
     /* -------------------------------------------------------------------------- */
     /*                                 DiamondCut                                 */
     /* -------------------------------------------------------------------------- */
-    const txParams = await Diamond.populateTransaction.diamondCut(FacetCuts, ethers.constants.AddressZero, "0x");
+    const txParams = await Diamond.populateTransaction.diamondCut(FacetCuts, hre.ethers.constants.AddressZero, "0x");
     if (!multisig) {
         const tx = await deployer.sendTransaction(txParams);
         const receipt = await tx.wait();
@@ -151,7 +151,13 @@ export async function updateFacets({ facetNames, multisig = false, log = true }:
     } else {
         logger.log("Multisig mode, not executing transaction");
         hre.facets = deploymentInfo;
-        const txParams = await Diamond.populateTransaction.diamondCut(FacetCuts, ethers.constants.AddressZero, "0x");
+        const txParams = await Diamond.populateTransaction.diamondCut(
+            FacetCuts,
+            hre.ethers.constants.AddressZero,
+            "0x",
+        );
+
+        writeFileSync(`./txParams-${Date.now()}.json`, JSON.stringify(txParams, null, 2));
         return {
             facetsAfter: undefined,
             txParams,
