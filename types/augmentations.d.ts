@@ -10,6 +10,7 @@ import "hardhat/types/config";
 import "mocha";
 import type { UniswapV2Factory, UniswapV2Oracle, UniswapV2Pair, UniswapV2Router02 } from "types/typechain";
 import * as Contracts from "./typechain";
+import { FacetCutAction } from "hardhat-deploy/types";
 /* ========================================================================== */
 /*                             TEST AUGMENTATIONS                             */
 /* ========================================================================== */
@@ -111,7 +112,7 @@ declare module "hardhat/types/runtime" {
         fromBig: typeof fromBig;
         toBig: typeof toBig;
         checkAddress: typeof checkAddress;
-        getDeploymentOrNull: (deploymentName: string) => Promise<Deployment | null>;
+        getDeploymentOrFork: (deploymentName: string) => Promise<Deployment | null>;
         getContractOrFork: <T extends keyof TC>(type: T, deploymentName?: string) => Promise<TC[T]>;
         forking: {
             provider: providers.JsonRpcProvider;
@@ -134,7 +135,7 @@ declare module "hardhat/types/runtime" {
         bytesCall: <T>(func: FunctionFragment, params: T) => string;
         getFacetCut: <T extends keyof TC>(
             facet: T,
-            action: number,
+            action: FacetCutAction,
             signatures?: string[],
             initializer?: {
                 contract: Contract;
