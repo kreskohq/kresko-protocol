@@ -9,13 +9,18 @@ const logger = getLogger(TASK_WRITE_SUBGRAPH_JSON);
 
 const deploymentNames: (keyof TC | "krCUBE")[] = [
     "Kresko",
-    "UniswapV2Factory",
     "KISS",
     "krCUBE",
     "KrStaking",
     "KrStakingHelper",
     "FluxPriceFeedFactory",
+    "FluxPriceFeed",
+    "KreskoAsset",
+    "ERC20Upgradeable",
+    "UniswapV2Factory",
+    "UniswapV2Router02",
     "UniswapV2Oracle",
+    "UniswapV2Pair",
 ];
 
 task(TASK_WRITE_SUBGRAPH_JSON).setAction(async function (_taskArgs: TaskArguments, hre) {
@@ -30,24 +35,31 @@ task(TASK_WRITE_SUBGRAPH_JSON).setAction(async function (_taskArgs: TaskArgument
 
     for (const deploymentName of deploymentNames) {
         const deployment = await hre.getDeploymentOrFork(deploymentName);
-        if (!deployment) continue;
+        if (deployment) {
+            results.push({
+                [deploymentName]: {
+                    address: deployment.address,
+                    startBlock: deployment.receipt?.blockNumber || 0,
+                },
+            });
+        } else {
+            logger.warn(`deployment not found for: ${deploymentName} - ABI will be exported`);
+        }
 
-        results.push({
-            [deploymentName]: {
-                address: deployment.address,
-                startBlock: deployment.receipt?.blockNumber || 0,
-            },
-        });
-
-        let ABI: any[];
+        let ABI: any[] | undefined;
         try {
             ABI = hre.artifacts.readArtifactSync(deploymentName).abi;
         } catch {
-            logger.warn(`hardhat artifact not found for: ${deploymentName} - saving ABI from the deployment`);
-            ABI = deployment.abi;
+            logger.warn(`hardhat artifact not found for: ${deploymentName} - saving ABI from deployment`);
+            if (deployment) {
+                ABI = deployment.abi;
+            }
         }
-
-        writeFileSync(`${abiDir}/${deploymentName}.json`, JSON.stringify(ABI, null, 2));
+        if (ABI) {
+            writeFileSync(`${abiDir}/${deploymentName}.json`, JSON.stringify(ABI, null, 2));
+        } else {
+            logger.error(`ABI not found for: ${deploymentName}`);
+        }
     }
     const output = {
         [hre.network.name === "opgoerli" ? "optimism-goerli" : hre.network.name]: results,
