@@ -18,7 +18,7 @@ task(TASK_WHITELIST_COLLATERAL)
 
         const { deployer } = await hre.ethers.getNamedSigners();
 
-        const kresko = hre.Diamond.connect(deployer);
+        const kresko = (await hre.getContractOrFork("Kresko")).connect(deployer);
 
         if (cFactor == 1000) {
             console.error("Invalid cFactor for", symbol);
