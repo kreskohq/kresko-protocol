@@ -13,6 +13,8 @@ import {IERC165} from "../shared/IERC165.sol";
 
 import {IKreskoAsset} from "./IKreskoAsset.sol";
 
+import {IUniswapV2Pair} from "../vendor/uniswap/v2-core/interfaces/IUniswapV2Pair.sol";
+
 /**
  * @title Kresko Synthethic Asset - rebasing ERC20.
  * @author Kresko
@@ -146,9 +148,10 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IE
      * @notice Perform a rebase, changing the denumerator and its operator
      * @param _denominator the denumerator for the operator, 1 ether = 1
      * @param _positive supply increasing/reducing rebase
+     * @param _pools UniswapV2Pair address to sync so we wont get rekt by skim() calls.
      * @dev denumerator values 0 and 1 ether will disable the rebase
      */
-    function rebase(uint256 _denominator, bool _positive) external onlyRole(Role.ADMIN) {
+    function rebase(uint256 _denominator, bool _positive, address[] calldata _pools) external onlyRole(Role.ADMIN) {
         require(_denominator >= 1 ether, Error.REBASING_DENOMINATOR_LOW);
         if (_denominator == 1 ether) {
             isRebased = false;
@@ -156,6 +159,13 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IE
         } else {
             isRebased = true;
             rebaseInfo = Rebase(_positive, _denominator);
+        }
+        uint256 length = _pools.length;
+        for (uint256 i = 0; i < length; ) {
+            IUniswapV2Pair(_pools[i]).sync();
+            unchecked {
+                ++i;
+            }
         }
     }
 
