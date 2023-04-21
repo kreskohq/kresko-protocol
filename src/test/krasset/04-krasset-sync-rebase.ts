@@ -10,8 +10,11 @@ describe("Test KreskoAsset with Rebase and sync", () => {
 
     beforeEach(async function () {
         KreskoAsset = hre.krAssets.find(asset => asset.deployArgs!.symbol === "krETH")!.contract;
+
+        const KISS = await hre.getContractOrFork("KISS");
+        const Pair = await (await hre.getContractOrFork("UniswapV2Factory")).getPair(KreskoAsset.address, KISS.address);
         // address of KISS-krETH pool
-        this.pool = await ethers.getContractAt("UniswapV2Pair", "0x8bf66B96B1801a5662Eb5d83f870F4Fd16d199A6");
+        this.pool = await ethers.getContractAt("UniswapV2Pair", Pair);
         // Grant minting rights for test deployer
         await KreskoAsset.grantRole(Role.OPERATOR, hre.addr.deployer);
     });
