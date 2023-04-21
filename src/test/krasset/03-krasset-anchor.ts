@@ -74,7 +74,7 @@ describe("KreskoAssetAnchor", () => {
 
                     const denominator = 2;
                     const positive = true;
-                    await KreskoAsset.rebase(hre.toBig(denominator), positive);
+                    await KreskoAsset.rebase(hre.toBig(denominator), positive, []);
 
                     const rebasedAmount = defaultMintAmount.mul(denominator);
                     expect(await KreskoAsset.balanceOf(hre.addr.deployer)).to.equal(0);
@@ -93,7 +93,7 @@ describe("KreskoAssetAnchor", () => {
 
                     const denominator = 2;
                     const positive = true;
-                    await KreskoAsset.rebase(hre.toBig(denominator), positive);
+                    await KreskoAsset.rebase(hre.toBig(denominator), positive, []);
 
                     const rebasedAmount = defaultMintAmount.mul(denominator);
                     expect(await KreskoAsset.balanceOf(hre.addr.deployer)).to.equal(0);
@@ -112,7 +112,7 @@ describe("KreskoAssetAnchor", () => {
 
                     const denominator = 6;
                     const positive = true;
-                    await KreskoAsset.rebase(hre.toBig(denominator), positive);
+                    await KreskoAsset.rebase(hre.toBig(denominator), positive, []);
 
                     const rebasedAmount = defaultMintAmount.mul(denominator);
                     expect(await KreskoAsset.balanceOf(hre.addr.deployer)).to.equal(0);
@@ -130,7 +130,7 @@ describe("KreskoAssetAnchor", () => {
 
                     const denominator = 6;
                     const positive = true;
-                    await KreskoAsset.rebase(hre.toBig(denominator), positive);
+                    await KreskoAsset.rebase(hre.toBig(denominator), positive, []);
 
                     const rebasedAmount = defaultMintAmount.mul(denominator);
                     expect(await KreskoAsset.balanceOf(hre.addr.deployer)).to.equal(0);
@@ -149,7 +149,7 @@ describe("KreskoAssetAnchor", () => {
 
                     const denominator = 2;
                     const positive = false;
-                    await KreskoAsset.rebase(hre.toBig(denominator), positive);
+                    await KreskoAsset.rebase(hre.toBig(denominator), positive, []);
 
                     const rebasedAmount = defaultMintAmount.div(denominator);
                     expect(await KreskoAsset.balanceOf(hre.addr.deployer)).to.equal(0);
@@ -168,7 +168,7 @@ describe("KreskoAssetAnchor", () => {
 
                     const denominator = 2;
                     const positive = false;
-                    await KreskoAsset.rebase(hre.toBig(denominator), positive);
+                    await KreskoAsset.rebase(hre.toBig(denominator), positive, []);
 
                     const rebasedAmount = defaultMintAmount.div(denominator);
                     expect(await KreskoAsset.balanceOf(hre.addr.deployer)).to.equal(0);
@@ -187,7 +187,7 @@ describe("KreskoAssetAnchor", () => {
 
                     const denominator = 6;
                     const positive = false;
-                    await KreskoAsset.rebase(hre.toBig(denominator), positive);
+                    await KreskoAsset.rebase(hre.toBig(denominator), positive, []);
 
                     const rebasedAmount = defaultMintAmount.div(denominator);
                     expect(await KreskoAsset.balanceOf(hre.addr.deployer)).to.equal(0);
@@ -206,7 +206,7 @@ describe("KreskoAssetAnchor", () => {
 
                     const denominator = 6;
                     const positive = false;
-                    await KreskoAsset.rebase(hre.toBig(denominator), positive);
+                    await KreskoAsset.rebase(hre.toBig(denominator), positive, []);
 
                     const rebasedAmount = defaultMintAmount.div(denominator);
                     expect(await KreskoAsset.balanceOf(hre.addr.deployer)).to.equal(0);

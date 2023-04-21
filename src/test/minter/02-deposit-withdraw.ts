@@ -649,7 +649,7 @@ describe("Minter - Deposit Withdraw", () => {
                     );
 
                     // Rebase the asset according to params
-                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                     const finalDeposits = await hre.Diamond.collateralDeposits(
                         arbitraryUser.address,
@@ -679,7 +679,7 @@ describe("Minter - Deposit Withdraw", () => {
                     );
 
                     // Rebase the asset according to params
-                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                     const finalDeposits = await hre.Diamond.collateralDeposits(
                         arbitraryUser.address,
@@ -701,7 +701,7 @@ describe("Minter - Deposit Withdraw", () => {
                         this.krAsset!.address,
                     );
                     // Rebase the asset according to params
-                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                     // Deposit after the rebase
                     await arbitraryUserDiamond.depositCollateral(
@@ -732,7 +732,7 @@ describe("Minter - Deposit Withdraw", () => {
                         this.krAsset!.address,
                     );
                     // Rebase the asset according to params
-                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                     // Deposit after the rebase
                     await arbitraryUserDiamond.depositCollateral(
@@ -767,7 +767,7 @@ describe("Minter - Deposit Withdraw", () => {
                         halfDepositBeforeRebase,
                     );
                     // Rebase the asset according to params
-                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                     // Get deposits after
                     const depositsAfter = await hre.Diamond.collateralDeposits(
@@ -808,7 +808,7 @@ describe("Minter - Deposit Withdraw", () => {
                         halfDepositBeforeRebase,
                     );
                     // Rebase the asset according to params
-                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                     // Get deposits after
                     const depositsAfterRebase = await hre.Diamond.collateralDeposits(
@@ -850,7 +850,7 @@ describe("Minter - Deposit Withdraw", () => {
                     const newPrice = fromBig(await this.krAsset!.getPrice!(), 8) / denominator;
                     this.krAsset!.setPrice!(newPrice);
                     // Rebase the asset according to params
-                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                     // Get collateral value of account after
                     const valueAfter = await hre.Diamond.getAccountCollateralValue(arbitraryUser.address);
@@ -873,7 +873,7 @@ describe("Minter - Deposit Withdraw", () => {
                     this.krAsset!.setPrice(newPrice);
 
                     // Rebase the asset according to params
-                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                     // Get collateral value of account after
                     const valueAfter = await hre.Diamond.getAccountCollateralValue(arbitraryUser.address);
@@ -898,7 +898,7 @@ describe("Minter - Deposit Withdraw", () => {
 
                     // Rebase the asset according to params
                     this.krAsset!.setPrice(newPrice);
-                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                     // Deposit rebased amount after
                     await arbitraryUserDiamond.depositCollateral(
@@ -934,7 +934,7 @@ describe("Minter - Deposit Withdraw", () => {
 
                     // Rebase the asset according to params
                     this.krAsset!.setPrice(newPrice);
-                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                     // Deposit rebased amount after
                     await arbitraryUserDiamond.depositCollateral(
@@ -978,7 +978,7 @@ describe("Minter - Deposit Withdraw", () => {
 
                     // Rebase the asset according to params
                     this.krAsset!.setPrice(newPrice);
-                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                     // Get value after
                     const [valueAfterRebase] = await hre.Diamond.getCollateralValueAndOraclePrice(
@@ -1038,7 +1038,7 @@ describe("Minter - Deposit Withdraw", () => {
 
                     // Rebase the asset according to params
                     this.krAsset!.setPrice(newPrice);
-                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                     // Get value after
                     const [valueAfterRebase] = await hre.Diamond.getCollateralValueAndOraclePrice(
@@ -1147,7 +1147,7 @@ describe("Minter - Deposit Withdraw", () => {
                     );
 
                     // Rebase the asset according to params
-                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                     const depositsAfter = await hre.Diamond.collateralDeposits(
                         arbitraryUser.address,
@@ -1192,7 +1192,7 @@ describe("Minter - Deposit Withdraw", () => {
                     );
 
                     // Rebase the asset according to params
-                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                     const depositsAfter = await hre.Diamond.collateralDeposits(
                         arbitraryUser.address,
@@ -1225,7 +1225,7 @@ describe("Minter - Deposit Withdraw", () => {
                     const rebasedDepositAmount = this.krAssetCollateralAmount.mul(denominator);
 
                     // Rebase the asset according to params
-                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                     // Deposit after the rebase
                     await arbitraryUserDiamond.depositCollateral(
@@ -1272,7 +1272,7 @@ describe("Minter - Deposit Withdraw", () => {
                     const rebasedDepositAmount = this.krAssetCollateralAmount.div(denominator);
 
                     // Rebase the asset according to params
-                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                     // Deposit after the rebase
                     await arbitraryUserDiamond.depositCollateral(
@@ -1340,7 +1340,7 @@ describe("Minter - Deposit Withdraw", () => {
                     expect(depositsFirst).to.bignumber.equal(firstDepositAmount);
 
                     // Rebase the asset according to params
-                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                     // Deposit after the rebase
                     await arbitraryUserDiamond.depositCollateral(
@@ -1404,7 +1404,7 @@ describe("Minter - Deposit Withdraw", () => {
                     expect(depositsFirst).to.bignumber.equal(firstDepositAmount);
 
                     // Rebase the asset according to params
-                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                     // Deposit after the rebase
                     await arbitraryUserDiamond.depositCollateral(
@@ -1458,7 +1458,7 @@ describe("Minter - Deposit Withdraw", () => {
 
                     // Rebase the asset according to params
                     this.krAsset!.setPrice(newPrice);
-                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                     const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
                         arbitraryUser.address,
@@ -1492,7 +1492,7 @@ describe("Minter - Deposit Withdraw", () => {
 
                     // Rebase the asset according to params
                     this.krAsset!.setPrice(newPrice);
-                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                     const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
                         arbitraryUser.address,
@@ -1530,7 +1530,7 @@ describe("Minter - Deposit Withdraw", () => {
 
                     // Rebase the asset according to params
                     this.krAsset!.setPrice(newPrice);
-                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                     const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
                         arbitraryUser.address,
@@ -1564,7 +1564,7 @@ describe("Minter - Deposit Withdraw", () => {
 
                     // Rebase the asset according to params
                     this.krAsset!.setPrice(newPrice);
-                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                     // Deposit rebased amount after
                     await arbitraryUserDiamond.depositCollateral(
@@ -1603,7 +1603,7 @@ describe("Minter - Deposit Withdraw", () => {
 
                     // Rebase the asset according to params
                     this.krAsset!.setPrice(newPrice);
-                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                     // Deposit rebased amount after
                     await arbitraryUserDiamond.depositCollateral(
@@ -1656,7 +1656,7 @@ describe("Minter - Deposit Withdraw", () => {
 
                     // Rebase the asset according to params
                     this.krAsset!.setPrice(newPrice);
-                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                     // Get value after
                     const [valueAfterRebase] = await hre.Diamond.getAccountSingleCollateralValueAndRealValue(
@@ -1720,7 +1720,7 @@ describe("Minter - Deposit Withdraw", () => {
 
                     // Rebase the asset according to params
                     this.krAsset!.setPrice(newPrice);
-                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                     // Get value after
                     const [valueAfterRebase] = await hre.Diamond.getAccountSingleCollateralValueAndRealValue(
@@ -1787,7 +1787,7 @@ describe("Minter - Deposit Withdraw", () => {
 
                     // Rebase the asset according to params
                     this.krAsset!.setPrice(newPrice);
-                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                    await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                     const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
                         arbitraryUser.address,

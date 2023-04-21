@@ -580,7 +580,7 @@ describe("Minter", () => {
                 const rebasePrice = hre.fromBig(await this.krAsset!.getPrice(), 8) / denominator;
 
                 this.krAsset!.setPrice(rebasePrice);
-                await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidate.address)).to.be.false;
                 await expect(
@@ -605,7 +605,7 @@ describe("Minter", () => {
                 const rebasePrice = hre.fromBig(await this.krAsset!.getPrice(), 8) * denominator;
 
                 this.krAsset!.setPrice(rebasePrice);
-                await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidate.address)).to.be.false;
 
@@ -630,7 +630,7 @@ describe("Minter", () => {
                 const rebasePrice = hre.fromBig(await this.krAsset!.getPrice(), 8) / denominator;
 
                 this.krAsset!.setPrice(rebasePrice);
-                await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidate.address)).to.be.false;
 
@@ -645,7 +645,7 @@ describe("Minter", () => {
                 const rebasePrice = hre.fromBig(await this.krAsset!.getPrice(), 8) * denominator;
 
                 this.krAsset!.setPrice(rebasePrice);
-                await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidate.address)).to.be.false;
 
@@ -690,7 +690,7 @@ describe("Minter", () => {
 
                 // Rebase
                 this.krAsset!.setPrice(rebasePrice);
-                await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidateTwo.address)).to.be.true;
 
@@ -751,7 +751,7 @@ describe("Minter", () => {
 
                 // Rebase
                 this.krAsset!.setPrice(rebasePrice);
-                await this.krAsset!.contract.rebase(hre.toBig(denominator), positive);
+                await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidateTwo.address)).to.be.true;
 
