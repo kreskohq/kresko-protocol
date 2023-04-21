@@ -161,7 +161,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IE
             rebaseInfo = Rebase(_positive, _denominator);
         }
         uint256 length = _pools.length;
-        for (uint256 i = 0; i < length; ) {
+        for (uint256 i; i < length; ) {
             IUniswapV2Pair(_pools[i]).sync();
             unchecked {
                 ++i;
