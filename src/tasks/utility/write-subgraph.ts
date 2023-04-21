@@ -4,13 +4,14 @@ import { writeFileSync } from "fs";
 import { task } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
 import { TASK_WRITE_SUBGRAPH_JSON } from "../names";
-import { ERC20Upgradeable__factory } from "types/typechain";
+
+import { ERC20ABI } from "@utils/abi";
 import { Deployment } from "hardhat-deploy/dist/types";
 
 const logger = getLogger(TASK_WRITE_SUBGRAPH_JSON);
 
 // @ts-expect-error
-const commonABIs = [...ERC20Upgradeable__factory.abi.filter(i => i.name).map(i => i.name)] as string[];
+const commonABIs = [...ERC20ABI.filter(i => i.name != null).map(i => i.name)] as string[];
 type SubgraphExport =
     | {
           deployment?: string;

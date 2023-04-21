@@ -136,7 +136,7 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
 });
 
 export const handleForking = (networkConfig: ReturnType<typeof networks>) =>
-    process.env.FORKING
+    process.env.FORKING !== undefined
         ? {
               ...networkConfig,
               hardhat: {
