@@ -104,7 +104,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IE
     /// @notice Returns the total supply of the token.
     /// @notice This amount is adjusted by rebases.
     function totalSupply() public view override returns (uint256) {
-        return isRebased ? _totalSupply.rebase(rebaseInfo) : _totalSupply;
+        return !isRebased ? _totalSupply : _totalSupply.rebase(rebaseInfo);
     }
 
     /// @notice Returns the balance of @param _account
@@ -117,8 +117,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IE
     /// @notice Returns the allowance from @param _owner to @param _account
     /// @notice This amount is adjusted by rebases.
     function allowance(address _owner, address _account) public view override returns (uint256) {
-        uint256 allowed = _allowances[_owner][_account];
-        return !isRebased ? allowed : allowed.rebase(rebaseInfo);
+        return _allowances[_owner][_account];
     }
 
     /* -------------------------------------------------------------------------- */
@@ -136,7 +135,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IE
     }
 
     function transferFrom(address _from, address _to, uint256 _amount) public virtual override returns (bool) {
-        uint256 allowed = _allowances[_from][msg.sender]; // Saves gas for unlimited approvals.
+        uint256 allowed = allowance(_from, msg.sender); // Saves gas for unlimited approvals.
 
         if (allowed != type(uint256).max) {
             require(_amount <= allowed, Error.NOT_ENOUGH_ALLOWANCE);

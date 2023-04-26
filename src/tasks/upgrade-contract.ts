@@ -8,13 +8,25 @@ task(TASK_UPGRADE_CONTRACT, "upgrade something", async (_, hre) => {
     logger.log(`Upgrading contract...`);
     const { deployer } = await hre.ethers.getNamedSigners();
 
-    const [Upgraded] = await hre.deploy("KreskoAsset", {
+    await hre.deploy("KreskoAsset", {
+        from: deployer.address,
+        deploymentName: "krBTC",
+        proxy: {
+            proxyContract: "OptimizedTransparentProxy",
+        },
+    });
+    await hre.deploy("KreskoAsset", {
+        from: deployer.address,
+        deploymentName: "krETH",
+        proxy: {
+            proxyContract: "OptimizedTransparentProxy",
+        },
+    });
+    await hre.deploy("KreskoAsset", {
         from: deployer.address,
         deploymentName: "krTSLA",
         proxy: {
             proxyContract: "OptimizedTransparentProxy",
         },
     });
-
-    return Upgraded;
 });
