@@ -312,7 +312,7 @@ library LibUI {
                 address assetAddress = collateralAssetAddresses[i];
                 uint8 decimals = IERC20Upgradeable(assetAddress).decimals();
 
-                uint256 amount = ms().collateralDeposits[_account][assetAddress];
+                uint256 amount = ms().getCollateralDeposits(_account, assetAddress);
 
                 (FixedPoint.Unsigned memory amountUSD, FixedPoint.Unsigned memory price) = ms()
                     .getCollateralValueAndOraclePrice(assetAddress, amount, true);

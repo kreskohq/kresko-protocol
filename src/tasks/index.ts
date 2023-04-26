@@ -13,6 +13,7 @@ export * from "./remove-facet";
 export * from "./remove-function";
 export * from "./replace-facet";
 export * from "./transmit-price";
+export * from "./upgrade-contract";
 export * from "./upgrade-staking";
 export * from "./whitelist-collateral";
 export * from "./whitelist-krasset";

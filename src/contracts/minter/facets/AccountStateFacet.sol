@@ -241,7 +241,7 @@ contract AccountStateFacet is IAccountStateFacet {
         for (uint256 i = accountCollateralAssets.length - 1; i >= 0; i--) {
             address collateralAssetAddress = accountCollateralAssets[i];
 
-            uint256 depositAmount = ms().collateralDeposits[_account][collateralAssetAddress];
+            uint256 depositAmount = ms().getCollateralDeposits(_account, collateralAssetAddress);
 
             // Don't take the collateral asset's collateral factor into consideration.
             (FixedPoint.Unsigned memory depositValue, FixedPoint.Unsigned memory oraclePrice) = ms()

@@ -71,7 +71,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IE
 
     /**
      * @notice ERC-165
-     * - IKreskoAsset, ERC20 and ERC-165 itself
+     * IKreskoAsset, ERC20 and ERC-165
      */
     function supportsInterface(
         bytes4 interfaceId
@@ -101,18 +101,24 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IE
     /*                                    Read                                    */
     /* -------------------------------------------------------------------------- */
 
+    /// @notice Returns the total supply of the token.
+    /// @notice This amount is adjusted by rebases.
     function totalSupply() public view override returns (uint256) {
         return isRebased ? _totalSupply.rebase(rebaseInfo) : _totalSupply;
     }
 
+    /// @notice Returns the balance of @param _account
+    /// @notice This amount is adjusted by rebases.
     function balanceOf(address _account) public view override returns (uint256) {
         uint256 balance = _balances[_account];
-        return isRebased ? balance.rebase(rebaseInfo) : balance;
+        return !isRebased ? balance : balance.rebase(rebaseInfo);
     }
 
+    /// @notice Returns the allowance from @param _owner to @param _account
+    /// @notice This amount is adjusted by rebases.
     function allowance(address _owner, address _account) public view override returns (uint256) {
         uint256 allowed = _allowances[_owner][_account];
-        return isRebased ? allowed.rebase(rebaseInfo) : allowed;
+        return !isRebased ? allowed : allowed.rebase(rebaseInfo);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -172,43 +178,58 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IE
     /**
      * @notice Mints tokens to an address.
      * @dev Only callable by operator.
+     * @dev Internal balances are always unrebased, events emitted are not.
+     * @param _to The address to mint tokens to.
      * @param _amount The amount of tokens to mint.
      */
     function mint(address _to, uint256 _amount) external onlyRole(Role.OPERATOR) {
-        _mint(_to, isRebased ? _amount.unrebase(rebaseInfo) : _amount);
+        uint256 normalizedAmount = !isRebased ? _amount : _amount.unrebase(rebaseInfo);
+        _totalSupply += normalizedAmount;
+
+        // Cannot overflow because the sum of all user
+        // balances can't exceed the max uint256 value.
+        unchecked {
+            _balances[_to] += normalizedAmount;
+        }
+        // Emit user input amount, not the maybe unrebased amount.
+        emit Transfer(address(0), _to, _amount);
     }
 
     /**
      * @notice Burns tokens from an address.
      * @dev Only callable by operator.
+     * @dev Internal balances are always unrebased, events emitted are not.
+     * @param _from The address to burn tokens from.
      * @param _amount The amount of tokens to burn.
      */
     function burn(address _from, uint256 _amount) external onlyRole(Role.OPERATOR) {
-        _burn(_from, isRebased ? _amount.unrebase(rebaseInfo) : _amount);
+        uint256 normalizedAmount = !isRebased ? _amount : _amount.unrebase(rebaseInfo);
+
+        _balances[_from] -= normalizedAmount;
+        // Cannot underflow because a user's balance
+        // will never be larger than the total supply.
+        unchecked {
+            _totalSupply -= normalizedAmount;
+        }
+
+        emit Transfer(_from, address(0), _amount);
     }
 
     /* -------------------------------------------------------------------------- */
     /*                                  Internal                                  */
     /* -------------------------------------------------------------------------- */
 
+    /// @dev Internal balances are always unrebased, events emitted are not.
     function _transfer(address _from, address _to, uint256 _amount) internal returns (bool) {
-        if (!isRebased) {
-            _balances[_from] -= _amount;
-            unchecked {
-                _balances[_to] += _amount;
-            }
-        } else {
-            uint256 balance = balanceOf(_from);
-            require(_amount <= balance, Error.NOT_ENOUGH_BALANCE);
+        require(_amount <= balanceOf(_from), Error.NOT_ENOUGH_BALANCE);
+        uint256 normalizedAmount = !isRebased ? _amount : _amount.unrebase(rebaseInfo);
 
-            _amount = _amount.unrebase(rebaseInfo);
-
-            _balances[_from] -= _amount;
-            unchecked {
-                _balances[_to] += _amount;
-            }
+        _balances[_from] -= normalizedAmount;
+        unchecked {
+            _balances[_to] += normalizedAmount;
         }
 
+        // Emit user input amount, not the maybe unrebased amount.
         emit Transfer(_from, _to, _amount);
         return true;
     }
