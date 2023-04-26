@@ -303,13 +303,6 @@ export type EmergencyWithdrawEvent = TypedEvent<[string, BigNumber, BigNumber], 
 
 export type EmergencyWithdrawEventFilter = TypedEventFilter<EmergencyWithdrawEvent>;
 
-export interface InitializedEventObject {
-    version: number;
-}
-export type InitializedEvent = TypedEvent<[number], InitializedEventObject>;
-
-export type InitializedEventFilter = TypedEventFilter<InitializedEvent>;
-
 export interface RoleAdminChangedEventObject {
     role: string;
     previousAdminRole: string;
@@ -858,9 +851,6 @@ export interface KrStaking extends BaseContract {
             pid?: PromiseOrValue<BigNumberish> | null,
             amount?: PromiseOrValue<BigNumberish> | null,
         ): EmergencyWithdrawEventFilter;
-
-        "Initialized(uint8)"(version?: null): InitializedEventFilter;
-        Initialized(version?: null): InitializedEventFilter;
 
         "RoleAdminChanged(bytes32,bytes32,bytes32)"(
             role?: PromiseOrValue<BytesLike> | null,

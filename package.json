@@ -114,7 +114,7 @@
         "prettier:check": "prettier src --plugin=prettier-plugin-solidity --config ./.prettierrc --check \"**/*.{js,json,md,sol,ts}\"",
         "postinstall": "husky install",
         "c:publish": "cd packages/contracts && pnpm run build && pnpm publish --no-git-checks",
-        "c:export": "EXPORT=true hardhat create-exports",
+        "c:export": "EXPORT=true hardhat misc:create-exports",
         "subgraph": "hardhat misc:write-subgraph",
         "kr:add-facet": "hardhat facet:add",
         "kr:replace-facet": "hardhat facet:replace",

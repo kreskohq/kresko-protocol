@@ -3,40 +3,417 @@
 /* tslint:disable */
 /* eslint-disable */
 import type {
-    BaseContract,
-    BigNumber,
-    BigNumberish,
-    BytesLike,
-    CallOverrides,
-    ContractTransaction,
-    Overrides,
-    PopulatedTransaction,
-    Signer,
-    utils,
+  BaseContract,
+  BigNumber,
+  BigNumberish,
+  BytesLike,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
-import type { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
+import type {
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
-import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent, PromiseOrValue } from "../../../common";
+import type {
+  TypedEventFilter,
+  TypedEvent,
+  TypedListener,
+  OnEvent,
+  PromiseOrValue,
+} from "../../../common";
 
 export declare namespace UQ {
-    export type Uq112x112Struct = { _x: PromiseOrValue<BigNumberish> };
+  export type Uq112x112Struct = { _x: PromiseOrValue<BigNumberish> };
 
-    export type Uq112x112StructOutput = [BigNumber] & { _x: BigNumber };
+  export type Uq112x112StructOutput = [BigNumber] & { _x: BigNumber };
 }
 
 export declare namespace UniswapV2Oracle {
-    export type PairDataStruct = {
-        price0Average: UQ.Uq112x112Struct;
-        price1Average: UQ.Uq112x112Struct;
-        token0: PromiseOrValue<string>;
-        token1: PromiseOrValue<string>;
-        price0CumulativeLast: PromiseOrValue<BigNumberish>;
-        price1CumulativeLast: PromiseOrValue<BigNumberish>;
-        blockTimestampLast: PromiseOrValue<BigNumberish>;
-        updatePeriod: PromiseOrValue<BigNumberish>;
-    };
+  export type PairDataStruct = {
+    price0Average: UQ.Uq112x112Struct;
+    price1Average: UQ.Uq112x112Struct;
+    token0: PromiseOrValue<string>;
+    token1: PromiseOrValue<string>;
+    price0CumulativeLast: PromiseOrValue<BigNumberish>;
+    price1CumulativeLast: PromiseOrValue<BigNumberish>;
+    blockTimestampLast: PromiseOrValue<BigNumberish>;
+    updatePeriod: PromiseOrValue<BigNumberish>;
+  };
 
-    export type PairDataStructOutput = [
+  export type PairDataStructOutput = [
+    UQ.Uq112x112StructOutput,
+    UQ.Uq112x112StructOutput,
+    string,
+    string,
+    BigNumber,
+    BigNumber,
+    number,
+    BigNumber
+  ] & {
+    price0Average: UQ.Uq112x112StructOutput;
+    price1Average: UQ.Uq112x112StructOutput;
+    token0: string;
+    token1: string;
+    price0CumulativeLast: BigNumber;
+    price1CumulativeLast: BigNumber;
+    blockTimestampLast: number;
+    updatePeriod: BigNumber;
+  };
+}
+
+export interface UniswapV2OracleInterface extends utils.Interface {
+  functions: {
+    "admin()": FunctionFragment;
+    "configurePair(address,uint256)": FunctionFragment;
+    "consult(address,address,uint256)": FunctionFragment;
+    "consultKrAsset(address,uint256)": FunctionFragment;
+    "drainERC20(address,address)": FunctionFragment;
+    "factory()": FunctionFragment;
+    "getKrAssetPair(address)": FunctionFragment;
+    "incentiveAmount()": FunctionFragment;
+    "incentiveToken()": FunctionFragment;
+    "initPair(address,address,uint256)": FunctionFragment;
+    "krAssets(address)": FunctionFragment;
+    "minUpdatePeriod()": FunctionFragment;
+    "pairs(address)": FunctionFragment;
+    "setAdmin(address)": FunctionFragment;
+    "setIncentiveToken(address,uint256)": FunctionFragment;
+    "setMinUpdatePeriod(uint256)": FunctionFragment;
+    "update(address)": FunctionFragment;
+    "updateWithIncentive(address)": FunctionFragment;
+  };
+
+  getFunction(
+    nameOrSignatureOrTopic:
+      | "admin"
+      | "configurePair"
+      | "consult"
+      | "consultKrAsset"
+      | "drainERC20"
+      | "factory"
+      | "getKrAssetPair"
+      | "incentiveAmount"
+      | "incentiveToken"
+      | "initPair"
+      | "krAssets"
+      | "minUpdatePeriod"
+      | "pairs"
+      | "setAdmin"
+      | "setIncentiveToken"
+      | "setMinUpdatePeriod"
+      | "update"
+      | "updateWithIncentive"
+  ): FunctionFragment;
+
+  encodeFunctionData(functionFragment: "admin", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "configurePair",
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "consult",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "consultKrAsset",
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "drainERC20",
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(functionFragment: "factory", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "getKrAssetPair",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "incentiveAmount",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "incentiveToken",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "initPair",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "krAssets",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "minUpdatePeriod",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "pairs",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setAdmin",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setIncentiveToken",
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setMinUpdatePeriod",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "update",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "updateWithIncentive",
+    values: [PromiseOrValue<string>]
+  ): string;
+
+  decodeFunctionResult(functionFragment: "admin", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "configurePair",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "consult", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "consultKrAsset",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "drainERC20", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "factory", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getKrAssetPair",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "incentiveAmount",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "incentiveToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "initPair", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "krAssets", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "minUpdatePeriod",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "pairs", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "setAdmin", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "setIncentiveToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setMinUpdatePeriod",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "update", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "updateWithIncentive",
+    data: BytesLike
+  ): Result;
+
+  events: {
+    "NewAdmin(address)": EventFragment;
+    "NewKrAssetPair(address,address)": EventFragment;
+    "NewMinUpdatePeriod(uint256)": EventFragment;
+    "NewPair(address,address,address,uint256)": EventFragment;
+    "NewPrice(address,address,uint32,tuple,tuple,uint256,uint256)": EventFragment;
+    "PairUpdated(address,address,address,uint256)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "NewAdmin"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NewKrAssetPair"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NewMinUpdatePeriod"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NewPair"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NewPrice"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "PairUpdated"): EventFragment;
+}
+
+export interface NewAdminEventObject {
+  newAdmin: string;
+}
+export type NewAdminEvent = TypedEvent<[string], NewAdminEventObject>;
+
+export type NewAdminEventFilter = TypedEventFilter<NewAdminEvent>;
+
+export interface NewKrAssetPairEventObject {
+  krAsset: string;
+  pairAddress: string;
+}
+export type NewKrAssetPairEvent = TypedEvent<
+  [string, string],
+  NewKrAssetPairEventObject
+>;
+
+export type NewKrAssetPairEventFilter = TypedEventFilter<NewKrAssetPairEvent>;
+
+export interface NewMinUpdatePeriodEventObject {
+  newMinUpdatePeriod: BigNumber;
+}
+export type NewMinUpdatePeriodEvent = TypedEvent<
+  [BigNumber],
+  NewMinUpdatePeriodEventObject
+>;
+
+export type NewMinUpdatePeriodEventFilter =
+  TypedEventFilter<NewMinUpdatePeriodEvent>;
+
+export interface NewPairEventObject {
+  pair: string;
+  token0: string;
+  token1: string;
+  updatePeriod: BigNumber;
+}
+export type NewPairEvent = TypedEvent<
+  [string, string, string, BigNumber],
+  NewPairEventObject
+>;
+
+export type NewPairEventFilter = TypedEventFilter<NewPairEvent>;
+
+export interface NewPriceEventObject {
+  token0: string;
+  token1: string;
+  blockTimestampLast: number;
+  price0CumulativeLast: UQ.Uq112x112StructOutput;
+  price1CumulativeLast: UQ.Uq112x112StructOutput;
+  updatePeriod: BigNumber;
+  timeElapsed: BigNumber;
+}
+export type NewPriceEvent = TypedEvent<
+  [
+    string,
+    string,
+    number,
+    UQ.Uq112x112StructOutput,
+    UQ.Uq112x112StructOutput,
+    BigNumber,
+    BigNumber
+  ],
+  NewPriceEventObject
+>;
+
+export type NewPriceEventFilter = TypedEventFilter<NewPriceEvent>;
+
+export interface PairUpdatedEventObject {
+  pair: string;
+  token0: string;
+  token1: string;
+  updatePeriod: BigNumber;
+}
+export type PairUpdatedEvent = TypedEvent<
+  [string, string, string, BigNumber],
+  PairUpdatedEventObject
+>;
+
+export type PairUpdatedEventFilter = TypedEventFilter<PairUpdatedEvent>;
+
+export interface UniswapV2Oracle extends BaseContract {
+  contractName: "UniswapV2Oracle";
+
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
+
+  interface: UniswapV2OracleInterface;
+
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TEvent>>;
+
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
+
+  functions: {
+    admin(overrides?: CallOverrides): Promise<[string]>;
+
+    configurePair(
+      _pairAddress: PromiseOrValue<string>,
+      _updatePeriod: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    consult(
+      _pairAddress: PromiseOrValue<string>,
+      _token: PromiseOrValue<string>,
+      _amountIn: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { amountOut: BigNumber }>;
+
+    consultKrAsset(
+      _kreskoAsset: PromiseOrValue<string>,
+      _amountIn: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { amountOut: BigNumber }>;
+
+    drainERC20(
+      _erc20: PromiseOrValue<string>,
+      _to: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    factory(overrides?: CallOverrides): Promise<[string]>;
+
+    getKrAssetPair(
+      _kreskoAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[UniswapV2Oracle.PairDataStructOutput]>;
+
+    incentiveAmount(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    incentiveToken(overrides?: CallOverrides): Promise<[string]>;
+
+    initPair(
+      _pairAddress: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      _updatePeriod: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    krAssets(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    minUpdatePeriod(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    pairs(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [
         UQ.Uq112x112StructOutput,
         UQ.Uq112x112StructOutput,
         string,
@@ -44,8 +421,8 @@ export declare namespace UniswapV2Oracle {
         BigNumber,
         BigNumber,
         number,
-        BigNumber,
-    ] & {
+        BigNumber
+      ] & {
         price0Average: UQ.Uq112x112StructOutput;
         price1Average: UQ.Uq112x112StructOutput;
         token0: string;
@@ -54,342 +431,172 @@ export declare namespace UniswapV2Oracle {
         price1CumulativeLast: BigNumber;
         blockTimestampLast: number;
         updatePeriod: BigNumber;
-    };
-}
+      }
+    >;
 
-export interface UniswapV2OracleInterface extends utils.Interface {
-    functions: {
-        "admin()": FunctionFragment;
-        "configurePair(address,uint256)": FunctionFragment;
-        "consult(address,address,uint256)": FunctionFragment;
-        "consultKrAsset(address,uint256)": FunctionFragment;
-        "drainERC20(address,address)": FunctionFragment;
-        "factory()": FunctionFragment;
-        "getKrAssetPair(address)": FunctionFragment;
-        "incentiveAmount()": FunctionFragment;
-        "incentiveToken()": FunctionFragment;
-        "initPair(address,address,uint256)": FunctionFragment;
-        "krAssets(address)": FunctionFragment;
-        "minUpdatePeriod()": FunctionFragment;
-        "pairs(address)": FunctionFragment;
-        "setAdmin(address)": FunctionFragment;
-        "setIncentiveToken(address,uint256)": FunctionFragment;
-        "setMinUpdatePeriod(uint256)": FunctionFragment;
-        "update(address)": FunctionFragment;
-        "updateWithIncentive(address)": FunctionFragment;
-    };
+    setAdmin(
+      _newAdmin: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-    getFunction(
-        nameOrSignatureOrTopic:
-            | "admin"
-            | "configurePair"
-            | "consult"
-            | "consultKrAsset"
-            | "drainERC20"
-            | "factory"
-            | "getKrAssetPair"
-            | "incentiveAmount"
-            | "incentiveToken"
-            | "initPair"
-            | "krAssets"
-            | "minUpdatePeriod"
-            | "pairs"
-            | "setAdmin"
-            | "setIncentiveToken"
-            | "setMinUpdatePeriod"
-            | "update"
-            | "updateWithIncentive",
-    ): FunctionFragment;
+    setIncentiveToken(
+      _newIncentiveToken: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-    encodeFunctionData(functionFragment: "admin", values?: undefined): string;
-    encodeFunctionData(
-        functionFragment: "configurePair",
-        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "consult",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "consultKrAsset",
-        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "drainERC20",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(functionFragment: "factory", values?: undefined): string;
-    encodeFunctionData(functionFragment: "getKrAssetPair", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "incentiveAmount", values?: undefined): string;
-    encodeFunctionData(functionFragment: "incentiveToken", values?: undefined): string;
-    encodeFunctionData(
-        functionFragment: "initPair",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(functionFragment: "krAssets", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "minUpdatePeriod", values?: undefined): string;
-    encodeFunctionData(functionFragment: "pairs", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "setAdmin", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(
-        functionFragment: "setIncentiveToken",
-        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(functionFragment: "setMinUpdatePeriod", values: [PromiseOrValue<BigNumberish>]): string;
-    encodeFunctionData(functionFragment: "update", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "updateWithIncentive", values: [PromiseOrValue<string>]): string;
+    setMinUpdatePeriod(
+      _minUpdatePeriod: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-    decodeFunctionResult(functionFragment: "admin", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "configurePair", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "consult", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "consultKrAsset", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "drainERC20", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "factory", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getKrAssetPair", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "incentiveAmount", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "incentiveToken", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "initPair", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "krAssets", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "minUpdatePeriod", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "pairs", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "setAdmin", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "setIncentiveToken", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "setMinUpdatePeriod", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "update", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "updateWithIncentive", data: BytesLike): Result;
+    update(
+      _pairAddress: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-    events: {
-        "NewAdmin(address)": EventFragment;
-        "NewKrAssetPair(address,address)": EventFragment;
-        "NewMinUpdatePeriod(uint256)": EventFragment;
-        "NewPair(address,address,address,uint256)": EventFragment;
-        "NewPrice(address,address,uint32,tuple,tuple,uint256,uint256)": EventFragment;
-        "PairUpdated(address,address,address,uint256)": EventFragment;
-    };
+    updateWithIncentive(
+      _kreskoAsset: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
 
-    getEvent(nameOrSignatureOrTopic: "NewAdmin"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "NewKrAssetPair"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "NewMinUpdatePeriod"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "NewPair"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "NewPrice"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "PairUpdated"): EventFragment;
-}
+  admin(overrides?: CallOverrides): Promise<string>;
 
-export interface NewAdminEventObject {
-    newAdmin: string;
-}
-export type NewAdminEvent = TypedEvent<[string], NewAdminEventObject>;
+  configurePair(
+    _pairAddress: PromiseOrValue<string>,
+    _updatePeriod: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-export type NewAdminEventFilter = TypedEventFilter<NewAdminEvent>;
+  consult(
+    _pairAddress: PromiseOrValue<string>,
+    _token: PromiseOrValue<string>,
+    _amountIn: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
-export interface NewKrAssetPairEventObject {
-    krAsset: string;
-    pairAddress: string;
-}
-export type NewKrAssetPairEvent = TypedEvent<[string, string], NewKrAssetPairEventObject>;
+  consultKrAsset(
+    _kreskoAsset: PromiseOrValue<string>,
+    _amountIn: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
-export type NewKrAssetPairEventFilter = TypedEventFilter<NewKrAssetPairEvent>;
+  drainERC20(
+    _erc20: PromiseOrValue<string>,
+    _to: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-export interface NewMinUpdatePeriodEventObject {
-    newMinUpdatePeriod: BigNumber;
-}
-export type NewMinUpdatePeriodEvent = TypedEvent<[BigNumber], NewMinUpdatePeriodEventObject>;
+  factory(overrides?: CallOverrides): Promise<string>;
 
-export type NewMinUpdatePeriodEventFilter = TypedEventFilter<NewMinUpdatePeriodEvent>;
+  getKrAssetPair(
+    _kreskoAsset: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<UniswapV2Oracle.PairDataStructOutput>;
 
-export interface NewPairEventObject {
-    pair: string;
-    token0: string;
-    token1: string;
-    updatePeriod: BigNumber;
-}
-export type NewPairEvent = TypedEvent<[string, string, string, BigNumber], NewPairEventObject>;
+  incentiveAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
-export type NewPairEventFilter = TypedEventFilter<NewPairEvent>;
+  incentiveToken(overrides?: CallOverrides): Promise<string>;
 
-export interface NewPriceEventObject {
-    token0: string;
-    token1: string;
-    blockTimestampLast: number;
-    price0CumulativeLast: UQ.Uq112x112StructOutput;
-    price1CumulativeLast: UQ.Uq112x112StructOutput;
-    updatePeriod: BigNumber;
-    timeElapsed: BigNumber;
-}
-export type NewPriceEvent = TypedEvent<
-    [string, string, number, UQ.Uq112x112StructOutput, UQ.Uq112x112StructOutput, BigNumber, BigNumber],
-    NewPriceEventObject
->;
+  initPair(
+    _pairAddress: PromiseOrValue<string>,
+    _kreskoAsset: PromiseOrValue<string>,
+    _updatePeriod: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-export type NewPriceEventFilter = TypedEventFilter<NewPriceEvent>;
+  krAssets(
+    arg0: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<string>;
 
-export interface PairUpdatedEventObject {
-    pair: string;
-    token0: string;
-    token1: string;
-    updatePeriod: BigNumber;
-}
-export type PairUpdatedEvent = TypedEvent<[string, string, string, BigNumber], PairUpdatedEventObject>;
+  minUpdatePeriod(overrides?: CallOverrides): Promise<BigNumber>;
 
-export type PairUpdatedEventFilter = TypedEventFilter<PairUpdatedEvent>;
+  pairs(
+    arg0: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<
+    [
+      UQ.Uq112x112StructOutput,
+      UQ.Uq112x112StructOutput,
+      string,
+      string,
+      BigNumber,
+      BigNumber,
+      number,
+      BigNumber
+    ] & {
+      price0Average: UQ.Uq112x112StructOutput;
+      price1Average: UQ.Uq112x112StructOutput;
+      token0: string;
+      token1: string;
+      price0CumulativeLast: BigNumber;
+      price1CumulativeLast: BigNumber;
+      blockTimestampLast: number;
+      updatePeriod: BigNumber;
+    }
+  >;
 
-export interface UniswapV2Oracle extends BaseContract {
-    contractName: "UniswapV2Oracle";
+  setAdmin(
+    _newAdmin: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-    connect(signerOrProvider: Signer | Provider | string): this;
-    attach(addressOrName: string): this;
-    deployed(): Promise<this>;
+  setIncentiveToken(
+    _newIncentiveToken: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-    interface: UniswapV2OracleInterface;
+  setMinUpdatePeriod(
+    _minUpdatePeriod: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-    queryFilter<TEvent extends TypedEvent>(
-        event: TypedEventFilter<TEvent>,
-        fromBlockOrBlockhash?: string | number | undefined,
-        toBlock?: string | number | undefined,
-    ): Promise<Array<TEvent>>;
+  update(
+    _pairAddress: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-    listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>;
-    listeners(eventName?: string): Array<Listener>;
-    removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this;
-    removeAllListeners(eventName?: string): this;
-    off: OnEvent<this>;
-    on: OnEvent<this>;
-    once: OnEvent<this>;
-    removeListener: OnEvent<this>;
+  updateWithIncentive(
+    _kreskoAsset: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-    functions: {
-        admin(overrides?: CallOverrides): Promise<[string]>;
-
-        configurePair(
-            _pairAddress: PromiseOrValue<string>,
-            _updatePeriod: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        consult(
-            _pairAddress: PromiseOrValue<string>,
-            _token: PromiseOrValue<string>,
-            _amountIn: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber] & { amountOut: BigNumber }>;
-
-        consultKrAsset(
-            _kreskoAsset: PromiseOrValue<string>,
-            _amountIn: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber] & { amountOut: BigNumber }>;
-
-        drainERC20(
-            _erc20: PromiseOrValue<string>,
-            _to: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        factory(overrides?: CallOverrides): Promise<[string]>;
-
-        getKrAssetPair(
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[UniswapV2Oracle.PairDataStructOutput]>;
-
-        incentiveAmount(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-        incentiveToken(overrides?: CallOverrides): Promise<[string]>;
-
-        initPair(
-            _pairAddress: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _updatePeriod: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        krAssets(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[string]>;
-
-        minUpdatePeriod(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-        pairs(
-            arg0: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<
-            [
-                UQ.Uq112x112StructOutput,
-                UQ.Uq112x112StructOutput,
-                string,
-                string,
-                BigNumber,
-                BigNumber,
-                number,
-                BigNumber,
-            ] & {
-                price0Average: UQ.Uq112x112StructOutput;
-                price1Average: UQ.Uq112x112StructOutput;
-                token0: string;
-                token1: string;
-                price0CumulativeLast: BigNumber;
-                price1CumulativeLast: BigNumber;
-                blockTimestampLast: number;
-                updatePeriod: BigNumber;
-            }
-        >;
-
-        setAdmin(
-            _newAdmin: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        setIncentiveToken(
-            _newIncentiveToken: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        setMinUpdatePeriod(
-            _minUpdatePeriod: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        update(
-            _pairAddress: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        updateWithIncentive(
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-    };
-
+  callStatic: {
     admin(overrides?: CallOverrides): Promise<string>;
 
     configurePair(
-        _pairAddress: PromiseOrValue<string>,
-        _updatePeriod: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      _pairAddress: PromiseOrValue<string>,
+      _updatePeriod: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     consult(
-        _pairAddress: PromiseOrValue<string>,
-        _token: PromiseOrValue<string>,
-        _amountIn: PromiseOrValue<BigNumberish>,
-        overrides?: CallOverrides,
+      _pairAddress: PromiseOrValue<string>,
+      _token: PromiseOrValue<string>,
+      _amountIn: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     consultKrAsset(
-        _kreskoAsset: PromiseOrValue<string>,
-        _amountIn: PromiseOrValue<BigNumberish>,
-        overrides?: CallOverrides,
+      _kreskoAsset: PromiseOrValue<string>,
+      _amountIn: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     drainERC20(
-        _erc20: PromiseOrValue<string>,
-        _to: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      _erc20: PromiseOrValue<string>,
+      _to: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     factory(overrides?: CallOverrides): Promise<string>;
 
     getKrAssetPair(
-        _kreskoAsset: PromiseOrValue<string>,
-        overrides?: CallOverrides,
+      _kreskoAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
     ): Promise<UniswapV2Oracle.PairDataStructOutput>;
 
     incentiveAmount(overrides?: CallOverrides): Promise<BigNumber>;
@@ -397,368 +604,306 @@ export interface UniswapV2Oracle extends BaseContract {
     incentiveToken(overrides?: CallOverrides): Promise<string>;
 
     initPair(
-        _pairAddress: PromiseOrValue<string>,
-        _kreskoAsset: PromiseOrValue<string>,
-        _updatePeriod: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      _pairAddress: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      _updatePeriod: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
-    krAssets(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<string>;
+    krAssets(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<string>;
 
     minUpdatePeriod(overrides?: CallOverrides): Promise<BigNumber>;
 
     pairs(
-        arg0: PromiseOrValue<string>,
-        overrides?: CallOverrides,
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
     ): Promise<
-        [
-            UQ.Uq112x112StructOutput,
-            UQ.Uq112x112StructOutput,
-            string,
-            string,
-            BigNumber,
-            BigNumber,
-            number,
-            BigNumber,
-        ] & {
-            price0Average: UQ.Uq112x112StructOutput;
-            price1Average: UQ.Uq112x112StructOutput;
-            token0: string;
-            token1: string;
-            price0CumulativeLast: BigNumber;
-            price1CumulativeLast: BigNumber;
-            blockTimestampLast: number;
-            updatePeriod: BigNumber;
-        }
+      [
+        UQ.Uq112x112StructOutput,
+        UQ.Uq112x112StructOutput,
+        string,
+        string,
+        BigNumber,
+        BigNumber,
+        number,
+        BigNumber
+      ] & {
+        price0Average: UQ.Uq112x112StructOutput;
+        price1Average: UQ.Uq112x112StructOutput;
+        token0: string;
+        token1: string;
+        price0CumulativeLast: BigNumber;
+        price1CumulativeLast: BigNumber;
+        blockTimestampLast: number;
+        updatePeriod: BigNumber;
+      }
     >;
 
     setAdmin(
-        _newAdmin: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      _newAdmin: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     setIncentiveToken(
-        _newIncentiveToken: PromiseOrValue<string>,
-        amount: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      _newIncentiveToken: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     setMinUpdatePeriod(
-        _minUpdatePeriod: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      _minUpdatePeriod: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     update(
-        _pairAddress: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      _pairAddress: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     updateWithIncentive(
-        _kreskoAsset: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      _kreskoAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+  };
 
-    callStatic: {
-        admin(overrides?: CallOverrides): Promise<string>;
+  filters: {
+    "NewAdmin(address)"(
+      newAdmin?: PromiseOrValue<string> | null
+    ): NewAdminEventFilter;
+    NewAdmin(newAdmin?: PromiseOrValue<string> | null): NewAdminEventFilter;
 
-        configurePair(
-            _pairAddress: PromiseOrValue<string>,
-            _updatePeriod: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
+    "NewKrAssetPair(address,address)"(
+      krAsset?: PromiseOrValue<string> | null,
+      pairAddress?: PromiseOrValue<string> | null
+    ): NewKrAssetPairEventFilter;
+    NewKrAssetPair(
+      krAsset?: PromiseOrValue<string> | null,
+      pairAddress?: PromiseOrValue<string> | null
+    ): NewKrAssetPairEventFilter;
 
-        consult(
-            _pairAddress: PromiseOrValue<string>,
-            _token: PromiseOrValue<string>,
-            _amountIn: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
+    "NewMinUpdatePeriod(uint256)"(
+      newMinUpdatePeriod?: null
+    ): NewMinUpdatePeriodEventFilter;
+    NewMinUpdatePeriod(
+      newMinUpdatePeriod?: null
+    ): NewMinUpdatePeriodEventFilter;
 
-        consultKrAsset(
-            _kreskoAsset: PromiseOrValue<string>,
-            _amountIn: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
+    "NewPair(address,address,address,uint256)"(
+      pair?: PromiseOrValue<string> | null,
+      token0?: PromiseOrValue<string> | null,
+      token1?: PromiseOrValue<string> | null,
+      updatePeriod?: null
+    ): NewPairEventFilter;
+    NewPair(
+      pair?: PromiseOrValue<string> | null,
+      token0?: PromiseOrValue<string> | null,
+      token1?: PromiseOrValue<string> | null,
+      updatePeriod?: null
+    ): NewPairEventFilter;
 
-        drainERC20(
-            _erc20: PromiseOrValue<string>,
-            _to: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
+    "NewPrice(address,address,uint32,tuple,tuple,uint256,uint256)"(
+      token0?: PromiseOrValue<string> | null,
+      token1?: PromiseOrValue<string> | null,
+      blockTimestampLast?: PromiseOrValue<BigNumberish> | null,
+      price0CumulativeLast?: null,
+      price1CumulativeLast?: null,
+      updatePeriod?: null,
+      timeElapsed?: null
+    ): NewPriceEventFilter;
+    NewPrice(
+      token0?: PromiseOrValue<string> | null,
+      token1?: PromiseOrValue<string> | null,
+      blockTimestampLast?: PromiseOrValue<BigNumberish> | null,
+      price0CumulativeLast?: null,
+      price1CumulativeLast?: null,
+      updatePeriod?: null,
+      timeElapsed?: null
+    ): NewPriceEventFilter;
 
-        factory(overrides?: CallOverrides): Promise<string>;
+    "PairUpdated(address,address,address,uint256)"(
+      pair?: PromiseOrValue<string> | null,
+      token0?: PromiseOrValue<string> | null,
+      token1?: PromiseOrValue<string> | null,
+      updatePeriod?: null
+    ): PairUpdatedEventFilter;
+    PairUpdated(
+      pair?: PromiseOrValue<string> | null,
+      token0?: PromiseOrValue<string> | null,
+      token1?: PromiseOrValue<string> | null,
+      updatePeriod?: null
+    ): PairUpdatedEventFilter;
+  };
 
-        getKrAssetPair(
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<UniswapV2Oracle.PairDataStructOutput>;
+  estimateGas: {
+    admin(overrides?: CallOverrides): Promise<BigNumber>;
 
-        incentiveAmount(overrides?: CallOverrides): Promise<BigNumber>;
+    configurePair(
+      _pairAddress: PromiseOrValue<string>,
+      _updatePeriod: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
 
-        incentiveToken(overrides?: CallOverrides): Promise<string>;
+    consult(
+      _pairAddress: PromiseOrValue<string>,
+      _token: PromiseOrValue<string>,
+      _amountIn: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-        initPair(
-            _pairAddress: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _updatePeriod: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
+    consultKrAsset(
+      _kreskoAsset: PromiseOrValue<string>,
+      _amountIn: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-        krAssets(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<string>;
+    drainERC20(
+      _erc20: PromiseOrValue<string>,
+      _to: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
 
-        minUpdatePeriod(overrides?: CallOverrides): Promise<BigNumber>;
+    factory(overrides?: CallOverrides): Promise<BigNumber>;
 
-        pairs(
-            arg0: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<
-            [
-                UQ.Uq112x112StructOutput,
-                UQ.Uq112x112StructOutput,
-                string,
-                string,
-                BigNumber,
-                BigNumber,
-                number,
-                BigNumber,
-            ] & {
-                price0Average: UQ.Uq112x112StructOutput;
-                price1Average: UQ.Uq112x112StructOutput;
-                token0: string;
-                token1: string;
-                price0CumulativeLast: BigNumber;
-                price1CumulativeLast: BigNumber;
-                blockTimestampLast: number;
-                updatePeriod: BigNumber;
-            }
-        >;
+    getKrAssetPair(
+      _kreskoAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-        setAdmin(_newAdmin: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
+    incentiveAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
-        setIncentiveToken(
-            _newIncentiveToken: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
+    incentiveToken(overrides?: CallOverrides): Promise<BigNumber>;
 
-        setMinUpdatePeriod(_minUpdatePeriod: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<void>;
+    initPair(
+      _pairAddress: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      _updatePeriod: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
 
-        update(_pairAddress: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
+    krAssets(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-        updateWithIncentive(_kreskoAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
-    };
+    minUpdatePeriod(overrides?: CallOverrides): Promise<BigNumber>;
 
-    filters: {
-        "NewAdmin(address)"(newAdmin?: PromiseOrValue<string> | null): NewAdminEventFilter;
-        NewAdmin(newAdmin?: PromiseOrValue<string> | null): NewAdminEventFilter;
+    pairs(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-        "NewKrAssetPair(address,address)"(
-            krAsset?: PromiseOrValue<string> | null,
-            pairAddress?: PromiseOrValue<string> | null,
-        ): NewKrAssetPairEventFilter;
-        NewKrAssetPair(
-            krAsset?: PromiseOrValue<string> | null,
-            pairAddress?: PromiseOrValue<string> | null,
-        ): NewKrAssetPairEventFilter;
+    setAdmin(
+      _newAdmin: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
 
-        "NewMinUpdatePeriod(uint256)"(newMinUpdatePeriod?: null): NewMinUpdatePeriodEventFilter;
-        NewMinUpdatePeriod(newMinUpdatePeriod?: null): NewMinUpdatePeriodEventFilter;
+    setIncentiveToken(
+      _newIncentiveToken: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
 
-        "NewPair(address,address,address,uint256)"(
-            pair?: PromiseOrValue<string> | null,
-            token0?: PromiseOrValue<string> | null,
-            token1?: PromiseOrValue<string> | null,
-            updatePeriod?: null,
-        ): NewPairEventFilter;
-        NewPair(
-            pair?: PromiseOrValue<string> | null,
-            token0?: PromiseOrValue<string> | null,
-            token1?: PromiseOrValue<string> | null,
-            updatePeriod?: null,
-        ): NewPairEventFilter;
+    setMinUpdatePeriod(
+      _minUpdatePeriod: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
 
-        "NewPrice(address,address,uint32,tuple,tuple,uint256,uint256)"(
-            token0?: PromiseOrValue<string> | null,
-            token1?: PromiseOrValue<string> | null,
-            blockTimestampLast?: PromiseOrValue<BigNumberish> | null,
-            price0CumulativeLast?: null,
-            price1CumulativeLast?: null,
-            updatePeriod?: null,
-            timeElapsed?: null,
-        ): NewPriceEventFilter;
-        NewPrice(
-            token0?: PromiseOrValue<string> | null,
-            token1?: PromiseOrValue<string> | null,
-            blockTimestampLast?: PromiseOrValue<BigNumberish> | null,
-            price0CumulativeLast?: null,
-            price1CumulativeLast?: null,
-            updatePeriod?: null,
-            timeElapsed?: null,
-        ): NewPriceEventFilter;
+    update(
+      _pairAddress: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
 
-        "PairUpdated(address,address,address,uint256)"(
-            pair?: PromiseOrValue<string> | null,
-            token0?: PromiseOrValue<string> | null,
-            token1?: PromiseOrValue<string> | null,
-            updatePeriod?: null,
-        ): PairUpdatedEventFilter;
-        PairUpdated(
-            pair?: PromiseOrValue<string> | null,
-            token0?: PromiseOrValue<string> | null,
-            token1?: PromiseOrValue<string> | null,
-            updatePeriod?: null,
-        ): PairUpdatedEventFilter;
-    };
+    updateWithIncentive(
+      _kreskoAsset: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
 
-    estimateGas: {
-        admin(overrides?: CallOverrides): Promise<BigNumber>;
+  populateTransaction: {
+    admin(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-        configurePair(
-            _pairAddress: PromiseOrValue<string>,
-            _updatePeriod: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
+    configurePair(
+      _pairAddress: PromiseOrValue<string>,
+      _updatePeriod: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
 
-        consult(
-            _pairAddress: PromiseOrValue<string>,
-            _token: PromiseOrValue<string>,
-            _amountIn: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
+    consult(
+      _pairAddress: PromiseOrValue<string>,
+      _token: PromiseOrValue<string>,
+      _amountIn: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
-        consultKrAsset(
-            _kreskoAsset: PromiseOrValue<string>,
-            _amountIn: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
+    consultKrAsset(
+      _kreskoAsset: PromiseOrValue<string>,
+      _amountIn: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
-        drainERC20(
-            _erc20: PromiseOrValue<string>,
-            _to: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
+    drainERC20(
+      _erc20: PromiseOrValue<string>,
+      _to: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
 
-        factory(overrides?: CallOverrides): Promise<BigNumber>;
+    factory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-        getKrAssetPair(_kreskoAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+    getKrAssetPair(
+      _kreskoAsset: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
-        incentiveAmount(overrides?: CallOverrides): Promise<BigNumber>;
+    incentiveAmount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-        incentiveToken(overrides?: CallOverrides): Promise<BigNumber>;
+    incentiveToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-        initPair(
-            _pairAddress: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _updatePeriod: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
+    initPair(
+      _pairAddress: PromiseOrValue<string>,
+      _kreskoAsset: PromiseOrValue<string>,
+      _updatePeriod: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
 
-        krAssets(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+    krAssets(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
-        minUpdatePeriod(overrides?: CallOverrides): Promise<BigNumber>;
+    minUpdatePeriod(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-        pairs(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+    pairs(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
-        setAdmin(
-            _newAdmin: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
+    setAdmin(
+      _newAdmin: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
 
-        setIncentiveToken(
-            _newIncentiveToken: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
+    setIncentiveToken(
+      _newIncentiveToken: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
 
-        setMinUpdatePeriod(
-            _minUpdatePeriod: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
+    setMinUpdatePeriod(
+      _minUpdatePeriod: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
 
-        update(
-            _pairAddress: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
+    update(
+      _pairAddress: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
 
-        updateWithIncentive(
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-    };
-
-    populateTransaction: {
-        admin(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        configurePair(
-            _pairAddress: PromiseOrValue<string>,
-            _updatePeriod: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        consult(
-            _pairAddress: PromiseOrValue<string>,
-            _token: PromiseOrValue<string>,
-            _amountIn: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        consultKrAsset(
-            _kreskoAsset: PromiseOrValue<string>,
-            _amountIn: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        drainERC20(
-            _erc20: PromiseOrValue<string>,
-            _to: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        factory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        getKrAssetPair(_kreskoAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        incentiveAmount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        incentiveToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        initPair(
-            _pairAddress: PromiseOrValue<string>,
-            _kreskoAsset: PromiseOrValue<string>,
-            _updatePeriod: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        krAssets(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        minUpdatePeriod(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        pairs(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        setAdmin(
-            _newAdmin: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        setIncentiveToken(
-            _newIncentiveToken: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        setMinUpdatePeriod(
-            _minUpdatePeriod: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        update(
-            _pairAddress: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        updateWithIncentive(
-            _kreskoAsset: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-    };
+    updateWithIncentive(
+      _kreskoAsset: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+  };
 }

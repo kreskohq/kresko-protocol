@@ -1,5 +1,5 @@
 export * from "./add-facet";
-export * from "./deploy-funder";
+export * from "./deploy-contract";
 export * from "./deploy-kiss";
 export * from "./deploy-price-feed";
 export * from "./deploy-token";
