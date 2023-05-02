@@ -149,12 +149,14 @@ library LibCollateral {
             _depositedCollateralAssetIndex <= self.depositedCollateralAssets[_account].length - 1,
             Error.ARRAY_OUT_OF_BOUNDS
         );
+        // ensure that the handler does not attempt to withdraw more collateral than the account has
+        require(_collateralDeposits >= _withdrawAmount, Error.COLLATERAL_INSUFFICIENT_AMOUNT);
+
         // Record the withdrawal.
-        unchecked {
-            self.collateralDeposits[_account][_collateralAsset] = self
-                .collateralAssets[_collateralAsset]
-                .toNonRebasingAmount(_collateralDeposits - _withdrawAmount);
-        }
+        self.collateralDeposits[_account][_collateralAsset] = self
+            .collateralAssets[_collateralAsset]
+            .toNonRebasingAmount(_collateralDeposits - _withdrawAmount);
+
         // If the user is withdrawing all of the collateral asset, remove the collateral asset
         // from the user's deposited collateral assets array.
         if (_withdrawAmount == _collateralDeposits) {
