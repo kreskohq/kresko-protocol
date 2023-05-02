@@ -13,6 +13,7 @@ import {DiamondModifiers, MinterModifiers} from "../../shared/Modifiers.sol";
 import {Action, FixedPoint, KrAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";
+import {ICollateralReceiver} from "../interfaces/ICollateralReceiver.sol";
 
 /**
  * @author Kresko
@@ -128,40 +129,20 @@ contract DepositWithdrawFacet is DiamondModifiers, MinterModifiers, IDepositWith
         // transfer the withdrawn asset to the caller
         IERC20Upgradeable(_collateralAsset).safeTransfer(msg.sender, _withdrawAmount);
 
-        // execute the callback on the caller
-        _postUncheckedCollateralWithdrawal(_account, _collateralAsset, _withdrawAmount, _depositedCollateralAssetIndex);
+        // Executes the callback on the caller after sending them the withdrawn collateral
+        ICollateralReceiver(Meta.msgSender()).onUncheckedCollateralWithdraw(
+            _account,
+            _collateralAsset,
+            _withdrawAmount,
+            _depositedCollateralAssetIndex
+        );
 
         /*
          Perform the MCR check after the callback has been executed
          Ensures accountCollateralValue remains over accountMinColateralValueAtRatio(MCR)
+         Emits MinterEvent.UncheckedCollateralWithdrawn
+         _withdrawAmount is 0 since deposits reduced in recordCollateralWithdrawal
         */
-        ms().verifyAccountCollateral(_account, _collateralAsset, _withdrawAmount);
-        // is this still neccessary since it is emitted in recordCollateralWithdrawal?
-        emit MinterEvent.UncheckedCollateralWithdrawn(_account, _collateralAsset, _withdrawAmount);
-    }
-
-    function _postUncheckedCollateralWithdrawal(
-        address _account,
-        address _collateralAsset,
-        uint _withdrawAmount,
-        uint _depositedCollateralAssetIndex
-    ) internal returns (bytes memory) {
-        /*
-         Executes the callback on the caller after sending them the withdrawn collateral
-         - Not sure where to put the AMM helper interface so temporarily using to execute the CB
-            TODO: Make interface representing contracts that implement onUncheckedWithdraw instead of using low level call
-        */
-        string memory callbackSignature = "onUncheckedCollateralWithdraw(address,address,uint256,uint256)";
-        (bool success, bytes memory data) = Meta.msgSender().call(
-            abi.encodeWithSignature(
-                callbackSignature,
-                _account,
-                _collateralAsset,
-                _withdrawAmount,
-                _depositedCollateralAssetIndex
-            )
-        );
-        require(success, "onUncheckedCollateralWithdraw failed");
-        return data;
+        ms().verifyAccountCollateral(_account, _collateralAsset, 0);
     }
 }
