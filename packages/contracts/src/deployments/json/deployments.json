@@ -5,7 +5,7 @@
       "chainId": "420",
       "contracts": {
         "AccountStateFacet": {
-          "address": "0x4E086BD6b48B999A3183d0577d5178c87D2B1d83",
+          "address": "0xc616907733124c54c1BDB07e5a9D47CB54B7D5Dd",
           "abi": [
             {
               "inputs": [
@@ -2197,436 +2197,6 @@
                 },
                 {
                   "internalType": "uint256",
-                  "name": "_kreskoAssetAmount",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "_feeType",
-                  "type": "uint256"
-                }
-              ],
-              "name": "calcExpectedFee",
-              "outputs": [
-                {
-                  "internalType": "address[]",
-                  "name": "",
-                  "type": "address[]"
-                },
-                {
-                  "internalType": "uint256[]",
-                  "name": "",
-                  "type": "uint256[]"
-                }
-              ],
-              "stateMutability": "view",
-              "type": "function"
-            },
-            {
-              "inputs": [
-                {
-                  "internalType": "address",
-                  "name": "_account",
-                  "type": "address"
-                },
-                {
-                  "internalType": "address",
-                  "name": "_asset",
-                  "type": "address"
-                }
-              ],
-              "name": "collateralDeposits",
-              "outputs": [
-                {
-                  "internalType": "uint256",
-                  "name": "",
-                  "type": "uint256"
-                }
-              ],
-              "stateMutability": "view",
-              "type": "function"
-            },
-            {
-              "inputs": [
-                {
-                  "internalType": "address",
-                  "name": "_account",
-                  "type": "address"
-                }
-              ],
-              "name": "getAccountCollateralRatio",
-              "outputs": [
-                {
-                  "components": [
-                    {
-                      "internalType": "uint256",
-                      "name": "rawValue",
-                      "type": "uint256"
-                    }
-                  ],
-                  "internalType": "struct FixedPoint.Unsigned",
-                  "name": "ratio",
-                  "type": "tuple"
-                }
-              ],
-              "stateMutability": "view",
-              "type": "function"
-            },
-            {
-              "inputs": [
-                {
-                  "internalType": "address",
-                  "name": "_account",
-                  "type": "address"
-                }
-              ],
-              "name": "getAccountCollateralValue",
-              "outputs": [
-                {
-                  "components": [
-                    {
-                      "internalType": "uint256",
-                      "name": "rawValue",
-                      "type": "uint256"
-                    }
-                  ],
-                  "internalType": "struct FixedPoint.Unsigned",
-                  "name": "",
-                  "type": "tuple"
-                }
-              ],
-              "stateMutability": "view",
-              "type": "function"
-            },
-            {
-              "inputs": [
-                {
-                  "internalType": "address",
-                  "name": "_account",
-                  "type": "address"
-                }
-              ],
-              "name": "getAccountKrAssetValue",
-              "outputs": [
-                {
-                  "components": [
-                    {
-                      "internalType": "uint256",
-                      "name": "rawValue",
-                      "type": "uint256"
-                    }
-                  ],
-                  "internalType": "struct FixedPoint.Unsigned",
-                  "name": "",
-                  "type": "tuple"
-                }
-              ],
-              "stateMutability": "view",
-              "type": "function"
-            },
-            {
-              "inputs": [
-                {
-                  "internalType": "address",
-                  "name": "_account",
-                  "type": "address"
-                },
-                {
-                  "components": [
-                    {
-                      "internalType": "uint256",
-                      "name": "rawValue",
-                      "type": "uint256"
-                    }
-                  ],
-                  "internalType": "struct FixedPoint.Unsigned",
-                  "name": "_ratio",
-                  "type": "tuple"
-                }
-              ],
-              "name": "getAccountMinimumCollateralValueAtRatio",
-              "outputs": [
-                {
-                  "components": [
-                    {
-                      "internalType": "uint256",
-                      "name": "rawValue",
-                      "type": "uint256"
-                    }
-                  ],
-                  "internalType": "struct FixedPoint.Unsigned",
-                  "name": "",
-                  "type": "tuple"
-                }
-              ],
-              "stateMutability": "view",
-              "type": "function"
-            },
-            {
-              "inputs": [
-                {
-                  "internalType": "address",
-                  "name": "_account",
-                  "type": "address"
-                },
-                {
-                  "internalType": "address",
-                  "name": "_asset",
-                  "type": "address"
-                }
-              ],
-              "name": "getAccountSingleCollateralValueAndRealValue",
-              "outputs": [
-                {
-                  "components": [
-                    {
-                      "internalType": "uint256",
-                      "name": "rawValue",
-                      "type": "uint256"
-                    }
-                  ],
-                  "internalType": "struct FixedPoint.Unsigned",
-                  "name": "value",
-                  "type": "tuple"
-                },
-                {
-                  "components": [
-                    {
-                      "internalType": "uint256",
-                      "name": "rawValue",
-                      "type": "uint256"
-                    }
-                  ],
-                  "internalType": "struct FixedPoint.Unsigned",
-                  "name": "realValue",
-                  "type": "tuple"
-                }
-              ],
-              "stateMutability": "view",
-              "type": "function"
-            },
-            {
-              "inputs": [
-                {
-                  "internalType": "address[]",
-                  "name": "_accounts",
-                  "type": "address[]"
-                }
-              ],
-              "name": "getCollateralRatiosFor",
-              "outputs": [
-                {
-                  "components": [
-                    {
-                      "internalType": "uint256",
-                      "name": "rawValue",
-                      "type": "uint256"
-                    }
-                  ],
-                  "internalType": "struct FixedPoint.Unsigned[]",
-                  "name": "",
-                  "type": "tuple[]"
-                }
-              ],
-              "stateMutability": "view",
-              "type": "function"
-            },
-            {
-              "inputs": [
-                {
-                  "internalType": "address",
-                  "name": "_account",
-                  "type": "address"
-                },
-                {
-                  "internalType": "address",
-                  "name": "_collateralAsset",
-                  "type": "address"
-                }
-              ],
-              "name": "getDepositedCollateralAssetIndex",
-              "outputs": [
-                {
-                  "internalType": "uint256",
-                  "name": "i",
-                  "type": "uint256"
-                }
-              ],
-              "stateMutability": "view",
-              "type": "function"
-            },
-            {
-              "inputs": [
-                {
-                  "internalType": "address",
-                  "name": "_account",
-                  "type": "address"
-                }
-              ],
-              "name": "getDepositedCollateralAssets",
-              "outputs": [
-                {
-                  "internalType": "address[]",
-                  "name": "",
-                  "type": "address[]"
-                }
-              ],
-              "stateMutability": "view",
-              "type": "function"
-            },
-            {
-              "inputs": [
-                {
-                  "internalType": "address",
-                  "name": "_account",
-                  "type": "address"
-                }
-              ],
-              "name": "getMintedKreskoAssets",
-              "outputs": [
-                {
-                  "internalType": "address[]",
-                  "name": "",
-                  "type": "address[]"
-                }
-              ],
-              "stateMutability": "view",
-              "type": "function"
-            },
-            {
-              "inputs": [
-                {
-                  "internalType": "address",
-                  "name": "_account",
-                  "type": "address"
-                },
-                {
-                  "internalType": "address",
-                  "name": "_kreskoAsset",
-                  "type": "address"
-                }
-              ],
-              "name": "getMintedKreskoAssetsIndex",
-              "outputs": [
-                {
-                  "internalType": "uint256",
-                  "name": "",
-                  "type": "uint256"
-                }
-              ],
-              "stateMutability": "view",
-              "type": "function"
-            },
-            {
-              "inputs": [
-                {
-                  "internalType": "address",
-                  "name": "_account",
-                  "type": "address"
-                },
-                {
-                  "internalType": "address",
-                  "name": "_asset",
-                  "type": "address"
-                }
-              ],
-              "name": "kreskoAssetDebt",
-              "outputs": [
-                {
-                  "internalType": "uint256",
-                  "name": "",
-                  "type": "uint256"
-                }
-              ],
-              "stateMutability": "view",
-              "type": "function"
-            },
-            {
-              "inputs": [
-                {
-                  "internalType": "address",
-                  "name": "_account",
-                  "type": "address"
-                },
-                {
-                  "internalType": "address",
-                  "name": "_asset",
-                  "type": "address"
-                }
-              ],
-              "name": "kreskoAssetDebtInterest",
-              "outputs": [
-                {
-                  "internalType": "uint256",
-                  "name": "assetAmount",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "kissAmount",
-                  "type": "uint256"
-                }
-              ],
-              "stateMutability": "view",
-              "type": "function"
-            },
-            {
-              "inputs": [
-                {
-                  "internalType": "address",
-                  "name": "_account",
-                  "type": "address"
-                }
-              ],
-              "name": "kreskoAssetDebtInterestTotal",
-              "outputs": [
-                {
-                  "internalType": "uint256",
-                  "name": "kissAmount",
-                  "type": "uint256"
-                }
-              ],
-              "stateMutability": "view",
-              "type": "function"
-            },
-            {
-              "inputs": [
-                {
-                  "internalType": "address",
-                  "name": "_account",
-                  "type": "address"
-                },
-                {
-                  "internalType": "address",
-                  "name": "_asset",
-                  "type": "address"
-                }
-              ],
-              "name": "kreskoAssetDebtPrincipal",
-              "outputs": [
-                {
-                  "internalType": "uint256",
-                  "name": "",
-                  "type": "uint256"
-                }
-              ],
-              "stateMutability": "view",
-              "type": "function"
-            },
-            {
-              "inputs": [
-                {
-                  "internalType": "address",
-                  "name": "_account",
-                  "type": "address"
-                },
-                {
-                  "internalType": "address",
-                  "name": "_kreskoAsset",
-                  "type": "address"
-                },
-                {
-                  "internalType": "uint256",
                   "name": "_burnAmount",
                   "type": "uint256"
                 },
@@ -4121,505 +3691,6 @@
               "name": "updateStabilityRateParams",
               "outputs": [],
               "stateMutability": "nonpayable",
-              "type": "function"
-            },
-            {
-              "inputs": [
-                {
-                  "internalType": "address[]",
-                  "name": "_assets",
-                  "type": "address[]"
-                },
-                {
-                  "internalType": "address[]",
-                  "name": "_oracles",
-                  "type": "address[]"
-                },
-                {
-                  "internalType": "address[]",
-                  "name": "_marketStatusOracles",
-                  "type": "address[]"
-                }
-              ],
-              "name": "batchOracleValues",
-              "outputs": [
-                {
-                  "components": [
-                    {
-                      "internalType": "uint256",
-                      "name": "price",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "timestamp",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "address",
-                      "name": "assetAddress",
-                      "type": "address"
-                    },
-                    {
-                      "internalType": "uint80",
-                      "name": "roundId",
-                      "type": "uint80"
-                    },
-                    {
-                      "internalType": "bool",
-                      "name": "marketOpen",
-                      "type": "bool"
-                    }
-                  ],
-                  "internalType": "struct LibUI.Price[]",
-                  "name": "result",
-                  "type": "tuple[]"
-                }
-              ],
-              "stateMutability": "view",
-              "type": "function"
-            },
-            {
-              "inputs": [
-                {
-                  "internalType": "address",
-                  "name": "_account",
-                  "type": "address"
-                },
-                {
-                  "internalType": "address[]",
-                  "name": "_tokens",
-                  "type": "address[]"
-                },
-                {
-                  "internalType": "address",
-                  "name": "_staking",
-                  "type": "address"
-                }
-              ],
-              "name": "getAccountData",
-              "outputs": [
-                {
-                  "components": [
-                    {
-                      "components": [
-                        {
-                          "internalType": "address",
-                          "name": "assetAddress",
-                          "type": "address"
-                        },
-                        {
-                          "internalType": "address",
-                          "name": "oracleAddress",
-                          "type": "address"
-                        },
-                        {
-                          "internalType": "address",
-                          "name": "anchorAddress",
-                          "type": "address"
-                        },
-                        {
-                          "internalType": "uint256",
-                          "name": "amount",
-                          "type": "uint256"
-                        },
-                        {
-                          "components": [
-                            {
-                              "internalType": "uint256",
-                              "name": "rawValue",
-                              "type": "uint256"
-                            }
-                          ],
-                          "internalType": "struct FixedPoint.Unsigned",
-                          "name": "amountUSD",
-                          "type": "tuple"
-                        },
-                        {
-                          "internalType": "uint256",
-                          "name": "index",
-                          "type": "uint256"
-                        },
-                        {
-                          "components": [
-                            {
-                              "internalType": "uint256",
-                              "name": "rawValue",
-                              "type": "uint256"
-                            }
-                          ],
-                          "internalType": "struct FixedPoint.Unsigned",
-                          "name": "kFactor",
-                          "type": "tuple"
-                        },
-                        {
-                          "internalType": "uint256",
-                          "name": "price",
-                          "type": "uint256"
-                        },
-                        {
-                          "internalType": "string",
-                          "name": "symbol",
-                          "type": "string"
-                        },
-                        {
-                          "internalType": "string",
-                          "name": "name",
-                          "type": "string"
-                        },
-                        {
-                          "components": [
-                            {
-                              "internalType": "uint256",
-                              "name": "rawValue",
-                              "type": "uint256"
-                            }
-                          ],
-                          "internalType": "struct FixedPoint.Unsigned",
-                          "name": "openFee",
-                          "type": "tuple"
-                        },
-                        {
-                          "components": [
-                            {
-                              "internalType": "uint256",
-                              "name": "rawValue",
-                              "type": "uint256"
-                            }
-                          ],
-                          "internalType": "struct FixedPoint.Unsigned",
-                          "name": "closeFee",
-                          "type": "tuple"
-                        }
-                      ],
-                      "internalType": "struct LibUI.krAssetInfoUser[]",
-                      "name": "krAssets",
-                      "type": "tuple[]"
-                    },
-                    {
-                      "components": [
-                        {
-                          "internalType": "address",
-                          "name": "assetAddress",
-                          "type": "address"
-                        },
-                        {
-                          "internalType": "address",
-                          "name": "oracleAddress",
-                          "type": "address"
-                        },
-                        {
-                          "internalType": "address",
-                          "name": "anchorAddress",
-                          "type": "address"
-                        },
-                        {
-                          "internalType": "uint256",
-                          "name": "amount",
-                          "type": "uint256"
-                        },
-                        {
-                          "components": [
-                            {
-                              "internalType": "uint256",
-                              "name": "rawValue",
-                              "type": "uint256"
-                            }
-                          ],
-                          "internalType": "struct FixedPoint.Unsigned",
-                          "name": "amountUSD",
-                          "type": "tuple"
-                        },
-                        {
-                          "components": [
-                            {
-                              "internalType": "uint256",
-                              "name": "rawValue",
-                              "type": "uint256"
-                            }
-                          ],
-                          "internalType": "struct FixedPoint.Unsigned",
-                          "name": "cFactor",
-                          "type": "tuple"
-                        },
-                        {
-                          "internalType": "uint8",
-                          "name": "decimals",
-                          "type": "uint8"
-                        },
-                        {
-                          "internalType": "uint256",
-                          "name": "index",
-                          "type": "uint256"
-                        },
-                        {
-                          "internalType": "uint256",
-                          "name": "price",
-                          "type": "uint256"
-                        },
-                        {
-                          "internalType": "string",
-                          "name": "symbol",
-                          "type": "string"
-                        },
-                        {
-                          "internalType": "string",
-                          "name": "name",
-                          "type": "string"
-                        }
-                      ],
-                      "internalType": "struct LibUI.CollateralAssetInfoUser[]",
-                      "name": "collateralAssets",
-                      "type": "tuple[]"
-                    },
-                    {
-                      "components": [
-                        {
-                          "internalType": "uint256",
-                          "name": "rawValue",
-                          "type": "uint256"
-                        }
-                      ],
-                      "internalType": "struct FixedPoint.Unsigned",
-                      "name": "healthFactor",
-                      "type": "tuple"
-                    },
-                    {
-                      "components": [
-                        {
-                          "internalType": "uint256",
-                          "name": "rawValue",
-                          "type": "uint256"
-                        }
-                      ],
-                      "internalType": "struct FixedPoint.Unsigned",
-                      "name": "debtActualUSD",
-                      "type": "tuple"
-                    },
-                    {
-                      "components": [
-                        {
-                          "internalType": "uint256",
-                          "name": "rawValue",
-                          "type": "uint256"
-                        }
-                      ],
-                      "internalType": "struct FixedPoint.Unsigned",
-                      "name": "debtUSD",
-                      "type": "tuple"
-                    },
-                    {
-                      "components": [
-                        {
-                          "internalType": "uint256",
-                          "name": "rawValue",
-                          "type": "uint256"
-                        }
-                      ],
-                      "internalType": "struct FixedPoint.Unsigned",
-                      "name": "collateralActualUSD",
-                      "type": "tuple"
-                    },
-                    {
-                      "components": [
-                        {
-                          "internalType": "uint256",
-                          "name": "rawValue",
-                          "type": "uint256"
-                        }
-                      ],
-                      "internalType": "struct FixedPoint.Unsigned",
-                      "name": "collateralUSD",
-                      "type": "tuple"
-                    },
-                    {
-                      "components": [
-                        {
-                          "internalType": "uint256",
-                          "name": "rawValue",
-                          "type": "uint256"
-                        }
-                      ],
-                      "internalType": "struct FixedPoint.Unsigned",
-                      "name": "minCollateralUSD",
-                      "type": "tuple"
-                    },
-                    {
-                      "components": [
-                        {
-                          "internalType": "uint256",
-                          "name": "rawValue",
-                          "type": "uint256"
-                        }
-                      ],
-                      "internalType": "struct FixedPoint.Unsigned",
-                      "name": "borrowingPowerUSD",
-                      "type": "tuple"
-                    }
-                  ],
-                  "internalType": "struct LibUI.KreskoUser",
-                  "name": "user",
-                  "type": "tuple"
-                },
-                {
-                  "components": [
-                    {
-                      "internalType": "address",
-                      "name": "token",
-                      "type": "address"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "balance",
-                      "type": "uint256"
-                    }
-                  ],
-                  "internalType": "struct LibUI.Balance[]",
-                  "name": "balances",
-                  "type": "tuple[]"
-                },
-                {
-                  "components": [
-                    {
-                      "internalType": "uint256",
-                      "name": "pid",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "address",
-                      "name": "depositToken",
-                      "type": "address"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "totalDeposits",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "allocPoint",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256[]",
-                      "name": "rewardPerBlocks",
-                      "type": "uint256[]"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "lastRewardBlock",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "depositAmount",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "address[]",
-                      "name": "rewardTokens",
-                      "type": "address[]"
-                    },
-                    {
-                      "internalType": "uint256[]",
-                      "name": "rewardAmounts",
-                      "type": "uint256[]"
-                    }
-                  ],
-                  "internalType": "struct LibUI.StakingData[]",
-                  "name": "stakingData",
-                  "type": "tuple[]"
-                }
-              ],
-              "stateMutability": "view",
-              "type": "function"
-            },
-            {
-              "inputs": [
-                {
-                  "internalType": "address[]",
-                  "name": "_allTokens",
-                  "type": "address[]"
-                },
-                {
-                  "internalType": "address[]",
-                  "name": "_assets",
-                  "type": "address[]"
-                },
-                {
-                  "internalType": "address[]",
-                  "name": "_priceFeeds",
-                  "type": "address[]"
-                },
-                {
-                  "internalType": "address[]",
-                  "name": "_marketStatusOracles",
-                  "type": "address[]"
-                }
-              ],
-              "name": "getTokenData",
-              "outputs": [
-                {
-                  "components": [
-                    {
-                      "internalType": "uint8",
-                      "name": "decimals",
-                      "type": "uint8"
-                    },
-                    {
-                      "internalType": "string",
-                      "name": "symbol",
-                      "type": "string"
-                    },
-                    {
-                      "internalType": "string",
-                      "name": "name",
-                      "type": "string"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "totalSupply",
-                      "type": "uint256"
-                    }
-                  ],
-                  "internalType": "struct LibUI.TokenMetadata[]",
-                  "name": "metadatas",
-                  "type": "tuple[]"
-                },
-                {
-                  "components": [
-                    {
-                      "internalType": "uint256",
-                      "name": "price",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "uint256",
-                      "name": "timestamp",
-                      "type": "uint256"
-                    },
-                    {
-                      "internalType": "address",
-                      "name": "assetAddress",
-                      "type": "address"
-                    },
-                    {
-                      "internalType": "uint80",
-                      "name": "roundId",
-                      "type": "uint80"
-                    },
-                    {
-                      "internalType": "bool",
-                      "name": "marketOpen",
-                      "type": "bool"
-                    }
-                  ],
-                  "internalType": "struct LibUI.Price[]",
-                  "name": "prices",
-                  "type": "tuple[]"
-                }
-              ],
-              "stateMutability": "view",
               "type": "function"
             },
             {
@@ -8918,7 +7989,7 @@
           ]
         },
         "KrStakingHelper": {
-          "address": "0xB1A13FbC46800276671403CeDdd528D01a447c8F",
+          "address": "0x85D615C247758F91150f6d5C152e43849b1A357E",
           "abi": [
             {
               "inputs": [
@@ -12973,7 +12044,7 @@
           ]
         },
         "UIDataProviderFacet": {
-          "address": "0xd9FB6E6BEb3a5D536147cA5dC53EfEACFf9c8B32",
+          "address": "0x5Ee65507f29a9b97C0570A707e41D953607a79dc",
           "abi": [
             {
               "inputs": [
@@ -24495,6 +23566,11 @@
                   "internalType": "bool",
                   "name": "_positive",
                   "type": "bool"
+                },
+                {
+                  "internalType": "address[]",
+                  "name": "_pools",
+                  "type": "address[]"
                 }
               ],
               "name": "rebase",
@@ -24701,7 +23777,7 @@
           ]
         },
         "krBTC_Implementation": {
-          "address": "0x2CA00D10fD52A9a957A527f014014B1962ed85BF",
+          "address": "0x4208a5ADE13DEA0b1834B71DAde6f94C7FD4af19",
           "abi": [
             {
               "anonymous": false,
@@ -25232,6 +24308,11 @@
                   "internalType": "bool",
                   "name": "_positive",
                   "type": "bool"
+                },
+                {
+                  "internalType": "address[]",
+                  "name": "_pools",
+                  "type": "address[]"
                 }
               ],
               "name": "rebase",
@@ -26608,6 +25689,11 @@
                   "internalType": "bool",
                   "name": "_positive",
                   "type": "bool"
+                },
+                {
+                  "internalType": "address[]",
+                  "name": "_pools",
+                  "type": "address[]"
                 }
               ],
               "name": "rebase",
@@ -26814,7 +25900,7 @@
           ]
         },
         "krETH_Implementation": {
-          "address": "0xcea6fc4F95bce9a1Fc4135C1c3f822e2f26a4CB8",
+          "address": "0x127f4dA04E1cbAC48b19FB55987798Ef87D80f47",
           "abi": [
             {
               "anonymous": false,
@@ -27345,6 +26431,11 @@
                   "internalType": "bool",
                   "name": "_positive",
                   "type": "bool"
+                },
+                {
+                  "internalType": "address[]",
+                  "name": "_pools",
+                  "type": "address[]"
                 }
               ],
               "name": "rebase",
@@ -28307,6 +27398,11 @@
                   "internalType": "bool",
                   "name": "_positive",
                   "type": "bool"
+                },
+                {
+                  "internalType": "address[]",
+                  "name": "_pools",
+                  "type": "address[]"
                 }
               ],
               "name": "rebase",
@@ -28513,7 +27609,7 @@
           ]
         },
         "krTSLA_Implementation": {
-          "address": "0x47B2BA38520e2b8F028066f95e713ea3F6F48685",
+          "address": "0x6DB044C268ada90fF5793f4F9fF4eC9C7F3ebB72",
           "abi": [
             {
               "anonymous": false,
@@ -29044,6 +28140,11 @@
                   "internalType": "bool",
                   "name": "_positive",
                   "type": "bool"
+                },
+                {
+                  "internalType": "address[]",
+                  "name": "_pools",
+                  "type": "address[]"
                 }
               ],
               "name": "rebase",

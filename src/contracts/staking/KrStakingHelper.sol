@@ -9,9 +9,9 @@ import {IKrStaking, IERC20} from "./interfaces/IKrStaking.sol";
 contract KrStakingHelper {
     using SafeERC20 for IERC20;
 
-    IUniswapV2Router02 public router;
-    IUniswapV2Factory public factory;
-    IKrStaking public staking;
+    IUniswapV2Router02 public immutable router;
+    IUniswapV2Factory public immutable factory;
+    IKrStaking public immutable staking;
 
     constructor(IUniswapV2Router02 _router, IUniswapV2Factory _factory, IKrStaking _staking) {
         router = _router;
