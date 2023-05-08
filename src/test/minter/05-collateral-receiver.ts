@@ -3,7 +3,7 @@ import { fromBig, toBig } from "@kreskolabs/lib";
 import { Error, Role, defaultCollateralArgs, withFixture } from "@test-utils";
 import { addMockCollateralAsset, getMaxWithdrawal } from "@utils/test/helpers/collaterals";
 import { defaultKrAssetArgs } from "@utils/test/mocks";
-import { expect } from "chai";
+import { expect } from "../chai";
 import hre from "hardhat";
 import { Kresko, SmockCollateralReceiver__factory } from "types/typechain";
 
@@ -132,6 +132,43 @@ describe("CollateralReceiver - UncheckedCollateralWithdraw", () => {
                 const balKreskoAfter = await this.collateral.contract.balanceOf(hre.Diamond.address);
 
                 expect(balKreskoBefore).to.equal(balKreskoAfter);
+            });
+            it("should be able to withdraw full collateral and deposit another asset in its place", async function () {
+                const Receiver = (await getReceiver(hre.Diamond)).connect(hre.users.userFive);
+
+                const deposits = await hre.Diamond.collateralDeposits(
+                    hre.users.userFive.address,
+                    this.collateral.address,
+                );
+
+                expect(deposits.gt(0)).to.be.true;
+
+                // set second collateral price to half of the first and balance to twice that
+                await this.secondCollateral.setPrice(fromBig(await this.collateral.getPrice(), 8));
+
+                await this.secondCollateral.mocks!.contract.setVariable("_balances", {
+                    [hre.users.userFive.address]: this.initialBalance,
+                });
+                console.log(await this.secondCollateral.contract.balanceOf(hre.users.userFive.address));
+
+                await Receiver.testDepositAlternate(
+                    this.collateral.address,
+                    deposits.div(2),
+                    this.secondCollateral.address,
+                );
+
+                const secondCollateralDeposits = await hre.Diamond.collateralDeposits(
+                    hre.users.userFive.address,
+                    this.secondCollateral.address,
+                );
+                console.log(secondCollateralDeposits);
+
+                const secondCollateralBalance = await hre.Diamond.collateralDeposits(
+                    hre.users.userFive.address,
+                    this.secondCollateral.address,
+                );
+                console.log(secondCollateralBalance);
+                expect(secondCollateralDeposits.gt(0)).to.be.true;
             });
         });
         describe("#unchecked-withdraw-reverts", () => {

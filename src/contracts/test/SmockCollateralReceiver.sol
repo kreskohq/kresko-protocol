@@ -17,7 +17,7 @@ contract SmockCollateralReceiver is ICollateralReceiver {
     struct Params {
         uint256 val;
         uint256 val1;
-        uint256 val2;
+        address addr;
     }
 
     constructor(address _kresko) {
@@ -44,10 +44,18 @@ contract SmockCollateralReceiver is ICollateralReceiver {
         uint256 _amount,
         function(address, address, uint256, uint256, bytes memory) internal logic
     ) internal {
+        bytes memory data = abi.encode(_amount, 0, address(0));
+        execute(_collateralAsset, _amount, data, logic);
+    }
+
+    function execute(
+        address _collateralAsset,
+        uint256 _amount,
+        bytes memory data,
+        function(address, address, uint256, uint256, bytes memory) internal logic
+    ) internal {
         callbackLogic = logic;
         withdrawalAmountRequested = _amount;
-
-        bytes memory data = abi.encode(_amount, 0, 0);
         kresko.withdrawCollateralUnchecked(msg.sender, _collateralAsset, _amount, 0, data);
     }
 
@@ -74,9 +82,29 @@ contract SmockCollateralReceiver is ICollateralReceiver {
         execute(_collateralAsset, _amount, logicInsufficientRedeposit);
     }
 
+    function testDepositAlternate(address _collateralWithdraw, uint _amount, address _collateralDeposit) external {
+        bytes memory data = abi.encode(_amount, 0, _collateralDeposit);
+        execute(_collateralWithdraw, _amount, data, logicInsufficientRedeposit);
+    }
+
     /* -------------------------------------------------------------------------- */
     /*                             Callback Execution                             */
     /* -------------------------------------------------------------------------- */
+
+    function logicDepositAlternate(
+        address _account,
+        address _collateralAsset,
+        uint256 _withdrawalAmount,
+        uint256 _depositAmount,
+        bytes memory _userData
+    ) internal {
+        console.log(IERC20Upgradeable(userData.addr).balanceOf(_account));
+        userData = abi.decode(_userData, (Params));
+        withdrawalAmountReceived = _withdrawalAmount;
+        // IERC20Upgradeable(userData.addr).approve(address(kresko), userData.val);
+        // redeposit all
+        kresko.depositCollateral(_account, userData.addr, 1);
+    }
 
     function logicBase(
         address _account,
