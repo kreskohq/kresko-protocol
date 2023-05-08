@@ -3,9 +3,10 @@ pragma solidity >=0.8.14;
 
 interface ICollateralReceiver {
     function onUncheckedCollateralWithdraw(
-        address account,
-        address collateralAsset,
-        uint withdrawalAmount,
-        uint depositAmount
-    ) external;
+        address _account,
+        address _collateralAsset,
+        uint _withdrawalAmount,
+        uint _depositAmount,
+        bytes memory _userData
+    ) external returns (bytes memory);
 }

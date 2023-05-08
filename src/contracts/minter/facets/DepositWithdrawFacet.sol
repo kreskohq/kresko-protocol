@@ -103,7 +103,8 @@ contract DepositWithdrawFacet is DiamondModifiers, MinterModifiers, IDepositWith
         address _account,
         address _collateralAsset,
         uint256 _withdrawAmount,
-        uint256 _depositedCollateralAssetIndex
+        uint256 _depositedCollateralAssetIndex,
+        bytes memory _userData
     )
         external
         nonReentrant
@@ -134,7 +135,8 @@ contract DepositWithdrawFacet is DiamondModifiers, MinterModifiers, IDepositWith
             _account,
             _collateralAsset,
             _withdrawAmount,
-            _depositedCollateralAssetIndex
+            _depositedCollateralAssetIndex,
+            _userData
         );
 
         /*
