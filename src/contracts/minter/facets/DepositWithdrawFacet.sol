@@ -48,7 +48,6 @@ contract DepositWithdrawFacet is DiamondModifiers, MinterModifiers, IDepositWith
 
         // Record the collateral deposit.
         ms().recordCollateralDeposit(_account, _collateralAsset, _depositAmount);
-        emit MinterEvent.CollateralDeposited(_account, _collateralAsset, _depositAmount);
     }
 
     /**
@@ -77,6 +76,7 @@ contract DepositWithdrawFacet is DiamondModifiers, MinterModifiers, IDepositWith
 
         uint256 collateralDeposits = ms().getCollateralDeposits(_account, _collateralAsset);
         _withdrawAmount = (_withdrawAmount > collateralDeposits ? collateralDeposits : _withdrawAmount);
+
         ms().verifyAndRecordCollateralWithdrawal(
             _account,
             _collateralAsset,
@@ -86,7 +86,6 @@ contract DepositWithdrawFacet is DiamondModifiers, MinterModifiers, IDepositWith
         );
 
         IERC20Upgradeable(_collateralAsset).safeTransfer(_account, _withdrawAmount);
-        emit MinterEvent.CollateralWithdrawn(_account, _collateralAsset, _withdrawAmount);
     }
 
     /**
@@ -105,12 +104,7 @@ contract DepositWithdrawFacet is DiamondModifiers, MinterModifiers, IDepositWith
         uint256 _withdrawAmount,
         uint256 _depositedCollateralAssetIndex,
         bytes memory _userData
-    )
-        external
-        nonReentrant
-        collateralAssetExists(_collateralAsset)
-        onlyRoleIf(_account != Meta.msgSender(), Role.MANAGER)
-    {
+    ) external collateralAssetExists(_collateralAsset) onlyRole(Role.MANAGER) {
         if (ms().safetyStateSet) {
             ensureNotPaused(_collateralAsset, Action.Withdraw);
         }

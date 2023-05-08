@@ -189,9 +189,9 @@ library LibCollateral {
             _account,
             self.minimumCollateralizationRatio
         );
-        // Require accountCollateralValue - withdrawnCollateralValue >= accountMinCollateralValue.
+        // Require accountMinCollateralValue <= accountCollateralValue - withdrawnCollateralValue.
         require(
-            accountCollateralValue.sub(withdrawnCollateralValue).isGreaterThanOrEqual(accountMinCollateralValue),
+            accountMinCollateralValue.isLessThanOrEqual(accountCollateralValue.sub(withdrawnCollateralValue)),
             Error.COLLATERAL_INSUFFICIENT_AMOUNT
         );
     }
