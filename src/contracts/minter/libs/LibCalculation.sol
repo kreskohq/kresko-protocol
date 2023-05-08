@@ -7,6 +7,7 @@ import {LibDecimals} from "../libs/LibDecimals.sol";
 import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {MinterState} from "../MinterState.sol";
 import {KrAsset} from "../MinterTypes.sol";
+import "hardhat/console.sol";
 
 /**
  * @title Calculation library for liquidation & fee values
@@ -23,14 +24,12 @@ library LibCalculation {
      * @dev Calculates the total value that can be liquidated for a liquidation pair
      * @param _account address to liquidate
      * @param _repayKreskoAsset address of the kreskoAsset being repaid on behalf of the liquidatee
-     * @param _collateralAssetToSeize address of the collateral asset being seized from the liquidatee
      * @return maxLiquidatableUSD USD value that can be liquidated, 0 if the pair has no liquidatable value
      */
     function calculateMaxLiquidatableValueForAssets(
         MinterState storage self,
         address _account,
-        address _repayKreskoAsset,
-        address _collateralAssetToSeize
+        address _repayKreskoAsset
     ) internal view returns (FixedPoint.Unsigned memory maxLiquidatableUSD) {
         FixedPoint.Unsigned memory minCollateralRequired = self.getAccountMinimumCollateralValueAtRatio(
             _account,
@@ -42,45 +41,71 @@ library LibCalculation {
         if (accountCollateralValue.isGreaterThanOrEqual(minCollateralRequired)) {
             return FixedPoint.Unsigned(0);
         }
-
-        FixedPoint.Unsigned memory valueGainedPerUSDRepaid = self.calcValueGainedPerUSDRepaid(
-            _repayKreskoAsset,
-            _collateralAssetToSeize
+        // Max repayment value for this pair
+        maxLiquidatableUSD = minCollateralRequired.sub(accountCollateralValue).div(
+            self.calcValueGainedPerUSDRepaid(_repayKreskoAsset)
         );
 
-        // Max repayment value for this pair
-        maxLiquidatableUSD = minCollateralRequired.sub(accountCollateralValue).div(valueGainedPerUSDRepaid);
+        // if (maxLiquidatableUSD.isLessThan(self.minimumDebtValue)) {
+        //     return self.minimumDebtValue;
+        // }
+        console.log(self.calcValueGainedPerUSDRepaid(_repayKreskoAsset).rawValue);
+        console.log("maxliqusd", maxLiquidatableUSD.rawValue);
+        console.log("maxlt", maxLiquidatableUSD.div(self.liquidationThreshold).rawValue);
+        return maxLiquidatableUSD.div(self.liquidationThreshold);
 
-        if (maxLiquidatableUSD.isLessThan(self.minimumDebtValue)) {
-            return self.minimumDebtValue;
-        }
-        // Diminish liquidatable value for assets with lower cFactor
-        // This is desired as they have more seizable value.
-        FixedPoint.Unsigned memory cFactor = self.collateralAssets[_collateralAssetToSeize].factor;
+        // // Diminish liquidatable value for assets with lower cFactor
+        // // This is desired as they have more seizable value.
+        // FixedPoint.Unsigned memory cFactor = self.collateralAssets[_collateralAssetToSeize].factor;
 
-        if (
-            self.depositedCollateralAssets[_account].length > 1 && cFactor.isLessThan(FixedPoint.ONE_HUNDRED_PERCENT())
-        ) {
-            // cFactor^4 is the diminishing factor (cFactor = 1 == nothing happens)
-            return maxLiquidatableUSD.mul(cFactor.pow(4));
-        }
+        // if (
+        //     self.depositedCollateralAssets[_account].length > 1 && cFactor.isLessThan(FixedPoint.ONE_HUNDRED_PERCENT())
+        // ) {
+        //     // cFactor^4 is the diminishing factor (cFactor = 1 == nothing happens)
+        //     return maxLiquidatableUSD.mul(cFactor.pow(4));
+        // }
     }
 
+    /**
+     * @notice Calculates the value gained per USD repaid in liquidation for a given kreskoAsset
+     * @dev (LiquidationThreshold - Asset closeFee - liquidationIncentive) / liquidationThreshold
+     * @param _repayKreskoAsset The kreskoAsset being repaid in the liquidation
+     */
     function calcValueGainedPerUSDRepaid(
         MinterState storage self,
-        address _repayKreskoAsset,
-        address _collateralToSeize
-    ) internal view returns (FixedPoint.Unsigned memory) {
-        KrAsset memory krAsset = self.kreskoAssets[_repayKreskoAsset];
-        FixedPoint.Unsigned memory cFactor = self.collateralAssets[_collateralToSeize].factor;
+        address _repayKreskoAsset
+    )
+        internal
+        view
+        returns (
+            // address _collateralToSeize
+            FixedPoint.Unsigned memory
+        )
+    {
         return
-            krAsset
-                .kFactor
-                .mul(self.liquidationThreshold)
-                .mul(FixedPoint.ONE_HUNDRED_PERCENT().sub(krAsset.closeFee))
-                .mul(cFactor)
-                .div(self.liquidationIncentiveMultiplier)
-                .sub(FixedPoint.ONE_USD());
+            FixedPoint
+                .Unsigned(
+                    self.liquidationThreshold.rawValue -
+                        self.liquidationIncentiveMultiplier.rawValue -
+                        self.kreskoAssets[_repayKreskoAsset].closeFee.rawValue
+                )
+                .div(self.liquidationThreshold);
+        // return
+        //     krAsset
+        //         .kFactor
+        //         .mul(self.liquidationThreshold)
+        //         .mul(FixedPoint.ONE_HUNDRED_PERCENT().sub(krAsset.closeFee))
+        //         .div(cFactor)
+        //         .div(self.liquidationIncentiveMultiplier)
+        //         .sub(FixedPoint.ONE_USD());
+        // return
+        //     krAsset
+        //         .kFactor
+        //         .mul(self.liquidationThreshold)
+        //         .mul(FixedPoint.ONE_HUNDRED_PERCENT().sub(krAsset.closeFee))
+        //         .div(cFactor)
+        //         .div(self.liquidationIncentiveMultiplier)
+        //         .sub(FixedPoint.ONE_USD());
     }
 
     /**
@@ -93,7 +118,7 @@ library LibCalculation {
         FixedPoint.Unsigned memory _liquidationIncentiveMultiplier,
         FixedPoint.Unsigned memory _collateralOraclePriceUSD,
         FixedPoint.Unsigned memory _kreskoAssetRepayAmountUSD
-    ) internal pure returns (FixedPoint.Unsigned memory) {
+    ) internal view returns (FixedPoint.Unsigned memory) {
         // Seize amount = (repay amount USD * liquidation incentive / collateral price USD).
         // Denominate seize amount in collateral type
         // Apply liquidation incentive multiplier

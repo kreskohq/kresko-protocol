@@ -26,20 +26,20 @@ export const compilers: SolcUserConfig[] = [
                     deduplicate: true,
                 },
             },
-            outputSelection: {
-                "*": {
-                    "*": [
-                        "metadata",
-                        "abi",
-                        "storageLayout",
-                        "evm.methodIdentifiers",
-                        "devdoc",
-                        "userdoc",
-                        "evm.gasEstimates",
-                        "evm.byteCode",
-                    ],
-                },
-            },
+            // outputSelection: {
+            //     "*": {
+            //         "*": [
+            //             "metadata",
+            //             "abi",
+            //             "storageLayout",
+            //             "evm.methodIdentifiers",
+            //             "devdoc",
+            //             "userdoc",
+            //             "evm.gasEstimates",
+            //             "evm.byteCode",
+            //         ],
+            //     },
+            // },
         },
     },
     {

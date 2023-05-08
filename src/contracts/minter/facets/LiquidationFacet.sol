@@ -19,6 +19,7 @@ import {DiamondModifiers} from "../../shared/Modifiers.sol";
 import {Constants, KrAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";
+import "hardhat/console.sol";
 
 /**
  * @author Kresko
@@ -72,22 +73,23 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         // Repay amount USD = repay amount * KR asset USD exchange rate.
 
         FixedPoint.Unsigned memory repayAmountUSD = s.kreskoAssets[_repayKreskoAsset].fixedPointUSD(_repayAmount);
-        // Get the scaled debt amount
-        uint256 krAssetDebt = s.getKreskoAssetDebtPrincipal(_account, _repayKreskoAsset);
-        // Avoid stack too deep error
+        // Avoid deep stack
         {
-            // Liquidator may not repay more value than what the liquidation pair allows
-            // Nor repay more tokens than the account holds debt for the asset
-            FixedPoint.Unsigned memory maxLiquidation = s.calculateMaxLiquidatableValueForAssets(
-                _account,
-                _repayKreskoAsset,
-                _collateralAssetToSeize
-            );
+            console.log("repayKrusd", repayAmountUSD.rawValue);
+            // Get the principal debt amount which is unscaled for interest.
+            uint256 krAssetDebt = s.getKreskoAssetDebtPrincipal(_account, _repayKreskoAsset);
+            // Cannot liquidate more than the account's debt
             require(krAssetDebt >= _repayAmount, Error.KRASSET_BURN_AMOUNT_OVERFLOW);
-            require(repayAmountUSD.isLessThanOrEqual(maxLiquidation), Error.LIQUIDATION_OVERFLOW);
+
+            // We limit liquidations to exactly Liquidation Threshold here.
+            FixedPoint.Unsigned memory maxLiquidableUSD = s.calculateMaxLiquidatableValueForAssets(
+                _account,
+                _repayKreskoAsset
+            );
+            require(repayAmountUSD.isLessThanOrEqual(maxLiquidableUSD), Error.LIQUIDATION_OVERFLOW);
         }
 
-        // Charge burn fee from the liquidated user
+        // Charge close fee from the liquidated user
         s.chargeCloseFee(_account, _repayKreskoAsset, _repayAmount);
 
         // Perform the liquidation by burning KreskoAssets from msg.sender
@@ -204,14 +206,12 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
      * @dev Calculates the total value that can be liquidated for a liquidation pair
      * @param _account address to liquidate
      * @param _repayKreskoAsset address of the kreskoAsset being repaid on behalf of the liquidatee
-     * @param _collateralAssetToSeize address of the collateral asset being seized from the liquidatee
      * @return maxLiquidatableUSD USD value that can be liquidated, 0 if the pair has no liquidatable value
      */
     function calculateMaxLiquidatableValueForAssets(
         address _account,
-        address _repayKreskoAsset,
-        address _collateralAssetToSeize
+        address _repayKreskoAsset
     ) public view returns (FixedPoint.Unsigned memory maxLiquidatableUSD) {
-        return ms().calculateMaxLiquidatableValueForAssets(_account, _repayKreskoAsset, _collateralAssetToSeize);
+        return ms().calculateMaxLiquidatableValueForAssets(_account, _repayKreskoAsset);
     }
 }

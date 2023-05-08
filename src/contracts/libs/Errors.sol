@@ -80,6 +80,8 @@ library Error {
     string public constant KRASSET_INVALID_ANCHOR = "240"; // krAsset anchor does not support the correct interfaceId
     string public constant KRASSET_INVALID_CONTRACT = "241"; // krAsset does not support the correct interfaceId
     string public constant KRASSET_MARKET_CLOSED = "242"; // KrAsset's market is currently closed
+    string public constant NO_KRASSETS_MINTED = "243"; // Account has no active KreskoAsset positions
+    string public constant NO_COLLATERAL_DEPOSITS = "244"; // Account has no active Collateral deposits
 
     /* -------------------------------------------------------------------------- */
     /*                                   3. Staking                               */
