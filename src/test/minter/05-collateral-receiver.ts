@@ -1,5 +1,5 @@
 import { smock } from "@defi-wonderland/smock";
-import { toBig } from "@kreskolabs/lib";
+import { fromBig, toBig } from "@kreskolabs/lib";
 import { Error, Role, defaultCollateralArgs, withFixture } from "@test-utils";
 import { addMockCollateralAsset, getMaxWithdrawal } from "@utils/test/helpers/collaterals";
 import { defaultKrAssetArgs } from "@utils/test/mocks";
@@ -30,7 +30,7 @@ describe("CollateralReceiver - UncheckedCollateralWithdraw", () => {
         });
         this.collateral = this.collaterals!.find(c => c.deployArgs!.name === defaultCollateralArgs.name)!;
         this.krAsset = this.krAssets!.find(c => c.deployArgs!.name === defaultKrAssetArgs.name)!;
-        this.krAsset.setPrice(11);
+        this.krAsset.setPrice(10);
         this.initialBalance = toBig(100000);
 
         await this.collateral.mocks!.contract.setVariable("_balances", {
