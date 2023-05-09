@@ -21,8 +21,8 @@ library Constants {
     /// @dev The maximum configurable open fee.
     uint256 constant MAX_OPEN_FEE = 10e16; // 10%
 
-    /// @dev The minimum configurable minimum collateralization ratio, must be greater than 100%.
-    uint256 constant MIN_COLLATERALIZATION_RATIO = ONE_HUNDRED_PERCENT + 1 wei;
+    /// @dev The minimum configurable minimum collateralization ratio.
+    uint256 constant MIN_COLLATERALIZATION_RATIO = ONE_HUNDRED_PERCENT;
 
     /// @dev The minimum configurable liquidation incentive multiplier.
     /// This means liquidator only receives equal amount of collateral to debt repaid.
