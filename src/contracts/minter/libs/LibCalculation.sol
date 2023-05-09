@@ -58,7 +58,8 @@ library LibCalculation {
 
     /**
      * @notice Calculates the value gained per USD repaid in liquidation for a given kreskoAsset
-     * @dev (LiquidationThreshold - Asset closeFee - liquidationIncentive) / liquidationThreshold
+     * @dev (DebtFactor - Asset closeFee - liquidationIncentive) / DebtFactor
+     * @param _debtFactor Ratio of adjusted debt value to real value of the kreskoAsset being repaid
      * @param _repayKreskoAsset The kreskoAsset being repaid in the liquidation
      */
     function calcValueGainedPerUSDRepaid(
