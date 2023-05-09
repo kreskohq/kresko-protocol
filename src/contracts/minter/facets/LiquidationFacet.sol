@@ -16,7 +16,7 @@ import {MinterEvent} from "../../libs/Events.sol";
 import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
 import {DiamondModifiers} from "../../shared/Modifiers.sol";
 
-import {Constants, KrAsset} from "../MinterTypes.sol";
+import {Constants, KrAsset, CollateralAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";
 
@@ -56,6 +56,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         uint256 _depositedCollateralAssetIndex
     ) external nonReentrant {
         MinterState storage s = ms();
+        CollateralAsset memory collateral = s.collateralAssets[_collateralAssetToSeize];
         {
             // No zero repays
             require(_repayAmount > 0, Error.ZERO_REPAY);
@@ -63,10 +64,10 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
             require(msg.sender != _account, Error.SELF_LIQUIDATION);
             // krAsset exists
             require(s.kreskoAssets[_repayKreskoAsset].exists, Error.KRASSET_DOESNT_EXIST);
+            // Collateral exists
+            require(collateral.exists, Error.COLLATERAL_DOESNT_EXIST);
             // Check that this account is below its minimum collateralization ratio and can be liquidated.
             require(s.isAccountLiquidatable(_account), Error.NOT_LIQUIDATABLE);
-            // Collateral exists
-            require(s.collateralAssets[_collateralAssetToSeize].exists, Error.COLLATERAL_DOESNT_EXIST);
         }
 
         // Repay amount USD = repay amount * KR asset USD exchange rate.
@@ -95,10 +96,10 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         uint256 seizedAmount = _liquidateAssets(
             _account,
             _repayAmount,
-            s.collateralAssets[_collateralAssetToSeize].decimals.fromCollateralFixedPointAmount(
+            collateral.decimals.fromCollateralFixedPointAmount(
                 LibCalculation.calculateAmountToSeize(
-                    s.liquidationIncentiveMultiplier,
-                    s.collateralAssets[_collateralAssetToSeize].fixedPointPrice(),
+                    collateral.liquidationIncentive,
+                    collateral.fixedPointPrice(),
                     repayAmountUSD
                 )
             ),
