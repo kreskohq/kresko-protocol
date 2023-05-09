@@ -778,7 +778,7 @@ library FixedPoint {
     }
 
     function ONE_USD() internal pure returns (Unsigned memory) {
-        return FixedPoint.Unsigned(1e8);
+        return FixedPoint.Unsigned(1e9);
     }
 
     function toFixedPoint(uint256 value) internal pure returns (Unsigned memory) {
