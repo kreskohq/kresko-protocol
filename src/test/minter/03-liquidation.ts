@@ -20,7 +20,7 @@ import { MinterEvent__factory } from "types/typechain";
 import { LiquidationOccurredEvent } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
 const INTEREST_RATE_DELTA = 0.01;
-const USD_DELTA = 0.00000001;
+const USD_DELTA = toBig(0.1, "gwei");
 describe("Minter", () => {
     withFixture(["minter-test"]);
     beforeEach(async function () {
