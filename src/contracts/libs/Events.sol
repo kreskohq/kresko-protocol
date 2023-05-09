@@ -79,6 +79,18 @@ library MinterEvent {
     event CollateralWithdrawn(address indexed account, address indexed collateralAsset, uint256 indexed amount);
 
     /**
+     * @notice Emitted when AMM helper withdraws account collateral without MCR checks.
+     * @param account The address of the account withdrawing collateral.
+     * @param collateralAsset The address of the collateral asset.
+     * @param amount The amount of the collateral asset that was withdrawn.
+     */
+    event UncheckedCollateralWithdrawn(
+        address indexed account,
+        address indexed collateralAsset,
+        uint256 indexed amount
+    );
+
+    /**
      * @notice Emitted when AMM oracle is set.
      * @param ammOracle The address of the AMM oracle.
      */

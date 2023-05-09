@@ -85,28 +85,8 @@ library LibCollateral {
             Error.ARRAY_OUT_OF_BOUNDS
         );
 
-        // Ensure the withdrawal does not result in the account having a collateral value
-        // under the minimum collateral amount required to maintain a healthy position.
-        // I.e. the new account's collateral value must still exceed the account's minimum
-        // collateral value.
-        // Get the account's current collateral value.
-        FixedPoint.Unsigned memory accountCollateralValue = self.getAccountCollateralValue(_account);
-        // Get the collateral value that the account will lose as a result of this withdrawal.
-        (FixedPoint.Unsigned memory withdrawnCollateralValue, ) = self.getCollateralValueAndOraclePrice(
-            _collateralAsset,
-            _withdrawAmount,
-            false // Take the collateral factor into consideration.
-        );
-        // Get the account's minimum collateral value.
-        FixedPoint.Unsigned memory accountMinCollateralValue = self.getAccountMinimumCollateralValueAtRatio(
-            _account,
-            self.minimumCollateralizationRatio
-        );
-        // Require accountCollateralValue - withdrawnCollateralValue >= accountMinCollateralValue.
-        require(
-            accountCollateralValue.sub(withdrawnCollateralValue).isGreaterThanOrEqual(accountMinCollateralValue),
-            Error.COLLATERAL_INSUFFICIENT_AMOUNT
-        );
+        // Ensure that the operation passes checks MCR checks
+        verifyAccountCollateral(self, _account, _collateralAsset, _withdrawAmount);
 
         // Record the withdrawal.
         self.collateralDeposits[_account][_collateralAsset] = self
@@ -154,5 +134,65 @@ library LibCollateral {
         }
 
         emit MinterEvent.CollateralDeposited(_account, _collateralAsset, _depositAmount);
+    }
+
+    function recordCollateralWithdrawal(
+        MinterState storage self,
+        address _account,
+        address _collateralAsset,
+        uint256 _withdrawAmount,
+        uint256 _collateralDeposits,
+        uint256 _depositedCollateralAssetIndex
+    ) internal {
+        require(_withdrawAmount > 0, Error.ZERO_WITHDRAW);
+        require(
+            _depositedCollateralAssetIndex <= self.depositedCollateralAssets[_account].length - 1,
+            Error.ARRAY_OUT_OF_BOUNDS
+        );
+        // ensure that the handler does not attempt to withdraw more collateral than the account has
+        require(_collateralDeposits >= _withdrawAmount, Error.COLLATERAL_INSUFFICIENT_AMOUNT);
+
+        // Record the withdrawal.
+        self.collateralDeposits[_account][_collateralAsset] = self
+            .collateralAssets[_collateralAsset]
+            .toNonRebasingAmount(_collateralDeposits - _withdrawAmount);
+
+        // If the user is withdrawing all of the collateral asset, remove the collateral asset
+        // from the user's deposited collateral assets array.
+        if (_withdrawAmount == _collateralDeposits) {
+            self.depositedCollateralAssets[_account].removeAddress(_collateralAsset, _depositedCollateralAssetIndex);
+        }
+
+        emit MinterEvent.UncheckedCollateralWithdrawn(_account, _collateralAsset, _withdrawAmount);
+    }
+
+    function verifyAccountCollateral(
+        MinterState storage self,
+        address _account,
+        address _collateralAsset,
+        uint256 _withdrawAmount
+    ) internal view {
+        // Ensure the withdrawal does not result in the account having a collateral value
+        // under the minimum collateral amount required to maintain a healthy position.
+        // I.e. the new account's collateral value must still exceed the account's minimum
+        // collateral value.
+        // Get the account's current collateral value.
+        FixedPoint.Unsigned memory accountCollateralValue = self.getAccountCollateralValue(_account);
+        // Get the collateral value that the account will lose as a result of this withdrawal.
+        (FixedPoint.Unsigned memory withdrawnCollateralValue, ) = self.getCollateralValueAndOraclePrice(
+            _collateralAsset,
+            _withdrawAmount,
+            false // Take the collateral factor into consideration.
+        );
+        // Get the account's minimum collateral value.
+        FixedPoint.Unsigned memory accountMinCollateralValue = self.getAccountMinimumCollateralValueAtRatio(
+            _account,
+            self.minimumCollateralizationRatio
+        );
+        // Require accountMinCollateralValue <= accountCollateralValue - withdrawnCollateralValue.
+        require(
+            accountMinCollateralValue.isLessThanOrEqual(accountCollateralValue.sub(withdrawnCollateralValue)),
+            Error.COLLATERAL_INSUFFICIENT_AMOUNT
+        );
     }
 }
