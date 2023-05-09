@@ -10,7 +10,7 @@ import {
 } from "@test-utils";
 import { expect } from "@test/chai";
 
-import { fromBig, getInternalEvent, toBig } from "@kreskolabs/lib";
+import { fromBig, getInternalEvent, toBig, toFixedPoint } from "@kreskolabs/lib";
 import { Error } from "@utils/test/errors";
 import { addMockCollateralAsset, depositCollateral } from "@utils/test/helpers/collaterals";
 import { mintKrAsset } from "@utils/test/helpers/krassets";
@@ -55,8 +55,8 @@ describe("Minter", () => {
         await hre.Diamond.connect(hre.users.deployer).addCollateralAsset(
             this.krAsset!.contract.address,
             this.krAsset!.anchor!.address,
-            hre.toBig(1),
-            toBig(1.05),
+            toFixedPoint(1),
+            toFixedPoint(1.05),
             assetInfo.oracle,
             assetInfo.oracle,
         );
@@ -142,6 +142,7 @@ describe("Minter", () => {
             const maxLiquidatableValue = await hre.Diamond.calculateMaxLiquidatableValueForAssets(
                 user.address,
                 this.krAsset!.address,
+                this.collateral.address,
             );
 
             expect(expectedMaxLiquidatableValue).to.equal(maxLiquidatableValue.rawValue);
@@ -171,6 +172,7 @@ describe("Minter", () => {
             const maxLiquidatableValue = await hre.Diamond.calculateMaxLiquidatableValueForAssets(
                 user.address,
                 this.krAsset!.address,
+                this.collateral.address,
             );
 
             expect(expectedMaxLiquidatableValue).to.equal(maxLiquidatableValue.rawValue);
@@ -185,6 +187,7 @@ describe("Minter", () => {
             const maxLiquidatableValueNewCollateral = await hre.Diamond.calculateMaxLiquidatableValueForAssets(
                 user.address,
                 this.krAsset!.address,
+                this.collateral.address,
             );
 
             expect(expectedMaxLiquidatableValueNewCollateral).to.equal(maxLiquidatableValueNewCollateral.rawValue);
@@ -264,6 +267,7 @@ describe("Minter", () => {
                 const maxLiq = await hre.Diamond.calculateMaxLiquidatableValueForAssets(
                     hre.users.userOne.address,
                     this.krAsset!.address,
+                    this.collateral.address,
                 );
                 const maxRepayAmount = hre.toBig(Number(maxLiq.rawValue.div(await this.krAsset!.getPrice())));
                 const mintedKreskoAssetIndex = 0;
@@ -333,6 +337,7 @@ describe("Minter", () => {
                         await hre.Diamond.calculateMaxLiquidatableValueForAssets(
                             hre.users.userOne.address,
                             this.krAsset!.address,
+                            this.collateral.address,
                         )
                     ).rawValue,
                     8,
@@ -442,6 +447,7 @@ describe("Minter", () => {
                         await hre.Diamond.calculateMaxLiquidatableValueForAssets(
                             hre.users.userOne.address,
                             this.krAsset!.address,
+                            this.collateral.address,
                         )
                     ).rawValue,
                     8,

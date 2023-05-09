@@ -57,13 +57,14 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
     ) external nonReentrant {
         MinterState storage s = ms();
         CollateralAsset memory collateral = s.collateralAssets[_collateralAssetToSeize];
+        KrAsset memory krAsset = s.kreskoAssets[_repayKreskoAsset];
         {
             // No zero repays
             require(_repayAmount > 0, Error.ZERO_REPAY);
             // Borrower cannot liquidate themselves
             require(msg.sender != _account, Error.SELF_LIQUIDATION);
             // krAsset exists
-            require(s.kreskoAssets[_repayKreskoAsset].exists, Error.KRASSET_DOESNT_EXIST);
+            require(krAsset.exists, Error.KRASSET_DOESNT_EXIST);
             // Collateral exists
             require(collateral.exists, Error.COLLATERAL_DOESNT_EXIST);
             // Check that this account is below its minimum collateralization ratio and can be liquidated.
@@ -71,8 +72,8 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         }
 
         // Repay amount USD = repay amount * KR asset USD exchange rate.
+        FixedPoint.Unsigned memory repayAmountUSD = krAsset.fixedPointUSD(_repayAmount);
 
-        FixedPoint.Unsigned memory repayAmountUSD = s.kreskoAssets[_repayKreskoAsset].fixedPointUSD(_repayAmount);
         // Avoid deep stack
         {
             // Get the principal debt amount which is unscaled for interest.
@@ -83,7 +84,8 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
             // We limit liquidations to exactly Liquidation Threshold here.
             FixedPoint.Unsigned memory maxLiquidableUSD = s.calculateMaxLiquidatableValueForAssets(
                 _account,
-                _repayKreskoAsset
+                krAsset,
+                collateral
             );
             require(repayAmountUSD.isLessThanOrEqual(maxLiquidableUSD), Error.LIQUIDATION_OVERFLOW);
         }
@@ -143,11 +145,13 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         uint256 _depositedCollateralAssetIndex
     ) internal returns (uint256) {
         MinterState storage s = ms();
-        KrAsset memory krAsset = s.kreskoAssets[_repayKreskoAsset];
 
         {
             // Subtract repaid Kresko assets from liquidated user's recorded debt.
-            uint256 destroyed = IKreskoAssetIssuer(krAsset.anchor).destroy(_repayAmount, msg.sender);
+            uint256 destroyed = IKreskoAssetIssuer(s.kreskoAssets[_repayKreskoAsset].anchor).destroy(
+                _repayAmount,
+                msg.sender
+            );
             s.kreskoAssetDebt[_account][_repayKreskoAsset] -= destroyed;
 
             // Update stability rate values
@@ -209,8 +213,14 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
      */
     function calculateMaxLiquidatableValueForAssets(
         address _account,
-        address _repayKreskoAsset
+        address _repayKreskoAsset,
+        address _collateralAssetToSeize
     ) public view returns (FixedPoint.Unsigned memory maxLiquidatableUSD) {
-        return ms().calculateMaxLiquidatableValueForAssets(_account, _repayKreskoAsset);
+        return
+            ms().calculateMaxLiquidatableValueForAssets(
+                _account,
+                ms().kreskoAssets[_repayKreskoAsset],
+                ms().collateralAssets[_collateralAssetToSeize]
+            );
     }
 }

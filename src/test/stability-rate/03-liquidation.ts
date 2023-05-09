@@ -221,7 +221,9 @@ describe("Stability Rates", () => {
 
             // validate interest accrual changes
             expect(accountCollateralAfter).to.equal(accountCollateralBefore.sub(event.collateralSent));
-            const liquidationIncentive = fromBig((await hre.Diamond.liquidationIncentiveMultiplier()).rawValue);
+            const liquidationIncentive = fromBig(
+                (await hre.Diamond.collateralAsset(this.collateral.address)).liquidationIncentive.rawValue,
+            );
             const expectedCollateral =
                 (accruedKissInterest / fromBig(await this.collateral.getPrice(), 8)) * liquidationIncentive;
             // event validation
@@ -297,7 +299,9 @@ describe("Stability Rates", () => {
 
             // interest accrued changes
             expect(interestKissTotalAfter).to.closeTo(interestKissTotal - fromBig(event.repayUSD), 0.0001);
-            const liquidationIncentive = fromBig((await hre.Diamond.liquidationIncentiveMultiplier()).rawValue);
+            const liquidationIncentive = fromBig(
+                (await hre.Diamond.collateralAsset(this.collateral.address)).liquidationIncentive.rawValue,
+            );
             const expectedCollateral = (repayUSD / fromBig(await this.collateral.getPrice(), 8)) * liquidationIncentive;
             // event validation
             expect(event.account).to.equal(userTwo.address);

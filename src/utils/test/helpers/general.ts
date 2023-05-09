@@ -18,8 +18,10 @@ export const getMockOracleFor = async (assetName = "Asset", price = defaultOracl
 
     MockFeed.latestAnswer.returns(hre.toBig(price, 8));
     MockFeed.latestMarketOpen.returns(marketOpen);
+    MockFeed.decimals.returns(8);
     FakeFeed.latestAnswer.returns(hre.toBig(price, 8));
     FakeFeed.latestMarketOpen.returns(marketOpen);
+    FakeFeed.decimals.returns(8);
     return [MockFeed, FakeFeed] as const;
 };
 

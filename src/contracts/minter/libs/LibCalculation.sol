@@ -6,7 +6,7 @@ import {MinterEvent} from "../../libs/Events.sol";
 import {LibDecimals} from "../libs/LibDecimals.sol";
 import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {MinterState} from "../MinterState.sol";
-import {KrAsset} from "../MinterTypes.sol";
+import {KrAsset, CollateralAsset} from "../MinterTypes.sol";
 
 /**
  * @title Calculation library for liquidation & fee values
@@ -23,12 +23,14 @@ library LibCalculation {
      * @dev Calculates the total value that can be liquidated for a liquidation pair
      * @param _account address to liquidate
      * @param _repayKreskoAsset address of the kreskoAsset being repaid on behalf of the liquidatee
+     * @param _collateralAssetToSeize The collateral asset being seized in the liquidation
      * @return maxLiquidatableUSD USD value that can be liquidated, 0 if the pair has no liquidatable value
      */
     function calculateMaxLiquidatableValueForAssets(
         MinterState storage self,
         address _account,
-        address _repayKreskoAsset
+        KrAsset memory _repayKreskoAsset,
+        CollateralAsset memory _collateralAssetToSeize
     ) internal view returns (FixedPoint.Unsigned memory maxLiquidatableUSD) {
         FixedPoint.Unsigned memory minCollateralRequired = self.getAccountMinimumCollateralValueAtRatio(
             _account,
@@ -41,12 +43,10 @@ library LibCalculation {
             return FixedPoint.Unsigned(0);
         }
 
-        FixedPoint.Unsigned memory debtFactor = self.kreskoAssets[_repayKreskoAsset].kFactor.mul(
-            self.liquidationThreshold
-        );
+        FixedPoint.Unsigned memory debtFactor = _repayKreskoAsset.kFactor.mul(self.liquidationThreshold);
         // Max repayment value for this pair
         maxLiquidatableUSD = minCollateralRequired.sub(accountCollateralValue).div(
-            self.calcValueGainedPerUSDRepaid(debtFactor, _repayKreskoAsset)
+            calcValueGainedPerUSDRepaid(debtFactor, _repayKreskoAsset, _collateralAssetToSeize)
         );
 
         if (maxLiquidatableUSD.isLessThan(self.minimumDebtValue)) {
@@ -61,18 +61,19 @@ library LibCalculation {
      * @dev (DebtFactor - Asset closeFee - liquidationIncentive) / DebtFactor
      * @param _debtFactor Ratio of adjusted debt value to real value of the kreskoAsset being repaid
      * @param _repayKreskoAsset The kreskoAsset being repaid in the liquidation
+     * @param _collateralAssetToSeize The collateral asset being seized in the liquidation
      */
     function calcValueGainedPerUSDRepaid(
-        MinterState storage self,
         FixedPoint.Unsigned memory _debtFactor,
-        address _repayKreskoAsset
-    ) internal view returns (FixedPoint.Unsigned memory) {
+        KrAsset memory _repayKreskoAsset,
+        CollateralAsset memory _collateralAssetToSeize
+    ) internal pure returns (FixedPoint.Unsigned memory) {
         return
             FixedPoint
                 .Unsigned(
                     _debtFactor.rawValue -
-                        self.liquidationIncentiveMultiplier.rawValue -
-                        self.kreskoAssets[_repayKreskoAsset].closeFee.rawValue
+                        _collateralAssetToSeize.liquidationIncentive.rawValue -
+                        _repayKreskoAsset.closeFee.rawValue
                 )
                 .div(_debtFactor);
     }

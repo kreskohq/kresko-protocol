@@ -6,7 +6,8 @@ import {FixedPoint} from "../../libs/FixedPoint.sol";
 interface ILiquidationFacet {
     function calculateMaxLiquidatableValueForAssets(
         address _account,
-        address _repayKreskoAsset
+        address _repayKreskoAsset,
+        address _collateralAssetToSeize
     ) external view returns (FixedPoint.Unsigned memory maxLiquidatableUSD);
 
     function isAccountLiquidatable(address _account) external view returns (bool);

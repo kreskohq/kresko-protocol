@@ -63,7 +63,7 @@ library Error {
     string public constant KRASSET_MINT_AMOUNT_LOW = "223"; // Debt position must be greater than the minimum debt position value
     string public constant KRASSET_MAX_SUPPLY_REACHED = "224"; // KrAsset being minted has reached its current supply limit
     string public constant SELF_LIQUIDATION = "225"; // Account cannot liquidate itself
-    string public constant ZERO_REPAY = "226"; // Account cannot liquidate itself
+    string public constant ZERO_REPAY = "226"; // Cannot liquidate zero value
     string public constant STALE_PRICE = "227"; // Price for the asset is stale
     string public constant LIQUIDATION_OVERFLOW = "228"; // Repaying more USD value than allowed
     string public constant ADDRESS_INVALID_SAFETY_COUNCIL = "229"; // Account responsible for the safety council role must be a multisig
