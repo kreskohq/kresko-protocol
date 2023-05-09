@@ -19,7 +19,6 @@ import {DiamondModifiers} from "../../shared/Modifiers.sol";
 import {Constants, KrAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";
-import "hardhat/console.sol";
 
 /**
  * @author Kresko
@@ -75,7 +74,6 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         FixedPoint.Unsigned memory repayAmountUSD = s.kreskoAssets[_repayKreskoAsset].fixedPointUSD(_repayAmount);
         // Avoid deep stack
         {
-            console.log("repayKrusd", repayAmountUSD.rawValue);
             // Get the principal debt amount which is unscaled for interest.
             uint256 krAssetDebt = s.getKreskoAssetDebtPrincipal(_account, _repayKreskoAsset);
             // Cannot liquidate more than the account's debt

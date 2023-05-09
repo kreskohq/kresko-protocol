@@ -14,7 +14,7 @@ import { Error } from "@utils/test/errors";
 import { toBig, getInternalEvent, fromBig } from "@kreskolabs/lib";
 import { addMockCollateralAsset, depositCollateral } from "@utils/test/helpers/collaterals";
 import { mintKrAsset } from "@utils/test/helpers/krassets";
-import { calcExpectedMaxLiquidatableValue, liquidate } from "@utils/test/helpers/liquidations";
+import { calcExpectedMaxLiquidatableValue, getCR, liquidate } from "@utils/test/helpers/liquidations";
 import hre from "hardhat";
 import { MinterEvent__factory } from "types/typechain";
 import { LiquidationOccurredEvent } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
@@ -314,25 +314,37 @@ describe("Minter", () => {
                 );
                 const krAsset = await this.krAsset.kresko();
                 const coll = await this.collateral.kresko();
+
+                await this.krAsset.update({
+                    name: "jesus",
+                    factor: 1.5,
+                    supplyLimit: 10000000,
+                    closeFee: 0.05,
+                    openFee: 0,
+                });
+
                 console.log(fromBig(krAsset.kFactor.rawValue));
                 console.log(coll.factor.rawValue);
                 const mintedKreskoAssetIndex = await hre.Diamond.getMintedKreskoAssetsIndex(
                     hre.users.userOne.address,
                     this.krAsset!.address,
                 );
-                const crBefore = await hre.Diamond.getAccountCollateralRatio(hre.users.userOne.address);
-                const maxLiqValue =
-                    +(
+
+                const maxLiqValue = fromBig(
+                    (
                         await hre.Diamond.calculateMaxLiquidatableValueForAssets(
                             hre.users.userOne.address,
                             this.krAsset!.address,
                         )
-                    ).rawValue / 1e8;
+                    ).rawValue,
+                    8,
+                );
                 const repayAmount = toBig(maxLiqValue / (+(await this.krAsset!.getPrice()) / 1e8));
                 console.log("KrAsset price", +(await this.krAsset!.getPrice()) / 1e8);
-                console.log("Max Repay USD", maxLiqValue);
-                console.log("Max Repay Amount", fromBig(repayAmount));
-                console.log("CR Before Liq", Number(crBefore.rawValue) / 10 ** 18);
+                console.log("Liquidated KrAssetUSD", maxLiqValue);
+                console.log("Liquidated KrAssetAmount", fromBig(repayAmount));
+
+                console.log("CR Before Liq", await getCR(hre.users.userOne.address));
                 const tx = await hre.Diamond.connect(hre.users.userTwo).liquidate(
                     hre.users.userOne.address,
                     this.krAsset!.address,
@@ -361,8 +373,9 @@ describe("Minter", () => {
                     "USD",
                     ((Number(event.collateralSent) / 1e18) * +(await this.collateral!.getPrice())) / 1e8,
                 );
-                const crAfter = await hre.Diamond.getAccountCollateralRatio(hre.users.userOne.address);
-                console.log("CR After", Number(crAfter.rawValue) / 10 ** 18);
+
+                console.log("Repay Amount", fromBig(event.repayAmount));
+                console.log("CR After Liq", await getCR(hre.users.userOne.address));
             });
 
             it("should not allow liquidations of healthy accounts", async function () {

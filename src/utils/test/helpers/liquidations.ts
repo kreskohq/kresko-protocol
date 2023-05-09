@@ -110,3 +110,12 @@ export const liquidate = async (user: SignerWithAddress, krAsset: any, collatera
         };
     }
 };
+export const getCR = async (address: string) => {
+    const accountCollateralValue = fromBig((await hre.Diamond.getAccountCollateralValue(address)).rawValue, 8);
+    const debtValue = fromBig((await hre.Diamond.getAccountKrAssetValue(address)).rawValue, 8);
+    console.log("Account Collateral Value", accountCollateralValue);
+    console.log("Account Debt Value", debtValue);
+    console.log((await hre.Diamond.getAccountCollateralValue(address)).rawValue);
+    console.log((await hre.Diamond.getAccountKrAssetValue(address)).rawValue);
+    return accountCollateralValue / debtValue;
+};

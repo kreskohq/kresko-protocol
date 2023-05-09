@@ -41,29 +41,20 @@ library LibCalculation {
         if (accountCollateralValue.isGreaterThanOrEqual(minCollateralRequired)) {
             return FixedPoint.Unsigned(0);
         }
+
+        FixedPoint.Unsigned memory debtFactor = self.kreskoAssets[_repayKreskoAsset].kFactor.mul(
+            self.liquidationThreshold
+        );
         // Max repayment value for this pair
         maxLiquidatableUSD = minCollateralRequired.sub(accountCollateralValue).div(
-            self.calcValueGainedPerUSDRepaid(_repayKreskoAsset)
+            self.calcValueGainedPerUSDRepaid(debtFactor, _repayKreskoAsset)
         );
 
-        // if (maxLiquidatableUSD.isLessThan(self.minimumDebtValue)) {
-        //     return self.minimumDebtValue;
-        // }
-        console.log(self.calcValueGainedPerUSDRepaid(_repayKreskoAsset).rawValue);
-        console.log("maxliqusd", maxLiquidatableUSD.rawValue);
-        console.log("maxlt", maxLiquidatableUSD.div(self.liquidationThreshold).rawValue);
-        return maxLiquidatableUSD.div(self.liquidationThreshold);
+        if (maxLiquidatableUSD.isLessThan(self.minimumDebtValue)) {
+            return self.minimumDebtValue;
+        }
 
-        // // Diminish liquidatable value for assets with lower cFactor
-        // // This is desired as they have more seizable value.
-        // FixedPoint.Unsigned memory cFactor = self.collateralAssets[_collateralAssetToSeize].factor;
-
-        // if (
-        //     self.depositedCollateralAssets[_account].length > 1 && cFactor.isLessThan(FixedPoint.ONE_HUNDRED_PERCENT())
-        // ) {
-        //     // cFactor^4 is the diminishing factor (cFactor = 1 == nothing happens)
-        //     return maxLiquidatableUSD.mul(cFactor.pow(4));
-        // }
+        return maxLiquidatableUSD.div(debtFactor);
     }
 
     /**
@@ -73,39 +64,17 @@ library LibCalculation {
      */
     function calcValueGainedPerUSDRepaid(
         MinterState storage self,
+        FixedPoint.Unsigned memory _debtFactor,
         address _repayKreskoAsset
-    )
-        internal
-        view
-        returns (
-            // address _collateralToSeize
-            FixedPoint.Unsigned memory
-        )
-    {
+    ) internal view returns (FixedPoint.Unsigned memory) {
         return
             FixedPoint
                 .Unsigned(
-                    self.liquidationThreshold.rawValue -
+                    _debtFactor.rawValue -
                         self.liquidationIncentiveMultiplier.rawValue -
                         self.kreskoAssets[_repayKreskoAsset].closeFee.rawValue
                 )
-                .div(self.liquidationThreshold);
-        // return
-        //     krAsset
-        //         .kFactor
-        //         .mul(self.liquidationThreshold)
-        //         .mul(FixedPoint.ONE_HUNDRED_PERCENT().sub(krAsset.closeFee))
-        //         .div(cFactor)
-        //         .div(self.liquidationIncentiveMultiplier)
-        //         .sub(FixedPoint.ONE_USD());
-        // return
-        //     krAsset
-        //         .kFactor
-        //         .mul(self.liquidationThreshold)
-        //         .mul(FixedPoint.ONE_HUNDRED_PERCENT().sub(krAsset.closeFee))
-        //         .div(cFactor)
-        //         .div(self.liquidationIncentiveMultiplier)
-        //         .sub(FixedPoint.ONE_USD());
+                .div(_debtFactor);
     }
 
     /**
@@ -118,7 +87,7 @@ library LibCalculation {
         FixedPoint.Unsigned memory _liquidationIncentiveMultiplier,
         FixedPoint.Unsigned memory _collateralOraclePriceUSD,
         FixedPoint.Unsigned memory _kreskoAssetRepayAmountUSD
-    ) internal view returns (FixedPoint.Unsigned memory) {
+    ) internal pure returns (FixedPoint.Unsigned memory) {
         // Seize amount = (repay amount USD * liquidation incentive / collateral price USD).
         // Denominate seize amount in collateral type
         // Apply liquidation incentive multiplier

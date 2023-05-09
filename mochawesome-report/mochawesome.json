@@ -5,9 +5,9 @@
     "passes": 1,
     "pending": 0,
     "failures": 0,
-    "start": "2023-05-08T12:35:09.466Z",
-    "end": "2023-05-08T12:35:09.725Z",
-    "duration": 259,
+    "start": "2023-05-09T03:16:52.210Z",
+    "end": "2023-05-09T03:16:52.533Z",
+    "duration": 323,
     "testsRegistered": 1,
     "passPercent": 100,
     "pendingPercent": 0,
@@ -18,7 +18,7 @@
   },
   "results": [
     {
-      "uuid": "9553c734-0fe5-4211-b67e-f3d05e7ba335",
+      "uuid": "e5582e4b-2654-41bc-a250-1d3018355179",
       "title": "",
       "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/minter/03-liquidation.ts",
       "file": "/src/test/minter/03-liquidation.ts",
@@ -27,7 +27,7 @@
       "tests": [],
       "suites": [
         {
-          "uuid": "63f0dd51-6b10-4594-bf01-1ba16e82b7e2",
+          "uuid": "b0158931-5e07-4166-b8e1-cf9685252a96",
           "title": "Minter",
           "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/minter/03-liquidation.ts",
           "file": "/src/test/minter/03-liquidation.ts",
@@ -36,7 +36,7 @@
               "title": "\"before each\" hook in \"Minter\"",
               "fullTitle": "Minter \"before each\" hook in \"Minter\"",
               "timedOut": false,
-              "duration": 25,
+              "duration": 27,
               "state": null,
               "speed": null,
               "pass": false,
@@ -45,8 +45,8 @@
               "context": null,
               "code": "const fixture = await hardhat_1.default.deployments.createFixture(async (hre) => {\n    const result = await hre.deployments.fixture(fixtureName);\n    if (result.Diamond) {\n        hre.Diamond = await hre.getContractOrFork(\"Kresko\");\n    }\n    return {\n        facets: result.Diamond ? result.Diamond.facets : [],\n        collaterals: hre.collaterals,\n        krAssets: hre.krAssets,\n    };\n})();\nthis.facets = fixture.facets || [];\nthis.collaterals = fixture.collaterals;\nthis.krAssets = fixture.krAssets;",
               "err": {},
-              "uuid": "c9410d7c-5c7c-4345-be21-84c748d5c434",
-              "parentUUID": "63f0dd51-6b10-4594-bf01-1ba16e82b7e2",
+              "uuid": "e7da1a16-9459-4282-88b5-3016abfd4c48",
+              "parentUUID": "b0158931-5e07-4166-b8e1-cf9685252a96",
               "isHook": true,
               "skipped": false
             },
@@ -54,7 +54,7 @@
               "title": "\"before each\" hook in \"Minter\"",
               "fullTitle": "Minter \"before each\" hook in \"Minter\"",
               "timedOut": false,
-              "duration": 104,
+              "duration": 103,
               "state": null,
               "speed": null,
               "pass": false,
@@ -63,8 +63,8 @@
               "context": null,
               "code": "// -------------------------------- Set up mock assets --------------------------------\nconst collateralArgs = {\n    name: \"CollateralAsset\",\n    price: 10,\n    factor: 1,\n    decimals: 18,\n};\nthis.collateral = hardhat_1.default.collaterals.find(c => c.deployArgs.name === _test_utils_1.defaultCollateralArgs.name);\nthis.collateral = await this.collateral.update(collateralArgs);\nthis.collateral.setPrice(collateralArgs.price);\n// Set up mock KreskoAsset\nconst krAssetArgs = {\n    name: \"KreskoAsset\",\n    price: 11,\n    factor: 1,\n    supplyLimit: 100000000,\n    closeFee: _test_utils_1.defaultCloseFee,\n    openFee: _test_utils_1.defaultOpenFee,\n};\nthis.krAsset = hardhat_1.default.krAssets.find(c => c.deployArgs.name === _test_utils_1.defaultKrAssetArgs.name);\nthis.krAsset.setPrice(krAssetArgs.price);\n// grant operator role to deployer for rebases\nawait this.krAsset.contract.grantRole(_test_utils_1.Role.OPERATOR, hardhat_1.default.users.deployer.address);\nconst assetInfo = await this.krAsset.kresko();\n// Add krAsset as a collateral with anchor and cFactor of 1\nawait hardhat_1.default.Diamond.connect(hardhat_1.default.users.deployer).addCollateralAsset(this.krAsset.contract.address, this.krAsset.anchor.address, hardhat_1.default.toBig(1), assetInfo.oracle, assetInfo.oracle);\n// -------------------------------- Set up userOne deposit/debt --------------------------------\nawait this.collateral.setBalance(hardhat_1.default.users.liquidator, hardhat_1.default.toBig(100000000));\nawait this.collateral.mocks.contract.setVariable(\"_allowances\", {\n    [hardhat_1.default.users.liquidator.address]: {\n        [hardhat_1.default.Diamond.address]: hardhat_1.default.toBig(100000000),\n    },\n});\n// Deposit collateral\nthis.defaultDepositAmount = 20; // 20 * $10 = $200 in collateral asset value\nawait this.collateral.setBalance(hardhat_1.default.users.userOne, hardhat_1.default.toBig(this.defaultDepositAmount));\nawait this.collateral.mocks.contract.setVariable(\"_allowances\", {\n    [hardhat_1.default.users.userOne.address]: {\n        [hardhat_1.default.Diamond.address]: hardhat_1.default.toBig(this.defaultDepositAmount),\n    },\n});\nawait (0, collaterals_1.depositCollateral)({\n    user: hardhat_1.default.users.userOne,\n    amount: this.defaultDepositAmount,\n    asset: this.collateral,\n});\n// // Mint KrAsset\nthis.defaultMintAmount = 10; // 10 * $11 = $110 in debt value\nawait (0, krassets_1.mintKrAsset)({\n    user: hardhat_1.default.users.userOne,\n    amount: this.defaultMintAmount,\n    asset: this.krAsset,\n});",
               "err": {},
-              "uuid": "9fd61709-261a-4849-b8d1-9448156a228e",
-              "parentUUID": "63f0dd51-6b10-4594-bf01-1ba16e82b7e2",
+              "uuid": "38b4847b-2612-4437-87e3-5d50fc9cd737",
+              "parentUUID": "b0158931-5e07-4166-b8e1-cf9685252a96",
               "isHook": true,
               "skipped": false
             }
@@ -73,7 +73,7 @@
           "tests": [],
           "suites": [
             {
-              "uuid": "a5fb4de2-143f-4bcc-a400-62667d3c8faf",
+              "uuid": "c57301b4-b2e7-4ed3-8432-b1e3f2c39156",
               "title": "#liquidation",
               "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/minter/03-liquidation.ts",
               "file": "/src/test/minter/03-liquidation.ts",
@@ -82,7 +82,7 @@
               "tests": [],
               "suites": [
                 {
-                  "uuid": "c12813a9-7d7a-4e22-ad86-3b83c69fa0d4",
+                  "uuid": "ba0f0c6e-2a18-4892-aae2-9054504330f2",
                   "title": "#liquidate",
                   "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/minter/03-liquidation.ts",
                   "file": "/src/test/minter/03-liquidation.ts",
@@ -91,7 +91,7 @@
                       "title": "\"before each\" hook in \"#liquidate\"",
                       "fullTitle": "Minter #liquidation #liquidate \"before each\" hook in \"#liquidate\"",
                       "timedOut": false,
-                      "duration": 0,
+                      "duration": 1,
                       "state": null,
                       "speed": null,
                       "pass": false,
@@ -100,8 +100,8 @@
                       "context": null,
                       "code": "// Grant userTwo tokens to use for liquidation\nawait this.krAsset.mocks.contract.setVariable(\"_balances\", {\n    [hardhat_1.default.users.userTwo.address]: hardhat_1.default.toBig(10000),\n});\n// Update collateral price from $10 to $7.5\nconst newCollateralPrice = 7.5;\nthis.collateral.setPrice(newCollateralPrice);",
                       "err": {},
-                      "uuid": "d4803fe8-59f9-4651-a72b-b5451d3f295f",
-                      "parentUUID": "c12813a9-7d7a-4e22-ad86-3b83c69fa0d4",
+                      "uuid": "beccb8df-0362-4e4c-830e-5297976701b4",
+                      "parentUUID": "ba0f0c6e-2a18-4892-aae2-9054504330f2",
                       "isHook": true,
                       "skipped": false
                     }
@@ -112,29 +112,29 @@
                       "title": "should emit LiquidationOccurred event",
                       "fullTitle": "Minter #liquidation #liquidate should emit LiquidationOccurred event",
                       "timedOut": false,
-                      "duration": 128,
+                      "duration": 189,
                       "state": "passed",
                       "speed": "slow",
                       "pass": true,
                       "fail": false,
                       "pending": false,
                       "context": null,
-                      "code": "// Attempt liquidation\nconst collateralIndex = await hardhat_1.default.Diamond.getDepositedCollateralAssetIndex(hardhat_1.default.users.userOne.address, this.collateral.address);\nconst krAsset = await this.krAsset.kresko();\nconst coll = await this.collateral.kresko();\nconsole.log((0, lib_1.fromBig)(krAsset.kFactor.rawValue));\nconsole.log(coll.factor.rawValue);\nconst mintedKreskoAssetIndex = await hardhat_1.default.Diamond.getMintedKreskoAssetsIndex(hardhat_1.default.users.userOne.address, this.krAsset.address);\nconst crBefore = await hardhat_1.default.Diamond.getAccountCollateralRatio(hardhat_1.default.users.userOne.address);\nconst maxLiqValue = +(await hardhat_1.default.Diamond.calculateMaxLiquidatableValueForAssets(hardhat_1.default.users.userOne.address, this.krAsset.address)).rawValue / 1e8;\nconst repayAmount = (0, lib_1.toBig)(maxLiqValue / (+(await this.krAsset.getPrice()) / 1e8));\nconsole.log(\"KrAsset price\", +(await this.krAsset.getPrice()) / 1e8);\nconsole.log(\"Max Repay USD\", maxLiqValue);\nconsole.log(\"Max Repay Amount\", (0, lib_1.fromBig)(repayAmount));\nconsole.log(\"CR Before Liq\", Number(crBefore.rawValue) / 10 ** 18);\nconst tx = await hardhat_1.default.Diamond.connect(hardhat_1.default.users.userTwo).liquidate(hardhat_1.default.users.userOne.address, this.krAsset.address, repayAmount, this.collateral.address, mintedKreskoAssetIndex, collateralIndex);\nconst event = await (0, lib_1.getInternalEvent)(tx, typechain_1.MinterEvent__factory.connect(hardhat_1.default.Diamond.address, hardhat_1.default.users.userTwo), \"LiquidationOccurred\");\n(0, chai_1.expect)(event.account).to.equal(hardhat_1.default.users.userOne.address);\n(0, chai_1.expect)(event.liquidator).to.equal(hardhat_1.default.users.userTwo.address);\n(0, chai_1.expect)(event.repayKreskoAsset).to.equal(this.krAsset.address);\n(0, chai_1.expect)(event.repayAmount).to.equal(repayAmount);\n(0, chai_1.expect)(event.seizedCollateralAsset).to.equal(this.collateral.address);\nconsole.log(\"Collateral Seized\", Number(event.collateralSent) / 1e18, \"price\", +(await this.collateral.getPrice()) / 1e8, \"USD\", ((Number(event.collateralSent) / 1e18) * +(await this.collateral.getPrice())) / 1e8);\nconst crAfter = await hardhat_1.default.Diamond.getAccountCollateralRatio(hardhat_1.default.users.userOne.address);\nconsole.log(\"CR After\", Number(crAfter.rawValue) / 10 ** 18);",
+                      "code": "// Attempt liquidation\nconst collateralIndex = await hardhat_1.default.Diamond.getDepositedCollateralAssetIndex(hardhat_1.default.users.userOne.address, this.collateral.address);\nconst krAsset = await this.krAsset.kresko();\nconst coll = await this.collateral.kresko();\nawait this.krAsset.update({\n    name: \"jesus\",\n    factor: 1.5,\n    supplyLimit: 10000000,\n    closeFee: 0.05,\n    openFee: 0,\n});\nconsole.log((0, lib_1.fromBig)(krAsset.kFactor.rawValue));\nconsole.log(coll.factor.rawValue);\nconst mintedKreskoAssetIndex = await hardhat_1.default.Diamond.getMintedKreskoAssetsIndex(hardhat_1.default.users.userOne.address, this.krAsset.address);\nconst maxLiqValue = (0, lib_1.fromBig)((await hardhat_1.default.Diamond.calculateMaxLiquidatableValueForAssets(hardhat_1.default.users.userOne.address, this.krAsset.address)).rawValue, 8);\nconst repayAmount = (0, lib_1.toBig)(maxLiqValue / (+(await this.krAsset.getPrice()) / 1e8));\nconsole.log(\"KrAsset price\", +(await this.krAsset.getPrice()) / 1e8);\nconsole.log(\"Liquidated KrAssetUSD\", maxLiqValue);\nconsole.log(\"Liquidated KrAssetAmount\", (0, lib_1.fromBig)(repayAmount));\nconsole.log(\"CR Before Liq\", await (0, liquidations_1.getCR)(hardhat_1.default.users.userOne.address));\nconst tx = await hardhat_1.default.Diamond.connect(hardhat_1.default.users.userTwo).liquidate(hardhat_1.default.users.userOne.address, this.krAsset.address, repayAmount, this.collateral.address, mintedKreskoAssetIndex, collateralIndex);\nconst event = await (0, lib_1.getInternalEvent)(tx, typechain_1.MinterEvent__factory.connect(hardhat_1.default.Diamond.address, hardhat_1.default.users.userTwo), \"LiquidationOccurred\");\n(0, chai_1.expect)(event.account).to.equal(hardhat_1.default.users.userOne.address);\n(0, chai_1.expect)(event.liquidator).to.equal(hardhat_1.default.users.userTwo.address);\n(0, chai_1.expect)(event.repayKreskoAsset).to.equal(this.krAsset.address);\n(0, chai_1.expect)(event.repayAmount).to.equal(repayAmount);\n(0, chai_1.expect)(event.seizedCollateralAsset).to.equal(this.collateral.address);\nconsole.log(\"Collateral Seized\", Number(event.collateralSent) / 1e18, \"price\", +(await this.collateral.getPrice()) / 1e8, \"USD\", ((Number(event.collateralSent) / 1e18) * +(await this.collateral.getPrice())) / 1e8);\nconsole.log(\"Repay Amount\", (0, lib_1.fromBig)(event.repayAmount));\nconsole.log(\"CR After Liq\", await (0, liquidations_1.getCR)(hardhat_1.default.users.userOne.address));",
                       "err": {},
-                      "uuid": "b050a944-3d50-476b-91b5-6dad9313cf9d",
-                      "parentUUID": "c12813a9-7d7a-4e22-ad86-3b83c69fa0d4",
+                      "uuid": "eee1fa6e-7062-4242-a2ad-bac46291ec9c",
+                      "parentUUID": "ba0f0c6e-2a18-4892-aae2-9054504330f2",
                       "isHook": false,
                       "skipped": false
                     }
                   ],
                   "suites": [],
                   "passes": [
-                    "b050a944-3d50-476b-91b5-6dad9313cf9d"
+                    "eee1fa6e-7062-4242-a2ad-bac46291ec9c"
                   ],
                   "failures": [],
                   "pending": [],
                   "skipped": [],
-                  "duration": 128,
+                  "duration": 189,
                   "root": false,
                   "rootEmpty": false,
                   "_timeout": 15000
