@@ -56,7 +56,6 @@ contract StateFacet is IStateFacet {
         return
             MinterParams(
                 s.minimumCollateralizationRatio,
-                s.liquidationIncentiveMultiplier,
                 s.minimumDebtValue,
                 s.liquidationThreshold,
                 s.feeRecipient,

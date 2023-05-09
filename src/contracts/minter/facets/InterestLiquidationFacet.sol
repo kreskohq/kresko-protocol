@@ -66,7 +66,9 @@ contract InterestLiquidationFacet is DiamondModifiers, IInterestLiquidationFacet
             if (
                 !ms().isAccountLiquidatable(
                     _account,
-                    kissAmountToRepay.fromWadPriceToFixedPoint().mul(ms().liquidationIncentiveMultiplier)
+                    kissAmountToRepay.fromWadPriceToFixedPoint().mul(
+                        ms().collateralAssets[_collateralAssetToSeize].liquidationIncentive
+                    )
                 )
             ) break;
         }
