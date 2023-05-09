@@ -21,8 +21,8 @@ interface IConfigurationFacet {
         address _collateralAsset,
         address _anchor,
         uint256 _factor,
-        uint256 __liquidationIncentiveMultiplier,
-        address _oracle,
+        uint256 _liquidationIncentiveMultiplier,
+        address _priceFeedOracle,
         address _marketStatusOracle
     ) external;
 
@@ -63,7 +63,8 @@ interface IConfigurationFacet {
         address _collateralAsset,
         address _anchor,
         uint256 _factor,
-        address _oracle,
+        uint256 _liquidationIncentiveMultiplier,
+        address _priceFeedOracle,
         address _marketStatusOracle
     ) external;
 

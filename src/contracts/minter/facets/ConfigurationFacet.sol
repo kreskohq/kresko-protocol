@@ -26,8 +26,8 @@ import {ms} from "../MinterStorage.sol";
 /**
  * @author Kresko
  * @title ConfigurationFacet
- * @notice Functionality for `Role.OPERATOR` level actions.
- * @notice Can be only initialized by the `Role.ADMIN`
+ * @notice Functionality for `Role.ADMIN` level actions.
+ * @notice Can be only initialized by the deployer/owner.
  */
 contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfigurationFacet {
     using FixedPoint for FixedPoint.Unsigned;
