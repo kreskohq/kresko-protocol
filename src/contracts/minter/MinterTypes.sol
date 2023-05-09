@@ -79,7 +79,6 @@ struct MinterInitArgs {
     address council;
     address treasury;
     uint8 extOracleDecimals;
-    uint256 liquidationIncentiveMultiplier;
     uint256 minimumCollateralizationRatio;
     uint256 minimumDebtValue;
     uint256 liquidationThreshold;
@@ -91,7 +90,6 @@ struct MinterInitArgs {
 
 struct MinterParams {
     FixedPoint.Unsigned minimumCollateralizationRatio;
-    FixedPoint.Unsigned liquidationIncentiveMultiplier;
     FixedPoint.Unsigned minimumDebtValue;
     FixedPoint.Unsigned liquidationThreshold;
     address feeRecipient;
@@ -134,10 +132,10 @@ struct CollateralAsset {
     FixedPoint.Unsigned factor;
     AggregatorV2V3Interface oracle;
     AggregatorV2V3Interface marketStatusOracle;
-    FixedPoint.Unsigned liquidationIncentive;
     address anchor;
     uint8 decimals;
     bool exists;
+    FixedPoint.Unsigned liquidationIncentive;
 }
 using LibAssetUtility for CollateralAsset global;
 

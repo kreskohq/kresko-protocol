@@ -82,6 +82,7 @@ library Error {
     string public constant KRASSET_MARKET_CLOSED = "242"; // KrAsset's market is currently closed
     string public constant NO_KRASSETS_MINTED = "243"; // Account has no active KreskoAsset positions
     string public constant NO_COLLATERAL_DEPOSITS = "244"; // Account has no active Collateral deposits
+    string public constant INVALID_ORACLE_DECIMALS = "245"; // Oracle decimals do not match extOracleDecimals
 
     /* -------------------------------------------------------------------------- */
     /*                                   3. Staking                               */

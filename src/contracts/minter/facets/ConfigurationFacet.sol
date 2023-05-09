@@ -146,6 +146,10 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
     ) external nonReentrant onlyRole(Role.ADMIN) collateralAssetDoesNotExist(_collateralAsset) {
         require(_collateralAsset != address(0), Error.ADDRESS_INVALID_COLLATERAL);
         require(_priceFeedOracle != address(0), Error.ADDRESS_INVALID_ORACLE);
+        require(
+            AggregatorV2V3Interface(_priceFeedOracle).decimals() == ms().extOracleDecimals,
+            Error.INVALID_ORACLE_DECIMALS
+        );
         require(_factor <= FixedPoint.FP_SCALING_FACTOR, Error.COLLATERAL_INVALID_FACTOR);
         require(
             _liquidationIncentiveMultiplier >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
@@ -208,6 +212,10 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             ms().collateralAssets[_collateralAsset].marketStatusOracle = AggregatorV2V3Interface(_marketStatusOracle);
         }
         if (_priceFeedOracle != address(0)) {
+            require(
+                AggregatorV2V3Interface(_priceFeedOracle).decimals() == ms().extOracleDecimals,
+                Error.INVALID_ORACLE_DECIMALS
+            );
             ms().collateralAssets[_collateralAsset].oracle = AggregatorV2V3Interface(_priceFeedOracle);
         }
 
@@ -254,6 +262,12 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         // The diamond needs the operator role
         require(IKreskoAsset(_krAsset).hasRole(Role.OPERATOR, address(this)), Error.NOT_OPERATOR);
 
+        // Oracle decimals must match the configuration.
+        require(
+            AggregatorV2V3Interface(_priceFeedOracle).decimals() == ms().extOracleDecimals,
+            Error.INVALID_ORACLE_DECIMALS
+        );
+
         // Store details.
         ms().kreskoAssets[_krAsset] = KrAsset({
             kFactor: _kFactor.toFixedPoint(),
@@ -299,6 +313,10 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             krAsset.anchor = _anchor;
         }
         if (address(_priceFeedOracle) != address(0)) {
+            require(
+                AggregatorV2V3Interface(_priceFeedOracle).decimals() == ms().extOracleDecimals,
+                Error.INVALID_ORACLE_DECIMALS
+            );
             krAsset.oracle = AggregatorV2V3Interface(_priceFeedOracle);
         }
         if (address(_marketStatusOracle) != address(0)) {
