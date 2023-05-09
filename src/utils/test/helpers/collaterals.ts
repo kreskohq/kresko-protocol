@@ -24,6 +24,7 @@ export const addMockCollateralAsset = async (
         TestCollateral.address,
         hre.ethers.constants.AddressZero,
         cFactor,
+        toFixedPoint(process.env.LIQUIDATION_INCENTIVE),
         MockOracle.address,
         MockOracle.address,
     );
@@ -70,6 +71,7 @@ export const updateCollateralAsset = async (address: string, args: TestCollatera
         collateral!.address,
         hre.ethers.constants.AddressZero,
         toFixedPoint(args.factor),
+        toFixedPoint(process.env.LIQUIDATION_INCENTIVE),
         args.oracle || collateral!.priceFeed.address,
         args.oracle || collateral!.priceFeed.address,
     );

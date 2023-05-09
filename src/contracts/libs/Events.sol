@@ -97,7 +97,7 @@ library MinterEvent {
     /* -------------------------------------------------------------------------- */
 
     /**
-     * @notice Emitted when a Kresko asset is added to the protocol.
+     * @notice Emitted when a KreskoAsset is added to the protocol.
      * @dev Can only be emitted once for a given Kresko asset.
      * @param kreskoAsset The address of the Kresko asset.
      * @param anchor anchor token
@@ -144,7 +144,7 @@ library MinterEvent {
      * @notice Emitted when an account mints a Kresko asset.
      * @param account The address of the account minting the Kresko asset.
      * @param kreskoAsset The address of the Kresko asset.
-     * @param amount The amount of the Kresko asset that was minted.
+     * @param amount The amount of the KreskoAsset that was minted.
      */
     event KreskoAssetMinted(address indexed account, address indexed kreskoAsset, uint256 amount);
 
@@ -152,7 +152,7 @@ library MinterEvent {
      * @notice Emitted when an account burns a Kresko asset.
      * @param account The address of the account burning the Kresko asset.
      * @param kreskoAsset The address of the Kresko asset.
-     * @param amount The amount of the Kresko asset that was burned.
+     * @param amount The amount of the KreskoAsset that was burned.
      */
     event KreskoAssetBurned(address indexed account, address indexed kreskoAsset, uint256 amount);
 
@@ -160,7 +160,7 @@ library MinterEvent {
      * @notice Emitted when an account burns a Kresko asset.
      * @param account The address of the account burning the Kresko asset.
      * @param kreskoAsset The address of the Kresko asset.
-     * @param amount The amount of the Kresko asset that was burned.
+     * @param amount The amount of the KreskoAsset that was burned.
      * @param interestRepaid The amount of the KISS repaid due to interest accrual
      */
     event DebtPositionClosed(
@@ -171,9 +171,22 @@ library MinterEvent {
     );
 
     /**
-     * @notice Emitted when an account pays a close fee with a collateral asset upon burning a Kresko asset.
-     * @dev This can be emitted multiple times for a single Kresko asset burn.
-     * @param account The address of the account burning the Kresko asset.
+     * @notice Emitted when cFactor is updated for a collateral asset.
+     * @param collateralAsset The address of the collateral asset.
+     * @param cFactor The new cFactor
+     */
+    event CFactorUpdated(address indexed collateralAsset, uint256 cFactor);
+    /**
+     * @notice Emitted when kFactor is updated for a KreskoAsset.
+     * @param kreskoAsset The address of the KreskoAsset.
+     * @param kFactor The new kFactor
+     */
+    event KFactorUpdated(address indexed kreskoAsset, uint256 kFactor);
+
+    /**
+     * @notice Emitted when an account pays a close fee with a collateral asset upon burning a KreskoAsset.
+     * @dev This can be emitted multiple times for a single KreskoAsset burn.
+     * @param account The address of the account burning the KreskoAsset.
      * @param paymentCollateralAsset The address of the collateral asset used to pay the close fee.
      * @param paymentAmount The amount of the payment collateral asset that was paid.
      * @param paymentValue The USD value of the payment.
@@ -186,9 +199,9 @@ library MinterEvent {
     );
 
     /**
-     * @notice Emitted when an account pays an open fee with a collateral asset upon minting a Kresko asset.
-     * @dev This can be emitted multiple times for a single Kresko asset mint.
-     * @param account The address of the account minting the Kresko asset.
+     * @notice Emitted when an account pays an open fee with a collateral asset upon minting a KreskoAsset.
+     * @dev This can be emitted multiple times for a single KreskoAsset mint.
+     * @param account The address of the account minting the KreskoAsset.
      * @param paymentCollateralAsset The address of the collateral asset used to pay the open fee.
      * @param paymentAmount The amount of the payment collateral asset that was paid.
      * @param paymentValue The USD value of the payment.
@@ -204,8 +217,8 @@ library MinterEvent {
      * @notice Emitted when a liquidation occurs.
      * @param account The address of the account being liquidated.
      * @param liquidator The account performing the liquidation.
-     * @param repayKreskoAsset The address of the Kresko asset being paid back to the protocol by the liquidator.
-     * @param repayAmount The amount of the repay Kresko asset being paid back to the protocol by the liquidator.
+     * @param repayKreskoAsset The address of the KreskoAsset being paid back to the protocol by the liquidator.
+     * @param repayAmount The amount of the repay KreskoAsset being paid back to the protocol by the liquidator.
      * @param seizedCollateralAsset The address of the collateral asset being seized from the account by the liquidator.
      * @param collateralSent The amount of the seized collateral asset being seized from the account by the liquidator.
      */
@@ -222,8 +235,8 @@ library MinterEvent {
      * @notice Emitted when a liquidation of interest occurs.
      * @param account The address of the account being liquidated.
      * @param liquidator The account performing the liquidation.
-     * @param repayKreskoAsset The address of the Kresko asset being paid back to the protocol by the liquidator.
-     * @param repayUSD The value of the repay Kresko asset being paid back to the protocol by the liquidator.
+     * @param repayKreskoAsset The address of the KreskoAsset being paid back to the protocol by the liquidator.
+     * @param repayUSD The value of the repay KreskoAsset being paid back to the protocol by the liquidator.
      * @param seizedCollateralAsset The address of the collateral asset being seized from the account by the liquidator.
      * @param collateralSent The amount of the seized collateral asset being seized from the account by the liquidator.
      */
@@ -240,7 +253,7 @@ library MinterEvent {
      * @param account The address of the account being liquidated.
      * @param liquidator The account performing the liquidation.
      * @param seizedCollateralAsset The address of the collateral asset being seized from the account by the liquidator.
-     * @param repayUSD The value of the repay Kresko asset being paid back to the protocol by the liquidator.
+     * @param repayUSD The value of the repay KreskoAsset being paid back to the protocol by the liquidator.
      * @param collateralSent The amount of the seized collateral asset being seized from the account by the liquidator.
      */
     event BatchInterestLiquidationOccurred(

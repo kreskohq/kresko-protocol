@@ -92,6 +92,26 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
     }
 
     /// @inheritdoc IConfigurationFacet
+    function updateCFactor(
+        address _collateralAsset,
+        uint256 _cFactor
+    ) public override collateralAssetExists(_collateralAsset) onlyRole(Role.ADMIN) {
+        require(_cFactor <= FixedPoint.FP_SCALING_FACTOR, Error.COLLATERAL_INVALID_FACTOR);
+        ms().collateralAssets[_collateralAsset].factor = _cFactor.toFixedPoint();
+        emit MinterEvent.CFactorUpdated(_collateralAsset, _cFactor);
+    }
+
+    /// @inheritdoc IConfigurationFacet
+    function updateKFactor(
+        address _kreskoAsset,
+        uint256 _kFactor
+    ) public override kreskoAssetExists(_kreskoAsset) onlyRole(Role.ADMIN) {
+        require(_kFactor >= FixedPoint.FP_SCALING_FACTOR, Error.KRASSET_INVALID_FACTOR);
+        ms().kreskoAssets[_kreskoAsset].kFactor = _kFactor.toFixedPoint();
+        emit MinterEvent.CFactorUpdated(_kreskoAsset, _kFactor);
+    }
+
+    /// @inheritdoc IConfigurationFacet
     function updateMinimumCollateralizationRatio(
         uint256 _minimumCollateralizationRatio
     ) public override onlyRole(Role.ADMIN) {

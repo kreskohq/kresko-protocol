@@ -27,16 +27,16 @@ interface IConfigurationFacet {
     ) external;
 
     /**
-     * @notice Adds a Kresko asset to the protocol.
+     * @notice Adds a KreskoAsset to the protocol.
      * @dev Only callable by the owner.
-     * @param _krAsset The address of the wrapped Kresko asset, needs to support IKreskoAsset.
+     * @param _krAsset The address of the wrapped KreskoAsset, needs to support IKreskoAsset.
      * @param _anchor Underlying anchor for the krAsset, needs to support IKreskoAssetAnchor.
-     * @param _kFactor The k-factor of the Kresko asset as a raw value for a FixedPoint.Unsigned. Must be >= 1e18.
-     * @param _priceFeedOracle The oracle address for the Kresko asset.
-     * @param _marketStatusOracle The oracle address for the Kresko asset market status.
-     * @param _supplyLimit The initial total supply limit for the Kresko asset.
-     * @param _closeFee The initial close fee percentage for the Kresko asset.
-     * @param _openFee The initial open fee percentage for the Kresko asset.
+     * @param _kFactor The k-factor of the KreskoAsset as a raw value for a FixedPoint.Unsigned. Must be >= 1e18.
+     * @param _priceFeedOracle The oracle address for the KreskoAsset.
+     * @param _marketStatusOracle The oracle address for the KreskoAsset market status.
+     * @param _supplyLimit The initial total supply limit for the KreskoAsset.
+     * @param _closeFee The initial close fee percentage for the KreskoAsset.
+     * @param _openFee The initial open fee percentage for the KreskoAsset.
      */
     function addKreskoAsset(
         address _krAsset,
@@ -75,16 +75,30 @@ interface IConfigurationFacet {
     function updateFeeRecipient(address _feeRecipient) external;
 
     /**
-     * @notice Updates the k-factor of a previously added Kresko asset.
+     * @notice  Updates the cFactor of a KreskoAsset.
+     * @param _collateralAsset The collateral asset.
+     * @param _cFactor The new cFactor.
+     */
+    function updateCFactor(address _collateralAsset, uint256 _cFactor) external;
+
+    /**
+     * @notice Updates the kFactor of a KreskoAsset.
+     * @param _kreskoAsset The KreskoAsset.
+     * @param _kFactor The new kFactor.
+     */
+    function updateKFactor(address _kreskoAsset, uint256 _kFactor) external;
+
+    /**
+     * @notice Updates the k-factor of a previously added KreskoAsset.
      * @dev Only callable by the owner.
-     * @param _krAsset The address of the Kresko asset.
+     * @param _krAsset The address of the KreskoAsset.
      * @param _anchor Underlying anchor for a krAsset.
      * @param _kFactor The new k-factor as a raw value for a FixedPoint.Unsigned. Must be >= 1e18.
-     * @param _priceFeedOracle The new oracle address for the Kresko asset's USD value.
-     * @param _marketStatusOracle The oracle address for the Kresko asset market status.
-     * @param _supplyLimit The new total supply limit for the Kresko asset.
-     * @param _closeFee The new close fee percentage for the Kresko asset.
-     * @param _openFee The new open fee percentage for the Kresko asset.
+     * @param _priceFeedOracle The new oracle address for the KreskoAsset's USD value.
+     * @param _marketStatusOracle The oracle address for the KreskoAsset market status.
+     * @param _supplyLimit The new total supply limit for the KreskoAsset.
+     * @param _closeFee The new close fee percentage for the KreskoAsset.
+     * @param _openFee The new open fee percentage for the KreskoAsset.
      */
     function updateKreskoAsset(
         address _krAsset,
