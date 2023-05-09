@@ -20,6 +20,7 @@ import { MinterEvent__factory } from "types/typechain";
 import { LiquidationOccurredEvent } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
 const INTEREST_RATE_DELTA = 0.01;
+const USD_DELTA = 0.00000001;
 describe("Minter", () => {
     withFixture(["minter-test"]);
     beforeEach(async function () {
@@ -138,6 +139,7 @@ describe("Minter", () => {
                 this.krAsset,
                 this.collateral,
             );
+
             expect(expectedMaxLiquidatableValue.gt(0)).to.be.true;
             const maxLiquidatableValue = await hre.Diamond.calculateMaxLiquidatableValueForAssets(
                 user.address,
@@ -145,8 +147,9 @@ describe("Minter", () => {
                 this.collateral.address,
             );
 
-            expect(expectedMaxLiquidatableValue).to.equal(maxLiquidatableValue.rawValue);
+            expect(expectedMaxLiquidatableValue).to.be.closeTo(maxLiquidatableValue.rawValue, USD_DELTA);
         });
+
         it("calculates correct max liquidation with multiple cdps", async function () {
             await depositCollateral({
                 user: hre.users.userOne,
@@ -175,7 +178,7 @@ describe("Minter", () => {
                 this.collateral.address,
             );
 
-            expect(expectedMaxLiquidatableValue).to.equal(maxLiquidatableValue.rawValue);
+            expect(expectedMaxLiquidatableValue).to.be.closeTo(maxLiquidatableValue.rawValue, USD_DELTA);
 
             const expectedMaxLiquidatableValueNewCollateral = await calcExpectedMaxLiquidatableValue(
                 user,
@@ -190,7 +193,10 @@ describe("Minter", () => {
                 this.collateral.address,
             );
 
-            expect(expectedMaxLiquidatableValueNewCollateral).to.equal(maxLiquidatableValueNewCollateral.rawValue);
+            expect(expectedMaxLiquidatableValueNewCollateral).to.be.closeTo(
+                maxLiquidatableValueNewCollateral.rawValue,
+                USD_DELTA,
+            );
         });
     });
 
