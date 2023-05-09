@@ -134,6 +134,7 @@ struct CollateralAsset {
     FixedPoint.Unsigned factor;
     AggregatorV2V3Interface oracle;
     AggregatorV2V3Interface marketStatusOracle;
+    FixedPoint.Unsigned liquidationIncentive;
     address anchor;
     uint8 decimals;
     bool exists;

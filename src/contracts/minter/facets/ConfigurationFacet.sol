@@ -57,7 +57,6 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         Authorization.setupSecurityCouncil(args.council);
 
         updateFeeRecipient(args.treasury);
-        updateLiquidationIncentiveMultiplier(args.liquidationIncentiveMultiplier);
         updateMinimumCollateralizationRatio(args.minimumCollateralizationRatio);
         updateMinimumDebtValue(args.minimumDebtValue);
         updateLiquidationThreshold(args.liquidationThreshold);
@@ -68,23 +67,18 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         emit GeneralEvent.Initialized(args.admin, 1);
     }
 
-    /**
-     * @notice Updates the fee recipient.
-     * @param _feeRecipient The new fee recipient.
-     */
+    /// @inheritdoc IConfigurationFacet
     function updateFeeRecipient(address _feeRecipient) public override onlyRole(Role.ADMIN) {
         require(_feeRecipient != address(0), Error.ADDRESS_INVALID_FEERECIPIENT);
         ms().feeRecipient = _feeRecipient;
         emit MinterEvent.FeeRecipientUpdated(_feeRecipient);
     }
 
-    /**
-     * @notice Updates the liquidation incentive multiplier.
-     * @param _liquidationIncentiveMultiplier The new liquidation incentive multiplie.
-     */
+    /// @inheritdoc IConfigurationFacet
     function updateLiquidationIncentiveMultiplier(
+        address _collateralAsset,
         uint256 _liquidationIncentiveMultiplier
-    ) public override onlyRole(Role.ADMIN) {
+    ) public override collateralAssetExists(_collateralAsset) onlyRole(Role.ADMIN) {
         require(
             _liquidationIncentiveMultiplier >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
             Error.PARAM_LIQUIDATION_INCENTIVE_LOW
@@ -93,16 +87,11 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             _liquidationIncentiveMultiplier <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER,
             Error.PARAM_LIQUIDATION_INCENTIVE_HIGH
         );
-
-        ms().liquidationIncentiveMultiplier = _liquidationIncentiveMultiplier.toFixedPoint();
-        emit MinterEvent.LiquidationIncentiveMultiplierUpdated(_liquidationIncentiveMultiplier);
+        ms().collateralAssets[_collateralAsset].liquidationIncentive = _liquidationIncentiveMultiplier.toFixedPoint();
+        emit MinterEvent.LiquidationIncentiveMultiplierUpdated(_collateralAsset, _liquidationIncentiveMultiplier);
     }
 
-    /**
-     * @dev Updates the contract's collateralization ratio.
-     * @param _minimumCollateralizationRatio The new minimum collateralization ratio as a raw value
-     * for a FixedPoint.Unsigned.
-     */
+    /// @inheritdoc IConfigurationFacet
     function updateMinimumCollateralizationRatio(
         uint256 _minimumCollateralizationRatio
     ) public override onlyRole(Role.ADMIN) {
@@ -114,20 +103,14 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         emit MinterEvent.MinimumCollateralizationRatioUpdated(_minimumCollateralizationRatio);
     }
 
-    /**
-     * @dev Updates the contract's minimum debt value.
-     * @param _minimumDebtValue The new minimum debt value as a raw value for a FixedPoint.Unsigned.
-     */
+    /// @inheritdoc IConfigurationFacet
     function updateMinimumDebtValue(uint256 _minimumDebtValue) public override onlyRole(Role.ADMIN) {
         require(_minimumDebtValue <= Constants.MAX_DEBT_VALUE, Error.PARAM_MIN_DEBT_AMOUNT_HIGH);
         ms().minimumDebtValue = _minimumDebtValue.toFixedPoint();
         emit MinterEvent.MinimumDebtValueUpdated(_minimumDebtValue);
     }
 
-    /**
-     * @dev Updates the contract's liquidation threshold value
-     * @param _liquidationThreshold The new liquidation threshold value
-     */
+    /// @inheritdoc IConfigurationFacet
     function updateLiquidationThreshold(uint256 _liquidationThreshold) public override onlyRole(Role.ADMIN) {
         // Liquidation threshold cannot be greater than minimum collateralization ratio
         FixedPoint.Unsigned memory newThreshold = _liquidationThreshold.toFixedPoint();
@@ -137,19 +120,13 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         emit MinterEvent.LiquidationThresholdUpdated(_liquidationThreshold);
     }
 
-    /**
-     * @notice Sets the protocol AMM oracle address
-     * @param _ammOracle  The address of the oracle
-     */
+    /// @inheritdoc IConfigurationFacet
     function updateAMMOracle(address _ammOracle) external onlyRole(Role.ADMIN) {
         ms().ammOracle = _ammOracle;
         emit MinterEvent.AMMOracleUpdated(_ammOracle);
     }
 
-    /**
-     * @notice Sets the decimal precision of external oracle
-     * @param _decimals Amount of decimals
-     */
+    /// @inheritdoc IConfigurationFacet
     function updateExtOracleDecimals(uint8 _decimals) public onlyRole(Role.ADMIN) {
         ms().extOracleDecimals = _decimals;
     }
@@ -158,27 +135,26 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
     /*                                 COLLATERAL                                 */
     /* -------------------------------------------------------------------------- */
 
-    /**
-     * @notice Adds a collateral asset to the protocol.
-     * @dev Only callable by the owner and cannot be called more than once for an asset.
-     * @param _collateralAsset The address of the collateral asset.
-     * @param _anchor Underlying anchor for a krAsset collateral, needs to support IKreskoAssetAnchor.
-     * @param _factor The collateral factor of the collateral asset as a raw value for a FixedPoint.Unsigned.
-     * Must be <= 1e18.
-     * @param _priceFeedOracle The oracle address for the collateral asset's USD value.
-     * @param _marketStatusOracle The oracle address for the collateral asset's market open/closed status
-     */
+    /// @inheritdoc IConfigurationFacet
     function addCollateralAsset(
         address _collateralAsset,
         address _anchor,
         uint256 _factor,
+        uint256 _liquidationIncentiveMultiplier,
         address _priceFeedOracle,
         address _marketStatusOracle
     ) external nonReentrant onlyRole(Role.ADMIN) collateralAssetDoesNotExist(_collateralAsset) {
         require(_collateralAsset != address(0), Error.ADDRESS_INVALID_COLLATERAL);
         require(_priceFeedOracle != address(0), Error.ADDRESS_INVALID_ORACLE);
         require(_factor <= FixedPoint.FP_SCALING_FACTOR, Error.COLLATERAL_INVALID_FACTOR);
-
+        require(
+            _liquidationIncentiveMultiplier >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
+            Error.PARAM_LIQUIDATION_INCENTIVE_LOW
+        );
+        require(
+            _liquidationIncentiveMultiplier <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER,
+            Error.PARAM_LIQUIDATION_INCENTIVE_HIGH
+        );
         bool krAsset = ms().kreskoAssets[_collateralAsset].exists;
         require(
             !krAsset ||
@@ -188,8 +164,9 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         );
 
         ms().collateralAssets[_collateralAsset] = CollateralAsset({
-            factor: FixedPoint.Unsigned(_factor),
+            factor: _factor.toFixedPoint(),
             oracle: AggregatorV2V3Interface(_priceFeedOracle),
+            liquidationIncentive: _liquidationIncentiveMultiplier.toFixedPoint(),
             marketStatusOracle: AggregatorV2V3Interface(_marketStatusOracle),
             anchor: _anchor,
             exists: true,
@@ -204,26 +181,26 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         );
     }
 
-    /**
-     * @notice Updates a previously added collateral asset.
-     * @dev Only callable by the owner.
-     * @param _collateralAsset The address of the collateral asset.
-     * @param _anchor Underlying anchor for a krAsset collateral, needs to support IKreskoAssetAnchor.
-     * @param _factor The new collateral factor as a raw value for a FixedPoint.Unsigned. Must be <= 1e18.
-     * @param _priceFeedOracle The new oracle address for the collateral asset.
-     * @param _marketStatusOracle The oracle address for the collateral asset's market open/closed status
-     */
+    /// @inheritdoc IConfigurationFacet
     function updateCollateralAsset(
         address _collateralAsset,
         address _anchor,
         uint256 _factor,
+        uint256 _liquidationIncentiveMultiplier,
         address _priceFeedOracle,
         address _marketStatusOracle
     ) external onlyRole(Role.ADMIN) collateralAssetExists(_collateralAsset) {
         require(_priceFeedOracle != address(0), Error.ADDRESS_INVALID_ORACLE);
         // Setting the factor to 0 effectively sunsets a collateral asset, which is intentionally allowed.
         require(_factor <= FixedPoint.FP_SCALING_FACTOR, Error.COLLATERAL_INVALID_FACTOR);
-
+        require(
+            _liquidationIncentiveMultiplier >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
+            Error.PARAM_LIQUIDATION_INCENTIVE_LOW
+        );
+        require(
+            _liquidationIncentiveMultiplier <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER,
+            Error.PARAM_LIQUIDATION_INCENTIVE_HIGH
+        );
         if (_anchor != address(0)) {
             ms().collateralAssets[_collateralAsset].anchor = _anchor;
         }
@@ -235,6 +212,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         }
 
         ms().collateralAssets[_collateralAsset].factor = _factor.toFixedPoint();
+        ms().collateralAssets[_collateralAsset].liquidationIncentive = _liquidationIncentiveMultiplier.toFixedPoint();
 
         emit MinterEvent.CollateralAssetUpdated(
             _collateralAsset,
@@ -248,18 +226,8 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
     /* -------------------------------------------------------------------------- */
     /*                               Kresko Assets                                */
     /* -------------------------------------------------------------------------- */
-    /**
-     * @notice Adds a Kresko asset to the protocol.
-     * @dev Only callable by the owner.
-     * @param _krAsset The address of the wrapped Kresko asset, needs to support IKreskoAsset.
-     * @param _anchor Underlying anchor for the krAsset, needs to support IKreskoAssetAnchor.
-     * @param _kFactor The k-factor of the Kresko asset as a raw value for a FixedPoint.Unsigned. Must be >= 1e18.
-     * @param _priceFeedOracle The oracle address for the Kresko asset.
-     * @param _marketStatusOracle The oracle address for the Kresko asset market status.
-     * @param _supplyLimit The initial total supply limit for the Kresko asset.
-     * @param _closeFee The initial close fee percentage for the Kresko asset.
-     * @param _openFee The initial open fee percentage for the Kresko asset.
-     */
+
+    /// @inheritdoc IConfigurationFacet
     function addKreskoAsset(
         address _krAsset,
         address _anchor,
@@ -309,18 +277,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         );
     }
 
-    /**
-     * @notice Updates the k-factor of a previously added Kresko asset.
-     * @dev Only callable by the owner.
-     * @param _krAsset The address of the Kresko asset.
-     * @param _anchor Underlying anchor for a krAsset.
-     * @param _kFactor The new k-factor as a raw value for a FixedPoint.Unsigned. Must be >= 1e18.
-     * @param _priceFeedOracle The new oracle address for the Kresko asset's USD value.
-     * @param _marketStatusOracle The oracle address for the Kresko asset market status.
-     * @param _supplyLimit The new total supply limit for the Kresko asset.
-     * @param _closeFee The new close fee percentage for the Kresko asset.
-     * @param _openFee The new open fee percentage for the Kresko asset.
-     */
+    /// @inheritdoc IConfigurationFacet
     function updateKreskoAsset(
         address _krAsset,
         address _anchor,
