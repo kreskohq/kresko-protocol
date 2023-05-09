@@ -225,7 +225,7 @@ library LibAccount {
         address _collateralAsset
     ) internal view returns (uint256 i) {
         uint256 length = self.depositedCollateralAssets[_account].length;
-        require(length > 0, Error.NO_KRASSETS_MINTED);
+        require(length > 0, Error.NO_COLLATERAL_DEPOSITS);
         for (i; i < length; i++) {
             if (self.depositedCollateralAssets[_account][i] == _collateralAsset) {
                 break;
