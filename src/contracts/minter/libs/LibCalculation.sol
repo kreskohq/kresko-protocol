@@ -7,7 +7,6 @@ import {LibDecimals} from "../libs/LibDecimals.sol";
 import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {MinterState} from "../MinterState.sol";
 import {KrAsset} from "../MinterTypes.sol";
-import "hardhat/console.sol";
 
 /**
  * @title Calculation library for liquidation & fee values
