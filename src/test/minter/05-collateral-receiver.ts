@@ -149,26 +149,20 @@ describe("CollateralReceiver - UncheckedCollateralWithdraw", () => {
                 await this.secondCollateral.mocks!.contract.setVariable("_balances", {
                     [hre.users.userFive.address]: this.initialBalance,
                 });
-                console.log(await this.secondCollateral.contract.balanceOf(hre.users.userFive.address));
 
-                await Receiver.testDepositAlternate(
-                    this.collateral.address,
-                    deposits.div(2),
-                    this.secondCollateral.address,
-                );
+                await this.secondCollateral.mocks!.contract.setVariable("_allowances", {
+                    [hre.users.userFive.address]: {
+                        [hre.Diamond.address]: this.initialBalance,
+                        [Receiver.address]: this.initialBalance,
+                    },
+                });
+                await Receiver.testDepositAlternate(this.collateral.address, deposits, this.secondCollateral.address);
 
                 const secondCollateralDeposits = await hre.Diamond.collateralDeposits(
                     hre.users.userFive.address,
                     this.secondCollateral.address,
                 );
-                console.log(secondCollateralDeposits);
-
-                const secondCollateralBalance = await hre.Diamond.collateralDeposits(
-                    hre.users.userFive.address,
-                    this.secondCollateral.address,
-                );
-                console.log(secondCollateralBalance);
-                expect(secondCollateralDeposits.gt(0)).to.be.true;
+                expect(secondCollateralDeposits.eq(deposits)).to.be.true;
             });
         });
         describe("#unchecked-withdraw-reverts", () => {

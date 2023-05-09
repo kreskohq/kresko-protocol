@@ -84,7 +84,7 @@ contract SmockCollateralReceiver is ICollateralReceiver {
 
     function testDepositAlternate(address _collateralWithdraw, uint _amount, address _collateralDeposit) external {
         bytes memory data = abi.encode(_amount, 0, _collateralDeposit);
-        execute(_collateralWithdraw, _amount, data, logicInsufficientRedeposit);
+        execute(_collateralWithdraw, _amount, data, logicDepositAlternate);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -98,12 +98,12 @@ contract SmockCollateralReceiver is ICollateralReceiver {
         uint256 _depositAmount,
         bytes memory _userData
     ) internal {
-        console.log(IERC20Upgradeable(userData.addr).balanceOf(_account));
         userData = abi.decode(_userData, (Params));
         withdrawalAmountReceived = _withdrawalAmount;
-        // IERC20Upgradeable(userData.addr).approve(address(kresko), userData.val);
+        IERC20Upgradeable(userData.addr).transferFrom(_account, address(this), userData.val);
+        IERC20Upgradeable(userData.addr).approve(address(kresko), userData.val);
         // redeposit all
-        kresko.depositCollateral(_account, userData.addr, 1);
+        kresko.depositCollateral(_account, userData.addr, userData.val);
     }
 
     function logicBase(
