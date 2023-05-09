@@ -1,6 +1,6 @@
 import hre from "hardhat";
 import { smock } from "@defi-wonderland/smock";
-import { toFixedPoint, toBig } from "@kreskolabs/lib";
+import { toFixedPoint, toBig, fromBig } from "@kreskolabs/lib";
 import { TestCollateralAssetArgs, defaultCollateralArgs, TestCollateralAssetUpdate, InputArgs } from "../mocks";
 import { getMockOracleFor, setPrice } from "./general";
 import { ERC20Upgradeable__factory, FluxPriceFeed__factory } from "types/typechain";
@@ -122,4 +122,17 @@ export const withdrawCollateral = async (args: InputArgs) => {
     await asset.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
     const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(user.address, asset.address);
     return hre.Diamond.connect(user).withdrawCollateral(user.address, asset.address, depositAmount, cIndex);
+};
+
+export const getMaxWithdrawal = async (user: string, collateral: any) => {
+    const [collateralValue] = await hre.Diamond.getAccountSingleCollateralValueAndRealValue(user, collateral.address);
+
+    const minCollateralRequired = await hre.Diamond.getAccountMinimumCollateralValueAtRatio(
+        user,
+        await hre.Diamond.minimumCollateralizationRatio(),
+    );
+    const maxWithdrawValue = fromBig(collateralValue.rawValue.sub(minCollateralRequired.rawValue.add(1427)), 8);
+    const maxWithdrawAmount = maxWithdrawValue / fromBig(await collateral.getPrice(), 8);
+
+    return { maxWithdrawValue, maxWithdrawAmount: toBig(maxWithdrawAmount, 18) };
 };
