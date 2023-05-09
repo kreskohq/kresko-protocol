@@ -56,6 +56,7 @@ describe("Minter", () => {
             this.krAsset!.contract.address,
             this.krAsset!.anchor!.address,
             hre.toBig(1),
+            toBig(1.05),
             assetInfo.oracle,
             assetInfo.oracle,
         );

@@ -604,6 +604,7 @@ describe("Minter - Deposit Withdraw", () => {
                     this.krAsset!.contract.address,
                     this.krAsset!.anchor!.address,
                     hre.toBig(1),
+                    toBig(1.05),
                     assetInfo.oracle,
                     assetInfo.oracle,
                 );
@@ -1101,6 +1102,7 @@ describe("Minter - Deposit Withdraw", () => {
                     this.krAsset!.contract.address,
                     this.krAsset!.anchor!.address,
                     hre.toBig(1),
+                    toBig(1.05),
                     assetInfo.oracle,
                     assetInfo.oracle,
                 );

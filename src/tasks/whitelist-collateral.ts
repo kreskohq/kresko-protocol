@@ -46,10 +46,15 @@ task(TASK_WHITELIST_COLLATERAL)
                 "and anchor",
                 anchor?.address ?? hre.ethers.constants.AddressZero,
             );
+            if (!process.env.LIQUDATION_INCENTIVE) {
+                throw new Error("LIQUDATION_INCENTIVE is not set");
+            }
+            const liquidationIncentive = toFixedPoint(process.env.LIQUIDATION_INCENTIVE);
             const tx = await kresko.addCollateralAsset(
                 Collateral.address,
                 anchor?.address ?? hre.ethers.constants.AddressZero,
                 toFixedPoint(cFactor),
+                liquidationIncentive,
                 oracleAddr,
                 marketStatusOracleAddr,
             );

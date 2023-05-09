@@ -19,22 +19,16 @@ describe("Minter - Configuration", () => {
         it("can modify all parameters", async function () {
             const Diamond = hre.Diamond.connect(hre.users.deployer);
             const update = getNewMinterParams(hre.users.treasury.address);
-            await expect(Diamond.updateLiquidationIncentiveMultiplier(update.liquidationIncentiveMultiplier)).to.not.be
-                .reverted;
+
             await expect(Diamond.updateMinimumCollateralizationRatio(update.minimumCollateralizationRatio)).to.not.be
                 .reverted;
             await expect(Diamond.updateMinimumDebtValue(update.minimumDebtValue)).to.not.be.reverted;
             await expect(Diamond.updateLiquidationThreshold(update.liquidationThreshold)).to.not.be.reverted;
             await expect(Diamond.updateFeeRecipient(update.feeRecipient)).to.not.be.reverted;
-            const {
-                liquidationIncentiveMultiplier,
-                minimumCollateralizationRatio,
-                minimumDebtValue,
-                liquidationThreshold,
-                feeRecipient,
-            } = await hre.Diamond.getAllParams();
+            const { minimumCollateralizationRatio, minimumDebtValue, liquidationThreshold, feeRecipient } =
+                await hre.Diamond.getAllParams();
 
-            expect(update.liquidationIncentiveMultiplier.toBigInt()).to.equal(liquidationIncentiveMultiplier.rawValue);
+            expect(update.liquidationIncentiveMultiplier.toBigInt()).to.equal(0);
             expect(update.minimumCollateralizationRatio.toBigInt()).to.equal(minimumCollateralizationRatio.rawValue);
             expect(update.minimumDebtValue.toBigInt()).to.equal(minimumDebtValue.rawValue);
             expect(update.liquidationThreshold.toBigInt()).to.equal(liquidationThreshold.rawValue);

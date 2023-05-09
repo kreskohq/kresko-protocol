@@ -15,9 +15,7 @@ describe("Minter - Init", () => {
             expect(await hre.Diamond.hasRole(Role.SAFETY_COUNCIL, hre.Multisig.address)).to.equal(true);
 
             expect(await hre.Diamond.feeRecipient()).to.equal(args.treasury);
-            expect((await hre.Diamond.liquidationIncentiveMultiplier()).rawValue).to.equal(
-                args.liquidationIncentiveMultiplier,
-            );
+            expect((await hre.Diamond.liquidationIncentiveMultiplier()).rawValue).to.equal(0);
             expect((await hre.Diamond.minimumCollateralizationRatio()).rawValue).to.equal(
                 args.minimumCollateralizationRatio,
             );

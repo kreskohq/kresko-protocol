@@ -2,7 +2,7 @@ import { MockContract, smock } from "@defi-wonderland/smock";
 import hre, { ethers } from "hardhat";
 import { FluxPriceFeed__factory } from "types/typechain";
 import { defaultCloseFee, defaultOracleDecimals, defaultOraclePrice } from "../mocks";
-import { toBig } from "@kreskolabs/lib";
+import { toBig, toFixedPoint } from "@kreskolabs/lib";
 // import { calcDebtIndex, getBlockTimestamp, fromScaledAmount } from "./calculations";
 /* -------------------------------------------------------------------------- */
 /*                                  GENERAL                                   */
@@ -68,6 +68,7 @@ export const leverageKrAsset = async (
             collateralToUse.address,
             collateralToUse.anchor ? collateralToUse.anchor.address : ethers.constants.AddressZero,
             hre.toBig(1),
+            toFixedPoint(process.env.LIQUIDATION_INCENTIVE),
             collateralToUse.priceFeed.address,
             collateralToUse.priceFeed.address,
         );
@@ -96,6 +97,7 @@ export const leverageKrAsset = async (
             krAsset.address,
             krAsset.anchor.address,
             toBig(1),
+            toFixedPoint(process.env.LIQUIDATION_INCENTIVE),
             krAsset.priceFeed.address,
             krAsset.priceFeed.address,
         );
