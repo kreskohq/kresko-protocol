@@ -111,6 +111,37 @@ library LibAccount {
     }
 
     /**
+     * @notice Gets the collateral value of a particular account including extra return value for specific collateral.
+     * @dev O(# of different deposited collateral assets by account) complexity.
+     * @param _account The account to calculate the collateral value for.
+     * @param _collateralAsset The collateral asset to get the collateral value.
+     * @return totalCollateralValue The collateral value of a particular account.
+     */
+    function getAccountCollateralValue(
+        MinterState storage self,
+        address _account,
+        address _collateralAsset
+    )
+        internal
+        view
+        returns (FixedPoint.Unsigned memory totalCollateralValue, FixedPoint.Unsigned memory specificValue)
+    {
+        address[] memory assets = self.depositedCollateralAssets[_account];
+        for (uint256 i = 0; i < assets.length; i++) {
+            address asset = assets[i];
+            (FixedPoint.Unsigned memory collateralValue, ) = self.getCollateralValueAndOraclePrice(
+                asset,
+                self.getCollateralDeposits(_account, asset),
+                false // Take the collateral factor into consideration.
+            );
+            totalCollateralValue = totalCollateralValue.add(collateralValue);
+            if (asset == _collateralAsset) {
+                specificValue = collateralValue;
+            }
+        }
+    }
+
+    /**
      * @notice Gets accounts min collateral value required to cover debt at a given collateralization ratio.
      * @dev 1. Account with min collateral value under MCR will not borrow.
      *      2. Account with min collateral value under LT can be liquidated.

@@ -2,44 +2,44 @@ import { SolcUserConfig } from "hardhat/types";
 
 const oldCompilerSettings = {
     settings: {
-        optimizer: {
-            enabled: !process.env.CI,
-            runs: 200,
-        },
-        outputSelection: {
-            "*": {
-                "*": ["metadata", "evm.methodIdentifiers", "devdoc", "userdoc", "evm.gasEstimates"],
-            },
-        },
+        // optimizer: {
+        //     enabled: !process.env.CI,
+        //     runs: 200,
+        // },
+        // outputSelection: {
+        //     "*": {
+        //         "*": ["metadata", "evm.methodIdentifiers", "devdoc", "userdoc", "evm.gasEstimates"],
+        //     },
+        // },
     },
 };
 export const compilers: SolcUserConfig[] = [
     {
         version: "0.8.14",
         settings: {
-            viaIR: !process.env.CI,
+            viaIR: false,
             optimizer: {
-                enabled: !process.env.CI,
-                runs: 200,
+                enabled: false,
+                runs: 1,
                 details: {
                     constantOptimizer: false,
                     deduplicate: true,
                 },
             },
-            outputSelection: {
-                "*": {
-                    "*": [
-                        "metadata",
-                        "abi",
-                        "storageLayout",
-                        "evm.methodIdentifiers",
-                        "devdoc",
-                        "userdoc",
-                        "evm.gasEstimates",
-                        "evm.byteCode",
-                    ],
-                },
-            },
+            // outputSelection: {
+            //     "*": {
+            //         "*": [
+            //             "metadata",
+            //             "abi",
+            //             "storageLayout",
+            //             "evm.methodIdentifiers",
+            //             "devdoc",
+            //             "userdoc",
+            //             "evm.gasEstimates",
+            //             "evm.byteCode",
+            //         ],
+            //     },
+            // },
         },
     },
     {
