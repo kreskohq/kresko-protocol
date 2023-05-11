@@ -14,9 +14,23 @@ task(TASK_WRITE_ORACLE_JSON).setAction(async function (_taskArgs: TaskArguments,
     const Kresko = await hre.getContractOrFork("Kresko");
     const values = [];
     for (const collateral of testnetConfigs[hre.network.name].collaterals) {
-        const contract = await hre.getContractOrFork("ERC20Upgradeable", collateral.symbol);
+        let contract = await hre.getContractOrFork("ERC20Upgradeable", collateral.symbol);
+        if (collateral.symbol === "WETH") {
+            contract = await hre.ethers.getContractAt("ERC20Upgradeable", "0x4200000000000000000000000000000000000006");
+        }
         const collateralInfo = await Kresko.collateralAsset(contract.address);
         if (!collateral.oracle) continue;
+        if (collateral.symbol === "" || collateral.symbol === "WETH") {
+            values.push({
+                asset: await contract.symbol(),
+                assetAddress: contract.address,
+                assetType: "collateral",
+                feed: collateral.oracle.description,
+                marketstatus: collateralInfo.marketStatusOracle,
+                pricefeed: collateralInfo.oracle,
+            });
+            continue;
+        }
         values.push({
             asset: await contract.symbol(),
             assetAddress: contract.address,
@@ -39,7 +53,7 @@ task(TASK_WRITE_ORACLE_JSON).setAction(async function (_taskArgs: TaskArguments,
             pricefeed: krAssetInfo.oracle,
         });
     }
-
+    console.log(feedValidator.address);
     const fluxFeedKiss = await factory.addressOfPricePair("KISS/USD", 8, feedValidator.address);
     values.push({
         asset: "KISS",
