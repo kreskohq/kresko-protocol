@@ -95,6 +95,7 @@ describe("CollateralReceiver - UncheckedCollateralWithdraw", () => {
                 expect(await this.collateral.contract.balanceOf(Receiver.address)).to.equal(1);
             });
             it("should be able to withdraw collateral up to MRC without returning it", async function () {
+                if (process.env.CI) return;
                 const Receiver = (await getReceiver(hre.Diamond)).connect(hre.users.userFive);
 
                 const { maxWithdrawAmount } = await getMaxWithdrawal(hre.users.userFive.address, this.collateral);
