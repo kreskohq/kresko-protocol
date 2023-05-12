@@ -54,7 +54,7 @@ interface ILiquidationFacet {
         address _account,
         address _repayKreskoAsset,
         address _collateralAssetToSeize
-    ) external view returns (FixedPoint.Unsigned memory maxLiquidatableUSD);
+    ) external view returns (uint256 maxLiquidatableUSD);
 
     /**
      * @notice Calculates if an account's current collateral value is under its minimum collateral value

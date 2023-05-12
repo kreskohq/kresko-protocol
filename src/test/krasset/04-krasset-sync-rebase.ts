@@ -1,13 +1,12 @@
+import { Role, defaultMintAmount, withFixture } from "@utils/test";
 import { expect } from "chai";
 import hre, { ethers } from "hardhat";
-import { Role, withFixture, defaultMintAmount } from "@utils/test";
 import { it } from "mocha";
 
 describe("Test KreskoAsset with Rebase and sync", () => {
     let KreskoAsset: KreskoAsset;
 
     withFixture(["minter-test", "kresko-assets", "collaterals"]);
-
     beforeEach(async function () {
         KreskoAsset = hre.krAssets.find(asset => asset.deployArgs!.symbol === "krETH")!.contract;
 
@@ -44,11 +43,16 @@ describe("Test KreskoAsset with Rebase and sync", () => {
         const positive = true;
 
         const [beforeReserve0, beforeReserve1, beforeTimestamp] = await this.pool.getReserves();
+
         await KreskoAsset.rebase(hre.toBig(denominator), positive, [this.pool.address]);
+
         const [afterReserve0, afterReserve1, afterTimestamp] = await this.pool.getReserves();
 
-        expect(afterReserve0).to.equal(beforeReserve0.mul(denominator));
-        expect(afterReserve1).to.equal(beforeReserve1);
+        if (beforeReserve0.eq(afterReserve0)) {
+            expect(afterReserve1).to.equal(beforeReserve1.mul(denominator));
+        } else {
+            expect(afterReserve0).to.equal(beforeReserve0.mul(denominator));
+        }
         expect(afterTimestamp).to.gt(beforeTimestamp);
     });
 });

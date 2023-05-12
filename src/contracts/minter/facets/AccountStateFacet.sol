@@ -5,6 +5,7 @@ import {IAccountStateFacet} from "../interfaces/IAccountStateFacet.sol";
 import {Action, Fee, KrAsset, CollateralAsset, FixedPoint} from "../MinterTypes.sol";
 import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
 import {Error} from "../../libs/Errors.sol";
+import {WadRay} from "../../libs/WadRay.sol";
 import {LibDecimals} from "../libs/LibDecimals.sol";
 import {ms} from "../MinterStorage.sol";
 
@@ -20,6 +21,7 @@ contract AccountStateFacet is IAccountStateFacet {
     using FixedPoint for FixedPoint.Unsigned;
     using FixedPoint for int256;
     using FixedPoint for uint256;
+    using WadRay for uint256;
 
     /* -------------------------------------------------------------------------- */
     /*                                  KrAssets                                  */
@@ -145,9 +147,12 @@ contract AccountStateFacet is IAccountStateFacet {
         KrAsset memory krAsset = ms().kreskoAssets[_kreskoAsset];
 
         // Calculate the value of the fee according to the value of the krAsset
-        FixedPoint.Unsigned memory feeValue = krAsset.fixedPointUSD(_kreskoAssetAmount).mul(
-            Fee(_feeType) == Fee.Open ? krAsset.openFee : krAsset.closeFee
+        uint256 feeValue = krAsset.uintUSD(_kreskoAssetAmount).wadMul(
+            Fee(_feeType) == Fee.Open ? krAsset.openFee.rawValue : krAsset.closeFee.rawValue
         );
+        // uint256 feeValue = krAsset.fixedPointUSD(_kreskoAssetAmount).mul(
+        //     Fee(_feeType) == Fee.Open ? krAsset.openFee : krAsset.closeFee
+        // );
 
         address[] memory accountCollateralAssets = ms().depositedCollateralAssets[_account];
 
@@ -156,7 +161,7 @@ contract AccountStateFacet is IAccountStateFacet {
         info.amounts = new uint256[](accountCollateralAssets.length);
 
         // Return empty arrays if the fee value is 0.
-        if (feeValue.rawValue == 0) {
+        if (feeValue == 0) {
             return (info.assets, info.amounts);
         }
 
@@ -169,17 +174,17 @@ contract AccountStateFacet is IAccountStateFacet {
             (FixedPoint.Unsigned memory depositValue, FixedPoint.Unsigned memory oraclePrice) = ms()
                 .getCollateralValueAndOraclePrice(collateralAssetAddress, depositAmount, true);
 
-            FixedPoint.Unsigned memory feeValuePaid;
+            uint256 feeValuePaid;
             uint256 transferAmount;
             // If feeValue < depositValue, the entire fee can be charged for this collateral asset.
-            if (feeValue.isLessThan(depositValue)) {
+            if (feeValue < depositValue.rawValue) {
                 transferAmount = ms().collateralAssets[collateralAssetAddress].decimals.fromCollateralFixedPointAmount(
-                    feeValue.div(oraclePrice)
+                    feeValue.wadDiv(oraclePrice.rawValue)
                 );
                 feeValuePaid = feeValue;
             } else {
                 transferAmount = depositAmount;
-                feeValuePaid = depositValue;
+                feeValuePaid = depositValue.rawValue;
             }
 
             if (transferAmount > 0) {
@@ -188,9 +193,9 @@ contract AccountStateFacet is IAccountStateFacet {
                 info.collateralTypeCount = info.collateralTypeCount++;
             }
 
-            feeValue = feeValue.sub(feeValuePaid);
+            feeValue = feeValue - feeValuePaid;
             // If the entire fee has been paid, no more action needed.
-            if (feeValue.rawValue == 0) {
+            if (feeValue == 0) {
                 return (info.assets, info.amounts);
             }
         }

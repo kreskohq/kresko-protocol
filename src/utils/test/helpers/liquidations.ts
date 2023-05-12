@@ -18,9 +18,7 @@ export const getLiqAmount = async (user: SignerWithAddress, krAsset: any, collat
 
     const kreskoAssetDebt = await hre.Diamond.kreskoAssetDebt(user.address, krAsset.address);
 
-    const maxLiquidatableValue = (
-        await hre.Diamond.getMaxLiquidation(user.address, krAsset.address, collateral.address)
-    ).rawValue;
+    const maxLiquidatableValue = await hre.Diamond.getMaxLiquidation(user.address, krAsset.address, collateral.address);
 
     const krAssetPrice = await krAsset.getPrice();
     const collateralPrice = await collateral.getPrice();
@@ -141,8 +139,6 @@ export const liquidate = async (user: SignerWithAddress, krAsset: any, collatera
         await hre.Diamond.getMintedKreskoAssetsIndex(user.address, krAsset.address),
         await hre.Diamond.getDepositedCollateralAssetIndex(user.address, collateral.address),
     );
-    const res = await tx.wait();
-    console.log("liq cost", res.gasUsed.toString());
     const depositsAfter = await hre.Diamond.collateralDeposits(user.address, collateral.address);
     const debtAfter = await hre.Diamond.kreskoAssetDebt(user.address, krAsset.address);
     return {

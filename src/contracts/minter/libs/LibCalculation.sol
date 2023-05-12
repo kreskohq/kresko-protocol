@@ -8,7 +8,6 @@ import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 import {MinterState} from "../MinterState.sol";
 import {KrAsset, CollateralAsset, Constants} from "../MinterTypes.sol";
-import "hardhat/console.sol";
 
 /**
  * @title Calculation library for liquidation & fee values
@@ -45,21 +44,20 @@ library LibCalculation {
         address _account,
         KrAsset memory _repayKreskoAsset,
         address _seizedCollateral
-    ) internal view returns (FixedPoint.Unsigned memory maxLiquidatableUSD) {
+    ) internal view returns (uint256 maxLiquidatableUSD) {
         MaxLiquidationVars memory vars = _getMaxLiquidationParams(self, _account, _repayKreskoAsset, _seizedCollateral);
         // Account is not liquidatable
         if (vars.accountCollateralValue >= (vars.minCollateralValue)) {
-            return FixedPoint.Unsigned(0);
+            return 0;
         }
 
-        maxLiquidatableUSD = FixedPoint.Unsigned(_getMaxLiquidatableUSD(vars, _repayKreskoAsset));
+        maxLiquidatableUSD = _getMaxLiquidatableUSD(vars, _repayKreskoAsset);
 
-        if (vars.seizeCollateralAccountValue < maxLiquidatableUSD.rawValue) {
-            return FixedPoint.Unsigned(vars.seizeCollateralAccountValue);
-        } else if (maxLiquidatableUSD.rawValue < vars.minimumDebtValue) {
-            return FixedPoint.Unsigned(vars.minimumDebtValue);
+        if (vars.seizeCollateralAccountValue < maxLiquidatableUSD) {
+            return vars.seizeCollateralAccountValue;
+        } else if (maxLiquidatableUSD < vars.minimumDebtValue) {
+            return vars.minimumDebtValue;
         }
-
         return maxLiquidatableUSD;
     }
 
@@ -71,71 +69,16 @@ library LibCalculation {
      */
     function calculateAmountToSeize(
         FixedPoint.Unsigned memory _liquidationIncentiveMultiplier,
-        FixedPoint.Unsigned memory _collateralOraclePriceUSD,
-        FixedPoint.Unsigned memory _kreskoAssetRepayAmountUSD
+        uint256 _collateralOraclePriceUSD,
+        uint256 _kreskoAssetRepayAmountUSD
     ) internal pure returns (uint256) {
         // Seize amount = (repay amount USD * liquidation incentive / collateral price USD).
         // Denominate seize amount in collateral type
         // Apply liquidation incentive multiplier
         return
-            _kreskoAssetRepayAmountUSD.mul(_liquidationIncentiveMultiplier).rawValue.wadDiv(
-                _collateralOraclePriceUSD.rawValue
+            _kreskoAssetRepayAmountUSD.wadMul(_liquidationIncentiveMultiplier.rawValue).wadDiv(
+                _collateralOraclePriceUSD
             );
-    }
-
-    /**
-     * @notice Calculates the fee to be taken from a user's deposited collateral assetself.
-     * @param _collateralAsset The collateral asset from which to take to the fee.
-     * @param _account The owner of the collateral.
-     * @param _feeValue The original value of the fee.
-     * @param _collateralAssetIndex The collateral asset's index in the user's depositedCollateralAssets array.
-     *
-     * @return transferAmount to be received as a uint256
-     * @return feeValuePaid FixedPoint.Unsigned representing the fee value paid.
-     */
-    function calcFee(
-        MinterState storage self,
-        address _collateralAsset,
-        address _account,
-        FixedPoint.Unsigned memory _feeValue,
-        uint256 _collateralAssetIndex
-    ) internal returns (uint256 transferAmount, FixedPoint.Unsigned memory feeValuePaid) {
-        uint256 depositAmount = self.getCollateralDeposits(_account, _collateralAsset);
-
-        // Don't take the collateral asset's collateral factor into consideration.
-        (FixedPoint.Unsigned memory depositValue, FixedPoint.Unsigned memory oraclePrice) = self
-            .getCollateralValueAndOraclePrice(_collateralAsset, depositAmount, true);
-
-        // If feeValue < depositValue, the entire fee can be charged for this collateral asset.
-        if (_feeValue.rawValue < depositValue.rawValue) {
-            // We want to make sure that transferAmount is < depositAmount.
-            // Proof:
-            //   depositValue <= oraclePrice * depositAmount (<= due to a potential loss of precision)
-            //   feeValue < depositValue
-            // Meaning:
-            //   feeValue < oraclePrice * depositAmount
-            // Solving for depositAmount we get:
-            //   feeValue / oraclePrice < depositAmount
-            // Due to integer division:
-            //   transferAmount = floor(feeValue / oracleValue)
-            //   transferAmount <= feeValue / oraclePrice
-            // We see that:
-            //   transferAmount <= feeValue / oraclePrice < depositAmount
-            //   transferAmount < depositAmount
-            transferAmount = self.collateralAssets[_collateralAsset].decimals.fromCollateralFixedPointAmount(
-                _feeValue.rawValue.wadDiv(oraclePrice.rawValue)
-            );
-            feeValuePaid = _feeValue;
-        } else {
-            // If the feeValue >= depositValue, the entire deposit
-            // should be taken as the fee.
-            transferAmount = depositAmount;
-            feeValuePaid = depositValue;
-            // Because the entire deposit is taken, remove it from the depositCollateralAssets array.
-            self.depositedCollateralAssets[_account].removeAddress(_collateralAsset, _collateralAssetIndex);
-        }
-
-        return (transferAmount, feeValuePaid);
     }
 
     /**

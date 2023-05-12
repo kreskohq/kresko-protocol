@@ -22,7 +22,6 @@ import {ICollateralReceiver} from "../interfaces/ICollateralReceiver.sol";
  */
 contract DepositWithdrawFacet is DiamondModifiers, MinterModifiers, IDepositWithdrawFacet {
     using SafeERC20Upgradeable for IERC20Upgradeable;
-    using FixedPoint for FixedPoint.Unsigned;
 
     /* -------------------------------------------------------------------------- */
     /*                                 Collateral                                 */

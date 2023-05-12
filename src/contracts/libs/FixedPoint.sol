@@ -323,28 +323,6 @@ library FixedPoint {
         return Unsigned((a.rawValue * FP_SCALING_FACTOR).div(b.rawValue));
     }
 
-    function reciprocal(Unsigned memory x) internal pure returns (Unsigned memory) {
-        // return Unsigned(FP_SCALING_FACTOR).div(x);
-        return Unsigned(((FP_SCALING_FACTOR * FP_SCALING_FACTOR) / x.rawValue)); // Can't overflow
-    }
-
-    /**
-     * @notice x/y. If the dividend is higher than maxFixedDiv() it
-     * might overflow. You can use multiply(x,reciprocal(y)) instead.
-     * There is a loss of precision on division for the lower mulPrecision() decimals.
-     * @dev
-     * Test divide(fixed1(),0) fails
-     * Test divide(maxFixedDiv(),1) = maxFixedDiv()*(10^digits())
-     * Test divide(maxFixedDiv()+1,1) throws
-     * Test divide(maxFixedDiv(),maxFixedDiv()) returns fixed1()
-     */
-    function divide(Unsigned memory x, Unsigned memory y) internal pure returns (Unsigned memory) {
-        if (y.rawValue == FP_SCALING_FACTOR) return x;
-        assert(y.rawValue != 0);
-        // assert(y <= maxFixedDivisor());
-        return Unsigned(x.rawValue * reciprocal(y).rawValue);
-    }
-
     /**
      * @notice Divides one `Unsigned` by an unscaled uint256, reverting on overflow or division by 0.
      * @dev This will "floor" the quotient.

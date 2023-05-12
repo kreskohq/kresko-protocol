@@ -15,7 +15,7 @@ import {Meta} from "../../libs/Meta.sol";
 import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
 import {DiamondModifiers} from "../../shared/Modifiers.sol";
 
-import {Constants, KrAsset} from "../MinterTypes.sol";
+import {Constants, KrAsset, CollateralAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";
 
@@ -27,12 +27,10 @@ import {irs} from "../InterestRateState.sol";
 contract InterestLiquidationFacet is DiamondModifiers, IInterestLiquidationFacet {
     using Arrays for address[];
     using LibDecimals for uint8;
-    using LibDecimals for FixedPoint.Unsigned;
     using LibDecimals for uint256;
     using WadRay for uint256;
     using FixedPoint for FixedPoint.Unsigned;
     using FixedPoint for uint256;
-    using FixedPoint for int256;
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
     /**
@@ -161,8 +159,8 @@ contract InterestLiquidationFacet is DiamondModifiers, IInterestLiquidationFacet
         seizeAmount = s.collateralAssets[_collateralAssetToSeize].decimals.fromCollateralFixedPointAmount(
             LibCalculation.calculateAmountToSeize(
                 s.collateralAssets[_collateralAssetToSeize].liquidationIncentive,
-                s.collateralAssets[_collateralAssetToSeize].fixedPointPrice(),
-                _kissRepayAmount.fromWadPriceToFixedPoint()
+                s.collateralAssets[_collateralAssetToSeize].uintPrice(),
+                _kissRepayAmount.fromWadPriceToUint()
             )
         );
 

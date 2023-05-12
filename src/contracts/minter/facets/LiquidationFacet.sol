@@ -66,7 +66,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
 
         /* ------------------------------ Amount checks ----------------------------- */
         // Repay amount USD = repay amount * KR asset USD exchange rate.
-        FixedPoint.Unsigned memory repayAmountUSD = krAsset.fixedPointUSD(_repayAmount);
+        uint256 repayAmountUSD = krAsset.uintUSD(_repayAmount);
 
         // Avoid deep stack
         {
@@ -76,8 +76,8 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
             require(krAssetDebt >= _repayAmount, Error.KRASSET_BURN_AMOUNT_OVERFLOW);
 
             // We limit liquidations to exactly Liquidation Threshold here.
-            FixedPoint.Unsigned memory maxLiquidableUSD = s.getMaxLiquidation(_account, krAsset, _seizeAsset);
-            require(repayAmountUSD.isLessThanOrEqual(maxLiquidableUSD), Error.LIQUIDATION_OVERFLOW);
+            uint256 maxLiquidableUSD = s.getMaxLiquidation(_account, krAsset, _seizeAsset);
+            require(repayAmountUSD <= maxLiquidableUSD, Error.LIQUIDATION_OVERFLOW);
         }
 
         /* ------------------------------- Charge fee ------------------------------- */
@@ -91,7 +91,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
                 collateral.decimals.fromCollateralFixedPointAmount(
                     LibCalculation.calculateAmountToSeize(
                         collateral.liquidationIncentive,
-                        collateral.fixedPointPrice(),
+                        collateral.uintPrice(),
                         repayAmountUSD
                     )
                 ),
@@ -183,7 +183,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         address _account,
         address _repayKreskoAsset,
         address _collateralAssetToSeize
-    ) public view returns (FixedPoint.Unsigned memory maxLiquidatableUSD) {
+    ) public view returns (uint256 maxLiquidatableUSD) {
         return ms().getMaxLiquidation(_account, ms().kreskoAssets[_repayKreskoAsset], _collateralAssetToSeize);
     }
 }
