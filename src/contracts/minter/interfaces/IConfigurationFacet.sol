@@ -122,6 +122,12 @@ interface IConfigurationFacet {
     ) external;
 
     /**
+     * @notice Updates the max liquidation usd overflow multiplier value.
+     * @param _maxLiquidationMultiplier Overflow value in percent, 18 decimals.
+     */
+    function updateMaxLiquidationMultiplier(uint256 _maxLiquidationMultiplier) external;
+
+    /**
      * @dev Updates the contract's collateralization ratio.
      * @param _minimumCollateralizationRatio The new minimum collateralization ratio as a raw value
      * for a FixedPoint.Unsigned.

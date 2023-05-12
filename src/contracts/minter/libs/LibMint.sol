@@ -74,10 +74,10 @@ library LibMint {
     ) internal {
         KrAsset memory krAsset = self.kreskoAssets[_kreskoAsset];
         // Calculate the value of the fee according to the value of the krAssets being minted.
-        FixedPoint.Unsigned memory feeValue = krAsset.fixedPointUSD(_kreskoAssetAmountMinted).mul(krAsset.openFee);
+        uint256 feeValue = krAsset.uintUSD(_kreskoAssetAmountMinted).wadMul(krAsset.openFee.rawValue);
 
         // Do nothing if the fee value is 0.
-        if (feeValue.rawValue == 0) {
+        if (feeValue == 0) {
             return;
         }
 
@@ -89,7 +89,7 @@ library LibMint {
         for (uint256 i = accountCollateralAssets.length - 1; i >= 0; i--) {
             address collateralAssetAddress = accountCollateralAssets[i];
 
-            (uint256 transferAmount, FixedPoint.Unsigned memory feeValuePaid) = self.calcFee(
+            (uint256 transferAmount, uint256 feeValuePaid) = self.calcFee(
                 collateralAssetAddress,
                 _account,
                 feeValue,
@@ -103,11 +103,11 @@ library LibMint {
 
             // Transfer the fee to the feeRecipient.
             IERC20Upgradeable(collateralAssetAddress).safeTransfer(self.feeRecipient, transferAmount);
-            emit MinterEvent.OpenFeePaid(_account, collateralAssetAddress, transferAmount, feeValuePaid.rawValue);
+            emit MinterEvent.OpenFeePaid(_account, collateralAssetAddress, transferAmount, feeValuePaid);
 
-            feeValue = feeValue.sub(feeValuePaid);
+            feeValue = feeValue - feeValuePaid;
             // If the entire fee has been paid, no more action needed.
-            if (feeValue.rawValue == 0) {
+            if (feeValue == 0) {
                 return;
             }
         }

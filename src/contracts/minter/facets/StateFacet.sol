@@ -12,10 +12,12 @@ import {MinterState, ms} from "../MinterStorage.sol";
  * @dev As structs do not create views for members, we must expose most of the state values explicitly.
  */
 contract StateFacet is IStateFacet {
+    /// @inheritdoc IStateFacet
     function domainSeparator() external view returns (bytes32) {
         return ms().domainSeparator;
     }
 
+    /// @inheritdoc IStateFacet
     function minterInitializations() external view returns (uint256) {
         return ms().initializations;
     }
@@ -23,34 +25,47 @@ contract StateFacet is IStateFacet {
     /* -------------------------------------------------------------------------- */
     /*                                Configurables                               */
     /* -------------------------------------------------------------------------- */
+    /// @inheritdoc IStateFacet
     function feeRecipient() external view returns (address) {
         return ms().feeRecipient;
     }
 
+    /// @inheritdoc IStateFacet
     function ammOracle() external view returns (address) {
         return ms().ammOracle;
     }
 
+    /// @inheritdoc IStateFacet
     function extOracleDecimals() external view returns (uint8) {
         return ms().extOracleDecimals;
     }
 
+    /// @inheritdoc IStateFacet
     function minimumCollateralizationRatio() external view returns (FixedPoint.Unsigned memory) {
         return ms().minimumCollateralizationRatio;
     }
 
+    /// @inheritdoc IStateFacet
     function liquidationIncentiveMultiplier() external view returns (FixedPoint.Unsigned memory) {
         return ms().liquidationIncentiveMultiplier;
     }
 
+    /// @inheritdoc IStateFacet
     function minimumDebtValue() external view returns (FixedPoint.Unsigned memory) {
         return ms().minimumDebtValue;
     }
 
+    /// @inheritdoc IStateFacet
     function liquidationThreshold() external view returns (FixedPoint.Unsigned memory) {
         return ms().liquidationThreshold;
     }
 
+    /// @inheritdoc IStateFacet
+    function maxLiquidationMultiplier() external view returns (FixedPoint.Unsigned memory) {
+        return ms().maxLiquidationMultiplier;
+    }
+
+    /// @inheritdoc IStateFacet
     function getAllParams() external view returns (MinterParams memory) {
         MinterState storage s = ms();
         return
@@ -58,6 +73,7 @@ contract StateFacet is IStateFacet {
                 s.minimumCollateralizationRatio,
                 s.minimumDebtValue,
                 s.liquidationThreshold,
+                s.liquidationIncentiveMultiplier,
                 s.feeRecipient,
                 s.extOracleDecimals
             );
@@ -66,47 +82,27 @@ contract StateFacet is IStateFacet {
     /* -------------------------------------------------------------------------- */
     /*                                   Assets                                   */
     /* -------------------------------------------------------------------------- */
-    /**
-     * @notice Returns true if the @param _kreskoAsset exists in the protocol
-     * @return exists boolean indicating if the asset exists
-     */
+    /// @inheritdoc IStateFacet
     function krAssetExists(address _kreskoAsset) external view returns (bool exists) {
         return ms().kreskoAssets[_kreskoAsset].exists;
     }
 
-    /**
-     * @notice Get the state of a specific krAsset
-     * @param _kreskoAsset Address of the asset.
-     * @return asset State of assets `KrAsset` struct
-     */
+    /// @inheritdoc IStateFacet
     function kreskoAsset(address _kreskoAsset) external view returns (KrAsset memory asset) {
         return ms().kreskoAsset(_kreskoAsset);
     }
 
-    /**
-     * @notice Returns true if the @param _collateralAsset exists in the protocol
-     * @return exists boolean indicating if the asset exists
-     */
+    /// @inheritdoc IStateFacet
     function collateralExists(address _collateralAsset) external view returns (bool exists) {
         return ms().collateralAssets[_collateralAsset].exists;
     }
 
-    /**
-     * @notice Get the state of a specific collateral asset
-     * @param _collateralAsset Address of the asset.
-     * @return asset State of assets `CollateralAsset` struct
-     */
+    /// @inheritdoc IStateFacet
     function collateralAsset(address _collateralAsset) external view returns (CollateralAsset memory asset) {
         return ms().collateralAssets[_collateralAsset];
     }
 
-    /**
-     * @notice Gets the collateral value for a single collateral asset and amount.
-     * @param _collateralAsset The address of the collateral asset.
-     * @param _amount The amount of the collateral asset to calculate the collateral value for.
-     * @param _ignoreCollateralFactor Boolean indicating if the asset's collateral factor should be ignored.
-     * @return value and oraclePrice The value and oracle price for the provided amount of the collateral asset.
-     */
+    /// @inheritdoc IStateFacet
     function getCollateralValueAndOraclePrice(
         address _collateralAsset,
         uint256 _amount,
@@ -115,13 +111,7 @@ contract StateFacet is IStateFacet {
         return ms().getCollateralValueAndOraclePrice(_collateralAsset, _amount, _ignoreCollateralFactor);
     }
 
-    /**
-     * @notice Gets the USD value for a single Kresko asset and amount.
-     * @param _kreskoAsset The address of the Kresko asset.
-     * @param _amount The amount of the Kresko asset to calculate the value for.
-     * @param _ignoreKFactor Boolean indicating if the asset's k-factor should be ignored.
-     * @return value The value for the provided amount of the Kresko asset.
-     */
+    /// @inheritdoc IStateFacet
     function getKrAssetValue(
         address _kreskoAsset,
         uint256 _amount,

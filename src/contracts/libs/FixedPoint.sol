@@ -265,7 +265,7 @@ library FixedPoint {
         // 2. Results that can't be represented exactly are truncated not rounded. E.g., 1.4 * 2e-18 = 2.8e-18, which
         // would round to 3, but this computation produces the result 2.
         // No need to use SafeMath because FP_SCALING_FACTOR != 0.
-        return Unsigned(a.rawValue.mul(b.rawValue) / FP_SCALING_FACTOR);
+        return Unsigned((a.rawValue * b.rawValue) / FP_SCALING_FACTOR);
     }
 
     /**
@@ -276,7 +276,7 @@ library FixedPoint {
      * @return the product of `a` and `b`.
      */
     function mul(Unsigned memory a, uint256 b) internal pure returns (Unsigned memory) {
-        return Unsigned(a.rawValue.mul(b));
+        return Unsigned(a.rawValue * b);
     }
 
     /**
@@ -320,7 +320,29 @@ library FixedPoint {
         // 10^41 is stored internally as a uint256 10^59.
         // 2. Results that can't be represented exactly are truncated not rounded. E.g., 2 / 3 = 0.6 repeating, which
         // would round to 0.666666666666666667, but this computation produces the result 0.666666666666666666.
-        return Unsigned(a.rawValue.mul(FP_SCALING_FACTOR).div(b.rawValue));
+        return Unsigned((a.rawValue * FP_SCALING_FACTOR).div(b.rawValue));
+    }
+
+    function reciprocal(Unsigned memory x) internal pure returns (Unsigned memory) {
+        // return Unsigned(FP_SCALING_FACTOR).div(x);
+        return Unsigned(((FP_SCALING_FACTOR * FP_SCALING_FACTOR) / x.rawValue)); // Can't overflow
+    }
+
+    /**
+     * @notice x/y. If the dividend is higher than maxFixedDiv() it
+     * might overflow. You can use multiply(x,reciprocal(y)) instead.
+     * There is a loss of precision on division for the lower mulPrecision() decimals.
+     * @dev
+     * Test divide(fixed1(),0) fails
+     * Test divide(maxFixedDiv(),1) = maxFixedDiv()*(10^digits())
+     * Test divide(maxFixedDiv()+1,1) throws
+     * Test divide(maxFixedDiv(),maxFixedDiv()) returns fixed1()
+     */
+    function divide(Unsigned memory x, Unsigned memory y) internal pure returns (Unsigned memory) {
+        if (y.rawValue == FP_SCALING_FACTOR) return x;
+        assert(y.rawValue != 0);
+        // assert(y <= maxFixedDivisor());
+        return Unsigned(x.rawValue * reciprocal(y).rawValue);
     }
 
     /**

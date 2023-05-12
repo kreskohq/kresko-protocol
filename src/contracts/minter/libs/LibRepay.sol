@@ -18,6 +18,8 @@ import {KrAsset} from "../MinterTypes.sol";
 import {irs} from "../InterestRateState.sol";
 import {MinterState} from "../MinterState.sol";
 
+import "hardhat/console.sol";
+
 library LibRepay {
     using Arrays for address[];
 
@@ -122,10 +124,10 @@ library LibRepay {
     ) internal {
         KrAsset memory krAsset = self.kreskoAssets[_kreskoAsset];
         // Calculate the value of the fee according to the value of the krAssets being burned.
-        FixedPoint.Unsigned memory feeValue = krAsset.fixedPointUSD(_burnAmount).mul(krAsset.closeFee);
+        uint256 feeValue = krAsset.uintUSD(_burnAmount).wadMul(krAsset.closeFee.rawValue);
 
         // Do nothing if the fee value is 0.
-        if (feeValue.rawValue == 0) {
+        if (feeValue == 0) {
             return;
         }
 
@@ -138,7 +140,7 @@ library LibRepay {
         for (uint256 i = accountCollateralAssets.length - 1; i >= 0; i--) {
             address collateralAssetAddress = accountCollateralAssets[i];
 
-            (uint256 transferAmount, FixedPoint.Unsigned memory feeValuePaid) = self.calcFee(
+            (uint256 transferAmount, uint256 feeValuePaid) = self.calcFee(
                 collateralAssetAddress,
                 _account,
                 feeValue,
@@ -152,11 +154,11 @@ library LibRepay {
 
             // Transfer the fee to the feeRecipient.
             IERC20Upgradeable(collateralAssetAddress).safeTransfer(self.feeRecipient, transferAmount);
-            emit MinterEvent.CloseFeePaid(_account, collateralAssetAddress, transferAmount, feeValuePaid.rawValue);
+            emit MinterEvent.CloseFeePaid(_account, collateralAssetAddress, transferAmount, feeValuePaid);
 
-            feeValue = feeValue.sub(feeValuePaid);
+            feeValue = feeValue - feeValuePaid;
             // If the entire fee has been paid, no more action needed.
-            if (feeValue.rawValue == 0) {
+            if (feeValue == 0) {
                 return;
             }
         }

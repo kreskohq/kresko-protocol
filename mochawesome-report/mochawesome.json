@@ -1,14 +1,14 @@
 {
   "stats": {
-    "suites": 2,
-    "tests": 1,
+    "suites": 3,
+    "tests": 2,
     "passes": 0,
     "pending": 0,
-    "failures": 1,
-    "start": "2023-05-10T19:39:31.718Z",
-    "end": "2023-05-10T19:39:36.132Z",
-    "duration": 4414,
-    "testsRegistered": 1,
+    "failures": 2,
+    "start": "2023-05-12T04:05:27.571Z",
+    "end": "2023-05-12T04:05:31.524Z",
+    "duration": 3953,
+    "testsRegistered": 2,
     "passPercent": 0,
     "pendingPercent": 0,
     "other": 0,
@@ -18,7 +18,7 @@
   },
   "results": [
     {
-      "uuid": "71d21490-1345-4ec0-a7fe-6875c0da16c1",
+      "uuid": "eeeb554a-de6b-45ef-af95-d39daf8c4337",
       "title": "",
       "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/minter/03-liquidation.ts",
       "file": "/src/test/minter/03-liquidation.ts",
@@ -27,7 +27,7 @@
       "tests": [],
       "suites": [
         {
-          "uuid": "9be243a7-682d-4ba0-85b1-cda450b8aea7",
+          "uuid": "e2d209de-5ca2-43fc-ba91-dddcd78c7e35",
           "title": "Minter",
           "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/minter/03-liquidation.ts",
           "file": "/src/test/minter/03-liquidation.ts",
@@ -36,7 +36,7 @@
               "title": "\"before each\" hook in \"Minter\"",
               "fullTitle": "Minter \"before each\" hook in \"Minter\"",
               "timedOut": false,
-              "duration": 31,
+              "duration": 26,
               "state": null,
               "speed": null,
               "pass": false,
@@ -45,8 +45,8 @@
               "context": null,
               "code": "const fixture = await hardhat_1.default.deployments.createFixture(async (hre) => {\n    const result = await hre.deployments.fixture(fixtureName);\n    if (result.Diamond) {\n        hre.Diamond = await hre.getContractOrFork(\"Kresko\");\n    }\n    return {\n        facets: result.Diamond ? result.Diamond.facets : [],\n        collaterals: hre.collaterals,\n        krAssets: hre.krAssets,\n    };\n})();\nthis.facets = fixture.facets || [];\nthis.collaterals = fixture.collaterals;\nthis.krAssets = fixture.krAssets;",
               "err": {},
-              "uuid": "5f7c4770-3bf3-4d2c-8e7f-75cb30353c3a",
-              "parentUUID": "9be243a7-682d-4ba0-85b1-cda450b8aea7",
+              "uuid": "737df673-1252-4836-a7ad-5e3685f809c7",
+              "parentUUID": "e2d209de-5ca2-43fc-ba91-dddcd78c7e35",
               "isHook": true,
               "skipped": false
             },
@@ -54,17 +54,17 @@
               "title": "\"before each\" hook in \"Minter\"",
               "fullTitle": "Minter \"before each\" hook in \"Minter\"",
               "timedOut": false,
-              "duration": 165,
+              "duration": 136,
               "state": null,
               "speed": null,
               "pass": false,
               "fail": false,
               "pending": false,
               "context": null,
-              "code": "// -------------------------------- Set up mock assets --------------------------------\nconst collateralArgs = {\n    name: \"CollateralAsset\",\n    price: 10,\n    factor: 1,\n    decimals: 18,\n};\nthis.collateral = hardhat_1.default.collaterals.find(c => c.deployArgs.name === _test_utils_1.defaultCollateralArgs.name);\nthis.collateral = await this.collateral.update(collateralArgs);\nthis.collateral.setPrice(collateralArgs.price);\n// Set up mock KreskoAsset\nconst krAssetArgs = {\n    name: \"KreskoAsset\",\n    price: 11,\n    factor: 1,\n    supplyLimit: 100000000,\n    closeFee: _test_utils_1.defaultCloseFee,\n    openFee: _test_utils_1.defaultOpenFee,\n};\nthis.krAsset = hardhat_1.default.krAssets.find(c => c.deployArgs.name === _test_utils_1.defaultKrAssetArgs.name);\nthis.krAsset.setPrice(krAssetArgs.price);\n// grant operator role to deployer for rebases\nawait this.krAsset.contract.grantRole(_test_utils_1.Role.OPERATOR, hardhat_1.default.users.deployer.address);\nconst assetInfo = await this.krAsset.kresko();\n// Add krAsset as a collateral with anchor and cFactor of 1\nawait hardhat_1.default.Diamond.connect(hardhat_1.default.users.deployer).addCollateralAsset(this.krAsset.contract.address, this.krAsset.anchor.address, (0, lib_1.toFixedPoint)(1), (0, lib_1.toFixedPoint)(1.05), assetInfo.oracle, assetInfo.oracle);\n// -------------------------------- Set up userOne deposit/debt --------------------------------\nawait this.collateral.setBalance(hardhat_1.default.users.liquidator, hardhat_1.default.toBig(100000000));\nawait this.collateral.mocks.contract.setVariable(\"_allowances\", {\n    [hardhat_1.default.users.liquidator.address]: {\n        [hardhat_1.default.Diamond.address]: hardhat_1.default.toBig(100000000),\n    },\n});\n// Deposit collateral\nthis.defaultDepositAmount = 20; // 20 * $10 = $200 in collateral asset value\nawait this.collateral.setBalance(hardhat_1.default.users.userOne, hardhat_1.default.toBig(this.defaultDepositAmount));\nawait this.collateral.mocks.contract.setVariable(\"_allowances\", {\n    [hardhat_1.default.users.userOne.address]: {\n        [hardhat_1.default.Diamond.address]: hardhat_1.default.toBig(this.defaultDepositAmount),\n    },\n});\nawait (0, collaterals_1.depositCollateral)({\n    user: hardhat_1.default.users.userOne,\n    amount: this.defaultDepositAmount,\n    asset: this.collateral,\n});\n// // Mint KrAsset\nthis.defaultMintAmount = 10; // 10 * $11 = $110 in debt value\nawait (0, krassets_1.mintKrAsset)({\n    user: hardhat_1.default.users.userOne,\n    amount: this.defaultMintAmount,\n    asset: this.krAsset,\n});",
+              "code": "// -------------------------------- Set up mock assets --------------------------------\nconst collateralArgs = {\n    name: \"CollateralAsset\",\n    price: 10,\n    factor: 1,\n    decimals: 18,\n};\nthis.collateral = hardhat_1.default.collaterals.find(c => c.deployArgs.name === _test_utils_1.defaultCollateralArgs.name);\nthis.collateral = await this.collateral.update(collateralArgs);\nthis.collateral.setPrice(collateralArgs.price);\n// Set up mock KreskoAsset\nconst krAssetArgs = {\n    name: \"KreskoAsset\",\n    price: 11,\n    factor: 1,\n    supplyLimit: 100000000,\n    closeFee: _test_utils_1.defaultCloseFee,\n    openFee: _test_utils_1.defaultOpenFee,\n};\nthis.krAsset = hardhat_1.default.krAssets.find(c => c.deployArgs.name === _test_utils_1.defaultKrAssetArgs.name);\nthis.krAsset.setPrice(krAssetArgs.price);\n// grant operator role to deployer for rebases\nawait this.krAsset.contract.grantRole(_test_utils_1.Role.OPERATOR, hardhat_1.default.users.deployer.address);\nconst assetInfo = await this.krAsset.kresko();\n// Add krAsset as a collateral with anchor and cFactor of 1\nawait hardhat_1.default.Diamond.connect(hardhat_1.default.users.deployer).addCollateralAsset(this.krAsset.contract.address, this.krAsset.anchor.address, (0, lib_1.toFixedPoint)(1), (0, lib_1.toFixedPoint)(1.05), assetInfo.oracle, assetInfo.oracle);\n// -------------------------------- Set up userOne deposit/debt --------------------------------\nawait this.collateral.setBalance(hardhat_1.default.users.liquidator, hardhat_1.default.toBig(100000000));\nawait this.collateral.mocks.contract.setVariable(\"_allowances\", {\n    [hardhat_1.default.users.liquidator.address]: {\n        [hardhat_1.default.Diamond.address]: hardhat_1.default.toBig(100000000),\n    },\n});\n// Deposit collateral\nthis.defaultDepositAmount = 20; // 20 * $10 = $200 in collateral asset value\nawait this.collateral.setBalance(hardhat_1.default.users.userOne, hardhat_1.default.toBig(this.defaultDepositAmount));\nawait this.collateral.mocks.contract.setVariable(\"_allowances\", {\n    [hardhat_1.default.users.userOne.address]: {\n        [hardhat_1.default.Diamond.address]: hardhat_1.default.toBig(this.defaultDepositAmount),\n    },\n});\nawait (0, collaterals_1.depositCollateral)({\n    user: hardhat_1.default.users.userOne,\n    amount: this.defaultDepositAmount,\n    asset: this.collateral,\n});\n// Mint KrAsset\nthis.defaultMintAmount = 10; // 10 * $11 = $110 in debt value\nawait (0, krassets_1.mintKrAsset)({\n    user: hardhat_1.default.users.userOne,\n    amount: this.defaultMintAmount,\n    asset: this.krAsset,\n});",
               "err": {},
-              "uuid": "ca2ef048-b90b-42ed-9f0a-c2088eecaad2",
-              "parentUUID": "9be243a7-682d-4ba0-85b1-cda450b8aea7",
+              "uuid": "ffe3bd1b-2114-4f9e-9640-187b31660ff4",
+              "parentUUID": "e2d209de-5ca2-43fc-ba91-dddcd78c7e35",
               "isHook": true,
               "skipped": false
             }
@@ -73,63 +73,105 @@
           "tests": [],
           "suites": [
             {
-              "uuid": "392c2dce-7ebb-4cc5-a5bf-ba16a722d55f",
-              "title": "#maxLiquidatableValue",
+              "uuid": "2cd33233-70bd-477c-8913-5f64fec58b13",
+              "title": "#liquidation",
               "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/minter/03-liquidation.ts",
               "file": "/src/test/minter/03-liquidation.ts",
-              "beforeHooks": [
-                {
-                  "title": "\"before each\" hook in \"#maxLiquidatableValue\"",
-                  "fullTitle": "Minter #maxLiquidatableValue \"before each\" hook in \"#maxLiquidatableValue\"",
-                  "timedOut": false,
-                  "duration": 1789,
-                  "state": null,
-                  "speed": null,
-                  "pass": false,
-                  "fail": false,
-                  "pending": false,
-                  "context": null,
-                  "code": "user = hardhat_1.default.users.userOne;\nthis.collateral.setPrice(collateralPrice);\nthis.krAsset.setPrice(krAssetPrice);\nawait this.collateral.setBalance(hardhat_1.default.users.userOne, hardhat_1.default.toBig(this.defaultDepositAmount * 100));\nawait this.collateral.mocks.contract.setVariable(\"_allowances\", {\n    [hardhat_1.default.users.userOne.address]: {\n        [hardhat_1.default.Diamond.address]: hardhat_1.default.toBig(this.defaultDepositAmount * 100),\n    },\n});\nnewCollateral = await (0, collaterals_1.addMockCollateralAsset)({\n    name: \"Coll\",\n    decimals: 8,\n    price: 10,\n    factor: 0.9,\n});\nawait newCollateral.setBalance(hardhat_1.default.users.userOne, hardhat_1.default.toBig(this.defaultDepositAmount * 100, 8));\nawait newCollateral.mocks.contract.setVariable(\"_allowances\", {\n    [hardhat_1.default.users.userOne.address]: {\n        [hardhat_1.default.Diamond.address]: hardhat_1.default.toBig(this.defaultDepositAmount * 100, 8),\n    },\n});",
-                  "err": {},
-                  "uuid": "dc2eb110-7476-4aa7-a997-b928fb70f28b",
-                  "parentUUID": "392c2dce-7ebb-4cc5-a5bf-ba16a722d55f",
-                  "isHook": true,
-                  "skipped": false
-                }
-              ],
+              "beforeHooks": [],
               "afterHooks": [],
-              "tests": [
+              "tests": [],
+              "suites": [
                 {
-                  "title": "calculates correct MLV when kFactor = 1, cFactor = 0.25",
-                  "fullTitle": "Minter #maxLiquidatableValue calculates correct MLV when kFactor = 1, cFactor = 0.25",
-                  "timedOut": false,
-                  "duration": 2424,
-                  "state": "failed",
-                  "speed": null,
-                  "pass": false,
-                  "fail": true,
-                  "pending": false,
-                  "context": null,
-                  "code": "const userThree = hardhat_1.default.users.userThree;\nconst collateralPrice = 10;\nthis.collateral.setPrice(collateralPrice);\nconst deposits1 = (0, lib_1.toBig)(10);\nconst deposits2 = (0, lib_1.toBig)(10);\nconst borrows = (0, lib_1.toBig)(10);\nconst collateral2 = await (0, collaterals_1.addMockCollateralAsset)({\n    name: \"Collateral2\",\n    decimals: 18,\n    factor: 1,\n    price: 10,\n});\nawait this.collateral.mocks?.contract.setVariable(\"_balances\", {\n    [userThree.address]: deposits1,\n});\nawait collateral2.mocks?.contract.setVariable(\"_balances\", {\n    [userThree.address]: deposits2,\n});\nawait (0, collaterals_1.depositCollateral)({\n    user: userThree,\n    amount: deposits1,\n    asset: this.collateral,\n});\nawait (0, collaterals_1.depositCollateral)({\n    user: userThree,\n    amount: deposits2,\n    asset: collateral2,\n});\nawait (0, krassets_1.mintKrAsset)({\n    user: userThree,\n    amount: borrows,\n    asset: this.krAsset,\n});\nconst cr = await (0, liquidations_1.getCR)(userThree.address);\n(0, chai_1.expect)(await hardhat_1.default.Diamond.isAccountLiquidatable(userThree.address)).to.be.false;\n(0, chai_1.expect)(cr).to.be.closeTo(2, 0.0001);\nconst newFactor = 0.25;\nawait this.collateral.update({\n    factor: newFactor,\n    name: \"updated\",\n});\n(0, chai_1.expect)(await (0, liquidations_1.getCR)(userThree.address)).to.be.closeTo(1.25, 0.0001);\n(0, chai_1.expect)(await hardhat_1.default.Diamond.isAccountLiquidatable(userThree.address)).to.be.true;\nconst maxLiquidatableValueC1 = (await hardhat_1.default.Diamond.calculateMaxLiquidatableValueForAssets(userThree.address, this.krAsset.address, this.collateral.address)).rawValue;\nconst MLCalcC1 = await (0, liquidations_1.calcExpectedMaxLiquidatableValue)(userThree, this.krAsset, this.collateral);\n(0, chai_1.expect)(MLCalcC1).to.be.closeTo(maxLiquidatableValueC1, USD_DELTA);\nconst maxLiquidatableValueC2 = (await hardhat_1.default.Diamond.calculateMaxLiquidatableValueForAssets(userThree.address, this.krAsset.address, collateral2.address)).rawValue;\nconst MLCalcC2 = await (0, liquidations_1.calcExpectedMaxLiquidatableValue)(userThree, this.krAsset, collateral2);\n(0, chai_1.expect)(MLCalcC2).to.be.closeTo(maxLiquidatableValueC2, USD_DELTA);\n// expect(maxLiquidatableValueC2.gt(maxLiquidatableValueC1)).to.be.true;\nconst expectedValue = deposits1.mul(newFactor * 100).div(1000e8);\n// expect(maxLiquidatableValueC1).to.be.equal(expectedValue);\nconsole.log(\"cr before liq\", await (0, liquidations_1.getCR)(userThree.address));\nconst { collateralSeized } = await (0, liquidations_1.liquidate)(userThree, this.krAsset, this.collateral);\nconsole.log(\"cr after liq\", await (0, liquidations_1.getCR)(userThree.address));\nconst incentive = (await this.collateral.kresko()).liquidationIncentive.rawValue;\nconst closeFee = (await this.krAsset.kresko()).closeFee.rawValue;\nconst seizedExpected = (0, lib_1.fromBig)(expectedValue.wadMul(incentive), 8) / collateralPrice;\n(0, chai_1.expect)(collateralSeized).to.be.equal(seizedExpected);\nconst c2Deposits = await hardhat_1.default.Diamond.collateralDeposits(userThree.address, collateral2.address);\nconst expectedCloseFee = ((0, lib_1.fromBig)(maxLiquidatableValueC1, 8) * (0, lib_1.fromBig)(closeFee)) / collateralPrice;\n(0, chai_1.expect)((0, lib_1.fromBig)(c2Deposits)).to.be.equal((0, lib_1.fromBig)(deposits2) - expectedCloseFee);",
-                  "err": {
-                    "message": "AssertionError: expected 1.4093959770000009 to equal 2.625",
-                    "estack": "AssertionError: expected 1.4093959770000009 to equal 2.625\n    at Proxy.assertEqual (node_modules/.pnpm/chai@4.3.7/node_modules/chai/lib/chai/core/assertions.js:1038:12)\n    at Proxy.methodWrapper (node_modules/.pnpm/chai@4.3.7/node_modules/chai/lib/chai/utils/addMethod.js:57:25)\n    at Proxy.<anonymous> (node_modules/.pnpm/chai-bn@0.3.1_chai@4.3.7/node_modules/chai-bn/chai-bn.js:49:31)\n    at Proxy.overwritingMethodWrapper (node_modules/.pnpm/chai@4.3.7/node_modules/chai/lib/chai/utils/overwriteMethod.js:78:33)\n    at Proxy.<anonymous> (node_modules/.pnpm/@ethereum-waffle+chai@3.4.4/node_modules/@ethereum-waffle/chai/dist/cjs/matchers/bigNumber.js:36:20)\n    at Proxy.overwritingMethodWrapper (node_modules/.pnpm/chai@4.3.7/node_modules/chai/lib/chai/utils/overwriteMethod.js:78:33)\n    at doAsserterAsyncAndAddThen (node_modules/.pnpm/chai-as-promised@7.1.1_chai@4.3.7/node_modules/chai-as-promised/lib/chai-as-promised.js:289:22)\n    at Proxy.<anonymous> (node_modules/.pnpm/chai-as-promised@7.1.1_chai@4.3.7/node_modules/chai-as-promised/lib/chai-as-promised.js:255:20)\n    at Proxy.overwritingMethodWrapper (node_modules/.pnpm/chai@4.3.7/node_modules/chai/lib/chai/utils/overwriteMethod.js:78:33)\n    at Context.<anonymous> (src/test/minter/03-liquidation.ts:254:44)",
-                    "diff": "- 1.4093959770000009\n+ 2.625\n"
-                  },
-                  "uuid": "2e4b7eac-8f6a-44b1-ae87-9208ad3876a4",
-                  "parentUUID": "392c2dce-7ebb-4cc5-a5bf-ba16a722d55f",
-                  "isHook": false,
-                  "skipped": false
+                  "uuid": "3e7e24aa-867e-4785-9f30-bd4169e5d605",
+                  "title": "#liquidate",
+                  "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/minter/03-liquidation.ts",
+                  "file": "/src/test/minter/03-liquidation.ts",
+                  "beforeHooks": [
+                    {
+                      "title": "\"before each\" hook in \"#liquidate\"",
+                      "fullTitle": "Minter #liquidation #liquidate \"before each\" hook in \"#liquidate\"",
+                      "timedOut": false,
+                      "duration": 1,
+                      "state": null,
+                      "speed": null,
+                      "pass": false,
+                      "fail": false,
+                      "pending": false,
+                      "context": null,
+                      "code": "// Grant userTwo tokens to use for liquidation\nawait this.krAsset.mocks.contract.setVariable(\"_balances\", {\n    [hardhat_1.default.users.userTwo.address]: hardhat_1.default.toBig(10000),\n});\n// Update collateral price from $10 to $7.5\nconst newCollateralPrice = 7.5;\nthis.collateral.setPrice(newCollateralPrice);",
+                      "err": {},
+                      "uuid": "e3a3edbf-c6e3-4ec5-a74e-650f54d88b19",
+                      "parentUUID": "3e7e24aa-867e-4785-9f30-bd4169e5d605",
+                      "isHook": true,
+                      "skipped": false
+                    }
+                  ],
+                  "afterHooks": [],
+                  "tests": [
+                    {
+                      "title": "should liquidate up to LT with a single CDP",
+                      "fullTitle": "Minter #liquidation #liquidate should liquidate up to LT with a single CDP",
+                      "timedOut": false,
+                      "duration": 422,
+                      "state": "failed",
+                      "speed": null,
+                      "pass": false,
+                      "fail": true,
+                      "pending": false,
+                      "context": null,
+                      "code": "const userThree = hardhat_1.default.users.userThree;\nconst deposits = (0, lib_1.toBig)(15);\nconst borrows = (0, lib_1.toBig)(10);\nthis.collateral.setPrice(10);\nthis.krAsset.setPrice(10);\nawait this.collateral.setBalance(userThree, deposits);\nawait (0, collaterals_1.depositCollateral)({\n    user: userThree,\n    amount: deposits,\n    asset: this.collateral,\n});\nawait (0, krassets_1.mintKrAsset)({\n    user: userThree,\n    amount: borrows,\n    asset: this.krAsset,\n});\n(0, chai_1.expect)(await hardhat_1.default.Diamond.isAccountLiquidatable(userThree.address)).to.be.false;\nthis.collateral.setPrice(7.5);\n(0, chai_1.expect)(await hardhat_1.default.Diamond.isAccountLiquidatable(userThree.address)).to.be.true;\nawait (0, liquidations_1.liquidate)(userThree, this.krAsset, this.collateral);\n(0, chai_1.expect)(await (0, liquidations_1.getCR)(userThree.address)).to.be.closeTo(1.4, CR_DELTA);\n// expect(await hre.Diamond.isAccountLiquidatable(userThree.address)).to.be.false;",
+                      "err": {
+                        "message": "AssertionError: expected 1.4001650712542735 to be close to 1.4 +/- 1e-7",
+                        "estack": "AssertionError: expected 1.4001650712542735 to be close to 1.4 +/- 1e-7\n    at Proxy.closeTo (node_modules/.pnpm/chai@4.3.7/node_modules/chai/lib/chai/core/assertions.js:2979:10)\n    at Proxy.methodWrapper (node_modules/.pnpm/chai@4.3.7/node_modules/chai/lib/chai/utils/addMethod.js:57:25)\n    at Proxy.<anonymous> (node_modules/.pnpm/chai-bn@0.3.1_chai@4.3.7/node_modules/chai-bn/chai-bn.js:49:31)\n    at Proxy.overwritingMethodWrapper (node_modules/.pnpm/chai@4.3.7/node_modules/chai/lib/chai/utils/overwriteMethod.js:78:33)\n    at Proxy.<anonymous> (node_modules/.pnpm/@ethereum-waffle+chai@3.4.4/node_modules/@ethereum-waffle/chai/dist/cjs/matchers/bigNumber.js:66:20)\n    at Proxy.overwritingMethodWrapper (node_modules/.pnpm/chai@4.3.7/node_modules/chai/lib/chai/utils/overwriteMethod.js:78:33)\n    at doAsserterAsyncAndAddThen (node_modules/.pnpm/chai-as-promised@7.1.1_chai@4.3.7/node_modules/chai-as-promised/lib/chai-as-promised.js:289:22)\n    at Proxy.<anonymous> (node_modules/.pnpm/chai-as-promised@7.1.1_chai@4.3.7/node_modules/chai-as-promised/lib/chai-as-promised.js:255:20)\n    at Proxy.overwritingMethodWrapper (node_modules/.pnpm/chai@4.3.7/node_modules/chai/lib/chai/utils/overwriteMethod.js:78:33)\n    at Context.<anonymous> (src/test/minter/03-liquidation.ts:445:62)",
+                        "diff": null
+                      },
+                      "uuid": "5a0f0e94-59d2-48e4-893f-717512ab6fe5",
+                      "parentUUID": "3e7e24aa-867e-4785-9f30-bd4169e5d605",
+                      "isHook": false,
+                      "skipped": false
+                    },
+                    {
+                      "title": "should liquidate up to LT with multiple CDPs",
+                      "fullTitle": "Minter #liquidation #liquidate should liquidate up to LT with multiple CDPs",
+                      "timedOut": false,
+                      "duration": 3187,
+                      "state": "failed",
+                      "speed": null,
+                      "pass": false,
+                      "fail": true,
+                      "pending": false,
+                      "context": null,
+                      "code": "const collateral2 = await (0, collaterals_1.addMockCollateralAsset)({\n    name: \"Collateral2\",\n    decimals: 18,\n    factor: 1,\n    price: 10,\n});\nconst userThree = hardhat_1.default.users.userThree;\nconst [deposits1, deposits2] = [(0, lib_1.toBig)(10), (0, lib_1.toBig)(5)];\nconst borrows = (0, lib_1.toBig)(10);\nthis.collateral.setPrice(10);\nthis.krAsset.setPrice(10);\nawait Promise.all([\n    await this.collateral.setBalance(userThree, deposits1),\n    await collateral2.setBalance(userThree, deposits2),\n    await (0, collaterals_1.depositCollateral)({\n        user: userThree,\n        amount: deposits1,\n        asset: this.collateral,\n    }),\n    await (0, collaterals_1.depositCollateral)({\n        user: userThree,\n        amount: deposits2,\n        asset: collateral2,\n    }),\n    await (0, krassets_1.mintKrAsset)({\n        user: userThree,\n        amount: borrows,\n        asset: this.krAsset,\n    }),\n]);\n(0, chai_1.expect)(await hardhat_1.default.Diamond.isAccountLiquidatable(userThree.address)).to.be.false;\n// seemingly random order of updates to test that the liquidation works regardless\nthis.collateral.setPrice(6.25);\nawait collateral2.update({\n    factor: 0.975,\n    name: \"updated\",\n});\nawait this.krAsset.update({\n    factor: 1.05,\n    name: \"updated\",\n    closeFee: 0.02,\n    openFee: 0,\n    supplyLimit: 1000000,\n});\n(0, chai_1.expect)(await (0, liquidations_1.getCR)(userThree.address)).to.be.greaterThan(1.05);\n(0, chai_1.expect)(await hardhat_1.default.Diamond.isAccountLiquidatable(userThree.address)).to.be.true;\nawait (0, liquidations_1.liquidate)(userThree, this.krAsset, this.collateral);\n(0, chai_1.expect)(await (0, liquidations_1.getCR)(userThree.address)).to.be.lessThan(1.4);\n(0, chai_1.expect)(await hardhat_1.default.Diamond.isAccountLiquidatable(userThree.address)).to.be.true;\nawait (0, liquidations_1.liquidate)(userThree, this.krAsset, collateral2);\n(0, chai_1.expect)(await (0, liquidations_1.getCR)(userThree.address)).to.be.closeTo(1.4, CR_DELTA);\n// expect(await hre.Diamond.isAccountLiquidatable(userThree.address)).to.be.false;",
+                      "err": {
+                        "message": "AssertionError: expected 1.4000348968379857 to be close to 1.4 +/- 1e-7",
+                        "estack": "AssertionError: expected 1.4000348968379857 to be close to 1.4 +/- 1e-7\n    at Proxy.closeTo (node_modules/.pnpm/chai@4.3.7/node_modules/chai/lib/chai/core/assertions.js:2979:10)\n    at Proxy.methodWrapper (node_modules/.pnpm/chai@4.3.7/node_modules/chai/lib/chai/utils/addMethod.js:57:25)\n    at Proxy.<anonymous> (node_modules/.pnpm/chai-bn@0.3.1_chai@4.3.7/node_modules/chai-bn/chai-bn.js:49:31)\n    at Proxy.overwritingMethodWrapper (node_modules/.pnpm/chai@4.3.7/node_modules/chai/lib/chai/utils/overwriteMethod.js:78:33)\n    at Proxy.<anonymous> (node_modules/.pnpm/@ethereum-waffle+chai@3.4.4/node_modules/@ethereum-waffle/chai/dist/cjs/matchers/bigNumber.js:66:20)\n    at Proxy.overwritingMethodWrapper (node_modules/.pnpm/chai@4.3.7/node_modules/chai/lib/chai/utils/overwriteMethod.js:78:33)\n    at doAsserterAsyncAndAddThen (node_modules/.pnpm/chai-as-promised@7.1.1_chai@4.3.7/node_modules/chai-as-promised/lib/chai-as-promised.js:289:22)\n    at Proxy.<anonymous> (node_modules/.pnpm/chai-as-promised@7.1.1_chai@4.3.7/node_modules/chai-as-promised/lib/chai-as-promised.js:255:20)\n    at Proxy.overwritingMethodWrapper (node_modules/.pnpm/chai@4.3.7/node_modules/chai/lib/chai/utils/overwriteMethod.js:78:33)\n    at Context.<anonymous> (src/test/minter/03-liquidation.ts:509:62)",
+                        "diff": null
+                      },
+                      "uuid": "d6821043-fec6-41e9-bb37-ae130cde95cd",
+                      "parentUUID": "3e7e24aa-867e-4785-9f30-bd4169e5d605",
+                      "isHook": false,
+                      "skipped": false
+                    }
+                  ],
+                  "suites": [],
+                  "passes": [],
+                  "failures": [
+                    "5a0f0e94-59d2-48e4-893f-717512ab6fe5",
+                    "d6821043-fec6-41e9-bb37-ae130cde95cd"
+                  ],
+                  "pending": [],
+                  "skipped": [],
+                  "duration": 3609,
+                  "root": false,
+                  "rootEmpty": false,
+                  "_timeout": 15000
                 }
               ],
-              "suites": [],
               "passes": [],
-              "failures": [
-                "2e4b7eac-8f6a-44b1-ae87-9208ad3876a4"
-              ],
+              "failures": [],
               "pending": [],
               "skipped": [],
-              "duration": 2424,
+              "duration": 0,
               "root": false,
               "rootEmpty": false,
               "_timeout": 15000

@@ -3,6 +3,7 @@ pragma solidity >=0.8.14;
 import {CollateralAsset, KrAsset} from "../MinterTypes.sol";
 import {LibDecimals, FixedPoint} from "../libs/LibDecimals.sol";
 import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
+import {WadRay} from "../../libs/WadRay.sol";
 
 /**
  * @title LibAssetUtility
@@ -12,6 +13,7 @@ import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
 library LibAssetUtility {
     using FixedPoint for int256;
     using FixedPoint for uint256;
+    using WadRay for uint256;
     using FixedPoint for FixedPoint.Unsigned;
     using LibDecimals for int256;
 
@@ -104,14 +106,14 @@ library LibAssetUtility {
      * @notice Get value for @param _assetAmount of @param self in uint256
      */
     function uintUSD(CollateralAsset memory self, uint256 _assetAmount) internal view returns (uint256) {
-        return self.uintPrice() * _assetAmount;
+        return self.uintPrice().wadMul(_assetAmount);
     }
 
     /**
      * @notice Get value for @param _assetAmount of @param self in uint256
      */
     function uintUSD(KrAsset memory self, uint256 _assetAmount) internal view returns (uint256) {
-        return self.uintPrice() * _assetAmount;
+        return self.uintPrice().wadMul(_assetAmount);
     }
 
     /**

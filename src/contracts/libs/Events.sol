@@ -290,6 +290,12 @@ library MinterEvent {
     event LiquidationIncentiveMultiplierUpdated(address indexed asset, uint256 liquidationIncentiveMultiplier);
 
     /**
+     * @notice Emitted when the liquidation overflow multiplier is updated.
+     * @param maxLiquidationMultiplier The new liquidation overflow multiplier value.
+     */
+    event maxLiquidationMultiplierUpdated(uint256 maxLiquidationMultiplier);
+
+    /**
      * @notice Emitted when the minimum collateralization ratio is updated.
      * @param minimumCollateralizationRatio The new minimum collateralization ratio raw value.
      */

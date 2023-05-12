@@ -50,7 +50,7 @@ interface ILiquidationFacet {
      * @param _repayKreskoAsset address of the kreskoAsset being repaid on behalf of the liquidatee
      * @return maxLiquidatableUSD USD value that can be liquidated, 0 if the pair has no liquidatable value
      */
-    function calculateMaxLiquidatableValueForAssets(
+    function getMaxLiquidation(
         address _account,
         address _repayKreskoAsset,
         address _collateralAssetToSeize

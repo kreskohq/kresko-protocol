@@ -50,9 +50,10 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         CollateralAsset memory collateral = s.collateralAssets[_seizeAsset];
         KrAsset memory krAsset = s.kreskoAssets[_repayAsset];
 
+        /* ------------------------------ Sanity checks ----------------------------- */
         {
             // No zero repays
-            require(_repayAmount > 0, Error.ZERO_REPAY);
+            require(_repayAmount != 0, Error.ZERO_REPAY);
             // Borrower cannot liquidate themselves
             require(msg.sender != _account, Error.SELF_LIQUIDATION);
             // krAsset exists
@@ -63,6 +64,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
             require(s.isAccountLiquidatable(_account), Error.NOT_LIQUIDATABLE);
         }
 
+        /* ------------------------------ Amount checks ----------------------------- */
         // Repay amount USD = repay amount * KR asset USD exchange rate.
         FixedPoint.Unsigned memory repayAmountUSD = krAsset.fixedPointUSD(_repayAmount);
 
@@ -74,16 +76,14 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
             require(krAssetDebt >= _repayAmount, Error.KRASSET_BURN_AMOUNT_OVERFLOW);
 
             // We limit liquidations to exactly Liquidation Threshold here.
-            FixedPoint.Unsigned memory maxLiquidableUSD = s.calculateMaxLiquidatableValueForAssets(
-                _account,
-                krAsset,
-                _seizeAsset
-            );
+            FixedPoint.Unsigned memory maxLiquidableUSD = s.getMaxLiquidation(_account, krAsset, _seizeAsset);
             require(repayAmountUSD.isLessThanOrEqual(maxLiquidableUSD), Error.LIQUIDATION_OVERFLOW);
         }
 
+        /* ------------------------------- Charge fee ------------------------------- */
         s.chargeCloseFee(_account, _repayAsset, _repayAmount);
 
+        /* -------------------------------- Liquidate ------------------------------- */
         uint256 seizedAmount = _liquidateAssets(
             ExecutionParams(
                 _account,
@@ -102,6 +102,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
             )
         );
 
+        /* ---------------------------- Balance transfer ---------------------------- */
         // Send liquidator the seized collateral.
         IERC20Upgradeable(_seizeAsset).safeTransfer(msg.sender, seizedAmount);
 
@@ -121,14 +122,18 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
     function _liquidateAssets(ExecutionParams memory params) internal returns (uint256 seizedAmount) {
         MinterState storage s = ms();
 
-        // Subtract repaid Kresko assets from liquidated user's recorded debt and update debt index + rates.
+        /* -------------------------------------------------------------------------- */
+        /*                                 Reduce debt                                */
+        /* -------------------------------------------------------------------------- */
         {
-            // Subtract repaid Kresko assets from liquidated user's recorded debt.
+            /* ----------------------------- Destroy assets ----------------------------- */
             uint256 destroyed = IKreskoAssetIssuer(s.kreskoAssets[params.repayAsset].anchor).destroy(
                 params.repayAmount,
                 msg.sender
             );
             s.kreskoAssetDebt[params.account][params.repayAsset] -= destroyed;
+
+            /* ------------------------ Debt index + rate updates ----------------------- */
 
             uint256 newDebtIndex = irs().srAssets[params.repayAsset].updateDebtIndex();
             uint256 amountScaled = destroyed.wadToRay().rayDiv(newDebtIndex);
@@ -144,19 +149,22 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
             s.mintedKreskoAssets[params.account].removeAddress(params.repayAsset, params.repayAssetIndex);
         }
 
-        // Updates for collateral deposits and seized amount.
-        uint256 collateralDeposits = s.collateralDeposits[params.account][params.seizedAsset];
+        /* -------------------------------------------------------------------------- */
+        /*                              Reduce collateral                             */
+        /* -------------------------------------------------------------------------- */
 
-        // Account has enough collateral deposits
+        uint256 collateralDeposits = s.getCollateralDeposits(params.account, params.seizedAsset);
+
+        /* ------------------------ Above collateral deposits ----------------------- */
         if (collateralDeposits > params.seizeAmount) {
             s.collateralDeposits[params.account][params.seizedAsset] -= ms()
                 .collateralAssets[params.seizedAsset]
                 .toNonRebasingAmount(params.seizeAmount);
 
-            return params.seizeAmount; // Passthrough
+            return params.seizeAmount; // Passthrough value as is.
         }
 
-        /// @dev Unprofitable section. Burning more debt than the collateral deposits available.
+        /* ------------------- Exact or below collateral deposits ------------------- */
         // Remove the collateral deposits.
         s.collateralDeposits[params.account][params.seizedAsset] = 0;
         // Remove from the deposits array.
@@ -171,16 +179,11 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
     }
 
     /// @inheritdoc ILiquidationFacet
-    function calculateMaxLiquidatableValueForAssets(
+    function getMaxLiquidation(
         address _account,
         address _repayKreskoAsset,
         address _collateralAssetToSeize
     ) public view returns (FixedPoint.Unsigned memory maxLiquidatableUSD) {
-        return
-            ms().calculateMaxLiquidatableValueForAssets(
-                _account,
-                ms().kreskoAssets[_repayKreskoAsset],
-                _collateralAssetToSeize
-            );
+        return ms().getMaxLiquidation(_account, ms().kreskoAssets[_repayKreskoAsset], _collateralAssetToSeize);
     }
 }

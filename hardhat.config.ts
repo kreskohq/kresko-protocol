@@ -10,7 +10,7 @@ import "tsconfig-paths/register";
 
 import "hardhat-diamond-abi";
 // note: hardhat-diamond-abi should always be exported before typechain if used together
-// import "@typechain/hardhat";
+import "@typechain/hardhat";
 import "@nomiclabs/hardhat-ethers";
 import "hardhat-deploy";
 import "hardhat-deploy-ethers";
@@ -99,15 +99,15 @@ const config: HardhatUserConfig = {
             strict: false,
         },
     ],
-    // typechain: {
-    //     outDir,
-    //     target: "ethers-v5",
-    //     alwaysGenerateOverloads: false,
-    //     dontOverrideCompile: false,
-    //     discriminateTypes: true,
-    //     tsNocheck: true,
-    //     externalArtifacts,
-    // },
+    typechain: {
+        outDir,
+        target: "ethers-v5",
+        alwaysGenerateOverloads: false,
+        dontOverrideCompile: false,
+        discriminateTypes: true,
+        tsNocheck: true,
+        externalArtifacts,
+    },
     contractSizer: {
         alphaSort: true,
         disambiguatePaths: false,

@@ -54,7 +54,7 @@ library Error {
     string public constant PARAM_LIQUIDATION_INCENTIVE_LOW = "214"; // "Liquidation incentive less than MIN_LIQUIDATION_INCENTIVE_MULTIPLIER"
     string public constant PARAM_LIQUIDATION_INCENTIVE_HIGH = "215"; // "Liquidation incentive greater than MAX_LIQUIDATION_INCENTIVE_MULTIPLIER"
     string public constant PARAM_MIN_COLLATERAL_RATIO_LOW = "216"; // Minimum collateral ratio less than MIN_COLLATERALIZATION_RATIO
-    string public constant PARAM_MIN_DEBT_AMOUNT_HIGH = "217"; // Minimum debt param argument exceeds MAX_DEBT_VALUE
+    string public constant PARAM_MIN_DEBT_AMOUNT_HIGH = "217"; // Minimum debt param argument exceeds MAX_MIN_DEBT_VALUE
     string public constant COLLATERAL_DOESNT_EXIST = "218"; // Collateral does not exist within the protocol
     string public constant KRASSET_DOESNT_EXIST = "219"; // KrAsset does not exist within the protocol
     string public constant KRASSET_NOT_MINTABLE = "220"; // KrAsset is not mintable
@@ -83,6 +83,7 @@ library Error {
     string public constant NO_KRASSETS_MINTED = "243"; // Account has no active KreskoAsset positions
     string public constant NO_COLLATERAL_DEPOSITS = "244"; // Account has no active Collateral deposits
     string public constant INVALID_ORACLE_DECIMALS = "245"; // Oracle decimals do not match extOracleDecimals
+    string public constant PARAM_LIQUIDATION_OVERFLOW_LOW = "246"; // Liquidation overflow is less than MIN_LIQUIDATION_OVERFLOW
 
     /* -------------------------------------------------------------------------- */
     /*                                   3. Staking                               */
