@@ -5,17 +5,30 @@ import {Arrays} from "../../libs/Arrays.sol";
 import {MinterEvent} from "../../libs/Events.sol";
 import {LibDecimals} from "../libs/LibDecimals.sol";
 import {FixedPoint} from "../../libs/FixedPoint.sol";
+import {WadRay} from "../../libs/WadRay.sol";
 import {MinterState} from "../MinterState.sol";
-import {KrAsset} from "../MinterTypes.sol";
+import {KrAsset, CollateralAsset, Constants} from "../MinterTypes.sol";
 
 /**
  * @title Calculation library for liquidation & fee values
  * @author Kresko
  */
 library LibCalculation {
+    struct MaxLiquidationVars {
+        CollateralAsset collateral;
+        uint256 accountCollateralValue;
+        uint256 minCollateralValue;
+        uint256 seizeCollateralAccountValue;
+        uint256 maxLiquidationMultiplier;
+        uint256 minimumDebtValue;
+        uint256 liquidationThreshold;
+        uint256 debtFactor;
+    }
+
     using Arrays for address[];
     using LibDecimals for uint8;
     using LibDecimals for uint256;
+    using WadRay for uint256;
 
     using FixedPoint for FixedPoint.Unsigned;
 
@@ -23,79 +36,53 @@ library LibCalculation {
      * @dev Calculates the total value that can be liquidated for a liquidation pair
      * @param _account address to liquidate
      * @param _repayKreskoAsset address of the kreskoAsset being repaid on behalf of the liquidatee
+     * @param _seizedCollateral The collateral asset being seized in the liquidation
      * @return maxLiquidatableUSD USD value that can be liquidated, 0 if the pair has no liquidatable value
      */
-    function calculateMaxLiquidatableValueForAssets(
+    function getMaxLiquidation(
         MinterState storage self,
         address _account,
-        address _repayKreskoAsset
-    ) internal view returns (FixedPoint.Unsigned memory maxLiquidatableUSD) {
-        FixedPoint.Unsigned memory minCollateralRequired = self.getAccountMinimumCollateralValueAtRatio(
-            _account,
-            self.liquidationThreshold
-        );
-        FixedPoint.Unsigned memory accountCollateralValue = self.getAccountCollateralValue(_account);
-
+        KrAsset memory _repayKreskoAsset,
+        address _seizedCollateral
+    ) internal view returns (uint256 maxLiquidatableUSD) {
+        MaxLiquidationVars memory vars = _getMaxLiquidationParams(self, _account, _repayKreskoAsset, _seizedCollateral);
         // Account is not liquidatable
-        if (accountCollateralValue.isGreaterThanOrEqual(minCollateralRequired)) {
-            return FixedPoint.Unsigned(0);
+        if (vars.accountCollateralValue >= (vars.minCollateralValue)) {
+            return 0;
         }
 
-        FixedPoint.Unsigned memory debtFactor = self.kreskoAssets[_repayKreskoAsset].kFactor.mul(
-            self.liquidationThreshold
-        );
-        // Max repayment value for this pair
-        maxLiquidatableUSD = minCollateralRequired.sub(accountCollateralValue).div(
-            self.calcValueGainedPerUSDRepaid(debtFactor, _repayKreskoAsset)
-        );
+        maxLiquidatableUSD = _getMaxLiquidatableUSD(vars, _repayKreskoAsset);
 
-        if (maxLiquidatableUSD.isLessThan(self.minimumDebtValue)) {
-            return self.minimumDebtValue;
+        if (vars.seizeCollateralAccountValue < maxLiquidatableUSD) {
+            return vars.seizeCollateralAccountValue;
+        } else if (maxLiquidatableUSD < vars.minimumDebtValue) {
+            return vars.minimumDebtValue;
         }
-
-        return maxLiquidatableUSD.div(debtFactor);
+        return maxLiquidatableUSD;
     }
 
     /**
-     * @notice Calculates the value gained per USD repaid in liquidation for a given kreskoAsset
-     * @dev (DebtFactor - Asset closeFee - liquidationIncentive) / DebtFactor
-     * @param _debtFactor Ratio of adjusted debt value to real value of the kreskoAsset being repaid
-     * @param _repayKreskoAsset The kreskoAsset being repaid in the liquidation
-     */
-    function calcValueGainedPerUSDRepaid(
-        MinterState storage self,
-        FixedPoint.Unsigned memory _debtFactor,
-        address _repayKreskoAsset
-    ) internal view returns (FixedPoint.Unsigned memory) {
-        return
-            FixedPoint
-                .Unsigned(
-                    _debtFactor.rawValue -
-                        self.liquidationIncentiveMultiplier.rawValue -
-                        self.kreskoAssets[_repayKreskoAsset].closeFee.rawValue
-                )
-                .div(_debtFactor);
-    }
-
-    /**
-     * @notice Calculate amount of collateral to seize during the liquidation process.
+     * @notice Calculate amount of collateral to seize during the liquidation procesself.
      * @param _liquidationIncentiveMultiplier The liquidation incentive multiplier.
      * @param _collateralOraclePriceUSD The address of the collateral asset to be seized.
      * @param _kreskoAssetRepayAmountUSD Kresko asset amount being repaid in exchange for the seized collateral.
      */
     function calculateAmountToSeize(
         FixedPoint.Unsigned memory _liquidationIncentiveMultiplier,
-        FixedPoint.Unsigned memory _collateralOraclePriceUSD,
-        FixedPoint.Unsigned memory _kreskoAssetRepayAmountUSD
-    ) internal pure returns (FixedPoint.Unsigned memory) {
+        uint256 _collateralOraclePriceUSD,
+        uint256 _kreskoAssetRepayAmountUSD
+    ) internal pure returns (uint256) {
         // Seize amount = (repay amount USD * liquidation incentive / collateral price USD).
         // Denominate seize amount in collateral type
         // Apply liquidation incentive multiplier
-        return _kreskoAssetRepayAmountUSD.mul(_liquidationIncentiveMultiplier).div(_collateralOraclePriceUSD);
+        return
+            _kreskoAssetRepayAmountUSD.wadMul(_liquidationIncentiveMultiplier.rawValue).wadDiv(
+                _collateralOraclePriceUSD
+            );
     }
 
     /**
-     * @notice Calculates the fee to be taken from a user's deposited collateral assets.
+     * @notice Calculates the fee to be taken from a user's deposited collateral assetself.
      * @param _collateralAsset The collateral asset from which to take to the fee.
      * @param _account The owner of the collateral.
      * @param _feeValue The original value of the fee.
@@ -108,9 +95,9 @@ library LibCalculation {
         MinterState storage self,
         address _collateralAsset,
         address _account,
-        FixedPoint.Unsigned memory _feeValue,
+        uint256 _feeValue,
         uint256 _collateralAssetIndex
-    ) internal returns (uint256 transferAmount, FixedPoint.Unsigned memory feeValuePaid) {
+    ) internal returns (uint256 transferAmount, uint256 feeValuePaid) {
         uint256 depositAmount = self.getCollateralDeposits(_account, _collateralAsset);
 
         // Don't take the collateral asset's collateral factor into consideration.
@@ -118,7 +105,7 @@ library LibCalculation {
             .getCollateralValueAndOraclePrice(_collateralAsset, depositAmount, true);
 
         // If feeValue < depositValue, the entire fee can be charged for this collateral asset.
-        if (_feeValue.isLessThan(depositValue)) {
+        if (_feeValue < depositValue.rawValue) {
             // We want to make sure that transferAmount is < depositAmount.
             // Proof:
             //   depositValue <= oraclePrice * depositAmount (<= due to a potential loss of precision)
@@ -134,18 +121,85 @@ library LibCalculation {
             //   transferAmount <= feeValue / oraclePrice < depositAmount
             //   transferAmount < depositAmount
             transferAmount = self.collateralAssets[_collateralAsset].decimals.fromCollateralFixedPointAmount(
-                _feeValue.div(oraclePrice)
+                _feeValue.wadDiv(oraclePrice.rawValue)
             );
             feeValuePaid = _feeValue;
         } else {
             // If the feeValue >= depositValue, the entire deposit
             // should be taken as the fee.
             transferAmount = depositAmount;
-            feeValuePaid = depositValue;
+            feeValuePaid = depositValue.rawValue;
             // Because the entire deposit is taken, remove it from the depositCollateralAssets array.
             self.depositedCollateralAssets[_account].removeAddress(_collateralAsset, _collateralAssetIndex);
         }
 
         return (transferAmount, feeValuePaid);
+    }
+
+    /**
+     * @notice Calculates the maximum USD value of a given kreskoAsset that can be liquidated given a liquidation pair
+     *
+     * 1. Calculates the value gained per USD repaid in liquidation for a given kreskoAsset
+     *
+     * debtFactor = debtFactor = k * LT / cFactor;
+     *
+     * valPerUSD = (DebtFactor - Asset closeFee - liquidationIncentive) / DebtFactor
+     *
+     * 2. Calculates the maximum amount of USD value that can be liquidated given the account's collateral value
+     *
+     * maxLiquidatableUSD = (MCV - ACV) / valPerUSD / debtFactor / cFactor * LOM
+     *
+     * @dev This function is used by getMaxLiquidation and is factored out for readability
+     * @param vars liquidation variables struct
+     * @param _repayKreskoAsset The kreskoAsset being repaid in the liquidation
+     */
+    function _getMaxLiquidatableUSD(
+        MaxLiquidationVars memory vars,
+        KrAsset memory _repayKreskoAsset
+    ) private pure returns (uint256) {
+        uint256 valuePerUSDRepaid = (vars.debtFactor -
+            vars.collateral.liquidationIncentive.rawValue -
+            _repayKreskoAsset.closeFee.rawValue).wadDiv(vars.debtFactor);
+        return
+            (vars.minCollateralValue - vars.accountCollateralValue)
+                .wadDiv(valuePerUSDRepaid)
+                .wadDiv(vars.debtFactor)
+                .wadDiv(vars.collateral.factor.rawValue)
+                .wadMul(vars.maxLiquidationMultiplier);
+    }
+
+    function _getMaxLiquidationParams(
+        MinterState storage state,
+        address _account,
+        KrAsset memory _repayKreskoAsset,
+        address _seizedCollateral
+    ) private view returns (MaxLiquidationVars memory) {
+        FixedPoint.Unsigned memory liquidationThreshold = state.liquidationThreshold;
+        FixedPoint.Unsigned memory minCollateralValue = state.getAccountMinimumCollateralValueAtRatio(
+            _account,
+            liquidationThreshold
+        );
+
+        (
+            FixedPoint.Unsigned memory accountCollateralValue,
+            FixedPoint.Unsigned memory seizeCollateralAccountValue
+        ) = state.getAccountCollateralValue(_account, _seizedCollateral);
+
+        CollateralAsset memory collateral = state.collateralAssets[_seizedCollateral];
+
+        return
+            MaxLiquidationVars({
+                collateral: collateral,
+                accountCollateralValue: accountCollateralValue.rawValue,
+                // debtFactor = k * LT / cFactor
+                debtFactor: _repayKreskoAsset.kFactor.rawValue.wadMul(liquidationThreshold.rawValue).wadDiv(
+                    collateral.factor.rawValue
+                ),
+                minCollateralValue: minCollateralValue.rawValue,
+                minimumDebtValue: state.minimumDebtValue.rawValue,
+                seizeCollateralAccountValue: seizeCollateralAccountValue.rawValue,
+                liquidationThreshold: liquidationThreshold.rawValue,
+                maxLiquidationMultiplier: Constants.MIN_MAX_LIQUIDATION_MULTIPLIER
+            });
     }
 }

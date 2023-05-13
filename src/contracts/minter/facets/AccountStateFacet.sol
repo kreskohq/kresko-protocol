@@ -5,6 +5,7 @@ import {IAccountStateFacet} from "../interfaces/IAccountStateFacet.sol";
 import {Action, Fee, KrAsset, CollateralAsset, FixedPoint} from "../MinterTypes.sol";
 import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
 import {Error} from "../../libs/Errors.sol";
+import {WadRay} from "../../libs/WadRay.sol";
 import {LibDecimals} from "../libs/LibDecimals.sol";
 import {ms} from "../MinterStorage.sol";
 
@@ -20,66 +21,38 @@ contract AccountStateFacet is IAccountStateFacet {
     using FixedPoint for FixedPoint.Unsigned;
     using FixedPoint for int256;
     using FixedPoint for uint256;
+    using WadRay for uint256;
 
     /* -------------------------------------------------------------------------- */
     /*                                  KrAssets                                  */
     /* -------------------------------------------------------------------------- */
 
-    /**
-     * @notice Gets an index for the Kresko asset the account has minted.
-     * @param _account The account to get the minted Kresko assets for.
-     * @param _kreskoAsset The asset lookup address.
-     * @return index of the minted Kresko asset.
-     */
+    /// @inheritdoc IAccountStateFacet
     function getMintedKreskoAssetsIndex(address _account, address _kreskoAsset) external view returns (uint256) {
         return ms().getMintedKreskoAssetsIndex(_account, _kreskoAsset);
     }
 
-    /**
-     * @notice Gets an array of Kresko assets the account has minted.
-     * @param _account The account to get the minted Kresko assets for.
-     * @return An array of addresses of Kresko assets the account has minted.
-     */
+    /// @inheritdoc IAccountStateFacet
     function getMintedKreskoAssets(address _account) external view returns (address[] memory) {
         return ms().mintedKreskoAssets[_account];
     }
 
-    /**
-     * @notice Gets the Kresko asset value in USD of a particular account.
-     * @param _account The account to calculate the Kresko asset value for.
-     * @return The Kresko asset value of a particular account.
-     */
+    /// @inheritdoc IAccountStateFacet
     function getAccountKrAssetValue(address _account) external view returns (FixedPoint.Unsigned memory) {
         return ms().getAccountKrAssetValue(_account);
     }
 
-    /**
-     * @notice Get `_account` debt amount for `_asset`
-     * @param _asset The asset address
-     * @param _account The account to query amount for
-     * @return Amount of debt for `_asset`
-     */
+    /// @inheritdoc IAccountStateFacet
     function kreskoAssetDebt(address _account, address _asset) external view returns (uint256) {
         return ms().getKreskoAssetDebtScaled(_account, _asset);
     }
 
-    /**
-     * @notice Get `_account` principal debt amount for `_asset`
-     * @param _asset The asset address
-     * @param _account The account to query amount for
-     * @return Amount of principal debt for `_asset`
-     */
+    /// @inheritdoc IAccountStateFacet
     function kreskoAssetDebtPrincipal(address _account, address _asset) external view returns (uint256) {
         return ms().getKreskoAssetDebtPrincipal(_account, _asset);
     }
 
-    /**
-     * @notice Get `_account` interest amount for `_asset`
-     * @param _asset The asset address
-     * @param _account The account to query amount for
-     * @return assetAmount the interest denominated in _asset
-     * @return kissAmount the interest denominated in KISS, ignores K-factor
-     */
+    /// @inheritdoc IAccountStateFacet
     function kreskoAssetDebtInterest(
         address _account,
         address _asset
@@ -87,11 +60,7 @@ contract AccountStateFacet is IAccountStateFacet {
         return ms().getKreskoAssetDebtInterest(_account, _asset);
     }
 
-    /**
-     * @notice Get `_account` interest amount for `_asset`
-     * @param _account The account to query amount for
-     * @return kissAmount the interest denominated in KISS, ignores K-factor
-     */
+    /// @inheritdoc IAccountStateFacet
     function kreskoAssetDebtInterestTotal(address _account) external view returns (uint256 kissAmount) {
         address[] memory mintedKreskoAssets = ms().mintedKreskoAssets[_account];
         for (uint256 i; i < mintedKreskoAssets.length; i++) {
@@ -104,61 +73,30 @@ contract AccountStateFacet is IAccountStateFacet {
     /*                                 Collateral                                 */
     /* -------------------------------------------------------------------------- */
 
-    /**
-     * @notice Gets an array of collateral assets the account has deposited.
-     * @param _account The account to get the deposited collateral assets for.
-     * @return An array of addresses of collateral assets the account has deposited.
-     */
+    /// @inheritdoc IAccountStateFacet
     function getDepositedCollateralAssets(address _account) external view returns (address[] memory) {
         return ms().depositedCollateralAssets[_account];
     }
 
-    /**
-     * @notice Get `_account` collateral deposit amount for `_asset`
-     * @param _asset The asset address
-     * @param _account The account to query amount for
-     * @return Amount of collateral deposited for `_asset`
-     */
+    /// @inheritdoc IAccountStateFacet
     function collateralDeposits(address _account, address _asset) external view returns (uint256) {
         return ms().getCollateralDeposits(_account, _asset);
     }
 
-    /**
-     * @notice Gets an index for the collateral asset the account has deposited.
-     * @param _account The account to get the index for.
-     * @param _collateralAsset The asset lookup address.
-     * @return i = index of the minted collateral asset.
-     */
+    /// @inheritdoc IAccountStateFacet
     function getDepositedCollateralAssetIndex(
         address _account,
         address _collateralAsset
     ) external view returns (uint256 i) {
-        for (i; i < ms().depositedCollateralAssets[_account].length; i++) {
-            if (ms().depositedCollateralAssets[_account][i] == _collateralAsset) {
-                break;
-            }
-        }
+        return ms().getDepositedCollateralAssetIndex(_account, _collateralAsset);
     }
 
-    /**
-     * @notice Gets the collateral value of a particular account.
-     * @dev O(# of different deposited collateral assets by account) complexity.
-     * @param _account The account to calculate the collateral value for.
-     * @return The collateral value of a particular account.
-     */
+    /// @inheritdoc IAccountStateFacet
     function getAccountCollateralValue(address _account) public view returns (FixedPoint.Unsigned memory) {
         return ms().getAccountCollateralValue(_account);
     }
 
-    /**
-     * @notice Get an account's minimum collateral value required
-     * to back a Kresko asset amount at a given collateralization ratio.
-     * @dev Accounts that have their collateral value under the minimum collateral value are considered unhealthy,
-     *      accounts with their collateral value under the liquidation threshold are considered liquidatable.
-     * @param _account The account to calculate the minimum collateral value for.
-     * @param _ratio The collateralization ratio required: higher ratio = more collateral required
-     * @return The minimum collateral value of a particular account.
-     */
+    /// @inheritdoc IAccountStateFacet
     function getAccountMinimumCollateralValueAtRatio(
         address _account,
         FixedPoint.Unsigned memory _ratio
@@ -166,10 +104,7 @@ contract AccountStateFacet is IAccountStateFacet {
         return ms().getAccountMinimumCollateralValueAtRatio(_account, _ratio);
     }
 
-    /**
-     * @notice Get a list of accounts and their collateral ratios
-     * @return ratio for an `_account`
-     */
+    /// @inheritdoc IAccountStateFacet
     function getAccountCollateralRatio(address _account) public view returns (FixedPoint.Unsigned memory ratio) {
         FixedPoint.Unsigned memory collateralValue = ms().getAccountCollateralValue(_account);
         if (collateralValue.rawValue == 0) {
@@ -182,18 +117,16 @@ contract AccountStateFacet is IAccountStateFacet {
         ratio = collateralValue.div(krAssetValue);
     }
 
-    function getAccountSingleCollateralValueAndRealValue(
+    /// @inheritdoc IAccountStateFacet
+    function getCollateralAdjustedAndRealValue(
         address _account,
         address _asset
-    ) external view returns (FixedPoint.Unsigned memory value, FixedPoint.Unsigned memory realValue) {
+    ) external view returns (FixedPoint.Unsigned memory adjustedValue, FixedPoint.Unsigned memory realValue) {
         uint256 depositAmount = ms().getCollateralDeposits(_account, _asset);
         return ms().getCollateralValueAndOraclePrice(_asset, depositAmount, false);
     }
 
-    /**
-     * @notice Get a list of accounts and their collateral ratios
-     * @return ratios of the accounts
-     */
+    /// @inheritdoc IAccountStateFacet
     function getCollateralRatiosFor(address[] calldata _accounts) external view returns (FixedPoint.Unsigned[] memory) {
         FixedPoint.Unsigned[] memory ratios = new FixedPoint.Unsigned[](_accounts.length);
         for (uint256 i; i < _accounts.length; i++) {
@@ -202,16 +135,7 @@ contract AccountStateFacet is IAccountStateFacet {
         return ratios;
     }
 
-    /**
-     * @notice Calculates the expected fee to be taken from a user's deposited collateral assets,
-     *         by imitating calcFee without modifying state.
-     * @param _account The account to charge the open fee from.
-     * @param _kreskoAsset The address of the kresko asset being burned.
-     * @param _kreskoAssetAmount The amount of the kresko asset being minted.
-     * @param _feeType The fee type (open, close, etc).
-     * @return assets The collateral types as an array of addresses.
-     * @return amounts The collateral amounts as an array of uint256.
-     */
+    /// @inheritdoc IAccountStateFacet
     function calcExpectedFee(
         address _account,
         address _kreskoAsset,
@@ -223,9 +147,12 @@ contract AccountStateFacet is IAccountStateFacet {
         KrAsset memory krAsset = ms().kreskoAssets[_kreskoAsset];
 
         // Calculate the value of the fee according to the value of the krAsset
-        FixedPoint.Unsigned memory feeValue = krAsset.fixedPointUSD(_kreskoAssetAmount).mul(
-            Fee(_feeType) == Fee.Open ? krAsset.openFee : krAsset.closeFee
+        uint256 feeValue = krAsset.uintUSD(_kreskoAssetAmount).wadMul(
+            Fee(_feeType) == Fee.Open ? krAsset.openFee.rawValue : krAsset.closeFee.rawValue
         );
+        // uint256 feeValue = krAsset.fixedPointUSD(_kreskoAssetAmount).mul(
+        //     Fee(_feeType) == Fee.Open ? krAsset.openFee : krAsset.closeFee
+        // );
 
         address[] memory accountCollateralAssets = ms().depositedCollateralAssets[_account];
 
@@ -234,7 +161,7 @@ contract AccountStateFacet is IAccountStateFacet {
         info.amounts = new uint256[](accountCollateralAssets.length);
 
         // Return empty arrays if the fee value is 0.
-        if (feeValue.rawValue == 0) {
+        if (feeValue == 0) {
             return (info.assets, info.amounts);
         }
 
@@ -247,17 +174,17 @@ contract AccountStateFacet is IAccountStateFacet {
             (FixedPoint.Unsigned memory depositValue, FixedPoint.Unsigned memory oraclePrice) = ms()
                 .getCollateralValueAndOraclePrice(collateralAssetAddress, depositAmount, true);
 
-            FixedPoint.Unsigned memory feeValuePaid;
+            uint256 feeValuePaid;
             uint256 transferAmount;
             // If feeValue < depositValue, the entire fee can be charged for this collateral asset.
-            if (feeValue.isLessThan(depositValue)) {
+            if (feeValue < depositValue.rawValue) {
                 transferAmount = ms().collateralAssets[collateralAssetAddress].decimals.fromCollateralFixedPointAmount(
-                    feeValue.div(oraclePrice)
+                    feeValue.wadDiv(oraclePrice.rawValue)
                 );
                 feeValuePaid = feeValue;
             } else {
                 transferAmount = depositAmount;
-                feeValuePaid = depositValue;
+                feeValuePaid = depositValue.rawValue;
             }
 
             if (transferAmount > 0) {
@@ -266,19 +193,12 @@ contract AccountStateFacet is IAccountStateFacet {
                 info.collateralTypeCount = info.collateralTypeCount++;
             }
 
-            feeValue = feeValue.sub(feeValuePaid);
+            feeValue = feeValue - feeValuePaid;
             // If the entire fee has been paid, no more action needed.
-            if (feeValue.rawValue == 0) {
+            if (feeValue == 0) {
                 return (info.assets, info.amounts);
             }
         }
         return (info.assets, info.amounts);
-    }
-
-    // ExpectedFeeRuntimeInfo is used to avoid StackTooDeep error
-    struct ExpectedFeeRuntimeInfo {
-        address[] assets;
-        uint256[] amounts;
-        uint256 collateralTypeCount;
     }
 }

@@ -2,6 +2,7 @@
 pragma solidity >=0.8.14;
 
 import {FixedPoint} from "../../libs/FixedPoint.sol";
+import {WadRay} from "../../libs/WadRay.sol";
 import {IUniswapV2Oracle} from "../interfaces/IUniswapV2Oracle.sol";
 import {KrAsset} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
@@ -9,6 +10,7 @@ import {MinterState} from "../MinterState.sol";
 library LibKrAsset {
     using FixedPoint for FixedPoint.Unsigned;
     using FixedPoint for uint256;
+    using WadRay for uint256;
 
     /* -------------------------------------------------------------------------- */
     /*                                  Functions                                 */
@@ -39,7 +41,7 @@ library LibKrAsset {
         FixedPoint.Unsigned memory value = krAsset.fixedPointUSD(_amount);
 
         if (!_ignoreKFactor) {
-            value = value.mul(krAsset.kFactor);
+            value = FixedPoint.Unsigned(value.rawValue.wadMul(krAsset.kFactor.rawValue));
         }
 
         return value;

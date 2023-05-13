@@ -3,23 +3,25 @@ import {
     defaultCollateralArgs,
     defaultKrAssetArgs,
     defaultOpenFee,
-    getHealthFactor,
     leverageKrAsset,
     Role,
     withFixture,
 } from "@test-utils";
 import { expect } from "@test/chai";
 
-import { fromBig, getInternalEvent, toBig } from "@kreskolabs/lib";
+import { fixedPointDiv, fromBig, getInternalEvent, toBig, toFixedPoint } from "@kreskolabs/lib";
 import { Error } from "@utils/test/errors";
 import { addMockCollateralAsset, depositCollateral } from "@utils/test/helpers/collaterals";
 import { mintKrAsset } from "@utils/test/helpers/krassets";
-import { calcExpectedMaxLiquidatableValue, liquidate } from "@utils/test/helpers/liquidations";
+import { getExpectedMaxLiq, getCR, liquidate } from "@utils/test/helpers/liquidations";
 import hre from "hardhat";
 import { MinterEvent__factory } from "types/typechain";
 import { LiquidationOccurredEvent } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
 const INTEREST_RATE_DELTA = 0.01;
+const USD_DELTA = toBig(0.1, "gwei");
+const CR_DELTA = 1e-4;
+
 describe("Minter", () => {
     withFixture(["minter-test"]);
     beforeEach(async function () {
@@ -55,7 +57,8 @@ describe("Minter", () => {
         await hre.Diamond.connect(hre.users.deployer).addCollateralAsset(
             this.krAsset!.contract.address,
             this.krAsset!.anchor!.address,
-            hre.toBig(1),
+            toFixedPoint(1),
+            toFixedPoint(1.05),
             assetInfo.oracle,
             assetInfo.oracle,
         );
@@ -82,7 +85,7 @@ describe("Minter", () => {
             asset: this.collateral,
         });
 
-        // // Mint KrAsset
+        // Mint KrAsset
         this.defaultMintAmount = 10; // 10 * $11 = $110 in debt value
         await mintKrAsset({
             user: hre.users.userOne,
@@ -97,31 +100,144 @@ describe("Minter", () => {
         const krAssetPrice = 10;
         const collateralPriceAfter = 135 / (20 * 50);
         beforeEach(async function () {
+            const depositAmountBig18 = toBig(this.defaultDepositAmount * 100);
+            const depositAmountBig8 = toBig(this.defaultDepositAmount * 100, 8);
             user = hre.users.userOne;
+
             this.collateral!.setPrice(collateralPrice);
             this.krAsset!.setPrice(krAssetPrice);
-            await this.collateral!.setBalance(hre.users.userOne, hre.toBig(this.defaultDepositAmount * 100));
+
+            await this.collateral!.setBalance(hre.users.userOne, depositAmountBig18);
             await this.collateral!.mocks!.contract.setVariable("_allowances", {
                 [hre.users.userOne.address]: {
-                    [hre.Diamond.address]: hre.toBig(this.defaultDepositAmount * 100),
+                    [hre.Diamond.address]: depositAmountBig18,
                 },
             });
 
             newCollateral = await addMockCollateralAsset({
                 name: "Coll",
-                decimals: 8,
+                decimals: 8, // 8 decimals
                 price: 10,
                 factor: 0.9,
             });
-            await newCollateral.setBalance(hre.users.userOne, hre.toBig(this.defaultDepositAmount * 100, 8));
+            await newCollateral.setBalance(hre.users.userOne, depositAmountBig8);
             await newCollateral.mocks!.contract.setVariable("_allowances", {
                 [hre.users.userOne.address]: {
-                    [hre.Diamond.address]: hre.toBig(this.defaultDepositAmount * 100, 8),
+                    [hre.Diamond.address]: depositAmountBig8,
                 },
             });
         });
+        it("calculates correct MLV when kFactor = 1, cFactor = 1", async function () {
+            const [deposits, borrows] = [toBig(20), toBig(10)];
 
-        it("calculates correct max liquidation with single market cdp", async function () {
+            await this.collateral.setBalance(hre.users.userThree, deposits);
+            await depositCollateral({
+                user: hre.users.userThree,
+                amount: deposits,
+                asset: this.collateral,
+            });
+
+            await mintKrAsset({
+                user: hre.users.userThree,
+                amount: borrows,
+                asset: this.krAsset,
+            });
+
+            expect(await hre.Diamond.isAccountLiquidatable(hre.users.userThree.address)).to.be.false;
+            expect(await getCR(hre.users.userThree.address)).to.be.equal(2);
+
+            this.collateral.setPrice(5);
+
+            expect(await getCR(hre.users.userThree.address)).to.be.equal(1);
+            expect(await hre.Diamond.isAccountLiquidatable(hre.users.userThree.address)).to.be.true;
+
+            const maxLiquidatableValue = await hre.Diamond.getMaxLiquidation(
+                hre.users.userThree.address,
+                this.krAsset.address,
+                this.collateral.address,
+            );
+
+            const MLCalc = await getExpectedMaxLiq(hre.users.userThree, this.krAsset, this.collateral);
+
+            expect(MLCalc).to.be.closeTo(maxLiquidatableValue, USD_DELTA);
+        });
+        it("calculates correct MLV when kFactor = 1, cFactor = 0.25", async function () {
+            await hre.Diamond.updateMinimumDebtValue(0);
+            const userThree = hre.users.userThree;
+            const [deposits1, deposits2] = [toBig(10), toBig(10)];
+            const borrows = toBig(10);
+
+            const collateralPrice = 10;
+            this.collateral.setPrice(collateralPrice);
+
+            const collateral2 = await addMockCollateralAsset({
+                name: "Collateral2",
+                decimals: 18,
+                factor: 1,
+                price: 10,
+            });
+            await this.collateral.setBalance(userThree, deposits1);
+            await collateral2.setBalance(userThree, deposits2);
+            await depositCollateral({
+                user: userThree,
+                amount: deposits2,
+                asset: collateral2,
+            });
+            await depositCollateral({
+                user: userThree,
+                amount: deposits1,
+                asset: this.collateral,
+            });
+
+            await mintKrAsset({
+                user: userThree,
+                amount: borrows,
+                asset: this.krAsset,
+            });
+
+            const cr = await getCR(userThree.address);
+            expect(await hre.Diamond.isAccountLiquidatable(userThree.address)).to.be.false;
+            expect(cr).to.be.equal(2);
+
+            await this.collateral.update({
+                factor: 0.25,
+                name: "updated",
+            });
+            this.collateral.setPrice(5);
+
+            const expectedCR = 1.125;
+            expect(await getCR(userThree.address)).to.be.closeTo(expectedCR, CR_DELTA);
+
+            expect(await hre.Diamond.isAccountLiquidatable(userThree.address)).to.be.true;
+
+            const maxLiquidatableValueC1 = await hre.Diamond.getMaxLiquidation(
+                userThree.address,
+                this.krAsset.address,
+                this.collateral.address,
+            );
+
+            const MLCalcC1 = await getExpectedMaxLiq(userThree, this.krAsset, this.collateral);
+            expect(MLCalcC1).to.be.closeTo(maxLiquidatableValueC1, USD_DELTA);
+
+            const maxLiquidatableValueC2 = await hre.Diamond.getMaxLiquidation(
+                userThree.address,
+                this.krAsset.address,
+                collateral2.address,
+            );
+
+            const MLCalcC2 = await getExpectedMaxLiq(userThree, this.krAsset, collateral2);
+            expect(MLCalcC2).to.be.closeTo(maxLiquidatableValueC2, USD_DELTA);
+
+            expect(maxLiquidatableValueC2.gt(maxLiquidatableValueC1)).to.be.true;
+
+            await liquidate(userThree, this.krAsset, this.collateral);
+            expect(await getCR(userThree.address)).to.be.lessThan(1.4);
+            await liquidate(userThree, this.krAsset, collateral2);
+            expect(await getCR(userThree.address)).to.be.greaterThan(1.4);
+            expect(await hre.Diamond.isAccountLiquidatable(userThree.address)).to.be.false;
+        });
+
+        it("calculates correct MLV with single market cdp", async function () {
             await depositCollateral({
                 user: hre.users.userOne,
                 amount: this.defaultDepositAmount * 49,
@@ -132,20 +248,19 @@ describe("Minter", () => {
 
             expect(await hre.Diamond.isAccountLiquidatable(user.address)).to.be.true;
 
-            const expectedMaxLiquidatableValue = await calcExpectedMaxLiquidatableValue(
-                user,
-                this.krAsset,
-                this.collateral,
-            );
+            const expectedMaxLiquidatableValue = await getExpectedMaxLiq(user, this.krAsset, this.collateral);
+
             expect(expectedMaxLiquidatableValue.gt(0)).to.be.true;
-            const maxLiquidatableValue = await hre.Diamond.calculateMaxLiquidatableValueForAssets(
+            const maxLiquidatableValue = await hre.Diamond.getMaxLiquidation(
                 user.address,
                 this.krAsset!.address,
+                this.collateral.address,
             );
 
-            expect(expectedMaxLiquidatableValue).to.equal(maxLiquidatableValue.rawValue);
+            expect(expectedMaxLiquidatableValue).to.be.closeTo(maxLiquidatableValue, USD_DELTA);
         });
-        it("calculates correct max liquidation with multiple cdps", async function () {
+
+        it("calculates correct MLV with multiple cdps", async function () {
             await depositCollateral({
                 user: hre.users.userOne,
                 amount: this.defaultDepositAmount * 49,
@@ -161,32 +276,33 @@ describe("Minter", () => {
             this.collateral!.setPrice(collateralPriceAfter);
             expect(await hre.Diamond.isAccountLiquidatable(user.address)).to.be.true;
 
-            const expectedMaxLiquidatableValue = await calcExpectedMaxLiquidatableValue(
-                user,
-                this.krAsset,
-                this.collateral,
-            );
+            const expectedMaxLiquidatableValue = await getExpectedMaxLiq(user, this.krAsset, this.collateral);
             expect(expectedMaxLiquidatableValue.gt(0)).to.be.true;
-            const maxLiquidatableValue = await hre.Diamond.calculateMaxLiquidatableValueForAssets(
+            const maxLiquidatableValue = await hre.Diamond.getMaxLiquidation(
                 user.address,
                 this.krAsset!.address,
+                this.collateral.address,
             );
 
-            expect(expectedMaxLiquidatableValue).to.equal(maxLiquidatableValue.rawValue);
+            expect(expectedMaxLiquidatableValue).to.be.closeTo(maxLiquidatableValue, USD_DELTA);
 
-            const expectedMaxLiquidatableValueNewCollateral = await calcExpectedMaxLiquidatableValue(
+            const expectedMaxLiquidatableValueNewCollateral = await getExpectedMaxLiq(
                 user,
                 this.krAsset,
                 newCollateral,
             );
 
             expect(expectedMaxLiquidatableValueNewCollateral.gt(0)).to.be.true;
-            const maxLiquidatableValueNewCollateral = await hre.Diamond.calculateMaxLiquidatableValueForAssets(
+            const maxLiquidatableValueNewCollateral = await hre.Diamond.getMaxLiquidation(
                 user.address,
                 this.krAsset!.address,
+                newCollateral.address,
             );
 
-            expect(expectedMaxLiquidatableValueNewCollateral).to.equal(maxLiquidatableValueNewCollateral.rawValue);
+            expect(expectedMaxLiquidatableValueNewCollateral).to.be.closeTo(
+                maxLiquidatableValueNewCollateral,
+                USD_DELTA,
+            );
         });
     });
 
@@ -260,11 +376,12 @@ describe("Minter", () => {
                 const beforeKreskoCollateralBalance = await this.collateral!.contract.balanceOf(hre.Diamond.address);
 
                 // Liquidate userOne
-                const maxLiq = await hre.Diamond.calculateMaxLiquidatableValueForAssets(
+                const maxLiq = await hre.Diamond.getMaxLiquidation(
                     hre.users.userOne.address,
                     this.krAsset!.address,
+                    this.collateral.address,
                 );
-                const maxRepayAmount = hre.toBig(Number(maxLiq.rawValue.div(await this.krAsset!.getPrice())));
+                const maxRepayAmount = hre.toBig(Number(maxLiq.div(await this.krAsset!.getPrice())));
                 const mintedKreskoAssetIndex = 0;
                 const depositedCollateralAssetIndex = 0;
                 await hre.Diamond.connect(hre.users.userTwo).liquidate(
@@ -307,6 +424,102 @@ describe("Minter", () => {
                 expect(afterKreskoCollateralBalance).lt(beforeKreskoCollateralBalance);
             });
 
+            it("should liquidate up to LT with a single CDP", async function () {
+                const userThree = hre.users.userThree;
+                const deposits = toBig(15);
+                const borrows = toBig(10);
+
+                this.collateral.setPrice(10);
+                this.krAsset.setPrice(10);
+
+                await this.collateral.setBalance(userThree, deposits);
+                await depositCollateral({
+                    user: userThree,
+                    amount: deposits,
+                    asset: this.collateral,
+                });
+
+                await mintKrAsset({
+                    user: userThree,
+                    amount: borrows,
+                    asset: this.krAsset,
+                });
+
+                expect(await hre.Diamond.isAccountLiquidatable(userThree.address)).to.be.false;
+                this.collateral.setPrice(7.5);
+
+                expect(await hre.Diamond.isAccountLiquidatable(userThree.address)).to.be.true;
+
+                await liquidate(userThree, this.krAsset, this.collateral);
+                const MLM = fromBig((await hre.Diamond.maxLiquidationMultiplier()).rawValue, 18);
+                expect(await getCR(userThree.address)).to.be.closeTo(1.4 * MLM, CR_DELTA);
+                expect(await hre.Diamond.isAccountLiquidatable(userThree.address)).to.be.false;
+            });
+
+            it("should liquidate up to LT with multiple CDPs", async function () {
+                const collateral2 = await addMockCollateralAsset({
+                    name: "Collateral2",
+                    decimals: 18,
+                    factor: 1,
+                    price: 10,
+                });
+
+                const userThree = hre.users.userThree;
+                const [deposits1, deposits2] = [toBig(10), toBig(5)];
+                const borrows = toBig(10);
+
+                this.collateral.setPrice(10);
+                this.krAsset.setPrice(10);
+
+                await Promise.all([
+                    await this.collateral.setBalance(userThree, deposits1),
+                    await collateral2.setBalance(userThree, deposits2),
+                    await depositCollateral({
+                        user: userThree,
+                        amount: deposits1,
+                        asset: this.collateral,
+                    }),
+                    await depositCollateral({
+                        user: userThree,
+                        amount: deposits2,
+                        asset: collateral2,
+                    }),
+                    await mintKrAsset({
+                        user: userThree,
+                        amount: borrows,
+                        asset: this.krAsset,
+                    }),
+                ]);
+
+                expect(await hre.Diamond.isAccountLiquidatable(userThree.address)).to.be.false;
+
+                // seemingly random order of updates to test that the liquidation works regardless
+                this.collateral.setPrice(6.25);
+                await collateral2.update({
+                    factor: 0.975,
+                    name: "updated",
+                });
+                await this.krAsset.update({
+                    factor: 1.05,
+                    name: "updated",
+                    closeFee: 0.02,
+                    openFee: 0,
+                    supplyLimit: 1_000_000,
+                });
+                expect(await getCR(userThree.address)).to.be.greaterThan(1.05);
+
+                expect(await hre.Diamond.isAccountLiquidatable(userThree.address)).to.be.true;
+
+                await liquidate(userThree, this.krAsset, this.collateral);
+
+                expect(await getCR(userThree.address)).to.be.lessThan(1.4);
+                expect(await hre.Diamond.isAccountLiquidatable(userThree.address)).to.be.true;
+
+                await liquidate(userThree, this.krAsset, collateral2);
+                expect(await getCR(userThree.address)).to.be.closeTo(1.4, CR_DELTA);
+                // expect(await hre.Diamond.isAccountLiquidatable(userThree.address)).to.be.false;
+            });
+
             it("should emit LiquidationOccurred event", async function () {
                 // Attempt liquidation
                 const collateralIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
@@ -327,16 +540,13 @@ describe("Minter", () => {
                     this.krAsset!.address,
                 );
 
-                const maxLiqValue = fromBig(
-                    (
-                        await hre.Diamond.calculateMaxLiquidatableValueForAssets(
-                            hre.users.userOne.address,
-                            this.krAsset!.address,
-                        )
-                    ).rawValue,
-                    8,
+                const maxLiqValue = await hre.Diamond.getMaxLiquidation(
+                    hre.users.userOne.address,
+                    this.krAsset!.address,
+                    this.collateral.address,
                 );
-                const repayAmount = toBig(maxLiqValue / (+(await this.krAsset!.getPrice()) / 1e8));
+
+                const repayAmount = fixedPointDiv(maxLiqValue, await this.krAsset!.getPrice());
                 const tx = await hre.Diamond.connect(hre.users.userTwo).liquidate(
                     hre.users.userOne.address,
                     this.krAsset!.address,
@@ -437,12 +647,11 @@ describe("Minter", () => {
 
             it("should not allow liquidations with USD value greater than the USD value required for regaining healthy position", async function () {
                 const maxLiquidation = hre.fromBig(
-                    (
-                        await hre.Diamond.calculateMaxLiquidatableValueForAssets(
-                            hre.users.userOne.address,
-                            this.krAsset!.address,
-                        )
-                    ).rawValue,
+                    await hre.Diamond.getMaxLiquidation(
+                        hre.users.userOne.address,
+                        this.krAsset!.address,
+                        this.collateral.address,
+                    ),
                     8,
                 );
                 const repaymentAmount = hre.toBig((maxLiquidation + 1) / this.krAsset!.deployArgs!.price);
@@ -586,11 +795,10 @@ describe("Minter", () => {
                     this.collateral,
                     userToLiquidateAmounts.krAssetCollateralDeposits,
                 );
+                const mcr = fromBig((await hre.Diamond.minimumCollateralizationRatio()).rawValue, 8);
+                expect(await getCR(userToLiquidate.address)).to.lessThanOrEqual(mcr);
+                expect(await getCR(userToLiquidateTwo.address)).to.lessThanOrEqual(mcr);
 
-                // 1.5 = collateral value === debt value * MCR
-                expect(await getHealthFactor(userToLiquidate)).to.lessThanOrEqual(1.51);
-                expect(await getHealthFactor(userToLiquidateTwo)).to.lessThanOrEqual(1.51);
-                // not liquidatable
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidate.address)).to.be.false;
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidateTwo.address)).to.be.false;
             });
@@ -690,7 +898,6 @@ describe("Minter", () => {
                     userTwoValueAfter: 0,
                     userTwoHFAfter: 0,
                 };
-
                 // Get values for a liquidation that happens before rebase
                 while (await hre.Diamond.isAccountLiquidatable(userToLiquidate.address)) {
                     const values = await liquidate(userToLiquidate, this.krAsset, this.krAsset);
@@ -702,7 +909,7 @@ describe("Minter", () => {
                     8,
                 );
 
-                results.userOneHFAfter = await getHealthFactor(userToLiquidate);
+                results.userOneHFAfter = await getCR(userToLiquidate.address);
 
                 // Rebase params
                 const denominator = 4;
@@ -714,18 +921,18 @@ describe("Minter", () => {
                 await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
 
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidateTwo.address)).to.be.true;
-
                 // Get values for a liquidation that happens after a rebase
                 while (await hre.Diamond.isAccountLiquidatable(userToLiquidateTwo.address)) {
                     const values = await liquidate(userToLiquidateTwo, this.krAsset, this.krAsset);
                     results.collateralSeizedRebase += values.collateralSeized;
                     results.debtRepaidRebase += values.debtRepaid;
                 }
+
                 results.userTwoValueAfter = hre.fromBig(
                     (await hre.Diamond.getAccountCollateralValue(userToLiquidateTwo.address)).rawValue,
                     8,
                 );
-                results.userTwoHFAfter = await getHealthFactor(userToLiquidateTwo);
+                results.userTwoHFAfter = await getCR(userToLiquidateTwo.address);
 
                 expect(results.userTwoHFAfter).to.closeTo(results.userOneHFAfter, INTEREST_RATE_DELTA);
                 expect(results.collateralSeized * denominator).to.closeTo(
@@ -763,7 +970,7 @@ describe("Minter", () => {
                     8,
                 );
 
-                results.userOneHFAfter = await getHealthFactor(userToLiquidate);
+                results.userOneHFAfter = await getCR(userToLiquidate.address);
 
                 // Rebase params
                 const denominator = 4;
@@ -786,8 +993,7 @@ describe("Minter", () => {
                     (await hre.Diamond.getAccountCollateralValue(userToLiquidateTwo.address)).rawValue,
                     8,
                 );
-                results.userTwoHFAfter = await getHealthFactor(userToLiquidateTwo);
-
+                results.userTwoHFAfter = await getCR(userToLiquidateTwo.address);
                 expect(results.userTwoHFAfter).to.closeTo(results.userOneHFAfter, INTEREST_RATE_DELTA);
                 expect(results.collateralSeized / denominator).to.closeTo(
                     results.collateralSeizedRebase,

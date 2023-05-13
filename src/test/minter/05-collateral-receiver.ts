@@ -17,7 +17,6 @@ const getReceiver = async (kresko: Kresko, grantRole = true) => {
     return Receiver;
 };
 
-const roundingDeltaWei = 250000;
 describe("CollateralReceiver - UncheckedCollateralWithdraw", () => {
     withFixture(["minter-test", "unchecked-collateral"]);
 
@@ -99,7 +98,6 @@ describe("CollateralReceiver - UncheckedCollateralWithdraw", () => {
 
                 const { maxWithdrawAmount } = await getMaxWithdrawal(hre.users.userFive.address, this.collateral);
                 expect(maxWithdrawAmount.gt(0)).to.be.true;
-
                 await Receiver.test(this.collateral.address, maxWithdrawAmount);
 
                 expect((await Receiver.userData()).val).to.equal(maxWithdrawAmount);
@@ -108,8 +106,8 @@ describe("CollateralReceiver - UncheckedCollateralWithdraw", () => {
                 expect(await this.collateral.contract.balanceOf(Receiver.address)).to.equal(maxWithdrawAmount);
                 expect(
                     (await hre.Diamond.getAccountCollateralRatio(hre.users.userFive.address)).rawValue,
-                ).to.be.closeTo(toBig(1.5), roundingDeltaWei);
-                await expect(Receiver.test(this.collateral.address, 1)).to.be.revertedWith(
+                ).to.be.closeTo((15e17).toString(), (1e10).toString());
+                await expect(Receiver.test(this.collateral.address, (10e15).toString())).to.be.revertedWith(
                     Error.COLLATERAL_INSUFFICIENT_AMOUNT,
                 );
             });

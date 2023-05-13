@@ -7,7 +7,7 @@ import {LibDecimals} from "../libs/LibDecimals.sol";
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
 import {MinterEvent} from "../../libs/Events.sol";
-
+import {WadRay} from "../../libs/WadRay.sol";
 import {CollateralAsset} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
 
@@ -19,6 +19,7 @@ library LibCollateral {
     using FixedPoint for FixedPoint.Unsigned;
     using LibDecimals for uint8;
     using Arrays for address[];
+    using WadRay for uint256;
 
     /**
      * In case a collateral asset is also a kresko asset, convert an amount to anchor shares

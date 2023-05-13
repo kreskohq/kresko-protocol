@@ -34,7 +34,6 @@ contract UIDataProviderFacet2 {
         krAssets = LibUI.krAssetInfos(_krAssets);
         protocolParams = LibUI.ProtocolParams({
             minCollateralRatio: ms().minimumCollateralizationRatio.rawValue,
-            liqMultiplier: ms().liquidationIncentiveMultiplier.rawValue,
             minDebtValue: ms().minimumDebtValue.rawValue,
             liquidationThreshold: ms().liquidationThreshold.rawValue
         });

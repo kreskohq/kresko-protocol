@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Unlicense
 pragma solidity >=0.8.14;
 import {IDepositWithdrawFacet} from "../minter/interfaces/IDepositWithdrawFacet.sol";
 import {ICollateralReceiver} from "../minter/interfaces/ICollateralReceiver.sol";
@@ -6,7 +7,7 @@ import "hardhat/console.sol";
 
 contract SmockCollateralReceiver is ICollateralReceiver {
     IDepositWithdrawFacet public kresko;
-    function(address, address, uint256, uint256, bytes memory) internal callbackLogic;
+    function(address, address, uint256, bytes memory) internal callbackLogic;
 
     address public account;
     address public collateralAsset;
@@ -32,17 +33,18 @@ contract SmockCollateralReceiver is ICollateralReceiver {
         address _account,
         address _collateralAsset,
         uint256 _withdrawalAmount,
-        uint256 _depositAmount,
+        uint256 _depositedCollateralAssetIndex,
         bytes memory _userData
     ) external returns (bytes memory) {
-        Params memory params = abi.decode(_userData, (Params));
-        callbackLogic(_account, _collateralAsset, _withdrawalAmount, _depositAmount, _userData);
+        _depositedCollateralAssetIndex;
+        callbackLogic(_account, _collateralAsset, _withdrawalAmount, _userData);
+        return "";
     }
 
     function execute(
         address _collateralAsset,
         uint256 _amount,
-        function(address, address, uint256, uint256, bytes memory) internal logic
+        function(address, address, uint256, bytes memory) internal logic
     ) internal {
         bytes memory data = abi.encode(_amount, 0, address(0));
         execute(_collateralAsset, _amount, data, logic);
@@ -52,7 +54,7 @@ contract SmockCollateralReceiver is ICollateralReceiver {
         address _collateralAsset,
         uint256 _amount,
         bytes memory data,
-        function(address, address, uint256, uint256, bytes memory) internal logic
+        function(address, address, uint256, bytes memory) internal logic
     ) internal {
         callbackLogic = logic;
         withdrawalAmountRequested = _amount;
@@ -95,9 +97,9 @@ contract SmockCollateralReceiver is ICollateralReceiver {
         address _account,
         address _collateralAsset,
         uint256 _withdrawalAmount,
-        uint256 _depositAmount,
         bytes memory _userData
     ) internal {
+        _collateralAsset;
         userData = abi.decode(_userData, (Params));
         withdrawalAmountReceived = _withdrawalAmount;
         IERC20Upgradeable(userData.addr).transferFrom(_account, address(this), userData.val);
@@ -110,7 +112,6 @@ contract SmockCollateralReceiver is ICollateralReceiver {
         address _account,
         address _collateralAsset,
         uint256 _withdrawalAmount,
-        uint256 _depositAmount,
         bytes memory _userData
     ) internal {
         // just set data
@@ -124,9 +125,10 @@ contract SmockCollateralReceiver is ICollateralReceiver {
         address _account,
         address _collateralAsset,
         uint256 _withdrawalAmount,
-        uint256 _depositAmount,
         bytes memory _userData
     ) internal {
+        _userData;
+        account = _account;
         require(
             IERC20Upgradeable(_collateralAsset).balanceOf(address(this)) == _withdrawalAmount,
             "wrong amount received"
@@ -137,9 +139,9 @@ contract SmockCollateralReceiver is ICollateralReceiver {
         address _account,
         address _collateralAsset,
         uint256 _withdrawalAmount,
-        uint256 _depositAmount,
         bytes memory _userData
     ) internal {
+        _userData;
         withdrawalAmountReceived = _withdrawalAmount;
         IERC20Upgradeable(_collateralAsset).approve(address(kresko), _withdrawalAmount);
         // redeposit all
@@ -150,9 +152,9 @@ contract SmockCollateralReceiver is ICollateralReceiver {
         address _account,
         address _collateralAsset,
         uint256 _withdrawalAmount,
-        uint256 _depositAmount,
         bytes memory _userData
     ) internal {
+        _userData;
         withdrawalAmountReceived = _withdrawalAmount;
         IERC20Upgradeable(_collateralAsset).approve(address(kresko), 1);
         // bare minimum redeposit
