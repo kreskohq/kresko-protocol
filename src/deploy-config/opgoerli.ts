@@ -502,8 +502,8 @@ export const testnetConfigs: NetworkConfig = {
     },
     opgoerli: {
         protocolParams: defaultParams,
-        collaterals: [assets.WETH, assets.DAI, assets.krETH, assets.krTSLA],
-        krAssets: [assets.krTSLA, assets.krETH],
+        collaterals: [assets.DAI, assets.KISS, assets.krBTC, assets.WETH, assets.krTSLA, assets.krETH],
+        krAssets: [assets.KISS, assets.krBTC, assets.krTSLA, assets.krETH],
         pools: defaultPools,
         stakingPools: defaultStakingPools,
         rewardTokens: [assets.krCUBE],
