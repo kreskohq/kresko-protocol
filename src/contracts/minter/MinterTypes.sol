@@ -13,13 +13,18 @@ import {LibAssetUtility} from "./libs/LibAssetUtility.sol";
 /* -------------------------------------------------------------------------- */
 
 library Constants {
-    uint256 constant ONE_HUNDRED_PERCENT = 1e18;
+    uint256 constant ONE_HUNDRED_PERCENT = 1 ether;
+
+    uint256 constant BASIS_POINT = 1e14;
 
     /// @dev The maximum configurable close fee.
-    uint256 constant MAX_CLOSE_FEE = 10e16; // 10%
+    uint256 constant MAX_CLOSE_FEE = 0.1 ether; // 10%
 
     /// @dev The maximum configurable open fee.
-    uint256 constant MAX_OPEN_FEE = 10e16; // 10%
+    uint256 constant MAX_OPEN_FEE = 0.1 ether; // 10%
+
+    /// @dev Overflow over maximum liquidatable value to allow leeway for users after one happens.
+    uint256 constant MIN_MAX_LIQUIDATION_MULTIPLIER = ONE_HUNDRED_PERCENT + BASIS_POINT; // 100.01% or .01% over
 
     /// @dev The minimum configurable minimum collateralization ratio.
     uint256 constant MIN_COLLATERALIZATION_RATIO = ONE_HUNDRED_PERCENT;
@@ -30,10 +35,10 @@ library Constants {
 
     /// @dev The maximum configurable liquidation incentive multiplier.
     /// This means liquidator receives 25% bonus collateral compared to the debt repaid.
-    uint256 constant MAX_LIQUIDATION_INCENTIVE_MULTIPLIER = 1.25e18; // 125%
+    uint256 constant MAX_LIQUIDATION_INCENTIVE_MULTIPLIER = 1.25 ether; // 125%
 
-    /// @dev The maximum configurable minimum debt USD value.
-    uint256 constant MAX_DEBT_VALUE = 1000e18; // $1,000
+    /// @dev The maximum configurable minimum debt USD value. 8 decimals.
+    uint256 constant MAX_MIN_DEBT_VALUE = 1000 gwei; // $1,000
 }
 
 /* -------------------------------------------------------------------------- */
@@ -79,7 +84,6 @@ struct MinterInitArgs {
     address council;
     address treasury;
     uint8 extOracleDecimals;
-    uint256 liquidationIncentiveMultiplier;
     uint256 minimumCollateralizationRatio;
     uint256 minimumDebtValue;
     uint256 liquidationThreshold;
@@ -91,9 +95,9 @@ struct MinterInitArgs {
 
 struct MinterParams {
     FixedPoint.Unsigned minimumCollateralizationRatio;
-    FixedPoint.Unsigned liquidationIncentiveMultiplier;
     FixedPoint.Unsigned minimumDebtValue;
     FixedPoint.Unsigned liquidationThreshold;
+    FixedPoint.Unsigned liquidationOverflowPercentage;
     address feeRecipient;
     uint8 extOracleDecimals;
 }
@@ -137,6 +141,7 @@ struct CollateralAsset {
     address anchor;
     uint8 decimals;
     bool exists;
+    FixedPoint.Unsigned liquidationIncentive;
 }
 using LibAssetUtility for CollateralAsset global;
 

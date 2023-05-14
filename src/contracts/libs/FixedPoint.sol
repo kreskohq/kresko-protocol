@@ -265,7 +265,7 @@ library FixedPoint {
         // 2. Results that can't be represented exactly are truncated not rounded. E.g., 1.4 * 2e-18 = 2.8e-18, which
         // would round to 3, but this computation produces the result 2.
         // No need to use SafeMath because FP_SCALING_FACTOR != 0.
-        return Unsigned(a.rawValue.mul(b.rawValue) / FP_SCALING_FACTOR);
+        return Unsigned((a.rawValue * b.rawValue) / FP_SCALING_FACTOR);
     }
 
     /**
@@ -276,7 +276,7 @@ library FixedPoint {
      * @return the product of `a` and `b`.
      */
     function mul(Unsigned memory a, uint256 b) internal pure returns (Unsigned memory) {
-        return Unsigned(a.rawValue.mul(b));
+        return Unsigned(a.rawValue * b);
     }
 
     /**
@@ -320,7 +320,7 @@ library FixedPoint {
         // 10^41 is stored internally as a uint256 10^59.
         // 2. Results that can't be represented exactly are truncated not rounded. E.g., 2 / 3 = 0.6 repeating, which
         // would round to 0.666666666666666667, but this computation produces the result 0.666666666666666666.
-        return Unsigned(a.rawValue.mul(FP_SCALING_FACTOR).div(b.rawValue));
+        return Unsigned((a.rawValue * FP_SCALING_FACTOR).div(b.rawValue));
     }
 
     /**

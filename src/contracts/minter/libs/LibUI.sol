@@ -31,6 +31,7 @@ library LibUI {
         uint256 amount;
         FixedPoint.Unsigned amountUSD;
         FixedPoint.Unsigned cFactor;
+        FixedPoint.Unsigned liquidationIncentive;
         uint8 decimals;
         uint256 index;
         uint256 price;
@@ -44,6 +45,7 @@ library LibUI {
         address anchorAddress;
         uint256 price;
         uint256 value;
+        FixedPoint.Unsigned liquidationIncentive;
         FixedPoint.Unsigned cFactor;
         uint8 decimals;
         string symbol;
@@ -52,7 +54,6 @@ library LibUI {
     }
 
     struct ProtocolParams {
-        uint256 liqMultiplier;
         uint256 minDebtValue;
         uint256 minCollateralRatio;
         uint256 liquidationThreshold;
@@ -292,6 +293,7 @@ library LibUI {
                 oracleAddress: address(collateralAsset.oracle),
                 anchorAddress: collateralAsset.anchor,
                 assetAddress: assetAddress,
+                liquidationIncentive: collateralAsset.liquidationIncentive,
                 cFactor: collateralAsset.factor,
                 decimals: decimals,
                 price: price.rawValue,
@@ -321,6 +323,7 @@ library LibUI {
                 result[i] = CollateralAssetInfoUser({
                     amount: amount,
                     amountUSD: amountUSD,
+                    liquidationIncentive: ms().collateralAssets[assetAddress].liquidationIncentive,
                     anchorAddress: ms().collateralAssets[assetAddress].anchor,
                     oracleAddress: address(ms().collateralAssets[assetAddress].oracle),
                     assetAddress: assetAddress,

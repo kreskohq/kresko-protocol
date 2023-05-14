@@ -24,6 +24,7 @@ export const addMockCollateralAsset = async (
         TestCollateral.address,
         hre.ethers.constants.AddressZero,
         cFactor,
+        toFixedPoint(process.env.LIQUIDATION_INCENTIVE),
         MockOracle.address,
         MockOracle.address,
     );
@@ -70,6 +71,7 @@ export const updateCollateralAsset = async (address: string, args: TestCollatera
         collateral!.address,
         hre.ethers.constants.AddressZero,
         toFixedPoint(args.factor),
+        toFixedPoint(process.env.LIQUIDATION_INCENTIVE),
         args.oracle || collateral!.priceFeed.address,
         args.oracle || collateral!.priceFeed.address,
     );
@@ -125,14 +127,13 @@ export const withdrawCollateral = async (args: InputArgs) => {
 };
 
 export const getMaxWithdrawal = async (user: string, collateral: any) => {
-    const [collateralValue] = await hre.Diamond.getAccountSingleCollateralValueAndRealValue(user, collateral.address);
+    const [collateralValue] = await hre.Diamond.getCollateralAdjustedAndRealValue(user, collateral.address);
 
-    const minCollateralRequired = await hre.Diamond.getAccountMinimumCollateralValueAtRatio(
-        user,
-        await hre.Diamond.minimumCollateralizationRatio(),
-    );
-    const maxWithdrawValue = fromBig(collateralValue.rawValue.sub(minCollateralRequired.rawValue.add(1427)), 8);
-    const maxWithdrawAmount = maxWithdrawValue / fromBig(await collateral.getPrice(), 8);
+    const minCollateralRequired = await hre.Diamond.getAccountMinimumCollateralValueAtRatio(user, {
+        rawValue: (await hre.Diamond.minimumCollateralizationRatio()).rawValue.add((15e8).toString()),
+    });
+    const maxWithdrawValue = collateralValue.rawValue.sub(minCollateralRequired.rawValue);
+    const maxWithdrawAmount = maxWithdrawValue.wadDiv(await collateral.getPrice());
 
-    return { maxWithdrawValue, maxWithdrawAmount: toBig(maxWithdrawAmount, 18) };
+    return { maxWithdrawValue, maxWithdrawAmount };
 };

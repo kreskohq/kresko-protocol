@@ -54,7 +54,7 @@ library Error {
     string public constant PARAM_LIQUIDATION_INCENTIVE_LOW = "214"; // "Liquidation incentive less than MIN_LIQUIDATION_INCENTIVE_MULTIPLIER"
     string public constant PARAM_LIQUIDATION_INCENTIVE_HIGH = "215"; // "Liquidation incentive greater than MAX_LIQUIDATION_INCENTIVE_MULTIPLIER"
     string public constant PARAM_MIN_COLLATERAL_RATIO_LOW = "216"; // Minimum collateral ratio less than MIN_COLLATERALIZATION_RATIO
-    string public constant PARAM_MIN_DEBT_AMOUNT_HIGH = "217"; // Minimum debt param argument exceeds MAX_DEBT_VALUE
+    string public constant PARAM_MIN_DEBT_AMOUNT_HIGH = "217"; // Minimum debt param argument exceeds MAX_MIN_DEBT_VALUE
     string public constant COLLATERAL_DOESNT_EXIST = "218"; // Collateral does not exist within the protocol
     string public constant KRASSET_DOESNT_EXIST = "219"; // KrAsset does not exist within the protocol
     string public constant KRASSET_NOT_MINTABLE = "220"; // KrAsset is not mintable
@@ -63,7 +63,7 @@ library Error {
     string public constant KRASSET_MINT_AMOUNT_LOW = "223"; // Debt position must be greater than the minimum debt position value
     string public constant KRASSET_MAX_SUPPLY_REACHED = "224"; // KrAsset being minted has reached its current supply limit
     string public constant SELF_LIQUIDATION = "225"; // Account cannot liquidate itself
-    string public constant ZERO_REPAY = "226"; // Account cannot liquidate itself
+    string public constant ZERO_REPAY = "226"; // Cannot liquidate zero value
     string public constant STALE_PRICE = "227"; // Price for the asset is stale
     string public constant LIQUIDATION_OVERFLOW = "228"; // Repaying more USD value than allowed
     string public constant ADDRESS_INVALID_SAFETY_COUNCIL = "229"; // Account responsible for the safety council role must be a multisig
@@ -80,6 +80,10 @@ library Error {
     string public constant KRASSET_INVALID_ANCHOR = "240"; // krAsset anchor does not support the correct interfaceId
     string public constant KRASSET_INVALID_CONTRACT = "241"; // krAsset does not support the correct interfaceId
     string public constant KRASSET_MARKET_CLOSED = "242"; // KrAsset's market is currently closed
+    string public constant NO_KRASSETS_MINTED = "243"; // Account has no active KreskoAsset positions
+    string public constant NO_COLLATERAL_DEPOSITS = "244"; // Account has no active Collateral deposits
+    string public constant INVALID_ORACLE_DECIMALS = "245"; // Oracle decimals do not match extOracleDecimals
+    string public constant PARAM_LIQUIDATION_OVERFLOW_LOW = "246"; // Liquidation overflow is less than MIN_LIQUIDATION_OVERFLOW
 
     /* -------------------------------------------------------------------------- */
     /*                                   3. Staking                               */

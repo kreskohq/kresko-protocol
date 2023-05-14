@@ -6,7 +6,7 @@ interface ICollateralReceiver {
         address _account,
         address _collateralAsset,
         uint _withdrawalAmount,
-        uint _depositAmount,
+        uint _depositedCollateralAssetIndex,
         bytes memory _userData
     ) external returns (bytes memory);
 }

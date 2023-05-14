@@ -38,7 +38,7 @@ struct MinterState {
     address feeRecipient;
     /// @notice The factor used to calculate the incentive a liquidator receives in the form of seized collateral.
     FixedPoint.Unsigned liquidationIncentiveMultiplier;
-    /// @notice The absolute minimum ratio of collateral value to debt value used to calculate collateral requirements.
+    /// @notice The minimum ratio of collateral to debt that can be taken by direct action.
     FixedPoint.Unsigned minimumCollateralizationRatio;
     /// @notice The minimum USD value of an individual synthetic asset debt position.
     FixedPoint.Unsigned minimumDebtValue;
@@ -74,4 +74,6 @@ struct MinterState {
     address ammOracle;
     /// @notice Offchain oracle decimals
     uint8 extOracleDecimals;
+    /// @notice Liquidation Overflow Multiplier, multiplies max liquidatable value.
+    FixedPoint.Unsigned maxLiquidationMultiplier;
 }
