@@ -94,9 +94,17 @@ const config: HardhatUserConfig = {
     diamondAbi: [
         {
             name: "Kresko",
-            include: ["facets/*", "MinterEvent", "InterestRateEvent", "GeneralEvent"],
-            exclude: ["vendor", "test/*", "interfaces/*", "krasset/*", "KrStaking"],
+            include: ["facets/*"],
+            exclude: ["vendor", "test/*", "interfaces/*", "krasset/*", "KrStaking", "event", "Event", "Lib"],
             strict: false,
+            filter(abiElement, index, abi) {
+                if (abiElement.type === "event") {
+                    const exists = abi.some(existing => existing.name === abiElement.name);
+                    console.log("Filterint", abiElement.name, exists);
+                    return !exists;
+                }
+                return true;
+            },
         },
     ],
     typechain: {

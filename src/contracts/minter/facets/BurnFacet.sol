@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
 import {IBurnFacet} from "../interfaces/IBurnFacet.sol";
 import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";

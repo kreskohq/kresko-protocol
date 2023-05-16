@@ -85,10 +85,11 @@ extendEnvironment(function (hre) {
                 implementation.interface.fragments
                     .filter(
                         frag =>
-                            frag.type !== "constructor" &&
+                            frag.type === "function" &&
                             !SharedConfig.signatureFilters.some(f => f.indexOf(frag.name.toLowerCase()) > -1),
                     )
                     .map(frag => implementation.interface.getSighash(frag)),
+
                 deployment,
             ] as const;
         } catch (e: any) {
@@ -102,7 +103,7 @@ extendEnvironment(function (hre) {
                     implementation.interface.fragments
                         .filter(
                             frag =>
-                                frag.type !== "constructor" &&
+                                frag.type === "function" &&
                                 !SharedConfig.signatureFilters.some(f => f.indexOf(frag.name.toLowerCase()) > -1),
                         )
                         .map(frag => implementation.interface.getSighash(frag)),

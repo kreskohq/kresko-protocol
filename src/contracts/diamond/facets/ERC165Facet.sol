@@ -1,31 +1,18 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
-import {IERC165} from "../../shared/IERC165.sol";
 import {Error} from "../../libs/Errors.sol";
 import {DiamondModifiers, Role} from "../../shared/Modifiers.sol";
-
+import {IERC165Facet} from "../interfaces/IERC165Facet.sol";
 import {ds, DiamondState} from "../DiamondStorage.sol";
 
-contract ERC165Facet is DiamondModifiers, IERC165 {
-    /* -------------------------------------------------------------------------- */
-    /*                                    Read                                    */
-    /* -------------------------------------------------------------------------- */
-
-    /// @notice Basic ERC165 support
-    /// @param _interfaceId interface id to support
+contract ERC165Facet is IERC165Facet, DiamondModifiers {
+    /// @inheritdoc IERC165Facet
     function supportsInterface(bytes4 _interfaceId) external view override returns (bool) {
         return ds().supportedInterfaces[_interfaceId];
     }
 
-    /* -------------------------------------------------------------------------- */
-    /*                                    Write                                   */
-    /* -------------------------------------------------------------------------- */
-
-    /// @notice set or unset ERC165 using DiamondStorage.supportedInterfaces
-    /// @param interfaceIds list of interface id to set as supported
-    /// @param interfaceIdsToRemove list of interface id to unset as supported.
-    /// Technically, you can remove support of ERC165 by having the IERC165 id itself being part of that array.
+    /// @inheritdoc IERC165Facet
     function setERC165(
         bytes4[] calldata interfaceIds,
         bytes4[] calldata interfaceIdsToRemove

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
 import {WadRay} from "../../libs/WadRay.sol";
 import {IUniswapV2Oracle} from "../interfaces/IUniswapV2Oracle.sol";

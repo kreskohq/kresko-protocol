@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
 import {MinterState} from "../MinterState.sol";
 import {KrAsset, CollateralAsset} from "../MinterTypes.sol";

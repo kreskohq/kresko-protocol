@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
 import {IGnosisSafeL2} from "../vendor/gnosis/IGnosisSafeL2.sol";
 import {Strings} from "./Strings.sol";
