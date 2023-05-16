@@ -1,11 +1,15 @@
 import { getLogger } from "@kreskolabs/lib";
+import { ethers } from "ethers";
 import { writeFileSync } from "fs";
 import { FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
 type Args = {
     facetNames: readonly (keyof TC)[];
-    initializerName?: keyof TC;
+    initializer?: {
+        contract: ethers.Contract;
+        func: string;
+        args?: unknown[];
+    };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    initializerArgs?: any;
     multisig?: boolean;
     log?: boolean;
 };
@@ -16,7 +20,7 @@ type Args = {
  * @param multisig whether just output the transaction params for the multisig
  * @param log whether to log
  */
-export async function updateFacets({ facetNames, multisig = false, log = true }: Args) {
+export async function updateFacets({ facetNames, multisig = false, log = true, initializer }: Args) {
     const logger = getLogger("update-facets", log);
 
     logger.log(`Updating ${facetNames.length} facets`);
@@ -76,14 +80,19 @@ export async function updateFacets({ facetNames, multisig = false, log = true }:
             continue;
         }
         // Convert the address and signatures into the required `FacetCut` type and push into the array.
-        const FacetCutRemoveExisting = await hre.getFacetCut(
-            facetName,
-            FacetCutAction.Remove,
-            existingFacet?.functionSelectors,
-        );
-        const FacetCutAddNew = await hre.getFacetCut(facetName, FacetCutAction.Add, newFacetSigs);
+        const facetCutRemoveExisting = {
+            facetAddress: hre.ethers.constants.AddressZero,
+            action: FacetCutAction.Remove,
+            functionSelectors: existingFacet.functionSelectors,
+        };
 
-        FacetCuts.push(FacetCutRemoveExisting.facetCut, FacetCutAddNew.facetCut);
+        const FacetCutAddNew = {
+            facetAddress: NewFacetDeployment.address,
+            action: FacetCutAction.Add,
+            functionSelectors: newFacetSigs,
+        };
+
+        FacetCuts.push(facetCutRemoveExisting, FacetCutAddNew);
 
         // Push their ABI into a separate array for deployment output later on.
         ABIs.push(NewFacetDeployment.abi);
@@ -105,7 +114,30 @@ export async function updateFacets({ facetNames, multisig = false, log = true }:
     /* -------------------------------------------------------------------------- */
     /*                                 DiamondCut                                 */
     /* -------------------------------------------------------------------------- */
-    const txParams = await Diamond.populateTransaction.diamondCut(FacetCuts, hre.ethers.constants.AddressZero, "0x");
+
+    let initializerArgs = {
+        address: hre.ethers.constants.AddressZero,
+        data: "0x",
+    };
+    if (
+        initializer &&
+        (!initializer.contract.address || initializer.contract.address === hre.ethers.constants.AddressZero)
+    ) {
+        throw new Error("Initializer contract specificed but not deployed");
+    }
+    if (initializer) {
+        logger.log(`Setting initializer @ ${initializer.contract.address} on ${hre.network.name} network`);
+        initializerArgs = {
+            address: initializer.contract.address,
+            data: initializer.contract.interface.encodeFunctionData(initializer.func, initializer.args ?? []),
+        };
+    }
+    const txParams = await Diamond.populateTransaction.diamondCut(
+        FacetCuts,
+        initializerArgs.address,
+        initializerArgs.data,
+    );
+
     if (!multisig) {
         const tx = await deployer.sendTransaction(txParams);
         const receipt = await tx.wait();
@@ -153,8 +185,8 @@ export async function updateFacets({ facetNames, multisig = false, log = true }:
         hre.facets = deploymentInfo;
         const txParams = await Diamond.populateTransaction.diamondCut(
             FacetCuts,
-            hre.ethers.constants.AddressZero,
-            "0x",
+            initializerArgs.address,
+            initializerArgs.data,
         );
 
         writeFileSync(`./txParams-${Date.now()}.json`, JSON.stringify(txParams, null, 2));

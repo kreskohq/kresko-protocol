@@ -18,8 +18,6 @@ import {KrAsset} from "../MinterTypes.sol";
 import {irs} from "../InterestRateState.sol";
 import {MinterState} from "../MinterState.sol";
 
-import "hardhat/console.sol";
-
 library LibRepay {
     using Arrays for address[];
 

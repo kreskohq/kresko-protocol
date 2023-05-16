@@ -3,7 +3,6 @@ pragma solidity >=0.8.14;
 import {IDepositWithdrawFacet} from "../minter/interfaces/IDepositWithdrawFacet.sol";
 import {ICollateralReceiver} from "../minter/interfaces/ICollateralReceiver.sol";
 import {IERC20Upgradeable} from "../shared/IERC20Upgradeable.sol";
-import "hardhat/console.sol";
 
 contract SmockCollateralReceiver is ICollateralReceiver {
     IDepositWithdrawFacet public kresko;

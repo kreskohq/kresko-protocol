@@ -22,3 +22,4 @@ export * from "./vendor";
 export * from "./clean";
 export * from "./fund-operator";
 export * from "./names";
+export * from "./upgrade-diamond";
