@@ -8,7 +8,7 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
             mnemonic,
             count: 100,
         },
-        saveDeployments: false,
+        saveDeployments: true,
         blockGasLimit: process.env.CI ? 1599510662935 : 32000000,
         allowUnlimitedContractSize: !!process.env.CI,
         initialBaseFeePerGas: process.env.CI ? 0 : undefined,

@@ -45,4 +45,57 @@ import hre, { toBig } from "hardhat";
             await expect(Kresko.mintKreskoAsset(deployer, krETH.address, toBig(0.1))).to.not.be.reverted;
         });
     });
+    describe.only("#facet-upgrade-16-05-2023", () => {
+        it("works", async function () {
+            expect(hre.companionNetworks).to.have.property("live");
+            const { deployer } = await hre.getNamedAccounts();
+            const Kresko = await hre.getContractOrFork("Kresko");
+            const krETH = await hre.getContractOrFork("KreskoAsset", "krETH");
+            const stabilityRateBefore = await Kresko.getStabilityRateForAsset(krETH.address);
+            const priceRateBefore = await Kresko.getPriceRateForAsset(krETH.address);
+
+            expect(stabilityRateBefore).to.be.gt(0);
+            expect(priceRateBefore).to.be.gt(0);
+
+            const facetsBefore = await Kresko.facets();
+            console.log(krETH.address);
+            const krAsset = await Kresko.kreskoAsset(krETH.address);
+            console.log(krAsset);
+            const collateral = await Kresko.collateralAsset(krETH.address);
+            console.log(collateral);
+            // expect((await Kresko.collateralAsset(krETH.address)).liquidationIncentive.rawValue).to.equal(toBig(1.05));
+            // const [initializer] = await hre.deploy("FacetUpgrade16052023");
+            // const { facetsAfter } = await updateFacets({
+            //     facetNames: minterFacets,
+            //     initializer: {
+            //         contract: initializer,
+            //         func: "initialize",
+            //         args: [],
+            //     },
+            // });
+            // expect(facetsAfter).to.not.deep.equal(facetsBefore);
+
+            // const stabilityRateAfter = await Kresko.getStabilityRateForAsset(krETH.address);
+            // const priceRateAfter = await Kresko.getPriceRateForAsset(krETH.address);
+
+            // expect(stabilityRateAfter).to.be.gt(0);
+
+            // expect(priceRateAfter).to.equal(priceRateBefore);
+            // expect(stabilityRateAfter).to.equal(stabilityRateBefore);
+
+            // expect((await Kresko.collateralAsset(krETH.address)).liquidationIncentive.rawValue).to.equal(toBig(1.05));
+
+            // await expect(Kresko.depositCollateral(deployer, krETH.address, toBig(1))).to.not.be.reverted;
+            // await expect(Kresko.mintKreskoAsset(deployer, krETH.address, toBig(0.1))).to.not.be.reverted;
+
+            // const burnIdx = await Kresko.getMintedKreskoAssetsIndex(deployer, krETH.address);
+            // const withdrawIdx = await Kresko.getDepositedCollateralAssetIndex(deployer, krETH.address);
+            // await expect(Kresko.burnKreskoAsset(deployer, krETH.address, toBig(0.1), burnIdx)).to.not.be.reverted;
+            // await expect(Kresko.withdrawCollateral(deployer, krETH.address, toBig(0.1), withdrawIdx)).to.not.be
+            //     .reverted;
+
+            // const oldDeployer = new hre.ethers.Wallet(process.env.OLD_PK!).connect(hre.ethers.provider);
+            // await expect(Kresko.connect(oldDeployer).batchRepayFullStabilityRateInterest(deployer)).to.not.be.reverted;
+        });
+    });
 });

@@ -133,6 +133,7 @@ using LibAssetUtility for KrAsset global;
  * @param anchor If the collateral is a KreskoAsset, the anchor address
  * @param decimals The decimals for the token, stored here to avoid repetitive external calls.
  * @param exists Whether the collateral asset exists within the protocol.
+ * @param liquidationIncentive The liquidation incentive for the asset
  */
 struct CollateralAsset {
     FixedPoint.Unsigned factor;

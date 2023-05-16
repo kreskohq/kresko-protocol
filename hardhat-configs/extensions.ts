@@ -7,6 +7,7 @@ import { constants, ethers } from "ethers";
 import { FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
 import { extendEnvironment } from "hardhat/config";
 import SharedConfig from "src/deploy-config/shared";
+import { ContractTypes } from "types";
 
 extendEnvironment(async function (hre) {
     // for testing
@@ -80,18 +81,40 @@ extendEnvironment(function (hre) {
 
         const deployment = await hre.deployments.deploy(deploymentId, opts);
 
-        const implementation = await hre.getContractOrFork(type, deploymentId);
-        return [
-            implementation,
-            implementation.interface.fragments
-                .filter(
-                    frag =>
-                        frag.type !== "constructor" &&
-                        !SharedConfig.signatureFilters.some(f => f.indexOf(frag.name.toLowerCase()) > -1),
-                )
-                .map(frag => implementation.interface.getSighash(frag)),
-            deployment,
-        ] as const;
+        try {
+            const implementation = await hre.getContractOrFork(type, deploymentId);
+            return [
+                implementation,
+                implementation.interface.fragments
+                    .filter(
+                        frag =>
+                            frag.type !== "constructor" &&
+                            !SharedConfig.signatureFilters.some(f => f.indexOf(frag.name.toLowerCase()) > -1),
+                    )
+                    .map(frag => implementation.interface.getSighash(frag)),
+                deployment,
+            ] as const;
+        } catch (e: any) {
+            if (e.message.includes("not deployed")) {
+                const implementation = (await hre.ethers.getContractAt(
+                    type,
+                    deployment.address,
+                )) as unknown as ContractTypes[typeof type];
+                return [
+                    implementation,
+                    implementation.interface.fragments
+                        .filter(
+                            frag =>
+                                frag.type !== "constructor" &&
+                                !SharedConfig.signatureFilters.some(f => f.indexOf(frag.name.toLowerCase()) > -1),
+                        )
+                        .map(frag => implementation.interface.getSighash(frag)),
+                    deployment,
+                ] as const;
+            } else {
+                throw new Error(e);
+            }
+        }
     };
     hre.getSignature = from =>
         Fragment.from(from)?.type === "function" && ethers.utils.Interface.getSighash(Fragment.from(from));
