@@ -1,5 +1,5 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { DeployFunction, FacetCut } from "hardhat-deploy/types";
+import { DeployFunction, FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
 import { mergeABIs } from "hardhat-deploy/dist/src/utils";
 import { getLogger } from "@kreskolabs/lib";
 import { diamondFacets } from "@deploy-config/shared";
@@ -29,14 +29,19 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     // #2 Only Diamond-specific facets
     for (const facet of diamondFacets) {
-        const [, sigs] = await hre.deploy(facet, {
+        const [, sigs, facetDeployment] = await hre.deploy(facet, {
             from: deployer,
             log: true,
         });
 
-        const args = await hre.getFacetCut(facet, 0, sigs);
+        // const args = await hre.getFacetCut(facet, 0, sigs);
+        const facetCutAdd = {
+            facetAddress: facetDeployment.address,
+            action: FacetCutAction.Add,
+            functionSelectors: sigs,
+        };
         const Artifact = await hre.deployments.getArtifact(facet);
-        InitialFacets.push(args.facetCut);
+        InitialFacets.push(facetCutAdd);
         ABIs.push(Artifact.abi);
     }
 

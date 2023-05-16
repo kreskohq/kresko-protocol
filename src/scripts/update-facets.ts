@@ -80,14 +80,19 @@ export async function updateFacets({ facetNames, multisig = false, log = true, i
             continue;
         }
         // Convert the address and signatures into the required `FacetCut` type and push into the array.
-        const FacetCutRemoveExisting = await hre.getFacetCut(
-            facetName,
-            FacetCutAction.Remove,
-            existingFacet?.functionSelectors,
-        );
-        const FacetCutAddNew = await hre.getFacetCut(facetName, FacetCutAction.Add, newFacetSigs);
+        const facetCutRemoveExisting = {
+            facetAddress: hre.ethers.constants.AddressZero,
+            action: FacetCutAction.Remove,
+            functionSelectors: existingFacet.functionSelectors,
+        };
 
-        FacetCuts.push(FacetCutRemoveExisting.facetCut, FacetCutAddNew.facetCut);
+        const FacetCutAddNew = {
+            facetAddress: NewFacetDeployment.address,
+            action: FacetCutAction.Add,
+            functionSelectors: newFacetSigs,
+        };
+
+        FacetCuts.push(facetCutRemoveExisting, FacetCutAddNew);
 
         // Push their ABI into a separate array for deployment output later on.
         ABIs.push(NewFacetDeployment.abi);

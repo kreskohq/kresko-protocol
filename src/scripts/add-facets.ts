@@ -2,7 +2,7 @@ import { getLogger } from "@kreskolabs/lib";
 import { constants } from "ethers";
 import hre from "hardhat";
 import { mergeABIs } from "hardhat-deploy/dist/src/utils";
-import { FacetCut } from "hardhat-deploy/dist/types";
+import { FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
 type Args = {
     names: readonly (keyof TC)[];
     initializerName?: keyof TC;
@@ -53,7 +53,12 @@ export async function addFacets({ names, initializerName, initializerArgs, log =
         });
 
         // #4.4 Convert the address and signatures into the required `FacetCut` type and push into the array.
-        const { facetCut } = await hre.getFacetCut(facet, 0, sigs);
+        const facetCut: FacetCut = {
+            facetAddress: FacetDeployment.address,
+            action: FacetCutAction.Add,
+            functionSelectors: sigs,
+        };
+        // const { facetCut } = await hre.getFacetCut(facet, 0, sigs);
 
         // #4.5 Ensure functions do not exist
         const existingFacet = facetsBefore.find(f => f.facetAddress === FacetContract.address);

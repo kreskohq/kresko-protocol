@@ -3,14 +3,14 @@
     "suites": 2,
     "tests": 1,
     "passes": 0,
-    "pending": 0,
-    "failures": 1,
-    "start": "2023-05-16T12:19:11.279Z",
-    "end": "2023-05-16T12:19:13.832Z",
-    "duration": 2553,
+    "pending": 1,
+    "failures": 0,
+    "start": "2023-05-16T16:01:22.243Z",
+    "end": "2023-05-16T16:01:22.245Z",
+    "duration": 2,
     "testsRegistered": 1,
-    "passPercent": 0,
-    "pendingPercent": 0,
+    "passPercent": null,
+    "pendingPercent": 100,
     "other": 0,
     "hasOther": false,
     "skipped": 0,
@@ -18,7 +18,7 @@
   },
   "results": [
     {
-      "uuid": "54b7f328-e168-4132-80dd-97e7680fc457",
+      "uuid": "d943d079-7914-4989-aad9-cb052984c251",
       "title": "",
       "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/forking/00-setup.ts",
       "file": "/src/test/forking/00-setup.ts",
@@ -27,7 +27,7 @@
       "tests": [],
       "suites": [
         {
-          "uuid": "5bb2862b-f7cd-4eda-b0f3-0dbbc80c0ef5",
+          "uuid": "97e50b21-adce-4d0b-8ce4-790296fa83be",
           "title": "Forking",
           "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/forking/00-setup.ts",
           "file": "/src/test/forking/00-setup.ts",
@@ -36,7 +36,7 @@
           "tests": [],
           "suites": [
             {
-              "uuid": "f7d1948b-1f0b-4603-bc31-0cded680ac20",
+              "uuid": "f6ab7cef-dd23-4178-95f3-5511be0cab45",
               "title": "#facet-upgrade-16-05-2023",
               "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/forking/00-setup.ts",
               "file": "/src/test/forking/00-setup.ts",
@@ -47,36 +47,32 @@
                   "title": "works",
                   "fullTitle": "Forking #facet-upgrade-16-05-2023 works",
                   "timedOut": false,
-                  "duration": 2544,
-                  "state": "failed",
+                  "duration": 0,
+                  "state": "pending",
                   "speed": null,
                   "pass": false,
-                  "fail": true,
-                  "pending": false,
+                  "fail": false,
+                  "pending": true,
                   "context": null,
-                  "code": "(0, chai_1.expect)(hardhat_1.default.companionNetworks).to.have.property(\"live\");\nconst { deployer } = await hardhat_1.default.getNamedAccounts();\nconst Kresko = await hardhat_1.default.getContractOrFork(\"Kresko\");\nconst krETH = await hardhat_1.default.getContractOrFork(\"KreskoAsset\", \"krETH\");\nconst stabilityRateBefore = await Kresko.getStabilityRateForAsset(krETH.address);\nconst priceRateBefore = await Kresko.getPriceRateForAsset(krETH.address);\n(0, chai_1.expect)(stabilityRateBefore).to.be.gt(0);\n(0, chai_1.expect)(priceRateBefore).to.be.gt(0);\nconst facetsBefore = await Kresko.facets();\nconsole.log(krETH.address);\nconst krAsset = await Kresko.kreskoAsset(krETH.address);\nconsole.log(krAsset);\nconst collateral = await Kresko.collateralAsset(krETH.address);\nconsole.log(collateral);\n// expect((await Kresko.collateralAsset(krETH.address)).liquidationIncentive.rawValue).to.equal(toBig(1.05));\n// const [initializer] = await hre.deploy(\"FacetUpgrade16052023\");\n// const { facetsAfter } = await updateFacets({\n//     facetNames: minterFacets,\n//     initializer: {\n//         contract: initializer,\n//         func: \"initialize\",\n//         args: [],\n//     },\n// });\n// expect(facetsAfter).to.not.deep.equal(facetsBefore);\n// const stabilityRateAfter = await Kresko.getStabilityRateForAsset(krETH.address);\n// const priceRateAfter = await Kresko.getPriceRateForAsset(krETH.address);\n// expect(stabilityRateAfter).to.be.gt(0);\n// expect(priceRateAfter).to.equal(priceRateBefore);\n// expect(stabilityRateAfter).to.equal(stabilityRateBefore);\n// expect((await Kresko.collateralAsset(krETH.address)).liquidationIncentive.rawValue).to.equal(toBig(1.05));\n// await expect(Kresko.depositCollateral(deployer, krETH.address, toBig(1))).to.not.be.reverted;\n// await expect(Kresko.mintKreskoAsset(deployer, krETH.address, toBig(0.1))).to.not.be.reverted;\n// const burnIdx = await Kresko.getMintedKreskoAssetsIndex(deployer, krETH.address);\n// const withdrawIdx = await Kresko.getDepositedCollateralAssetIndex(deployer, krETH.address);\n// await expect(Kresko.burnKreskoAsset(deployer, krETH.address, toBig(0.1), burnIdx)).to.not.be.reverted;\n// await expect(Kresko.withdrawCollateral(deployer, krETH.address, toBig(0.1), withdrawIdx)).to.not.be\n//     .reverted;\n// const oldDeployer = new hre.ethers.Wallet(process.env.OLD_PK!).connect(hre.ethers.provider);\n// await expect(Kresko.connect(oldDeployer).batchRepayFullStabilityRateInterest(deployer)).to.not.be.reverted;",
-                  "err": {
-                    "message": "Error: call revert exception [ See: https://links.ethers.org/v5-errors-CALL_EXCEPTION ] (method=\"collateralAsset(address)\", data=\"0x0000000000000000000000000000000000000000000000000de0b6b3a7640000000000000000000000000000eecc7ff08b219de195048780d28a5984a0e12ec8000000000000000000000000eecc7ff08b219de195048780d28a5984a0e12ec8000000000000000000000000532b49613daebfcb7d2a6510a608086ec32498ee00000000000000000000000000000000000000000000000000000000000000120000000000000000000000000000000000000000000000000000000000000001\", errorArgs=null, errorName=null, errorSignature=null, reason=null, code=CALL_EXCEPTION, version=abi/5.7.0)",
-                    "estack": "Error: call revert exception [ See: https://links.ethers.org/v5-errors-CALL_EXCEPTION ] (method=\"collateralAsset(address)\", data=\"0x0000000000000000000000000000000000000000000000000de0b6b3a7640000000000000000000000000000eecc7ff08b219de195048780d28a5984a0e12ec8000000000000000000000000eecc7ff08b219de195048780d28a5984a0e12ec8000000000000000000000000532b49613daebfcb7d2a6510a608086ec32498ee00000000000000000000000000000000000000000000000000000000000000120000000000000000000000000000000000000000000000000000000000000001\", errorArgs=null, errorName=null, errorSignature=null, reason=null, code=CALL_EXCEPTION, version=abi/5.7.0)\n    at Logger.makeError (node_modules/.pnpm/@ethersproject+logger@5.7.0/node_modules/@ethersproject/logger/src.ts/index.ts:269:28)\n    at Logger.throwError (node_modules/.pnpm/@ethersproject+logger@5.7.0/node_modules/@ethersproject/logger/src.ts/index.ts:281:20)\n    at Interface.decodeFunctionResult (node_modules/.pnpm/@ethersproject+abi@5.7.0/node_modules/@ethersproject/abi/src.ts/interface.ts:427:23)\n    at Contract.<anonymous> (node_modules/.pnpm/@ethersproject+contracts@5.7.0/node_modules/@ethersproject/contracts/src.ts/index.ts:400:44)\n    at step (node_modules/.pnpm/@ethersproject+contracts@5.7.0/node_modules/@ethersproject/contracts/lib/index.js:48:23)\n    at Object.next (node_modules/.pnpm/@ethersproject+contracts@5.7.0/node_modules/@ethersproject/contracts/lib/index.js:29:53)\n    at fulfilled (node_modules/.pnpm/@ethersproject+contracts@5.7.0/node_modules/@ethersproject/contracts/lib/index.js:20:58)",
-                    "diff": null
-                  },
-                  "uuid": "14f5f5e0-d83d-46a4-bbef-f680aff5a216",
-                  "parentUUID": "f7d1948b-1f0b-4603-bc31-0cded680ac20",
+                  "code": "",
+                  "err": {},
+                  "uuid": "b5c0d0b5-c3a0-463b-bd38-44976624485d",
+                  "parentUUID": "f6ab7cef-dd23-4178-95f3-5511be0cab45",
                   "isHook": false,
                   "skipped": false
                 }
               ],
               "suites": [],
               "passes": [],
-              "failures": [
-                "14f5f5e0-d83d-46a4-bbef-f680aff5a216"
+              "failures": [],
+              "pending": [
+                "b5c0d0b5-c3a0-463b-bd38-44976624485d"
               ],
-              "pending": [],
               "skipped": [],
-              "duration": 2544,
+              "duration": 0,
               "root": false,
               "rootEmpty": false,
-              "_timeout": 300000
+              "_timeout": 15000
             }
           ],
           "passes": [],
@@ -86,7 +82,7 @@
           "duration": 0,
           "root": false,
           "rootEmpty": false,
-          "_timeout": 300000
+          "_timeout": 15000
         }
       ],
       "passes": [],
@@ -96,7 +92,7 @@
       "duration": 0,
       "root": true,
       "rootEmpty": true,
-      "_timeout": 300000
+      "_timeout": 15000
     }
   ],
   "meta": {

@@ -1,7 +1,26 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 import {ms} from "../MinterStorage.sol";
+import {CollateralAsset} from "../MinterTypes.sol";
 import {FixedPoint} from "../../libs/FixedPoint.sol";
+import {AggregatorV2V3Interface} from "../../vendor/flux/FluxPriceFeed.sol";
+
+interface NewKresko {
+    function collateralAsset(address) external view returns (CollateralAsset memory);
+}
+
+interface OldKresko {
+    struct CollateralOld {
+        FixedPoint.Unsigned factor;
+        AggregatorV2V3Interface oracle;
+        AggregatorV2V3Interface marketStatusOracle;
+        address anchor;
+        uint8 decimals;
+        bool exists;
+    }
+
+    function collateralAsset(address) external view returns (CollateralOld memory);
+}
 
 contract FacetUpgrade16052023 {
     function initialize() external {
@@ -12,12 +31,25 @@ contract FacetUpgrade16052023 {
         address krETH = 0xbb37d6016f97Dd369eCB76e2A5036DacD8770f8b;
         address krTSLA = 0x3502B0329a45011C8FEE033B8eEe6BDA89c03081;
         address KISS = 0xC0B5aBa9F46bDf4D1bC52a4C3ab05C857aC4Ee80;
+        address[] memory collateralAssets = new address[](6);
+        collateralAssets[0] = DAI;
+        collateralAssets[1] = WETH;
+        collateralAssets[2] = krBTC;
+        collateralAssets[3] = krETH;
+        collateralAssets[4] = krTSLA;
+        collateralAssets[5] = KISS;
+        for (uint i = 0; i < collateralAssets.length; i++) {
+            address asset = collateralAssets[i];
+            ms().collateralAssets[asset].liquidationIncentive = FixedPoint.Unsigned(1.05 ether);
+        }
 
-        ms().collateralAssets[DAI].liquidationIncentive = FixedPoint.Unsigned(1.05 ether);
-        ms().collateralAssets[WETH].liquidationIncentive = FixedPoint.Unsigned(1.05 ether);
-        ms().collateralAssets[krBTC].liquidationIncentive = FixedPoint.Unsigned(1.05 ether);
-        ms().collateralAssets[krETH].liquidationIncentive = FixedPoint.Unsigned(1.05 ether);
-        ms().collateralAssets[krTSLA].liquidationIncentive = FixedPoint.Unsigned(1.05 ether);
-        ms().collateralAssets[KISS].liquidationIncentive = FixedPoint.Unsigned(1.05 ether);
+        require(ms().collateralAssets[DAI].exists, "!found");
+        require(ms().collateralAssets[WETH].liquidationIncentive.rawValue == 1.05 ether, "!config");
+
+        uint256 liqIncentive = NewKresko(0x0921a7234a2762aaB3C43d3b1F51dB5D8094a04b)
+            .collateralAsset(krBTC)
+            .liquidationIncentive
+            .rawValue;
+        require(liqIncentive == 1.05 ether, "!found-new");
     }
 }

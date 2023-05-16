@@ -136,8 +136,8 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
     ...networksPartialConfig(mnemonic),
 });
 
-export const handleForking = (networkConfig: ReturnType<typeof networks>) =>
-    process.env.FORKING !== undefined
+export const handleForking = (networkConfig: ReturnType<typeof networks>) => {
+    return process.env.FORKING !== undefined
         ? {
               ...networkConfig,
               hardhat: {
@@ -154,6 +154,7 @@ export const handleForking = (networkConfig: ReturnType<typeof networks>) =>
               },
           }
         : networkConfig;
+};
 
 export const networksPartialConfig = (mnemonic: string) => ({
     xdai: {
