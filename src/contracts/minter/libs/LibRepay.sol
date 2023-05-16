@@ -18,8 +18,6 @@ import {KrAsset} from "../MinterTypes.sol";
 import {irs} from "../InterestRateState.sol";
 import {MinterState} from "../MinterState.sol";
 
-import "hardhat/console.sol";
-
 library LibRepay {
     using Arrays for address[];
 
@@ -59,6 +57,24 @@ library LibRepay {
         irs().srUserInfo[_account][_kreskoAsset].lastDebtIndex = uint128(newDebtIndex);
         // Update the stability rate for the asset
         irs().srAssets[_kreskoAsset].updateStabilityRate();
+    }
+
+    /// @notice Repay user global asset debt. Updates rates for regular market.
+    /// @param _kreskoAsset the asset being repaid
+    /// @param _burnAmount the asset amount being burned
+    function repay(
+        MinterState storage self,
+        address _kreskoAsset,
+        uint256 _burnAmount
+    ) internal returns (uint256 destroyed) {
+        // Update global debt index for the asset
+        irs().srAssets[_kreskoAsset].updateDebtIndex();
+        // Update the stability rate for the asset
+        irs().srAssets[_kreskoAsset].updateStabilityRate();
+
+        // Burn assets from Protocol, get the destroyed amount
+        destroyed = IKreskoAssetIssuer(self.kreskoAssets[_kreskoAsset].anchor).destroy(_burnAmount, address(this));
+        require(destroyed != 0, "repay-destroyed-amount-invalid");
     }
 
     /**

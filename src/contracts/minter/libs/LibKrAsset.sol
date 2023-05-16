@@ -25,7 +25,7 @@ library LibKrAsset {
     }
 
     /**
-     * @notice Get possibly rebased amount of kreskoAssets
+     * @notice Get possibly rebased amount of kreskoAssets. Use when saving to storage.
      * @param _asset The asset address
      * @param _amount The account to query amount for
      * @return amount Amount of principal debt for `_asset`

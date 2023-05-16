@@ -1,10 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 import {LibCollateralPool} from "./libs/LibCollateralPool.sol";
+import {LibSwap} from "./libs/LibSwap.sol";
+import {LibAmounts} from "./libs/LibAmounts.sol";
 
 /* solhint-disable var-name-mixedcase */
 
 using LibCollateralPool for CollateralPoolState global;
+using LibAmounts for CollateralPoolState global;
+using LibSwap for CollateralPoolState global;
 
 struct PoolCollateral {
     uint256 liquidationIncentive;
@@ -12,8 +16,8 @@ struct PoolCollateral {
     uint8 decimals;
 }
 
-struct PoolKreskoAsset {
-    uint256 swapFee;
+struct PoolKrAsset {
+    uint256 protocolFee; // Taken from the open/close fee. Goes to protocol.
     uint256 openFee;
     uint256 closeFee;
     uint256 supplyLimit;
@@ -25,22 +29,30 @@ struct CollateralPoolState {
     uint256 minimumCollateralizationRatio;
     /// @notice The collateralization ratio at which positions may be liquidated.
     uint256 liquidationThreshold;
-    /// @notice Mapping of krAsset -> debt amount the shared pool owes
-    mapping(address => uint256) kreskoAssetDebt;
-    /// @notice Mapping of collateral -> deposit amount for the shared pool
-    mapping(address => uint256) collateralDeposits;
-    /// @notice Mapping of account -> collateral -> scaled collateral amount in the shared pool
-    mapping(address => mapping(address => uint256)) collateralDepositsAccount;
+    /// @notice Mapping of krAsset -> pooled debt
+    mapping(address => uint256) debt;
+    /// @notice Mapping of collateral -> pooled deposits
+    mapping(address => uint256) totalDeposits;
+    /// @notice Mapping of asset -> swap owned collateral deposits
+    mapping(address => uint256) swapDeposits;
+    /// @notice Mapping of account -> collateral -> collateral deposits.
+    mapping(address => mapping(address => uint256)) deposits;
+    /// @notice Mapping of account -> collateral -> principal collateral deposits.
+    mapping(address => mapping(address => uint256)) depositsPrincipal;
     /// @notice Mapping of collateral -> PoolCollateral
     mapping(address => PoolCollateral) poolCollateral;
     /// @notice Mapping of krAsset -> PoolKreskoAsset
-    mapping(address => PoolKreskoAsset) poolKreskoAsset;
+    mapping(address => PoolKrAsset) poolKrAsset;
+    /// @notice Mapping of asset -> asset -> swap enabled
+    mapping(address => mapping(address => bool)) isSwapEnabled;
+    /// @notice Mapping of asset -> enabled
+    mapping(address => bool) isEnabled;
     /// @notice Array of collateral assets that can be deposited
-    address[] enabledCollaterals;
-    /// @notice Array of kresko assets that can be minted
-    address[] enabledKreskoAssets;
-    /// @notice Swap fee receiver
-    address feeReceiver;
+    address[] collaterals;
+    /// @notice Array of kresko assets that can be minted and swapped.
+    address[] krAssets;
+    /// @notice User swap fee receiver
+    address swapFeeRecipient;
 }
 
 // Storage position

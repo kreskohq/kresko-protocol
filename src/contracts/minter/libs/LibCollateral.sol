@@ -104,21 +104,6 @@ library LibCollateral {
     }
 
     /**
-     * @notice Get collateral asset amount, possibly rebase adjusted
-     * @notice Performs rebasing conversion for KreskoAssets
-     * @param _asset The asset address
-     * @param _amount The asset amount
-     * @return uint256 amount of collateral for `_asset`
-     */
-    function getCollateralAmount(
-        MinterState storage self,
-        address _asset,
-        uint256 _amount
-    ) internal view returns (uint256) {
-        return self.collateralAssets[_asset].toRebasingAmount(_amount);
-    }
-
-    /**
      * @notice Records account as having deposited an amount of a collateral asset.
      * @dev Token transfers are expected to be done by the caller.
      * @param _account The address of the collateral asset.

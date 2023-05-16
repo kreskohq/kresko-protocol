@@ -58,6 +58,25 @@ library LibMint {
         irs().srAssets[_kreskoAsset].updateStabilityRate();
     }
 
+    /// @notice Mint kresko assets for shared debt pool.
+    /// @dev Updates general markets stability rates and debt index.
+    /// @param _kreskoAsset the asset being repaid
+    /// @param _amount the asset amount being burned
+    function mint(
+        MinterState storage self,
+        address _kreskoAsset,
+        uint256 _amount,
+        address _to
+    ) internal returns (uint256 issued) {
+        // Update global debt index for the asset
+        irs().srAssets[_kreskoAsset].updateDebtIndex();
+        irs().srAssets[_kreskoAsset].updateStabilityRate();
+        // Get possibly rebalanced amount of kresko asset
+        issued = IKreskoAssetIssuer(self.kreskoAssets[_kreskoAsset].anchor).issue(_amount, _to);
+        require(issued != 0, "invalid-shared-pool-mint");
+        // Update the global rate for the asset
+    }
+
     /**
      * @notice Charges the protocol open fee based off the value of the minted asset.
      * @dev Takes the fee from the account's collateral assets. Attempts collateral assets
