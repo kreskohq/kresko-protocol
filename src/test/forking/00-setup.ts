@@ -45,7 +45,7 @@ import hre, { toBig } from "hardhat";
             await expect(Kresko.mintKreskoAsset(deployer, krETH.address, toBig(0.1))).to.not.be.reverted;
         });
     });
-    describe.only("#facet-upgrade-16-05-2023", () => {
+    describe("#facet-upgrade-16-05-2023", () => {
         it("works", async function () {
             expect(hre.companionNetworks).to.have.property("live");
             const { deployer } = await hre.getNamedAccounts();
