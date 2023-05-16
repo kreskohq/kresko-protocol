@@ -1,6 +1,5 @@
 import { RAY, oneRay } from "@kreskolabs/lib";
 import { BigNumber } from "ethers";
-import { FixedPoint } from "types/typechain/src/contracts/minter/facets/AccountStateFacet";
 export const ONE_YEAR = 60 * 60 * 24 * 365;
 
 export const getBlockTimestamp = async () => {
@@ -26,8 +25,8 @@ export function getExpectedStabilityRate(priceRate: BigNumber, krAssetArgs: any)
         return krAssetArgs.stabilityRateBase.rayDiv(oneRay.add(rateDiffAdjusted));
     }
 }
-export const oraclePriceToWad = async (price: Promise<FixedPoint.UnsignedStructOutput>): Promise<BigNumber> =>
-    (await price).rawValue.mul(10 ** (18 - (await hre.Diamond.extOracleDecimals())));
+export const oraclePriceToWad = async (price: Promise<BigNumber>): Promise<BigNumber> =>
+    (await price).mul(10 ** (18 - (await hre.Diamond.extOracleDecimals())));
 
 export const calcDebtIndex = async (asset: TestAsset, prevDebtIndex: BigNumber, lastUpdate: BigNumber | number) => {
     const rate = await hre.Diamond.getStabilityRateForAsset(asset.address);

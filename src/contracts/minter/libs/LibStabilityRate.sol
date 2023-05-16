@@ -4,10 +4,8 @@ pragma solidity >=0.8.14;
 import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
 import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
 
-import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 import {Error} from "../../libs/Errors.sol";
-import {Percentages} from "../../libs/Percentages.sol";
 import {LibKrAsset} from "../libs/LibKrAsset.sol";
 
 import {StabilityRateConfig} from "../InterestRateState.sol";
@@ -23,8 +21,6 @@ import {ms} from "../MinterStorage.sol";
 library LibStabilityRate {
     using WadRay for uint256;
     using WadRay for uint128;
-    using Percentages for uint256;
-    using FixedPoint for FixedPoint.Unsigned;
 
     /// @dev Ignoring leap years
     uint256 internal constant SECONDS_PER_YEAR = 365 days;
@@ -71,13 +67,13 @@ library LibStabilityRate {
      * @return priceRate the current price rate
      */
     function getPriceRate(StabilityRateConfig storage self) internal view returns (uint256 priceRate) {
-        FixedPoint.Unsigned memory oraclePrice = ms().getKrAssetValue(self.asset, 1 ether, true);
-        FixedPoint.Unsigned memory ammPrice = ms().getKrAssetAMMPrice(self.asset, 1 ether);
+        uint256 oraclePrice = ms().getKrAssetValue(self.asset, 1 ether, true);
+        uint256 ammPrice = ms().getKrAssetAMMPrice(self.asset, 1 ether);
         // no pair, no effect
-        if (ammPrice.rawValue == 0) {
+        if (ammPrice == 0) {
             return 0;
         }
-        return ammPrice.div(oraclePrice).div(10).rawValue;
+        return ammPrice.wadDiv(oraclePrice) / (10);
     }
 
     /**

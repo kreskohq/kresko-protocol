@@ -1,5 +1,5 @@
 import hre from "hardhat";
-import { fromBig } from "@kreskolabs/lib";
+import { fromBig, toBig } from "@kreskolabs/lib";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { getBlockTimestamp } from "./calculations";
 
@@ -27,8 +27,8 @@ export const addLiquidity = async (args: AddLiquidityArgs) => {
     await hre.UniV2Router.connect(user).addLiquidity(
         token0.address,
         token1.address,
-        convertA ? hre.toBig(amount0) : amount0,
-        convertB ? hre.toBig(amount1) : amount1,
+        convertA ? toBig(amount0) : amount0,
+        convertB ? toBig(amount1) : amount1,
         "0",
         "0",
         user.address,
@@ -63,12 +63,12 @@ type LPValueArgs = {
 export const getLPTokenValue = async (args: LPValueArgs) => {
     const { token0, token1, LPPair, user } = args;
     const [tokenA, tokenB] = (await LPPair.token0()) === token0.address ? [token0, token1] : [token1, token0];
-    const tokenAPrice = hre.fromBig(await tokenA.priceFeed.latestAnswer(), 8);
-    const tokenBPrice = hre.fromBig(await tokenB.priceFeed.latestAnswer(), 8);
+    const tokenAPrice = fromBig(await tokenA.priceFeed.latestAnswer(), 8);
+    const tokenBPrice = fromBig(await tokenB.priceFeed.latestAnswer(), 8);
     const [rA, rB] = await LPPair.getReserves();
-    const totalSupply = hre.fromBig(await LPPair.totalSupply());
-    const price = (hre.fromBig(rA) * tokenAPrice + hre.fromBig(rB) * tokenBPrice) / totalSupply;
-    const bal = hre.fromBig(await LPPair.balanceOf(user.address));
+    const totalSupply = fromBig(await LPPair.totalSupply());
+    const price = (fromBig(rA) * tokenAPrice + fromBig(rB) * tokenBPrice) / totalSupply;
+    const bal = fromBig(await LPPair.balanceOf(user.address));
     return price * bal;
 };
 
@@ -100,7 +100,7 @@ type LPValueArgsUsers = {
 export const getValuesForUsers = async (logDesc: string, args: LPValueArgsUsers) => {
     const { token0, token1, LPPair, users } = args;
     const [reserveA, reserveB] = await LPPair.getReserves();
-    const bPrice = hre.fromBig(reserveB.mul(1e8).div(reserveA), 8);
+    const bPrice = fromBig(reserveB.mul(1e8).div(reserveA), 8);
 
     let i = 0;
     console.log(`-------- LP token values: ${logDesc} --------`);
@@ -132,7 +132,7 @@ export const swap = async (args: SwapArgs) => {
     return await router
         .connect(user)
         .swapExactTokensForTokens(
-            convert ? hre.toBig(+amount) : amount,
+            convert ? toBig(+amount) : amount,
             0,
             route,
             user.address,

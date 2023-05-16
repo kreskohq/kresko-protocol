@@ -9,7 +9,6 @@ import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
 import {Arrays} from "../../libs/Arrays.sol";
 import {MinterEvent} from "../../libs/Events.sol";
 import {Error} from "../../libs/Errors.sol";
-import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {LibDecimals} from "../libs/LibDecimals.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 
@@ -25,7 +24,6 @@ library LibMint {
     using LibDecimals for uint256;
     using WadRay for uint256;
 
-    using FixedPoint for FixedPoint.Unsigned;
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using LibCalculation for MinterState;
 
@@ -74,7 +72,7 @@ library LibMint {
     ) internal {
         KrAsset memory krAsset = self.kreskoAssets[_kreskoAsset];
         // Calculate the value of the fee according to the value of the krAssets being minted.
-        uint256 feeValue = krAsset.uintUSD(_kreskoAssetAmountMinted).wadMul(krAsset.openFee.rawValue);
+        uint256 feeValue = krAsset.uintUSD(_kreskoAssetAmountMinted).wadMul(krAsset.openFee);
 
         // Do nothing if the fee value is 0.
         if (feeValue == 0) {

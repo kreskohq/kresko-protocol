@@ -1,6 +1,7 @@
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
 import { TASK_DEPLOY_TOKEN } from "./names";
+import { toBig } from "@kreskolabs/lib";
 
 task(TASK_DEPLOY_TOKEN)
     .addParam("name", "Name of the token")
@@ -16,7 +17,7 @@ task(TASK_DEPLOY_TOKEN)
         const [Token] = await hre.deploy("MockERC20", {
             from: deployer,
             deploymentName: symbol,
-            args: [name, symbol, decimals, hre.toBig(amount, decimals)],
+            args: [name, symbol, decimals, toBig(amount, decimals)],
         });
 
         return Token;

@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Fragment } from "@ethersproject/abi";
-import { fromBig, toBig } from "@kreskolabs/lib";
 import { checkAddress } from "@scripts/check-address";
 import { getAddresses, getUsers } from "@utils/general";
 import { ethers } from "ethers";
@@ -59,8 +58,7 @@ extendEnvironment(function (hre) {
 
         return hre.ethers.getContractAt(type, deployment.address) as unknown as TC[typeof type];
     };
-    hre.fromBig = fromBig;
-    hre.toBig = toBig;
+
     hre.deploy = async (type, options) => {
         const { deployer } = await hre.getNamedAccounts();
         const deploymentId = options?.deploymentName ?? type;

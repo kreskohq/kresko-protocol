@@ -1,4 +1,4 @@
-import { fromBig, getLogger, toFixedPoint } from "@kreskolabs/lib";
+import { fromBig, getLogger, toBig } from "@kreskolabs/lib";
 import type { TaskArguments } from "hardhat/types";
 
 import { anchorTokenPrefix } from "@deploy-config/shared";
@@ -49,11 +49,11 @@ task(TASK_WHITELIST_COLLATERAL)
             if (!process.env.LIQUIDATION_INCENTIVE) {
                 throw new Error("LIQUIDATION_INCENTIVE is not set");
             }
-            const liquidationIncentive = toFixedPoint(process.env.LIQUIDATION_INCENTIVE);
+            const liquidationIncentive = toBig(process.env.LIQUIDATION_INCENTIVE!);
             const tx = await kresko.addCollateralAsset(
                 Collateral.address,
                 anchor?.address ?? hre.ethers.constants.AddressZero,
-                toFixedPoint(cFactor),
+                toBig(cFactor),
                 liquidationIncentive,
                 oracleAddr,
                 marketStatusOracleAddr,
@@ -69,8 +69,8 @@ task(TASK_WHITELIST_COLLATERAL)
                 );
 
                 logger.success(`Sucesfully added ${symbol} as collateral with a cFctor of:`, cFactor);
-                logger.log(`1 ${symbol} value: ${fromBig(value.rawValue, 8)}`);
-                logger.log(`1 ${symbol} oracle price: ${fromBig(oraclePrice.rawValue, 8)}`);
+                logger.log(`1 ${symbol} value: ${fromBig(value, 8)}`);
+                logger.log(`1 ${symbol} oracle price: ${fromBig(oraclePrice, 8)}`);
                 logger.log("txHash", tx.hash);
             }
         }

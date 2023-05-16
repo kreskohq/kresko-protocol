@@ -9,7 +9,7 @@ import {Meta} from "../../libs/Meta.sol";
 
 import {IBurnHelperFacet} from "../interfaces/IBurnHelperFacet.sol";
 import {DiamondModifiers, MinterModifiers} from "../../shared/Modifiers.sol";
-import {Action, FixedPoint} from "../MinterTypes.sol";
+import {Action} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";
 
@@ -19,7 +19,6 @@ import {irs} from "../InterestRateState.sol";
  * @notice Helper functions for reducing positions
  */
 contract BurnHelperFacet is DiamondModifiers, MinterModifiers, IBurnHelperFacet {
-    using FixedPoint for FixedPoint.Unsigned;
     using Arrays for address[];
 
     /**

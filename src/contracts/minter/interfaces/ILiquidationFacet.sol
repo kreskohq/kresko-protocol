@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.14;
 
-import {FixedPoint} from "../../libs/FixedPoint.sol";
-
 interface ILiquidationFacet {
     /**
      * @notice Attempts to liquidate an account by repaying the portion of the account's Kresko asset

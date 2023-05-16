@@ -8,13 +8,11 @@ import {
     withFixture,
 } from "@test-utils";
 import { expect } from "@test/chai";
-
-import { fixedPointDiv, fromBig, getInternalEvent, toBig, toFixedPoint } from "@kreskolabs/lib";
+import { fromBig, getInternalEvent, toBig } from "@kreskolabs/lib";
 import { Error } from "@utils/test/errors";
 import { addMockCollateralAsset, depositCollateral } from "@utils/test/helpers/collaterals";
 import { mintKrAsset } from "@utils/test/helpers/krassets";
 import { getExpectedMaxLiq, getCR, liquidate } from "@utils/test/helpers/liquidations";
-import hre from "hardhat";
 import { MinterEvent__factory } from "types/typechain";
 import { LiquidationOccurredEvent } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
@@ -57,26 +55,26 @@ describe("Minter", () => {
         await hre.Diamond.connect(hre.users.deployer).addCollateralAsset(
             this.krAsset!.contract.address,
             this.krAsset!.anchor!.address,
-            toFixedPoint(1),
-            toFixedPoint(1.05),
+            toBig(1),
+            toBig(1.05),
             assetInfo.oracle,
             assetInfo.oracle,
         );
 
         // -------------------------------- Set up userOne deposit/debt --------------------------------
 
-        await this.collateral!.setBalance(hre.users.liquidator, hre.toBig(100000000));
+        await this.collateral!.setBalance(hre.users.liquidator, toBig(100000000));
         await this.collateral!.mocks!.contract.setVariable("_allowances", {
             [hre.users.liquidator.address]: {
-                [hre.Diamond.address]: hre.toBig(100000000),
+                [hre.Diamond.address]: toBig(100000000),
             },
         });
         // Deposit collateral
         this.defaultDepositAmount = 20; // 20 * $10 = $200 in collateral asset value
-        await this.collateral!.setBalance(hre.users.userOne, hre.toBig(this.defaultDepositAmount));
+        await this.collateral!.setBalance(hre.users.userOne, toBig(this.defaultDepositAmount));
         await this.collateral!.mocks!.contract.setVariable("_allowances", {
             [hre.users.userOne.address]: {
-                [hre.Diamond.address]: hre.toBig(this.defaultDepositAmount),
+                [hre.Diamond.address]: toBig(this.defaultDepositAmount),
             },
         });
         await depositCollateral({
@@ -315,10 +313,7 @@ describe("Minter", () => {
                     hre.users.userOne.address,
                     liquidationThreshold,
                 );
-                expect(
-                    this.defaultDepositAmount * this.collateral!.deployArgs!.price >
-                        hre.fromBig(minCollateralUSD.rawValue, 8),
-                );
+                expect(this.defaultDepositAmount * this.collateral!.deployArgs!.price > fromBig(minCollateralUSD, 8));
 
                 // The account should be NOT liquidatable as collateral value ($200) >= min collateral value ($154)
                 const initialCanLiquidate = await hre.Diamond.isAccountLiquidatable(hre.users.userOne.address);
@@ -330,10 +325,10 @@ describe("Minter", () => {
 
                 const [, newCollateralOraclePrice] = await hre.Diamond.getCollateralValueAndOraclePrice(
                     this.collateral!.address,
-                    hre.toBig(1),
+                    toBig(1),
                     true,
                 );
-                expect(hre.fromBig(newCollateralOraclePrice.rawValue, 8)).to.equal(newCollateralPrice);
+                expect(fromBig(newCollateralOraclePrice, 8)).to.equal(newCollateralPrice);
 
                 // The account should be liquidatable as collateral value ($140) < min collateral value ($154)
                 const secondaryCanLiquidate = await hre.Diamond.isAccountLiquidatable(hre.users.userOne.address);
@@ -345,7 +340,7 @@ describe("Minter", () => {
             beforeEach(async function () {
                 // Grant userTwo tokens to use for liquidation
                 await this.krAsset!.mocks.contract.setVariable("_balances", {
-                    [hre.users.userTwo.address]: hre.toBig(10000),
+                    [hre.users.userTwo.address]: toBig(10000),
                 });
 
                 // Update collateral price from $10 to $7.5
@@ -381,7 +376,7 @@ describe("Minter", () => {
                     this.krAsset!.address,
                     this.collateral.address,
                 );
-                const maxRepayAmount = hre.toBig(Number(maxLiq.div(await this.krAsset!.getPrice())));
+                const maxRepayAmount = toBig(Number(maxLiq.div(await this.krAsset!.getPrice())));
                 const mintedKreskoAssetIndex = 0;
                 const depositedCollateralAssetIndex = 0;
                 await hre.Diamond.connect(hre.users.userTwo).liquidate(
@@ -451,7 +446,7 @@ describe("Minter", () => {
                 expect(await hre.Diamond.isAccountLiquidatable(userThree.address)).to.be.true;
 
                 await liquidate(userThree, this.krAsset, this.collateral);
-                const MLM = fromBig((await hre.Diamond.maxLiquidationMultiplier()).rawValue, 18);
+                const MLM = fromBig(await hre.Diamond.maxLiquidationMultiplier(), 18);
                 expect(await getCR(userThree.address)).to.be.closeTo(1.4 * MLM, CR_DELTA);
                 expect(await hre.Diamond.isAccountLiquidatable(userThree.address)).to.be.false;
             });
@@ -546,7 +541,7 @@ describe("Minter", () => {
                     this.collateral.address,
                 );
 
-                const repayAmount = fixedPointDiv(maxLiqValue, await this.krAsset!.getPrice());
+                const repayAmount = maxLiqValue.wadDiv(await this.krAsset!.getPrice());
                 const tx = await hre.Diamond.connect(hre.users.userTwo).liquidate(
                     hre.users.userOne.address,
                     this.krAsset!.address,
@@ -555,7 +550,7 @@ describe("Minter", () => {
                     mintedKreskoAssetIndex,
                     collateralIndex,
                 );
-
+                console.log("Gas used for liquidate", (await tx.wait()).gasUsed.toString());
                 const event = await getInternalEvent<LiquidationOccurredEvent["args"]>(
                     tx,
                     MinterEvent__factory.connect(hre.Diamond.address, hre.users.userTwo),
@@ -585,8 +580,8 @@ describe("Minter", () => {
                     this.collateral!.address,
                 );
                 expect(
-                    hre.fromBig(currUserOneCollateralAmount) * newCollateralPrice >
-                        hre.fromBig(minimumCollateralUSDValueRequired.rawValue, 8),
+                    fromBig(currUserOneCollateralAmount) * newCollateralPrice >
+                        fromBig(minimumCollateralUSDValueRequired, 8),
                 );
 
                 const canLiquidate = await hre.Diamond.isAccountLiquidatable(hre.users.userOne.address);
@@ -630,7 +625,7 @@ describe("Minter", () => {
                 );
 
                 // Ensure we are repaying more than debt
-                const repayAmount = krAssetDebtUserOne.add(hre.toBig(1));
+                const repayAmount = krAssetDebtUserOne.add(toBig(1));
 
                 // Liquidation should fail
                 await expect(
@@ -646,7 +641,7 @@ describe("Minter", () => {
             });
 
             it("should not allow liquidations with USD value greater than the USD value required for regaining healthy position", async function () {
-                const maxLiquidation = hre.fromBig(
+                const maxLiquidation = fromBig(
                     await hre.Diamond.getMaxLiquidation(
                         hre.users.userOne.address,
                         this.krAsset!.address,
@@ -654,7 +649,7 @@ describe("Minter", () => {
                     ),
                     8,
                 );
-                const repaymentAmount = hre.toBig((maxLiquidation + 1) / this.krAsset!.deployArgs!.price);
+                const repaymentAmount = toBig((maxLiquidation + 1) / this.krAsset!.deployArgs!.price);
                 // Ensure liquidation cannot happen
                 await expect(
                     hre.Diamond.connect(hre.users.userTwo).liquidate(
@@ -685,8 +680,8 @@ describe("Minter", () => {
 
                 const accountCollateralValue = await hre.Diamond.getAccountCollateralValue(hre.users.userOne.address);
 
-                expect(accountCollateralValue.rawValue.lt(minCollateralUSD.rawValue)).to.be.true;
-                expect(accountCollateralValue.rawValue.gt(liquidationThresholdUSD.rawValue)).to.be.true;
+                expect(accountCollateralValue.lt(minCollateralUSD)).to.be.true;
+                expect(accountCollateralValue.gt(liquidationThresholdUSD)).to.be.true;
                 expect(await hre.Diamond.isAccountLiquidatable(hre.users.userOne.address)).to.be.false;
             });
 
@@ -762,7 +757,7 @@ describe("Minter", () => {
             let userToLiquidateTwo: SignerWithAddress;
             const collateralPrice = 10;
             const krAssetPrice = 1;
-            const thousand = hre.toBig(1000);
+            const thousand = toBig(1000);
             const liquidatorAmounts = {
                 collateralDeposits: thousand,
             };
@@ -795,7 +790,7 @@ describe("Minter", () => {
                     this.collateral,
                     userToLiquidateAmounts.krAssetCollateralDeposits,
                 );
-                const mcr = fromBig((await hre.Diamond.minimumCollateralizationRatio()).rawValue, 8);
+                const mcr = fromBig(await hre.Diamond.minimumCollateralizationRatio(), 8);
                 expect(await getCR(userToLiquidate.address)).to.lessThanOrEqual(mcr);
                 expect(await getCR(userToLiquidateTwo.address)).to.lessThanOrEqual(mcr);
 
@@ -806,10 +801,10 @@ describe("Minter", () => {
                 // Rebase params
                 const denominator = 4;
                 const positive = true;
-                const rebasePrice = hre.fromBig(await this.krAsset!.getPrice(), 8) / denominator;
+                const rebasePrice = fromBig(await this.krAsset!.getPrice(), 8) / denominator;
 
                 this.krAsset!.setPrice(rebasePrice);
-                await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
+                await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidate.address)).to.be.false;
                 await expect(
@@ -831,10 +826,10 @@ describe("Minter", () => {
                 // Rebase params
                 const denominator = 4;
                 const positive = false;
-                const rebasePrice = hre.fromBig(await this.krAsset!.getPrice(), 8) * denominator;
+                const rebasePrice = fromBig(await this.krAsset!.getPrice(), 8) * denominator;
 
                 this.krAsset!.setPrice(rebasePrice);
-                await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
+                await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidate.address)).to.be.false;
 
@@ -856,10 +851,10 @@ describe("Minter", () => {
                 // Rebase params
                 const denominator = 4;
                 const positive = true;
-                const rebasePrice = hre.fromBig(await this.krAsset!.getPrice(), 8) / denominator;
+                const rebasePrice = fromBig(await this.krAsset!.getPrice(), 8) / denominator;
 
                 this.krAsset!.setPrice(rebasePrice);
-                await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
+                await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidate.address)).to.be.false;
 
@@ -871,10 +866,10 @@ describe("Minter", () => {
                 // Rebase params
                 const denominator = 4;
                 const positive = false;
-                const rebasePrice = hre.fromBig(await this.krAsset!.getPrice(), 8) * denominator;
+                const rebasePrice = fromBig(await this.krAsset!.getPrice(), 8) * denominator;
 
                 this.krAsset!.setPrice(rebasePrice);
-                await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
+                await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidate.address)).to.be.false;
 
@@ -884,7 +879,7 @@ describe("Minter", () => {
             });
             it("should liquidate correct amount of krAssets after a positive rebase", async function () {
                 // Change price to make user position unhealthy
-                const startingPrice = hre.fromBig(await this.krAsset!.getPrice(), 8);
+                const startingPrice = fromBig(await this.krAsset!.getPrice(), 8);
                 const newPrice = startingPrice * 2;
                 this.krAsset!.setPrice(newPrice);
 
@@ -904,8 +899,8 @@ describe("Minter", () => {
                     results.collateralSeized += values.collateralSeized;
                     results.debtRepaid += values.debtRepaid;
                 }
-                results.userOneValueAfter = hre.fromBig(
-                    (await hre.Diamond.getAccountCollateralValue(userToLiquidate.address)).rawValue,
+                results.userOneValueAfter = fromBig(
+                    await hre.Diamond.getAccountCollateralValue(userToLiquidate.address),
                     8,
                 );
 
@@ -918,7 +913,7 @@ describe("Minter", () => {
 
                 // Rebase
                 this.krAsset!.setPrice(rebasePrice);
-                await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
+                await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidateTwo.address)).to.be.true;
                 // Get values for a liquidation that happens after a rebase
@@ -928,8 +923,8 @@ describe("Minter", () => {
                     results.debtRepaidRebase += values.debtRepaid;
                 }
 
-                results.userTwoValueAfter = hre.fromBig(
-                    (await hre.Diamond.getAccountCollateralValue(userToLiquidateTwo.address)).rawValue,
+                results.userTwoValueAfter = fromBig(
+                    await hre.Diamond.getAccountCollateralValue(userToLiquidateTwo.address),
                     8,
                 );
                 results.userTwoHFAfter = await getCR(userToLiquidateTwo.address);
@@ -944,7 +939,7 @@ describe("Minter", () => {
             });
             it("should liquidate correct amount of assets after a negative rebase", async function () {
                 // Change price to make user position unhealthy
-                const startingPrice = hre.fromBig(await this.krAsset!.getPrice(), 8);
+                const startingPrice = fromBig(await this.krAsset!.getPrice(), 8);
                 const newPrice = startingPrice * 2;
                 this.krAsset!.setPrice(newPrice);
 
@@ -965,8 +960,8 @@ describe("Minter", () => {
                     results.collateralSeized += values.collateralSeized;
                     results.debtRepaid += values.debtRepaid;
                 }
-                results.userOneValueAfter = hre.fromBig(
-                    (await hre.Diamond.getAccountCollateralValue(userToLiquidate.address)).rawValue,
+                results.userOneValueAfter = fromBig(
+                    await hre.Diamond.getAccountCollateralValue(userToLiquidate.address),
                     8,
                 );
 
@@ -979,7 +974,7 @@ describe("Minter", () => {
 
                 // Rebase
                 this.krAsset!.setPrice(rebasePrice);
-                await this.krAsset!.contract.rebase(hre.toBig(denominator), positive, []);
+                await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidateTwo.address)).to.be.true;
 
@@ -989,8 +984,8 @@ describe("Minter", () => {
                     results.collateralSeizedRebase += values.collateralSeized;
                     results.debtRepaidRebase += values.debtRepaid;
                 }
-                results.userTwoValueAfter = hre.fromBig(
-                    (await hre.Diamond.getAccountCollateralValue(userToLiquidateTwo.address)).rawValue,
+                results.userTwoValueAfter = fromBig(
+                    await hre.Diamond.getAccountCollateralValue(userToLiquidateTwo.address),
                     8,
                 );
                 results.userTwoHFAfter = await getCR(userToLiquidateTwo.address);

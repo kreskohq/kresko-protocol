@@ -5,7 +5,7 @@ import {Arrays} from "../../libs/Arrays.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 import {InterestRateEvent} from "../../libs/Events.sol";
 import {LibStabilityRate} from "../libs/LibStabilityRate.sol";
-import {LibDecimals, FixedPoint} from "../libs/LibDecimals.sol";
+import {LibDecimals} from "../libs/LibDecimals.sol";
 import {StabilityRateConfig} from "../InterestRateState.sol";
 import {ms} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";
@@ -34,12 +34,9 @@ struct StabilityRateParams {
 contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
     using Arrays for address[];
     using SafeERC20Upgradeable for IERC20Upgradeable;
-    using WadRay for uint256;
     using LibStabilityRate for StabilityRateConfig;
-    using LibDecimals for FixedPoint.Unsigned;
+    using WadRay for uint256;
     using LibDecimals for uint256;
-    using FixedPoint for uint256;
-    using FixedPoint for FixedPoint.Unsigned;
 
     /* -------------------------------------------------------------------------- */
     /*                              ASSET STATE WRITES                            */

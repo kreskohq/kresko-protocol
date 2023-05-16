@@ -1,5 +1,5 @@
 import { getDeploymentUsers } from "@deploy-config/shared";
-import { getLogger } from "@kreskolabs/lib";
+import { getLogger, toBig } from "@kreskolabs/lib";
 import { defaultKrAssetArgs } from "@utils/test/mocks";
 import { Role } from "@utils/test/roles";
 import { task, types } from "hardhat/config";
@@ -57,7 +57,7 @@ task(TASK_DEPLOY_KISS)
             },
             mocks: {} as any,
             kresko: async () => await hre.Diamond.kreskoAsset(KISSContract.address),
-            getPrice: async () => hre.toBig(1, 8),
+            getPrice: async () => toBig(1, 8),
             priceFeed: {} as any,
         };
 

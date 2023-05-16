@@ -2,16 +2,16 @@
 pragma solidity >=0.8.14;
 import {ms} from "../MinterStorage.sol";
 import {CollateralAsset} from "../MinterTypes.sol";
-import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {AggregatorV2V3Interface} from "../../vendor/flux/FluxPriceFeed.sol";
 
+/* solhint-disable var-name-mixedcase */
 interface NewKresko {
     function collateralAsset(address) external view returns (CollateralAsset memory);
 }
 
 interface OldKresko {
     struct CollateralOld {
-        FixedPoint.Unsigned factor;
+        uint256 factor;
         AggregatorV2V3Interface oracle;
         AggregatorV2V3Interface marketStatusOracle;
         address anchor;
@@ -40,16 +40,15 @@ contract FacetUpgrade16052023 {
         collateralAssets[5] = KISS;
         for (uint i = 0; i < collateralAssets.length; i++) {
             address asset = collateralAssets[i];
-            ms().collateralAssets[asset].liquidationIncentive = FixedPoint.Unsigned(1.05 ether);
+            ms().collateralAssets[asset].liquidationIncentive = 1.05 ether;
         }
 
         require(ms().collateralAssets[DAI].exists, "!found");
-        require(ms().collateralAssets[WETH].liquidationIncentive.rawValue == 1.05 ether, "!config");
+        require(ms().collateralAssets[WETH].liquidationIncentive == 1.05 ether, "!config");
 
         uint256 liqIncentive = NewKresko(0x0921a7234a2762aaB3C43d3b1F51dB5D8094a04b)
             .collateralAsset(krBTC)
-            .liquidationIncentive
-            .rawValue;
+            .liquidationIncentive;
         require(liqIncentive == 1.05 ether, "!found-new");
     }
 }

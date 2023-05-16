@@ -7,16 +7,14 @@ import {RebaseMath, Rebase} from "../../shared/Rebase.sol";
 import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
 import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
 import {irs} from "../InterestRateState.sol";
-import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {Error} from "../../libs/Errors.sol";
 import {LibDecimals} from "../libs/LibDecimals.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 
 library LibAccount {
-    using FixedPoint for FixedPoint.Unsigned;
     using RebaseMath for uint256;
     using WadRay for uint256;
-    using LibDecimals for FixedPoint.Unsigned;
+    using LibDecimals for uint256;
 
     /**
      * @notice Gets an array of Kresko assets the account has minted.
@@ -64,9 +62,8 @@ library LibAccount {
      */
     function isAccountLiquidatable(MinterState storage self, address _account) internal view returns (bool) {
         return
-            self.getAccountCollateralValue(_account).isLessThan(
-                self.getAccountMinimumCollateralValueAtRatio(_account, self.liquidationThreshold)
-            );
+            self.getAccountCollateralValue(_account) <
+            (self.getAccountMinimumCollateralValueAtRatio(_account, self.liquidationThreshold));
     }
 
     /**
@@ -78,12 +75,11 @@ library LibAccount {
     function isAccountLiquidatable(
         MinterState storage self,
         address _account,
-        FixedPoint.Unsigned memory _valueLiquidated
+        uint256 _valueLiquidated
     ) internal view returns (bool) {
         return
-            self.getAccountCollateralValue(_account).sub(_valueLiquidated).isLessThan(
-                self.getAccountMinimumCollateralValueAtRatio(_account, self.liquidationThreshold)
-            );
+            self.getAccountCollateralValue(_account) - _valueLiquidated <
+            (self.getAccountMinimumCollateralValueAtRatio(_account, self.liquidationThreshold));
     }
 
     /**
@@ -95,16 +91,16 @@ library LibAccount {
     function getAccountCollateralValue(
         MinterState storage self,
         address _account
-    ) internal view returns (FixedPoint.Unsigned memory totalCollateralValue) {
+    ) internal view returns (uint256 totalCollateralValue) {
         address[] memory assets = self.depositedCollateralAssets[_account];
         for (uint256 i = 0; i < assets.length; i++) {
             address asset = assets[i];
-            (FixedPoint.Unsigned memory collateralValue, ) = self.getCollateralValueAndOraclePrice(
+            (uint256 collateralValue, ) = self.getCollateralValueAndOraclePrice(
                 asset,
                 self.getCollateralDeposits(_account, asset),
                 false // Take the collateral factor into consideration.
             );
-            totalCollateralValue = totalCollateralValue.add(collateralValue);
+            totalCollateralValue += collateralValue;
         }
 
         return totalCollateralValue;
@@ -121,20 +117,16 @@ library LibAccount {
         MinterState storage self,
         address _account,
         address _collateralAsset
-    )
-        internal
-        view
-        returns (FixedPoint.Unsigned memory totalCollateralValue, FixedPoint.Unsigned memory specificValue)
-    {
+    ) internal view returns (uint256 totalCollateralValue, uint256 specificValue) {
         address[] memory assets = self.depositedCollateralAssets[_account];
         for (uint256 i = 0; i < assets.length; i++) {
             address asset = assets[i];
-            (FixedPoint.Unsigned memory collateralValue, ) = self.getCollateralValueAndOraclePrice(
+            (uint256 collateralValue, ) = self.getCollateralValueAndOraclePrice(
                 asset,
                 self.getCollateralDeposits(_account, asset),
                 false // Take the collateral factor into consideration.
             );
-            totalCollateralValue = totalCollateralValue.add(collateralValue);
+            totalCollateralValue += collateralValue;
             if (asset == _collateralAsset) {
                 specificValue = collateralValue;
             }
@@ -152,9 +144,9 @@ library LibAccount {
     function getAccountMinimumCollateralValueAtRatio(
         MinterState storage self,
         address _account,
-        FixedPoint.Unsigned memory _ratio
-    ) internal view returns (FixedPoint.Unsigned memory) {
-        return self.getAccountKrAssetValue(_account).mul(_ratio);
+        uint256 _ratio
+    ) internal view returns (uint256) {
+        return self.getAccountKrAssetValue(_account).wadMul(_ratio);
     }
 
     /**
@@ -162,14 +154,11 @@ library LibAccount {
      * @param _account The account to calculate the KreskoAsset value for.
      * @return value The KreskoAsset value of the account.
      */
-    function getAccountKrAssetValue(
-        MinterState storage self,
-        address _account
-    ) internal view returns (FixedPoint.Unsigned memory value) {
+    function getAccountKrAssetValue(MinterState storage self, address _account) internal view returns (uint256 value) {
         address[] memory assets = self.mintedKreskoAssets[_account];
         for (uint256 i = 0; i < assets.length; i++) {
             address asset = assets[i];
-            value = value.add(self.getKrAssetValue(asset, self.getKreskoAssetDebtScaled(_account, asset), false));
+            value += self.getKrAssetValue(asset, self.getKreskoAssetDebtScaled(_account, asset), false);
         }
         return value;
     }
@@ -221,7 +210,7 @@ library LibAccount {
         assetAmount =
             self.getKreskoAssetDebtScaled(_account, _asset) -
             self.getKreskoAssetDebtPrincipal(_account, _asset);
-        kissAmount = self.getKrAssetValue(_asset, assetAmount, true).fromFixedPointPriceToWad();
+        kissAmount = self.getKrAssetValue(_asset, assetAmount, true).oraclePriceToWad();
     }
 
     /**

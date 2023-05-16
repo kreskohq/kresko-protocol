@@ -1,5 +1,5 @@
 import { testnetConfigs } from "@deploy-config/opgoerli";
-import { fromBig, getLogger } from "@kreskolabs/lib";
+import { fromBig, getLogger, toBig } from "@kreskolabs/lib";
 import type { DeployFunction } from "hardhat-deploy/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -33,7 +33,7 @@ const deploy: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
     const [amount1] = config.rewardTokenAmounts;
     if (!(await Reward1.balanceOf(Staking.address)).gt(0)) {
-        await Reward1.mint(Staking.address, hre.toBig(amount1));
+        await Reward1.mint(Staking.address, toBig(amount1));
     }
 
     const Reward1Bal = await Reward1.balanceOf(Staking.address);

@@ -8,7 +8,7 @@ import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
 
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
-import {LibDecimals, FixedPoint} from "../libs/LibDecimals.sol";
+import {LibDecimals} from "../libs/LibDecimals.sol";
 import {LibCalculation} from "../libs/LibCalculation.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 import {MinterEvent} from "../../libs/Events.sol";
@@ -28,12 +28,8 @@ import {irs} from "../InterestRateState.sol";
 contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
     using Arrays for address[];
     using LibDecimals for uint8;
-    using LibDecimals for FixedPoint.Unsigned;
     using LibDecimals for uint256;
     using WadRay for uint256;
-    using FixedPoint for FixedPoint.Unsigned;
-    using FixedPoint for uint256;
-    using FixedPoint for int256;
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
     /// @inheritdoc ILiquidationFacet
@@ -88,7 +84,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
             ExecutionParams(
                 _account,
                 _repayAmount,
-                collateral.decimals.fromCollateralFixedPointAmount(
+                collateral.decimals.fromWad(
                     LibCalculation.calculateAmountToSeize(
                         collateral.liquidationIncentive,
                         collateral.uintPrice(),

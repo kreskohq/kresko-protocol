@@ -3,7 +3,7 @@ pragma solidity >=0.8.14;
 
 import {IERC20Upgradeable} from "../shared/IERC20Upgradeable.sol";
 import {WETH} from "./WETH.sol";
-import {IAccountStateFacet, FixedPoint} from "../minter/interfaces/IAccountStateFacet.sol";
+import {IAccountStateFacet} from "../minter/interfaces/IAccountStateFacet.sol";
 
 /* solhint-disable no-empty-blocks */
 
@@ -32,7 +32,7 @@ contract Funder {
     }
 
     function isEligible(address account) public view returns (bool) {
-        return account.balance < 0.001 ether && kresko.getAccountKrAssetValue(account).rawValue > 0 && !funded[account];
+        return account.balance < 0.001 ether && kresko.getAccountKrAssetValue(account) > 0 && !funded[account];
     }
 
     function distribute(address[] calldata accounts, uint256 ethAmount) external {

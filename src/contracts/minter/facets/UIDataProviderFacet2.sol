@@ -33,9 +33,9 @@ contract UIDataProviderFacet2 {
         collateralAssets = LibUI.collateralAssetInfos(_collateralAssets);
         krAssets = LibUI.krAssetInfos(_krAssets);
         protocolParams = LibUI.ProtocolParams({
-            minCollateralRatio: ms().minimumCollateralizationRatio.rawValue,
-            minDebtValue: ms().minimumDebtValue.rawValue,
-            liquidationThreshold: ms().liquidationThreshold.rawValue
+            minCollateralRatio: ms().minimumCollateralizationRatio,
+            minDebtValue: ms().minimumDebtValue,
+            liquidationThreshold: ms().liquidationThreshold
         });
     }
 

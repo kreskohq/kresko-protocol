@@ -10,7 +10,7 @@ import {Meta} from "../../libs/Meta.sol";
 
 import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
 import {DiamondModifiers, MinterModifiers} from "../../shared/Modifiers.sol";
-import {Action, FixedPoint, KrAsset} from "../MinterTypes.sol";
+import {Action, KrAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";
 import {ICollateralReceiver} from "../interfaces/ICollateralReceiver.sol";

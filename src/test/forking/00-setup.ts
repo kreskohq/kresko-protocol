@@ -1,8 +1,8 @@
 import { minterFacets } from "@deploy-config/shared";
+import { toBig } from "@kreskolabs/lib";
 import { updateFacets } from "@scripts/update-facets";
 import { expect } from "@test/chai";
 import Role from "@utils/test/roles";
-import hre, { toBig } from "hardhat";
 
 (process.env.FORKING ? describe : describe.skip)("Forking", () => {
     describe("#setup", () => {
@@ -69,7 +69,6 @@ import hre, { toBig } from "hardhat";
             });
             const stateFacet = await Kresko.facetFunctionSelectors("0x1Fc8f2185ae35b27843773779C47E784EdF2F739");
             const stateFacetNew = await Kresko.facetFunctionSelectors("0x253e75619D0d4D0AD0Fe45c895645acdbC94cE4C");
-            console.log("Selectors state facet", stateFacet);
             expect(stateFacetNew.length).to.be.greaterThan(0);
             expect(stateFacet.length).to.equal(0);
             expect(facetsAfter).to.not.deep.equal(facetsBefore);
@@ -82,7 +81,7 @@ import hre, { toBig } from "hardhat";
             expect(priceRateAfter).to.equal(priceRateBefore);
             expect(stabilityRateAfter).to.equal(stabilityRateBefore);
 
-            expect((await Kresko.collateralAsset(krETH.address)).liquidationIncentive.rawValue).to.equal(toBig(1.05));
+            expect((await Kresko.collateralAsset(krETH.address)).liquidationIncentive).to.equal(toBig(1.05));
 
             await expect(Kresko.depositCollateral(deployer, krETH.address, toBig(1))).to.not.be.reverted;
             await expect(Kresko.mintKreskoAsset(deployer, krETH.address, toBig(0.1))).to.not.be.reverted;

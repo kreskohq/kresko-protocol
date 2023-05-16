@@ -6,7 +6,7 @@ import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
 
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
-import {LibDecimals, FixedPoint} from "../libs/LibDecimals.sol";
+import {LibDecimals} from "../libs/LibDecimals.sol";
 import {LibCalculation} from "../libs/LibCalculation.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 import {MinterEvent, InterestRateEvent} from "../../libs/Events.sol";
@@ -29,8 +29,6 @@ contract InterestLiquidationFacet is DiamondModifiers, IInterestLiquidationFacet
     using LibDecimals for uint8;
     using LibDecimals for uint256;
     using WadRay for uint256;
-    using FixedPoint for FixedPoint.Unsigned;
-    using FixedPoint for uint256;
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
     /**
@@ -64,7 +62,7 @@ contract InterestLiquidationFacet is DiamondModifiers, IInterestLiquidationFacet
             if (
                 !ms().isAccountLiquidatable(
                     _account,
-                    kissAmountToRepay.fromWadPriceToFixedPoint().mul(
+                    kissAmountToRepay.fromWadPriceToUint().wadMul(
                         ms().collateralAssets[_collateralAssetToSeize].liquidationIncentive
                     )
                 )
@@ -156,7 +154,7 @@ contract InterestLiquidationFacet is DiamondModifiers, IInterestLiquidationFacet
     ) internal returns (uint256 seizeAmount) {
         MinterState storage s = ms();
 
-        seizeAmount = s.collateralAssets[_collateralAssetToSeize].decimals.fromCollateralFixedPointAmount(
+        seizeAmount = s.collateralAssets[_collateralAssetToSeize].decimals.fromWad(
             LibCalculation.calculateAmountToSeize(
                 s.collateralAssets[_collateralAssetToSeize].liquidationIncentive,
                 s.collateralAssets[_collateralAssetToSeize].uintPrice(),
