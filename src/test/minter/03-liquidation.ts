@@ -904,7 +904,7 @@ describe("Minter", () => {
                     8,
                 );
 
-                results.userOneHFAfter = await getCR(userToLiquidate.address);
+                results.userOneHFAfter = (await getCR(userToLiquidate.address)) as number;
 
                 // Rebase params
                 const denominator = 4;
@@ -927,7 +927,7 @@ describe("Minter", () => {
                     await hre.Diamond.getAccountCollateralValue(userToLiquidateTwo.address),
                     8,
                 );
-                results.userTwoHFAfter = await getCR(userToLiquidateTwo.address);
+                results.userTwoHFAfter = (await getCR(userToLiquidateTwo.address)) as number;
 
                 expect(results.userTwoHFAfter).to.closeTo(results.userOneHFAfter, INTEREST_RATE_DELTA);
                 expect(results.collateralSeized * denominator).to.closeTo(
@@ -965,7 +965,7 @@ describe("Minter", () => {
                     8,
                 );
 
-                results.userOneHFAfter = await getCR(userToLiquidate.address);
+                results.userOneHFAfter = (await getCR(userToLiquidate.address)) as number;
 
                 // Rebase params
                 const denominator = 4;
@@ -988,7 +988,7 @@ describe("Minter", () => {
                     await hre.Diamond.getAccountCollateralValue(userToLiquidateTwo.address),
                     8,
                 );
-                results.userTwoHFAfter = await getCR(userToLiquidateTwo.address);
+                results.userTwoHFAfter = (await getCR(userToLiquidateTwo.address)) as number;
                 expect(results.userTwoHFAfter).to.closeTo(results.userOneHFAfter, INTEREST_RATE_DELTA);
                 expect(results.collateralSeized / denominator).to.closeTo(
                     results.collateralSeizedRebase,
