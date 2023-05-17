@@ -1129,13 +1129,11 @@ describe("Minter - Deposit Withdraw", () => {
                     const rebasedDepositAmount = this.krAssetCollateralAmount.mul(denominator);
 
                     // Deposit collateral before rebase
-                    const tx1 = await arbitraryUserDiamond.depositCollateral(
+                    await arbitraryUserDiamond.depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         this.krAssetCollateralAmount,
                     );
-
-                    console.log("Gas used for depositCollateral", (await tx1.wait()).gasUsed.toString());
 
                     const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
                         arbitraryUser.address,
@@ -1153,14 +1151,12 @@ describe("Minter - Deposit Withdraw", () => {
                     expect(depositsAfter).to.bignumber.equal(rebasedDepositAmount);
 
                     // Withdraw rebased amount
-                    const withdraw = await arbitraryUserDiamond.withdrawCollateral(
+                    await arbitraryUserDiamond.withdrawCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         rebasedDepositAmount,
                         cIndex,
                     );
-
-                    console.log("Gas used for withdrawCollateral", (await withdraw.wait()).gasUsed.toString());
 
                     const finalDeposits = await hre.Diamond.collateralDeposits(
                         arbitraryUser.address,
