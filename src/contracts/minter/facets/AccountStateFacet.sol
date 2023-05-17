@@ -2,8 +2,7 @@
 pragma solidity >=0.8.20;
 
 import {IAccountStateFacet} from "../interfaces/IAccountStateFacet.sol";
-import {Action, Fee, KrAsset, CollateralAsset} from "../MinterTypes.sol";
-import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
+import {Fee, KrAsset, CollateralAsset} from "../MinterTypes.sol";
 import {Error} from "../../libs/Errors.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 import {LibDecimals} from "../libs/LibDecimals.sol";

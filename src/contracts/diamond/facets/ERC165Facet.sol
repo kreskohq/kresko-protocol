@@ -2,7 +2,7 @@
 pragma solidity >=0.8.20;
 
 import {Error} from "../../libs/Errors.sol";
-import {DiamondModifiers, Role} from "../../shared/Modifiers.sol";
+import {DiamondModifiers, Role} from "../DiamondModifiers.sol";
 import {IERC165Facet} from "../interfaces/IERC165Facet.sol";
 import {ds, DiamondState} from "../DiamondStorage.sol";
 

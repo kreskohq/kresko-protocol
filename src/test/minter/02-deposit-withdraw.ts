@@ -13,11 +13,11 @@ import { executeContractCallWithSigners } from "@utils/gnosis/utils/execution";
 import { Error } from "@utils/test/errors";
 import { addMockCollateralAsset, depositCollateral, withdrawCollateral } from "@utils/test/helpers/collaterals";
 import { expect } from "chai";
-import type {
+import { BigNumber } from "ethers";
+import {
     CollateralDepositedEventObject,
     CollateralWithdrawnEventObject,
 } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
-import { BigNumber } from "ethers";
 
 describe("Minter - Deposit Withdraw", () => {
     withFixture(["minter-test"]);

@@ -9,7 +9,8 @@ import {Error} from "../../libs/Errors.sol";
 import {Role} from "../../libs/Authorization.sol";
 import {MinterEvent} from "../../libs/Events.sol";
 
-import {DiamondModifiers, MinterModifiers} from "../../shared/Modifiers.sol";
+import {MinterModifiers} from "../MinterModifiers.sol";
+import {DiamondModifiers} from "../../diamond/DiamondModifiers.sol";
 import {Action, KrAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";

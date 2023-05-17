@@ -3,7 +3,7 @@ pragma solidity >=0.8.20;
 
 import {MinterState} from "../MinterState.sol";
 import {KrAsset, CollateralAsset} from "../MinterTypes.sol";
-import {RebaseMath, Rebase} from "../../shared/Rebase.sol";
+import {RebaseMath} from "../../kreskoasset/Rebase.sol";
 import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
 import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
 import {irs} from "../InterestRateState.sol";

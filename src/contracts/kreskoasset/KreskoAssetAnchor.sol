@@ -9,7 +9,8 @@ import {Role} from "../libs/Authorization.sol";
 
 import {IKreskoAssetIssuer} from "./IKreskoAssetIssuer.sol";
 import {IKreskoAssetAnchor} from "./IKreskoAssetAnchor.sol";
-import {ERC4626Upgradeable, IKreskoAsset} from "../shared/ERC4626Upgradeable.sol";
+import {ERC4626Upgradeable, IKreskoAsset} from "./ERC4626Upgradeable.sol";
+import {IERC165} from "../shared/IERC165.sol";
 
 /* solhint-disable no-empty-blocks */
 
@@ -21,23 +22,17 @@ import {ERC4626Upgradeable, IKreskoAsset} from "../shared/ERC4626Upgradeable.sol
  * @notice Main purpose of this token is to represent a static amount of the possibly rebased underlying KreskoAsset.
  * Main use-cases are normalized book-keeping, bridging and integration with external contracts.
  *
+ * @notice Shares means amount of this token.
+ * @notice Assets mean amount of KreskoAssets.
  * @author Kresko
  */
-contract KreskoAssetAnchor is ERC4626Upgradeable, AccessControlEnumerableUpgradeable {
+contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessControlEnumerableUpgradeable {
     /* -------------------------------------------------------------------------- */
     /*                                 Immutables                                 */
     /* -------------------------------------------------------------------------- */
     constructor(IKreskoAsset _asset) payable ERC4626Upgradeable(_asset) {}
 
-    /**
-     * @notice Initializes the Kresko Asset Anchor.
-     *
-     * @param _asset The underlying (Kresko) Asset
-     * @param _name Name of the anchor token
-     * @param _symbol Symbol of the anchor token
-     * @param _admin The adminstrator of this contract.
-     * @dev Decimals are not supplied as they are read from the underlying Kresko Asset
-     */
+    /// @inheritdoc IKreskoAssetAnchor
     function initialize(
         IKreskoAsset _asset,
         string memory _name,
@@ -61,11 +56,10 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, AccessControlEnumerableUpgrade
         _setupRole(Role.OPERATOR, asset.kresko());
     }
 
-    /**
-     * @notice ERC-165
-     * - KreskoAssetAnchor, ERC20 and ERC-165 itself
-     */
-    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+    /// @inheritdoc IERC165
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(AccessControlEnumerableUpgradeable, IERC165) returns (bool) {
         return
             interfaceId != 0xffffffff &&
             (interfaceId == type(IKreskoAssetAnchor).interfaceId ||
@@ -75,12 +69,7 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, AccessControlEnumerableUpgrade
                 super.supportsInterface(interfaceId));
     }
 
-    /**
-     * @notice Updates ERC20 metadata for the token in case eg. a ticker change
-     * @param _name new name for the asset
-     * @param _symbol new symbol for the asset
-     * @param _version number that must be greater than latest emitted `Initialized` version
-     */
+    /// @inheritdoc IKreskoAssetAnchor
     function reinitializeERC20(
         string memory _name,
         string memory _symbol,
@@ -89,37 +78,38 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, AccessControlEnumerableUpgrade
         __ERC20Upgradeable_init(_name, _symbol, decimals);
     }
 
-    /* -------------------------------------------------------------------------- */
-    /*                                 Overwrites                                 */
-    /* -------------------------------------------------------------------------- */
-
-    /**
-     * @notice Track the underlying amount
-     * @return Total supply for the underlying
-     */
-    function totalAssets() public view virtual override returns (uint256) {
+    /// @inheritdoc IKreskoAssetAnchor
+    function totalAssets() public view virtual override(IKreskoAssetAnchor, ERC4626Upgradeable) returns (uint256) {
         return asset.totalSupply();
     }
 
-    /**
-     * @notice Mints @param _assets of krAssets for @param _to,
-     * @notice Mints relative @return _shares of wkrAssets
-     */
+    /// @inheritdoc IKreskoAssetIssuer
+    function convertToAssets(
+        uint256 shares
+    ) public view virtual override(ERC4626Upgradeable, IKreskoAssetIssuer) returns (uint256 assets) {
+        return super.convertToAssets(shares);
+    }
+
+    /// @inheritdoc IKreskoAssetIssuer
+    function convertToShares(
+        uint256 assets
+    ) public view virtual override(ERC4626Upgradeable, IKreskoAssetIssuer) returns (uint256 shares) {
+        return super.convertToShares(assets);
+    }
+
+    /// @inheritdoc IKreskoAssetIssuer
     function issue(
         uint256 _assets,
         address _to
-    ) public virtual override onlyRole(Role.OPERATOR) returns (uint256 shares) {
+    ) public virtual override(ERC4626Upgradeable, IKreskoAssetIssuer) onlyRole(Role.OPERATOR) returns (uint256 shares) {
         shares = super.issue(_assets, _to);
     }
 
-    /**
-     * @notice Burns @param _assets of krAssets from @param _from,
-     * @notice Burns relative @return _shares of wkrAssets
-     */
+    /// @inheritdoc IKreskoAssetIssuer
     function destroy(
         uint256 _assets,
         address _from
-    ) public virtual override onlyRole(Role.OPERATOR) returns (uint256 shares) {
+    ) public virtual override(ERC4626Upgradeable, IKreskoAssetIssuer) onlyRole(Role.OPERATOR) returns (uint256 shares) {
         shares = super.destroy(_assets, _from);
     }
 

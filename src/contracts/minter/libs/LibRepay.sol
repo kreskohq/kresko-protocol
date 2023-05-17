@@ -7,8 +7,8 @@ import {Arrays} from "../../libs/Arrays.sol";
 import {MinterEvent, InterestRateEvent} from "../../libs/Events.sol";
 import {Error} from "../../libs/Errors.sol";
 import {WadRay} from "../../libs/WadRay.sol";
-import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
-import {SafeERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
+import {IERC20Permit} from "../../shared/IERC20Permit.sol";
+import {SafeERC20} from "../../shared/SafeERC20.sol";
 import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
 
 import {LibDecimals} from "../libs/LibDecimals.sol";
@@ -24,7 +24,7 @@ library LibRepay {
     using LibDecimals for uint256;
     using WadRay for uint256;
 
-    using SafeERC20Upgradeable for IERC20Upgradeable;
+    using SafeERC20 for IERC20Permit;
     using LibCalculation for MinterState;
 
     /// @notice Repay user kresko asset debt with stability rate updates.
@@ -82,7 +82,7 @@ library LibRepay {
         }
 
         // Transfer the accrued interest
-        IERC20Upgradeable(irs().kiss).safeTransferFrom(msg.sender, self.feeRecipient, kissRepayAmount);
+        IERC20Permit(irs().kiss).safeTransferFrom(msg.sender, self.feeRecipient, kissRepayAmount);
 
         // Update scaled values for the user
         irs().srUserInfo[_account][_kreskoAsset].debtScaled = uint128(
@@ -149,7 +149,7 @@ library LibRepay {
                 .toNonRebasingAmount(transferAmount);
 
             // Transfer the fee to the feeRecipient.
-            IERC20Upgradeable(collateralAssetAddress).safeTransfer(self.feeRecipient, transferAmount);
+            IERC20Permit(collateralAssetAddress).safeTransfer(self.feeRecipient, transferAmount);
             emit MinterEvent.CloseFeePaid(_account, collateralAssetAddress, transferAmount, feeValuePaid);
 
             feeValue = feeValue - feeValuePaid;

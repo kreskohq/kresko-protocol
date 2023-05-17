@@ -1,7 +1,7 @@
 import "@nomiclabs/hardhat-ethers";
 import "hardhat-deploy";
 import type { HardhatRuntimeEnvironment, HardhatUsers } from "hardhat/types";
-
+import { config } from "dotenv";
 export const getUsers = async (hre?: HardhatRuntimeEnvironment): Promise<HardhatUsers<SignerWithAddress>> => {
     if (!hre) hre = require("hardhat");
 
@@ -35,6 +35,7 @@ export const randomContractAddress = (hre: HardhatRuntimeEnvironment) => {
 };
 
 export const envCheck = () => {
+    config();
     if (typeof process.env.LIQUIDATION_INCENTIVE === "undefined") {
         throw new Error("LIQUIDATION_INCENTIVE env var not set");
     }

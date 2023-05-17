@@ -97,6 +97,7 @@ export const liquidate = async (user: SignerWithAddress, krAsset: any, collatera
             price: 1,
             factor: 1,
         });
+
         await mockAsset.mocks!.contract.setVariable("_balances", {
             [hre.users.liquidator.address]: toBig(100_000),
         });
@@ -138,7 +139,7 @@ export const liquidate = async (user: SignerWithAddress, krAsset: any, collatera
     return {
         collateralSeized: fromBig(depositsBefore.sub(depositsAfter), await collateral.contract.decimals()),
         debtRepaid: fromBig(debtBefore.sub(debtAfter), 18),
-        tx,
+        // tx,
     };
 };
 export const getCR = async (address: string, big = false) => {

@@ -1,8 +1,8 @@
-// SPDX-License-Identifier: Unlicense
+// SPDX-License-Identifier: MIT
 pragma solidity >=0.8.20;
 import {IDepositWithdrawFacet} from "../minter/interfaces/IDepositWithdrawFacet.sol";
 import {ICollateralReceiver} from "../minter/interfaces/ICollateralReceiver.sol";
-import {IERC20Upgradeable} from "../shared/IERC20Upgradeable.sol";
+import {IERC20Permit} from "../shared/IERC20Permit.sol";
 
 contract SmockCollateralReceiver is ICollateralReceiver {
     IDepositWithdrawFacet public kresko;
@@ -101,8 +101,8 @@ contract SmockCollateralReceiver is ICollateralReceiver {
         _collateralAsset;
         userData = abi.decode(_userData, (Params));
         withdrawalAmountReceived = _withdrawalAmount;
-        IERC20Upgradeable(userData.addr).transferFrom(_account, address(this), userData.val);
-        IERC20Upgradeable(userData.addr).approve(address(kresko), userData.val);
+        IERC20Permit(userData.addr).transferFrom(_account, address(this), userData.val);
+        IERC20Permit(userData.addr).approve(address(kresko), userData.val);
         // redeposit all
         kresko.depositCollateral(_account, userData.addr, userData.val);
     }
@@ -128,10 +128,7 @@ contract SmockCollateralReceiver is ICollateralReceiver {
     ) internal {
         _userData;
         account = _account;
-        require(
-            IERC20Upgradeable(_collateralAsset).balanceOf(address(this)) == _withdrawalAmount,
-            "wrong amount received"
-        );
+        require(IERC20Permit(_collateralAsset).balanceOf(address(this)) == _withdrawalAmount, "wrong amount received");
     }
 
     function logicRedeposit(
@@ -142,7 +139,7 @@ contract SmockCollateralReceiver is ICollateralReceiver {
     ) internal {
         _userData;
         withdrawalAmountReceived = _withdrawalAmount;
-        IERC20Upgradeable(_collateralAsset).approve(address(kresko), _withdrawalAmount);
+        IERC20Permit(_collateralAsset).approve(address(kresko), _withdrawalAmount);
         // redeposit all
         kresko.depositCollateral(_account, _collateralAsset, _withdrawalAmount);
     }
@@ -155,7 +152,7 @@ contract SmockCollateralReceiver is ICollateralReceiver {
     ) internal {
         _userData;
         withdrawalAmountReceived = _withdrawalAmount;
-        IERC20Upgradeable(_collateralAsset).approve(address(kresko), 1);
+        IERC20Permit(_collateralAsset).approve(address(kresko), 1);
         // bare minimum redeposit
         kresko.depositCollateral(_account, _collateralAsset, 1);
     }

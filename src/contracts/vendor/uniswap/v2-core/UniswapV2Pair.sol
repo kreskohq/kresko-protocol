@@ -1,10 +1,11 @@
+// SPDX-License-Identifier: agpl-3.0
 pragma solidity =0.5.16;
-
+/* solhint-disable no-global-import */
 import "./interfaces/IUniswapV2Pair.sol";
 import "./UniswapV2ERC20.sol";
 import "./libraries/Math.sol";
 import "./libraries/UQ112x112.sol";
-import "./interfaces/IERC20.sol";
+import "./interfaces/IERC20Minimal.sol";
 import "./interfaces/IUniswapV2Factory.sol";
 import "./interfaces/IUniswapV2Callee.sol";
 
@@ -126,8 +127,8 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     // this low-level function should be called from a contract which performs important safety checks
     function mint(address to) external lock returns (uint256 liquidity) {
         (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // gas savings
-        uint256 balance0 = IERC20(token0).balanceOf(address(this));
-        uint256 balance1 = IERC20(token1).balanceOf(address(this));
+        uint256 balance0 = IERC20Minimal(token0).balanceOf(address(this));
+        uint256 balance1 = IERC20Minimal(token1).balanceOf(address(this));
         uint256 amount0 = balance0.sub(_reserve0);
         uint256 amount1 = balance1.sub(_reserve1);
 
@@ -152,8 +153,8 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // gas savings
         address _token0 = token0; // gas savings
         address _token1 = token1; // gas savings
-        uint256 balance0 = IERC20(_token0).balanceOf(address(this));
-        uint256 balance1 = IERC20(_token1).balanceOf(address(this));
+        uint256 balance0 = IERC20Minimal(_token0).balanceOf(address(this));
+        uint256 balance1 = IERC20Minimal(_token1).balanceOf(address(this));
         uint256 liquidity = balanceOf[address(this)];
 
         bool feeOn = _mintFee(_reserve0, _reserve1);
@@ -164,8 +165,8 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         _burn(address(this), liquidity);
         _safeTransfer(_token0, to, amount0);
         _safeTransfer(_token1, to, amount1);
-        balance0 = IERC20(_token0).balanceOf(address(this));
-        balance1 = IERC20(_token1).balanceOf(address(this));
+        balance0 = IERC20Minimal(_token0).balanceOf(address(this));
+        balance1 = IERC20Minimal(_token1).balanceOf(address(this));
 
         _update(balance0, balance1, _reserve0, _reserve1);
         if (feeOn) kLast = uint256(reserve0).mul(reserve1); // reserve0 and reserve1 are up-to-date
@@ -193,8 +194,8 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
             if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens
             if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens
             if (data.length > 0) IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount0Out, amount1Out, data);
-            balance0 = IERC20(_token0).balanceOf(address(this));
-            balance1 = IERC20(_token1).balanceOf(address(this));
+            balance0 = IERC20Minimal(_token0).balanceOf(address(this));
+            balance1 = IERC20Minimal(_token1).balanceOf(address(this));
         }
         uint256 amount0In = balance0 > _reserve0 - amount0Out ? balance0 - (_reserve0 - amount0Out) : 0;
         uint256 amount1In = balance1 > _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
@@ -216,12 +217,12 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     function skim(address to) external lock {
         address _token0 = token0; // gas savings
         address _token1 = token1; // gas savings
-        _safeTransfer(_token0, to, IERC20(_token0).balanceOf(address(this)).sub(reserve0));
-        _safeTransfer(_token1, to, IERC20(_token1).balanceOf(address(this)).sub(reserve1));
+        _safeTransfer(_token0, to, IERC20Minimal(_token0).balanceOf(address(this)).sub(reserve0));
+        _safeTransfer(_token1, to, IERC20Minimal(_token1).balanceOf(address(this)).sub(reserve1));
     }
 
     // force reserves to match balances
     function sync() external lock {
-        _update(IERC20(token0).balanceOf(address(this)), IERC20(token1).balanceOf(address(this)), reserve0, reserve1);
+        _update(IERC20Minimal(token0).balanceOf(address(this)), IERC20Minimal(token1).balanceOf(address(this)), reserve0, reserve1);
     }
 }

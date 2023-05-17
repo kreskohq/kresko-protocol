@@ -223,7 +223,8 @@ export const updateKrAsset = async (address: string, args: TestKreskoAssetUpdate
 export const mintKrAsset = async (args: InputArgsSimple) => {
     const convert = typeof args.amount === "string" || typeof args.amount === "number";
     const { user, asset, amount } = args;
-    return hre.Diamond.connect(user).mintKreskoAsset(user.address, asset.address, convert ? toBig(+amount) : amount);
+    await hre.Diamond.connect(user).mintKreskoAsset(user.address, asset.address, convert ? toBig(+amount) : amount);
+    return;
 };
 
 export const burnKrAsset = async (args: InputArgsSimple) => {

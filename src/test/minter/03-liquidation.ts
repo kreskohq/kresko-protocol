@@ -13,7 +13,6 @@ import { Error } from "@utils/test/errors";
 import { addMockCollateralAsset, depositCollateral } from "@utils/test/helpers/collaterals";
 import { mintKrAsset } from "@utils/test/helpers/krassets";
 import { getExpectedMaxLiq, getCR, liquidate } from "@utils/test/helpers/liquidations";
-import { MinterEvent__factory } from "types/typechain";
 import { LiquidationOccurredEvent } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
 const INTEREST_RATE_DELTA = 0.01;
@@ -553,7 +552,7 @@ describe("Minter", () => {
                 console.log("Gas used for liquidate", (await tx.wait()).gasUsed.toString());
                 const event = await getInternalEvent<LiquidationOccurredEvent["args"]>(
                     tx,
-                    MinterEvent__factory.connect(hre.Diamond.address, hre.users.userTwo),
+                    hre.Diamond,
                     "LiquidationOccurred",
                 );
 
@@ -766,8 +765,8 @@ describe("Minter", () => {
             };
 
             beforeEach(async function () {
-                userToLiquidate = hre.users.userThree;
-                userToLiquidateTwo = hre.users.userFour;
+                userToLiquidate = hre.users.testUserEight;
+                userToLiquidateTwo = hre.users.testUserNine;
                 this.collateral!.setPrice(collateralPrice);
                 this.krAsset!.setPrice(krAssetPrice);
 
@@ -852,7 +851,6 @@ describe("Minter", () => {
                 const denominator = 4;
                 const positive = true;
                 const rebasePrice = fromBig(await this.krAsset!.getPrice(), 8) / denominator;
-
                 this.krAsset!.setPrice(rebasePrice);
                 await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
@@ -860,7 +858,7 @@ describe("Minter", () => {
 
                 this.collateral!.setPrice(5);
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidate.address)).to.be.true;
-                await liquidate(userToLiquidate, this.krAsset, this.collateral);
+                await expect(liquidate(userToLiquidate, this.krAsset, this.collateral)).to.not.be.reverted;
             });
             it("should allow liquidations of unhealthy accounts after a negative rebase", async function () {
                 // Rebase params

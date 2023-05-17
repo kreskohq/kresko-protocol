@@ -52,23 +52,23 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const Diamond = await hre.getContractOrFork("Kresko");
 
-    // deployment.facets = (await Diamond.facets()).map(f => ({
-    //     facetAddress: f.facetAddress,
-    //     functionSelectors: f.functionSelectors,
-    // }));
-    // deployment.abi = mergeABIs([deployment.abi, ...ABIs], {
-    //     check: false,
-    //     skipSupportsInterface: false,
-    // });
-    // await hre.deployments.save("Diamond", deployment);
+    deployment.facets = (await Diamond.facets()).map(f => ({
+        facetAddress: f.facetAddress,
+        functionSelectors: f.functionSelectors,
+    }));
+    deployment.abi = mergeABIs([deployment.abi, ...ABIs], {
+        check: false,
+        skipSupportsInterface: false,
+    });
+    await hre.deployments.save("Diamond", deployment);
     // #3 Eventhough we have the full ABI from the `diamondAbi` extension already, bookkeep the current status in deployment separately
     // #4 Using `add-facets.ts` will do this automatically - check #1 why we are not using it here.
 
     // #5 Save the deployment result and the contract instance with full ABI to the runtime to access on later steps.
-    // hre.Diamond = Diamond;
-    // hre.DiamondDeployment = deployment;
+    hre.Diamond = Diamond;
+    hre.DiamondDeployment = deployment;
 
-    // logger.success("Diamond deployed @", Diamond.address, "with", deployment.facets.length, "facets");
+    logger.success("Diamond deployed @", Diamond.address, "with", deployment.facets.length, "facets");
 };
 
 deploy.tags = ["local", "minter-test", "diamond-init", "all"];

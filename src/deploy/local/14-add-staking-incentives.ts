@@ -10,7 +10,7 @@ const deploy: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
     const config = testnetConfigs[hre.network.name];
     const [rewardToken1] = config.rewardTokens;
-    const Reward1 = await hre.getContractOrFork("ERC20PresetMinterPauser", rewardToken1.symbol);
+    const Reward1 = await hre.getContractOrFork("MockERC20", rewardToken1.symbol);
     const RewardTokens = [Reward1.address];
 
     const Factory = await hre.getContractOrFork("UniswapV2Factory");
@@ -21,8 +21,8 @@ const deploy: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     for (const pool of pools) {
         logger.log(`Adding pool ${pool.lpToken[0].symbol}- ${pool.lpToken[1].symbol}`);
         const [token0, token1] = pool.lpToken;
-        const Token0 = await hre.getContractOrFork("ERC20Upgradeable", token0.symbol);
-        const Token1 = await hre.getContractOrFork("ERC20Upgradeable", token1.symbol);
+        const Token0 = await hre.getContractOrFork("MockERC20", token0.symbol);
+        const Token1 = await hre.getContractOrFork("MockERC20", token1.symbol);
         const lpToken = await Factory.getPair(Token0.address, Token1.address);
         const result0 = await Staking.getPidFor(lpToken);
         if (!result0.found) {
@@ -49,7 +49,7 @@ deploy.skip = async hre => {
     const Staking = await hre.getContractOrFork("KrStaking");
     const config = testnetConfigs[hre.network.name];
     const [rewardToken1] = config.rewardTokens;
-    const Reward1 = await hre.getContractOrFork("ERC20PresetMinterPauser", rewardToken1.symbol);
+    const Reward1 = await hre.getContractOrFork("IERC20Minimal", rewardToken1.symbol);
     const Reward1Bal = await Reward1.balanceOf(Staking.address);
     const skip = Reward1Bal.gt(0);
     if (skip) {

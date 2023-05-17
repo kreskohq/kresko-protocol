@@ -13,8 +13,8 @@ import {LibCalculation} from "../libs/LibCalculation.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 import {MinterEvent} from "../../libs/Events.sol";
 
-import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
-import {DiamondModifiers} from "../../shared/Modifiers.sol";
+import {SafeERC20, IERC20Permit} from "../../shared/SafeERC20.sol";
+import {DiamondModifiers} from "../../diamond/DiamondModifiers.sol";
 
 import {Constants, KrAsset, CollateralAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
@@ -30,7 +30,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
     using LibDecimals for uint8;
     using LibDecimals for uint256;
     using WadRay for uint256;
-    using SafeERC20Upgradeable for IERC20Upgradeable;
+    using SafeERC20 for IERC20Permit;
 
     /// @inheritdoc ILiquidationFacet
     function liquidate(
@@ -100,7 +100,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
 
         /* ---------------------------- Balance transfer ---------------------------- */
         // Send liquidator the seized collateral.
-        IERC20Upgradeable(_seizeAsset).safeTransfer(msg.sender, seizedAmount);
+        IERC20Permit(_seizeAsset).safeTransfer(msg.sender, seizedAmount);
 
         emit MinterEvent.LiquidationOccurred(
             _account,

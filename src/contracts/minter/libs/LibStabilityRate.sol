@@ -2,7 +2,7 @@
 pragma solidity >=0.8.20;
 
 import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
-import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
+import {IERC20Permit} from "../../shared/IERC20Permit.sol";
 
 import {WadRay} from "../../libs/WadRay.sol";
 import {Error} from "../../libs/Errors.sol";
@@ -37,7 +37,7 @@ library LibStabilityRate {
 
         newDebtIndex = self.debtIndex;
         // only cumulating if there is any assets minted and rate is over 0
-        if (IERC20Upgradeable(self.asset).totalSupply() != 0) {
+        if (IERC20Permit(self.asset).totalSupply() != 0) {
             uint256 cumulatedStabilityRate = self.calculateCompoundedInterest(block.timestamp);
             newDebtIndex = cumulatedStabilityRate.rayMul(self.debtIndex);
             require(newDebtIndex <= type(uint128).max, Error.DEBT_INDEX_OVERFLOW);

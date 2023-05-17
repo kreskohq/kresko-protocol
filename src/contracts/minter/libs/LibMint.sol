@@ -3,8 +3,7 @@ pragma solidity >=0.8.20;
 
 // solhint-disable not-rely-on-time
 // solhint-disable-next-line
-import {SafeERC20Upgradeable, IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
-
+import {SafeERC20, IERC20Permit} from "../../shared/SafeERC20.sol";
 import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
 import {Arrays} from "../../libs/Arrays.sol";
 import {MinterEvent} from "../../libs/Events.sol";
@@ -24,7 +23,7 @@ library LibMint {
     using LibDecimals for uint256;
     using WadRay for uint256;
 
-    using SafeERC20Upgradeable for IERC20Upgradeable;
+    using SafeERC20 for IERC20Permit;
     using LibCalculation for MinterState;
 
     /// @notice Mint kresko assets with stability rate updates.
@@ -100,7 +99,7 @@ library LibMint {
                 .toNonRebasingAmount(transferAmount);
 
             // Transfer the fee to the feeRecipient.
-            IERC20Upgradeable(collateralAssetAddress).safeTransfer(self.feeRecipient, transferAmount);
+            IERC20Permit(collateralAssetAddress).safeTransfer(self.feeRecipient, transferAmount);
             emit MinterEvent.OpenFeePaid(_account, collateralAssetAddress, transferAmount, feeValuePaid);
 
             feeValue = feeValue - feeValuePaid;

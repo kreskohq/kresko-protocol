@@ -3,7 +3,7 @@ pragma solidity >=0.8.20;
 
 /* solhint-disable func-name-mixedcase */
 
-interface IERC20Upgradeable {
+interface IERC20Permit {
     function DOMAIN_SEPARATOR() external view returns (bytes32);
 
     function allowance(address, address) external view returns (uint256);

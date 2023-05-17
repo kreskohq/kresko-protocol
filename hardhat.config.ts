@@ -46,7 +46,7 @@ import "./src/tasks";
 /* -------------------------------------------------------------------------- */
 /*                                Config helpers                              */
 /* -------------------------------------------------------------------------- */
-import { compilers, handleForking, networks, users } from "hardhat-configs";
+import { compilers, handleForking, networks, users, diamondAbiConfig } from "hardhat-configs";
 /* -------------------------------------------------------------------------- */
 /*                              Extensions To HRE                             */
 /* -------------------------------------------------------------------------- */
@@ -56,7 +56,7 @@ import "hardhat-configs/extensions";
 /*                               CONFIGURATION                                */
 /* -------------------------------------------------------------------------- */
 
-let externalArtifacts = ["./artifacts/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko.json"];
+let externalArtifacts = [];
 let outDir = "types/typechain";
 
 if (isExport) {
@@ -65,8 +65,6 @@ if (isExport) {
     externalArtifacts = exportUtil.externalArtifacts();
     outDir = "packages/contracts/src/types/";
 }
-
-console.log("externalArtifacts", externalArtifacts);
 
 const config: HardhatUserConfig = {
     solidity: { compilers },
@@ -91,22 +89,7 @@ const config: HardhatUserConfig = {
             },
         ],
     },
-    diamondAbi: [
-        {
-            name: "Kresko",
-            include: ["facets/*"],
-            exclude: ["vendor", "test/*", "interfaces/*", "krasset/*", "KrStaking", "event", "Event", "Lib"],
-            strict: false,
-            filter(abiElement, index, abi) {
-                if (abiElement.type === "event") {
-                    const exists = abi.some(existing => existing.name === abiElement.name);
-                    console.log("Filterint", abiElement.name, exists);
-                    return !exists;
-                }
-                return true;
-            },
-        },
-    ],
+    diamondAbi: diamondAbiConfig,
     typechain: {
         outDir,
         target: "ethers-v5",
@@ -132,26 +115,6 @@ const config: HardhatUserConfig = {
         username: "kresko",
         privateVerification: true,
     },
-    // subgraph: {
-    //     name: "MySubgraph", // Defaults to the name of the root folder of the hardhat project
-    //     product: "hosted-service" | "subgraph-studio", // Defaults to 'subgraph-studio'
-    //     indexEvents: true | false, // Defaults to false
-    //     allowSimpleName: true | false, // Defaults to `false` if product is `hosted-service` and `true` if product is `subgraph-studio`
-    // },
-    // watcher: {
-    //     test: {
-    //         tasks: [{ command: "test", params: { testFiles: ["{path}"] } }],
-    //         files: ["./src/test/**/*"],
-    //         verbose: false,
-    //     },
-    // },
-    //
-    // gasReporter: {
-    //     currency: "USD",
-    //     enabled: true,
-    //     showMethodSig: true,
-    //     src: "./src/contracts",
-    // },
 };
 
 export default config;

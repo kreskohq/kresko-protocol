@@ -2,14 +2,13 @@
 pragma solidity >=0.8.20;
 
 import {IBurnFacet} from "../interfaces/IBurnFacet.sol";
-import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
-
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
 import {Role} from "../../libs/Authorization.sol";
 import {MinterEvent} from "../../libs/Events.sol";
 
-import {DiamondModifiers, MinterModifiers} from "../../shared/Modifiers.sol";
+import {MinterModifiers} from "../MinterModifiers.sol";
+import {DiamondModifiers} from "../../diamond/DiamondModifiers.sol";
 import {Action} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";

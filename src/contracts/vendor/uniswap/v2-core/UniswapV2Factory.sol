@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.5.16;
-
+/* solhint-disable no-global-import */
 import "./interfaces/IUniswapV2Factory.sol";
 import "./UniswapV2Pair.sol";
 

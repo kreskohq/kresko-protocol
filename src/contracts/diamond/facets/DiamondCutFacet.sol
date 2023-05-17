@@ -2,7 +2,7 @@
 pragma solidity >=0.8.20;
 
 import {IDiamondCutFacet} from "../interfaces/IDiamondCutFacet.sol";
-import {DiamondModifiers, Role} from "../../shared/Modifiers.sol";
+import {DiamondModifiers, Role} from "../DiamondModifiers.sol";
 import {initializeDiamondCut} from "../libs/LibDiamondCut.sol";
 import {ds} from "../DiamondStorage.sol";
 

@@ -6,7 +6,9 @@ import {ISafetyCouncilFacet} from "../interfaces/ISafetyCouncilFacet.sol";
 import {Error} from "../../libs/Errors.sol";
 import {MinterEvent} from "../../libs/Events.sol";
 import {Authorization, Role} from "../../libs/Authorization.sol";
-import {DiamondModifiers, MinterModifiers} from "../../shared/Modifiers.sol";
+
+import {DiamondModifiers} from "../../diamond/DiamondModifiers.sol";
+import {MinterModifiers} from "../MinterModifiers.sol";
 
 import {Action, SafetyState, Pause} from "../MinterTypes.sol";
 import {ms} from "../MinterStorage.sol";
@@ -19,20 +21,7 @@ import {ms} from "../MinterStorage.sol";
  * @notice `Role.SAFETY_COUNCIL` must be a multisig.
  */
 contract SafetyCouncilFacet is MinterModifiers, DiamondModifiers, ISafetyCouncilFacet {
-    /**
-     * @dev Toggle paused-state of assets in a per-action basis
-     *
-     * @notice These functions are only callable by a multisig quorum.
-     * @param _assets list of addresses of krAssets and/or collateral assets
-     * @param _action One of possible user actions:
-     *  Deposit = 0
-     *  Withdraw = 1,
-     *  Repay = 2,
-     *  Borrow = 3,
-     *  Liquidate = 4
-     * @param _withDuration Set a duration for this pause - @todo: implement it if required
-     * @param _duration Duration for the pause if `_withDuration` is true
-     */
+    /// @inheritdoc ISafetyCouncilFacet
     function toggleAssetsPaused(
         address[] calldata _assets,
         Action _action,
@@ -67,38 +56,17 @@ contract SafetyCouncilFacet is MinterModifiers, DiamondModifiers, ISafetyCouncil
         }
     }
 
-    /**
-     * @notice For external checks if a safety state has been set for any asset
-     */
+    /// @inheritdoc ISafetyCouncilFacet
     function safetyStateSet() external view override returns (bool) {
         return ms().safetyStateSet;
     }
 
-    /**
-     * @notice View the state of safety measures for an asset on a per-action basis
-     * @param _asset krAsset / collateral asset
-     * @param _action One of possible user actions:
-     *
-     *  Deposit = 0
-     *  Withdraw = 1,
-     *  Repay = 2,
-     *  Borrow = 3,
-     *  Liquidate = 4
-     */
+    /// @inheritdoc ISafetyCouncilFacet
     function safetyStateFor(address _asset, Action _action) external view override returns (SafetyState memory) {
         return ms().safetyState[_asset][_action];
     }
 
-    /**
-     * @notice Check if `_asset` has a pause enabled for `_action`
-     * @param _action enum `Action`
-     *  Deposit = 0
-     *  Withdraw = 1,
-     *  Repay = 2,
-     *  Borrow = 3,
-     *  Liquidate = 4
-     * @return true if `_action` is paused
-     */
+    /// @inheritdoc ISafetyCouncilFacet
     function assetActionPaused(Action _action, address _asset) external view returns (bool) {
         return ms().safetyState[_asset][_action].pause.enabled;
     }

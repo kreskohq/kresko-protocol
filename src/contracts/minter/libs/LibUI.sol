@@ -2,7 +2,7 @@
 pragma solidity >=0.8.20;
 
 // solhint-disable-next-line
-import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
+import {IERC20Permit} from "../../shared/IERC20Permit.sol";
 import {AggregatorV2V3Interface} from "../../vendor/flux/interfaces/AggregatorV2V3Interface.sol";
 import {IUniswapV2Pair} from "../../vendor/uniswap/v2-core/interfaces/IUniswapV2Pair.sol";
 import {IKrStaking} from "../../staking/interfaces/IKrStaking.sol";
@@ -169,10 +169,7 @@ library LibUI {
     function getBalances(address[] memory _tokens, address account) internal view returns (Balance[] memory balances) {
         balances = new Balance[](_tokens.length);
         for (uint256 i; i < _tokens.length; i++) {
-            balances[i] = Balance({
-                token: address(_tokens[i]),
-                balance: IERC20Upgradeable(_tokens[i]).balanceOf(account)
-            });
+            balances[i] = Balance({token: address(_tokens[i]), balance: IERC20Permit(_tokens[i]).balanceOf(account)});
         }
     }
 
@@ -184,7 +181,7 @@ library LibUI {
         allowances = new Allowance[](_tokens.length);
         for (uint256 i; i < _tokens.length; i++) {
             allowances[i] = Allowance({
-                allowance: IERC20Upgradeable(_tokens[i]).allowance(owner, spender),
+                allowance: IERC20Permit(_tokens[i]).allowance(owner, spender),
                 spender: spender,
                 owner: owner
             });
@@ -271,8 +268,8 @@ library LibUI {
                 priceRate: priceRate,
                 ammPrice: ammPrice,
                 marketOpen: krAsset.marketStatusOracle.latestMarketOpen(),
-                symbol: IERC20Upgradeable(assetAddress).symbol(),
-                name: IERC20Upgradeable(assetAddress).name()
+                symbol: IERC20Permit(assetAddress).symbol(),
+                name: IERC20Permit(assetAddress).name()
             });
         }
     }
@@ -284,7 +281,7 @@ library LibUI {
         for (uint256 i; i < assetAddresses.length; i++) {
             address assetAddress = assetAddresses[i];
             CollateralAsset memory collateralAsset = ms().collateralAssets[assetAddress];
-            uint8 decimals = IERC20Upgradeable(assetAddress).decimals();
+            uint8 decimals = IERC20Permit(assetAddress).decimals();
 
             (uint256 value, uint256 price) = ms().getCollateralValueAndOraclePrice(
                 assetAddress,
@@ -302,8 +299,8 @@ library LibUI {
                 decimals: decimals,
                 price: price,
                 marketOpen: collateralAsset.marketStatusOracle.latestMarketOpen(),
-                symbol: IERC20Upgradeable(assetAddress).symbol(),
-                name: IERC20Upgradeable(assetAddress).name()
+                symbol: IERC20Permit(assetAddress).symbol(),
+                name: IERC20Permit(assetAddress).name()
             });
         }
     }
@@ -316,7 +313,7 @@ library LibUI {
             result = new CollateralAssetInfoUser[](collateralAssetAddresses.length);
             for (uint256 i; i < collateralAssetAddresses.length; i++) {
                 address assetAddress = collateralAssetAddresses[i];
-                uint8 decimals = IERC20Upgradeable(assetAddress).decimals();
+                uint8 decimals = IERC20Permit(assetAddress).decimals();
 
                 uint256 amount = ms().getCollateralDeposits(_account, assetAddress);
 
@@ -334,8 +331,8 @@ library LibUI {
                     decimals: decimals,
                     index: i,
                     price: price,
-                    symbol: IERC20Upgradeable(assetAddress).symbol(),
-                    name: IERC20Upgradeable(assetAddress).name()
+                    symbol: IERC20Permit(assetAddress).symbol(),
+                    name: IERC20Permit(assetAddress).name()
                 });
             }
         }
@@ -378,8 +375,8 @@ library LibUI {
                     kFactor: krAsset.kFactor,
                     price: uint256(krAsset.oracle.latestAnswer()),
                     ammPrice: ammPrice,
-                    symbol: IERC20Upgradeable(assetAddress).symbol(),
-                    name: IERC20Upgradeable(assetAddress).name()
+                    symbol: IERC20Permit(assetAddress).symbol(),
+                    name: IERC20Permit(assetAddress).name()
                 });
             }
         }

@@ -2,7 +2,7 @@
 pragma solidity >=0.8.20;
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import {IERC20Upgradeable} from "./IERC20Upgradeable.sol";
+import {IERC20Permit} from "./IERC20Permit.sol";
 
 /* solhint-disable var-name-mixedcase */
 /* solhint-disable not-rely-on-time */
@@ -14,7 +14,7 @@ import {IERC20Upgradeable} from "./IERC20Upgradeable.sol";
 /// @author Kresko: modified to an upgradeable
 /// @dev Do not manually set balances without updating totalSupply, as the sum of all user balances must not exceed it.
 
-contract ERC20Upgradeable is Initializable, IERC20Upgradeable {
+contract ERC20Upgradeable is Initializable, IERC20Permit {
     /* -------------------------------------------------------------------------- */
     /*                                   Events                                   */
     /* -------------------------------------------------------------------------- */
@@ -225,5 +225,16 @@ contract ERC20Upgradeable is Initializable, IERC20Upgradeable {
         }
 
         emit Transfer(from, address(0), amount);
+    }
+
+    /**
+     * @dev See {ERC20-_beforeTokenTransfer}.
+     *
+     * Requirements:
+     *
+     * - the contract must not be paused.
+     */
+    function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual {
+        // Silence state mutability warning without generating bytecode.
     }
 }

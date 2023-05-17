@@ -28,7 +28,14 @@ task(TASK_DEPLOY_KISS)
             from: deployer.address,
             contract: "KISS",
             log: true,
-            args: [args.name, args.symbol, args.decimals, args.admin, args.operator],
+            proxy: {
+                owner: deployer.address,
+                proxyContract: "OptimizedTransparentProxy",
+                execute: {
+                    methodName: "initialize",
+                    args: [args.name, args.symbol, args.decimals, args.admin, args.operator],
+                },
+            },
         });
         logger.log(`KISS deployed at ${KISSContract.address}, checking roles...`);
         const hasRole = await KISSContract.hasRole(Role.OPERATOR, args.operator);

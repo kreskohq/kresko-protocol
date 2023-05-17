@@ -9,10 +9,11 @@ import {LibDecimals} from "../libs/LibDecimals.sol";
 import {StabilityRateConfig} from "../InterestRateState.sol";
 import {ms} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";
-import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
+import {IERC20Permit} from "../../shared/IERC20Permit.sol";
 import {IStabilityRateFacet} from "../interfaces/IStabilityRateFacet.sol";
-import {MinterModifiers, DiamondModifiers, Error, Role} from "../../shared/Modifiers.sol";
-import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
+import {DiamondModifiers, Role} from "../../diamond/DiamondModifiers.sol";
+import {MinterModifiers, Error} from "../MinterModifiers.sol";
+import {SafeERC20, IERC20Permit} from "../../shared/SafeERC20.sol";
 
 /* solhint-disable var-name-mixedcase */
 
@@ -31,9 +32,9 @@ struct StabilityRateParams {
  * @notice Stability rate related views and state operations
  * @dev Uses both MinterState (ms) and InterestRateState (irs)
  */
-contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
+contract StabilityRateFacet is IStabilityRateFacet, MinterModifiers, DiamondModifiers {
     using Arrays for address[];
-    using SafeERC20Upgradeable for IERC20Upgradeable;
+    using SafeERC20 for IERC20Permit;
     using LibStabilityRate for StabilityRateConfig;
     using WadRay for uint256;
     using LibDecimals for uint256;
@@ -42,11 +43,7 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
     /*                              ASSET STATE WRITES                            */
     /* -------------------------------------------------------------------------- */
 
-    /**
-     * @notice Initialize an asset with stability rate setup values
-     * @param _asset asset to setup
-     * @param _setup setup parameters
-     */
+    /// @inheritdoc IStabilityRateFacet
     function setupStabilityRateParams(address _asset, StabilityRateParams memory _setup) external onlyRole(Role.ADMIN) {
         require(irs().kiss != address(0), Error.KISS_NOT_SET);
         require(irs().srAssets[_asset].asset == address(0), Error.STABILITY_RATES_ALREADY_INITIALIZED);
@@ -75,11 +72,7 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
         );
     }
 
-    /**
-     * @notice Configure existing stability rate values
-     * @param _asset asset to configure
-     * @param _setup setup parameters
-     */
+    /// @inheritdoc IStabilityRateFacet
     function updateStabilityRateParams(
         address _asset,
         StabilityRateParams memory _setup
@@ -103,17 +96,12 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
         );
     }
 
-    /// @notice Updates the debt index and stability rates for an asset
-    /// @param _asset asset to update rate and index for
+    /// @inheritdoc IStabilityRateFacet
     function updateStabilityRateAndIndexForAsset(address _asset) external {
         irs().srAssets[_asset].updateDebtIndex();
         irs().srAssets[_asset].updateStabilityRate();
     }
 
-    /**
-     * @notice Sets the protocol AMM oracle address
-     * @param _kiss  The address of the oracle
-     */
     function updateKiss(address _kiss) external onlyRole(Role.ADMIN) {
         irs().kiss = _kiss;
         emit InterestRateEvent.KISSUpdated(_kiss);
@@ -123,12 +111,7 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
     /*                                REPAYMENT                                   */
     /* -------------------------------------------------------------------------- */
 
-    /**
-     * @notice Repays part of accrued stability rate interest for a single asset
-     * @param _account Account to repay interest for
-     * @param _kreskoAsset Kresko asset to repay interest for
-     * @param _kissRepayAmount USD value to repay (KISS)
-     */
+    /// @inheritdoc IStabilityRateFacet
     function repayStabilityRateInterestPartial(
         address _account,
         address _kreskoAsset,
@@ -151,7 +134,7 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
         }
 
         // Transfer the accrued interest
-        IERC20Upgradeable(irs().kiss).safeTransferFrom(msg.sender, ms().feeRecipient, _kissRepayAmount);
+        IERC20Permit(irs().kiss).safeTransferFrom(msg.sender, ms().feeRecipient, _kissRepayAmount);
         uint256 assetAmount = _kissRepayAmount.divByPrice(ms().kreskoAssets[_kreskoAsset].uintPrice());
         uint256 amountScaled = assetAmount.wadToRay().rayDiv(newDebtIndex);
         // Update scaled values for the user
@@ -164,12 +147,7 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
         emit InterestRateEvent.StabilityRateInterestRepaid(_account, _kreskoAsset, _kissRepayAmount);
     }
 
-    /**
-     * @notice Repays accrued stability rate interest for a single asset
-     * @param _account Account to repay interest for
-     * @param _kreskoAsset Kresko asset to repay interest for
-     * @return kissRepayAmount KISS value repaid
-     */
+    /// @inheritdoc IStabilityRateFacet
     function repayFullStabilityRateInterest(
         address _account,
         address _kreskoAsset
@@ -177,11 +155,7 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
         return ms().repayFullStabilityRateInterest(_account, _kreskoAsset);
     }
 
-    /**
-     * @notice Repays all accrued stability rate interest for an account
-     * @param _account Account to repay all asset interests for
-     * @return kissRepayAmount KISS value repaid
-     */
+    /// @inheritdoc IStabilityRateFacet
     function batchRepayFullStabilityRateInterest(
         address _account
     ) external nonReentrant returns (uint256 kissRepayAmount) {
@@ -196,58 +170,31 @@ contract StabilityRateFacet is MinterModifiers, DiamondModifiers {
     /*                                   VIEWS                                    */
     /* -------------------------------------------------------------------------- */
 
-    /**
-     * @notice Gets the current stability rate for an asset
-     * @param _asset asset to get the stability rate for
-     * @return stabilityRate the return variables of a contract’s function state variable
-     * @dev expressed in ray
-     */
+    /// @inheritdoc IStabilityRateFacet
     function getStabilityRateForAsset(address _asset) external view returns (uint256 stabilityRate) {
         return irs().srAssets[_asset].calculateStabilityRate();
     }
 
-    /**
-     * @notice Gets the current price rate (difference between AMM <-> Oracle pricing)
-     * for an asset
-     * @param _asset asset to get the rate for
-     * @return priceRate the current
-     * @dev expressed in ray
-     */
+    /// @inheritdoc IStabilityRateFacet
     function getPriceRateForAsset(address _asset) external view returns (uint256 priceRate) {
         return irs().srAssets[_asset].getPriceRate();
     }
 
-    /**
-     * @notice Gets the current running debt index
-     * @param _asset asset to get the index for
-     * @return debtIndex current running debt index
-     * @dev expressed in ray
-     */
+    /// @inheritdoc IStabilityRateFacet
     function getDebtIndexForAsset(address _asset) external view returns (uint256 debtIndex) {
         return irs().srAssets[_asset].getNormalizedDebtIndex();
     }
 
-    /**
-     * @notice View stability rate configuration for an asset
-     * @param _asset asset to view configuration for
-     */
+    /// @inheritdoc IStabilityRateFacet
     function getStabilityRateConfigurationForAsset(address _asset) external view returns (StabilityRateConfig memory) {
         return irs().srAssets[_asset];
     }
 
-    /**
-     * @notice The configured address of KISS
-     */
+    /// @inheritdoc IStabilityRateFacet
     function kiss() external view returns (address) {
         return irs().kiss;
     }
 
-    /**
-     * @notice Get user stability rate data for an asset
-     * @param _account asset to view configuration for
-     * @param _asset asset to view configuration for
-     * @return lastDebtIndex the previous debt index for the user
-     */
     function getLastDebtIndexForAccount(
         address _account,
         address _asset

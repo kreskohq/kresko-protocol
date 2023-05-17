@@ -2,7 +2,7 @@
 pragma solidity >=0.8.20;
 
 import {IERC165} from "../../shared/IERC165.sol";
-import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
+import {IERC20Permit} from "../../shared/IERC20Permit.sol";
 import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
 import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
 import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
@@ -15,7 +15,8 @@ import {MinterEvent, GeneralEvent} from "../../libs/Events.sol";
 import {Authorization, Role} from "../../libs/Authorization.sol";
 import {Meta} from "../../libs/Meta.sol";
 
-import {DiamondModifiers, MinterModifiers} from "../../shared/Modifiers.sol";
+import {MinterModifiers} from "../MinterModifiers.sol";
+import {DiamondModifiers} from "../../diamond/DiamondModifiers.sol";
 
 import {ds} from "../../diamond/DiamondStorage.sol";
 
@@ -202,7 +203,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             marketStatusOracle: AggregatorV2V3Interface(_marketStatusOracle),
             anchor: _anchor,
             exists: true,
-            decimals: IERC20Upgradeable(_collateralAsset).decimals()
+            decimals: IERC20Permit(_collateralAsset).decimals()
         });
 
         emit MinterEvent.CollateralAssetAdded(
