@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
 // solhint-disable not-rely-on-time
 // solhint-disable-next-line
-import {SafeERC20Upgradeable, IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
-
+import {SafeERC20, IERC20Permit} from "../../shared/SafeERC20.sol";
 import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
 import {Arrays} from "../../libs/Arrays.sol";
 import {MinterEvent} from "../../libs/Events.sol";
 import {Error} from "../../libs/Errors.sol";
-import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {LibDecimals} from "../libs/LibDecimals.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 
@@ -25,8 +23,7 @@ library LibMint {
     using LibDecimals for uint256;
     using WadRay for uint256;
 
-    using FixedPoint for FixedPoint.Unsigned;
-    using SafeERC20Upgradeable for IERC20Upgradeable;
+    using SafeERC20 for IERC20Permit;
     using LibCalculation for MinterState;
 
     /// @notice Mint kresko assets with stability rate updates.
@@ -74,7 +71,7 @@ library LibMint {
     ) internal {
         KrAsset memory krAsset = self.kreskoAssets[_kreskoAsset];
         // Calculate the value of the fee according to the value of the krAssets being minted.
-        uint256 feeValue = krAsset.uintUSD(_kreskoAssetAmountMinted).wadMul(krAsset.openFee.rawValue);
+        uint256 feeValue = krAsset.uintUSD(_kreskoAssetAmountMinted).wadMul(krAsset.openFee);
 
         // Do nothing if the fee value is 0.
         if (feeValue == 0) {
@@ -102,7 +99,7 @@ library LibMint {
                 .toNonRebasingAmount(transferAmount);
 
             // Transfer the fee to the feeRecipient.
-            IERC20Upgradeable(collateralAssetAddress).safeTransfer(self.feeRecipient, transferAmount);
+            IERC20Permit(collateralAssetAddress).safeTransfer(self.feeRecipient, transferAmount);
             emit MinterEvent.OpenFeePaid(_account, collateralAssetAddress, transferAmount, feeValuePaid);
 
             feeValue = feeValue - feeValuePaid;

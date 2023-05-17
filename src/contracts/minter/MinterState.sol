@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
 import {LibKrAsset} from "./libs/LibKrAsset.sol";
 import {LibAccount} from "./libs/LibAccount.sol";
@@ -7,7 +7,6 @@ import {LibCollateral} from "./libs/LibCollateral.sol";
 import {LibCalculation} from "./libs/LibCalculation.sol";
 import {LibRepay} from "./libs/LibRepay.sol";
 import {LibMint} from "./libs/LibMint.sol";
-import {FixedPoint} from "../libs/FixedPoint.sol";
 import {Action, SafetyState, CollateralAsset, KrAsset} from "./MinterTypes.sol";
 
 /* solhint-disable state-visibility */
@@ -37,13 +36,13 @@ struct MinterState {
     /// @notice The recipient of protocol fees.
     address feeRecipient;
     /// @notice The factor used to calculate the incentive a liquidator receives in the form of seized collateral.
-    FixedPoint.Unsigned liquidationIncentiveMultiplier;
+    uint256 liquidationIncentiveMultiplier;
     /// @notice The minimum ratio of collateral to debt that can be taken by direct action.
-    FixedPoint.Unsigned minimumCollateralizationRatio;
+    uint256 minimumCollateralizationRatio;
     /// @notice The minimum USD value of an individual synthetic asset debt position.
-    FixedPoint.Unsigned minimumDebtValue;
+    uint256 minimumDebtValue;
     /// @notice The collateralization ratio at which positions may be liquidated.
-    FixedPoint.Unsigned liquidationThreshold;
+    uint256 liquidationThreshold;
     /// @notice Flag tells if there is a need to perform safety checks on user actions
     bool safetyStateSet;
     /// @notice asset -> action -> state
@@ -75,5 +74,5 @@ struct MinterState {
     /// @notice Offchain oracle decimals
     uint8 extOracleDecimals;
     /// @notice Liquidation Overflow Multiplier, multiplies max liquidatable value.
-    FixedPoint.Unsigned maxLiquidationMultiplier;
+    uint256 maxLiquidationMultiplier;
 }

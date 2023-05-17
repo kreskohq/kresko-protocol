@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
 import {AggregatorV2V3Interface} from "../vendor/flux/interfaces/AggregatorV2V3Interface.sol";
-import {FixedPoint} from "../libs/FixedPoint.sol";
 import {IKreskoAssetAnchor} from "../kreskoasset/IKreskoAssetAnchor.sol";
 import {LibAssetUtility} from "./libs/LibAssetUtility.sol";
 
@@ -13,6 +12,10 @@ import {LibAssetUtility} from "./libs/LibAssetUtility.sol";
 /* -------------------------------------------------------------------------- */
 
 library Constants {
+    uint256 constant FP_DECIMALS = 18;
+
+    uint256 constant FP_SCALING_FACTOR = 10 ** FP_DECIMALS;
+
     uint256 constant ONE_HUNDRED_PERCENT = 1 ether;
 
     uint256 constant BASIS_POINT = 1e14;
@@ -94,10 +97,10 @@ struct MinterInitArgs {
  */
 
 struct MinterParams {
-    FixedPoint.Unsigned minimumCollateralizationRatio;
-    FixedPoint.Unsigned minimumDebtValue;
-    FixedPoint.Unsigned liquidationThreshold;
-    FixedPoint.Unsigned liquidationOverflowPercentage;
+    uint256 minimumCollateralizationRatio;
+    uint256 minimumDebtValue;
+    uint256 liquidationThreshold;
+    uint256 liquidationOverflowPercentage;
     address feeRecipient;
     uint8 extOracleDecimals;
 }
@@ -114,13 +117,13 @@ struct MinterParams {
  * @param exists Whether the KreskoAsset exists within the protocol.
  */
 struct KrAsset {
-    FixedPoint.Unsigned kFactor;
+    uint256 kFactor;
     AggregatorV2V3Interface oracle;
     AggregatorV2V3Interface marketStatusOracle;
     uint256 supplyLimit;
     address anchor;
-    FixedPoint.Unsigned closeFee;
-    FixedPoint.Unsigned openFee;
+    uint256 closeFee;
+    uint256 openFee;
     bool exists;
 }
 using LibAssetUtility for KrAsset global;
@@ -136,13 +139,13 @@ using LibAssetUtility for KrAsset global;
  * @param liquidationIncentive The liquidation incentive for the asset
  */
 struct CollateralAsset {
-    FixedPoint.Unsigned factor;
+    uint256 factor;
     AggregatorV2V3Interface oracle;
     AggregatorV2V3Interface marketStatusOracle;
     address anchor;
     uint8 decimals;
     bool exists;
-    FixedPoint.Unsigned liquidationIncentive;
+    uint256 liquidationIncentive;
 }
 using LibAssetUtility for CollateralAsset global;
 

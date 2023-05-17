@@ -1,5 +1,5 @@
 pragma solidity =0.6.6;
-
+/** solhint-disable no-global-import */
 import "../libraries/SafeMath.sol";
 
 contract ERC20 {

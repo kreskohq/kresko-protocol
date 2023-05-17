@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
 /**
  * @title Library for median calculation. Returns 0 if input array is empty.

@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.14;
-
-import {FixedPoint} from "../../libs/FixedPoint.sol";
+pragma solidity >=0.8.20;
 
 interface ILiquidationFacet {
     /**

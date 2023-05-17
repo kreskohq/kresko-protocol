@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
 // solhint-disable not-rely-on-time
 
@@ -7,9 +7,8 @@ import {Arrays} from "../../libs/Arrays.sol";
 import {MinterEvent, InterestRateEvent} from "../../libs/Events.sol";
 import {Error} from "../../libs/Errors.sol";
 import {WadRay} from "../../libs/WadRay.sol";
-import {FixedPoint} from "../../libs/FixedPoint.sol";
-import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
-import {SafeERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
+import {IERC20Permit} from "../../shared/IERC20Permit.sol";
+import {SafeERC20} from "../../shared/SafeERC20.sol";
 import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
 
 import {LibDecimals} from "../libs/LibDecimals.sol";
@@ -25,8 +24,7 @@ library LibRepay {
     using LibDecimals for uint256;
     using WadRay for uint256;
 
-    using FixedPoint for FixedPoint.Unsigned;
-    using SafeERC20Upgradeable for IERC20Upgradeable;
+    using SafeERC20 for IERC20Permit;
     using LibCalculation for MinterState;
 
     /// @notice Repay user kresko asset debt with stability rate updates.
@@ -84,7 +82,7 @@ library LibRepay {
         }
 
         // Transfer the accrued interest
-        IERC20Upgradeable(irs().kiss).safeTransferFrom(msg.sender, self.feeRecipient, kissRepayAmount);
+        IERC20Permit(irs().kiss).safeTransferFrom(msg.sender, self.feeRecipient, kissRepayAmount);
 
         // Update scaled values for the user
         irs().srUserInfo[_account][_kreskoAsset].debtScaled = uint128(
@@ -122,7 +120,7 @@ library LibRepay {
     ) internal {
         KrAsset memory krAsset = self.kreskoAssets[_kreskoAsset];
         // Calculate the value of the fee according to the value of the krAssets being burned.
-        uint256 feeValue = krAsset.uintUSD(_burnAmount).wadMul(krAsset.closeFee.rawValue);
+        uint256 feeValue = krAsset.uintUSD(_burnAmount).wadMul(krAsset.closeFee);
 
         // Do nothing if the fee value is 0.
         if (feeValue == 0) {
@@ -151,7 +149,7 @@ library LibRepay {
                 .toNonRebasingAmount(transferAmount);
 
             // Transfer the fee to the feeRecipient.
-            IERC20Upgradeable(collateralAssetAddress).safeTransfer(self.feeRecipient, transferAmount);
+            IERC20Permit(collateralAssetAddress).safeTransfer(self.feeRecipient, transferAmount);
             emit MinterEvent.CloseFeePaid(_account, collateralAssetAddress, transferAmount, feeValuePaid);
 
             feeValue = feeValue - feeValuePaid;
@@ -178,12 +176,10 @@ library LibRepay {
     ) internal view returns (uint256 amount) {
         // If the requested burn would put the user's debt position below the minimum
         // debt value, close up to the minimum debt value instead.
-        FixedPoint.Unsigned memory krAssetValue = self.getKrAssetValue(_kreskoAsset, _debtAmount - _burnAmount, true);
-        if (krAssetValue.isGreaterThan(0) && krAssetValue.isLessThan(self.minimumDebtValue)) {
-            FixedPoint.Unsigned memory minDebtValue = self.minimumDebtValue.div(
-                self.kreskoAssets[_kreskoAsset].fixedPointPrice()
-            );
-            amount = _debtAmount - minDebtValue.rawValue;
+        uint256 krAssetValue = self.getKrAssetValue(_kreskoAsset, _debtAmount - _burnAmount, true);
+        if (krAssetValue > 0 && krAssetValue < self.minimumDebtValue) {
+            uint256 minDebtValue = self.minimumDebtValue.wadDiv(self.kreskoAssets[_kreskoAsset].uintPrice());
+            amount = _debtAmount - minDebtValue;
         } else {
             amount = _burnAmount;
         }

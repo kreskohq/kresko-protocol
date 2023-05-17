@@ -15,11 +15,9 @@ describe("Minter - Init", () => {
             expect(await hre.Diamond.hasRole(Role.SAFETY_COUNCIL, hre.Multisig.address)).to.equal(true);
 
             expect(await hre.Diamond.feeRecipient()).to.equal(args.treasury);
-            expect((await hre.Diamond.liquidationIncentiveMultiplier()).rawValue).to.equal(0);
-            expect((await hre.Diamond.minimumCollateralizationRatio()).rawValue).to.equal(
-                args.minimumCollateralizationRatio,
-            );
-            expect((await hre.Diamond.minimumDebtValue()).rawValue).to.equal(args.minimumDebtValue);
+            expect(await hre.Diamond.liquidationIncentiveMultiplier()).to.equal(0);
+            expect(await hre.Diamond.minimumCollateralizationRatio()).to.equal(args.minimumCollateralizationRatio);
+            expect(await hre.Diamond.minimumDebtValue()).to.equal(args.minimumDebtValue);
         });
 
         it("cant initialize twice", async function () {

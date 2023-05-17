@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
-import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {CollateralAsset, KrAsset, MinterParams} from "../MinterTypes.sol";
 
 interface IStateFacet {
@@ -21,19 +20,19 @@ interface IStateFacet {
     function extOracleDecimals() external view returns (uint8);
 
     /// @notice The collateralization ratio at which positions may be liquidated.
-    function liquidationThreshold() external view returns (FixedPoint.Unsigned memory);
+    function liquidationThreshold() external view returns (uint256);
 
     /// @notice The factor used to calculate the incentive a liquidator receives in the form of seized collateral.
-    function liquidationIncentiveMultiplier() external view returns (FixedPoint.Unsigned memory);
+    function liquidationIncentiveMultiplier() external view returns (uint256);
 
     /// @notice Multiplies max liquidatable value, allowing liquidations to go over LT.
-    function maxLiquidationMultiplier() external view returns (FixedPoint.Unsigned memory);
+    function maxLiquidationMultiplier() external view returns (uint256);
 
     /// @notice The minimum ratio of collateral to debt that can be taken by direct action.
-    function minimumCollateralizationRatio() external view returns (FixedPoint.Unsigned memory);
+    function minimumCollateralizationRatio() external view returns (uint256);
 
     /// @notice The minimum USD value of an individual synthetic asset debt position.
-    function minimumDebtValue() external view returns (FixedPoint.Unsigned memory);
+    function minimumDebtValue() external view returns (uint256);
 
     /// @notice simple check if kresko asset exists
     function krAssetExists(address _krAsset) external view returns (bool);
@@ -64,7 +63,7 @@ interface IStateFacet {
         address _collateralAsset,
         uint256 _amount,
         bool _ignoreCollateralFactor
-    ) external view returns (FixedPoint.Unsigned memory, FixedPoint.Unsigned memory);
+    ) external view returns (uint256, uint256);
 
     /**
      * @notice Gets the USD value for a single Kresko asset and amount.
@@ -77,5 +76,5 @@ interface IStateFacet {
         address _kreskoAsset,
         uint256 _amount,
         bool _ignoreKFactor
-    ) external view returns (FixedPoint.Unsigned memory);
+    ) external view returns (uint256);
 }

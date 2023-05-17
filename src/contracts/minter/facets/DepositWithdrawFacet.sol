@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
 import {IDepositWithdrawFacet} from "../interfaces/IDepositWithdrawFacet.sol";
 
 import {Error} from "../../libs/Errors.sol";
 import {MinterEvent} from "../../libs/Events.sol";
 import {Role} from "../../libs/Authorization.sol";
-import {Meta} from "../../libs/Meta.sol";
 
-import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
-import {DiamondModifiers, MinterModifiers} from "../../shared/Modifiers.sol";
-import {Action, FixedPoint, KrAsset} from "../MinterTypes.sol";
-import {ms, MinterState} from "../MinterStorage.sol";
+import {SafeERC20, IERC20Permit} from "../../shared/SafeERC20.sol";
+import {MinterModifiers} from "../MinterModifiers.sol";
+import {DiamondModifiers} from "../../diamond/DiamondModifiers.sol";
+import {Action, KrAsset} from "../MinterTypes.sol";
+import {ms} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";
 import {ICollateralReceiver} from "../interfaces/ICollateralReceiver.sol";
 
@@ -21,7 +21,7 @@ import {ICollateralReceiver} from "../interfaces/ICollateralReceiver.sol";
  * @notice Main end-user functionality concerning collateral asset deposits and withdrawals within the Kresko protocol
  */
 contract DepositWithdrawFacet is DiamondModifiers, MinterModifiers, IDepositWithdrawFacet {
-    using SafeERC20Upgradeable for IERC20Upgradeable;
+    using SafeERC20 for IERC20Permit;
 
     /* -------------------------------------------------------------------------- */
     /*                                 Collateral                                 */
@@ -43,7 +43,7 @@ contract DepositWithdrawFacet is DiamondModifiers, MinterModifiers, IDepositWith
         }
 
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
-        IERC20Upgradeable(_collateralAsset).safeTransferFrom(Meta.msgSender(), address(this), _depositAmount);
+        IERC20Permit(_collateralAsset).safeTransferFrom(msg.sender, address(this), _depositAmount);
 
         // Record the collateral deposit.
         ms().recordCollateralDeposit(_account, _collateralAsset, _depositAmount);
@@ -63,12 +63,7 @@ contract DepositWithdrawFacet is DiamondModifiers, MinterModifiers, IDepositWith
         address _collateralAsset,
         uint256 _withdrawAmount,
         uint256 _depositedCollateralAssetIndex
-    )
-        external
-        nonReentrant
-        collateralAssetExists(_collateralAsset)
-        onlyRoleIf(_account != Meta.msgSender(), Role.MANAGER)
-    {
+    ) external nonReentrant collateralAssetExists(_collateralAsset) onlyRoleIf(_account != msg.sender, Role.MANAGER) {
         if (ms().safetyStateSet) {
             ensureNotPaused(_collateralAsset, Action.Withdraw);
         }
@@ -84,7 +79,7 @@ contract DepositWithdrawFacet is DiamondModifiers, MinterModifiers, IDepositWith
             _depositedCollateralAssetIndex
         );
 
-        IERC20Upgradeable(_collateralAsset).safeTransfer(_account, _withdrawAmount);
+        IERC20Permit(_collateralAsset).safeTransfer(_account, _withdrawAmount);
     }
 
     /**
@@ -121,10 +116,10 @@ contract DepositWithdrawFacet is DiamondModifiers, MinterModifiers, IDepositWith
         );
 
         // transfer the withdrawn asset to the caller
-        IERC20Upgradeable(_collateralAsset).safeTransfer(msg.sender, _withdrawAmount);
+        IERC20Permit(_collateralAsset).safeTransfer(msg.sender, _withdrawAmount);
 
         // Executes the callback on the caller after sending them the withdrawn collateral
-        ICollateralReceiver(Meta.msgSender()).onUncheckedCollateralWithdraw(
+        ICollateralReceiver(msg.sender).onUncheckedCollateralWithdraw(
             _account,
             _collateralAsset,
             _withdrawAmount,

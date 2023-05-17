@@ -29,5 +29,5 @@
             "tslib": ["node_modules/tslib/tslib.d.ts"]
         }
     },
-    "ts-node": { "files": true, "transpileOnly": true }
+    "ts-node": { "files": true, "transpileOnly": true, "swc": true }
 }

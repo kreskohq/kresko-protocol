@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
 interface IDepositWithdrawFacet {
     function depositCollateral(address _account, address _collateralAsset, uint256 _amount) external;

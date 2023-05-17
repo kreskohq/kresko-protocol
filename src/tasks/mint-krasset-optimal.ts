@@ -40,7 +40,7 @@ task(TASK_MINT_OPTIMAL, "Mint KrAsset with optimal KISS collateral")
         }
         const mintAmount = hre.ethers.utils.parseUnits(String(taskArgs.amount), 18);
         const mintValue = await Kresko.getKrAssetValue(KrAsset.address, mintAmount, true);
-        const parsedValue = fromBig(mintValue.rawValue, 8) * 2;
+        const parsedValue = fromBig(mintValue, 8) * 2;
 
         const KISS = (await hre.getContractOrFork("KISS")).connect(signer);
 

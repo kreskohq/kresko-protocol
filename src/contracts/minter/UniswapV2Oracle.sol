@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 
 import {UQ} from "../vendor/uniswap/v2-periphery/libraries/UQ.sol";
 import {IUniswapV2Factory, IUniswapV2Pair} from "../vendor/uniswap/v2-periphery/libraries/UniswapV2Library.sol";
-import {IERC20} from "../vendor/uniswap/v2-core/interfaces/IERC20.sol";
+import {IERC20Minimal} from "../vendor/uniswap/v2-core/interfaces/IERC20Minimal.sol";
 import {Error} from "../libs/Errors.sol";
 
 /**
@@ -50,7 +50,7 @@ contract UniswapV2Oracle {
 
     IUniswapV2Factory public immutable factory;
 
-    IERC20 public incentiveToken;
+    IERC20Minimal public incentiveToken;
     uint256 public incentiveAmount = 3 ether;
 
     address public admin;
@@ -101,7 +101,7 @@ contract UniswapV2Oracle {
      * @param _newIncentiveToken new incentive token for updater
      */
     function setIncentiveToken(address _newIncentiveToken, uint256 amount) external onlyAdmin {
-        incentiveToken = IERC20(_newIncentiveToken);
+        incentiveToken = IERC20Minimal(_newIncentiveToken);
         incentiveAmount = amount;
     }
 
@@ -110,7 +110,7 @@ contract UniswapV2Oracle {
      * @param _erc20 drain any sent tokens
      */
     function drainERC20(address _erc20, address _to) external onlyAdmin {
-        IERC20(_erc20).transfer(_to, IERC20(_erc20).balanceOf(address(this)));
+        IERC20Minimal(_erc20).transfer(_to, IERC20Minimal(_erc20).balanceOf(address(this)));
     }
 
     /**
