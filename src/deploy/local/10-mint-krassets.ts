@@ -12,7 +12,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const kresko = await hre.getContractOrFork("Kresko");
     const { deployer } = await hre.ethers.getNamedSigners();
 
-    const DAI = await hre.getContractOrFork("ERC20PresetMinterPauser", "DAI");
+    const DAI = await hre.getContractOrFork("MockERC20", "DAI");
 
     await DAI.mint(deployer.address, toBig(2_500_000_000));
     await DAI.approve(kresko.address, hre.ethers.constants.MaxUint256);

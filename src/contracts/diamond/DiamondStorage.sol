@@ -3,7 +3,7 @@
 /* solhint-disable avoid-low-level-calls */
 /* solhint-disable func-visibility */
 
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
 import {DiamondState} from "./DiamondState.sol";
 

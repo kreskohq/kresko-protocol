@@ -10,7 +10,7 @@
             }
         ],
         "avoid-tx-origin": "error",
-        "compiler-version": ["error", "<=0.8.18"],
+        "compiler-version": ["error", "<=0.8.21"],
         "no-inline-assembly": ["off"],
         "prettier/prettier": "error",
         "reason-string": [

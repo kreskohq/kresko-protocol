@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 import {AggregatorV2V3Interface} from "../../vendor/flux/interfaces/AggregatorV2V3Interface.sol";
 import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
-import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {LibDecimals} from "../libs/LibDecimals.sol";
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
@@ -16,7 +15,6 @@ import {MinterState} from "../MinterState.sol";
  * @author Kresko
  */
 library LibCollateral {
-    using FixedPoint for FixedPoint.Unsigned;
     using LibDecimals for uint8;
     using Arrays for address[];
     using WadRay for uint256;
@@ -59,15 +57,14 @@ library LibCollateral {
         address _collateralAsset,
         uint256 _amount,
         bool _ignoreCollateralFactor
-    ) internal view returns (FixedPoint.Unsigned memory, FixedPoint.Unsigned memory) {
+    ) internal view returns (uint256, uint256) {
         CollateralAsset memory asset = self.collateralAssets[_collateralAsset];
 
-        FixedPoint.Unsigned memory fixedPointAmount = asset.decimals.toCollateralFixedPointAmount(_amount);
-        FixedPoint.Unsigned memory oraclePrice = asset.fixedPointPrice();
-        FixedPoint.Unsigned memory value = fixedPointAmount.mul(oraclePrice);
+        uint256 oraclePrice = asset.uintPrice();
+        uint256 value = asset.decimals.toWad(_amount).wadMul(oraclePrice);
 
         if (!_ignoreCollateralFactor) {
-            value = value.mul(asset.factor);
+            value = value.wadMul(asset.factor);
         }
         return (value, oraclePrice);
     }
@@ -178,21 +175,21 @@ library LibCollateral {
         // I.e. the new account's collateral value must still exceed the account's minimum
         // collateral value.
         // Get the account's current collateral value.
-        FixedPoint.Unsigned memory accountCollateralValue = self.getAccountCollateralValue(_account);
+        uint256 accountCollateralValue = self.getAccountCollateralValue(_account);
         // Get the collateral value that the account will lose as a result of this withdrawal.
-        (FixedPoint.Unsigned memory withdrawnCollateralValue, ) = self.getCollateralValueAndOraclePrice(
+        (uint256 withdrawnCollateralValue, ) = self.getCollateralValueAndOraclePrice(
             _collateralAsset,
             _withdrawAmount,
             false // Take the collateral factor into consideration.
         );
         // Get the account's minimum collateral value.
-        FixedPoint.Unsigned memory accountMinCollateralValue = self.getAccountMinimumCollateralValueAtRatio(
+        uint256 accountMinCollateralValue = self.getAccountMinimumCollateralValueAtRatio(
             _account,
             self.minimumCollateralizationRatio
         );
         // Require accountMinCollateralValue <= accountCollateralValue - withdrawnCollateralValue.
         require(
-            accountMinCollateralValue.isLessThanOrEqual(accountCollateralValue.sub(withdrawnCollateralValue)),
+            accountMinCollateralValue <= accountCollateralValue - withdrawnCollateralValue,
             Error.COLLATERAL_INSUFFICIENT_AMOUNT
         );
     }

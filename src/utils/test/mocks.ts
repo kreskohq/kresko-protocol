@@ -1,5 +1,5 @@
 import { anchorTokenPrefix } from "@deploy-config/shared";
-import { toBig, toFixedPoint, oneRay } from "@kreskolabs/lib";
+import { toBig, oneRay } from "@kreskolabs/lib";
 
 export type TestCollateralAssetArgs = {
     name: string;
@@ -86,9 +86,9 @@ export const defaultCollateralArgs = {
 };
 
 export const getNewMinterParams = (feeRecipient: string) => ({
-    minimumCollateralizationRatio: toFixedPoint(1.4),
+    minimumCollateralizationRatio: toBig(1.4),
     minimumDebtValue: toBig(20, 8),
-    liquidationThreshold: toFixedPoint(1.3),
+    liquidationThreshold: toBig(1.3),
     feeRecipient: feeRecipient,
     MLM: toBig(1.0002),
 });

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
 /* solhint-disable max-line-length */
 /* solhint-disable var-name-mixedcase */
@@ -9,8 +9,7 @@ pragma solidity >=0.8.14;
 /* solhint-disable avoid-low-level-calls */
 /* solhint-disable func-visibility */
 
-import {ds, Error, Meta} from "../../shared/Modifiers.sol";
-import {LibUI, IKrStaking, IUniswapV2Pair, IERC20Upgradeable, AggregatorV2V3Interface, ms} from "../libs/LibUI.sol";
+import {LibUI, IKrStaking, IUniswapV2Pair, IERC20Permit, AggregatorV2V3Interface, ms} from "../libs/LibUI.sol";
 
 /**
  * @author Kresko
@@ -33,9 +32,9 @@ contract UIDataProviderFacet2 {
         collateralAssets = LibUI.collateralAssetInfos(_collateralAssets);
         krAssets = LibUI.krAssetInfos(_krAssets);
         protocolParams = LibUI.ProtocolParams({
-            minCollateralRatio: ms().minimumCollateralizationRatio.rawValue,
-            minDebtValue: ms().minimumDebtValue.rawValue,
-            liquidationThreshold: ms().liquidationThreshold.rawValue
+            minCollateralRatio: ms().minimumCollateralizationRatio,
+            minDebtValue: ms().minimumDebtValue,
+            liquidationThreshold: ms().liquidationThreshold
         });
     }
 
@@ -45,8 +44,8 @@ contract UIDataProviderFacet2 {
             IUniswapV2Pair pair = IUniswapV2Pair(_pairAddresses[i]);
             (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
             result[i] = LibUI.PairData({
-                decimals0: IERC20Upgradeable(pair.token0()).decimals(),
-                decimals1: IERC20Upgradeable(pair.token1()).decimals(),
+                decimals0: IERC20Permit(pair.token0()).decimals(),
+                decimals1: IERC20Permit(pair.token1()).decimals(),
                 totalSupply: pair.totalSupply(),
                 reserve0: reserve0,
                 reserve1: reserve1

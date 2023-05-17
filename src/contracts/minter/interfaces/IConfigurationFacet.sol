@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
 import {MinterInitArgs, KrAsset, CollateralAsset} from "../MinterTypes.sol";
 
@@ -11,9 +11,9 @@ interface IConfigurationFacet {
      * @dev Only callable by the owner and cannot be called more than once for an asset.
      * @param _collateralAsset The address of the collateral asset.
      * @param _anchor Underlying anchor for a krAsset collateral, needs to support IKreskoAssetAnchor.
-     * @param _factor The collateral factor of the collateral asset as a raw value for a FixedPoint.Unsigned.
+     * @param _factor The collateral factor of the collateral asset.
      * Must be <= 1e18.
-     * @param _liquidationIncentiveMultiplier The liquidation incentive multiplier as a FixedPoint.Unsigned.
+     * @param _liquidationIncentiveMultiplier The liquidation incentive multiplier.
      * @param _priceFeedOracle The oracle address for the collateral asset's USD value.
      * @param _marketStatusOracle The oracle address for the collateral asset's market open/closed status
      */
@@ -31,7 +31,7 @@ interface IConfigurationFacet {
      * @dev Only callable by the owner.
      * @param _krAsset The address of the wrapped KreskoAsset, needs to support IKreskoAsset.
      * @param _anchor Underlying anchor for the krAsset, needs to support IKreskoAssetAnchor.
-     * @param _kFactor The k-factor of the KreskoAsset as a raw value for a FixedPoint.Unsigned. Must be >= 1e18.
+     * @param _kFactor The k-factor of the KreskoAsset. Must be >= 1e18.
      * @param _priceFeedOracle The oracle address for the KreskoAsset.
      * @param _marketStatusOracle The oracle address for the KreskoAsset market status.
      * @param _supplyLimit The initial total supply limit for the KreskoAsset.
@@ -54,8 +54,8 @@ interface IConfigurationFacet {
      * @dev Only callable by the owner.
      * @param _collateralAsset The address of the collateral asset.
      * @param _anchor Underlying anchor for a krAsset collateral, needs to support IKreskoAssetAnchor.
-     * @param _factor The new collateral factor as a raw value for a FixedPoint.Unsigned. Must be <= 1e18.
-     * @param _liquidationIncentiveMultiplier The liquidation incentive multiplier as a FixedPoint.Unsigned.
+     * @param _factor The new collateral factor. Must be <= 1e18.
+     * @param _liquidationIncentiveMultiplier The liquidation incentive multiplier.
      * @param _priceFeedOracle The new oracle address for the collateral asset.
      * @param _marketStatusOracle The oracle address for the collateral asset's market open/closed status
      */
@@ -93,7 +93,7 @@ interface IConfigurationFacet {
      * @dev Only callable by the owner.
      * @param _krAsset The address of the KreskoAsset.
      * @param _anchor Underlying anchor for a krAsset.
-     * @param _kFactor The new k-factor as a raw value for a FixedPoint.Unsigned. Must be >= 1e18.
+     * @param _kFactor The new k-factor. Must be >= 1e18.
      * @param _priceFeedOracle The new oracle address for the KreskoAsset's USD value.
      * @param _marketStatusOracle The oracle address for the KreskoAsset market status.
      * @param _supplyLimit The new total supply limit for the KreskoAsset.
@@ -129,14 +129,13 @@ interface IConfigurationFacet {
 
     /**
      * @dev Updates the contract's collateralization ratio.
-     * @param _minimumCollateralizationRatio The new minimum collateralization ratio as a raw value
-     * for a FixedPoint.Unsigned.
+     * @param _minimumCollateralizationRatio The new minimum collateralization ratio as wad.
      */
     function updateMinimumCollateralizationRatio(uint256 _minimumCollateralizationRatio) external;
 
     /**
      * @dev Updates the contract's minimum debt value.
-     * @param _minimumDebtValue The new minimum debt value as a raw value for a FixedPoint.Unsigned.
+     * @param _minimumDebtValue The new minimum debt value as a wad.
      */
     function updateMinimumDebtValue(uint256 _minimumDebtValue) external;
 

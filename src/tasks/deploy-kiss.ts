@@ -1,5 +1,5 @@
 import { getDeploymentUsers } from "@deploy-config/shared";
-import { getLogger } from "@kreskolabs/lib";
+import { getLogger, toBig } from "@kreskolabs/lib";
 import { defaultKrAssetArgs } from "@utils/test/mocks";
 import { Role } from "@utils/test/roles";
 import { task, types } from "hardhat/config";
@@ -28,7 +28,14 @@ task(TASK_DEPLOY_KISS)
             from: deployer.address,
             contract: "KISS",
             log: true,
-            args: [args.name, args.symbol, args.decimals, args.admin, args.operator],
+            proxy: {
+                owner: deployer.address,
+                proxyContract: "OptimizedTransparentProxy",
+                execute: {
+                    methodName: "initialize",
+                    args: [args.name, args.symbol, args.decimals, args.admin, args.operator],
+                },
+            },
         });
         logger.log(`KISS deployed at ${KISSContract.address}, checking roles...`);
         const hasRole = await KISSContract.hasRole(Role.OPERATOR, args.operator);
@@ -57,7 +64,7 @@ task(TASK_DEPLOY_KISS)
             },
             mocks: {} as any,
             kresko: async () => await hre.Diamond.kreskoAsset(KISSContract.address),
-            getPrice: async () => hre.toBig(1, 8),
+            getPrice: async () => toBig(1, 8),
             priceFeed: {} as any,
         };
 

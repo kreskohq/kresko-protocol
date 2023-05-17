@@ -109,8 +109,6 @@ declare module "hardhat/types/runtime" {
         /*                              Helper Functions                              */
         /* -------------------------------------------------------------------------- */
 
-        fromBig: typeof fromBig;
-        toBig: typeof toBig;
         checkAddress: typeof checkAddress;
         getDeploymentOrFork: (deploymentName: string) => Promise<Deployment | null>;
         getContractOrFork: <T extends keyof TC>(type: T, deploymentName?: string) => Promise<TC[T]>;
@@ -133,22 +131,6 @@ declare module "hardhat/types/runtime" {
         getSignatures: (abi: ABI) => string[];
         getSignaturesWithNames: (abi: ABI) => { name: string; sig: string }[];
         bytesCall: <T>(func: FunctionFragment, params: T) => string;
-        getFacetCut: <T extends keyof TC>(
-            facet: T,
-            action: FacetCutAction,
-            signatures?: string[],
-            initializer?: {
-                contract: Contract;
-                functionName?: string;
-                args?: [string, BytesLike];
-            },
-        ) => Promise<{
-            facetCut: FacetCut;
-            initialization: {
-                _init: string;
-                _calldata: BytesLike;
-            };
-        }>;
         users: HardhatUsers<SignerWithAddress>;
         addr: HardhatUsers<string>;
 

@@ -1,5 +1,5 @@
 import { anchorTokenPrefix } from "@deploy-config/shared";
-import { getLogger, toFixedPoint } from "@kreskolabs/lib";
+import { getLogger, toBig } from "@kreskolabs/lib";
 import { defaultSupplyLimit } from "@utils/test/mocks";
 import { task, types } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
@@ -41,12 +41,12 @@ task(TASK_WHITELIST_KRASSET)
             const tx = await kresko.addKreskoAsset(
                 KrAsset.address,
                 KrAssetAnchor ? KrAssetAnchor.address : KrAsset.address,
-                toFixedPoint(kFactor),
+                toBig(kFactor),
                 oracleAddr,
                 marketStatusOracleAddr,
-                toFixedPoint(supplyLimit),
-                toFixedPoint(0.02),
-                toFixedPoint(0),
+                toBig(supplyLimit),
+                toBig(0.02),
+                toBig(0),
             );
             logger.success("txHash", tx.hash);
             await tx.wait();

@@ -1,5 +1,5 @@
 import { testnetConfigs } from "@deploy-config/opgoerli";
-import { fromBig, getLogger, toFixedPoint } from "@kreskolabs/lib";
+import { fromBig, getLogger, toBig } from "@kreskolabs/lib";
 
 export default async function run() {
     const { feedValidator, deployer } = await hre.ethers.getNamedSigners();
@@ -21,12 +21,12 @@ export default async function run() {
             throw new Error(`0 addr ${collateral.symbol}`);
         }
         const priceFeed = collateral.oracle!.chainlink ? collateral.oracle!.chainlink : fluxFeed;
-        const liqIncentive = toFixedPoint(process.env.LIQUIDATION_INCENTIVE);
+        const liqIncentive = toBig(process.env.LIQUIDATION_INCENTIVE!);
 
         await Kresko.updateCollateralAsset(
             contract.address,
             asset.anchor,
-            asset.factor.rawValue,
+            asset.factor,
             liqIncentive,
             priceFeed,
             fluxFeed,
@@ -51,12 +51,12 @@ export default async function run() {
         await Kresko.updateKreskoAsset(
             contract.address,
             asset.anchor,
-            asset.kFactor.rawValue,
+            asset.kFactor,
             priceFeed,
             fluxFeed,
             asset.supplyLimit,
-            asset.closeFee.rawValue,
-            asset.openFee.rawValue,
+            asset.closeFee,
+            asset.openFee,
         );
     }
     logger.success("All price feeds updated");

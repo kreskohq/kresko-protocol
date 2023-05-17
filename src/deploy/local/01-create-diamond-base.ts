@@ -44,7 +44,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         InitialFacets.push(facetCutAdd);
         ABIs.push(Artifact.abi);
     }
-
     const [, _signatures, deployment] = await hre.deploy("Diamond", {
         from: deployer,
         log: true,
@@ -58,7 +57,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         functionSelectors: f.functionSelectors,
     }));
     deployment.abi = mergeABIs([deployment.abi, ...ABIs], {
-        check: true,
+        check: false,
         skipSupportsInterface: false,
     });
     await hre.deployments.save("Diamond", deployment);

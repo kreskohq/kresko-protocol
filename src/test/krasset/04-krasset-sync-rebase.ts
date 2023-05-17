@@ -1,3 +1,4 @@
+import { toBig } from "@kreskolabs/lib";
 import { Role, defaultMintAmount, withFixture } from "@utils/test";
 import { expect } from "chai";
 import hre, { ethers } from "hardhat";
@@ -26,7 +27,7 @@ describe("Test KreskoAsset with Rebase and sync", () => {
         const [beforeReserve0, beforeReserve1, beforeTimestamp] = await this.pool.getReserves();
 
         await KreskoAsset.mint(hre.addr.deployer, defaultMintAmount);
-        await KreskoAsset.rebase(hre.toBig(denominator), positive, []);
+        await KreskoAsset.rebase(toBig(denominator), positive, []);
 
         const [afterReserve0, afterReserve1, afterTimestamp] = await this.pool.getReserves();
 
@@ -44,7 +45,7 @@ describe("Test KreskoAsset with Rebase and sync", () => {
 
         const [beforeReserve0, beforeReserve1, beforeTimestamp] = await this.pool.getReserves();
 
-        await KreskoAsset.rebase(hre.toBig(denominator), positive, [this.pool.address]);
+        await KreskoAsset.rebase(toBig(denominator), positive, [this.pool.address]);
 
         const [afterReserve0, afterReserve1, afterTimestamp] = await this.pool.getReserves();
 

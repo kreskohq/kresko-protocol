@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
 import {IMintFacet} from "../interfaces/IMintFacet.sol";
 import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
@@ -9,8 +9,9 @@ import {Error} from "../../libs/Errors.sol";
 import {Role} from "../../libs/Authorization.sol";
 import {MinterEvent} from "../../libs/Events.sol";
 
-import {DiamondModifiers, MinterModifiers} from "../../shared/Modifiers.sol";
-import {Action, FixedPoint, KrAsset} from "../MinterTypes.sol";
+import {MinterModifiers} from "../MinterModifiers.sol";
+import {DiamondModifiers} from "../../diamond/DiamondModifiers.sol";
+import {Action, KrAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";
 
@@ -20,7 +21,6 @@ import {irs} from "../InterestRateState.sol";
  * @notice Main end-user functionality concerning minting kresko assets
  */
 contract MintFacet is DiamondModifiers, MinterModifiers, IMintFacet {
-    using FixedPoint for FixedPoint.Unsigned;
     using Arrays for address[];
 
     /* -------------------------------------------------------------------------- */
@@ -54,7 +54,7 @@ contract MintFacet is DiamondModifiers, MinterModifiers, IMintFacet {
             Error.KRASSET_MAX_SUPPLY_REACHED
         );
 
-        if (krAsset.openFee.rawValue > 0) {
+        if (krAsset.openFee > 0) {
             s.chargeOpenFee(_account, _kreskoAsset, _mintAmount);
         }
         {
@@ -62,20 +62,16 @@ contract MintFacet is DiamondModifiers, MinterModifiers, IMintFacet {
             // Calculate additional collateral amount required to back requested additional mint.
             // Verify that minter has sufficient collateral to back current debt + new requested debt.
             require(
-                s
-                    .getAccountMinimumCollateralValueAtRatio(_account, s.minimumCollateralizationRatio)
-                    .add(s.getMinimumCollateralValueAtRatio(_kreskoAsset, _mintAmount, s.minimumCollateralizationRatio))
-                    .isLessThanOrEqual(s.getAccountCollateralValue(_account)),
+                s.getAccountMinimumCollateralValueAtRatio(_account, s.minimumCollateralizationRatio) +
+                    s.getMinimumCollateralValueAtRatio(_kreskoAsset, _mintAmount, s.minimumCollateralizationRatio) <=
+                    s.getAccountCollateralValue(_account),
                 Error.KRASSET_COLLATERAL_LOW
             );
         }
 
         // The synthetic asset debt position must be greater than the minimum debt position value
         uint256 existingDebt = s.getKreskoAssetDebtScaled(_account, _kreskoAsset);
-        require(
-            krAsset.fixedPointUSD(existingDebt + _mintAmount).isGreaterThanOrEqual(s.minimumDebtValue),
-            Error.KRASSET_MINT_AMOUNT_LOW
-        );
+        require(krAsset.uintUSD(existingDebt + _mintAmount) >= s.minimumDebtValue, Error.KRASSET_MINT_AMOUNT_LOW);
 
         // If the account does not have an existing debt for this Kresko Asset,
         // push it to the list of the account's minted Kresko Assets.
