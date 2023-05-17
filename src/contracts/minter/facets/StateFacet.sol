@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
 import {IStateFacet} from "../interfaces/IStateFacet.sol";
 
-import {MinterParams, FixedPoint, KrAsset, CollateralAsset} from "../MinterTypes.sol";
+import {MinterParams, KrAsset, CollateralAsset} from "../MinterTypes.sol";
 import {MinterState, ms} from "../MinterStorage.sol";
 
 /**
@@ -41,27 +41,27 @@ contract StateFacet is IStateFacet {
     }
 
     /// @inheritdoc IStateFacet
-    function minimumCollateralizationRatio() external view returns (FixedPoint.Unsigned memory) {
+    function minimumCollateralizationRatio() external view returns (uint256) {
         return ms().minimumCollateralizationRatio;
     }
 
     /// @inheritdoc IStateFacet
-    function liquidationIncentiveMultiplier() external view returns (FixedPoint.Unsigned memory) {
+    function liquidationIncentiveMultiplier() external view returns (uint256) {
         return ms().liquidationIncentiveMultiplier;
     }
 
     /// @inheritdoc IStateFacet
-    function minimumDebtValue() external view returns (FixedPoint.Unsigned memory) {
+    function minimumDebtValue() external view returns (uint256) {
         return ms().minimumDebtValue;
     }
 
     /// @inheritdoc IStateFacet
-    function liquidationThreshold() external view returns (FixedPoint.Unsigned memory) {
+    function liquidationThreshold() external view returns (uint256) {
         return ms().liquidationThreshold;
     }
 
     /// @inheritdoc IStateFacet
-    function maxLiquidationMultiplier() external view returns (FixedPoint.Unsigned memory) {
+    function maxLiquidationMultiplier() external view returns (uint256) {
         return ms().maxLiquidationMultiplier;
     }
 
@@ -107,7 +107,7 @@ contract StateFacet is IStateFacet {
         address _collateralAsset,
         uint256 _amount,
         bool _ignoreCollateralFactor
-    ) external view returns (FixedPoint.Unsigned memory value, FixedPoint.Unsigned memory oraclePrice) {
+    ) external view returns (uint256 value, uint256 oraclePrice) {
         return ms().getCollateralValueAndOraclePrice(_collateralAsset, _amount, _ignoreCollateralFactor);
     }
 
@@ -116,7 +116,7 @@ contract StateFacet is IStateFacet {
         address _kreskoAsset,
         uint256 _amount,
         bool _ignoreKFactor
-    ) external view returns (FixedPoint.Unsigned memory value) {
+    ) external view returns (uint256 value) {
         return ms().getKrAssetValue(_kreskoAsset, _amount, _ignoreKFactor);
     }
 }

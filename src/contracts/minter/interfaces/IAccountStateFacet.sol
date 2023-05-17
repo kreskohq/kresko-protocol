@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
-import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {Action} from "../MinterTypes.sol";
 
 interface IAccountStateFacet {
@@ -32,7 +31,7 @@ interface IAccountStateFacet {
      * @param _account The account to calculate the Kresko asset value for.
      * @return The Kresko asset value of a particular account.
      */
-    function getAccountKrAssetValue(address _account) external view returns (FixedPoint.Unsigned memory);
+    function getAccountKrAssetValue(address _account) external view returns (uint256);
 
     /**
      * @notice Get `_account` debt amount for `_asset`
@@ -75,7 +74,7 @@ interface IAccountStateFacet {
      * @param _account The account to calculate the collateral value for.
      * @return The collateral value of a particular account.
      */
-    function getAccountCollateralValue(address _account) external view returns (FixedPoint.Unsigned memory);
+    function getAccountCollateralValue(address _account) external view returns (uint256);
 
     /**
      * @notice Get an account's minimum collateral value required
@@ -86,22 +85,19 @@ interface IAccountStateFacet {
      * @param _ratio The collateralization ratio required: higher ratio = more collateral required
      * @return The minimum collateral value of a particular account.
      */
-    function getAccountMinimumCollateralValueAtRatio(
-        address _account,
-        FixedPoint.Unsigned memory _ratio
-    ) external view returns (FixedPoint.Unsigned memory);
+    function getAccountMinimumCollateralValueAtRatio(address _account, uint256 _ratio) external view returns (uint256);
 
     /**
      * @notice Get a list of accounts and their collateral ratios
      * @return ratio for an `_account`
      */
-    function getAccountCollateralRatio(address _account) external view returns (FixedPoint.Unsigned memory ratio);
+    function getAccountCollateralRatio(address _account) external view returns (uint256 ratio);
 
     /**
      * @notice Get a list of accounts and their collateral ratios
      * @return ratios of the accounts
      */
-    function getCollateralRatiosFor(address[] memory _accounts) external view returns (FixedPoint.Unsigned[] memory);
+    function getCollateralRatiosFor(address[] memory _accounts) external view returns (uint256[] memory);
 
     /**
      * @notice Get the adjusted value of collateral and the real value of collateral
@@ -114,7 +110,7 @@ interface IAccountStateFacet {
     function getCollateralAdjustedAndRealValue(
         address _account,
         address _asset
-    ) external view returns (FixedPoint.Unsigned memory adjustedValue, FixedPoint.Unsigned memory realValue);
+    ) external view returns (uint256 adjustedValue, uint256 realValue);
 
     /**
      * @notice Gets an index for the collateral asset the account has deposited.

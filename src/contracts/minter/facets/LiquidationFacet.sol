@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
 // solhint-disable not-rely-on-time
 
@@ -8,13 +8,13 @@ import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
 
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
-import {LibDecimals, FixedPoint} from "../libs/LibDecimals.sol";
+import {LibDecimals} from "../libs/LibDecimals.sol";
 import {LibCalculation} from "../libs/LibCalculation.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 import {MinterEvent} from "../../libs/Events.sol";
 
-import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
-import {DiamondModifiers} from "../../shared/Modifiers.sol";
+import {SafeERC20, IERC20Permit} from "../../shared/SafeERC20.sol";
+import {DiamondModifiers} from "../../diamond/DiamondModifiers.sol";
 
 import {Constants, KrAsset, CollateralAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
@@ -28,13 +28,9 @@ import {irs} from "../InterestRateState.sol";
 contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
     using Arrays for address[];
     using LibDecimals for uint8;
-    using LibDecimals for FixedPoint.Unsigned;
     using LibDecimals for uint256;
     using WadRay for uint256;
-    using FixedPoint for FixedPoint.Unsigned;
-    using FixedPoint for uint256;
-    using FixedPoint for int256;
-    using SafeERC20Upgradeable for IERC20Upgradeable;
+    using SafeERC20 for IERC20Permit;
 
     /// @inheritdoc ILiquidationFacet
     function liquidate(
@@ -88,7 +84,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
             ExecutionParams(
                 _account,
                 _repayAmount,
-                collateral.decimals.fromCollateralFixedPointAmount(
+                collateral.decimals.fromWad(
                     LibCalculation.calculateAmountToSeize(
                         collateral.liquidationIncentive,
                         collateral.uintPrice(),
@@ -104,7 +100,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
 
         /* ---------------------------- Balance transfer ---------------------------- */
         // Send liquidator the seized collateral.
-        IERC20Upgradeable(_seizeAsset).safeTransfer(msg.sender, seizedAmount);
+        IERC20Permit(_seizeAsset).safeTransfer(msg.sender, seizedAmount);
 
         emit MinterEvent.LiquidationOccurred(
             _account,

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.6.6;
 
-
+/* solhint-disable no-global-import */
 import "../v2-core/interfaces/IUniswapV2Factory.sol";
+import "../v2-core/interfaces/IERC20Minimal.sol";
 import "./interfaces/IUniswapV2Router01.sol";
-import "./interfaces/IERC20.sol";
 import "./interfaces/IWETH.sol";
 
 import "@uniswap/lib/contracts/libraries/TransferHelper.sol";

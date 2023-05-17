@@ -1,5 +1,6 @@
+// SPDX-License-Identifier: agpl-3.0
 pragma solidity >=0.6.2;
-
+/** solhint-disable no-global-import */
 import "./IUniswapV2Router01.sol";
 
 interface IUniswapV2Router02 is IUniswapV2Router01 {

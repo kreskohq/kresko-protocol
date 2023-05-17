@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.6.6;
-
+/* solhint-disable no-global-import */
 import "../v2-core/interfaces/IUniswapV2Factory.sol";
+import "../v2-core/interfaces/IERC20Minimal.sol";
 import "./interfaces/IUniswapV2Router02.sol";
-import "./interfaces/IERC20.sol";
 import "./interfaces/IWETH.sol";
 
 import "./libraries/UniswapV2Library.sol";
@@ -213,7 +213,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint256 deadline
     ) public virtual override ensure(deadline) returns (uint256 amountETH) {
         (, amountETH) = removeLiquidity(token, WETH, liquidity, amountTokenMin, amountETHMin, address(this), deadline);
-        TransferHelper.safeTransfer(token, to, IERC20(token).balanceOf(address(this)));
+        TransferHelper.safeTransfer(token, to, IERC20Minimal(token).balanceOf(address(this)));
         IWETH(WETH).withdraw(amountETH);
         TransferHelper.safeTransferETH(to, amountETH);
     }
@@ -391,7 +391,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
                 (uint256 reserveInput, uint256 reserveOutput) = input == token0
                     ? (reserve0, reserve1)
                     : (reserve1, reserve0);
-                amountInput = IERC20(input).balanceOf(address(pair)).sub(reserveInput);
+                amountInput = IERC20Minimal(input).balanceOf(address(pair)).sub(reserveInput);
                 amountOutput = UniswapV2Library.getAmountOut(amountInput, reserveInput, reserveOutput);
             }
             (uint256 amount0Out, uint256 amount1Out) = input == token0
@@ -415,10 +415,10 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
             UniswapV2Library.pairFor(factory, path[0], path[1]),
             amountIn
         );
-        uint256 balanceBefore = IERC20(path[path.length - 1]).balanceOf(to);
+        uint256 balanceBefore = IERC20Minimal(path[path.length - 1]).balanceOf(to);
         _swapSupportingFeeOnTransferTokens(path, to);
         require(
-            IERC20(path[path.length - 1]).balanceOf(to).sub(balanceBefore) >= amountOutMin,
+            IERC20Minimal(path[path.length - 1]).balanceOf(to).sub(balanceBefore) >= amountOutMin,
             "UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT"
         );
     }
@@ -433,10 +433,10 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint256 amountIn = msg.value;
         IWETH(WETH).deposit{value: amountIn}();
         assert(IWETH(WETH).transfer(UniswapV2Library.pairFor(factory, path[0], path[1]), amountIn));
-        uint256 balanceBefore = IERC20(path[path.length - 1]).balanceOf(to);
+        uint256 balanceBefore = IERC20Minimal(path[path.length - 1]).balanceOf(to);
         _swapSupportingFeeOnTransferTokens(path, to);
         require(
-            IERC20(path[path.length - 1]).balanceOf(to).sub(balanceBefore) >= amountOutMin,
+            IERC20Minimal(path[path.length - 1]).balanceOf(to).sub(balanceBefore) >= amountOutMin,
             "UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT"
         );
     }
@@ -456,7 +456,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
             amountIn
         );
         _swapSupportingFeeOnTransferTokens(path, address(this));
-        uint256 amountOut = IERC20(WETH).balanceOf(address(this));
+        uint256 amountOut = IERC20Minimal(WETH).balanceOf(address(this));
         require(amountOut >= amountOutMin, "UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT");
         IWETH(WETH).withdraw(amountOut);
         TransferHelper.safeTransferETH(to, amountOut);

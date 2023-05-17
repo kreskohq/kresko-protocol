@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
 import {IAccountStateFacet} from "../interfaces/IAccountStateFacet.sol";
-import {Action, Fee, KrAsset, CollateralAsset, FixedPoint} from "../MinterTypes.sol";
-import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
+import {Fee, KrAsset, CollateralAsset} from "../MinterTypes.sol";
 import {Error} from "../../libs/Errors.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 import {LibDecimals} from "../libs/LibDecimals.sol";
@@ -17,10 +16,7 @@ import {ms} from "../MinterStorage.sol";
 contract AccountStateFacet is IAccountStateFacet {
     using LibDecimals for uint256;
     using LibDecimals for uint8;
-    using LibDecimals for FixedPoint.Unsigned;
-    using FixedPoint for FixedPoint.Unsigned;
-    using FixedPoint for int256;
-    using FixedPoint for uint256;
+    using LibDecimals for uint256;
     using WadRay for uint256;
 
     /* -------------------------------------------------------------------------- */
@@ -38,7 +34,7 @@ contract AccountStateFacet is IAccountStateFacet {
     }
 
     /// @inheritdoc IAccountStateFacet
-    function getAccountKrAssetValue(address _account) external view returns (FixedPoint.Unsigned memory) {
+    function getAccountKrAssetValue(address _account) external view returns (uint256) {
         return ms().getAccountKrAssetValue(_account);
     }
 
@@ -92,43 +88,40 @@ contract AccountStateFacet is IAccountStateFacet {
     }
 
     /// @inheritdoc IAccountStateFacet
-    function getAccountCollateralValue(address _account) public view returns (FixedPoint.Unsigned memory) {
+    function getAccountCollateralValue(address _account) public view returns (uint256) {
         return ms().getAccountCollateralValue(_account);
     }
 
     /// @inheritdoc IAccountStateFacet
-    function getAccountMinimumCollateralValueAtRatio(
-        address _account,
-        FixedPoint.Unsigned memory _ratio
-    ) public view returns (FixedPoint.Unsigned memory) {
+    function getAccountMinimumCollateralValueAtRatio(address _account, uint256 _ratio) public view returns (uint256) {
         return ms().getAccountMinimumCollateralValueAtRatio(_account, _ratio);
     }
 
     /// @inheritdoc IAccountStateFacet
-    function getAccountCollateralRatio(address _account) public view returns (FixedPoint.Unsigned memory ratio) {
-        FixedPoint.Unsigned memory collateralValue = ms().getAccountCollateralValue(_account);
-        if (collateralValue.rawValue == 0) {
-            return FixedPoint.Unsigned(0);
+    function getAccountCollateralRatio(address _account) public view returns (uint256 ratio) {
+        uint256 collateralValue = ms().getAccountCollateralValue(_account);
+        if (collateralValue == 0) {
+            return uint256(0);
         }
-        FixedPoint.Unsigned memory krAssetValue = ms().getAccountKrAssetValue(_account);
-        if (krAssetValue.rawValue == 0) {
-            return FixedPoint.Unsigned(0);
+        uint256 krAssetValue = ms().getAccountKrAssetValue(_account);
+        if (krAssetValue == 0) {
+            return uint256(0);
         }
-        ratio = collateralValue.div(krAssetValue);
+        ratio = collateralValue.wadDiv(krAssetValue);
     }
 
     /// @inheritdoc IAccountStateFacet
     function getCollateralAdjustedAndRealValue(
         address _account,
         address _asset
-    ) external view returns (FixedPoint.Unsigned memory adjustedValue, FixedPoint.Unsigned memory realValue) {
+    ) external view returns (uint256 adjustedValue, uint256 realValue) {
         uint256 depositAmount = ms().getCollateralDeposits(_account, _asset);
         return ms().getCollateralValueAndOraclePrice(_asset, depositAmount, false);
     }
 
     /// @inheritdoc IAccountStateFacet
-    function getCollateralRatiosFor(address[] calldata _accounts) external view returns (FixedPoint.Unsigned[] memory) {
-        FixedPoint.Unsigned[] memory ratios = new FixedPoint.Unsigned[](_accounts.length);
+    function getCollateralRatiosFor(address[] calldata _accounts) external view returns (uint256[] memory) {
+        uint256[] memory ratios = new uint256[](_accounts.length);
         for (uint256 i; i < _accounts.length; i++) {
             ratios[i] = getAccountCollateralRatio(_accounts[i]);
         }
@@ -148,11 +141,8 @@ contract AccountStateFacet is IAccountStateFacet {
 
         // Calculate the value of the fee according to the value of the krAsset
         uint256 feeValue = krAsset.uintUSD(_kreskoAssetAmount).wadMul(
-            Fee(_feeType) == Fee.Open ? krAsset.openFee.rawValue : krAsset.closeFee.rawValue
+            Fee(_feeType) == Fee.Open ? krAsset.openFee : krAsset.closeFee
         );
-        // uint256 feeValue = krAsset.fixedPointUSD(_kreskoAssetAmount).mul(
-        //     Fee(_feeType) == Fee.Open ? krAsset.openFee : krAsset.closeFee
-        // );
 
         address[] memory accountCollateralAssets = ms().depositedCollateralAssets[_account];
 
@@ -171,20 +161,23 @@ contract AccountStateFacet is IAccountStateFacet {
             uint256 depositAmount = ms().getCollateralDeposits(_account, collateralAssetAddress);
 
             // Don't take the collateral asset's collateral factor into consideration.
-            (FixedPoint.Unsigned memory depositValue, FixedPoint.Unsigned memory oraclePrice) = ms()
-                .getCollateralValueAndOraclePrice(collateralAssetAddress, depositAmount, true);
+            (uint256 depositValue, uint256 oraclePrice) = ms().getCollateralValueAndOraclePrice(
+                collateralAssetAddress,
+                depositAmount,
+                true
+            );
 
             uint256 feeValuePaid;
             uint256 transferAmount;
             // If feeValue < depositValue, the entire fee can be charged for this collateral asset.
-            if (feeValue < depositValue.rawValue) {
-                transferAmount = ms().collateralAssets[collateralAssetAddress].decimals.fromCollateralFixedPointAmount(
-                    feeValue.wadDiv(oraclePrice.rawValue)
+            if (feeValue < depositValue) {
+                transferAmount = ms().collateralAssets[collateralAssetAddress].decimals.fromWad(
+                    feeValue.wadDiv(oraclePrice)
                 );
                 feeValuePaid = feeValue;
             } else {
                 transferAmount = depositAmount;
-                feeValuePaid = depositValue.rawValue;
+                feeValuePaid = depositValue;
             }
 
             if (transferAmount > 0) {

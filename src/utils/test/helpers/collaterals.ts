@@ -1,10 +1,10 @@
-import hre from "hardhat";
 import { smock } from "@defi-wonderland/smock";
-import { toFixedPoint, toBig, fromBig } from "@kreskolabs/lib";
-import { TestCollateralAssetArgs, defaultCollateralArgs, TestCollateralAssetUpdate, InputArgs } from "../mocks";
-import { getMockOracleFor, setPrice } from "./general";
+import { toBig } from "@kreskolabs/lib";
 import { ERC20Upgradeable__factory, FluxPriceFeed__factory } from "types/typechain";
-
+import { InputArgs, TestCollateralAssetArgs, TestCollateralAssetUpdate, defaultCollateralArgs } from "../mocks";
+import { getMockOracleFor, setPrice } from "./general";
+import { envCheck } from "@utils/general";
+envCheck();
 export const addMockCollateralAsset = async (
     args: TestCollateralAssetArgs = defaultCollateralArgs,
 ): Promise<TestCollateral> => {
@@ -18,13 +18,13 @@ export const addMockCollateralAsset = async (
     TestCollateral.name.returns(name);
     TestCollateral.symbol.returns(name);
     TestCollateral.decimals.returns(decimals);
-    const cFactor = toFixedPoint(factor);
+    const cFactor = toBig(factor);
 
     await hre.Diamond.connect(deployer).addCollateralAsset(
         TestCollateral.address,
         hre.ethers.constants.AddressZero,
         cFactor,
-        toFixedPoint(process.env.LIQUIDATION_INCENTIVE),
+        toBig(process.env.LIQUIDATION_INCENTIVE!),
         MockOracle.address,
         MockOracle.address,
     );
@@ -70,8 +70,8 @@ export const updateCollateralAsset = async (address: string, args: TestCollatera
     await hre.Diamond.connect(deployer).updateCollateralAsset(
         collateral!.address,
         hre.ethers.constants.AddressZero,
-        toFixedPoint(args.factor),
-        toFixedPoint(process.env.LIQUIDATION_INCENTIVE),
+        toBig(args.factor),
+        toBig(process.env.LIQUIDATION_INCENTIVE!),
         args.oracle || collateral!.priceFeed.address,
         args.oracle || collateral!.priceFeed.address,
     );
@@ -129,10 +129,11 @@ export const withdrawCollateral = async (args: InputArgs) => {
 export const getMaxWithdrawal = async (user: string, collateral: any) => {
     const [collateralValue] = await hre.Diamond.getCollateralAdjustedAndRealValue(user, collateral.address);
 
-    const minCollateralRequired = await hre.Diamond.getAccountMinimumCollateralValueAtRatio(user, {
-        rawValue: (await hre.Diamond.minimumCollateralizationRatio()).rawValue.add((15e8).toString()),
-    });
-    const maxWithdrawValue = collateralValue.rawValue.sub(minCollateralRequired.rawValue);
+    const minCollateralRequired = await hre.Diamond.getAccountMinimumCollateralValueAtRatio(
+        user,
+        (await hre.Diamond.minimumCollateralizationRatio()).add((15e8).toString()),
+    );
+    const maxWithdrawValue = collateralValue.sub(minCollateralRequired);
     const maxWithdrawAmount = maxWithdrawValue.wadDiv(await collateral.getPrice());
 
     return { maxWithdrawValue, maxWithdrawAmount };

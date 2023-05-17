@@ -2,11 +2,12 @@
 /*                         SHARED CONFIGURATION VALUES                        */
 /* ========================================================================== */
 
-import { toFixedPoint } from "@kreskolabs/lib";
+import { toBig } from "@kreskolabs/lib";
+import { envCheck } from "@utils/general";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import type { MinterInitializer } from "types";
 import { MinterInitArgsStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
-
+envCheck();
 // These function namings are ignored when generating ABI for the diamond
 const signatureFilters = ["init", "initializer"];
 
@@ -56,9 +57,9 @@ export const getMinterInitializer = async (
             admin,
             treasury,
             council: multisig,
-            minimumCollateralizationRatio: toFixedPoint(process.env.MINIMUM_COLLATERALIZATION_RATIO),
-            minimumDebtValue: toFixedPoint(process.env.MINIMUM_DEBT_VALUE, 8),
-            liquidationThreshold: toFixedPoint(process.env.LIQUIDATION_THRESHOLD),
+            minimumCollateralizationRatio: toBig(process.env.MINIMUM_COLLATERALIZATION_RATIO!),
+            minimumDebtValue: toBig(process.env.MINIMUM_DEBT_VALUE!, 8),
+            liquidationThreshold: toBig(process.env.LIQUIDATION_THRESHOLD!),
             extOracleDecimals: 8,
         },
     };

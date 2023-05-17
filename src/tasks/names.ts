@@ -14,6 +14,7 @@ export const TASK_MINT_OPTIMAL = "mint-krasset-optimal";
 export const TASK_DEPLOY_TOKEN = "deploy:token";
 export const TASK_DEPLOY_CONTRACT = "deploy:contract";
 export const TASK_UPGRADE_CONTRACT = "upgrade:contract";
+export const TASK_UPGRADE_DIAMOND = "upgrade:diamond";
 export const TASK_DEPLOY_STAKING_HELPER = "deploy:staking-helper";
 export const TASK_DEPLOY_STAKING = "deploy:staking";
 export const TASK_DEPLOY_KISS = "deploy:kiss";

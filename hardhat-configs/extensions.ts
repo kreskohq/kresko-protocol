@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { FormatTypes, Fragment } from "@ethersproject/abi";
-import { fromBig, toBig } from "@kreskolabs/lib";
+import { Fragment } from "@ethersproject/abi";
 import { checkAddress } from "@scripts/check-address";
 import { getAddresses, getUsers } from "@utils/general";
-import { constants, ethers } from "ethers";
-import { FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
+import { ethers } from "ethers";
 import { extendEnvironment } from "hardhat/config";
 import SharedConfig from "src/deploy-config/shared";
+import { ContractTypes } from "types";
 
 extendEnvironment(async function (hre) {
     // for testing
@@ -59,8 +58,7 @@ extendEnvironment(function (hre) {
 
         return hre.ethers.getContractAt(type, deployment.address) as unknown as TC[typeof type];
     };
-    hre.fromBig = fromBig;
-    hre.toBig = toBig;
+
     hre.deploy = async (type, options) => {
         const { deployer } = await hre.getNamedAccounts();
         const deploymentId = options?.deploymentName ?? type;
@@ -80,18 +78,41 @@ extendEnvironment(function (hre) {
 
         const deployment = await hre.deployments.deploy(deploymentId, opts);
 
-        const implementation = await hre.getContractOrFork(type, deploymentId);
-        return [
-            implementation,
-            implementation.interface.fragments
-                .filter(
-                    frag =>
-                        frag.type !== "constructor" &&
-                        !SharedConfig.signatureFilters.some(f => f.indexOf(frag.name.toLowerCase()) > -1),
-                )
-                .map(frag => implementation.interface.getSighash(frag)),
-            deployment,
-        ] as const;
+        try {
+            const implementation = await hre.getContractOrFork(type, deploymentId);
+            return [
+                implementation,
+                implementation.interface.fragments
+                    .filter(
+                        frag =>
+                            frag.type === "function" &&
+                            !SharedConfig.signatureFilters.some(f => f.indexOf(frag.name.toLowerCase()) > -1),
+                    )
+                    .map(frag => implementation.interface.getSighash(frag)),
+
+                deployment,
+            ] as const;
+        } catch (e: any) {
+            if (e.message.includes("not deployed")) {
+                const implementation = (await hre.ethers.getContractAt(
+                    type,
+                    deployment.address,
+                )) as unknown as ContractTypes[typeof type];
+                return [
+                    implementation,
+                    implementation.interface.fragments
+                        .filter(
+                            frag =>
+                                frag.type === "function" &&
+                                !SharedConfig.signatureFilters.some(f => f.indexOf(frag.name.toLowerCase()) > -1),
+                        )
+                        .map(frag => implementation.interface.getSighash(frag)),
+                    deployment,
+                ] as const;
+            } else {
+                throw new Error(e);
+            }
+        }
     };
     hre.getSignature = from =>
         Fragment.from(from)?.type === "function" && ethers.utils.Interface.getSighash(Fragment.from(from));
@@ -103,43 +124,6 @@ extendEnvironment(function (hre) {
                     !SharedConfig.signatureFilters.some(s => s.indexOf(f.name.toLowerCase()) > -1),
             )
             .map(ethers.utils.Interface.getSighash);
-    hre.getFacetCut = async (
-        facetName,
-        action: FacetCutAction,
-        selectors?: string[],
-        initializer?: {
-            contract: Contract;
-            functionName?: string;
-            args?: unknown[];
-        },
-    ) => {
-        const facet = await hre.getContractOrFork(facetName);
-        selectors =
-            selectors && selectors.length
-                ? selectors
-                : // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  hre.getSignatures(facet.interface.format(FormatTypes.json) as any[]);
-
-        const facetCut: FacetCut = {
-            facetAddress: action === FacetCutAction.Remove ? hre.ethers.constants.AddressZero : facet.address,
-            action,
-            functionSelectors: selectors,
-        };
-        const initialization = initializer
-            ? {
-                  _init: initializer.contract.address,
-                  _calldata: initializer.contract.interface.encodeFunctionData(
-                      initializer.functionName!,
-                      initializer.args,
-                  ),
-              }
-            : { _init: constants.AddressZero, _calldata: "0x" };
-
-        return {
-            facetCut,
-            initialization,
-        };
-    };
 
     hre.getSignaturesWithNames = abi =>
         new ethers.utils.Interface(abi).fragments

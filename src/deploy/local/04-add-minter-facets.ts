@@ -13,7 +13,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const initializer = await getMinterInitializer(hre);
 
-    // Will save deployment
     await addFacets({
         names: minterFacets,
         initializerName: initializer.name,

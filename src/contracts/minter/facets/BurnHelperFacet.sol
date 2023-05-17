@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
 import {Role} from "../../libs/Authorization.sol";
 import {MinterEvent} from "../../libs/Events.sol";
-import {Meta} from "../../libs/Meta.sol";
 
 import {IBurnHelperFacet} from "../interfaces/IBurnHelperFacet.sol";
-import {DiamondModifiers, MinterModifiers} from "../../shared/Modifiers.sol";
-import {Action, FixedPoint} from "../MinterTypes.sol";
+import {MinterModifiers} from "../MinterModifiers.sol";
+import {DiamondModifiers} from "../../diamond/DiamondModifiers.sol";
+import {Action} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";
 
@@ -18,20 +18,14 @@ import {irs} from "../InterestRateState.sol";
  * @title BurnHelperFacet
  * @notice Helper functions for reducing positions
  */
-contract BurnHelperFacet is DiamondModifiers, MinterModifiers, IBurnHelperFacet {
-    using FixedPoint for FixedPoint.Unsigned;
+contract BurnHelperFacet is IBurnHelperFacet, DiamondModifiers, MinterModifiers {
     using Arrays for address[];
 
-    /**
-     * @notice Burns all Kresko asset debt and repays interest.
-     * @notice Account must have enough of krAsset balance to burn and ennough KISS to cover interest
-     * @param _account The address to close the position for
-     * @param _kreskoAsset The address of the Kresko asset.
-     */
+    /// @inheritdoc IBurnHelperFacet
     function closeKrAssetDebtPosition(
         address _account,
         address _kreskoAsset
-    ) public nonReentrant kreskoAssetExists(_kreskoAsset) onlyRoleIf(_account != Meta.msgSender(), Role.MANAGER) {
+    ) public nonReentrant kreskoAssetExists(_kreskoAsset) onlyRoleIf(_account != msg.sender, Role.MANAGER) {
         MinterState storage s = ms();
         if (s.safetyStateSet) {
             super.ensureNotPaused(_kreskoAsset, Action.Repay);
@@ -61,14 +55,10 @@ contract BurnHelperFacet is DiamondModifiers, MinterModifiers, IBurnHelperFacet 
         emit MinterEvent.DebtPositionClosed(_account, _kreskoAsset, principalDebt, kissRepayAmount);
     }
 
-    /**
-     * @notice Attempts to close all debt positions and interest
-     * @notice Account must have enough of krAsset balance to burn and ennough KISS to cover interest
-     * @param _account The address to close the positions for
-     */
+    /// @inheritdoc IBurnHelperFacet
     function batchCloseKrAssetDebtPositions(
         address _account
-    ) external onlyRoleIf(_account != Meta.msgSender(), Role.MANAGER) {
+    ) external onlyRoleIf(_account != msg.sender, Role.MANAGER) {
         address[] memory mintedKreskoAssets = ms().getMintedKreskoAssets(_account);
         for (uint256 i; i < mintedKreskoAssets.length; i++) {
             closeKrAssetDebtPosition(_account, mintedKreskoAssets[i]);

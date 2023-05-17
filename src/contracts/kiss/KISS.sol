@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
-import {ERC20PresetMinterPauser, AccessControl, IAccessControl} from "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
-
+// solhint-disable-next-line
+import {AccessControlEnumerableUpgradeable, AccessControlUpgradeable, IAccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
+import {ERC20Upgradeable} from "../shared/ERC20Upgradeable.sol";
 import {IKreskoAssetIssuer} from "../kreskoasset/IKreskoAssetIssuer.sol";
-import {IKISS} from "./interfaces/IKISS.sol";
+import {IKISS, IERC165} from "./interfaces/IKISS.sol";
 import {Role} from "../libs/Authorization.sol";
 import {Error} from "../libs/Errors.sol";
+import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 
 /* solhint-disable not-rely-on-time */
 
@@ -15,7 +17,9 @@ import {Error} from "../libs/Errors.sol";
  * This is a non-rebasing Kresko Asset, intended to be paired to a stable-value underlying.
  * @author Kresko
  */
-contract KISS is IKISS, IKreskoAssetIssuer, ERC20PresetMinterPauser {
+contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnumerableUpgradeable {
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+    bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
     bytes32 public constant OPERATOR_ROLE = 0x112e48a576fb3a75acc75d9fcf6e0bc670b27b1dbcd2463502e10e68cf57d6fd;
 
     modifier onlyContract() {
@@ -33,37 +37,24 @@ contract KISS is IKISS, IKreskoAssetIssuer, ERC20PresetMinterPauser {
     address public pendingOperator;
     address public kresko;
 
-    // ERC20
-    string private _name;
-    string private _symbol;
-    uint8 private _decimals;
-
-    /* -------------------------------------------------------------------------- */
-    /*                                   Events                                   */
-    /* -------------------------------------------------------------------------- */
-    event NewOperatorInitialized(address indexed pendingNewOperator, uint256 unlockTimestamp);
-    event NewOperator(address indexed newOperator);
-    event NewMaxOperators(uint256 newMaxOperators);
-    event NewPendingOperatorWaitPeriod(uint256 newPeriod);
-
     /* -------------------------------------------------------------------------- */
     /*                                   Writes                                   */
     /* -------------------------------------------------------------------------- */
-    constructor(
+    function initialize(
         string memory name_,
         string memory symbol_,
         uint8 dec_,
         address admin_,
         address kresko_
-    ) ERC20PresetMinterPauser(name_, symbol_) {
+    ) external initializer {
         // Few sanity checks, we do not want EOA's here
         require(kresko_.code.length > 0, Error.KRESKO_NOT_CONTRACT);
         // require(admin_.code.length > 0, Error.ADMIN_NOT_A_CONTRACT);
 
         // ERC20
-        _name = name_;
-        _symbol = symbol_;
-        _decimals = dec_;
+        name = name_;
+        symbol = symbol_;
+        decimals = dec_;
         kresko = kresko_;
 
         // 2 operators needed at the time of writing, the volative market and the stable market.
@@ -88,7 +79,10 @@ contract KISS is IKISS, IKreskoAssetIssuer, ERC20PresetMinterPauser {
         // renounceRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    function supportsInterface(bytes4 interfaceId) public pure override returns (bool) {
+    /// @inheritdoc IERC165
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public pure override(AccessControlEnumerableUpgradeable, IERC165) returns (bool) {
         return
             interfaceId != 0xffffffff &&
             (interfaceId == type(IKISS).interfaceId ||
@@ -111,75 +105,45 @@ contract KISS is IKISS, IKreskoAssetIssuer, ERC20PresetMinterPauser {
         return _amount;
     }
 
-    /**
-     * @notice Use operator role for minting, so override the parent
-     * Caller must be a contract and have the OPERATOR_ROLE
-     * @param _to address to mint tokens to
-     * @param _amount amount to mint
-     * @dev Does not return a value
-     */
-    function mint(address _to, uint256 _amount) public override onlyContract onlyRole(Role.OPERATOR) {
+    /// @inheritdoc IKISS
+    function mint(address _to, uint256 _amount) public onlyContract onlyRole(Role.OPERATOR) {
         _mint(_to, _amount);
     }
 
-    /**
-     * @notice This function removes KISS from circulation
-     * Caller must be a contract and have the OPERATOR_ROLE
-     * @param _from address to burn tokens from
-     * @param _amount amount to burn
-     */
+    /// @inheritdoc IKISS
     function destroy(uint256 _amount, address _from) external onlyContract onlyRole(Role.OPERATOR) returns (uint256) {
         _burn(_from, _amount);
         return _amount;
     }
 
-    /**
-     * @notice Allows ADMIN_ROLE to perform a pause
-     */
-    function pause() public override onlyContract onlyRole(Role.ADMIN) {
-        _pause();
+    /// @inheritdoc IKISS
+    function pause() public onlyContract onlyRole(Role.ADMIN) {
+        super._pause();
     }
 
-    /**
-     * @notice Allows ADMIN_ROLE to unpause
-     */
-    function unpause() public override onlyContract onlyRole(Role.ADMIN) {
+    /// @inheritdoc IKISS
+    function unpause() public onlyContract onlyRole(Role.ADMIN) {
         _unpause();
     }
 
-    /**
-     * @notice Set a new waiting period for a new operator
-     *
-     * Must be at least 15 minutes
-     *
-     * @param _newPeriod the period, in seconds
-     */
+    /// @inheritdoc IKISS
     function setPendingOperatorWaitPeriod(uint256 _newPeriod) external onlyRole(Role.ADMIN) {
         require(_newPeriod >= 15 minutes, Error.OPERATOR_WAIT_PERIOD_TOO_SHORT);
         pendingOperatorWaitPeriod = _newPeriod;
         emit NewPendingOperatorWaitPeriod(_newPeriod);
     }
 
-    /**
-     * @notice Allows ADMIN_ROLE to change the maximum operators
-     * @param _maxOperators new maximum amount of operators
-     */
+    /// @inheritdoc IKISS
     function setMaxOperators(uint256 _maxOperators) external onlyRole(Role.ADMIN) {
         maxOperators = _maxOperators;
         emit NewMaxOperators(_maxOperators);
     }
 
-    /**
-     * @notice Overrides `AccessControl.grantRole` for following:
-     * * Implement a cooldown period of `pendingOperatorWaitPeriod` minutes for setting a new OPERATOR_ROLE
-     * * EOA cannot be granted the operator role
-     *
-     * @notice OPERATOR_ROLE can still be revoked without this cooldown period
-     * @notice PAUSER_ROLE can still be granted without this cooldown period
-     * @param _role role to grant
-     * @param _to address to grant role for
-     */
-    function grantRole(bytes32 _role, address _to) public override(AccessControl, IAccessControl) onlyRole(Role.ADMIN) {
+    /// @inheritdoc IKISS
+    function grantRole(
+        bytes32 _role,
+        address _to
+    ) public override(IKISS, AccessControlUpgradeable, IAccessControlUpgradeable) onlyRole(Role.ADMIN) {
         // Default behavior
         if (_role != Role.OPERATOR) {
             _grantRole(_role, _to);
@@ -218,40 +182,29 @@ contract KISS is IKISS, IKreskoAssetIssuer, ERC20PresetMinterPauser {
     /*                                    Views                                   */
     /* -------------------------------------------------------------------------- */
 
-    function decimals() public view override returns (uint8) {
-        return _decimals;
-    }
-
-    /**
-     * @dev Returns the name of the token.
-     */
-    function name() public view virtual override returns (string memory) {
-        return _name;
-    }
-
-    /**
-     * @dev Returns the symbol of the token, usually a shorter version of the
-     * name.
-     */
-    function symbol() public view virtual override returns (string memory) {
-        return _symbol;
-    }
-
-    /**
-     * KreskoAssetIssuer compability
-     * @param assets amount of assets
-     * @return shares with kiss, this is equal to assets as there is no rebasing
-     */
+    /// @inheritdoc IKreskoAssetIssuer
     function convertToShares(uint256 assets) external pure returns (uint256) {
         return assets;
     }
 
-    /**
-     * KreskoAssetIssuer compability
-     * @param shares amount of shares
-     * @return assets with kiss, this is equal to shares as there is no rebasing
-     */
+    /// @inheritdoc IKreskoAssetIssuer
     function convertToAssets(uint256 shares) external pure returns (uint256) {
         return shares;
+    }
+
+    /* -------------------------------------------------------------------------- */
+    /*                                  internal                                  */
+    /* -------------------------------------------------------------------------- */
+
+    /**
+     * @dev See {ERC20-_beforeTokenTransfer}.
+     *
+     * Requirements:
+     *
+     * - the contract must not be paused.
+     */
+    function _beforeTokenTransfer(address from, address to, uint256 amount) internal override {
+        super._beforeTokenTransfer(from, to, amount);
+        require(!paused(), "KISS: Paused");
     }
 }

@@ -1,4 +1,4 @@
-import { toBig, getInternalEvent } from "@kreskolabs/lib";
+import { toBig, getInternalEvent, fromBig } from "@kreskolabs/lib";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { BASIS_POINT, defaultCollateralArgs, defaultKrAssetArgs, withFixture } from "@utils/test";
 import { addLiquidity, getTWAPUpdaterFor } from "@utils/test/helpers/amm";
@@ -7,7 +7,7 @@ import { depositCollateral } from "@utils/test/helpers/collaterals";
 import { addMockKreskoAsset, mintKrAsset } from "@utils/test/helpers/krassets";
 import { expect } from "chai";
 import { Error } from "@utils/test/errors";
-import hre, { fromBig } from "hardhat";
+import hre from "hardhat";
 import {
     BatchInterestLiquidationOccurredEventObject,
     InterestLiquidationOccurredEventObject,
@@ -59,8 +59,8 @@ describe("Stability Rates", () => {
     });
 
     describe("#stability rate - liquidation", () => {
-        const depositAmount = hre.toBig(100);
-        const mintAmount = hre.toBig(10);
+        const depositAmount = toBig(100);
+        const mintAmount = toBig(10);
         let krAssets: TestKrAsset[];
         beforeEach(async function () {
             await this.collateral.setBalance(userTwo, depositAmount);
@@ -221,7 +221,7 @@ describe("Stability Rates", () => {
             // validate interest accrual changes
             expect(accountCollateralAfter).to.equal(accountCollateralBefore.sub(event.collateralSent));
             const liquidationIncentive = fromBig(
-                (await hre.Diamond.collateralAsset(this.collateral.address)).liquidationIncentive.rawValue,
+                (await hre.Diamond.collateralAsset(this.collateral.address)).liquidationIncentive,
             );
             const expectedCollateral =
                 (accruedKissInterest / fromBig(await this.collateral.getPrice(), 8)) * liquidationIncentive;
@@ -299,7 +299,7 @@ describe("Stability Rates", () => {
             // interest accrued changes
             expect(interestKissTotalAfter).to.closeTo(interestKissTotal - fromBig(event.repayUSD), 0.0001);
             const liquidationIncentive = fromBig(
-                (await hre.Diamond.collateralAsset(this.collateral.address)).liquidationIncentive.rawValue,
+                (await hre.Diamond.collateralAsset(this.collateral.address)).liquidationIncentive,
             );
             const expectedCollateral = (repayUSD / fromBig(await this.collateral.getPrice(), 8)) * liquidationIncentive;
             // event validation

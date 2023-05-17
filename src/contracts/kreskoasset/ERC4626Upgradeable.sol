@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
 import {FixedPointMathLib} from "@rari-capital/solmate/src/utils/FixedPointMathLib.sol";
 
-import {SafeERC20Upgradeable} from "./SafeERC20Upgradeable.sol";
-import {IKreskoAsset, IERC20Upgradeable} from "../kreskoasset/IKreskoAsset.sol";
-import {ERC20Upgradeable} from "../kreskoasset/KreskoAsset.sol";
+import {SafeERC20} from "../shared/SafeERC20.sol";
+import {IKreskoAsset, IERC20Permit} from "./IKreskoAsset.sol";
+import {IERC4626Upgradeable} from "./IERC4626Upgradeable.sol";
+import {ERC20Upgradeable} from "./KreskoAsset.sol";
 import {Error} from "../libs/Errors.sol";
 
 /* solhint-disable func-name-mixedcase */
@@ -17,8 +18,8 @@ import {Error} from "../libs/Errors.sol";
 /// Adds issue/destroy functions that are called when KreskoAssets are minted/burned through the protocol.
 /// @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/mixins/ERC4626.sol)
 /// @author Kresko (https://www.kresko.fi)
-abstract contract ERC4626Upgradeable is ERC20Upgradeable {
-    using SafeERC20Upgradeable for IKreskoAsset;
+abstract contract ERC4626Upgradeable is IERC4626Upgradeable, ERC20Upgradeable {
+    using SafeERC20 for IKreskoAsset;
     using FixedPointMathLib for uint256;
 
     /* -------------------------------------------------------------------------- */
@@ -49,6 +50,7 @@ abstract contract ERC4626Upgradeable is ERC20Upgradeable {
     /*                                 Immutables                                 */
     /* -------------------------------------------------------------------------- */
 
+    /// @inheritdoc IERC4626Upgradeable
     IKreskoAsset public immutable asset;
 
     constructor(IKreskoAsset _asset) payable {
@@ -64,7 +66,7 @@ abstract contract ERC4626Upgradeable is ERC20Upgradeable {
      * @dev decimals are read from the underlying asset
      */
     function __ERC4626Upgradeable_init(
-        IERC20Upgradeable _asset,
+        IERC20Permit _asset,
         string memory _name,
         string memory _symbol
     ) internal onlyInitializing {
