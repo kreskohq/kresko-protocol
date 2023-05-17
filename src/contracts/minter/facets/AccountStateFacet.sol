@@ -101,11 +101,11 @@ contract AccountStateFacet is IAccountStateFacet {
     function getAccountCollateralRatio(address _account) public view returns (uint256 ratio) {
         uint256 collateralValue = ms().getAccountCollateralValue(_account);
         if (collateralValue == 0) {
-            return uint256(0);
+            return 0;
         }
         uint256 krAssetValue = ms().getAccountKrAssetValue(_account);
         if (krAssetValue == 0) {
-            return uint256(0);
+            return 0;
         }
         ratio = collateralValue.wadDiv(krAssetValue);
     }

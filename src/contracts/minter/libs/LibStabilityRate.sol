@@ -73,7 +73,7 @@ library LibStabilityRate {
         if (ammPrice == 0) {
             return 0;
         }
-        return ammPrice.wadDiv(oraclePrice) / (10);
+        return ammPrice.wadDiv(oraclePrice) / 10;
     }
 
     /**
