@@ -218,7 +218,7 @@ library LibUI {
         uint256 collateral = ms().getAccountCollateralValue(_account);
 
         if (collateral < minCollateral) {
-            return uint256(0);
+            return 0;
         } else {
             return collateral - minCollateral;
         }
@@ -389,7 +389,7 @@ library LibUI {
         if (userDebt > 0) {
             return userCollateral.wadDiv(userDebt);
         } else {
-            return uint256(0);
+            return 0;
         }
     }
 
