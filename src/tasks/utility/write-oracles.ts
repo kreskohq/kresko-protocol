@@ -53,7 +53,7 @@ task(TASK_WRITE_ORACLE_JSON).setAction(async function (_taskArgs: TaskArguments,
             pricefeed: krAssetInfo.oracle,
         });
     }
-    console.log(feedValidator.address);
+
     const fluxFeedKiss = await factory.addressOfPricePair("KISS/USD", 8, feedValidator.address);
     values.push({
         asset: "KISS",

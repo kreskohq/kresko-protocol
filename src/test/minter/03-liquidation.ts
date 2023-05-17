@@ -549,7 +549,7 @@ describe("Minter", () => {
                     mintedKreskoAssetIndex,
                     collateralIndex,
                 );
-                console.log("Gas used for liquidate", (await tx.wait()).gasUsed.toString());
+
                 const event = await getInternalEvent<LiquidationOccurredEvent["args"]>(
                     tx,
                     hre.Diamond,

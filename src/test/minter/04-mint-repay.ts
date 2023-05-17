@@ -963,22 +963,23 @@ describe("Minter", () => {
                 const secondMintAmount = 1;
                 const burnAmount = this.mintAmount.add(secondMintAmount);
 
-                const tx1 = await hre.Diamond.connect(hre.users.userOne).mintKreskoAsset(
-                    hre.users.userOne.address,
-                    this.krAsset.address,
-                    secondMintAmount,
-                );
-                console.log("Gas used for mintKreskoAsset", (await tx1.wait()).gasUsed.toString());
+                await expect(
+                    hre.Diamond.connect(hre.users.userOne).mintKreskoAsset(
+                        hre.users.userOne.address,
+                        this.krAsset.address,
+                        secondMintAmount,
+                    ),
+                ).to.not.be.reverted;
                 const kreskoAssetIndex = 0;
 
-                const tx2 = await hre.Diamond.connect(hre.users.userOne).burnKreskoAsset(
-                    hre.users.userOne.address,
-                    this.krAsset.address,
-                    burnAmount,
-                    kreskoAssetIndex,
-                );
-
-                console.log("Gas used for burnKreskoAsset", (await tx2.wait()).gasUsed.toString());
+                await expect(
+                    hre.Diamond.connect(hre.users.userOne).burnKreskoAsset(
+                        hre.users.userOne.address,
+                        this.krAsset.address,
+                        burnAmount,
+                        kreskoAssetIndex,
+                    ),
+                ).to.not.be.reverted;
             });
 
             it("should not allow users to burn an amount of 0", async function () {
