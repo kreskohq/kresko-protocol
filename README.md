@@ -33,6 +33,7 @@ MINIMUM_DEBT_VALUE=10
 INFURA_API_KEY=
 ALCHEMY_API_KEY=
 TWELVE_DATA_API_KEY=
+ALPHAVANTAGE_API_KEY=
 ETHERSCAN_API_KEY=
 QUICKNODE_API_KEY=
 TREASURY=0x0000000000000000000000000000000000000001
@@ -44,6 +45,7 @@ FEED_VALIDATOR_PK=
 FUNDER=0x0000000000000000000000000000000000000006
 FUNDER_PK=
 TENDERLY_ACCESS_TOKEN=
+HARDHAT_DEPLOY_TENDERLY_DEBUG=true
 
 ```
 
@@ -139,7 +141,7 @@ _https://eip2535diamonds.substack.com/p/how-eip2535-diamonds-reduces-gas_
 
 ### Contributions
 
-Open source contributions to Kresko Protocol are encouraged, feel free to open an issue or pull request.
+Contributions to Kresko Protocol are encouraged, feel free to open an issue or pull request. <br/> All contributions are licensed under BUSL1.1.
 
 ### Contact
 
