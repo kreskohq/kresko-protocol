@@ -18,15 +18,10 @@ import {irs} from "../InterestRateState.sol";
  * @title BurnHelperFacet
  * @notice Helper functions for reducing positions
  */
-contract BurnHelperFacet is DiamondModifiers, MinterModifiers, IBurnHelperFacet {
+contract BurnHelperFacet is IBurnHelperFacet, DiamondModifiers, MinterModifiers {
     using Arrays for address[];
 
-    /**
-     * @notice Burns all Kresko asset debt and repays interest.
-     * @notice Account must have enough of krAsset balance to burn and ennough KISS to cover interest
-     * @param _account The address to close the position for
-     * @param _kreskoAsset The address of the Kresko asset.
-     */
+    /// @inheritdoc IBurnHelperFacet
     function closeKrAssetDebtPosition(
         address _account,
         address _kreskoAsset
@@ -60,11 +55,7 @@ contract BurnHelperFacet is DiamondModifiers, MinterModifiers, IBurnHelperFacet 
         emit MinterEvent.DebtPositionClosed(_account, _kreskoAsset, principalDebt, kissRepayAmount);
     }
 
-    /**
-     * @notice Attempts to close all debt positions and interest
-     * @notice Account must have enough of krAsset balance to burn and ennough KISS to cover interest
-     * @param _account The address to close the positions for
-     */
+    /// @inheritdoc IBurnHelperFacet
     function batchCloseKrAssetDebtPositions(
         address _account
     ) external onlyRoleIf(_account != msg.sender, Role.MANAGER) {

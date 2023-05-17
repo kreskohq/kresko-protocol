@@ -94,9 +94,9 @@ library LibDecimals {
     /**
      * @notice Converts an uint256 with extOracleDecimals into a number with 18 decimals
      * @param _priceWithOracleDecimals value with extOracleDecimals
-     * @return wadPrice price with 18 decimals
+     * @return wadPrice with 18 decimals
      */
-    function oraclePriceToWad(uint256 _priceWithOracleDecimals) internal view returns (uint256 wadPrice) {
+    function oraclePriceToWad(uint256 _priceWithOracleDecimals) internal view returns (uint256) {
         uint8 oracleDecimals = ms().extOracleDecimals;
         if (oracleDecimals == 18) {
             return _priceWithOracleDecimals;
@@ -109,7 +109,7 @@ library LibDecimals {
      * @param _priceWithOracleDecimals value with extOracleDecimals
      * @return wadPrice price with 18 decimals
      */
-    function oraclePriceToWad(int256 _priceWithOracleDecimals) internal view returns (uint256 wadPrice) {
+    function oraclePriceToWad(int256 _priceWithOracleDecimals) internal view returns (uint256) {
         uint8 oracleDecimals = ms().extOracleDecimals;
         if (oracleDecimals >= 18) return uint256(_priceWithOracleDecimals);
         return uint256(_priceWithOracleDecimals) * 10 ** (18 - oracleDecimals);
