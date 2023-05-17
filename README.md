@@ -141,7 +141,7 @@ _https://eip2535diamonds.substack.com/p/how-eip2535-diamonds-reduces-gas_
 
 ### Contributions
 
-Contributions to Kresko Protocol are encouraged, feel free to open an issue or pull request. All work will be licensed under BUSL1.1.
+Contributions to Kresko Protocol are encouraged, feel free to open an issue or pull request. <br/> All contributions are licensed under BUSL1.1.
 
 ### Contact
 
