@@ -35,6 +35,7 @@ export const minterFacets = [
     "StabilityRateFacet",
     "UIDataProviderFacet",
     "UIDataProviderFacet2",
+    "OracleTestFacet",
 ] as const;
 
 export const getDeploymentUsers = async (hre: HardhatRuntimeEnvironment) => {

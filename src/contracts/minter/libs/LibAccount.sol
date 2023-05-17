@@ -67,6 +67,17 @@ library LibAccount {
     }
 
     /**
+     * @notice Checks if accounts collateral value is less than required.
+     * @param _account The account to check.
+     * @return A boolean indicating if the account can be liquidated.
+     */
+    function isAccountLiquidatableRedstone(MinterState storage self, address _account) internal view returns (bool) {
+        return
+            self.getAccountCollateralValueRedstone(_account) <
+            (self.getAccountMinimumCollateralValueAtRatioRedstone(_account, self.liquidationThreshold));
+    }
+
+    /**
      * @notice Overload for calculating liquidatable status with a future liquidated collateral value
      * @param _account The account to check.
      * @param _valueLiquidated Value liquidated, eg. in a batch liquidation
@@ -96,6 +107,30 @@ library LibAccount {
         for (uint256 i = 0; i < assets.length; i++) {
             address asset = assets[i];
             (uint256 collateralValue, ) = self.getCollateralValueAndOraclePrice(
+                asset,
+                self.getCollateralDeposits(_account, asset),
+                false // Take the collateral factor into consideration.
+            );
+            totalCollateralValue += collateralValue;
+        }
+
+        return totalCollateralValue;
+    }
+
+    /**
+     * @notice Gets the collateral value of a particular account.
+     * @dev O(# of different deposited collateral assets by account) complexity.
+     * @param _account The account to calculate the collateral value for.
+     * @return totalCollateralValue The collateral value of a particular account.
+     */
+    function getAccountCollateralValueRedstone(
+        MinterState storage self,
+        address _account
+    ) internal view returns (uint256 totalCollateralValue) {
+        address[] memory assets = self.depositedCollateralAssets[_account];
+        for (uint256 i = 0; i < assets.length; i++) {
+            address asset = assets[i];
+            (uint256 collateralValue, ) = self.getCollateralValueAndOraclePriceRedstone(
                 asset,
                 self.getCollateralDeposits(_account, asset),
                 false // Take the collateral factor into consideration.
@@ -150,6 +185,22 @@ library LibAccount {
     }
 
     /**
+     * @notice Gets accounts min collateral value required to cover debt at a given collateralization ratio.
+     * @dev 1. Account with min collateral value under MCR will not borrow.
+     *      2. Account with min collateral value under LT can be liquidated.
+     * @param _account The account to calculate the minimum collateral value for.
+     * @param _ratio The collateralization ratio to get min collateral value against.
+     * @return The min collateral value at given collateralization ratio for the account.
+     */
+    function getAccountMinimumCollateralValueAtRatioRedstone(
+        MinterState storage self,
+        address _account,
+        uint256 _ratio
+    ) internal view returns (uint256) {
+        return self.getAccountKrAssetValueRedstone(_account).wadMul(_ratio);
+    }
+
+    /**
      * @notice Gets the total KreskoAsset value in USD for an account.
      * @param _account The account to calculate the KreskoAsset value for.
      * @return value The KreskoAsset value of the account.
@@ -159,6 +210,23 @@ library LibAccount {
         for (uint256 i = 0; i < assets.length; i++) {
             address asset = assets[i];
             value += self.getKrAssetValue(asset, self.getKreskoAssetDebtScaled(_account, asset), false);
+        }
+        return value;
+    }
+
+    /**
+     * @notice Gets the total KreskoAsset value in USD for an account.
+     * @param _account The account to calculate the KreskoAsset value for.
+     * @return value The KreskoAsset value of the account.
+     */
+    function getAccountKrAssetValueRedstone(
+        MinterState storage self,
+        address _account
+    ) internal view returns (uint256 value) {
+        address[] memory assets = self.mintedKreskoAssets[_account];
+        for (uint256 i = 0; i < assets.length; i++) {
+            address asset = assets[i];
+            value += self.getKrAssetValueRedstone(asset, self.getKreskoAssetDebtScaled(_account, asset), false);
         }
         return value;
     }

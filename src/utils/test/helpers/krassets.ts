@@ -1,12 +1,13 @@
 import { smock } from "@defi-wonderland/smock";
+import { redstoneMap } from "@deploy-config/opgoerli";
 import { anchorTokenPrefix } from "@deploy-config/shared";
 import { toBig } from "@kreskolabs/lib";
 import { expect } from "chai";
 import hre from "hardhat";
-import { TestKreskoAssetArgs, defaultKrAssetArgs, TestKreskoAssetUpdate, InputArgs, InputArgsSimple } from "../mocks";
-import roles from "../roles";
-import { getMockOracleFor, setPrice, setMarketOpen } from "./general";
 import { FluxPriceFeed__factory, KreskoAssetAnchor__factory, KreskoAsset__factory } from "types/typechain";
+import { InputArgsSimple, TestKreskoAssetArgs, TestKreskoAssetUpdate, defaultKrAssetArgs } from "../mocks";
+import roles from "../roles";
+import { getMockOracleFor, setMarketOpen, setPrice } from "./general";
 
 export const getDebtIndexAdjustedBalance = async (user: SignerWithAddress, asset: TestKrAsset) => {
     const balance = await asset.contract.balanceOf(user.address);
@@ -36,17 +37,22 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
     akrAsset.decimals.returns(18);
 
     // Add the asset to the protocol
-    const kFactor = toBig(factor);
-    await hre.Diamond.connect(deployer).addKreskoAsset(
-        krAsset.address,
-        akrAsset.address,
-        kFactor,
-        MockOracle.address,
-        MockOracle.address,
-        toBig(supplyLimit, await krAsset.decimals()),
-        toBig(closeFee),
-        toBig(openFee),
-    );
+    const redstone = redstoneMap[symbol as keyof typeof redstoneMap];
+    if (!redstone) {
+        throw new Error(`Redstone not found for ${symbol}`);
+    }
+    const config = {
+        kFactor: toBig(factor),
+        oracle: MockOracle.address,
+        marketStatusOracle: MockOracle.address,
+        anchor: akrAsset.address,
+        supplyLimit: toBig(supplyLimit),
+        closeFee: toBig(closeFee),
+        openFee: toBig(openFee),
+        redstone,
+        exists: true,
+    };
+    await hre.Diamond.connect(deployer).addKreskoAsset(krAsset.address, config);
     await krAsset.grantRole(roles.OPERATOR, akrAsset.address);
     await hre.Diamond.setupStabilityRateParams(krAsset.address, {
         ...defaultKrAssetArgs.stabilityRates,
@@ -128,17 +134,23 @@ export const addMockKreskoAssetWithAMMPair = async (
     akrAsset.decimals.returns(18);
 
     // Add the asset to the protocol
+    const redstone = redstoneMap[symbol as keyof typeof redstoneMap];
+    if (!redstone) {
+        throw new Error(`Redstone not found for ${symbol}`);
+    }
+    const config = {
+        kFactor: toBig(factor),
+        oracle: MockOracle.address,
+        marketStatusOracle: MockOracle.address,
+        anchor: akrAsset.address,
+        supplyLimit: toBig(supplyLimit),
+        closeFee: toBig(closeFee),
+        openFee: toBig(openFee),
+        redstone,
+        exists: true,
+    };
 
-    await hre.Diamond.connect(deployer).addKreskoAsset(
-        krAsset.address,
-        akrAsset.address,
-        toBig(factor),
-        MockOracle.address,
-        MockOracle.address,
-        toBig(supplyLimit, await krAsset.decimals()),
-        toBig(closeFee),
-        toBig(openFee),
-    );
+    await hre.Diamond.connect(deployer).addKreskoAsset(krAsset.address, config);
     await krAsset.grantRole(roles.OPERATOR, akrAsset.address);
     await hre.Diamond.setupStabilityRateParams(krAsset.address, defaultKrAssetArgs.stabilityRates);
 
@@ -193,16 +205,24 @@ export const addMockKreskoAssetWithAMMPair = async (
 export const updateKrAsset = async (address: string, args: TestKreskoAssetUpdate) => {
     const { deployer } = await hre.ethers.getNamedSigners();
     const krAsset = hre.krAssets.find(c => c.address === address)!;
-    await hre.Diamond.connect(deployer).updateKreskoAsset(
-        krAsset.address,
-        krAsset.mocks.anchor!.address,
-        toBig(args.factor),
-        args.oracle || krAsset.priceFeed.address,
-        args.oracle || krAsset.priceFeed.address,
-        toBig(args.supplyLimit, await krAsset.contract.decimals()),
-        toBig(args.closeFee),
-        toBig(args.openFee),
-    );
+    const symbol = await krAsset!.contract.symbol();
+    // Add the asset to the protocol
+    const redstone = redstoneMap[symbol as keyof typeof redstoneMap];
+    if (!redstone) {
+        throw new Error(`Redstone not found for ${symbol}`);
+    }
+    const config = {
+        kFactor: toBig(args.factor),
+        oracle: args.oracle || krAsset.priceFeed.address,
+        marketStatusOracle: args.oracle || krAsset.priceFeed.address,
+        anchor: krAsset.mocks.anchor!.address,
+        supplyLimit: toBig(args.supplyLimit),
+        closeFee: toBig(args.closeFee),
+        openFee: toBig(args.openFee),
+        redstone,
+        exists: true,
+    };
+    await hre.Diamond.connect(deployer).updateKreskoAsset(krAsset.address, config);
 
     const asset: TestKrAsset = {
         // @ts-ignore

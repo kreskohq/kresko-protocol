@@ -1,4 +1,5 @@
 import { smock } from "@defi-wonderland/smock";
+import { redstoneMap } from "@deploy-config/opgoerli";
 import { fromBig, toBig } from "@kreskolabs/lib";
 import { expect } from "@test/chai";
 import {
@@ -118,17 +119,21 @@ describe("Minter - Configuration", () => {
             };
 
             const [newPriceFeed] = await getMockOracleFor(await contract.name(), update.price);
+            const redstone = redstoneMap[(await contract.symbol()) as keyof typeof redstoneMap];
+            expect(redstone).to.not.be.undefined;
 
-            await hre.Diamond.connect(hre.users.deployer).updateKreskoAsset(
-                contract.address,
-                anchor!.address,
-                update.factor,
-                newPriceFeed.address,
-                newPriceFeed.address,
-                toBig(update.supplyLimit),
-                update.closeFee,
-                update.openFee,
-            );
+            const config = {
+                anchor: anchor!.address,
+                kFactor: update.factor,
+                oracle: newPriceFeed.address,
+                marketStatusOracle: newPriceFeed.address,
+                supplyLimit: toBig(update.supplyLimit),
+                closeFee: update.closeFee,
+                openFee: update.openFee,
+                redstone,
+                exists: true,
+            };
+            await hre.Diamond.connect(hre.users.deployer).updateKreskoAsset(contract.address, config);
 
             const newValues = await hre.Diamond.kreskoAsset(contract.address);
             const updatedOracleAnswer = fromBig(await newPriceFeed.latestAnswer(), 8);

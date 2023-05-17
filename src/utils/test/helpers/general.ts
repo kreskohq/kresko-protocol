@@ -3,6 +3,7 @@ import { fromBig, toBig } from "@kreskolabs/lib";
 import hre, { ethers } from "hardhat";
 import { FluxPriceFeed__factory } from "types/typechain";
 import { defaultCloseFee, defaultOracleDecimals, defaultOraclePrice } from "../mocks";
+import { redstoneMap } from "@deploy-config/opgoerli";
 
 /* -------------------------------------------------------------------------- */
 /*                                  GENERAL                                   */
@@ -67,39 +68,53 @@ export const leverageKrAsset = async (
         [user.address]: toBig(collateralAmount),
     });
     if (!(await hre.Diamond.collateralAsset(collateralToUse.address)).exists) {
-        await hre.Diamond.connect(hre.users.deployer).addCollateralAsset(
-            collateralToUse.address,
-            collateralToUse.anchor ? collateralToUse.anchor.address : ethers.constants.AddressZero,
-            toBig(1),
-            toBig(process.env.LIQUIDATION_INCENTIVE as string),
-            collateralToUse.priceFeed.address,
-            collateralToUse.priceFeed.address,
-        );
+        const redstone = redstoneMap[(await collateralToUse.contract.symbol()) as keyof typeof redstoneMap];
+
+        const config = {
+            factor: toBig(1),
+            oracle: collateralToUse.priceFeed.address,
+            marketStatusOracle: collateralToUse.priceFeed.address,
+            anchor: collateralToUse.anchor ? collateralToUse.anchor.address : ethers.constants.AddressZero,
+            liquidationIncentive: toBig(process.env.LIQUIDATION_INCENTIVE as string),
+            decimals: await collateralToUse.contract.decimals(),
+            redstone,
+            exists: true,
+        };
+        await hre.Diamond.connect(hre.users.deployer).addCollateralAsset(collateralToUse.address, config);
     }
     await hre.Diamond.connect(user).depositCollateral(user.address, collateralToUse.address, toBig(collateralAmount));
     if (!(await hre.Diamond.kreskoAsset(krAsset.address)).exists) {
-        await hre.Diamond.connect(hre.users.deployer).addKreskoAsset(
-            krAsset.address,
-            krAsset.anchor.address,
-            toBig(1),
-            krAsset.priceFeed.address,
-            krAsset.priceFeed.address,
-            toBig(1_000_000),
-            defaultCloseFee,
-            0,
-        );
+        const redstone = redstoneMap[(await collateralToUse.contract.symbol()) as keyof typeof redstoneMap];
+
+        const config = {
+            kFactor: toBig(1),
+            oracle: krAsset.priceFeed.address,
+            marketStatusOracle: krAsset.priceFeed.address,
+            anchor: krAsset.anchor.address,
+            supplyLimit: toBig(1_000_000),
+            closeFee: defaultCloseFee,
+            openFee: 0,
+            redstone,
+            exists: true,
+        };
+        await hre.Diamond.connect(hre.users.deployer).addKreskoAsset(krAsset.address, config);
     }
     await hre.Diamond.connect(user).mintKreskoAsset(user.address, krAsset.address, amount);
 
     if (!(await hre.Diamond.collateralAsset(krAsset.address)).exists) {
-        await hre.Diamond.connect(hre.users.deployer).addCollateralAsset(
-            krAsset.address,
-            krAsset.anchor.address,
-            toBig(1),
-            toBig(process.env.LIQUIDATION_INCENTIVE as string),
-            krAsset.priceFeed.address,
-            krAsset.priceFeed.address,
-        );
+        const redstone = redstoneMap[(await collateralToUse.contract.symbol()) as keyof typeof redstoneMap];
+
+        const config = {
+            factor: toBig(1),
+            oracle: krAsset.priceFeed.address,
+            marketStatusOracle: krAsset.priceFeed.address,
+            anchor: krAsset.anchor.address,
+            liquidationIncentive: toBig(process.env.LIQUIDATION_INCENTIVE as string),
+            decimals: await krAsset.contract.decimals(),
+            redstone,
+            exists: true,
+        };
+        await hre.Diamond.connect(hre.users.deployer).addCollateralAsset(krAsset.address, config);
     }
     await hre.Diamond.connect(user).depositCollateral(user.address, krAsset.address, amount);
 

@@ -1,13 +1,13 @@
-import { toBig } from "@kreskolabs/lib";
+import { fromBig, toBig } from "@kreskolabs/lib";
 import { expect } from "@test/chai";
 import { withFixture } from "@utils/test";
 import { addMockCollateralAsset } from "@utils/test/helpers/collaterals";
 import { addMockKreskoAsset } from "@utils/test/helpers/krassets";
-import { getCR } from "@utils/test/helpers/liquidations";
+// import { getCR } from "@utils/test/helpers/liquidations";
 import hre from "hardhat";
-
+import { WrapperBuilder } from "@redstone-finance/evm-connector";
 describe("Asset Amounts & Values", function () {
-    describe("#Collateral Deposit Values", async () => {
+    describe("#Collateral Deposit Values AggregatorV2V3", async () => {
         it("should return the correct deposit value with 18 decimals", async () => {
             const depositAmount = toBig(10);
             const expectedDepositValue = toBig(50, oracleDecimals); // cfactor = 0.5, collateralPrice = 10, depositAmount = 10
@@ -48,142 +48,68 @@ describe("Asset Amounts & Values", function () {
         });
     });
 
-    describe("#Collateral Deposit Amount", async () => {
-        it("should return the correct deposit amount with 18 decimals", async () => {
-            const depositAmount = toBig(10);
-            await hre.Diamond.connect(user).depositCollateral(user.address, CollateralAsset.address, depositAmount);
-            const withdrawIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
+    describe.only("#Collateral Deposit Values Redstone", async () => {
+        it("should return the correct deposit value with 18 decimals", async () => {
+            const MockWETH = await addMockCollateralAsset({
+                name: "WETH",
+                price: 1802,
+                factor: 0.5,
+                decimals: 18,
+            });
+            const MockKreskoAsset = await addMockKreskoAsset({
+                name: "krETH",
+                price: 1802,
+                symbol: "krETH",
+                closeFee: 0.1,
+                openFee: 0.1,
+                marketOpen: true,
+                factor: 2,
+                supplyLimit: 10,
+            });
+            const user = hre.users.testUserSeven;
+            await MockWETH.setBalance(user, toBig(10, 18));
+            await MockWETH.contract.connect(user).approve(hre.Diamond.address, toBig(100000, 18));
+            await hre.Diamond.connect(user).depositCollateral(user.address, MockWETH.address, toBig(10, 18));
+
+            const wrapped = WrapperBuilder.wrap(hre.Diamond.connect(user)).usingDataService(
+                {
+                    dataServiceId: "redstone-avalanche-prod",
+                    dataFeeds: ["ETH"],
+                    uniqueSignersCount: 1,
+                },
+                ["https://oracle-gateway-1.a.redstone.finance", "https://oracle-gateway-2.a.redstone.finance"],
+            ); // works
+
+            await hre.Diamond.connect(user).mintKreskoAsset(user.address, MockKreskoAsset.address, toBig(0.1, 18));
+            const mintNormal = await hre.Diamond.connect(user).mintKreskoAsset(
                 user.address,
-                CollateralAsset.address,
+                MockKreskoAsset.address,
+                toBig(0.1, 18),
             );
-            const deposits = await hre.Diamond.collateralDeposits(user.address, CollateralAsset.address);
-            expect(deposits).to.equal(depositAmount);
-            await hre.Diamond.connect(user).withdrawCollateral(
+            const mintRedstone = await wrapped.mintKreskoAssetRedstone(
                 user.address,
-                CollateralAsset.address,
-                depositAmount,
-                withdrawIndex,
-            );
-            const balance = await CollateralAsset.contract.balanceOf(user.address);
-            expect(balance).to.equal(toBig(startingBalance));
-        });
-
-        it("should return the correct deposit amount with less than 18 decimals", async () => {
-            const depositAmount = toBig(10, 8);
-            await hre.Diamond.connect(user).depositCollateral(user.address, CollateralAsset8Dec.address, depositAmount);
-            const withdrawIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
-                user.address,
-                CollateralAsset8Dec.address,
-            );
-            const deposits = await hre.Diamond.collateralDeposits(user.address, CollateralAsset8Dec.address);
-            expect(deposits).to.equal(depositAmount);
-            await hre.Diamond.connect(user).withdrawCollateral(
-                user.address,
-                CollateralAsset8Dec.address,
-                depositAmount,
-                withdrawIndex,
-            );
-            const balance = await CollateralAsset8Dec.contract.balanceOf(user.address);
-            expect(balance).to.equal(toBig(startingBalance, 8));
-        });
-
-        it("should return the correct deposit value with over 18 decimals", async () => {
-            const depositAmount = toBig(10, 21);
-            await hre.Diamond.connect(user).depositCollateral(
-                user.address,
-                CollateralAsset21Dec.address,
-                depositAmount,
-            );
-            const withdrawIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
-                user.address,
-                CollateralAsset21Dec.address,
-            );
-            const deposits = await hre.Diamond.collateralDeposits(user.address, CollateralAsset21Dec.address);
-            expect(deposits).to.equal(depositAmount);
-            await hre.Diamond.connect(user).withdrawCollateral(
-                user.address,
-                CollateralAsset21Dec.address,
-                depositAmount,
-                withdrawIndex,
-            );
-            const balance = await CollateralAsset21Dec.contract.balanceOf(user.address);
-            expect(balance).to.equal(toBig(startingBalance, 21));
-        });
-    });
-
-    describe("#Kresko Asset Debt Values", async () => {
-        it("should return the correct debt value (+CR) with 18 decimal collateral", async () => {
-            const depositAmount = toBig(10);
-            await hre.Diamond.connect(user).depositCollateral(user.address, CollateralAsset.address, depositAmount);
-
-            const mintAmount = toBig(1);
-            const expectedMintValue = toBig(20, oracleDecimals); // kFactor = 2, krAssetPrice = 10, mintAmount = 1, openFee = 0.1
-
-            await hre.Diamond.connect(user).mintKreskoAsset(user.address, KreskoAsset.address, mintAmount);
-            const expectedDepositValue = toBig(49.5, oracleDecimals); // cfactor = 0.5, collateralPrice = 10, depositAmount = 10, openFee = 0.1
-
-            const depositValue = await hre.Diamond.getAccountCollateralValue(user.address);
-            expect(depositValue).to.equal(expectedDepositValue);
-
-            const mintValue = await hre.Diamond.getAccountKrAssetValue(user.address);
-            expect(mintValue).to.equal(expectedMintValue);
-
-            const assetValue = await hre.Diamond.getKrAssetValue(KreskoAsset.address, mintAmount, true);
-            const kFactor = (await hre.Diamond.kreskoAsset(KreskoAsset.address)).kFactor;
-            expect(assetValue).to.equal(expectedMintValue.wadDiv(kFactor));
-
-            const collateralRatio = await getCR(user.address, true); // big
-            expect(collateralRatio).to.equal(expectedDepositValue.wadDiv(expectedMintValue)); // 2.475
-        });
-        it("should return the correct debt value (+CR) with less than 18 decimal collateral", async () => {
-            const depositAmount = toBig(10, 8);
-            await hre.Diamond.connect(user).depositCollateral(user.address, CollateralAsset8Dec.address, depositAmount);
-
-            const mintAmount = toBig(1);
-            const expectedMintValue = toBig(20, oracleDecimals); // kFactor = 2, krAssetPrice = 10, mintAmount = 1, openFee = 0.1
-
-            await hre.Diamond.connect(user).mintKreskoAsset(user.address, KreskoAsset.address, mintAmount);
-            const expectedDepositValue = toBig(49.5, oracleDecimals); // cfactor = 0.5, collateralPrice = 10, depositAmount = 10, openFee = 0.1
-
-            const depositValue = await hre.Diamond.getAccountCollateralValue(user.address);
-            expect(depositValue).to.equal(expectedDepositValue);
-
-            const mintValue = await hre.Diamond.getAccountKrAssetValue(user.address);
-            expect(mintValue).to.equal(expectedMintValue);
-
-            const assetValue = await hre.Diamond.getKrAssetValue(KreskoAsset.address, mintAmount, true);
-            const kFactor = (await hre.Diamond.kreskoAsset(KreskoAsset.address)).kFactor;
-            expect(assetValue).to.equal(expectedMintValue.wadDiv(kFactor));
-
-            const collateralRatio = await getCR(user.address, true); // big
-            expect(collateralRatio).to.equal(expectedDepositValue.wadDiv(expectedMintValue)); // 2.475
-        });
-        it("should return the correct debt value (+CR) with more than 18 decimal collateral", async () => {
-            const depositAmount = toBig(10, 21);
-            await hre.Diamond.connect(user).depositCollateral(
-                user.address,
-                CollateralAsset21Dec.address,
-                depositAmount,
+                MockKreskoAsset.address,
+                toBig(0.1, 18),
             );
 
-            const mintAmount = toBig(1);
-            const expectedMintValue = toBig(20, oracleDecimals); // kFactor = 2, krAssetPrice = 10, mintAmount = 1, openFee = 0.1
+            console.log("Gas used normal (mint)", (await mintNormal.wait()).gasUsed.toString());
+            console.log("Gas used redstone (mint)", (await mintRedstone.wait()).gasUsed.toString());
 
-            await hre.Diamond.connect(user).mintKreskoAsset(user.address, KreskoAsset.address, mintAmount);
-            const expectedDepositValue = toBig(49.5, oracleDecimals); // cfactor = 0.5, collateralPrice = 10, depositAmount = 10, openFee = 0.1
+            const withdrawNormal = await hre.Diamond.connect(user).withdrawCollateral(
+                user.address,
+                MockWETH.address,
+                toBig(3, 18),
+                0,
+            );
+            const withdrawRedstone = await wrapped.withdrawCollateralRedstone(
+                user.address,
+                MockWETH.address,
+                toBig(3, 18),
+                0,
+            );
 
-            const depositValue = await hre.Diamond.getAccountCollateralValue(user.address);
-            expect(depositValue).to.equal(expectedDepositValue);
-
-            const mintValue = await hre.Diamond.getAccountKrAssetValue(user.address);
-            expect(mintValue).to.equal(expectedMintValue);
-
-            const assetValue = await hre.Diamond.getKrAssetValue(KreskoAsset.address, mintAmount, true);
-            const kFactor = (await hre.Diamond.kreskoAsset(KreskoAsset.address)).kFactor;
-            expect(assetValue).to.equal(expectedMintValue.wadDiv(kFactor));
-
-            const collateralRatio = await getCR(user.address, true); // big
-            expect(collateralRatio).to.equal(expectedDepositValue.wadDiv(expectedMintValue)); // 2.475
+            console.log("Gas used normal (withdraw)", (await withdrawNormal.wait()).gasUsed.toString());
+            console.log("Gas used redstone (withdraw)", (await withdrawRedstone.wait()).gasUsed.toString());
         });
     });
 

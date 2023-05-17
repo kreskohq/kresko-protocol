@@ -4,6 +4,7 @@ import {CollateralAsset, KrAsset} from "../MinterTypes.sol";
 import {LibDecimals} from "../libs/LibDecimals.sol";
 import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
 import {WadRay} from "../../libs/WadRay.sol";
+import {LibPrice} from "./LibPrice.sol";
 
 /**
  * @title LibAssetUtility
@@ -72,6 +73,20 @@ library LibAssetUtility {
     }
 
     /**
+     * @notice Get the oracle price of a kresko asset in uint256 with extOracleDecimals
+     */
+    function redstonePrice(KrAsset memory self) internal view returns (uint256) {
+        return LibPrice.getPrice(self.redstone);
+    }
+
+    /**
+     * @notice Get the oracle price of a kresko asset in uint256 with extOracleDecimals
+     */
+    function redstonePrice(CollateralAsset memory self) internal view returns (uint256) {
+        return LibPrice.getPrice(self.redstone);
+    }
+
+    /**
      * @notice Get the oracle price of a collateral asset in uint256 with 18 decimals
      */
     function wadPrice(CollateralAsset memory self) internal view returns (uint256) {
@@ -95,7 +110,21 @@ library LibAssetUtility {
     /**
      * @notice Get value for @param _assetAmount of @param self in uint256
      */
+    function uintUSDRedstone(CollateralAsset memory self, uint256 _assetAmount) internal view returns (uint256) {
+        return self.redstonePrice().wadMul(_assetAmount);
+    }
+
+    /**
+     * @notice Get value for @param _assetAmount of @param self in uint256
+     */
     function uintUSD(KrAsset memory self, uint256 _assetAmount) internal view returns (uint256) {
         return self.uintPrice().wadMul(_assetAmount);
+    }
+
+    /**
+     * @notice Get value for @param _assetAmount of @param self in uint256
+     */
+    function uintUSDRedstone(KrAsset memory self, uint256 _assetAmount) internal view returns (uint256) {
+        return self.redstonePrice().wadMul(_assetAmount);
     }
 }

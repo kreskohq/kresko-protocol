@@ -1,4 +1,4 @@
-import { testnetConfigs } from "@deploy-config/opgoerli";
+import { redstoneMap, testnetConfigs } from "@deploy-config/opgoerli";
 import { fromBig, getLogger, toBig } from "@kreskolabs/lib";
 
 export default async function run() {
@@ -22,15 +22,22 @@ export default async function run() {
         }
         const priceFeed = collateral.oracle!.chainlink ? collateral.oracle!.chainlink : fluxFeed;
         const liqIncentive = toBig(process.env.LIQUIDATION_INCENTIVE!);
+        const redstone = redstoneMap[(await contract.symbol()) as keyof typeof redstoneMap];
+        if (!redstone) {
+            throw new Error(`Redstone not found for ${collateral.symbol}`);
+        }
 
-        await Kresko.updateCollateralAsset(
-            contract.address,
-            asset.anchor,
-            asset.factor,
-            liqIncentive,
-            priceFeed,
-            fluxFeed,
-        );
+        const config = {
+            factor: asset.factor,
+            oracle: priceFeed,
+            marketStatusOracle: fluxFeed,
+            anchor: asset.anchor,
+            liquidationIncentive: liqIncentive,
+            decimals: asset.decimals,
+            redstone,
+            exists: true,
+        };
+        await Kresko.updateCollateralAsset(contract.address, config);
     }
     for (const krAsset of testnetConfigs[hre.network.name].krAssets) {
         const fluxFeed = await factory.addressOfPricePair(krAsset.oracle!.description, 8, feedValidator.address);
@@ -48,16 +55,22 @@ export default async function run() {
             `price: ${fromBig(latest[0], 8)} marketOpen: ${latest[1]}`,
         );
         const priceFeed = krAsset.oracle!.chainlink ? krAsset.oracle!.chainlink : fluxFeed;
-        await Kresko.updateKreskoAsset(
-            contract.address,
-            asset.anchor,
-            asset.kFactor,
-            priceFeed,
-            fluxFeed,
-            asset.supplyLimit,
-            asset.closeFee,
-            asset.openFee,
-        );
+        const redstone = redstoneMap[(await contract.symbol()) as keyof typeof redstoneMap];
+        if (!redstone) {
+            throw new Error(`Redstone not found for ${krAsset.symbol}`);
+        }
+        const config = {
+            kFactor: toBig(1),
+            oracle: priceFeed,
+            marketStatusOracle: fluxFeed,
+            anchor: asset.anchor,
+            supplyLimit: asset.supplyLimit,
+            closeFee: asset.closeFee,
+            openFee: asset.openFee,
+            redstone,
+            exists: true,
+        };
+        await Kresko.updateKreskoAsset(contract.address, config);
     }
     logger.success("All price feeds updated");
 }

@@ -4,6 +4,7 @@ import { ERC20Upgradeable__factory, FluxPriceFeed__factory } from "types/typecha
 import { InputArgs, TestCollateralAssetArgs, TestCollateralAssetUpdate, defaultCollateralArgs } from "../mocks";
 import { getMockOracleFor, setPrice } from "./general";
 import { envCheck } from "@utils/general";
+import { redstoneMap } from "@deploy-config/opgoerli";
 envCheck();
 export const addMockCollateralAsset = async (
     args: TestCollateralAssetArgs = defaultCollateralArgs,
@@ -19,15 +20,20 @@ export const addMockCollateralAsset = async (
     TestCollateral.symbol.returns(name);
     TestCollateral.decimals.returns(decimals);
     const cFactor = toBig(factor);
+    const redstone = redstoneMap[name as keyof typeof redstoneMap];
+    if (!redstone) throw new Error(`Redstone not found for ${name}`);
+    const config = {
+        anchor: hre.ethers.constants.AddressZero,
+        factor: cFactor,
+        liquidationIncentive: toBig(process.env.LIQUIDATION_INCENTIVE!),
+        oracle: MockOracle.address,
+        marketStatusOracle: MockOracle.address,
+        redstone,
+        decimals: decimals,
+        exists: true,
+    };
 
-    await hre.Diamond.connect(deployer).addCollateralAsset(
-        TestCollateral.address,
-        hre.ethers.constants.AddressZero,
-        cFactor,
-        toBig(process.env.LIQUIDATION_INCENTIVE!),
-        MockOracle.address,
-        MockOracle.address,
-    );
+    await hre.Diamond.connect(deployer).addCollateralAsset(TestCollateral.address, config);
     const mocks = {
         contract: TestCollateral,
         mockFeed: MockOracle,
@@ -66,15 +72,19 @@ export const addMockCollateralAsset = async (
 export const updateCollateralAsset = async (address: string, args: TestCollateralAssetUpdate) => {
     const { deployer } = await hre.ethers.getNamedSigners();
     const collateral = hre.collaterals.find(c => c.address === address);
-
-    await hre.Diamond.connect(deployer).updateCollateralAsset(
-        collateral!.address,
-        hre.ethers.constants.AddressZero,
-        toBig(args.factor),
-        toBig(process.env.LIQUIDATION_INCENTIVE!),
-        args.oracle || collateral!.priceFeed.address,
-        args.oracle || collateral!.priceFeed.address,
-    );
+    const redstone = redstoneMap[(await collateral!.contract.symbol()) as keyof typeof redstoneMap];
+    if (!redstone) throw new Error(`Redstone not found for ${collateral?.deployArgs.name}`);
+    const config = {
+        anchor: hre.ethers.constants.AddressZero,
+        factor: toBig(args.factor),
+        oracle: args.oracle || collateral!.priceFeed.address,
+        marketStatusOracle: args.oracle || collateral!.priceFeed.address,
+        redstone,
+        decimals: 18,
+        liquidationIncentive: toBig(process.env.LIQUIDATION_INCENTIVE!),
+        exists: true,
+    };
+    await hre.Diamond.connect(deployer).updateCollateralAsset(collateral!.address, config);
     // @ts-expect-error
     const asset: TestCollateral = {
         deployArgs: { ...collateral!.deployArgs, ...args },

@@ -9,6 +9,7 @@ import {MinterEvent} from "../../libs/Events.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 import {CollateralAsset} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
+import {LibPrice} from "./LibPrice.sol";
 
 /**
  * @title Library for collateral related operations
@@ -67,6 +68,61 @@ library LibCollateral {
             value = value.wadMul(asset.factor);
         }
         return (value, oraclePrice);
+    }
+
+    /**
+     * @notice Gets the collateral value for a single collateral asset and amount.
+     * @param _collateralAsset The address of the collateral asset.
+     * @param _amount The amount of the collateral asset to calculate the collateral value for.
+     * @param _ignoreCollateralFactor Boolean indicating if the asset's collateral factor should be ignored.
+     * @return The collateral value for the provided amount of the collateral asset.
+     */
+    function getCollateralValueAndOraclePriceRedstone(
+        MinterState storage self,
+        address _collateralAsset,
+        uint256 _amount,
+        bool _ignoreCollateralFactor
+    ) internal view returns (uint256, uint256) {
+        CollateralAsset memory asset = self.collateralAssets[_collateralAsset];
+
+        uint256 oraclePrice = LibPrice.getPrice(asset.redstone);
+        uint256 value = asset.decimals.toWad(_amount).wadMul(oraclePrice);
+
+        if (!_ignoreCollateralFactor) {
+            value = value.wadMul(asset.factor);
+        }
+        return (value, oraclePrice);
+    }
+
+    function verifyAndRecordCollateralWithdrawalRedstone(
+        MinterState storage self,
+        address _account,
+        address _collateralAsset,
+        uint256 _withdrawAmount,
+        uint256 _collateralDeposits,
+        uint256 _depositedCollateralAssetIndex
+    ) internal {
+        require(_withdrawAmount > 0, Error.ZERO_WITHDRAW);
+        require(
+            _depositedCollateralAssetIndex <= self.depositedCollateralAssets[_account].length - 1,
+            Error.ARRAY_OUT_OF_BOUNDS
+        );
+
+        // Ensure that the operation passes checks MCR checks
+        verifyAccountCollateralRedstone(self, _account, _collateralAsset, _withdrawAmount);
+
+        // Record the withdrawal.
+        self.collateralDeposits[_account][_collateralAsset] = self
+            .collateralAssets[_collateralAsset]
+            .toNonRebasingAmount(_collateralDeposits - _withdrawAmount);
+
+        // If the user is withdrawing all of the collateral asset, remove the collateral asset
+        // from the user's deposited collateral assets array.
+        if (_withdrawAmount == _collateralDeposits) {
+            self.depositedCollateralAssets[_account].removeAddress(_collateralAsset, _depositedCollateralAssetIndex);
+        }
+
+        emit MinterEvent.CollateralWithdrawn(_account, _collateralAsset, _withdrawAmount);
     }
 
     function verifyAndRecordCollateralWithdrawal(
@@ -184,6 +240,36 @@ library LibCollateral {
         );
         // Get the account's minimum collateral value.
         uint256 accountMinCollateralValue = self.getAccountMinimumCollateralValueAtRatio(
+            _account,
+            self.minimumCollateralizationRatio
+        );
+        // Require accountMinCollateralValue <= accountCollateralValue - withdrawnCollateralValue.
+        require(
+            accountMinCollateralValue <= accountCollateralValue - withdrawnCollateralValue,
+            Error.COLLATERAL_INSUFFICIENT_AMOUNT
+        );
+    }
+
+    function verifyAccountCollateralRedstone(
+        MinterState storage self,
+        address _account,
+        address _collateralAsset,
+        uint256 _withdrawAmount
+    ) internal view {
+        // Ensure the withdrawal does not result in the account having a collateral value
+        // under the minimum collateral amount required to maintain a healthy position.
+        // I.e. the new account's collateral value must still exceed the account's minimum
+        // collateral value.
+        // Get the account's current collateral value.
+        uint256 accountCollateralValue = self.getAccountCollateralValue(_account);
+        // Get the collateral value that the account will lose as a result of this withdrawal.
+        (uint256 withdrawnCollateralValue, ) = self.getCollateralValueAndOraclePriceRedstone(
+            _collateralAsset,
+            _withdrawAmount,
+            false // Take the collateral factor into consideration.
+        );
+        // Get the account's minimum collateral value.
+        uint256 accountMinCollateralValue = self.getAccountMinimumCollateralValueAtRatioRedstone(
             _account,
             self.minimumCollateralizationRatio
         );

@@ -14,6 +14,7 @@ import { addMockCollateralAsset, depositCollateral } from "@utils/test/helpers/c
 import { mintKrAsset } from "@utils/test/helpers/krassets";
 import { getExpectedMaxLiq, getCR, liquidate } from "@utils/test/helpers/liquidations";
 import { LiquidationOccurredEvent } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
+import { redstoneMap } from "@deploy-config/opgoerli";
 
 const INTEREST_RATE_DELTA = 0.01;
 const USD_DELTA = toBig(0.1, "gwei");
@@ -49,16 +50,21 @@ describe("Minter", () => {
         // grant operator role to deployer for rebases
         await this.krAsset!.contract.grantRole(Role.OPERATOR, hre.users.deployer.address);
         const assetInfo = await this.krAsset!.kresko();
-
+        const redstone = redstoneMap[(await this.krAsset.contract.symbol()) as keyof typeof redstoneMap];
+        expect(redstone).to.not.be.undefined;
+        const config = {
+            anchor: assetInfo.anchor,
+            factor: toBig(1),
+            oracle: assetInfo.oracle,
+            marketStatusOracle: assetInfo.oracle,
+            supplyLimit: assetInfo.supplyLimit,
+            redstone,
+            decimals: 18,
+            liquidationIncentive: toBig(1.05),
+            exists: true,
+        };
         // Add krAsset as a collateral with anchor and cFactor of 1
-        await hre.Diamond.connect(hre.users.deployer).addCollateralAsset(
-            this.krAsset!.contract.address,
-            this.krAsset!.anchor!.address,
-            toBig(1),
-            toBig(1.05),
-            assetInfo.oracle,
-            assetInfo.oracle,
-        );
+        await hre.Diamond.connect(hre.users.deployer).addCollateralAsset(this.krAsset!.contract.address, config);
 
         // -------------------------------- Set up userOne deposit/debt --------------------------------
 

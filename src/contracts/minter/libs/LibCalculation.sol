@@ -132,6 +132,62 @@ library LibCalculation {
     }
 
     /**
+     * @notice Calculates the fee to be taken from a user's deposited collateral assetself.
+     * @param _collateralAsset The collateral asset from which to take to the fee.
+     * @param _account The owner of the collateral.
+     * @param _feeValue The original value of the fee.
+     * @param _collateralAssetIndex The collateral asset's index in the user's depositedCollateralAssets array.
+     *
+     * @return transferAmount to be received as a uint256
+     * @return feeValuePaid wad representing the fee value paid.
+     */
+    function calcFeeRedstone(
+        MinterState storage self,
+        address _collateralAsset,
+        address _account,
+        uint256 _feeValue,
+        uint256 _collateralAssetIndex
+    ) internal returns (uint256 transferAmount, uint256 feeValuePaid) {
+        uint256 depositAmount = self.getCollateralDeposits(_account, _collateralAsset);
+
+        // Don't take the collateral asset's collateral factor into consideration.
+        (uint256 depositValue, uint256 oraclePrice) = self.getCollateralValueAndOraclePriceRedstone(
+            _collateralAsset,
+            depositAmount,
+            true
+        );
+
+        // If feeValue < depositValue, the entire fee can be charged for this collateral asset.
+        if (_feeValue < depositValue) {
+            // We want to make sure that transferAmount is < depositAmount.
+            // Proof:
+            //   depositValue <= oraclePrice * depositAmount (<= due to a potential loss of precision)
+            //   feeValue < depositValue
+            // Meaning:
+            //   feeValue < oraclePrice * depositAmount
+            // Solving for depositAmount we get:
+            //   feeValue / oraclePrice < depositAmount
+            // Due to integer division:
+            //   transferAmount = floor(feeValue / oracleValue)
+            //   transferAmount <= feeValue / oraclePrice
+            // We see that:
+            //   transferAmount <= feeValue / oraclePrice < depositAmount
+            //   transferAmount < depositAmount
+            transferAmount = self.collateralAssets[_collateralAsset].decimals.fromWad(_feeValue.wadDiv(oraclePrice));
+            feeValuePaid = _feeValue;
+        } else {
+            // If the feeValue >= depositValue, the entire deposit
+            // should be taken as the fee.
+            transferAmount = depositAmount;
+            feeValuePaid = depositValue;
+            // Because the entire deposit is taken, remove it from the depositCollateralAssets array.
+            self.depositedCollateralAssets[_account].removeAddress(_collateralAsset, _collateralAssetIndex);
+        }
+
+        return (transferAmount, feeValuePaid);
+    }
+
+    /**
      * @notice Calculates the maximum USD value of a given kreskoAsset that can be liquidated given a liquidation pair
      *
      * 1. Calculates the value gained per USD repaid in liquidation for a given kreskoAsset

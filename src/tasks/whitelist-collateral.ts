@@ -4,6 +4,7 @@ import type { TaskArguments } from "hardhat/types";
 import { anchorTokenPrefix } from "@deploy-config/shared";
 import { task, types } from "hardhat/config";
 import { TASK_WHITELIST_COLLATERAL } from "./names";
+import { redstoneMap } from "@deploy-config/opgoerli";
 
 task(TASK_WHITELIST_COLLATERAL)
     .addParam("symbol", "Name of the collateral")
@@ -26,7 +27,6 @@ task(TASK_WHITELIST_COLLATERAL)
         }
 
         const Collateral = await hre.getContractOrFork("ERC20Upgradeable", symbol);
-
         logger.log("Collateral address", Collateral.address);
 
         const collateralAsset = await kresko.collateralAsset(Collateral.address);
@@ -50,14 +50,20 @@ task(TASK_WHITELIST_COLLATERAL)
                 throw new Error("LIQUIDATION_INCENTIVE is not set");
             }
             const liquidationIncentive = toBig(process.env.LIQUIDATION_INCENTIVE!);
-            const tx = await kresko.addCollateralAsset(
-                Collateral.address,
-                anchor?.address ?? hre.ethers.constants.AddressZero,
-                toBig(cFactor),
+            const redstone = redstoneMap[symbol as keyof typeof redstoneMap];
+            if (!redstone) throw new Error(`Redstone not found for ${symbol}`);
+
+            const config = {
+                anchor: anchor?.address ?? hre.ethers.constants.AddressZero,
+                factor: toBig(cFactor),
                 liquidationIncentive,
-                oracleAddr,
-                marketStatusOracleAddr,
-            );
+                oracle: oracleAddr,
+                marketStatusOracle: marketStatusOracleAddr,
+                redstone,
+                decimals: await Collateral.decimals(),
+                exists: true,
+            };
+            const tx = await kresko.addCollateralAsset(Collateral.address, config);
             await tx.wait();
             if (log) {
                 const collateralDecimals = await Collateral.decimals();
