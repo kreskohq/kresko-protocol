@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: AGPL3.0-or-later
 pragma solidity >=0.8.20;
 
 interface IUniswapV2Oracle {

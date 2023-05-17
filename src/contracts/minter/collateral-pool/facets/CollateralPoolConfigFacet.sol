@@ -1,9 +1,9 @@
-// SPDX-LICENSE-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity >=0.8.20;
 
-pragma solidity >=0.8.14;
-
-import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../../shared/SafeERC20Upgradeable.sol";
-import {DiamondModifiers, MinterModifiers, Role} from "../../../shared/Modifiers.sol";
+import {SafeERC20, IERC20Permit} from "../../../shared/SafeERC20.sol";
+import {MinterModifiers} from "../../../minter/MinterModifiers.sol";
+import {DiamondModifiers, Role} from "../../../diamond/DiamondModifiers.sol";
 import {ms} from "../../MinterStorage.sol";
 import {cps} from "../CollateralPoolState.sol";
 import {Constants} from "../../MinterTypes.sol";
@@ -12,7 +12,7 @@ import {WadRay} from "../../../libs/WadRay.sol";
 import {ICollateralPoolConfigFacet, PoolCollateral, PoolKrAsset} from "../interfaces/ICollateralPoolConfigFacet.sol";
 
 contract CollateralPoolConfigFacet is ICollateralPoolConfigFacet, DiamondModifiers, MinterModifiers {
-    using SafeERC20Upgradeable for IERC20Upgradeable;
+    using SafeERC20 for IERC20Permit;
     using Arrays for address[];
 
     /// @inheritdoc ICollateralPoolConfigFacet
@@ -47,7 +47,7 @@ contract CollateralPoolConfigFacet is ICollateralPoolConfigFacet, DiamondModifie
             require(cps().poolCollateral[_enabledCollaterals[i]].liquidityIndex == 0, "collateral-already-enabled");
 
             // We don't care what values are set for decimals or liquidityIndex. Overriding.
-            _configurations[i].decimals = IERC20Upgradeable(_enabledCollaterals[i]).decimals();
+            _configurations[i].decimals = IERC20Permit(_enabledCollaterals[i]).decimals();
             _configurations[i].liquidityIndex = uint128(WadRay.RAY);
 
             // Save to state

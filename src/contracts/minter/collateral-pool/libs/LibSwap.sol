@@ -1,7 +1,7 @@
-// SPDX-License-Identifier: agpl-3.0
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.14;
 
-import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../../shared/SafeERC20Upgradeable.sol";
+import {SafeERC20, IERC20Permit} from "../../../shared/SafeERC20.sol";
 
 import {WadRay} from "../../../libs/WadRay.sol";
 import {Error} from "../../../libs/Errors.sol";
@@ -20,7 +20,7 @@ import {irs} from "../../InterestRateState.sol";
 library LibSwap {
     using WadRay for uint256;
     using WadRay for uint128;
-    using SafeERC20Upgradeable for IERC20Upgradeable;
+    using SafeERC20 for IERC20Permit;
 
     /**
      * @notice Check that assets can be swapped.
@@ -30,7 +30,7 @@ library LibSwap {
         CollateralPoolState storage self,
         address _assetIn,
         address _assetOut
-    ) internal returns (uint256 feePercentage, uint256 protocolFee) {
+    ) internal view returns (uint256 feePercentage, uint256 protocolFee) {
         require(self.isSwapEnabled[_assetIn][_assetOut], "swap-disabled");
         require(self.isEnabled[_assetIn], "asset-in-disabled");
         require(self.isEnabled[_assetOut], "asset-out-disabled");
@@ -54,7 +54,7 @@ library LibSwap {
         uint256 _amountIn
     ) internal returns (uint256 valueIn) {
         uint256 debt = ms().getKreskoAssetAmount(_assetIn, self.debt[_assetIn]);
-        valueIn = ms().getKrAssetValue(_assetIn, _amountIn, true).rawValue; // ignore kFactor here
+        valueIn = ms().getKrAssetValue(_assetIn, _amountIn, true); // ignore kFactor here
 
         uint256 collateralIn; // assets used increase "swap" owned collateral
         uint256 debtOut; // assets used to burn debt
@@ -143,7 +143,7 @@ library LibSwap {
             // 2. Decrease "swap" owned collateral.
             self.swapDeposits[_assetOut] -= amountOutInternal;
             // 3. Transfer collateral to receiver.
-            IERC20Upgradeable(_assetOut).safeTransfer(_receiver, amountOutInternal);
+            IERC20Permit(_assetOut).safeTransfer(_receiver, amountOutInternal);
         }
 
         if (debtIn > 0) {

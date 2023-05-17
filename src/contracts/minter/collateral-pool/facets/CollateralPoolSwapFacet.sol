@@ -1,15 +1,14 @@
-// SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
-import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../../shared/SafeERC20Upgradeable.sol";
-import {DiamondModifiers, MinterModifiers} from "../../../shared/Modifiers.sol";
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity >=0.8.20;
+import {SafeERC20, IERC20Permit} from "../../../shared/SafeERC20.sol";
+import {DiamondModifiers} from "../../../diamond/DiamondModifiers.sol";
 import {ms} from "../../MinterStorage.sol";
-import {LibSwap} from "../libs/LibSwap.sol";
 import {WadRay} from "../../../libs/WadRay.sol";
 import {ICollateralPoolSwapFacet} from "../interfaces/ICollateralPoolSwapFacet.sol";
 import {cps} from "../CollateralPoolState.sol";
 
 contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
-    using SafeERC20Upgradeable for IERC20Upgradeable;
+    using SafeERC20 for IERC20Permit;
     using WadRay for uint256;
 
     /// @inheritdoc ICollateralPoolSwapFacet
@@ -26,7 +25,7 @@ contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
         (uint256 feePercentage, uint256 protocolFee) = cps().checkAssets(_assetIn, _assetOut);
 
         // Transfer assets into this contract.
-        IERC20Upgradeable(_assetIn).safeTransferFrom(msg.sender, address(this), _amountIn);
+        IERC20Permit(_assetIn).safeTransferFrom(msg.sender, address(this), _amountIn);
 
         // Get the fees from amount received.
         uint256 feeAmount = _amountIn.wadMul(feePercentage);
@@ -54,8 +53,8 @@ contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
         uint256 protocolFeeTaken = feeAmount.wadMul(protocolFee);
         feeAmount -= protocolFeeTaken;
 
-        IERC20Upgradeable(_assetIn).safeTransfer(cps().swapFeeRecipient, feeAmount);
-        IERC20Upgradeable(_assetIn).safeTransfer(ms().feeRecipient, protocolFeeTaken);
+        IERC20Permit(_assetIn).safeTransfer(cps().swapFeeRecipient, feeAmount);
+        IERC20Permit(_assetIn).safeTransfer(ms().feeRecipient, protocolFeeTaken);
 
         emit SwapFee(_assetIn, feeAmount, protocolFeeTaken);
     }

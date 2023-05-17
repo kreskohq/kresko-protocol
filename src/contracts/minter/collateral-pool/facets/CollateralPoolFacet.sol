@@ -1,20 +1,19 @@
-// SPDX-LICENSE-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity >=0.8.20;
 
-pragma solidity >=0.8.14;
-
-import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../../shared/SafeERC20Upgradeable.sol";
-import {DiamondModifiers, MinterModifiers} from "../../../shared/Modifiers.sol";
+import {SafeERC20, IERC20Permit} from "../../../shared/SafeERC20.sol";
+import {DiamondModifiers} from "../../../diamond/DiamondModifiers.sol";
 import {ms} from "../../MinterStorage.sol";
 import {ICollateralPoolFacet} from "../interfaces/ICollateralPoolFacet.sol";
 import {cps} from "../CollateralPoolState.sol";
 
-contract CollateralPoolFacet is ICollateralPoolFacet, DiamondModifiers, MinterModifiers {
-    using SafeERC20Upgradeable for IERC20Upgradeable;
+contract CollateralPoolFacet is ICollateralPoolFacet, DiamondModifiers {
+    using SafeERC20 for IERC20Permit;
 
     /// @inheritdoc ICollateralPoolFacet
     function poolDeposit(address _account, address _collateralAsset, uint256 _amount) external nonReentrant {
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
-        IERC20Upgradeable(_collateralAsset).safeTransferFrom(msg.sender, address(this), _amount);
+        IERC20Permit(_collateralAsset).safeTransferFrom(msg.sender, address(this), _amount);
 
         // Record the collateral deposit.
         cps().recordCollateralDeposit(_account, _collateralAsset, _amount);
@@ -38,7 +37,7 @@ contract CollateralPoolFacet is ICollateralPoolFacet, DiamondModifiers, MinterMo
         );
 
         // Send out the collateral.
-        IERC20Upgradeable(_collateralAsset).safeTransfer(_account, collateralOut + feesOut);
+        IERC20Permit(_collateralAsset).safeTransfer(_account, collateralOut + feesOut);
 
         // Emit event.
         emit CollateralPoolWithdraw(_account, _collateralAsset, collateralOut, feesOut);

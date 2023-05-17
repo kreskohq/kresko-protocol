@@ -1,19 +1,14 @@
-// SPDX-License-Identifier: agpl-3.0
-pragma solidity >=0.8.14;
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity >=0.8.20;
 
-import {IKreskoAsset} from "../../../kreskoasset/IKreskoAsset.sol";
-import {IERC20Upgradeable} from "../../../shared/IERC20Upgradeable.sol";
-
-import {FixedPoint} from "../../../libs/FixedPoint.sol";
+import {SafeERC20, IERC20Permit} from "../../../shared/SafeERC20.sol";
 import {WadRay} from "../../../libs/WadRay.sol";
-import {Error} from "../../../libs/Errors.sol";
-import {Percentages} from "../../../libs/Percentages.sol";
-import {LibKrAsset} from "../../libs/LibKrAsset.sol";
-
 import {LibAmounts} from "./LibAmounts.sol";
-import {StabilityRateConfig} from "../../InterestRateState.sol";
 import {cps, CollateralPoolState} from "../CollateralPoolState.sol";
 import {ms} from "../../MinterStorage.sol";
+
+// import {Error} from "../../../libs/Errors.sol";
+// import {StabilityRateConfig} from "../../InterestRateState.sol";
 
 /* solhint-disable not-rely-on-time */
 
@@ -24,7 +19,6 @@ import {ms} from "../../MinterStorage.sol";
 library LibCollateralPool {
     using WadRay for uint256;
     using WadRay for uint128;
-    using Percentages for uint256;
     using LibAmounts for CollateralPoolState;
     using LibCollateralPool for CollateralPoolState;
 
@@ -163,39 +157,46 @@ library LibCollateralPool {
      * @param self Collateral Pool State
      * @param _ratio ratio
      * @param _ignorekFactor ignore kFactor
-     * @return totalValue value in USD
+     * @return value in USD
      */
     function getTotalPoolKrAssetValueAtRatio(
         CollateralPoolState storage self,
         uint256 _ratio,
         bool _ignorekFactor
-    ) internal view returns (uint256 totalValue) {
+    ) internal view returns (uint256 value) {
         address[] memory assets = self.krAssets;
         for (uint256 i; i < assets.length; i++) {
-            totalValue += self.getPoolKrAssetValue(assets[i], _ignorekFactor);
+            address asset = assets[i];
+            value += ms().getKrAssetValue(asset, ms().getKreskoAssetAmount(asset, self.debt[asset]), _ignorekFactor);
         }
 
         // We dont need to multiply this.
         if (_ratio == 1 ether) {
-            return totalValue;
+            return value;
         }
 
-        return totalValue.wadMul(_ratio);
+        return value.wadMul(_ratio);
     }
 
     /**
      * @notice Calculates the total collateral value of collateral assets in the pool.
      * @param self Collateral Pool State
      * @param _ignoreFactors whether to ignore factors
-     * @return totalValue total collateral value
+     * @return value in USD
      */
     function getTotalPoolDepositValue(
         CollateralPoolState storage self,
         bool _ignoreFactors
-    ) internal view returns (uint256 totalValue) {
+    ) internal view returns (uint256 value) {
         address[] memory assets = self.collaterals;
         for (uint256 i; i < assets.length; i++) {
-            totalValue += self.getPoolDepositValue(assets[i], _ignoreFactors);
+            address asset = assets[i];
+            (uint256 assetValue, ) = ms().getCollateralValueAndOraclePrice(
+                asset,
+                self.getPoolDeposits(asset),
+                _ignoreFactors
+            );
+            value += assetValue;
         }
     }
 
@@ -216,58 +217,34 @@ library LibCollateralPool {
         address[] memory assets = self.collaterals;
         for (uint256 i; i < assets.length; i++) {
             address asset = assets[i];
-            (FixedPoint.Unsigned memory assetValue, FixedPoint.Unsigned memory price) = ms()
-                .getCollateralValueAndOraclePrice(asset, self.getPoolDeposits(asset), _ignoreFactors);
+            (uint256 assetValue, uint256 price) = ms().getCollateralValueAndOraclePrice(
+                asset,
+                self.getPoolDeposits(asset),
+                _ignoreFactors
+            );
 
-            totalValue += assetValue.rawValue;
+            totalValue += assetValue;
             if (asset == _collateralAsset) {
-                amountValue = _amount.wadMul(price.rawValue);
+                amountValue = _amount.wadMul(price);
             }
         }
     }
 
-    /**
-     * @notice Returns the collateral value of a single asset in the pool.
-     * Performs possible rebasing conversions for the pool balance.
-     * @param self Collateral Pool State
-     * @param _collateralAsset collateral asset
-     * @param _ignoreFactors whether to ignore the collateral factor
-     * @return value The collateral value in USD
-     */
-    function getPoolDepositValue(
-        CollateralPoolState storage self,
-        address _collateralAsset,
-        bool _ignoreFactors
-    ) internal view returns (uint256 value) {
-        (FixedPoint.Unsigned memory collateralValue, ) = ms().getCollateralValueAndOraclePrice(
-            _collateralAsset,
-            self.getPoolDeposits(_collateralAsset),
-            _ignoreFactors
-        );
+    // /**
+    //  * @notice Returns the krAsset value of a single asset in the pool.
+    //  * Performs possible rebasing conversions for the pool balance.
+    //  * @param self Collateral Pool State
+    //  * @param _kreskoAsset krAsset
+    //  * @param _ignorekFactor whether to ignore the k factor
+    //  * @return value The krAsset value in USD
+    //  */
+    // function getPoolKrAssetValue(
+    //     CollateralPoolState storage self,
+    //     address _kreskoAsset,
+    //     bool _ignorekFactor
+    // ) internal view returns (uint256 value) {
 
-        return collateralValue.rawValue;
-    }
-
-    /**
-     * @notice Returns the krAsset value of a single asset in the pool.
-     * Performs possible rebasing conversions for the pool balance.
-     * @param self Collateral Pool State
-     * @param _kreskoAsset krAsset
-     * @param _ignorekFactor whether to ignore the k factor
-     * @return value The krAsset value in USD
-     */
-    function getPoolKrAssetValue(
-        CollateralPoolState storage self,
-        address _kreskoAsset,
-        bool _ignorekFactor
-    ) internal view returns (uint256 value) {
-        FixedPoint.Unsigned memory krAssetValue = ms().getKrAssetValue(
-            _kreskoAsset,
-            ms().getKreskoAssetAmount(_kreskoAsset, self.debt[_kreskoAsset]),
-            _ignorekFactor
-        );
-        return krAssetValue.rawValue;
-    }
+    // }
 
     // /**
     //  * @notice Get the current price rate between AMM and oracle pricing
