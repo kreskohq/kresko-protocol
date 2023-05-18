@@ -16,15 +16,38 @@ contract CollateralPoolConfigFacet is ICollateralPoolConfigFacet, DiamondModifie
     using Arrays for address[];
 
     /// @inheritdoc ICollateralPoolConfigFacet
-    function initialize(address _swapFeeRecipient, uint256 _mcr, uint256 _lt) external onlyOwner {
-        require(_mcr >= Constants.MIN_COLLATERALIZATION_RATIO, "mcr-too-low");
-        require(_lt >= Constants.MIN_COLLATERALIZATION_RATIO, "lt-too-low");
-        require(_lt <= _mcr, "lt-too-high");
-        require(_swapFeeRecipient != address(0), "invalid-fee-receiver");
+    function initialize(CollateralPoolConfig memory _config) external onlyOwner {
+        require(_config.mcr >= Constants.MIN_COLLATERALIZATION_RATIO, "mcr-too-low");
+        require(_config.lt >= Constants.MIN_COLLATERALIZATION_RATIO, "lt-too-low");
+        require(_config.lt <= _config.mcr, "lt-too-high");
+        require(_config.swapFeeRecipient != address(0), "invalid-fee-receiver");
 
+        cps().minimumCollateralizationRatio = _config.mcr;
+        cps().liquidationThreshold = _config.lt;
+        cps().swapFeeRecipient = _config.swapFeeRecipient;
+    }
+
+    /// @inheritdoc ICollateralPoolConfigFacet
+    function getCollateralPoolConfig() external view override returns (CollateralPoolConfig memory) {
+        return
+            CollateralPoolConfig({
+                swapFeeRecipient: cps().swapFeeRecipient,
+                mcr: cps().minimumCollateralizationRatio,
+                lt: cps().liquidationThreshold
+            });
+    }
+
+    /// @inheritdoc ICollateralPoolConfigFacet
+    function setPoolMinimumCollateralizationRatio(uint256 _mcr) external onlyRole(Role.ADMIN) {
+        require(_mcr >= Constants.MIN_COLLATERALIZATION_RATIO, "mcr-too-low");
         cps().minimumCollateralizationRatio = _mcr;
+    }
+
+    /// @inheritdoc ICollateralPoolConfigFacet
+    function setPoolLiquidationThreshold(uint256 _lt) external onlyRole(Role.ADMIN) {
+        require(_lt >= Constants.MIN_COLLATERALIZATION_RATIO, "mcr-too-low");
+        require(_lt <= cps().minimumCollateralizationRatio, "lt-too-high");
         cps().liquidationThreshold = _lt;
-        cps().swapFeeRecipient = _swapFeeRecipient;
     }
 
     /// @inheritdoc ICollateralPoolConfigFacet

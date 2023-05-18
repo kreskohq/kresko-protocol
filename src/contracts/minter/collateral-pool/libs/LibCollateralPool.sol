@@ -203,7 +203,6 @@ library LibCollateralPool {
     /**
      * @notice Returns the value of the collateral asset in the pool and the value of the amount.
      * Saves gas for getting the values in the same execution.
-     * @param self Collateral Pool State
      * @param _collateralAsset collateral asset
      * @param _amount amount of collateral asset
      * @param _ignoreFactors whether to ignore cFactor and kFactor
@@ -227,6 +226,29 @@ library LibCollateralPool {
             if (asset == _collateralAsset) {
                 amountValue = _amount.wadMul(price);
             }
+        }
+    }
+
+    /**
+     * @notice Returns the value of the collateral assets in the pool for `_account`.
+     * @param _account account
+     * @param _ignoreFactors whether to ignore cFactor and kFactor
+     */
+    function getTotalPoolDepositValue(
+        CollateralPoolState storage self,
+        address _account,
+        bool _ignoreFactors
+    ) internal view returns (uint256 totalValue) {
+        address[] memory assets = self.collaterals;
+        for (uint256 i; i < assets.length; i++) {
+            address asset = assets[i];
+            (uint256 assetValue, ) = ms().getCollateralValueAndOraclePrice(
+                asset,
+                self.getAccountDeposits(_account, asset),
+                _ignoreFactors
+            );
+
+            totalValue += assetValue;
         }
     }
 

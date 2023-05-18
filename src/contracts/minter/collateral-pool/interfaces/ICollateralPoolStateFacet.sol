@@ -27,6 +27,25 @@ interface ICollateralPoolStateFacet {
     function getPoolDeposits(address _collateralAsset) external view returns (uint256);
 
     /**
+     * @notice Get the  collateral deposit value for `_account`
+     * @param _account The account.
+     * @param _collateralAsset The collateral asset
+     * @param _ignoreFactors Ignore factors when calculating collateral value.
+     */
+    function getPoolDepositsValueAccount(
+        address _account,
+        address _collateralAsset,
+        bool _ignoreFactors
+    ) external view returns (uint256);
+
+    /**
+     * @notice Get the total collateral deposit value for `_account`
+     * @param _account The account.
+     * @param _ignoreFactors Ignore factors when calculating collateral value.
+     */
+    function getPoolTotalDepositsValueAccount(address _account, bool _ignoreFactors) external view returns (uint256);
+
+    /**
      * @notice Get the total collateral deposit value for `_collateralAsset`
      * @param _collateralAsset The collateral asset
      * @param _ignoreFactors Ignore factors when calculating collateral and debt value.
@@ -85,5 +104,17 @@ interface ICollateralPoolStateFacet {
     /**
      * @notice Get the swap fee recipient
      */
-    function getSwapFeeRecipient() external returns (address);
+    function getPoolSwapFeeRecipient() external returns (address);
+
+    /**
+     * @notice Get enabled state of asset
+     */
+    function getPoolAssetIsEnabled(address _asset) external returns (bool);
+
+    /**
+     * @notice Get whether swap is enabled from `_assetIn` to `_assetOut`
+     * @param _assetIn The asset to swap from
+     * @param _assetOut The asset to swap to
+     */
+    function getPoolIsSwapEnabled(address _assetIn, address _assetOut) external view returns (bool);
 }

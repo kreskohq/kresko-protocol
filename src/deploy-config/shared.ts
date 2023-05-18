@@ -5,7 +5,8 @@
 import { toBig } from "@kreskolabs/lib";
 import { envCheck } from "@utils/general";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
-import type { MinterInitializer } from "types";
+import type { CollateraPoolInitializer, MinterInitializer } from "types";
+import { ICollateralPoolConfigFacet } from "types/typechain";
 import { MinterInitArgsStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 envCheck();
 // These function namings are ignored when generating ABI for the diamond
@@ -32,13 +33,16 @@ export const minterFacets = [
     "MintFacet",
     "SafetyCouncilFacet",
     "StateFacet",
+    "StabilityRateFacet",
+    "UIDataProviderFacet",
+    "UIDataProviderFacet2",
+] as const;
+
+export const collateralPoolFacets = [
     "CollateralPoolStateFacet",
     "CollateralPoolFacet",
     "CollateralPoolConfigFacet",
     "CollateralPoolSwapFacet",
-    "StabilityRateFacet",
-    "UIDataProviderFacet",
-    "UIDataProviderFacet2",
 ] as const;
 
 export const getDeploymentUsers = async (hre: HardhatRuntimeEnvironment) => {
@@ -48,7 +52,7 @@ export const getDeploymentUsers = async (hre: HardhatRuntimeEnvironment) => {
 
     const multisig = hre.network.live ? users.multisig : Safe.address;
     const treasury = hre.network.live ? users.treasury : Safe.address;
-    return { admin: users.admin, multisig, treasury };
+    return { admin: users.admin, multisig, treasury, collateralPoolSwapRecipient: users.collateralPoolSwapRecipient };
 };
 export const getMinterInitializer = async (
     hre: HardhatRuntimeEnvironment,
@@ -65,6 +69,20 @@ export const getMinterInitializer = async (
             minimumDebtValue: toBig(process.env.MINIMUM_DEBT_VALUE!, 8),
             liquidationThreshold: toBig(process.env.LIQUIDATION_THRESHOLD!),
             extOracleDecimals: 8,
+        },
+    };
+};
+export const getCollateralPoolInitializer = async (
+    hre: HardhatRuntimeEnvironment,
+): Promise<CollateraPoolInitializer> => {
+    const { collateralPoolSwapRecipient } = await getDeploymentUsers(hre);
+
+    return {
+        name: "CollateralPoolConfigFacet",
+        args: {
+            lt: toBig(2),
+            mcr: toBig(5),
+            swapFeeRecipient: collateralPoolSwapRecipient,
         },
     };
 };

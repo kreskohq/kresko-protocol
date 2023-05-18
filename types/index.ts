@@ -1,6 +1,7 @@
 import { GetContractTypes } from "@kreskolabs/configs";
 import { Address } from "hardhat-deploy/types";
 import type * as Contracts from "./typechain";
+import { ICollateralPoolConfigFacet } from "./typechain";
 
 export type Split<S extends string, D extends string> = string extends S
     ? string[]
@@ -95,6 +96,10 @@ export type NetworkConfig = {
 export type MinterInitializer<A> = {
     name: "ConfigurationFacet";
     args: A;
+};
+export type CollateraPoolInitializer = {
+    name: "CollateralPoolConfigFacet";
+    args: ICollateralPoolConfigFacet.CollateralPoolConfig;
 };
 
 export type GnosisSafeDeployment = {

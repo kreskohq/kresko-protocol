@@ -1,4 +1,4 @@
-// SDPX-License-Identifier: BUSL-1.1
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.20;
 import {ICollateralPoolStateFacet} from "../interfaces/ICollateralPoolStateFacet.sol";
 import {cps, PoolCollateral, PoolKrAsset} from "../CollateralPoolState.sol";
@@ -24,6 +24,26 @@ contract CollateralPoolStateFacet is ICollateralPoolStateFacet {
         address _collateralAsset
     ) external view returns (uint256) {
         return cps().getAccountPrincipalDeposits(_account, _collateralAsset);
+    }
+
+    /// @inheritdoc ICollateralPoolStateFacet
+    function getPoolDepositsValueAccount(
+        address _account,
+        address _collateralAsset,
+        bool _ignoreFactors
+    ) external view returns (uint256) {
+        (uint256 assetValue, ) = ms().getCollateralValueAndOraclePrice(
+            _collateralAsset,
+            cps().getAccountDeposits(_account, _collateralAsset),
+            _ignoreFactors
+        );
+
+        return assetValue;
+    }
+
+    /// @inheritdoc ICollateralPoolStateFacet
+    function getPoolTotalDepositsValueAccount(address _account, bool _ignoreFactors) external view returns (uint256) {
+        return cps().getTotalPoolDepositValue(_account, _ignoreFactors);
     }
 
     /// @inheritdoc ICollateralPoolStateFacet
@@ -91,11 +111,22 @@ contract CollateralPoolStateFacet is ICollateralPoolStateFacet {
             _ignoreFactors ? 1 ether : cps().minimumCollateralizationRatio,
             _ignoreFactors
         );
+        if (debtValue == 0) return (collateralValue, debtValue, 0);
         cr = collateralValue.wadDiv(debtValue);
     }
 
     /// @inheritdoc ICollateralPoolStateFacet
-    function getSwapFeeRecipient() external view returns (address) {
+    function getPoolSwapFeeRecipient() external view returns (address) {
         return cps().swapFeeRecipient;
+    }
+
+    /// @inheritdoc ICollateralPoolStateFacet
+    function getPoolAssetIsEnabled(address _asset) external view returns (bool) {
+        return cps().isEnabled[_asset];
+    }
+
+    /// @inheritdoc ICollateralPoolStateFacet
+    function getPoolIsSwapEnabled(address _assetIn, address _assetOut) external view returns (bool) {
+        return cps().isSwapEnabled[_assetIn][_assetOut];
     }
 }

@@ -3,6 +3,17 @@ pragma solidity >=0.8.20;
 import {PoolKrAsset, PoolCollateral} from "../CollateralPoolState.sol";
 
 interface ICollateralPoolConfigFacet {
+    /**
+     * @notice Collateral pool configuration.
+     * @param _swapFeeRecipient The swap fee recipient.
+     * @param _mcr The minimum collateralization ratio.
+     * @param _lt The liquidation threshold.
+     */
+    struct CollateralPoolConfig {
+        address swapFeeRecipient;
+        uint256 mcr;
+        uint256 lt;
+    }
     // Emitted when a swap pair is disabled / enabled.
     event PairSet(address indexed assetIn, address indexed assetOut, bool enabled);
     // Emitted when a kresko asset fee is updated.
@@ -30,10 +41,18 @@ interface ICollateralPoolConfigFacet {
     /**
      * @notice Initialize the collateral pool.
      * Callable by diamond owner only.
-     * @param _mcr The minimum collateralization ratio.
-     * @param _lt The liquidation threshold.
+     * @param _config The configuration for the pool.
      */
-    function initialize(address _feeReceiver, uint256 _mcr, uint256 _lt) external;
+    function initialize(CollateralPoolConfig memory _config) external;
+
+    /// @notice Get the pool configuration.
+    function getCollateralPoolConfig() external view returns (CollateralPoolConfig memory);
+
+    /// @notice Set the pool minimum collateralization ratio.
+    function setPoolMinimumCollateralizationRatio(uint256 _mcr) external;
+
+    /// @notice Set the pool liquidation threshold.
+    function setPoolLiquidationThreshold(uint256 _lt) external;
 
     /**
      * @notice Enable kresko assets in the pool.

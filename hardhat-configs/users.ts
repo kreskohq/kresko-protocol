@@ -115,5 +115,8 @@ export const hardhatUsers = {
     funder: {
         default: 52,
     },
+    collateralPoolSwapRecipient: {
+        default: 53,
+    },
 };
 export const users: HardhatUserConfig["namedAccounts"] = hardhatUsers;
