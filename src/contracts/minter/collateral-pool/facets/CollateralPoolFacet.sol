@@ -31,10 +31,7 @@ contract CollateralPoolFacet is ICollateralPoolFacet, DiamondModifiers {
         );
 
         // ensure that global pool is left with CR over MCR.
-        require(
-            cps().checkRatio(_collateralAsset, collateralOut, cps().minimumCollateralizationRatio),
-            "withdraw-mcr-violation"
-        );
+        require(cps().checkRatio(cps().minimumCollateralizationRatio), "withdraw-mcr-violation");
 
         // Send out the collateral.
         IERC20Permit(_collateralAsset).safeTransfer(_account, collateralOut + feesOut);

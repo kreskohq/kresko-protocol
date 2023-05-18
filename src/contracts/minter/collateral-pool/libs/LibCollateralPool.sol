@@ -65,12 +65,9 @@ library LibCollateralPool {
         // Do not check for isEnabled, always allow withdrawals.
 
         // Get accounts principal deposits.
-        uint256 principalDeposits = self.getAccountPrincipalDeposits(_account, _collateralAsset);
+        uint256 depositsPrincipal = self.getAccountPrincipalDeposits(_account, _collateralAsset);
 
-        // Sanity check
-        require(principalDeposits > 0, "no-collateral-deposited");
-
-        if (principalDeposits > _amount) {
+        if (depositsPrincipal >= _amount) {
             // == Principal can cover possibly rebased `_amount` requested.
             // 1. We send out the requested amount.
             collateralOut = _amount;
@@ -90,9 +87,9 @@ library LibCollateralPool {
         } else {
             // == Principal can't cover possibly rebased `_amount` requested, send full collateral available.
             // 1. We send all collateral.
-            collateralOut = principalDeposits;
+            collateralOut = depositsPrincipal;
             // 2. With fees.
-            feesOut = self.getAccountDeposits(_account, _collateralAsset) - principalDeposits;
+            feesOut = self.getAccountDepositsWithFees(_account, _collateralAsset) - depositsPrincipal;
             // 3. Ensure this is actually the case.
             require(feesOut > 0, "withdrawal-violation");
             // 4. Wipe account collateral deposits.
@@ -101,7 +98,7 @@ library LibCollateralPool {
             // 5. Reduce global by ONLY by the principal, fees are not collateral.
             self.totalDeposits[_collateralAsset] -= LibAmounts.getCollateralAmountWrite(
                 _collateralAsset,
-                principalDeposits
+                depositsPrincipal
             );
         }
     }
@@ -224,7 +221,9 @@ library LibCollateralPool {
 
             totalValue += assetValue;
             if (asset == _collateralAsset) {
-                amountValue = _amount.wadMul(price);
+                amountValue = _amount.wadMul(
+                    _ignoreFactors ? price : price.wadMul(ms().collateralAssets[asset].factor)
+                );
             }
         }
     }
@@ -234,7 +233,7 @@ library LibCollateralPool {
      * @param _account account
      * @param _ignoreFactors whether to ignore cFactor and kFactor
      */
-    function getTotalPoolDepositValue(
+    function getAccountTotalDepositValuePrincipal(
         CollateralPoolState storage self,
         address _account,
         bool _ignoreFactors
@@ -244,8 +243,30 @@ library LibCollateralPool {
             address asset = assets[i];
             (uint256 assetValue, ) = ms().getCollateralValueAndOraclePrice(
                 asset,
-                self.getAccountDeposits(_account, asset),
+                self.getAccountPrincipalDeposits(_account, asset),
                 _ignoreFactors
+            );
+
+            totalValue += assetValue;
+        }
+    }
+
+    /**
+     * @notice Returns the value of the collateral assets in the pool for `_account` with fees.
+     * @notice Ignores all factors.
+     * @param _account account
+     */
+    function getAccountTotalDepositValueWithFees(
+        CollateralPoolState storage self,
+        address _account
+    ) internal view returns (uint256 totalValue) {
+        address[] memory assets = self.collaterals;
+        for (uint256 i; i < assets.length; i++) {
+            address asset = assets[i];
+            (uint256 assetValue, ) = ms().getCollateralValueAndOraclePrice(
+                asset,
+                self.getAccountDepositsWithFees(_account, asset),
+                true
             );
 
             totalValue += assetValue;

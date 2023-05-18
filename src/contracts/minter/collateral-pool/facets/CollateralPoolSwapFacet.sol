@@ -58,4 +58,15 @@ contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
 
         emit SwapFee(_assetIn, feeAmount, protocolFeeTaken);
     }
+
+    /// @inheritdoc ICollateralPoolSwapFacet
+    function cumulateIncome(address _incomeAsset, uint256 _amount) public nonReentrant {
+        require(cps().poolCollateral[_incomeAsset].liquidityIndex != 0, "not-collateral");
+        require(cps().isEnabled[_incomeAsset], "collateral-not-enabled");
+        require(cps().totalDeposits[_incomeAsset] > 0, "no-deposits");
+        IERC20Permit(_incomeAsset).safeTransferFrom(msg.sender, address(this), _amount);
+        cps().cumulateIncome(_incomeAsset, _amount);
+
+        emit Income(_incomeAsset, _amount);
+    }
 }

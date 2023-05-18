@@ -156,7 +156,6 @@ library LibSwap {
 
     /**
      * @notice Accumulates fees to deposits as a fixed, instantaneous income.
-     * @param self Collateral Pool State
      * @param _collateralAsset asset
      * @param _amount amount to accumulate
      * @return nextLiquidityIndex The next liquidity index of the reserve

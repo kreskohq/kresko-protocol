@@ -15,7 +15,7 @@ library LibAmounts {
      * @param _account The account to get the amount for
      * @return Amount of scaled debt.
      */
-    function getAccountDeposits(
+    function getAccountDepositsWithFees(
         CollateralPoolState storage self,
         address _account,
         address _asset

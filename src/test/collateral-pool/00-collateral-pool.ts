@@ -180,7 +180,7 @@ describe.only("Collateral Pool", function () {
         });
     });
 
-    describe.only("#Deposit & Withdraw", async () => {
+    describe("#Deposit", async () => {
         beforeEach(async () => {
             await Promise.all([
                 await hre.Diamond.enablePoolCollaterals(
@@ -211,7 +211,7 @@ describe.only("Collateral Pool", function () {
                 ),
             ]);
         });
-        it("should be able to deposit collateral, not touching individual deposits", async () => {
+        it("should be able to deposit collateral, calculate correct deposit values, not touching individual deposits", async () => {
             const expectedValueUnadjusted = toBig(collateralPrice * depositAmount, 8);
             const expectedValueAdjusted = toBig((collateralPrice / 1) * depositAmount, 8); // cfactor = 1
             const WITH_FACTORS = false;
@@ -220,31 +220,36 @@ describe.only("Collateral Pool", function () {
             for (const user of users) {
                 const Kresko = hre.Diamond.connect(user);
                 await Kresko.poolDeposit(user.address, CollateralAsset.address, depositAmount18Dec);
-
-                expect(await Kresko.getPoolDepositsAccount(user.address, CollateralAsset.address)).to.equal(
+                expect(await CollateralAsset.contract.balanceOf(user.address)).to.equal(0);
+                expect(await Kresko.getPoolAccountDepositsWithFees(user.address, CollateralAsset.address)).to.equal(
+                    depositAmount18Dec,
+                );
+                expect(await Kresko.getPoolAccountPrincipalDeposits(user.address, CollateralAsset.address)).to.equal(
                     depositAmount18Dec,
                 );
                 // Unadjusted
                 expect(
-                    await Kresko.getPoolDepositsValueAccount(user.address, CollateralAsset.address, WITHOUT_FACTORS),
+                    await Kresko.getPoolAccountDepositsValue(user.address, CollateralAsset.address, WITHOUT_FACTORS),
                 ).to.equal(expectedValueUnadjusted);
 
-                expect(await Kresko.getPoolTotalDepositsValueAccount(user.address, WITHOUT_FACTORS)).to.equal(
+                expect(await Kresko.getPoolAccountTotalDepositsValue(user.address, WITHOUT_FACTORS)).to.equal(
                     expectedValueUnadjusted,
                 );
 
                 // Adjusted
-                expect(await Kresko.getPoolTotalDepositsValueAccount(user.address, WITH_FACTORS)).to.equal(
+                expect(await Kresko.getPoolAccountTotalDepositsValue(user.address, WITH_FACTORS)).to.equal(
                     expectedValueAdjusted,
                 );
                 expect(
-                    await Kresko.getPoolDepositsValueAccount(user.address, CollateralAsset.address, WITH_FACTORS),
+                    await Kresko.getPoolAccountDepositsValue(user.address, CollateralAsset.address, WITH_FACTORS),
                 ).to.equal(expectedValueAdjusted);
 
                 // regular collateral deposits should be 0
                 expect(await Kresko.collateralDeposits(user.address, CollateralAsset.address)).to.equal(0);
             }
-
+            expect(await CollateralAsset.contract.balanceOf(hre.Diamond.address)).to.equal(
+                depositAmount18Dec.mul(users.length),
+            );
             expect(await hre.Diamond.getPoolDeposits(CollateralAsset.address)).to.equal(
                 depositAmount18Dec.mul(users.length),
             );
@@ -268,7 +273,7 @@ describe.only("Collateral Pool", function () {
             expect(globalAdjusted.cr).to.equal(0);
         });
 
-        it("should be able to deposit multiple collaterals, not touching individual deposits", async () => {
+        it("should be able to deposit multiple collaterals, calculate correct deposit values, not touching individual deposits", async () => {
             const expectedValueUnadjusted = toBig(collateralPrice * depositAmount, 8);
             const expectedValueAdjusted = toBig((collateralPrice / 1) * depositAmount, 8); // cfactor = 1
 
@@ -283,37 +288,37 @@ describe.only("Collateral Pool", function () {
                 await Kresko.poolDeposit(user.address, CollateralAsset.address, depositAmount18Dec);
                 await Kresko.poolDeposit(user.address, CollateralAsset8Dec.address, depositAmount8Dec);
 
-                expect(await Kresko.getPoolDepositsAccount(user.address, CollateralAsset.address)).to.equal(
+                expect(await Kresko.getPoolAccountDepositsWithFees(user.address, CollateralAsset.address)).to.equal(
                     depositAmount18Dec,
                 );
-                expect(await Kresko.getPoolDepositsAccount(user.address, CollateralAsset8Dec.address)).to.equal(
+                expect(await Kresko.getPoolAccountDepositsWithFees(user.address, CollateralAsset8Dec.address)).to.equal(
                     depositAmount8Dec,
                 );
                 // WITHOUT_FACTORS
                 expect(
-                    await Kresko.getPoolDepositsValueAccount(user.address, CollateralAsset.address, WITHOUT_FACTORS),
+                    await Kresko.getPoolAccountDepositsValue(user.address, CollateralAsset.address, WITHOUT_FACTORS),
                 ).to.equal(expectedValueUnadjusted);
                 expect(
-                    await Kresko.getPoolDepositsValueAccount(
+                    await Kresko.getPoolAccountDepositsValue(
                         user.address,
                         CollateralAsset8Dec.address,
                         WITHOUT_FACTORS,
                     ),
                 ).to.equal(expectedValueUnadjusted8Dec);
 
-                expect(await Kresko.getPoolTotalDepositsValueAccount(user.address, WITHOUT_FACTORS)).to.equal(
+                expect(await Kresko.getPoolAccountTotalDepositsValue(user.address, WITHOUT_FACTORS)).to.equal(
                     expectedValueUnadjusted.add(expectedValueUnadjusted8Dec),
                 );
 
                 // WITH_FACTORS
                 expect(
-                    await Kresko.getPoolDepositsValueAccount(user.address, CollateralAsset.address, WITH_FACTORS),
+                    await Kresko.getPoolAccountDepositsValue(user.address, CollateralAsset.address, WITH_FACTORS),
                 ).to.equal(expectedValueAdjusted);
                 expect(
-                    await Kresko.getPoolDepositsValueAccount(user.address, CollateralAsset8Dec.address, WITH_FACTORS),
+                    await Kresko.getPoolAccountDepositsValue(user.address, CollateralAsset8Dec.address, WITH_FACTORS),
                 ).to.equal(expectedValueAdjusted8Dec);
 
-                expect(await Kresko.getPoolTotalDepositsValueAccount(user.address, WITH_FACTORS)).to.equal(
+                expect(await Kresko.getPoolAccountTotalDepositsValue(user.address, WITH_FACTORS)).to.equal(
                     expectedValueAdjusted.add(expectedValueAdjusted8Dec),
                 );
 
@@ -362,6 +367,269 @@ describe.only("Collateral Pool", function () {
             expect(globalUnadjusted.collateralValue).to.equal(valueUnadjusted);
             expect(globalUnadjusted.debtValue).to.equal(0);
             expect(globalUnadjusted.cr).to.equal(0);
+        });
+    });
+
+    describe("#Withdraw", async () => {
+        beforeEach(async () => {
+            await Promise.all([
+                await hre.Diamond.enablePoolCollaterals(
+                    [CollateralAsset.address, CollateralAsset8Dec.address],
+                    [
+                        {
+                            decimals: 18,
+                            liquidationIncentive: toBig(1.1),
+                            liquidityIndex: RAY,
+                        },
+                        {
+                            decimals: 18,
+                            liquidationIncentive: toBig(1.05),
+                            liquidityIndex: RAY,
+                        },
+                    ],
+                ),
+                await hre.Diamond.enablePoolKrAssets(
+                    [KreskoAsset.address],
+                    [
+                        {
+                            openFee: toBig(0.01),
+                            closeFee: toBig(0.01),
+                            protocolFee: toBig(0.25),
+                            supplyLimit: toBig(1000000),
+                        },
+                    ],
+                ),
+            ]);
+        });
+        it("should be able to withdraw full collateral of multiple assets", async () => {
+            for (const user of users) {
+                const Kresko = hre.Diamond.connect(user);
+                await Kresko.poolDeposit(user.address, CollateralAsset.address, depositAmount18Dec);
+                await Kresko.poolDeposit(user.address, CollateralAsset8Dec.address, depositAmount8Dec);
+                expect(await Kresko.getPoolAccountDepositsWithFees(user.address, CollateralAsset.address)).to.equal(
+                    depositAmount18Dec,
+                );
+
+                await Kresko.poolWithdraw(user.address, CollateralAsset.address, depositAmount18Dec);
+                await Kresko.poolWithdraw(user.address, CollateralAsset8Dec.address, depositAmount8Dec);
+
+                expect(await CollateralAsset.contract.balanceOf(Kresko.address)).to.equal(0);
+                expect(await CollateralAsset.contract.balanceOf(user.address)).to.equal(depositAmount18Dec);
+
+                expect(await Kresko.getPoolAccountDepositsWithFees(user.address, CollateralAsset.address)).to.equal(0);
+                expect(await Kresko.getPoolAccountPrincipalDeposits(user.address, CollateralAsset.address)).to.equal(0);
+
+                expect(await Kresko.getPoolAccountDepositsWithFees(user.address, CollateralAsset8Dec.address)).to.equal(
+                    0,
+                );
+                expect(
+                    await Kresko.getPoolAccountPrincipalDeposits(user.address, CollateralAsset8Dec.address),
+                ).to.equal(0);
+
+                expect(await hre.Diamond.getPoolAccountTotalDepositsValue(user.address, false)).to.equal(0);
+                expect(await hre.Diamond.getPoolAccountTotalDepositsValue(user.address, true)).to.equal(0);
+            }
+
+            expect(await hre.Diamond.getPoolDeposits(CollateralAsset.address)).to.equal(0);
+            expect(await hre.Diamond.getPoolDeposits(CollateralAsset8Dec.address)).to.equal(0);
+            expect(await hre.Diamond.getPoolDepositsValue(CollateralAsset.address, true)).to.equal(0);
+            expect(await hre.Diamond.getPoolDepositsValue(CollateralAsset.address, false)).to.equal(0);
+            expect(await hre.Diamond.getPoolDepositsValue(CollateralAsset8Dec.address, true)).to.equal(0);
+            expect(await hre.Diamond.getPoolDepositsValue(CollateralAsset8Dec.address, false)).to.equal(0);
+            const globals = await hre.Diamond.getPoolStats(true);
+            expect(globals.collateralValue).to.equal(0);
+            expect(globals.debtValue).to.equal(0);
+            expect(globals.cr).to.equal(0);
+        });
+        it("should be able to withdraw partial collateral of multiple assets", async () => {
+            const partialWithdraw = depositAmount18Dec.div(2);
+            const partialWithdraw8Dec = depositAmount8Dec.div(2);
+
+            const expectedValueUnadjusted = toBig(collateralPrice * depositAmount, 8).div(2);
+            const expectedValueAdjusted = toBig((collateralPrice / 1) * depositAmount, 8).div(2); // cfactor = 1
+
+            const expectedValueUnadjusted8Dec = toBig(collateralPrice * depositAmount, 8).div(2);
+            const expectedValueAdjusted8Dec = toBig(collateralPrice * 0.8 * depositAmount, 8).div(2); // cfactor = 0.8
+
+            for (const user of users) {
+                const Kresko = hre.Diamond.connect(user);
+                await Kresko.poolDeposit(user.address, CollateralAsset.address, depositAmount18Dec);
+                await Kresko.poolDeposit(user.address, CollateralAsset8Dec.address, depositAmount8Dec);
+
+                expect(await Kresko.getPoolAccountDepositsWithFees(user.address, CollateralAsset.address)).to.equal(
+                    depositAmount18Dec,
+                );
+                await Kresko.poolWithdraw(user.address, CollateralAsset.address, partialWithdraw);
+                await Kresko.poolWithdraw(user.address, CollateralAsset8Dec.address, partialWithdraw8Dec);
+
+                expect(await CollateralAsset.contract.balanceOf(user.address)).to.equal(partialWithdraw);
+                expect(await CollateralAsset8Dec.contract.balanceOf(user.address)).to.equal(partialWithdraw8Dec);
+
+                expect(await Kresko.getPoolAccountDepositsWithFees(user.address, CollateralAsset.address)).to.equal(
+                    partialWithdraw,
+                );
+                expect(await Kresko.getPoolAccountPrincipalDeposits(user.address, CollateralAsset.address)).to.equal(
+                    partialWithdraw,
+                );
+
+                expect(await Kresko.getPoolAccountDepositsWithFees(user.address, CollateralAsset8Dec.address)).to.equal(
+                    partialWithdraw8Dec,
+                );
+                expect(
+                    await Kresko.getPoolAccountPrincipalDeposits(user.address, CollateralAsset8Dec.address),
+                ).to.equal(partialWithdraw8Dec);
+
+                expect(await hre.Diamond.getPoolAccountTotalDepositsValue(user.address, false)).to.equal(
+                    expectedValueAdjusted.add(expectedValueAdjusted8Dec),
+                );
+
+                expect(await hre.Diamond.getPoolAccountTotalDepositsValue(user.address, true)).to.equal(
+                    expectedValueUnadjusted.add(expectedValueUnadjusted8Dec),
+                );
+            }
+
+            expect(await CollateralAsset.contract.balanceOf(hre.Diamond.address)).to.equal(depositAmount18Dec);
+            expect(await CollateralAsset8Dec.contract.balanceOf(hre.Diamond.address)).to.equal(depositAmount8Dec);
+
+            expect(await hre.Diamond.getPoolDeposits(CollateralAsset.address)).to.equal(depositAmount18Dec);
+            expect(await hre.Diamond.getPoolDeposits(CollateralAsset8Dec.address)).to.equal(depositAmount8Dec);
+
+            expect(await hre.Diamond.getPoolDepositsValue(CollateralAsset.address, true)).to.equal(
+                expectedValueUnadjusted.mul(users.length),
+            );
+            expect(await hre.Diamond.getPoolDepositsValue(CollateralAsset.address, false)).to.equal(
+                expectedValueAdjusted.mul(users.length),
+            );
+
+            expect(await hre.Diamond.getPoolDepositsValue(CollateralAsset8Dec.address, true)).to.equal(
+                expectedValueUnadjusted8Dec.mul(users.length),
+            );
+            expect(await hre.Diamond.getPoolDepositsValue(CollateralAsset8Dec.address, false)).to.equal(
+                expectedValueAdjusted8Dec.mul(users.length),
+            );
+            const totalValueRemaining = expectedValueUnadjusted8Dec
+                .mul(users.length)
+                .add(expectedValueUnadjusted.mul(users.length));
+            const globals = await hre.Diamond.getPoolStats(true);
+
+            expect(globals.collateralValue).to.equal(totalValueRemaining);
+            expect(globals.debtValue).to.equal(0);
+            expect(globals.cr).to.equal(0);
+        });
+    });
+
+    describe("#Fee Distribution", () => {
+        let incomeCumulator: SignerWithAddress;
+        beforeEach(async () => {
+            incomeCumulator = hre.users.admin;
+            await CollateralAsset.setBalance(incomeCumulator, depositAmount18Dec.mul(users.length));
+            await CollateralAsset.contract
+                .connect(incomeCumulator)
+                .approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
+            await Promise.all([
+                await hre.Diamond.enablePoolCollaterals(
+                    [CollateralAsset.address, CollateralAsset8Dec.address],
+                    [
+                        {
+                            decimals: 18,
+                            liquidationIncentive: toBig(1.1),
+                            liquidityIndex: RAY,
+                        },
+                        {
+                            decimals: 18,
+                            liquidationIncentive: toBig(1.05),
+                            liquidityIndex: RAY,
+                        },
+                    ],
+                ),
+                await hre.Diamond.enablePoolKrAssets(
+                    [KreskoAsset.address],
+                    [
+                        {
+                            openFee: toBig(0.01),
+                            closeFee: toBig(0.01),
+                            protocolFee: toBig(0.25),
+                            supplyLimit: toBig(1000000),
+                        },
+                    ],
+                ),
+            ]);
+        });
+        it("should be able to cumulate fees into deposits", async () => {
+            const fees = depositAmount18Dec.mul(users.length);
+            const expectedValueNoFees = toBig(collateralPrice * depositAmount, 8);
+            const expectedValueFees = expectedValueNoFees.mul(2);
+
+            for (const user of users) {
+                const Kresko = hre.Diamond.connect(user);
+                await Kresko.poolDeposit(user.address, CollateralAsset.address, depositAmount18Dec);
+            }
+            await hre.Diamond.connect(incomeCumulator).cumulateIncome(CollateralAsset.address, fees);
+
+            for (const user of users) {
+                const Kresko = hre.Diamond.connect(user);
+
+                expect(await Kresko.getPoolAccountDepositsValue(user.address, CollateralAsset.address, true)).to.equal(
+                    expectedValueNoFees, // fees are not collateralized
+                );
+
+                expect(
+                    await Kresko.getPoolAccountDepositsValueWithFees(user.address, CollateralAsset.address),
+                ).to.equal(expectedValueFees); // fees for single asset
+
+                expect(await Kresko.getPoolAccountTotalDepositsValue(user.address, true)).to.equal(expectedValueNoFees); // fees
+                expect(await Kresko.getPoolAccountTotalDepositsValueWithFees(user.address)).to.equal(expectedValueFees); // fees
+
+                // withdraw principal
+                await Kresko.poolWithdraw(user.address, CollateralAsset.address, depositAmount18Dec);
+
+                expect(await Kresko.getPoolAccountDepositsValue(user.address, CollateralAsset.address, true)).to.equal(
+                    0,
+                );
+                expect(
+                    await Kresko.getPoolAccountDepositsValueWithFees(user.address, CollateralAsset.address),
+                ).to.equal(expectedValueFees.sub(expectedValueNoFees));
+
+                expect(await Kresko.getPoolAccountTotalDepositsValueWithFees(user.address)).to.equal(
+                    expectedValueFees.sub(expectedValueNoFees),
+                );
+                expect(await Kresko.getPoolAccountTotalDepositsValue(user.address, true)).to.equal(0);
+                expect(await CollateralAsset.contract.balanceOf(user.address)).to.equal(depositAmount18Dec);
+            }
+
+            // expect protocol to have no collateral here, only fees left.
+            expect(await CollateralAsset.contract.balanceOf(hre.Diamond.address)).to.equal(fees);
+            expect(await hre.Diamond.getPoolDeposits(CollateralAsset.address)).to.equal(0);
+            expect(await hre.Diamond.getPoolDepositsValue(CollateralAsset.address, true)).to.equal(0);
+            expect(await hre.Diamond.getPoolDepositsValue(CollateralAsset.address, false)).to.equal(0);
+            const global = await hre.Diamond.getPoolStats(true);
+            expect(global.collateralValue).to.equal(0);
+
+            // withdraw fees
+            for (const user of users) {
+                const Kresko = hre.Diamond.connect(user);
+                await Kresko.poolWithdraw(user.address, CollateralAsset.address, depositAmount18Dec);
+                // fees in user wallet
+                expect(await CollateralAsset.contract.balanceOf(user.address)).to.equal(
+                    depositAmount18Dec.add(depositAmount18Dec),
+                );
+                // nothing left in protocol for user
+                expect(await Kresko.getPoolAccountDepositsValue(user.address, CollateralAsset.address, true)).to.equal(
+                    0,
+                );
+                expect(
+                    await Kresko.getPoolAccountDepositsValueWithFees(user.address, CollateralAsset.address),
+                ).to.equal(0);
+
+                expect(await Kresko.getPoolAccountTotalDepositsValueWithFees(user.address)).to.equal(0);
+                expect(await Kresko.getPoolAccountTotalDepositsValue(user.address, true)).to.equal(0);
+            }
+
+            // nothing left in protocol.
+            expect(await CollateralAsset.contract.balanceOf(hre.Diamond.address)).to.equal(0);
+            expect(await hre.Diamond.getPoolDeposits(CollateralAsset.address)).to.equal(0);
+            expect(await hre.Diamond.getPoolDepositsValue(CollateralAsset.address, true)).to.equal(0);
+            expect(await hre.Diamond.getPoolDepositsValue(CollateralAsset.address, false)).to.equal(0);
         });
     });
 
@@ -418,8 +686,12 @@ describe.only("Collateral Pool", function () {
             await Promise.all([
                 await CollateralAsset.setBalance(user, depositAmount18Dec),
                 await CollateralAsset8Dec.setBalance(user, depositAmount8Dec),
-                await CollateralAsset.contract.connect(user).approve(hre.Diamond.address, depositAmount18Dec),
-                await CollateralAsset8Dec.contract.connect(user).approve(hre.Diamond.address, depositAmount8Dec),
+                await CollateralAsset.contract
+                    .connect(user)
+                    .approve(hre.Diamond.address, hre.ethers.constants.MaxUint256),
+                await CollateralAsset8Dec.contract
+                    .connect(user)
+                    .approve(hre.Diamond.address, hre.ethers.constants.MaxUint256),
             ]);
         }
     });

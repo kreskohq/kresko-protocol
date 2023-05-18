@@ -11,6 +11,8 @@ interface ICollateralPoolSwapFacet {
     );
     event SwapFee(address indexed assetIn, uint256 feeAmount, uint256 protocolFeeAmount);
 
+    event Income(address asset, uint256 amount);
+
     /**
      * @notice Swap kresko assets with KISS using the shared collateral pool.
      * Uses oracle pricing of _amountIn to determine how much _assetOut to send.
@@ -27,4 +29,11 @@ interface ICollateralPoolSwapFacet {
         uint256 _amountIn,
         uint256 _amountOutMin
     ) external;
+
+    /**
+     * @notice Accumulates fees to deposits as a fixed, instantaneous income.
+     * @param _incomeAsset the income asset
+     * @param _amount amount to accumulate
+     */
+    function cumulateIncome(address _incomeAsset, uint256 _amount) external;
 }

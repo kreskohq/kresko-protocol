@@ -14,12 +14,15 @@ contract CollateralPoolStateFacet is ICollateralPoolStateFacet {
     using WadRay for uint256;
 
     /// @inheritdoc ICollateralPoolStateFacet
-    function getPoolDepositsAccount(address _account, address _collateralAsset) external view returns (uint256) {
-        return cps().getAccountDeposits(_account, _collateralAsset);
+    function getPoolAccountDepositsWithFees(
+        address _account,
+        address _collateralAsset
+    ) external view returns (uint256) {
+        return cps().getAccountDepositsWithFees(_account, _collateralAsset);
     }
 
     /// @inheritdoc ICollateralPoolStateFacet
-    function getPoolDepositsPrincipalAccount(
+    function getPoolAccountPrincipalDeposits(
         address _account,
         address _collateralAsset
     ) external view returns (uint256) {
@@ -27,14 +30,14 @@ contract CollateralPoolStateFacet is ICollateralPoolStateFacet {
     }
 
     /// @inheritdoc ICollateralPoolStateFacet
-    function getPoolDepositsValueAccount(
+    function getPoolAccountDepositsValue(
         address _account,
         address _collateralAsset,
         bool _ignoreFactors
     ) external view returns (uint256) {
         (uint256 assetValue, ) = ms().getCollateralValueAndOraclePrice(
             _collateralAsset,
-            cps().getAccountDeposits(_account, _collateralAsset),
+            cps().getAccountPrincipalDeposits(_account, _collateralAsset),
             _ignoreFactors
         );
 
@@ -42,8 +45,27 @@ contract CollateralPoolStateFacet is ICollateralPoolStateFacet {
     }
 
     /// @inheritdoc ICollateralPoolStateFacet
-    function getPoolTotalDepositsValueAccount(address _account, bool _ignoreFactors) external view returns (uint256) {
-        return cps().getTotalPoolDepositValue(_account, _ignoreFactors);
+    function getPoolAccountDepositsValueWithFees(
+        address _account,
+        address _collateralAsset
+    ) external view returns (uint256) {
+        (uint256 assetValue, ) = ms().getCollateralValueAndOraclePrice(
+            _collateralAsset,
+            cps().getAccountDepositsWithFees(_account, _collateralAsset),
+            true
+        );
+
+        return assetValue;
+    }
+
+    /// @inheritdoc ICollateralPoolStateFacet
+    function getPoolAccountTotalDepositsValue(address _account, bool _ignoreFactors) external view returns (uint256) {
+        return cps().getAccountTotalDepositValuePrincipal(_account, _ignoreFactors);
+    }
+
+    /// @inheritdoc ICollateralPoolStateFacet
+    function getPoolAccountTotalDepositsValueWithFees(address _account) external view returns (uint256) {
+        return cps().getAccountTotalDepositValueWithFees(_account);
     }
 
     /// @inheritdoc ICollateralPoolStateFacet

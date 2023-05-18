@@ -8,23 +8,17 @@ interface ICollateralPoolStateFacet {
      * @param _account The account.
      * @param _collateralAsset The collateral asset.
      */
-    function getPoolDepositsAccount(address _account, address _collateralAsset) external view returns (uint256);
+    function getPoolAccountDepositsWithFees(address _account, address _collateralAsset) external view returns (uint256);
 
     /**
      * @notice Get the total collateral principal for `_account`
      * @param _account The account.
      * @param _collateralAsset The collateral asset
      */
-    function getPoolDepositsPrincipalAccount(
+    function getPoolAccountPrincipalDeposits(
         address _account,
         address _collateralAsset
     ) external view returns (uint256);
-
-    /**
-     * @notice Get the total collateral deposits for `_collateralAsset`
-     * @param _collateralAsset The collateral asset
-     */
-    function getPoolDeposits(address _collateralAsset) external view returns (uint256);
 
     /**
      * @notice Get the  collateral deposit value for `_account`
@@ -32,10 +26,20 @@ interface ICollateralPoolStateFacet {
      * @param _collateralAsset The collateral asset
      * @param _ignoreFactors Ignore factors when calculating collateral value.
      */
-    function getPoolDepositsValueAccount(
+    function getPoolAccountDepositsValue(
         address _account,
         address _collateralAsset,
         bool _ignoreFactors
+    ) external view returns (uint256);
+
+    /**
+     * @notice Get the full value of account and fees for `_account`
+     * @param _account The account.
+     * @param _collateralAsset The collateral asset
+     */
+    function getPoolAccountDepositsValueWithFees(
+        address _account,
+        address _collateralAsset
     ) external view returns (uint256);
 
     /**
@@ -43,7 +47,19 @@ interface ICollateralPoolStateFacet {
      * @param _account The account.
      * @param _ignoreFactors Ignore factors when calculating collateral value.
      */
-    function getPoolTotalDepositsValueAccount(address _account, bool _ignoreFactors) external view returns (uint256);
+    function getPoolAccountTotalDepositsValue(address _account, bool _ignoreFactors) external view returns (uint256);
+
+    /**
+     * @notice Get the full value of account and fees for `_account`
+     * @param _account The account.
+     */
+    function getPoolAccountTotalDepositsValueWithFees(address _account) external view returns (uint256);
+
+    /**
+     * @notice Get the total collateral deposits for `_collateralAsset`
+     * @param _collateralAsset The collateral asset
+     */
+    function getPoolDeposits(address _collateralAsset) external view returns (uint256);
 
     /**
      * @notice Get the total collateral deposit value for `_collateralAsset`
