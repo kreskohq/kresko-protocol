@@ -44,6 +44,12 @@ library LibKrAsset {
         return value;
     }
 
+    /**
+     * @notice Gets the AMM price for a Kresko asset.
+     * @param _kreskoAsset The address of the Kresko asset.
+     * @param _amount The amount of the Kresko asset to calculate the value for.
+     * @return The value for the provided amount of the Kresko asset.
+     */
     function getKrAssetAMMPrice(
         MinterState storage self,
         address _kreskoAsset,

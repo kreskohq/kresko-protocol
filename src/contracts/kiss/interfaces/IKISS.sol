@@ -21,6 +21,15 @@ interface IKISS is IKreskoAssetIssuer, IERC165 {
     function maxOperators() external returns (uint256);
 
     /**
+     * @notice This function adds KISS to circulation
+     * Caller must be a contract and have the OPERATOR_ROLE
+     * @param _to address to mint tokens to
+     * @param _amount amount to mint
+     * @return amount minted
+     */
+    function issue(uint256 _amount, address _to) external returns (uint256);
+
+    /**
      * @notice Use operator role for minting, so override the parent
      * Caller must be a contract and have the OPERATOR_ROLE
      * @param _to address to mint tokens to

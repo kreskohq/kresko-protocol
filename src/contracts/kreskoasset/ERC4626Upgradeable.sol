@@ -210,9 +210,7 @@ abstract contract ERC4626Upgradeable is IERC4626Upgradeable, ERC20Upgradeable {
     /*                               EXTERNAL USE                                 */
     /* -------------------------------------------------------------------------- */
 
-    /**
-     * @notice Deposit KreskoAssets for equivalent amount of anchor tokens
-     */
+    /// @inheritdoc IERC4626Upgradeable
     function deposit(uint256 assets, address receiver) public virtual returns (uint256 shares) {
         // Check for rounding error since we round down in previewDeposit.
         require((shares = previewDeposit(assets)) != 0, Error.ZERO_SHARES);
@@ -227,14 +225,7 @@ abstract contract ERC4626Upgradeable is IERC4626Upgradeable, ERC20Upgradeable {
         _afterDeposit(assets, shares);
     }
 
-    /**
-     * @notice Withdraw KreskoAssets for equivalent amount of anchor tokens
-     * @param assets Amount of KreskoAssets to withdraw
-     * @param receiver Address to send KreskoAssets to
-     * @param owner Address to burn shares from
-     * @return shares Amount of shares burned
-     * @dev shares are burned from owner, not msg.sender
-     */
+    /// @inheritdoc IERC4626Upgradeable
     function withdraw(uint256 assets, address receiver, address owner) public virtual returns (uint256 shares) {
         shares = previewWithdraw(assets); // No need to check for rounding error, previewWithdraw rounds up.
 
@@ -255,12 +246,7 @@ abstract contract ERC4626Upgradeable is IERC4626Upgradeable, ERC20Upgradeable {
         asset.safeTransfer(receiver, assets);
     }
 
-    /**
-     * @notice Mint shares of anchor tokens for equivalent amount of KreskoAssets
-     * @param shares Amount of shares to mint
-     * @param receiver Address to send shares to
-     * @return assets Amount of KreskoAssets redeemed
-     */
+    /// @inheritdoc IERC4626Upgradeable
     function mint(uint256 shares, address receiver) public virtual returns (uint256 assets) {
         assets = previewMint(shares); // No need to check for rounding error, previewMint rounds up.
 
@@ -274,13 +260,7 @@ abstract contract ERC4626Upgradeable is IERC4626Upgradeable, ERC20Upgradeable {
         _afterDeposit(assets, shares);
     }
 
-    /**
-     * @notice Redeem shares of anchor for KreskoAssets
-     * @param shares Amount of shares to redeem
-     * @param receiver Address to send KreskoAssets to
-     * @param owner Address to burn shares from
-     * @return assets Amount of KreskoAssets redeemed
-     */
+    /// @inheritdoc IERC4626Upgradeable
     function redeem(uint256 shares, address receiver, address owner) public virtual returns (uint256 assets) {
         if (msg.sender != owner) {
             uint256 allowed = _allowances[owner][msg.sender]; // Saves gas for limited approvals.
