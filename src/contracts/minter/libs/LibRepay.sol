@@ -60,17 +60,12 @@ library LibRepay {
     /// @notice Repay user global asset debt. Updates rates for regular market.
     /// @param _kreskoAsset the asset being repaid
     /// @param _burnAmount the asset amount being burned
-    function repay(
+    function repaySwap(
         MinterState storage self,
         address _kreskoAsset,
         uint256 _burnAmount
     ) internal returns (uint256 destroyed) {
-        // Update global debt index for the asset
-        irs().srAssets[_kreskoAsset].updateDebtIndex();
-        // Update the stability rate for the asset
-        irs().srAssets[_kreskoAsset].updateStabilityRate();
-
-        // Burn assets from Protocol, get the destroyed amount
+        // Burn assets from the protocol, as they are sent in. Get the destroyed shares.
         destroyed = IKreskoAssetIssuer(self.kreskoAssets[_kreskoAsset].anchor).destroy(_burnAmount, address(this));
         require(destroyed != 0, "repay-destroyed-amount-invalid");
     }

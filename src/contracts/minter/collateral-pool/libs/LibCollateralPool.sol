@@ -35,7 +35,7 @@ library LibCollateralPool {
         address _collateralAsset,
         uint256 _depositAmount
     ) internal {
-        require(self.isEnabled[_collateralAsset], "asset-in-disabled");
+        require(self.isEnabled[_collateralAsset], "asset-disabled");
         uint256 depositAmount = LibAmounts.getCollateralAmountWrite(_collateralAsset, _depositAmount);
         unchecked {
             // Save global deposits.

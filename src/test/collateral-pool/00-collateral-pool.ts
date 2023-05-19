@@ -1,15 +1,16 @@
 import { getCollateralPoolInitializer } from "@deploy-config/shared";
-import { RAY, fromBig, toBig } from "@kreskolabs/lib";
+import { RAY, fromBig, getNamedEvent, toBig } from "@kreskolabs/lib";
 import { expect } from "@test/chai";
 import { withFixture } from "@utils/test";
-import { addMockCollateralAsset } from "@utils/test/helpers/collaterals";
-import { addMockKreskoAsset } from "@utils/test/helpers/krassets";
+import { addMockCollateralAsset, depositCollateral } from "@utils/test/helpers/collaterals";
+import { addMockKreskoAsset, mintKrAsset } from "@utils/test/helpers/krassets";
 import { getCR } from "@utils/test/helpers/liquidations";
 import hre from "hardhat";
 import { ICollateralPoolConfigFacet } from "types/typechain";
 import {
     PoolCollateralStruct,
     PoolKrAssetStruct,
+    SwapEvent,
 } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 
 describe.only("Collateral Pool", function () {
@@ -632,13 +633,645 @@ describe.only("Collateral Pool", function () {
             expect(await hre.Diamond.getPoolDepositsValue(CollateralAsset.address, false)).to.equal(0);
         });
     });
+    describe("#Swap", () => {
+        it("should have collateral in pool", async () => {
+            const value = await hre.Diamond.getPoolStats(false);
+            expect(value.collateralValue).to.equal(toBig(10000, 8));
+            expect(value.debtValue).to.equal(0);
+            expect(value.cr).to.equal(0);
+        });
 
+        it("should be able to preview a swap", async () => {
+            const swapAmount = toBig(ONE_USD);
+            const assetInPrice = toBig(ONE_USD, 8);
+            const assetOutPrice = toBig(KreskoAsset2Price, 8);
+
+            const feePercentage = toBig(0.015 + 0.025);
+            const feePercentageProtocol = toBig(0.5);
+
+            const expectedTotalFee = swapAmount.wadMul(feePercentage);
+            const expectedProtocolFee = expectedTotalFee.wadMul(feePercentageProtocol);
+            const expectedFee = expectedTotalFee.sub(expectedProtocolFee);
+            const amountInAfterFees = swapAmount.sub(expectedTotalFee);
+
+            const expectedAmountOut = amountInAfterFees.wadMul(assetInPrice).wadDiv(assetOutPrice);
+
+            const [amountOut, feeAmount, feeAmountProtocol] = await hre.Diamond.previewSwap(
+                KISS.address,
+                KreskoAsset2.address,
+                toBig(1),
+            );
+            expect(amountOut).to.equal(expectedAmountOut);
+            expect(feeAmount).to.equal(expectedFee);
+            expect(feeAmountProtocol).to.equal(expectedProtocolFee);
+        });
+
+        it("should be able to swap, shared debt == 0 | swap collateral == 0", async () => {
+            const swapAmount = toBig(ONE_USD); // $1
+            const expectedAmountOut = toBig(0.0096); // $100 * 0.0096 = $0.96
+
+            const Kresko = hre.Diamond.connect(swapper);
+            const tx = await Kresko.swap(swapper.address, KISS.address, KreskoAsset2.address, swapAmount, 0);
+            const event = await getNamedEvent<SwapEvent>(tx, "Swap");
+            expect(event.args.who).to.equal(swapper.address);
+            expect(event.args.assetIn).to.equal(KISS.address);
+            expect(event.args.assetOut).to.equal(KreskoAsset2.address);
+            expect(event.args.amountIn).to.equal(swapAmount);
+            expect(event.args.amountOut).to.equal(expectedAmountOut);
+            expect(await KreskoAsset2.contract.balanceOf(swapper.address)).to.equal(expectedAmountOut);
+            expect(await KISS.contract.balanceOf(swapper.address)).to.equal(toBig(10_000).sub(swapAmount));
+
+            expect(await Kresko.getPoolAccountDepositsValue(swapper.address, KreskoAsset2.address, true)).to.equal(0);
+            expect(await Kresko.getPoolAccountDepositsValue(swapper.address, KISS.address, true)).to.equal(0);
+
+            expect(await Kresko.getPoolSwapDeposits(KISS.address)).to.equal(toBig(0.96));
+            expect(await Kresko.getPoolDepositsValue(KISS.address, true)).to.equal(toBig(0.96, 8));
+
+            expect(await Kresko.getPoolDebtValue(KreskoAsset2.address, true)).to.equal(toBig(0.96, 8));
+            expect(await Kresko.getPoolDebt(KreskoAsset2.address)).to.equal(toBig(0.0096));
+
+            const global = await hre.Diamond.getPoolStats(true);
+            expect(global.collateralValue).to.equal(toBig(10000.96, 8));
+            expect(global.debtValue).to.equal(toBig(0.96, 8));
+            expect(global.cr).to.equal(toBig(10000.96, 8).wadDiv(toBig(0.96, 8)));
+        });
+
+        it("should be able to swap, shared debt == assetsIn | swap collateral == assetsOut", async () => {
+            const swapAmount = toBig(ONE_USD).mul(100); // $100
+            const swapAmountAsset = toBig(1); // $100
+            const expectedKissOut = toBig(96); // $100 * 0.96 = $96
+            // deposit some to kresko for minting first
+            await depositCollateral({
+                user: swapper,
+                asset: KISS,
+                amount: toBig(100),
+            });
+
+            await mintKrAsset({
+                user: swapper,
+                asset: KreskoAsset2,
+                amount: toBig(0.1), // min allowed
+            });
+
+            const Kresko = hre.Diamond.connect(swapper);
+            await Kresko.swap(swapper.address, KISS.address, KreskoAsset2.address, swapAmount, 0);
+
+            // the swap that clears debt
+            const tx = await Kresko.swap(swapper.address, KreskoAsset2.address, KISS.address, swapAmountAsset, 0);
+
+            const event = await getNamedEvent<SwapEvent>(tx, "Swap");
+
+            expect(event.args.who).to.equal(swapper.address);
+            expect(event.args.assetIn).to.equal(KreskoAsset2.address);
+            expect(event.args.assetOut).to.equal(KISS.address);
+            expect(event.args.amountIn).to.equal(swapAmountAsset);
+            expect(event.args.amountOut).to.equal(expectedKissOut);
+
+            expect(await Kresko.getPoolSwapDeposits(KISS.address)).to.equal(0);
+            expect(await Kresko.getPoolDepositsValue(KISS.address, true)).to.equal(0);
+
+            expect(await Kresko.getPoolDebtValue(KreskoAsset2.address, true)).to.equal(0);
+            expect(await Kresko.getPoolDebt(KreskoAsset2.address)).to.equal(0);
+
+            const global = await hre.Diamond.getPoolStats(true);
+            // back to starting point
+            expect(global.collateralValue).to.equal(toBig(10000, 8));
+            expect(global.debtValue).to.equal(0);
+            expect(global.cr).to.equal(0);
+        });
+
+        it("should be able to swap, shared debt > assetsIn | swap collateral > assetsOut", async () => {
+            const swapAmount = toBig(ONE_USD); // $1
+            const expectedAmountOutAsset = toBig(0.0096); // $100 * 0.0096 = $0.96
+            const expectedSecondFeeValue = toBig(0.96, 8).wadMul(toBig(0.04)); // $0.96 * 4% = $0.0384
+            const expectedSecondFeeKISS = toBig(0.96).wadMul(toBig(0.04)); // 0.96 * 4% = 0.0384
+            const expectedAmountOutKISS = toBig(0.96).sub(expectedSecondFeeKISS); // = 0.9216
+
+            const Kresko = hre.Diamond.connect(swapper);
+            await Kresko.swap(swapper.address, KISS.address, KreskoAsset2.address, swapAmount, 0);
+
+            const tx = await Kresko.swap(
+                swapper.address,
+                KreskoAsset2.address,
+                KISS.address,
+                expectedAmountOutAsset,
+                0,
+            );
+
+            const event = await getNamedEvent<SwapEvent>(tx, "Swap");
+
+            expect(event.args.who).to.equal(swapper.address);
+            expect(event.args.assetIn).to.equal(KreskoAsset2.address);
+            expect(event.args.assetOut).to.equal(KISS.address);
+            expect(event.args.amountIn).to.equal(expectedAmountOutAsset);
+            expect(event.args.amountOut).to.equal(expectedAmountOutKISS);
+
+            expect(await Kresko.getPoolAccountDepositsValue(swapper.address, KreskoAsset2.address, true)).to.equal(0);
+            expect(await Kresko.getPoolAccountDepositsValue(swapper.address, KISS.address, true)).to.equal(0);
+
+            expect(await Kresko.getPoolSwapDeposits(KISS.address)).to.equal(expectedSecondFeeKISS);
+            expect(await Kresko.getPoolDepositsValue(KISS.address, true)).to.equal(expectedSecondFeeValue);
+
+            expect(await Kresko.getPoolDebtValue(KreskoAsset2.address, true)).to.equal(expectedSecondFeeValue);
+            expect(await Kresko.getPoolDebt(KreskoAsset2.address)).to.equal(
+                expectedSecondFeeKISS.wadDiv(toBig(KreskoAsset2Price)),
+            );
+
+            const global = await hre.Diamond.getPoolStats(true);
+            const expectedCollateralValue = toBig(10000, 8).add(expectedSecondFeeValue);
+            const expectedDebtValue = expectedSecondFeeValue;
+            expect(global.collateralValue).to.equal(expectedCollateralValue);
+            expect(global.debtValue).to.equal(expectedDebtValue);
+            expect(global.cr).to.equal(expectedCollateralValue.wadDiv(expectedDebtValue));
+        });
+
+        it("should be able to swap, shared debt < assetsIn | swap collateral < assetsOut", async () => {
+            const swapAmountKiss = toBig(ONE_USD).mul(100); // $100
+            const swapAmountKrAsset = toBig(2); // $200
+            const expectedKissOut = toBig(192); // $200 * 0.96 = $192
+
+            const expectedDebtKiss = toBig(96); // 192 required out - 96 in collateral from first swap = 96 new debt
+            const expectedDebtValueKiss = toBig(96, 8); // $192 - $96 = $96
+
+            const expectedCollateralKrAssetValue = toBig(96, 8); // $192 swapped in after fees, $96 in debt = $96 to swap owned collateral
+            const expectedCollateralKrAsset = toBig(0.96); // $192 swapped in after fees, $96 in debt = $96 to swap owned collateral
+
+            // deposit some to kresko for minting first
+            await depositCollateral({
+                user: swapper,
+                asset: KISS,
+                amount: toBig(400),
+            });
+
+            await mintKrAsset({
+                user: swapper,
+                asset: KreskoAsset2,
+                amount: toBig(1.04), // 0.96 + 1.04 = 2.
+            });
+
+            const Kresko = hre.Diamond.connect(swapper);
+            await Kresko.swap(swapper.address, KISS.address, KreskoAsset2.address, swapAmountKiss, 0);
+
+            const stats = await hre.Diamond.getPoolStats(true);
+            expect(stats.collateralValue).to.be.gt(toBig(10000, 8));
+            // the swap that matters, here user has 0.96 krAsset in wallet, 1.04 minted. swaps expecting 192 kiss after fees.
+            const tx = await Kresko.swap(swapper.address, KreskoAsset2.address, KISS.address, swapAmountKrAsset, 0);
+
+            const event = await getNamedEvent<SwapEvent>(tx, "Swap");
+
+            expect(event.args.who).to.equal(swapper.address);
+            expect(event.args.assetIn).to.equal(KreskoAsset2.address);
+            expect(event.args.assetOut).to.equal(KISS.address);
+            expect(event.args.amountIn).to.equal(swapAmountKrAsset);
+            expect(event.args.amountOut).to.equal(expectedKissOut);
+
+            // KISS deposits sent in swap
+            expect(await Kresko.getPoolSwapDeposits(KISS.address)).to.equal(0);
+            expect(await Kresko.getPoolDepositsValue(KISS.address, true)).to.equal(0);
+            // KrAsset debt is cleared
+            expect(await Kresko.getPoolDebtValue(KreskoAsset2.address, true)).to.equal(0);
+            expect(await Kresko.getPoolDebt(KreskoAsset2.address)).to.equal(0);
+            // KISS debt is issued
+            expect(await Kresko.getPoolDebtValue(KISS.address, true)).to.equal(expectedDebtValueKiss);
+            expect(await Kresko.getPoolDebt(KISS.address)).to.equal(expectedDebtKiss);
+
+            // krAsset collateral deposits added after debt cleared in swap
+            expect(await Kresko.getPoolSwapDeposits(KreskoAsset2.address)).to.equal(expectedCollateralKrAsset);
+            expect(await Kresko.getPoolDepositsValue(KreskoAsset2.address, true)).to.equal(
+                expectedCollateralKrAssetValue,
+            );
+
+            const global = await hre.Diamond.getPoolStats(true);
+            const expectedCollateralValue = toBig(10000, 8).add(expectedCollateralKrAssetValue);
+            expect(global.collateralValue).to.equal(expectedCollateralValue);
+            expect(global.debtValue).to.equal(expectedDebtValueKiss);
+            expect(global.cr).to.equal(expectedCollateralValue.wadDiv(expectedDebtValueKiss));
+        });
+
+        let swapper: SignerWithAddress;
+        let depositor: SignerWithAddress;
+        let KreskoAsset2: Awaited<ReturnType<typeof addMockKreskoAsset>>;
+        let KISS: Awaited<ReturnType<typeof addMockKreskoAsset>>;
+        const KreskoAsset2Price = 100;
+        const ONE_USD = 1;
+        beforeEach(async () => {
+            swapper = users[0];
+            depositor = users[1];
+            [KreskoAsset2, KISS] = await Promise.all([
+                addMockKreskoAsset(
+                    {
+                        name: "KreskoAssetPrice100USD",
+                        price: KreskoAsset2Price,
+                        symbol: "KreskoAssetPrice100USD",
+                        closeFee: 0.05,
+                        openFee: 0.05,
+                        marketOpen: true,
+                        factor: 1,
+                        supplyLimit: 1_000,
+                    },
+                    true,
+                ),
+                addMockKreskoAsset(
+                    {
+                        name: "KISS",
+                        price: ONE_USD,
+                        symbol: "KISS",
+                        closeFee: 0.025,
+                        openFee: 0.025,
+                        marketOpen: true,
+                        factor: 1,
+                        supplyLimit: 1_000_000,
+                    },
+                    true,
+                ),
+            ]);
+
+            // setup collaterals and krAssets in shared pool
+            const collateralConfig = {
+                decimals: 18,
+                liquidationIncentive: toBig(1.05),
+                liquidityIndex: RAY,
+            };
+            const krAssetConfig = {
+                openFee: toBig(0.015),
+                closeFee: toBig(0.015),
+                protocolFee: toBig(0.25),
+                supplyLimit: toBig(1000000),
+            };
+            const KISSConfig = {
+                openFee: toBig(0.025),
+                closeFee: toBig(0.025),
+                protocolFee: toBig(0.25),
+                supplyLimit: toBig(1000000),
+            };
+            await Promise.all([
+                await hre.Diamond.enablePoolCollaterals(
+                    [
+                        CollateralAsset.address,
+                        CollateralAsset8Dec.address,
+                        KISS.address,
+                        KreskoAsset.address,
+                        KreskoAsset2.address,
+                    ],
+                    [collateralConfig, collateralConfig, collateralConfig, collateralConfig, collateralConfig],
+                ),
+                await hre.Diamond.enablePoolKrAssets(
+                    [KreskoAsset.address, KreskoAsset2.address, KISS.address],
+                    [krAssetConfig, krAssetConfig, KISSConfig],
+                ),
+                await hre.Diamond.setSwapPairs([
+                    {
+                        assetIn: KreskoAsset2.address,
+                        assetOut: KreskoAsset.address,
+                        enabled: true,
+                    },
+                    {
+                        assetIn: KISS.address,
+                        assetOut: KreskoAsset2.address,
+                        enabled: true,
+                    },
+                    {
+                        assetIn: KreskoAsset.address,
+                        assetOut: KISS.address,
+                        enabled: true,
+                    },
+                ]),
+            ]);
+
+            // mint some KISS for users
+            for (const user of users) {
+                await CollateralAsset.setBalance(user, toBig(1_000_000));
+                await CollateralAsset.contract
+                    .connect(user)
+                    .approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
+                await KISS.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
+                await KreskoAsset2.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
+                await KISS.setBalance(swapper, toBig(10_000));
+            }
+
+            await hre.Diamond.connect(depositor).poolDeposit(
+                depositor.address,
+                CollateralAsset.address,
+                depositAmount18Dec, // $10k
+            );
+        });
+    });
+    describe.only("#Leverage", () => {
+        let swapper: SignerWithAddress;
+        let depositor: SignerWithAddress;
+        let KreskoAsset2: Awaited<ReturnType<typeof addMockKreskoAsset>>;
+        let KISS: Awaited<ReturnType<typeof addMockKreskoAsset>>;
+        const KreskoAsset2Price = 100;
+        const ONE_USD = 1;
+        const leverArgs = ["Leverage", "LEVERAGE", 750000, hre.ethers.constants.AddressZero];
+        it("Should be able to leverage 2x", async () => {});
+        beforeEach(async () => {
+            swapper = users[0];
+            depositor = users[1];
+            [KreskoAsset2, KISS] = await Promise.all([
+                addMockKreskoAsset(
+                    {
+                        name: "KreskoAssetPrice100USD",
+                        price: KreskoAsset2Price,
+                        symbol: "KreskoAssetPrice100USD",
+                        closeFee: 0.05,
+                        openFee: 0.05,
+                        marketOpen: true,
+                        factor: 1,
+                        supplyLimit: 1_000,
+                    },
+                    true,
+                ),
+                addMockKreskoAsset(
+                    {
+                        name: "KISS",
+                        price: ONE_USD,
+                        symbol: "KISS",
+                        closeFee: 0.025,
+                        openFee: 0.025,
+                        marketOpen: true,
+                        factor: 1,
+                        supplyLimit: 1_000_000,
+                    },
+                    true,
+                ),
+            ]);
+
+            // setup collaterals and krAssets in shared pool
+            const collateralConfig = {
+                decimals: 18,
+                liquidationIncentive: toBig(1.05),
+                liquidityIndex: RAY,
+            };
+            const krAssetConfig = {
+                openFee: toBig(0.015),
+                closeFee: toBig(0.015),
+                protocolFee: toBig(0.25),
+                supplyLimit: toBig(1000000),
+            };
+            const KISSConfig = {
+                openFee: toBig(0.025),
+                closeFee: toBig(0.025),
+                protocolFee: toBig(0.25),
+                supplyLimit: toBig(1000000),
+            };
+            await Promise.all([
+                await hre.Diamond.enablePoolCollaterals(
+                    [
+                        CollateralAsset.address,
+                        CollateralAsset8Dec.address,
+                        KISS.address,
+                        KreskoAsset.address,
+                        KreskoAsset2.address,
+                    ],
+                    [collateralConfig, collateralConfig, collateralConfig, collateralConfig, collateralConfig],
+                ),
+                await hre.Diamond.enablePoolKrAssets(
+                    [KreskoAsset.address, KreskoAsset2.address, KISS.address],
+                    [krAssetConfig, krAssetConfig, KISSConfig],
+                ),
+                await hre.Diamond.setSwapPairs([
+                    {
+                        assetIn: KreskoAsset2.address,
+                        assetOut: KreskoAsset.address,
+                        enabled: true,
+                    },
+                    {
+                        assetIn: KISS.address,
+                        assetOut: KreskoAsset2.address,
+                        enabled: true,
+                    },
+                    {
+                        assetIn: KreskoAsset.address,
+                        assetOut: KISS.address,
+                        enabled: true,
+                    },
+                ]),
+            ]);
+
+            // mint some KISS for users
+            for (const user of users) {
+                await CollateralAsset.setBalance(user, toBig(1_000_000));
+                await CollateralAsset.contract
+                    .connect(user)
+                    .approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
+                await KISS.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
+                await KreskoAsset2.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
+                await KISS.setBalance(swapper, toBig(10_000));
+            }
+
+            await hre.Diamond.connect(depositor).poolDeposit(
+                depositor.address,
+                CollateralAsset.address,
+                depositAmount18Dec, // $10k
+            );
+        });
+    });
+    describe("#Error", () => {
+        it("should revert depositing unsupported tokens", async () => {
+            const [UnsupportedToken] = await hre.deploy("MockERC20", {
+                args: ["UnsupportedToken", "UnsupportedToken", 18, toBig(1_000_000)],
+            });
+            await UnsupportedToken.approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
+            const { deployer } = await hre.getNamedAccounts();
+            await expect(hre.Diamond.poolDeposit(deployer, UnsupportedToken.address, 1)).to.be.revertedWith(
+                "asset-disabled",
+            );
+        });
+        it("should revert withdrawing without deposits", async () => {
+            const KreskoUserNoDeposits = hre.Diamond.connect(swapper);
+            await expect(
+                KreskoUserNoDeposits.poolWithdraw(depositor.address, CollateralAsset.address, 1),
+            ).to.be.revertedWith("withdrawal-violation");
+        });
+
+        it("should revert withdrawals below MCR", async () => {
+            const swapAmount = toBig(ONE_USD).mul(1000); // $1000
+
+            const Kresko = hre.Diamond.connect(swapper);
+            await Kresko.swap(swapper.address, KISS.address, KreskoAsset2.address, swapAmount, 0); // generate debt
+            const deposits = await Kresko.getPoolAccountPrincipalDeposits(depositor.address, CollateralAsset.address);
+            await expect(
+                Kresko.connect(depositor).poolWithdraw(depositor.address, CollateralAsset.address, deposits),
+            ).to.be.revertedWith("withdraw-mcr-violation");
+        });
+
+        it("should revert withdrawals of swap owned collateral deposits", async () => {
+            const swapAmount = toBig(1);
+            await KreskoAsset2.setBalance(swapper, swapAmount);
+
+            const Kresko = hre.Diamond.connect(swapper);
+            await Kresko.swap(swapper.address, KreskoAsset2.address, KISS.address, swapAmount, 0);
+            const deposits = await Kresko.getPoolSwapDeposits(KreskoAsset2.address);
+            expect(deposits).to.be.gt(0);
+            await expect(Kresko.poolWithdraw(swapper.address, KreskoAsset2.address, deposits)).to.be.revertedWith(
+                "withdrawal-violation",
+            );
+        });
+
+        it("should revert swapping with price below minAmountOut", async () => {
+            const swapAmount = toBig(1);
+            await KreskoAsset2.setBalance(swapper, swapAmount);
+            const Kresko = hre.Diamond.connect(swapper);
+            const [amountOut] = await Kresko.previewSwap(KreskoAsset2.address, KISS.address, swapAmount);
+            await expect(
+                Kresko.swap(swapper.address, KreskoAsset2.address, KISS.address, swapAmount, amountOut.add(1)),
+            ).to.be.revertedWith("swap-slippage");
+        });
+
+        it("should revert swapping unsupported route", async () => {
+            const swapAmount = toBig(1);
+            await KreskoAsset2.setBalance(swapper, swapAmount);
+
+            const Kresko = hre.Diamond.connect(swapper);
+            await expect(
+                Kresko.swap(swapper.address, KreskoAsset2.address, CollateralAsset.address, swapAmount, 0),
+            ).to.be.revertedWith("swap-disabled");
+        });
+        it("should revert swapping if asset in is disabled", async () => {
+            const swapAmount = toBig(1);
+            await KreskoAsset2.setBalance(swapper, swapAmount);
+
+            const Kresko = hre.Diamond.connect(swapper);
+            await hre.Diamond.disablePoolKrAssets([KreskoAsset2.address]);
+            await expect(
+                Kresko.swap(swapper.address, KreskoAsset2.address, KISS.address, swapAmount, 0),
+            ).to.be.revertedWith("asset-in-disabled");
+        });
+        it("should revert swapping if asset out is disabled", async () => {
+            const swapAmount = toBig(1);
+            await KreskoAsset2.setBalance(swapper, swapAmount);
+
+            const Kresko = hre.Diamond.connect(swapper);
+            await hre.Diamond.disablePoolKrAssets([KreskoAsset2.address]);
+            await expect(
+                Kresko.swap(swapper.address, KISS.address, KreskoAsset2.address, swapAmount, 0),
+            ).to.be.revertedWith("asset-out-disabled");
+        });
+        it("should revert swapping causes CDP to go below MCR", async () => {
+            const swapAmount = toBig(1_000_000);
+            await KreskoAsset2.setBalance(swapper, swapAmount);
+
+            const Kresko = hre.Diamond.connect(swapper);
+            await expect(
+                Kresko.swap(swapper.address, KreskoAsset2.address, KISS.address, swapAmount, 0),
+            ).to.be.revertedWith("swap-mcr-violation");
+        });
+
+        let swapper: SignerWithAddress;
+        let depositor: SignerWithAddress;
+        let KreskoAsset2: Awaited<ReturnType<typeof addMockKreskoAsset>>;
+        let KISS: Awaited<ReturnType<typeof addMockKreskoAsset>>;
+        const KreskoAsset2Price = 100;
+        const ONE_USD = 1;
+        beforeEach(async () => {
+            swapper = users[0];
+            depositor = users[1];
+            [KreskoAsset2, KISS] = await Promise.all([
+                addMockKreskoAsset(
+                    {
+                        name: "KreskoAssetPrice100USD",
+                        price: KreskoAsset2Price,
+                        symbol: "KreskoAssetPrice100USD",
+                        closeFee: 0.05,
+                        openFee: 0.05,
+                        marketOpen: true,
+                        factor: 1,
+                        supplyLimit: 1_000,
+                    },
+                    true,
+                ),
+                addMockKreskoAsset(
+                    {
+                        name: "KISS",
+                        price: ONE_USD,
+                        symbol: "KISS",
+                        closeFee: 0.025,
+                        openFee: 0.025,
+                        marketOpen: true,
+                        factor: 1,
+                        supplyLimit: 1_000_000,
+                    },
+                    true,
+                ),
+            ]);
+
+            // setup collaterals and krAssets in shared pool
+            const collateralConfig = {
+                decimals: 18,
+                liquidationIncentive: toBig(1.05),
+                liquidityIndex: RAY,
+            };
+            const krAssetConfig = {
+                openFee: toBig(0.015),
+                closeFee: toBig(0.015),
+                protocolFee: toBig(0.25),
+                supplyLimit: toBig(1000000),
+            };
+            const KISSConfig = {
+                openFee: toBig(0.025),
+                closeFee: toBig(0.025),
+                protocolFee: toBig(0.25),
+                supplyLimit: toBig(1000000),
+            };
+            await Promise.all([
+                await hre.Diamond.enablePoolCollaterals(
+                    [
+                        CollateralAsset.address,
+                        CollateralAsset8Dec.address,
+                        KISS.address,
+                        KreskoAsset.address,
+                        KreskoAsset2.address,
+                    ],
+                    [collateralConfig, collateralConfig, collateralConfig, collateralConfig, collateralConfig],
+                ),
+                await hre.Diamond.enablePoolKrAssets(
+                    [KreskoAsset.address, KreskoAsset2.address, KISS.address],
+                    [krAssetConfig, krAssetConfig, KISSConfig],
+                ),
+                await hre.Diamond.setSwapPairs([
+                    {
+                        assetIn: KreskoAsset2.address,
+                        assetOut: KreskoAsset.address,
+                        enabled: true,
+                    },
+                    {
+                        assetIn: KISS.address,
+                        assetOut: KreskoAsset2.address,
+                        enabled: true,
+                    },
+                    {
+                        assetIn: KreskoAsset.address,
+                        assetOut: KISS.address,
+                        enabled: true,
+                    },
+                ]),
+            ]);
+
+            // mint some KISS for users
+            for (const user of users) {
+                await CollateralAsset.setBalance(user, toBig(1_000_000));
+                await CollateralAsset.contract
+                    .connect(user)
+                    .approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
+                await KISS.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
+                await KreskoAsset2.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
+                await KISS.setBalance(swapper, toBig(10_000));
+            }
+
+            await hre.Diamond.connect(depositor).poolDeposit(
+                depositor.address,
+                CollateralAsset.address,
+                depositAmount18Dec, // $10k
+            );
+        });
+    });
     withFixture(["minter-init"]);
 
     let KreskoAsset: Awaited<ReturnType<typeof addMockKreskoAsset>>;
+
     let CollateralAsset: Awaited<ReturnType<typeof addMockCollateralAsset>>;
     let CollateralAsset8Dec: Awaited<ReturnType<typeof addMockCollateralAsset>>;
-    let CollateralAsset21Dec: Awaited<ReturnType<typeof addMockCollateralAsset>>;
     const collateralPrice = 10;
     const kreskoAssetPrice = 10;
     let oracleDecimals: number;
@@ -651,17 +1284,20 @@ describe.only("Collateral Pool", function () {
         users = [hre.users.testUserFive, hre.users.testUserSix];
         oracleDecimals = await hre.Diamond.extOracleDecimals();
 
-        [KreskoAsset, CollateralAsset, CollateralAsset8Dec, CollateralAsset21Dec] = await Promise.all([
-            addMockKreskoAsset({
-                name: "KreskoAssetPrice10USD",
-                price: collateralPrice,
-                symbol: "KreskoAssetPrice10USD",
-                closeFee: 0.1,
-                openFee: 0.1,
-                marketOpen: true,
-                factor: 2,
-                supplyLimit: 10,
-            }),
+        [KreskoAsset, CollateralAsset, CollateralAsset8Dec] = await Promise.all([
+            addMockKreskoAsset(
+                {
+                    name: "KreskoAssetPrice10USD",
+                    price: collateralPrice,
+                    symbol: "KreskoAssetPrice10USD",
+                    closeFee: 0.1,
+                    openFee: 0.1,
+                    marketOpen: true,
+                    factor: 1.25,
+                    supplyLimit: 100_000,
+                },
+                true,
+            ),
             addMockCollateralAsset({
                 name: "Collateral18Dec",
                 price: kreskoAssetPrice,
@@ -673,12 +1309,6 @@ describe.only("Collateral Pool", function () {
                 price: kreskoAssetPrice,
                 factor: 0.8,
                 decimals: 8, // eg USDT
-            }),
-            await addMockCollateralAsset({
-                name: "Collateral21Dec",
-                price: kreskoAssetPrice,
-                factor: 0.5,
-                decimals: 21, // more
             }),
         ]);
 

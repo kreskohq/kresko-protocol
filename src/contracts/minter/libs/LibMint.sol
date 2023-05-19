@@ -29,9 +29,9 @@ library LibMint {
     /// @notice Mint kresko assets with stability rate updates.
     /// @dev Updates the principal in MinterState and stability rate adjusted values in InterestRateState
     /// @param _kreskoAsset the asset being repaid
-    /// @param _anchor the anchor token of the asset being repaid
-    /// @param _amount the asset amount being burned
-    /// @param _account the account the debt is subtracted from
+    /// @param _anchor the anchor token of the asset being issued
+    /// @param _amount the asset amount being minted
+    /// @param _account the account to mint the assets to
     function mint(
         MinterState storage self,
         address _kreskoAsset,
@@ -57,21 +57,17 @@ library LibMint {
 
     /// @notice Mint kresko assets for shared debt pool.
     /// @dev Updates general markets stability rates and debt index.
-    /// @param _kreskoAsset the asset being repaid
-    /// @param _amount the asset amount being burned
-    function mint(
+    /// @param _kreskoAsset the asset requested
+    /// @param _amount the asset amount requested
+    /// @param _to the account to mint the assets to
+    function mintSwap(
         MinterState storage self,
         address _kreskoAsset,
         uint256 _amount,
         address _to
     ) internal returns (uint256 issued) {
-        // Update global debt index for the asset
-        irs().srAssets[_kreskoAsset].updateDebtIndex();
-        irs().srAssets[_kreskoAsset].updateStabilityRate();
-        // Get possibly rebalanced amount of kresko asset
         issued = IKreskoAssetIssuer(self.kreskoAssets[_kreskoAsset].anchor).issue(_amount, _to);
         require(issued != 0, "invalid-shared-pool-mint");
-        // Update the global rate for the asset
     }
 
     /**

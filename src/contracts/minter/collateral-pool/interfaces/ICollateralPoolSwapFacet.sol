@@ -31,6 +31,19 @@ interface ICollateralPoolSwapFacet {
     ) external;
 
     /**
+     * @notice Preview the amount out received.
+     * @param _assetIn The asset to pay with.
+     * @param _assetOut The asset to receive.
+     * @param _amountIn The amount of _assetIn to pay.
+     * @return amountOut The amount of `_assetOut` to receive according to `_amountIn`.
+     */
+    function previewSwap(
+        address _assetIn,
+        address _assetOut,
+        uint256 _amountIn
+    ) external view returns (uint256 amountOut, uint256 feeAmount, uint256 protocolFee);
+
+    /**
      * @notice Accumulates fees to deposits as a fixed, instantaneous income.
      * @param _incomeAsset the income asset
      * @param _amount amount to accumulate

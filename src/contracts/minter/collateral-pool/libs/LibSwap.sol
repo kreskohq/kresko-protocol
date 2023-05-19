@@ -79,16 +79,16 @@ library LibSwap {
         }
 
         if (collateralIn > 0) {
-            uint256 amountIn = LibAmounts.getCollateralAmountWrite(_assetIn, collateralIn);
+            uint256 collateralInInternal = LibAmounts.getCollateralAmountWrite(_assetIn, collateralIn);
             // 1. Increase collateral deposits.
-            self.totalDeposits[_assetIn] += amountIn;
+            self.totalDeposits[_assetIn] += collateralInInternal;
             // 2. Increase "swap" collateral.
-            self.swapDeposits[_assetIn] += amountIn;
+            self.swapDeposits[_assetIn] += collateralInInternal;
         }
 
         if (debtOut > 0) {
             // 1. Burn debt that was repaid from the assets received.
-            self.debt[_assetIn] -= ms().repay(_assetIn, debtOut);
+            self.debt[_assetIn] -= ms().repaySwap(_assetIn, debtOut);
         }
 
         require(_amountIn == debtOut + collateralIn, "assets-in-mismatch");
@@ -148,7 +148,7 @@ library LibSwap {
 
         if (debtIn > 0) {
             // 1. Issue required debt to the pool, minting new assets to receiver.
-            self.debt[_assetOut] += ms().mint(_assetOut, debtIn, _receiver);
+            self.debt[_assetOut] += ms().mintSwap(_assetOut, debtIn, _receiver);
         }
 
         require(amountOut == debtIn + collateralOut, "amount-out-mismatch");

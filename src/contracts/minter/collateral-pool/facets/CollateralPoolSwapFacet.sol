@@ -6,6 +6,7 @@ import {ms} from "../../MinterStorage.sol";
 import {WadRay} from "../../../libs/WadRay.sol";
 import {ICollateralPoolSwapFacet} from "../interfaces/ICollateralPoolSwapFacet.sol";
 import {cps} from "../CollateralPoolState.sol";
+import "hardhat/console.sol";
 
 contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
     using SafeERC20 for IERC20Permit;
@@ -42,9 +43,8 @@ contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
         // Assets sent out are newly minted debt and/or "swap" owned collateral.
         uint256 amountOut = cps().handleAssetsOut(_assetOut, valueIn, receiver);
 
-        require(amountOut >= _amountOutMin, "swap-out-slippage");
-
-        // State modifications done, check MCR.
+        // State modifications done, check MCR and slippage.
+        require(amountOut >= _amountOutMin, "swap-slippage");
         require(cps().checkRatio(cps().minimumCollateralizationRatio), "swap-mcr-violation");
 
         emit Swap(msg.sender, _assetIn, _assetOut, _amountIn, amountOut);
@@ -57,6 +57,23 @@ contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
         IERC20Permit(_assetIn).safeTransfer(ms().feeRecipient, protocolFeeTaken);
 
         emit SwapFee(_assetIn, feeAmount, protocolFeeTaken);
+    }
+
+    function previewSwap(
+        address _assetIn,
+        address _assetOut,
+        uint256 _amountIn
+    ) external view returns (uint256 amountOut, uint256 feeAmount, uint256 feeAmountProtocol) {
+        // Check that assets can be swapped, get the fee percentages.
+        (uint256 feePercentage, uint256 protocolFee) = cps().checkAssets(_assetIn, _assetOut);
+
+        // Get the fees from amount received.
+        feeAmount = _amountIn.wadMul(feePercentage);
+        uint256 valueIn = ms().kreskoAssets[_assetIn].uintUSD(_amountIn - feeAmount);
+
+        amountOut = valueIn.wadDiv(ms().kreskoAssets[_assetOut].uintPrice());
+        feeAmountProtocol = feeAmount.wadMul(protocolFee);
+        feeAmount -= feeAmountProtocol;
     }
 
     /// @inheritdoc ICollateralPoolSwapFacet
