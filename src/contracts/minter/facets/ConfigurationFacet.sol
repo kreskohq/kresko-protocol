@@ -258,8 +258,8 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         emit MinterEvent.CollateralAssetUpdated(
             _collateralAsset,
             _config.factor,
-            ms().collateralAssets[_collateralAsset].oracle,
-            ms().collateralAssets[_collateralAsset].marketStatusOracle,
+            address(ms().collateralAssets[_collateralAsset].oracle),
+            address(ms().collateralAssets[_collateralAsset].marketStatusOracle),
             ms().collateralAssets[_collateralAsset].anchor,
             _config.liquidationIncentive
         );
