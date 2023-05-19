@@ -1,8 +1,8 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.20;
 
 import {WadRay} from "../../libs/WadRay.sol";
-import {IUniswapV2Oracle} from "../interfaces/IUniswapV2Oracle.sol";
+import {IUniswapV2OracleCompat} from "../amm-oracle/IUniswapV2OracleCompat.sol";
 import {KrAsset} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
 
@@ -44,6 +44,12 @@ library LibKrAsset {
         return value;
     }
 
+    /**
+     * @notice Gets the AMM price for a Kresko asset.
+     * @param _kreskoAsset The address of the Kresko asset.
+     * @param _amount The amount of the Kresko asset to calculate the value for.
+     * @return The value for the provided amount of the Kresko asset.
+     */
     function getKrAssetAMMPrice(
         MinterState storage self,
         address _kreskoAsset,
@@ -52,7 +58,7 @@ library LibKrAsset {
         if (self.ammOracle == address(0)) {
             return 0;
         }
-        return IUniswapV2Oracle(self.ammOracle).consultKrAsset(_kreskoAsset, _amount);
+        return IUniswapV2OracleCompat(self.ammOracle).consultKrAsset(_kreskoAsset, _amount);
     }
 
     /**

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.20;
 
 // solhint-disable not-rely-on-time
@@ -17,7 +17,7 @@ import {KrAsset} from "../MinterTypes.sol";
 import {irs} from "../InterestRateState.sol";
 import {MinterState} from "../MinterState.sol";
 
-library LibRepay {
+library LibBurn {
     using Arrays for address[];
 
     using LibDecimals for uint8;
@@ -33,7 +33,7 @@ library LibRepay {
     /// @param _anchor the anchor token of the asset being repaid
     /// @param _burnAmount the asset amount being burned
     /// @param _account the account the debt is subtracted from
-    function repay(
+    function burn(
         MinterState storage self,
         address _kreskoAsset,
         address _anchor,

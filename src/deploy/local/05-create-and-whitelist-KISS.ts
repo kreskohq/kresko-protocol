@@ -1,9 +1,9 @@
 import { assets, testnetConfigs } from "@deploy-config/opgoerli";
 import type { DeployFunction } from "hardhat-deploy/types";
 import { getLogger } from "@kreskolabs/lib";
-import { getOracle } from "@utils/general";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import { TASK_DEPLOY_KISS, TASK_WHITELIST_COLLATERAL, TASK_WHITELIST_KRASSET } from "@tasks";
+import { getOracle } from "@utils/test/helpers/oracle";
 
 const logger = getLogger("create-kiss");
 

@@ -6,37 +6,13 @@ import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/se
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IKrStaking} from "./interfaces/IKrStaking.sol";
 
-contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
+contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable, IKrStaking {
     using SafeERC20 for IERC20;
 
     // keccak256("kresko.operator.role")
     bytes32 public constant OPERATOR_ROLE = 0x8952ae23cc3fea91b9dba0cefa16d18a26ca2bf124b54f42b5d04bce3aacecd2;
-
-    /**
-     * ==================================================
-     * =============== Structs ==========================
-     * ==================================================
-     */
-
-    struct UserInfo {
-        uint256 amount;
-        uint256[] rewardDebts;
-    }
-
-    struct PoolInfo {
-        IERC20 depositToken; // Address of LP token contract.
-        uint128 allocPoint; // How many allocation points assigned to this pool.
-        uint128 lastRewardBlock; // Last block number that rewards distribution occurs.
-        uint256[] accRewardPerShares; // Accumulated rewards per share, times 1e12.
-        address[] rewardTokens; // Reward tokens for this pool.
-    }
-
-    struct Reward {
-        uint256 pid;
-        address[] tokens;
-        uint256[] amounts;
-    }
 
     /**
      * ==================================================
@@ -146,11 +122,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
      * ==================================================
      */
 
-    /**
-     * @notice Get pending rewards from a certain pool
-     * @param _pid id in `_poolInfo`
-     * @param _user id in `_userInfo[_pid]`
-     */
+    /// @inheritdoc IKrStaking
     function pendingRewards(uint256 _pid, address _user) public view returns (Reward memory rewards) {
         PoolInfo memory pool = _poolInfo[_pid];
         UserInfo memory user = _userInfo[_pid][_user];
@@ -175,10 +147,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
         }
     }
 
-    /**
-     * @notice Get all pending rewards for an account
-     * @param _account to get rewards for
-     */
+    /// @inheritdoc IKrStaking
     function allPendingRewards(address _account) external view returns (Reward[] memory allRewards) {
         allRewards = new Reward[](_poolInfo.length);
         for (uint256 pid; pid < _poolInfo.length; pid++) {
@@ -187,28 +156,17 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
         }
     }
 
-    /**
-     * @notice Amount of pools
-     */
+    /// @inheritdoc IKrStaking
     function poolLength() external view returns (uint256) {
         return _poolInfo.length;
     }
 
-    /**
-     * @notice Get pool information
-     * @param _pid in `_poolInfo`
-     */
+    /// @inheritdoc IKrStaking
     function poolInfo(uint256 _pid) external view returns (PoolInfo memory) {
         return _poolInfo[_pid];
     }
 
-    /**
-     * @notice Get id for a token
-     * @notice Useful for external contracts
-     * @param _depositToken depositToken in `_poolInfo`
-     * @return pid of pool with `_depositToken`
-     * @return found ensure 0 index
-     */
+    /// @inheritdoc IKrStaking
     function getPidFor(address _depositToken) external view returns (uint256 pid, bool found) {
         for (pid; pid < _poolInfo.length; pid++) {
             if (address(_poolInfo[pid].depositToken) == _depositToken) {
@@ -218,11 +176,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
         }
     }
 
-    /**
-     * @notice Get account information on a pool
-     * @param _pid in `_poolInfo`
-     * @param _account to get information for
-     */
+    /// @inheritdoc IKrStaking
     function userInfo(uint256 _pid, address _account) external view returns (UserInfo memory) {
         return _userInfo[_pid][_account];
     }
@@ -233,19 +187,14 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
      * ==================================================
      */
 
-    /**
-     * @notice Updates all pools to be up-to date
-     */
+    /// @inheritdoc IKrStaking
     function massUpdatePools() public payable {
         for (uint256 pid; pid < _poolInfo.length; ++pid) {
             updatePool(pid);
         }
     }
 
-    /**
-     * @notice Updates a pools reward variables to be up-to date
-     * @param _pid pool to update
-     */
+    /// @inheritdoc IKrStaking
     function updatePool(uint256 _pid) public payable returns (PoolInfo memory pool) {
         pool = _poolInfo[_pid];
         // Updates once per block
@@ -271,12 +220,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
         }
     }
 
-    /**
-     * @notice Deposits tokens for @param _to
-     * @param _to address that msg.sender deposits tokens for
-     * @param _pid in `_poolInfo`
-     * @param _amount amount of tokens to deposit
-     */
+    /// @inheritdoc IKrStaking
     function deposit(address _to, uint256 _pid, uint256 _amount) external payable nonReentrant ensurePoolExists(_pid) {
         PoolInfo memory pool = updatePool(_pid);
         UserInfo storage user = _userInfo[_pid][_to];
@@ -296,12 +240,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
         emit Deposit(_to, _pid, _amount);
     }
 
-    /**
-     * @notice Withdraw deposited tokens and rewards.
-     * @param _pid id in `_poolInfo`
-     * @param _amount amount to withdraw
-     * @param _rewardRecipient address to send rewards to
-     */
+    /// @inheritdoc IKrStaking
     function withdraw(uint256 _pid, uint256 _amount, address _rewardRecipient) external payable nonReentrant {
         require(_amount > 0, "KR: 0-withdraw");
         require(_rewardRecipient != address(0), "KR: !rewardRecipient");
@@ -328,11 +267,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
         emit Withdraw(msg.sender, _pid, _amount);
     }
 
-    /**
-     * @notice Claim rewards only
-     * @param _pid id in `_poolInfo`
-     * @param _rewardRecipient address to send rewards to
-     */
+    /// @inheritdoc IKrStaking
     function claim(uint256 _pid, address _rewardRecipient) external payable nonReentrant {
         require(_rewardRecipient != address(0), "KR: !rewardRecipient");
 
@@ -348,11 +283,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
         }
     }
 
-    /**
-     * @notice Emergency function, withdraws deposits from a pool
-     * @notice This will forfeit your rewards.
-     * @param _pid pool id to withdraw tokens from
-     */
+    /// @inheritdoc IKrStaking
     function emergencyWithdraw(uint256 _pid) external payable nonReentrant {
         PoolInfo memory pool = updatePool(_pid);
         UserInfo storage user = _userInfo[_pid][msg.sender];
@@ -370,11 +301,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
      * ==================================================
      */
 
-    /**
-     * @notice Adjust/Set reward per block for a particular reward token
-     * @param _rewardToken token to adjust the drip for
-     * @param _rewardPerBlock tokens to drip per block
-     */
+    /// @inheritdoc IKrStaking
     function setRewardPerBlockFor(
         address _rewardToken,
         uint256 _rewardPerBlock
@@ -382,13 +309,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
         rewardPerBlockFor[_rewardToken] = _rewardPerBlock;
     }
 
-    /**
-     * @notice Adds a new reward pool
-     * @notice Updates reward token count in case of adding extra tokens
-     * @param _rewardTokens tokens to reward from this pool
-     * @param _depositToken token to deposit for rewards
-     * @param _allocPoint weight of rewards this pool receives
-     */
+    /// @inheritdoc IKrStaking
     function addPool(
         address[] calldata _rewardTokens,
         IERC20 _depositToken,
@@ -410,12 +331,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
         );
     }
 
-    /**
-     * @notice Set new allocations for a pool
-     * @notice Set `_newAllocPoint` to 0 to retire a pool
-     * @param _pid pool to modify
-     * @param _newAllocPoint new allocation (weight) for rewards
-     */
+    /// @inheritdoc IKrStaking
     function setPool(
         uint256 _pid,
         uint128 _newAllocPoint
@@ -430,14 +346,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
      * ==================================================
      */
 
-    /**
-     * @notice Trusted helper contract can withdraw rewards and deposits on behalf of an account
-     * @notice For eg. withdraw + remove liquidity
-     * @param _for account to withdraw from
-     * @param _pid id in `_poolInfo`
-     * @param _amount amount to withdraw
-     * @param _rewardRecipient reward recipient
-     */
+    /// @inheritdoc IKrStaking
     function withdrawFor(
         address _for,
         uint256 _pid,
@@ -469,12 +378,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
         emit Withdraw(_for, _pid, _amount);
     }
 
-    /**
-     * @notice Trusted helper contract can claim rewards on behalf of an account
-     * @param _for account to claim for
-     * @param _pid id in `_poolInfo`
-     * @param _rewardRecipient address that receives rewards
-     */
+    /// @inheritdoc IKrStaking
     function claimFor(
         address _for,
         uint256 _pid,
@@ -494,18 +398,12 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
         }
     }
 
-    /**
-     * @notice A rescue function for missent msg.value
-     * @notice Since we are using payable functions to save gas on calls
-     */
+    /// @inheritdoc IKrStaking
     function rescueNative() external payable onlyRole(OPERATOR_ROLE) {
         payable(msg.sender).transfer(address(this).balance);
     }
 
-    /**
-     * @notice A rescue function for missent tokens / airdrops
-     * @notice This cannot withdraw any deposits due `ensurePoolDoesNotExist` modifier.
-     */
+    /// @inheritdoc IKrStaking
     function rescueNonPoolToken(
         IERC20 _tokenToRescue,
         uint256 _amount

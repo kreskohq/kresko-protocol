@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.20;
 import {AggregatorV2V3Interface} from "../../vendor/flux/interfaces/AggregatorV2V3Interface.sol";
 import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
@@ -69,6 +69,14 @@ library LibCollateral {
         return (value, oraclePrice);
     }
 
+    /**
+     * @notice verifies that the account has sufficient collateral for the requested amount and records the collateral
+     * @param _account The address of the account to verify the collateral for.
+     * @param _collateralAsset The address of the collateral asset.
+     * @param _withdrawAmount The amount of the collateral asset to withdraw.
+     * @param _collateralDeposits Collateral deposits for the account.
+     * @param _depositedCollateralAssetIndex Index of the collateral asset in the account's deposited collateral assets array.
+     */
     function verifyAndRecordCollateralWithdrawal(
         MinterState storage self,
         address _account,
@@ -134,6 +142,14 @@ library LibCollateral {
         emit MinterEvent.CollateralDeposited(_account, _collateralAsset, _depositAmount);
     }
 
+    /**
+     * @notice records the collateral withdrawal
+     * @param _account The address of the account to verify the collateral for.
+     * @param _collateralAsset The address of the collateral asset.
+     * @param _withdrawAmount The amount of the collateral asset to withdraw.
+     * @param _collateralDeposits Collateral deposits for the account.
+     * @param _depositedCollateralAssetIndex Index of the collateral asset in the account's deposited collateral assets array.
+     */
     function recordCollateralWithdrawal(
         MinterState storage self,
         address _account,
@@ -164,6 +180,12 @@ library LibCollateral {
         emit MinterEvent.UncheckedCollateralWithdrawn(_account, _collateralAsset, _withdrawAmount);
     }
 
+    /**
+     * @notice verifies that the account collateral
+     * @param _account The address of the account to verify the collateral for.
+     * @param _collateralAsset The address of the collateral asset.
+     * @param _withdrawAmount The amount of the collateral asset to withdraw.
+     */
     function verifyAccountCollateral(
         MinterState storage self,
         address _account,

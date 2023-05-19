@@ -27,12 +27,7 @@ contract MintFacet is DiamondModifiers, MinterModifiers, IMintFacet {
     /*                                  KrAssets                                  */
     /* -------------------------------------------------------------------------- */
 
-    /**
-     * @notice Mints new Kresko assets.
-     * @param _account The address to mint assets for.
-     * @param _kreskoAsset The address of the Kresko asset.
-     * @param _mintAmount The amount of the Kresko asset to be minted.
-     */
+    /// @inheritdoc IMintFacet
     function mintKreskoAsset(
         address _account,
         address _kreskoAsset,

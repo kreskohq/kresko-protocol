@@ -5,7 +5,7 @@ import {LibKrAsset} from "./libs/LibKrAsset.sol";
 import {LibAccount} from "./libs/LibAccount.sol";
 import {LibCollateral} from "./libs/LibCollateral.sol";
 import {LibCalculation} from "./libs/LibCalculation.sol";
-import {LibRepay} from "./libs/LibRepay.sol";
+import {LibBurn} from "./libs/LibBurn.sol";
 import {LibMint} from "./libs/LibMint.sol";
 import {Action, SafetyState, CollateralAsset, KrAsset} from "./MinterTypes.sol";
 
@@ -14,7 +14,7 @@ using LibCalculation for MinterState global;
 using LibKrAsset for MinterState global;
 using LibCollateral for MinterState global;
 using LibAccount for MinterState global;
-using LibRepay for MinterState global;
+using LibBurn for MinterState global;
 using LibMint for MinterState global;
 
 /**

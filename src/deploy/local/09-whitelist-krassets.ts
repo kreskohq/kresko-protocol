@@ -2,8 +2,8 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { testnetConfigs } from "@deploy-config/opgoerli";
 import type { DeployFunction } from "hardhat-deploy/types";
 import { getLogger } from "@kreskolabs/lib";
-import { getOracle } from "@utils/general";
 import { TASK_WHITELIST_KRASSET } from "@tasks";
+import { getOracle } from "@utils/test/helpers/oracle";
 
 const logger = getLogger(TASK_WHITELIST_KRASSET);
 

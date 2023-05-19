@@ -39,7 +39,7 @@ contract BurnHelperFacet is IBurnHelperFacet, DiamondModifiers, MinterModifiers 
         s.chargeCloseFee(_account, _kreskoAsset, principalDebt);
 
         // Record the burn
-        s.repay(_kreskoAsset, s.kreskoAssets[_kreskoAsset].anchor, principalDebt, _account);
+        s.burn(_kreskoAsset, s.kreskoAssets[_kreskoAsset].anchor, principalDebt, _account);
         uint256 kissRepayAmount = ms().repayFullStabilityRateInterest(_account, _kreskoAsset);
 
         // If all all principal debt of asset with NO stability rate configured

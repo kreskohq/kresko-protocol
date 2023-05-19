@@ -91,12 +91,7 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
                 interfaceId == 0x36372b07);
     }
 
-    /**
-     * @notice This function adds KISS to circulation
-     * Caller must be a contract and have the OPERATOR_ROLE
-     * @param _to address to mint tokens to
-     * @param _amount amount to mint
-     */
+    /// @inheritdoc IKISS
     function issue(
         uint256 _amount,
         address _to
