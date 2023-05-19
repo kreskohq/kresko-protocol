@@ -56,7 +56,7 @@ contract BurnFacet is DiamondModifiers, MinterModifiers, IBurnFacet {
         s.chargeCloseFee(_account, _kreskoAsset, _burnAmount);
 
         // Record the burn
-        s.repay(_kreskoAsset, s.kreskoAssets[_kreskoAsset].anchor, _burnAmount, _account);
+        s.burn(_kreskoAsset, s.kreskoAssets[_kreskoAsset].anchor, _burnAmount, _account);
 
         // Emit logs
         emit MinterEvent.KreskoAssetBurned(_account, _kreskoAsset, _burnAmount);
