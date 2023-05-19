@@ -1,8 +1,9 @@
-// SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity >=0.8.20;
 import {CollateralAsset, KrAsset} from "../MinterTypes.sol";
-import {LibDecimals, FixedPoint} from "../libs/LibDecimals.sol";
+import {LibDecimals} from "../libs/LibDecimals.sol";
 import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
+import {WadRay} from "../../libs/WadRay.sol";
 
 /**
  * @title LibAssetUtility
@@ -10,9 +11,7 @@ import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
  * @notice Utility functions for KrAsset and CollateralAsset structs
  */
 library LibAssetUtility {
-    using FixedPoint for int256;
-    using FixedPoint for uint256;
-    using FixedPoint for FixedPoint.Unsigned;
+    using WadRay for uint256;
     using LibDecimals for int256;
 
     /**
@@ -50,11 +49,10 @@ library LibAssetUtility {
      * @param self the collateral asset struct
      * @param _maybeRebasedAmount the amount to convert
      */
-    function toNonRebasingAmount(CollateralAsset memory self, uint256 _maybeRebasedAmount)
-        internal
-        view
-        returns (uint256)
-    {
+    function toNonRebasingAmount(
+        CollateralAsset memory self,
+        uint256 _maybeRebasedAmount
+    ) internal view returns (uint256) {
         if (self.anchor == address(0)) return _maybeRebasedAmount;
         return IKreskoAssetAnchor(self.anchor).convertToShares(_maybeRebasedAmount);
     }
@@ -88,52 +86,16 @@ library LibAssetUtility {
     }
 
     /**
-     * @notice Get the oracle price of a collateral asset in FixedPoint.Unsigned
-     */
-    function fixedPointPrice(CollateralAsset memory self) internal view returns (FixedPoint.Unsigned memory) {
-        return self.oracle.latestAnswer().toFixedPoint();
-    }
-
-    /**
-     * @notice Get the oracle price of a kresko asset in FixedPoint.Unsigned
-     */
-    function fixedPointPrice(KrAsset memory self) internal view returns (FixedPoint.Unsigned memory) {
-        return self.oracle.latestAnswer().toFixedPoint();
-    }
-
-    /**
      * @notice Get value for @param _assetAmount of @param self in uint256
      */
     function uintUSD(CollateralAsset memory self, uint256 _assetAmount) internal view returns (uint256) {
-        return self.uintPrice() * _assetAmount;
+        return self.uintPrice().wadMul(_assetAmount);
     }
 
     /**
      * @notice Get value for @param _assetAmount of @param self in uint256
      */
     function uintUSD(KrAsset memory self, uint256 _assetAmount) internal view returns (uint256) {
-        return self.uintPrice() * _assetAmount;
-    }
-
-    /**
-     * @notice Get value for @param _assetAmount of @param self in FixedPoint.Unsigned
-     */
-    function fixedPointUSD(CollateralAsset memory self, uint256 _assetAmount)
-        internal
-        view
-        returns (FixedPoint.Unsigned memory)
-    {
-        return self.fixedPointPrice().mul(_assetAmount.toFixedPoint());
-    }
-
-    /**
-     * @notice Get value for @param _assetAmount of @param self in FixedPoint.Unsigned
-     */
-    function fixedPointUSD(KrAsset memory self, uint256 _assetAmount)
-        internal
-        view
-        returns (FixedPoint.Unsigned memory)
-    {
-        return self.fixedPointPrice().mul(_assetAmount.toFixedPoint());
+        return self.uintPrice().wadMul(_assetAmount);
     }
 }

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
 import {Error} from "./Errors.sol";
 
@@ -14,11 +14,7 @@ library Arrays {
      * @param _elementToRemove The element to be removed.
      * @param _elementIndex The index of the element to be removed.
      */
-    function removeAddress(
-        address[] storage _addresses,
-        address _elementToRemove,
-        uint256 _elementIndex
-    ) internal {
+    function removeAddress(address[] storage _addresses, address _elementToRemove, uint256 _elementIndex) internal {
         require(_addresses[_elementIndex] == _elementToRemove, Error.ARRAY_OUT_OF_BOUNDS);
 
         uint256 lastIndex = _addresses.length - 1;

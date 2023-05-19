@@ -3,9 +3,9 @@
 /* solhint-disable avoid-low-level-calls */
 /* solhint-disable func-visibility */
 
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
-import "./DiamondState.sol";
+import {DiamondState} from "./DiamondState.sol";
 
 // Storage position
 bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("kresko.diamond.storage");

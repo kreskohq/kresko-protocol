@@ -65,8 +65,8 @@ describe("Stability Rates", function () {
     });
 
     describe("#debt calculation - mint", () => {
-        const depositAmount = hre.toBig(1000);
-        const mintAmount = hre.toBig(50);
+        const depositAmount = toBig(1000);
+        const mintAmount = toBig(50);
 
         beforeEach(async function () {
             await this.collateral.setBalance(userTwo, depositAmount);
@@ -84,7 +84,11 @@ describe("Stability Rates", function () {
                 collateralAmount,
                 krAssetAmount,
             );
-            await mintKrAsset({ user: userOne, asset: this.krAsset, amount: amountIn });
+            await mintKrAsset({
+                user: userOne,
+                asset: this.krAsset,
+                amount: amountIn,
+            });
 
             await swap({
                 amount: amountIn,
@@ -132,7 +136,11 @@ describe("Stability Rates", function () {
                 collateralAmount,
                 krAssetAmount,
             );
-            await mintKrAsset({ user: userOne, asset: this.krAsset, amount: amountIn });
+            await mintKrAsset({
+                user: userOne,
+                asset: this.krAsset,
+                amount: amountIn,
+            });
 
             await swap({
                 amount: amountIn,
@@ -194,8 +202,8 @@ describe("Stability Rates", function () {
         });
     });
     describe("#debt calculation - repay", () => {
-        const depositAmount = hre.toBig(100);
-        const mintAmount = hre.toBig(10);
+        const depositAmount = toBig(100);
+        const mintAmount = toBig(10);
 
         beforeEach(async function () {
             await this.collateral.setBalance(userTwo, depositAmount);
@@ -272,7 +280,11 @@ describe("Stability Rates", function () {
                 collateralAmount,
                 krAssetAmount,
             );
-            await mintKrAsset({ user: userOne, asset: this.krAsset, amount: amountIn });
+            await mintKrAsset({
+                user: userOne,
+                asset: this.krAsset,
+                amount: amountIn,
+            });
 
             // dump asset, decreases price
             await swap({
@@ -355,10 +367,10 @@ describe("Stability Rates", function () {
     });
 
     describe("#debt calculation - repay interest", () => {
-        const depositAmount = hre.toBig(100);
-        const depositAmountBig = hre.toBig(10000);
-        const mintAmount = hre.toBig(10);
-        const mintAmountSmall = hre.toBig(2);
+        const depositAmount = toBig(100);
+        const depositAmountBig = toBig(10000);
+        const mintAmount = toBig(10);
+        const mintAmountSmall = toBig(2);
 
         beforeEach(async function () {
             await this.collateral.setBalance(userTwo, depositAmount);
@@ -441,9 +453,11 @@ describe("Stability Rates", function () {
             const principalDebt = await hre.Diamond.kreskoAssetDebtPrincipal(userTwo.address, this.krAsset.address);
             const scaledDebt = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
 
-            const expectedValue = (
-                await hre.Diamond.getKrAssetValue(this.krAsset.address, scaledDebt.sub(principalDebt), true)
-            ).rawValue;
+            const expectedValue = await hre.Diamond.getKrAssetValue(
+                this.krAsset.address,
+                scaledDebt.sub(principalDebt),
+                true,
+            );
 
             const accruedInterest = await hre.Diamond.kreskoAssetDebtInterest(userTwo.address, this.krAsset.address);
 
@@ -468,7 +482,7 @@ describe("Stability Rates", function () {
             });
             await time.increase(ONE_YEAR);
 
-            const minDebtAmount = (await hre.Diamond.minimumDebtValue()).rawValue.mul(10 ** 10);
+            const minDebtAmount = (await hre.Diamond.minimumDebtValue()).mul(10 ** 10);
             await mintKrAsset({
                 asset: KISS,
                 amount: minDebtAmount,
@@ -504,7 +518,7 @@ describe("Stability Rates", function () {
             });
             await time.increase(ONE_YEAR);
 
-            const minDebtAmount = (await hre.Diamond.minimumDebtValue()).rawValue.mul(10 ** 10);
+            const minDebtAmount = (await hre.Diamond.minimumDebtValue()).mul(10 ** 10);
             await mintKrAsset({
                 asset: KISS,
                 amount: minDebtAmount,
@@ -606,7 +620,7 @@ describe("Stability Rates", function () {
         it("can repay all interest and principal for a single asset", async function () {
             const KISS = await hre.getContractOrFork("KISS");
             await KISS.connect(userTwo).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
-            const minDebtAmount = (await hre.Diamond.minimumDebtValue()).rawValue.mul(10 ** 10);
+            const minDebtAmount = (await hre.Diamond.minimumDebtValue()).mul(10 ** 10);
 
             await depositCollateral({
                 asset: this.collateral,
@@ -678,14 +692,14 @@ describe("Stability Rates", function () {
             expect(accruedInterestYearAfterRepayment.kissAmount).to.equal(0);
 
             // Get kr asset value, should be only KISS minted that remains
-            const krAssetValue = (await hre.Diamond.getAccountKrAssetValue(userTwo.address)).rawValue;
+            const krAssetValue = await hre.Diamond.getAccountKrAssetValue(userTwo.address);
             expect(krAssetValue).to.equal(toBig(10, 8));
         });
 
         it("can batch repay interest and all debt", async function () {
             const KISS = await hre.getContractOrFork("KISS");
             await KISS.connect(userTwo).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
-            const minDebtAmount = (await hre.Diamond.minimumDebtValue()).rawValue.mul(10 ** 10);
+            const minDebtAmount = (await hre.Diamond.minimumDebtValue()).mul(10 ** 10);
 
             await this.collateral.setBalance(userTwo, depositAmountBig);
             // Deposit a bit more to cover the mints
@@ -763,7 +777,7 @@ describe("Stability Rates", function () {
         it("can open up a new debt positions after wiping all debt + interest", async function () {
             const KISS = await hre.getContractOrFork("KISS");
             await KISS.connect(userTwo).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
-            const minDebtAmount = (await hre.Diamond.minimumDebtValue()).rawValue.mul(10 ** 10);
+            const minDebtAmount = (await hre.Diamond.minimumDebtValue()).mul(10 ** 10);
 
             await depositCollateral({
                 asset: this.collateral,
@@ -853,7 +867,7 @@ describe("Stability Rates", function () {
         it("can fully close a position in single transaction using the helper function", async function () {
             const KISS = await hre.getContractOrFork("KISS");
             await KISS.connect(userTwo).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
-            const minDebtAmount = (await hre.Diamond.minimumDebtValue()).rawValue.mul(10 ** 10);
+            const minDebtAmount = (await hre.Diamond.minimumDebtValue()).mul(10 ** 10);
 
             await depositCollateral({
                 asset: this.collateral,
@@ -889,7 +903,7 @@ describe("Stability Rates", function () {
         it("can fully close all positions and interest in single transaction using the helper function", async function () {
             const KISS = await hre.getContractOrFork("KISS");
             await KISS.connect(userTwo).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
-            const kissAmount = (await hre.Diamond.minimumDebtValue()).rawValue.mul(10 ** 10).mul(2);
+            const kissAmount = (await hre.Diamond.minimumDebtValue()).mul(10 ** 10).mul(2);
 
             await depositCollateral({
                 asset: this.collateral,
@@ -939,7 +953,7 @@ describe("Stability Rates", function () {
 
             const accruedInterest = await hre.Diamond.kreskoAssetDebtInterestTotal(userTwo.address);
             expect(accruedInterest).to.eq(0);
-            expect((await hre.Diamond.getAccountKrAssetValue(userTwo.address)).rawValue).to.eq(0);
+            expect(await hre.Diamond.getAccountKrAssetValue(userTwo.address)).to.eq(0);
             expect((await hre.Diamond.getMintedKreskoAssets(userTwo.address)).length).to.eq(0);
         });
     });

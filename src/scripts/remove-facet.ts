@@ -11,8 +11,7 @@ type Args = {
 const logger = getLogger("remove-facet");
 
 export async function removeFacet({ name, initializerName, initializerArgs }: Args) {
-    const { ethers, deployments, getUsers } = hre;
-    const { deployer } = await getUsers();
+    const { deployer } = await hre.ethers.getNamedSigners();
 
     /* -------------------------------------------------------------------------- */
     /*                                    Setup                                   */
@@ -41,7 +40,7 @@ export async function removeFacet({ name, initializerName, initializerArgs }: Ar
     }
     // #3.2 Initialize the `FacetCut` object
     const FacetCut: FacetCut = {
-        facetAddress: ethers.constants.AddressZero,
+        facetAddress: hre.ethers.constants.AddressZero,
         functionSelectors: selectorsToRemove,
         action: FacetCutAction.Remove,
     };
@@ -51,7 +50,7 @@ export async function removeFacet({ name, initializerName, initializerArgs }: Ar
     /* -------------------------------------------------------------------------- */
 
     // #4.1 Initialize the `diamondCut` initializer argument to do nothing.
-    let initializer: DiamondCutInitializer = [ethers.constants.AddressZero, "0x"];
+    let initializer: DiamondCutInitializer = [hre.ethers.constants.AddressZero, "0x"];
 
     if (initializerName) {
         // #4.2 If `initializerName` is supplied, try to get the existing deployment
@@ -60,7 +59,10 @@ export async function removeFacet({ name, initializerName, initializerArgs }: Ar
         let InitializerContract: Contract;
         // #4.3 Deploy the initializer contract if it does not exist
         if (!InitializerArtifact) {
-            [InitializerContract] = await hre.deploy(initializerName, { from: deployer.address, log: true });
+            [InitializerContract] = await hre.deploy(initializerName, {
+                from: deployer.address,
+                log: true,
+            });
         }
         // #4.4 Get the contract instance
         InitializerContract = await hre.getContractOrFork(initializerName);
@@ -109,7 +111,7 @@ export async function removeFacet({ name, initializerName, initializerArgs }: Ar
         // #5.5 Save the deployment output
         // Live network deployments should be released into the contracts-package.
         if (hre.network.live) {
-            await deployments.save("Diamond", DiamondDeployment);
+            await hre.deployments.save("Diamond", DiamondDeployment);
             hre.DiamondDeployment = DiamondDeployment;
             // TODO: Automate the release
             logger.log(

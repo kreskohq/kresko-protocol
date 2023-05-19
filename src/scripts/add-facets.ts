@@ -2,7 +2,7 @@ import { getLogger } from "@kreskolabs/lib";
 import { constants } from "ethers";
 import hre from "hardhat";
 import { mergeABIs } from "hardhat-deploy/dist/src/utils";
-import { FacetCut } from "hardhat-deploy/dist/types";
+import { FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
 type Args = {
     names: readonly (keyof TC)[];
     initializerName?: keyof TC;
@@ -11,12 +11,12 @@ type Args = {
     log?: boolean;
 };
 
-const logger = getLogger("add-facet");
 export async function addFacets({ names, initializerName, initializerArgs, log = true }: Args) {
+    const logger = getLogger("add-facet", log);
+
     logger.log("Adding facets");
-    logger.table(names);
-    const { deployments, deploy, getNamedAccounts } = hre;
-    const { deployer } = await getNamedAccounts();
+    console.table(names);
+    const { deployer } = await hre.getNamedAccounts();
 
     /* -------------------------------------------------------------------------- */
     /*                                    Setup                                   */
@@ -47,10 +47,18 @@ export async function addFacets({ names, initializerName, initializerArgs, log =
     const deploymentInfo: { name: string; address: string; functions: number }[] = [];
     for (const facet of names) {
         // #4.3 Deploy each facet contract
-        const [FacetContract, sigs, FacetDeployment] = await deploy(facet, { log, from: deployer });
+        const [FacetContract, sigs, FacetDeployment] = await hre.deploy(facet, {
+            log,
+            from: deployer,
+        });
 
         // #4.4 Convert the address and signatures into the required `FacetCut` type and push into the array.
-        const { facetCut } = hre.getAddFacetArgs(FacetContract, sigs);
+        const facetCut: FacetCut = {
+            facetAddress: FacetDeployment.address,
+            action: FacetCutAction.Add,
+            functionSelectors: sigs,
+        };
+        // const { facetCut } = await hre.getFacetCut(facet, 0, sigs);
 
         // #4.5 Ensure functions do not exist
         const existingFacet = facetsBefore.find(f => f.facetAddress === FacetContract.address);
@@ -66,10 +74,14 @@ export async function addFacets({ names, initializerName, initializerArgs, log =
         // #4.6 Push their ABI into a separate array for deployment output later on.
         ABIs.push(FacetDeployment.abi);
 
-        deploymentInfo.push({ name: facet, address: FacetDeployment.address, functions: sigs.length });
+        deploymentInfo.push({
+            name: facet,
+            address: FacetDeployment.address,
+            functions: sigs.length,
+        });
     }
     logger.success("Facets on-chain:");
-    logger.table(deploymentInfo);
+    console.table(deploymentInfo);
 
     /* -------------------------------------------------------------------------- */
     /*                             Handle Initializer                             */
@@ -86,7 +98,10 @@ export async function addFacets({ names, initializerName, initializerArgs, log =
         // #5.3 Deploy the initializer contract if it does not exist
         if (!InitializerArtifact) {
             logger.log("Initializer deployment not found for", initializerName, "...deploying");
-            [InitializerContract] = await hre.deploy(initializerName, { from: deployer, log });
+            [InitializerContract] = await hre.deploy(initializerName, {
+                from: deployer,
+                log,
+            });
             logger.success(
                 initializerName,
                 "succesfully deployed",
@@ -102,7 +117,7 @@ export async function addFacets({ names, initializerName, initializerArgs, log =
             logger.warn("Adding diamondCut initializer with no arguments supplied");
         } else {
             logger.log("Initializer arguments:");
-            logger.table(initializerArgs);
+            console.table(initializerArgs);
         }
         // #5.5 Prepopulate the initialization tx - replacing the default set on #5.1.
         const tx = await InitializerContract.populateTransaction.initialize(initializerArgs || "0x");
@@ -159,7 +174,7 @@ export async function addFacets({ names, initializerName, initializerArgs, log =
             });
 
             // #6.5 Save the deployment output
-            await deployments.save("Diamond", DiamondDeployment);
+            await hre.deployments.save("Diamond", DiamondDeployment);
             // Live network deployments should be released into the contracts-package.
             if (hre.network.live) {
                 // TODO: Automate the release

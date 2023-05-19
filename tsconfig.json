@@ -2,9 +2,7 @@
     "exclude": ["temp", "mochawesome-report", "node_modules/**/*.ts", "cache/**/*"],
     "include": ["hardhat.config.ts", "types", "src"],
     "compilerOptions": {
-        "declaration": true,
         "noErrorTruncation": true,
-        "declarationMap": true,
         "forceConsistentCasingInFileNames": true,
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
@@ -31,5 +29,5 @@
             "tslib": ["node_modules/tslib/tslib.d.ts"]
         }
     },
-    "ts-node": { "files": true, "transpileOnly": true }
+    "ts-node": { "files": true, "transpileOnly": true, "swc": true }
 }

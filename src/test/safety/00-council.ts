@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { getInternalEvent } from "@kreskolabs/protocol-ts";
+
+import { getInternalEvent } from "@kreskolabs/lib";
 import { Action, defaultCollateralArgs, defaultKrAssetArgs } from "@test-utils";
 import { executeContractCallWithSigners } from "@utils/gnosis/utils/execution";
 import { withFixture } from "@utils/test";
@@ -9,7 +10,7 @@ import hre from "hardhat";
 import { SafetyStateChangeEventObject } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
 describe("Safety Council", () => {
-    withFixture(["minter-test", "integration"]);
+    withFixture(["minter-test"]);
     beforeEach(async function () {
         this.collateral = hre.collaterals.find(asset => asset.deployArgs!.name === defaultCollateralArgs.name)!;
         this.krAsset = hre.krAssets.find(asset => asset.deployArgs!.symbol === defaultKrAssetArgs.symbol)!;

@@ -1,8 +1,7 @@
-// SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity >=0.8.20;
 
 import {AggregatorV2V3Interface} from "../vendor/flux/interfaces/AggregatorV2V3Interface.sol";
-import {FixedPoint} from "../libs/FixedPoint.sol";
 import {IKreskoAssetAnchor} from "../kreskoasset/IKreskoAssetAnchor.sol";
 import {LibAssetUtility} from "./libs/LibAssetUtility.sol";
 
@@ -13,13 +12,22 @@ import {LibAssetUtility} from "./libs/LibAssetUtility.sol";
 /* -------------------------------------------------------------------------- */
 
 library Constants {
-    uint256 constant ONE_HUNDRED_PERCENT = 1e18;
+    uint256 constant FP_DECIMALS = 18;
+
+    uint256 constant FP_SCALING_FACTOR = 10 ** FP_DECIMALS;
+
+    uint256 constant ONE_HUNDRED_PERCENT = 1 ether;
+
+    uint256 constant BASIS_POINT = 1e14;
 
     /// @dev The maximum configurable close fee.
-    uint256 constant MAX_CLOSE_FEE = 10e16; // 10%
+    uint256 constant MAX_CLOSE_FEE = 0.1 ether; // 10%
 
     /// @dev The maximum configurable open fee.
-    uint256 constant MAX_OPEN_FEE = 10e16; // 10%
+    uint256 constant MAX_OPEN_FEE = 0.1 ether; // 10%
+
+    /// @dev Overflow over maximum liquidatable value to allow leeway for users after one happens.
+    uint256 constant MIN_MAX_LIQUIDATION_MULTIPLIER = ONE_HUNDRED_PERCENT + BASIS_POINT; // 100.01% or .01% over
 
     /// @dev The minimum configurable minimum collateralization ratio.
     uint256 constant MIN_COLLATERALIZATION_RATIO = ONE_HUNDRED_PERCENT;
@@ -30,10 +38,10 @@ library Constants {
 
     /// @dev The maximum configurable liquidation incentive multiplier.
     /// This means liquidator receives 25% bonus collateral compared to the debt repaid.
-    uint256 constant MAX_LIQUIDATION_INCENTIVE_MULTIPLIER = 1.25e18; // 125%
+    uint256 constant MAX_LIQUIDATION_INCENTIVE_MULTIPLIER = 1.25 ether; // 125%
 
-    /// @dev The maximum configurable minimum debt USD value.
-    uint256 constant MAX_DEBT_VALUE = 1000e18; // $1,000
+    /// @dev The maximum configurable minimum debt USD value. 8 decimals.
+    uint256 constant MAX_MIN_DEBT_VALUE = 1000 gwei; // $1,000
 }
 
 /* -------------------------------------------------------------------------- */
@@ -56,7 +64,6 @@ enum Action {
     Borrow,
     Liquidation
 }
-
 /**
  * @dev Fee types
  *
@@ -76,11 +83,10 @@ enum Fee {
  * @notice Initialization arguments for the protocol
  */
 struct MinterInitArgs {
-    address operator;
+    address admin;
     address council;
-    address feeRecipient;
+    address treasury;
     uint8 extOracleDecimals;
-    uint256 liquidationIncentiveMultiplier;
     uint256 minimumCollateralizationRatio;
     uint256 minimumDebtValue;
     uint256 liquidationThreshold;
@@ -91,10 +97,10 @@ struct MinterInitArgs {
  */
 
 struct MinterParams {
-    FixedPoint.Unsigned minimumCollateralizationRatio;
-    FixedPoint.Unsigned liquidationIncentiveMultiplier;
-    FixedPoint.Unsigned minimumDebtValue;
-    FixedPoint.Unsigned liquidationThreshold;
+    uint256 minimumCollateralizationRatio;
+    uint256 minimumDebtValue;
+    uint256 liquidationThreshold;
+    uint256 liquidationOverflowPercentage;
     address feeRecipient;
     uint8 extOracleDecimals;
 }
@@ -111,13 +117,13 @@ struct MinterParams {
  * @param exists Whether the KreskoAsset exists within the protocol.
  */
 struct KrAsset {
-    FixedPoint.Unsigned kFactor;
+    uint256 kFactor;
     AggregatorV2V3Interface oracle;
     AggregatorV2V3Interface marketStatusOracle;
     uint256 supplyLimit;
     address anchor;
-    FixedPoint.Unsigned closeFee;
-    FixedPoint.Unsigned openFee;
+    uint256 closeFee;
+    uint256 openFee;
     bool exists;
 }
 using LibAssetUtility for KrAsset global;
@@ -130,14 +136,16 @@ using LibAssetUtility for KrAsset global;
  * @param anchor If the collateral is a KreskoAsset, the anchor address
  * @param decimals The decimals for the token, stored here to avoid repetitive external calls.
  * @param exists Whether the collateral asset exists within the protocol.
+ * @param liquidationIncentive The liquidation incentive for the asset
  */
 struct CollateralAsset {
-    FixedPoint.Unsigned factor;
+    uint256 factor;
     AggregatorV2V3Interface oracle;
     AggregatorV2V3Interface marketStatusOracle;
     address anchor;
     uint8 decimals;
     bool exists;
+    uint256 liquidationIncentive;
 }
 using LibAssetUtility for CollateralAsset global;
 

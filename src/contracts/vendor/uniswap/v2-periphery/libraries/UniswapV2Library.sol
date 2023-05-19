@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: APGL-3.0
 pragma solidity >=0.5.0;
 
 import "../../v2-core/interfaces/IUniswapV2Pair.sol";

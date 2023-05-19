@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
 import {GeneralEvent} from "../libs/Events.sol";
-import "../shared/Modifiers.sol";
-
 import {ISmockFacet} from "./interfaces/ISmockFacet.sol";
 import {TEST_OPERATOR_ROLE} from "./SmockFacet.sol";
 import {SmockStorage} from "./SmockStorage.sol";

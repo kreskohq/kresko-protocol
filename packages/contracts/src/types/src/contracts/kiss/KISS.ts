@@ -3,1146 +3,1497 @@
 /* tslint:disable */
 /* eslint-disable */
 import type {
-    BaseContract,
-    BigNumber,
-    BigNumberish,
-    BytesLike,
-    CallOverrides,
-    ContractTransaction,
-    Overrides,
-    PopulatedTransaction,
-    Signer,
-    utils,
+  BaseContract,
+  BigNumber,
+  BigNumberish,
+  BytesLike,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
-import type { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
+import type {
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
-import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent, PromiseOrValue } from "../../../common";
+import type {
+  TypedEventFilter,
+  TypedEvent,
+  TypedListener,
+  OnEvent,
+  PromiseOrValue,
+} from "../../../common";
 
 export interface KISSInterface extends utils.Interface {
-    functions: {
-        "DEFAULT_ADMIN_ROLE()": FunctionFragment;
-        "MINTER_ROLE()": FunctionFragment;
-        "OPERATOR_ROLE()": FunctionFragment;
-        "OPERATOR_ROLE_PERIOD()": FunctionFragment;
-        "PAUSER_ROLE()": FunctionFragment;
-        "allowance(address,address)": FunctionFragment;
-        "approve(address,uint256)": FunctionFragment;
-        "balanceOf(address)": FunctionFragment;
-        "burn(uint256)": FunctionFragment;
-        "burnFrom(address,uint256)": FunctionFragment;
-        "convertToAssets(uint256)": FunctionFragment;
-        "convertToShares(uint256)": FunctionFragment;
-        "decimals()": FunctionFragment;
-        "decreaseAllowance(address,uint256)": FunctionFragment;
-        "destroy(uint256,address)": FunctionFragment;
-        "getRoleAdmin(bytes32)": FunctionFragment;
-        "getRoleMember(bytes32,uint256)": FunctionFragment;
-        "getRoleMemberCount(bytes32)": FunctionFragment;
-        "grantRole(bytes32,address)": FunctionFragment;
-        "hasRole(bytes32,address)": FunctionFragment;
-        "increaseAllowance(address,uint256)": FunctionFragment;
-        "issue(uint256,address)": FunctionFragment;
-        "kresko()": FunctionFragment;
-        "mint(address,uint256)": FunctionFragment;
-        "name()": FunctionFragment;
-        "operatorRoleTimestamp()": FunctionFragment;
-        "pause()": FunctionFragment;
-        "paused()": FunctionFragment;
-        "pendingOperator()": FunctionFragment;
-        "renounceRole(bytes32,address)": FunctionFragment;
-        "revokeRole(bytes32,address)": FunctionFragment;
-        "setMetadata(string,string)": FunctionFragment;
-        "supportsInterface(bytes4)": FunctionFragment;
-        "symbol()": FunctionFragment;
-        "totalSupply()": FunctionFragment;
-        "transfer(address,uint256)": FunctionFragment;
-        "transferFrom(address,address,uint256)": FunctionFragment;
-        "unpause()": FunctionFragment;
-    };
+  functions: {
+    "DEFAULT_ADMIN_ROLE()": FunctionFragment;
+    "MINTER_ROLE()": FunctionFragment;
+    "OPERATOR_ROLE()": FunctionFragment;
+    "PAUSER_ROLE()": FunctionFragment;
+    "allowance(address,address)": FunctionFragment;
+    "approve(address,uint256)": FunctionFragment;
+    "balanceOf(address)": FunctionFragment;
+    "burn(uint256)": FunctionFragment;
+    "burnFrom(address,uint256)": FunctionFragment;
+    "convertToAssets(uint256)": FunctionFragment;
+    "convertToShares(uint256)": FunctionFragment;
+    "decimals()": FunctionFragment;
+    "decreaseAllowance(address,uint256)": FunctionFragment;
+    "destroy(uint256,address)": FunctionFragment;
+    "getRoleAdmin(bytes32)": FunctionFragment;
+    "getRoleMember(bytes32,uint256)": FunctionFragment;
+    "getRoleMemberCount(bytes32)": FunctionFragment;
+    "grantRole(bytes32,address)": FunctionFragment;
+    "hasRole(bytes32,address)": FunctionFragment;
+    "increaseAllowance(address,uint256)": FunctionFragment;
+    "issue(uint256,address)": FunctionFragment;
+    "kresko()": FunctionFragment;
+    "maxOperators()": FunctionFragment;
+    "mint(address,uint256)": FunctionFragment;
+    "name()": FunctionFragment;
+    "pause()": FunctionFragment;
+    "paused()": FunctionFragment;
+    "pendingOperator()": FunctionFragment;
+    "pendingOperatorUnlockTime()": FunctionFragment;
+    "pendingOperatorWaitPeriod()": FunctionFragment;
+    "renounceRole(bytes32,address)": FunctionFragment;
+    "revokeRole(bytes32,address)": FunctionFragment;
+    "setMaxOperators(uint256)": FunctionFragment;
+    "setPendingOperatorWaitPeriod(uint256)": FunctionFragment;
+    "supportsInterface(bytes4)": FunctionFragment;
+    "symbol()": FunctionFragment;
+    "totalSupply()": FunctionFragment;
+    "transfer(address,uint256)": FunctionFragment;
+    "transferFrom(address,address,uint256)": FunctionFragment;
+    "unpause()": FunctionFragment;
+  };
 
-    getFunction(
-        nameOrSignatureOrTopic:
-            | "DEFAULT_ADMIN_ROLE"
-            | "MINTER_ROLE"
-            | "OPERATOR_ROLE"
-            | "OPERATOR_ROLE_PERIOD"
-            | "PAUSER_ROLE"
-            | "allowance"
-            | "approve"
-            | "balanceOf"
-            | "burn"
-            | "burnFrom"
-            | "convertToAssets"
-            | "convertToShares"
-            | "decimals"
-            | "decreaseAllowance"
-            | "destroy"
-            | "getRoleAdmin"
-            | "getRoleMember"
-            | "getRoleMemberCount"
-            | "grantRole"
-            | "hasRole"
-            | "increaseAllowance"
-            | "issue"
-            | "kresko"
-            | "mint"
-            | "name"
-            | "operatorRoleTimestamp"
-            | "pause"
-            | "paused"
-            | "pendingOperator"
-            | "renounceRole"
-            | "revokeRole"
-            | "setMetadata"
-            | "supportsInterface"
-            | "symbol"
-            | "totalSupply"
-            | "transfer"
-            | "transferFrom"
-            | "unpause",
-    ): FunctionFragment;
+  getFunction(
+    nameOrSignatureOrTopic:
+      | "DEFAULT_ADMIN_ROLE"
+      | "MINTER_ROLE"
+      | "OPERATOR_ROLE"
+      | "PAUSER_ROLE"
+      | "allowance"
+      | "approve"
+      | "balanceOf"
+      | "burn"
+      | "burnFrom"
+      | "convertToAssets"
+      | "convertToShares"
+      | "decimals"
+      | "decreaseAllowance"
+      | "destroy"
+      | "getRoleAdmin"
+      | "getRoleMember"
+      | "getRoleMemberCount"
+      | "grantRole"
+      | "hasRole"
+      | "increaseAllowance"
+      | "issue"
+      | "kresko"
+      | "maxOperators"
+      | "mint"
+      | "name"
+      | "pause"
+      | "paused"
+      | "pendingOperator"
+      | "pendingOperatorUnlockTime"
+      | "pendingOperatorWaitPeriod"
+      | "renounceRole"
+      | "revokeRole"
+      | "setMaxOperators"
+      | "setPendingOperatorWaitPeriod"
+      | "supportsInterface"
+      | "symbol"
+      | "totalSupply"
+      | "transfer"
+      | "transferFrom"
+      | "unpause"
+  ): FunctionFragment;
 
-    encodeFunctionData(functionFragment: "DEFAULT_ADMIN_ROLE", values?: undefined): string;
-    encodeFunctionData(functionFragment: "MINTER_ROLE", values?: undefined): string;
-    encodeFunctionData(functionFragment: "OPERATOR_ROLE", values?: undefined): string;
-    encodeFunctionData(functionFragment: "OPERATOR_ROLE_PERIOD", values?: undefined): string;
-    encodeFunctionData(functionFragment: "PAUSER_ROLE", values?: undefined): string;
-    encodeFunctionData(functionFragment: "allowance", values: [PromiseOrValue<string>, PromiseOrValue<string>]): string;
-    encodeFunctionData(
-        functionFragment: "approve",
-        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(functionFragment: "balanceOf", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "burn", values: [PromiseOrValue<BigNumberish>]): string;
-    encodeFunctionData(
-        functionFragment: "burnFrom",
-        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(functionFragment: "convertToAssets", values: [PromiseOrValue<BigNumberish>]): string;
-    encodeFunctionData(functionFragment: "convertToShares", values: [PromiseOrValue<BigNumberish>]): string;
-    encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
-    encodeFunctionData(
-        functionFragment: "decreaseAllowance",
-        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "destroy",
-        values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(functionFragment: "getRoleAdmin", values: [PromiseOrValue<BytesLike>]): string;
-    encodeFunctionData(
-        functionFragment: "getRoleMember",
-        values: [PromiseOrValue<BytesLike>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(functionFragment: "getRoleMemberCount", values: [PromiseOrValue<BytesLike>]): string;
-    encodeFunctionData(
-        functionFragment: "grantRole",
-        values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "hasRole",
-        values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "increaseAllowance",
-        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "issue",
-        values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(functionFragment: "kresko", values?: undefined): string;
-    encodeFunctionData(
-        functionFragment: "mint",
-        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(functionFragment: "name", values?: undefined): string;
-    encodeFunctionData(functionFragment: "operatorRoleTimestamp", values?: undefined): string;
-    encodeFunctionData(functionFragment: "pause", values?: undefined): string;
-    encodeFunctionData(functionFragment: "paused", values?: undefined): string;
-    encodeFunctionData(functionFragment: "pendingOperator", values?: undefined): string;
-    encodeFunctionData(
-        functionFragment: "renounceRole",
-        values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "revokeRole",
-        values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "setMetadata",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(functionFragment: "supportsInterface", values: [PromiseOrValue<BytesLike>]): string;
-    encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
-    encodeFunctionData(functionFragment: "totalSupply", values?: undefined): string;
-    encodeFunctionData(
-        functionFragment: "transfer",
-        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "transferFrom",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "DEFAULT_ADMIN_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "MINTER_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "OPERATOR_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "PAUSER_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "allowance",
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "approve",
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "balanceOf",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "burn",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "burnFrom",
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "convertToAssets",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "convertToShares",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "decreaseAllowance",
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "destroy",
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getRoleAdmin",
+    values: [PromiseOrValue<BytesLike>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getRoleMember",
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getRoleMemberCount",
+    values: [PromiseOrValue<BytesLike>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "grantRole",
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "hasRole",
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "increaseAllowance",
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "issue",
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(functionFragment: "kresko", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "maxOperators",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "mint",
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(functionFragment: "name", values?: undefined): string;
+  encodeFunctionData(functionFragment: "pause", values?: undefined): string;
+  encodeFunctionData(functionFragment: "paused", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "pendingOperator",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "pendingOperatorUnlockTime",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "pendingOperatorWaitPeriod",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "renounceRole",
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "revokeRole",
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setMaxOperators",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setPendingOperatorWaitPeriod",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "supportsInterface",
+    values: [PromiseOrValue<BytesLike>]
+  ): string;
+  encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "totalSupply",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "transfer",
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "transferFrom",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
+  encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
 
-    decodeFunctionResult(functionFragment: "DEFAULT_ADMIN_ROLE", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "MINTER_ROLE", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "OPERATOR_ROLE", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "OPERATOR_ROLE_PERIOD", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "PAUSER_ROLE", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "burnFrom", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "convertToAssets", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "convertToShares", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "decreaseAllowance", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "destroy", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getRoleAdmin", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getRoleMember", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getRoleMemberCount", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "increaseAllowance", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "issue", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "kresko", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "operatorRoleTimestamp", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "pendingOperator", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "renounceRole", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "setMetadata", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "supportsInterface", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "totalSupply", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "transfer", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "transferFrom", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "DEFAULT_ADMIN_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "MINTER_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "OPERATOR_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "PAUSER_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "burnFrom", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "convertToAssets",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "convertToShares",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "decreaseAllowance",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "destroy", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getRoleAdmin",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getRoleMember",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getRoleMemberCount",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "increaseAllowance",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "issue", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "kresko", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "maxOperators",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "pendingOperator",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "pendingOperatorUnlockTime",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "pendingOperatorWaitPeriod",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "renounceRole",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "setMaxOperators",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setPendingOperatorWaitPeriod",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "supportsInterface",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "totalSupply",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "transfer", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "transferFrom",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
 
-    events: {
-        "Approval(address,address,uint256)": EventFragment;
-        "NewMinter(address)": EventFragment;
-        "NewMinterInitiated(address,uint256)": EventFragment;
-        "Paused(address)": EventFragment;
-        "RoleAdminChanged(bytes32,bytes32,bytes32)": EventFragment;
-        "RoleGranted(bytes32,address,address)": EventFragment;
-        "RoleRevoked(bytes32,address,address)": EventFragment;
-        "Transfer(address,address,uint256)": EventFragment;
-        "Unpaused(address)": EventFragment;
-    };
+  events: {
+    "Approval(address,address,uint256)": EventFragment;
+    "NewMaxOperators(uint256)": EventFragment;
+    "NewOperator(address)": EventFragment;
+    "NewOperatorInitialized(address,uint256)": EventFragment;
+    "NewPendingOperatorWaitPeriod(uint256)": EventFragment;
+    "Paused(address)": EventFragment;
+    "RoleAdminChanged(bytes32,bytes32,bytes32)": EventFragment;
+    "RoleGranted(bytes32,address,address)": EventFragment;
+    "RoleRevoked(bytes32,address,address)": EventFragment;
+    "Transfer(address,address,uint256)": EventFragment;
+    "Unpaused(address)": EventFragment;
+  };
 
-    getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "NewMinter"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "NewMinterInitiated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "Paused"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "RoleAdminChanged"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "RoleGranted"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "RoleRevoked"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "Unpaused"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NewMaxOperators"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NewOperator"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NewOperatorInitialized"): EventFragment;
+  getEvent(
+    nameOrSignatureOrTopic: "NewPendingOperatorWaitPeriod"
+  ): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Paused"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RoleAdminChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RoleGranted"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RoleRevoked"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Unpaused"): EventFragment;
 }
 
 export interface ApprovalEventObject {
-    owner: string;
-    spender: string;
-    value: BigNumber;
+  owner: string;
+  spender: string;
+  value: BigNumber;
 }
-export type ApprovalEvent = TypedEvent<[string, string, BigNumber], ApprovalEventObject>;
+export type ApprovalEvent = TypedEvent<
+  [string, string, BigNumber],
+  ApprovalEventObject
+>;
 
 export type ApprovalEventFilter = TypedEventFilter<ApprovalEvent>;
 
-export interface NewMinterEventObject {
-    newMinter: string;
+export interface NewMaxOperatorsEventObject {
+  newMaxOperators: BigNumber;
 }
-export type NewMinterEvent = TypedEvent<[string], NewMinterEventObject>;
+export type NewMaxOperatorsEvent = TypedEvent<
+  [BigNumber],
+  NewMaxOperatorsEventObject
+>;
 
-export type NewMinterEventFilter = TypedEventFilter<NewMinterEvent>;
+export type NewMaxOperatorsEventFilter = TypedEventFilter<NewMaxOperatorsEvent>;
 
-export interface NewMinterInitiatedEventObject {
-    pendingNewMinter: string;
-    unlockTimestamp: BigNumber;
+export interface NewOperatorEventObject {
+  newOperator: string;
 }
-export type NewMinterInitiatedEvent = TypedEvent<[string, BigNumber], NewMinterInitiatedEventObject>;
+export type NewOperatorEvent = TypedEvent<[string], NewOperatorEventObject>;
 
-export type NewMinterInitiatedEventFilter = TypedEventFilter<NewMinterInitiatedEvent>;
+export type NewOperatorEventFilter = TypedEventFilter<NewOperatorEvent>;
+
+export interface NewOperatorInitializedEventObject {
+  pendingNewOperator: string;
+  unlockTimestamp: BigNumber;
+}
+export type NewOperatorInitializedEvent = TypedEvent<
+  [string, BigNumber],
+  NewOperatorInitializedEventObject
+>;
+
+export type NewOperatorInitializedEventFilter =
+  TypedEventFilter<NewOperatorInitializedEvent>;
+
+export interface NewPendingOperatorWaitPeriodEventObject {
+  newPeriod: BigNumber;
+}
+export type NewPendingOperatorWaitPeriodEvent = TypedEvent<
+  [BigNumber],
+  NewPendingOperatorWaitPeriodEventObject
+>;
+
+export type NewPendingOperatorWaitPeriodEventFilter =
+  TypedEventFilter<NewPendingOperatorWaitPeriodEvent>;
 
 export interface PausedEventObject {
-    account: string;
+  account: string;
 }
 export type PausedEvent = TypedEvent<[string], PausedEventObject>;
 
 export type PausedEventFilter = TypedEventFilter<PausedEvent>;
 
 export interface RoleAdminChangedEventObject {
-    role: string;
-    previousAdminRole: string;
-    newAdminRole: string;
+  role: string;
+  previousAdminRole: string;
+  newAdminRole: string;
 }
-export type RoleAdminChangedEvent = TypedEvent<[string, string, string], RoleAdminChangedEventObject>;
+export type RoleAdminChangedEvent = TypedEvent<
+  [string, string, string],
+  RoleAdminChangedEventObject
+>;
 
-export type RoleAdminChangedEventFilter = TypedEventFilter<RoleAdminChangedEvent>;
+export type RoleAdminChangedEventFilter =
+  TypedEventFilter<RoleAdminChangedEvent>;
 
 export interface RoleGrantedEventObject {
-    role: string;
-    account: string;
-    sender: string;
+  role: string;
+  account: string;
+  sender: string;
 }
-export type RoleGrantedEvent = TypedEvent<[string, string, string], RoleGrantedEventObject>;
+export type RoleGrantedEvent = TypedEvent<
+  [string, string, string],
+  RoleGrantedEventObject
+>;
 
 export type RoleGrantedEventFilter = TypedEventFilter<RoleGrantedEvent>;
 
 export interface RoleRevokedEventObject {
-    role: string;
-    account: string;
-    sender: string;
+  role: string;
+  account: string;
+  sender: string;
 }
-export type RoleRevokedEvent = TypedEvent<[string, string, string], RoleRevokedEventObject>;
+export type RoleRevokedEvent = TypedEvent<
+  [string, string, string],
+  RoleRevokedEventObject
+>;
 
 export type RoleRevokedEventFilter = TypedEventFilter<RoleRevokedEvent>;
 
 export interface TransferEventObject {
-    from: string;
-    to: string;
-    value: BigNumber;
+  from: string;
+  to: string;
+  value: BigNumber;
 }
-export type TransferEvent = TypedEvent<[string, string, BigNumber], TransferEventObject>;
+export type TransferEvent = TypedEvent<
+  [string, string, BigNumber],
+  TransferEventObject
+>;
 
 export type TransferEventFilter = TypedEventFilter<TransferEvent>;
 
 export interface UnpausedEventObject {
-    account: string;
+  account: string;
 }
 export type UnpausedEvent = TypedEvent<[string], UnpausedEventObject>;
 
 export type UnpausedEventFilter = TypedEventFilter<UnpausedEvent>;
 
 export interface KISS extends BaseContract {
-    contractName: "KISS";
+  contractName: "KISS";
 
-    connect(signerOrProvider: Signer | Provider | string): this;
-    attach(addressOrName: string): this;
-    deployed(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
-    interface: KISSInterface;
+  interface: KISSInterface;
 
-    queryFilter<TEvent extends TypedEvent>(
-        event: TypedEventFilter<TEvent>,
-        fromBlockOrBlockhash?: string | number | undefined,
-        toBlock?: string | number | undefined,
-    ): Promise<Array<TEvent>>;
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TEvent>>;
 
-    listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>;
-    listeners(eventName?: string): Array<Listener>;
-    removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this;
-    removeAllListeners(eventName?: string): this;
-    off: OnEvent<this>;
-    on: OnEvent<this>;
-    once: OnEvent<this>;
-    removeListener: OnEvent<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-    functions: {
-        DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<[string]>;
+  functions: {
+    DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<[string]>;
 
-        MINTER_ROLE(overrides?: CallOverrides): Promise<[string]>;
+    MINTER_ROLE(overrides?: CallOverrides): Promise<[string]>;
 
-        OPERATOR_ROLE(overrides?: CallOverrides): Promise<[string]>;
+    OPERATOR_ROLE(overrides?: CallOverrides): Promise<[string]>;
 
-        OPERATOR_ROLE_PERIOD(overrides?: CallOverrides): Promise<[BigNumber]>;
+    PAUSER_ROLE(overrides?: CallOverrides): Promise<[string]>;
 
-        PAUSER_ROLE(overrides?: CallOverrides): Promise<[string]>;
+    allowance(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-        allowance(
-            owner: PromiseOrValue<string>,
-            spender: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber]>;
+    approve(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-        approve(
-            spender: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+    balanceOf(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-        balanceOf(account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
+    burn(
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-        burn(
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+    burnFrom(
+      account: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-        burnFrom(
-            account: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+    convertToAssets(
+      shares: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-        convertToAssets(shares: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[BigNumber]>;
+    convertToShares(
+      assets: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-        convertToShares(assets: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[BigNumber]>;
+    decimals(overrides?: CallOverrides): Promise<[number]>;
 
-        decimals(overrides?: CallOverrides): Promise<[number]>;
+    decreaseAllowance(
+      spender: PromiseOrValue<string>,
+      subtractedValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-        decreaseAllowance(
-            spender: PromiseOrValue<string>,
-            subtractedValue: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+    destroy(
+      _amount: PromiseOrValue<BigNumberish>,
+      _from: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-        destroy(
-            _amount: PromiseOrValue<BigNumberish>,
-            _from: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+    getRoleAdmin(
+      role: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
 
-        getRoleAdmin(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<[string]>;
+    getRoleMember(
+      role: PromiseOrValue<BytesLike>,
+      index: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
 
-        getRoleMember(
-            role: PromiseOrValue<BytesLike>,
-            index: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<[string]>;
+    getRoleMemberCount(
+      role: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-        getRoleMemberCount(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<[BigNumber]>;
+    grantRole(
+      _role: PromiseOrValue<BytesLike>,
+      _to: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-        grantRole(
-            _role: PromiseOrValue<BytesLike>,
-            _to: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+    hasRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-        hasRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[boolean]>;
+    increaseAllowance(
+      spender: PromiseOrValue<string>,
+      addedValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-        increaseAllowance(
-            spender: PromiseOrValue<string>,
-            addedValue: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+    issue(
+      _amount: PromiseOrValue<BigNumberish>,
+      _to: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-        issue(
-            _amount: PromiseOrValue<BigNumberish>,
-            _to: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+    kresko(overrides?: CallOverrides): Promise<[string]>;
 
-        kresko(overrides?: CallOverrides): Promise<[string]>;
+    maxOperators(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-        mint(
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+    mint(
+      _to: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-        name(overrides?: CallOverrides): Promise<[string]>;
+    name(overrides?: CallOverrides): Promise<[string]>;
 
-        operatorRoleTimestamp(overrides?: CallOverrides): Promise<[BigNumber]>;
+    pause(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-        pause(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
+    paused(overrides?: CallOverrides): Promise<[boolean]>;
 
-        paused(overrides?: CallOverrides): Promise<[boolean]>;
+    pendingOperator(overrides?: CallOverrides): Promise<[string]>;
 
-        pendingOperator(overrides?: CallOverrides): Promise<[string]>;
+    pendingOperatorUnlockTime(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-        renounceRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+    pendingOperatorWaitPeriod(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-        revokeRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+    renounceRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-        setMetadata(
-            _newName: PromiseOrValue<string>,
-            _newSymbol: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+    revokeRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-        supportsInterface(interfaceId: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<[boolean]>;
+    setMaxOperators(
+      _maxOperators: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-        symbol(overrides?: CallOverrides): Promise<[string]>;
+    setPendingOperatorWaitPeriod(
+      _newPeriod: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-        totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
+    supportsInterface(
+      interfaceId: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-        transfer(
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+    symbol(overrides?: CallOverrides): Promise<[string]>;
 
-        transferFrom(
-            from: PromiseOrValue<string>,
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+    totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-        unpause(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
-    };
+    transfer(
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
+    transferFrom(
+      from: PromiseOrValue<string>,
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    unpause(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
+
+  DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  MINTER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  OPERATOR_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  PAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  allowance(
+    owner: PromiseOrValue<string>,
+    spender: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  approve(
+    spender: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  balanceOf(
+    account: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  burn(
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  burnFrom(
+    account: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  convertToAssets(
+    shares: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  convertToShares(
+    assets: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  decimals(overrides?: CallOverrides): Promise<number>;
+
+  decreaseAllowance(
+    spender: PromiseOrValue<string>,
+    subtractedValue: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  destroy(
+    _amount: PromiseOrValue<BigNumberish>,
+    _from: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  getRoleAdmin(
+    role: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  getRoleMember(
+    role: PromiseOrValue<BytesLike>,
+    index: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  getRoleMemberCount(
+    role: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  grantRole(
+    _role: PromiseOrValue<BytesLike>,
+    _to: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  hasRole(
+    role: PromiseOrValue<BytesLike>,
+    account: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  increaseAllowance(
+    spender: PromiseOrValue<string>,
+    addedValue: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  issue(
+    _amount: PromiseOrValue<BigNumberish>,
+    _to: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  kresko(overrides?: CallOverrides): Promise<string>;
+
+  maxOperators(overrides?: CallOverrides): Promise<BigNumber>;
+
+  mint(
+    _to: PromiseOrValue<string>,
+    _amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  name(overrides?: CallOverrides): Promise<string>;
+
+  pause(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  paused(overrides?: CallOverrides): Promise<boolean>;
+
+  pendingOperator(overrides?: CallOverrides): Promise<string>;
+
+  pendingOperatorUnlockTime(overrides?: CallOverrides): Promise<BigNumber>;
+
+  pendingOperatorWaitPeriod(overrides?: CallOverrides): Promise<BigNumber>;
+
+  renounceRole(
+    role: PromiseOrValue<BytesLike>,
+    account: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  revokeRole(
+    role: PromiseOrValue<BytesLike>,
+    account: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setMaxOperators(
+    _maxOperators: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setPendingOperatorWaitPeriod(
+    _newPeriod: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  supportsInterface(
+    interfaceId: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  symbol(overrides?: CallOverrides): Promise<string>;
+
+  totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+  transfer(
+    to: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  transferFrom(
+    from: PromiseOrValue<string>,
+    to: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  unpause(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  callStatic: {
     DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
 
     MINTER_ROLE(overrides?: CallOverrides): Promise<string>;
 
     OPERATOR_ROLE(overrides?: CallOverrides): Promise<string>;
 
-    OPERATOR_ROLE_PERIOD(overrides?: CallOverrides): Promise<BigNumber>;
-
     PAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
 
     allowance(
-        owner: PromiseOrValue<string>,
-        spender: PromiseOrValue<string>,
-        overrides?: CallOverrides,
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     approve(
-        spender: PromiseOrValue<string>,
-        amount: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
-    balanceOf(account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+    balanceOf(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     burn(
-        amount: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     burnFrom(
-        account: PromiseOrValue<string>,
-        amount: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      account: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
-    convertToAssets(shares: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
+    convertToAssets(
+      shares: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    convertToShares(assets: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
+    convertToShares(
+      assets: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     decimals(overrides?: CallOverrides): Promise<number>;
 
     decreaseAllowance(
-        spender: PromiseOrValue<string>,
-        subtractedValue: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      spender: PromiseOrValue<string>,
+      subtractedValue: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     destroy(
-        _amount: PromiseOrValue<BigNumberish>,
-        _from: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      _amount: PromiseOrValue<BigNumberish>,
+      _from: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    getRoleAdmin(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<string>;
-
-    getRoleMember(
-        role: PromiseOrValue<BytesLike>,
-        index: PromiseOrValue<BigNumberish>,
-        overrides?: CallOverrides,
+    getRoleAdmin(
+      role: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
     ): Promise<string>;
 
-    getRoleMemberCount(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<BigNumber>;
+    getRoleMember(
+      role: PromiseOrValue<BytesLike>,
+      index: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    getRoleMemberCount(
+      role: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     grantRole(
-        _role: PromiseOrValue<BytesLike>,
-        _to: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      _role: PromiseOrValue<BytesLike>,
+      _to: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     hasRole(
-        role: PromiseOrValue<BytesLike>,
-        account: PromiseOrValue<string>,
-        overrides?: CallOverrides,
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
     ): Promise<boolean>;
 
     increaseAllowance(
-        spender: PromiseOrValue<string>,
-        addedValue: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      spender: PromiseOrValue<string>,
+      addedValue: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     issue(
-        _amount: PromiseOrValue<BigNumberish>,
-        _to: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      _amount: PromiseOrValue<BigNumberish>,
+      _to: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     kresko(overrides?: CallOverrides): Promise<string>;
 
+    maxOperators(overrides?: CallOverrides): Promise<BigNumber>;
+
     mint(
-        to: PromiseOrValue<string>,
-        amount: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      _to: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     name(overrides?: CallOverrides): Promise<string>;
 
-    operatorRoleTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
-
-    pause(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
+    pause(overrides?: CallOverrides): Promise<void>;
 
     paused(overrides?: CallOverrides): Promise<boolean>;
 
     pendingOperator(overrides?: CallOverrides): Promise<string>;
 
+    pendingOperatorUnlockTime(overrides?: CallOverrides): Promise<BigNumber>;
+
+    pendingOperatorWaitPeriod(overrides?: CallOverrides): Promise<BigNumber>;
+
     renounceRole(
-        role: PromiseOrValue<BytesLike>,
-        account: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     revokeRole(
-        role: PromiseOrValue<BytesLike>,
-        account: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
-    setMetadata(
-        _newName: PromiseOrValue<string>,
-        _newSymbol: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+    setMaxOperators(
+      _maxOperators: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
-    supportsInterface(interfaceId: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<boolean>;
+    setPendingOperatorWaitPeriod(
+      _newPeriod: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    supportsInterface(
+      interfaceId: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     symbol(overrides?: CallOverrides): Promise<string>;
 
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
     transfer(
-        to: PromiseOrValue<string>,
-        amount: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     transferFrom(
-        from: PromiseOrValue<string>,
-        to: PromiseOrValue<string>,
-        amount: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    unpause(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
-
-    callStatic: {
-        DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
-
-        MINTER_ROLE(overrides?: CallOverrides): Promise<string>;
-
-        OPERATOR_ROLE(overrides?: CallOverrides): Promise<string>;
-
-        OPERATOR_ROLE_PERIOD(overrides?: CallOverrides): Promise<BigNumber>;
-
-        PAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
-
-        allowance(
-            owner: PromiseOrValue<string>,
-            spender: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        approve(
-            spender: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<boolean>;
-
-        balanceOf(account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        burn(amount: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<void>;
-
-        burnFrom(
-            account: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        convertToAssets(shares: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        convertToShares(assets: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        decimals(overrides?: CallOverrides): Promise<number>;
-
-        decreaseAllowance(
-            spender: PromiseOrValue<string>,
-            subtractedValue: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<boolean>;
-
-        destroy(
-            _amount: PromiseOrValue<BigNumberish>,
-            _from: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        getRoleAdmin(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<string>;
-
-        getRoleMember(
-            role: PromiseOrValue<BytesLike>,
-            index: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<string>;
-
-        getRoleMemberCount(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        grantRole(
-            _role: PromiseOrValue<BytesLike>,
-            _to: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        hasRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<boolean>;
-
-        increaseAllowance(
-            spender: PromiseOrValue<string>,
-            addedValue: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<boolean>;
-
-        issue(
-            _amount: PromiseOrValue<BigNumberish>,
-            _to: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        kresko(overrides?: CallOverrides): Promise<string>;
-
-        mint(
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        name(overrides?: CallOverrides): Promise<string>;
-
-        operatorRoleTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
-
-        pause(overrides?: CallOverrides): Promise<void>;
-
-        paused(overrides?: CallOverrides): Promise<boolean>;
-
-        pendingOperator(overrides?: CallOverrides): Promise<string>;
-
-        renounceRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        revokeRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        setMetadata(
-            _newName: PromiseOrValue<string>,
-            _newSymbol: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        supportsInterface(interfaceId: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<boolean>;
-
-        symbol(overrides?: CallOverrides): Promise<string>;
-
-        totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-        transfer(
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<boolean>;
-
-        transferFrom(
-            from: PromiseOrValue<string>,
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<boolean>;
-
-        unpause(overrides?: CallOverrides): Promise<void>;
-    };
-
-    filters: {
-        "Approval(address,address,uint256)"(
-            owner?: PromiseOrValue<string> | null,
-            spender?: PromiseOrValue<string> | null,
-            value?: null,
-        ): ApprovalEventFilter;
-        Approval(
-            owner?: PromiseOrValue<string> | null,
-            spender?: PromiseOrValue<string> | null,
-            value?: null,
-        ): ApprovalEventFilter;
-
-        "NewMinter(address)"(newMinter?: null): NewMinterEventFilter;
-        NewMinter(newMinter?: null): NewMinterEventFilter;
-
-        "NewMinterInitiated(address,uint256)"(
-            pendingNewMinter?: null,
-            unlockTimestamp?: null,
-        ): NewMinterInitiatedEventFilter;
-        NewMinterInitiated(pendingNewMinter?: null, unlockTimestamp?: null): NewMinterInitiatedEventFilter;
-
-        "Paused(address)"(account?: null): PausedEventFilter;
-        Paused(account?: null): PausedEventFilter;
-
-        "RoleAdminChanged(bytes32,bytes32,bytes32)"(
-            role?: PromiseOrValue<BytesLike> | null,
-            previousAdminRole?: PromiseOrValue<BytesLike> | null,
-            newAdminRole?: PromiseOrValue<BytesLike> | null,
-        ): RoleAdminChangedEventFilter;
-        RoleAdminChanged(
-            role?: PromiseOrValue<BytesLike> | null,
-            previousAdminRole?: PromiseOrValue<BytesLike> | null,
-            newAdminRole?: PromiseOrValue<BytesLike> | null,
-        ): RoleAdminChangedEventFilter;
-
-        "RoleGranted(bytes32,address,address)"(
-            role?: PromiseOrValue<BytesLike> | null,
-            account?: PromiseOrValue<string> | null,
-            sender?: PromiseOrValue<string> | null,
-        ): RoleGrantedEventFilter;
-        RoleGranted(
-            role?: PromiseOrValue<BytesLike> | null,
-            account?: PromiseOrValue<string> | null,
-            sender?: PromiseOrValue<string> | null,
-        ): RoleGrantedEventFilter;
-
-        "RoleRevoked(bytes32,address,address)"(
-            role?: PromiseOrValue<BytesLike> | null,
-            account?: PromiseOrValue<string> | null,
-            sender?: PromiseOrValue<string> | null,
-        ): RoleRevokedEventFilter;
-        RoleRevoked(
-            role?: PromiseOrValue<BytesLike> | null,
-            account?: PromiseOrValue<string> | null,
-            sender?: PromiseOrValue<string> | null,
-        ): RoleRevokedEventFilter;
-
-        "Transfer(address,address,uint256)"(
-            from?: PromiseOrValue<string> | null,
-            to?: PromiseOrValue<string> | null,
-            value?: null,
-        ): TransferEventFilter;
-        Transfer(
-            from?: PromiseOrValue<string> | null,
-            to?: PromiseOrValue<string> | null,
-            value?: null,
-        ): TransferEventFilter;
-
-        "Unpaused(address)"(account?: null): UnpausedEventFilter;
-        Unpaused(account?: null): UnpausedEventFilter;
-    };
-
-    estimateGas: {
-        DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
-
-        MINTER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
-
-        OPERATOR_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
-
-        OPERATOR_ROLE_PERIOD(overrides?: CallOverrides): Promise<BigNumber>;
-
-        PAUSER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
-
-        allowance(
-            owner: PromiseOrValue<string>,
-            spender: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        approve(
-            spender: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        balanceOf(account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        burn(
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        burnFrom(
-            account: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        convertToAssets(shares: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        convertToShares(assets: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        decimals(overrides?: CallOverrides): Promise<BigNumber>;
-
-        decreaseAllowance(
-            spender: PromiseOrValue<string>,
-            subtractedValue: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        destroy(
-            _amount: PromiseOrValue<BigNumberish>,
-            _from: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        getRoleAdmin(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        getRoleMember(
-            role: PromiseOrValue<BytesLike>,
-            index: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        getRoleMemberCount(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        grantRole(
-            _role: PromiseOrValue<BytesLike>,
-            _to: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        hasRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        increaseAllowance(
-            spender: PromiseOrValue<string>,
-            addedValue: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        issue(
-            _amount: PromiseOrValue<BigNumberish>,
-            _to: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        kresko(overrides?: CallOverrides): Promise<BigNumber>;
-
-        mint(
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        name(overrides?: CallOverrides): Promise<BigNumber>;
-
-        operatorRoleTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
-
-        pause(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
-
-        paused(overrides?: CallOverrides): Promise<BigNumber>;
-
-        pendingOperator(overrides?: CallOverrides): Promise<BigNumber>;
-
-        renounceRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        revokeRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        setMetadata(
-            _newName: PromiseOrValue<string>,
-            _newSymbol: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        supportsInterface(interfaceId: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        symbol(overrides?: CallOverrides): Promise<BigNumber>;
-
-        totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-        transfer(
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        transferFrom(
-            from: PromiseOrValue<string>,
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        unpause(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
-    };
-
-    populateTransaction: {
-        DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        MINTER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        OPERATOR_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        OPERATOR_ROLE_PERIOD(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        PAUSER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        allowance(
-            owner: PromiseOrValue<string>,
-            spender: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        approve(
-            spender: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        balanceOf(account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        burn(
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        burnFrom(
-            account: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        convertToAssets(shares: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        convertToShares(assets: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        decreaseAllowance(
-            spender: PromiseOrValue<string>,
-            subtractedValue: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        destroy(
-            _amount: PromiseOrValue<BigNumberish>,
-            _from: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        getRoleAdmin(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        getRoleMember(
-            role: PromiseOrValue<BytesLike>,
-            index: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        getRoleMemberCount(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        grantRole(
-            _role: PromiseOrValue<BytesLike>,
-            _to: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        hasRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        increaseAllowance(
-            spender: PromiseOrValue<string>,
-            addedValue: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        issue(
-            _amount: PromiseOrValue<BigNumberish>,
-            _to: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        kresko(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        mint(
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        operatorRoleTimestamp(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        pause(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
-
-        paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        pendingOperator(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        renounceRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        revokeRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        setMetadata(
-            _newName: PromiseOrValue<string>,
-            _newSymbol: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        supportsInterface(
-            interfaceId: PromiseOrValue<BytesLike>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        transfer(
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        transferFrom(
-            from: PromiseOrValue<string>,
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        unpause(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
-    };
+      from: PromiseOrValue<string>,
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    unpause(overrides?: CallOverrides): Promise<void>;
+  };
+
+  filters: {
+    "Approval(address,address,uint256)"(
+      owner?: PromiseOrValue<string> | null,
+      spender?: PromiseOrValue<string> | null,
+      value?: null
+    ): ApprovalEventFilter;
+    Approval(
+      owner?: PromiseOrValue<string> | null,
+      spender?: PromiseOrValue<string> | null,
+      value?: null
+    ): ApprovalEventFilter;
+
+    "NewMaxOperators(uint256)"(
+      newMaxOperators?: null
+    ): NewMaxOperatorsEventFilter;
+    NewMaxOperators(newMaxOperators?: null): NewMaxOperatorsEventFilter;
+
+    "NewOperator(address)"(
+      newOperator?: PromiseOrValue<string> | null
+    ): NewOperatorEventFilter;
+    NewOperator(
+      newOperator?: PromiseOrValue<string> | null
+    ): NewOperatorEventFilter;
+
+    "NewOperatorInitialized(address,uint256)"(
+      pendingNewOperator?: PromiseOrValue<string> | null,
+      unlockTimestamp?: null
+    ): NewOperatorInitializedEventFilter;
+    NewOperatorInitialized(
+      pendingNewOperator?: PromiseOrValue<string> | null,
+      unlockTimestamp?: null
+    ): NewOperatorInitializedEventFilter;
+
+    "NewPendingOperatorWaitPeriod(uint256)"(
+      newPeriod?: null
+    ): NewPendingOperatorWaitPeriodEventFilter;
+    NewPendingOperatorWaitPeriod(
+      newPeriod?: null
+    ): NewPendingOperatorWaitPeriodEventFilter;
+
+    "Paused(address)"(account?: null): PausedEventFilter;
+    Paused(account?: null): PausedEventFilter;
+
+    "RoleAdminChanged(bytes32,bytes32,bytes32)"(
+      role?: PromiseOrValue<BytesLike> | null,
+      previousAdminRole?: PromiseOrValue<BytesLike> | null,
+      newAdminRole?: PromiseOrValue<BytesLike> | null
+    ): RoleAdminChangedEventFilter;
+    RoleAdminChanged(
+      role?: PromiseOrValue<BytesLike> | null,
+      previousAdminRole?: PromiseOrValue<BytesLike> | null,
+      newAdminRole?: PromiseOrValue<BytesLike> | null
+    ): RoleAdminChangedEventFilter;
+
+    "RoleGranted(bytes32,address,address)"(
+      role?: PromiseOrValue<BytesLike> | null,
+      account?: PromiseOrValue<string> | null,
+      sender?: PromiseOrValue<string> | null
+    ): RoleGrantedEventFilter;
+    RoleGranted(
+      role?: PromiseOrValue<BytesLike> | null,
+      account?: PromiseOrValue<string> | null,
+      sender?: PromiseOrValue<string> | null
+    ): RoleGrantedEventFilter;
+
+    "RoleRevoked(bytes32,address,address)"(
+      role?: PromiseOrValue<BytesLike> | null,
+      account?: PromiseOrValue<string> | null,
+      sender?: PromiseOrValue<string> | null
+    ): RoleRevokedEventFilter;
+    RoleRevoked(
+      role?: PromiseOrValue<BytesLike> | null,
+      account?: PromiseOrValue<string> | null,
+      sender?: PromiseOrValue<string> | null
+    ): RoleRevokedEventFilter;
+
+    "Transfer(address,address,uint256)"(
+      from?: PromiseOrValue<string> | null,
+      to?: PromiseOrValue<string> | null,
+      value?: null
+    ): TransferEventFilter;
+    Transfer(
+      from?: PromiseOrValue<string> | null,
+      to?: PromiseOrValue<string> | null,
+      value?: null
+    ): TransferEventFilter;
+
+    "Unpaused(address)"(account?: null): UnpausedEventFilter;
+    Unpaused(account?: null): UnpausedEventFilter;
+  };
+
+  estimateGas: {
+    DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    MINTER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    OPERATOR_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    PAUSER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    allowance(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    approve(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    balanceOf(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    burn(
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    burnFrom(
+      account: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    convertToAssets(
+      shares: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    convertToShares(
+      assets: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    decimals(overrides?: CallOverrides): Promise<BigNumber>;
+
+    decreaseAllowance(
+      spender: PromiseOrValue<string>,
+      subtractedValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    destroy(
+      _amount: PromiseOrValue<BigNumberish>,
+      _from: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    getRoleAdmin(
+      role: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getRoleMember(
+      role: PromiseOrValue<BytesLike>,
+      index: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getRoleMemberCount(
+      role: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    grantRole(
+      _role: PromiseOrValue<BytesLike>,
+      _to: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    hasRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    increaseAllowance(
+      spender: PromiseOrValue<string>,
+      addedValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    issue(
+      _amount: PromiseOrValue<BigNumberish>,
+      _to: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    kresko(overrides?: CallOverrides): Promise<BigNumber>;
+
+    maxOperators(overrides?: CallOverrides): Promise<BigNumber>;
+
+    mint(
+      _to: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    name(overrides?: CallOverrides): Promise<BigNumber>;
+
+    pause(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    paused(overrides?: CallOverrides): Promise<BigNumber>;
+
+    pendingOperator(overrides?: CallOverrides): Promise<BigNumber>;
+
+    pendingOperatorUnlockTime(overrides?: CallOverrides): Promise<BigNumber>;
+
+    pendingOperatorWaitPeriod(overrides?: CallOverrides): Promise<BigNumber>;
+
+    renounceRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    revokeRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setMaxOperators(
+      _maxOperators: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setPendingOperatorWaitPeriod(
+      _newPeriod: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    supportsInterface(
+      interfaceId: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    symbol(overrides?: CallOverrides): Promise<BigNumber>;
+
+    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+    transfer(
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    transferFrom(
+      from: PromiseOrValue<string>,
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    unpause(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    DEFAULT_ADMIN_ROLE(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    MINTER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    OPERATOR_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    PAUSER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    allowance(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    approve(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    balanceOf(
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    burn(
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    burnFrom(
+      account: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    convertToAssets(
+      shares: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    convertToShares(
+      assets: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    decreaseAllowance(
+      spender: PromiseOrValue<string>,
+      subtractedValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    destroy(
+      _amount: PromiseOrValue<BigNumberish>,
+      _from: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getRoleAdmin(
+      role: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getRoleMember(
+      role: PromiseOrValue<BytesLike>,
+      index: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getRoleMemberCount(
+      role: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    grantRole(
+      _role: PromiseOrValue<BytesLike>,
+      _to: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    hasRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    increaseAllowance(
+      spender: PromiseOrValue<string>,
+      addedValue: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    issue(
+      _amount: PromiseOrValue<BigNumberish>,
+      _to: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    kresko(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    maxOperators(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    mint(
+      _to: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    pause(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    pendingOperator(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    pendingOperatorUnlockTime(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    pendingOperatorWaitPeriod(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    renounceRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    revokeRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setMaxOperators(
+      _maxOperators: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setPendingOperatorWaitPeriod(
+      _newPeriod: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    supportsInterface(
+      interfaceId: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    transfer(
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    transferFrom(
+      from: PromiseOrValue<string>,
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    unpause(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+  };
 }

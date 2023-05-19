@@ -1,5 +1,6 @@
-// SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity >=0.8.20;
+
 import {LibStabilityRate} from "./libs/LibStabilityRate.sol";
 
 using LibStabilityRate for StabilityRateConfig global;

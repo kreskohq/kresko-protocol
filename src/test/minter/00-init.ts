@@ -2,6 +2,7 @@ import hre from "hardhat";
 import { diamondFacets, getMinterInitializer, minterFacets } from "@deploy-config/shared";
 import { Role, withFixture, Error } from "@utils/test";
 import { expect } from "@test/chai";
+
 describe("Minter - Init", () => {
     withFixture(["minter-init"]);
     describe("#initialization", () => {
@@ -10,20 +11,17 @@ describe("Minter - Init", () => {
 
             const { args } = await getMinterInitializer(hre);
 
-            expect(await hre.Diamond.hasRole(Role.OPERATOR, args.operator)).to.equal(true);
+            expect(await hre.Diamond.hasRole(Role.ADMIN, args.admin)).to.equal(true);
             expect(await hre.Diamond.hasRole(Role.SAFETY_COUNCIL, hre.Multisig.address)).to.equal(true);
 
-            expect(await hre.Diamond.feeRecipient()).to.equal(args.feeRecipient);
-            expect((await hre.Diamond.liquidationIncentiveMultiplier()).rawValue).to.equal(
-                args.liquidationIncentiveMultiplier,
-            );
-            expect((await hre.Diamond.minimumCollateralizationRatio()).rawValue).to.equal(
-                args.minimumCollateralizationRatio,
-            );
-            expect((await hre.Diamond.minimumDebtValue()).rawValue).to.equal(args.minimumDebtValue);
+            expect(await hre.Diamond.feeRecipient()).to.equal(args.treasury);
+            expect(await hre.Diamond.liquidationIncentiveMultiplier()).to.equal(0);
+            expect(await hre.Diamond.minimumCollateralizationRatio()).to.equal(args.minimumCollateralizationRatio);
+            expect(await hre.Diamond.minimumDebtValue()).to.equal(args.minimumDebtValue);
         });
 
         it("cant initialize twice", async function () {
+            expect(await hre.Diamond.minterInitializations()).to.equal(1);
             const initializer = await getMinterInitializer(hre);
             const initializerContract = await hre.getContractOrFork(initializer.name);
 

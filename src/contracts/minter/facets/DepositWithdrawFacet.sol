@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity >=0.8.20;
 
 import {IDepositWithdrawFacet} from "../interfaces/IDepositWithdrawFacet.sol";
 
@@ -7,11 +7,13 @@ import {Error} from "../../libs/Errors.sol";
 import {MinterEvent} from "../../libs/Events.sol";
 import {Role} from "../../libs/Authorization.sol";
 
-import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
-import {DiamondModifiers, MinterModifiers} from "../../shared/Modifiers.sol";
-import {Action, FixedPoint, KrAsset} from "../MinterTypes.sol";
-import {ms, MinterState} from "../MinterStorage.sol";
+import {SafeERC20, IERC20Permit} from "../../shared/SafeERC20.sol";
+import {MinterModifiers} from "../MinterModifiers.sol";
+import {DiamondModifiers} from "../../diamond/DiamondModifiers.sol";
+import {Action, KrAsset} from "../MinterTypes.sol";
+import {ms} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";
+import {ICollateralReceiver} from "../interfaces/ICollateralReceiver.sol";
 
 /**
  * @author Kresko
@@ -19,19 +21,13 @@ import {irs} from "../InterestRateState.sol";
  * @notice Main end-user functionality concerning collateral asset deposits and withdrawals within the Kresko protocol
  */
 contract DepositWithdrawFacet is DiamondModifiers, MinterModifiers, IDepositWithdrawFacet {
-    using SafeERC20Upgradeable for IERC20Upgradeable;
-    using FixedPoint for FixedPoint.Unsigned;
+    using SafeERC20 for IERC20Permit;
 
     /* -------------------------------------------------------------------------- */
     /*                                 Collateral                                 */
     /* -------------------------------------------------------------------------- */
 
-    /**
-     * @notice Deposits collateral into the protocol.
-     * @param _account The user to deposit collateral for.
-     * @param _collateralAsset The address of the collateral asset.
-     * @param _depositAmount The amount of the collateral asset to deposit.
-     */
+    /// @inheritdoc IDepositWithdrawFacet
     function depositCollateral(
         address _account,
         address _collateralAsset,
@@ -42,22 +38,13 @@ contract DepositWithdrawFacet is DiamondModifiers, MinterModifiers, IDepositWith
         }
 
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
-        IERC20Upgradeable(_collateralAsset).safeTransferFrom(msg.sender, address(this), _depositAmount);
+        IERC20Permit(_collateralAsset).safeTransferFrom(msg.sender, address(this), _depositAmount);
 
         // Record the collateral deposit.
         ms().recordCollateralDeposit(_account, _collateralAsset, _depositAmount);
-        emit MinterEvent.CollateralDeposited(_account, _collateralAsset, _depositAmount);
     }
 
-    /**
-     * @notice Withdraws sender's collateral from the protocol.
-     * @dev Requires the post-withdrawal collateral value to violate minimum collateral requirement.
-     * @param _account The address to withdraw assets for.
-     * @param _collateralAsset The address of the collateral asset.
-     * @param _withdrawAmount The amount of the collateral asset to withdraw.
-     * @param _depositedCollateralAssetIndex The index of the collateral asset in the sender's deposited collateral
-     * assets array. Only needed if withdrawing the entire deposit of a particular collateral asset.
-     */
+    /// @inheritdoc IDepositWithdrawFacet
     function withdrawCollateral(
         address _account,
         address _collateralAsset,
@@ -70,6 +57,7 @@ contract DepositWithdrawFacet is DiamondModifiers, MinterModifiers, IDepositWith
 
         uint256 collateralDeposits = ms().getCollateralDeposits(_account, _collateralAsset);
         _withdrawAmount = (_withdrawAmount > collateralDeposits ? collateralDeposits : _withdrawAmount);
+
         ms().verifyAndRecordCollateralWithdrawal(
             _account,
             _collateralAsset,
@@ -78,7 +66,51 @@ contract DepositWithdrawFacet is DiamondModifiers, MinterModifiers, IDepositWith
             _depositedCollateralAssetIndex
         );
 
-        IERC20Upgradeable(_collateralAsset).safeTransfer(_account, _withdrawAmount);
-        emit MinterEvent.CollateralWithdrawn(_account, _collateralAsset, _withdrawAmount);
+        IERC20Permit(_collateralAsset).safeTransfer(_account, _withdrawAmount);
+    }
+
+    /// @inheritdoc IDepositWithdrawFacet
+    function withdrawCollateralUnchecked(
+        address _account,
+        address _collateralAsset,
+        uint256 _withdrawAmount,
+        uint256 _depositedCollateralAssetIndex,
+        bytes memory _userData
+    ) external collateralAssetExists(_collateralAsset) onlyRole(Role.MANAGER) {
+        if (ms().safetyStateSet) {
+            ensureNotPaused(_collateralAsset, Action.Withdraw);
+        }
+
+        uint256 collateralDeposits = ms().getCollateralDeposits(_account, _collateralAsset);
+        _withdrawAmount = (_withdrawAmount > collateralDeposits ? collateralDeposits : _withdrawAmount);
+
+        // perform unchecked withdrawal
+        ms().recordCollateralWithdrawal(
+            _account,
+            _collateralAsset,
+            _withdrawAmount,
+            collateralDeposits,
+            _depositedCollateralAssetIndex
+        );
+
+        // transfer the withdrawn asset to the caller
+        IERC20Permit(_collateralAsset).safeTransfer(msg.sender, _withdrawAmount);
+
+        // Executes the callback on the caller after sending them the withdrawn collateral
+        ICollateralReceiver(msg.sender).onUncheckedCollateralWithdraw(
+            _account,
+            _collateralAsset,
+            _withdrawAmount,
+            _depositedCollateralAssetIndex,
+            _userData
+        );
+
+        /*
+         Perform the MCR check after the callback has been executed
+         Ensures accountCollateralValue remains over accountMinColateralValueAtRatio(MCR)
+         Emits MinterEvent.UncheckedCollateralWithdrawn
+         _withdrawAmount is 0 since deposits reduced in recordCollateralWithdrawal
+        */
+        ms().verifyAccountCollateral(_account, _collateralAsset, 0);
     }
 }

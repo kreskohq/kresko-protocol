@@ -1,9 +1,10 @@
-pragma solidity >=0.8.14;
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity >=0.8.20;
 
-import "./MockERC20.sol";
-import "./WETH.sol";
-import {MockKresko} from "../MockKresko.sol";
-import {FixedPoint} from "../minter/MinterTypes.sol";
+import {IERC20Permit} from "../shared/IERC20Permit.sol";
+import {WETH} from "./WETH.sol";
+import {IAccountStateFacet} from "../minter/interfaces/IAccountStateFacet.sol";
+
 /* solhint-disable no-empty-blocks */
 
 struct Token {
@@ -14,13 +15,13 @@ struct Token {
 contract Funder {
     mapping(address => bool) public owners;
     mapping(address => bool) public funded;
-    MockKresko public kresko;
+    IAccountStateFacet public kresko;
 
     event Funded(address indexed account);
 
     constructor(address _kresko) {
         owners[msg.sender] = true;
-        kresko = MockKresko(_kresko);
+        kresko = IAccountStateFacet(_kresko);
     }
 
     function toggleOwners(address[] calldata accounts) external {
@@ -31,7 +32,7 @@ contract Funder {
     }
 
     function isEligible(address account) public view returns (bool) {
-        return account.balance < 0.001 ether && kresko.getAccountKrAssetValue(account).rawValue > 0 && !funded[account];
+        return account.balance < 0.001 ether && kresko.getAccountKrAssetValue(account) > 0 && !funded[account];
     }
 
     function distribute(address[] calldata accounts, uint256 ethAmount) external {

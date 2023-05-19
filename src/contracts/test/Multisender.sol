@@ -1,7 +1,8 @@
-pragma solidity >=0.8.14;
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity >=0.8.20;
 
-import "./MockERC20.sol";
-import "./WETH.sol";
+import {MockERC20} from "./MockERC20.sol";
+import {WETH} from "./WETH.sol";
 
 /* solhint-disable no-empty-blocks */
 
@@ -20,11 +21,7 @@ contract Multisender {
 
     event Funded(address indexed account);
 
-    constructor(
-        Token[] memory _tokens,
-        address _weth,
-        address _kiss
-    ) {
+    constructor(Token[] memory _tokens, address _weth, address _kiss) {
         owners[msg.sender] = true;
 
         for (uint256 i; i < _tokens.length; i++) {

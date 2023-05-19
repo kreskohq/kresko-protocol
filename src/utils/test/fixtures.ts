@@ -1,14 +1,6 @@
-let currentFixtureName: string[];
+import hre from "hardhat";
+
 export const withFixture = (fixtureName: string[]) => {
-    // before(function () {
-    //     if (currentFixtureName && fixtureName.join("") !== currentFixtureName.join("")) {
-    //         hre.collaterals = [];
-    //         hre.krAssets = [];
-    //         hre.allAssets = [];
-    //         hre.Diamond = undefined;
-    //     }
-    //     currentFixtureName = fixtureName;
-    // });
     beforeEach(async function () {
         const fixture = await hre.deployments.createFixture(async hre => {
             const result = await hre.deployments.fixture(fixtureName);

@@ -1,14 +1,13 @@
-// SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity >=0.8.20;
 
-import {FixedPoint} from "../../libs/FixedPoint.sol";
-import {IUniswapV2Oracle} from "../interfaces/IUniswapV2Oracle.sol";
+import {WadRay} from "../../libs/WadRay.sol";
+import {IUniswapV2OracleCompat} from "../amm-oracle/IUniswapV2OracleCompat.sol";
 import {KrAsset} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
 
 library LibKrAsset {
-    using FixedPoint for FixedPoint.Unsigned;
-    using FixedPoint for uint256;
+    using WadRay for uint256;
 
     /* -------------------------------------------------------------------------- */
     /*                                  Functions                                 */
@@ -34,26 +33,32 @@ library LibKrAsset {
         address _kreskoAsset,
         uint256 _amount,
         bool _ignoreKFactor
-    ) internal view returns (FixedPoint.Unsigned memory) {
+    ) internal view returns (uint256) {
         KrAsset memory krAsset = self.kreskoAssets[_kreskoAsset];
-        FixedPoint.Unsigned memory value = krAsset.fixedPointUSD(_amount);
+        uint256 value = krAsset.uintUSD(_amount);
 
         if (!_ignoreKFactor) {
-            value = value.mul(krAsset.kFactor);
+            value = value.wadMul(krAsset.kFactor);
         }
 
         return value;
     }
 
+    /**
+     * @notice Gets the AMM price for a Kresko asset.
+     * @param _kreskoAsset The address of the Kresko asset.
+     * @param _amount The amount of the Kresko asset to calculate the value for.
+     * @return The value for the provided amount of the Kresko asset.
+     */
     function getKrAssetAMMPrice(
         MinterState storage self,
         address _kreskoAsset,
         uint256 _amount
-    ) internal view returns (FixedPoint.Unsigned memory) {
+    ) internal view returns (uint256) {
         if (self.ammOracle == address(0)) {
-            return FixedPoint.Unsigned(0);
+            return 0;
         }
-        return IUniswapV2Oracle(self.ammOracle).consultKrAsset(_kreskoAsset, _amount).toFixedPoint();
+        return IUniswapV2OracleCompat(self.ammOracle).consultKrAsset(_kreskoAsset, _amount);
     }
 
     /**
@@ -68,9 +73,9 @@ library LibKrAsset {
         MinterState storage self,
         address _krAsset,
         uint256 _amount,
-        FixedPoint.Unsigned memory _ratio
-    ) internal view returns (FixedPoint.Unsigned memory minCollateralValue) {
+        uint256 _ratio
+    ) internal view returns (uint256 minCollateralValue) {
         // Calculate the collateral value required to back this Kresko asset amount at the given ratio
-        return self.getKrAssetValue(_krAsset, _amount, false).mul(_ratio);
+        return self.getKrAssetValue(_krAsset, _amount, false).wadMul(_ratio);
     }
 }

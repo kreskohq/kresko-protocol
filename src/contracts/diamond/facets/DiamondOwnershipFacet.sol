@@ -1,31 +1,20 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
 import {IDiamondOwnershipFacet} from "../interfaces/IDiamondOwnershipFacet.sol";
-import {DiamondModifiers} from "../../shared/Modifiers.sol";
+import {DiamondModifiers} from "../DiamondModifiers.sol";
 import {ds} from "../DiamondStorage.sol";
 
-contract DiamondOwnershipFacet is DiamondModifiers, IDiamondOwnershipFacet {
+contract DiamondOwnershipFacet is IDiamondOwnershipFacet, DiamondModifiers {
     /* -------------------------------------------------------------------------- */
     /*                                    Write                                   */
     /* -------------------------------------------------------------------------- */
-
-    /**
-     * @notice Initiate ownership transfer to a new address
-     * - caller must be the current contract owner
-     * - the new owner cannot be address(0)
-     * - emits a {AuthEvent.PendingOwnershipTransfer} event
-     * @param _newOwner address that is set as the pending new owner
-     */
+    /// @inheritdoc IDiamondOwnershipFacet
     function transferOwnership(address _newOwner) external override onlyOwner {
         ds().initiateOwnershipTransfer(_newOwner);
     }
 
-    /**
-     * @notice Transfer the ownership to the new pending owner
-     * - caller must be the pending owner
-     * - emits a {AccessEvent.OwnershipTransferred} event
-     */
+    /// @inheritdoc IDiamondOwnershipFacet
     function acceptOwnership() external override onlyPendingOwner {
         ds().finalizeOwnershipTransfer();
     }
@@ -33,21 +22,18 @@ contract DiamondOwnershipFacet is DiamondModifiers, IDiamondOwnershipFacet {
     /* -------------------------------------------------------------------------- */
     /*                                    Read                                    */
     /* -------------------------------------------------------------------------- */
-
-    /// @notice Getter for the current owner
-    function owner() external view override returns (address) {
+    /// @inheritdoc IDiamondOwnershipFacet
+    function owner() external view override returns (address owner_) {
         return ds().contractOwner;
     }
 
-    /// @notice Getter for the pending owner
-    /// @return address
-    function pendingOwner() external view override returns (address) {
+    /// @inheritdoc IDiamondOwnershipFacet
+    function pendingOwner() external view override returns (address pendingOwner_) {
         return ds().pendingOwner;
     }
 
-    /// @notice Initialization status getter
-    /// @return initialized status
-    function initialized() external view returns (bool) {
+    /// @inheritdoc IDiamondOwnershipFacet
+    function initialized() external view returns (bool initialized_) {
         return ds().initialized;
     }
 }

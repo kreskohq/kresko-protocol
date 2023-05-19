@@ -13,6 +13,7 @@ artifacts/
 cache/
 build/
 forge/
+out/
 node_modules/
 deployments/hardhat
 deployments/localhost

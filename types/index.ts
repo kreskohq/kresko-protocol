@@ -1,7 +1,7 @@
-import { ContractName, GetContractTypes } from "@kreskolabs/configs";
+import { GetContractTypes } from "@kreskolabs/configs";
 import { Address } from "hardhat-deploy/types";
 import type * as Contracts from "./typechain";
-import { ethers } from "ethers";
+
 export type Split<S extends string, D extends string> = string extends S
     ? string[]
     : S extends ""
@@ -17,7 +17,9 @@ export type Split2<S extends string, D extends string> = string extends S
     ? [...Split<U, D>]
     : [S];
 
-export type ExcludeType<T, E> = { [K in keyof T]: T[K] extends E ? K : never }[keyof T];
+export type ExcludeType<T, E> = {
+    [K in keyof T]: T[K] extends E ? K : never;
+}[keyof T];
 
 export type Excludes =
     | "AccessControlEnumerableUpgradeable"

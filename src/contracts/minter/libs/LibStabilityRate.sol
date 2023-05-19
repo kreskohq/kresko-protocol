@@ -1,13 +1,11 @@
-// SPDX-License-Identifier: agpl-3.0
-pragma solidity >=0.8.14;
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity >=0.8.20;
 
 import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
-import {IERC20Upgradeable} from "../../shared/IERC20Upgradeable.sol";
+import {IERC20Permit} from "../../shared/IERC20Permit.sol";
 
-import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 import {Error} from "../../libs/Errors.sol";
-import {Percentages} from "../../libs/Percentages.sol";
 import {LibKrAsset} from "../libs/LibKrAsset.sol";
 
 import {StabilityRateConfig} from "../InterestRateState.sol";
@@ -23,8 +21,6 @@ import {ms} from "../MinterStorage.sol";
 library LibStabilityRate {
     using WadRay for uint256;
     using WadRay for uint128;
-    using Percentages for uint256;
-    using FixedPoint for FixedPoint.Unsigned;
 
     /// @dev Ignoring leap years
     uint256 internal constant SECONDS_PER_YEAR = 365 days;
@@ -41,7 +37,7 @@ library LibStabilityRate {
 
         newDebtIndex = self.debtIndex;
         // only cumulating if there is any assets minted and rate is over 0
-        if (IERC20Upgradeable(self.asset).totalSupply() != 0) {
+        if (IERC20Permit(self.asset).totalSupply() != 0) {
             uint256 cumulatedStabilityRate = self.calculateCompoundedInterest(block.timestamp);
             newDebtIndex = cumulatedStabilityRate.rayMul(self.debtIndex);
             require(newDebtIndex <= type(uint128).max, Error.DEBT_INDEX_OVERFLOW);
@@ -71,46 +67,40 @@ library LibStabilityRate {
      * @return priceRate the current price rate
      */
     function getPriceRate(StabilityRateConfig storage self) internal view returns (uint256 priceRate) {
-        FixedPoint.Unsigned memory oraclePrice = ms().getKrAssetValue(self.asset, 1 ether, true);
-        FixedPoint.Unsigned memory ammPrice = ms().getKrAssetAMMPrice(self.asset, 1 ether);
+        uint256 oraclePrice = ms().getKrAssetValue(self.asset, 1 ether, true);
+        uint256 ammPrice = ms().getKrAssetAMMPrice(self.asset, 1 ether);
         // no pair, no effect
-        if (ammPrice.rawValue == 0) {
+        if (ammPrice == 0) {
             return 0;
         }
-        return ammPrice.div(oraclePrice).div(10).rawValue;
+        return ammPrice.wadDiv(oraclePrice) / 10;
     }
 
     /**
      * @notice Calculate new stability rate from the current price rate
      * @dev Separate calculations exist for following cases:
-     * case 1: AMM premium > optimal + delta
-     * case 2: AMM premium < optimal - delta
-     * case 3: AMM premium <= optimal + delta && AMM premium >= optimal - delta
+     * case 1: AMM premium < optimal
+     * case 2: AMM premium > optimal
      * @param self rate configuration for the asset
      * @return stabilityRate the current stability rate
      */
     function calculateStabilityRate(StabilityRateConfig storage self) internal view returns (uint256 stabilityRate) {
         uint256 priceRate = self.getPriceRate(); // 0.95 RAY = -5% PREMIUM, 1.05 RAY = +5% PREMIUM
-
         // Return base rate if no AMM price exists
         if (priceRate == 0) {
             return self.stabilityRateBase;
         }
-        // If AMM price > priceRate + delta, eg. AMM price is higher than oracle price
-        if (priceRate > self.optimalPriceRate + self.priceRateDelta) {
-            uint256 excessRate = priceRate - WadRay.RAY;
-            stabilityRate =
-                self.stabilityRateBase.rayDiv(priceRate.percentMul(125e2)) +
-                ((WadRay.RAY - excessRate).rayMul(self.rateSlope1));
-            // If AMM price < pricaRate + delta, AMM price is lower than oracle price
-        } else if (priceRate < self.optimalPriceRate - self.priceRateDelta) {
-            uint256 multiplier = (WadRay.RAY - priceRate).rayDiv(self.priceRateDelta);
-            stabilityRate =
-                (self.stabilityRateBase + self.rateSlope1) +
-                WadRay.RAY.rayMul(multiplier).rayMul(self.rateSlope2);
-            // Default case, AMM price is within optimal range of oracle price
+        bool rateIsGTOptimal = priceRate > self.optimalPriceRate;
+
+        uint256 rateDiff = rateIsGTOptimal ? priceRate - self.optimalPriceRate : self.optimalPriceRate - priceRate;
+        uint256 rateDiffAdjusted = rateDiff.rayMul(self.rateSlope2.rayDiv(self.rateSlope1 + self.priceRateDelta));
+
+        if (!rateIsGTOptimal) {
+            // Case: AMM price is lower than priceRate
+            return self.stabilityRateBase + rateDiffAdjusted;
         } else {
-            stabilityRate = self.stabilityRateBase + (priceRate.rayMul(self.rateSlope1));
+            // Case: AMM price is higher than priceRate
+            return self.stabilityRateBase.rayDiv(WadRay.RAY + rateDiffAdjusted);
         }
     }
 
@@ -129,11 +119,10 @@ library LibStabilityRate {
      * @param _currentTimestamp The timestamp of the last update of the interest
      * @return The interest rate compounded during the timeDelta, in ray
      **/
-    function calculateCompoundedInterest(StabilityRateConfig storage self, uint256 _currentTimestamp)
-        internal
-        view
-        returns (uint256)
-    {
+    function calculateCompoundedInterest(
+        StabilityRateConfig storage self,
+        uint256 _currentTimestamp
+    ) internal view returns (uint256) {
         //solium-disable-next-line
         uint256 exp = _currentTimestamp - uint256(self.lastUpdateTimestamp);
 

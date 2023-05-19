@@ -1,6 +1,5 @@
-import { RAY } from "@kreskolabs/lib";
+import { RAY, oneRay } from "@kreskolabs/lib";
 import { BigNumber } from "ethers";
-import { FixedPoint } from "types/typechain/src/contracts/minter/facets/AccountStateFacet";
 export const ONE_YEAR = 60 * 60 * 24 * 365;
 
 export const getBlockTimestamp = async () => {
@@ -8,32 +7,26 @@ export const getBlockTimestamp = async () => {
     const data = await hre.ethers.provider.getBlock(block);
     return BigNumber.from(data.timestamp);
 };
+export function getExpectedStabilityRate(priceRate: BigNumber, krAssetArgs: any): BigNumber {
+    const rateIsGTOptimal = priceRate.gt(krAssetArgs.optimalPriceRate);
+    const rateDiff = rateIsGTOptimal
+        ? priceRate.sub(krAssetArgs.optimalPriceRate)
+        : krAssetArgs.optimalPriceRate.sub(priceRate);
 
-export const oraclePriceToWad = async (price: Promise<FixedPoint.UnsignedStructOutput>): Promise<BigNumber> =>
-    (await price).rawValue.mul(10 ** (18 - (await hre.Diamond.extOracleDecimals())));
+    const rateDiffAdjusted = rateDiff.rayMul(
+        krAssetArgs.rateSlope2.rayDiv(krAssetArgs.rateSlope1.add(krAssetArgs.priceRateDelta)),
+    );
 
-export const calcExpectedStabilityRateNoPremium = (priceRate: BigNumber, krAssetArgs: any) => {
-    return krAssetArgs.stabilityRates.stabilityRateBase.add(priceRate.rayMul(krAssetArgs.stabilityRates.rateSlope1));
-};
-export const calcExpectedStabilityRateLowPremium = (priceRate: BigNumber, krAssetArgs: any) => {
-    const multiplier = krAssetArgs.stabilityRates.optimalPriceRate
-        .sub(priceRate)
-        .rayDiv(krAssetArgs.stabilityRates.priceRateDelta);
-
-    return krAssetArgs.stabilityRates.stabilityRateBase
-        .add(krAssetArgs.stabilityRates.rateSlope1)
-        .add(
-            krAssetArgs.stabilityRates.optimalPriceRate
-                .rayMul(multiplier)
-                .rayMul(krAssetArgs.stabilityRates.rateSlope2),
-        );
-};
-export const calcExpectedStabilityRateHighPremium = (priceRate: BigNumber, krAssetArgs: any) => {
-    const excessRate = priceRate.sub(krAssetArgs.stabilityRates.optimalPriceRate);
-    return krAssetArgs.stabilityRates.stabilityRateBase
-        .rayDiv(priceRate.percentMul(125e2))
-        .add(krAssetArgs.stabilityRates.optimalPriceRate.sub(excessRate).rayMul(krAssetArgs.stabilityRates.rateSlope1));
-};
+    if (!rateIsGTOptimal) {
+        // Case: AMM price is lower than priceRate
+        return krAssetArgs.stabilityRateBase.add(rateDiffAdjusted);
+    } else {
+        // Case: AMM price is higher than priceRate
+        return krAssetArgs.stabilityRateBase.rayDiv(oneRay.add(rateDiffAdjusted));
+    }
+}
+export const oraclePriceToWad = async (price: Promise<BigNumber>): Promise<BigNumber> =>
+    (await price).mul(10 ** (18 - (await hre.Diamond.extOracleDecimals())));
 
 export const calcDebtIndex = async (asset: TestAsset, prevDebtIndex: BigNumber, lastUpdate: BigNumber | number) => {
     const rate = await hre.Diamond.getStabilityRateForAsset(asset.address);

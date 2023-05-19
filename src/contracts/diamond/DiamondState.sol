@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
 import {EnumerableSet} from "../libs/EnumerableSet.sol";
 import {FacetAddressAndPosition, FacetFunctionSelectors, RoleData, ENTERED, NOT_ENTERED} from "./DiamondTypes.sol";

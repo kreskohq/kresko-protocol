@@ -7,12 +7,7 @@
         "NomicFoundation.hardhat-solidity",
         "esbenp.prettier-vscode",
         "dbaeumer.vscode-eslint",
-        "hbenl.vscode-mocha-test-adapter",
-        "tintinweb.solidity-visual-auditor",
-        "acuarica.ethers-mode",
-        "wware.snippet-creator",
-        "tintinweb.vscode-inline-bookmarks",
-        "stackbreak.comment-divider"
+        "stackbreak.comment-divider",
     ],
     // List of extensions recommended by VS Code that should not be recommended for users of this workspace.
     "unwantedRecommendations": ["JuanBlanco.solidity", "tanzx97.solidity-lite"]

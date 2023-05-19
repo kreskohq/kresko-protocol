@@ -1,15 +1,13 @@
-// SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity >=0.8.20;
 
 // solhint-disable not-rely-on-time
 // solhint-disable-next-line
-import {SafeERC20Upgradeable, IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
-
+import {SafeERC20, IERC20Permit} from "../../shared/SafeERC20.sol";
 import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
 import {Arrays} from "../../libs/Arrays.sol";
 import {MinterEvent} from "../../libs/Events.sol";
 import {Error} from "../../libs/Errors.sol";
-import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {LibDecimals} from "../libs/LibDecimals.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 
@@ -25,8 +23,7 @@ library LibMint {
     using LibDecimals for uint256;
     using WadRay for uint256;
 
-    using FixedPoint for FixedPoint.Unsigned;
-    using SafeERC20Upgradeable for IERC20Upgradeable;
+    using SafeERC20 for IERC20Permit;
     using LibCalculation for MinterState;
 
     /// @notice Mint kresko assets with stability rate updates.
@@ -74,10 +71,10 @@ library LibMint {
     ) internal {
         KrAsset memory krAsset = self.kreskoAssets[_kreskoAsset];
         // Calculate the value of the fee according to the value of the krAssets being minted.
-        FixedPoint.Unsigned memory feeValue = krAsset.fixedPointUSD(_kreskoAssetAmountMinted).mul(krAsset.openFee);
+        uint256 feeValue = krAsset.uintUSD(_kreskoAssetAmountMinted).wadMul(krAsset.openFee);
 
         // Do nothing if the fee value is 0.
-        if (feeValue.rawValue == 0) {
+        if (feeValue == 0) {
             return;
         }
 
@@ -89,7 +86,7 @@ library LibMint {
         for (uint256 i = accountCollateralAssets.length - 1; i >= 0; i--) {
             address collateralAssetAddress = accountCollateralAssets[i];
 
-            (uint256 transferAmount, FixedPoint.Unsigned memory feeValuePaid) = self.calcFee(
+            (uint256 transferAmount, uint256 feeValuePaid) = self.calcFee(
                 collateralAssetAddress,
                 _account,
                 feeValue,
@@ -102,12 +99,12 @@ library LibMint {
                 .toNonRebasingAmount(transferAmount);
 
             // Transfer the fee to the feeRecipient.
-            IERC20Upgradeable(collateralAssetAddress).safeTransfer(self.feeRecipient, transferAmount);
-            emit MinterEvent.OpenFeePaid(_account, collateralAssetAddress, transferAmount, feeValuePaid.rawValue);
+            IERC20Permit(collateralAssetAddress).safeTransfer(self.feeRecipient, transferAmount);
+            emit MinterEvent.OpenFeePaid(_account, collateralAssetAddress, transferAmount, feeValuePaid);
 
-            feeValue = feeValue.sub(feeValuePaid);
+            feeValue = feeValue - feeValuePaid;
             // If the entire fee has been paid, no more action needed.
-            if (feeValue.rawValue == 0) {
+            if (feeValue == 0) {
                 return;
             }
         }

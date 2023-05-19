@@ -1,20 +1,16 @@
-// SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity >=0.8.20;
 
 import {IInterestLiquidationFacet} from "../interfaces/IInterestLiquidationFacet.sol";
-import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
-
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
-import {LibDecimals, FixedPoint} from "../libs/LibDecimals.sol";
+import {LibDecimals} from "../libs/LibDecimals.sol";
 import {LibCalculation} from "../libs/LibCalculation.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 import {MinterEvent, InterestRateEvent} from "../../libs/Events.sol";
-
-import {SafeERC20Upgradeable, IERC20Upgradeable} from "../../shared/SafeERC20Upgradeable.sol";
-import {DiamondModifiers} from "../../shared/Modifiers.sol";
-
-import {Constants, KrAsset} from "../MinterTypes.sol";
+import {SafeERC20, IERC20Permit} from "../../shared/SafeERC20.sol";
+import {DiamondModifiers} from "../../diamond/DiamondModifiers.sol";
+import {KrAsset, CollateralAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";
 
@@ -26,21 +22,11 @@ import {irs} from "../InterestRateState.sol";
 contract InterestLiquidationFacet is DiamondModifiers, IInterestLiquidationFacet {
     using Arrays for address[];
     using LibDecimals for uint8;
-    using LibDecimals for FixedPoint.Unsigned;
     using LibDecimals for uint256;
     using WadRay for uint256;
-    using FixedPoint for FixedPoint.Unsigned;
-    using FixedPoint for uint256;
-    using FixedPoint for int256;
-    using SafeERC20Upgradeable for IERC20Upgradeable;
+    using SafeERC20 for IERC20Permit;
 
-    /**
-     * @notice Attempts to batch liquidate all KISS interest accrued for an account in a unhealthy position
-     * @notice Liquidator must have the KISS balance required with the Kresko contract approved
-     * @notice Checks liquidatable status on each iteration liquidating only what is necessary
-     * @param _account The account to attempt to liquidate.
-     * @param _collateralAssetToSeize The address of the collateral asset to be seized.
-     */
+    /// @inheritdoc IInterestLiquidationFacet
     function batchLiquidateInterest(address _account, address _collateralAssetToSeize) external nonReentrant {
         // Borrower cannot liquidate themselves
         require(msg.sender != _account, Error.SELF_LIQUIDATION);
@@ -65,7 +51,9 @@ contract InterestLiquidationFacet is DiamondModifiers, IInterestLiquidationFacet
             if (
                 !ms().isAccountLiquidatable(
                     _account,
-                    kissAmountToRepay.fromWadPriceToFixedPoint().mul(ms().liquidationIncentiveMultiplier)
+                    kissAmountToRepay.fromWadPriceToUint().wadMul(
+                        ms().collateralAssets[_collateralAssetToSeize].liquidationIncentive
+                    )
                 )
             ) break;
         }
@@ -90,13 +78,7 @@ contract InterestLiquidationFacet is DiamondModifiers, IInterestLiquidationFacet
         );
     }
 
-    /**
-     * @notice Attempts to liquidate all KISS interest accrued for an account in a unhealthy position
-     * @notice Liquidator must have the KISS balance required with the Kresko contract approved
-     * @param _account The account to attempt to liquidate.
-     * @param _repayKreskoAsset The address of the Kresko asset to be repaid.
-     * @param _collateralAssetToSeize The address of the collateral asset to be seized.
-     */
+    /// @inheritdoc IInterestLiquidationFacet
     function liquidateInterest(
         address _account,
         address _repayKreskoAsset,
@@ -155,11 +137,11 @@ contract InterestLiquidationFacet is DiamondModifiers, IInterestLiquidationFacet
     ) internal returns (uint256 seizeAmount) {
         MinterState storage s = ms();
 
-        seizeAmount = s.collateralAssets[_collateralAssetToSeize].decimals.fromCollateralFixedPointAmount(
+        seizeAmount = s.collateralAssets[_collateralAssetToSeize].decimals.fromWad(
             LibCalculation.calculateAmountToSeize(
-                s.liquidationIncentiveMultiplier,
-                s.collateralAssets[_collateralAssetToSeize].fixedPointPrice(),
-                _kissRepayAmount.fromWadPriceToFixedPoint()
+                s.collateralAssets[_collateralAssetToSeize].liquidationIncentive,
+                s.collateralAssets[_collateralAssetToSeize].uintPrice(),
+                _kissRepayAmount.fromWadPriceToUint()
             )
         );
 
@@ -185,6 +167,6 @@ contract InterestLiquidationFacet is DiamondModifiers, IInterestLiquidationFacet
         }
 
         // Send liquidator the seized collateral.
-        IERC20Upgradeable(_collateralAssetToSeize).safeTransfer(msg.sender, seizeAmount);
+        IERC20Permit(_collateralAssetToSeize).safeTransfer(msg.sender, seizeAmount);
     }
 }

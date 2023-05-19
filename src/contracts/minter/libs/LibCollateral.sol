@@ -1,13 +1,12 @@
-// SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity >=0.8.20;
 import {AggregatorV2V3Interface} from "../../vendor/flux/interfaces/AggregatorV2V3Interface.sol";
 import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
-import {FixedPoint} from "../../libs/FixedPoint.sol";
 import {LibDecimals} from "../libs/LibDecimals.sol";
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
 import {MinterEvent} from "../../libs/Events.sol";
-
+import {WadRay} from "../../libs/WadRay.sol";
 import {CollateralAsset} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
 
@@ -16,9 +15,9 @@ import {MinterState} from "../MinterState.sol";
  * @author Kresko
  */
 library LibCollateral {
-    using FixedPoint for FixedPoint.Unsigned;
     using LibDecimals for uint8;
     using Arrays for address[];
+    using WadRay for uint256;
 
     /**
      * In case a collateral asset is also a kresko asset, convert an amount to anchor shares
@@ -58,19 +57,26 @@ library LibCollateral {
         address _collateralAsset,
         uint256 _amount,
         bool _ignoreCollateralFactor
-    ) internal view returns (FixedPoint.Unsigned memory, FixedPoint.Unsigned memory) {
+    ) internal view returns (uint256, uint256) {
         CollateralAsset memory asset = self.collateralAssets[_collateralAsset];
 
-        FixedPoint.Unsigned memory fixedPointAmount = asset.decimals.toCollateralFixedPointAmount(_amount);
-        FixedPoint.Unsigned memory oraclePrice = asset.fixedPointPrice();
-        FixedPoint.Unsigned memory value = fixedPointAmount.mul(oraclePrice);
+        uint256 oraclePrice = asset.uintPrice();
+        uint256 value = asset.decimals.toWad(_amount).wadMul(oraclePrice);
 
         if (!_ignoreCollateralFactor) {
-            value = value.mul(asset.factor);
+            value = value.wadMul(asset.factor);
         }
         return (value, oraclePrice);
     }
 
+    /**
+     * @notice verifies that the account has sufficient collateral for the requested amount and records the collateral
+     * @param _account The address of the account to verify the collateral for.
+     * @param _collateralAsset The address of the collateral asset.
+     * @param _withdrawAmount The amount of the collateral asset to withdraw.
+     * @param _collateralDeposits Collateral deposits for the account.
+     * @param _depositedCollateralAssetIndex Index of the collateral asset in the account's deposited collateral assets array.
+     */
     function verifyAndRecordCollateralWithdrawal(
         MinterState storage self,
         address _account,
@@ -85,28 +91,8 @@ library LibCollateral {
             Error.ARRAY_OUT_OF_BOUNDS
         );
 
-        // Ensure the withdrawal does not result in the account having a collateral value
-        // under the minimum collateral amount required to maintain a healthy position.
-        // I.e. the new account's collateral value must still exceed the account's minimum
-        // collateral value.
-        // Get the account's current collateral value.
-        FixedPoint.Unsigned memory accountCollateralValue = self.getAccountCollateralValue(_account);
-        // Get the collateral value that the account will lose as a result of this withdrawal.
-        (FixedPoint.Unsigned memory withdrawnCollateralValue, ) = self.getCollateralValueAndOraclePrice(
-            _collateralAsset,
-            _withdrawAmount,
-            false // Take the collateral factor into consideration.
-        );
-        // Get the account's minimum collateral value.
-        FixedPoint.Unsigned memory accountMinCollateralValue = self.getAccountMinimumCollateralValueAtRatio(
-            _account,
-            self.minimumCollateralizationRatio
-        );
-        // Require accountCollateralValue - withdrawnCollateralValue >= accountMinCollateralValue.
-        require(
-            accountCollateralValue.sub(withdrawnCollateralValue).isGreaterThanOrEqual(accountMinCollateralValue),
-            Error.COLLATERAL_INSUFFICIENT_AMOUNT
-        );
+        // Ensure that the operation passes checks MCR checks
+        verifyAccountCollateral(self, _account, _collateralAsset, _withdrawAmount);
 
         // Record the withdrawal.
         self.collateralDeposits[_account][_collateralAsset] = self
@@ -154,5 +140,79 @@ library LibCollateral {
         }
 
         emit MinterEvent.CollateralDeposited(_account, _collateralAsset, _depositAmount);
+    }
+
+    /**
+     * @notice records the collateral withdrawal
+     * @param _account The address of the account to verify the collateral for.
+     * @param _collateralAsset The address of the collateral asset.
+     * @param _withdrawAmount The amount of the collateral asset to withdraw.
+     * @param _collateralDeposits Collateral deposits for the account.
+     * @param _depositedCollateralAssetIndex Index of the collateral asset in the account's deposited collateral assets array.
+     */
+    function recordCollateralWithdrawal(
+        MinterState storage self,
+        address _account,
+        address _collateralAsset,
+        uint256 _withdrawAmount,
+        uint256 _collateralDeposits,
+        uint256 _depositedCollateralAssetIndex
+    ) internal {
+        require(_withdrawAmount > 0, Error.ZERO_WITHDRAW);
+        require(
+            _depositedCollateralAssetIndex <= self.depositedCollateralAssets[_account].length - 1,
+            Error.ARRAY_OUT_OF_BOUNDS
+        );
+        // ensure that the handler does not attempt to withdraw more collateral than the account has
+        require(_collateralDeposits >= _withdrawAmount, Error.COLLATERAL_INSUFFICIENT_AMOUNT);
+
+        // Record the withdrawal.
+        self.collateralDeposits[_account][_collateralAsset] = self
+            .collateralAssets[_collateralAsset]
+            .toNonRebasingAmount(_collateralDeposits - _withdrawAmount);
+
+        // If the user is withdrawing all of the collateral asset, remove the collateral asset
+        // from the user's deposited collateral assets array.
+        if (_withdrawAmount == _collateralDeposits) {
+            self.depositedCollateralAssets[_account].removeAddress(_collateralAsset, _depositedCollateralAssetIndex);
+        }
+
+        emit MinterEvent.UncheckedCollateralWithdrawn(_account, _collateralAsset, _withdrawAmount);
+    }
+
+    /**
+     * @notice verifies that the account collateral
+     * @param _account The address of the account to verify the collateral for.
+     * @param _collateralAsset The address of the collateral asset.
+     * @param _withdrawAmount The amount of the collateral asset to withdraw.
+     */
+    function verifyAccountCollateral(
+        MinterState storage self,
+        address _account,
+        address _collateralAsset,
+        uint256 _withdrawAmount
+    ) internal view {
+        // Ensure the withdrawal does not result in the account having a collateral value
+        // under the minimum collateral amount required to maintain a healthy position.
+        // I.e. the new account's collateral value must still exceed the account's minimum
+        // collateral value.
+        // Get the account's current collateral value.
+        uint256 accountCollateralValue = self.getAccountCollateralValue(_account);
+        // Get the collateral value that the account will lose as a result of this withdrawal.
+        (uint256 withdrawnCollateralValue, ) = self.getCollateralValueAndOraclePrice(
+            _collateralAsset,
+            _withdrawAmount,
+            false // Take the collateral factor into consideration.
+        );
+        // Get the account's minimum collateral value.
+        uint256 accountMinCollateralValue = self.getAccountMinimumCollateralValueAtRatio(
+            _account,
+            self.minimumCollateralizationRatio
+        );
+        // Require accountMinCollateralValue <= accountCollateralValue - withdrawnCollateralValue.
+        require(
+            accountMinCollateralValue <= accountCollateralValue - withdrawnCollateralValue,
+            Error.COLLATERAL_INSUFFICIENT_AMOUNT
+        );
     }
 }

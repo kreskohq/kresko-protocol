@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "./IERC20Upgradeable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {IERC20Permit} from "./IERC20Permit.sol";
 
 /* solhint-disable var-name-mixedcase */
 /* solhint-disable not-rely-on-time */
@@ -14,7 +14,7 @@ import "./IERC20Upgradeable.sol";
 /// @author Kresko: modified to an upgradeable
 /// @dev Do not manually set balances without updating totalSupply, as the sum of all user balances must not exceed it.
 
-contract ERC20Upgradeable is Initializable, IERC20Upgradeable {
+contract ERC20Upgradeable is Initializable, IERC20Permit {
     /* -------------------------------------------------------------------------- */
     /*                                   Events                                   */
     /* -------------------------------------------------------------------------- */
@@ -114,11 +114,7 @@ contract ERC20Upgradeable is Initializable, IERC20Upgradeable {
         return true;
     }
 
-    function transferFrom(
-        address from,
-        address to,
-        uint256 amount
-    ) public virtual returns (bool) {
+    function transferFrom(address from, address to, uint256 amount) public virtual returns (bool) {
         uint256 allowed = _allowances[from][msg.sender]; // Saves gas for limited approvals.
 
         if (allowed != type(uint256).max) _allowances[from][msg.sender] = allowed - amount;
@@ -229,5 +225,16 @@ contract ERC20Upgradeable is Initializable, IERC20Upgradeable {
         }
 
         emit Transfer(from, address(0), amount);
+    }
+
+    /**
+     * @dev See {ERC20-_beforeTokenTransfer}.
+     *
+     * Requirements:
+     *
+     * - the contract must not be paused.
+     */
+    function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual {
+        // Silence state mutability warning without generating bytecode.
     }
 }

@@ -1,3 +1,4 @@
+import { TASK_GENERATE_TYPECHAIN, TASK_WRITE_ORACLE_JSON } from "@tasks";
 import { exec } from "child_process";
 import { subtask } from "hardhat/config";
 import { getFullyQualifiedName } from "hardhat/utils/contract-names";
@@ -13,15 +14,13 @@ export const coreExports = [
     "UniswapMath",
     "UniswapV2Pair",
     "UniswapV2LiquidityMathLibrary",
-    "Multisender",
     "FluxPriceFeedFactory",
     "FluxPriceFeed",
     "KISS",
-    "Funder",
+    "FunderTestnetExtended",
     "UniswapV2Oracle",
     "ERC20Upgradeable",
     "WETH",
-    "WBTC",
 ];
 function getFQNamesFromCompilationOutput(compileSolOutput: any): string[] {
     const allFQNNamesNested = compileSolOutput.artifactsEmittedPerJob.map((a: any) => {
@@ -38,7 +37,7 @@ const taskArgsStore = {
     noTypechain: false,
     fullRebuild: false,
 };
-subtask("typechain:generate-types", async ({ compileSolOutput, quiet }, { config, artifacts }) => {
+subtask(TASK_GENERATE_TYPECHAIN, async ({ compileSolOutput, quiet }, { config, artifacts }) => {
     const artifactFQNs: string[] = getFQNamesFromCompilationOutput(compileSolOutput);
     const artifactPaths = Array.from(
         new Set(artifactFQNs.map(fqn => artifacts.formArtifactPathFromFullyQualifiedName(fqn))),
@@ -133,7 +132,7 @@ export const exportDeployments = async () => {
                     }
                     console.log(`hh-deploy export: ${stdout}`);
 
-                    await hre.run("write-oracles");
+                    await hre.run(TASK_WRITE_ORACLE_JSON);
                     exec("rm packages/contracts/src/types/hardhat.d.ts", () => {
                         resolve(true);
                     });

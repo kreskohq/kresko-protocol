@@ -1,24 +1,19 @@
-// SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity >=0.8.20;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IUniswapV2Factory} from "../vendor/uniswap/v2-core/interfaces/IUniswapV2Factory.sol";
 import {IUniswapV2Router02} from "../vendor/uniswap/v2-periphery/interfaces/IUniswapV2Router02.sol";
-import "./interfaces/IKrStaking.sol";
+import {IKrStaking, IERC20} from "./interfaces/IKrStaking.sol";
 
 contract KrStakingHelper {
     using SafeERC20 for IERC20;
 
-    IUniswapV2Router02 public router;
-    IUniswapV2Factory public factory;
-    IKrStaking public staking;
+    IUniswapV2Router02 public immutable router;
+    IUniswapV2Factory public immutable factory;
+    IKrStaking public immutable staking;
 
-    constructor(
-        IUniswapV2Router02 _router,
-        IUniswapV2Factory _factory,
-        IKrStaking _staking
-    ) {
+    constructor(IUniswapV2Router02 _router, IUniswapV2Factory _factory, IKrStaking _staking) {
         router = _router;
         factory = _factory;
         staking = _staking;

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
 import {IERC165} from "../../shared/IERC165.sol";
 import {IDiamondCutFacet} from "../interfaces/IDiamondCutFacet.sol";
@@ -57,10 +57,11 @@ library LibOwnership {
      * @notice caller must be the pending owner
      */
     function finalizeOwnershipTransfer(DiamondState storage self) internal {
-        require(Meta.msgSender() == self.pendingOwner, Error.DIAMOND_INVALID_PENDING_OWNER);
+        address sender = Meta.msgSender();
+        require(sender == self.pendingOwner, Error.DIAMOND_INVALID_PENDING_OWNER);
         self.contractOwner = self.pendingOwner;
         self.pendingOwner = address(0);
 
-        emit AuthEvent.OwnershipTransferred(self.contractOwner, msg.sender);
+        emit AuthEvent.OwnershipTransferred(self.contractOwner, sender);
     }
 }

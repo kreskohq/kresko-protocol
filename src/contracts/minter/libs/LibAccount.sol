@@ -1,32 +1,30 @@
-// SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity >=0.8.20;
 
 import {MinterState} from "../MinterState.sol";
 import {KrAsset, CollateralAsset} from "../MinterTypes.sol";
-import {RebaseMath, Rebase} from "../../shared/Rebase.sol";
+import {RebaseMath} from "../../kreskoasset/Rebase.sol";
 import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
 import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
 import {irs} from "../InterestRateState.sol";
-import {FixedPoint} from "../../libs/FixedPoint.sol";
+import {Error} from "../../libs/Errors.sol";
 import {LibDecimals} from "../libs/LibDecimals.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 
 library LibAccount {
-    using FixedPoint for FixedPoint.Unsigned;
     using RebaseMath for uint256;
     using WadRay for uint256;
-    using LibDecimals for FixedPoint.Unsigned;
+    using LibDecimals for uint256;
 
     /**
      * @notice Gets an array of Kresko assets the account has minted.
      * @param _account The account to get the minted Kresko assets for.
      * @return An array of addresses of Kresko assets the account has minted.
      */
-    function getMintedKreskoAssets(MinterState storage self, address _account)
-        internal
-        view
-        returns (address[] memory)
-    {
+    function getMintedKreskoAssets(
+        MinterState storage self,
+        address _account
+    ) internal view returns (address[] memory) {
         return self.mintedKreskoAssets[_account];
     }
 
@@ -35,20 +33,19 @@ library LibAccount {
      * @param _account The account to get the deposited collateral assets for.
      * @return An array of addresses of collateral assets the account has deposited.
      */
-    function getDepositedCollateralAssets(MinterState storage self, address _account)
-        internal
-        view
-        returns (address[] memory)
-    {
+    function getDepositedCollateralAssets(
+        MinterState storage self,
+        address _account
+    ) internal view returns (address[] memory) {
         return self.depositedCollateralAssets[_account];
     }
 
     /**
-     * @notice Get `_account` collateral amount for `_asset`
+     * @notice Get deposited collateral asset amount for an account
      * @notice Performs rebasing conversion for KreskoAssets
      * @param _asset The asset address
      * @param _account The account to query amount for
-     * @return Amount of collateral for `_asset`
+     * @return uint256 amount of collateral for `_asset`
      */
     function getCollateralDeposits(
         MinterState storage self,
@@ -59,34 +56,30 @@ library LibAccount {
     }
 
     /**
-     * @notice Calculates if an account's current collateral value is under its minimum collateral value.
-     * @dev Returns true if the account's current collateral value is below the minimum collateral value.
-     * required to consider the position healthy.
+     * @notice Checks if accounts collateral value is less than required.
      * @param _account The account to check.
      * @return A boolean indicating if the account can be liquidated.
      */
     function isAccountLiquidatable(MinterState storage self, address _account) internal view returns (bool) {
         return
-            self.getAccountCollateralValue(_account).isLessThan(
-                self.getAccountMinimumCollateralValueAtRatio(_account, self.liquidationThreshold)
-            );
+            self.getAccountCollateralValue(_account) <
+            (self.getAccountMinimumCollateralValueAtRatio(_account, self.liquidationThreshold));
     }
 
     /**
-     * @notice Overload function for calculating liquidatable status with a future liquidated collateral value
+     * @notice Overload for calculating liquidatable status with a future liquidated collateral value
      * @param _account The account to check.
      * @param _valueLiquidated Value liquidated, eg. in a batch liquidation
-     * @return A boolean indicating if the account can be liquidated.
+     * @return bool indicating if the account can be liquidated.
      */
     function isAccountLiquidatable(
         MinterState storage self,
         address _account,
-        FixedPoint.Unsigned memory _valueLiquidated
+        uint256 _valueLiquidated
     ) internal view returns (bool) {
         return
-            self.getAccountCollateralValue(_account).sub(_valueLiquidated).isLessThan(
-                self.getAccountMinimumCollateralValueAtRatio(_account, self.liquidationThreshold)
-            );
+            self.getAccountCollateralValue(_account) - _valueLiquidated <
+            (self.getAccountMinimumCollateralValueAtRatio(_account, self.liquidationThreshold));
     }
 
     /**
@@ -95,67 +88,86 @@ library LibAccount {
      * @param _account The account to calculate the collateral value for.
      * @return totalCollateralValue The collateral value of a particular account.
      */
-    function getAccountCollateralValue(MinterState storage self, address _account)
-        internal
-        view
-        returns (FixedPoint.Unsigned memory totalCollateralValue)
-    {
+    function getAccountCollateralValue(
+        MinterState storage self,
+        address _account
+    ) internal view returns (uint256 totalCollateralValue) {
         address[] memory assets = self.depositedCollateralAssets[_account];
         for (uint256 i = 0; i < assets.length; i++) {
             address asset = assets[i];
-            (FixedPoint.Unsigned memory collateralValue, ) = self.getCollateralValueAndOraclePrice(
+            (uint256 collateralValue, ) = self.getCollateralValueAndOraclePrice(
                 asset,
                 self.getCollateralDeposits(_account, asset),
                 false // Take the collateral factor into consideration.
             );
-            totalCollateralValue = totalCollateralValue.add(collateralValue);
+            totalCollateralValue += collateralValue;
         }
 
         return totalCollateralValue;
     }
 
     /**
-     * @notice Get an account's minimum collateral value required
-     *         to back a Kresko asset amount at a given collateralization ratio.
-     * @dev Accounts that have their collateral value under the minimum collateral value are considered unhealthy,
-     *      accounts with their collateral value under the liquidation threshold are considered liquidatable.
+     * @notice Gets the collateral value of a particular account including extra return value for specific collateral.
+     * @dev O(# of different deposited collateral assets by account) complexity.
+     * @param _account The account to calculate the collateral value for.
+     * @param _collateralAsset The collateral asset to get the collateral value.
+     * @return totalCollateralValue The collateral value of a particular account.
+     */
+    function getAccountCollateralValue(
+        MinterState storage self,
+        address _account,
+        address _collateralAsset
+    ) internal view returns (uint256 totalCollateralValue, uint256 specificValue) {
+        address[] memory assets = self.depositedCollateralAssets[_account];
+        for (uint256 i = 0; i < assets.length; i++) {
+            address asset = assets[i];
+            (uint256 collateralValue, ) = self.getCollateralValueAndOraclePrice(
+                asset,
+                self.getCollateralDeposits(_account, asset),
+                false // Take the collateral factor into consideration.
+            );
+            totalCollateralValue += collateralValue;
+            if (asset == _collateralAsset) {
+                specificValue = collateralValue;
+            }
+        }
+    }
+
+    /**
+     * @notice Gets accounts min collateral value required to cover debt at a given collateralization ratio.
+     * @dev 1. Account with min collateral value under MCR will not borrow.
+     *      2. Account with min collateral value under LT can be liquidated.
      * @param _account The account to calculate the minimum collateral value for.
-     * @param _ratio The collateralization ratio required: higher ratio = more collateral required
-     * @return The minimum collateral value at a given collateralization ratio for a given account.
+     * @param _ratio The collateralization ratio to get min collateral value against.
+     * @return The min collateral value at given collateralization ratio for the account.
      */
     function getAccountMinimumCollateralValueAtRatio(
         MinterState storage self,
         address _account,
-        FixedPoint.Unsigned memory _ratio
-    ) internal view returns (FixedPoint.Unsigned memory) {
-        return self.getAccountKrAssetValue(_account).mul(_ratio);
+        uint256 _ratio
+    ) internal view returns (uint256) {
+        return self.getAccountKrAssetValue(_account).wadMul(_ratio);
     }
 
     /**
-     * @notice Gets the Kresko asset value in USD of a particular account.
-     * @param _account The account to calculate the Kresko asset value for.
-     * @return value The Kresko asset value of a particular account.
+     * @notice Gets the total KreskoAsset value in USD for an account.
+     * @param _account The account to calculate the KreskoAsset value for.
+     * @return value The KreskoAsset value of the account.
      */
-    function getAccountKrAssetValue(MinterState storage self, address _account)
-        internal
-        view
-        returns (FixedPoint.Unsigned memory value)
-    {
+    function getAccountKrAssetValue(MinterState storage self, address _account) internal view returns (uint256 value) {
         address[] memory assets = self.mintedKreskoAssets[_account];
         for (uint256 i = 0; i < assets.length; i++) {
             address asset = assets[i];
-            value = value.add(self.getKrAssetValue(asset, self.getKreskoAssetDebtScaled(_account, asset), false));
+            value += self.getKrAssetValue(asset, self.getKreskoAssetDebtScaled(_account, asset), false);
         }
         return value;
     }
 
     /**
-     * @notice Get `_account` scaled debt amount for `_asset`
-     * @notice debt amount of an account has one external effects
-     * * Effect #1: Stability rate accrual through debt index
+     * @notice Get accounts interested scaled debt amount for a KreskoAsset.
      * @param _asset The asset address
-     * @param _account The account to query amount for
-     * @return Amount of scaled debt for `_asset`
+     * @param _account The account to get the amount for
+     * @return Amount of scaled debt.
      */
     function getKreskoAssetDebtScaled(
         MinterState storage self,
@@ -172,8 +184,7 @@ library LibAccount {
 
     /**
      * @notice Get `_account` principal debt amount for `_asset`
-     * @notice Principal debt amount of an account has one external effects
-     * * Effect #1: Asset is rebased due to stock split/reverse split
+     * @dev Principal debt is rebase adjusted due to possible stock splits/reverse splits
      * @param _asset The asset address
      * @param _account The account to query amount for
      * @return Amount of principal debt for `_asset`
@@ -187,10 +198,9 @@ library LibAccount {
     }
 
     /**
-     * @notice Get the total interest accrued on top of debt
-     * * eg: scaled debt - principal debt
-     * @return assetAmount the interest denominated in _asset
-     * @return kissAmount the interest denominated in KISS, ignores K-factor
+     * @notice Get the total interest accrued on top of debt: Scaled Debt - Principal Debt
+     * @return assetAmount Interest denominated in _asset
+     * @return kissAmount Interest denominated in KISS. Ignores K-factor: $1 of interest = 1 KISS
      **/
     function getKreskoAssetDebtInterest(
         MinterState storage self,
@@ -200,7 +210,7 @@ library LibAccount {
         assetAmount =
             self.getKreskoAssetDebtScaled(_account, _asset) -
             self.getKreskoAssetDebtPrincipal(_account, _asset);
-        kissAmount = self.getKrAssetValue(_asset, assetAmount, true).fromFixedPointPriceToWad();
+        kissAmount = self.getKrAssetValue(_asset, assetAmount, true).oraclePriceToWad();
     }
 
     /**
@@ -214,7 +224,9 @@ library LibAccount {
         address _account,
         address _kreskoAsset
     ) internal view returns (uint256 i) {
-        for (i; i < self.mintedKreskoAssets[_account].length; i++) {
+        uint256 length = self.mintedKreskoAssets[_account].length;
+        require(length > 0, Error.NO_KRASSETS_MINTED);
+        for (i; i < length; i++) {
             if (self.mintedKreskoAssets[_account][i] == _kreskoAsset) {
                 break;
             }
@@ -232,7 +244,9 @@ library LibAccount {
         address _account,
         address _collateralAsset
     ) internal view returns (uint256 i) {
-        for (i; i < self.depositedCollateralAssets[_account].length; i++) {
+        uint256 length = self.depositedCollateralAssets[_account].length;
+        require(length > 0, Error.NO_COLLATERAL_DEPOSITS);
+        for (i; i < length; i++) {
             if (self.depositedCollateralAssets[_account][i] == _collateralAsset) {
                 break;
             }

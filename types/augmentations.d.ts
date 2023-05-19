@@ -1,61 +1,22 @@
+import type { FakeContract } from "@defi-wonderland/smock";
 import { Fragment, FunctionFragment, JsonFragment } from "@ethersproject/abi";
 import { fromBig, toBig } from "@kreskolabs/lib";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import type { Fixture } from "ethereum-waffle";
-import type { ABI, DeployOptions, Deployment, Facet, FacetCut } from "hardhat-deploy/dist/types";
+import { checkAddress } from "@scripts/check-address";
+import { BytesLike, Contract, providers } from "ethers";
+import { hardhatUsers } from "hardhat-configs/users";
+import { ABI, DeployOptions, Deployment, Facet, FacetCut } from "hardhat-deploy/dist/types";
 import "hardhat/types/config";
 import "mocha";
-
-import type { FakeContract, MockContract } from "@defi-wonderland/smock";
-import type { BytesLike, Contract, providers } from "ethers";
-import { hardhatUsers } from "hardhat-configs/users";
-import type {
-    ERC20Upgradeable,
-    UniswapV2Factory,
-    UniswapV2Oracle,
-    UniswapV2Pair,
-    UniswapV2Router02,
-} from "types/typechain";
+import type { UniswapV2Factory, UniswapV2Oracle, UniswapV2Pair, UniswapV2Router02 } from "types/typechain";
 import * as Contracts from "./typechain";
+import { FacetCutAction } from "hardhat-deploy/types";
 /* ========================================================================== */
 /*                             TEST AUGMENTATIONS                             */
 /* ========================================================================== */
 
 declare module "mocha" {
     export interface Context {
-        /* -------------------------------------------------------------------------- */
-        /*                              Helper Functions                              */
-        /* -------------------------------------------------------------------------- */
-        loadFixture: <T>(fixture: Fixture<T>) => Promise<T>;
-        calculateAmountB: (
-            amountA: BigNumber,
-            tokenA: string,
-            tokenB: string,
-            pair: UniswapV2Pair,
-        ) => Promise<BigNumber>;
-        getMostProfitableLiquidation: (
-            userAddress: string,
-        ) => Promise<{ maxUSD: number; collateralAsset: string; krAsset: string }>;
-        getUserValues: () => Promise<
-            {
-                actualCollateralUSD: number;
-                actualDebtUSD: number;
-                isUserSolvent: boolean;
-                collateralAmountVolative: number;
-                collateralAmountStable: number;
-                krAssetAmountVolative: number;
-                krAssetAmountStable: number;
-                debtUSDProtocol: number;
-                collateralUSDProtocol: number;
-                minCollateralUSD: number;
-                isLiquidatable: boolean;
-                userAddress: string;
-            }[]
-        >;
-        isProtocolSolvent: () => Promise<boolean>;
-        addCollateralAsset: (marketPrice: number, factor?: number) => Promise<MockContract<ERC20Upgradeable>>;
-        addKrAsset: (marketPrice: number) => Promise<MockContract<TC["KreskoAsset"]>>;
-
         /* -------------------------------------------------------------------------- */
         /*                               Users / Signers                              */
         /* -------------------------------------------------------------------------- */
@@ -148,9 +109,8 @@ declare module "hardhat/types/runtime" {
         /*                              Helper Functions                              */
         /* -------------------------------------------------------------------------- */
 
-        fromBig: typeof fromBig;
-        toBig: typeof toBig;
-        getDeploymentOrNull: (deploymentName: string) => Promise<Deployment | null>;
+        checkAddress: typeof checkAddress;
+        getDeploymentOrFork: (deploymentName: string) => Promise<Deployment | null>;
         getContractOrFork: <T extends keyof TC>(type: T, deploymentName?: string) => Promise<TC[T]>;
         forking: {
             provider: providers.JsonRpcProvider;
@@ -161,57 +121,41 @@ declare module "hardhat/types/runtime" {
         };
         deploy<T extends keyof TC>(
             type: T,
-            options?: Omit<DeployOptions, "from"> & { deploymentName?: string; from?: string },
+            options?: Omit<DeployOptions, "from"> & {
+                deploymentName?: string;
+                from?: string;
+            },
         ): Promise<DeployResultWithSignatures<TC[T]>>;
         // deploy<C extends Contract>(id: string, options?: DeployOptions): Promise<DeployResultWithSignaturesUnknown<C>>;
         getSignature: (jsonItem: Fragment | JsonFragment | string) => string | false;
         getSignatures: (abi: ABI) => string[];
         getSignaturesWithNames: (abi: ABI) => { name: string; sig: string }[];
         bytesCall: <T>(func: FunctionFragment, params: T) => string;
-        getAddFacetArgs: <T extends keyof TC>(
-            facet: TC[T],
-            signatures?: string[],
-            initializer?: {
-                contract: Contract;
-                functionName?: string;
-                args?: [string, BytesLike];
-            },
-        ) => {
-            facetCut: FacetCut;
-            initialization: {
-                _init: string;
-                _calldata: BytesLike;
-            };
-        };
         users: HardhatUsers<SignerWithAddress>;
         addr: HardhatUsers<string>;
-        /* -------------------------------------------------------------------------- */
-        /*                                   General                                  */
-        /* -------------------------------------------------------------------------- */
-        getUsers: () => Promise<HardhatUsers<SignerWithAddress>>;
-        getAddresses: () => Promise<HardhatUsers<string>>;
 
         /* -------------------------------------------------------------------------- */
         /*                                 Deployment                                 */
         /* -------------------------------------------------------------------------- */
 
-        DiamondDeployment: Deployment;
-        Diamond: TC["Kresko"];
-        Multisig: TC["GnosisSafeL2"];
-
         krAssets: TestKrAsset[];
         collateral: TestCollateral;
         krAsset: TestKrAsset;
         collaterals: TestCollateral[];
-        allAssets: TestAsset[];
         facets: { name: string; address: string; functions: number }[];
-        uniPairs: {
-            [name: string]: UniswapV2Pair;
-        };
-        UniV2Oracle: UniswapV2Oracle;
+
         /* -------------------------------------------------------------------------- */
         /*                             Misc / Deprecating                             */
         /* -------------------------------------------------------------------------- */
+
+        allAssets: TestAsset[];
+        uniPairs: {
+            [name: string]: UniswapV2Pair;
+        };
+        DiamondDeployment: Deployment;
+        Diamond: TC["Kresko"];
+        Multisig: TC["GnosisSafeL2"];
+        UniV2Oracle: UniswapV2Oracle;
         UniV2Factory: UniswapV2Factory;
         UniV2Router: UniswapV2Router02;
     }

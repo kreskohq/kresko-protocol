@@ -1,5 +1,4 @@
-import { getInternalEvent } from "@kreskolabs/protocol-ts";
-import { toBig } from "@kreskolabs/lib";
+import { toBig, getInternalEvent, fromBig } from "@kreskolabs/lib";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { BASIS_POINT, defaultCollateralArgs, defaultKrAssetArgs, withFixture } from "@utils/test";
 import { addLiquidity, getTWAPUpdaterFor } from "@utils/test/helpers/amm";
@@ -8,7 +7,7 @@ import { depositCollateral } from "@utils/test/helpers/collaterals";
 import { addMockKreskoAsset, mintKrAsset } from "@utils/test/helpers/krassets";
 import { expect } from "chai";
 import { Error } from "@utils/test/errors";
-import hre, { fromBig } from "hardhat";
+import hre from "hardhat";
 import {
     BatchInterestLiquidationOccurredEventObject,
     InterestLiquidationOccurredEventObject,
@@ -60,8 +59,8 @@ describe("Stability Rates", () => {
     });
 
     describe("#stability rate - liquidation", () => {
-        const depositAmount = hre.toBig(100);
-        const mintAmount = hre.toBig(10);
+        const depositAmount = toBig(100);
+        const mintAmount = toBig(10);
         let krAssets: TestKrAsset[];
         beforeEach(async function () {
             await this.collateral.setBalance(userTwo, depositAmount);
@@ -144,26 +143,25 @@ describe("Stability Rates", () => {
         });
         it("can liquidate accrued interest of unhealthy account", async function () {
             const KISS = await hre.getContractOrFork("KISS");
-            await KISS.connect(liquidator).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
-
-            await this.collateral.setBalance(userTwo, depositAmount);
-            // Deposit a bit more to cover the mints
-            await depositCollateral({
-                asset: this.collateral,
-                amount: depositAmount,
-                user: userTwo,
-            });
 
             // mint each krasset
-            await Promise.all(
-                krAssets.map(krAsset =>
+            await Promise.all([
+                await KISS.connect(liquidator).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256),
+                await this.collateral.setBalance(userTwo, depositAmount),
+                // Deposit a bit more to cover the mints
+                await depositCollateral({
+                    asset: this.collateral,
+                    amount: depositAmount,
+                    user: userTwo,
+                }),
+                ...krAssets.map(krAsset =>
                     mintKrAsset({
                         asset: krAsset,
                         amount: mintAmount,
                         user: userTwo,
                     }),
                 ),
-            );
+            ]);
 
             // Up the asset prices
             const newPrice = 15;
@@ -222,7 +220,9 @@ describe("Stability Rates", () => {
 
             // validate interest accrual changes
             expect(accountCollateralAfter).to.equal(accountCollateralBefore.sub(event.collateralSent));
-            const liquidationIncentive = fromBig((await hre.Diamond.liquidationIncentiveMultiplier()).rawValue);
+            const liquidationIncentive = fromBig(
+                (await hre.Diamond.collateralAsset(this.collateral.address)).liquidationIncentive,
+            );
             const expectedCollateral =
                 (accruedKissInterest / fromBig(await this.collateral.getPrice(), 8)) * liquidationIncentive;
             // event validation
@@ -230,8 +230,8 @@ describe("Stability Rates", () => {
             expect(event.liquidator).to.equal(liquidator.address);
             expect(event.repayKreskoAsset).to.equal(krAsset.address);
             expect(event.seizedCollateralAsset).to.equal(this.collateral.address);
-            expect(fromBig(event.collateralSent).toFixed(6)).to.equal(expectedCollateral.toFixed(6));
             expect(fromBig(event.repayUSD)).to.closeTo(accruedKissInterest, 0.0001);
+            expect(fromBig(event.collateralSent).toFixed(6)).to.equal(expectedCollateral.toFixed(6));
             // liquidator received collateral
             expect(await this.collateral.contract.balanceOf(liquidator.address)).to.equal(event.collateralSent);
         });
@@ -298,7 +298,9 @@ describe("Stability Rates", () => {
 
             // interest accrued changes
             expect(interestKissTotalAfter).to.closeTo(interestKissTotal - fromBig(event.repayUSD), 0.0001);
-            const liquidationIncentive = fromBig((await hre.Diamond.liquidationIncentiveMultiplier()).rawValue);
+            const liquidationIncentive = fromBig(
+                (await hre.Diamond.collateralAsset(this.collateral.address)).liquidationIncentive,
+            );
             const expectedCollateral = (repayUSD / fromBig(await this.collateral.getPrice(), 8)) * liquidationIncentive;
             // event validation
             expect(event.account).to.equal(userTwo.address);

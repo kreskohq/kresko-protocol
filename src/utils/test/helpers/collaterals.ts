@@ -1,16 +1,38 @@
-import hre from "hardhat";
 import { smock } from "@defi-wonderland/smock";
-import { getUsers } from "@utils/general";
-import { toFixedPoint, toBig } from "@kreskolabs/lib";
-import { TestCollateralAssetArgs, defaultCollateralArgs, TestCollateralAssetUpdate, InputArgs } from "../mocks";
-import { getMockOracleFor, setPrice } from "./general";
+import { toBig } from "@kreskolabs/lib";
 import { ERC20Upgradeable__factory, FluxPriceFeed__factory } from "types/typechain";
+import { InputArgs, TestCollateralAssetArgs, TestCollateralAssetUpdate, defaultCollateralArgs } from "../mocks";
+import { envCheck } from "@utils/general";
+import { CollateralAssetStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
+import { getMockOracleFor, setPrice } from "./oracle";
+
+envCheck();
+
+export const getCollateralConfig = async (
+    asset: { decimals: Function },
+    anchor: string,
+    cFactor: BigNumber,
+    liquidationIncentive: BigNumber,
+    oracle: string,
+    marketStatusOracle: string,
+): Promise<CollateralAssetStruct> => {
+    if (cFactor.gt(toBig(1))) throw new Error("cFactor must be less than 1");
+    if (liquidationIncentive.lt(toBig(1))) throw new Error("Liquidation incentive must be greater than 1");
+    return {
+        anchor,
+        factor: cFactor,
+        liquidationIncentive,
+        oracle,
+        marketStatusOracle,
+        decimals: await asset.decimals(),
+        exists: true,
+    };
+};
 
 export const addMockCollateralAsset = async (
     args: TestCollateralAssetArgs = defaultCollateralArgs,
 ): Promise<TestCollateral> => {
-    const users = await getUsers();
-
+    const { deployer } = await hre.ethers.getNamedSigners();
     const { name, price, factor, decimals } = args;
     const [MockOracle, FakeOracle] = await getMockOracleFor(name, price);
 
@@ -20,13 +42,18 @@ export const addMockCollateralAsset = async (
     TestCollateral.name.returns(name);
     TestCollateral.symbol.returns(name);
     TestCollateral.decimals.returns(decimals);
-    const cFactor = toFixedPoint(factor);
-    await hre.Diamond.connect(users.operator).addCollateralAsset(
+    const cFactor = toBig(factor);
+
+    await hre.Diamond.connect(deployer).addCollateralAsset(
         TestCollateral.address,
-        hre.ethers.constants.AddressZero,
-        cFactor,
-        MockOracle.address,
-        MockOracle.address,
+        await getCollateralConfig(
+            TestCollateral,
+            hre.ethers.constants.AddressZero,
+            cFactor,
+            toBig(process.env.LIQUIDATION_INCENTIVE!),
+            MockOracle.address,
+            MockOracle.address,
+        ),
     );
     const mocks = {
         contract: TestCollateral,
@@ -35,9 +62,9 @@ export const addMockCollateralAsset = async (
     };
     const asset: TestCollateral = {
         address: TestCollateral.address,
-        contract: ERC20Upgradeable__factory.connect(TestCollateral.address, users.deployer),
+        contract: ERC20Upgradeable__factory.connect(TestCollateral.address, deployer),
         kresko: () => hre.Diamond.collateralAsset(TestCollateral.address),
-        priceFeed: FluxPriceFeed__factory.connect(FakeOracle.address, users.deployer),
+        priceFeed: FluxPriceFeed__factory.connect(FakeOracle.address, deployer),
         deployArgs: args,
         anchor: {} as any,
         mocks,
@@ -64,14 +91,19 @@ export const addMockCollateralAsset = async (
 };
 
 export const updateCollateralAsset = async (address: string, args: TestCollateralAssetUpdate) => {
-    const users = await getUsers();
+    const { deployer } = await hre.ethers.getNamedSigners();
     const collateral = hre.collaterals.find(c => c.address === address);
-    await hre.Diamond.connect(users.operator).updateCollateralAsset(
+
+    await hre.Diamond.connect(deployer).updateCollateralAsset(
         collateral!.address,
-        hre.ethers.constants.AddressZero,
-        toFixedPoint(args.factor),
-        args.oracle || collateral!.priceFeed.address,
-        args.oracle || collateral!.priceFeed.address,
+        await getCollateralConfig(
+            collateral!.contract,
+            hre.ethers.constants.AddressZero,
+            toBig(args.factor),
+            toBig(process.env.LIQUIDATION_INCENTIVE!),
+            args.oracle || collateral!.priceFeed.address,
+            args.oracle || collateral!.priceFeed.address,
+        ),
     );
     // @ts-expect-error
     const asset: TestCollateral = {
@@ -122,4 +154,17 @@ export const withdrawCollateral = async (args: InputArgs) => {
     await asset.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
     const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(user.address, asset.address);
     return hre.Diamond.connect(user).withdrawCollateral(user.address, asset.address, depositAmount, cIndex);
+};
+
+export const getMaxWithdrawal = async (user: string, collateral: any) => {
+    const [collateralValue] = await hre.Diamond.getCollateralAdjustedAndRealValue(user, collateral.address);
+
+    const minCollateralRequired = await hre.Diamond.getAccountMinimumCollateralValueAtRatio(
+        user,
+        (await hre.Diamond.minimumCollateralizationRatio()).add((15e8).toString()),
+    );
+    const maxWithdrawValue = collateralValue.sub(minCollateralRequired);
+    const maxWithdrawAmount = maxWithdrawValue.wadDiv(await collateral.getPrice());
+
+    return { maxWithdrawValue, maxWithdrawAmount };
 };

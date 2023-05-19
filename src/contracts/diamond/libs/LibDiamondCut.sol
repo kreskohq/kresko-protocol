@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 import {IDiamondCutFacet} from "../interfaces/IDiamondCutFacet.sol";
 
 import {Meta} from "../../libs/Meta.sol";
@@ -129,11 +129,7 @@ library LibDiamondCut {
         self.selectorToFacetAndPosition[_selector].facetAddress = _facetAddress;
     }
 
-    function removeFunction(
-        DiamondState storage self,
-        address _facetAddress,
-        bytes4 _selector
-    ) internal {
+    function removeFunction(DiamondState storage self, address _facetAddress, bytes4 _selector) internal {
         require(_facetAddress != address(0), "DiamondCut: Can't remove function that doesn't exist");
         // replace selector with last selector, then delete last selector
         uint256 selectorPosition = self.selectorToFacetAndPosition[_selector].functionSelectorPosition;

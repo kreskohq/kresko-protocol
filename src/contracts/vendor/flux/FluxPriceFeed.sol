@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.20;
 
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import "./interfaces/AggregatorV2V3Interface.sol";
 
+/** solhint-disable var-name-mixedcase */
 /**
  * @notice Simple data posting on chain of a scalar value, compatible with Chainlink V2 and V3 aggregator interface
  */
@@ -19,7 +20,7 @@ contract FluxPriceFeed is AccessControl, AggregatorV2V3Interface {
         uint64 timestamp;
         bool marketOpen;
     }
-    mapping(uint32 => Transmission) s_transmissions; /* aggregator round ID */
+    mapping(uint32 => Transmission) internal s_transmissions; /* aggregator round ID */
        
 
     /**
@@ -66,6 +67,7 @@ contract FluxPriceFeed is AccessControl, AggregatorV2V3Interface {
      * @return _marketOpen value from latest report
      */
     function latestTransmissionDetails() external view returns (int192 _latestAnswer, uint64 _latestTimestamp, bool _marketOpen) {
+        // solhint-disable-next-line avoid-tx-origin
         require(msg.sender == tx.origin, "Only callable by EOA");
         return (
             s_transmissions[latestAggregatorRoundId].answer,
@@ -83,6 +85,7 @@ contract FluxPriceFeed is AccessControl, AggregatorV2V3Interface {
 
         // Check the report contents, and record the result
         latestAggregatorRoundId++;
+        // solhint-disable-next-line not-rely-on-time
         s_transmissions[latestAggregatorRoundId] = Transmission(_answer, uint64(block.timestamp), _marketOpen);
 
         emit NewTransmission(latestAggregatorRoundId, _answer, _marketOpen, msg.sender);

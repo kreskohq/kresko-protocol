@@ -1,74 +1,38 @@
-// SPDX-License-Identifier: MIT
-pragma solidity >=0.8.14;
-import "@openzeppelin/contracts-upgradeable/access/IAccessControlEnumerableUpgradeable.sol";
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity >=0.8.20;
 
-interface IKreskoAssetAnchor is IAccessControlEnumerableUpgradeable {
-    function asset() external view returns (address);
+import {IAccessControlEnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/IAccessControlEnumerableUpgradeable.sol";
+import {IERC165} from "../shared/IERC165.sol";
+import {IERC20Permit} from "../shared/IERC20Permit.sol";
+import {IKreskoAssetIssuer} from "./IKreskoAssetIssuer.sol";
+import {IKreskoAsset} from "./IKreskoAsset.sol";
+import {IERC4626Upgradeable} from "./IERC4626Upgradeable.sol";
 
-    function convertToAssets(uint256 shares) external view returns (uint256);
+interface IKreskoAssetAnchor is
+    IKreskoAssetIssuer,
+    IERC4626Upgradeable,
+    IERC20Permit,
+    IAccessControlEnumerableUpgradeable,
+    IERC165
+{
+    function totalAssets() external view override(IERC4626Upgradeable) returns (uint256);
 
-    function convertToShares(uint256 assets) external view returns (uint256);
+    /**
+     * @notice Initializes the Kresko Asset Anchor.
+     *
+     * @param _asset The underlying (Kresko) Asset
+     * @param _name Name of the anchor token
+     * @param _symbol Symbol of the anchor token
+     * @param _admin The adminstrator of this contract.
+     * @dev Decimals are not supplied as they are read from the underlying Kresko Asset
+     */
+    function initialize(IKreskoAsset _asset, string memory _name, string memory _symbol, address _admin) external;
 
-    function deposit(uint256, address) external returns (uint256);
-
-    function withdraw(
-        uint256,
-        address,
-        address
-    ) external returns (uint256);
-
-    function issue(uint256 _assets, address _to) external returns (uint256 shares);
-
-    function destroy(uint256 _assets, address _from) external returns (uint256 shares);
-
-    function initialize(
-        address _asset,
-        string memory _name,
-        string memory _symbol,
-        address _owner
-    ) external;
-
-    function maxDeposit(address) external view returns (uint256);
-
-    function maxMint(address) external view returns (uint256);
-
-    function maxRedeem(address owner) external view returns (uint256);
-
-    function maxWithdraw(address owner) external view returns (uint256);
-
-    function mint(uint256 _shares, address _receiver) external returns (uint256 assets);
-
-    function previewDeposit(uint256 assets) external view returns (uint256);
-
-    function previewMint(uint256 shares) external view returns (uint256);
-
-    function previewRedeem(uint256 shares) external view returns (uint256);
-
-    function previewWithdraw(uint256 assets) external view returns (uint256);
-
-    function renounceRole(bytes32 role, address account) external;
-
-    function revokeRole(bytes32 role, address account) external;
-
-    function supportsInterface(bytes4 interfaceId) external view returns (bool);
-
-    function symbol() external view returns (string memory);
-
-    function totalAssets() external view returns (uint256);
-
-    function totalSupply() external view returns (uint256);
-
-    function transfer(address to, uint256 amount) external returns (bool);
-
-    function transferFrom(
-        address from,
-        address to,
-        uint256 amount
-    ) external returns (bool);
-
-    function updateMetaData(
-        string memory _name,
-        string memory _symbol,
-        uint8 _version
-    ) external;
+    /**
+     * @notice Updates ERC20 metadata for the token in case eg. a ticker change
+     * @param _name new name for the asset
+     * @param _symbol new symbol for the asset
+     * @param _version number that must be greater than latest emitted `Initialized` version
+     */
+    function reinitializeERC20(string memory _name, string memory _symbol, uint8 _version) external;
 }

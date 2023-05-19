@@ -54,7 +54,10 @@ export interface SafeSignature {
 }
 
 export const calculateSafeDomainSeparator = (safe: Contract, chainId: BigNumberish): string => {
-    return utils._TypedDataEncoder.hashDomain({ verifyingContract: safe.address, chainId });
+    return utils._TypedDataEncoder.hashDomain({
+        verifyingContract: safe.address,
+        chainId,
+    });
 };
 
 export const preimageSafeTransactionHash = (safe: Contract, safeTx: SafeTransaction, chainId: BigNumberish): string => {

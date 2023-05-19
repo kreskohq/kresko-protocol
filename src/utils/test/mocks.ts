@@ -1,5 +1,5 @@
 import { anchorTokenPrefix } from "@deploy-config/shared";
-import { toBig, toFixedPoint, oneRay } from "@kreskolabs/lib";
+import { toBig, oneRay } from "@kreskolabs/lib";
 
 export type TestCollateralAssetArgs = {
     name: string;
@@ -20,7 +20,9 @@ export type InputArgs = {
     amount: string | number | BigNumber;
 };
 
-export type InputArgsSimple = Omit<InputArgs, "asset"> & { asset: { address: string } };
+export type InputArgsSimple = Omit<InputArgs, "asset"> & {
+    asset: { address: string };
+};
 
 export type TestKreskoAssetArgs = {
     name: string;
@@ -68,11 +70,11 @@ export const defaultKrAssetArgs = {
     closeFee: defaultCloseFee,
     openFee: defaultOpenFee,
     stabilityRates: {
-        stabilityRateBase: BASIS_POINT.mul(25), // 0.25%
-        rateSlope1: ONE_PERCENT.div(10).mul(3), // 0.3
-        rateSlope2: ONE_PERCENT.div(10).mul(30), // 3
+        stabilityRateBase: BASIS_POINT.mul(150), // 1.5%
+        rateSlope1: BASIS_POINT.mul(200), // 2.0
+        rateSlope2: BASIS_POINT.mul(600), // 5.0
         optimalPriceRate: oneRay, // price parity = 1 ray
-        priceRateDelta: ONE_PERCENT.div(10).mul(25), // 2.5% delta
+        priceRateDelta: BASIS_POINT.mul(300), // 3.0% delta
     },
 };
 
@@ -84,11 +86,11 @@ export const defaultCollateralArgs = {
 };
 
 export const getNewMinterParams = (feeRecipient: string) => ({
-    liquidationIncentiveMultiplier: toFixedPoint(1.05),
-    minimumCollateralizationRatio: toFixedPoint(1.4),
-    minimumDebtValue: toFixedPoint(20),
-    liquidationThreshold: toFixedPoint(1.3),
+    minimumCollateralizationRatio: toBig(1.4),
+    minimumDebtValue: toBig(20, 8),
+    liquidationThreshold: toBig(1.3),
     feeRecipient: feeRecipient,
+    MLM: toBig(1.0002),
 });
 
 export default {

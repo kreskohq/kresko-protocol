@@ -3,7 +3,7 @@ import { SolcUserConfig } from "hardhat/types";
 const oldCompilerSettings = {
     settings: {
         optimizer: {
-            enabled: true,
+            enabled: !process.env.CI,
             runs: 200,
         },
         outputSelection: {
@@ -15,16 +15,15 @@ const oldCompilerSettings = {
 };
 export const compilers: SolcUserConfig[] = [
     {
-        version: "0.8.14",
+        version: "0.8.20",
         settings: {
-            viaIR: true,
+            viaIR: !process.env.CI,
             optimizer: {
-                enabled: true,
-                runs: 200,
+                enabled: !process.env.CI,
+                runs: 2000000,
                 details: {
                     constantOptimizer: false,
                     deduplicate: true,
-                    yul: true,
                 },
             },
             outputSelection: {
@@ -55,7 +54,7 @@ export const compilers: SolcUserConfig[] = [
         version: "0.6.6",
         settings: {
             optimizer: {
-                enabled: true,
+                enabled: !process.env.CI,
                 runs: 200,
             },
         },
@@ -64,7 +63,7 @@ export const compilers: SolcUserConfig[] = [
         version: "0.5.16",
         settings: {
             optimizer: {
-                enabled: true,
+                enabled: !process.env.CI,
                 runs: 200,
             },
         },
