@@ -183,7 +183,6 @@ library LibCalculation {
             MaxLiquidationVars({
                 collateral: collateral,
                 accountCollateralValue: accountCollateralValue,
-                // debtFactor = k * LT / cFactor
                 debtFactor: _repayKreskoAsset.kFactor.wadMul(liquidationThreshold).wadDiv(collateral.factor),
                 minCollateralValue: minCollateralValue,
                 minimumDebtValue: state.minimumDebtValue,
