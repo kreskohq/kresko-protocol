@@ -2,7 +2,7 @@
 pragma solidity >=0.8.20;
 
 import {WadRay} from "../../libs/WadRay.sol";
-import {IUniswapV2Oracle} from "../interfaces/IUniswapV2Oracle.sol";
+import {IUniswapV2OracleCompat} from "../amm-oracle/IUniswapV2OracleCompat.sol";
 import {KrAsset} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
 
@@ -52,7 +52,7 @@ library LibKrAsset {
         if (self.ammOracle == address(0)) {
             return 0;
         }
-        return IUniswapV2Oracle(self.ammOracle).consultKrAsset(_kreskoAsset, _amount);
+        return IUniswapV2OracleCompat(self.ammOracle).consultKrAsset(_kreskoAsset, _amount);
     }
 
     /**
