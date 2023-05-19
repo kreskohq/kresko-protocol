@@ -313,7 +313,7 @@ contract UniswapV2Oracle {
             timeElapsed
         );
 
-        require(incentiveToken.balanceOf(address(this)) > 3 ether, Error.NO_INCENTIVES_LEFT);
+        require(incentiveToken.balanceOf(address(this)) >= 3 ether, Error.NO_INCENTIVES_LEFT);
         incentiveToken.transfer(msg.sender, 3 ether);
     }
 
