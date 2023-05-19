@@ -26,13 +26,7 @@ contract InterestLiquidationFacet is DiamondModifiers, IInterestLiquidationFacet
     using WadRay for uint256;
     using SafeERC20 for IERC20Permit;
 
-    /**
-     * @notice Attempts to batch liquidate all KISS interest accrued for an account in a unhealthy position
-     * @notice Liquidator must have the KISS balance required with the Kresko contract approved
-     * @notice Checks liquidatable status on each iteration liquidating only what is necessary
-     * @param _account The account to attempt to liquidate.
-     * @param _collateralAssetToSeize The address of the collateral asset to be seized.
-     */
+    /// @inheritdoc IInterestLiquidationFacet
     function batchLiquidateInterest(address _account, address _collateralAssetToSeize) external nonReentrant {
         // Borrower cannot liquidate themselves
         require(msg.sender != _account, Error.SELF_LIQUIDATION);
@@ -84,13 +78,7 @@ contract InterestLiquidationFacet is DiamondModifiers, IInterestLiquidationFacet
         );
     }
 
-    /**
-     * @notice Attempts to liquidate all KISS interest accrued for an account in a unhealthy position
-     * @notice Liquidator must have the KISS balance required with the Kresko contract approved
-     * @param _account The account to attempt to liquidate.
-     * @param _repayKreskoAsset The address of the Kresko asset to be repaid.
-     * @param _collateralAssetToSeize The address of the collateral asset to be seized.
-     */
+    /// @inheritdoc IInterestLiquidationFacet
     function liquidateInterest(
         address _account,
         address _repayKreskoAsset,
