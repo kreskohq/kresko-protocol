@@ -8,7 +8,9 @@ This repository contains the core smart contract code for Kresko protocol, which
 
 ### Setup
 
-Install dependencies:
+_For now, you need an npm token in .npmrc to install internal dependencies, this will be lifted later on._ <br/>
+
+Install dependencies after .npmrc is populated:
 
 ```sh
 pnpm i
