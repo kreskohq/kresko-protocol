@@ -8,9 +8,9 @@ This repository contains the core smart contract code for Kresko protocol, which
 
 ### Setup
 
-_For now, you need an npm token in .npmrc to install internal dependencies, this will be lifted later on._ <br/>
+<b>_You need a authorized npm token in .npmrc to install required internal dependencies, this will be lifted later on._</b> <br/>
 
-Install dependencies after .npmrc is populated:
+Install dependencies with an authorized .npmrc:
 
 ```sh
 pnpm i
@@ -24,37 +24,30 @@ Create local .env file:
 cp .env.example .env
 ```
 
-Example values:
+Minimum required values:
 
 ```sh
-MNEMONIC=
+MNEMONIC=some mnemonic
 LIQUIDATION_INCENTIVE=1.05
 LIQUIDATION_THRESHOLD=1.4
 MINIMUM_COLLATERALIZATION_RATIO=1.5
 MINIMUM_DEBT_VALUE=10
-INFURA_API_KEY=
-ALCHEMY_API_KEY=
-TWELVE_DATA_API_KEY=
-ALPHAVANTAGE_API_KEY=
-ETHERSCAN_API_KEY=
-QUICKNODE_API_KEY=
+ALCHEMY_API_KEY=alchemy api key
+TWELVE_DATA_API_KEY=twelve data api key
 TREASURY=0x0000000000000000000000000000000000000001
 MULTISIG=0x0000000000000000000000000000000000000002
 OPERATOR=0x0000000000000000000000000000000000000003
 ADMIN=0x0000000000000000000000000000000000000004
 FEED_VALIDATOR=0x0000000000000000000000000000000000000005
-FEED_VALIDATOR_PK=
+FEED_VALIDATOR_PK=some private key
 FUNDER=0x0000000000000000000000000000000000000006
-FUNDER_PK=
-TENDERLY_ACCESS_TOKEN=
-HARDHAT_DEPLOY_TENDERLY_DEBUG=true
 
 ```
 
 Ensure a working setup by performing a dry-run of the local deployment setup:
 
 ```sh
-pnpm deploy --tags local
+pnpm run deploy --tags local
 ```
 
 Run tests with against a local deployment fixture:
@@ -65,13 +58,13 @@ pnpm test
 
 ### Deployment
 
-To a local environment:
+To local network:
 
 ```sh
 pnpm local
 ```
 
-To any live network:
+To live network:
 
 ```sh
 pnpm deploy --network <network>
@@ -93,12 +86,6 @@ Run tests with `--grep Forking`
 
 ```sh
 pnpm fork:test
-```
-
-Run `00-sandbox.ts` in the fork
-
-```sh
-pnpm fork:sandbox
 ```
 
 ## Notes about the usage of [ERC-2535](https://eips.ethereum.org/EIPS/eip-2535) (Diamond)
