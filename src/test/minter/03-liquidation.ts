@@ -10,7 +10,7 @@ import {
 import { expect } from "@test/chai";
 import { fromBig, getInternalEvent, toBig } from "@kreskolabs/lib";
 import { Error } from "@utils/test/errors";
-import { addMockCollateralAsset, depositCollateral } from "@utils/test/helpers/collaterals";
+import { addMockCollateralAsset, depositCollateral, getCollateralConfig } from "@utils/test/helpers/collaterals";
 import { mintKrAsset } from "@utils/test/helpers/krassets";
 import { getExpectedMaxLiq, getCR, liquidate } from "@utils/test/helpers/liquidations";
 import { LiquidationOccurredEvent } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
@@ -53,11 +53,14 @@ describe("Minter", () => {
         // Add krAsset as a collateral with anchor and cFactor of 1
         await hre.Diamond.connect(hre.users.deployer).addCollateralAsset(
             this.krAsset!.contract.address,
-            this.krAsset!.anchor!.address,
-            toBig(1),
-            toBig(1.05),
-            assetInfo.oracle,
-            assetInfo.oracle,
+            await getCollateralConfig(
+                this.krAsset!.contract,
+                this.krAsset!.anchor!.address,
+                toBig(1),
+                toBig(1.05),
+                assetInfo.oracle,
+                assetInfo.oracle,
+            ),
         );
 
         // -------------------------------- Set up userOne deposit/debt --------------------------------

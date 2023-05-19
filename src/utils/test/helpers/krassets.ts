@@ -3,11 +3,11 @@ import { anchorTokenPrefix } from "@deploy-config/shared";
 import { toBig } from "@kreskolabs/lib";
 import { expect } from "chai";
 import hre from "hardhat";
-import { TestKreskoAssetArgs, defaultKrAssetArgs, TestKreskoAssetUpdate, InputArgs, InputArgsSimple } from "../mocks";
+import { InputArgsSimple, TestKreskoAssetArgs, TestKreskoAssetUpdate, defaultKrAssetArgs } from "../mocks";
 import roles from "../roles";
-import { getMockOracleFor, setPrice, setMarketOpen } from "./general";
 import { FluxPriceFeed__factory, KreskoAssetAnchor__factory, KreskoAsset__factory } from "types/typechain";
 import { KrAssetStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
+import { getMockOracleFor, setPrice, setMarketOpen } from "./oracle";
 
 export const getDebtIndexAdjustedBalance = async (user: SignerWithAddress, asset: TestKrAsset) => {
     const balance = await asset.contract.balanceOf(user.address);

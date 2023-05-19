@@ -1,5 +1,5 @@
 import { testnetConfigs } from "@deploy-config/opgoerli";
-import { fromBig, getLogger, toBig } from "@kreskolabs/lib";
+import { fromBig, getLogger } from "@kreskolabs/lib";
 
 export default async function run() {
     const { feedValidator, deployer } = await hre.ethers.getNamedSigners();
@@ -21,16 +21,11 @@ export default async function run() {
             throw new Error(`0 addr ${collateral.symbol}`);
         }
         const priceFeed = collateral.oracle!.chainlink ? collateral.oracle!.chainlink : fluxFeed;
-        const liqIncentive = toBig(process.env.LIQUIDATION_INCENTIVE!);
-
-        await Kresko.updateCollateralAsset(
-            contract.address,
-            asset.anchor,
-            asset.factor,
-            liqIncentive,
-            priceFeed,
-            fluxFeed,
-        );
+        await Kresko.updateCollateralAsset(contract.address, {
+            ...asset,
+            oracle: priceFeed,
+            marketStatusOracle: fluxFeed,
+        });
     }
     for (const krAsset of testnetConfigs[hre.network.name].krAssets) {
         const fluxFeed = await factory.addressOfPricePair(krAsset.oracle!.description, 8, feedValidator.address);
@@ -48,16 +43,11 @@ export default async function run() {
             `price: ${fromBig(latest[0], 8)} marketOpen: ${latest[1]}`,
         );
         const priceFeed = krAsset.oracle!.chainlink ? krAsset.oracle!.chainlink : fluxFeed;
-        await Kresko.updateKreskoAsset(
-            contract.address,
-            asset.anchor,
-            asset.kFactor,
-            priceFeed,
-            fluxFeed,
-            asset.supplyLimit,
-            asset.closeFee,
-            asset.openFee,
-        );
+        await Kresko.updateKreskoAsset(contract.address, {
+            ...asset,
+            oracle: priceFeed,
+            marketStatusOracle: fluxFeed,
+        });
     }
     logger.success("All price feeds updated");
 }

@@ -11,32 +11,6 @@ import { BigNumber } from "ethers";
 /*                                  GENERAL                                   */
 /* -------------------------------------------------------------------------- */
 
-export const getMockOracleFor = async (assetName = "Asset", price = defaultOraclePrice, marketOpen = true) => {
-    const FakeFeed = await smock.fake<FluxPriceFeed>("FluxPriceFeed");
-    const { deployer } = await hre.ethers.getNamedSigners();
-
-    const MockFeed = await (
-        await smock.mock<FluxPriceFeed__factory>("FluxPriceFeed")
-    ).deploy(deployer.address, defaultOracleDecimals, assetName);
-
-    MockFeed.latestAnswer.returns(toBig(price, 8));
-    MockFeed.latestMarketOpen.returns(marketOpen);
-    MockFeed.decimals.returns(8);
-    FakeFeed.latestAnswer.returns(toBig(price, 8));
-    FakeFeed.latestMarketOpen.returns(marketOpen);
-    FakeFeed.decimals.returns(8);
-    return [MockFeed, FakeFeed] as const;
-};
-
-export const setPrice = (oracles: any, price: number) => {
-    oracles.priceFeed.latestAnswer.returns(toBig(price, 8));
-    oracles.mockFeed.latestAnswer.returns(toBig(price, 8));
-};
-
-export const setMarketOpen = <T extends "FluxPriceFeed">(oracle: MockContract<TC[T]>, marketOpen: boolean) => {
-    oracle.latestMarketOpen.returns(marketOpen);
-};
-
 export const getHealthFactor = async (user: SignerWithAddress) => {
     const accountKrAssetValue = fromBig(await hre.Diamond.getAccountKrAssetValue(user.address), 8);
     const accountCollateral = fromBig(await hre.Diamond.getAccountCollateralValue(user.address), 8);

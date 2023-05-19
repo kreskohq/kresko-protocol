@@ -1,10 +1,11 @@
-import { MockContract, smock } from "@defi-wonderland/smock";
+import { smock } from "@defi-wonderland/smock";
 import { toBig } from "@kreskolabs/lib";
 import { ERC20Upgradeable__factory, FluxPriceFeed__factory } from "types/typechain";
 import { InputArgs, TestCollateralAssetArgs, TestCollateralAssetUpdate, defaultCollateralArgs } from "../mocks";
-import { getMockOracleFor, setPrice } from "./general";
 import { envCheck } from "@utils/general";
 import { CollateralAssetStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
+import { getMockOracleFor, setPrice } from "./oracle";
+
 envCheck();
 
 export const getCollateralConfig = async (
@@ -15,6 +16,8 @@ export const getCollateralConfig = async (
     oracle: string,
     marketStatusOracle: string,
 ): Promise<CollateralAssetStruct> => {
+    if (cFactor.gt(toBig(1))) throw new Error("cFactor must be less than 1");
+    if (liquidationIncentive.lt(toBig(1))) throw new Error("Liquidation incentive must be greater than 1");
     return {
         anchor,
         factor: cFactor,
@@ -25,6 +28,7 @@ export const getCollateralConfig = async (
         exists: true,
     };
 };
+
 export const addMockCollateralAsset = async (
     args: TestCollateralAssetArgs = defaultCollateralArgs,
 ): Promise<TestCollateral> => {
