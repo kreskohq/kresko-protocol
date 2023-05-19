@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.20;
 
+import {IKreskoAsset} from "./IKreskoAsset.sol";
+
 interface IERC4626Upgradeable {
     /**
      * @notice The underlying Kresko Asset
@@ -13,7 +15,7 @@ interface IERC4626Upgradeable {
      * @param receiver Address to send shares to
      * @return shares Amount of shares minted
      */
-    function deposit(uint256 assets, address shares) external returns (uint256 shares);
+    function deposit(uint256 assets, address receiver) external returns (uint256 shares);
 
     /**
      * @notice Withdraw KreskoAssets for equivalent amount of anchor tokens

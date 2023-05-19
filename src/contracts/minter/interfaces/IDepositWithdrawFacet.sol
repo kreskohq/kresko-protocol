@@ -8,7 +8,7 @@ interface IDepositWithdrawFacet {
      * @param _collateralAsset The address of the collateral asset.
      * @param _depositAmount The amount of the collateral asset to deposit.
      */
-    function depositCollateral(address _account, address _collateralAsset, uint256 _amount) external;
+    function depositCollateral(address _account, address _collateralAsset, uint256 _depositAmount) external;
 
     /**
      * @notice Withdraws sender's collateral from the protocol.
@@ -22,7 +22,7 @@ interface IDepositWithdrawFacet {
     function withdrawCollateral(
         address _account,
         address _collateralAsset,
-        uint256 _amount,
+        uint256 _withdrawAmount,
         uint256 _depositedCollateralAssetIndex
     ) external;
 

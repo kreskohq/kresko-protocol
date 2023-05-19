@@ -8,5 +8,5 @@ interface IMintFacet {
      * @param _kreskoAsset The address of the Kresko asset.
      * @param _mintAmount The amount of the Kresko asset to be minted.
      */
-    function mintKreskoAsset(address _account, address _kreskoAsset, uint256 _amount) external;
+    function mintKreskoAsset(address _account, address _kreskoAsset, uint256 _mintAmount) external;
 }

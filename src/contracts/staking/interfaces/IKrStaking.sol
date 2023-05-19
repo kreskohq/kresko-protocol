@@ -30,7 +30,7 @@ interface IKrStaking {
      * @return pid of pool with `_depositToken`
      * @return found ensure 0 index
      */
-    function getPidFor(address _token) external view returns (uint256 pid, bool found);
+    function getPidFor(address _depositToken) external view returns (uint256 pid, bool found);
 
     /**
      * @notice Amount of pools
@@ -53,7 +53,7 @@ interface IKrStaking {
      * @param _amount amount to withdraw
      * @param _rewardRecipient reward recipient
      */
-    function withdrawFor(address _for, uint256 _pid, uint256 _amount, address _claimRewardsTo) external payable;
+    function withdrawFor(address _for, uint256 _pid, uint256 _amount, address _rewardRecipient) external payable;
 
     /**
      * @notice Trusted helper contract can claim rewards on behalf of an account
@@ -66,8 +66,9 @@ interface IKrStaking {
     /**
      * @notice Get all pending rewards for an account
      * @param _account to get rewards for
+     * @return all pending rewards
      */
-    function allPendingRewards(address) external view returns (Reward[] memory);
+    function allPendingRewards(address _account) external view returns (Reward[] memory);
 
     /**
      * @notice Get account information on a pool
@@ -84,7 +85,7 @@ interface IKrStaking {
      */
     function poolInfo(uint256 _pid) external view returns (PoolInfo memory);
 
-    function rewardPerBlockFor(address depositTokenAddress) external view returns (uint256[] memory rewardPerBlocks);
+    function rewardPerBlockFor(address depositTokenAddress) external view returns (uint256 rewardPerBlocks);
 
     /**
      * @notice A rescue function for missent msg.value
