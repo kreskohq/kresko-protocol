@@ -39,13 +39,15 @@ library MinterEvent {
      * @param factor The collateral factor.
      * @param oracle The address of the oracle.
      * @param marketStatusOracle The address of the market status oracle.
+     * @param liquidationIncentive The liquidation incentive
      */
     event CollateralAssetAdded(
         address indexed collateralAsset,
         uint256 factor,
         address indexed oracle,
         address indexed marketStatusOracle,
-        address anchor
+        address anchor,
+        uint256 liquidationIncentive
     );
 
     /**
@@ -54,13 +56,15 @@ library MinterEvent {
      * @param factor The collateral factor.
      * @param oracle The oracle address.
      * @param marketStatusOracle The address of the market status oracle.
+     * @param liquidationIncentive The liquidation incentive
      */
     event CollateralAssetUpdated(
         address indexed collateralAsset,
         uint256 factor,
         address indexed oracle,
         address indexed marketStatusOracle,
-        address anchor
+        address anchor,
+        uint256 liquidationIncentive
     );
 
     /**

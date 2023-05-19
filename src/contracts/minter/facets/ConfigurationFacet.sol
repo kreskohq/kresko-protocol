@@ -166,113 +166,102 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
     /// @inheritdoc IConfigurationFacet
     function addCollateralAsset(
         address _collateralAsset,
-        address _anchor,
-        uint256 _factor,
-        uint256 _liquidationIncentiveMultiplier,
-        address _priceFeedOracle,
-        address _marketStatusOracle
+        CollateralAsset memory _config
     ) external nonReentrant onlyRole(Role.ADMIN) collateralAssetDoesNotExist(_collateralAsset) {
         require(_collateralAsset != address(0), Error.ADDRESS_INVALID_COLLATERAL);
-        require(_priceFeedOracle != address(0), Error.ADDRESS_INVALID_ORACLE);
+        require(address(_config.marketStatusOracle) != address(0), Error.ADDRESS_INVALID_ORACLE);
+        require(_config.oracle.decimals() == ms().extOracleDecimals, Error.INVALID_ORACLE_DECIMALS);
+        require(_config.factor <= Constants.ONE_HUNDRED_PERCENT, Error.COLLATERAL_INVALID_FACTOR);
         require(
-            AggregatorV2V3Interface(_priceFeedOracle).decimals() == ms().extOracleDecimals,
-            Error.INVALID_ORACLE_DECIMALS
-        );
-        require(_factor <= Constants.ONE_HUNDRED_PERCENT, Error.COLLATERAL_INVALID_FACTOR);
-        require(
-            _liquidationIncentiveMultiplier >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
+            _config.liquidationIncentive >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
             Error.PARAM_LIQUIDATION_INCENTIVE_LOW
         );
         require(
-            _liquidationIncentiveMultiplier <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER,
+            _config.liquidationIncentive <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER,
             Error.PARAM_LIQUIDATION_INCENTIVE_HIGH
         );
         bool isKrAsset = ms().kreskoAssets[_collateralAsset].exists;
         require(
             !isKrAsset ||
                 (IERC165(_collateralAsset).supportsInterface(type(IKISS).interfaceId)) ||
-                IERC165(_anchor).supportsInterface(type(IKreskoAssetIssuer).interfaceId),
+                IERC165(_config.anchor).supportsInterface(type(IKreskoAssetIssuer).interfaceId),
             Error.KRASSET_INVALID_ANCHOR
         );
 
         /* ---------------------------------- Save ---------------------------------- */
         ms().collateralAssets[_collateralAsset] = CollateralAsset({
-            factor: _factor,
-            oracle: AggregatorV2V3Interface(_priceFeedOracle),
-            liquidationIncentive: _liquidationIncentiveMultiplier,
-            marketStatusOracle: AggregatorV2V3Interface(_marketStatusOracle),
-            anchor: _anchor,
+            factor: _config.factor,
+            oracle: _config.oracle,
+            liquidationIncentive: _config.liquidationIncentive,
+            marketStatusOracle: _config.marketStatusOracle,
+            anchor: _config.anchor,
             exists: true,
             decimals: IERC20Permit(_collateralAsset).decimals()
         });
 
         emit MinterEvent.CollateralAssetAdded(
             _collateralAsset,
-            _factor,
-            _priceFeedOracle,
-            _marketStatusOracle,
-            _anchor
+            _config.factor,
+            address(_config.oracle),
+            address(_config.marketStatusOracle),
+            _config.anchor,
+            _config.liquidationIncentive
         );
     }
 
     /// @inheritdoc IConfigurationFacet
     function updateCollateralAsset(
         address _collateralAsset,
-        address _anchor,
-        uint256 _factor,
-        uint256 _liquidationIncentiveMultiplier,
-        address _priceFeedOracle,
-        address _marketStatusOracle
+        CollateralAsset memory _config
     ) external onlyRole(Role.ADMIN) collateralAssetExists(_collateralAsset) {
         // Setting the factor to 0 effectively sunsets a collateral asset, which is intentionally allowed.
-        require(_factor <= Constants.ONE_HUNDRED_PERCENT, Error.COLLATERAL_INVALID_FACTOR);
+        require(_config.factor <= Constants.ONE_HUNDRED_PERCENT, Error.COLLATERAL_INVALID_FACTOR);
         require(
-            _liquidationIncentiveMultiplier >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
+            _config.liquidationIncentive >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
             Error.PARAM_LIQUIDATION_INCENTIVE_LOW
         );
         require(
-            _liquidationIncentiveMultiplier <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER,
+            _config.liquidationIncentive <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER,
             Error.PARAM_LIQUIDATION_INCENTIVE_HIGH
         );
 
         /* ------------------------------ Update anchor ----------------------------- */
-        if (_anchor != address(0)) {
+        if (_config.anchor != address(0)) {
             bool krAsset = ms().kreskoAssets[_collateralAsset].exists;
             require(
                 !krAsset ||
                     (IERC165(_collateralAsset).supportsInterface(type(IKISS).interfaceId)) ||
-                    IERC165(_anchor).supportsInterface(type(IKreskoAssetIssuer).interfaceId),
+                    IERC165(_config.anchor).supportsInterface(type(IKreskoAssetIssuer).interfaceId),
                 Error.KRASSET_INVALID_ANCHOR
             );
-            ms().collateralAssets[_collateralAsset].anchor = _anchor;
+            ms().collateralAssets[_collateralAsset].anchor = _config.anchor;
         }
 
         /* -------------------------- Market status oracle -------------------------- */
-        if (_marketStatusOracle != address(0)) {
-            ms().collateralAssets[_collateralAsset].marketStatusOracle = AggregatorV2V3Interface(_marketStatusOracle);
+        if (address(_config.marketStatusOracle) != address(0)) {
+            ms().collateralAssets[_collateralAsset].marketStatusOracle = _config.marketStatusOracle;
         }
 
         /* ------------------------------- Price feed ------------------------------- */
-        if (_priceFeedOracle != address(0)) {
-            require(
-                AggregatorV2V3Interface(_priceFeedOracle).decimals() == ms().extOracleDecimals,
-                Error.INVALID_ORACLE_DECIMALS
-            );
-            ms().collateralAssets[_collateralAsset].oracle = AggregatorV2V3Interface(_priceFeedOracle);
+        if (address(_config.oracle) != address(0)) {
+            require(_config.oracle.decimals() == ms().extOracleDecimals, Error.INVALID_ORACLE_DECIMALS);
+            ms().collateralAssets[_collateralAsset].oracle = _config.oracle;
+            require(ms().collateralAssets[_collateralAsset].uintPrice() != 0, Error.ADDRESS_INVALID_ORACLE);
         }
 
         /* --------------------------------- cFactor -------------------------------- */
-        ms().collateralAssets[_collateralAsset].factor = _factor;
+        ms().collateralAssets[_collateralAsset].factor = _config.factor;
 
         /* ------------------------------ liqIncentive ------------------------------ */
-        ms().collateralAssets[_collateralAsset].liquidationIncentive = _liquidationIncentiveMultiplier;
+        ms().collateralAssets[_collateralAsset].liquidationIncentive = _config.liquidationIncentive;
 
         emit MinterEvent.CollateralAssetUpdated(
             _collateralAsset,
-            _factor,
-            _priceFeedOracle,
-            _marketStatusOracle,
-            _anchor
+            _config.factor,
+            ms().collateralAssets[_collateralAsset].oracle,
+            ms().collateralAssets[_collateralAsset].marketStatusOracle,
+            ms().collateralAssets[_collateralAsset].anchor,
+            _config.liquidationIncentive
         );
     }
 
