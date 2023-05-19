@@ -49,16 +49,18 @@ task(TASK_WHITELIST_COLLATERAL)
             if (!process.env.LIQUIDATION_INCENTIVE) {
                 throw new Error("LIQUIDATION_INCENTIVE is not set");
             }
-            const liquidationIncentive = toBig(process.env.LIQUIDATION_INCENTIVE!);
-            const tx = await kresko.addCollateralAsset(
-                Collateral.address,
-                anchor?.address ?? hre.ethers.constants.AddressZero,
-                toBig(cFactor),
-                liquidationIncentive,
-                oracleAddr,
-                marketStatusOracleAddr,
-            );
-            await tx.wait();
+
+            const config = {
+                anchor: anchor?.address ?? hre.ethers.constants.AddressZero,
+                factor: toBig(cFactor),
+                liquidationIncentive: toBig(process.env.LIQUIDATION_INCENTIVE!),
+                oracle: oracleAddr,
+                marketStatusOracle: marketStatusOracleAddr,
+                decimals: await Collateral.decimals(),
+                exists: true,
+            };
+
+            const tx = await kresko.addCollateralAsset(Collateral.address, config);
             if (log) {
                 const collateralDecimals = await Collateral.decimals();
                 logger.log(symbol, "decimals", collateralDecimals);

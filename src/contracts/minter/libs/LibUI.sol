@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.20;
 
 // solhint-disable-next-line
@@ -9,7 +9,7 @@ import {IKrStaking} from "../../staking/interfaces/IKrStaking.sol";
 import {LibDecimals} from "../libs/LibDecimals.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 import {Error} from "../../libs/Errors.sol";
-import {IUniswapV2Oracle} from "../interfaces/IUniswapV2Oracle.sol";
+import {IUniswapV2OracleCompat} from "../amm-oracle/IUniswapV2OracleCompat.sol";
 import {KrAsset, CollateralAsset} from "../MinterTypes.sol";
 import {MinterState, ms} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";
@@ -140,7 +140,7 @@ library LibUI {
         address depositToken;
         uint256 totalDeposits;
         uint256 allocPoint;
-        uint256[] rewardPerBlocks;
+        uint256 rewardPerBlocks;
         uint256 lastRewardBlock;
         uint256 depositAmount;
         address[] rewardTokens;
@@ -251,7 +251,7 @@ library LibUI {
             uint256 stabilityRate;
             uint256 priceRate;
             if (irs().srAssets[assetAddress].asset != address(0)) {
-                ammPrice = IUniswapV2Oracle(ms().ammOracle).consultKrAsset(assetAddress, 1 ether);
+                ammPrice = IUniswapV2OracleCompat(ms().ammOracle).consultKrAsset(assetAddress, 1 ether);
                 stabilityRate = irs().srAssets[assetAddress].calculateStabilityRate();
                 priceRate = irs().srAssets[assetAddress].getPriceRate();
             }
@@ -357,7 +357,7 @@ library LibUI {
                 if (irs().srAssets[assetAddress].asset != address(0)) {
                     stabilityRate = irs().srAssets[assetAddress].calculateStabilityRate();
                     priceRate = irs().srAssets[assetAddress].getPriceRate();
-                    ammPrice = IUniswapV2Oracle(ms().ammOracle).consultKrAsset(assetAddress, 1 ether);
+                    ammPrice = IUniswapV2OracleCompat(ms().ammOracle).consultKrAsset(assetAddress, 1 ether);
                 }
                 totalDebtUSD + amountUSD;
                 result[i] = krAssetInfoUser({

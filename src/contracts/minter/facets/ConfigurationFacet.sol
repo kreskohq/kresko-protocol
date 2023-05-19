@@ -166,113 +166,102 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
     /// @inheritdoc IConfigurationFacet
     function addCollateralAsset(
         address _collateralAsset,
-        address _anchor,
-        uint256 _factor,
-        uint256 _liquidationIncentiveMultiplier,
-        address _priceFeedOracle,
-        address _marketStatusOracle
+        CollateralAsset memory _config
     ) external nonReentrant onlyRole(Role.ADMIN) collateralAssetDoesNotExist(_collateralAsset) {
         require(_collateralAsset != address(0), Error.ADDRESS_INVALID_COLLATERAL);
-        require(_priceFeedOracle != address(0), Error.ADDRESS_INVALID_ORACLE);
+        require(address(_config.marketStatusOracle) != address(0), Error.ADDRESS_INVALID_ORACLE);
+        require(_config.oracle.decimals() == ms().extOracleDecimals, Error.INVALID_ORACLE_DECIMALS);
+        require(_config.factor <= Constants.ONE_HUNDRED_PERCENT, Error.COLLATERAL_INVALID_FACTOR);
         require(
-            AggregatorV2V3Interface(_priceFeedOracle).decimals() == ms().extOracleDecimals,
-            Error.INVALID_ORACLE_DECIMALS
-        );
-        require(_factor <= Constants.ONE_HUNDRED_PERCENT, Error.COLLATERAL_INVALID_FACTOR);
-        require(
-            _liquidationIncentiveMultiplier >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
+            _config.liquidationIncentive >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
             Error.PARAM_LIQUIDATION_INCENTIVE_LOW
         );
         require(
-            _liquidationIncentiveMultiplier <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER,
+            _config.liquidationIncentive <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER,
             Error.PARAM_LIQUIDATION_INCENTIVE_HIGH
         );
         bool isKrAsset = ms().kreskoAssets[_collateralAsset].exists;
         require(
             !isKrAsset ||
                 (IERC165(_collateralAsset).supportsInterface(type(IKISS).interfaceId)) ||
-                IERC165(_anchor).supportsInterface(type(IKreskoAssetIssuer).interfaceId),
+                IERC165(_config.anchor).supportsInterface(type(IKreskoAssetIssuer).interfaceId),
             Error.KRASSET_INVALID_ANCHOR
         );
 
         /* ---------------------------------- Save ---------------------------------- */
         ms().collateralAssets[_collateralAsset] = CollateralAsset({
-            factor: _factor,
-            oracle: AggregatorV2V3Interface(_priceFeedOracle),
-            liquidationIncentive: _liquidationIncentiveMultiplier,
-            marketStatusOracle: AggregatorV2V3Interface(_marketStatusOracle),
-            anchor: _anchor,
+            factor: _config.factor,
+            oracle: _config.oracle,
+            liquidationIncentive: _config.liquidationIncentive,
+            marketStatusOracle: _config.marketStatusOracle,
+            anchor: _config.anchor,
             exists: true,
             decimals: IERC20Permit(_collateralAsset).decimals()
         });
 
         emit MinterEvent.CollateralAssetAdded(
             _collateralAsset,
-            _factor,
-            _priceFeedOracle,
-            _marketStatusOracle,
-            _anchor
+            _config.factor,
+            address(_config.oracle),
+            address(_config.marketStatusOracle),
+            _config.anchor,
+            _config.liquidationIncentive
         );
     }
 
     /// @inheritdoc IConfigurationFacet
     function updateCollateralAsset(
         address _collateralAsset,
-        address _anchor,
-        uint256 _factor,
-        uint256 _liquidationIncentiveMultiplier,
-        address _priceFeedOracle,
-        address _marketStatusOracle
+        CollateralAsset memory _config
     ) external onlyRole(Role.ADMIN) collateralAssetExists(_collateralAsset) {
         // Setting the factor to 0 effectively sunsets a collateral asset, which is intentionally allowed.
-        require(_factor <= Constants.ONE_HUNDRED_PERCENT, Error.COLLATERAL_INVALID_FACTOR);
+        require(_config.factor <= Constants.ONE_HUNDRED_PERCENT, Error.COLLATERAL_INVALID_FACTOR);
         require(
-            _liquidationIncentiveMultiplier >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
+            _config.liquidationIncentive >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
             Error.PARAM_LIQUIDATION_INCENTIVE_LOW
         );
         require(
-            _liquidationIncentiveMultiplier <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER,
+            _config.liquidationIncentive <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER,
             Error.PARAM_LIQUIDATION_INCENTIVE_HIGH
         );
 
         /* ------------------------------ Update anchor ----------------------------- */
-        if (_anchor != address(0)) {
+        if (_config.anchor != address(0)) {
             bool krAsset = ms().kreskoAssets[_collateralAsset].exists;
             require(
                 !krAsset ||
                     (IERC165(_collateralAsset).supportsInterface(type(IKISS).interfaceId)) ||
-                    IERC165(_anchor).supportsInterface(type(IKreskoAssetIssuer).interfaceId),
+                    IERC165(_config.anchor).supportsInterface(type(IKreskoAssetIssuer).interfaceId),
                 Error.KRASSET_INVALID_ANCHOR
             );
-            ms().collateralAssets[_collateralAsset].anchor = _anchor;
+            ms().collateralAssets[_collateralAsset].anchor = _config.anchor;
         }
 
         /* -------------------------- Market status oracle -------------------------- */
-        if (_marketStatusOracle != address(0)) {
-            ms().collateralAssets[_collateralAsset].marketStatusOracle = AggregatorV2V3Interface(_marketStatusOracle);
+        if (address(_config.marketStatusOracle) != address(0)) {
+            ms().collateralAssets[_collateralAsset].marketStatusOracle = _config.marketStatusOracle;
         }
 
         /* ------------------------------- Price feed ------------------------------- */
-        if (_priceFeedOracle != address(0)) {
-            require(
-                AggregatorV2V3Interface(_priceFeedOracle).decimals() == ms().extOracleDecimals,
-                Error.INVALID_ORACLE_DECIMALS
-            );
-            ms().collateralAssets[_collateralAsset].oracle = AggregatorV2V3Interface(_priceFeedOracle);
+        if (address(_config.oracle) != address(0)) {
+            require(_config.oracle.decimals() == ms().extOracleDecimals, Error.INVALID_ORACLE_DECIMALS);
+            ms().collateralAssets[_collateralAsset].oracle = _config.oracle;
+            require(ms().collateralAssets[_collateralAsset].uintPrice() != 0, Error.ADDRESS_INVALID_ORACLE);
         }
 
         /* --------------------------------- cFactor -------------------------------- */
-        ms().collateralAssets[_collateralAsset].factor = _factor;
+        ms().collateralAssets[_collateralAsset].factor = _config.factor;
 
         /* ------------------------------ liqIncentive ------------------------------ */
-        ms().collateralAssets[_collateralAsset].liquidationIncentive = _liquidationIncentiveMultiplier;
+        ms().collateralAssets[_collateralAsset].liquidationIncentive = _config.liquidationIncentive;
 
         emit MinterEvent.CollateralAssetUpdated(
             _collateralAsset,
-            _factor,
-            _priceFeedOracle,
-            _marketStatusOracle,
-            _anchor
+            _config.factor,
+            address(ms().collateralAssets[_collateralAsset].oracle),
+            address(ms().collateralAssets[_collateralAsset].marketStatusOracle),
+            ms().collateralAssets[_collateralAsset].anchor,
+            _config.liquidationIncentive
         );
     }
 
@@ -283,71 +272,58 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
     /// @inheritdoc IConfigurationFacet
     function addKreskoAsset(
         address _krAsset,
-        address _anchor,
-        uint256 _kFactor,
-        address _priceFeedOracle,
-        address _marketStatusOracle,
-        uint256 _supplyLimit,
-        uint256 _closeFee,
-        uint256 _openFee
+        KrAsset memory _config
     ) external onlyRole(Role.ADMIN) kreskoAssetDoesNotExist(_krAsset) {
-        require(_kFactor >= Constants.ONE_HUNDRED_PERCENT, Error.KRASSET_INVALID_FACTOR);
-        require(_priceFeedOracle != address(0), Error.ADDRESS_INVALID_ORACLE);
-        require(_closeFee <= Constants.MAX_CLOSE_FEE, Error.PARAM_CLOSE_FEE_TOO_HIGH);
-        require(_openFee <= Constants.MAX_OPEN_FEE, Error.PARAM_OPEN_FEE_TOO_HIGH);
+        require(_config.kFactor >= Constants.ONE_HUNDRED_PERCENT, Error.KRASSET_INVALID_FACTOR);
+        require(_config.closeFee <= Constants.MAX_CLOSE_FEE, Error.PARAM_CLOSE_FEE_TOO_HIGH);
+        require(_config.openFee <= Constants.MAX_OPEN_FEE, Error.PARAM_OPEN_FEE_TOO_HIGH);
         require(
             IERC165(_krAsset).supportsInterface(type(IKISS).interfaceId) ||
                 IERC165(_krAsset).supportsInterface(type(IKreskoAsset).interfaceId),
             Error.KRASSET_INVALID_CONTRACT
         );
-        require(IERC165(_anchor).supportsInterface(type(IKreskoAssetIssuer).interfaceId), Error.KRASSET_INVALID_ANCHOR);
+        require(
+            IERC165(_config.anchor).supportsInterface(type(IKreskoAssetIssuer).interfaceId),
+            Error.KRASSET_INVALID_ANCHOR
+        );
         // The diamond needs the operator role
         require(IKreskoAsset(_krAsset).hasRole(Role.OPERATOR, address(this)), Error.NOT_OPERATOR);
 
         // Oracle decimals must match the configuration.
-        require(
-            AggregatorV2V3Interface(_priceFeedOracle).decimals() == ms().extOracleDecimals,
-            Error.INVALID_ORACLE_DECIMALS
-        );
+        require(_config.oracle.decimals() == ms().extOracleDecimals, Error.INVALID_ORACLE_DECIMALS);
 
         /* ---------------------------------- Save ---------------------------------- */
         ms().kreskoAssets[_krAsset] = KrAsset({
-            kFactor: _kFactor,
-            oracle: AggregatorV2V3Interface(_priceFeedOracle),
-            marketStatusOracle: AggregatorV2V3Interface(_marketStatusOracle),
-            anchor: _anchor,
-            supplyLimit: _supplyLimit,
-            closeFee: _closeFee,
-            openFee: _openFee,
+            kFactor: _config.kFactor,
+            oracle: _config.oracle,
+            marketStatusOracle: _config.marketStatusOracle,
+            anchor: _config.anchor,
+            supplyLimit: _config.supplyLimit,
+            closeFee: _config.closeFee,
+            openFee: _config.openFee,
             exists: true
         });
 
         emit MinterEvent.KreskoAssetAdded(
             _krAsset,
-            _anchor,
-            _priceFeedOracle,
-            _marketStatusOracle,
-            _kFactor,
-            _supplyLimit,
-            _closeFee,
-            _openFee
+            _config.anchor,
+            address(_config.oracle),
+            address(_config.marketStatusOracle),
+            _config.kFactor,
+            _config.supplyLimit,
+            _config.closeFee,
+            _config.openFee
         );
     }
 
     /// @inheritdoc IConfigurationFacet
     function updateKreskoAsset(
         address _krAsset,
-        address _anchor,
-        uint256 _kFactor,
-        address _priceFeedOracle,
-        address _marketStatusOracle,
-        uint256 _supplyLimit,
-        uint256 _closeFee,
-        uint256 _openFee
+        KrAsset memory _config
     ) external onlyRole(Role.ADMIN) kreskoAssetExists(_krAsset) {
-        require(_kFactor >= Constants.ONE_HUNDRED_PERCENT, Error.KRASSET_INVALID_FACTOR);
-        require(_closeFee <= Constants.MAX_CLOSE_FEE, Error.PARAM_CLOSE_FEE_TOO_HIGH);
-        require(_openFee <= Constants.MAX_OPEN_FEE, Error.PARAM_OPEN_FEE_TOO_HIGH);
+        require(_config.kFactor >= Constants.ONE_HUNDRED_PERCENT, Error.KRASSET_INVALID_FACTOR);
+        require(_config.closeFee <= Constants.MAX_CLOSE_FEE, Error.PARAM_CLOSE_FEE_TOO_HIGH);
+        require(_config.openFee <= Constants.MAX_OPEN_FEE, Error.PARAM_OPEN_FEE_TOO_HIGH);
         require(
             IERC165(_krAsset).supportsInterface(type(IKISS).interfaceId) ||
                 IERC165(_krAsset).supportsInterface(type(IKreskoAsset).interfaceId),
@@ -357,46 +333,44 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         KrAsset memory krAsset = ms().kreskoAssets[_krAsset];
 
         /* --------------------------------- Anchor --------------------------------- */
-        if (address(_anchor) != address(0)) {
+        if (_config.anchor != address(0)) {
             require(
-                IERC165(_anchor).supportsInterface(type(IKreskoAssetIssuer).interfaceId),
+                IERC165(_config.anchor).supportsInterface(type(IKreskoAssetIssuer).interfaceId),
                 Error.KRASSET_INVALID_ANCHOR
             );
-            krAsset.anchor = _anchor;
+            krAsset.anchor = _config.anchor;
         }
 
         /* ------------------------------ Market status ----------------------------- */
-        if (address(_marketStatusOracle) != address(0)) {
-            krAsset.marketStatusOracle = AggregatorV2V3Interface(_marketStatusOracle);
+        if (address(_config.marketStatusOracle) != address(0)) {
+            krAsset.marketStatusOracle = _config.marketStatusOracle;
         }
 
         /* ------------------------------- Price feed ------------------------------- */
-        if (address(_priceFeedOracle) != address(0)) {
-            require(
-                AggregatorV2V3Interface(_priceFeedOracle).decimals() == ms().extOracleDecimals,
-                Error.INVALID_ORACLE_DECIMALS
-            );
-            krAsset.oracle = AggregatorV2V3Interface(_priceFeedOracle);
+        if (address(_config.oracle) != address(0)) {
+            require(_config.oracle.decimals() == ms().extOracleDecimals, Error.INVALID_ORACLE_DECIMALS);
+            krAsset.oracle = _config.oracle;
+            require(krAsset.uintPrice() != 0, Error.ADDRESS_INVALID_ORACLE);
         }
 
         /* -------------------------- Factors, Fees, Limits ------------------------- */
-        krAsset.kFactor = _kFactor;
-        krAsset.supplyLimit = _supplyLimit;
-        krAsset.closeFee = _closeFee;
-        krAsset.openFee = _openFee;
+        krAsset.kFactor = _config.kFactor;
+        krAsset.supplyLimit = _config.supplyLimit;
+        krAsset.closeFee = _config.closeFee;
+        krAsset.openFee = _config.openFee;
 
         /* ---------------------------------- Save ---------------------------------- */
         ms().kreskoAssets[_krAsset] = krAsset;
 
         emit MinterEvent.KreskoAssetUpdated(
             _krAsset,
-            _anchor,
-            _priceFeedOracle,
-            _marketStatusOracle,
-            _kFactor,
-            _supplyLimit,
-            _closeFee,
-            _openFee
+            krAsset.anchor,
+            address(krAsset.oracle),
+            address(krAsset.marketStatusOracle),
+            krAsset.kFactor,
+            krAsset.supplyLimit,
+            krAsset.closeFee,
+            krAsset.openFee
         );
     }
 }

@@ -10,63 +10,33 @@ interface IConfigurationFacet {
      * @notice Adds a collateral asset to the protocol.
      * @dev Only callable by the owner and cannot be called more than once for an asset.
      * @param _collateralAsset The address of the collateral asset.
-     * @param _anchor Underlying anchor for a krAsset collateral, needs to support IKreskoAssetAnchor.
-     * @param _factor The collateral factor of the collateral asset.
-     * Must be <= 1e18.
-     * @param _liquidationIncentiveMultiplier The liquidation incentive multiplier.
-     * @param _priceFeedOracle The oracle address for the collateral asset's USD value.
-     * @param _marketStatusOracle The oracle address for the collateral asset's market open/closed status
+     * @param _config The configuration for the collateral asset.
      */
-    function addCollateralAsset(
-        address _collateralAsset,
-        address _anchor,
-        uint256 _factor,
-        uint256 _liquidationIncentiveMultiplier,
-        address _priceFeedOracle,
-        address _marketStatusOracle
-    ) external;
+    function addCollateralAsset(address _collateralAsset, CollateralAsset memory _config) external;
 
     /**
      * @notice Adds a KreskoAsset to the protocol.
      * @dev Only callable by the owner.
      * @param _krAsset The address of the wrapped KreskoAsset, needs to support IKreskoAsset.
-     * @param _anchor Underlying anchor for the krAsset, needs to support IKreskoAssetAnchor.
-     * @param _kFactor The k-factor of the KreskoAsset. Must be >= 1e18.
-     * @param _priceFeedOracle The oracle address for the KreskoAsset.
-     * @param _marketStatusOracle The oracle address for the KreskoAsset market status.
-     * @param _supplyLimit The initial total supply limit for the KreskoAsset.
-     * @param _closeFee The initial close fee percentage for the KreskoAsset.
-     * @param _openFee The initial open fee percentage for the KreskoAsset.
+     * @param _config Configuration for the KreskoAsset.
      */
-    function addKreskoAsset(
-        address _krAsset,
-        address _anchor,
-        uint256 _kFactor,
-        address _priceFeedOracle,
-        address _marketStatusOracle,
-        uint256 _supplyLimit,
-        uint256 _closeFee,
-        uint256 _openFee
-    ) external;
+    function addKreskoAsset(address _krAsset, KrAsset memory _config) external;
 
     /**
      * @notice Updates a previously added collateral asset.
      * @dev Only callable by the owner.
      * @param _collateralAsset The address of the collateral asset.
-     * @param _anchor Underlying anchor for a krAsset collateral, needs to support IKreskoAssetAnchor.
-     * @param _factor The new collateral factor. Must be <= 1e18.
-     * @param _liquidationIncentiveMultiplier The liquidation incentive multiplier.
-     * @param _priceFeedOracle The new oracle address for the collateral asset.
-     * @param _marketStatusOracle The oracle address for the collateral asset's market open/closed status
+     * @param _config The configuration for the collateral asset.
      */
-    function updateCollateralAsset(
-        address _collateralAsset,
-        address _anchor,
-        uint256 _factor,
-        uint256 _liquidationIncentiveMultiplier,
-        address _priceFeedOracle,
-        address _marketStatusOracle
-    ) external;
+    function updateCollateralAsset(address _collateralAsset, CollateralAsset memory _config) external;
+
+    /**
+     * @notice Updates the k-factor of a previously added KreskoAsset.
+     * @dev Only callable by the owner.
+     * @param _krAsset The address of the KreskoAsset.
+     * @param _config Configuration for the KreskoAsset.
+     */
+    function updateKreskoAsset(address _krAsset, KrAsset memory _config) external;
 
     /**
      * @notice Updates the fee recipient.
@@ -87,29 +57,6 @@ interface IConfigurationFacet {
      * @param _kFactor The new kFactor.
      */
     function updateKFactor(address _kreskoAsset, uint256 _kFactor) external;
-
-    /**
-     * @notice Updates the k-factor of a previously added KreskoAsset.
-     * @dev Only callable by the owner.
-     * @param _krAsset The address of the KreskoAsset.
-     * @param _anchor Underlying anchor for a krAsset.
-     * @param _kFactor The new k-factor. Must be >= 1e18.
-     * @param _priceFeedOracle The new oracle address for the KreskoAsset's USD value.
-     * @param _marketStatusOracle The oracle address for the KreskoAsset market status.
-     * @param _supplyLimit The new total supply limit for the KreskoAsset.
-     * @param _closeFee The new close fee percentage for the KreskoAsset.
-     * @param _openFee The new open fee percentage for the KreskoAsset.
-     */
-    function updateKreskoAsset(
-        address _krAsset,
-        address _anchor,
-        uint256 _kFactor,
-        address _priceFeedOracle,
-        address _marketStatusOracle,
-        uint256 _supplyLimit,
-        uint256 _closeFee,
-        uint256 _openFee
-    ) external;
 
     /**
      * @notice Updates the liquidation incentive multiplier.

@@ -11,7 +11,12 @@ import hre from "hardhat";
 import { fromBig, toBig, getInternalEvent } from "@kreskolabs/lib";
 import { executeContractCallWithSigners } from "@utils/gnosis/utils/execution";
 import { Error } from "@utils/test/errors";
-import { addMockCollateralAsset, depositCollateral, withdrawCollateral } from "@utils/test/helpers/collaterals";
+import {
+    addMockCollateralAsset,
+    depositCollateral,
+    getCollateralConfig,
+    withdrawCollateral,
+} from "@utils/test/helpers/collaterals";
 import { expect } from "chai";
 import { BigNumber } from "ethers";
 import {
@@ -594,11 +599,14 @@ describe("Minter - Deposit Withdraw", () => {
                 // Add krAsset as a collateral with anchor and cFactor of 1
                 await hre.Diamond.connect(hre.users.deployer).addCollateralAsset(
                     this.krAsset!.contract.address,
-                    this.krAsset!.anchor!.address,
-                    toBig(1),
-                    toBig(1.05),
-                    assetInfo.oracle,
-                    assetInfo.oracle,
+                    await getCollateralConfig(
+                        this.krAsset.contract,
+                        this.krAsset!.anchor!.address,
+                        toBig(1),
+                        toBig(1.05),
+                        assetInfo.oracle,
+                        assetInfo.oracle,
+                    ),
                 );
 
                 // Allowance for Kresko
@@ -1092,11 +1100,14 @@ describe("Minter - Deposit Withdraw", () => {
                 // Add krAsset as a collateral with anchor and cFactor of 1
                 await hre.Diamond.connect(hre.users.deployer).addCollateralAsset(
                     this.krAsset!.contract.address,
-                    this.krAsset!.anchor!.address,
-                    toBig(1),
-                    toBig(1.05),
-                    assetInfo.oracle,
-                    assetInfo.oracle,
+                    await getCollateralConfig(
+                        this.krAsset.contract,
+                        this.krAsset!.anchor!.address,
+                        toBig(1),
+                        toBig(1.05),
+                        assetInfo.oracle,
+                        assetInfo.oracle,
+                    ),
                 );
 
                 // Allowance for Kresko

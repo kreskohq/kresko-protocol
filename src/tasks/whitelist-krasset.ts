@@ -38,16 +38,17 @@ task(TASK_WHITELIST_KRASSET)
             logger.warn(`KrAsset ${symbol} already exists! Skipping..`);
         } else {
             logger.log(`Whitelisting Kresko Asset: ${symbol}, anchor: ${KrAssetAnchor?.address}}`);
-            const tx = await kresko.addKreskoAsset(
-                KrAsset.address,
-                KrAssetAnchor ? KrAssetAnchor.address : KrAsset.address,
-                toBig(kFactor),
-                oracleAddr,
-                marketStatusOracleAddr,
-                toBig(supplyLimit),
-                toBig(0.02),
-                toBig(0),
-            );
+            const config = {
+                anchor: KrAssetAnchor ? KrAssetAnchor.address : KrAsset.address,
+                kFactor: toBig(kFactor),
+                oracle: oracleAddr,
+                marketStatusOracle: marketStatusOracleAddr,
+                supplyLimit: toBig(supplyLimit),
+                closeFee: toBig(0.02),
+                openFee: toBig(0),
+                exists: true,
+            };
+            const tx = await kresko.addKreskoAsset(KrAsset.address, config);
             logger.success("txHash", tx.hash);
             await tx.wait();
             logger.success(`Succesfully whitelisted Kresko Asset ${symbol} with a kFactor of ${kFactor}`);

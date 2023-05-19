@@ -3,8 +3,11 @@ import { HardhatUserConfig } from "hardhat/config";
 if (!process.env.OPERATOR) {
     throw new Error("OPERATOR not set");
 }
-if (!process.env.FEED_VALIDATOR) {
-    throw new Error("FEED_VALIDATOR not set");
+if (!process.env.MNEMONIC) {
+    throw new Error("MNEMONIC not set");
+}
+if (!process.env.FEED_VALIDATOR_PK) {
+    throw new Error("FEED_VALIDATOR_PK not set");
 }
 if (!process.env.TREASURY) {
     throw new Error("TREASURY not set");

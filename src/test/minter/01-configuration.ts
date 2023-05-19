@@ -1,15 +1,10 @@
 import { smock } from "@defi-wonderland/smock";
 import { fromBig, toBig } from "@kreskolabs/lib";
 import { expect } from "@test/chai";
-import {
-    defaultCollateralArgs,
-    defaultKrAssetArgs,
-    getMockOracleFor,
-    getNewMinterParams,
-    withFixture,
-} from "@utils/test";
+import { defaultCollateralArgs, defaultKrAssetArgs, getNewMinterParams, withFixture } from "@utils/test";
 import { addMockCollateralAsset } from "@utils/test/helpers/collaterals";
-import { addMockKreskoAsset } from "@utils/test/helpers/krassets";
+import { addMockKreskoAsset, getKrAssetConfig } from "@utils/test/helpers/krassets";
+import { getMockOracleFor } from "@utils/test/helpers/oracle";
 
 describe("Minter - Configuration", () => {
     withFixture(["minter-init"]);
@@ -121,13 +116,15 @@ describe("Minter - Configuration", () => {
 
             await hre.Diamond.connect(hre.users.deployer).updateKreskoAsset(
                 contract.address,
-                anchor!.address,
-                update.factor,
-                newPriceFeed.address,
-                newPriceFeed.address,
-                toBig(update.supplyLimit),
-                update.closeFee,
-                update.openFee,
+                await getKrAssetConfig(
+                    anchor!.address,
+                    update.factor,
+                    newPriceFeed.address,
+                    newPriceFeed.address,
+                    toBig(update.supplyLimit),
+                    update.closeFee,
+                    update.openFee,
+                ),
             );
 
             const newValues = await hre.Diamond.kreskoAsset(contract.address);
