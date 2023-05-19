@@ -140,7 +140,7 @@ library LibUI {
         address depositToken;
         uint256 totalDeposits;
         uint256 allocPoint;
-        uint256[] rewardPerBlocks;
+        uint256 rewardPerBlocks;
         uint256 lastRewardBlock;
         uint256 depositAmount;
         address[] rewardTokens;

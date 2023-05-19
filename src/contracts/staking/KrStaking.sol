@@ -16,31 +16,6 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable, IKrS
 
     /**
      * ==================================================
-     * =============== Structs ==========================
-     * ==================================================
-     */
-
-    struct UserInfo {
-        uint256 amount;
-        uint256[] rewardDebts;
-    }
-
-    struct PoolInfo {
-        IERC20 depositToken; // Address of LP token contract.
-        uint128 allocPoint; // How many allocation points assigned to this pool.
-        uint128 lastRewardBlock; // Last block number that rewards distribution occurs.
-        uint256[] accRewardPerShares; // Accumulated rewards per share, times 1e12.
-        address[] rewardTokens; // Reward tokens for this pool.
-    }
-
-    struct Reward {
-        uint256 pid;
-        address[] tokens;
-        uint256[] amounts;
-    }
-
-    /**
-     * ==================================================
      * =============== Storage ==========================
      * ==================================================
      */
