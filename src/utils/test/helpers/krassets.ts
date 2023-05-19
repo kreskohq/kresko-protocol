@@ -7,10 +7,32 @@ import { TestKreskoAssetArgs, defaultKrAssetArgs, TestKreskoAssetUpdate, InputAr
 import roles from "../roles";
 import { getMockOracleFor, setPrice, setMarketOpen } from "./general";
 import { FluxPriceFeed__factory, KreskoAssetAnchor__factory, KreskoAsset__factory } from "types/typechain";
+import { KrAssetStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 
 export const getDebtIndexAdjustedBalance = async (user: SignerWithAddress, asset: TestKrAsset) => {
     const balance = await asset.contract.balanceOf(user.address);
     return [balance, balance.rayMul(await hre.Diamond.getDebtIndexForAsset(asset.address))];
+};
+
+export const getKrAssetConfig = async (
+    anchor: string,
+    kFactor: BigNumber,
+    oracle: string,
+    marketStatusOracle: string,
+    supplyLimit: BigNumber,
+    closeFee: BigNumber,
+    openFee: BigNumber,
+): Promise<KrAssetStruct> => {
+    return {
+        anchor,
+        kFactor,
+        oracle,
+        marketStatusOracle,
+        supplyLimit,
+        closeFee,
+        openFee,
+        exists: true,
+    };
 };
 
 export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAssetArgs): Promise<TestKrAsset> => {
@@ -39,13 +61,15 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
     const kFactor = toBig(factor);
     await hre.Diamond.connect(deployer).addKreskoAsset(
         krAsset.address,
-        akrAsset.address,
-        kFactor,
-        MockOracle.address,
-        MockOracle.address,
-        toBig(supplyLimit, await krAsset.decimals()),
-        toBig(closeFee),
-        toBig(openFee),
+        await getKrAssetConfig(
+            akrAsset.address,
+            kFactor,
+            Oracle.address,
+            MockOracle.address,
+            toBig(supplyLimit),
+            toBig(closeFee),
+            toBig(openFee),
+        ),
     );
     await krAsset.grantRole(roles.OPERATOR, akrAsset.address);
     await hre.Diamond.setupStabilityRateParams(krAsset.address, {
@@ -131,13 +155,15 @@ export const addMockKreskoAssetWithAMMPair = async (
 
     await hre.Diamond.connect(deployer).addKreskoAsset(
         krAsset.address,
-        akrAsset.address,
-        toBig(factor),
-        MockOracle.address,
-        MockOracle.address,
-        toBig(supplyLimit, await krAsset.decimals()),
-        toBig(closeFee),
-        toBig(openFee),
+        await getKrAssetConfig(
+            akrAsset.address,
+            toBig(factor),
+            MockOracle.address,
+            MockOracle.address,
+            toBig(supplyLimit),
+            toBig(closeFee),
+            toBig(openFee),
+        ),
     );
     await krAsset.grantRole(roles.OPERATOR, akrAsset.address);
     await hre.Diamond.setupStabilityRateParams(krAsset.address, defaultKrAssetArgs.stabilityRates);
@@ -195,13 +221,15 @@ export const updateKrAsset = async (address: string, args: TestKreskoAssetUpdate
     const krAsset = hre.krAssets.find(c => c.address === address)!;
     await hre.Diamond.connect(deployer).updateKreskoAsset(
         krAsset.address,
-        krAsset.mocks.anchor!.address,
-        toBig(args.factor),
-        args.oracle || krAsset.priceFeed.address,
-        args.oracle || krAsset.priceFeed.address,
-        toBig(args.supplyLimit, await krAsset.contract.decimals()),
-        toBig(args.closeFee),
-        toBig(args.openFee),
+        await getKrAssetConfig(
+            krAsset.mocks.anchor!.address,
+            toBig(args.factor),
+            args.oracle || krAsset.priceFeed.address,
+            args.oracle || krAsset.priceFeed.address,
+            toBig(args.supplyLimit, await krAsset.contract.decimals()),
+            toBig(args.closeFee),
+            toBig(args.openFee),
+        ),
     );
 
     const asset: TestKrAsset = {

@@ -1,10 +1,30 @@
-import { smock } from "@defi-wonderland/smock";
+import { MockContract, smock } from "@defi-wonderland/smock";
 import { toBig } from "@kreskolabs/lib";
 import { ERC20Upgradeable__factory, FluxPriceFeed__factory } from "types/typechain";
 import { InputArgs, TestCollateralAssetArgs, TestCollateralAssetUpdate, defaultCollateralArgs } from "../mocks";
 import { getMockOracleFor, setPrice } from "./general";
 import { envCheck } from "@utils/general";
+import { CollateralAssetStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 envCheck();
+
+export const getCollateralConfig = async (
+    asset: { decimals: Function },
+    anchor: string,
+    cFactor: BigNumber,
+    liquidationIncentive: BigNumber,
+    oracle: string,
+    marketStatusOracle: string,
+): Promise<CollateralAssetStruct> => {
+    return {
+        anchor,
+        factor: cFactor,
+        liquidationIncentive,
+        oracle,
+        marketStatusOracle,
+        decimals: await asset.decimals(),
+        exists: true,
+    };
+};
 export const addMockCollateralAsset = async (
     args: TestCollateralAssetArgs = defaultCollateralArgs,
 ): Promise<TestCollateral> => {
@@ -22,11 +42,14 @@ export const addMockCollateralAsset = async (
 
     await hre.Diamond.connect(deployer).addCollateralAsset(
         TestCollateral.address,
-        hre.ethers.constants.AddressZero,
-        cFactor,
-        toBig(process.env.LIQUIDATION_INCENTIVE!),
-        MockOracle.address,
-        MockOracle.address,
+        await getCollateralConfig(
+            TestCollateral,
+            hre.ethers.constants.AddressZero,
+            cFactor,
+            toBig(process.env.LIQUIDATION_INCENTIVE!),
+            MockOracle.address,
+            MockOracle.address,
+        ),
     );
     const mocks = {
         contract: TestCollateral,
@@ -69,11 +92,14 @@ export const updateCollateralAsset = async (address: string, args: TestCollatera
 
     await hre.Diamond.connect(deployer).updateCollateralAsset(
         collateral!.address,
-        hre.ethers.constants.AddressZero,
-        toBig(args.factor),
-        toBig(process.env.LIQUIDATION_INCENTIVE!),
-        args.oracle || collateral!.priceFeed.address,
-        args.oracle || collateral!.priceFeed.address,
+        await getCollateralConfig(
+            collateral!.contract,
+            hre.ethers.constants.AddressZero,
+            toBig(args.factor),
+            toBig(process.env.LIQUIDATION_INCENTIVE!),
+            args.oracle || collateral!.priceFeed.address,
+            args.oracle || collateral!.priceFeed.address,
+        ),
     );
     // @ts-expect-error
     const asset: TestCollateral = {

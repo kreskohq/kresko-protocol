@@ -3,6 +3,9 @@ import { fromBig, toBig } from "@kreskolabs/lib";
 import hre, { ethers } from "hardhat";
 import { FluxPriceFeed__factory } from "types/typechain";
 import { defaultCloseFee, defaultOracleDecimals, defaultOraclePrice } from "../mocks";
+import { getCollateralConfig } from "./collaterals";
+import { getKrAssetConfig } from "./krassets";
+import { BigNumber } from "ethers";
 
 /* -------------------------------------------------------------------------- */
 /*                                  GENERAL                                   */
@@ -69,24 +72,29 @@ export const leverageKrAsset = async (
     if (!(await hre.Diamond.collateralAsset(collateralToUse.address)).exists) {
         await hre.Diamond.connect(hre.users.deployer).addCollateralAsset(
             collateralToUse.address,
-            collateralToUse.anchor ? collateralToUse.anchor.address : ethers.constants.AddressZero,
-            toBig(1),
-            toBig(process.env.LIQUIDATION_INCENTIVE as string),
-            collateralToUse.priceFeed.address,
-            collateralToUse.priceFeed.address,
+            await getCollateralConfig(
+                collateralToUse.contract,
+                collateralToUse.anchor ? collateralToUse.anchor.address : ethers.constants.AddressZero,
+                toBig(1),
+                toBig(process.env.LIQUIDATION_INCENTIVE!),
+                collateralToUse.priceFeed.address,
+                collateralToUse.priceFeed.address,
+            ),
         );
     }
     await hre.Diamond.connect(user).depositCollateral(user.address, collateralToUse.address, toBig(collateralAmount));
     if (!(await hre.Diamond.kreskoAsset(krAsset.address)).exists) {
         await hre.Diamond.connect(hre.users.deployer).addKreskoAsset(
             krAsset.address,
-            krAsset.anchor.address,
-            toBig(1),
-            krAsset.priceFeed.address,
-            krAsset.priceFeed.address,
-            toBig(1_000_000),
-            defaultCloseFee,
-            0,
+            await getKrAssetConfig(
+                krAsset.anchor.address,
+                toBig(1),
+                krAsset.priceFeed.address,
+                krAsset.priceFeed.address,
+                toBig(1_000_000),
+                toBig(defaultCloseFee),
+                BigNumber.from(0),
+            ),
         );
     }
     await hre.Diamond.connect(user).mintKreskoAsset(user.address, krAsset.address, amount);
@@ -94,11 +102,14 @@ export const leverageKrAsset = async (
     if (!(await hre.Diamond.collateralAsset(krAsset.address)).exists) {
         await hre.Diamond.connect(hre.users.deployer).addCollateralAsset(
             krAsset.address,
-            krAsset.anchor.address,
-            toBig(1),
-            toBig(process.env.LIQUIDATION_INCENTIVE as string),
-            krAsset.priceFeed.address,
-            krAsset.priceFeed.address,
+            await getCollateralConfig(
+                krAsset.contract,
+                krAsset.anchor.address,
+                toBig(1),
+                toBig(process.env.LIQUIDATION_INCENTIVE!),
+                krAsset.priceFeed.address,
+                krAsset.priceFeed.address,
+            ),
         );
     }
     await hre.Diamond.connect(user).depositCollateral(user.address, krAsset.address, amount);
