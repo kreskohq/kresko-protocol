@@ -2,21 +2,13 @@
 pragma solidity <=0.8.20;
 
 interface ILeverPositions {
-    struct Create {
-        address account;
-        address collateral;
-        address borrowed;
-        uint256 collateralAmount;
-        uint256 borrowedAmount;
-    }
-
     struct Position {
         address account;
         address collateral;
         address borrowed;
         uint256 collateralAmount;
         uint256 borrowedAmount;
-        uint256 liquidationRatio;
+        uint256 leverage;
         uint256 creationTimestamp;
         uint256 lastUpdateTimestamp;
     }
@@ -26,7 +18,7 @@ interface ILeverPositions {
      * @param _params The parameters of the new position
      * @return id The ID of the new position
      */
-    function createPosition(Create memory _params) external returns (uint256 id);
+    function createPosition(Position memory _params) external returns (uint256 id);
 
     /**
      * @notice Close a lever position
@@ -34,19 +26,21 @@ interface ILeverPositions {
      */
     function closePosition(uint256 _id) external;
 
+    function getPosition(uint256 _id) external view returns (Position memory);
+
     /**
      * @notice Deposit collateral into a lever position
      * @param _id The ID of the position to deposit collateral into
-     * @param _collateralAmount The amount of collateral to deposit
+     * @param _depositAmount The amount of collateral to deposit
      */
-    function deposit(uint256 _id, uint256 _collateralAmount) external;
+    function deposit(uint256 _id, uint256 _depositAmount) external;
 
     /**
      * @notice Withdraw collateral from a lever position
      * @param _id The ID of the position to withdraw collateral from
-     * @param _collateralAmount The amount of collateral to withdraw
+     * @param _withdrawAmount The amount of collateral to withdraw
      */
-    function withdraw(uint256 _id, uint256 _collateralAmount) external;
+    function withdraw(uint256 _id, uint256 _withdrawAmount) external;
 
     /**
      * @notice Borrow more of the borrowed asset from a lever position

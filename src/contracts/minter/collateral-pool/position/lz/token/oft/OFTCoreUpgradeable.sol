@@ -3,7 +3,7 @@
 pragma solidity ^0.8.2;
 
 import "./IOFTCoreUpgradeable.sol";
-import "oz-upgradeable/utils/introspection/ERC165Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 import "../../lzApp/NonblockingLzAppUpgradeable.sol";
 import {BytesLib} from "../../util/BytesLib.sol";
 

@@ -2,8 +2,8 @@
 
 pragma solidity ^0.8.2;
 
-import "oz-upgradeable/token/ERC20/ERC20Upgradeable.sol";
-import "oz-upgradeable/utils/introspection/IERC165Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 import "./IOFTUpgradeable.sol";
 import "./OFTCoreUpgradeable.sol";
 

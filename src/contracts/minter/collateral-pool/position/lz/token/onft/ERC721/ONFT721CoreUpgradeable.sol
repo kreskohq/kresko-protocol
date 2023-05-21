@@ -4,7 +4,7 @@ pragma solidity ^0.8.2;
 
 import "./IONFT721CoreUpgradeable.sol";
 import "../../../lzApp/NonblockingLzAppUpgradeable.sol";
-import "oz-upgradeable/utils/introspection/ERC165Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 
 abstract contract ONFT721CoreUpgradeable is
     Initializable,

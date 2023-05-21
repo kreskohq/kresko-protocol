@@ -8,8 +8,10 @@ import {ONFT721Upgradeable} from "./lz/ONFT721Upgradeable.sol";
 contract LeverPositions is ILeverPositions, Lever, ONFT721Upgradeable {
     uint256 public currentId;
 
-    modifier minted(uint256 _id) {
+    modifier yup(uint256 _id) {
         _requireMinted(_id);
+        address owner = ownerOf(_id);
+        require(msg.sender == owner || isApprovedForAll(owner, msg.sender), "!account");
         _;
     }
 
@@ -33,41 +35,44 @@ contract LeverPositions is ILeverPositions, Lever, ONFT721Upgradeable {
     }
 
     /// @inheritdoc ILeverPositions
-    function createPosition(Create calldata _params) external onlyKresko returns (uint256 positionId) {
+    function createPosition(Position calldata _params) external onlyKresko returns (uint256 positionId) {
         positionId = currentId++;
-
+        _positions[positionId] = _params;
         _safeMint(_params.account, positionId);
-        _createPosition(positionId, _params);
+    }
+
+    function getPosition(uint256 _id) external view returns (Position memory) {
+        return _positions[_id];
     }
 
     /// @inheritdoc ILeverPositions
-    function closePosition(uint256 _id) external override minted(_id) {
-        _closePosition(_id);
+    function closePosition(uint256 _id) external override yup(_id) {
+        kresko.swapLeverOut(_positions[_id]);
         _burn(_id);
     }
 
     /// @inheritdoc ILeverPositions
-    function liquidate(uint256 _id) external override minted(_id) {
+    function liquidate(uint256 _id) external override yup(_id) {
         // _liquidate(_id);
     }
 
     /// @inheritdoc ILeverPositions
-    function deposit(uint256 _id, uint256 _collateralAmount) external override minted(_id) {
+    function deposit(uint256 _id, uint256 _collateralAmount) external override yup(_id) {
         _adjustIn(_id, _collateralAmount, 0);
     }
 
     /// @inheritdoc ILeverPositions
-    function repay(uint256 _id, uint256 _repayAmount) external override minted(_id) {
+    function repay(uint256 _id, uint256 _repayAmount) external override yup(_id) {
         _adjustIn(_id, 0, _repayAmount);
     }
 
     /// @inheritdoc ILeverPositions
-    function withdraw(uint256 _id, uint256 _collateralAmount) external override minted(_id) {
+    function withdraw(uint256 _id, uint256 _collateralAmount) external override yup(_id) {
         _adjustOut(_id, _collateralAmount, 0);
     }
 
     /// @inheritdoc ILeverPositions
-    function borrow(uint256 _id, uint256 _borrowAmount) external override minted(_id) {
+    function borrow(uint256 _id, uint256 _borrowAmount) external override yup(_id) {
         _adjustOut(_id, 0, _borrowAmount);
     }
 }

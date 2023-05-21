@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.2;
 
-import "oz-upgradeable/utils/introspection/IERC165Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 
 /**
  * @dev Interface of the IOFT core standard

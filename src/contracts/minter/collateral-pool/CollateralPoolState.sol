@@ -3,6 +3,7 @@ pragma solidity >=0.8.20;
 import {LibCollateralPool} from "./libs/LibCollateralPool.sol";
 import {LibSwap} from "./libs/LibSwap.sol";
 import {LibAmounts} from "./libs/LibAmounts.sol";
+import {ILeverPositions} from "./position/ILeverPositions.sol";
 
 /* solhint-disable var-name-mixedcase */
 
@@ -53,6 +54,8 @@ struct CollateralPoolState {
     address[] krAssets;
     /// @notice User swap fee receiver
     address swapFeeRecipient;
+    /// @notice Leverage positions NFT
+    ILeverPositions leverPositions;
 }
 
 // Storage position

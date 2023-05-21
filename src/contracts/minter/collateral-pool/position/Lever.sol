@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity <=0.8.20;
 
-import {WadRay} from "kresko-helpers/libs/WadRay.sol";
-import {Kresko} from "./Kresko.sol";
+import {WadRay} from "../../../libs/WadRay.sol";
 import {ILeverPositions} from "./ILeverPositions.sol";
 import {KreskoIntegrator} from "./KreskoIntegrator.sol";
 
@@ -12,8 +11,9 @@ contract Lever is KreskoIntegrator {
     uint256 public maxLeverage;
     uint256 public liquidationThreshold;
 
-    mapping(uint256 => ILeverPositions.Position) private _positions;
+    mapping(uint256 => ILeverPositions.Position) internal _positions;
 
+    // solhint-disable-next-line func-name-mixedcase
     function __Lever_init(
         address _kresko,
         uint256 _maxLeverage,
@@ -39,7 +39,7 @@ contract Lever is KreskoIntegrator {
     }
 
     function getLiquidationRatio(uint256 _id) public view returns (uint256) {
-        return _positions[_id].liquidationRatio;
+        return _positions[_id].leverage + liquidationThreshold;
     }
 
     function _isLiquidatable(uint256 _id) internal view returns (bool) {
@@ -60,16 +60,19 @@ contract Lever is KreskoIntegrator {
             );
     }
 
-    function _createPosition(uint256 _id, ILeverPositions.Create calldata _params) internal {
-        _positions[_id].collateral = _params.collateral;
-        _positions[_id].borrowed = _params.borrowed;
-        _positions[_id].account = _params.account;
-        _positions[_id].creationTimestamp = block.timestamp;
-        _adjustIn(_id, _params.collateralAmount, _params.borrowedAmount);
-    }
-
     function _closePosition(uint256 _id) internal {
         ILeverPositions.Position memory position = _positions[_id];
+        _adjustOut(_id, position.collateralAmount, position.borrowedAmount);
+
+        if (getLeverageOf(_id) < position.leverage) {
+            // profit position
+            // _withdraw(_id, position.collateralAmount);
+            // _repay(_id, position.borrowedAmount);
+        } else {
+            // losing position
+            // _repay(_id, position.borrowedAmount);
+            // _withdraw(_id, position.collateralAmount);
+        }
         // _repay(_id, position.borrowedAmount);
         // _withdraw(_id, position.collateralAmount);
     }
@@ -77,18 +80,19 @@ contract Lever is KreskoIntegrator {
     function _adjustIn(uint256 _id, uint256 _collateralIn, uint256 _debtIn) internal {
         _positions[_id].collateralAmount += _collateralIn;
         _positions[_id].borrowedAmount += _debtIn;
-
-        uint256 leverage = getLeverageOf(_id);
-        require(leverage <= maxLeverage, "!leverage-max");
-        _positions[_id].liquidationRatio = leverage + liquidationThreshold;
+        _setLeverage(_id);
     }
 
     function _adjustOut(uint256 _id, uint256 _collateralOut, uint256 _debtOut) internal {
         _positions[_id].collateralAmount -= _collateralOut;
         _positions[_id].borrowedAmount -= _debtOut;
+        _setLeverage(_id);
+    }
 
+    function _setLeverage(uint256 _id) private {
         uint256 leverage = getLeverageOf(_id);
         require(leverage <= maxLeverage, "!leverage-max");
-        _positions[_id].liquidationRatio = leverage + liquidationThreshold;
+        _positions[_id].leverage = leverage;
+        _positions[_id].leverage = getLeverageOf(_id);
     }
 }
