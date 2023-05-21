@@ -6,7 +6,7 @@ import {ms} from "../../MinterStorage.sol";
 import {WadRay} from "../../../libs/WadRay.sol";
 import {ICollateralPoolSwapFacet} from "../interfaces/ICollateralPoolSwapFacet.sol";
 import {cps} from "../CollateralPoolState.sol";
-import {ILeverPositions} from "../position/ILeverPositions.sol";
+import {Position, NewPosition} from "../position/state/PositionsStorage.sol";
 import "hardhat/console.sol";
 
 contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
@@ -78,9 +78,9 @@ contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
     /// @inheritdoc ICollateralPoolSwapFacet
     function swapLeverIn(
         address _sender,
-        ILeverPositions.NewPosition memory _position
+        NewPosition memory _position
     ) external nonReentrant returns (uint256 amountInAfterFee, uint256 amountOut) {
-        require(msg.sender == address(cps().leverPositions), "closeLever-not-caller");
+        require(msg.sender == address(cps().positions), "closeLever-not-caller");
         require(_position.account != address(0), "receiver-invalid");
         require(_position.collateralAmount > 0, "swap-amount-zero");
 
@@ -100,8 +100,8 @@ contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
     }
 
     // Closes a position, called by leverPositions
-    function swapLeverOut(ILeverPositions.Position memory _position) external nonReentrant returns (uint256 amountOut) {
-        require(msg.sender == address(cps().leverPositions), "closeLever-not-caller");
+    function swapLeverOut(Position memory _position) external nonReentrant returns (uint256 amountOut) {
+        require(msg.sender == address(cps().positions), "closeLever-not-caller");
 
         // Swap out leveraged debt back to collateral.
         (, amountOut) = _swapLeverOut(
@@ -127,6 +127,46 @@ contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
         }
 
         IERC20Permit(_position.collateral).safeTransfer(_position.account, amountOut);
+    }
+
+    function swapLeverOutLiquidation(
+        address _incentiveReceiver,
+        Position memory _position
+    ) external nonReentrant returns (uint256 amountOut, uint256 amountOutIncentive) {
+        require(msg.sender == address(cps().positions), "closeLever-not-caller");
+
+        // Swap out leveraged debt back to collateral.
+        (, amountOut) = _swapLeverOut(
+            _position.borrowed,
+            _position.collateral,
+            _position.borrowedAmount,
+            1,
+            _position.leverage
+        );
+
+        emit Swap(msg.sender, _position.borrowed, _position.collateral, _position.borrowedAmount, amountOut);
+
+        // increase by profit
+        if (amountOut > _position.collateralAmount) {
+            uint256 total = _position.collateralAmount +
+                (amountOut - _position.collateralAmount).wadMul(_position.leverage);
+
+            amountOutIncentive = total.wadMul(_position.closeIncentive); // from total
+            amountOut = total - amountOutIncentive;
+
+            // decrease by losses
+        } else if (amountOut < _position.collateralAmount) {
+            uint256 total = _position.collateralAmount -
+                (_position.collateralAmount - amountOut).wadMul(_position.leverage);
+
+            amountOutIncentive = position.collateralAmount.wadMul(_position.liquidationIncentive); // from principal
+            amountOut = total - amountOutIncentive;
+        } else {
+            revert("swapLeverOutLiquidation: no profit or loss");
+        }
+
+        IERC20Permit(_position.collateral).safeTransfer(_position.account, amountOut);
+        IERC20Permit(_position.collateral).safeTransfer(_incentiveReceiver, amountOutIncentive);
     }
 
     /**
@@ -191,7 +231,7 @@ contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
         uint256 valueIn = cps().handleAssetsIn(_assetIn, amountIn).wadMul(_leverage);
 
         // We multiply value by leverage to get the amount of debt to mint.
-        amountOut = cps().handleAssetsOut(_assetOut, valueIn, address(cps().leverPositions));
+        amountOut = cps().handleAssetsOut(_assetOut, valueIn, address(cps().positions));
 
         _checkAndPayFee(_assetIn, amountOut, _amountOutMin, feeAmount, protocolFee);
     }

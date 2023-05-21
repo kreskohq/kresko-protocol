@@ -69,6 +69,9 @@ interface ICollateralPoolSwapFacet {
      */
     function swapLeverOut(Position memory _position) external returns (uint256 amountOut);
 
+    /// @notice Swaps out of leverage, liquidation or closing.
+    function swapLeverOutLiquidation(address _incentiveReceiver, Position memory _position) external;
+
     /**
      * @notice Accumulates fees to deposits as a fixed, instantaneous income.
      * @param _incomeAsset the income asset

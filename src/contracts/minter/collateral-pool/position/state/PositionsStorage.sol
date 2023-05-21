@@ -21,14 +21,29 @@ struct Position {
     uint256 collateralAmount;
     uint256 borrowedAmount;
     uint256 leverage;
+    uint256 liquidationIncentive;
+    uint256 closeIncentive;
     uint256 creationTimestamp;
     uint256 lastUpdateTimestamp;
+    uint256 nonce;
 }
+
+struct PositionsInitializer {
+    ICollateralPoolSwapFacet kresko;
+    string name;
+    string symbol;
+    uint256 liquidationThreshold;
+    uint256 closeThreshold;
+    uint256 maxLeverage;
+    uint256 minLeverage;
+}
+
 struct PositionStorage {
     ICollateralPoolSwapFacet kresko;
     uint256 minLeverage;
     uint256 maxLeverage;
     uint256 liquidationThreshold;
+    uint256 closeThreshold;
     mapping(uint256 => Position) positions;
 }
 

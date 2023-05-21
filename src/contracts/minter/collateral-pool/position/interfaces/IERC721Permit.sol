@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity <=0.8.20;
 
-import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import {IERC721} from "./IERC721.sol";
 
 /// @title ERC721 with permit
 /// @notice Extension to ERC721 that includes a permit function for signature based approvals
-interface IERC721Permit is IERC721Upgradeable {
+interface IERC721Permit is IERC721 {
     /// @notice The permit typehash used in the permit signature
     /// @return The typehash for the permit
     function PERMIT_TYPEHASH() external pure returns (bytes32);

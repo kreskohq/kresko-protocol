@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity <=0.8.20;
 
-import {ILeverPositions} from "./ILeverPositions.sol";
+import {IPositionsFacet} from "../interfaces/IPositionsFacet.sol";
 
 interface IERC20 {
     function balanceOf(address account) external view returns (uint256);
@@ -12,10 +12,10 @@ interface IERC20 {
 }
 
 contract MinimalKresko {
-    ILeverPositions leverPositions;
+    IPositionsFacet positions;
     mapping(address => uint256) public prices;
 
-    constructor(ILeverPositions _leverPositions) {
-        leverPositions = _leverPositions;
+    constructor(IPositionsFacet _positions) {
+        positions = _positions;
     }
 }

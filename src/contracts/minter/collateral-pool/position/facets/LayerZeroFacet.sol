@@ -5,8 +5,9 @@ import {ERC721} from "../state/ERC721Storage.sol";
 import {IONFT721CoreUpgradeable} from "../interfaces/IONFT721CoreUpgradeable.sol";
 import {IONFT721Upgradeable} from "../interfaces/IONFT721Upgradeable.sol";
 import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
-import {IERC165Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 import {IERC721MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
+import {IERC165Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
+import {ILayerZeroEndpointUpgradeable} from "../interfaces/ILayerZeroEndpointUpgradeable.sol";
 import {ILayerZeroReceiverUpgradeable} from "../interfaces/ILayerZeroReceiverUpgradeable.sol";
 import {ILayerZeroUserApplicationConfigUpgradeable} from "../interfaces/ILayerZeroUserApplicationConfigUpgradeable.sol";
 import {lz, LibLZ, StoredCredit} from "../state/LZStorage.sol";
@@ -14,19 +15,25 @@ import {Meta} from "../../../../libs/Meta.sol";
 import {ds} from "../../../../diamond/DiamondStorage.sol";
 import {IERC165Facet} from "../../../../diamond/interfaces/IERC165Facet.sol";
 import {BytesLib} from "../libs/BytesLib.sol";
-import {ExcessivelySafeCall} from "../libs/excessivelySafeCall.sol";
+import {ExcessivelySafeCall} from "../libs/ExcessivelySafeCall.sol";
+import {DiamondModifiers} from "../../../../diamond/DiamondModifiers.sol";
 
 contract LayerZeroFacet is
     IERC165Facet,
     IONFT721CoreUpgradeable,
     ILayerZeroReceiverUpgradeable,
-    ILayerZeroUserApplicationConfigUpgradeable
+    ILayerZeroUserApplicationConfigUpgradeable,
+    DiamondModifiers
 {
     using BytesLib for bytes;
     using ExcessivelySafeCall for address;
-    modifier onlyOwner() {
-        require(msg.sender == ds().contractOwner, "!owner");
-        _;
+
+    function setupLayerZero(uint256 _minGasToTransfer, ILayerZeroEndpointUpgradeable _lzEndpoint) external onlyOwner {
+        require(_minGasToTransfer != 0, LibLZ.MINGASZERO);
+        lz().minGasToTransferAndStore = _minGasToTransfer;
+
+        require(address(_lzEndpoint) != address(0), LibLZ.INVALID_ENDPOINT);
+        lz().lzEndpoint = _lzEndpoint;
     }
 
     function getConfig(

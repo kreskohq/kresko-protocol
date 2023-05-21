@@ -42,6 +42,7 @@ library LibLZ {
     string internal constant MIN_GAS_NOT_ZERO = "6"; // "ONFT721: minGasToTransferAndStore must be > 0"
     string internal constant INVALID_CALLER = "7"; // "ONFT721: send caller is not owner nor approved"
     string internal constant INVALID_TOKEN_OWNER = "8"; // "ONFT721: send from incorrect owner"
+    string internal constant INVALID_ENDPOINT = "9"; // Endpoint cannot be 0
 
     function estimateFees(
         LZStorage storage self,

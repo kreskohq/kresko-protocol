@@ -16,9 +16,6 @@ interface IPositionsFacet {
      */
     function closePosition(uint256 _id) external;
 
-    /// @notice returns the info of a position for `_id`
-    function getPosition(uint256 _id) external view returns (Position memory);
-
     /**
      * @notice Deposit collateral into a lever position.
      * @param _id The ID of the position to deposit collateral into.
@@ -47,10 +44,16 @@ interface IPositionsFacet {
      */
     function repay(uint256 _id, uint256 _repayAmount) external;
 
+    /// @notice returns the info of a position for `_id`
+    function getPosition(uint256 _id) external view returns (Position memory);
+
     /**
      * @notice Get the liquidatable status of a lever positions
      * @param _ids The IDs of the positions
      * @return array of liquidatable results
      */
     function isLiquidatable(uint256[] calldata _ids) external view returns (bool[] memory);
+
+    /// @notice returns the closable status for positions
+    function isClosable(uint256[] calldata _ids) external view returns (bool[] memory);
 }
