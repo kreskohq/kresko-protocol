@@ -20,7 +20,7 @@ export const compilers: SolcUserConfig[] = [
             viaIR: !process.env.CI,
             optimizer: {
                 enabled: !process.env.CI,
-                runs: 2000000,
+                runs: 200,
                 details: {
                     constantOptimizer: false,
                     deduplicate: true,

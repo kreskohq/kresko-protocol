@@ -1,24 +1,14 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity <=0.8.20;
+import {NewPosition, Position} from "../state/PositionsStorage.sol";
 
-interface ILeverPositions {
-    struct Position {
-        address account;
-        address collateral;
-        address borrowed;
-        uint256 collateralAmount;
-        uint256 borrowedAmount;
-        uint256 leverage;
-        uint256 creationTimestamp;
-        uint256 lastUpdateTimestamp;
-    }
-
+interface IPositionsFacet {
     /**
      * @notice Creates a new lever position
-     * @param _params The parameters of the new position
+     * @param _position The parameters of the new position
      * @return id The ID of the new position
      */
-    function createPosition(Position memory _params) external returns (uint256 id);
+    function createPosition(NewPosition memory _position) external returns (uint256 id);
 
     /**
      * @notice Close a lever position
@@ -26,12 +16,13 @@ interface ILeverPositions {
      */
     function closePosition(uint256 _id) external;
 
+    /// @notice returns the info of a position for `_id`
     function getPosition(uint256 _id) external view returns (Position memory);
 
     /**
-     * @notice Deposit collateral into a lever position
-     * @param _id The ID of the position to deposit collateral into
-     * @param _depositAmount The amount of collateral to deposit
+     * @notice Deposit collateral into a lever position.
+     * @param _id The ID of the position to deposit collateral into.
+     * @param _depositAmount The amount of collateral to deposit.
      */
     function deposit(uint256 _id, uint256 _depositAmount) external;
 
@@ -55,12 +46,6 @@ interface ILeverPositions {
      * @param _repayAmount The amount of borrowed asset to repay
      */
     function repay(uint256 _id, uint256 _repayAmount) external;
-
-    /**
-     * @notice Liquidate a lever position
-     * @param _id The ID of the position to liquidate
-     */
-    function liquidate(uint256 _id) external;
 
     /**
      * @notice Get the liquidatable status of a lever positions

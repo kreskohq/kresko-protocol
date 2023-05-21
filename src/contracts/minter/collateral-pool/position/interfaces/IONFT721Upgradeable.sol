@@ -2,8 +2,8 @@
 
 pragma solidity ^0.8.2;
 
-import "./IONFT721CoreUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+import {IONFT721CoreUpgradeable} from "./IONFT721CoreUpgradeable.sol";
+import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 
 /**
  * @dev Interface of the ONFT Upgradeable standard

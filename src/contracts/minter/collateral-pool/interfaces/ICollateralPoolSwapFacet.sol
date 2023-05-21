@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.20;
-import {ILeverPositions} from "../position/ILeverPositions.sol";
+import {Position, NewPosition} from "../position/state/PositionsStorage.sol";
 
 interface ICollateralPoolSwapFacet {
     event Swap(
@@ -35,14 +35,14 @@ interface ICollateralPoolSwapFacet {
     /**
      * @notice Swap kresko assets with KISS using the shared collateral pool.
      * Uses oracle pricing of _amountIn to determine how much _assetOut to send.
-     * @param _receiver The receiver of amount out.
+     * @param _account The receiver of amount out.
      * @param _assetIn The asset to pay with.
      * @param _assetOut The asset to receive.
      * @param _amountIn The amount of _assetIn to pay.
      * @param _amountOutMin The minimum amount of _assetOut to receive, this is due to possible oracle price change.
      */
     function swap(
-        address _receiver,
+        address _account,
         address _assetIn,
         address _assetOut,
         uint256 _amountIn,
@@ -50,31 +50,24 @@ interface ICollateralPoolSwapFacet {
     ) external;
 
     /**
-     * @notice Swap in to leverage.
-     * @param _receiver The account to create the position for.
-     * @param _assetIn The asset to pay with.
-     * @param _assetOut The asset to receive.
-     * @param _amountIn The amount of _assetIn to pay, unadjusted for leverage.
-     * @param _amountOutMin The minimum amount of _assetOut to receive, this is due to possible oracle price change.
-     * @param _leverage The leverage to use.
-     * @return positionId The id of the new position.
+     * @notice Swap in to leverage. This is only callable by the positions NFT.
+     * @param _sender The account that funds the position.
+     * @param _position The position to swap into.
+     * @return amountInAfterFee Amount in after fees are paid.
+     * @return amountOut Amount of `_assetOut` received.
      */
     function swapLeverIn(
-        address _receiver,
-        address _assetIn,
-        address _assetOut,
-        uint256 _amountIn,
-        uint256 _amountOutMin,
-        uint256 _leverage
-    ) external returns (uint256 positionId);
+        address _sender,
+        NewPosition memory _position
+    ) external returns (uint256 amountInAfterFee, uint256 amountOut);
 
     /**
-     * @notice Swaps out of leverage.
+     * @notice Swaps out of leverage. This is only callable by the positions NFT.
      * @notice Called by the position contract.
      * @param _position The position to swap out of.
      * @return amountOut The amount of `_assetOut` to receive.
      */
-    function swapLeverOut(ILeverPositions.Position memory _position) external returns (uint256 amountOut);
+    function swapLeverOut(Position memory _position) external returns (uint256 amountOut);
 
     /**
      * @notice Accumulates fees to deposits as a fixed, instantaneous income.

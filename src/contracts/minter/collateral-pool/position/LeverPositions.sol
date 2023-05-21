@@ -9,7 +9,6 @@ contract LeverPositions is ILeverPositions, Lever, ONFT721Upgradeable {
     uint256 public currentId;
 
     modifier yup(uint256 _id) {
-        _requireMinted(_id);
         address owner = ownerOf(_id);
         require(msg.sender == owner || isApprovedForAll(owner, msg.sender), "!account");
         _;
@@ -30,15 +29,27 @@ contract LeverPositions is ILeverPositions, Lever, ONFT721Upgradeable {
     function isLiquidatable(uint256[] calldata _ids) public view returns (bool[] memory results) {
         results = new bool[](_ids.length);
         for (uint256 i; i < _ids.length; i++) {
-            results[i] = _isLiquidatableSafe(_ids[i]);
+            results[i] = _isLiquidatable(_ids[i]);
         }
     }
 
     /// @inheritdoc ILeverPositions
-    function createPosition(Position calldata _params) external onlyKresko returns (uint256 positionId) {
+    function createPosition(NewPosition memory _position) external returns (uint256 positionId) {
+        (uint256 amountInAfterFee, uint256 amountOut) = kresko.swapLeverIn(msg.sender, _position);
         positionId = currentId++;
-        _positions[positionId] = _params;
-        _safeMint(_params.account, positionId);
+
+        _positions[positionId] = Position({
+            account: _position.account,
+            collateral: _position.collateralAsset,
+            borrowed: _position.borrowAsset,
+            collateralAmount: amountInAfterFee,
+            borrowedAmount: amountOut,
+            leverage: _position.leverage,
+            creationTimestamp: block.timestamp,
+            lastUpdateTimestamp: block.timestamp
+        });
+
+        _safeMint(_position.account, positionId);
     }
 
     function getPosition(uint256 _id) external view returns (Position memory) {
@@ -49,11 +60,6 @@ contract LeverPositions is ILeverPositions, Lever, ONFT721Upgradeable {
     function closePosition(uint256 _id) external override yup(_id) {
         kresko.swapLeverOut(_positions[_id]);
         _burn(_id);
-    }
-
-    /// @inheritdoc ILeverPositions
-    function liquidate(uint256 _id) external override yup(_id) {
-        // _liquidate(_id);
     }
 
     /// @inheritdoc ILeverPositions

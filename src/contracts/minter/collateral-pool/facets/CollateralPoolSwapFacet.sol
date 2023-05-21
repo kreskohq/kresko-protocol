@@ -77,54 +77,34 @@ contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
 
     /// @inheritdoc ICollateralPoolSwapFacet
     function swapLeverIn(
-        address _receiver,
-        address _assetIn,
-        address _assetOut,
-        uint256 _amountIn,
-        uint256 _amountOutMin,
-        uint256 _leverage
-    ) external nonReentrant returns (uint256 positionId) {
-        require(_amountIn > 0, "swap-amount-zero");
+        address _sender,
+        ILeverPositions.NewPosition memory _position
+    ) external nonReentrant returns (uint256 amountInAfterFee, uint256 amountOut) {
+        require(msg.sender == address(cps().leverPositions), "closeLever-not-caller");
+        require(_position.account != address(0), "receiver-invalid");
+        require(_position.collateralAmount > 0, "swap-amount-zero");
 
-        // Transfer unadjusted assets into this contract.
-        IERC20Permit(_assetIn).safeTransferFrom(msg.sender, address(this), _amountIn);
+        // Transfer collateral assets into this contract.
+        IERC20Permit(_position.collateralAsset).safeTransferFrom(_sender, address(this), _position.collateralAmount);
 
-        // Creating the position and sending it to leverPositions.
-        (uint256 amountInAfterFee, uint256 amountOut) = _swapLeverIn(
-            _assetIn,
-            _assetOut,
-            _amountIn,
-            _amountOutMin,
-            _leverage
+        // Creating the position, sending it to leverPositions.
+        (amountInAfterFee, amountOut) = _swapLeverIn(
+            _position.collateralAsset,
+            _position.borrowAsset,
+            _position.collateralAmount,
+            _position.borrowAmountMin,
+            _position.leverage
         );
 
-        emit Swap(msg.sender, _assetIn, _assetOut, _amountIn, amountOut);
-
-        address receiver = _receiver == address(0) ? msg.sender : _receiver;
-        uint256 timestamp = block.timestamp;
-
-        return
-            cps().leverPositions.createPosition(
-                ILeverPositions.Position({
-                    account: receiver,
-                    collateral: _assetIn,
-                    borrowed: _assetOut,
-                    collateralAmount: amountInAfterFee,
-                    borrowedAmount: amountOut,
-                    leverage: _leverage,
-                    creationTimestamp: timestamp,
-                    lastUpdateTimestamp: timestamp
-                })
-            );
+        emit Swap(msg.sender, _position.collateralAsset, _position.borrowAsset, _position.collateralAmount, amountOut);
     }
 
     // Closes a position, called by leverPositions
     function swapLeverOut(ILeverPositions.Position memory _position) external nonReentrant returns (uint256 amountOut) {
         require(msg.sender == address(cps().leverPositions), "closeLever-not-caller");
 
-        // Swap back to collateral.
+        // Swap out leveraged debt back to collateral.
         (, amountOut) = _swapLeverOut(
-            address(this),
             _position.borrowed,
             _position.collateral,
             _position.borrowedAmount,
@@ -218,7 +198,6 @@ contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
 
     /**
      * @notice Swaps a leveraged position back to unleveraged amount of provided asset.
-     * @param _receiver The address to receive the collateral.
      * @param _assetIn The asset that was leveraged.
      * @param _assetOut The asset that was provided.
      * @param _amountIn The amount of assetIn to swap.
@@ -226,7 +205,6 @@ contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
      * @param _leverage The leverage of the position.
      */
     function _swapLeverOut(
-        address _receiver,
         address _assetIn,
         address _assetOut,
         uint256 _amountIn,
@@ -244,7 +222,7 @@ contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
         uint256 valueIn = cps().handleAssetsIn(_assetIn, amountIn).wadDiv(_leverage);
 
         // We reduce value out here, as it was increased on the way in.
-        amountOut = cps().handleAssetsOut(_assetOut, valueIn, _receiver);
+        amountOut = cps().handleAssetsOut(_assetOut, valueIn, address(this));
 
         _checkAndPayFee(_assetIn, amountOut, _amountOutMin, feeAmount, protocolFee);
     }
