@@ -110,19 +110,76 @@ describe("Leverage Positions NFT", function () {
             expect(poolStatsAfter.cr).to.equal(0);
             expect(await KISS.contract.balanceOf(users[1].address)).to.equal(toBig(9928.72));
         });
-        it.only("should receive profit", async () => {
+        it("should receive profit", async () => {
             const PositionsUser = positions.connect(users[1]);
-
+            const balBefore = await KISS.contract.balanceOf(users[1].address);
             expect(await KISS.contract.balanceOf(users[1].address)).to.equal(depositAmount18Dec);
+            await PositionsUser.createPosition({ ...position, leverage: toBig(2), borrowAmountMin: 0 });
             const poolStatsBefore = await hre.Diamond.getPoolStats(true);
-            await PositionsUser.createPosition(position);
-            krETH.setPrice(1801);
+            krETH.setPrice(2000);
+
             await PositionsUser.closePosition(0);
             const poolStatsAfter = await hre.Diamond.getPoolStats(true);
-            expect(poolStatsAfter.debtValue).to.equal(poolStatsBefore.debtValue);
-            expect(poolStatsAfter.collateralValue).to.equal(poolStatsBefore.collateralValue);
-            expect(poolStatsAfter.cr).to.equal(0);
-            expect(await KISS.contract.balanceOf(users[1].address)).to.equal(toBig(9928.72));
+            const balAfter = await KISS.contract.balanceOf(users[1].address);
+
+            const debtKISS = await hre.Diamond.getPoolDebt(KISS.address);
+            const debtkrETH = await hre.Diamond.getPoolDebt(krETH.address);
+
+            expect(debtkrETH).to.be.eq(0);
+            expect(debtKISS).to.be.eq(toBig(392));
+            expect(balAfter).to.be.gt(balBefore);
+            expect(poolStatsAfter.debtValue).to.be.eq(toBig(392, 8));
+            expect(poolStatsAfter.collateralValue).to.be.lt(poolStatsBefore.collateralValue);
+            expect(poolStatsAfter.cr).to.be.gt(poolStatsBefore.cr);
+        });
+        it("should incur losses", async () => {
+            const PositionsUser = positions.connect(users[1]);
+            const balBefore = await KISS.contract.balanceOf(users[1].address);
+            await PositionsUser.createPosition({ ...position, leverage: toBig(2), borrowAmountMin: 0 });
+            const poolStatsBefore = await hre.Diamond.getPoolStats(true);
+            krETH.setPrice(1600);
+
+            await PositionsUser.closePosition(0);
+            const poolStatsAfter = await hre.Diamond.getPoolStats(true);
+            const balAfter = await KISS.contract.balanceOf(users[1].address);
+
+            const debtKISS = await hre.Diamond.getPoolDebt(KISS.address);
+            const debtkrETH = await hre.Diamond.getPoolDebt(krETH.address);
+
+            expect(debtkrETH).to.be.eq(0);
+            expect(debtKISS).to.be.eq(0);
+            expect(balAfter).to.be.lt(balBefore);
+            expect(poolStatsAfter.debtValue).to.be.eq(0);
+            expect(poolStatsAfter.collateralValue).to.be.lt(poolStatsBefore.collateralValue);
+            expect(poolStatsAfter.cr).to.be.eq(0);
+        });
+
+        it("should offset wins by losses", async () => {
+            const PositionsUser = positions.connect(users[1]);
+
+            await PositionsUser.createPosition({ ...position, leverage: toBig(2), borrowAmountMin: 0 });
+
+            krETH.setPrice(1600);
+
+            await PositionsUser.closePosition(0);
+
+            krETH.setPrice(1800);
+
+            await PositionsUser.createPosition({ ...position, leverage: toBig(2), borrowAmountMin: 0 });
+
+            krETH.setPrice(2000);
+
+            await PositionsUser.closePosition(1);
+
+            const poolStatsAfter = await hre.Diamond.getPoolStats(true);
+
+            const debtKISS = await hre.Diamond.getPoolDebt(KISS.address);
+            const debtkrETH = await hre.Diamond.getPoolDebt(krETH.address);
+
+            expect(debtkrETH).to.be.eq(0);
+            expect(debtKISS).to.be.eq(0);
+            expect(poolStatsAfter.debtValue).to.be.eq(0);
+            expect(poolStatsAfter.cr).to.be.eq(0);
         });
 
         beforeEach(async () => {

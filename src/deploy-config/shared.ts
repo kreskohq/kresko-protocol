@@ -96,7 +96,7 @@ export const getPositionsInitializer = async (hre: HardhatRuntimeEnvironment): P
             symbol: "krPOS",
             name: "Kresko Positions",
             kresko: hre.Diamond.address,
-            minLeverage: toBig(0.1),
+            minLeverage: toBig(1),
             maxLeverage: toBig(10),
             closeThreshold: toBig(1),
             liquidationThreshold: toBig(0.75),

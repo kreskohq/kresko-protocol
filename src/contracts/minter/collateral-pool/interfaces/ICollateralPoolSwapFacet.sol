@@ -65,15 +65,10 @@ interface ICollateralPoolSwapFacet {
      * @notice Swaps out of leverage. This is only callable by the positions NFT.
      * @notice Called by the position contract.
      * @param _position The position to swap out of.
+     * @param _incentiveReceiver The incentive receiver if position is liquidated or closed by external caller.
      * @return amountOut The amount of `_assetOut` to receive.
      */
-    function swapLeverOut(Position memory _position) external returns (uint256 amountOut);
-
-    /// @notice Swaps out of leverage, liquidation or closing.
-    function swapLeverOutLiquidation(
-        address _incentiveReceiver,
-        Position memory _position
-    ) external returns (uint256 amountOut, uint256 amountOutIncentive);
+    function swapLeverOut(Position memory _position, address _incentiveReceiver) external returns (uint256 amountOut);
 
     /**
      * @notice Accumulates fees to deposits as a fixed, instantaneous income.

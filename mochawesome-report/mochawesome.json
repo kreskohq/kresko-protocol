@@ -2,14 +2,14 @@
   "stats": {
     "suites": 2,
     "tests": 1,
-    "passes": 0,
+    "passes": 1,
     "pending": 0,
-    "failures": 1,
-    "start": "2023-05-22T00:56:32.323Z",
-    "end": "2023-05-22T00:56:38.632Z",
-    "duration": 6309,
+    "failures": 0,
+    "start": "2023-05-22T12:40:52.406Z",
+    "end": "2023-05-22T12:40:56.951Z",
+    "duration": 4545,
     "testsRegistered": 1,
-    "passPercent": 0,
+    "passPercent": 100,
     "pendingPercent": 0,
     "other": 0,
     "hasOther": false,
@@ -18,7 +18,7 @@
   },
   "results": [
     {
-      "uuid": "f2fbe172-08c9-4694-912e-d2e0ed5025af",
+      "uuid": "557dc7ef-e8ff-4ad9-93f6-87e7ed847dc4",
       "title": "",
       "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/collateral-pool/01-positions.ts",
       "file": "/src/test/collateral-pool/01-positions.ts",
@@ -27,7 +27,7 @@
       "tests": [],
       "suites": [
         {
-          "uuid": "18c21aea-42cb-4905-80f5-59cf8c33ed3b",
+          "uuid": "0839c063-f368-4da0-8992-6d663d6066db",
           "title": "Leverage Positions NFT",
           "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/collateral-pool/01-positions.ts",
           "file": "/src/test/collateral-pool/01-positions.ts",
@@ -36,7 +36,7 @@
               "title": "\"before each\" hook in \"Leverage Positions NFT\"",
               "fullTitle": "Leverage Positions NFT \"before each\" hook in \"Leverage Positions NFT\"",
               "timedOut": false,
-              "duration": 28,
+              "duration": 20,
               "state": null,
               "speed": null,
               "pass": false,
@@ -45,8 +45,8 @@
               "context": null,
               "code": "const fixture = await _hardhat.default.deployments.createFixture(async (hre)=>{\n    const result = await hre.deployments.fixture(fixtureName);\n    if (result.Diamond) {\n        hre.Diamond = await hre.getContractOrFork(\"Kresko\");\n    }\n    return {\n        facets: result.Diamond ? result.Diamond.facets : [],\n        collaterals: hre.collaterals,\n        krAssets: hre.krAssets\n    };\n})();\nthis.facets = fixture.facets || [];\nthis.collaterals = fixture.collaterals;\nthis.krAssets = fixture.krAssets;",
               "err": {},
-              "uuid": "104e6fef-280b-4d05-8bbd-4f23e3213654",
-              "parentUUID": "18c21aea-42cb-4905-80f5-59cf8c33ed3b",
+              "uuid": "38c6c2a4-7993-482c-bf17-2ff5bf69f21d",
+              "parentUUID": "0839c063-f368-4da0-8992-6d663d6066db",
               "isHook": true,
               "skipped": false
             },
@@ -54,7 +54,7 @@
               "title": "\"before each\" hook in \"Leverage Positions NFT\"",
               "fullTitle": "Leverage Positions NFT \"before each\" hook in \"Leverage Positions NFT\"",
               "timedOut": false,
-              "duration": 5975,
+              "duration": 4201,
               "state": null,
               "speed": null,
               "pass": false,
@@ -63,8 +63,8 @@
               "context": null,
               "code": "depositor = _hardhat.default.users.testUserOne;\nusers = [\n    _hardhat.default.users.testUserFive,\n    _hardhat.default.users.testUserSix\n];\npositions = await _hardhat.default.getContractOrFork(\"Positions\");\n[KISS, krETH, CollateralAsset, CollateralAsset8Dec] = await Promise.all([\n    (0, _krassets.addMockKreskoAsset)({\n        name: \"KISS\",\n        price: KISSPrice,\n        symbol: \"KISS\",\n        closeFee: 0.1,\n        openFee: 0.1,\n        marketOpen: true,\n        factor: 1,\n        supplyLimit: 100000\n    }, true),\n    (0, _krassets.addMockKreskoAsset)({\n        name: \"krETH\",\n        price: ETHPrice,\n        symbol: \"krETH\",\n        closeFee: 0.1,\n        openFee: 0.1,\n        marketOpen: true,\n        factor: 1,\n        supplyLimit: 100000\n    }, true),\n    (0, _collaterals.addMockCollateralAsset)({\n        name: \"Collateral18Dec\",\n        price: collateralPrice,\n        factor: 1,\n        decimals: 18\n    }),\n    (0, _collaterals.addMockCollateralAsset)({\n        name: \"Collateral8Dec\",\n        price: collateralPrice,\n        factor: 0.8,\n        decimals: 8\n    })\n]);\nawait CollateralAsset.setBalance(depositor, depositAmount18Dec);\nawait CollateralAsset.contract.connect(depositor).approve(_hardhat.default.Diamond.address, _hardhat.default.ethers.constants.MaxUint256);\nawait CollateralAsset8Dec.setBalance(depositor, depositAmount8Dec);\nawait CollateralAsset8Dec.contract.connect(depositor).approve(_hardhat.default.Diamond.address, _hardhat.default.ethers.constants.MaxUint256);\nfor (const user of users){\n    await Promise.all([\n        await CollateralAsset.setBalance(user, depositAmount18Dec),\n        await CollateralAsset8Dec.setBalance(user, depositAmount8Dec),\n        await CollateralAsset.contract.connect(user).approve(_hardhat.default.Diamond.address, _hardhat.default.ethers.constants.MaxUint256),\n        await CollateralAsset8Dec.contract.connect(user).approve(_hardhat.default.Diamond.address, _hardhat.default.ethers.constants.MaxUint256)\n    ]);\n}",
               "err": {},
-              "uuid": "3b28f7e4-8021-4916-8d2f-5a6a038be936",
-              "parentUUID": "18c21aea-42cb-4905-80f5-59cf8c33ed3b",
+              "uuid": "17122316-7246-498d-bc06-89c2d6f6aba7",
+              "parentUUID": "0839c063-f368-4da0-8992-6d663d6066db",
               "isHook": true,
               "skipped": false
             }
@@ -73,7 +73,7 @@
           "tests": [],
           "suites": [
             {
-              "uuid": "0dbb9e5f-b9e4-4fd5-91df-4eb8c4fafb36",
+              "uuid": "0f8576e8-1d25-472b-b9f0-66835d924d35",
               "title": "Positions",
               "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/collateral-pool/01-positions.ts",
               "file": "/src/test/collateral-pool/01-positions.ts",
@@ -82,7 +82,7 @@
                   "title": "\"before each\" hook in \"Positions\"",
                   "fullTitle": "Leverage Positions NFT Positions \"before each\" hook in \"Positions\"",
                   "timedOut": false,
-                  "duration": 96,
+                  "duration": 70,
                   "state": null,
                   "speed": null,
                   "pass": false,
@@ -91,8 +91,8 @@
                   "context": null,
                   "code": "depositor = _hardhat.default.users.testUserOne;\nconst krETHFee = (0, _lib.toBig)(0.005);\nconst KISSFee = (0, _lib.toBig)(0.005);\nconst leverage = (0, _lib.toBig)(2);\nconst totalFeePct = krETHFee.add(KISSFee).wadMul(leverage);\nconst borrowAmountWithoutFees = (0, _lib.toBig)(1).wadMul(leverage);\nconst fees = borrowAmountWithoutFees.wadMul(totalFeePct);\nposition = {\n    account: users[1].address,\n    leverage: leverage,\n    collateralAsset: KISS.address,\n    collateralAmount: (0, _lib.toBig)(ETHPrice),\n    borrowAsset: krETH.address,\n    borrowAmountMin: borrowAmountWithoutFees.sub(fees)\n};\nawait _hardhat.default.Diamond.enablePoolCollaterals([\n    CollateralAsset.address,\n    CollateralAsset8Dec.address,\n    KISS.address,\n    krETH.address\n], [\n    {\n        decimals: 18,\n        liquidationIncentive: (0, _lib.toBig)(1.05),\n        liquidityIndex: _lib.RAY\n    },\n    {\n        decimals: 8,\n        liquidationIncentive: (0, _lib.toBig)(1.05),\n        liquidityIndex: _lib.RAY\n    },\n    {\n        decimals: 18,\n        liquidationIncentive: (0, _lib.toBig)(1.05),\n        liquidityIndex: _lib.RAY\n    },\n    {\n        decimals: 18,\n        liquidationIncentive: (0, _lib.toBig)(1.05),\n        liquidityIndex: _lib.RAY\n    }\n]);\nawait _hardhat.default.Diamond.enablePoolKrAssets([\n    KISS.address,\n    krETH.address\n], [\n    {\n        openFee: KISSFee,\n        closeFee: KISSFee,\n        protocolFee: (0, _lib.toBig)(0.25),\n        supplyLimit: (0, _lib.toBig)(1000000)\n    },\n    {\n        openFee: krETHFee,\n        closeFee: krETHFee,\n        protocolFee: (0, _lib.toBig)(0.25),\n        supplyLimit: (0, _lib.toBig)(1000000)\n    }\n]);\nawait _hardhat.default.Diamond.setSwapPairs([\n    {\n        assetIn: KISS.address,\n        assetOut: krETH.address,\n        enabled: true\n    }\n]);\nawait _hardhat.default.Diamond.connect(depositor).poolDeposit(depositor.address, CollateralAsset.address, depositAmount18Dec);\nawait KISS.setBalance(users[1], depositAmount18Dec);\nawait KISS.contract.connect(users[1]).approve(_hardhat.default.Diamond.address, _hardhat.default.ethers.constants.MaxUint256);",
                   "err": {},
-                  "uuid": "3962375d-46d4-41a7-b3e3-d04934f2c256",
-                  "parentUUID": "0dbb9e5f-b9e4-4fd5-91df-4eb8c4fafb36",
+                  "uuid": "5a003844-5d57-4ccc-a5c2-372f46c6b1ab",
+                  "parentUUID": "0f8576e8-1d25-472b-b9f0-66835d924d35",
                   "isHook": true,
                   "skipped": false
                 }
@@ -100,36 +100,32 @@
               "afterHooks": [],
               "tests": [
                 {
-                  "title": "should receive profit",
-                  "fullTitle": "Leverage Positions NFT Positions should receive profit",
+                  "title": "should offset wins by losses",
+                  "fullTitle": "Leverage Positions NFT Positions should offset wins by losses",
                   "timedOut": false,
-                  "duration": 207,
-                  "state": "failed",
-                  "speed": null,
-                  "pass": false,
-                  "fail": true,
+                  "duration": 251,
+                  "state": "passed",
+                  "speed": "slow",
+                  "pass": true,
+                  "fail": false,
                   "pending": false,
                   "context": null,
-                  "code": "const PositionsUser = positions.connect(users[1]);\n(0, _chai.expect)(await KISS.contract.balanceOf(users[1].address)).to.equal(depositAmount18Dec);\nconst poolStatsBefore = await _hardhat.default.Diamond.getPoolStats(true);\nawait PositionsUser.createPosition(position);\nkrETH.setPrice(1801);\nawait PositionsUser.closePosition(0);\nconst poolStatsAfter = await _hardhat.default.Diamond.getPoolStats(true);\n(0, _chai.expect)(poolStatsAfter.debtValue).to.equal(poolStatsBefore.debtValue);\n(0, _chai.expect)(poolStatsAfter.collateralValue).to.equal(poolStatsBefore.collateralValue);\n(0, _chai.expect)(poolStatsAfter.cr).to.equal(0);\n(0, _chai.expect)(await KISS.contract.balanceOf(users[1].address)).to.equal((0, _lib.toBig)(9928.72));",
-                  "err": {
-                    "message": "Error: VM Exception while processing transaction: reverted with reason string '107'",
-                    "estack": "Error: VM Exception while processing transaction: reverted with reason string '107'\n    at KreskoAsset._checkRole (@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:115)\n    at KreskoAsset._transfer (src/contracts/kreskoasset/KreskoAsset.sol:191)\n    at KreskoAsset.transfer (src/contracts/kreskoasset/KreskoAsset.sol:115)\n    at <UnrecognizedContract>.<unknown> (0x0607e3b2a16048fa3c77ec3a935eced978b5c7f3)\n    at Diamond.<fallback> (src/contracts/diamond/Diamond.sol:45)\n    at PositionsFacet.closePosition (src/contracts/minter/collateral-pool/position/facets/PositionsFacet.sol:70)\n    at PositionsFacet.getApprovalFor (src/contracts/minter/collateral-pool/position/facets/PositionsFacet.sol:24)\n    at Diamond.<fallback> (src/contracts/diamond/Diamond.sol:45)\n    at HardhatNode._gatherTraces (node_modules/.pnpm/hardhat@2.14.0_5o75j5ygh43aewe2xahjobrg7m/node_modules/hardhat/src/internal/hardhat-network/provider/node.ts:1715:30)\n    at processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at runNextTicks (node:internal/process/task_queues:64:3)\n    at listOnTimeout (node:internal/timers:533:9)\n    at processTimers (node:internal/timers:507:7)\n    at async HardhatNode._mineBlockWithPendingTxs (node_modules/.pnpm/hardhat@2.14.0_5o75j5ygh43aewe2xahjobrg7m/node_modules/hardhat/src/internal/hardhat-network/provider/node.ts:1840:23)\n    at async HardhatNode.mineBlock (node_modules/.pnpm/hardhat@2.14.0_5o75j5ygh43aewe2xahjobrg7m/node_modules/hardhat/src/internal/hardhat-network/provider/node.ts:517:16)",
-                    "diff": null
-                  },
-                  "uuid": "96b08240-67d5-4034-a32f-18b0103c024b",
-                  "parentUUID": "0dbb9e5f-b9e4-4fd5-91df-4eb8c4fafb36",
+                  "code": "const PositionsUser = positions.connect(users[1]);\nawait PositionsUser.createPosition({\n    ...position,\n    leverage: (0, _lib.toBig)(2),\n    borrowAmountMin: 0\n});\nkrETH.setPrice(1600);\nconsole.log(\"swapDebtBeforeClose\", (0, _lib.fromBig)(await _hardhat.default.Diamond.getPoolSwapDeposits(KISS.address)));\nawait PositionsUser.closePosition(0);\nconsole.log(\"baluserAfterClose\", (0, _lib.fromBig)(await KISS.contract.balanceOf(users[1].address)));\nkrETH.setPrice(1800);\nconst swapDebt = await _hardhat.default.Diamond.getPoolSwapDeposits(KISS.address);\nconsole.log(\"swapDebtBeforeOpenAgain\", (0, _lib.fromBig)(swapDebt));\nawait PositionsUser.createPosition({\n    ...position,\n    leverage: (0, _lib.toBig)(2),\n    borrowAmountMin: 0\n});\nkrETH.setPrice(2000);\nawait PositionsUser.closePosition(1);\nconst swapDebtAfter = await _hardhat.default.Diamond.getPoolSwapDeposits(KISS.address);\nconsole.log(\"baluserAfterClose2\", (0, _lib.fromBig)(await KISS.contract.balanceOf(users[1].address)));\nconsole.log(\"swapDebtAfterClose2\", (0, _lib.fromBig)(swapDebtAfter));\nconst poolStatsAfter = await _hardhat.default.Diamond.getPoolStats(true);\nconst debtKISS = await _hardhat.default.Diamond.getPoolDebt(KISS.address);\nconst debtkrETH = await _hardhat.default.Diamond.getPoolDebt(krETH.address);\n(0, _chai.expect)(debtkrETH).to.be.eq(0);\n(0, _chai.expect)(debtKISS).to.be.eq(0);\n(0, _chai.expect)(poolStatsAfter.debtValue).to.be.eq(0);\n(0, _chai.expect)(poolStatsAfter.cr).to.be.eq(0);",
+                  "err": {},
+                  "uuid": "83706f1c-d4d9-41c0-9a85-25ee1b32e18e",
+                  "parentUUID": "0f8576e8-1d25-472b-b9f0-66835d924d35",
                   "isHook": false,
                   "skipped": false
                 }
               ],
               "suites": [],
-              "passes": [],
-              "failures": [
-                "96b08240-67d5-4034-a32f-18b0103c024b"
+              "passes": [
+                "83706f1c-d4d9-41c0-9a85-25ee1b32e18e"
               ],
+              "failures": [],
               "pending": [],
               "skipped": [],
-              "duration": 207,
+              "duration": 251,
               "root": false,
               "rootEmpty": false,
               "_timeout": 15000

@@ -57,7 +57,7 @@ contract PositionsFacet is IPositionsFacet, DiamondModifiers {
         if (msg.sender != owner) {
             // allow closing and liquidations from external accounts
             if (pos().isLiquidatable(_id) || pos().isCloseable(_id)) {
-                pos().kresko.swapLeverOutLiquidation(msg.sender, pos().positions[_id]);
+                pos().kresko.swapLeverOut(pos().positions[_id], msg.sender);
                 ERC721().burn(_id);
                 return;
             }
@@ -67,7 +67,7 @@ contract PositionsFacet is IPositionsFacet, DiamondModifiers {
             );
         }
 
-        pos().kresko.swapLeverOut(pos().positions[_id]);
+        pos().kresko.swapLeverOut(pos().positions[_id], address(0));
         ERC721().burn(_id);
     }
 

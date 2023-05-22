@@ -7,6 +7,7 @@ import {WadRay} from "../../../libs/WadRay.sol";
 import {ICollateralPoolSwapFacet} from "../interfaces/ICollateralPoolSwapFacet.sol";
 import {cps} from "../CollateralPoolState.sol";
 import {Position, NewPosition} from "../position/state/PositionsStorage.sol";
+import "hardhat/console.sol";
 
 contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
     using SafeERC20 for IERC20Permit;
@@ -99,69 +100,29 @@ contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
     }
 
     // Closes a position, called by leverPositions
-    function swapLeverOut(Position memory _position) external nonReentrant returns (uint256 amountOut) {
+    function swapLeverOut(
+        Position memory _position,
+        address _incentiveReceiver
+    ) external nonReentrant returns (uint256 amountOut) {
         require(msg.sender == address(cps().positions), "closeLever-not-caller");
 
-        uint256 posCollateralAfterFees;
+        bool isProfit;
         // Swap out leveraged debt back to collateral.
-        (, amountOut, posCollateralAfterFees) = _swapLeverOut(
-            _position.borrowed,
-            _position.collateral,
-            _position.borrowedAmount,
-            1,
-            _position.collateralAmount,
-            _position.leverage
-        );
-        emit Swap(msg.sender, _position.borrowed, _position.collateral, _position.borrowedAmount, amountOut);
-        // increase by profit
-        if (amountOut > posCollateralAfterFees) {
-            amountOut = posCollateralAfterFees + (amountOut - posCollateralAfterFees).wadMul(_position.leverage);
-            // decrease by losses
-        } else if (amountOut < posCollateralAfterFees) {
-            amountOut = posCollateralAfterFees - (posCollateralAfterFees - amountOut).wadMul(_position.leverage);
-        }
-
-        IERC20Permit(_position.collateral).safeTransfer(_position.account, amountOut);
-    }
-
-    function swapLeverOutLiquidation(
-        address _incentiveReceiver,
-        Position memory _position
-    ) external nonReentrant returns (uint256 amountOut, uint256 amountOutIncentive) {
-        require(msg.sender == address(cps().positions), "closeLever-not-caller");
-
-        // Swap out leveraged debt back to collateral.
-        uint256 posCollateralAfterFees;
-        (, amountOut, posCollateralAfterFees) = _swapLeverOut(
-            _position.borrowed,
-            _position.collateral,
-            _position.borrowedAmount,
-            1,
-            _position.collateralAmount,
-            _position.leverage
-        );
+        (amountOut, isProfit) = _swapLeverOut(_position);
 
         emit Swap(msg.sender, _position.borrowed, _position.collateral, _position.borrowedAmount, amountOut);
 
-        // increase by profit
-        if (amountOut > posCollateralAfterFees) {
-            uint256 total = posCollateralAfterFees + (amountOut - posCollateralAfterFees).wadMul(_position.leverage);
-
-            amountOutIncentive = total.wadMul(_position.closeIncentive); // from total
-            amountOut = total - amountOutIncentive;
-
-            // decrease by losses, if insolvent, this will revert
-        } else if (amountOut < posCollateralAfterFees) {
-            uint256 total = posCollateralAfterFees - (posCollateralAfterFees - amountOut).wadMul(_position.leverage);
-
-            amountOutIncentive = posCollateralAfterFees.wadMul(_position.liquidationIncentive); // from principal
-            amountOut = total - amountOutIncentive;
-        } else {
-            revert("swapLeverOutLiquidation: no profit or loss");
+        // this is a position being closed by someone else
+        // it has crossed either the liquidation threshold or the close threshold
+        if (_incentiveReceiver != address(0)) {
+            uint256 incentiveOut = amountOut.wadMul(
+                isProfit ? _position.closeIncentive : _position.liquidationIncentive // from total
+            );
+            IERC20Permit(_position.collateral).safeTransfer(_incentiveReceiver, amountOut);
+            amountOut -= incentiveOut;
         }
 
         IERC20Permit(_position.collateral).safeTransfer(_position.account, amountOut);
-        IERC20Permit(_position.collateral).safeTransfer(_incentiveReceiver, amountOutIncentive);
     }
 
     /**
@@ -234,39 +195,35 @@ contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
 
     /**
      * @notice Swaps a leveraged position back to unleveraged amount of provided asset.
-     * @param _assetIn The asset that was leveraged.
-     * @param _assetOut The asset that was provided.
-     * @param _amountIn The amount of assetIn to swap.
-     * @param _amountOutMin The minimum amount of assetOut to receive. For slippage protection.
-     * @param _positionCollateralIn Position collateral amount, reduce fees from it when deducing loss/profit after.
-     * @param _leverage The leverage of the position.
+     * @param p The position to swap out.
      */
-    function _swapLeverOut(
-        address _assetIn,
-        address _assetOut,
-        uint256 _amountIn,
-        uint256 _amountOutMin,
-        uint256 _positionCollateralIn,
-        uint256 _leverage
-    ) internal returns (uint256 amountIn, uint256 amountOut, uint256 posCollateralAfterFees) {
+    function _swapLeverOut(Position memory p) internal returns (uint256 amountOut, bool isProfit) {
         // Check that assets can be swapped, get the fee percentages.
-        (uint256 feePercentage, uint256 protocolFee) = cps().checkAssets(_assetIn, _assetOut);
+        (uint256 feePercentage, uint256 protocolFee) = cps().checkAssets(p.borrowed, p.collateral);
 
-        amountIn = _amountIn;
-
-        // Not leverage adjusted.
         // We reduce value out here, as it was increased on the way in.
-        uint256 valueIn = cps().handleAssetsIn(_assetIn, amountIn, address(cps().positions)).wadDiv(_leverage);
+        uint256 valueIn = cps().handleAssetsIn(p.borrowed, p.borrowedAmount, address(cps().positions));
 
-        amountOut = cps().handleAssetsOut(_assetOut, valueIn, address(this));
-
+        amountOut = cps().handleAssetsOut(p.collateral, valueIn.wadDiv(p.leverage), address(this));
         // Get the fees adjusted for leveraged taken.
-        uint256 feeAmount = amountOut.wadMul(_leverage).wadMul(feePercentage);
+        uint256 feeAmount = amountOut.wadMul(feePercentage.wadMul(p.leverage));
 
         amountOut = amountOut - feeAmount;
-        posCollateralAfterFees = _positionCollateralIn - feeAmount;
+        uint256 posCollateralAfterFees = p.collateralAmount - feeAmount;
 
-        _checkAndPayFee(_assetOut, amountOut, _amountOutMin, feeAmount, protocolFee);
+        // We do not need to check for CR, it will always go up.
+        _payFee(p.collateral, feeAmount, protocolFee);
+
+        if (amountOut > posCollateralAfterFees) {
+            uint256 profits = (amountOut - posCollateralAfterFees).wadMul(p.leverage - 1 ether); // 1x profit when swapping from.
+            // increase by profit
+            return (cps().handleProfitsOut(p.collateral, amountOut, profits, p.account), true);
+        } else if (amountOut < posCollateralAfterFees) {
+            uint256 losses = (posCollateralAfterFees - amountOut).wadMul(p.leverage - 1 ether);
+            cps().handleAssetsIn(p.collateral, losses, address(this));
+            // decrease by losses
+            return (amountOut - losses, false);
+        }
     }
 
     function _checkAndPayFee(
@@ -279,11 +236,14 @@ contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
         // State modifications done, check MCR and slippage.
         require(_amountOut >= _amountOutMin, "lev-swap-slippage");
         require(cps().checkRatio(cps().minimumCollateralizationRatio), "lev-swap-mcr-violation");
+        _payFee(_feeAsset, _feeAmount, _protocolFee);
+    }
 
-        // Send fees to the fee receivers.
+    function _payFee(address _feeAsset, uint256 _feeAmount, uint256 _protocolFee) private {
         uint256 protocolFeeTaken = _feeAmount.wadMul(_protocolFee);
         _feeAmount -= protocolFeeTaken;
 
+        // Send fees to the fee receivers.
         IERC20Permit(_feeAsset).safeTransfer(cps().swapFeeRecipient, _feeAmount);
         IERC20Permit(_feeAsset).safeTransfer(ms().feeRecipient, protocolFeeTaken);
 
