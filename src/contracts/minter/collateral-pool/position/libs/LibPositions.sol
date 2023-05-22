@@ -2,6 +2,7 @@
 pragma solidity <=0.8.20;
 import {WadRay} from "../../../../libs/WadRay.sol";
 import {pos, PositionStorage, Position} from "../state/PositionsStorage.sol";
+import "hardhat/console.sol";
 
 library LibPositions {
     using WadRay for uint256;
@@ -21,30 +22,29 @@ library LibPositions {
         return self.positions[_id];
     }
 
-    function getLeverageOf(PositionStorage storage self, uint256 _id) internal view returns (uint256 leverage) {
+    function getRatioOf(PositionStorage storage self, uint256 _id) internal view returns (uint256 leverage) {
         Position memory position = self.positions[_id];
         uint256 collateralPrice = self.kresko.getPrice(position.collateral);
         uint256 borrowedPrice = self.kresko.getPrice(position.borrowed);
 
         if (collateralPrice == 0 || borrowedPrice == 0 || position.borrowedAmount == 0) return 0;
-
         return position.borrowedAmount.wadMul(borrowedPrice).wadDiv(position.collateralAmount.wadMul(collateralPrice));
     }
 
     function getLiquidationRatio(PositionStorage storage self, uint256 _id) internal view returns (uint256) {
-        return self.positions[_id].leverage + self.liquidationThreshold;
+        return self.positions[_id].leverage - self.liquidationThreshold;
     }
 
     function getCloseRatio(PositionStorage storage self, uint256 _id) internal view returns (uint256) {
-        return self.positions[_id].leverage - self.closeThreshold;
+        return self.positions[_id].leverage + self.closeThreshold;
     }
 
     function isLiquidatable(PositionStorage storage self, uint256 _id) internal view returns (bool) {
-        return self.getLeverageOf(_id) > self.getLiquidationRatio(_id);
+        return self.getRatioOf(_id) <= self.getLiquidationRatio(_id);
     }
 
     function isCloseable(PositionStorage storage self, uint256 _id) internal view returns (bool) {
-        return self.getLeverageOf(_id) <= self.getCloseRatio(_id);
+        return self.getRatioOf(_id) >= self.getCloseRatio(_id);
     }
 
     function adjustIn(PositionStorage storage self, uint256 _id, uint256 _collateralIn, uint256 _debtIn) internal {
@@ -60,10 +60,10 @@ library LibPositions {
     }
 
     function _setLeverage(PositionStorage storage self, uint256 _id) private {
-        uint256 leverage = self.getLeverageOf(_id);
+        uint256 leverage = self.getRatioOf(_id);
         require(leverage <= self.maxLeverage, LEVERAGE_TOO_HIGH);
         require(leverage >= self.minLeverage, LEVERAGE_TOO_LOW);
-        self.positions[_id].leverage = leverage;
+        // self.positions[_id].leverage = leverage;
     }
 
     function getAndIncrementNonce(PositionStorage storage self, uint256 id) internal returns (uint256) {

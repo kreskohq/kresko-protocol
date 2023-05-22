@@ -56,6 +56,7 @@ contract PositionsFacet is IPositionsFacet, DiamondModifiers {
         address owner = ERC721().ownerOf(_id);
         if (msg.sender != owner) {
             // allow closing and liquidations from external accounts
+
             if (pos().isLiquidatable(_id) || pos().isCloseable(_id)) {
                 pos().kresko.swapLeverOut(pos().positions[_id], msg.sender);
                 ERC721().burn(_id);
@@ -92,8 +93,8 @@ contract PositionsFacet is IPositionsFacet, DiamondModifiers {
     }
 
     /// @inheritdoc IPositionsFacet
-    function getPosition(uint256 _id) external view returns (Position memory) {
-        return pos().getPosition(_id);
+    function getPosition(uint256 _id) external view returns (Position memory, uint256 currentLeverage) {
+        return (pos().getPosition(_id), pos().getRatioOf(_id));
     }
 
     /// @inheritdoc IPositionsFacet

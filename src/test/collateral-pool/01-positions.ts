@@ -181,6 +181,54 @@ describe("Leverage Positions NFT", function () {
             expect(poolStatsAfter.debtValue).to.be.eq(0);
             expect(poolStatsAfter.cr).to.be.eq(0);
         });
+        it("should be able to liquidate a losing position", async () => {
+            const PositionsUser = positions.connect(users[1]);
+
+            await PositionsUser.createPosition({ ...position, leverage: toBig(3), borrowAmountMin: 0 });
+            const liquidator = users[0];
+            krETH.setPrice(1500); // 2.5
+            const [pos, ratio] = await positions.getPosition(0);
+            expect(ratio).to.be.lt(pos.leverage);
+            const [isLiquidatable] = await positions.isLiquidatable([0]);
+            expect(isLiquidatable).to.be.true;
+            console.log(fromBig(await KISS.contract.balanceOf(liquidator.address)));
+            await positions.connect(liquidator).closePosition(0);
+
+            const poolStatsAfter = await hre.Diamond.getPoolStats(true);
+
+            const debtKISS = await hre.Diamond.getPoolDebt(KISS.address);
+            const debtkrETH = await hre.Diamond.getPoolDebt(krETH.address);
+
+            expect(debtkrETH).to.be.eq(0);
+            expect(debtKISS).to.be.eq(0);
+            expect(poolStatsAfter.debtValue).to.be.eq(0);
+            expect(poolStatsAfter.cr).to.be.eq(0);
+            console.log(fromBig(await KISS.contract.balanceOf(liquidator.address)));
+        });
+        it("should be able to close a winning position", async () => {
+            const PositionsUser = positions.connect(users[1]);
+
+            await PositionsUser.createPosition({ ...position, leverage: toBig(3), borrowAmountMin: 0 });
+            const closer = users[0];
+            krETH.setPrice(2100); // 2.5
+            const [pos, ratio] = await positions.getPosition(0);
+            expect(ratio).to.be.gt(pos.leverage);
+            const [isClosable] = await positions.isClosable([0]);
+            expect(isClosable).to.be.true;
+            console.log(fromBig(await KISS.contract.balanceOf(closer.address)));
+            await positions.connect(closer).closePosition(0);
+
+            const poolStatsAfter = await hre.Diamond.getPoolStats(true);
+
+            const debtKISS = await hre.Diamond.getPoolDebt(KISS.address);
+            const debtkrETH = await hre.Diamond.getPoolDebt(krETH.address);
+
+            expect(debtkrETH).to.be.eq(0);
+            expect(debtKISS).to.be.gt(0);
+            expect(poolStatsAfter.debtValue).to.be.gt(0);
+            expect(poolStatsAfter.cr).to.be.gt(0);
+            console.log(fromBig(await KISS.contract.balanceOf(closer.address)));
+        });
 
         beforeEach(async () => {
             depositor = hre.users.testUserOne;

@@ -118,7 +118,7 @@ contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
             uint256 incentiveOut = amountOut.wadMul(
                 isProfit ? _position.closeIncentive : _position.liquidationIncentive // from total
             );
-            IERC20Permit(_position.collateral).safeTransfer(_incentiveReceiver, amountOut);
+            IERC20Permit(_position.collateral).safeTransfer(_incentiveReceiver, incentiveOut);
             amountOut -= incentiveOut;
         }
 
@@ -205,6 +205,7 @@ contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
         uint256 valueIn = cps().handleAssetsIn(p.borrowed, p.borrowedAmount, address(cps().positions));
 
         amountOut = cps().handleAssetsOut(p.collateral, valueIn.wadDiv(p.leverage), address(this));
+
         // Get the fees adjusted for leveraged taken.
         uint256 feeAmount = amountOut.wadMul(feePercentage.wadMul(p.leverage));
 

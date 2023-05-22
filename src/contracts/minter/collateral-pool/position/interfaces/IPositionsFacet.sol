@@ -51,7 +51,9 @@ interface IPositionsFacet {
     function repay(uint256 _id, uint256 _repayAmount) external;
 
     /// @notice returns the info of a position for `_id`
-    function getPosition(uint256 _id) external view returns (Position memory);
+    /// @return position the position when last modified
+    /// @return currentLeverage the current leverage of the position
+    function getPosition(uint256 _id) external view returns (Position memory, uint256 currentLeverage);
 
     /**
      * @notice Get the liquidatable status of a lever positions

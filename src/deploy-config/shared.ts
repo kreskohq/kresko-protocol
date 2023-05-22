@@ -98,8 +98,8 @@ export const getPositionsInitializer = async (hre: HardhatRuntimeEnvironment): P
             kresko: hre.Diamond.address,
             minLeverage: toBig(1),
             maxLeverage: toBig(10),
-            closeThreshold: toBig(1),
-            liquidationThreshold: toBig(0.75),
+            closeThreshold: toBig(0.5),
+            liquidationThreshold: toBig(0.5),
         },
     };
 };
