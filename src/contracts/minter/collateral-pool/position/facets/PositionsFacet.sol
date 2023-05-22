@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity <=0.8.20;
-import {ICollateralPoolSwapFacet} from "../../interfaces/ICollateralPoolSwapFacet.sol";
 import {ds} from "../../../../diamond/DiamondStorage.sol";
 import {DiamondModifiers} from "../../../../diamond/DiamondModifiers.sol";
-import {Error} from "../../../../libs/Errors.sol";
-import {lz} from "../state/LZStorage.sol";
 import {ERC721} from "../state/ERC721Storage.sol";
-import {pos, LibPositions, NewPosition, Position, PositionsInitializer} from "../state/PositionsStorage.sol";
+import {pos, LibPositions, NewPosition, Position} from "../state/PositionsStorage.sol";
 import {IPositionsFacet} from "../interfaces/IPositionsFacet.sol";
+import {IERC20Permit} from "../../../../shared/IERC20Permit.sol";
 
 contract PositionsFacet is IPositionsFacet, DiamondModifiers {
     modifier check(uint256 _id) {
@@ -19,38 +17,15 @@ contract PositionsFacet is IPositionsFacet, DiamondModifiers {
         _;
     }
 
-    function initialize(PositionsInitializer memory _init) external {
-        ds().contractOwner = msg.sender;
+    function getApprovalFor(address _asset) external {
+        require(address(pos().kresko) != address(0), "!kresko");
+        require(_asset != address(0), "!asset-0");
+        require(msg.sender == address(pos().kresko), "!kresko");
+        IERC20Permit(_asset).approve(address(pos().kresko), type(uint256).max);
+    }
 
-        require(ds().storageVersion == 0, Error.ALREADY_INITIALIZED);
-
-        // check erc721
-        require(bytes(_init.name).length > 0 && bytes(_init.symbol).length > 0, LibPositions.INVALID_NAME);
-
-        ERC721().name = _init.name;
-        ERC721().symbol = _init.symbol;
-
-        // check liq threshold
-        require(_init.liquidationThreshold <= 1e18, LibPositions.INVALID_LT);
-        require(_init.liquidationThreshold >= 0.1e18, LibPositions.INVALID_LT);
-
-        // check close threshold
-        require(_init.closeThreshold <= 1e18, LibPositions.INVALID_LT);
-        require(_init.closeThreshold >= 0.01e18, LibPositions.INVALID_LT);
-
-        // check min/max lev
-        require(_init.maxLeverage <= 500e18, LibPositions.INVALID_MAX_LEVERAGE);
-        require(_init.maxLeverage >= 1e18, LibPositions.INVALID_MAX_LEVERAGE);
-        require(_init.minLeverage >= 0.01e18, LibPositions.INVALID_MAX_LEVERAGE);
-
-        // check kresko
-        require(address(_init.kresko) != address(0), LibPositions.INVALID_KRESKO);
-
-        pos().kresko = _init.kresko;
-        pos().minLeverage = 0.01e18;
-        pos().maxLeverage = 0.5e18;
-
-        ds().storageVersion = 1;
+    function removeApprovalFor(address _asset) external onlyOwner {
+        IERC20Permit(_asset).approve(address(pos().kresko), 0);
     }
 
     /// @inheritdoc IPositionsFacet
@@ -83,15 +58,16 @@ contract PositionsFacet is IPositionsFacet, DiamondModifiers {
             // allow closing and liquidations from external accounts
             if (pos().isLiquidatable(_id) || pos().isCloseable(_id)) {
                 pos().kresko.swapLeverOutLiquidation(msg.sender, pos().positions[_id]);
-            } else {
-                require(
-                    msg.sender == owner || ERC721().isApprovedForAll(owner, msg.sender),
-                    LibPositions.ERROR_POSITION_NOT_OWNED_BY_CALLER
-                );
-                pos().kresko.swapLeverOut(pos().positions[_id]);
+                ERC721().burn(_id);
+                return;
             }
+            require(
+                msg.sender == owner || ERC721().isApprovedForAll(owner, msg.sender),
+                LibPositions.ERROR_POSITION_NOT_OWNED_BY_CALLER
+            );
         }
 
+        pos().kresko.swapLeverOut(pos().positions[_id]);
         ERC721().burn(_id);
     }
 

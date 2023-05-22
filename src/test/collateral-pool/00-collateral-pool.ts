@@ -1,10 +1,9 @@
 import { getCollateralPoolInitializer } from "@deploy-config/shared";
-import { RAY, fromBig, getNamedEvent, toBig } from "@kreskolabs/lib";
+import { RAY, getNamedEvent, toBig } from "@kreskolabs/lib";
 import { expect } from "@test/chai";
 import { withFixture } from "@utils/test";
 import { addMockCollateralAsset, depositCollateral } from "@utils/test/helpers/collaterals";
 import { addMockKreskoAsset, mintKrAsset } from "@utils/test/helpers/krassets";
-import { getCR } from "@utils/test/helpers/liquidations";
 import hre from "hardhat";
 import { ICollateralPoolConfigFacet } from "types/typechain";
 import {
@@ -13,7 +12,7 @@ import {
     SwapEvent,
 } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 
-describe.only("Collateral Pool", function () {
+describe("Collateral Pool", function () {
     describe("#Configuration", async () => {
         it("should be initialized with correct params", async () => {
             const { args } = await getCollateralPoolInitializer(hre);
@@ -193,7 +192,7 @@ describe.only("Collateral Pool", function () {
                             liquidityIndex: RAY,
                         },
                         {
-                            decimals: 18,
+                            decimals: 8,
                             liquidationIncentive: toBig(1.05),
                             liquidityIndex: RAY,
                         },
@@ -537,7 +536,7 @@ describe.only("Collateral Pool", function () {
                             liquidityIndex: RAY,
                         },
                         {
-                            decimals: 18,
+                            decimals: 8,
                             liquidationIncentive: toBig(1.05),
                             liquidityIndex: RAY,
                         },
@@ -659,6 +658,7 @@ describe.only("Collateral Pool", function () {
             const [amountOut, feeAmount, feeAmountProtocol] = await hre.Diamond.previewSwap(
                 KISS.address,
                 KreskoAsset2.address,
+                toBig(1),
                 toBig(1),
             );
             expect(amountOut).to.equal(expectedAmountOut);
@@ -956,117 +956,7 @@ describe.only("Collateral Pool", function () {
             );
         });
     });
-    describe.only("#Leverage", () => {
-        let swapper: SignerWithAddress;
-        let depositor: SignerWithAddress;
-        let KreskoAsset2: Awaited<ReturnType<typeof addMockKreskoAsset>>;
-        let KISS: Awaited<ReturnType<typeof addMockKreskoAsset>>;
-        const KreskoAsset2Price = 100;
-        const ONE_USD = 1;
-        const leverArgs = ["Leverage", "LEVERAGE", 750000, hre.ethers.constants.AddressZero];
-        it("Should be able to leverage 2x", async () => {});
-        beforeEach(async () => {
-            swapper = users[0];
-            depositor = users[1];
-            [KreskoAsset2, KISS] = await Promise.all([
-                addMockKreskoAsset(
-                    {
-                        name: "KreskoAssetPrice100USD",
-                        price: KreskoAsset2Price,
-                        symbol: "KreskoAssetPrice100USD",
-                        closeFee: 0.05,
-                        openFee: 0.05,
-                        marketOpen: true,
-                        factor: 1,
-                        supplyLimit: 1_000,
-                    },
-                    true,
-                ),
-                addMockKreskoAsset(
-                    {
-                        name: "KISS",
-                        price: ONE_USD,
-                        symbol: "KISS",
-                        closeFee: 0.025,
-                        openFee: 0.025,
-                        marketOpen: true,
-                        factor: 1,
-                        supplyLimit: 1_000_000,
-                    },
-                    true,
-                ),
-            ]);
 
-            // setup collaterals and krAssets in shared pool
-            const collateralConfig = {
-                decimals: 18,
-                liquidationIncentive: toBig(1.05),
-                liquidityIndex: RAY,
-            };
-            const krAssetConfig = {
-                openFee: toBig(0.015),
-                closeFee: toBig(0.015),
-                protocolFee: toBig(0.25),
-                supplyLimit: toBig(1000000),
-            };
-            const KISSConfig = {
-                openFee: toBig(0.025),
-                closeFee: toBig(0.025),
-                protocolFee: toBig(0.25),
-                supplyLimit: toBig(1000000),
-            };
-            await Promise.all([
-                await hre.Diamond.enablePoolCollaterals(
-                    [
-                        CollateralAsset.address,
-                        CollateralAsset8Dec.address,
-                        KISS.address,
-                        KreskoAsset.address,
-                        KreskoAsset2.address,
-                    ],
-                    [collateralConfig, collateralConfig, collateralConfig, collateralConfig, collateralConfig],
-                ),
-                await hre.Diamond.enablePoolKrAssets(
-                    [KreskoAsset.address, KreskoAsset2.address, KISS.address],
-                    [krAssetConfig, krAssetConfig, KISSConfig],
-                ),
-                await hre.Diamond.setSwapPairs([
-                    {
-                        assetIn: KreskoAsset2.address,
-                        assetOut: KreskoAsset.address,
-                        enabled: true,
-                    },
-                    {
-                        assetIn: KISS.address,
-                        assetOut: KreskoAsset2.address,
-                        enabled: true,
-                    },
-                    {
-                        assetIn: KreskoAsset.address,
-                        assetOut: KISS.address,
-                        enabled: true,
-                    },
-                ]),
-            ]);
-
-            // mint some KISS for users
-            for (const user of users) {
-                await CollateralAsset.setBalance(user, toBig(1_000_000));
-                await CollateralAsset.contract
-                    .connect(user)
-                    .approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
-                await KISS.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
-                await KreskoAsset2.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
-                await KISS.setBalance(swapper, toBig(10_000));
-            }
-
-            await hre.Diamond.connect(depositor).poolDeposit(
-                depositor.address,
-                CollateralAsset.address,
-                depositAmount18Dec, // $10k
-            );
-        });
-    });
     describe("#Error", () => {
         it("should revert depositing unsupported tokens", async () => {
             const [UnsupportedToken] = await hre.deploy("MockERC20", {
@@ -1113,7 +1003,7 @@ describe.only("Collateral Pool", function () {
             const swapAmount = toBig(1);
             await KreskoAsset2.setBalance(swapper, swapAmount);
             const Kresko = hre.Diamond.connect(swapper);
-            const [amountOut] = await Kresko.previewSwap(KreskoAsset2.address, KISS.address, swapAmount);
+            const [amountOut] = await Kresko.previewSwap(KreskoAsset2.address, KISS.address, swapAmount, toBig(1));
             await expect(
                 Kresko.swap(swapper.address, KreskoAsset2.address, KISS.address, swapAmount, amountOut.add(1)),
             ).to.be.revertedWith("swap-slippage");
@@ -1274,7 +1164,6 @@ describe.only("Collateral Pool", function () {
     let CollateralAsset8Dec: Awaited<ReturnType<typeof addMockCollateralAsset>>;
     const collateralPrice = 10;
     const kreskoAssetPrice = 10;
-    let oracleDecimals: number;
 
     let users: SignerWithAddress[];
     const depositAmount = 1000;
@@ -1282,7 +1171,6 @@ describe.only("Collateral Pool", function () {
     const depositAmount8Dec = toBig(depositAmount, 8);
     beforeEach(async () => {
         users = [hre.users.testUserFive, hre.users.testUserSix];
-        oracleDecimals = await hre.Diamond.extOracleDecimals();
 
         [KreskoAsset, CollateralAsset, CollateralAsset8Dec] = await Promise.all([
             addMockKreskoAsset(

@@ -22,7 +22,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 
 deploy.tags = ["minter-test", "local", "minter-init", "all", "add-facets"];
-deploy.dependencies = ["diamond-init", "minter-facets"];
+deploy.dependencies = ["diamond-init", "minter-facets", "positions-nft"];
 deploy.skip = async hre => hre.network.live;
 
 export default deploy;

@@ -9,7 +9,6 @@ struct NewPosition {
     address collateralAsset;
     address borrowAsset;
     uint256 collateralAmount;
-    uint256 borrowAmount;
     uint256 borrowAmountMin;
     uint256 leverage;
 }

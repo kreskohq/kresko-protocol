@@ -3,6 +3,12 @@ pragma solidity <=0.8.20;
 import {NewPosition, Position} from "../state/PositionsStorage.sol";
 
 interface IPositionsFacet {
+    /// @notice approves kresko to spend `_asset`
+    function getApprovalFor(address _asset) external;
+
+    /// @notice removes approval for kresko to spend `_asset`
+    function removeApprovalFor(address _asset) external;
+
     /**
      * @notice Creates a new lever position
      * @param _position The parameters of the new position

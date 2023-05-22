@@ -63,10 +63,11 @@ library LibBurn {
     function repaySwap(
         MinterState storage self,
         address _kreskoAsset,
-        uint256 _burnAmount
+        uint256 _burnAmount,
+        address _from
     ) internal returns (uint256 destroyed) {
         // Burn assets from the protocol, as they are sent in. Get the destroyed shares.
-        destroyed = IKreskoAssetIssuer(self.kreskoAssets[_kreskoAsset].anchor).destroy(_burnAmount, address(this));
+        destroyed = IKreskoAssetIssuer(self.kreskoAssets[_kreskoAsset].anchor).destroy(_burnAmount, _from);
         require(destroyed != 0, "repay-destroyed-amount-invalid");
     }
 

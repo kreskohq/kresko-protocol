@@ -8,6 +8,7 @@ import roles from "../roles";
 import { FluxPriceFeed__factory, KreskoAssetAnchor__factory, KreskoAsset__factory } from "types/typechain";
 import { KrAssetStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 import { getMockOracleFor, setPrice, setMarketOpen } from "./oracle";
+import { getCollateralConfig } from "./collaterals";
 
 export const getDebtIndexAdjustedBalance = async (user: SignerWithAddress, asset: TestKrAsset) => {
     const balance = await asset.contract.balanceOf(user.address);
@@ -35,7 +36,10 @@ export const getKrAssetConfig = async (
     };
 };
 
-export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAssetArgs): Promise<TestKrAsset> => {
+export const addMockKreskoAsset = async (
+    args: TestKreskoAssetArgs = defaultKrAssetArgs,
+    asCollateral: boolean,
+): Promise<TestKrAsset> => {
     const { deployer } = await hre.ethers.getNamedSigners();
     const { name, symbol, price, marketOpen, factor, supplyLimit, closeFee, openFee, stabilityRateBase } = args;
 
@@ -74,11 +78,14 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
     if (asCollateral) {
         await hre.Diamond.connect(deployer).addCollateralAsset(
             krAsset.address,
-            akrAsset.address,
-            toBig(1),
-            toBig(1.05),
-            MockOracle.address,
-            MockOracle.address,
+            await getCollateralConfig(
+                krAsset,
+                akrAsset.address,
+                toBig(1),
+                toBig(1.05),
+                MockOracle.address,
+                MockOracle.address,
+            ),
         );
     }
     await krAsset.grantRole(roles.OPERATOR, akrAsset.address);
@@ -213,6 +220,11 @@ export const addMockKreskoAssetWithAMMPair = async (
             await mocks.contract.setVariable("_totalSupply", totalSupply.add(amount));
             await mocks.contract.setVariable("_balances", {
                 [user.address]: amount,
+            });
+            // we need to match balances here on the protocol side for shares
+            await mocks.anchor.setVariable("_totalSupply", (await akrAsset.totalSupply()).add(amount));
+            await mocks.anchor.setVariable("_balances", {
+                [hre.Diamond.address]: amount,
             });
         },
         getPrice: () => MockOracle.latestAnswer(),

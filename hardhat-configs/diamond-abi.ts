@@ -10,7 +10,7 @@ export const diamondAbiConfig: DiamondAbiUserConfig[] = [
     {
         name: "Kresko",
         include: ["facets/*"],
-        exclude: ["vendor", "test/*", "interfaces/*", "krasset/*", "KrStaking"],
+        exclude: ["vendor", "test/*", "interfaces/*", "krasset/*", "KrStaking", "collateral-pool/position/*"],
         strict: false,
         filter(abiElement, index, abi, fq) {
             if (abiElement.type === "event") {
@@ -30,6 +30,59 @@ export const diamondAbiConfig: DiamondAbiUserConfig[] = [
                     abiElement.name === "StabilityRateInterestBatchRepaid" &&
                     fq.includes("InterestLiquidationFacet")
                 ) {
+                    return false;
+                }
+            }
+            return true;
+        },
+    },
+    {
+        name: "Positions",
+        include: ["position/facets/*"],
+        exclude: ["vendor", "test/*", "interfaces/*", "krasset/*", "KrStaking"],
+        strict: false,
+        filter(abiElement, index, abi, fq) {
+            if (abiElement.type === "event") {
+                if (
+                    abiElement.name === "Approval" &&
+                    (fq.includes("LayerZeroFacet") ||
+                        fq.includes("PositionsFacet") ||
+                        fq.includes("PositionsConfigFacet"))
+                ) {
+                    return false;
+                } else if (
+                    abiElement.name === "SendToChain" &&
+                    (fq.includes("ERC721Facet") || fq.includes("PositionsFacet") || fq.includes("PositionsConfigFacet"))
+                ) {
+                    return false;
+                } else if (
+                    abiElement.name === "ReceiveFromChain" &&
+                    (fq.includes("ERC721Facet") || fq.includes("PositionsFacet") || fq.includes("PositionsConfigFacet"))
+                ) {
+                    return false;
+                } else if (
+                    abiElement.name === "Transfer" &&
+                    (fq.includes("LayerZeroFacet") ||
+                        fq.includes("PositionsFacet") ||
+                        fq.includes("PositionsConfigFacet"))
+                ) {
+                    return false;
+                } else if (
+                    abiElement.name === "CreditStored" &&
+                    (fq.includes("ERC721Facet") || fq.includes("PositionsConfigFacet"))
+                ) {
+                    return false;
+                }
+
+                if (abiElement.name === "Approval" && index === 2) {
+                    return false;
+                } else if (abiElement.name === "Transfer" && index === 5) {
+                    return false;
+                } else if (abiElement.name === "ReceiveFromChain" && index === 5) {
+                    return false;
+                } else if (abiElement.name === "CreditStored" && (index === 5 || index === 2)) {
+                    return false;
+                } else if (abiElement.name === "SendToChain" && (index === 5 || index === 8)) {
                     return false;
                 }
             }

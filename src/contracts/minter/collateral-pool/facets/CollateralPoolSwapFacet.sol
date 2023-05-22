@@ -7,7 +7,6 @@ import {WadRay} from "../../../libs/WadRay.sol";
 import {ICollateralPoolSwapFacet} from "../interfaces/ICollateralPoolSwapFacet.sol";
 import {cps} from "../CollateralPoolState.sol";
 import {Position, NewPosition} from "../position/state/PositionsStorage.sol";
-import "hardhat/console.sol";
 
 contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
     using SafeERC20 for IERC20Permit;
@@ -103,27 +102,23 @@ contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
     function swapLeverOut(Position memory _position) external nonReentrant returns (uint256 amountOut) {
         require(msg.sender == address(cps().positions), "closeLever-not-caller");
 
+        uint256 posCollateralAfterFees;
         // Swap out leveraged debt back to collateral.
-        (, amountOut) = _swapLeverOut(
+        (, amountOut, posCollateralAfterFees) = _swapLeverOut(
             _position.borrowed,
             _position.collateral,
             _position.borrowedAmount,
             1,
+            _position.collateralAmount,
             _position.leverage
         );
-
         emit Swap(msg.sender, _position.borrowed, _position.collateral, _position.borrowedAmount, amountOut);
-
         // increase by profit
-        if (amountOut > _position.collateralAmount) {
-            amountOut =
-                _position.collateralAmount +
-                (amountOut - _position.collateralAmount).wadMul(_position.leverage);
+        if (amountOut > posCollateralAfterFees) {
+            amountOut = posCollateralAfterFees + (amountOut - posCollateralAfterFees).wadMul(_position.leverage);
             // decrease by losses
-        } else if (amountOut < _position.collateralAmount) {
-            amountOut =
-                _position.collateralAmount -
-                (_position.collateralAmount - amountOut).wadMul(_position.leverage);
+        } else if (amountOut < posCollateralAfterFees) {
+            amountOut = posCollateralAfterFees - (posCollateralAfterFees - amountOut).wadMul(_position.leverage);
         }
 
         IERC20Permit(_position.collateral).safeTransfer(_position.account, amountOut);
@@ -136,30 +131,30 @@ contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
         require(msg.sender == address(cps().positions), "closeLever-not-caller");
 
         // Swap out leveraged debt back to collateral.
-        (, amountOut) = _swapLeverOut(
+        uint256 posCollateralAfterFees;
+        (, amountOut, posCollateralAfterFees) = _swapLeverOut(
             _position.borrowed,
             _position.collateral,
             _position.borrowedAmount,
             1,
+            _position.collateralAmount,
             _position.leverage
         );
 
         emit Swap(msg.sender, _position.borrowed, _position.collateral, _position.borrowedAmount, amountOut);
 
         // increase by profit
-        if (amountOut > _position.collateralAmount) {
-            uint256 total = _position.collateralAmount +
-                (amountOut - _position.collateralAmount).wadMul(_position.leverage);
+        if (amountOut > posCollateralAfterFees) {
+            uint256 total = posCollateralAfterFees + (amountOut - posCollateralAfterFees).wadMul(_position.leverage);
 
             amountOutIncentive = total.wadMul(_position.closeIncentive); // from total
             amountOut = total - amountOutIncentive;
 
-            // decrease by losses
-        } else if (amountOut < _position.collateralAmount) {
-            uint256 total = _position.collateralAmount -
-                (_position.collateralAmount - amountOut).wadMul(_position.leverage);
+            // decrease by losses, if insolvent, this will revert
+        } else if (amountOut < posCollateralAfterFees) {
+            uint256 total = posCollateralAfterFees - (posCollateralAfterFees - amountOut).wadMul(_position.leverage);
 
-            amountOutIncentive = position.collateralAmount.wadMul(_position.liquidationIncentive); // from principal
+            amountOutIncentive = posCollateralAfterFees.wadMul(_position.liquidationIncentive); // from principal
             amountOut = total - amountOutIncentive;
         } else {
             revert("swapLeverOutLiquidation: no profit or loss");
@@ -192,7 +187,8 @@ contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
         // Assets received pay off debt and/or increase "swap" owned collateral.
         uint256 valueIn = cps().handleAssetsIn(
             _assetIn,
-            _amountIn - feeAmount // Work with fee reduced amount from here.
+            _amountIn - feeAmount, // Work with fee reduced amount from here.
+            address(this)
         );
 
         // Assets sent out are newly minted debt and/or "swap" owned collateral.
@@ -222,13 +218,13 @@ contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
     ) internal returns (uint256 amountIn, uint256 amountOut) {
         // Check that assets can be swapped, get the fee percentages.
         (uint256 feePercentage, uint256 protocolFee) = cps().checkAssets(_assetIn, _assetOut);
-
         // Get the fees adjusted for leverage taken.
         uint256 feeAmount = _amountIn.wadMul(_leverage).wadMul(feePercentage);
+
         amountIn = _amountIn - feeAmount; // Work with fee reduced amount from here.
 
         // Not leverage adjusted.
-        uint256 valueIn = cps().handleAssetsIn(_assetIn, amountIn).wadMul(_leverage);
+        uint256 valueIn = cps().handleAssetsIn(_assetIn, amountIn, address(this)).wadMul(_leverage);
 
         // We multiply value by leverage to get the amount of debt to mint.
         amountOut = cps().handleAssetsOut(_assetOut, valueIn, address(cps().positions));
@@ -242,6 +238,7 @@ contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
      * @param _assetOut The asset that was provided.
      * @param _amountIn The amount of assetIn to swap.
      * @param _amountOutMin The minimum amount of assetOut to receive. For slippage protection.
+     * @param _positionCollateralIn Position collateral amount, reduce fees from it when deducing loss/profit after.
      * @param _leverage The leverage of the position.
      */
     function _swapLeverOut(
@@ -249,26 +246,31 @@ contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
         address _assetOut,
         uint256 _amountIn,
         uint256 _amountOutMin,
+        uint256 _positionCollateralIn,
         uint256 _leverage
-    ) internal returns (uint256 amountIn, uint256 amountOut) {
+    ) internal returns (uint256 amountIn, uint256 amountOut, uint256 posCollateralAfterFees) {
         // Check that assets can be swapped, get the fee percentages.
         (uint256 feePercentage, uint256 protocolFee) = cps().checkAssets(_assetIn, _assetOut);
 
-        // Get the fees with leverage. Trader pays these fees.
-        uint256 feeAmount = _amountIn.wadMul(feePercentage);
-        amountIn = _amountIn - feeAmount; // Work with fee reduced amount from here.
+        amountIn = _amountIn;
 
         // Not leverage adjusted.
-        uint256 valueIn = cps().handleAssetsIn(_assetIn, amountIn).wadDiv(_leverage);
-
         // We reduce value out here, as it was increased on the way in.
+        uint256 valueIn = cps().handleAssetsIn(_assetIn, amountIn, address(cps().positions)).wadDiv(_leverage);
+
         amountOut = cps().handleAssetsOut(_assetOut, valueIn, address(this));
 
-        _checkAndPayFee(_assetIn, amountOut, _amountOutMin, feeAmount, protocolFee);
+        // Get the fees adjusted for leveraged taken.
+        uint256 feeAmount = amountOut.wadMul(_leverage).wadMul(feePercentage);
+
+        amountOut = amountOut - feeAmount;
+        posCollateralAfterFees = _positionCollateralIn - feeAmount;
+
+        _checkAndPayFee(_assetOut, amountOut, _amountOutMin, feeAmount, protocolFee);
     }
 
     function _checkAndPayFee(
-        address _assetIn,
+        address _feeAsset,
         uint256 _amountOut,
         uint256 _amountOutMin,
         uint256 _feeAmount,
@@ -282,9 +284,9 @@ contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
         uint256 protocolFeeTaken = _feeAmount.wadMul(_protocolFee);
         _feeAmount -= protocolFeeTaken;
 
-        IERC20Permit(_assetIn).safeTransfer(cps().swapFeeRecipient, _feeAmount);
-        IERC20Permit(_assetIn).safeTransfer(ms().feeRecipient, protocolFeeTaken);
+        IERC20Permit(_feeAsset).safeTransfer(cps().swapFeeRecipient, _feeAmount);
+        IERC20Permit(_feeAsset).safeTransfer(ms().feeRecipient, protocolFeeTaken);
 
-        emit SwapFee(_assetIn, _feeAmount, protocolFeeTaken);
+        emit SwapFee(_feeAsset, _feeAmount, protocolFeeTaken);
     }
 }

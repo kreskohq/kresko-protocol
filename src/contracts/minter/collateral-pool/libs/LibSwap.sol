@@ -10,6 +10,7 @@ import {LibAmounts} from "./LibAmounts.sol";
 import {cps, CollateralPoolState, PoolKrAsset} from "../CollateralPoolState.sol";
 import {ms} from "../../MinterStorage.sol";
 import {irs} from "../../InterestRateState.sol";
+import "hardhat/console.sol";
 
 /* solhint-disable not-rely-on-time */
 
@@ -43,15 +44,18 @@ library LibSwap {
     }
 
     /**
-     * @notice Records the assets received from account in a swap, burning any existing shared debt or increasing collateral deposits.
+     * @notice Records the assets received from account in a swap.
+     * Burning any existing shared debt or increasing collateral deposits.
      * @param _assetIn The asset received.
      * @param _amountIn The amount of the asset received.
+     * @param _assetsFrom The account that holds the assets to burn.
      * @return valueIn The value of the assets received into the protocol, used to calculate assets out.
      */
     function handleAssetsIn(
         CollateralPoolState storage self,
         address _assetIn,
-        uint256 _amountIn
+        uint256 _amountIn,
+        address _assetsFrom
     ) internal returns (uint256 valueIn) {
         uint256 debt = ms().getKreskoAssetAmount(_assetIn, self.debt[_assetIn]);
         valueIn = ms().getKrAssetValue(_assetIn, _amountIn, true); // ignore kFactor here
@@ -88,24 +92,25 @@ library LibSwap {
 
         if (debtOut > 0) {
             // 1. Burn debt that was repaid from the assets received.
-            self.debt[_assetIn] -= ms().repaySwap(_assetIn, debtOut);
+            self.debt[_assetIn] -= ms().repaySwap(_assetIn, debtOut, _assetsFrom);
         }
 
         require(_amountIn == debtOut + collateralIn, "assets-in-mismatch");
     }
 
     /**
-     * @notice Records the assets to send out in a swap. Increasing debt of the pool by minting new assets when required.
+     * @notice Records the assets to send out in a swap.
+     * Increasing debt of the pool by minting new assets when required.
      * @param _assetOut The asset to send out.
      * @param _valueIn The value received in.
-     * @param _receiver The asset receiver.
+     * @param _assetsTo The asset receiver.
      * @return amountOut The amount of the asset out.
      */
     function handleAssetsOut(
         CollateralPoolState storage self,
         address _assetOut,
         uint256 _valueIn,
-        address _receiver
+        address _assetsTo
     ) internal returns (uint256 amountOut) {
         // Calculate amount to send out from value received in.
         amountOut = _valueIn.wadDiv(ms().kreskoAssets[_assetOut].uintPrice());
@@ -135,20 +140,21 @@ library LibSwap {
             // 2. Reduce "swap" owned collateral to zero.
             collateralOut = swapDeposits;
         }
-
         if (collateralOut > 0) {
             uint256 amountOutInternal = LibAmounts.getCollateralAmountWrite(_assetOut, collateralOut);
             // 1. Decrease collateral deposits.
             self.totalDeposits[_assetOut] -= amountOutInternal;
             // 2. Decrease "swap" owned collateral.
             self.swapDeposits[_assetOut] -= amountOutInternal;
-            // 3. Transfer collateral to receiver.
-            IERC20Permit(_assetOut).safeTransfer(_receiver, amountOutInternal);
+            if (_assetsTo != address(this)) {
+                // 3. Transfer collateral to receiver if it is not this contract.
+                IERC20Permit(_assetOut).safeTransfer(_assetsTo, collateralOut);
+            }
         }
 
         if (debtIn > 0) {
             // 1. Issue required debt to the pool, minting new assets to receiver.
-            self.debt[_assetOut] += ms().mintSwap(_assetOut, debtIn, _receiver);
+            self.debt[_assetOut] += ms().mintSwap(_assetOut, debtIn, _assetsTo);
         }
 
         require(amountOut == debtIn + collateralOut, "amount-out-mismatch");
