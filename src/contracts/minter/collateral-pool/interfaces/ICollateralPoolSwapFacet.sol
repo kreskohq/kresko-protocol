@@ -49,6 +49,20 @@ interface ICollateralPoolSwapFacet {
         uint256 _amountOutMin
     ) external;
 
+    /// @notice deposit collateral into a position
+    function depositLeverIn(
+        address _to,
+        uint256 _amount,
+        Position memory _prevPosition
+    ) external returns (uint256 newLeverage);
+
+    /// @notice withdraw collateral from a position
+    function withdrawLeverOut(
+        address _from,
+        uint256 _amount,
+        Position memory _prevPosition
+    ) external returns (uint256 newLeverage);
+
     /**
      * @notice Swap in to leverage. This is only callable by the positions NFT.
      * @param _sender The account that funds the position.

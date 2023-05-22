@@ -125,6 +125,30 @@ contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
         IERC20Permit(_position.collateral).safeTransfer(_position.account, amountOut);
     }
 
+    function depositLeverIn(
+        address _to,
+        uint256 _amount,
+        Position memory _prevPosition
+    ) external nonReentrant returns (uint256 newLeverage) {
+        require(msg.sender == address(cps().positions), "deposit-not-caller");
+        IERC20Permit(_prevPosition.collateral).safeTransferFrom(_to, address(this), _amount);
+        cps().handleAssetsIn(_prevPosition.collateral, _amount, address(this));
+
+        // calculate new leverage
+        return _prevPosition.leverage + (_amount.wadDiv(_prevPosition.collateralAmount));
+    }
+
+    function withdrawLeverOut(
+        address _from,
+        uint256 _amount,
+        Position memory _prevPosition
+    ) external nonReentrant returns (uint256 newLeverage) {
+        require(msg.sender == address(cps().positions), "deposit-not-caller");
+        cps().handleAssetsOut(_prevPosition.collateral, _amount, _from);
+        // calculate new leverage
+        return _prevPosition.leverage - (_amount.wadDiv(_prevPosition.collateralAmount));
+    }
+
     /**
      * @notice Swaps assets in the collateral pool.
      * @param _receiver The address to receive the swapped assets.

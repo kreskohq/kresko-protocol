@@ -73,8 +73,16 @@ contract PositionsFacet is IPositionsFacet, DiamondModifiers {
     }
 
     /// @inheritdoc IPositionsFacet
-    function deposit(uint256 _id, uint256 _collateralAmount) external override check(_id) {
-        pos().adjustIn(_id, _collateralAmount, 0);
+    function deposit(uint256 _id, uint256 _collateralAmount) external override {
+        require(ERC721().exists(_id), "!exists");
+        pos().positions[_id].leverage = pos().kresko.depositLeverIn(
+            msg.sender,
+            _collateralAmount,
+            pos().positions[_id]
+        );
+
+        pos().positions[_id].collateralAmount += _collateralAmount;
+        pos().positions[_id].lastUpdateTimestamp = block.timestamp;
     }
 
     /// @inheritdoc IPositionsFacet
@@ -84,7 +92,14 @@ contract PositionsFacet is IPositionsFacet, DiamondModifiers {
 
     /// @inheritdoc IPositionsFacet
     function withdraw(uint256 _id, uint256 _collateralAmount) external override check(_id) {
-        pos().adjustOut(_id, _collateralAmount, 0);
+        pos().positions[_id].leverage = pos().kresko.withdrawLeverOut(
+            msg.sender,
+            _collateralAmount,
+            pos().positions[_id]
+        );
+
+        pos().positions[_id].collateralAmount -= _collateralAmount;
+        pos().positions[_id].lastUpdateTimestamp = block.timestamp;
     }
 
     /// @inheritdoc IPositionsFacet

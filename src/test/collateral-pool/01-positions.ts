@@ -191,7 +191,7 @@ describe("Leverage Positions NFT", function () {
             expect(ratio).to.be.lt(pos.leverage);
             const [isLiquidatable] = await positions.isLiquidatable([0]);
             expect(isLiquidatable).to.be.true;
-            console.log(fromBig(await KISS.contract.balanceOf(liquidator.address)));
+
             await positions.connect(liquidator).closePosition(0);
 
             const poolStatsAfter = await hre.Diamond.getPoolStats(true);
@@ -203,7 +203,6 @@ describe("Leverage Positions NFT", function () {
             expect(debtKISS).to.be.eq(0);
             expect(poolStatsAfter.debtValue).to.be.eq(0);
             expect(poolStatsAfter.cr).to.be.eq(0);
-            console.log(fromBig(await KISS.contract.balanceOf(liquidator.address)));
         });
         it("should be able to close a winning position", async () => {
             const PositionsUser = positions.connect(users[1]);
@@ -215,7 +214,7 @@ describe("Leverage Positions NFT", function () {
             expect(ratio).to.be.gt(pos.leverage);
             const [isClosable] = await positions.isClosable([0]);
             expect(isClosable).to.be.true;
-            console.log(fromBig(await KISS.contract.balanceOf(closer.address)));
+
             await positions.connect(closer).closePosition(0);
 
             const poolStatsAfter = await hre.Diamond.getPoolStats(true);
@@ -227,7 +226,16 @@ describe("Leverage Positions NFT", function () {
             expect(debtKISS).to.be.gt(0);
             expect(poolStatsAfter.debtValue).to.be.gt(0);
             expect(poolStatsAfter.cr).to.be.gt(0);
-            console.log(fromBig(await KISS.contract.balanceOf(closer.address)));
+        });
+
+        it.only("should be able to deposit into a position", async () => {
+            const PositionsUser = positions.connect(users[1]);
+            await PositionsUser.createPosition({ ...position, leverage: toBig(2), borrowAmountMin: 0 });
+            krETH.setPrice(1350); // lost 900 collateral here
+            await positions.deposit(0, toBig(900));
+            const [pos, ratio] = await positions.getPosition(0);
+            expect(pos.leverage).to.be.eq(2);
+            expect(ratio).to.be.eq(2);
         });
 
         beforeEach(async () => {
