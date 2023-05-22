@@ -14,6 +14,7 @@ import {DiamondModifiers} from "../../diamond/DiamondModifiers.sol";
 import {Action, KrAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 import {irs} from "../InterestRateState.sol";
+import {LibRedstone} from "../libs/LibRedstone.sol";
 
 /**
  * @author Kresko
@@ -22,6 +23,14 @@ import {irs} from "../InterestRateState.sol";
  */
 contract MintFacet is DiamondModifiers, MinterModifiers, IMintFacet {
     using Arrays for address[];
+
+    /* -------------------------------------------------------------------------- */
+    /*                                TEST, REMOVE                                */
+    /* -------------------------------------------------------------------------- */
+
+    function priceIsRight() external view returns (uint256) {
+        return LibRedstone.getPrice(bytes32("TSLA"));
+    }
 
     /* -------------------------------------------------------------------------- */
     /*                                  KrAssets                                  */

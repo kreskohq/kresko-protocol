@@ -2,8 +2,9 @@ import { TASK_DEPLOY_PRICE_FEED } from "@tasks";
 import { expect } from "@test/chai";
 import { withFixture } from "@utils/test";
 import hre from "hardhat";
-
-describe("Flux Pricefeed", () => {
+import { WrapperBuilder } from "@redstone-finance/evm-connector";
+import { fromBig, getPriceFromTwelveData } from "@kreskolabs/lib";
+describe("Oracle", () => {
     withFixture(["minter-test"]);
 
     const TEST_VALUE = 100;
@@ -25,7 +26,7 @@ describe("Flux Pricefeed", () => {
         this.pricefeed = feed;
     });
 
-    describe("functionality", () => {
+    describe("FluxPriceFeed", () => {
         it("should initialize timestamp value once the initial answer is submitted", async function () {
             expect(await this.pricefeed.latestTimestamp()).to.equal(0);
             await this.pricefeed.transmit(TEST_VALUE, true, {
@@ -126,6 +127,25 @@ describe("Flux Pricefeed", () => {
                 from: this.deployer.address,
             });
             expect(await this.pricefeed.latestRound()).to.equal(1);
+        });
+    });
+
+    describe.only("Redstone", async () => {
+        it("should get a price", async function () {
+            const wrapped = WrapperBuilder.wrap(hre.Diamond).usingDataService(
+                {
+                    dataServiceId: "redstone-stocks-demo",
+                    dataFeeds: ["TSLA"],
+                    uniqueSignersCount: 1,
+                },
+                ["https://d33trozg86ya9x.cloudfront.net"],
+            );
+
+            const price = await wrapped.priceIsRight();
+            const priceTD = await getPriceFromTwelveData("TSLA");
+            console.log("Redstone Price", fromBig(price, 8));
+            console.log("Price TwelveData", priceTD);
+            expect(price).gt(0);
         });
     });
 });
