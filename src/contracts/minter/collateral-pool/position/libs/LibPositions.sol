@@ -28,6 +28,7 @@ library LibPositions {
         uint256 borrowedPrice = self.kresko.getPrice(position.borrowed);
 
         if (collateralPrice == 0 || borrowedPrice == 0 || position.borrowedAmount == 0) return 0;
+
         return position.borrowedAmount.wadMul(borrowedPrice).wadDiv(position.collateralAmount.wadMul(collateralPrice));
     }
 
