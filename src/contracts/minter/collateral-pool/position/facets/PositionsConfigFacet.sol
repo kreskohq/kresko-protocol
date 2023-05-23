@@ -18,12 +18,12 @@ contract PositionsConfigFacet is DiamondModifiers {
         ERC721().name = _init.name;
         ERC721().symbol = _init.symbol;
         // check liq threshold
-        require(_init.liquidationThreshold <= 1e18, LibPositions.INVALID_LT);
-        require(_init.liquidationThreshold >= 0.1e18, LibPositions.INVALID_LT);
+        require(_init.liquidationThreshold > -1e18, LibPositions.INVALID_LT);
+        require(_init.liquidationThreshold < 0.001e18, LibPositions.INVALID_LT);
         pos().liquidationThreshold = _init.liquidationThreshold;
         // check close threshold
-        require(_init.closeThreshold <= 10e18, LibPositions.INVALID_LT); // 10,000% profit
-        require(_init.closeThreshold >= 0.01e18, LibPositions.INVALID_LT); // 1% profit
+        require(_init.closeThreshold <= 100e18, LibPositions.INVALID_LT); // 10,000% profit
+        require(_init.closeThreshold >= 0.001e18, LibPositions.INVALID_LT); // 1% profit
         pos().closeThreshold = _init.closeThreshold;
         // check min/max lev
         require(_init.maxLeverage <= 500e18, LibPositions.INVALID_MAX_LEVERAGE);
@@ -51,14 +51,14 @@ contract PositionsConfigFacet is DiamondModifiers {
             });
     }
 
-    function setLiquidationThreshold(uint256 _threshold) external onlyOwner {
+    function setLiquidationThreshold(int128 _threshold) external onlyOwner {
         require(_threshold <= 1e18, LibPositions.INVALID_LT);
         require(_threshold >= 0.1e18, LibPositions.INVALID_LT);
 
         pos().liquidationThreshold = _threshold;
     }
 
-    function setCloseThreshold(uint256 _threshold) external onlyOwner {
+    function setCloseThreshold(int128 _threshold) external onlyOwner {
         require(_threshold <= 1e18, LibPositions.INVALID_LT);
         require(_threshold >= 0.01e18, LibPositions.INVALID_LT);
 

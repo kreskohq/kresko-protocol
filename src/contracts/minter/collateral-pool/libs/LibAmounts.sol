@@ -38,7 +38,18 @@ library LibAmounts {
         address _account,
         address _collateralAsset
     ) internal view returns (uint256) {
-        return getCollateralAmountRead(_collateralAsset, self.depositsPrincipal[_account][_collateralAsset]);
+        uint256 deposits = self.getAccountDepositsWithFees(_account, _collateralAsset);
+        uint256 depositsPrincipal = getCollateralAmountRead(
+            _collateralAsset,
+            self.depositsPrincipal[_account][_collateralAsset]
+        );
+
+        if (deposits == 0) {
+            return 0;
+        } else if (deposits < depositsPrincipal) {
+            return deposits;
+        }
+        return depositsPrincipal;
     }
 
     /**

@@ -2,7 +2,6 @@
 pragma solidity <=0.8.20;
 import {WadRay} from "../../../../libs/WadRay.sol";
 import {pos, PositionStorage, Position} from "../state/PositionsStorage.sol";
-import "hardhat/console.sol";
 
 library LibPositions {
     using WadRay for uint256;
@@ -22,49 +21,26 @@ library LibPositions {
         return self.positions[_id];
     }
 
-    function getRatioOf(PositionStorage storage self, uint256 _id) internal view returns (uint256 leverage) {
+    function getLeverage(PositionStorage storage self, uint256 _id) internal view returns (uint256 leverage) {
         Position memory position = self.positions[_id];
-        uint256 collateralPrice = self.kresko.getPrice(position.collateral);
-        uint256 borrowedPrice = self.kresko.getPrice(position.borrowed);
+        uint256 priceA = self.kresko.getPrice(position.assetA);
+        uint256 priceB = self.kresko.getPrice(position.assetB);
 
-        if (collateralPrice == 0 || borrowedPrice == 0 || position.borrowedAmount == 0) return 0;
+        if (priceA == 0 || priceB == 0 || position.amountA == 0) return 0;
 
-        return position.borrowedAmount.wadMul(borrowedPrice).wadDiv(position.collateralAmount.wadMul(collateralPrice));
+        return position.amountB.wadMul(priceB).wadDiv(position.amountA.wadMul(priceA));
     }
 
-    function getLiquidationRatio(PositionStorage storage self, uint256 _id) internal view returns (uint256) {
-        return self.positions[_id].leverage - self.liquidationThreshold;
-    }
-
-    function getCloseRatio(PositionStorage storage self, uint256 _id) internal view returns (uint256) {
-        return self.positions[_id].leverage + self.closeThreshold;
+    function getRatio(PositionStorage storage self, uint256 _id) internal view returns (int256 ratio) {
+        return int256(self.getLeverage(_id)) - int256(self.positions[_id].leverage);
     }
 
     function isLiquidatable(PositionStorage storage self, uint256 _id) internal view returns (bool) {
-        return self.getRatioOf(_id) <= self.getLiquidationRatio(_id);
+        return self.getRatio(_id) <= self.liquidationThreshold;
     }
 
     function isCloseable(PositionStorage storage self, uint256 _id) internal view returns (bool) {
-        return self.getRatioOf(_id) >= self.getCloseRatio(_id);
-    }
-
-    function adjustIn(PositionStorage storage self, uint256 _id, uint256 _collateralIn, uint256 _debtIn) internal {
-        self.positions[_id].collateralAmount += _collateralIn;
-        self.positions[_id].borrowedAmount += _debtIn;
-        _setLeverage(self, _id);
-    }
-
-    function adjustOut(PositionStorage storage self, uint256 _id, uint256 _collateralOut, uint256 _debtOut) internal {
-        self.positions[_id].collateralAmount -= _collateralOut;
-        self.positions[_id].borrowedAmount -= _debtOut;
-        _setLeverage(self, _id);
-    }
-
-    function _setLeverage(PositionStorage storage self, uint256 _id) private {
-        uint256 leverage = self.getRatioOf(_id);
-        require(leverage <= self.maxLeverage, LEVERAGE_TOO_HIGH);
-        require(leverage >= self.minLeverage, LEVERAGE_TOO_LOW);
-        // self.positions[_id].leverage = leverage;
+        return self.getRatio(_id) >= self.closeThreshold;
     }
 
     function getAndIncrementNonce(PositionStorage storage self, uint256 id) internal returns (uint256) {

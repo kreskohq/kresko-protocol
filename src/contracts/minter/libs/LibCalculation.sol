@@ -7,6 +7,7 @@ import {LibDecimals} from "../libs/LibDecimals.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 import {MinterState} from "../MinterState.sol";
 import {KrAsset, CollateralAsset, Constants} from "../MinterTypes.sol";
+import {cps} from "../collateral-pool/CollateralPoolState.sol";
 
 /**
  * @title Calculation library for liquidation & fee values
@@ -42,7 +43,9 @@ library LibCalculation {
         KrAsset memory _repayKreskoAsset,
         address _seizedCollateral
     ) internal view returns (uint256 maxLiquidatableUSD) {
-        MaxLiquidationVars memory vars = _getMaxLiquidationParams(self, _account, _repayKreskoAsset, _seizedCollateral);
+        MaxLiquidationVars memory vars = _account != address(0)
+            ? _getMaxLiquidationParams(self, _account, _repayKreskoAsset, _seizedCollateral)
+            : _getMaxLiquidationParamsShared(self, _repayKreskoAsset, _seizedCollateral);
         // Account is not liquidatable
         if (vars.accountCollateralValue >= (vars.minCollateralValue)) {
             return 0;
@@ -54,8 +57,9 @@ library LibCalculation {
             return vars.seizeCollateralAccountValue;
         } else if (maxLiquidatableUSD < vars.minimumDebtValue) {
             return vars.minimumDebtValue;
+        } else {
+            return maxLiquidatableUSD;
         }
-        return maxLiquidatableUSD;
     }
 
     /**
@@ -101,27 +105,12 @@ library LibCalculation {
             true
         );
 
-        // If feeValue < depositValue, the entire fee can be charged for this collateral asset.
         if (_feeValue < depositValue) {
-            // We want to make sure that transferAmount is < depositAmount.
-            // Proof:
-            //   depositValue <= oraclePrice * depositAmount (<= due to a potential loss of precision)
-            //   feeValue < depositValue
-            // Meaning:
-            //   feeValue < oraclePrice * depositAmount
-            // Solving for depositAmount we get:
-            //   feeValue / oraclePrice < depositAmount
-            // Due to integer division:
-            //   transferAmount = floor(feeValue / oracleValue)
-            //   transferAmount <= feeValue / oraclePrice
-            // We see that:
-            //   transferAmount <= feeValue / oraclePrice < depositAmount
-            //   transferAmount < depositAmount
+            // If feeValue < depositValue, the entire fee can be charged for this collateral asset.
             transferAmount = self.collateralAssets[_collateralAsset].decimals.fromWad(_feeValue.wadDiv(oraclePrice));
             feeValuePaid = _feeValue;
         } else {
-            // If the feeValue >= depositValue, the entire deposit
-            // should be taken as the fee.
+            // If the feeValue >= depositValue, the entire deposit should be taken as the fee.
             transferAmount = depositAmount;
             feeValuePaid = depositValue;
             // Because the entire deposit is taken, remove it from the depositCollateralAssets array.
@@ -187,6 +176,35 @@ library LibCalculation {
                 minCollateralValue: minCollateralValue,
                 minimumDebtValue: state.minimumDebtValue,
                 seizeCollateralAccountValue: seizeCollateralAccountValue,
+                liquidationThreshold: liquidationThreshold,
+                maxLiquidationMultiplier: Constants.MIN_MAX_LIQUIDATION_MULTIPLIER
+            });
+    }
+
+    function _getMaxLiquidationParamsShared(
+        MinterState storage state,
+        KrAsset memory _repayKreskoAsset,
+        address _seizedCollateral
+    ) private view returns (MaxLiquidationVars memory) {
+        uint256 liquidationThreshold = cps().liquidationThreshold;
+        uint256 minCollateralValue = cps().getTotalPoolKrAssetValueAtRatio(liquidationThreshold, false);
+
+        (uint256 totalCollateralValue, uint256 seizeCollateralValue) = cps().getTotalPoolDepositValue(
+            _seizedCollateral,
+            cps().totalDeposits[_seizedCollateral],
+            false
+        );
+
+        CollateralAsset memory collateral = state.collateralAssets[_seizedCollateral];
+
+        return
+            MaxLiquidationVars({
+                collateral: collateral,
+                accountCollateralValue: totalCollateralValue,
+                debtFactor: _repayKreskoAsset.kFactor.wadMul(liquidationThreshold).wadDiv(collateral.factor),
+                minCollateralValue: minCollateralValue,
+                minimumDebtValue: state.minimumDebtValue,
+                seizeCollateralAccountValue: seizeCollateralValue,
                 liquidationThreshold: liquidationThreshold,
                 maxLiquidationMultiplier: Constants.MIN_MAX_LIQUIDATION_MULTIPLIER
             });

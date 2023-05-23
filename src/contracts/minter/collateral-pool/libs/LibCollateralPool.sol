@@ -7,9 +7,6 @@ import {LibAmounts} from "./LibAmounts.sol";
 import {cps, CollateralPoolState} from "../CollateralPoolState.sol";
 import {ms} from "../../MinterStorage.sol";
 
-// import {Error} from "../../../libs/Errors.sol";
-// import {StabilityRateConfig} from "../../InterestRateState.sol";
-
 /* solhint-disable not-rely-on-time */
 
 /**
@@ -142,7 +139,7 @@ library LibCollateralPool {
      * @param self Collateral Pool State
      */
     function isLiquidatable(CollateralPoolState storage self) internal view returns (bool) {
-        return self.checkRatio(self.liquidationThreshold);
+        return !self.checkRatio(self.liquidationThreshold);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -270,6 +267,34 @@ library LibCollateralPool {
             );
 
             totalValue += assetValue;
+        }
+    }
+
+    /// @notice This function seizes collateral from the shared pool
+    /// @notice Adjusts everyones deposits if swap deposits do not cover the amount.
+    function adjustSeizedCollateral(
+        CollateralPoolState storage self,
+        address _seizeAsset,
+        uint256 _seizeAmount
+    ) internal {
+        uint256 swapDeposits = self.getPoolSwapDeposits(_seizeAsset); // current "swap" collateral
+
+        if (swapDeposits >= _seizeAmount) {
+            uint256 amountOutInternal = LibAmounts.getCollateralAmountWrite(_seizeAsset, _seizeAmount);
+            // swap deposits cover the amount
+            self.swapDeposits[_seizeAsset] -= amountOutInternal;
+            self.totalDeposits[_seizeAsset] -= amountOutInternal;
+        } else {
+            // swap deposits do not cover the amount
+            uint256 amountToCover = _seizeAmount - swapDeposits;
+            self.swapDeposits[_seizeAsset] = 0;
+
+            // reduce everyones deposits by the same ratio
+            self.poolCollateral[_seizeAsset].liquidityIndex -= uint128(
+                amountToCover.wadToRay().rayDiv(self.getPoolDeposits(_seizeAsset).wadToRay())
+            );
+
+            self.totalDeposits[_seizeAsset] -= LibAmounts.getCollateralAmountWrite(_seizeAsset, amountToCover);
         }
     }
 

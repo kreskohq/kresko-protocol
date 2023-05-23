@@ -50,31 +50,31 @@ interface ICollateralPoolSwapFacet {
     ) external;
 
     /// @notice deposit collateral into a position
-    function depositLeverIn(address _to, uint256 _amount, Position memory _prevPosition) external;
+    function positionDepositA(address _to, uint256 _amountA, Position memory _pos) external;
 
     /// @notice withdraw collateral from a position
-    function withdrawLeverOut(address _from, uint256 _amount, Position memory _prevPosition) external;
+    function positionWithdrawA(address _from, uint256 _amountA, Position memory _pos) external;
 
     /**
      * @notice Swap in to leverage. This is only callable by the positions NFT.
      * @param _sender The account that funds the position.
-     * @param _position The position to swap into.
-     * @return amountInAfterFee Amount in after fees are paid.
-     * @return amountOut Amount of `_assetOut` received.
+     * @param _pos The position to swap into.
+     * @return amountAInAfterFee Amount in after fees are paid.
+     * @return amountBOut Amount of `_assetOut` received.
      */
-    function swapLeverIn(
+    function swapIntoLeverage(
         address _sender,
-        NewPosition memory _position
-    ) external returns (uint256 amountInAfterFee, uint256 amountOut);
+        NewPosition memory _pos
+    ) external returns (uint256 amountAInAfterFee, uint256 amountBOut);
 
     /**
      * @notice Swaps out of leverage. This is only callable by the positions NFT.
      * @notice Called by the position contract.
-     * @param _position The position to swap out of.
-     * @param _incentiveReceiver The incentive receiver if position is liquidated or closed by external caller.
-     * @return amountOut The amount of `_assetOut` to receive.
+     * @param _pos The position to swap out of.
+     * @param _liquidator The incentive receiver if position is liquidated or closed by external caller.
+     * @return amountAOut The amount of `_assetOut` to receive.
      */
-    function swapLeverOut(Position memory _position, address _incentiveReceiver) external returns (uint256 amountOut);
+    function swapOutOfLeverage(Position memory _pos, address _liquidator) external returns (uint256 amountAOut);
 
     /**
      * @notice Accumulates fees to deposits as a fixed, instantaneous income.

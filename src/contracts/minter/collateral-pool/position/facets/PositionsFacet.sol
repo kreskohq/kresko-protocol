@@ -7,7 +7,6 @@ import {ERC721} from "../state/ERC721Storage.sol";
 import {pos, LibPositions, NewPosition, Position} from "../state/PositionsStorage.sol";
 import {IPositionsFacet} from "../interfaces/IPositionsFacet.sol";
 import {IERC20Permit} from "../../../../shared/IERC20Permit.sol";
-import "hardhat/console.sol";
 
 contract PositionsFacet is IPositionsFacet, DiamondModifiers {
     using WadRay for uint256;
@@ -20,29 +19,19 @@ contract PositionsFacet is IPositionsFacet, DiamondModifiers {
         _;
     }
 
-    function getApprovalFor(address _asset) external {
-        require(address(pos().kresko) != address(0), "!kresko");
-        require(_asset != address(0), "!asset-0");
-        require(msg.sender == address(pos().kresko), "!kresko");
-        IERC20Permit(_asset).approve(address(pos().kresko), type(uint256).max);
-    }
-
-    function removeApprovalFor(address _asset) external onlyOwner {
-        IERC20Permit(_asset).approve(address(pos().kresko), 0);
-    }
-
     /// @inheritdoc IPositionsFacet
     function createPosition(NewPosition memory _position) external returns (uint256 positionId) {
-        (uint256 amountInAfterFee, uint256 amountOut) = pos().kresko.swapLeverIn(msg.sender, _position);
+        (uint256 amountAFeeReduced, uint256 amountBOut) = pos().kresko.swapIntoLeverage(msg.sender, _position);
         positionId = ERC721().currentId++;
 
         pos().positions[positionId] = Position({
             account: _position.account,
-            collateral: _position.collateralAsset,
-            borrowed: _position.borrowAsset,
-            collateralAmount: amountInAfterFee,
-            borrowedAmount: amountOut,
+            assetA: _position.assetA,
+            assetB: _position.assetB,
+            amountA: amountAFeeReduced,
+            amountB: amountBOut,
             leverage: _position.leverage,
+            valueBCache: pos().kresko.getPrice(_position.assetB).wadMul(amountBOut),
             liquidationIncentive: 0.05 ether,
             closeIncentive: 0.01 ether,
             creationTimestamp: block.timestamp,
@@ -61,7 +50,7 @@ contract PositionsFacet is IPositionsFacet, DiamondModifiers {
             // allow closing and liquidations from external accounts
 
             if (pos().isLiquidatable(_id) || pos().isCloseable(_id)) {
-                pos().kresko.swapLeverOut(pos().positions[_id], msg.sender);
+                pos().kresko.swapOutOfLeverage(pos().positions[_id], msg.sender);
                 ERC721().burn(_id);
                 return;
             }
@@ -71,47 +60,78 @@ contract PositionsFacet is IPositionsFacet, DiamondModifiers {
             );
         }
 
-        pos().kresko.swapLeverOut(pos().positions[_id], address(0));
+        pos().kresko.swapOutOfLeverage(pos().positions[_id], address(0));
         ERC721().burn(_id);
     }
 
     /// @inheritdoc IPositionsFacet
-    function deposit(uint256 _id, uint256 _collateralAmount) external override {
+    function buy(uint256 _id, uint256 _amountA, uint256 _amountBMin) external override check(_id) {
+        (uint256 amountAAfterFee, uint256 amountBOut) = pos().kresko.swapIntoLeverage(
+            msg.sender,
+            NewPosition({
+                account: pos().positions[_id].account,
+                assetA: pos().positions[_id].assetA,
+                assetB: pos().positions[_id].assetB,
+                leverage: pos().positions[_id].leverage,
+                amountA: _amountA,
+                amountBMin: _amountBMin
+            })
+        );
+
+        pos().positions[_id].amountA += amountAAfterFee;
+        pos().positions[_id].amountB += amountBOut;
+        pos().positions[_id].valueBCache += pos().kresko.getPrice(pos().positions[_id].assetB).wadMul(amountBOut);
+        pos().positions[_id].lastUpdateTimestamp = block.timestamp;
+    }
+
+    /// @inheritdoc IPositionsFacet
+    function deposit(uint256 _id, uint256 _amountA) external override {
         require(ERC721().exists(_id), "!exists");
-        uint256 change = _collateralAmount.wadDiv(pos().positions[_id].collateralAmount);
-        pos().kresko.depositLeverIn(msg.sender, _collateralAmount, pos().positions[_id]);
-        pos().positions[_id].collateralAmount += _collateralAmount;
+        uint256 change = _amountA.wadDiv(pos().positions[_id].amountA);
+        pos().kresko.positionDepositA(msg.sender, _amountA, pos().positions[_id]);
+
+        pos().positions[_id].amountA += _amountA;
         pos().positions[_id].lastUpdateTimestamp = block.timestamp;
-        pos().positions[_id].leverage = pos().getRatioOf(_id);
+        pos().positions[_id].leverage = pos().getLeverage(_id);
 
-        require(pos().positions[_id].leverage - change >= pos().minLeverage, "!leverage-too-low");
+        require(pos().positions[_id].leverage - change >= 1 ether, "!leverage-too-low");
     }
 
     /// @inheritdoc IPositionsFacet
-    function repay(uint256 _id, uint256 _repayAmount) external override check(_id) {
-        pos().adjustIn(_id, 0, _repayAmount);
-    }
+    function withdraw(uint256 _id, uint256 _amountA) external override check(_id) {
+        pos().kresko.positionWithdrawA(pos().positions[_id].account, _amountA, pos().positions[_id]);
 
-    /// @inheritdoc IPositionsFacet
-    function withdraw(uint256 _id, uint256 _collateralAmount) external override check(_id) {
-        pos().kresko.withdrawLeverOut(pos().positions[_id].account, _collateralAmount, pos().positions[_id]);
+        int256 change = int256(_amountA.wadDiv(pos().positions[_id].amountA));
+        require(pos().getRatio(_id) - change >= pos().liquidationThreshold, "!leverage-too-high");
 
-        uint256 change = _collateralAmount.wadDiv(pos().positions[_id].collateralAmount);
-        require(pos().getRatioOf(_id) - change >= pos().getLiquidationRatio(_id), "!leverage-too-high");
-        pos().positions[_id].collateralAmount -= _collateralAmount;
+        pos().positions[_id].amountA -= _amountA;
         pos().positions[_id].lastUpdateTimestamp = block.timestamp;
-        pos().positions[_id].leverage = pos().getRatioOf(_id);
-        // require(pos().leverage <= cps().maxLeverage, "!leverage");
+        pos().positions[_id].leverage = pos().getLeverage(_id);
     }
 
     /// @inheritdoc IPositionsFacet
-    function borrow(uint256 _id, uint256 _borrowAmount) external override check(_id) {
-        pos().adjustOut(_id, 0, _borrowAmount);
+    function buyback(uint256 _id, uint256 _amountB) external override check(_id) {
+        if (_amountB >= pos().positions[_id].amountB) {
+            _amountB = pos().positions[_id].amountB;
+            ERC721().burn(_id);
+        }
+
+        uint256 change = _amountB.wadDiv(pos().positions[_id].amountB);
+        Position memory temp = pos().positions[_id];
+        temp.amountB = temp.amountB.wadMul(change);
+        temp.amountA = temp.amountA.wadMul(change);
+
+        pos().kresko.swapOutOfLeverage(temp, address(0));
+
+        pos().positions[_id].amountA -= temp.amountA;
+        pos().positions[_id].amountB -= temp.amountB;
+        pos().positions[_id].valueBCache -= pos().kresko.getPrice(pos().positions[_id].assetB).wadMul(_amountB);
+        pos().positions[_id].lastUpdateTimestamp = block.timestamp;
     }
 
     /// @inheritdoc IPositionsFacet
-    function getPosition(uint256 _id) external view returns (Position memory, uint256 currentLeverage) {
-        return (pos().getPosition(_id), pos().getRatioOf(_id));
+    function getPosition(uint256 _id) external view returns (Position memory, int128 currentLeverage) {
+        return (pos().getPosition(_id), int128(pos().getRatio(_id)));
     }
 
     /// @inheritdoc IPositionsFacet
@@ -120,6 +140,10 @@ contract PositionsFacet is IPositionsFacet, DiamondModifiers {
         for (uint256 i; i < _ids.length; i++) {
             results[i] = pos().isLiquidatable(_ids[i]);
         }
+    }
+
+    function getRatioOf(uint256 _id) external view returns (int128) {
+        return int128(pos().getRatio(_id));
     }
 
     /// @inheritdoc IPositionsFacet

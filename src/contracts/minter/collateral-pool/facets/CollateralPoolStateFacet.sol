@@ -35,9 +35,12 @@ contract CollateralPoolStateFacet is ICollateralPoolStateFacet {
         address _collateralAsset,
         bool _ignoreFactors
     ) external view returns (uint256) {
+        uint256 principalDeposits = cps().getAccountPrincipalDeposits(_account, _collateralAsset);
+        uint256 scaledDeposits = cps().getAccountDepositsWithFees(_account, _collateralAsset);
+
         (uint256 assetValue, ) = ms().getCollateralValueAndOraclePrice(
             _collateralAsset,
-            cps().getAccountPrincipalDeposits(_account, _collateralAsset),
+            principalDeposits > scaledDeposits ? scaledDeposits : principalDeposits,
             _ignoreFactors
         );
 

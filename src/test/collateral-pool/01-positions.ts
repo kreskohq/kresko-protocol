@@ -10,7 +10,7 @@ import hre from "hardhat";
 import { Positions } from "types/typechain";
 import { NewPositionStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Positions";
 
-describe.only("Leverage Positions NFT", function () {
+describe("Leverage Positions NFT", function () {
     it("should deploy with correct configuration", async () => {
         const initializerArgs = (await getPositionsInitializer(hre)).args;
         expect(await positions.name()).to.equal("Kresko Positions");
@@ -36,37 +36,35 @@ describe.only("Leverage Positions NFT", function () {
             await PositionsUser.createPosition(position);
             const timestamp0 = await getBlockTimestamp();
             const expectedKissBalance = toBig(ETHPrice).sub(toBig(ETHPrice).wadMul(toBig(0.02)));
-            expect(await krETH.contract.balanceOf(positions.address)).to.equal(position.borrowAmountMin);
+            expect(await krETH.contract.balanceOf(positions.address)).to.equal(position.amountBMin);
             expect(await KISS.contract.balanceOf(positions.address)).to.equal(0);
             expect(await KISS.contract.balanceOf(hre.Diamond.address)).to.equal(expectedKissBalance); // 1764
 
             const [positionNFT0] = await positions.getPosition(0);
             expect(positionNFT0.leverage).to.equal(toBig(2));
-            expect(positionNFT0.collateral).to.equal(KISS.address);
-            expect(positionNFT0.borrowed).to.equal(krETH.address);
+            expect(positionNFT0.assetA).to.equal(KISS.address);
+            expect(positionNFT0.assetB).to.equal(krETH.address);
             expect(positionNFT0.account).to.equal(users[1].address);
             expect(positionNFT0.creationTimestamp).to.be.equal(timestamp0);
             expect(positionNFT0.lastUpdateTimestamp).to.be.equal(timestamp0);
-            expect(positionNFT0.collateralAmount).to.equal(expectedKissBalance);
-            expect(positionNFT0.borrowedAmount).to.equal(position.borrowAmountMin);
+            expect(positionNFT0.amountA).to.equal(expectedKissBalance);
+            expect(positionNFT0.amountB).to.equal(position.amountBMin);
             expect(positionNFT0.nonce).to.equal(0);
 
             const newLeverage = toBig(3);
             const totalFeePct = toBig(0.01).wadMul(newLeverage);
-            const borrowAmountWithoutFees = toBig(1).wadMul(newLeverage);
-            const fees = borrowAmountWithoutFees.wadMul(totalFeePct);
+            const amountBWithFees = toBig(1).wadMul(newLeverage);
+            const fees = amountBWithFees.wadMul(totalFeePct);
             await PositionsUser.createPosition({
                 ...position,
                 leverage: newLeverage,
-                borrowAmountMin: borrowAmountWithoutFees.sub(fees),
+                amountBMin: amountBWithFees.sub(fees),
             });
             const timestamp1 = await getBlockTimestamp();
 
-            const expectedTotalBorrows = BigNumber.from(position.borrowAmountMin).add(
-                borrowAmountWithoutFees.sub(fees),
-            );
+            const expectedTotalamountB = BigNumber.from(position.amountBMin).add(amountBWithFees.sub(fees));
             const expectedKissBalance2 = toBig(ETHPrice).sub(toBig(ETHPrice).wadMul(totalFeePct));
-            expect(await krETH.contract.balanceOf(positions.address)).to.equal(expectedTotalBorrows);
+            expect(await krETH.contract.balanceOf(positions.address)).to.equal(expectedTotalamountB);
             expect(await KISS.contract.balanceOf(positions.address)).to.equal(0);
             expect(await KISS.contract.balanceOf(hre.Diamond.address)).to.equal(
                 expectedKissBalance.add(expectedKissBalance2),
@@ -74,33 +72,85 @@ describe.only("Leverage Positions NFT", function () {
 
             const [positionNFT1] = await positions.getPosition(1);
             expect(positionNFT1.leverage).to.equal(newLeverage);
-            expect(positionNFT1.collateral).to.equal(KISS.address);
-            expect(positionNFT1.borrowed).to.equal(krETH.address);
+            expect(positionNFT1.assetA).to.equal(KISS.address);
+            expect(positionNFT1.assetB).to.equal(krETH.address);
             expect(positionNFT1.account).to.equal(users[1].address);
             expect(positionNFT1.creationTimestamp).to.be.equal(timestamp1);
             expect(positionNFT1.lastUpdateTimestamp).to.be.equal(timestamp1);
-            expect(positionNFT1.collateralAmount).to.equal(expectedKissBalance2);
-            expect(positionNFT1.borrowedAmount).to.equal(borrowAmountWithoutFees.sub(fees));
+            expect(positionNFT1.amountA).to.equal(expectedKissBalance2);
+            expect(positionNFT1.amountB).to.equal(amountBWithFees.sub(fees));
             expect(positionNFT1.nonce).to.equal(0);
         });
 
-        it("should increase pool debt and collateral accordingly", async () => {
+        it("should calculate correct ratios for winning and losing positions", async () => {
+            const PositionsUser = positions.connect(users[1]);
+            const initialLeverage = toBig(2);
+            await PositionsUser.createPosition({ ...position, leverage: initialLeverage, amountBMin: 0 });
+
+            // long asset goes up, so goes ratio
+            krETH.setPrice(3600);
+            const [, ratio] = await PositionsUser.getPosition(0);
+            expect(ratio).to.equal(toBig(2));
+
+            // long asset goes down, so goes ratio
+            krETH.setPrice(900);
+            const [, ratio1] = await PositionsUser.getPosition(0);
+            expect(ratio1).to.equal(toBig(-1));
+
+            krETH.setPrice(1800); // normalize price
+
+            // short asset goes up, ratio goes DOWN
+            KISS.setPrice(2);
+            const [, ratio3] = await PositionsUser.getPosition(0);
+            expect(ratio3).to.equal(toBig(-1));
+
+            // short asset goes down, ratio goes UP
+            KISS.setPrice(0.5);
+            const [, ratio4] = await PositionsUser.getPosition(0);
+            expect(ratio4).to.equal(toBig(2));
+        });
+
+        it("should increase pool debt and assetA accordingly", async () => {
             const PositionsUser = positions.connect(users[1]);
             const poolStatsBefore = await hre.Diamond.getPoolStats(true);
             expect(poolStatsBefore.cr).to.be.eq(0);
             await expect(PositionsUser.createPosition(position)).to.not.be.reverted;
             const [pos] = await positions.getPosition(0);
             const poolStats = await hre.Diamond.getPoolStats(true);
-            expect(poolStats.debtValue).to.equal(pos.borrowedAmount.wadMul(toBig(ETHPrice, 8)));
+            expect(poolStats.debtValue).to.equal(pos.amountB.wadMul(toBig(ETHPrice, 8)));
             expect(poolStats.cr).to.be.gt(0);
-            expect(poolStats.collateralValue).to.equal(
-                poolStatsBefore.collateralValue.add(fromBig(pos.collateralAmount, 10)),
+            expect(poolStats.collateralValue).to.equal(poolStatsBefore.collateralValue.add(fromBig(pos.amountA, 10)));
+        });
+
+        it("should increase pool debt and assetA accordingly, after increase in position", async () => {
+            const PositionsUser = positions.connect(users[1]);
+            const poolStatsBefore = await hre.Diamond.getPoolStats(true);
+
+            expect(poolStatsBefore.cr).to.be.eq(0);
+            await expect(PositionsUser.createPosition(position)).to.not.be.reverted;
+
+            const [pos] = await positions.getPosition(0);
+            const poolStats = await hre.Diamond.getPoolStats(true);
+
+            expect(poolStats.debtValue).to.equal(pos.amountB.wadMul(toBig(ETHPrice, 8)));
+            expect(poolStats.cr).to.be.gt(0);
+            expect(poolStats.collateralValue).to.equal(poolStatsBefore.collateralValue.add(fromBig(pos.amountA, 10)));
+
+            await PositionsUser.buy(0, toBig(1800), 0);
+
+            const poolStatsAfter = await hre.Diamond.getPoolStats(true);
+
+            expect(poolStatsAfter.debtValue).to.equal(poolStats.debtValue.mul(2));
+            expect(poolStatsAfter.cr).to.be.lt(poolStats.cr);
+            expect(poolStatsAfter.collateralValue).to.equal(
+                poolStatsBefore.collateralValue.add(fromBig(pos.amountA.mul(2), 10)),
             );
         });
-        it("should be able to close a position", async () => {
+
+        it("should be able to close a position and reduce pool debt and assetA accordingly", async () => {
             const PositionsUser = positions.connect(users[1]);
 
-            expect(await KISS.contract.balanceOf(users[1].address)).to.equal(depositAmount18Dec);
+            expect(await KISS.contract.balanceOf(users[1].address)).to.equal(amountA18Dec);
             const poolStatsBefore = await hre.Diamond.getPoolStats(true);
             await PositionsUser.createPosition(position);
             await PositionsUser.closePosition(0);
@@ -110,11 +160,11 @@ describe.only("Leverage Positions NFT", function () {
             expect(poolStatsAfter.cr).to.equal(0);
             expect(await KISS.contract.balanceOf(users[1].address)).to.equal(toBig(9928.72));
         });
-        it("should receive profit", async () => {
+        it("should make profit for the position", async () => {
             const PositionsUser = positions.connect(users[1]);
             const balBefore = await KISS.contract.balanceOf(users[1].address);
-            expect(await KISS.contract.balanceOf(users[1].address)).to.equal(depositAmount18Dec);
-            await PositionsUser.createPosition({ ...position, leverage: toBig(2), borrowAmountMin: 0 });
+            expect(await KISS.contract.balanceOf(users[1].address)).to.equal(amountA18Dec);
+            await PositionsUser.createPosition({ ...position, leverage: toBig(2), amountBMin: 0 });
             const poolStatsBefore = await hre.Diamond.getPoolStats(true);
             krETH.setPrice(2000);
 
@@ -132,10 +182,10 @@ describe.only("Leverage Positions NFT", function () {
             expect(poolStatsAfter.collateralValue).to.be.lt(poolStatsBefore.collateralValue);
             expect(poolStatsAfter.cr).to.be.gt(poolStatsBefore.cr);
         });
-        it("should incur losses", async () => {
+        it("should incur losses for the position", async () => {
             const PositionsUser = positions.connect(users[1]);
             const balBefore = await KISS.contract.balanceOf(users[1].address);
-            await PositionsUser.createPosition({ ...position, leverage: toBig(2), borrowAmountMin: 0 });
+            await PositionsUser.createPosition({ ...position, leverage: toBig(2), amountBMin: 0 });
             const poolStatsBefore = await hre.Diamond.getPoolStats(true);
             krETH.setPrice(1600);
 
@@ -155,10 +205,10 @@ describe.only("Leverage Positions NFT", function () {
             expect(poolStatsAfter.cr).to.be.eq(0);
         });
 
-        it("should offset wins by losses", async () => {
+        it("should offset wins by losses within the protocol", async () => {
             const PositionsUser = positions.connect(users[1]);
 
-            await PositionsUser.createPosition({ ...position, leverage: toBig(2), borrowAmountMin: 0 });
+            await PositionsUser.createPosition({ ...position, leverage: toBig(2), amountBMin: 0 });
 
             krETH.setPrice(1600);
 
@@ -166,7 +216,7 @@ describe.only("Leverage Positions NFT", function () {
 
             krETH.setPrice(1800);
 
-            await PositionsUser.createPosition({ ...position, leverage: toBig(2), borrowAmountMin: 0 });
+            await PositionsUser.createPosition({ ...position, leverage: toBig(2), amountBMin: 0 });
 
             krETH.setPrice(2000);
 
@@ -182,10 +232,10 @@ describe.only("Leverage Positions NFT", function () {
             expect(poolStatsAfter.debtValue).to.be.eq(0);
             expect(poolStatsAfter.cr).to.be.eq(0);
         });
-        it("should be able to liquidate a losing position", async () => {
+        it("anyone should be able to liquidate a losing position", async () => {
             const PositionsUser = positions.connect(users[1]);
 
-            await PositionsUser.createPosition({ ...position, leverage: toBig(3), borrowAmountMin: 0 });
+            await PositionsUser.createPosition({ ...position, leverage: toBig(3), amountBMin: 0 });
             const liquidator = users[0];
             krETH.setPrice(1500); // 2.5
             const [pos, ratio] = await positions.getPosition(0);
@@ -205,14 +255,14 @@ describe.only("Leverage Positions NFT", function () {
             expect(poolStatsAfter.debtValue).to.be.eq(0);
             expect(poolStatsAfter.cr).to.be.eq(0);
         });
-        it("should be able to close a winning position", async () => {
+        it("anyone should be able to close a winning position", async () => {
             const PositionsUser = positions.connect(users[1]);
 
-            await PositionsUser.createPosition({ ...position, leverage: toBig(3), borrowAmountMin: 0 });
+            await PositionsUser.createPosition({ ...position, leverage: toBig(3), amountBMin: 0 });
             const closer = users[0];
             krETH.setPrice(2100); // 2.5
-            const [pos, ratio] = await positions.getPosition(0);
-            expect(ratio).to.be.gt(pos.leverage);
+            const [, ratio] = await positions.getPosition(0);
+            expect(ratio).to.be.eq((0.5e18).toString());
             const [isClosable] = await positions.isClosable([0]);
             expect(isClosable).to.be.true;
 
@@ -229,59 +279,91 @@ describe.only("Leverage Positions NFT", function () {
             expect(poolStatsAfter.cr).to.be.gt(0);
         });
 
-        it("should be able to deposit into a position", async () => {
+        it("should be able to deposit more assetA into a position", async () => {
             const PositionsUser = positions.connect(users[1]);
             const initialLeverage = toBig(2);
-            await PositionsUser.createPosition({ ...position, leverage: initialLeverage, borrowAmountMin: 0 });
+            await PositionsUser.createPosition({ ...position, leverage: initialLeverage, amountBMin: 0 });
             await PositionsUser.deposit(0, toBig(100));
             const [pos, ratio] = await PositionsUser.getPosition(0);
             expect(ratio).to.be.lt(initialLeverage);
             expect(pos.leverage).to.be.lt(initialLeverage);
         });
-        it("should be able to deposit a lot into a position", async () => {
+
+        it("should be able to reduce a position", async () => {
             const PositionsUser = positions.connect(users[1]);
             const initialLeverage = toBig(2);
-            await PositionsUser.createPosition({ ...position, leverage: initialLeverage, borrowAmountMin: 0 });
-            krETH.setPrice(900);
-            await PositionsUser.deposit(0, toBig(1800)); // save it from liquidation
+
+            await PositionsUser.createPosition({ ...position, leverage: initialLeverage, amountBMin: 0 });
+            const [positionBefore] = await PositionsUser.getPosition(0);
+            await PositionsUser.buyback(0, positionBefore.amountB.div(2));
+            const [positionAfter] = await PositionsUser.getPosition(0);
+            expect(positionAfter.leverage).to.be.eq(initialLeverage);
+            expect(positionAfter.amountB).to.be.eq(positionBefore.amountB.div(2));
+            expect(positionAfter.amountA).to.be.eq(positionBefore.amountA.div(2));
+        });
+
+        it("should be able to buy more assetB in the position", async () => {
+            const PositionsUser = positions.connect(users[1]);
+            const initialLeverage = toBig(2);
+            await PositionsUser.createPosition({ ...position, leverage: initialLeverage, amountBMin: 0 });
+
+            const [posBefore, ratioBefore] = await PositionsUser.getPosition(0);
+            expect(posBefore.leverage).to.be.eq(initialLeverage);
+            expect(ratioBefore).to.be.eq(0);
+
+            const depositAmount = toBig(1800);
+
+            await PositionsUser.buy(0, depositAmount, 0);
 
             const [pos, ratio] = await PositionsUser.getPosition(0);
-            expect(ratio).to.be.lt(initialLeverage);
-            expect(pos.leverage).to.be.lt(initialLeverage);
+            expect(pos.leverage).to.be.eq(initialLeverage);
+            expect(ratio).to.be.eq(0);
+            expect(pos.amountA).to.be.eq(posBefore.amountA.mul(2));
+            expect(pos.amountB).to.be.eq(posBefore.amountB.mul(2));
         });
 
-        it("calculates correct ratios", async () => {
+        it("should be liquidatable at the same price with withdrawals", async () => {
             const PositionsUser = positions.connect(users[1]);
-            const initialLeverage = toBig(2);
-            await PositionsUser.createPosition({ ...position, leverage: initialLeverage, borrowAmountMin: 0 });
+            const initialLeverage = toBig(2.005);
 
-            // long asset goes up, so goes ratio
-            krETH.setPrice(3600);
-            const [, ratio] = await PositionsUser.getPosition(0);
-            expect(ratio).to.equal(toBig(4));
+            await PositionsUser.createPosition({
+                ...position,
+                leverage: initialLeverage,
+                amountBMin: 0,
+            });
+            expect((await PositionsUser.isLiquidatable([0]))[0]).to.be.false;
 
-            // long asset goes down, so goes ratio
-            krETH.setPrice(900);
-            const [, ratio1] = await PositionsUser.getPosition(0);
-            expect(ratio1).to.equal(toBig(1));
+            krETH.setPrice(1351.9);
+            expect((await PositionsUser.isLiquidatable([0]))[0]).to.be.false;
 
-            krETH.setPrice(1800); // normalize price
+            krETH.setPrice(1351.1);
+            expect((await PositionsUser.isLiquidatable([0]))[0]).to.be.true;
+            krETH.setPrice(1351.2);
+            expect((await PositionsUser.isLiquidatable([0]))[0]).to.be.false;
+            await PositionsUser.closePosition(0);
+            krETH.setPrice(1800);
 
-            // short asset goes up, ratio goes DOWN
-            KISS.setPrice(2);
-            const [, ratio3] = await PositionsUser.getPosition(0);
-            expect(ratio3).to.equal(toBig(1));
+            await PositionsUser.createPosition({
+                ...position,
+                leverage: toBig(2),
+                amountBMin: 0,
+            });
 
-            // short asset goes down, ratio goes UP
-            KISS.setPrice(0.5);
-            const [, ratio4] = await PositionsUser.getPosition(0);
-            expect(ratio4).to.equal(toBig(4));
+            await PositionsUser.withdraw(1, toBig(4.4));
+            expect((await PositionsUser.getPosition([1]))[0].leverage).to.be.closeTo(initialLeverage, toBig(0.00001));
+            expect((await PositionsUser.isLiquidatable([1]))[0]).to.be.false;
+
+            krETH.setPrice(1351.1);
+            expect((await PositionsUser.isLiquidatable([1]))[0]).to.be.true;
+
+            krETH.setPrice(1351.2);
+            expect((await PositionsUser.isLiquidatable([0]))[0]).to.be.false;
         });
 
-        it("should be able to withdraw from a position", async () => {
+        it("should be able to withdraw assetA", async () => {
             const PositionsUser = positions.connect(users[1]);
             const leverage = toBig(2);
-            await PositionsUser.createPosition({ ...position, leverage, borrowAmountMin: 0 });
+            await PositionsUser.createPosition({ ...position, leverage, amountBMin: 0 });
 
             krETH.setPrice(1600);
             await PositionsUser.withdraw(0, toBig(450));
@@ -297,10 +379,10 @@ describe.only("Leverage Positions NFT", function () {
             expect(poolStatsAfter.debtValue).to.be.eq(0);
             expect(poolStatsAfter.cr).to.be.eq(0);
         });
-        it("should revert withdrawing too much from a position", async () => {
+        it("should revert withdrawing too much assetA", async () => {
             const PositionsUser = positions.connect(users[1]);
             const leverage = toBig(2);
-            await PositionsUser.createPosition({ ...position, leverage, borrowAmountMin: 0 });
+            await PositionsUser.createPosition({ ...position, leverage, amountBMin: 0 });
 
             krETH.setPrice(1600);
             await expect(PositionsUser.withdraw(0, toBig(550))).to.be.revertedWith("!leverage");
@@ -313,18 +395,18 @@ describe.only("Leverage Positions NFT", function () {
 
             const leverage = toBig(2);
             const totalFeePct = krETHFee.add(KISSFee).wadMul(leverage);
-            const borrowAmountWithoutFees = toBig(1).wadMul(leverage);
-            const fees = borrowAmountWithoutFees.wadMul(totalFeePct);
+            const amountBWithFees = toBig(1).wadMul(leverage);
+            const fees = amountBWithFees.wadMul(totalFeePct);
             position = {
                 account: users[1].address,
                 leverage: leverage,
-                collateralAsset: KISS.address,
-                collateralAmount: toBig(ETHPrice), // 1 eth
-                borrowAsset: krETH.address,
-                borrowAmountMin: borrowAmountWithoutFees.sub(fees), // 1.96 eth
+                assetA: KISS.address,
+                amountA: toBig(ETHPrice), // 1 eth
+                assetB: krETH.address,
+                amountBMin: amountBWithFees.sub(fees), // 1.96 eth
             };
             await hre.Diamond.enablePoolCollaterals(
-                [CollateralAsset.address, CollateralAsset8Dec.address, KISS.address, krETH.address],
+                [assetAAsset.address, assetAAsset8Dec.address, KISS.address, krETH.address],
                 [
                     {
                         decimals: 18,
@@ -374,13 +456,9 @@ describe.only("Leverage Positions NFT", function () {
                 },
             ]);
 
-            await hre.Diamond.connect(depositor).poolDeposit(
-                depositor.address,
-                CollateralAsset.address,
-                depositAmount18Dec,
-            );
+            await hre.Diamond.connect(depositor).poolDeposit(depositor.address, assetAAsset.address, amountA18Dec);
 
-            await KISS.setBalance(users[1], depositAmount18Dec);
+            await KISS.setBalance(users[1], amountA18Dec);
             await KISS.contract.connect(users[1]).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
         });
     });
@@ -390,10 +468,10 @@ describe.only("Leverage Positions NFT", function () {
     let KISS: Awaited<ReturnType<typeof addMockKreskoAsset>>;
     let krETH: Awaited<ReturnType<typeof addMockKreskoAsset>>;
 
-    let CollateralAsset: Awaited<ReturnType<typeof addMockCollateralAsset>>;
-    let CollateralAsset8Dec: Awaited<ReturnType<typeof addMockCollateralAsset>>;
+    let assetAAsset: Awaited<ReturnType<typeof addMockCollateralAsset>>;
+    let assetAAsset8Dec: Awaited<ReturnType<typeof addMockCollateralAsset>>;
 
-    const collateralPrice = 10;
+    const assetAPrice = 10;
     const KISSPrice = 1;
     const ETHPrice = 1800;
 
@@ -401,14 +479,14 @@ describe.only("Leverage Positions NFT", function () {
     let users: SignerWithAddress[];
 
     const depositAmount = 10000;
-    const depositAmount18Dec = toBig(depositAmount);
+    const amountA18Dec = toBig(depositAmount);
     const depositAmount8Dec = toBig(depositAmount, 8);
     beforeEach(async () => {
         depositor = hre.users.testUserOne;
         users = [hre.users.testUserFive, hre.users.testUserSix];
         positions = await hre.getContractOrFork("Positions");
 
-        [KISS, krETH, CollateralAsset, CollateralAsset8Dec] = await Promise.all([
+        [KISS, krETH, assetAAsset, assetAAsset8Dec] = await Promise.all([
             addMockKreskoAsset(
                 {
                     name: "KISS",
@@ -436,32 +514,28 @@ describe.only("Leverage Positions NFT", function () {
                 true,
             ),
             addMockCollateralAsset({
-                name: "Collateral18Dec",
-                price: collateralPrice,
+                name: "assetA18Dec",
+                price: assetAPrice,
                 factor: 1,
                 decimals: 18,
             }),
             addMockCollateralAsset({
-                name: "Collateral8Dec",
-                price: collateralPrice,
+                name: "assetA8Dec",
+                price: assetAPrice,
                 factor: 0.8,
                 decimals: 8, // eg USDT
             }),
         ]);
-        await CollateralAsset.setBalance(depositor, depositAmount18Dec);
-        await CollateralAsset.contract.connect(depositor).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
-        await CollateralAsset8Dec.setBalance(depositor, depositAmount8Dec);
-        await CollateralAsset8Dec.contract
-            .connect(depositor)
-            .approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
+        await assetAAsset.setBalance(depositor, amountA18Dec);
+        await assetAAsset.contract.connect(depositor).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
+        await assetAAsset8Dec.setBalance(depositor, depositAmount8Dec);
+        await assetAAsset8Dec.contract.connect(depositor).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
         for (const user of users) {
             await Promise.all([
-                await CollateralAsset.setBalance(user, depositAmount18Dec),
-                await CollateralAsset8Dec.setBalance(user, depositAmount8Dec),
-                await CollateralAsset.contract
-                    .connect(user)
-                    .approve(hre.Diamond.address, hre.ethers.constants.MaxUint256),
-                await CollateralAsset8Dec.contract
+                await assetAAsset.setBalance(user, amountA18Dec),
+                await assetAAsset8Dec.setBalance(user, depositAmount8Dec),
+                await assetAAsset.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256),
+                await assetAAsset8Dec.contract
                     .connect(user)
                     .approve(hre.Diamond.address, hre.ethers.constants.MaxUint256),
             ]);

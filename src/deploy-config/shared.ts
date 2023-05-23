@@ -99,7 +99,7 @@ export const getPositionsInitializer = async (hre: HardhatRuntimeEnvironment): P
             minLeverage: toBig(1),
             maxLeverage: toBig(10),
             closeThreshold: toBig(0.5),
-            liquidationThreshold: toBig(0.5),
+            liquidationThreshold: toBig(-0.5),
         },
     };
 };

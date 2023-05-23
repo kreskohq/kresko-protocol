@@ -1,11 +1,9 @@
-import { MockContract, smock } from "@defi-wonderland/smock";
 import { fromBig, toBig } from "@kreskolabs/lib";
+import { BigNumber } from "ethers";
 import hre, { ethers } from "hardhat";
-import { FluxPriceFeed__factory } from "types/typechain";
-import { defaultCloseFee, defaultOracleDecimals, defaultOraclePrice } from "../mocks";
+import { defaultCloseFee } from "../mocks";
 import { getCollateralConfig } from "./collaterals";
 import { getKrAssetConfig } from "./krassets";
-import { BigNumber } from "ethers";
 
 /* -------------------------------------------------------------------------- */
 /*                                  GENERAL                                   */

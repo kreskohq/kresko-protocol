@@ -103,7 +103,6 @@ contract CollateralPoolConfigFacet is ICollateralPoolConfigFacet, DiamondModifie
             cps().poolKrAsset[_enabledKrAssets[i]] = _configurations[i];
             cps().isEnabled[_enabledKrAssets[i]] = true;
             cps().krAssets.push(_enabledKrAssets[i]);
-            cps().positions.getApprovalFor(_enabledKrAssets[i]);
         }
     }
 

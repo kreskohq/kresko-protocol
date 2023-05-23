@@ -38,7 +38,7 @@ export const getKrAssetConfig = async (
 
 export const addMockKreskoAsset = async (
     args: TestKreskoAssetArgs = defaultKrAssetArgs,
-    asCollateral: boolean,
+    asCollateral?: boolean,
 ): Promise<TestKrAsset> => {
     const { deployer } = await hre.ethers.getNamedSigners();
     const { name, symbol, price, marketOpen, factor, supplyLimit, closeFee, openFee, stabilityRateBase } = args;
