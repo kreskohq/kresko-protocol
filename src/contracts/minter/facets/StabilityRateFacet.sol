@@ -135,7 +135,9 @@ contract StabilityRateFacet is IStabilityRateFacet, MinterModifiers, DiamondModi
 
         // Transfer the accrued interest
         IERC20Permit(irs().kiss).safeTransferFrom(msg.sender, ms().feeRecipient, _kissRepayAmount);
-        uint256 assetAmount = _kissRepayAmount.divByPrice(ms().kreskoAssets[_kreskoAsset].uintPrice());
+        uint256 assetAmount = _kissRepayAmount.divByPrice(
+            ms().kreskoAssets[_kreskoAsset].uintAggregatePrice(ms().oracleDeviationPct)
+        );
         uint256 amountScaled = assetAmount.wadToRay().rayDiv(newDebtIndex);
         // Update scaled values for the user
         irs().srUserInfo[_account][_kreskoAsset].debtScaled -= uint128(amountScaled);

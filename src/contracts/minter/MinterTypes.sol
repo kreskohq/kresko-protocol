@@ -125,6 +125,7 @@ struct KrAsset {
     uint256 closeFee;
     uint256 openFee;
     bool exists;
+    bytes32 redstoneId;
 }
 using LibAssetUtility for KrAsset global;
 /**
@@ -146,6 +147,7 @@ struct CollateralAsset {
     uint8 decimals;
     bool exists;
     uint256 liquidationIncentive;
+    bytes32 redstoneId;
 }
 using LibAssetUtility for CollateralAsset global;
 

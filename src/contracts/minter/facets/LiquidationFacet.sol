@@ -62,7 +62,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
 
         /* ------------------------------ Amount checks ----------------------------- */
         // Repay amount USD = repay amount * KR asset USD exchange rate.
-        uint256 repayAmountUSD = krAsset.uintUSD(_repayAmount);
+        uint256 repayAmountUSD = krAsset.uintAggregateUSD(_repayAmount, s.oracleDeviationPct);
 
         // Avoid deep stack
         {
@@ -87,7 +87,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
                 collateral.decimals.fromWad(
                     LibCalculation.calculateAmountToSeize(
                         collateral.liquidationIncentive,
-                        collateral.uintPrice(),
+                        collateral.uintAggregatePrice(s.oracleDeviationPct),
                         repayAmountUSD
                     )
                 ),

@@ -4,6 +4,7 @@ import {CollateralAsset, KrAsset} from "../MinterTypes.sol";
 import {LibDecimals} from "../libs/LibDecimals.sol";
 import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
 import {WadRay} from "../../libs/WadRay.sol";
+import {LibRedstone} from "./LibRedstone.sol";
 
 /**
  * @title LibAssetUtility
@@ -67,8 +68,23 @@ library LibAssetUtility {
     /**
      * @notice Get the oracle price of a kresko asset in uint256 with extOracleDecimals
      */
+    function redstonePrice(CollateralAsset memory self) internal view returns (uint256) {
+        return LibRedstone.getPrice(self.redstoneId);
+    }
+
+    /**
+     * @notice Get the oracle price of a kresko asset in uint256 with extOracleDecimals
+     */
     function uintPrice(KrAsset memory self) internal view returns (uint256) {
         return uint256(self.oracle.latestAnswer());
+    }
+
+    /**
+     * @notice Get the oracle price of a kresko asset in uint256 with extOracleDecimals
+     * @param self the kresko asset struct
+     */
+    function redstonePrice(KrAsset memory self) internal view returns (uint256) {
+        return LibRedstone.getPrice(self.redstoneId);
     }
 
     /**
@@ -93,9 +109,96 @@ library LibAssetUtility {
     }
 
     /**
+     * @notice Get Redstone value for @param _assetAmount of @param self in uint256
+     * @param self the collateral asset struct
+     * @param _assetAmount the amount to convert
+     */
+    function uintUSDRedstone(CollateralAsset memory self, uint256 _assetAmount) internal view returns (uint256) {
+        return self.redstonePrice().wadMul(_assetAmount);
+    }
+
+    /**
      * @notice Get value for @param _assetAmount of @param self in uint256
      */
     function uintUSD(KrAsset memory self, uint256 _assetAmount) internal view returns (uint256) {
         return self.uintPrice().wadMul(_assetAmount);
+    }
+
+    /**
+     * @notice Get Redstone value for @param _assetAmount of @param self in uint256
+     * @param self the kresko asset struct
+     * @param _assetAmount the amount to convert
+     */
+    function uintUSDRedstone(KrAsset memory self, uint256 _assetAmount) internal view returns (uint256) {
+        return self.redstonePrice().wadMul(_assetAmount);
+    }
+
+    /**
+     * @notice Get Aggregrated price from chainlink oracle and redstone
+     * @param self the collateral asset struct
+     * @param _oracleDeviationPct the deviation percentage to use for the oracle
+     */
+    function uintAggregatePrice(
+        CollateralAsset memory self,
+        uint256 _oracleDeviationPct
+    ) internal view returns (uint256) {
+        return _aggregatePrice(self.uintPrice(), self.redstonePrice(), _oracleDeviationPct);
+    }
+
+    /**
+     * @notice Get Aggregrated price from chainlink oracle and redstone
+     * @param self the kresko asset struct
+     * @param _oracleDeviationPct the deviation percentage to use for the oracle
+     */
+    function uintAggregatePrice(KrAsset memory self, uint256 _oracleDeviationPct) internal view returns (uint256) {
+        return _aggregatePrice(self.uintPrice(), self.redstonePrice(), _oracleDeviationPct);
+    }
+
+    /**
+     * @notice Get Aggregrated price from chainlink oracle and redstone in USD
+     * @param self the collateral asset struct
+     * @param _assetAmount the amount to convert
+     * @param _oracleDeviationPct the deviation percentage to use for the oracle
+     */
+    function uintAggregateUSD(
+        CollateralAsset memory self,
+        uint256 _assetAmount,
+        uint256 _oracleDeviationPct
+    ) internal view returns (uint256) {
+        return _aggregatePrice(self.uintUSD(_assetAmount), self.uintUSDRedstone(_assetAmount), _oracleDeviationPct);
+    }
+
+    /**
+     * @notice Get Aggregrated price from chainlink oracle and redstone in USD
+     * @param self the kresko asset struct
+     * @param _assetAmount the amount to convert
+     * @param _oracleDeviationPct the deviation percentage to use for the oracle
+     */
+    function uintAggregateUSD(
+        KrAsset memory self,
+        uint256 _assetAmount,
+        uint256 _oracleDeviationPct
+    ) internal view returns (uint256) {
+        return _aggregatePrice(self.uintUSD(_assetAmount), self.uintUSDRedstone(_assetAmount), _oracleDeviationPct);
+    }
+
+    /**
+     * @notice perform checks on price and return the aggregated price
+     * @param _chainlinkPrice chainlink price
+     * @param _redstonePrice redstone price
+     * @param _oracleDeviationPct the deviation percentage to use for the oracle
+     */
+    function _aggregatePrice(
+        uint256 _chainlinkPrice,
+        uint256 _redstonePrice,
+        uint256 _oracleDeviationPct
+    ) internal pure returns (uint256) {
+        if (_chainlinkPrice == 0) return _redstonePrice;
+        if (_redstonePrice == 0) return _chainlinkPrice;
+        if (
+            ((_redstonePrice * (100 - _oracleDeviationPct)) / 100 <= _chainlinkPrice) &&
+            ((_redstonePrice * (_oracleDeviationPct + 100)) / 100 >= _chainlinkPrice)
+        ) return _chainlinkPrice;
+        return (_chainlinkPrice + _redstonePrice) / 2;
     }
 }

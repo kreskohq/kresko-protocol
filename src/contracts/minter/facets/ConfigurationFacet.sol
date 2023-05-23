@@ -159,6 +159,11 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         ms().extOracleDecimals = _decimals;
     }
 
+    /// @inheritdoc IConfigurationFacet
+    function updateOracleDeviationPct(uint256 _oracleDeviationPct) public onlyRole(Role.ADMIN) {
+        ms().oracleDeviationPct = _oracleDeviationPct;
+    }
+
     /* -------------------------------------------------------------------------- */
     /*                                 COLLATERAL                                 */
     /* -------------------------------------------------------------------------- */
@@ -196,7 +201,8 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             marketStatusOracle: _config.marketStatusOracle,
             anchor: _config.anchor,
             exists: true,
-            decimals: IERC20Permit(_collateralAsset).decimals()
+            decimals: IERC20Permit(_collateralAsset).decimals(),
+            redstoneId: _config.redstoneId
         });
 
         emit MinterEvent.CollateralAssetAdded(
@@ -301,7 +307,8 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             supplyLimit: _config.supplyLimit,
             closeFee: _config.closeFee,
             openFee: _config.openFee,
-            exists: true
+            exists: true,
+            redstoneId: _config.redstoneId
         });
 
         emit MinterEvent.KreskoAssetAdded(
