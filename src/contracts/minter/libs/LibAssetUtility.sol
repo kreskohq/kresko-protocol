@@ -196,8 +196,8 @@ library LibAssetUtility {
         if (_chainlinkPrice == 0) return _redstonePrice;
         if (_redstonePrice == 0) return _chainlinkPrice;
         if (
-            ((_redstonePrice * (100 - _oracleDeviationPct)) / 100 <= _chainlinkPrice) &&
-            ((_redstonePrice * (_oracleDeviationPct + 100)) / 100 >= _chainlinkPrice)
+            (_redstonePrice.wadMul(1 ether - _oracleDeviationPct) <= _chainlinkPrice) &&
+            (_redstonePrice.wadMul(1 ether + _oracleDeviationPct) >= _chainlinkPrice)
         ) return _chainlinkPrice;
         return (_chainlinkPrice + _redstonePrice) / 2;
     }
