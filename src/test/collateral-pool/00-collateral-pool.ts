@@ -13,7 +13,7 @@ import {
     SwapEvent,
 } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 
-describe.only("Collateral Pool", function () {
+describe("Collateral Pool", function () {
     describe("#Configuration", async () => {
         it("should be initialized with correct params", async () => {
             const { args } = await getCollateralPoolInitializer(hre);
@@ -1153,6 +1153,7 @@ describe.only("Collateral Pool", function () {
                 CollateralAsset8Dec.address,
                 depositAmount8Dec, // $8k
             );
+            CollateralAsset.setPrice(collateralPrice);
         });
     });
     describe("#Error", () => {
