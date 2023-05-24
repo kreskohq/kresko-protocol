@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.20;
 import {ILayerZeroEndpointUpgradeable} from "../interfaces/ILayerZeroEndpointUpgradeable.sol";
 import {ILayerZeroUserApplicationConfigUpgradeable} from "../interfaces/ILayerZeroUserApplicationConfigUpgradeable.sol";
 import {LibLZ} from "../libs/LibLZ.sol";

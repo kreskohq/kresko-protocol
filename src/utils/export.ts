@@ -17,6 +17,7 @@ export const coreExports = [
     "FluxPriceFeedFactory",
     "FluxPriceFeed",
     "KISS",
+    "Positions",
     "FunderTestnetExtended",
     "UniswapV2Oracle",
     "ERC20Upgradeable",
@@ -115,6 +116,7 @@ subtask(TASK_GENERATE_TYPECHAIN, async ({ compileSolOutput, quiet }, { config, a
 });
 export const externalArtifacts = () => {
     return [
+        "./artifacts/hardhat-diamond-abi/HardhatDiamondABI.sol/Positions.json",
         "./artifacts/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko.json",
         `./artifacts/!(interfaces|forge|deployments)/**/+(${coreExports.join("|")}).json`,
     ];

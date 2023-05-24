@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.20;
 
 import {LibERC721} from "../libs/LibERC721.sol";
 

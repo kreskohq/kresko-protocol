@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.20;
 import {CollateralAsset, KrAsset} from "../MinterTypes.sol";
 import {LibDecimals} from "../libs/LibDecimals.sol";
 import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";

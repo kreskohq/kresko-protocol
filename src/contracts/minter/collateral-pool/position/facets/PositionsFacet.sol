@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity <=0.8.19;
+pragma solidity <=0.8.20;
 import {ds} from "../../../../diamond/DiamondStorage.sol";
 import {DiamondModifiers} from "../../../../diamond/DiamondModifiers.sol";
 import {WadRay} from "../../../../libs/WadRay.sol";
@@ -31,7 +31,8 @@ contract PositionsFacet is IPositionsFacet, DiamondModifiers {
             amountA: amountAFeeReduced,
             amountB: amountBOut,
             leverage: _position.leverage,
-            valueBCache: pos().kresko.getPrice(_position.assetB).wadMul(amountBOut),
+            valueInCache: pos().kresko.getPrice(_position.assetA).wadMul(amountAFeeReduced),
+            valueOutCache: 0,
             liquidationIncentive: 0.05 ether,
             closeIncentive: 0.01 ether,
             creationTimestamp: block.timestamp,
@@ -44,15 +45,15 @@ contract PositionsFacet is IPositionsFacet, DiamondModifiers {
 
     /// @inheritdoc IPositionsFacet
     function closePosition(uint256 _id) external {
+        pos().positions[_id].lastUpdateTimestamp = block.timestamp;
+
         // check ownership
         address owner = ERC721().ownerOf(_id);
+        address liquidator = address(0);
         if (msg.sender != owner) {
             // allow closing and liquidations from external accounts
-
             if (pos().isLiquidatable(_id) || pos().isCloseable(_id)) {
-                pos().kresko.swapOutOfLeverage(pos().positions[_id], msg.sender);
-                ERC721().burn(_id);
-                return;
+                liquidator = msg.sender;
             }
             require(
                 msg.sender == owner || ERC721().isApprovedForAll(owner, msg.sender),
@@ -60,7 +61,10 @@ contract PositionsFacet is IPositionsFacet, DiamondModifiers {
             );
         }
 
-        pos().kresko.swapOutOfLeverage(pos().positions[_id], address(0));
+        pos().positions[_id].valueOutCache += pos().kresko.getPrice(pos().positions[_id].assetA).wadMul(
+            pos().kresko.swapOutOfLeverage(pos().positions[_id], liquidator)
+        );
+
         ERC721().burn(_id);
     }
 
@@ -80,7 +84,7 @@ contract PositionsFacet is IPositionsFacet, DiamondModifiers {
 
         pos().positions[_id].amountA += amountAAfterFee;
         pos().positions[_id].amountB += amountBOut;
-        pos().positions[_id].valueBCache += pos().kresko.getPrice(pos().positions[_id].assetB).wadMul(amountBOut);
+        pos().positions[_id].valueInCache += pos().kresko.getPrice(pos().positions[_id].assetA).wadMul(amountAAfterFee);
         pos().positions[_id].lastUpdateTimestamp = block.timestamp;
     }
 
@@ -111,6 +115,7 @@ contract PositionsFacet is IPositionsFacet, DiamondModifiers {
 
     /// @inheritdoc IPositionsFacet
     function buyback(uint256 _id, uint256 _amountB) external override check(_id) {
+        pos().positions[_id].lastUpdateTimestamp = block.timestamp;
         if (_amountB >= pos().positions[_id].amountB) {
             _amountB = pos().positions[_id].amountB;
             ERC721().burn(_id);
@@ -121,12 +126,11 @@ contract PositionsFacet is IPositionsFacet, DiamondModifiers {
         temp.amountB = temp.amountB.wadMul(change);
         temp.amountA = temp.amountA.wadMul(change);
 
-        pos().kresko.swapOutOfLeverage(temp, address(0));
-
         pos().positions[_id].amountA -= temp.amountA;
         pos().positions[_id].amountB -= temp.amountB;
-        pos().positions[_id].valueBCache -= pos().kresko.getPrice(pos().positions[_id].assetB).wadMul(_amountB);
-        pos().positions[_id].lastUpdateTimestamp = block.timestamp;
+        pos().positions[_id].valueOutCache += pos().kresko.getPrice(pos().positions[_id].assetA).wadMul(
+            pos().kresko.swapOutOfLeverage(temp, address(0))
+        );
     }
 
     /// @inheritdoc IPositionsFacet

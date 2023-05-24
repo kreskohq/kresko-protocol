@@ -6,93 +6,108 @@ import { Signer, utils, Contract, ContractFactory, Overrides } from "ethers";
 import type { Provider, TransactionRequest } from "@ethersproject/providers";
 import type { PromiseOrValue } from "../../../../../common";
 import type {
-    UniswapV2LiquidityMathLibrary,
-    UniswapV2LiquidityMathLibraryInterface,
+  UniswapV2LiquidityMathLibrary,
+  UniswapV2LiquidityMathLibraryInterface,
 } from "../../../../../src/contracts/test/markets/UniswapV2LiquidityMathLibrary";
 
 const _abi = [
-    {
-        inputs: [
-            {
-                internalType: "uint256",
-                name: "truePriceTokenA",
-                type: "uint256",
-            },
-            {
-                internalType: "uint256",
-                name: "truePriceTokenB",
-                type: "uint256",
-            },
-            {
-                internalType: "uint256",
-                name: "reserveA",
-                type: "uint256",
-            },
-            {
-                internalType: "uint256",
-                name: "reserveB",
-                type: "uint256",
-            },
-        ],
-        name: "computeProfitMaximizingTrade",
-        outputs: [
-            {
-                internalType: "bool",
-                name: "aToB",
-                type: "bool",
-            },
-            {
-                internalType: "uint256",
-                name: "amountIn",
-                type: "uint256",
-            },
-        ],
-        stateMutability: "pure",
-        type: "function",
-    },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "truePriceTokenA",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "truePriceTokenB",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "reserveA",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "reserveB",
+        type: "uint256",
+      },
+    ],
+    name: "computeProfitMaximizingTrade",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "aToB",
+        type: "bool",
+      },
+      {
+        internalType: "uint256",
+        name: "amountIn",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
 ] as const;
 
 const _bytecode =
-    "0x6080806040523461001a5761040b9081610020823930815050f35b600080fdfe6080604052600436101561001257600080fd5b6000803560e01c63fa6531541461002857600080fd5b6080367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc01126101cf57602435606435600435604435816100728461006d8785610398565b6101d2565b10936100966100916100848685610398565b87156101c8578590610398565b610379565b9285156101c157505b6103e592838202918083048514811517156101945784830403610135576100ce916100c9916101d2565b610215565b92841561012657506100df90610379565b0481039081116100f9576040809350519182526020820152f35b7f4e487b710000000000000000000000000000000000000000000000000000000083526011600452602483fd5b6101309150610379565b6100df565b6040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601460248201527f64732d6d6174682d6d756c2d6f766572666c6f770000000000000000000000006044820152606490fd5b7f4e487b710000000000000000000000000000000000000000000000000000000088526011600452602488fd5b905061009f565b8390610398565b80fd5b81156101dc570490565b634e487b7160e01b600052601260045260246000fd5b919082018092116101ff57565b634e487b7160e01b600052601160045260246000fd5b80156103735760018170010000000000000000000000000000000081101561035c575b6102ed6102e06102d36102c66102b96102ac61030497600888680100000000000000006102fa9a101561034f575b640100000000811015610342575b62010000811015610336575b61010081101561032a575b601081101561031d575b1015610315575b6102a6818b6101d2565b906101f2565b60011c6102a6818a6101d2565b60011c6102a681896101d2565b60011c6102a681886101d2565b60011c6102a681876101d2565b60011c6102a681866101d2565b60011c6102a681856101d2565b60011c80926101d2565b80821015610310575090565b905090565b60011b61029c565b60041c9160021b91610295565b811c9160041b9161028b565b60101c91811b91610280565b60201c9160101b91610274565b60401c9160201b91610266565b50680100000000000000009050608082901c610238565b50600090565b906103e891828102928184048114821517156101ff5783040361013557565b6000929180159182156103af575b50501561013557565b808202945091508115828504821417156101ff576103cd90846101d2565b1438806103a656fea2646970667358221220d1f5038d0dcfc4f9f01b4291b4129a1a8e9e438f39212e5515a074b6d1f7a0c564736f6c63430008130033";
+  "0x6080806040523461001a57610402908161001f823930815050f35b5f80fdfe60806040526004361015610011575f80fd5b5f803560e01c63fa65315414610025575f80fd5b6080367ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc01126101cc576024356064356004356044358161006f8461006a8785610390565b6101cf565b109361009361008e6100818685610390565b87156101c5578590610390565b610371565b9285156101be57505b6103e592838202918083048514811517156101915784830403610132576100cb916100c6916101cf565b61020e565b92841561012357506100dc90610371565b0481039081116100f6576040809350519182526020820152f35b7f4e487b710000000000000000000000000000000000000000000000000000000083526011600452602483fd5b61012d9150610371565b6100dc565b6040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601460248201527f64732d6d6174682d6d756c2d6f766572666c6f770000000000000000000000006044820152606490fd5b7f4e487b710000000000000000000000000000000000000000000000000000000088526011600452602488fd5b905061009c565b8390610390565b80fd5b81156101d9570490565b634e487b7160e01b5f52601260045260245ffd5b919082018092116101fa57565b634e487b7160e01b5f52601160045260245ffd5b801561036c57600181700100000000000000000000000000000000811015610355575b6102e66102d96102cc6102bf6102b26102a56102fd97600888680100000000000000006102f39a1015610348575b64010000000081101561033b575b6201000081101561032f575b610100811015610323575b6010811015610316575b101561030e575b61029f818b6101cf565b906101ed565b60011c61029f818a6101cf565b60011c61029f81896101cf565b60011c61029f81886101cf565b60011c61029f81876101cf565b60011c61029f81866101cf565b60011c61029f81856101cf565b60011c80926101cf565b80821015610309575090565b905090565b60011b610295565b60041c9160021b9161028e565b811c9160041b91610284565b60101c91811b91610279565b60201c9160101b9161026d565b60401c9160201b9161025f565b50680100000000000000009050608082901c610231565b505f90565b906103e891828102928184048114821517156101fa5783040361013257565b5f929180159182156103a6575b50501561013257565b808202945091508115828504821417156101fa576103c490846101cf565b145f8061039d56fea2646970667358221220dface11b00c382d6cb525d9d4b1b2156591dea8da000051d1317411d67b5239864736f6c63430008140033";
 
-type UniswapV2LiquidityMathLibraryConstructorParams = [signer?: Signer] | ConstructorParameters<typeof ContractFactory>;
+type UniswapV2LiquidityMathLibraryConstructorParams =
+  | [signer?: Signer]
+  | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-    xs: UniswapV2LiquidityMathLibraryConstructorParams,
+  xs: UniswapV2LiquidityMathLibraryConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class UniswapV2LiquidityMathLibrary__factory extends ContractFactory {
-    constructor(...args: UniswapV2LiquidityMathLibraryConstructorParams) {
-        if (isSuperArgs(args)) {
-            super(...args);
-        } else {
-            super(_abi, _bytecode, args[0]);
-        }
-        this.contractName = "UniswapV2LiquidityMathLibrary";
+  constructor(...args: UniswapV2LiquidityMathLibraryConstructorParams) {
+    if (isSuperArgs(args)) {
+      super(...args);
+    } else {
+      super(_abi, _bytecode, args[0]);
     }
+    this.contractName = "UniswapV2LiquidityMathLibrary";
+  }
 
-    override deploy(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<UniswapV2LiquidityMathLibrary> {
-        return super.deploy(overrides || {}) as Promise<UniswapV2LiquidityMathLibrary>;
-    }
-    override getDeployTransaction(overrides?: Overrides & { from?: PromiseOrValue<string> }): TransactionRequest {
-        return super.getDeployTransaction(overrides || {});
-    }
-    override attach(address: string): UniswapV2LiquidityMathLibrary {
-        return super.attach(address) as UniswapV2LiquidityMathLibrary;
-    }
-    override connect(signer: Signer): UniswapV2LiquidityMathLibrary__factory {
-        return super.connect(signer) as UniswapV2LiquidityMathLibrary__factory;
-    }
-    static readonly contractName: "UniswapV2LiquidityMathLibrary";
+  override deploy(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<UniswapV2LiquidityMathLibrary> {
+    return super.deploy(
+      overrides || {}
+    ) as Promise<UniswapV2LiquidityMathLibrary>;
+  }
+  override getDeployTransaction(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): TransactionRequest {
+    return super.getDeployTransaction(overrides || {});
+  }
+  override attach(address: string): UniswapV2LiquidityMathLibrary {
+    return super.attach(address) as UniswapV2LiquidityMathLibrary;
+  }
+  override connect(signer: Signer): UniswapV2LiquidityMathLibrary__factory {
+    return super.connect(signer) as UniswapV2LiquidityMathLibrary__factory;
+  }
+  static readonly contractName: "UniswapV2LiquidityMathLibrary";
 
-    public readonly contractName: "UniswapV2LiquidityMathLibrary";
+  public readonly contractName: "UniswapV2LiquidityMathLibrary";
 
-    static readonly bytecode = _bytecode;
-    static readonly abi = _abi;
-    static createInterface(): UniswapV2LiquidityMathLibraryInterface {
-        return new utils.Interface(_abi) as UniswapV2LiquidityMathLibraryInterface;
-    }
-    static connect(address: string, signerOrProvider: Signer | Provider): UniswapV2LiquidityMathLibrary {
-        return new Contract(address, _abi, signerOrProvider) as UniswapV2LiquidityMathLibrary;
-    }
+  static readonly bytecode = _bytecode;
+  static readonly abi = _abi;
+  static createInterface(): UniswapV2LiquidityMathLibraryInterface {
+    return new utils.Interface(_abi) as UniswapV2LiquidityMathLibraryInterface;
+  }
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): UniswapV2LiquidityMathLibrary {
+    return new Contract(
+      address,
+      _abi,
+      signerOrProvider
+    ) as UniswapV2LiquidityMathLibrary;
+  }
 }

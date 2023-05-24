@@ -7,6 +7,8 @@ export type { hardhatDiamondAbi };
 import type * as src from "./src";
 export type { src };
 export * as factories from "./factories";
+export type { Positions } from "./hardhat-diamond-abi/HardhatDiamondABI.sol/Positions";
+export { Positions__factory } from "./factories/hardhat-diamond-abi/HardhatDiamondABI.sol/Positions__factory";
 export type { Kresko } from "./hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 export { Kresko__factory } from "./factories/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko__factory";
 export type { KISS } from "./src/contracts/kiss/KISS";

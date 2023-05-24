@@ -1,8 +1,16 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.20;
 import {PoolCollateral, PoolKrAsset, CollateralPoolState} from "../CollateralPoolState.sol";
 
 interface ICollateralPoolStateFacet {
+    struct AssetData {
+        address asset;
+        uint256 depositAmount;
+        uint256 debtAmount;
+        PoolKrAsset krAsset;
+        PoolCollateral collateralAsset;
+    }
+
     /**
      * @notice Get the collateral pool balance for `_account`.
      * @param _account The account.

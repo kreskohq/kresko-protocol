@@ -3,740 +3,1274 @@
 /* tslint:disable */
 /* eslint-disable */
 import type {
-    BaseContract,
-    BigNumber,
-    BigNumberish,
-    BytesLike,
-    CallOverrides,
-    ContractTransaction,
-    Overrides,
-    PopulatedTransaction,
-    Signer,
-    utils,
+  BaseContract,
+  BigNumber,
+  BigNumberish,
+  BytesLike,
+  CallOverrides,
+  ContractTransaction,
+  Overrides,
+  PopulatedTransaction,
+  Signer,
+  utils,
 } from "ethers";
-import type { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
+import type {
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
-import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent, PromiseOrValue } from "../../../common";
+import type {
+  TypedEventFilter,
+  TypedEvent,
+  TypedListener,
+  OnEvent,
+  PromiseOrValue,
+} from "../../../common";
 
 export interface KreskoAssetAnchorInterface extends utils.Interface {
-    functions: {
-        "DEFAULT_ADMIN_ROLE()": FunctionFragment;
-        "DOMAIN_SEPARATOR()": FunctionFragment;
-        "allowance(address,address)": FunctionFragment;
-        "approve(address,uint256)": FunctionFragment;
-        "asset()": FunctionFragment;
-        "balanceOf(address)": FunctionFragment;
-        "convertToAssets(uint256)": FunctionFragment;
-        "convertToShares(uint256)": FunctionFragment;
-        "decimals()": FunctionFragment;
-        "deposit(uint256,address)": FunctionFragment;
-        "destroy(uint256,address)": FunctionFragment;
-        "getRoleAdmin(bytes32)": FunctionFragment;
-        "getRoleMember(bytes32,uint256)": FunctionFragment;
-        "getRoleMemberCount(bytes32)": FunctionFragment;
-        "grantRole(bytes32,address)": FunctionFragment;
-        "hasRole(bytes32,address)": FunctionFragment;
-        "initialize(address,string,string,address)": FunctionFragment;
-        "issue(uint256,address)": FunctionFragment;
-        "maxDeposit(address)": FunctionFragment;
-        "maxDestroy(address)": FunctionFragment;
-        "maxIssue(address)": FunctionFragment;
-        "maxMint(address)": FunctionFragment;
-        "maxRedeem(address)": FunctionFragment;
-        "maxWithdraw(address)": FunctionFragment;
-        "mint(uint256,address)": FunctionFragment;
-        "name()": FunctionFragment;
-        "nonces(address)": FunctionFragment;
-        "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
-        "previewDeposit(uint256)": FunctionFragment;
-        "previewDestroy(uint256)": FunctionFragment;
-        "previewIssue(uint256)": FunctionFragment;
-        "previewMint(uint256)": FunctionFragment;
-        "previewRedeem(uint256)": FunctionFragment;
-        "previewWithdraw(uint256)": FunctionFragment;
-        "redeem(uint256,address,address)": FunctionFragment;
-        "reinitializeERC20(string,string,uint8)": FunctionFragment;
-        "renounceRole(bytes32,address)": FunctionFragment;
-        "revokeRole(bytes32,address)": FunctionFragment;
-        "supportsInterface(bytes4)": FunctionFragment;
-        "symbol()": FunctionFragment;
-        "totalAssets()": FunctionFragment;
-        "totalSupply()": FunctionFragment;
-        "transfer(address,uint256)": FunctionFragment;
-        "transferFrom(address,address,uint256)": FunctionFragment;
-        "withdraw(uint256,address,address)": FunctionFragment;
-    };
+  functions: {
+    "DEFAULT_ADMIN_ROLE()": FunctionFragment;
+    "DOMAIN_SEPARATOR()": FunctionFragment;
+    "allowance(address,address)": FunctionFragment;
+    "approve(address,uint256)": FunctionFragment;
+    "asset()": FunctionFragment;
+    "balanceOf(address)": FunctionFragment;
+    "convertToAssets(uint256)": FunctionFragment;
+    "convertToShares(uint256)": FunctionFragment;
+    "decimals()": FunctionFragment;
+    "deposit(uint256,address)": FunctionFragment;
+    "destroy(uint256,address)": FunctionFragment;
+    "getRoleAdmin(bytes32)": FunctionFragment;
+    "getRoleMember(bytes32,uint256)": FunctionFragment;
+    "getRoleMemberCount(bytes32)": FunctionFragment;
+    "grantRole(bytes32,address)": FunctionFragment;
+    "hasRole(bytes32,address)": FunctionFragment;
+    "initialize(address,string,string,address)": FunctionFragment;
+    "issue(uint256,address)": FunctionFragment;
+    "maxDeposit(address)": FunctionFragment;
+    "maxDestroy(address)": FunctionFragment;
+    "maxIssue(address)": FunctionFragment;
+    "maxMint(address)": FunctionFragment;
+    "maxRedeem(address)": FunctionFragment;
+    "maxWithdraw(address)": FunctionFragment;
+    "mint(uint256,address)": FunctionFragment;
+    "name()": FunctionFragment;
+    "nonces(address)": FunctionFragment;
+    "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
+    "previewDeposit(uint256)": FunctionFragment;
+    "previewDestroy(uint256)": FunctionFragment;
+    "previewIssue(uint256)": FunctionFragment;
+    "previewMint(uint256)": FunctionFragment;
+    "previewRedeem(uint256)": FunctionFragment;
+    "previewWithdraw(uint256)": FunctionFragment;
+    "redeem(uint256,address,address)": FunctionFragment;
+    "reinitializeERC20(string,string,uint8)": FunctionFragment;
+    "renounceRole(bytes32,address)": FunctionFragment;
+    "revokeRole(bytes32,address)": FunctionFragment;
+    "supportsInterface(bytes4)": FunctionFragment;
+    "symbol()": FunctionFragment;
+    "totalAssets()": FunctionFragment;
+    "totalSupply()": FunctionFragment;
+    "transfer(address,uint256)": FunctionFragment;
+    "transferFrom(address,address,uint256)": FunctionFragment;
+    "withdraw(uint256,address,address)": FunctionFragment;
+  };
 
-    getFunction(
-        nameOrSignatureOrTopic:
-            | "DEFAULT_ADMIN_ROLE"
-            | "DOMAIN_SEPARATOR"
-            | "allowance"
-            | "approve"
-            | "asset"
-            | "balanceOf"
-            | "convertToAssets"
-            | "convertToShares"
-            | "decimals"
-            | "deposit"
-            | "destroy"
-            | "getRoleAdmin"
-            | "getRoleMember"
-            | "getRoleMemberCount"
-            | "grantRole"
-            | "hasRole"
-            | "initialize"
-            | "issue"
-            | "maxDeposit"
-            | "maxDestroy"
-            | "maxIssue"
-            | "maxMint"
-            | "maxRedeem"
-            | "maxWithdraw"
-            | "mint"
-            | "name"
-            | "nonces"
-            | "permit"
-            | "previewDeposit"
-            | "previewDestroy"
-            | "previewIssue"
-            | "previewMint"
-            | "previewRedeem"
-            | "previewWithdraw"
-            | "redeem"
-            | "reinitializeERC20"
-            | "renounceRole"
-            | "revokeRole"
-            | "supportsInterface"
-            | "symbol"
-            | "totalAssets"
-            | "totalSupply"
-            | "transfer"
-            | "transferFrom"
-            | "withdraw",
-    ): FunctionFragment;
+  getFunction(
+    nameOrSignatureOrTopic:
+      | "DEFAULT_ADMIN_ROLE"
+      | "DOMAIN_SEPARATOR"
+      | "allowance"
+      | "approve"
+      | "asset"
+      | "balanceOf"
+      | "convertToAssets"
+      | "convertToShares"
+      | "decimals"
+      | "deposit"
+      | "destroy"
+      | "getRoleAdmin"
+      | "getRoleMember"
+      | "getRoleMemberCount"
+      | "grantRole"
+      | "hasRole"
+      | "initialize"
+      | "issue"
+      | "maxDeposit"
+      | "maxDestroy"
+      | "maxIssue"
+      | "maxMint"
+      | "maxRedeem"
+      | "maxWithdraw"
+      | "mint"
+      | "name"
+      | "nonces"
+      | "permit"
+      | "previewDeposit"
+      | "previewDestroy"
+      | "previewIssue"
+      | "previewMint"
+      | "previewRedeem"
+      | "previewWithdraw"
+      | "redeem"
+      | "reinitializeERC20"
+      | "renounceRole"
+      | "revokeRole"
+      | "supportsInterface"
+      | "symbol"
+      | "totalAssets"
+      | "totalSupply"
+      | "transfer"
+      | "transferFrom"
+      | "withdraw"
+  ): FunctionFragment;
 
-    encodeFunctionData(functionFragment: "DEFAULT_ADMIN_ROLE", values?: undefined): string;
-    encodeFunctionData(functionFragment: "DOMAIN_SEPARATOR", values?: undefined): string;
-    encodeFunctionData(functionFragment: "allowance", values: [PromiseOrValue<string>, PromiseOrValue<string>]): string;
-    encodeFunctionData(
-        functionFragment: "approve",
-        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(functionFragment: "asset", values?: undefined): string;
-    encodeFunctionData(functionFragment: "balanceOf", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "convertToAssets", values: [PromiseOrValue<BigNumberish>]): string;
-    encodeFunctionData(functionFragment: "convertToShares", values: [PromiseOrValue<BigNumberish>]): string;
-    encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
-    encodeFunctionData(
-        functionFragment: "deposit",
-        values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "destroy",
-        values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(functionFragment: "getRoleAdmin", values: [PromiseOrValue<BytesLike>]): string;
-    encodeFunctionData(
-        functionFragment: "getRoleMember",
-        values: [PromiseOrValue<BytesLike>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(functionFragment: "getRoleMemberCount", values: [PromiseOrValue<BytesLike>]): string;
-    encodeFunctionData(
-        functionFragment: "grantRole",
-        values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "hasRole",
-        values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "initialize",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "issue",
-        values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(functionFragment: "maxDeposit", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "maxDestroy", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "maxIssue", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "maxMint", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "maxRedeem", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(functionFragment: "maxWithdraw", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(
-        functionFragment: "mint",
-        values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(functionFragment: "name", values?: undefined): string;
-    encodeFunctionData(functionFragment: "nonces", values: [PromiseOrValue<string>]): string;
-    encodeFunctionData(
-        functionFragment: "permit",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BytesLike>,
-            PromiseOrValue<BytesLike>,
-        ],
-    ): string;
-    encodeFunctionData(functionFragment: "previewDeposit", values: [PromiseOrValue<BigNumberish>]): string;
-    encodeFunctionData(functionFragment: "previewDestroy", values: [PromiseOrValue<BigNumberish>]): string;
-    encodeFunctionData(functionFragment: "previewIssue", values: [PromiseOrValue<BigNumberish>]): string;
-    encodeFunctionData(functionFragment: "previewMint", values: [PromiseOrValue<BigNumberish>]): string;
-    encodeFunctionData(functionFragment: "previewRedeem", values: [PromiseOrValue<BigNumberish>]): string;
-    encodeFunctionData(functionFragment: "previewWithdraw", values: [PromiseOrValue<BigNumberish>]): string;
-    encodeFunctionData(
-        functionFragment: "redeem",
-        values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "reinitializeERC20",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "renounceRole",
-        values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "revokeRole",
-        values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>],
-    ): string;
-    encodeFunctionData(functionFragment: "supportsInterface", values: [PromiseOrValue<BytesLike>]): string;
-    encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
-    encodeFunctionData(functionFragment: "totalAssets", values?: undefined): string;
-    encodeFunctionData(functionFragment: "totalSupply", values?: undefined): string;
-    encodeFunctionData(
-        functionFragment: "transfer",
-        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "transferFrom",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
-    ): string;
-    encodeFunctionData(
-        functionFragment: "withdraw",
-        values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>, PromiseOrValue<string>],
-    ): string;
+  encodeFunctionData(
+    functionFragment: "DEFAULT_ADMIN_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "DOMAIN_SEPARATOR",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "allowance",
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "approve",
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(functionFragment: "asset", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "balanceOf",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "convertToAssets",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "convertToShares",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "deposit",
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "destroy",
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getRoleAdmin",
+    values: [PromiseOrValue<BytesLike>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getRoleMember",
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getRoleMemberCount",
+    values: [PromiseOrValue<BytesLike>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "grantRole",
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "hasRole",
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "initialize",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "issue",
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "maxDeposit",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "maxDestroy",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "maxIssue",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "maxMint",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "maxRedeem",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "maxWithdraw",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "mint",
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(functionFragment: "name", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "nonces",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "permit",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BytesLike>,
+      PromiseOrValue<BytesLike>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "previewDeposit",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "previewDestroy",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "previewIssue",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "previewMint",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "previewRedeem",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "previewWithdraw",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "redeem",
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "reinitializeERC20",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "renounceRole",
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "revokeRole",
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "supportsInterface",
+    values: [PromiseOrValue<BytesLike>]
+  ): string;
+  encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "totalAssets",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "totalSupply",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "transfer",
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "transferFrom",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "withdraw",
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>
+    ]
+  ): string;
 
-    decodeFunctionResult(functionFragment: "DEFAULT_ADMIN_ROLE", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "DOMAIN_SEPARATOR", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "asset", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "convertToAssets", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "convertToShares", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "destroy", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getRoleAdmin", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getRoleMember", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getRoleMemberCount", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "issue", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "maxDeposit", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "maxDestroy", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "maxIssue", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "maxMint", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "maxRedeem", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "maxWithdraw", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "nonces", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "permit", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "previewDeposit", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "previewDestroy", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "previewIssue", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "previewMint", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "previewRedeem", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "previewWithdraw", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "redeem", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "reinitializeERC20", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "renounceRole", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "supportsInterface", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "totalAssets", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "totalSupply", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "transfer", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "transferFrom", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "DEFAULT_ADMIN_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "DOMAIN_SEPARATOR",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "asset", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "convertToAssets",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "convertToShares",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "destroy", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getRoleAdmin",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getRoleMember",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getRoleMemberCount",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "issue", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "maxDeposit", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "maxDestroy", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "maxIssue", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "maxMint", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "maxRedeem", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "maxWithdraw",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "nonces", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "permit", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "previewDeposit",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "previewDestroy",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "previewIssue",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "previewMint",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "previewRedeem",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "previewWithdraw",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "redeem", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "reinitializeERC20",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "renounceRole",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "supportsInterface",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "totalAssets",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "totalSupply",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "transfer", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "transferFrom",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
 
-    events: {
-        "Approval(address,address,uint256)": EventFragment;
-        "Deposit(address,address,uint256,uint256)": EventFragment;
-        "Destroy(address,address,address,uint256,uint256)": EventFragment;
-        "Initialized(uint8)": EventFragment;
-        "Issue(address,address,uint256,uint256)": EventFragment;
-        "RoleAdminChanged(bytes32,bytes32,bytes32)": EventFragment;
-        "RoleGranted(bytes32,address,address)": EventFragment;
-        "RoleRevoked(bytes32,address,address)": EventFragment;
-        "Transfer(address,address,uint256)": EventFragment;
-        "Withdraw(address,address,address,uint256,uint256)": EventFragment;
-    };
+  events: {
+    "Approval(address,address,uint256)": EventFragment;
+    "Deposit(address,address,uint256,uint256)": EventFragment;
+    "Destroy(address,address,address,uint256,uint256)": EventFragment;
+    "Initialized(uint8)": EventFragment;
+    "Issue(address,address,uint256,uint256)": EventFragment;
+    "RoleAdminChanged(bytes32,bytes32,bytes32)": EventFragment;
+    "RoleGranted(bytes32,address,address)": EventFragment;
+    "RoleRevoked(bytes32,address,address)": EventFragment;
+    "Transfer(address,address,uint256)": EventFragment;
+    "Withdraw(address,address,address,uint256,uint256)": EventFragment;
+  };
 
-    getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "Deposit"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "Destroy"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "Initialized"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "Issue"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "RoleAdminChanged"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "RoleGranted"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "RoleRevoked"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "Withdraw"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Deposit"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Destroy"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Initialized"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Issue"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RoleAdminChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RoleGranted"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RoleRevoked"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Withdraw"): EventFragment;
 }
 
 export interface ApprovalEventObject {
-    owner: string;
-    spender: string;
-    amount: BigNumber;
+  owner: string;
+  spender: string;
+  amount: BigNumber;
 }
-export type ApprovalEvent = TypedEvent<[string, string, BigNumber], ApprovalEventObject>;
+export type ApprovalEvent = TypedEvent<
+  [string, string, BigNumber],
+  ApprovalEventObject
+>;
 
 export type ApprovalEventFilter = TypedEventFilter<ApprovalEvent>;
 
 export interface DepositEventObject {
-    caller: string;
-    owner: string;
-    assets: BigNumber;
-    shares: BigNumber;
+  caller: string;
+  owner: string;
+  assets: BigNumber;
+  shares: BigNumber;
 }
-export type DepositEvent = TypedEvent<[string, string, BigNumber, BigNumber], DepositEventObject>;
+export type DepositEvent = TypedEvent<
+  [string, string, BigNumber, BigNumber],
+  DepositEventObject
+>;
 
 export type DepositEventFilter = TypedEventFilter<DepositEvent>;
 
 export interface DestroyEventObject {
-    caller: string;
-    receiver: string;
-    owner: string;
-    assets: BigNumber;
-    shares: BigNumber;
+  caller: string;
+  receiver: string;
+  owner: string;
+  assets: BigNumber;
+  shares: BigNumber;
 }
-export type DestroyEvent = TypedEvent<[string, string, string, BigNumber, BigNumber], DestroyEventObject>;
+export type DestroyEvent = TypedEvent<
+  [string, string, string, BigNumber, BigNumber],
+  DestroyEventObject
+>;
 
 export type DestroyEventFilter = TypedEventFilter<DestroyEvent>;
 
 export interface InitializedEventObject {
-    version: number;
+  version: number;
 }
 export type InitializedEvent = TypedEvent<[number], InitializedEventObject>;
 
 export type InitializedEventFilter = TypedEventFilter<InitializedEvent>;
 
 export interface IssueEventObject {
-    caller: string;
-    owner: string;
-    assets: BigNumber;
-    shares: BigNumber;
+  caller: string;
+  owner: string;
+  assets: BigNumber;
+  shares: BigNumber;
 }
-export type IssueEvent = TypedEvent<[string, string, BigNumber, BigNumber], IssueEventObject>;
+export type IssueEvent = TypedEvent<
+  [string, string, BigNumber, BigNumber],
+  IssueEventObject
+>;
 
 export type IssueEventFilter = TypedEventFilter<IssueEvent>;
 
 export interface RoleAdminChangedEventObject {
-    role: string;
-    previousAdminRole: string;
-    newAdminRole: string;
+  role: string;
+  previousAdminRole: string;
+  newAdminRole: string;
 }
-export type RoleAdminChangedEvent = TypedEvent<[string, string, string], RoleAdminChangedEventObject>;
+export type RoleAdminChangedEvent = TypedEvent<
+  [string, string, string],
+  RoleAdminChangedEventObject
+>;
 
-export type RoleAdminChangedEventFilter = TypedEventFilter<RoleAdminChangedEvent>;
+export type RoleAdminChangedEventFilter =
+  TypedEventFilter<RoleAdminChangedEvent>;
 
 export interface RoleGrantedEventObject {
-    role: string;
-    account: string;
-    sender: string;
+  role: string;
+  account: string;
+  sender: string;
 }
-export type RoleGrantedEvent = TypedEvent<[string, string, string], RoleGrantedEventObject>;
+export type RoleGrantedEvent = TypedEvent<
+  [string, string, string],
+  RoleGrantedEventObject
+>;
 
 export type RoleGrantedEventFilter = TypedEventFilter<RoleGrantedEvent>;
 
 export interface RoleRevokedEventObject {
-    role: string;
-    account: string;
-    sender: string;
+  role: string;
+  account: string;
+  sender: string;
 }
-export type RoleRevokedEvent = TypedEvent<[string, string, string], RoleRevokedEventObject>;
+export type RoleRevokedEvent = TypedEvent<
+  [string, string, string],
+  RoleRevokedEventObject
+>;
 
 export type RoleRevokedEventFilter = TypedEventFilter<RoleRevokedEvent>;
 
 export interface TransferEventObject {
-    from: string;
-    to: string;
-    amount: BigNumber;
+  from: string;
+  to: string;
+  amount: BigNumber;
 }
-export type TransferEvent = TypedEvent<[string, string, BigNumber], TransferEventObject>;
+export type TransferEvent = TypedEvent<
+  [string, string, BigNumber],
+  TransferEventObject
+>;
 
 export type TransferEventFilter = TypedEventFilter<TransferEvent>;
 
 export interface WithdrawEventObject {
-    caller: string;
-    receiver: string;
-    owner: string;
-    assets: BigNumber;
-    shares: BigNumber;
+  caller: string;
+  receiver: string;
+  owner: string;
+  assets: BigNumber;
+  shares: BigNumber;
 }
-export type WithdrawEvent = TypedEvent<[string, string, string, BigNumber, BigNumber], WithdrawEventObject>;
+export type WithdrawEvent = TypedEvent<
+  [string, string, string, BigNumber, BigNumber],
+  WithdrawEventObject
+>;
 
 export type WithdrawEventFilter = TypedEventFilter<WithdrawEvent>;
 
 export interface KreskoAssetAnchor extends BaseContract {
-    contractName: "KreskoAssetAnchor";
+  contractName: "KreskoAssetAnchor";
 
-    connect(signerOrProvider: Signer | Provider | string): this;
-    attach(addressOrName: string): this;
-    deployed(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this;
+  attach(addressOrName: string): this;
+  deployed(): Promise<this>;
 
-    interface: KreskoAssetAnchorInterface;
+  interface: KreskoAssetAnchorInterface;
 
-    queryFilter<TEvent extends TypedEvent>(
-        event: TypedEventFilter<TEvent>,
-        fromBlockOrBlockhash?: string | number | undefined,
-        toBlock?: string | number | undefined,
-    ): Promise<Array<TEvent>>;
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TEvent>>;
 
-    listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>;
-    listeners(eventName?: string): Array<Listener>;
-    removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this;
-    removeAllListeners(eventName?: string): this;
-    off: OnEvent<this>;
-    on: OnEvent<this>;
-    once: OnEvent<this>;
-    removeListener: OnEvent<this>;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
-    functions: {
-        DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<[string]>;
+  functions: {
+    DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<[string]>;
 
-        DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<[string]>;
+    DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<[string]>;
 
-        allowance(
-            _owner: PromiseOrValue<string>,
-            _spender: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber]>;
+    allowance(
+      _owner: PromiseOrValue<string>,
+      _spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-        approve(
-            spender: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+    approve(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-        asset(overrides?: CallOverrides): Promise<[string]>;
+    asset(overrides?: CallOverrides): Promise<[string]>;
 
-        balanceOf(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
+    balanceOf(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-        convertToAssets(
-            shares: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber] & { assets: BigNumber }>;
+    convertToAssets(
+      shares: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { assets: BigNumber }>;
 
-        convertToShares(
-            assets: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<[BigNumber] & { shares: BigNumber }>;
+    convertToShares(
+      assets: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { shares: BigNumber }>;
 
-        decimals(overrides?: CallOverrides): Promise<[number]>;
+    decimals(overrides?: CallOverrides): Promise<[number]>;
 
-        deposit(
-            assets: PromiseOrValue<BigNumberish>,
-            receiver: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+    deposit(
+      assets: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-        destroy(
-            _assets: PromiseOrValue<BigNumberish>,
-            _from: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+    destroy(
+      _assets: PromiseOrValue<BigNumberish>,
+      _from: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-        getRoleAdmin(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<[string]>;
+    getRoleAdmin(
+      role: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
 
-        getRoleMember(
-            role: PromiseOrValue<BytesLike>,
-            index: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<[string]>;
+    getRoleMember(
+      role: PromiseOrValue<BytesLike>,
+      index: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
 
-        getRoleMemberCount(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<[BigNumber]>;
+    getRoleMemberCount(
+      role: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-        grantRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+    grantRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-        hasRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[boolean]>;
+    hasRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-        initialize(
-            _asset: PromiseOrValue<string>,
-            _name: PromiseOrValue<string>,
-            _symbol: PromiseOrValue<string>,
-            _admin: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+    initialize(
+      _asset: PromiseOrValue<string>,
+      _name: PromiseOrValue<string>,
+      _symbol: PromiseOrValue<string>,
+      _admin: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-        issue(
-            _assets: PromiseOrValue<BigNumberish>,
-            _to: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+    issue(
+      _assets: PromiseOrValue<BigNumberish>,
+      _to: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-        maxDeposit(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
+    maxDeposit(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-        maxDestroy(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
+    maxDestroy(
+      owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-        maxIssue(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
+    maxIssue(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-        maxMint(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
+    maxMint(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-        maxRedeem(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
+    maxRedeem(
+      owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-        maxWithdraw(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
+    maxWithdraw(
+      owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-        mint(
-            shares: PromiseOrValue<BigNumberish>,
-            receiver: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+    mint(
+      shares: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-        name(overrides?: CallOverrides): Promise<[string]>;
+    name(overrides?: CallOverrides): Promise<[string]>;
 
-        nonces(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
+    nonces(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-        permit(
-            owner: PromiseOrValue<string>,
-            spender: PromiseOrValue<string>,
-            value: PromiseOrValue<BigNumberish>,
-            deadline: PromiseOrValue<BigNumberish>,
-            v: PromiseOrValue<BigNumberish>,
-            r: PromiseOrValue<BytesLike>,
-            s: PromiseOrValue<BytesLike>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+    permit(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      value: PromiseOrValue<BigNumberish>,
+      deadline: PromiseOrValue<BigNumberish>,
+      v: PromiseOrValue<BigNumberish>,
+      r: PromiseOrValue<BytesLike>,
+      s: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-        previewDeposit(assets: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[BigNumber]>;
+    previewDeposit(
+      assets: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-        previewDestroy(shares: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[BigNumber]>;
+    previewDestroy(
+      shares: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-        previewIssue(assets: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[BigNumber]>;
+    previewIssue(
+      assets: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-        previewMint(shares: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[BigNumber]>;
+    previewMint(
+      shares: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-        previewRedeem(shares: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[BigNumber]>;
+    previewRedeem(
+      shares: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-        previewWithdraw(assets: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[BigNumber]>;
+    previewWithdraw(
+      assets: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-        redeem(
-            shares: PromiseOrValue<BigNumberish>,
-            receiver: PromiseOrValue<string>,
-            owner: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+    redeem(
+      shares: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      owner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-        reinitializeERC20(
-            _name: PromiseOrValue<string>,
-            _symbol: PromiseOrValue<string>,
-            _version: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+    reinitializeERC20(
+      _name: PromiseOrValue<string>,
+      _symbol: PromiseOrValue<string>,
+      _version: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-        renounceRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+    renounceRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-        revokeRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+    revokeRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-        supportsInterface(interfaceId: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<[boolean]>;
+    supportsInterface(
+      interfaceId: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-        symbol(overrides?: CallOverrides): Promise<[string]>;
+    symbol(overrides?: CallOverrides): Promise<[string]>;
 
-        totalAssets(overrides?: CallOverrides): Promise<[BigNumber]>;
+    totalAssets(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-        totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
+    totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-        transfer(
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+    transfer(
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-        transferFrom(
-            from: PromiseOrValue<string>,
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
+    transferFrom(
+      from: PromiseOrValue<string>,
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
-        withdraw(
-            assets: PromiseOrValue<BigNumberish>,
-            receiver: PromiseOrValue<string>,
-            owner: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-    };
+    withdraw(
+      assets: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      owner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+  };
 
+  DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<string>;
+
+  allowance(
+    _owner: PromiseOrValue<string>,
+    _spender: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  approve(
+    spender: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  asset(overrides?: CallOverrides): Promise<string>;
+
+  balanceOf(
+    _account: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  convertToAssets(
+    shares: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  convertToShares(
+    assets: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  decimals(overrides?: CallOverrides): Promise<number>;
+
+  deposit(
+    assets: PromiseOrValue<BigNumberish>,
+    receiver: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  destroy(
+    _assets: PromiseOrValue<BigNumberish>,
+    _from: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  getRoleAdmin(
+    role: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  getRoleMember(
+    role: PromiseOrValue<BytesLike>,
+    index: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  getRoleMemberCount(
+    role: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  grantRole(
+    role: PromiseOrValue<BytesLike>,
+    account: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  hasRole(
+    role: PromiseOrValue<BytesLike>,
+    account: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  initialize(
+    _asset: PromiseOrValue<string>,
+    _name: PromiseOrValue<string>,
+    _symbol: PromiseOrValue<string>,
+    _admin: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  issue(
+    _assets: PromiseOrValue<BigNumberish>,
+    _to: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  maxDeposit(
+    arg0: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  maxDestroy(
+    owner: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  maxIssue(
+    arg0: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  maxMint(
+    arg0: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  maxRedeem(
+    owner: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  maxWithdraw(
+    owner: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  mint(
+    shares: PromiseOrValue<BigNumberish>,
+    receiver: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  name(overrides?: CallOverrides): Promise<string>;
+
+  nonces(
+    arg0: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  permit(
+    owner: PromiseOrValue<string>,
+    spender: PromiseOrValue<string>,
+    value: PromiseOrValue<BigNumberish>,
+    deadline: PromiseOrValue<BigNumberish>,
+    v: PromiseOrValue<BigNumberish>,
+    r: PromiseOrValue<BytesLike>,
+    s: PromiseOrValue<BytesLike>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  previewDeposit(
+    assets: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  previewDestroy(
+    shares: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  previewIssue(
+    assets: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  previewMint(
+    shares: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  previewRedeem(
+    shares: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  previewWithdraw(
+    assets: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  redeem(
+    shares: PromiseOrValue<BigNumberish>,
+    receiver: PromiseOrValue<string>,
+    owner: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  reinitializeERC20(
+    _name: PromiseOrValue<string>,
+    _symbol: PromiseOrValue<string>,
+    _version: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  renounceRole(
+    role: PromiseOrValue<BytesLike>,
+    account: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  revokeRole(
+    role: PromiseOrValue<BytesLike>,
+    account: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  supportsInterface(
+    interfaceId: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  symbol(overrides?: CallOverrides): Promise<string>;
+
+  totalAssets(overrides?: CallOverrides): Promise<BigNumber>;
+
+  totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+  transfer(
+    to: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  transferFrom(
+    from: PromiseOrValue<string>,
+    to: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  withdraw(
+    assets: PromiseOrValue<BigNumberish>,
+    receiver: PromiseOrValue<string>,
+    owner: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  callStatic: {
     DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
 
     DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<string>;
 
     allowance(
-        _owner: PromiseOrValue<string>,
-        _spender: PromiseOrValue<string>,
-        overrides?: CallOverrides,
+      _owner: PromiseOrValue<string>,
+      _spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     approve(
-        spender: PromiseOrValue<string>,
-        amount: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     asset(overrides?: CallOverrides): Promise<string>;
 
-    balanceOf(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+    balanceOf(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    convertToAssets(shares: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
+    convertToAssets(
+      shares: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    convertToShares(assets: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
+    convertToShares(
+      assets: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     decimals(overrides?: CallOverrides): Promise<number>;
 
     deposit(
-        assets: PromiseOrValue<BigNumberish>,
-        receiver: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      assets: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     destroy(
-        _assets: PromiseOrValue<BigNumberish>,
-        _from: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      _assets: PromiseOrValue<BigNumberish>,
+      _from: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    getRoleAdmin(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<string>;
-
-    getRoleMember(
-        role: PromiseOrValue<BytesLike>,
-        index: PromiseOrValue<BigNumberish>,
-        overrides?: CallOverrides,
+    getRoleAdmin(
+      role: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
     ): Promise<string>;
 
-    getRoleMemberCount(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<BigNumber>;
+    getRoleMember(
+      role: PromiseOrValue<BytesLike>,
+      index: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    getRoleMemberCount(
+      role: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     grantRole(
-        role: PromiseOrValue<BytesLike>,
-        account: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     hasRole(
-        role: PromiseOrValue<BytesLike>,
-        account: PromiseOrValue<string>,
-        overrides?: CallOverrides,
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
     ): Promise<boolean>;
 
     initialize(
-        _asset: PromiseOrValue<string>,
-        _name: PromiseOrValue<string>,
-        _symbol: PromiseOrValue<string>,
-        _admin: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      _asset: PromiseOrValue<string>,
+      _name: PromiseOrValue<string>,
+      _symbol: PromiseOrValue<string>,
+      _admin: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     issue(
-        _assets: PromiseOrValue<BigNumberish>,
-        _to: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      _assets: PromiseOrValue<BigNumberish>,
+      _to: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    maxDeposit(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+    maxDeposit(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    maxDestroy(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+    maxDestroy(
+      owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    maxIssue(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+    maxIssue(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    maxMint(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+    maxMint(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    maxRedeem(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+    maxRedeem(
+      owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    maxWithdraw(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+    maxWithdraw(
+      owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     mint(
-        shares: PromiseOrValue<BigNumberish>,
-        receiver: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      shares: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     name(overrides?: CallOverrides): Promise<string>;
 
-    nonces(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+    nonces(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     permit(
-        owner: PromiseOrValue<string>,
-        spender: PromiseOrValue<string>,
-        value: PromiseOrValue<BigNumberish>,
-        deadline: PromiseOrValue<BigNumberish>,
-        v: PromiseOrValue<BigNumberish>,
-        r: PromiseOrValue<BytesLike>,
-        s: PromiseOrValue<BytesLike>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      value: PromiseOrValue<BigNumberish>,
+      deadline: PromiseOrValue<BigNumberish>,
+      v: PromiseOrValue<BigNumberish>,
+      r: PromiseOrValue<BytesLike>,
+      s: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
-    previewDeposit(assets: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
+    previewDeposit(
+      assets: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    previewDestroy(shares: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
+    previewDestroy(
+      shares: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    previewIssue(assets: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
+    previewIssue(
+      assets: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    previewMint(shares: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
+    previewMint(
+      shares: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    previewRedeem(shares: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
+    previewRedeem(
+      shares: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    previewWithdraw(assets: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
+    previewWithdraw(
+      assets: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     redeem(
-        shares: PromiseOrValue<BigNumberish>,
-        receiver: PromiseOrValue<string>,
-        owner: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      shares: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     reinitializeERC20(
-        _name: PromiseOrValue<string>,
-        _symbol: PromiseOrValue<string>,
-        _version: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      _name: PromiseOrValue<string>,
+      _symbol: PromiseOrValue<string>,
+      _version: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     renounceRole(
-        role: PromiseOrValue<BytesLike>,
-        account: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     revokeRole(
-        role: PromiseOrValue<BytesLike>,
-        account: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
-    supportsInterface(interfaceId: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<boolean>;
+    supportsInterface(
+      interfaceId: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     symbol(overrides?: CallOverrides): Promise<string>;
 
@@ -745,666 +1279,605 @@ export interface KreskoAssetAnchor extends BaseContract {
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
     transfer(
-        to: PromiseOrValue<string>,
-        amount: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     transferFrom(
-        from: PromiseOrValue<string>,
-        to: PromiseOrValue<string>,
-        amount: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
+      from: PromiseOrValue<string>,
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     withdraw(
-        assets: PromiseOrValue<BigNumberish>,
-        receiver: PromiseOrValue<string>,
-        owner: PromiseOrValue<string>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    callStatic: {
-        DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
-
-        DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<string>;
-
-        allowance(
-            _owner: PromiseOrValue<string>,
-            _spender: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        approve(
-            spender: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<boolean>;
-
-        asset(overrides?: CallOverrides): Promise<string>;
-
-        balanceOf(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        convertToAssets(shares: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        convertToShares(assets: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        decimals(overrides?: CallOverrides): Promise<number>;
-
-        deposit(
-            assets: PromiseOrValue<BigNumberish>,
-            receiver: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        destroy(
-            _assets: PromiseOrValue<BigNumberish>,
-            _from: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        getRoleAdmin(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<string>;
-
-        getRoleMember(
-            role: PromiseOrValue<BytesLike>,
-            index: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<string>;
-
-        getRoleMemberCount(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        grantRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        hasRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<boolean>;
-
-        initialize(
-            _asset: PromiseOrValue<string>,
-            _name: PromiseOrValue<string>,
-            _symbol: PromiseOrValue<string>,
-            _admin: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        issue(
-            _assets: PromiseOrValue<BigNumberish>,
-            _to: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        maxDeposit(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        maxDestroy(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        maxIssue(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        maxMint(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        maxRedeem(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        maxWithdraw(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        mint(
-            shares: PromiseOrValue<BigNumberish>,
-            receiver: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        name(overrides?: CallOverrides): Promise<string>;
-
-        nonces(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        permit(
-            owner: PromiseOrValue<string>,
-            spender: PromiseOrValue<string>,
-            value: PromiseOrValue<BigNumberish>,
-            deadline: PromiseOrValue<BigNumberish>,
-            v: PromiseOrValue<BigNumberish>,
-            r: PromiseOrValue<BytesLike>,
-            s: PromiseOrValue<BytesLike>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        previewDeposit(assets: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        previewDestroy(shares: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        previewIssue(assets: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        previewMint(shares: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        previewRedeem(shares: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        previewWithdraw(assets: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        redeem(
-            shares: PromiseOrValue<BigNumberish>,
-            receiver: PromiseOrValue<string>,
-            owner: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        reinitializeERC20(
-            _name: PromiseOrValue<string>,
-            _symbol: PromiseOrValue<string>,
-            _version: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        renounceRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        revokeRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<void>;
-
-        supportsInterface(interfaceId: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<boolean>;
-
-        symbol(overrides?: CallOverrides): Promise<string>;
-
-        totalAssets(overrides?: CallOverrides): Promise<BigNumber>;
-
-        totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-        transfer(
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<boolean>;
-
-        transferFrom(
-            from: PromiseOrValue<string>,
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<boolean>;
-
-        withdraw(
-            assets: PromiseOrValue<BigNumberish>,
-            receiver: PromiseOrValue<string>,
-            owner: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-    };
-
-    filters: {
-        "Approval(address,address,uint256)"(
-            owner?: PromiseOrValue<string> | null,
-            spender?: PromiseOrValue<string> | null,
-            amount?: null,
-        ): ApprovalEventFilter;
-        Approval(
-            owner?: PromiseOrValue<string> | null,
-            spender?: PromiseOrValue<string> | null,
-            amount?: null,
-        ): ApprovalEventFilter;
-
-        "Deposit(address,address,uint256,uint256)"(
-            caller?: PromiseOrValue<string> | null,
-            owner?: PromiseOrValue<string> | null,
-            assets?: null,
-            shares?: null,
-        ): DepositEventFilter;
-        Deposit(
-            caller?: PromiseOrValue<string> | null,
-            owner?: PromiseOrValue<string> | null,
-            assets?: null,
-            shares?: null,
-        ): DepositEventFilter;
-
-        "Destroy(address,address,address,uint256,uint256)"(
-            caller?: PromiseOrValue<string> | null,
-            receiver?: PromiseOrValue<string> | null,
-            owner?: PromiseOrValue<string> | null,
-            assets?: null,
-            shares?: null,
-        ): DestroyEventFilter;
-        Destroy(
-            caller?: PromiseOrValue<string> | null,
-            receiver?: PromiseOrValue<string> | null,
-            owner?: PromiseOrValue<string> | null,
-            assets?: null,
-            shares?: null,
-        ): DestroyEventFilter;
-
-        "Initialized(uint8)"(version?: null): InitializedEventFilter;
-        Initialized(version?: null): InitializedEventFilter;
-
-        "Issue(address,address,uint256,uint256)"(
-            caller?: PromiseOrValue<string> | null,
-            owner?: PromiseOrValue<string> | null,
-            assets?: null,
-            shares?: null,
-        ): IssueEventFilter;
-        Issue(
-            caller?: PromiseOrValue<string> | null,
-            owner?: PromiseOrValue<string> | null,
-            assets?: null,
-            shares?: null,
-        ): IssueEventFilter;
-
-        "RoleAdminChanged(bytes32,bytes32,bytes32)"(
-            role?: PromiseOrValue<BytesLike> | null,
-            previousAdminRole?: PromiseOrValue<BytesLike> | null,
-            newAdminRole?: PromiseOrValue<BytesLike> | null,
-        ): RoleAdminChangedEventFilter;
-        RoleAdminChanged(
-            role?: PromiseOrValue<BytesLike> | null,
-            previousAdminRole?: PromiseOrValue<BytesLike> | null,
-            newAdminRole?: PromiseOrValue<BytesLike> | null,
-        ): RoleAdminChangedEventFilter;
-
-        "RoleGranted(bytes32,address,address)"(
-            role?: PromiseOrValue<BytesLike> | null,
-            account?: PromiseOrValue<string> | null,
-            sender?: PromiseOrValue<string> | null,
-        ): RoleGrantedEventFilter;
-        RoleGranted(
-            role?: PromiseOrValue<BytesLike> | null,
-            account?: PromiseOrValue<string> | null,
-            sender?: PromiseOrValue<string> | null,
-        ): RoleGrantedEventFilter;
-
-        "RoleRevoked(bytes32,address,address)"(
-            role?: PromiseOrValue<BytesLike> | null,
-            account?: PromiseOrValue<string> | null,
-            sender?: PromiseOrValue<string> | null,
-        ): RoleRevokedEventFilter;
-        RoleRevoked(
-            role?: PromiseOrValue<BytesLike> | null,
-            account?: PromiseOrValue<string> | null,
-            sender?: PromiseOrValue<string> | null,
-        ): RoleRevokedEventFilter;
-
-        "Transfer(address,address,uint256)"(
-            from?: PromiseOrValue<string> | null,
-            to?: PromiseOrValue<string> | null,
-            amount?: null,
-        ): TransferEventFilter;
-        Transfer(
-            from?: PromiseOrValue<string> | null,
-            to?: PromiseOrValue<string> | null,
-            amount?: null,
-        ): TransferEventFilter;
-
-        "Withdraw(address,address,address,uint256,uint256)"(
-            caller?: PromiseOrValue<string> | null,
-            receiver?: PromiseOrValue<string> | null,
-            owner?: PromiseOrValue<string> | null,
-            assets?: null,
-            shares?: null,
-        ): WithdrawEventFilter;
-        Withdraw(
-            caller?: PromiseOrValue<string> | null,
-            receiver?: PromiseOrValue<string> | null,
-            owner?: PromiseOrValue<string> | null,
-            assets?: null,
-            shares?: null,
-        ): WithdrawEventFilter;
-    };
-
-    estimateGas: {
-        DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
-
-        DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<BigNumber>;
-
-        allowance(
-            _owner: PromiseOrValue<string>,
-            _spender: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        approve(
-            spender: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        asset(overrides?: CallOverrides): Promise<BigNumber>;
-
-        balanceOf(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        convertToAssets(shares: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        convertToShares(assets: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        decimals(overrides?: CallOverrides): Promise<BigNumber>;
-
-        deposit(
-            assets: PromiseOrValue<BigNumberish>,
-            receiver: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        destroy(
-            _assets: PromiseOrValue<BigNumberish>,
-            _from: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        getRoleAdmin(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        getRoleMember(
-            role: PromiseOrValue<BytesLike>,
-            index: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        getRoleMemberCount(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        grantRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        hasRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
-
-        initialize(
-            _asset: PromiseOrValue<string>,
-            _name: PromiseOrValue<string>,
-            _symbol: PromiseOrValue<string>,
-            _admin: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        issue(
-            _assets: PromiseOrValue<BigNumberish>,
-            _to: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        maxDeposit(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        maxDestroy(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        maxIssue(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        maxMint(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        maxRedeem(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        maxWithdraw(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        mint(
-            shares: PromiseOrValue<BigNumberish>,
-            receiver: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        name(overrides?: CallOverrides): Promise<BigNumber>;
-
-        nonces(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        permit(
-            owner: PromiseOrValue<string>,
-            spender: PromiseOrValue<string>,
-            value: PromiseOrValue<BigNumberish>,
-            deadline: PromiseOrValue<BigNumberish>,
-            v: PromiseOrValue<BigNumberish>,
-            r: PromiseOrValue<BytesLike>,
-            s: PromiseOrValue<BytesLike>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        previewDeposit(assets: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        previewDestroy(shares: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        previewIssue(assets: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        previewMint(shares: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        previewRedeem(shares: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        previewWithdraw(assets: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        redeem(
-            shares: PromiseOrValue<BigNumberish>,
-            receiver: PromiseOrValue<string>,
-            owner: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        reinitializeERC20(
-            _name: PromiseOrValue<string>,
-            _symbol: PromiseOrValue<string>,
-            _version: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        renounceRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        revokeRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        supportsInterface(interfaceId: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<BigNumber>;
-
-        symbol(overrides?: CallOverrides): Promise<BigNumber>;
-
-        totalAssets(overrides?: CallOverrides): Promise<BigNumber>;
-
-        totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-        transfer(
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        transferFrom(
-            from: PromiseOrValue<string>,
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        withdraw(
-            assets: PromiseOrValue<BigNumberish>,
-            receiver: PromiseOrValue<string>,
-            owner: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-    };
-
-    populateTransaction: {
-        DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        allowance(
-            _owner: PromiseOrValue<string>,
-            _spender: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        approve(
-            spender: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        asset(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        balanceOf(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        convertToAssets(shares: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        convertToShares(assets: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        deposit(
-            assets: PromiseOrValue<BigNumberish>,
-            receiver: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        destroy(
-            _assets: PromiseOrValue<BigNumberish>,
-            _from: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        getRoleAdmin(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        getRoleMember(
-            role: PromiseOrValue<BytesLike>,
-            index: PromiseOrValue<BigNumberish>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        getRoleMemberCount(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        grantRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        hasRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        initialize(
-            _asset: PromiseOrValue<string>,
-            _name: PromiseOrValue<string>,
-            _symbol: PromiseOrValue<string>,
-            _admin: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        issue(
-            _assets: PromiseOrValue<BigNumberish>,
-            _to: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        maxDeposit(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        maxDestroy(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        maxIssue(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        maxMint(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        maxRedeem(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        maxWithdraw(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        mint(
-            shares: PromiseOrValue<BigNumberish>,
-            receiver: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        nonces(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        permit(
-            owner: PromiseOrValue<string>,
-            spender: PromiseOrValue<string>,
-            value: PromiseOrValue<BigNumberish>,
-            deadline: PromiseOrValue<BigNumberish>,
-            v: PromiseOrValue<BigNumberish>,
-            r: PromiseOrValue<BytesLike>,
-            s: PromiseOrValue<BytesLike>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        previewDeposit(assets: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        previewDestroy(shares: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        previewIssue(assets: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        previewMint(shares: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        previewRedeem(shares: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        previewWithdraw(assets: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        redeem(
-            shares: PromiseOrValue<BigNumberish>,
-            receiver: PromiseOrValue<string>,
-            owner: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        reinitializeERC20(
-            _name: PromiseOrValue<string>,
-            _symbol: PromiseOrValue<string>,
-            _version: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        renounceRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        revokeRole(
-            role: PromiseOrValue<BytesLike>,
-            account: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        supportsInterface(
-            interfaceId: PromiseOrValue<BytesLike>,
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
-
-        symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        totalAssets(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-        transfer(
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        transferFrom(
-            from: PromiseOrValue<string>,
-            to: PromiseOrValue<string>,
-            amount: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        withdraw(
-            assets: PromiseOrValue<BigNumberish>,
-            receiver: PromiseOrValue<string>,
-            owner: PromiseOrValue<string>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-    };
+      assets: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+  };
+
+  filters: {
+    "Approval(address,address,uint256)"(
+      owner?: PromiseOrValue<string> | null,
+      spender?: PromiseOrValue<string> | null,
+      amount?: null
+    ): ApprovalEventFilter;
+    Approval(
+      owner?: PromiseOrValue<string> | null,
+      spender?: PromiseOrValue<string> | null,
+      amount?: null
+    ): ApprovalEventFilter;
+
+    "Deposit(address,address,uint256,uint256)"(
+      caller?: PromiseOrValue<string> | null,
+      owner?: PromiseOrValue<string> | null,
+      assets?: null,
+      shares?: null
+    ): DepositEventFilter;
+    Deposit(
+      caller?: PromiseOrValue<string> | null,
+      owner?: PromiseOrValue<string> | null,
+      assets?: null,
+      shares?: null
+    ): DepositEventFilter;
+
+    "Destroy(address,address,address,uint256,uint256)"(
+      caller?: PromiseOrValue<string> | null,
+      receiver?: PromiseOrValue<string> | null,
+      owner?: PromiseOrValue<string> | null,
+      assets?: null,
+      shares?: null
+    ): DestroyEventFilter;
+    Destroy(
+      caller?: PromiseOrValue<string> | null,
+      receiver?: PromiseOrValue<string> | null,
+      owner?: PromiseOrValue<string> | null,
+      assets?: null,
+      shares?: null
+    ): DestroyEventFilter;
+
+    "Initialized(uint8)"(version?: null): InitializedEventFilter;
+    Initialized(version?: null): InitializedEventFilter;
+
+    "Issue(address,address,uint256,uint256)"(
+      caller?: PromiseOrValue<string> | null,
+      owner?: PromiseOrValue<string> | null,
+      assets?: null,
+      shares?: null
+    ): IssueEventFilter;
+    Issue(
+      caller?: PromiseOrValue<string> | null,
+      owner?: PromiseOrValue<string> | null,
+      assets?: null,
+      shares?: null
+    ): IssueEventFilter;
+
+    "RoleAdminChanged(bytes32,bytes32,bytes32)"(
+      role?: PromiseOrValue<BytesLike> | null,
+      previousAdminRole?: PromiseOrValue<BytesLike> | null,
+      newAdminRole?: PromiseOrValue<BytesLike> | null
+    ): RoleAdminChangedEventFilter;
+    RoleAdminChanged(
+      role?: PromiseOrValue<BytesLike> | null,
+      previousAdminRole?: PromiseOrValue<BytesLike> | null,
+      newAdminRole?: PromiseOrValue<BytesLike> | null
+    ): RoleAdminChangedEventFilter;
+
+    "RoleGranted(bytes32,address,address)"(
+      role?: PromiseOrValue<BytesLike> | null,
+      account?: PromiseOrValue<string> | null,
+      sender?: PromiseOrValue<string> | null
+    ): RoleGrantedEventFilter;
+    RoleGranted(
+      role?: PromiseOrValue<BytesLike> | null,
+      account?: PromiseOrValue<string> | null,
+      sender?: PromiseOrValue<string> | null
+    ): RoleGrantedEventFilter;
+
+    "RoleRevoked(bytes32,address,address)"(
+      role?: PromiseOrValue<BytesLike> | null,
+      account?: PromiseOrValue<string> | null,
+      sender?: PromiseOrValue<string> | null
+    ): RoleRevokedEventFilter;
+    RoleRevoked(
+      role?: PromiseOrValue<BytesLike> | null,
+      account?: PromiseOrValue<string> | null,
+      sender?: PromiseOrValue<string> | null
+    ): RoleRevokedEventFilter;
+
+    "Transfer(address,address,uint256)"(
+      from?: PromiseOrValue<string> | null,
+      to?: PromiseOrValue<string> | null,
+      amount?: null
+    ): TransferEventFilter;
+    Transfer(
+      from?: PromiseOrValue<string> | null,
+      to?: PromiseOrValue<string> | null,
+      amount?: null
+    ): TransferEventFilter;
+
+    "Withdraw(address,address,address,uint256,uint256)"(
+      caller?: PromiseOrValue<string> | null,
+      receiver?: PromiseOrValue<string> | null,
+      owner?: PromiseOrValue<string> | null,
+      assets?: null,
+      shares?: null
+    ): WithdrawEventFilter;
+    Withdraw(
+      caller?: PromiseOrValue<string> | null,
+      receiver?: PromiseOrValue<string> | null,
+      owner?: PromiseOrValue<string> | null,
+      assets?: null,
+      shares?: null
+    ): WithdrawEventFilter;
+  };
+
+  estimateGas: {
+    DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<BigNumber>;
+
+    allowance(
+      _owner: PromiseOrValue<string>,
+      _spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    approve(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    asset(overrides?: CallOverrides): Promise<BigNumber>;
+
+    balanceOf(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    convertToAssets(
+      shares: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    convertToShares(
+      assets: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    decimals(overrides?: CallOverrides): Promise<BigNumber>;
+
+    deposit(
+      assets: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    destroy(
+      _assets: PromiseOrValue<BigNumberish>,
+      _from: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    getRoleAdmin(
+      role: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getRoleMember(
+      role: PromiseOrValue<BytesLike>,
+      index: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getRoleMemberCount(
+      role: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    grantRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    hasRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    initialize(
+      _asset: PromiseOrValue<string>,
+      _name: PromiseOrValue<string>,
+      _symbol: PromiseOrValue<string>,
+      _admin: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    issue(
+      _assets: PromiseOrValue<BigNumberish>,
+      _to: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    maxDeposit(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    maxDestroy(
+      owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    maxIssue(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    maxMint(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    maxRedeem(
+      owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    maxWithdraw(
+      owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    mint(
+      shares: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    name(overrides?: CallOverrides): Promise<BigNumber>;
+
+    nonces(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    permit(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      value: PromiseOrValue<BigNumberish>,
+      deadline: PromiseOrValue<BigNumberish>,
+      v: PromiseOrValue<BigNumberish>,
+      r: PromiseOrValue<BytesLike>,
+      s: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    previewDeposit(
+      assets: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    previewDestroy(
+      shares: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    previewIssue(
+      assets: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    previewMint(
+      shares: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    previewRedeem(
+      shares: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    previewWithdraw(
+      assets: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    redeem(
+      shares: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      owner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    reinitializeERC20(
+      _name: PromiseOrValue<string>,
+      _symbol: PromiseOrValue<string>,
+      _version: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    renounceRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    revokeRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    supportsInterface(
+      interfaceId: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    symbol(overrides?: CallOverrides): Promise<BigNumber>;
+
+    totalAssets(overrides?: CallOverrides): Promise<BigNumber>;
+
+    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+    transfer(
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    transferFrom(
+      from: PromiseOrValue<string>,
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    withdraw(
+      assets: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      owner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+  };
+
+  populateTransaction: {
+    DEFAULT_ADMIN_ROLE(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    allowance(
+      _owner: PromiseOrValue<string>,
+      _spender: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    approve(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    asset(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    balanceOf(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    convertToAssets(
+      shares: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    convertToShares(
+      assets: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    deposit(
+      assets: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    destroy(
+      _assets: PromiseOrValue<BigNumberish>,
+      _from: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getRoleAdmin(
+      role: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getRoleMember(
+      role: PromiseOrValue<BytesLike>,
+      index: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getRoleMemberCount(
+      role: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    grantRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    hasRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    initialize(
+      _asset: PromiseOrValue<string>,
+      _name: PromiseOrValue<string>,
+      _symbol: PromiseOrValue<string>,
+      _admin: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    issue(
+      _assets: PromiseOrValue<BigNumberish>,
+      _to: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    maxDeposit(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    maxDestroy(
+      owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    maxIssue(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    maxMint(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    maxRedeem(
+      owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    maxWithdraw(
+      owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    mint(
+      shares: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    nonces(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    permit(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      value: PromiseOrValue<BigNumberish>,
+      deadline: PromiseOrValue<BigNumberish>,
+      v: PromiseOrValue<BigNumberish>,
+      r: PromiseOrValue<BytesLike>,
+      s: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    previewDeposit(
+      assets: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    previewDestroy(
+      shares: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    previewIssue(
+      assets: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    previewMint(
+      shares: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    previewRedeem(
+      shares: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    previewWithdraw(
+      assets: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    redeem(
+      shares: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      owner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    reinitializeERC20(
+      _name: PromiseOrValue<string>,
+      _symbol: PromiseOrValue<string>,
+      _version: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    renounceRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    revokeRole(
+      role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    supportsInterface(
+      interfaceId: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    totalAssets(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    transfer(
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    transferFrom(
+      from: PromiseOrValue<string>,
+      to: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdraw(
+      assets: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      owner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+  };
 }

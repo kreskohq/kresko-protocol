@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity <=0.8.19;
+pragma solidity <=0.8.20;
 import {BytesLib} from "../libs/BytesLib.sol";
 import {Meta} from "../../../../libs/Meta.sol";
 import {ERC721} from "../state/ERC721Storage.sol";

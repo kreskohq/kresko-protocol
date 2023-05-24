@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.20;
 
 import {SafeERC20, IERC20Permit} from "../../../shared/SafeERC20.sol";
 
@@ -10,7 +10,6 @@ import {LibAmounts} from "./LibAmounts.sol";
 import {cps, CollateralPoolState, PoolKrAsset} from "../CollateralPoolState.sol";
 import {ms} from "../../MinterStorage.sol";
 import {irs} from "../../InterestRateState.sol";
-import "hardhat/console.sol";
 
 /* solhint-disable not-rely-on-time */
 

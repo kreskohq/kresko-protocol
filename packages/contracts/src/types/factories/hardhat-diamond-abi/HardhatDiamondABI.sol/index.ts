@@ -3,3 +3,4 @@
 /* tslint:disable */
 /* eslint-disable */
 export { Kresko__factory } from "./Kresko__factory";
+export { Positions__factory } from "./Positions__factory";

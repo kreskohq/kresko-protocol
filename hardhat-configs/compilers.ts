@@ -15,7 +15,7 @@ const oldCompilerSettings = {
 };
 export const compilers: SolcUserConfig[] = [
     {
-        version: "0.8.19",
+        version: "0.8.20",
         settings: {
             viaIR: !process.env.CI,
             optimizer: {

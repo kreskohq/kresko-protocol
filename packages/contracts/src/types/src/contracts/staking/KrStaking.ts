@@ -303,13 +303,6 @@ export type EmergencyWithdrawEvent = TypedEvent<[string, BigNumber, BigNumber], 
 
 export type EmergencyWithdrawEventFilter = TypedEventFilter<EmergencyWithdrawEvent>;
 
-export interface InitializedEventObject {
-    version: number;
-}
-export type InitializedEvent = TypedEvent<[number], InitializedEventObject>;
-
-export type InitializedEventFilter = TypedEventFilter<InitializedEvent>;
-
 export interface RoleAdminChangedEventObject {
     role: string;
     previousAdminRole: string;
@@ -318,24 +311,6 @@ export interface RoleAdminChangedEventObject {
 export type RoleAdminChangedEvent = TypedEvent<[string, string, string], RoleAdminChangedEventObject>;
 
 export type RoleAdminChangedEventFilter = TypedEventFilter<RoleAdminChangedEvent>;
-
-export interface RoleGrantedEventObject {
-    role: string;
-    account: string;
-    sender: string;
-}
-export type RoleGrantedEvent = TypedEvent<[string, string, string], RoleGrantedEventObject>;
-
-export type RoleGrantedEventFilter = TypedEventFilter<RoleGrantedEvent>;
-
-export interface RoleRevokedEventObject {
-    role: string;
-    account: string;
-    sender: string;
-}
-export type RoleRevokedEvent = TypedEvent<[string, string, string], RoleRevokedEventObject>;
-
-export type RoleRevokedEventFilter = TypedEventFilter<RoleRevokedEvent>;
 
 export interface WithdrawEventObject {
     user: string;
@@ -863,9 +838,6 @@ export interface KrStaking extends BaseContract {
             amount?: PromiseOrValue<BigNumberish> | null,
         ): EmergencyWithdrawEventFilter;
 
-        "Initialized(uint8)"(version?: null): InitializedEventFilter;
-        Initialized(version?: null): InitializedEventFilter;
-
         "RoleAdminChanged(bytes32,bytes32,bytes32)"(
             role?: PromiseOrValue<BytesLike> | null,
             previousAdminRole?: PromiseOrValue<BytesLike> | null,
@@ -876,28 +848,6 @@ export interface KrStaking extends BaseContract {
             previousAdminRole?: PromiseOrValue<BytesLike> | null,
             newAdminRole?: PromiseOrValue<BytesLike> | null,
         ): RoleAdminChangedEventFilter;
-
-        "RoleGranted(bytes32,address,address)"(
-            role?: PromiseOrValue<BytesLike> | null,
-            account?: PromiseOrValue<string> | null,
-            sender?: PromiseOrValue<string> | null,
-        ): RoleGrantedEventFilter;
-        RoleGranted(
-            role?: PromiseOrValue<BytesLike> | null,
-            account?: PromiseOrValue<string> | null,
-            sender?: PromiseOrValue<string> | null,
-        ): RoleGrantedEventFilter;
-
-        "RoleRevoked(bytes32,address,address)"(
-            role?: PromiseOrValue<BytesLike> | null,
-            account?: PromiseOrValue<string> | null,
-            sender?: PromiseOrValue<string> | null,
-        ): RoleRevokedEventFilter;
-        RoleRevoked(
-            role?: PromiseOrValue<BytesLike> | null,
-            account?: PromiseOrValue<string> | null,
-            sender?: PromiseOrValue<string> | null,
-        ): RoleRevokedEventFilter;
 
         "Withdraw(address,uint256,uint256)"(
             user?: PromiseOrValue<string> | null,

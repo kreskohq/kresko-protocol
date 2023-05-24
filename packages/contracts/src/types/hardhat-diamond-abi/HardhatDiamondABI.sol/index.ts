@@ -3,3 +3,4 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { Kresko } from "./Kresko";
+export type { Positions } from "./Positions";

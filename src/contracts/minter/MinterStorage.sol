@@ -3,7 +3,7 @@
 /* solhint-disable avoid-low-level-calls */
 /* solhint-disable func-visibility */
 
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.20;
 
 import {MinterState} from "./MinterState.sol";
 

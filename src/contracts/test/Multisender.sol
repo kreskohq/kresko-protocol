@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.20;
 
 import {MockERC20} from "./MockERC20.sol";
 import {WETH} from "./WETH.sol";

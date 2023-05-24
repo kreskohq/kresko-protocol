@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.20;
 
 import {GeneralEvent} from "../libs/Events.sol";
 import {Authorization, ds, Role, DiamondModifiers} from "../diamond/DiamondModifiers.sol";

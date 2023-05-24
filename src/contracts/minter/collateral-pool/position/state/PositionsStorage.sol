@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.20;
 
 import {LibPositions} from "../libs/LibPositions.sol";
 import {ICollateralPoolSwapFacet} from "../../interfaces/ICollateralPoolSwapFacet.sol";
@@ -19,13 +19,14 @@ struct Position {
     address assetB;
     uint256 amountA;
     uint256 amountB;
-    uint256 valueBCache;
+    uint256 valueInCache;
     uint256 leverage;
     uint256 liquidationIncentive;
     uint256 closeIncentive;
     uint256 creationTimestamp;
     uint256 lastUpdateTimestamp;
     uint256 nonce;
+    uint256 valueOutCache;
 }
 
 struct PositionsInitializer {

@@ -9,7 +9,7 @@
         "prefix": "spdxpragma",
         "description": "spdxpragma",
         "scope": "solidity",
-        "body": ["// SPDX-License-Identifier: MIT", "pragma solidity >=0.8.19;"]
+        "body": ["// SPDX-License-Identifier: MIT", "pragma solidity >=0.8.20;"]
     },
     "hhc": {
         "prefix": "hhc",

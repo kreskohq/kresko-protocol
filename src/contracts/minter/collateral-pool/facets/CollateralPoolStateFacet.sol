@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.20;
 import {ICollateralPoolStateFacet} from "../interfaces/ICollateralPoolStateFacet.sol";
 import {cps, PoolCollateral, PoolKrAsset} from "../CollateralPoolState.sol";
 import {ms} from "../../MinterStorage.sol";
@@ -59,6 +59,38 @@ contract CollateralPoolStateFacet is ICollateralPoolStateFacet {
         );
 
         return assetValue;
+    }
+
+    function getPoolCollateralsInfo() external view returns (AssetData[] memory results) {
+        address[] memory collateralAssets = cps().collaterals;
+        results = new AssetData[](collateralAssets.length);
+
+        for (uint256 i = 0; i < collateralAssets.length; i++) {
+            address asset = collateralAssets[i];
+            results[i] = AssetData({
+                asset: asset,
+                depositAmount: cps().getPoolDeposits(asset),
+                debtAmount: ms().getKreskoAssetAmount(asset, cps().debt[asset]),
+                krAsset: cps().poolKrAsset[asset], // just get default values
+                collateralAsset: cps().poolCollateral[asset]
+            });
+        }
+    }
+
+    function getPoolKrAssetsInfo() external view returns (AssetData[] memory results) {
+        address[] memory krAssets = cps().krAssets;
+        results = new AssetData[](krAssets.length);
+
+        for (uint256 i = 0; i < krAssets.length; i++) {
+            address asset = krAssets[i];
+            results[i] = AssetData({
+                asset: asset,
+                depositAmount: cps().getPoolDeposits(asset),
+                debtAmount: ms().getKreskoAssetAmount(asset, cps().debt[asset]),
+                krAsset: cps().poolKrAsset[asset], // just get default values
+                collateralAsset: cps().poolCollateral[asset]
+            });
+        }
     }
 
     /// @inheritdoc ICollateralPoolStateFacet
