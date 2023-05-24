@@ -96,6 +96,7 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
         verify: {
             etherscan: ETHERSCAN.optimismGoerli.config,
         },
+        hardfork: "merge",
     },
     polygon: {
         accounts: { mnemonic },

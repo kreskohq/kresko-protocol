@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.8.20;
+pragma solidity >=0.8.19;
 
 contract WETH9 {
     string public name;
@@ -41,11 +41,7 @@ contract WETH9 {
         return transferFrom(msg.sender, dst, wad);
     }
 
-    function transferFrom(
-        address src,
-        address dst,
-        uint256 wad
-    ) public virtual returns (bool) {
+    function transferFrom(address src, address dst, uint256 wad) public virtual returns (bool) {
         require(balanceOf[src] >= wad, "WETH9: Error");
 
         if (src != msg.sender && allowance[src][msg.sender] != type(uint256).max) {

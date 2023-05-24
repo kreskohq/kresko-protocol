@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.20;
+pragma solidity >=0.8.19;
 
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import "./interfaces/AggregatorV2V3Interface.sol";
@@ -21,18 +21,13 @@ contract FluxPriceFeed is AccessControl, AggregatorV2V3Interface {
         bool marketOpen;
     }
     mapping(uint32 => Transmission) internal s_transmissions; /* aggregator round ID */
-       
 
     /**
      * @param _validator the initial validator that can post data to this contract
      * @param _decimals answers are stored in fixed-point format, with this many digits of precision
      * @param _description short human-readable description of observable this contract's answers pertain to
      */
-    constructor(
-        address _validator,
-        uint8 _decimals,
-        string memory _description
-    ) {
+    constructor(address _validator, uint8 _decimals, string memory _description) {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(ADMIN_ROLE, msg.sender);
         _setupRole(VALIDATOR_ROLE, _validator);
@@ -59,14 +54,18 @@ contract FluxPriceFeed is AccessControl, AggregatorV2V3Interface {
      * @param transmitter address from which the report was transmitted
      */
     event NewTransmission(uint32 indexed aggregatorRoundId, int192 answer, bool marketOpen, address transmitter);
-        
+
     /**
      * @notice details about the most recent report
      * @return _latestAnswer value from latest report
      * @return _latestTimestamp when the latest report was transmitted
      * @return _marketOpen value from latest report
      */
-    function latestTransmissionDetails() external view returns (int192 _latestAnswer, uint64 _latestTimestamp, bool _marketOpen) {
+    function latestTransmissionDetails()
+        external
+        view
+        returns (int192 _latestAnswer, uint64 _latestTimestamp, bool _marketOpen)
+    {
         // solhint-disable-next-line avoid-tx-origin
         require(msg.sender == tx.origin, "Only callable by EOA");
         return (
@@ -109,7 +108,7 @@ contract FluxPriceFeed is AccessControl, AggregatorV2V3Interface {
         return s_transmissions[latestAggregatorRoundId].timestamp;
     }
 
-     /**
+    /**
      * @notice market open indicator from the most recent report
      */
     function latestMarketOpen() public view virtual override returns (bool) {
@@ -189,7 +188,9 @@ contract FluxPriceFeed is AccessControl, AggregatorV2V3Interface {
      * @return updatedAt timestamp of block in which report from given _roundId was transmitted
      * @return answeredInRound _roundId
      */
-    function getRoundData(uint80 _roundId)
+    function getRoundData(
+        uint80 _roundId
+    )
         public
         view
         virtual
@@ -205,7 +206,14 @@ contract FluxPriceFeed is AccessControl, AggregatorV2V3Interface {
     {
         require(_roundId <= 0xFFFFFFFF, V3_NO_DATA_ERROR);
         Transmission memory transmission = s_transmissions[uint32(_roundId)];
-        return (_roundId, transmission.answer, transmission.marketOpen, transmission.timestamp, transmission.timestamp, _roundId);
+        return (
+            _roundId,
+            transmission.answer,
+            transmission.marketOpen,
+            transmission.timestamp,
+            transmission.timestamp,
+            _roundId
+        );
     }
 
     /**
@@ -237,6 +245,13 @@ contract FluxPriceFeed is AccessControl, AggregatorV2V3Interface {
         // require(roundId != 0, V3_NO_DATA_ERROR);
 
         Transmission memory transmission = s_transmissions[uint32(roundId)];
-        return (roundId, transmission.answer, transmission.marketOpen, transmission.timestamp, transmission.timestamp, roundId);
+        return (
+            roundId,
+            transmission.answer,
+            transmission.marketOpen,
+            transmission.timestamp,
+            transmission.timestamp,
+            roundId
+        );
     }
 }

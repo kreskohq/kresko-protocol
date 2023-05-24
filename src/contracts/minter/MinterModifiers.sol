@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.20;
+pragma solidity >=0.8.19;
 
 import {ms} from "./MinterStorage.sol";
 import {Action} from "./MinterTypes.sol";

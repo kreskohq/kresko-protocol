@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity <=0.8.20;
+pragma solidity <=0.8.19;
 
 import "@kreskolabs/gnosis-safe-contracts/contracts/base/ModuleManager.sol";
 import "@kreskolabs/gnosis-safe-contracts/contracts/base/OwnerManager.sol";
@@ -224,11 +224,7 @@ contract GnosisSafe is
      * @param data That should be signed (this is passed to an external validator contract)
      * @param signatures Signature data that should be verified. Can be ECDSA signature, contract signature (EIP-1271) or approved hash.
      */
-    function checkSignatures(
-        bytes32 dataHash,
-        bytes memory data,
-        bytes memory signatures
-    ) public view {
+    function checkSignatures(bytes32 dataHash, bytes memory data, bytes memory signatures) public view {
         // Load threshold to avoid multiple storage loads
         uint256 _threshold = threshold;
         // Check that a threshold is set
