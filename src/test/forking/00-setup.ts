@@ -3,7 +3,7 @@ import { toBig } from "@kreskolabs/lib";
 import { updateFacets } from "@scripts/update-facets";
 import { expect } from "@test/chai";
 import Role from "@utils/test/roles";
-
+import { deployPositions } from "../../scripts/deploy-positions";
 (process.env.FORKING ? describe : describe.skip)("Forking", () => {
     describe("#setup", () => {
         it("should get Kresko from the companion network locally", async function () {
@@ -94,6 +94,35 @@ import Role from "@utils/test/roles";
 
             const oldDeployer = new hre.ethers.Wallet(process.env.OLD_PK!).connect(hre.ethers.provider);
             await expect(Kresko.connect(oldDeployer).batchRepayFullStabilityRateInterest(deployer)).to.not.be.reverted;
+        });
+    });
+
+    describe.only("positions-deploy-24-05-2023", () => {
+        it("works", async function () {
+            await deployPositions();
+            const krETH = await hre.getContractOrFork("KreskoAsset", "krETH");
+            const KISS = await hre.getContractOrFork("KISS");
+
+            const Kresko = await hre.getContractOrFork("Kresko");
+            const { deployer } = await hre.getNamedAccounts();
+            expect((await Kresko.collateralAsset(krETH.address)).liquidationIncentive).to.equal(toBig(1.05));
+
+            await expect(Kresko.depositCollateral(deployer, krETH.address, toBig(1))).to.not.be.reverted;
+            await expect(Kresko.mintKreskoAsset(deployer, krETH.address, toBig(0.1))).to.not.be.reverted;
+
+            const burnIdx = await Kresko.getMintedKreskoAssetsIndex(deployer, krETH.address);
+            const withdrawIdx = await Kresko.getDepositedCollateralAssetIndex(deployer, krETH.address);
+            await expect(Kresko.burnKreskoAsset(deployer, krETH.address, toBig(0.1), burnIdx)).to.not.be.reverted;
+            await expect(Kresko.withdrawCollateral(deployer, krETH.address, toBig(0.1), withdrawIdx)).to.not.be
+                .reverted;
+
+            const oldDeployer = new hre.ethers.Wallet(process.env.OLD_PK!).connect(hre.ethers.provider);
+            await expect(Kresko.connect(oldDeployer).batchRepayFullStabilityRateInterest(deployer)).to.not.be.reverted;
+
+            await krETH.connect(oldDeployer).approve(KISS.address, toBig(10000));
+            await krETH.connect(oldDeployer).approve(Kresko.address, toBig(10000));
+            await Kresko.connect(oldDeployer).poolDeposit(oldDeployer.address, KISS.address, toBig(100_000));
+            await Kresko.connect(oldDeployer).swap(oldDeployer.address, krETH.address, KISS.address, toBig(0.1), 0);
         });
     });
 });

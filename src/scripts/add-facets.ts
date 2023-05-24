@@ -23,7 +23,7 @@ export async function addFacets({ names, initializerName, initializerArgs, log =
     /* -------------------------------------------------------------------------- */
 
     // #1.1 Get the deployed artifact
-    const DiamondDeployment = await hre.deployments.getOrNull("Diamond");
+    const DiamondDeployment = await hre.getDeploymentOrFork("Kresko");
     if (!DiamondDeployment) {
         // #1.2 Throw if it does not exist
         throw new Error(`Trying to add facets but no diamond deployed @ ${hre.network.name}`);

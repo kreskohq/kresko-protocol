@@ -5,9 +5,9 @@
     "passes": 1,
     "pending": 0,
     "failures": 0,
-    "start": "2023-05-24T09:22:19.257Z",
-    "end": "2023-05-24T09:22:19.319Z",
-    "duration": 62,
+    "start": "2023-05-24T10:53:45.498Z",
+    "end": "2023-05-24T10:53:56.908Z",
+    "duration": 11410,
     "testsRegistered": 1,
     "passPercent": 100,
     "pendingPercent": 0,
@@ -18,80 +18,61 @@
   },
   "results": [
     {
-      "uuid": "0f758c14-7ff0-4154-96a5-fb3982582ced",
+      "uuid": "7de33851-0806-4f2f-a347-8b8761fc3383",
       "title": "",
-      "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/minter/00-init.ts",
-      "file": "/src/test/minter/00-init.ts",
+      "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/forking/00-setup.ts",
+      "file": "/src/test/forking/00-setup.ts",
       "beforeHooks": [],
       "afterHooks": [],
       "tests": [],
       "suites": [
         {
-          "uuid": "c8024230-c8b0-4c12-ba20-bf8ad784fb82",
-          "title": "Minter - Init",
-          "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/minter/00-init.ts",
-          "file": "/src/test/minter/00-init.ts",
-          "beforeHooks": [
-            {
-              "title": "\"before each\" hook in \"Minter - Init\"",
-              "fullTitle": "Minter - Init \"before each\" hook in \"Minter - Init\"",
-              "timedOut": false,
-              "duration": 22,
-              "state": null,
-              "speed": null,
-              "pass": false,
-              "fail": false,
-              "pending": false,
-              "context": null,
-              "code": "const fixture = await _hardhat.default.deployments.createFixture(async (hre)=>{\n    const result = await hre.deployments.fixture(fixtureName);\n    if (result.Diamond) {\n        hre.Diamond = await hre.getContractOrFork(\"Kresko\");\n    }\n    return {\n        facets: result.Diamond ? result.Diamond.facets : [],\n        collaterals: hre.collaterals,\n        krAssets: hre.krAssets\n    };\n})();\nthis.facets = fixture.facets || [];\nthis.collaterals = fixture.collaterals;\nthis.krAssets = fixture.krAssets;",
-              "err": {},
-              "uuid": "c3a08a83-1331-4312-8c13-5a83142d759f",
-              "parentUUID": "c8024230-c8b0-4c12-ba20-bf8ad784fb82",
-              "isHook": true,
-              "skipped": false
-            }
-          ],
+          "uuid": "bb5aae62-1f33-48ea-ae1e-ff9ad7b923a5",
+          "title": "Forking",
+          "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/forking/00-setup.ts",
+          "file": "/src/test/forking/00-setup.ts",
+          "beforeHooks": [],
           "afterHooks": [],
           "tests": [],
           "suites": [
             {
-              "uuid": "5d870e26-ee66-438f-9aa9-7738cf7dd52e",
-              "title": "#initialization",
-              "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/minter/00-init.ts",
-              "file": "/src/test/minter/00-init.ts",
+              "uuid": "f6a60e50-6037-4f59-bc28-f3d67830e2c4",
+              "title": "positions-deploy-24-05-2023",
+              "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/forking/00-setup.ts",
+              "file": "/src/test/forking/00-setup.ts",
               "beforeHooks": [],
               "afterHooks": [],
               "tests": [
                 {
-                  "title": "configures all facets correctly",
-                  "fullTitle": "Minter - Init #initialization configures all facets correctly",
+                  "title": "works",
+                  "fullTitle": "Forking positions-deploy-24-05-2023 works",
                   "timedOut": false,
-                  "duration": 38,
+                  "duration": 11408,
                   "state": "passed",
-                  "speed": "medium",
+                  "speed": "slow",
                   "pass": true,
                   "fail": false,
                   "pending": false,
                   "context": null,
-                  "code": "const facetsOnChain = (await _hardhat.default.Diamond.facets()).map(([facetAddress, functionSelectors])=>({\n        facetAddress,\n        functionSelectors\n    }));\nconst expectedFacets = await Promise.all([\n    ..._shared.minterFacets,\n    ..._shared.diamondFacets,\n    ..._shared.collateralPoolFacets\n].map(async (name)=>{\n    const deployment = await _hardhat.default.deployments.get(name);\n    return {\n        facetAddress: deployment.address,\n        functionSelectors: facetsOnChain.find((f)=>f.facetAddress === deployment.address).functionSelectors\n    };\n}));\n(0, _chai.expect)(facetsOnChain).to.have.deep.members(expectedFacets);",
+                  "code": "await (0, _deploypositions.deployPositions)();\nconst krETH = await hre.getContractOrFork(\"KreskoAsset\", \"krETH\");\nconst KISS = await hre.getContractOrFork(\"KISS\");\nconst Kresko = await hre.getContractOrFork(\"Kresko\");\nconst { deployer  } = await hre.getNamedAccounts();\n(0, _chai.expect)((await Kresko.collateralAsset(krETH.address)).liquidationIncentive).to.equal((0, _lib.toBig)(1.05));\nawait (0, _chai.expect)(Kresko.depositCollateral(deployer, krETH.address, (0, _lib.toBig)(1))).to.not.be.reverted;\nawait (0, _chai.expect)(Kresko.mintKreskoAsset(deployer, krETH.address, (0, _lib.toBig)(0.1))).to.not.be.reverted;\nconst burnIdx = await Kresko.getMintedKreskoAssetsIndex(deployer, krETH.address);\nconst withdrawIdx = await Kresko.getDepositedCollateralAssetIndex(deployer, krETH.address);\nawait (0, _chai.expect)(Kresko.burnKreskoAsset(deployer, krETH.address, (0, _lib.toBig)(0.1), burnIdx)).to.not.be.reverted;\nawait (0, _chai.expect)(Kresko.withdrawCollateral(deployer, krETH.address, (0, _lib.toBig)(0.1), withdrawIdx)).to.not.be.reverted;\nconst oldDeployer = new hre.ethers.Wallet(process.env.OLD_PK).connect(hre.ethers.provider);\nawait (0, _chai.expect)(Kresko.connect(oldDeployer).batchRepayFullStabilityRateInterest(deployer)).to.not.be.reverted;\nawait krETH.connect(oldDeployer).approve(KISS.address, (0, _lib.toBig)(10000));\nawait krETH.connect(oldDeployer).approve(Kresko.address, (0, _lib.toBig)(10000));\nawait Kresko.connect(oldDeployer).poolDeposit(oldDeployer.address, KISS.address, (0, _lib.toBig)(100000));\nawait Kresko.connect(oldDeployer).swap(oldDeployer.address, krETH.address, KISS.address, (0, _lib.toBig)(0.1), 0);",
                   "err": {},
-                  "uuid": "f73bb634-d71a-4c46-9ae0-4549a3177f82",
-                  "parentUUID": "5d870e26-ee66-438f-9aa9-7738cf7dd52e",
+                  "uuid": "fead0152-c2b1-45f9-8682-e1328585d04a",
+                  "parentUUID": "f6a60e50-6037-4f59-bc28-f3d67830e2c4",
                   "isHook": false,
                   "skipped": false
                 }
               ],
               "suites": [],
               "passes": [
-                "f73bb634-d71a-4c46-9ae0-4549a3177f82"
+                "fead0152-c2b1-45f9-8682-e1328585d04a"
               ],
               "failures": [],
               "pending": [],
               "skipped": [],
-              "duration": 38,
+              "duration": 11408,
               "root": false,
               "rootEmpty": false,
-              "_timeout": 15000
+              "_timeout": 300000
             }
           ],
           "passes": [],
@@ -101,7 +82,7 @@
           "duration": 0,
           "root": false,
           "rootEmpty": false,
-          "_timeout": 15000
+          "_timeout": 300000
         }
       ],
       "passes": [],
@@ -111,7 +92,7 @@
       "duration": 0,
       "root": true,
       "rootEmpty": true,
-      "_timeout": 15000
+      "_timeout": 300000
     }
   ],
   "meta": {

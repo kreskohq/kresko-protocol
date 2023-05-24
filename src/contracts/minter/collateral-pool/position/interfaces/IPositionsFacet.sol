@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity <=0.8.20;
+pragma solidity <=0.8.19;
 import {NewPosition, Position} from "../state/PositionsStorage.sol";
 
 interface IPositionsFacet {

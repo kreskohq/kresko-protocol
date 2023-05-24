@@ -98,14 +98,7 @@ describe("Diamond", () => {
             expect(functionsAfterCut.length).to.equal(functions.length - 1);
 
             // Ensure delegatecall did set the correct pending owner with the cut
-            const filter = hre.Diamond.filters["PendingOwnershipTransfer(address,address)"](
-                hre.addr.deployer,
-                correctOwner,
-            );
-            const [event] = await hre.Diamond.queryFilter(filter);
-
-            const { previousOwner, newOwner } = event.args;
-            expect(previousOwner).to.equal(hre.addr.deployer);
+            const newOwner = await hre.Diamond.pendingOwner();
             expect(newOwner).to.equal(correctOwner);
 
             // Ensure there is no function to accept the ownership

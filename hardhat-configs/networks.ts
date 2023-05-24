@@ -15,6 +15,7 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
         gasPrice: process.env.CI ? 1 : undefined,
         chainId: chains.localhost.id,
         tags: ["local"],
+        hardfork: "merge",
     },
     localhost: {
         accounts: {
@@ -96,6 +97,7 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
         verify: {
             etherscan: ETHERSCAN.optimismGoerli.config,
         },
+        hardfork: "merge",
     },
     polygon: {
         accounts: { mnemonic },

@@ -6,10 +6,10 @@ import { toBig } from "@kreskolabs/lib";
 import { envCheck } from "@utils/general";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import type { CollateraPoolInitializer, MinterInitializer, PositionsInitializer } from "types";
-import { ICollateralPoolConfigFacet } from "types/typechain";
 import { MinterInitArgsStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
-import { PositionsInitializerStruct } from "types/typechain/src/contracts/minter/collateral-pool/position/facets/PositionsConfigFacet";
+
 envCheck();
+
 // These function namings are ignored when generating ABI for the diamond
 const signatureFilters = ["init", "initializer"];
 
@@ -77,25 +77,26 @@ export const getCollateralPoolInitializer = async (
     hre: HardhatRuntimeEnvironment,
 ): Promise<CollateraPoolInitializer> => {
     const { collateralPoolSwapRecipient } = await getDeploymentUsers(hre);
-
+    const positions = await hre.deployments.get("Positions");
     return {
         name: "CollateralPoolConfigFacet",
         args: {
             lt: toBig(2),
             mcr: toBig(5),
             swapFeeRecipient: collateralPoolSwapRecipient,
-            positions: (await hre.getDeploymentOrFork("Positions"))!.address,
+            positions: positions.address,
         },
     };
 };
 
 export const getPositionsInitializer = async (hre: HardhatRuntimeEnvironment): Promise<PositionsInitializer> => {
+    const Kresko = await hre.getContractOrFork("Kresko");
     return {
         name: "PositionsConfigFacet",
         args: {
             symbol: "krPOS",
             name: "Kresko Positions",
-            kresko: hre.Diamond.address,
+            kresko: Kresko.address,
             minLeverage: toBig(1),
             maxLeverage: toBig(10),
             closeThreshold: toBig(0.5),

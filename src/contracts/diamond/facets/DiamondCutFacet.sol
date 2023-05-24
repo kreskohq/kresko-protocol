@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.20;
+pragma solidity >=0.8.19;
 
 import {IDiamondCutFacet} from "../interfaces/IDiamondCutFacet.sol";
 import {DiamondModifiers, Role} from "../DiamondModifiers.sol";
