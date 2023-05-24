@@ -3,6 +3,7 @@ import { DeployFunction, FacetCut, FacetCutAction } from "hardhat-deploy/dist/ty
 import { mergeABIs } from "hardhat-deploy/dist/src/utils";
 import { getLogger } from "@kreskolabs/lib";
 import { diamondFacets } from "@deploy-config/shared";
+import { WrapperBuilder } from "@redstone-finance/evm-connector";
 
 const logger = getLogger("create-diamond");
 
@@ -65,7 +66,14 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     // #4 Using `add-facets.ts` will do this automatically - check #1 why we are not using it here.
 
     // #5 Save the deployment result and the contract instance with full ABI to the runtime to access on later steps.
-    hre.Diamond = Diamond;
+    hre.Diamond = WrapperBuilder.wrap(Diamond).usingDataService(
+        {
+            dataServiceId: "redstone-main-demo",
+            dataFeeds: ["ETH", "BTC", "IBM", "USDC", "DAI"],
+            uniqueSignersCount: 1,
+        },
+        ["https://d33trozg86ya9x.cloudfront.net"],
+    );
     hre.DiamondDeployment = deployment;
 
     logger.success("Diamond deployed @", Diamond.address, "with", deployment.facets.length, "facets");

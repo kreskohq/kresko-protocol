@@ -4,6 +4,7 @@ import type { TaskArguments } from "hardhat/types";
 import { anchorTokenPrefix } from "@deploy-config/shared";
 import { task, types } from "hardhat/config";
 import { TASK_WHITELIST_COLLATERAL } from "./names";
+import { redstoneMap } from "@deploy-config/opgoerli";
 
 task(TASK_WHITELIST_COLLATERAL)
     .addParam("symbol", "Name of the collateral")
@@ -50,6 +51,9 @@ task(TASK_WHITELIST_COLLATERAL)
                 throw new Error("LIQUIDATION_INCENTIVE is not set");
             }
 
+            const redstone = redstoneMap[symbol as keyof typeof redstoneMap];
+            if (!redstone) throw new Error(`Redstone not found for ${symbol}`);
+
             const config = {
                 anchor: anchor?.address ?? hre.ethers.constants.AddressZero,
                 factor: toBig(cFactor),
@@ -58,6 +62,7 @@ task(TASK_WHITELIST_COLLATERAL)
                 marketStatusOracle: marketStatusOracleAddr,
                 decimals: await Collateral.decimals(),
                 exists: true,
+                redstoneId: redstone,
             };
 
             const tx = await kresko.addCollateralAsset(Collateral.address, config);

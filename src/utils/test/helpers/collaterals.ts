@@ -5,11 +5,13 @@ import { InputArgs, TestCollateralAssetArgs, TestCollateralAssetUpdate, defaultC
 import { envCheck } from "@utils/general";
 import { CollateralAssetStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 import { getMockOracleFor, setPrice } from "./oracle";
+import { redstoneMap } from "@deploy-config/opgoerli";
+import { expect } from "chai";
 
 envCheck();
 
 export const getCollateralConfig = async (
-    asset: { decimals: Function },
+    asset: { symbol: Function; decimals: Function },
     anchor: string,
     cFactor: BigNumber,
     liquidationIncentive: BigNumber,
@@ -18,6 +20,8 @@ export const getCollateralConfig = async (
 ): Promise<CollateralAssetStruct> => {
     if (cFactor.gt(toBig(1))) throw new Error("cFactor must be less than 1");
     if (liquidationIncentive.lt(toBig(1))) throw new Error("Liquidation incentive must be greater than 1");
+    const redstone = redstoneMap[(await asset.symbol()) as keyof typeof redstoneMap];
+    expect(redstone).to.not.be.undefined;
     return {
         anchor,
         factor: cFactor,
@@ -26,6 +30,7 @@ export const getCollateralConfig = async (
         marketStatusOracle,
         decimals: await asset.decimals(),
         exists: true,
+        redstoneId: redstone,
     };
 };
 

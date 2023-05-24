@@ -61,6 +61,7 @@ export const leverageKrAsset = async (
         await hre.Diamond.connect(hre.users.deployer).addKreskoAsset(
             krAsset.address,
             await getKrAssetConfig(
+                krAsset.contract,
                 krAsset.anchor.address,
                 toBig(1),
                 krAsset.priceFeed.address,

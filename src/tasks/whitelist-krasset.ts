@@ -4,6 +4,7 @@ import { defaultSupplyLimit } from "@utils/test/mocks";
 import { task, types } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
 import { TASK_WHITELIST_KRASSET } from "./names";
+import { redstoneMap } from "@deploy-config/opgoerli";
 
 task(TASK_WHITELIST_KRASSET)
     .addParam("symbol", "Name of the asset")
@@ -34,6 +35,9 @@ task(TASK_WHITELIST_KRASSET)
         const krAssetInfo = await kresko.kreskoAsset(KrAsset.address);
         const exists = krAssetInfo.exists;
 
+        const redstone = redstoneMap[symbol as keyof typeof redstoneMap];
+        if (!redstone) throw new Error(`Redstone not found for ${symbol}`);
+
         if (exists) {
             logger.warn(`KrAsset ${symbol} already exists! Skipping..`);
         } else {
@@ -47,6 +51,7 @@ task(TASK_WHITELIST_KRASSET)
                 closeFee: toBig(0.02),
                 openFee: toBig(0),
                 exists: true,
+                redstoneId: redstone,
             };
             const tx = await kresko.addKreskoAsset(KrAsset.address, config);
             logger.success("txHash", tx.hash);

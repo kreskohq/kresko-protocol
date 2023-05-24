@@ -8,6 +8,7 @@ import roles from "../roles";
 import { FluxPriceFeed__factory, KreskoAssetAnchor__factory, KreskoAsset__factory } from "types/typechain";
 import { KrAssetStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 import { getMockOracleFor, setPrice, setMarketOpen } from "./oracle";
+import { redstoneMap } from "@deploy-config/opgoerli";
 
 export const getDebtIndexAdjustedBalance = async (user: SignerWithAddress, asset: TestKrAsset) => {
     const balance = await asset.contract.balanceOf(user.address);
@@ -15,6 +16,7 @@ export const getDebtIndexAdjustedBalance = async (user: SignerWithAddress, asset
 };
 
 export const getKrAssetConfig = async (
+    asset: { symbol: Function },
     anchor: string,
     kFactor: BigNumber,
     oracle: string,
@@ -23,6 +25,11 @@ export const getKrAssetConfig = async (
     closeFee: BigNumber,
     openFee: BigNumber,
 ): Promise<KrAssetStruct> => {
+    const redstone = redstoneMap[(await asset.symbol()) as keyof typeof redstoneMap];
+    if (!redstone) {
+        throw new Error(`Redstone not found for ${await asset.symbol()}`);
+    }
+
     return {
         anchor,
         kFactor,
@@ -32,6 +39,7 @@ export const getKrAssetConfig = async (
         closeFee,
         openFee,
         exists: true,
+        redstoneId: redstone,
     };
 };
 
@@ -62,6 +70,7 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
     await hre.Diamond.connect(deployer).addKreskoAsset(
         krAsset.address,
         await getKrAssetConfig(
+            krAsset,
             akrAsset.address,
             kFactor,
             Oracle.address,
@@ -156,6 +165,7 @@ export const addMockKreskoAssetWithAMMPair = async (
     await hre.Diamond.connect(deployer).addKreskoAsset(
         krAsset.address,
         await getKrAssetConfig(
+            krAsset,
             akrAsset.address,
             toBig(factor),
             MockOracle.address,
@@ -222,6 +232,7 @@ export const updateKrAsset = async (address: string, args: TestKreskoAssetUpdate
     await hre.Diamond.connect(deployer).updateKreskoAsset(
         krAsset.address,
         await getKrAssetConfig(
+            krAsset.contract,
             krAsset.mocks.anchor!.address,
             toBig(args.factor),
             args.oracle || krAsset.priceFeed.address,
