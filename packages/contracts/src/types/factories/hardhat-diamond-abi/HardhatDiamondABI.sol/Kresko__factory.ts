@@ -149,48 +149,6 @@ const _abi = [
         type: "function",
     },
     {
-        anonymous: false,
-        inputs: [
-            {
-                components: [
-                    {
-                        internalType: "address",
-                        name: "facetAddress",
-                        type: "address",
-                    },
-                    {
-                        internalType: "enum IDiamondCutFacet.FacetCutAction",
-                        name: "action",
-                        type: "uint8",
-                    },
-                    {
-                        internalType: "bytes4[]",
-                        name: "functionSelectors",
-                        type: "bytes4[]",
-                    },
-                ],
-                indexed: false,
-                internalType: "struct IDiamondCutFacet.FacetCut[]",
-                name: "_diamondCut",
-                type: "tuple[]",
-            },
-            {
-                indexed: false,
-                internalType: "address",
-                name: "_init",
-                type: "address",
-            },
-            {
-                indexed: false,
-                internalType: "bytes",
-                name: "_calldata",
-                type: "bytes",
-            },
-        ],
-        name: "DiamondCut",
-        type: "event",
-    },
-    {
         inputs: [
             {
                 components: [
@@ -325,44 +283,6 @@ const _abi = [
         type: "function",
     },
     {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: "address",
-                name: "previousOwner",
-                type: "address",
-            },
-            {
-                indexed: true,
-                internalType: "address",
-                name: "newOwner",
-                type: "address",
-            },
-        ],
-        name: "OwnershipTransferred",
-        type: "event",
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: "address",
-                name: "previousOwner",
-                type: "address",
-            },
-            {
-                indexed: true,
-                internalType: "address",
-                name: "newOwner",
-                type: "address",
-            },
-        ],
-        name: "PendingOwnershipTransfer",
-        type: "event",
-    },
-    {
         inputs: [],
         name: "acceptOwnership",
         outputs: [],
@@ -375,7 +295,7 @@ const _abi = [
         outputs: [
             {
                 internalType: "bool",
-                name: "",
+                name: "initialized_",
                 type: "bool",
             },
         ],
@@ -388,7 +308,7 @@ const _abi = [
         outputs: [
             {
                 internalType: "address",
-                name: "",
+                name: "owner_",
                 type: "address",
             },
         ],
@@ -401,7 +321,7 @@ const _abi = [
         outputs: [
             {
                 internalType: "address",
-                name: "",
+                name: "pendingOwner_",
                 type: "address",
             },
         ],
@@ -464,499 +384,13 @@ const _abi = [
             {
                 indexed: true,
                 internalType: "address",
-                name: "owner",
-                type: "address",
-            },
-            {
-                indexed: false,
-                internalType: "uint8",
-                name: "version",
-                type: "uint8",
-            },
-        ],
-        name: "Deployed",
-        type: "event",
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: "address",
-                name: "operator",
-                type: "address",
-            },
-            {
-                indexed: false,
-                internalType: "uint8",
-                name: "version",
-                type: "uint8",
-            },
-        ],
-        name: "Initialized",
-        type: "event",
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: "address",
-                name: "KISS",
-                type: "address",
-            },
-        ],
-        name: "KISSUpdated",
-        type: "event",
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: "address",
-                name: "asset",
+                name: "_asset",
                 type: "address",
             },
             {
                 indexed: false,
                 internalType: "uint256",
-                name: "stabilityRateBase",
-                type: "uint256",
-            },
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "priceRateDelta",
-                type: "uint256",
-            },
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "rateSlope1",
-                type: "uint256",
-            },
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "rateSlope2",
-                type: "uint256",
-            },
-        ],
-        name: "StabilityRateConfigured",
-        type: "event",
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: "address",
-                name: "account",
-                type: "address",
-            },
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "value",
-                type: "uint256",
-            },
-        ],
-        name: "StabilityRateInterestBatchRepaid",
-        type: "event",
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: "address",
-                name: "account",
-                type: "address",
-            },
-            {
-                indexed: true,
-                internalType: "address",
-                name: "asset",
-                type: "address",
-            },
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "value",
-                type: "uint256",
-            },
-        ],
-        name: "StabilityRateInterestRepaid",
-        type: "event",
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: "address",
-                name: "ammOracle",
-                type: "address",
-            },
-        ],
-        name: "AMMOracleUpdated",
-        type: "event",
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: "address",
-                name: "account",
-                type: "address",
-            },
-            {
-                indexed: true,
-                internalType: "address",
-                name: "liquidator",
-                type: "address",
-            },
-            {
-                indexed: true,
-                internalType: "address",
-                name: "seizedCollateralAsset",
-                type: "address",
-            },
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "repayUSD",
-                type: "uint256",
-            },
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "collateralSent",
-                type: "uint256",
-            },
-        ],
-        name: "BatchInterestLiquidationOccurred",
-        type: "event",
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: "address",
-                name: "collateralAsset",
-                type: "address",
-            },
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "cFactor",
-                type: "uint256",
-            },
-        ],
-        name: "CFactorUpdated",
-        type: "event",
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: "address",
-                name: "account",
-                type: "address",
-            },
-            {
-                indexed: true,
-                internalType: "address",
-                name: "paymentCollateralAsset",
-                type: "address",
-            },
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "paymentAmount",
-                type: "uint256",
-            },
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "paymentValue",
-                type: "uint256",
-            },
-        ],
-        name: "CloseFeePaid",
-        type: "event",
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: "address",
-                name: "collateralAsset",
-                type: "address",
-            },
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "factor",
-                type: "uint256",
-            },
-            {
-                indexed: true,
-                internalType: "address",
-                name: "oracle",
-                type: "address",
-            },
-            {
-                indexed: true,
-                internalType: "address",
-                name: "marketStatusOracle",
-                type: "address",
-            },
-            {
-                indexed: false,
-                internalType: "address",
-                name: "anchor",
-                type: "address",
-            },
-        ],
-        name: "CollateralAssetAdded",
-        type: "event",
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: "address",
-                name: "collateralAsset",
-                type: "address",
-            },
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "factor",
-                type: "uint256",
-            },
-            {
-                indexed: true,
-                internalType: "address",
-                name: "oracle",
-                type: "address",
-            },
-            {
-                indexed: true,
-                internalType: "address",
-                name: "marketStatusOracle",
-                type: "address",
-            },
-            {
-                indexed: false,
-                internalType: "address",
-                name: "anchor",
-                type: "address",
-            },
-        ],
-        name: "CollateralAssetUpdated",
-        type: "event",
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: "address",
-                name: "account",
-                type: "address",
-            },
-            {
-                indexed: true,
-                internalType: "address",
-                name: "collateralAsset",
-                type: "address",
-            },
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "amount",
-                type: "uint256",
-            },
-        ],
-        name: "CollateralDeposited",
-        type: "event",
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: "address",
-                name: "account",
-                type: "address",
-            },
-            {
-                indexed: true,
-                internalType: "address",
-                name: "collateralAsset",
-                type: "address",
-            },
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "amount",
-                type: "uint256",
-            },
-        ],
-        name: "CollateralWithdrawn",
-        type: "event",
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: "address",
-                name: "account",
-                type: "address",
-            },
-            {
-                indexed: true,
-                internalType: "address",
-                name: "kreskoAsset",
-                type: "address",
-            },
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "amount",
-                type: "uint256",
-            },
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "interestRepaid",
-                type: "uint256",
-            },
-        ],
-        name: "DebtPositionClosed",
-        type: "event",
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: "address",
-                name: "feeRecipient",
-                type: "address",
-            },
-        ],
-        name: "FeeRecipientUpdated",
-        type: "event",
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: "address",
-                name: "account",
-                type: "address",
-            },
-            {
-                indexed: true,
-                internalType: "address",
-                name: "liquidator",
-                type: "address",
-            },
-            {
-                indexed: true,
-                internalType: "address",
-                name: "repayKreskoAsset",
-                type: "address",
-            },
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "repayUSD",
-                type: "uint256",
-            },
-            {
-                indexed: false,
-                internalType: "address",
-                name: "seizedCollateralAsset",
-                type: "address",
-            },
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "collateralSent",
-                type: "uint256",
-            },
-        ],
-        name: "InterestLiquidationOccurred",
-        type: "event",
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: "address",
-                name: "kreskoAsset",
-                type: "address",
-            },
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "kFactor",
-                type: "uint256",
-            },
-        ],
-        name: "KFactorUpdated",
-        type: "event",
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: "address",
-                name: "kreskoAsset",
-                type: "address",
-            },
-            {
-                indexed: false,
-                internalType: "address",
-                name: "anchor",
-                type: "address",
-            },
-            {
-                indexed: true,
-                internalType: "address",
-                name: "oracle",
-                type: "address",
-            },
-            {
-                indexed: true,
-                internalType: "address",
-                name: "marketStatusOracle",
-                type: "address",
-            },
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "kFactor",
-                type: "uint256",
-            },
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "supplyLimit",
+                name: "openFee",
                 type: "uint256",
             },
             {
@@ -968,100 +402,70 @@ const _abi = [
             {
                 indexed: false,
                 internalType: "uint256",
+                name: "protocolFee",
+                type: "uint256",
+            },
+        ],
+        name: "FeeSet",
+        type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: "address",
+                name: "assetIn",
+                type: "address",
+            },
+            {
+                indexed: true,
+                internalType: "address",
+                name: "assetOut",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "bool",
+                name: "enabled",
+                type: "bool",
+            },
+        ],
+        name: "PairSet",
+        type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: "address",
+                name: "_asset",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "liquidationThreshold",
+                type: "uint256",
+            },
+        ],
+        name: "PoolCollateralUpdated",
+        type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: "address",
+                name: "_asset",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
                 name: "openFee",
-                type: "uint256",
-            },
-        ],
-        name: "KreskoAssetAdded",
-        type: "event",
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: "address",
-                name: "account",
-                type: "address",
-            },
-            {
-                indexed: true,
-                internalType: "address",
-                name: "kreskoAsset",
-                type: "address",
-            },
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "amount",
-                type: "uint256",
-            },
-        ],
-        name: "KreskoAssetBurned",
-        type: "event",
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: "address",
-                name: "account",
-                type: "address",
-            },
-            {
-                indexed: true,
-                internalType: "address",
-                name: "kreskoAsset",
-                type: "address",
-            },
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "amount",
-                type: "uint256",
-            },
-        ],
-        name: "KreskoAssetMinted",
-        type: "event",
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: "address",
-                name: "kreskoAsset",
-                type: "address",
-            },
-            {
-                indexed: false,
-                internalType: "address",
-                name: "anchor",
-                type: "address",
-            },
-            {
-                indexed: true,
-                internalType: "address",
-                name: "oracle",
-                type: "address",
-            },
-            {
-                indexed: true,
-                internalType: "address",
-                name: "marketStatusOracle",
-                type: "address",
-            },
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "kFactor",
-                type: "uint256",
-            },
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "supplyLimit",
                 type: "uint256",
             },
             {
@@ -1073,12 +477,387 @@ const _abi = [
             {
                 indexed: false,
                 internalType: "uint256",
-                name: "openFee",
+                name: "protocolFee",
+                type: "uint256",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "supplyLimit",
                 type: "uint256",
             },
         ],
-        name: "KreskoAssetUpdated",
+        name: "PoolKrAssetUpdated",
         type: "event",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address[]",
+                name: "_disabledAssets",
+                type: "address[]",
+            },
+        ],
+        name: "disablePoolCollaterals",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address[]",
+                name: "_disabledAssets",
+                type: "address[]",
+            },
+        ],
+        name: "disablePoolKrAssets",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address[]",
+                name: "_enabledCollaterals",
+                type: "address[]",
+            },
+            {
+                components: [
+                    {
+                        internalType: "uint256",
+                        name: "liquidationIncentive",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint128",
+                        name: "liquidityIndex",
+                        type: "uint128",
+                    },
+                    {
+                        internalType: "uint8",
+                        name: "decimals",
+                        type: "uint8",
+                    },
+                ],
+                internalType: "struct PoolCollateral[]",
+                name: "_configurations",
+                type: "tuple[]",
+            },
+        ],
+        name: "enablePoolCollaterals",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address[]",
+                name: "_enabledKrAssets",
+                type: "address[]",
+            },
+            {
+                components: [
+                    {
+                        internalType: "uint256",
+                        name: "protocolFee",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "openFee",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "closeFee",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "supplyLimit",
+                        type: "uint256",
+                    },
+                ],
+                internalType: "struct PoolKrAsset[]",
+                name: "_configurations",
+                type: "tuple[]",
+            },
+        ],
+        name: "enablePoolKrAssets",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [],
+        name: "getCollateralPoolConfig",
+        outputs: [
+            {
+                components: [
+                    {
+                        internalType: "address",
+                        name: "swapFeeRecipient",
+                        type: "address",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "mcr",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "lt",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "contract IPositionsFacet",
+                        name: "positions",
+                        type: "address",
+                    },
+                ],
+                internalType: "struct ICollateralPoolConfigFacet.CollateralPoolConfig",
+                name: "",
+                type: "tuple",
+            },
+        ],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                components: [
+                    {
+                        internalType: "address",
+                        name: "swapFeeRecipient",
+                        type: "address",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "mcr",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "lt",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "contract IPositionsFacet",
+                        name: "positions",
+                        type: "address",
+                    },
+                ],
+                internalType: "struct ICollateralPoolConfigFacet.CollateralPoolConfig",
+                name: "_config",
+                type: "tuple",
+            },
+        ],
+        name: "initialize",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address[]",
+                name: "_removedAssets",
+                type: "address[]",
+            },
+        ],
+        name: "removePoolCollaterals",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address[]",
+                name: "_removedAssets",
+                type: "address[]",
+            },
+        ],
+        name: "removePoolKrAssets",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_krAsset",
+                type: "address",
+            },
+            {
+                internalType: "uint256",
+                name: "_openFee",
+                type: "uint256",
+            },
+            {
+                internalType: "uint256",
+                name: "_closeFee",
+                type: "uint256",
+            },
+            {
+                internalType: "uint256",
+                name: "_protocolFee",
+                type: "uint256",
+            },
+        ],
+        name: "setFees",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "uint256",
+                name: "_lt",
+                type: "uint256",
+            },
+        ],
+        name: "setPoolLiquidationThreshold",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "uint256",
+                name: "_mcr",
+                type: "uint256",
+            },
+        ],
+        name: "setPoolMinimumCollateralizationRatio",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                components: [
+                    {
+                        internalType: "address",
+                        name: "assetIn",
+                        type: "address",
+                    },
+                    {
+                        internalType: "address",
+                        name: "assetOut",
+                        type: "address",
+                    },
+                    {
+                        internalType: "bool",
+                        name: "enabled",
+                        type: "bool",
+                    },
+                ],
+                internalType: "struct ICollateralPoolConfigFacet.PairSetter[]",
+                name: "_pairs",
+                type: "tuple[]",
+            },
+        ],
+        name: "setSwapPairs",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                components: [
+                    {
+                        internalType: "address",
+                        name: "assetIn",
+                        type: "address",
+                    },
+                    {
+                        internalType: "address",
+                        name: "assetOut",
+                        type: "address",
+                    },
+                    {
+                        internalType: "bool",
+                        name: "enabled",
+                        type: "bool",
+                    },
+                ],
+                internalType: "struct ICollateralPoolConfigFacet.PairSetter",
+                name: "_pair",
+                type: "tuple",
+            },
+        ],
+        name: "setSwapPairsSingle",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_asset",
+                type: "address",
+            },
+            {
+                internalType: "uint256",
+                name: "_newLiquiditationIncentive",
+                type: "uint256",
+            },
+        ],
+        name: "updatePoolCollateral",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_asset",
+                type: "address",
+            },
+            {
+                components: [
+                    {
+                        internalType: "uint256",
+                        name: "protocolFee",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "openFee",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "closeFee",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "supplyLimit",
+                        type: "uint256",
+                    },
+                ],
+                internalType: "struct PoolKrAsset",
+                name: "_configuration",
+                type: "tuple",
+            },
+        ],
+        name: "updatePoolKrAsset",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
     },
     {
         anonymous: false,
@@ -1086,28 +865,28 @@ const _abi = [
             {
                 indexed: true,
                 internalType: "address",
-                name: "asset",
+                name: "depositor",
+                type: "address",
+            },
+            {
+                indexed: true,
+                internalType: "address",
+                name: "collateralAsset",
                 type: "address",
             },
             {
                 indexed: false,
                 internalType: "uint256",
-                name: "liquidationIncentiveMultiplier",
+                name: "amount",
                 type: "uint256",
             },
         ],
-        name: "LiquidationIncentiveMultiplierUpdated",
+        name: "CollateralPoolDeposit",
         type: "event",
     },
     {
         anonymous: false,
         inputs: [
-            {
-                indexed: true,
-                internalType: "address",
-                name: "account",
-                type: "address",
-            },
             {
                 indexed: true,
                 internalType: "address",
@@ -1127,58 +906,19 @@ const _abi = [
                 type: "uint256",
             },
             {
-                indexed: false,
+                indexed: true,
                 internalType: "address",
-                name: "seizedCollateralAsset",
+                name: "seizeCollateral",
                 type: "address",
             },
             {
                 indexed: false,
                 internalType: "uint256",
-                name: "collateralSent",
+                name: "seizeAmount",
                 type: "uint256",
             },
         ],
-        name: "LiquidationOccurred",
-        type: "event",
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "liquidationThreshold",
-                type: "uint256",
-            },
-        ],
-        name: "LiquidationThresholdUpdated",
-        type: "event",
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "minimumCollateralizationRatio",
-                type: "uint256",
-            },
-        ],
-        name: "MinimumCollateralizationRatioUpdated",
-        type: "event",
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "minimumDebtValue",
-                type: "uint256",
-            },
-        ],
-        name: "MinimumDebtValueUpdated",
+        name: "CollateralPoolLiquidationOccured",
         type: "event",
     },
     {
@@ -1187,54 +927,35 @@ const _abi = [
             {
                 indexed: true,
                 internalType: "address",
-                name: "account",
+                name: "repayer",
                 type: "address",
             },
             {
                 indexed: true,
                 internalType: "address",
-                name: "paymentCollateralAsset",
+                name: "repayKreskoAsset",
                 type: "address",
             },
             {
                 indexed: false,
                 internalType: "uint256",
-                name: "paymentAmount",
+                name: "repayAmount",
                 type: "uint256",
-            },
-            {
-                indexed: false,
-                internalType: "uint256",
-                name: "paymentValue",
-                type: "uint256",
-            },
-        ],
-        name: "OpenFeePaid",
-        type: "event",
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: "enum Action",
-                name: "action",
-                type: "uint8",
             },
             {
                 indexed: true,
                 internalType: "address",
-                name: "asset",
+                name: "receiveKreskoAsset",
                 type: "address",
             },
             {
-                indexed: true,
-                internalType: "string",
-                name: "description",
-                type: "string",
+                indexed: false,
+                internalType: "uint256",
+                name: "receiveAmount",
+                type: "uint256",
             },
         ],
-        name: "SafetyStateChange",
+        name: "CollateralPoolRepayment",
         type: "event",
     },
     {
@@ -1243,7 +964,7 @@ const _abi = [
             {
                 indexed: true,
                 internalType: "address",
-                name: "account",
+                name: "withdrawer",
                 type: "address",
             },
             {
@@ -1258,22 +979,1069 @@ const _abi = [
                 name: "amount",
                 type: "uint256",
             },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "feeAmount",
+                type: "uint256",
+            },
         ],
-        name: "UncheckedCollateralWithdrawn",
+        name: "CollateralPoolWithdraw",
         type: "event",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_account",
+                type: "address",
+            },
+            {
+                internalType: "address",
+                name: "_collateralAsset",
+                type: "address",
+            },
+            {
+                internalType: "uint256",
+                name: "_amount",
+                type: "uint256",
+            },
+        ],
+        name: "poolDeposit",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [],
+        name: "poolIsLiquidatable",
+        outputs: [
+            {
+                internalType: "bool",
+                name: "",
+                type: "bool",
+            },
+        ],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_repayKrAsset",
+                type: "address",
+            },
+            {
+                internalType: "uint256",
+                name: "_repayAmount",
+                type: "uint256",
+            },
+            {
+                internalType: "address",
+                name: "_seizeCollateral",
+                type: "address",
+            },
+        ],
+        name: "poolLiquidate",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_repayKrAsset",
+                type: "address",
+            },
+            {
+                internalType: "uint256",
+                name: "_repayAmount",
+                type: "uint256",
+            },
+            {
+                internalType: "address",
+                name: "_seizeCollateral",
+                type: "address",
+            },
+        ],
+        name: "poolRepay",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_account",
+                type: "address",
+            },
+            {
+                internalType: "address",
+                name: "_collateralAsset",
+                type: "address",
+            },
+            {
+                internalType: "uint256",
+                name: "_amount",
+                type: "uint256",
+            },
+        ],
+        name: "poolWithdraw",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_account",
+                type: "address",
+            },
+            {
+                internalType: "address",
+                name: "_collateralAsset",
+                type: "address",
+            },
+            {
+                internalType: "bool",
+                name: "_ignoreFactors",
+                type: "bool",
+            },
+        ],
+        name: "getPoolAccountDepositsValue",
+        outputs: [
+            {
+                internalType: "uint256",
+                name: "",
+                type: "uint256",
+            },
+        ],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_account",
+                type: "address",
+            },
+            {
+                internalType: "address",
+                name: "_collateralAsset",
+                type: "address",
+            },
+        ],
+        name: "getPoolAccountDepositsValueWithFees",
+        outputs: [
+            {
+                internalType: "uint256",
+                name: "",
+                type: "uint256",
+            },
+        ],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_account",
+                type: "address",
+            },
+            {
+                internalType: "address",
+                name: "_collateralAsset",
+                type: "address",
+            },
+        ],
+        name: "getPoolAccountDepositsWithFees",
+        outputs: [
+            {
+                internalType: "uint256",
+                name: "",
+                type: "uint256",
+            },
+        ],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_account",
+                type: "address",
+            },
+            {
+                internalType: "address",
+                name: "_collateralAsset",
+                type: "address",
+            },
+        ],
+        name: "getPoolAccountPrincipalDeposits",
+        outputs: [
+            {
+                internalType: "uint256",
+                name: "",
+                type: "uint256",
+            },
+        ],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_account",
+                type: "address",
+            },
+            {
+                internalType: "bool",
+                name: "_ignoreFactors",
+                type: "bool",
+            },
+        ],
+        name: "getPoolAccountTotalDepositsValue",
+        outputs: [
+            {
+                internalType: "uint256",
+                name: "",
+                type: "uint256",
+            },
+        ],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_account",
+                type: "address",
+            },
+        ],
+        name: "getPoolAccountTotalDepositsValueWithFees",
+        outputs: [
+            {
+                internalType: "uint256",
+                name: "",
+                type: "uint256",
+            },
+        ],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_asset",
+                type: "address",
+            },
+        ],
+        name: "getPoolAssetIsEnabled",
+        outputs: [
+            {
+                internalType: "bool",
+                name: "",
+                type: "bool",
+            },
+        ],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_collateralAsset",
+                type: "address",
+            },
+        ],
+        name: "getPoolCollateral",
+        outputs: [
+            {
+                components: [
+                    {
+                        internalType: "uint256",
+                        name: "liquidationIncentive",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint128",
+                        name: "liquidityIndex",
+                        type: "uint128",
+                    },
+                    {
+                        internalType: "uint8",
+                        name: "decimals",
+                        type: "uint8",
+                    },
+                ],
+                internalType: "struct PoolCollateral",
+                name: "",
+                type: "tuple",
+            },
+        ],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [],
+        name: "getPoolCollateralAssets",
+        outputs: [
+            {
+                internalType: "address[]",
+                name: "",
+                type: "address[]",
+            },
+        ],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_kreskoAsset",
+                type: "address",
+            },
+        ],
+        name: "getPoolDebt",
+        outputs: [
+            {
+                internalType: "uint256",
+                name: "",
+                type: "uint256",
+            },
+        ],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_kreskoAsset",
+                type: "address",
+            },
+            {
+                internalType: "bool",
+                name: "_ignoreFactors",
+                type: "bool",
+            },
+        ],
+        name: "getPoolDebtValue",
+        outputs: [
+            {
+                internalType: "uint256",
+                name: "",
+                type: "uint256",
+            },
+        ],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_collateralAsset",
+                type: "address",
+            },
+        ],
+        name: "getPoolDeposits",
+        outputs: [
+            {
+                internalType: "uint256",
+                name: "",
+                type: "uint256",
+            },
+        ],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_collateralAsset",
+                type: "address",
+            },
+            {
+                internalType: "bool",
+                name: "_ignoreFactors",
+                type: "bool",
+            },
+        ],
+        name: "getPoolDepositsValue",
+        outputs: [
+            {
+                internalType: "uint256",
+                name: "",
+                type: "uint256",
+            },
+        ],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_assetIn",
+                type: "address",
+            },
+            {
+                internalType: "address",
+                name: "_assetOut",
+                type: "address",
+            },
+        ],
+        name: "getPoolIsSwapEnabled",
+        outputs: [
+            {
+                internalType: "bool",
+                name: "",
+                type: "bool",
+            },
+        ],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_krAsset",
+                type: "address",
+            },
+        ],
+        name: "getPoolKrAsset",
+        outputs: [
+            {
+                components: [
+                    {
+                        internalType: "uint256",
+                        name: "protocolFee",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "openFee",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "closeFee",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "supplyLimit",
+                        type: "uint256",
+                    },
+                ],
+                internalType: "struct PoolKrAsset",
+                name: "",
+                type: "tuple",
+            },
+        ],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [],
+        name: "getPoolKrAssets",
+        outputs: [
+            {
+                internalType: "address[]",
+                name: "",
+                type: "address[]",
+            },
+        ],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "bool",
+                name: "_ignoreFactors",
+                type: "bool",
+            },
+        ],
+        name: "getPoolStats",
+        outputs: [
+            {
+                internalType: "uint256",
+                name: "collateralValue",
+                type: "uint256",
+            },
+            {
+                internalType: "uint256",
+                name: "debtValue",
+                type: "uint256",
+            },
+            {
+                internalType: "uint256",
+                name: "cr",
+                type: "uint256",
+            },
+        ],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_collateralAsset",
+                type: "address",
+            },
+        ],
+        name: "getPoolSwapDeposits",
+        outputs: [
+            {
+                internalType: "uint256",
+                name: "",
+                type: "uint256",
+            },
+        ],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [],
+        name: "getPoolSwapFeeRecipient",
+        outputs: [
+            {
+                internalType: "address",
+                name: "",
+                type: "address",
+            },
+        ],
+        stateMutability: "view",
+        type: "function",
     },
     {
         anonymous: false,
         inputs: [
             {
                 indexed: false,
+                internalType: "address",
+                name: "asset",
+                type: "address",
+            },
+            {
+                indexed: false,
                 internalType: "uint256",
-                name: "maxLiquidationMultiplier",
+                name: "amount",
                 type: "uint256",
             },
         ],
-        name: "maxLiquidationMultiplierUpdated",
+        name: "Income",
         type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: "address",
+                name: "who",
+                type: "address",
+            },
+            {
+                indexed: true,
+                internalType: "address",
+                name: "assetIn",
+                type: "address",
+            },
+            {
+                indexed: true,
+                internalType: "address",
+                name: "assetOut",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "amountIn",
+                type: "uint256",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "amountOut",
+                type: "uint256",
+            },
+        ],
+        name: "Swap",
+        type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: "address",
+                name: "assetIn",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "feeAmount",
+                type: "uint256",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "protocolFeeAmount",
+                type: "uint256",
+            },
+        ],
+        name: "SwapFee",
+        type: "event",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_incomeAsset",
+                type: "address",
+            },
+            {
+                internalType: "uint256",
+                name: "_amount",
+                type: "uint256",
+            },
+        ],
+        name: "cumulateIncome",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_asset",
+                type: "address",
+            },
+        ],
+        name: "getPrice",
+        outputs: [
+            {
+                internalType: "uint256",
+                name: "price",
+                type: "uint256",
+            },
+        ],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_to",
+                type: "address",
+            },
+            {
+                internalType: "uint256",
+                name: "_amountA",
+                type: "uint256",
+            },
+            {
+                components: [
+                    {
+                        internalType: "address",
+                        name: "account",
+                        type: "address",
+                    },
+                    {
+                        internalType: "address",
+                        name: "assetA",
+                        type: "address",
+                    },
+                    {
+                        internalType: "address",
+                        name: "assetB",
+                        type: "address",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "amountA",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "amountB",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "valueBCache",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "leverage",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "liquidationIncentive",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "closeIncentive",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "creationTimestamp",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "lastUpdateTimestamp",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "nonce",
+                        type: "uint256",
+                    },
+                ],
+                internalType: "struct Position",
+                name: "_pos",
+                type: "tuple",
+            },
+        ],
+        name: "positionDepositA",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_from",
+                type: "address",
+            },
+            {
+                internalType: "uint256",
+                name: "_amountA",
+                type: "uint256",
+            },
+            {
+                components: [
+                    {
+                        internalType: "address",
+                        name: "account",
+                        type: "address",
+                    },
+                    {
+                        internalType: "address",
+                        name: "assetA",
+                        type: "address",
+                    },
+                    {
+                        internalType: "address",
+                        name: "assetB",
+                        type: "address",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "amountA",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "amountB",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "valueBCache",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "leverage",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "liquidationIncentive",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "closeIncentive",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "creationTimestamp",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "lastUpdateTimestamp",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "nonce",
+                        type: "uint256",
+                    },
+                ],
+                internalType: "struct Position",
+                name: "_pos",
+                type: "tuple",
+            },
+        ],
+        name: "positionWithdrawA",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_assetIn",
+                type: "address",
+            },
+            {
+                internalType: "address",
+                name: "_assetOut",
+                type: "address",
+            },
+            {
+                internalType: "uint256",
+                name: "_amountIn",
+                type: "uint256",
+            },
+            {
+                internalType: "uint256",
+                name: "_leverage",
+                type: "uint256",
+            },
+        ],
+        name: "previewSwap",
+        outputs: [
+            {
+                internalType: "uint256",
+                name: "amountOut",
+                type: "uint256",
+            },
+            {
+                internalType: "uint256",
+                name: "feeAmount",
+                type: "uint256",
+            },
+            {
+                internalType: "uint256",
+                name: "feeAmountProtocol",
+                type: "uint256",
+            },
+        ],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_receiver",
+                type: "address",
+            },
+            {
+                internalType: "address",
+                name: "_assetIn",
+                type: "address",
+            },
+            {
+                internalType: "address",
+                name: "_assetOut",
+                type: "address",
+            },
+            {
+                internalType: "uint256",
+                name: "_amountIn",
+                type: "uint256",
+            },
+            {
+                internalType: "uint256",
+                name: "_amountOutMin",
+                type: "uint256",
+            },
+        ],
+        name: "swap",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "address",
+                name: "_sender",
+                type: "address",
+            },
+            {
+                components: [
+                    {
+                        internalType: "address",
+                        name: "account",
+                        type: "address",
+                    },
+                    {
+                        internalType: "address",
+                        name: "assetA",
+                        type: "address",
+                    },
+                    {
+                        internalType: "address",
+                        name: "assetB",
+                        type: "address",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "amountA",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "amountBMin",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "leverage",
+                        type: "uint256",
+                    },
+                ],
+                internalType: "struct NewPosition",
+                name: "_pos",
+                type: "tuple",
+            },
+        ],
+        name: "swapIntoLeverage",
+        outputs: [
+            {
+                internalType: "uint256",
+                name: "amountAFeeReduced",
+                type: "uint256",
+            },
+            {
+                internalType: "uint256",
+                name: "amountBOut",
+                type: "uint256",
+            },
+        ],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                components: [
+                    {
+                        internalType: "address",
+                        name: "account",
+                        type: "address",
+                    },
+                    {
+                        internalType: "address",
+                        name: "assetA",
+                        type: "address",
+                    },
+                    {
+                        internalType: "address",
+                        name: "assetB",
+                        type: "address",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "amountA",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "amountB",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "valueBCache",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "leverage",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "liquidationIncentive",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "closeIncentive",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "creationTimestamp",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "lastUpdateTimestamp",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "nonce",
+                        type: "uint256",
+                    },
+                ],
+                internalType: "struct Position",
+                name: "_pos",
+                type: "tuple",
+            },
+            {
+                internalType: "address",
+                name: "_liquidator",
+                type: "address",
+            },
+        ],
+        name: "swapOutOfLeverage",
+        outputs: [
+            {
+                internalType: "uint256",
+                name: "amountAOut",
+                type: "uint256",
+            },
+        ],
+        stateMutability: "nonpayable",
+        type: "function",
     },
     {
         inputs: [
@@ -1349,16 +2117,9 @@ const _abi = [
         name: "getAccountCollateralRatio",
         outputs: [
             {
-                components: [
-                    {
-                        internalType: "uint256",
-                        name: "rawValue",
-                        type: "uint256",
-                    },
-                ],
-                internalType: "struct FixedPoint.Unsigned",
+                internalType: "uint256",
                 name: "ratio",
-                type: "tuple",
+                type: "uint256",
             },
         ],
         stateMutability: "view",
@@ -1375,16 +2136,9 @@ const _abi = [
         name: "getAccountCollateralValue",
         outputs: [
             {
-                components: [
-                    {
-                        internalType: "uint256",
-                        name: "rawValue",
-                        type: "uint256",
-                    },
-                ],
-                internalType: "struct FixedPoint.Unsigned",
+                internalType: "uint256",
                 name: "",
-                type: "tuple",
+                type: "uint256",
             },
         ],
         stateMutability: "view",
@@ -1401,16 +2155,9 @@ const _abi = [
         name: "getAccountKrAssetValue",
         outputs: [
             {
-                components: [
-                    {
-                        internalType: "uint256",
-                        name: "rawValue",
-                        type: "uint256",
-                    },
-                ],
-                internalType: "struct FixedPoint.Unsigned",
+                internalType: "uint256",
                 name: "",
-                type: "tuple",
+                type: "uint256",
             },
         ],
         stateMutability: "view",
@@ -1424,31 +2171,17 @@ const _abi = [
                 type: "address",
             },
             {
-                components: [
-                    {
-                        internalType: "uint256",
-                        name: "rawValue",
-                        type: "uint256",
-                    },
-                ],
-                internalType: "struct FixedPoint.Unsigned",
+                internalType: "uint256",
                 name: "_ratio",
-                type: "tuple",
+                type: "uint256",
             },
         ],
         name: "getAccountMinimumCollateralValueAtRatio",
         outputs: [
             {
-                components: [
-                    {
-                        internalType: "uint256",
-                        name: "rawValue",
-                        type: "uint256",
-                    },
-                ],
-                internalType: "struct FixedPoint.Unsigned",
+                internalType: "uint256",
                 name: "",
-                type: "tuple",
+                type: "uint256",
             },
         ],
         stateMutability: "view",
@@ -1470,28 +2203,14 @@ const _abi = [
         name: "getCollateralAdjustedAndRealValue",
         outputs: [
             {
-                components: [
-                    {
-                        internalType: "uint256",
-                        name: "rawValue",
-                        type: "uint256",
-                    },
-                ],
-                internalType: "struct FixedPoint.Unsigned",
+                internalType: "uint256",
                 name: "adjustedValue",
-                type: "tuple",
+                type: "uint256",
             },
             {
-                components: [
-                    {
-                        internalType: "uint256",
-                        name: "rawValue",
-                        type: "uint256",
-                    },
-                ],
-                internalType: "struct FixedPoint.Unsigned",
+                internalType: "uint256",
                 name: "realValue",
-                type: "tuple",
+                type: "uint256",
             },
         ],
         stateMutability: "view",
@@ -1508,16 +2227,9 @@ const _abi = [
         name: "getCollateralRatiosFor",
         outputs: [
             {
-                components: [
-                    {
-                        internalType: "uint256",
-                        name: "rawValue",
-                        type: "uint256",
-                    },
-                ],
-                internalType: "struct FixedPoint.Unsigned[]",
+                internalType: "uint256[]",
                 name: "",
-                type: "tuple[]",
+                type: "uint256[]",
             },
         ],
         stateMutability: "view",
@@ -1772,29 +2484,46 @@ const _abi = [
                 type: "address",
             },
             {
-                internalType: "address",
-                name: "_anchor",
-                type: "address",
-            },
-            {
-                internalType: "uint256",
-                name: "_factor",
-                type: "uint256",
-            },
-            {
-                internalType: "uint256",
-                name: "_liquidationIncentiveMultiplier",
-                type: "uint256",
-            },
-            {
-                internalType: "address",
-                name: "_priceFeedOracle",
-                type: "address",
-            },
-            {
-                internalType: "address",
-                name: "_marketStatusOracle",
-                type: "address",
+                components: [
+                    {
+                        internalType: "uint256",
+                        name: "factor",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "contract AggregatorV2V3Interface",
+                        name: "oracle",
+                        type: "address",
+                    },
+                    {
+                        internalType: "contract AggregatorV2V3Interface",
+                        name: "marketStatusOracle",
+                        type: "address",
+                    },
+                    {
+                        internalType: "address",
+                        name: "anchor",
+                        type: "address",
+                    },
+                    {
+                        internalType: "uint8",
+                        name: "decimals",
+                        type: "uint8",
+                    },
+                    {
+                        internalType: "bool",
+                        name: "exists",
+                        type: "bool",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "liquidationIncentive",
+                        type: "uint256",
+                    },
+                ],
+                internalType: "struct CollateralAsset",
+                name: "_config",
+                type: "tuple",
             },
         ],
         name: "addCollateralAsset",
@@ -1810,39 +2539,51 @@ const _abi = [
                 type: "address",
             },
             {
-                internalType: "address",
-                name: "_anchor",
-                type: "address",
-            },
-            {
-                internalType: "uint256",
-                name: "_kFactor",
-                type: "uint256",
-            },
-            {
-                internalType: "address",
-                name: "_priceFeedOracle",
-                type: "address",
-            },
-            {
-                internalType: "address",
-                name: "_marketStatusOracle",
-                type: "address",
-            },
-            {
-                internalType: "uint256",
-                name: "_supplyLimit",
-                type: "uint256",
-            },
-            {
-                internalType: "uint256",
-                name: "_closeFee",
-                type: "uint256",
-            },
-            {
-                internalType: "uint256",
-                name: "_openFee",
-                type: "uint256",
+                components: [
+                    {
+                        internalType: "uint256",
+                        name: "kFactor",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "contract AggregatorV2V3Interface",
+                        name: "oracle",
+                        type: "address",
+                    },
+                    {
+                        internalType: "contract AggregatorV2V3Interface",
+                        name: "marketStatusOracle",
+                        type: "address",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "supplyLimit",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "address",
+                        name: "anchor",
+                        type: "address",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "closeFee",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "openFee",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "bool",
+                        name: "exists",
+                        type: "bool",
+                    },
+                ],
+                internalType: "struct KrAsset",
+                name: "_config",
+                type: "tuple",
             },
         ],
         name: "addKreskoAsset",
@@ -1939,29 +2680,46 @@ const _abi = [
                 type: "address",
             },
             {
-                internalType: "address",
-                name: "_anchor",
-                type: "address",
-            },
-            {
-                internalType: "uint256",
-                name: "_factor",
-                type: "uint256",
-            },
-            {
-                internalType: "uint256",
-                name: "_liquidationIncentiveMultiplier",
-                type: "uint256",
-            },
-            {
-                internalType: "address",
-                name: "_priceFeedOracle",
-                type: "address",
-            },
-            {
-                internalType: "address",
-                name: "_marketStatusOracle",
-                type: "address",
+                components: [
+                    {
+                        internalType: "uint256",
+                        name: "factor",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "contract AggregatorV2V3Interface",
+                        name: "oracle",
+                        type: "address",
+                    },
+                    {
+                        internalType: "contract AggregatorV2V3Interface",
+                        name: "marketStatusOracle",
+                        type: "address",
+                    },
+                    {
+                        internalType: "address",
+                        name: "anchor",
+                        type: "address",
+                    },
+                    {
+                        internalType: "uint8",
+                        name: "decimals",
+                        type: "uint8",
+                    },
+                    {
+                        internalType: "bool",
+                        name: "exists",
+                        type: "bool",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "liquidationIncentive",
+                        type: "uint256",
+                    },
+                ],
+                internalType: "struct CollateralAsset",
+                name: "_config",
+                type: "tuple",
             },
         ],
         name: "updateCollateralAsset",
@@ -2021,39 +2779,51 @@ const _abi = [
                 type: "address",
             },
             {
-                internalType: "address",
-                name: "_anchor",
-                type: "address",
-            },
-            {
-                internalType: "uint256",
-                name: "_kFactor",
-                type: "uint256",
-            },
-            {
-                internalType: "address",
-                name: "_priceFeedOracle",
-                type: "address",
-            },
-            {
-                internalType: "address",
-                name: "_marketStatusOracle",
-                type: "address",
-            },
-            {
-                internalType: "uint256",
-                name: "_supplyLimit",
-                type: "uint256",
-            },
-            {
-                internalType: "uint256",
-                name: "_closeFee",
-                type: "uint256",
-            },
-            {
-                internalType: "uint256",
-                name: "_openFee",
-                type: "uint256",
+                components: [
+                    {
+                        internalType: "uint256",
+                        name: "kFactor",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "contract AggregatorV2V3Interface",
+                        name: "oracle",
+                        type: "address",
+                    },
+                    {
+                        internalType: "contract AggregatorV2V3Interface",
+                        name: "marketStatusOracle",
+                        type: "address",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "supplyLimit",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "address",
+                        name: "anchor",
+                        type: "address",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "closeFee",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "openFee",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "bool",
+                        name: "exists",
+                        type: "bool",
+                    },
+                ],
+                internalType: "struct KrAsset",
+                name: "_config",
+                type: "tuple",
             },
         ],
         name: "updateKreskoAsset",
@@ -2846,16 +3616,9 @@ const _abi = [
             {
                 components: [
                     {
-                        components: [
-                            {
-                                internalType: "uint256",
-                                name: "rawValue",
-                                type: "uint256",
-                            },
-                        ],
-                        internalType: "struct FixedPoint.Unsigned",
+                        internalType: "uint256",
                         name: "factor",
-                        type: "tuple",
+                        type: "uint256",
                     },
                     {
                         internalType: "contract AggregatorV2V3Interface",
@@ -2883,16 +3646,9 @@ const _abi = [
                         type: "bool",
                     },
                     {
-                        components: [
-                            {
-                                internalType: "uint256",
-                                name: "rawValue",
-                                type: "uint256",
-                            },
-                        ],
-                        internalType: "struct FixedPoint.Unsigned",
+                        internalType: "uint256",
                         name: "liquidationIncentive",
-                        type: "tuple",
+                        type: "uint256",
                     },
                 ],
                 internalType: "struct CollateralAsset",
@@ -2968,52 +3724,24 @@ const _abi = [
             {
                 components: [
                     {
-                        components: [
-                            {
-                                internalType: "uint256",
-                                name: "rawValue",
-                                type: "uint256",
-                            },
-                        ],
-                        internalType: "struct FixedPoint.Unsigned",
+                        internalType: "uint256",
                         name: "minimumCollateralizationRatio",
-                        type: "tuple",
+                        type: "uint256",
                     },
                     {
-                        components: [
-                            {
-                                internalType: "uint256",
-                                name: "rawValue",
-                                type: "uint256",
-                            },
-                        ],
-                        internalType: "struct FixedPoint.Unsigned",
+                        internalType: "uint256",
                         name: "minimumDebtValue",
-                        type: "tuple",
+                        type: "uint256",
                     },
                     {
-                        components: [
-                            {
-                                internalType: "uint256",
-                                name: "rawValue",
-                                type: "uint256",
-                            },
-                        ],
-                        internalType: "struct FixedPoint.Unsigned",
+                        internalType: "uint256",
                         name: "liquidationThreshold",
-                        type: "tuple",
+                        type: "uint256",
                     },
                     {
-                        components: [
-                            {
-                                internalType: "uint256",
-                                name: "rawValue",
-                                type: "uint256",
-                            },
-                        ],
-                        internalType: "struct FixedPoint.Unsigned",
+                        internalType: "uint256",
                         name: "liquidationOverflowPercentage",
-                        type: "tuple",
+                        type: "uint256",
                     },
                     {
                         internalType: "address",
@@ -3055,28 +3783,14 @@ const _abi = [
         name: "getCollateralValueAndOraclePrice",
         outputs: [
             {
-                components: [
-                    {
-                        internalType: "uint256",
-                        name: "rawValue",
-                        type: "uint256",
-                    },
-                ],
-                internalType: "struct FixedPoint.Unsigned",
+                internalType: "uint256",
                 name: "value",
-                type: "tuple",
+                type: "uint256",
             },
             {
-                components: [
-                    {
-                        internalType: "uint256",
-                        name: "rawValue",
-                        type: "uint256",
-                    },
-                ],
-                internalType: "struct FixedPoint.Unsigned",
+                internalType: "uint256",
                 name: "oraclePrice",
-                type: "tuple",
+                type: "uint256",
             },
         ],
         stateMutability: "view",
@@ -3103,16 +3817,9 @@ const _abi = [
         name: "getKrAssetValue",
         outputs: [
             {
-                components: [
-                    {
-                        internalType: "uint256",
-                        name: "rawValue",
-                        type: "uint256",
-                    },
-                ],
-                internalType: "struct FixedPoint.Unsigned",
+                internalType: "uint256",
                 name: "value",
-                type: "tuple",
+                type: "uint256",
             },
         ],
         stateMutability: "view",
@@ -3150,16 +3857,9 @@ const _abi = [
             {
                 components: [
                     {
-                        components: [
-                            {
-                                internalType: "uint256",
-                                name: "rawValue",
-                                type: "uint256",
-                            },
-                        ],
-                        internalType: "struct FixedPoint.Unsigned",
+                        internalType: "uint256",
                         name: "kFactor",
-                        type: "tuple",
+                        type: "uint256",
                     },
                     {
                         internalType: "contract AggregatorV2V3Interface",
@@ -3182,28 +3882,14 @@ const _abi = [
                         type: "address",
                     },
                     {
-                        components: [
-                            {
-                                internalType: "uint256",
-                                name: "rawValue",
-                                type: "uint256",
-                            },
-                        ],
-                        internalType: "struct FixedPoint.Unsigned",
+                        internalType: "uint256",
                         name: "closeFee",
-                        type: "tuple",
+                        type: "uint256",
                     },
                     {
-                        components: [
-                            {
-                                internalType: "uint256",
-                                name: "rawValue",
-                                type: "uint256",
-                            },
-                        ],
-                        internalType: "struct FixedPoint.Unsigned",
+                        internalType: "uint256",
                         name: "openFee",
-                        type: "tuple",
+                        type: "uint256",
                     },
                     {
                         internalType: "bool",
@@ -3224,16 +3910,9 @@ const _abi = [
         name: "liquidationIncentiveMultiplier",
         outputs: [
             {
-                components: [
-                    {
-                        internalType: "uint256",
-                        name: "rawValue",
-                        type: "uint256",
-                    },
-                ],
-                internalType: "struct FixedPoint.Unsigned",
+                internalType: "uint256",
                 name: "",
-                type: "tuple",
+                type: "uint256",
             },
         ],
         stateMutability: "view",
@@ -3244,16 +3923,9 @@ const _abi = [
         name: "liquidationThreshold",
         outputs: [
             {
-                components: [
-                    {
-                        internalType: "uint256",
-                        name: "rawValue",
-                        type: "uint256",
-                    },
-                ],
-                internalType: "struct FixedPoint.Unsigned",
+                internalType: "uint256",
                 name: "",
-                type: "tuple",
+                type: "uint256",
             },
         ],
         stateMutability: "view",
@@ -3264,16 +3936,9 @@ const _abi = [
         name: "maxLiquidationMultiplier",
         outputs: [
             {
-                components: [
-                    {
-                        internalType: "uint256",
-                        name: "rawValue",
-                        type: "uint256",
-                    },
-                ],
-                internalType: "struct FixedPoint.Unsigned",
+                internalType: "uint256",
                 name: "",
-                type: "tuple",
+                type: "uint256",
             },
         ],
         stateMutability: "view",
@@ -3284,16 +3949,9 @@ const _abi = [
         name: "minimumCollateralizationRatio",
         outputs: [
             {
-                components: [
-                    {
-                        internalType: "uint256",
-                        name: "rawValue",
-                        type: "uint256",
-                    },
-                ],
-                internalType: "struct FixedPoint.Unsigned",
+                internalType: "uint256",
                 name: "",
-                type: "tuple",
+                type: "uint256",
             },
         ],
         stateMutability: "view",
@@ -3304,16 +3962,9 @@ const _abi = [
         name: "minimumDebtValue",
         outputs: [
             {
-                components: [
-                    {
-                        internalType: "uint256",
-                        name: "rawValue",
-                        type: "uint256",
-                    },
-                ],
-                internalType: "struct FixedPoint.Unsigned",
+                internalType: "uint256",
                 name: "",
-                type: "tuple",
+                type: "uint256",
             },
         ],
         stateMutability: "view",
@@ -3448,16 +4099,9 @@ const _abi = [
                                 type: "uint256",
                             },
                             {
-                                components: [
-                                    {
-                                        internalType: "uint256",
-                                        name: "rawValue",
-                                        type: "uint256",
-                                    },
-                                ],
-                                internalType: "struct FixedPoint.Unsigned",
+                                internalType: "uint256",
                                 name: "amountUSD",
-                                type: "tuple",
+                                type: "uint256",
                             },
                             {
                                 internalType: "uint256",
@@ -3465,16 +4109,9 @@ const _abi = [
                                 type: "uint256",
                             },
                             {
-                                components: [
-                                    {
-                                        internalType: "uint256",
-                                        name: "rawValue",
-                                        type: "uint256",
-                                    },
-                                ],
-                                internalType: "struct FixedPoint.Unsigned",
+                                internalType: "uint256",
                                 name: "kFactor",
-                                type: "tuple",
+                                type: "uint256",
                             },
                             {
                                 internalType: "uint256",
@@ -3497,28 +4134,14 @@ const _abi = [
                                 type: "string",
                             },
                             {
-                                components: [
-                                    {
-                                        internalType: "uint256",
-                                        name: "rawValue",
-                                        type: "uint256",
-                                    },
-                                ],
-                                internalType: "struct FixedPoint.Unsigned",
+                                internalType: "uint256",
                                 name: "openFee",
-                                type: "tuple",
+                                type: "uint256",
                             },
                             {
-                                components: [
-                                    {
-                                        internalType: "uint256",
-                                        name: "rawValue",
-                                        type: "uint256",
-                                    },
-                                ],
-                                internalType: "struct FixedPoint.Unsigned",
+                                internalType: "uint256",
                                 name: "closeFee",
-                                type: "tuple",
+                                type: "uint256",
                             },
                         ],
                         internalType: "struct LibUI.krAssetInfoUser[]",
@@ -3548,40 +4171,19 @@ const _abi = [
                                 type: "uint256",
                             },
                             {
-                                components: [
-                                    {
-                                        internalType: "uint256",
-                                        name: "rawValue",
-                                        type: "uint256",
-                                    },
-                                ],
-                                internalType: "struct FixedPoint.Unsigned",
+                                internalType: "uint256",
                                 name: "amountUSD",
-                                type: "tuple",
+                                type: "uint256",
                             },
                             {
-                                components: [
-                                    {
-                                        internalType: "uint256",
-                                        name: "rawValue",
-                                        type: "uint256",
-                                    },
-                                ],
-                                internalType: "struct FixedPoint.Unsigned",
+                                internalType: "uint256",
                                 name: "cFactor",
-                                type: "tuple",
+                                type: "uint256",
                             },
                             {
-                                components: [
-                                    {
-                                        internalType: "uint256",
-                                        name: "rawValue",
-                                        type: "uint256",
-                                    },
-                                ],
-                                internalType: "struct FixedPoint.Unsigned",
+                                internalType: "uint256",
                                 name: "liquidationIncentive",
-                                type: "tuple",
+                                type: "uint256",
                             },
                             {
                                 internalType: "uint8",
@@ -3614,88 +4216,39 @@ const _abi = [
                         type: "tuple[]",
                     },
                     {
-                        components: [
-                            {
-                                internalType: "uint256",
-                                name: "rawValue",
-                                type: "uint256",
-                            },
-                        ],
-                        internalType: "struct FixedPoint.Unsigned",
+                        internalType: "uint256",
                         name: "healthFactor",
-                        type: "tuple",
+                        type: "uint256",
                     },
                     {
-                        components: [
-                            {
-                                internalType: "uint256",
-                                name: "rawValue",
-                                type: "uint256",
-                            },
-                        ],
-                        internalType: "struct FixedPoint.Unsigned",
+                        internalType: "uint256",
                         name: "debtActualUSD",
-                        type: "tuple",
+                        type: "uint256",
                     },
                     {
-                        components: [
-                            {
-                                internalType: "uint256",
-                                name: "rawValue",
-                                type: "uint256",
-                            },
-                        ],
-                        internalType: "struct FixedPoint.Unsigned",
+                        internalType: "uint256",
                         name: "debtUSD",
-                        type: "tuple",
+                        type: "uint256",
                     },
                     {
-                        components: [
-                            {
-                                internalType: "uint256",
-                                name: "rawValue",
-                                type: "uint256",
-                            },
-                        ],
-                        internalType: "struct FixedPoint.Unsigned",
+                        internalType: "uint256",
                         name: "collateralActualUSD",
-                        type: "tuple",
+                        type: "uint256",
                     },
                     {
-                        components: [
-                            {
-                                internalType: "uint256",
-                                name: "rawValue",
-                                type: "uint256",
-                            },
-                        ],
-                        internalType: "struct FixedPoint.Unsigned",
+                        internalType: "uint256",
                         name: "collateralUSD",
-                        type: "tuple",
+                        type: "uint256",
                     },
                     {
-                        components: [
-                            {
-                                internalType: "uint256",
-                                name: "rawValue",
-                                type: "uint256",
-                            },
-                        ],
-                        internalType: "struct FixedPoint.Unsigned",
+                        internalType: "uint256",
                         name: "minCollateralUSD",
-                        type: "tuple",
+                        type: "uint256",
                     },
                     {
-                        components: [
-                            {
-                                internalType: "uint256",
-                                name: "rawValue",
-                                type: "uint256",
-                            },
-                        ],
-                        internalType: "struct FixedPoint.Unsigned",
+                        internalType: "uint256",
                         name: "borrowingPowerUSD",
-                        type: "tuple",
+                        type: "uint256",
                     },
                 ],
                 internalType: "struct LibUI.KreskoUser",
@@ -3742,9 +4295,9 @@ const _abi = [
                         type: "uint256",
                     },
                     {
-                        internalType: "uint256[]",
+                        internalType: "uint256",
                         name: "rewardPerBlocks",
-                        type: "uint256[]",
+                        type: "uint256",
                     },
                     {
                         internalType: "uint256",
@@ -3906,28 +4459,14 @@ const _abi = [
                         type: "uint256",
                     },
                     {
-                        components: [
-                            {
-                                internalType: "uint256",
-                                name: "rawValue",
-                                type: "uint256",
-                            },
-                        ],
-                        internalType: "struct FixedPoint.Unsigned",
+                        internalType: "uint256",
                         name: "liquidationIncentive",
-                        type: "tuple",
+                        type: "uint256",
                     },
                     {
-                        components: [
-                            {
-                                internalType: "uint256",
-                                name: "rawValue",
-                                type: "uint256",
-                            },
-                        ],
-                        internalType: "struct FixedPoint.Unsigned",
+                        internalType: "uint256",
                         name: "cFactor",
-                        type: "tuple",
+                        type: "uint256",
                     },
                     {
                         internalType: "uint8",
@@ -3997,40 +4536,19 @@ const _abi = [
                         type: "uint256",
                     },
                     {
-                        components: [
-                            {
-                                internalType: "uint256",
-                                name: "rawValue",
-                                type: "uint256",
-                            },
-                        ],
-                        internalType: "struct FixedPoint.Unsigned",
+                        internalType: "uint256",
                         name: "openFee",
-                        type: "tuple",
+                        type: "uint256",
                     },
                     {
-                        components: [
-                            {
-                                internalType: "uint256",
-                                name: "rawValue",
-                                type: "uint256",
-                            },
-                        ],
-                        internalType: "struct FixedPoint.Unsigned",
+                        internalType: "uint256",
                         name: "closeFee",
-                        type: "tuple",
+                        type: "uint256",
                     },
                     {
-                        components: [
-                            {
-                                internalType: "uint256",
-                                name: "rawValue",
-                                type: "uint256",
-                            },
-                        ],
-                        internalType: "struct FixedPoint.Unsigned",
+                        internalType: "uint256",
                         name: "kFactor",
-                        type: "tuple",
+                        type: "uint256",
                     },
                     {
                         internalType: "string",

@@ -19,7 +19,7 @@ import type { FunctionFragment, Result, EventFragment } from "@ethersproject/abi
 import type { Listener, Provider } from "@ethersproject/providers";
 import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent, PromiseOrValue } from "../../../common";
 
-export declare namespace KrStaking {
+export declare namespace IKrStaking {
     export type RewardStruct = {
         pid: PromiseOrValue<BigNumberish>;
         tokens: PromiseOrValue<string>[];
@@ -303,6 +303,13 @@ export type EmergencyWithdrawEvent = TypedEvent<[string, BigNumber, BigNumber], 
 
 export type EmergencyWithdrawEventFilter = TypedEventFilter<EmergencyWithdrawEvent>;
 
+export interface InitializedEventObject {
+    version: number;
+}
+export type InitializedEvent = TypedEvent<[number], InitializedEventObject>;
+
+export type InitializedEventFilter = TypedEventFilter<InitializedEvent>;
+
 export interface RoleAdminChangedEventObject {
     role: string;
     previousAdminRole: string;
@@ -380,8 +387,8 @@ export interface KrStaking extends BaseContract {
             _account: PromiseOrValue<string>,
             overrides?: CallOverrides,
         ): Promise<
-            [KrStaking.RewardStructOutput[]] & {
-                allRewards: KrStaking.RewardStructOutput[];
+            [IKrStaking.RewardStructOutput[]] & {
+                allRewards: IKrStaking.RewardStructOutput[];
             }
         >;
 
@@ -446,12 +453,16 @@ export interface KrStaking extends BaseContract {
             _pid: PromiseOrValue<BigNumberish>,
             _user: PromiseOrValue<string>,
             overrides?: CallOverrides,
-        ): Promise<[KrStaking.RewardStructOutput] & { rewards: KrStaking.RewardStructOutput }>;
+        ): Promise<
+            [IKrStaking.RewardStructOutput] & {
+                rewards: IKrStaking.RewardStructOutput;
+            }
+        >;
 
         poolInfo(
             _pid: PromiseOrValue<BigNumberish>,
             overrides?: CallOverrides,
-        ): Promise<[KrStaking.PoolInfoStructOutput]>;
+        ): Promise<[IKrStaking.PoolInfoStructOutput]>;
 
         poolLength(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -502,7 +513,7 @@ export interface KrStaking extends BaseContract {
             _pid: PromiseOrValue<BigNumberish>,
             _account: PromiseOrValue<string>,
             overrides?: CallOverrides,
-        ): Promise<[KrStaking.UserInfoStructOutput]>;
+        ): Promise<[IKrStaking.UserInfoStructOutput]>;
 
         withdraw(
             _pid: PromiseOrValue<BigNumberish>,
@@ -535,7 +546,7 @@ export interface KrStaking extends BaseContract {
     allPendingRewards(
         _account: PromiseOrValue<string>,
         overrides?: CallOverrides,
-    ): Promise<KrStaking.RewardStructOutput[]>;
+    ): Promise<IKrStaking.RewardStructOutput[]>;
 
     claim(
         _pid: PromiseOrValue<BigNumberish>,
@@ -598,9 +609,9 @@ export interface KrStaking extends BaseContract {
         _pid: PromiseOrValue<BigNumberish>,
         _user: PromiseOrValue<string>,
         overrides?: CallOverrides,
-    ): Promise<KrStaking.RewardStructOutput>;
+    ): Promise<IKrStaking.RewardStructOutput>;
 
-    poolInfo(_pid: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<KrStaking.PoolInfoStructOutput>;
+    poolInfo(_pid: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<IKrStaking.PoolInfoStructOutput>;
 
     poolLength(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -651,7 +662,7 @@ export interface KrStaking extends BaseContract {
         _pid: PromiseOrValue<BigNumberish>,
         _account: PromiseOrValue<string>,
         overrides?: CallOverrides,
-    ): Promise<KrStaking.UserInfoStructOutput>;
+    ): Promise<IKrStaking.UserInfoStructOutput>;
 
     withdraw(
         _pid: PromiseOrValue<BigNumberish>,
@@ -684,7 +695,7 @@ export interface KrStaking extends BaseContract {
         allPendingRewards(
             _account: PromiseOrValue<string>,
             overrides?: CallOverrides,
-        ): Promise<KrStaking.RewardStructOutput[]>;
+        ): Promise<IKrStaking.RewardStructOutput[]>;
 
         claim(
             _pid: PromiseOrValue<BigNumberish>,
@@ -744,12 +755,12 @@ export interface KrStaking extends BaseContract {
             _pid: PromiseOrValue<BigNumberish>,
             _user: PromiseOrValue<string>,
             overrides?: CallOverrides,
-        ): Promise<KrStaking.RewardStructOutput>;
+        ): Promise<IKrStaking.RewardStructOutput>;
 
         poolInfo(
             _pid: PromiseOrValue<BigNumberish>,
             overrides?: CallOverrides,
-        ): Promise<KrStaking.PoolInfoStructOutput>;
+        ): Promise<IKrStaking.PoolInfoStructOutput>;
 
         poolLength(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -794,13 +805,13 @@ export interface KrStaking extends BaseContract {
         updatePool(
             _pid: PromiseOrValue<BigNumberish>,
             overrides?: CallOverrides,
-        ): Promise<KrStaking.PoolInfoStructOutput>;
+        ): Promise<IKrStaking.PoolInfoStructOutput>;
 
         userInfo(
             _pid: PromiseOrValue<BigNumberish>,
             _account: PromiseOrValue<string>,
             overrides?: CallOverrides,
-        ): Promise<KrStaking.UserInfoStructOutput>;
+        ): Promise<IKrStaking.UserInfoStructOutput>;
 
         withdraw(
             _pid: PromiseOrValue<BigNumberish>,
@@ -851,6 +862,9 @@ export interface KrStaking extends BaseContract {
             pid?: PromiseOrValue<BigNumberish> | null,
             amount?: PromiseOrValue<BigNumberish> | null,
         ): EmergencyWithdrawEventFilter;
+
+        "Initialized(uint8)"(version?: null): InitializedEventFilter;
+        Initialized(version?: null): InitializedEventFilter;
 
         "RoleAdminChanged(bytes32,bytes32,bytes32)"(
             role?: PromiseOrValue<BytesLike> | null,

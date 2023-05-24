@@ -18,6 +18,135 @@ import type { FunctionFragment, Result, EventFragment } from "@ethersproject/abi
 import type { Listener, Provider } from "@ethersproject/providers";
 import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent, PromiseOrValue } from "../../common";
 
+export type PoolCollateralStruct = {
+    liquidationIncentive: PromiseOrValue<BigNumberish>;
+    liquidityIndex: PromiseOrValue<BigNumberish>;
+    decimals: PromiseOrValue<BigNumberish>;
+};
+
+export type PoolCollateralStructOutput = [BigNumber, BigNumber, number] & {
+    liquidationIncentive: BigNumber;
+    liquidityIndex: BigNumber;
+    decimals: number;
+};
+
+export type PoolKrAssetStruct = {
+    protocolFee: PromiseOrValue<BigNumberish>;
+    openFee: PromiseOrValue<BigNumberish>;
+    closeFee: PromiseOrValue<BigNumberish>;
+    supplyLimit: PromiseOrValue<BigNumberish>;
+};
+
+export type PoolKrAssetStructOutput = [BigNumber, BigNumber, BigNumber, BigNumber] & {
+    protocolFee: BigNumber;
+    openFee: BigNumber;
+    closeFee: BigNumber;
+    supplyLimit: BigNumber;
+};
+
+export type PositionStruct = {
+    account: PromiseOrValue<string>;
+    assetA: PromiseOrValue<string>;
+    assetB: PromiseOrValue<string>;
+    amountA: PromiseOrValue<BigNumberish>;
+    amountB: PromiseOrValue<BigNumberish>;
+    valueBCache: PromiseOrValue<BigNumberish>;
+    leverage: PromiseOrValue<BigNumberish>;
+    liquidationIncentive: PromiseOrValue<BigNumberish>;
+    closeIncentive: PromiseOrValue<BigNumberish>;
+    creationTimestamp: PromiseOrValue<BigNumberish>;
+    lastUpdateTimestamp: PromiseOrValue<BigNumberish>;
+    nonce: PromiseOrValue<BigNumberish>;
+};
+
+export type PositionStructOutput = [
+    string,
+    string,
+    string,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+] & {
+    account: string;
+    assetA: string;
+    assetB: string;
+    amountA: BigNumber;
+    amountB: BigNumber;
+    valueBCache: BigNumber;
+    leverage: BigNumber;
+    liquidationIncentive: BigNumber;
+    closeIncentive: BigNumber;
+    creationTimestamp: BigNumber;
+    lastUpdateTimestamp: BigNumber;
+    nonce: BigNumber;
+};
+
+export type NewPositionStruct = {
+    account: PromiseOrValue<string>;
+    assetA: PromiseOrValue<string>;
+    assetB: PromiseOrValue<string>;
+    amountA: PromiseOrValue<BigNumberish>;
+    amountBMin: PromiseOrValue<BigNumberish>;
+    leverage: PromiseOrValue<BigNumberish>;
+};
+
+export type NewPositionStructOutput = [string, string, string, BigNumber, BigNumber, BigNumber] & {
+    account: string;
+    assetA: string;
+    assetB: string;
+    amountA: BigNumber;
+    amountBMin: BigNumber;
+    leverage: BigNumber;
+};
+
+export type CollateralAssetStruct = {
+    factor: PromiseOrValue<BigNumberish>;
+    oracle: PromiseOrValue<string>;
+    marketStatusOracle: PromiseOrValue<string>;
+    anchor: PromiseOrValue<string>;
+    decimals: PromiseOrValue<BigNumberish>;
+    exists: PromiseOrValue<boolean>;
+    liquidationIncentive: PromiseOrValue<BigNumberish>;
+};
+
+export type CollateralAssetStructOutput = [BigNumber, string, string, string, number, boolean, BigNumber] & {
+    factor: BigNumber;
+    oracle: string;
+    marketStatusOracle: string;
+    anchor: string;
+    decimals: number;
+    exists: boolean;
+    liquidationIncentive: BigNumber;
+};
+
+export type KrAssetStruct = {
+    kFactor: PromiseOrValue<BigNumberish>;
+    oracle: PromiseOrValue<string>;
+    marketStatusOracle: PromiseOrValue<string>;
+    supplyLimit: PromiseOrValue<BigNumberish>;
+    anchor: PromiseOrValue<string>;
+    closeFee: PromiseOrValue<BigNumberish>;
+    openFee: PromiseOrValue<BigNumberish>;
+    exists: PromiseOrValue<boolean>;
+};
+
+export type KrAssetStructOutput = [BigNumber, string, string, BigNumber, string, BigNumber, BigNumber, boolean] & {
+    kFactor: BigNumber;
+    oracle: string;
+    marketStatusOracle: string;
+    supplyLimit: BigNumber;
+    anchor: string;
+    closeFee: BigNumber;
+    openFee: BigNumber;
+    exists: boolean;
+};
+
 export type MinterInitArgsStruct = {
     admin: PromiseOrValue<string>;
     council: PromiseOrValue<string>;
@@ -106,88 +235,22 @@ export type StabilityRateParamsStructOutput = [BigNumber, BigNumber, BigNumber, 
     priceRateDelta: BigNumber;
 };
 
-export type CollateralAssetStruct = {
-    factor: FixedPoint.UnsignedStruct;
-    oracle: PromiseOrValue<string>;
-    marketStatusOracle: PromiseOrValue<string>;
-    anchor: PromiseOrValue<string>;
-    decimals: PromiseOrValue<BigNumberish>;
-    exists: PromiseOrValue<boolean>;
-    liquidationIncentive: FixedPoint.UnsignedStruct;
-};
-
-export type CollateralAssetStructOutput = [
-    FixedPoint.UnsignedStructOutput,
-    string,
-    string,
-    string,
-    number,
-    boolean,
-    FixedPoint.UnsignedStructOutput,
-] & {
-    factor: FixedPoint.UnsignedStructOutput;
-    oracle: string;
-    marketStatusOracle: string;
-    anchor: string;
-    decimals: number;
-    exists: boolean;
-    liquidationIncentive: FixedPoint.UnsignedStructOutput;
-};
-
 export type MinterParamsStruct = {
-    minimumCollateralizationRatio: FixedPoint.UnsignedStruct;
-    minimumDebtValue: FixedPoint.UnsignedStruct;
-    liquidationThreshold: FixedPoint.UnsignedStruct;
-    liquidationOverflowPercentage: FixedPoint.UnsignedStruct;
+    minimumCollateralizationRatio: PromiseOrValue<BigNumberish>;
+    minimumDebtValue: PromiseOrValue<BigNumberish>;
+    liquidationThreshold: PromiseOrValue<BigNumberish>;
+    liquidationOverflowPercentage: PromiseOrValue<BigNumberish>;
     feeRecipient: PromiseOrValue<string>;
     extOracleDecimals: PromiseOrValue<BigNumberish>;
 };
 
-export type MinterParamsStructOutput = [
-    FixedPoint.UnsignedStructOutput,
-    FixedPoint.UnsignedStructOutput,
-    FixedPoint.UnsignedStructOutput,
-    FixedPoint.UnsignedStructOutput,
-    string,
-    number,
-] & {
-    minimumCollateralizationRatio: FixedPoint.UnsignedStructOutput;
-    minimumDebtValue: FixedPoint.UnsignedStructOutput;
-    liquidationThreshold: FixedPoint.UnsignedStructOutput;
-    liquidationOverflowPercentage: FixedPoint.UnsignedStructOutput;
+export type MinterParamsStructOutput = [BigNumber, BigNumber, BigNumber, BigNumber, string, number] & {
+    minimumCollateralizationRatio: BigNumber;
+    minimumDebtValue: BigNumber;
+    liquidationThreshold: BigNumber;
+    liquidationOverflowPercentage: BigNumber;
     feeRecipient: string;
     extOracleDecimals: number;
-};
-
-export type KrAssetStruct = {
-    kFactor: FixedPoint.UnsignedStruct;
-    oracle: PromiseOrValue<string>;
-    marketStatusOracle: PromiseOrValue<string>;
-    supplyLimit: PromiseOrValue<BigNumberish>;
-    anchor: PromiseOrValue<string>;
-    closeFee: FixedPoint.UnsignedStruct;
-    openFee: FixedPoint.UnsignedStruct;
-    exists: PromiseOrValue<boolean>;
-};
-
-export type KrAssetStructOutput = [
-    FixedPoint.UnsignedStructOutput,
-    string,
-    string,
-    BigNumber,
-    string,
-    FixedPoint.UnsignedStructOutput,
-    FixedPoint.UnsignedStructOutput,
-    boolean,
-] & {
-    kFactor: FixedPoint.UnsignedStructOutput;
-    oracle: string;
-    marketStatusOracle: string;
-    supplyLimit: BigNumber;
-    anchor: string;
-    closeFee: FixedPoint.UnsignedStructOutput;
-    openFee: FixedPoint.UnsignedStructOutput;
-    exists: boolean;
 };
 
 export declare namespace IDiamondCutFacet {
@@ -216,10 +279,32 @@ export declare namespace IDiamondLoupeFacet {
     };
 }
 
-export declare namespace FixedPoint {
-    export type UnsignedStruct = { rawValue: PromiseOrValue<BigNumberish> };
+export declare namespace ICollateralPoolConfigFacet {
+    export type CollateralPoolConfigStruct = {
+        swapFeeRecipient: PromiseOrValue<string>;
+        mcr: PromiseOrValue<BigNumberish>;
+        lt: PromiseOrValue<BigNumberish>;
+        positions: PromiseOrValue<string>;
+    };
 
-    export type UnsignedStructOutput = [BigNumber] & { rawValue: BigNumber };
+    export type CollateralPoolConfigStructOutput = [string, BigNumber, BigNumber, string] & {
+        swapFeeRecipient: string;
+        mcr: BigNumber;
+        lt: BigNumber;
+        positions: string;
+    };
+
+    export type PairSetterStruct = {
+        assetIn: PromiseOrValue<string>;
+        assetOut: PromiseOrValue<string>;
+        enabled: PromiseOrValue<boolean>;
+    };
+
+    export type PairSetterStructOutput = [string, string, boolean] & {
+        assetIn: string;
+        assetOut: string;
+        enabled: boolean;
+    };
 }
 
 export declare namespace LibUI {
@@ -247,15 +332,15 @@ export declare namespace LibUI {
         amountScaled: PromiseOrValue<BigNumberish>;
         priceRate: PromiseOrValue<BigNumberish>;
         stabilityRate: PromiseOrValue<BigNumberish>;
-        amountUSD: FixedPoint.UnsignedStruct;
+        amountUSD: PromiseOrValue<BigNumberish>;
         index: PromiseOrValue<BigNumberish>;
-        kFactor: FixedPoint.UnsignedStruct;
+        kFactor: PromiseOrValue<BigNumberish>;
         price: PromiseOrValue<BigNumberish>;
         ammPrice: PromiseOrValue<BigNumberish>;
         symbol: PromiseOrValue<string>;
         name: PromiseOrValue<string>;
-        openFee: FixedPoint.UnsignedStruct;
-        closeFee: FixedPoint.UnsignedStruct;
+        openFee: PromiseOrValue<BigNumberish>;
+        closeFee: PromiseOrValue<BigNumberish>;
     };
 
     export type KrAssetInfoUserStructOutput = [
@@ -266,15 +351,15 @@ export declare namespace LibUI {
         BigNumber,
         BigNumber,
         BigNumber,
-        FixedPoint.UnsignedStructOutput,
         BigNumber,
-        FixedPoint.UnsignedStructOutput,
+        BigNumber,
+        BigNumber,
         BigNumber,
         BigNumber,
         string,
         string,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
+        BigNumber,
+        BigNumber,
     ] & {
         assetAddress: string;
         oracleAddress: string;
@@ -283,15 +368,15 @@ export declare namespace LibUI {
         amountScaled: BigNumber;
         priceRate: BigNumber;
         stabilityRate: BigNumber;
-        amountUSD: FixedPoint.UnsignedStructOutput;
+        amountUSD: BigNumber;
         index: BigNumber;
-        kFactor: FixedPoint.UnsignedStructOutput;
+        kFactor: BigNumber;
         price: BigNumber;
         ammPrice: BigNumber;
         symbol: string;
         name: string;
-        openFee: FixedPoint.UnsignedStructOutput;
-        closeFee: FixedPoint.UnsignedStructOutput;
+        openFee: BigNumber;
+        closeFee: BigNumber;
     };
 
     export type CollateralAssetInfoUserStruct = {
@@ -299,9 +384,9 @@ export declare namespace LibUI {
         oracleAddress: PromiseOrValue<string>;
         anchorAddress: PromiseOrValue<string>;
         amount: PromiseOrValue<BigNumberish>;
-        amountUSD: FixedPoint.UnsignedStruct;
-        cFactor: FixedPoint.UnsignedStruct;
-        liquidationIncentive: FixedPoint.UnsignedStruct;
+        amountUSD: PromiseOrValue<BigNumberish>;
+        cFactor: PromiseOrValue<BigNumberish>;
+        liquidationIncentive: PromiseOrValue<BigNumberish>;
         decimals: PromiseOrValue<BigNumberish>;
         index: PromiseOrValue<BigNumberish>;
         price: PromiseOrValue<BigNumberish>;
@@ -314,9 +399,9 @@ export declare namespace LibUI {
         string,
         string,
         BigNumber,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
+        BigNumber,
+        BigNumber,
+        BigNumber,
         number,
         BigNumber,
         BigNumber,
@@ -327,9 +412,9 @@ export declare namespace LibUI {
         oracleAddress: string;
         anchorAddress: string;
         amount: BigNumber;
-        amountUSD: FixedPoint.UnsignedStructOutput;
-        cFactor: FixedPoint.UnsignedStructOutput;
-        liquidationIncentive: FixedPoint.UnsignedStructOutput;
+        amountUSD: BigNumber;
+        cFactor: BigNumber;
+        liquidationIncentive: BigNumber;
         decimals: number;
         index: BigNumber;
         price: BigNumber;
@@ -340,35 +425,35 @@ export declare namespace LibUI {
     export type KreskoUserStruct = {
         krAssets: LibUI.KrAssetInfoUserStruct[];
         collateralAssets: LibUI.CollateralAssetInfoUserStruct[];
-        healthFactor: FixedPoint.UnsignedStruct;
-        debtActualUSD: FixedPoint.UnsignedStruct;
-        debtUSD: FixedPoint.UnsignedStruct;
-        collateralActualUSD: FixedPoint.UnsignedStruct;
-        collateralUSD: FixedPoint.UnsignedStruct;
-        minCollateralUSD: FixedPoint.UnsignedStruct;
-        borrowingPowerUSD: FixedPoint.UnsignedStruct;
+        healthFactor: PromiseOrValue<BigNumberish>;
+        debtActualUSD: PromiseOrValue<BigNumberish>;
+        debtUSD: PromiseOrValue<BigNumberish>;
+        collateralActualUSD: PromiseOrValue<BigNumberish>;
+        collateralUSD: PromiseOrValue<BigNumberish>;
+        minCollateralUSD: PromiseOrValue<BigNumberish>;
+        borrowingPowerUSD: PromiseOrValue<BigNumberish>;
     };
 
     export type KreskoUserStructOutput = [
         LibUI.KrAssetInfoUserStructOutput[],
         LibUI.CollateralAssetInfoUserStructOutput[],
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
     ] & {
         krAssets: LibUI.KrAssetInfoUserStructOutput[];
         collateralAssets: LibUI.CollateralAssetInfoUserStructOutput[];
-        healthFactor: FixedPoint.UnsignedStructOutput;
-        debtActualUSD: FixedPoint.UnsignedStructOutput;
-        debtUSD: FixedPoint.UnsignedStructOutput;
-        collateralActualUSD: FixedPoint.UnsignedStructOutput;
-        collateralUSD: FixedPoint.UnsignedStructOutput;
-        minCollateralUSD: FixedPoint.UnsignedStructOutput;
-        borrowingPowerUSD: FixedPoint.UnsignedStructOutput;
+        healthFactor: BigNumber;
+        debtActualUSD: BigNumber;
+        debtUSD: BigNumber;
+        collateralActualUSD: BigNumber;
+        collateralUSD: BigNumber;
+        minCollateralUSD: BigNumber;
+        borrowingPowerUSD: BigNumber;
     };
 
     export type BalanceStruct = {
@@ -386,7 +471,7 @@ export declare namespace LibUI {
         depositToken: PromiseOrValue<string>;
         totalDeposits: PromiseOrValue<BigNumberish>;
         allocPoint: PromiseOrValue<BigNumberish>;
-        rewardPerBlocks: PromiseOrValue<BigNumberish>[];
+        rewardPerBlocks: PromiseOrValue<BigNumberish>;
         lastRewardBlock: PromiseOrValue<BigNumberish>;
         depositAmount: PromiseOrValue<BigNumberish>;
         rewardTokens: PromiseOrValue<string>[];
@@ -398,7 +483,7 @@ export declare namespace LibUI {
         string,
         BigNumber,
         BigNumber,
-        BigNumber[],
+        BigNumber,
         BigNumber,
         BigNumber,
         string[],
@@ -408,7 +493,7 @@ export declare namespace LibUI {
         depositToken: string;
         totalDeposits: BigNumber;
         allocPoint: BigNumber;
-        rewardPerBlocks: BigNumber[];
+        rewardPerBlocks: BigNumber;
         lastRewardBlock: BigNumber;
         depositAmount: BigNumber;
         rewardTokens: string[];
@@ -435,8 +520,8 @@ export declare namespace LibUI {
         anchorAddress: PromiseOrValue<string>;
         price: PromiseOrValue<BigNumberish>;
         value: PromiseOrValue<BigNumberish>;
-        liquidationIncentive: FixedPoint.UnsignedStruct;
-        cFactor: FixedPoint.UnsignedStruct;
+        liquidationIncentive: PromiseOrValue<BigNumberish>;
+        cFactor: PromiseOrValue<BigNumberish>;
         decimals: PromiseOrValue<BigNumberish>;
         symbol: PromiseOrValue<string>;
         name: PromiseOrValue<string>;
@@ -449,8 +534,8 @@ export declare namespace LibUI {
         string,
         BigNumber,
         BigNumber,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
+        BigNumber,
+        BigNumber,
         number,
         string,
         string,
@@ -461,8 +546,8 @@ export declare namespace LibUI {
         anchorAddress: string;
         price: BigNumber;
         value: BigNumber;
-        liquidationIncentive: FixedPoint.UnsignedStructOutput;
-        cFactor: FixedPoint.UnsignedStructOutput;
+        liquidationIncentive: BigNumber;
+        cFactor: BigNumber;
         decimals: number;
         symbol: string;
         name: string;
@@ -478,9 +563,9 @@ export declare namespace LibUI {
         priceRate: PromiseOrValue<BigNumberish>;
         stabilityRate: PromiseOrValue<BigNumberish>;
         value: PromiseOrValue<BigNumberish>;
-        openFee: FixedPoint.UnsignedStruct;
-        closeFee: FixedPoint.UnsignedStruct;
-        kFactor: FixedPoint.UnsignedStruct;
+        openFee: PromiseOrValue<BigNumberish>;
+        closeFee: PromiseOrValue<BigNumberish>;
+        kFactor: PromiseOrValue<BigNumberish>;
         symbol: PromiseOrValue<string>;
         name: PromiseOrValue<string>;
         marketOpen: PromiseOrValue<boolean>;
@@ -495,9 +580,9 @@ export declare namespace LibUI {
         BigNumber,
         BigNumber,
         BigNumber,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
+        BigNumber,
+        BigNumber,
+        BigNumber,
         string,
         string,
         boolean,
@@ -510,9 +595,9 @@ export declare namespace LibUI {
         priceRate: BigNumber;
         stabilityRate: BigNumber;
         value: BigNumber;
-        openFee: FixedPoint.UnsignedStructOutput;
-        closeFee: FixedPoint.UnsignedStructOutput;
-        kFactor: FixedPoint.UnsignedStructOutput;
+        openFee: BigNumber;
+        closeFee: BigNumber;
+        kFactor: BigNumber;
         symbol: string;
         name: string;
         marketOpen: boolean;
@@ -569,12 +654,60 @@ export interface KreskoInterface extends utils.Interface {
         "transferOwnership(address)": FunctionFragment;
         "setERC165(bytes4[],bytes4[])": FunctionFragment;
         "supportsInterface(bytes4)": FunctionFragment;
+        "disablePoolCollaterals(address[])": FunctionFragment;
+        "disablePoolKrAssets(address[])": FunctionFragment;
+        "enablePoolCollaterals(address[],(uint256,uint128,uint8)[])": FunctionFragment;
+        "enablePoolKrAssets(address[],(uint256,uint256,uint256,uint256)[])": FunctionFragment;
+        "getCollateralPoolConfig()": FunctionFragment;
+        "initialize((address,uint256,uint256,address))": FunctionFragment;
+        "initialize((address,address,address,uint8,uint256,uint256,uint256))": FunctionFragment;
+        "removePoolCollaterals(address[])": FunctionFragment;
+        "removePoolKrAssets(address[])": FunctionFragment;
+        "setFees(address,uint256,uint256,uint256)": FunctionFragment;
+        "setPoolLiquidationThreshold(uint256)": FunctionFragment;
+        "setPoolMinimumCollateralizationRatio(uint256)": FunctionFragment;
+        "setSwapPairs((address,address,bool)[])": FunctionFragment;
+        "setSwapPairsSingle((address,address,bool))": FunctionFragment;
+        "updatePoolCollateral(address,uint256)": FunctionFragment;
+        "updatePoolKrAsset(address,(uint256,uint256,uint256,uint256))": FunctionFragment;
+        "poolDeposit(address,address,uint256)": FunctionFragment;
+        "poolIsLiquidatable()": FunctionFragment;
+        "poolLiquidate(address,uint256,address)": FunctionFragment;
+        "poolRepay(address,uint256,address)": FunctionFragment;
+        "poolWithdraw(address,address,uint256)": FunctionFragment;
+        "getPoolAccountDepositsValue(address,address,bool)": FunctionFragment;
+        "getPoolAccountDepositsValueWithFees(address,address)": FunctionFragment;
+        "getPoolAccountDepositsWithFees(address,address)": FunctionFragment;
+        "getPoolAccountPrincipalDeposits(address,address)": FunctionFragment;
+        "getPoolAccountTotalDepositsValue(address,bool)": FunctionFragment;
+        "getPoolAccountTotalDepositsValueWithFees(address)": FunctionFragment;
+        "getPoolAssetIsEnabled(address)": FunctionFragment;
+        "getPoolCollateral(address)": FunctionFragment;
+        "getPoolCollateralAssets()": FunctionFragment;
+        "getPoolDebt(address)": FunctionFragment;
+        "getPoolDebtValue(address,bool)": FunctionFragment;
+        "getPoolDeposits(address)": FunctionFragment;
+        "getPoolDepositsValue(address,bool)": FunctionFragment;
+        "getPoolIsSwapEnabled(address,address)": FunctionFragment;
+        "getPoolKrAsset(address)": FunctionFragment;
+        "getPoolKrAssets()": FunctionFragment;
+        "getPoolStats(bool)": FunctionFragment;
+        "getPoolSwapDeposits(address)": FunctionFragment;
+        "getPoolSwapFeeRecipient()": FunctionFragment;
+        "cumulateIncome(address,uint256)": FunctionFragment;
+        "getPrice(address)": FunctionFragment;
+        "positionDepositA(address,uint256,(address,address,address,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256))": FunctionFragment;
+        "positionWithdrawA(address,uint256,(address,address,address,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256))": FunctionFragment;
+        "previewSwap(address,address,uint256,uint256)": FunctionFragment;
+        "swap(address,address,address,uint256,uint256)": FunctionFragment;
+        "swapIntoLeverage(address,(address,address,address,uint256,uint256,uint256))": FunctionFragment;
+        "swapOutOfLeverage((address,address,address,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256),address)": FunctionFragment;
         "calcExpectedFee(address,address,uint256,uint256)": FunctionFragment;
         "collateralDeposits(address,address)": FunctionFragment;
         "getAccountCollateralRatio(address)": FunctionFragment;
         "getAccountCollateralValue(address)": FunctionFragment;
         "getAccountKrAssetValue(address)": FunctionFragment;
-        "getAccountMinimumCollateralValueAtRatio(address,(uint256))": FunctionFragment;
+        "getAccountMinimumCollateralValueAtRatio(address,uint256)": FunctionFragment;
         "getCollateralAdjustedAndRealValue(address,address)": FunctionFragment;
         "getCollateralRatiosFor(address[])": FunctionFragment;
         "getDepositedCollateralAssetIndex(address,address)": FunctionFragment;
@@ -588,16 +721,15 @@ export interface KreskoInterface extends utils.Interface {
         "burnKreskoAsset(address,address,uint256,uint256)": FunctionFragment;
         "batchCloseKrAssetDebtPositions(address)": FunctionFragment;
         "closeKrAssetDebtPosition(address,address)": FunctionFragment;
-        "addCollateralAsset(address,address,uint256,uint256,address,address)": FunctionFragment;
-        "addKreskoAsset(address,address,uint256,address,address,uint256,uint256,uint256)": FunctionFragment;
-        "initialize((address,address,address,uint8,uint256,uint256,uint256))": FunctionFragment;
+        "addCollateralAsset(address,(uint256,address,address,address,uint8,bool,uint256))": FunctionFragment;
+        "addKreskoAsset(address,(uint256,address,address,uint256,address,uint256,uint256,bool))": FunctionFragment;
         "updateAMMOracle(address)": FunctionFragment;
         "updateCFactor(address,uint256)": FunctionFragment;
-        "updateCollateralAsset(address,address,uint256,uint256,address,address)": FunctionFragment;
+        "updateCollateralAsset(address,(uint256,address,address,address,uint8,bool,uint256))": FunctionFragment;
         "updateExtOracleDecimals(uint8)": FunctionFragment;
         "updateFeeRecipient(address)": FunctionFragment;
         "updateKFactor(address,uint256)": FunctionFragment;
-        "updateKreskoAsset(address,address,uint256,address,address,uint256,uint256,uint256)": FunctionFragment;
+        "updateKreskoAsset(address,(uint256,address,address,uint256,address,uint256,uint256,bool))": FunctionFragment;
         "updateLiquidationIncentiveMultiplier(address,uint256)": FunctionFragment;
         "updateLiquidationThreshold(uint256)": FunctionFragment;
         "updateMaxLiquidationMultiplier(uint256)": FunctionFragment;
@@ -675,6 +807,54 @@ export interface KreskoInterface extends utils.Interface {
             | "transferOwnership"
             | "setERC165"
             | "supportsInterface"
+            | "disablePoolCollaterals"
+            | "disablePoolKrAssets"
+            | "enablePoolCollaterals"
+            | "enablePoolKrAssets"
+            | "getCollateralPoolConfig"
+            | "initialize((address,uint256,uint256,address))"
+            | "initialize((address,address,address,uint8,uint256,uint256,uint256))"
+            | "removePoolCollaterals"
+            | "removePoolKrAssets"
+            | "setFees"
+            | "setPoolLiquidationThreshold"
+            | "setPoolMinimumCollateralizationRatio"
+            | "setSwapPairs"
+            | "setSwapPairsSingle"
+            | "updatePoolCollateral"
+            | "updatePoolKrAsset"
+            | "poolDeposit"
+            | "poolIsLiquidatable"
+            | "poolLiquidate"
+            | "poolRepay"
+            | "poolWithdraw"
+            | "getPoolAccountDepositsValue"
+            | "getPoolAccountDepositsValueWithFees"
+            | "getPoolAccountDepositsWithFees"
+            | "getPoolAccountPrincipalDeposits"
+            | "getPoolAccountTotalDepositsValue"
+            | "getPoolAccountTotalDepositsValueWithFees"
+            | "getPoolAssetIsEnabled"
+            | "getPoolCollateral"
+            | "getPoolCollateralAssets"
+            | "getPoolDebt"
+            | "getPoolDebtValue"
+            | "getPoolDeposits"
+            | "getPoolDepositsValue"
+            | "getPoolIsSwapEnabled"
+            | "getPoolKrAsset"
+            | "getPoolKrAssets"
+            | "getPoolStats"
+            | "getPoolSwapDeposits"
+            | "getPoolSwapFeeRecipient"
+            | "cumulateIncome"
+            | "getPrice"
+            | "positionDepositA"
+            | "positionWithdrawA"
+            | "previewSwap"
+            | "swap"
+            | "swapIntoLeverage"
+            | "swapOutOfLeverage"
             | "calcExpectedFee"
             | "collateralDeposits"
             | "getAccountCollateralRatio"
@@ -696,7 +876,6 @@ export interface KreskoInterface extends utils.Interface {
             | "closeKrAssetDebtPosition"
             | "addCollateralAsset"
             | "addKreskoAsset"
-            | "initialize"
             | "updateAMMOracle"
             | "updateCFactor"
             | "updateCollateralAsset"
@@ -803,6 +982,157 @@ export interface KreskoInterface extends utils.Interface {
         values: [PromiseOrValue<BytesLike>[], PromiseOrValue<BytesLike>[]],
     ): string;
     encodeFunctionData(functionFragment: "supportsInterface", values: [PromiseOrValue<BytesLike>]): string;
+    encodeFunctionData(functionFragment: "disablePoolCollaterals", values: [PromiseOrValue<string>[]]): string;
+    encodeFunctionData(functionFragment: "disablePoolKrAssets", values: [PromiseOrValue<string>[]]): string;
+    encodeFunctionData(
+        functionFragment: "enablePoolCollaterals",
+        values: [PromiseOrValue<string>[], PoolCollateralStruct[]],
+    ): string;
+    encodeFunctionData(
+        functionFragment: "enablePoolKrAssets",
+        values: [PromiseOrValue<string>[], PoolKrAssetStruct[]],
+    ): string;
+    encodeFunctionData(functionFragment: "getCollateralPoolConfig", values?: undefined): string;
+    encodeFunctionData(
+        functionFragment: "initialize((address,uint256,uint256,address))",
+        values: [ICollateralPoolConfigFacet.CollateralPoolConfigStruct],
+    ): string;
+    encodeFunctionData(
+        functionFragment: "initialize((address,address,address,uint8,uint256,uint256,uint256))",
+        values: [MinterInitArgsStruct],
+    ): string;
+    encodeFunctionData(functionFragment: "removePoolCollaterals", values: [PromiseOrValue<string>[]]): string;
+    encodeFunctionData(functionFragment: "removePoolKrAssets", values: [PromiseOrValue<string>[]]): string;
+    encodeFunctionData(
+        functionFragment: "setFees",
+        values: [
+            PromiseOrValue<string>,
+            PromiseOrValue<BigNumberish>,
+            PromiseOrValue<BigNumberish>,
+            PromiseOrValue<BigNumberish>,
+        ],
+    ): string;
+    encodeFunctionData(functionFragment: "setPoolLiquidationThreshold", values: [PromiseOrValue<BigNumberish>]): string;
+    encodeFunctionData(
+        functionFragment: "setPoolMinimumCollateralizationRatio",
+        values: [PromiseOrValue<BigNumberish>],
+    ): string;
+    encodeFunctionData(
+        functionFragment: "setSwapPairs",
+        values: [ICollateralPoolConfigFacet.PairSetterStruct[]],
+    ): string;
+    encodeFunctionData(
+        functionFragment: "setSwapPairsSingle",
+        values: [ICollateralPoolConfigFacet.PairSetterStruct],
+    ): string;
+    encodeFunctionData(
+        functionFragment: "updatePoolCollateral",
+        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
+    ): string;
+    encodeFunctionData(
+        functionFragment: "updatePoolKrAsset",
+        values: [PromiseOrValue<string>, PoolKrAssetStruct],
+    ): string;
+    encodeFunctionData(
+        functionFragment: "poolDeposit",
+        values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
+    ): string;
+    encodeFunctionData(functionFragment: "poolIsLiquidatable", values?: undefined): string;
+    encodeFunctionData(
+        functionFragment: "poolLiquidate",
+        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>, PromiseOrValue<string>],
+    ): string;
+    encodeFunctionData(
+        functionFragment: "poolRepay",
+        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>, PromiseOrValue<string>],
+    ): string;
+    encodeFunctionData(
+        functionFragment: "poolWithdraw",
+        values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
+    ): string;
+    encodeFunctionData(
+        functionFragment: "getPoolAccountDepositsValue",
+        values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<boolean>],
+    ): string;
+    encodeFunctionData(
+        functionFragment: "getPoolAccountDepositsValueWithFees",
+        values: [PromiseOrValue<string>, PromiseOrValue<string>],
+    ): string;
+    encodeFunctionData(
+        functionFragment: "getPoolAccountDepositsWithFees",
+        values: [PromiseOrValue<string>, PromiseOrValue<string>],
+    ): string;
+    encodeFunctionData(
+        functionFragment: "getPoolAccountPrincipalDeposits",
+        values: [PromiseOrValue<string>, PromiseOrValue<string>],
+    ): string;
+    encodeFunctionData(
+        functionFragment: "getPoolAccountTotalDepositsValue",
+        values: [PromiseOrValue<string>, PromiseOrValue<boolean>],
+    ): string;
+    encodeFunctionData(
+        functionFragment: "getPoolAccountTotalDepositsValueWithFees",
+        values: [PromiseOrValue<string>],
+    ): string;
+    encodeFunctionData(functionFragment: "getPoolAssetIsEnabled", values: [PromiseOrValue<string>]): string;
+    encodeFunctionData(functionFragment: "getPoolCollateral", values: [PromiseOrValue<string>]): string;
+    encodeFunctionData(functionFragment: "getPoolCollateralAssets", values?: undefined): string;
+    encodeFunctionData(functionFragment: "getPoolDebt", values: [PromiseOrValue<string>]): string;
+    encodeFunctionData(
+        functionFragment: "getPoolDebtValue",
+        values: [PromiseOrValue<string>, PromiseOrValue<boolean>],
+    ): string;
+    encodeFunctionData(functionFragment: "getPoolDeposits", values: [PromiseOrValue<string>]): string;
+    encodeFunctionData(
+        functionFragment: "getPoolDepositsValue",
+        values: [PromiseOrValue<string>, PromiseOrValue<boolean>],
+    ): string;
+    encodeFunctionData(
+        functionFragment: "getPoolIsSwapEnabled",
+        values: [PromiseOrValue<string>, PromiseOrValue<string>],
+    ): string;
+    encodeFunctionData(functionFragment: "getPoolKrAsset", values: [PromiseOrValue<string>]): string;
+    encodeFunctionData(functionFragment: "getPoolKrAssets", values?: undefined): string;
+    encodeFunctionData(functionFragment: "getPoolStats", values: [PromiseOrValue<boolean>]): string;
+    encodeFunctionData(functionFragment: "getPoolSwapDeposits", values: [PromiseOrValue<string>]): string;
+    encodeFunctionData(functionFragment: "getPoolSwapFeeRecipient", values?: undefined): string;
+    encodeFunctionData(
+        functionFragment: "cumulateIncome",
+        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
+    ): string;
+    encodeFunctionData(functionFragment: "getPrice", values: [PromiseOrValue<string>]): string;
+    encodeFunctionData(
+        functionFragment: "positionDepositA",
+        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>, PositionStruct],
+    ): string;
+    encodeFunctionData(
+        functionFragment: "positionWithdrawA",
+        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>, PositionStruct],
+    ): string;
+    encodeFunctionData(
+        functionFragment: "previewSwap",
+        values: [
+            PromiseOrValue<string>,
+            PromiseOrValue<string>,
+            PromiseOrValue<BigNumberish>,
+            PromiseOrValue<BigNumberish>,
+        ],
+    ): string;
+    encodeFunctionData(
+        functionFragment: "swap",
+        values: [
+            PromiseOrValue<string>,
+            PromiseOrValue<string>,
+            PromiseOrValue<string>,
+            PromiseOrValue<BigNumberish>,
+            PromiseOrValue<BigNumberish>,
+        ],
+    ): string;
+    encodeFunctionData(
+        functionFragment: "swapIntoLeverage",
+        values: [PromiseOrValue<string>, NewPositionStruct],
+    ): string;
+    encodeFunctionData(functionFragment: "swapOutOfLeverage", values: [PositionStruct, PromiseOrValue<string>]): string;
     encodeFunctionData(
         functionFragment: "calcExpectedFee",
         values: [
@@ -821,7 +1151,7 @@ export interface KreskoInterface extends utils.Interface {
     encodeFunctionData(functionFragment: "getAccountKrAssetValue", values: [PromiseOrValue<string>]): string;
     encodeFunctionData(
         functionFragment: "getAccountMinimumCollateralValueAtRatio",
-        values: [PromiseOrValue<string>, FixedPoint.UnsignedStruct],
+        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
     ): string;
     encodeFunctionData(
         functionFragment: "getCollateralAdjustedAndRealValue",
@@ -867,29 +1197,9 @@ export interface KreskoInterface extends utils.Interface {
     ): string;
     encodeFunctionData(
         functionFragment: "addCollateralAsset",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-        ],
+        values: [PromiseOrValue<string>, CollateralAssetStruct],
     ): string;
-    encodeFunctionData(
-        functionFragment: "addKreskoAsset",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-        ],
-    ): string;
-    encodeFunctionData(functionFragment: "initialize", values: [MinterInitArgsStruct]): string;
+    encodeFunctionData(functionFragment: "addKreskoAsset", values: [PromiseOrValue<string>, KrAssetStruct]): string;
     encodeFunctionData(functionFragment: "updateAMMOracle", values: [PromiseOrValue<string>]): string;
     encodeFunctionData(
         functionFragment: "updateCFactor",
@@ -897,14 +1207,7 @@ export interface KreskoInterface extends utils.Interface {
     ): string;
     encodeFunctionData(
         functionFragment: "updateCollateralAsset",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-        ],
+        values: [PromiseOrValue<string>, CollateralAssetStruct],
     ): string;
     encodeFunctionData(functionFragment: "updateExtOracleDecimals", values: [PromiseOrValue<BigNumberish>]): string;
     encodeFunctionData(functionFragment: "updateFeeRecipient", values: [PromiseOrValue<string>]): string;
@@ -912,19 +1215,7 @@ export interface KreskoInterface extends utils.Interface {
         functionFragment: "updateKFactor",
         values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
     ): string;
-    encodeFunctionData(
-        functionFragment: "updateKreskoAsset",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-        ],
-    ): string;
+    encodeFunctionData(functionFragment: "updateKreskoAsset", values: [PromiseOrValue<string>, KrAssetStruct]): string;
     encodeFunctionData(
         functionFragment: "updateLiquidationIncentiveMultiplier",
         values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
@@ -1111,6 +1402,57 @@ export interface KreskoInterface extends utils.Interface {
     decodeFunctionResult(functionFragment: "transferOwnership", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "setERC165", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "supportsInterface", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "disablePoolCollaterals", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "disablePoolKrAssets", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "enablePoolCollaterals", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "enablePoolKrAssets", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "getCollateralPoolConfig", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "initialize((address,uint256,uint256,address))", data: BytesLike): Result;
+    decodeFunctionResult(
+        functionFragment: "initialize((address,address,address,uint8,uint256,uint256,uint256))",
+        data: BytesLike,
+    ): Result;
+    decodeFunctionResult(functionFragment: "removePoolCollaterals", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "removePoolKrAssets", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "setFees", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "setPoolLiquidationThreshold", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "setPoolMinimumCollateralizationRatio", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "setSwapPairs", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "setSwapPairsSingle", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "updatePoolCollateral", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "updatePoolKrAsset", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "poolDeposit", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "poolIsLiquidatable", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "poolLiquidate", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "poolRepay", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "poolWithdraw", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "getPoolAccountDepositsValue", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "getPoolAccountDepositsValueWithFees", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "getPoolAccountDepositsWithFees", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "getPoolAccountPrincipalDeposits", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "getPoolAccountTotalDepositsValue", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "getPoolAccountTotalDepositsValueWithFees", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "getPoolAssetIsEnabled", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "getPoolCollateral", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "getPoolCollateralAssets", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "getPoolDebt", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "getPoolDebtValue", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "getPoolDeposits", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "getPoolDepositsValue", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "getPoolIsSwapEnabled", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "getPoolKrAsset", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "getPoolKrAssets", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "getPoolStats", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "getPoolSwapDeposits", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "getPoolSwapFeeRecipient", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "cumulateIncome", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "getPrice", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "positionDepositA", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "positionWithdrawA", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "previewSwap", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "swap", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "swapIntoLeverage", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "swapOutOfLeverage", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "calcExpectedFee", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "collateralDeposits", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "getAccountCollateralRatio", data: BytesLike): Result;
@@ -1132,7 +1474,6 @@ export interface KreskoInterface extends utils.Interface {
     decodeFunctionResult(functionFragment: "closeKrAssetDebtPosition", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "addCollateralAsset", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "addKreskoAsset", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "updateAMMOracle", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "updateCFactor", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "updateCollateralAsset", data: BytesLike): Result;
@@ -1195,432 +1536,150 @@ export interface KreskoInterface extends utils.Interface {
     decodeFunctionResult(functionFragment: "getPairsData", data: BytesLike): Result;
 
     events: {
-        "DiamondCut(tuple[],address,bytes)": EventFragment;
-        "OwnershipTransferred(address,address)": EventFragment;
-        "PendingOwnershipTransfer(address,address)": EventFragment;
-        "Deployed(address,uint8)": EventFragment;
-        "Initialized(address,uint8)": EventFragment;
-        "KISSUpdated(address)": EventFragment;
-        "StabilityRateConfigured(address,uint256,uint256,uint256,uint256)": EventFragment;
-        "StabilityRateInterestBatchRepaid(address,uint256)": EventFragment;
-        "StabilityRateInterestRepaid(address,address,uint256)": EventFragment;
-        "AMMOracleUpdated(address)": EventFragment;
-        "BatchInterestLiquidationOccurred(address,address,address,uint256,uint256)": EventFragment;
-        "CFactorUpdated(address,uint256)": EventFragment;
-        "CloseFeePaid(address,address,uint256,uint256)": EventFragment;
-        "CollateralAssetAdded(address,uint256,address,address,address)": EventFragment;
-        "CollateralAssetUpdated(address,uint256,address,address,address)": EventFragment;
-        "CollateralDeposited(address,address,uint256)": EventFragment;
-        "CollateralWithdrawn(address,address,uint256)": EventFragment;
-        "DebtPositionClosed(address,address,uint256,uint256)": EventFragment;
-        "FeeRecipientUpdated(address)": EventFragment;
-        "InterestLiquidationOccurred(address,address,address,uint256,address,uint256)": EventFragment;
-        "KFactorUpdated(address,uint256)": EventFragment;
-        "KreskoAssetAdded(address,address,address,address,uint256,uint256,uint256,uint256)": EventFragment;
-        "KreskoAssetBurned(address,address,uint256)": EventFragment;
-        "KreskoAssetMinted(address,address,uint256)": EventFragment;
-        "KreskoAssetUpdated(address,address,address,address,uint256,uint256,uint256,uint256)": EventFragment;
-        "LiquidationIncentiveMultiplierUpdated(address,uint256)": EventFragment;
-        "LiquidationOccurred(address,address,address,uint256,address,uint256)": EventFragment;
-        "LiquidationThresholdUpdated(uint256)": EventFragment;
-        "MinimumCollateralizationRatioUpdated(uint256)": EventFragment;
-        "MinimumDebtValueUpdated(uint256)": EventFragment;
-        "OpenFeePaid(address,address,uint256,uint256)": EventFragment;
-        "SafetyStateChange(uint8,address,string)": EventFragment;
-        "UncheckedCollateralWithdrawn(address,address,uint256)": EventFragment;
-        "maxLiquidationMultiplierUpdated(uint256)": EventFragment;
+        "FeeSet(address,uint256,uint256,uint256)": EventFragment;
+        "PairSet(address,address,bool)": EventFragment;
+        "PoolCollateralUpdated(address,uint256)": EventFragment;
+        "PoolKrAssetUpdated(address,uint256,uint256,uint256,uint256)": EventFragment;
+        "CollateralPoolDeposit(address,address,uint256)": EventFragment;
+        "CollateralPoolLiquidationOccured(address,address,uint256,address,uint256)": EventFragment;
+        "CollateralPoolRepayment(address,address,uint256,address,uint256)": EventFragment;
+        "CollateralPoolWithdraw(address,address,uint256,uint256)": EventFragment;
+        "Income(address,uint256)": EventFragment;
+        "Swap(address,address,address,uint256,uint256)": EventFragment;
+        "SwapFee(address,uint256,uint256)": EventFragment;
     };
 
-    getEvent(nameOrSignatureOrTopic: "DiamondCut"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "PendingOwnershipTransfer"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "Deployed"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "Initialized"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "KISSUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "StabilityRateConfigured"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "StabilityRateInterestBatchRepaid"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "StabilityRateInterestRepaid"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "AMMOracleUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "BatchInterestLiquidationOccurred"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "CFactorUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "CloseFeePaid"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "CollateralAssetAdded"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "CollateralAssetUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "CollateralDeposited"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "CollateralWithdrawn"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "DebtPositionClosed"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "FeeRecipientUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "InterestLiquidationOccurred"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "KFactorUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "KreskoAssetAdded"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "KreskoAssetBurned"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "KreskoAssetMinted"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "KreskoAssetUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "LiquidationIncentiveMultiplierUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "LiquidationOccurred"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "LiquidationThresholdUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "MinimumCollateralizationRatioUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "MinimumDebtValueUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "OpenFeePaid"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "SafetyStateChange"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "UncheckedCollateralWithdrawn"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "maxLiquidationMultiplierUpdated"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "FeeSet"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "PairSet"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "PoolCollateralUpdated"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "PoolKrAssetUpdated"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "CollateralPoolDeposit"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "CollateralPoolLiquidationOccured"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "CollateralPoolRepayment"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "CollateralPoolWithdraw"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "Income"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "Swap"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "SwapFee"): EventFragment;
 }
 
-export interface DiamondCutEventObject {
-    _diamondCut: IDiamondCutFacet.FacetCutStructOutput[];
-    _init: string;
-    _calldata: string;
+export interface FeeSetEventObject {
+    _asset: string;
+    openFee: BigNumber;
+    closeFee: BigNumber;
+    protocolFee: BigNumber;
 }
-export type DiamondCutEvent = TypedEvent<
-    [IDiamondCutFacet.FacetCutStructOutput[], string, string],
-    DiamondCutEventObject
->;
+export type FeeSetEvent = TypedEvent<[string, BigNumber, BigNumber, BigNumber], FeeSetEventObject>;
 
-export type DiamondCutEventFilter = TypedEventFilter<DiamondCutEvent>;
+export type FeeSetEventFilter = TypedEventFilter<FeeSetEvent>;
 
-export interface OwnershipTransferredEventObject {
-    previousOwner: string;
-    newOwner: string;
+export interface PairSetEventObject {
+    assetIn: string;
+    assetOut: string;
+    enabled: boolean;
 }
-export type OwnershipTransferredEvent = TypedEvent<[string, string], OwnershipTransferredEventObject>;
+export type PairSetEvent = TypedEvent<[string, string, boolean], PairSetEventObject>;
 
-export type OwnershipTransferredEventFilter = TypedEventFilter<OwnershipTransferredEvent>;
+export type PairSetEventFilter = TypedEventFilter<PairSetEvent>;
 
-export interface PendingOwnershipTransferEventObject {
-    previousOwner: string;
-    newOwner: string;
+export interface PoolCollateralUpdatedEventObject {
+    _asset: string;
+    liquidationThreshold: BigNumber;
 }
-export type PendingOwnershipTransferEvent = TypedEvent<[string, string], PendingOwnershipTransferEventObject>;
+export type PoolCollateralUpdatedEvent = TypedEvent<[string, BigNumber], PoolCollateralUpdatedEventObject>;
 
-export type PendingOwnershipTransferEventFilter = TypedEventFilter<PendingOwnershipTransferEvent>;
+export type PoolCollateralUpdatedEventFilter = TypedEventFilter<PoolCollateralUpdatedEvent>;
 
-export interface DeployedEventObject {
-    owner: string;
-    version: number;
+export interface PoolKrAssetUpdatedEventObject {
+    _asset: string;
+    openFee: BigNumber;
+    closeFee: BigNumber;
+    protocolFee: BigNumber;
+    supplyLimit: BigNumber;
 }
-export type DeployedEvent = TypedEvent<[string, number], DeployedEventObject>;
-
-export type DeployedEventFilter = TypedEventFilter<DeployedEvent>;
-
-export interface InitializedEventObject {
-    operator: string;
-    version: number;
-}
-export type InitializedEvent = TypedEvent<[string, number], InitializedEventObject>;
-
-export type InitializedEventFilter = TypedEventFilter<InitializedEvent>;
-
-export interface KISSUpdatedEventObject {
-    KISS: string;
-}
-export type KISSUpdatedEvent = TypedEvent<[string], KISSUpdatedEventObject>;
-
-export type KISSUpdatedEventFilter = TypedEventFilter<KISSUpdatedEvent>;
-
-export interface StabilityRateConfiguredEventObject {
-    asset: string;
-    stabilityRateBase: BigNumber;
-    priceRateDelta: BigNumber;
-    rateSlope1: BigNumber;
-    rateSlope2: BigNumber;
-}
-export type StabilityRateConfiguredEvent = TypedEvent<
+export type PoolKrAssetUpdatedEvent = TypedEvent<
     [string, BigNumber, BigNumber, BigNumber, BigNumber],
-    StabilityRateConfiguredEventObject
+    PoolKrAssetUpdatedEventObject
 >;
 
-export type StabilityRateConfiguredEventFilter = TypedEventFilter<StabilityRateConfiguredEvent>;
+export type PoolKrAssetUpdatedEventFilter = TypedEventFilter<PoolKrAssetUpdatedEvent>;
 
-export interface StabilityRateInterestBatchRepaidEventObject {
-    account: string;
-    value: BigNumber;
-}
-export type StabilityRateInterestBatchRepaidEvent = TypedEvent<
-    [string, BigNumber],
-    StabilityRateInterestBatchRepaidEventObject
->;
-
-export type StabilityRateInterestBatchRepaidEventFilter = TypedEventFilter<StabilityRateInterestBatchRepaidEvent>;
-
-export interface StabilityRateInterestRepaidEventObject {
-    account: string;
-    asset: string;
-    value: BigNumber;
-}
-export type StabilityRateInterestRepaidEvent = TypedEvent<
-    [string, string, BigNumber],
-    StabilityRateInterestRepaidEventObject
->;
-
-export type StabilityRateInterestRepaidEventFilter = TypedEventFilter<StabilityRateInterestRepaidEvent>;
-
-export interface AMMOracleUpdatedEventObject {
-    ammOracle: string;
-}
-export type AMMOracleUpdatedEvent = TypedEvent<[string], AMMOracleUpdatedEventObject>;
-
-export type AMMOracleUpdatedEventFilter = TypedEventFilter<AMMOracleUpdatedEvent>;
-
-export interface BatchInterestLiquidationOccurredEventObject {
-    account: string;
-    liquidator: string;
-    seizedCollateralAsset: string;
-    repayUSD: BigNumber;
-    collateralSent: BigNumber;
-}
-export type BatchInterestLiquidationOccurredEvent = TypedEvent<
-    [string, string, string, BigNumber, BigNumber],
-    BatchInterestLiquidationOccurredEventObject
->;
-
-export type BatchInterestLiquidationOccurredEventFilter = TypedEventFilter<BatchInterestLiquidationOccurredEvent>;
-
-export interface CFactorUpdatedEventObject {
-    collateralAsset: string;
-    cFactor: BigNumber;
-}
-export type CFactorUpdatedEvent = TypedEvent<[string, BigNumber], CFactorUpdatedEventObject>;
-
-export type CFactorUpdatedEventFilter = TypedEventFilter<CFactorUpdatedEvent>;
-
-export interface CloseFeePaidEventObject {
-    account: string;
-    paymentCollateralAsset: string;
-    paymentAmount: BigNumber;
-    paymentValue: BigNumber;
-}
-export type CloseFeePaidEvent = TypedEvent<[string, string, BigNumber, BigNumber], CloseFeePaidEventObject>;
-
-export type CloseFeePaidEventFilter = TypedEventFilter<CloseFeePaidEvent>;
-
-export interface CollateralAssetAddedEventObject {
-    collateralAsset: string;
-    factor: BigNumber;
-    oracle: string;
-    marketStatusOracle: string;
-    anchor: string;
-}
-export type CollateralAssetAddedEvent = TypedEvent<
-    [string, BigNumber, string, string, string],
-    CollateralAssetAddedEventObject
->;
-
-export type CollateralAssetAddedEventFilter = TypedEventFilter<CollateralAssetAddedEvent>;
-
-export interface CollateralAssetUpdatedEventObject {
-    collateralAsset: string;
-    factor: BigNumber;
-    oracle: string;
-    marketStatusOracle: string;
-    anchor: string;
-}
-export type CollateralAssetUpdatedEvent = TypedEvent<
-    [string, BigNumber, string, string, string],
-    CollateralAssetUpdatedEventObject
->;
-
-export type CollateralAssetUpdatedEventFilter = TypedEventFilter<CollateralAssetUpdatedEvent>;
-
-export interface CollateralDepositedEventObject {
-    account: string;
+export interface CollateralPoolDepositEventObject {
+    depositor: string;
     collateralAsset: string;
     amount: BigNumber;
 }
-export type CollateralDepositedEvent = TypedEvent<[string, string, BigNumber], CollateralDepositedEventObject>;
+export type CollateralPoolDepositEvent = TypedEvent<[string, string, BigNumber], CollateralPoolDepositEventObject>;
 
-export type CollateralDepositedEventFilter = TypedEventFilter<CollateralDepositedEvent>;
+export type CollateralPoolDepositEventFilter = TypedEventFilter<CollateralPoolDepositEvent>;
 
-export interface CollateralWithdrawnEventObject {
-    account: string;
-    collateralAsset: string;
-    amount: BigNumber;
-}
-export type CollateralWithdrawnEvent = TypedEvent<[string, string, BigNumber], CollateralWithdrawnEventObject>;
-
-export type CollateralWithdrawnEventFilter = TypedEventFilter<CollateralWithdrawnEvent>;
-
-export interface DebtPositionClosedEventObject {
-    account: string;
-    kreskoAsset: string;
-    amount: BigNumber;
-    interestRepaid: BigNumber;
-}
-export type DebtPositionClosedEvent = TypedEvent<[string, string, BigNumber, BigNumber], DebtPositionClosedEventObject>;
-
-export type DebtPositionClosedEventFilter = TypedEventFilter<DebtPositionClosedEvent>;
-
-export interface FeeRecipientUpdatedEventObject {
-    feeRecipient: string;
-}
-export type FeeRecipientUpdatedEvent = TypedEvent<[string], FeeRecipientUpdatedEventObject>;
-
-export type FeeRecipientUpdatedEventFilter = TypedEventFilter<FeeRecipientUpdatedEvent>;
-
-export interface InterestLiquidationOccurredEventObject {
-    account: string;
-    liquidator: string;
-    repayKreskoAsset: string;
-    repayUSD: BigNumber;
-    seizedCollateralAsset: string;
-    collateralSent: BigNumber;
-}
-export type InterestLiquidationOccurredEvent = TypedEvent<
-    [string, string, string, BigNumber, string, BigNumber],
-    InterestLiquidationOccurredEventObject
->;
-
-export type InterestLiquidationOccurredEventFilter = TypedEventFilter<InterestLiquidationOccurredEvent>;
-
-export interface KFactorUpdatedEventObject {
-    kreskoAsset: string;
-    kFactor: BigNumber;
-}
-export type KFactorUpdatedEvent = TypedEvent<[string, BigNumber], KFactorUpdatedEventObject>;
-
-export type KFactorUpdatedEventFilter = TypedEventFilter<KFactorUpdatedEvent>;
-
-export interface KreskoAssetAddedEventObject {
-    kreskoAsset: string;
-    anchor: string;
-    oracle: string;
-    marketStatusOracle: string;
-    kFactor: BigNumber;
-    supplyLimit: BigNumber;
-    closeFee: BigNumber;
-    openFee: BigNumber;
-}
-export type KreskoAssetAddedEvent = TypedEvent<
-    [string, string, string, string, BigNumber, BigNumber, BigNumber, BigNumber],
-    KreskoAssetAddedEventObject
->;
-
-export type KreskoAssetAddedEventFilter = TypedEventFilter<KreskoAssetAddedEvent>;
-
-export interface KreskoAssetBurnedEventObject {
-    account: string;
-    kreskoAsset: string;
-    amount: BigNumber;
-}
-export type KreskoAssetBurnedEvent = TypedEvent<[string, string, BigNumber], KreskoAssetBurnedEventObject>;
-
-export type KreskoAssetBurnedEventFilter = TypedEventFilter<KreskoAssetBurnedEvent>;
-
-export interface KreskoAssetMintedEventObject {
-    account: string;
-    kreskoAsset: string;
-    amount: BigNumber;
-}
-export type KreskoAssetMintedEvent = TypedEvent<[string, string, BigNumber], KreskoAssetMintedEventObject>;
-
-export type KreskoAssetMintedEventFilter = TypedEventFilter<KreskoAssetMintedEvent>;
-
-export interface KreskoAssetUpdatedEventObject {
-    kreskoAsset: string;
-    anchor: string;
-    oracle: string;
-    marketStatusOracle: string;
-    kFactor: BigNumber;
-    supplyLimit: BigNumber;
-    closeFee: BigNumber;
-    openFee: BigNumber;
-}
-export type KreskoAssetUpdatedEvent = TypedEvent<
-    [string, string, string, string, BigNumber, BigNumber, BigNumber, BigNumber],
-    KreskoAssetUpdatedEventObject
->;
-
-export type KreskoAssetUpdatedEventFilter = TypedEventFilter<KreskoAssetUpdatedEvent>;
-
-export interface LiquidationIncentiveMultiplierUpdatedEventObject {
-    asset: string;
-    liquidationIncentiveMultiplier: BigNumber;
-}
-export type LiquidationIncentiveMultiplierUpdatedEvent = TypedEvent<
-    [string, BigNumber],
-    LiquidationIncentiveMultiplierUpdatedEventObject
->;
-
-export type LiquidationIncentiveMultiplierUpdatedEventFilter =
-    TypedEventFilter<LiquidationIncentiveMultiplierUpdatedEvent>;
-
-export interface LiquidationOccurredEventObject {
-    account: string;
+export interface CollateralPoolLiquidationOccuredEventObject {
     liquidator: string;
     repayKreskoAsset: string;
     repayAmount: BigNumber;
-    seizedCollateralAsset: string;
-    collateralSent: BigNumber;
+    seizeCollateral: string;
+    seizeAmount: BigNumber;
 }
-export type LiquidationOccurredEvent = TypedEvent<
-    [string, string, string, BigNumber, string, BigNumber],
-    LiquidationOccurredEventObject
+export type CollateralPoolLiquidationOccuredEvent = TypedEvent<
+    [string, string, BigNumber, string, BigNumber],
+    CollateralPoolLiquidationOccuredEventObject
 >;
 
-export type LiquidationOccurredEventFilter = TypedEventFilter<LiquidationOccurredEvent>;
+export type CollateralPoolLiquidationOccuredEventFilter = TypedEventFilter<CollateralPoolLiquidationOccuredEvent>;
 
-export interface LiquidationThresholdUpdatedEventObject {
-    liquidationThreshold: BigNumber;
+export interface CollateralPoolRepaymentEventObject {
+    repayer: string;
+    repayKreskoAsset: string;
+    repayAmount: BigNumber;
+    receiveKreskoAsset: string;
+    receiveAmount: BigNumber;
 }
-export type LiquidationThresholdUpdatedEvent = TypedEvent<[BigNumber], LiquidationThresholdUpdatedEventObject>;
-
-export type LiquidationThresholdUpdatedEventFilter = TypedEventFilter<LiquidationThresholdUpdatedEvent>;
-
-export interface MinimumCollateralizationRatioUpdatedEventObject {
-    minimumCollateralizationRatio: BigNumber;
-}
-export type MinimumCollateralizationRatioUpdatedEvent = TypedEvent<
-    [BigNumber],
-    MinimumCollateralizationRatioUpdatedEventObject
+export type CollateralPoolRepaymentEvent = TypedEvent<
+    [string, string, BigNumber, string, BigNumber],
+    CollateralPoolRepaymentEventObject
 >;
 
-export type MinimumCollateralizationRatioUpdatedEventFilter =
-    TypedEventFilter<MinimumCollateralizationRatioUpdatedEvent>;
+export type CollateralPoolRepaymentEventFilter = TypedEventFilter<CollateralPoolRepaymentEvent>;
 
-export interface MinimumDebtValueUpdatedEventObject {
-    minimumDebtValue: BigNumber;
-}
-export type MinimumDebtValueUpdatedEvent = TypedEvent<[BigNumber], MinimumDebtValueUpdatedEventObject>;
-
-export type MinimumDebtValueUpdatedEventFilter = TypedEventFilter<MinimumDebtValueUpdatedEvent>;
-
-export interface OpenFeePaidEventObject {
-    account: string;
-    paymentCollateralAsset: string;
-    paymentAmount: BigNumber;
-    paymentValue: BigNumber;
-}
-export type OpenFeePaidEvent = TypedEvent<[string, string, BigNumber, BigNumber], OpenFeePaidEventObject>;
-
-export type OpenFeePaidEventFilter = TypedEventFilter<OpenFeePaidEvent>;
-
-export interface SafetyStateChangeEventObject {
-    action: number;
-    asset: string;
-    description: string;
-}
-export type SafetyStateChangeEvent = TypedEvent<[number, string, string], SafetyStateChangeEventObject>;
-
-export type SafetyStateChangeEventFilter = TypedEventFilter<SafetyStateChangeEvent>;
-
-export interface UncheckedCollateralWithdrawnEventObject {
-    account: string;
+export interface CollateralPoolWithdrawEventObject {
+    withdrawer: string;
     collateralAsset: string;
     amount: BigNumber;
+    feeAmount: BigNumber;
 }
-export type UncheckedCollateralWithdrawnEvent = TypedEvent<
-    [string, string, BigNumber],
-    UncheckedCollateralWithdrawnEventObject
+export type CollateralPoolWithdrawEvent = TypedEvent<
+    [string, string, BigNumber, BigNumber],
+    CollateralPoolWithdrawEventObject
 >;
 
-export type UncheckedCollateralWithdrawnEventFilter = TypedEventFilter<UncheckedCollateralWithdrawnEvent>;
+export type CollateralPoolWithdrawEventFilter = TypedEventFilter<CollateralPoolWithdrawEvent>;
 
-export interface maxLiquidationMultiplierUpdatedEventObject {
-    maxLiquidationMultiplier: BigNumber;
+export interface IncomeEventObject {
+    asset: string;
+    amount: BigNumber;
 }
-export type maxLiquidationMultiplierUpdatedEvent = TypedEvent<[BigNumber], maxLiquidationMultiplierUpdatedEventObject>;
+export type IncomeEvent = TypedEvent<[string, BigNumber], IncomeEventObject>;
 
-export type maxLiquidationMultiplierUpdatedEventFilter = TypedEventFilter<maxLiquidationMultiplierUpdatedEvent>;
+export type IncomeEventFilter = TypedEventFilter<IncomeEvent>;
+
+export interface SwapEventObject {
+    who: string;
+    assetIn: string;
+    assetOut: string;
+    amountIn: BigNumber;
+    amountOut: BigNumber;
+}
+export type SwapEvent = TypedEvent<[string, string, string, BigNumber, BigNumber], SwapEventObject>;
+
+export type SwapEventFilter = TypedEventFilter<SwapEvent>;
+
+export interface SwapFeeEventObject {
+    assetIn: string;
+    feeAmount: BigNumber;
+    protocolFeeAmount: BigNumber;
+}
+export type SwapFeeEvent = TypedEvent<[string, BigNumber, BigNumber], SwapFeeEventObject>;
+
+export type SwapFeeEventFilter = TypedEventFilter<SwapFeeEvent>;
 
 export interface Kresko extends BaseContract {
     contractName: "Kresko";
@@ -1714,11 +1773,11 @@ export interface Kresko extends BaseContract {
 
         acceptOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
-        initialized(overrides?: CallOverrides): Promise<[boolean]>;
+        initialized(overrides?: CallOverrides): Promise<[boolean] & { initialized_: boolean }>;
 
-        owner(overrides?: CallOverrides): Promise<[string]>;
+        owner(overrides?: CallOverrides): Promise<[string] & { owner_: string }>;
 
-        pendingOwner(overrides?: CallOverrides): Promise<[string]>;
+        pendingOwner(overrides?: CallOverrides): Promise<[string] & { pendingOwner_: string }>;
 
         transferOwnership(
             _newOwner: PromiseOrValue<string>,
@@ -1732,6 +1791,268 @@ export interface Kresko extends BaseContract {
         ): Promise<ContractTransaction>;
 
         supportsInterface(_interfaceId: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<[boolean]>;
+
+        disablePoolCollaterals(
+            _disabledAssets: PromiseOrValue<string>[],
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        disablePoolKrAssets(
+            _disabledAssets: PromiseOrValue<string>[],
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        enablePoolCollaterals(
+            _enabledCollaterals: PromiseOrValue<string>[],
+            _configurations: PoolCollateralStruct[],
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        enablePoolKrAssets(
+            _enabledKrAssets: PromiseOrValue<string>[],
+            _configurations: PoolKrAssetStruct[],
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        getCollateralPoolConfig(
+            overrides?: CallOverrides,
+        ): Promise<[ICollateralPoolConfigFacet.CollateralPoolConfigStructOutput]>;
+
+        "initialize((address,uint256,uint256,address))"(
+            _config: ICollateralPoolConfigFacet.CollateralPoolConfigStruct,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        "initialize((address,address,address,uint8,uint256,uint256,uint256))"(
+            args: MinterInitArgsStruct,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        removePoolCollaterals(
+            _removedAssets: PromiseOrValue<string>[],
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        removePoolKrAssets(
+            _removedAssets: PromiseOrValue<string>[],
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        setFees(
+            _krAsset: PromiseOrValue<string>,
+            _openFee: PromiseOrValue<BigNumberish>,
+            _closeFee: PromiseOrValue<BigNumberish>,
+            _protocolFee: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        setPoolLiquidationThreshold(
+            _lt: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        setPoolMinimumCollateralizationRatio(
+            _mcr: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        setSwapPairs(
+            _pairs: ICollateralPoolConfigFacet.PairSetterStruct[],
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        setSwapPairsSingle(
+            _pair: ICollateralPoolConfigFacet.PairSetterStruct,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        updatePoolCollateral(
+            _asset: PromiseOrValue<string>,
+            _newLiquiditationIncentive: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        updatePoolKrAsset(
+            _asset: PromiseOrValue<string>,
+            _configuration: PoolKrAssetStruct,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        poolDeposit(
+            _account: PromiseOrValue<string>,
+            _collateralAsset: PromiseOrValue<string>,
+            _amount: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        poolIsLiquidatable(overrides?: CallOverrides): Promise<[boolean]>;
+
+        poolLiquidate(
+            _repayKrAsset: PromiseOrValue<string>,
+            _repayAmount: PromiseOrValue<BigNumberish>,
+            _seizeCollateral: PromiseOrValue<string>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        poolRepay(
+            _repayKrAsset: PromiseOrValue<string>,
+            _repayAmount: PromiseOrValue<BigNumberish>,
+            _seizeCollateral: PromiseOrValue<string>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        poolWithdraw(
+            _account: PromiseOrValue<string>,
+            _collateralAsset: PromiseOrValue<string>,
+            _amount: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        getPoolAccountDepositsValue(
+            _account: PromiseOrValue<string>,
+            _collateralAsset: PromiseOrValue<string>,
+            _ignoreFactors: PromiseOrValue<boolean>,
+            overrides?: CallOverrides,
+        ): Promise<[BigNumber]>;
+
+        getPoolAccountDepositsValueWithFees(
+            _account: PromiseOrValue<string>,
+            _collateralAsset: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<[BigNumber]>;
+
+        getPoolAccountDepositsWithFees(
+            _account: PromiseOrValue<string>,
+            _collateralAsset: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<[BigNumber]>;
+
+        getPoolAccountPrincipalDeposits(
+            _account: PromiseOrValue<string>,
+            _collateralAsset: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<[BigNumber]>;
+
+        getPoolAccountTotalDepositsValue(
+            _account: PromiseOrValue<string>,
+            _ignoreFactors: PromiseOrValue<boolean>,
+            overrides?: CallOverrides,
+        ): Promise<[BigNumber]>;
+
+        getPoolAccountTotalDepositsValueWithFees(
+            _account: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<[BigNumber]>;
+
+        getPoolAssetIsEnabled(_asset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[boolean]>;
+
+        getPoolCollateral(
+            _collateralAsset: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<[PoolCollateralStructOutput]>;
+
+        getPoolCollateralAssets(overrides?: CallOverrides): Promise<[string[]]>;
+
+        getPoolDebt(_kreskoAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
+
+        getPoolDebtValue(
+            _kreskoAsset: PromiseOrValue<string>,
+            _ignoreFactors: PromiseOrValue<boolean>,
+            overrides?: CallOverrides,
+        ): Promise<[BigNumber]>;
+
+        getPoolDeposits(_collateralAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
+
+        getPoolDepositsValue(
+            _collateralAsset: PromiseOrValue<string>,
+            _ignoreFactors: PromiseOrValue<boolean>,
+            overrides?: CallOverrides,
+        ): Promise<[BigNumber]>;
+
+        getPoolIsSwapEnabled(
+            _assetIn: PromiseOrValue<string>,
+            _assetOut: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<[boolean]>;
+
+        getPoolKrAsset(_krAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[PoolKrAssetStructOutput]>;
+
+        getPoolKrAssets(overrides?: CallOverrides): Promise<[string[]]>;
+
+        getPoolStats(
+            _ignoreFactors: PromiseOrValue<boolean>,
+            overrides?: CallOverrides,
+        ): Promise<
+            [BigNumber, BigNumber, BigNumber] & {
+                collateralValue: BigNumber;
+                debtValue: BigNumber;
+                cr: BigNumber;
+            }
+        >;
+
+        getPoolSwapDeposits(_collateralAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
+
+        getPoolSwapFeeRecipient(overrides?: CallOverrides): Promise<[string]>;
+
+        cumulateIncome(
+            _incomeAsset: PromiseOrValue<string>,
+            _amount: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        getPrice(
+            _asset: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<[BigNumber] & { price: BigNumber }>;
+
+        positionDepositA(
+            _to: PromiseOrValue<string>,
+            _amountA: PromiseOrValue<BigNumberish>,
+            _pos: PositionStruct,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        positionWithdrawA(
+            _from: PromiseOrValue<string>,
+            _amountA: PromiseOrValue<BigNumberish>,
+            _pos: PositionStruct,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        previewSwap(
+            _assetIn: PromiseOrValue<string>,
+            _assetOut: PromiseOrValue<string>,
+            _amountIn: PromiseOrValue<BigNumberish>,
+            _leverage: PromiseOrValue<BigNumberish>,
+            overrides?: CallOverrides,
+        ): Promise<
+            [BigNumber, BigNumber, BigNumber] & {
+                amountOut: BigNumber;
+                feeAmount: BigNumber;
+                feeAmountProtocol: BigNumber;
+            }
+        >;
+
+        swap(
+            _receiver: PromiseOrValue<string>,
+            _assetIn: PromiseOrValue<string>,
+            _assetOut: PromiseOrValue<string>,
+            _amountIn: PromiseOrValue<BigNumberish>,
+            _amountOutMin: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        swapIntoLeverage(
+            _sender: PromiseOrValue<string>,
+            _pos: NewPositionStruct,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        swapOutOfLeverage(
+            _pos: PositionStruct,
+            _liquidator: PromiseOrValue<string>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
 
         calcExpectedFee(
             _account: PromiseOrValue<string>,
@@ -1750,43 +2071,30 @@ export interface Kresko extends BaseContract {
         getAccountCollateralRatio(
             _account: PromiseOrValue<string>,
             overrides?: CallOverrides,
-        ): Promise<
-            [FixedPoint.UnsignedStructOutput] & {
-                ratio: FixedPoint.UnsignedStructOutput;
-            }
-        >;
+        ): Promise<[BigNumber] & { ratio: BigNumber }>;
 
-        getAccountCollateralValue(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[FixedPoint.UnsignedStructOutput]>;
+        getAccountCollateralValue(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
 
-        getAccountKrAssetValue(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[FixedPoint.UnsignedStructOutput]>;
+        getAccountKrAssetValue(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
 
         getAccountMinimumCollateralValueAtRatio(
             _account: PromiseOrValue<string>,
-            _ratio: FixedPoint.UnsignedStruct,
+            _ratio: PromiseOrValue<BigNumberish>,
             overrides?: CallOverrides,
-        ): Promise<[FixedPoint.UnsignedStructOutput]>;
+        ): Promise<[BigNumber]>;
 
         getCollateralAdjustedAndRealValue(
             _account: PromiseOrValue<string>,
             _asset: PromiseOrValue<string>,
             overrides?: CallOverrides,
         ): Promise<
-            [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
-                adjustedValue: FixedPoint.UnsignedStructOutput;
-                realValue: FixedPoint.UnsignedStructOutput;
+            [BigNumber, BigNumber] & {
+                adjustedValue: BigNumber;
+                realValue: BigNumber;
             }
         >;
 
-        getCollateralRatiosFor(
-            _accounts: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<[FixedPoint.UnsignedStructOutput[]]>;
+        getCollateralRatiosFor(_accounts: PromiseOrValue<string>[], overrides?: CallOverrides): Promise<[BigNumber[]]>;
 
         getDepositedCollateralAssetIndex(
             _account: PromiseOrValue<string>,
@@ -1848,28 +2156,13 @@ export interface Kresko extends BaseContract {
 
         addCollateralAsset(
             _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
+            _config: CollateralAssetStruct,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<ContractTransaction>;
 
         addKreskoAsset(
             _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<ContractTransaction>;
-
-        initialize(
-            args: MinterInitArgsStruct,
+            _config: KrAssetStruct,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<ContractTransaction>;
 
@@ -1886,11 +2179,7 @@ export interface Kresko extends BaseContract {
 
         updateCollateralAsset(
             _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
+            _config: CollateralAssetStruct,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<ContractTransaction>;
 
@@ -1912,13 +2201,7 @@ export interface Kresko extends BaseContract {
 
         updateKreskoAsset(
             _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
+            _config: KrAssetStruct,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<ContractTransaction>;
 
@@ -2126,23 +2409,14 @@ export interface Kresko extends BaseContract {
             _amount: PromiseOrValue<BigNumberish>,
             _ignoreCollateralFactor: PromiseOrValue<boolean>,
             overrides?: CallOverrides,
-        ): Promise<
-            [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
-                value: FixedPoint.UnsignedStructOutput;
-                oraclePrice: FixedPoint.UnsignedStructOutput;
-            }
-        >;
+        ): Promise<[BigNumber, BigNumber] & { value: BigNumber; oraclePrice: BigNumber }>;
 
         getKrAssetValue(
             _kreskoAsset: PromiseOrValue<string>,
             _amount: PromiseOrValue<BigNumberish>,
             _ignoreKFactor: PromiseOrValue<boolean>,
             overrides?: CallOverrides,
-        ): Promise<
-            [FixedPoint.UnsignedStructOutput] & {
-                value: FixedPoint.UnsignedStructOutput;
-            }
-        >;
+        ): Promise<[BigNumber] & { value: BigNumber }>;
 
         krAssetExists(
             _kreskoAsset: PromiseOrValue<string>,
@@ -2154,15 +2428,15 @@ export interface Kresko extends BaseContract {
             overrides?: CallOverrides,
         ): Promise<[KrAssetStructOutput] & { asset: KrAssetStructOutput }>;
 
-        liquidationIncentiveMultiplier(overrides?: CallOverrides): Promise<[FixedPoint.UnsignedStructOutput]>;
+        liquidationIncentiveMultiplier(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-        liquidationThreshold(overrides?: CallOverrides): Promise<[FixedPoint.UnsignedStructOutput]>;
+        liquidationThreshold(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-        maxLiquidationMultiplier(overrides?: CallOverrides): Promise<[FixedPoint.UnsignedStructOutput]>;
+        maxLiquidationMultiplier(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-        minimumCollateralizationRatio(overrides?: CallOverrides): Promise<[FixedPoint.UnsignedStructOutput]>;
+        minimumCollateralizationRatio(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-        minimumDebtValue(overrides?: CallOverrides): Promise<[FixedPoint.UnsignedStructOutput]>;
+        minimumDebtValue(overrides?: CallOverrides): Promise<[BigNumber]>;
 
         minterInitializations(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -2297,6 +2571,265 @@ export interface Kresko extends BaseContract {
 
     supportsInterface(_interfaceId: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<boolean>;
 
+    disablePoolCollaterals(
+        _disabledAssets: PromiseOrValue<string>[],
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    disablePoolKrAssets(
+        _disabledAssets: PromiseOrValue<string>[],
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    enablePoolCollaterals(
+        _enabledCollaterals: PromiseOrValue<string>[],
+        _configurations: PoolCollateralStruct[],
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    enablePoolKrAssets(
+        _enabledKrAssets: PromiseOrValue<string>[],
+        _configurations: PoolKrAssetStruct[],
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    getCollateralPoolConfig(
+        overrides?: CallOverrides,
+    ): Promise<ICollateralPoolConfigFacet.CollateralPoolConfigStructOutput>;
+
+    "initialize((address,uint256,uint256,address))"(
+        _config: ICollateralPoolConfigFacet.CollateralPoolConfigStruct,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    "initialize((address,address,address,uint8,uint256,uint256,uint256))"(
+        args: MinterInitArgsStruct,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    removePoolCollaterals(
+        _removedAssets: PromiseOrValue<string>[],
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    removePoolKrAssets(
+        _removedAssets: PromiseOrValue<string>[],
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    setFees(
+        _krAsset: PromiseOrValue<string>,
+        _openFee: PromiseOrValue<BigNumberish>,
+        _closeFee: PromiseOrValue<BigNumberish>,
+        _protocolFee: PromiseOrValue<BigNumberish>,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    setPoolLiquidationThreshold(
+        _lt: PromiseOrValue<BigNumberish>,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    setPoolMinimumCollateralizationRatio(
+        _mcr: PromiseOrValue<BigNumberish>,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    setSwapPairs(
+        _pairs: ICollateralPoolConfigFacet.PairSetterStruct[],
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    setSwapPairsSingle(
+        _pair: ICollateralPoolConfigFacet.PairSetterStruct,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    updatePoolCollateral(
+        _asset: PromiseOrValue<string>,
+        _newLiquiditationIncentive: PromiseOrValue<BigNumberish>,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    updatePoolKrAsset(
+        _asset: PromiseOrValue<string>,
+        _configuration: PoolKrAssetStruct,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    poolDeposit(
+        _account: PromiseOrValue<string>,
+        _collateralAsset: PromiseOrValue<string>,
+        _amount: PromiseOrValue<BigNumberish>,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    poolIsLiquidatable(overrides?: CallOverrides): Promise<boolean>;
+
+    poolLiquidate(
+        _repayKrAsset: PromiseOrValue<string>,
+        _repayAmount: PromiseOrValue<BigNumberish>,
+        _seizeCollateral: PromiseOrValue<string>,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    poolRepay(
+        _repayKrAsset: PromiseOrValue<string>,
+        _repayAmount: PromiseOrValue<BigNumberish>,
+        _seizeCollateral: PromiseOrValue<string>,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    poolWithdraw(
+        _account: PromiseOrValue<string>,
+        _collateralAsset: PromiseOrValue<string>,
+        _amount: PromiseOrValue<BigNumberish>,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    getPoolAccountDepositsValue(
+        _account: PromiseOrValue<string>,
+        _collateralAsset: PromiseOrValue<string>,
+        _ignoreFactors: PromiseOrValue<boolean>,
+        overrides?: CallOverrides,
+    ): Promise<BigNumber>;
+
+    getPoolAccountDepositsValueWithFees(
+        _account: PromiseOrValue<string>,
+        _collateralAsset: PromiseOrValue<string>,
+        overrides?: CallOverrides,
+    ): Promise<BigNumber>;
+
+    getPoolAccountDepositsWithFees(
+        _account: PromiseOrValue<string>,
+        _collateralAsset: PromiseOrValue<string>,
+        overrides?: CallOverrides,
+    ): Promise<BigNumber>;
+
+    getPoolAccountPrincipalDeposits(
+        _account: PromiseOrValue<string>,
+        _collateralAsset: PromiseOrValue<string>,
+        overrides?: CallOverrides,
+    ): Promise<BigNumber>;
+
+    getPoolAccountTotalDepositsValue(
+        _account: PromiseOrValue<string>,
+        _ignoreFactors: PromiseOrValue<boolean>,
+        overrides?: CallOverrides,
+    ): Promise<BigNumber>;
+
+    getPoolAccountTotalDepositsValueWithFees(
+        _account: PromiseOrValue<string>,
+        overrides?: CallOverrides,
+    ): Promise<BigNumber>;
+
+    getPoolAssetIsEnabled(_asset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
+
+    getPoolCollateral(
+        _collateralAsset: PromiseOrValue<string>,
+        overrides?: CallOverrides,
+    ): Promise<PoolCollateralStructOutput>;
+
+    getPoolCollateralAssets(overrides?: CallOverrides): Promise<string[]>;
+
+    getPoolDebt(_kreskoAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+
+    getPoolDebtValue(
+        _kreskoAsset: PromiseOrValue<string>,
+        _ignoreFactors: PromiseOrValue<boolean>,
+        overrides?: CallOverrides,
+    ): Promise<BigNumber>;
+
+    getPoolDeposits(_collateralAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+
+    getPoolDepositsValue(
+        _collateralAsset: PromiseOrValue<string>,
+        _ignoreFactors: PromiseOrValue<boolean>,
+        overrides?: CallOverrides,
+    ): Promise<BigNumber>;
+
+    getPoolIsSwapEnabled(
+        _assetIn: PromiseOrValue<string>,
+        _assetOut: PromiseOrValue<string>,
+        overrides?: CallOverrides,
+    ): Promise<boolean>;
+
+    getPoolKrAsset(_krAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PoolKrAssetStructOutput>;
+
+    getPoolKrAssets(overrides?: CallOverrides): Promise<string[]>;
+
+    getPoolStats(
+        _ignoreFactors: PromiseOrValue<boolean>,
+        overrides?: CallOverrides,
+    ): Promise<
+        [BigNumber, BigNumber, BigNumber] & {
+            collateralValue: BigNumber;
+            debtValue: BigNumber;
+            cr: BigNumber;
+        }
+    >;
+
+    getPoolSwapDeposits(_collateralAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+
+    getPoolSwapFeeRecipient(overrides?: CallOverrides): Promise<string>;
+
+    cumulateIncome(
+        _incomeAsset: PromiseOrValue<string>,
+        _amount: PromiseOrValue<BigNumberish>,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    getPrice(_asset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+
+    positionDepositA(
+        _to: PromiseOrValue<string>,
+        _amountA: PromiseOrValue<BigNumberish>,
+        _pos: PositionStruct,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    positionWithdrawA(
+        _from: PromiseOrValue<string>,
+        _amountA: PromiseOrValue<BigNumberish>,
+        _pos: PositionStruct,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    previewSwap(
+        _assetIn: PromiseOrValue<string>,
+        _assetOut: PromiseOrValue<string>,
+        _amountIn: PromiseOrValue<BigNumberish>,
+        _leverage: PromiseOrValue<BigNumberish>,
+        overrides?: CallOverrides,
+    ): Promise<
+        [BigNumber, BigNumber, BigNumber] & {
+            amountOut: BigNumber;
+            feeAmount: BigNumber;
+            feeAmountProtocol: BigNumber;
+        }
+    >;
+
+    swap(
+        _receiver: PromiseOrValue<string>,
+        _assetIn: PromiseOrValue<string>,
+        _assetOut: PromiseOrValue<string>,
+        _amountIn: PromiseOrValue<BigNumberish>,
+        _amountOutMin: PromiseOrValue<BigNumberish>,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    swapIntoLeverage(
+        _sender: PromiseOrValue<string>,
+        _pos: NewPositionStruct,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    swapOutOfLeverage(
+        _pos: PositionStruct,
+        _liquidator: PromiseOrValue<string>,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
     calcExpectedFee(
         _account: PromiseOrValue<string>,
         _kreskoAsset: PromiseOrValue<string>,
@@ -2311,42 +2844,25 @@ export interface Kresko extends BaseContract {
         overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
-    getAccountCollateralRatio(
-        _account: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<FixedPoint.UnsignedStructOutput>;
+    getAccountCollateralRatio(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    getAccountCollateralValue(
-        _account: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<FixedPoint.UnsignedStructOutput>;
+    getAccountCollateralValue(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    getAccountKrAssetValue(
-        _account: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<FixedPoint.UnsignedStructOutput>;
+    getAccountKrAssetValue(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
     getAccountMinimumCollateralValueAtRatio(
         _account: PromiseOrValue<string>,
-        _ratio: FixedPoint.UnsignedStruct,
+        _ratio: PromiseOrValue<BigNumberish>,
         overrides?: CallOverrides,
-    ): Promise<FixedPoint.UnsignedStructOutput>;
+    ): Promise<BigNumber>;
 
     getCollateralAdjustedAndRealValue(
         _account: PromiseOrValue<string>,
         _asset: PromiseOrValue<string>,
         overrides?: CallOverrides,
-    ): Promise<
-        [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
-            adjustedValue: FixedPoint.UnsignedStructOutput;
-            realValue: FixedPoint.UnsignedStructOutput;
-        }
-    >;
+    ): Promise<[BigNumber, BigNumber] & { adjustedValue: BigNumber; realValue: BigNumber }>;
 
-    getCollateralRatiosFor(
-        _accounts: PromiseOrValue<string>[],
-        overrides?: CallOverrides,
-    ): Promise<FixedPoint.UnsignedStructOutput[]>;
+    getCollateralRatiosFor(_accounts: PromiseOrValue<string>[], overrides?: CallOverrides): Promise<BigNumber[]>;
 
     getDepositedCollateralAssetIndex(
         _account: PromiseOrValue<string>,
@@ -2405,28 +2921,13 @@ export interface Kresko extends BaseContract {
 
     addCollateralAsset(
         _collateralAsset: PromiseOrValue<string>,
-        _anchor: PromiseOrValue<string>,
-        _factor: PromiseOrValue<BigNumberish>,
-        _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-        _priceFeedOracle: PromiseOrValue<string>,
-        _marketStatusOracle: PromiseOrValue<string>,
+        _config: CollateralAssetStruct,
         overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     addKreskoAsset(
         _krAsset: PromiseOrValue<string>,
-        _anchor: PromiseOrValue<string>,
-        _kFactor: PromiseOrValue<BigNumberish>,
-        _priceFeedOracle: PromiseOrValue<string>,
-        _marketStatusOracle: PromiseOrValue<string>,
-        _supplyLimit: PromiseOrValue<BigNumberish>,
-        _closeFee: PromiseOrValue<BigNumberish>,
-        _openFee: PromiseOrValue<BigNumberish>,
-        overrides?: Overrides & { from?: PromiseOrValue<string> },
-    ): Promise<ContractTransaction>;
-
-    initialize(
-        args: MinterInitArgsStruct,
+        _config: KrAssetStruct,
         overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
@@ -2443,11 +2944,7 @@ export interface Kresko extends BaseContract {
 
     updateCollateralAsset(
         _collateralAsset: PromiseOrValue<string>,
-        _anchor: PromiseOrValue<string>,
-        _factor: PromiseOrValue<BigNumberish>,
-        _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-        _priceFeedOracle: PromiseOrValue<string>,
-        _marketStatusOracle: PromiseOrValue<string>,
+        _config: CollateralAssetStruct,
         overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
@@ -2469,13 +2966,7 @@ export interface Kresko extends BaseContract {
 
     updateKreskoAsset(
         _krAsset: PromiseOrValue<string>,
-        _anchor: PromiseOrValue<string>,
-        _kFactor: PromiseOrValue<BigNumberish>,
-        _priceFeedOracle: PromiseOrValue<string>,
-        _marketStatusOracle: PromiseOrValue<string>,
-        _supplyLimit: PromiseOrValue<BigNumberish>,
-        _closeFee: PromiseOrValue<BigNumberish>,
-        _openFee: PromiseOrValue<BigNumberish>,
+        _config: KrAssetStruct,
         overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
@@ -2671,33 +3162,28 @@ export interface Kresko extends BaseContract {
         _amount: PromiseOrValue<BigNumberish>,
         _ignoreCollateralFactor: PromiseOrValue<boolean>,
         overrides?: CallOverrides,
-    ): Promise<
-        [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
-            value: FixedPoint.UnsignedStructOutput;
-            oraclePrice: FixedPoint.UnsignedStructOutput;
-        }
-    >;
+    ): Promise<[BigNumber, BigNumber] & { value: BigNumber; oraclePrice: BigNumber }>;
 
     getKrAssetValue(
         _kreskoAsset: PromiseOrValue<string>,
         _amount: PromiseOrValue<BigNumberish>,
         _ignoreKFactor: PromiseOrValue<boolean>,
         overrides?: CallOverrides,
-    ): Promise<FixedPoint.UnsignedStructOutput>;
+    ): Promise<BigNumber>;
 
     krAssetExists(_kreskoAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
 
     kreskoAsset(_kreskoAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<KrAssetStructOutput>;
 
-    liquidationIncentiveMultiplier(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
+    liquidationIncentiveMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
 
-    liquidationThreshold(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
+    liquidationThreshold(overrides?: CallOverrides): Promise<BigNumber>;
 
-    maxLiquidationMultiplier(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
+    maxLiquidationMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
 
-    minimumCollateralizationRatio(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
+    minimumCollateralizationRatio(overrides?: CallOverrides): Promise<BigNumber>;
 
-    minimumDebtValue(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
+    minimumDebtValue(overrides?: CallOverrides): Promise<BigNumber>;
 
     minterInitializations(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -2825,6 +3311,252 @@ export interface Kresko extends BaseContract {
 
         supportsInterface(_interfaceId: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<boolean>;
 
+        disablePoolCollaterals(_disabledAssets: PromiseOrValue<string>[], overrides?: CallOverrides): Promise<void>;
+
+        disablePoolKrAssets(_disabledAssets: PromiseOrValue<string>[], overrides?: CallOverrides): Promise<void>;
+
+        enablePoolCollaterals(
+            _enabledCollaterals: PromiseOrValue<string>[],
+            _configurations: PoolCollateralStruct[],
+            overrides?: CallOverrides,
+        ): Promise<void>;
+
+        enablePoolKrAssets(
+            _enabledKrAssets: PromiseOrValue<string>[],
+            _configurations: PoolKrAssetStruct[],
+            overrides?: CallOverrides,
+        ): Promise<void>;
+
+        getCollateralPoolConfig(
+            overrides?: CallOverrides,
+        ): Promise<ICollateralPoolConfigFacet.CollateralPoolConfigStructOutput>;
+
+        "initialize((address,uint256,uint256,address))"(
+            _config: ICollateralPoolConfigFacet.CollateralPoolConfigStruct,
+            overrides?: CallOverrides,
+        ): Promise<void>;
+
+        "initialize((address,address,address,uint8,uint256,uint256,uint256))"(
+            args: MinterInitArgsStruct,
+            overrides?: CallOverrides,
+        ): Promise<void>;
+
+        removePoolCollaterals(_removedAssets: PromiseOrValue<string>[], overrides?: CallOverrides): Promise<void>;
+
+        removePoolKrAssets(_removedAssets: PromiseOrValue<string>[], overrides?: CallOverrides): Promise<void>;
+
+        setFees(
+            _krAsset: PromiseOrValue<string>,
+            _openFee: PromiseOrValue<BigNumberish>,
+            _closeFee: PromiseOrValue<BigNumberish>,
+            _protocolFee: PromiseOrValue<BigNumberish>,
+            overrides?: CallOverrides,
+        ): Promise<void>;
+
+        setPoolLiquidationThreshold(_lt: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<void>;
+
+        setPoolMinimumCollateralizationRatio(
+            _mcr: PromiseOrValue<BigNumberish>,
+            overrides?: CallOverrides,
+        ): Promise<void>;
+
+        setSwapPairs(_pairs: ICollateralPoolConfigFacet.PairSetterStruct[], overrides?: CallOverrides): Promise<void>;
+
+        setSwapPairsSingle(
+            _pair: ICollateralPoolConfigFacet.PairSetterStruct,
+            overrides?: CallOverrides,
+        ): Promise<void>;
+
+        updatePoolCollateral(
+            _asset: PromiseOrValue<string>,
+            _newLiquiditationIncentive: PromiseOrValue<BigNumberish>,
+            overrides?: CallOverrides,
+        ): Promise<void>;
+
+        updatePoolKrAsset(
+            _asset: PromiseOrValue<string>,
+            _configuration: PoolKrAssetStruct,
+            overrides?: CallOverrides,
+        ): Promise<void>;
+
+        poolDeposit(
+            _account: PromiseOrValue<string>,
+            _collateralAsset: PromiseOrValue<string>,
+            _amount: PromiseOrValue<BigNumberish>,
+            overrides?: CallOverrides,
+        ): Promise<void>;
+
+        poolIsLiquidatable(overrides?: CallOverrides): Promise<boolean>;
+
+        poolLiquidate(
+            _repayKrAsset: PromiseOrValue<string>,
+            _repayAmount: PromiseOrValue<BigNumberish>,
+            _seizeCollateral: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<void>;
+
+        poolRepay(
+            _repayKrAsset: PromiseOrValue<string>,
+            _repayAmount: PromiseOrValue<BigNumberish>,
+            _seizeCollateral: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<void>;
+
+        poolWithdraw(
+            _account: PromiseOrValue<string>,
+            _collateralAsset: PromiseOrValue<string>,
+            _amount: PromiseOrValue<BigNumberish>,
+            overrides?: CallOverrides,
+        ): Promise<void>;
+
+        getPoolAccountDepositsValue(
+            _account: PromiseOrValue<string>,
+            _collateralAsset: PromiseOrValue<string>,
+            _ignoreFactors: PromiseOrValue<boolean>,
+            overrides?: CallOverrides,
+        ): Promise<BigNumber>;
+
+        getPoolAccountDepositsValueWithFees(
+            _account: PromiseOrValue<string>,
+            _collateralAsset: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<BigNumber>;
+
+        getPoolAccountDepositsWithFees(
+            _account: PromiseOrValue<string>,
+            _collateralAsset: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<BigNumber>;
+
+        getPoolAccountPrincipalDeposits(
+            _account: PromiseOrValue<string>,
+            _collateralAsset: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<BigNumber>;
+
+        getPoolAccountTotalDepositsValue(
+            _account: PromiseOrValue<string>,
+            _ignoreFactors: PromiseOrValue<boolean>,
+            overrides?: CallOverrides,
+        ): Promise<BigNumber>;
+
+        getPoolAccountTotalDepositsValueWithFees(
+            _account: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<BigNumber>;
+
+        getPoolAssetIsEnabled(_asset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
+
+        getPoolCollateral(
+            _collateralAsset: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<PoolCollateralStructOutput>;
+
+        getPoolCollateralAssets(overrides?: CallOverrides): Promise<string[]>;
+
+        getPoolDebt(_kreskoAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+
+        getPoolDebtValue(
+            _kreskoAsset: PromiseOrValue<string>,
+            _ignoreFactors: PromiseOrValue<boolean>,
+            overrides?: CallOverrides,
+        ): Promise<BigNumber>;
+
+        getPoolDeposits(_collateralAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+
+        getPoolDepositsValue(
+            _collateralAsset: PromiseOrValue<string>,
+            _ignoreFactors: PromiseOrValue<boolean>,
+            overrides?: CallOverrides,
+        ): Promise<BigNumber>;
+
+        getPoolIsSwapEnabled(
+            _assetIn: PromiseOrValue<string>,
+            _assetOut: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<boolean>;
+
+        getPoolKrAsset(_krAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PoolKrAssetStructOutput>;
+
+        getPoolKrAssets(overrides?: CallOverrides): Promise<string[]>;
+
+        getPoolStats(
+            _ignoreFactors: PromiseOrValue<boolean>,
+            overrides?: CallOverrides,
+        ): Promise<
+            [BigNumber, BigNumber, BigNumber] & {
+                collateralValue: BigNumber;
+                debtValue: BigNumber;
+                cr: BigNumber;
+            }
+        >;
+
+        getPoolSwapDeposits(_collateralAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+
+        getPoolSwapFeeRecipient(overrides?: CallOverrides): Promise<string>;
+
+        cumulateIncome(
+            _incomeAsset: PromiseOrValue<string>,
+            _amount: PromiseOrValue<BigNumberish>,
+            overrides?: CallOverrides,
+        ): Promise<void>;
+
+        getPrice(_asset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+
+        positionDepositA(
+            _to: PromiseOrValue<string>,
+            _amountA: PromiseOrValue<BigNumberish>,
+            _pos: PositionStruct,
+            overrides?: CallOverrides,
+        ): Promise<void>;
+
+        positionWithdrawA(
+            _from: PromiseOrValue<string>,
+            _amountA: PromiseOrValue<BigNumberish>,
+            _pos: PositionStruct,
+            overrides?: CallOverrides,
+        ): Promise<void>;
+
+        previewSwap(
+            _assetIn: PromiseOrValue<string>,
+            _assetOut: PromiseOrValue<string>,
+            _amountIn: PromiseOrValue<BigNumberish>,
+            _leverage: PromiseOrValue<BigNumberish>,
+            overrides?: CallOverrides,
+        ): Promise<
+            [BigNumber, BigNumber, BigNumber] & {
+                amountOut: BigNumber;
+                feeAmount: BigNumber;
+                feeAmountProtocol: BigNumber;
+            }
+        >;
+
+        swap(
+            _receiver: PromiseOrValue<string>,
+            _assetIn: PromiseOrValue<string>,
+            _assetOut: PromiseOrValue<string>,
+            _amountIn: PromiseOrValue<BigNumberish>,
+            _amountOutMin: PromiseOrValue<BigNumberish>,
+            overrides?: CallOverrides,
+        ): Promise<void>;
+
+        swapIntoLeverage(
+            _sender: PromiseOrValue<string>,
+            _pos: NewPositionStruct,
+            overrides?: CallOverrides,
+        ): Promise<
+            [BigNumber, BigNumber] & {
+                amountAFeeReduced: BigNumber;
+                amountBOut: BigNumber;
+            }
+        >;
+
+        swapOutOfLeverage(
+            _pos: PositionStruct,
+            _liquidator: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<BigNumber>;
+
         calcExpectedFee(
             _account: PromiseOrValue<string>,
             _kreskoAsset: PromiseOrValue<string>,
@@ -2839,42 +3571,30 @@ export interface Kresko extends BaseContract {
             overrides?: CallOverrides,
         ): Promise<BigNumber>;
 
-        getAccountCollateralRatio(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<FixedPoint.UnsignedStructOutput>;
+        getAccountCollateralRatio(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
-        getAccountCollateralValue(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<FixedPoint.UnsignedStructOutput>;
+        getAccountCollateralValue(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
-        getAccountKrAssetValue(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<FixedPoint.UnsignedStructOutput>;
+        getAccountKrAssetValue(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
         getAccountMinimumCollateralValueAtRatio(
             _account: PromiseOrValue<string>,
-            _ratio: FixedPoint.UnsignedStruct,
+            _ratio: PromiseOrValue<BigNumberish>,
             overrides?: CallOverrides,
-        ): Promise<FixedPoint.UnsignedStructOutput>;
+        ): Promise<BigNumber>;
 
         getCollateralAdjustedAndRealValue(
             _account: PromiseOrValue<string>,
             _asset: PromiseOrValue<string>,
             overrides?: CallOverrides,
         ): Promise<
-            [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
-                adjustedValue: FixedPoint.UnsignedStructOutput;
-                realValue: FixedPoint.UnsignedStructOutput;
+            [BigNumber, BigNumber] & {
+                adjustedValue: BigNumber;
+                realValue: BigNumber;
             }
         >;
 
-        getCollateralRatiosFor(
-            _accounts: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<FixedPoint.UnsignedStructOutput[]>;
+        getCollateralRatiosFor(_accounts: PromiseOrValue<string>[], overrides?: CallOverrides): Promise<BigNumber[]>;
 
         getDepositedCollateralAssetIndex(
             _account: PromiseOrValue<string>,
@@ -2930,27 +3650,15 @@ export interface Kresko extends BaseContract {
 
         addCollateralAsset(
             _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
+            _config: CollateralAssetStruct,
             overrides?: CallOverrides,
         ): Promise<void>;
 
         addKreskoAsset(
             _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
+            _config: KrAssetStruct,
             overrides?: CallOverrides,
         ): Promise<void>;
-
-        initialize(args: MinterInitArgsStruct, overrides?: CallOverrides): Promise<void>;
 
         updateAMMOracle(_ammOracle: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
 
@@ -2962,11 +3670,7 @@ export interface Kresko extends BaseContract {
 
         updateCollateralAsset(
             _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
+            _config: CollateralAssetStruct,
             overrides?: CallOverrides,
         ): Promise<void>;
 
@@ -2982,13 +3686,7 @@ export interface Kresko extends BaseContract {
 
         updateKreskoAsset(
             _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
+            _config: KrAssetStruct,
             overrides?: CallOverrides,
         ): Promise<void>;
 
@@ -3178,33 +3876,28 @@ export interface Kresko extends BaseContract {
             _amount: PromiseOrValue<BigNumberish>,
             _ignoreCollateralFactor: PromiseOrValue<boolean>,
             overrides?: CallOverrides,
-        ): Promise<
-            [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
-                value: FixedPoint.UnsignedStructOutput;
-                oraclePrice: FixedPoint.UnsignedStructOutput;
-            }
-        >;
+        ): Promise<[BigNumber, BigNumber] & { value: BigNumber; oraclePrice: BigNumber }>;
 
         getKrAssetValue(
             _kreskoAsset: PromiseOrValue<string>,
             _amount: PromiseOrValue<BigNumberish>,
             _ignoreKFactor: PromiseOrValue<boolean>,
             overrides?: CallOverrides,
-        ): Promise<FixedPoint.UnsignedStructOutput>;
+        ): Promise<BigNumber>;
 
         krAssetExists(_kreskoAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
 
         kreskoAsset(_kreskoAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<KrAssetStructOutput>;
 
-        liquidationIncentiveMultiplier(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
+        liquidationIncentiveMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
 
-        liquidationThreshold(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
+        liquidationThreshold(overrides?: CallOverrides): Promise<BigNumber>;
 
-        maxLiquidationMultiplier(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
+        maxLiquidationMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
 
-        minimumCollateralizationRatio(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
+        minimumCollateralizationRatio(overrides?: CallOverrides): Promise<BigNumber>;
 
-        minimumDebtValue(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
+        minimumDebtValue(overrides?: CallOverrides): Promise<BigNumber>;
 
         minterInitializations(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -3264,341 +3957,136 @@ export interface Kresko extends BaseContract {
     };
 
     filters: {
-        "DiamondCut(tuple[],address,bytes)"(_diamondCut?: null, _init?: null, _calldata?: null): DiamondCutEventFilter;
-        DiamondCut(_diamondCut?: null, _init?: null, _calldata?: null): DiamondCutEventFilter;
-
-        "OwnershipTransferred(address,address)"(
-            previousOwner?: PromiseOrValue<string> | null,
-            newOwner?: PromiseOrValue<string> | null,
-        ): OwnershipTransferredEventFilter;
-        OwnershipTransferred(
-            previousOwner?: PromiseOrValue<string> | null,
-            newOwner?: PromiseOrValue<string> | null,
-        ): OwnershipTransferredEventFilter;
-
-        "PendingOwnershipTransfer(address,address)"(
-            previousOwner?: PromiseOrValue<string> | null,
-            newOwner?: PromiseOrValue<string> | null,
-        ): PendingOwnershipTransferEventFilter;
-        PendingOwnershipTransfer(
-            previousOwner?: PromiseOrValue<string> | null,
-            newOwner?: PromiseOrValue<string> | null,
-        ): PendingOwnershipTransferEventFilter;
-
-        "Deployed(address,uint8)"(owner?: PromiseOrValue<string> | null, version?: null): DeployedEventFilter;
-        Deployed(owner?: PromiseOrValue<string> | null, version?: null): DeployedEventFilter;
-
-        "Initialized(address,uint8)"(operator?: PromiseOrValue<string> | null, version?: null): InitializedEventFilter;
-        Initialized(operator?: PromiseOrValue<string> | null, version?: null): InitializedEventFilter;
-
-        "KISSUpdated(address)"(KISS?: PromiseOrValue<string> | null): KISSUpdatedEventFilter;
-        KISSUpdated(KISS?: PromiseOrValue<string> | null): KISSUpdatedEventFilter;
-
-        "StabilityRateConfigured(address,uint256,uint256,uint256,uint256)"(
-            asset?: PromiseOrValue<string> | null,
-            stabilityRateBase?: null,
-            priceRateDelta?: null,
-            rateSlope1?: null,
-            rateSlope2?: null,
-        ): StabilityRateConfiguredEventFilter;
-        StabilityRateConfigured(
-            asset?: PromiseOrValue<string> | null,
-            stabilityRateBase?: null,
-            priceRateDelta?: null,
-            rateSlope1?: null,
-            rateSlope2?: null,
-        ): StabilityRateConfiguredEventFilter;
-
-        "StabilityRateInterestBatchRepaid(address,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            value?: null,
-        ): StabilityRateInterestBatchRepaidEventFilter;
-        StabilityRateInterestBatchRepaid(
-            account?: PromiseOrValue<string> | null,
-            value?: null,
-        ): StabilityRateInterestBatchRepaidEventFilter;
-
-        "StabilityRateInterestRepaid(address,address,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            asset?: PromiseOrValue<string> | null,
-            value?: null,
-        ): StabilityRateInterestRepaidEventFilter;
-        StabilityRateInterestRepaid(
-            account?: PromiseOrValue<string> | null,
-            asset?: PromiseOrValue<string> | null,
-            value?: null,
-        ): StabilityRateInterestRepaidEventFilter;
-
-        "AMMOracleUpdated(address)"(ammOracle?: PromiseOrValue<string> | null): AMMOracleUpdatedEventFilter;
-        AMMOracleUpdated(ammOracle?: PromiseOrValue<string> | null): AMMOracleUpdatedEventFilter;
-
-        "BatchInterestLiquidationOccurred(address,address,address,uint256,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            liquidator?: PromiseOrValue<string> | null,
-            seizedCollateralAsset?: PromiseOrValue<string> | null,
-            repayUSD?: null,
-            collateralSent?: null,
-        ): BatchInterestLiquidationOccurredEventFilter;
-        BatchInterestLiquidationOccurred(
-            account?: PromiseOrValue<string> | null,
-            liquidator?: PromiseOrValue<string> | null,
-            seizedCollateralAsset?: PromiseOrValue<string> | null,
-            repayUSD?: null,
-            collateralSent?: null,
-        ): BatchInterestLiquidationOccurredEventFilter;
-
-        "CFactorUpdated(address,uint256)"(
-            collateralAsset?: PromiseOrValue<string> | null,
-            cFactor?: null,
-        ): CFactorUpdatedEventFilter;
-        CFactorUpdated(collateralAsset?: PromiseOrValue<string> | null, cFactor?: null): CFactorUpdatedEventFilter;
-
-        "CloseFeePaid(address,address,uint256,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            paymentCollateralAsset?: PromiseOrValue<string> | null,
-            paymentAmount?: null,
-            paymentValue?: null,
-        ): CloseFeePaidEventFilter;
-        CloseFeePaid(
-            account?: PromiseOrValue<string> | null,
-            paymentCollateralAsset?: PromiseOrValue<string> | null,
-            paymentAmount?: null,
-            paymentValue?: null,
-        ): CloseFeePaidEventFilter;
-
-        "CollateralAssetAdded(address,uint256,address,address,address)"(
-            collateralAsset?: PromiseOrValue<string> | null,
-            factor?: null,
-            oracle?: PromiseOrValue<string> | null,
-            marketStatusOracle?: PromiseOrValue<string> | null,
-            anchor?: null,
-        ): CollateralAssetAddedEventFilter;
-        CollateralAssetAdded(
-            collateralAsset?: PromiseOrValue<string> | null,
-            factor?: null,
-            oracle?: PromiseOrValue<string> | null,
-            marketStatusOracle?: PromiseOrValue<string> | null,
-            anchor?: null,
-        ): CollateralAssetAddedEventFilter;
-
-        "CollateralAssetUpdated(address,uint256,address,address,address)"(
-            collateralAsset?: PromiseOrValue<string> | null,
-            factor?: null,
-            oracle?: PromiseOrValue<string> | null,
-            marketStatusOracle?: PromiseOrValue<string> | null,
-            anchor?: null,
-        ): CollateralAssetUpdatedEventFilter;
-        CollateralAssetUpdated(
-            collateralAsset?: PromiseOrValue<string> | null,
-            factor?: null,
-            oracle?: PromiseOrValue<string> | null,
-            marketStatusOracle?: PromiseOrValue<string> | null,
-            anchor?: null,
-        ): CollateralAssetUpdatedEventFilter;
-
-        "CollateralDeposited(address,address,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            collateralAsset?: PromiseOrValue<string> | null,
-            amount?: null,
-        ): CollateralDepositedEventFilter;
-        CollateralDeposited(
-            account?: PromiseOrValue<string> | null,
-            collateralAsset?: PromiseOrValue<string> | null,
-            amount?: null,
-        ): CollateralDepositedEventFilter;
-
-        "CollateralWithdrawn(address,address,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            collateralAsset?: PromiseOrValue<string> | null,
-            amount?: null,
-        ): CollateralWithdrawnEventFilter;
-        CollateralWithdrawn(
-            account?: PromiseOrValue<string> | null,
-            collateralAsset?: PromiseOrValue<string> | null,
-            amount?: null,
-        ): CollateralWithdrawnEventFilter;
-
-        "DebtPositionClosed(address,address,uint256,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            kreskoAsset?: PromiseOrValue<string> | null,
-            amount?: null,
-            interestRepaid?: null,
-        ): DebtPositionClosedEventFilter;
-        DebtPositionClosed(
-            account?: PromiseOrValue<string> | null,
-            kreskoAsset?: PromiseOrValue<string> | null,
-            amount?: null,
-            interestRepaid?: null,
-        ): DebtPositionClosedEventFilter;
-
-        "FeeRecipientUpdated(address)"(feeRecipient?: PromiseOrValue<string> | null): FeeRecipientUpdatedEventFilter;
-        FeeRecipientUpdated(feeRecipient?: PromiseOrValue<string> | null): FeeRecipientUpdatedEventFilter;
-
-        "InterestLiquidationOccurred(address,address,address,uint256,address,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            liquidator?: PromiseOrValue<string> | null,
-            repayKreskoAsset?: PromiseOrValue<string> | null,
-            repayUSD?: null,
-            seizedCollateralAsset?: null,
-            collateralSent?: null,
-        ): InterestLiquidationOccurredEventFilter;
-        InterestLiquidationOccurred(
-            account?: PromiseOrValue<string> | null,
-            liquidator?: PromiseOrValue<string> | null,
-            repayKreskoAsset?: PromiseOrValue<string> | null,
-            repayUSD?: null,
-            seizedCollateralAsset?: null,
-            collateralSent?: null,
-        ): InterestLiquidationOccurredEventFilter;
-
-        "KFactorUpdated(address,uint256)"(
-            kreskoAsset?: PromiseOrValue<string> | null,
-            kFactor?: null,
-        ): KFactorUpdatedEventFilter;
-        KFactorUpdated(kreskoAsset?: PromiseOrValue<string> | null, kFactor?: null): KFactorUpdatedEventFilter;
-
-        "KreskoAssetAdded(address,address,address,address,uint256,uint256,uint256,uint256)"(
-            kreskoAsset?: PromiseOrValue<string> | null,
-            anchor?: null,
-            oracle?: PromiseOrValue<string> | null,
-            marketStatusOracle?: PromiseOrValue<string> | null,
-            kFactor?: null,
-            supplyLimit?: null,
-            closeFee?: null,
+        "FeeSet(address,uint256,uint256,uint256)"(
+            _asset?: PromiseOrValue<string> | null,
             openFee?: null,
-        ): KreskoAssetAddedEventFilter;
-        KreskoAssetAdded(
-            kreskoAsset?: PromiseOrValue<string> | null,
-            anchor?: null,
-            oracle?: PromiseOrValue<string> | null,
-            marketStatusOracle?: PromiseOrValue<string> | null,
-            kFactor?: null,
-            supplyLimit?: null,
             closeFee?: null,
+            protocolFee?: null,
+        ): FeeSetEventFilter;
+        FeeSet(
+            _asset?: PromiseOrValue<string> | null,
             openFee?: null,
-        ): KreskoAssetAddedEventFilter;
-
-        "KreskoAssetBurned(address,address,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            kreskoAsset?: PromiseOrValue<string> | null,
-            amount?: null,
-        ): KreskoAssetBurnedEventFilter;
-        KreskoAssetBurned(
-            account?: PromiseOrValue<string> | null,
-            kreskoAsset?: PromiseOrValue<string> | null,
-            amount?: null,
-        ): KreskoAssetBurnedEventFilter;
-
-        "KreskoAssetMinted(address,address,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            kreskoAsset?: PromiseOrValue<string> | null,
-            amount?: null,
-        ): KreskoAssetMintedEventFilter;
-        KreskoAssetMinted(
-            account?: PromiseOrValue<string> | null,
-            kreskoAsset?: PromiseOrValue<string> | null,
-            amount?: null,
-        ): KreskoAssetMintedEventFilter;
-
-        "KreskoAssetUpdated(address,address,address,address,uint256,uint256,uint256,uint256)"(
-            kreskoAsset?: PromiseOrValue<string> | null,
-            anchor?: null,
-            oracle?: PromiseOrValue<string> | null,
-            marketStatusOracle?: PromiseOrValue<string> | null,
-            kFactor?: null,
-            supplyLimit?: null,
             closeFee?: null,
+            protocolFee?: null,
+        ): FeeSetEventFilter;
+
+        "PairSet(address,address,bool)"(
+            assetIn?: PromiseOrValue<string> | null,
+            assetOut?: PromiseOrValue<string> | null,
+            enabled?: null,
+        ): PairSetEventFilter;
+        PairSet(
+            assetIn?: PromiseOrValue<string> | null,
+            assetOut?: PromiseOrValue<string> | null,
+            enabled?: null,
+        ): PairSetEventFilter;
+
+        "PoolCollateralUpdated(address,uint256)"(
+            _asset?: PromiseOrValue<string> | null,
+            liquidationThreshold?: null,
+        ): PoolCollateralUpdatedEventFilter;
+        PoolCollateralUpdated(
+            _asset?: PromiseOrValue<string> | null,
+            liquidationThreshold?: null,
+        ): PoolCollateralUpdatedEventFilter;
+
+        "PoolKrAssetUpdated(address,uint256,uint256,uint256,uint256)"(
+            _asset?: PromiseOrValue<string> | null,
             openFee?: null,
-        ): KreskoAssetUpdatedEventFilter;
-        KreskoAssetUpdated(
-            kreskoAsset?: PromiseOrValue<string> | null,
-            anchor?: null,
-            oracle?: PromiseOrValue<string> | null,
-            marketStatusOracle?: PromiseOrValue<string> | null,
-            kFactor?: null,
-            supplyLimit?: null,
             closeFee?: null,
+            protocolFee?: null,
+            supplyLimit?: null,
+        ): PoolKrAssetUpdatedEventFilter;
+        PoolKrAssetUpdated(
+            _asset?: PromiseOrValue<string> | null,
             openFee?: null,
-        ): KreskoAssetUpdatedEventFilter;
+            closeFee?: null,
+            protocolFee?: null,
+            supplyLimit?: null,
+        ): PoolKrAssetUpdatedEventFilter;
 
-        "LiquidationIncentiveMultiplierUpdated(address,uint256)"(
-            asset?: PromiseOrValue<string> | null,
-            liquidationIncentiveMultiplier?: null,
-        ): LiquidationIncentiveMultiplierUpdatedEventFilter;
-        LiquidationIncentiveMultiplierUpdated(
-            asset?: PromiseOrValue<string> | null,
-            liquidationIncentiveMultiplier?: null,
-        ): LiquidationIncentiveMultiplierUpdatedEventFilter;
+        "CollateralPoolDeposit(address,address,uint256)"(
+            depositor?: PromiseOrValue<string> | null,
+            collateralAsset?: PromiseOrValue<string> | null,
+            amount?: null,
+        ): CollateralPoolDepositEventFilter;
+        CollateralPoolDeposit(
+            depositor?: PromiseOrValue<string> | null,
+            collateralAsset?: PromiseOrValue<string> | null,
+            amount?: null,
+        ): CollateralPoolDepositEventFilter;
 
-        "LiquidationOccurred(address,address,address,uint256,address,uint256)"(
-            account?: PromiseOrValue<string> | null,
+        "CollateralPoolLiquidationOccured(address,address,uint256,address,uint256)"(
             liquidator?: PromiseOrValue<string> | null,
             repayKreskoAsset?: PromiseOrValue<string> | null,
             repayAmount?: null,
-            seizedCollateralAsset?: null,
-            collateralSent?: null,
-        ): LiquidationOccurredEventFilter;
-        LiquidationOccurred(
-            account?: PromiseOrValue<string> | null,
+            seizeCollateral?: PromiseOrValue<string> | null,
+            seizeAmount?: null,
+        ): CollateralPoolLiquidationOccuredEventFilter;
+        CollateralPoolLiquidationOccured(
             liquidator?: PromiseOrValue<string> | null,
             repayKreskoAsset?: PromiseOrValue<string> | null,
             repayAmount?: null,
-            seizedCollateralAsset?: null,
-            collateralSent?: null,
-        ): LiquidationOccurredEventFilter;
+            seizeCollateral?: PromiseOrValue<string> | null,
+            seizeAmount?: null,
+        ): CollateralPoolLiquidationOccuredEventFilter;
 
-        "LiquidationThresholdUpdated(uint256)"(liquidationThreshold?: null): LiquidationThresholdUpdatedEventFilter;
-        LiquidationThresholdUpdated(liquidationThreshold?: null): LiquidationThresholdUpdatedEventFilter;
+        "CollateralPoolRepayment(address,address,uint256,address,uint256)"(
+            repayer?: PromiseOrValue<string> | null,
+            repayKreskoAsset?: PromiseOrValue<string> | null,
+            repayAmount?: null,
+            receiveKreskoAsset?: PromiseOrValue<string> | null,
+            receiveAmount?: null,
+        ): CollateralPoolRepaymentEventFilter;
+        CollateralPoolRepayment(
+            repayer?: PromiseOrValue<string> | null,
+            repayKreskoAsset?: PromiseOrValue<string> | null,
+            repayAmount?: null,
+            receiveKreskoAsset?: PromiseOrValue<string> | null,
+            receiveAmount?: null,
+        ): CollateralPoolRepaymentEventFilter;
 
-        "MinimumCollateralizationRatioUpdated(uint256)"(
-            minimumCollateralizationRatio?: null,
-        ): MinimumCollateralizationRatioUpdatedEventFilter;
-        MinimumCollateralizationRatioUpdated(
-            minimumCollateralizationRatio?: null,
-        ): MinimumCollateralizationRatioUpdatedEventFilter;
-
-        "MinimumDebtValueUpdated(uint256)"(minimumDebtValue?: null): MinimumDebtValueUpdatedEventFilter;
-        MinimumDebtValueUpdated(minimumDebtValue?: null): MinimumDebtValueUpdatedEventFilter;
-
-        "OpenFeePaid(address,address,uint256,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            paymentCollateralAsset?: PromiseOrValue<string> | null,
-            paymentAmount?: null,
-            paymentValue?: null,
-        ): OpenFeePaidEventFilter;
-        OpenFeePaid(
-            account?: PromiseOrValue<string> | null,
-            paymentCollateralAsset?: PromiseOrValue<string> | null,
-            paymentAmount?: null,
-            paymentValue?: null,
-        ): OpenFeePaidEventFilter;
-
-        "SafetyStateChange(uint8,address,string)"(
-            action?: PromiseOrValue<BigNumberish> | null,
-            asset?: PromiseOrValue<string> | null,
-            description?: PromiseOrValue<string> | null,
-        ): SafetyStateChangeEventFilter;
-        SafetyStateChange(
-            action?: PromiseOrValue<BigNumberish> | null,
-            asset?: PromiseOrValue<string> | null,
-            description?: PromiseOrValue<string> | null,
-        ): SafetyStateChangeEventFilter;
-
-        "UncheckedCollateralWithdrawn(address,address,uint256)"(
-            account?: PromiseOrValue<string> | null,
+        "CollateralPoolWithdraw(address,address,uint256,uint256)"(
+            withdrawer?: PromiseOrValue<string> | null,
             collateralAsset?: PromiseOrValue<string> | null,
             amount?: null,
-        ): UncheckedCollateralWithdrawnEventFilter;
-        UncheckedCollateralWithdrawn(
-            account?: PromiseOrValue<string> | null,
+            feeAmount?: null,
+        ): CollateralPoolWithdrawEventFilter;
+        CollateralPoolWithdraw(
+            withdrawer?: PromiseOrValue<string> | null,
             collateralAsset?: PromiseOrValue<string> | null,
             amount?: null,
-        ): UncheckedCollateralWithdrawnEventFilter;
+            feeAmount?: null,
+        ): CollateralPoolWithdrawEventFilter;
 
-        "maxLiquidationMultiplierUpdated(uint256)"(
-            maxLiquidationMultiplier?: null,
-        ): maxLiquidationMultiplierUpdatedEventFilter;
-        maxLiquidationMultiplierUpdated(maxLiquidationMultiplier?: null): maxLiquidationMultiplierUpdatedEventFilter;
+        "Income(address,uint256)"(asset?: null, amount?: null): IncomeEventFilter;
+        Income(asset?: null, amount?: null): IncomeEventFilter;
+
+        "Swap(address,address,address,uint256,uint256)"(
+            who?: PromiseOrValue<string> | null,
+            assetIn?: PromiseOrValue<string> | null,
+            assetOut?: PromiseOrValue<string> | null,
+            amountIn?: null,
+            amountOut?: null,
+        ): SwapEventFilter;
+        Swap(
+            who?: PromiseOrValue<string> | null,
+            assetIn?: PromiseOrValue<string> | null,
+            assetOut?: PromiseOrValue<string> | null,
+            amountIn?: null,
+            amountOut?: null,
+        ): SwapEventFilter;
+
+        "SwapFee(address,uint256,uint256)"(
+            assetIn?: PromiseOrValue<string> | null,
+            feeAmount?: null,
+            protocolFeeAmount?: null,
+        ): SwapFeeEventFilter;
+        SwapFee(
+            assetIn?: PromiseOrValue<string> | null,
+            feeAmount?: null,
+            protocolFeeAmount?: null,
+        ): SwapFeeEventFilter;
     };
 
     estimateGas: {
@@ -3678,6 +4166,245 @@ export interface Kresko extends BaseContract {
 
         supportsInterface(_interfaceId: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<BigNumber>;
 
+        disablePoolCollaterals(
+            _disabledAssets: PromiseOrValue<string>[],
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        disablePoolKrAssets(
+            _disabledAssets: PromiseOrValue<string>[],
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        enablePoolCollaterals(
+            _enabledCollaterals: PromiseOrValue<string>[],
+            _configurations: PoolCollateralStruct[],
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        enablePoolKrAssets(
+            _enabledKrAssets: PromiseOrValue<string>[],
+            _configurations: PoolKrAssetStruct[],
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        getCollateralPoolConfig(overrides?: CallOverrides): Promise<BigNumber>;
+
+        "initialize((address,uint256,uint256,address))"(
+            _config: ICollateralPoolConfigFacet.CollateralPoolConfigStruct,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        "initialize((address,address,address,uint8,uint256,uint256,uint256))"(
+            args: MinterInitArgsStruct,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        removePoolCollaterals(
+            _removedAssets: PromiseOrValue<string>[],
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        removePoolKrAssets(
+            _removedAssets: PromiseOrValue<string>[],
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        setFees(
+            _krAsset: PromiseOrValue<string>,
+            _openFee: PromiseOrValue<BigNumberish>,
+            _closeFee: PromiseOrValue<BigNumberish>,
+            _protocolFee: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        setPoolLiquidationThreshold(
+            _lt: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        setPoolMinimumCollateralizationRatio(
+            _mcr: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        setSwapPairs(
+            _pairs: ICollateralPoolConfigFacet.PairSetterStruct[],
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        setSwapPairsSingle(
+            _pair: ICollateralPoolConfigFacet.PairSetterStruct,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        updatePoolCollateral(
+            _asset: PromiseOrValue<string>,
+            _newLiquiditationIncentive: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        updatePoolKrAsset(
+            _asset: PromiseOrValue<string>,
+            _configuration: PoolKrAssetStruct,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        poolDeposit(
+            _account: PromiseOrValue<string>,
+            _collateralAsset: PromiseOrValue<string>,
+            _amount: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        poolIsLiquidatable(overrides?: CallOverrides): Promise<BigNumber>;
+
+        poolLiquidate(
+            _repayKrAsset: PromiseOrValue<string>,
+            _repayAmount: PromiseOrValue<BigNumberish>,
+            _seizeCollateral: PromiseOrValue<string>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        poolRepay(
+            _repayKrAsset: PromiseOrValue<string>,
+            _repayAmount: PromiseOrValue<BigNumberish>,
+            _seizeCollateral: PromiseOrValue<string>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        poolWithdraw(
+            _account: PromiseOrValue<string>,
+            _collateralAsset: PromiseOrValue<string>,
+            _amount: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        getPoolAccountDepositsValue(
+            _account: PromiseOrValue<string>,
+            _collateralAsset: PromiseOrValue<string>,
+            _ignoreFactors: PromiseOrValue<boolean>,
+            overrides?: CallOverrides,
+        ): Promise<BigNumber>;
+
+        getPoolAccountDepositsValueWithFees(
+            _account: PromiseOrValue<string>,
+            _collateralAsset: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<BigNumber>;
+
+        getPoolAccountDepositsWithFees(
+            _account: PromiseOrValue<string>,
+            _collateralAsset: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<BigNumber>;
+
+        getPoolAccountPrincipalDeposits(
+            _account: PromiseOrValue<string>,
+            _collateralAsset: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<BigNumber>;
+
+        getPoolAccountTotalDepositsValue(
+            _account: PromiseOrValue<string>,
+            _ignoreFactors: PromiseOrValue<boolean>,
+            overrides?: CallOverrides,
+        ): Promise<BigNumber>;
+
+        getPoolAccountTotalDepositsValueWithFees(
+            _account: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<BigNumber>;
+
+        getPoolAssetIsEnabled(_asset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+
+        getPoolCollateral(_collateralAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+
+        getPoolCollateralAssets(overrides?: CallOverrides): Promise<BigNumber>;
+
+        getPoolDebt(_kreskoAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+
+        getPoolDebtValue(
+            _kreskoAsset: PromiseOrValue<string>,
+            _ignoreFactors: PromiseOrValue<boolean>,
+            overrides?: CallOverrides,
+        ): Promise<BigNumber>;
+
+        getPoolDeposits(_collateralAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+
+        getPoolDepositsValue(
+            _collateralAsset: PromiseOrValue<string>,
+            _ignoreFactors: PromiseOrValue<boolean>,
+            overrides?: CallOverrides,
+        ): Promise<BigNumber>;
+
+        getPoolIsSwapEnabled(
+            _assetIn: PromiseOrValue<string>,
+            _assetOut: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<BigNumber>;
+
+        getPoolKrAsset(_krAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+
+        getPoolKrAssets(overrides?: CallOverrides): Promise<BigNumber>;
+
+        getPoolStats(_ignoreFactors: PromiseOrValue<boolean>, overrides?: CallOverrides): Promise<BigNumber>;
+
+        getPoolSwapDeposits(_collateralAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+
+        getPoolSwapFeeRecipient(overrides?: CallOverrides): Promise<BigNumber>;
+
+        cumulateIncome(
+            _incomeAsset: PromiseOrValue<string>,
+            _amount: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        getPrice(_asset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
+
+        positionDepositA(
+            _to: PromiseOrValue<string>,
+            _amountA: PromiseOrValue<BigNumberish>,
+            _pos: PositionStruct,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        positionWithdrawA(
+            _from: PromiseOrValue<string>,
+            _amountA: PromiseOrValue<BigNumberish>,
+            _pos: PositionStruct,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        previewSwap(
+            _assetIn: PromiseOrValue<string>,
+            _assetOut: PromiseOrValue<string>,
+            _amountIn: PromiseOrValue<BigNumberish>,
+            _leverage: PromiseOrValue<BigNumberish>,
+            overrides?: CallOverrides,
+        ): Promise<BigNumber>;
+
+        swap(
+            _receiver: PromiseOrValue<string>,
+            _assetIn: PromiseOrValue<string>,
+            _assetOut: PromiseOrValue<string>,
+            _amountIn: PromiseOrValue<BigNumberish>,
+            _amountOutMin: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        swapIntoLeverage(
+            _sender: PromiseOrValue<string>,
+            _pos: NewPositionStruct,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        swapOutOfLeverage(
+            _pos: PositionStruct,
+            _liquidator: PromiseOrValue<string>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
         calcExpectedFee(
             _account: PromiseOrValue<string>,
             _kreskoAsset: PromiseOrValue<string>,
@@ -3700,7 +4427,7 @@ export interface Kresko extends BaseContract {
 
         getAccountMinimumCollateralValueAtRatio(
             _account: PromiseOrValue<string>,
-            _ratio: FixedPoint.UnsignedStruct,
+            _ratio: PromiseOrValue<BigNumberish>,
             overrides?: CallOverrides,
         ): Promise<BigNumber>;
 
@@ -3769,28 +4496,13 @@ export interface Kresko extends BaseContract {
 
         addCollateralAsset(
             _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
+            _config: CollateralAssetStruct,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<BigNumber>;
 
         addKreskoAsset(
             _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<BigNumber>;
-
-        initialize(
-            args: MinterInitArgsStruct,
+            _config: KrAssetStruct,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<BigNumber>;
 
@@ -3807,11 +4519,7 @@ export interface Kresko extends BaseContract {
 
         updateCollateralAsset(
             _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
+            _config: CollateralAssetStruct,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<BigNumber>;
 
@@ -3833,13 +4541,7 @@ export interface Kresko extends BaseContract {
 
         updateKreskoAsset(
             _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
+            _config: KrAssetStruct,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<BigNumber>;
 
@@ -4174,6 +4876,254 @@ export interface Kresko extends BaseContract {
             overrides?: CallOverrides,
         ): Promise<PopulatedTransaction>;
 
+        disablePoolCollaterals(
+            _disabledAssets: PromiseOrValue<string>[],
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        disablePoolKrAssets(
+            _disabledAssets: PromiseOrValue<string>[],
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        enablePoolCollaterals(
+            _enabledCollaterals: PromiseOrValue<string>[],
+            _configurations: PoolCollateralStruct[],
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        enablePoolKrAssets(
+            _enabledKrAssets: PromiseOrValue<string>[],
+            _configurations: PoolKrAssetStruct[],
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        getCollateralPoolConfig(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+        "initialize((address,uint256,uint256,address))"(
+            _config: ICollateralPoolConfigFacet.CollateralPoolConfigStruct,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        "initialize((address,address,address,uint8,uint256,uint256,uint256))"(
+            args: MinterInitArgsStruct,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        removePoolCollaterals(
+            _removedAssets: PromiseOrValue<string>[],
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        removePoolKrAssets(
+            _removedAssets: PromiseOrValue<string>[],
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        setFees(
+            _krAsset: PromiseOrValue<string>,
+            _openFee: PromiseOrValue<BigNumberish>,
+            _closeFee: PromiseOrValue<BigNumberish>,
+            _protocolFee: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        setPoolLiquidationThreshold(
+            _lt: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        setPoolMinimumCollateralizationRatio(
+            _mcr: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        setSwapPairs(
+            _pairs: ICollateralPoolConfigFacet.PairSetterStruct[],
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        setSwapPairsSingle(
+            _pair: ICollateralPoolConfigFacet.PairSetterStruct,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        updatePoolCollateral(
+            _asset: PromiseOrValue<string>,
+            _newLiquiditationIncentive: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        updatePoolKrAsset(
+            _asset: PromiseOrValue<string>,
+            _configuration: PoolKrAssetStruct,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        poolDeposit(
+            _account: PromiseOrValue<string>,
+            _collateralAsset: PromiseOrValue<string>,
+            _amount: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        poolIsLiquidatable(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+        poolLiquidate(
+            _repayKrAsset: PromiseOrValue<string>,
+            _repayAmount: PromiseOrValue<BigNumberish>,
+            _seizeCollateral: PromiseOrValue<string>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        poolRepay(
+            _repayKrAsset: PromiseOrValue<string>,
+            _repayAmount: PromiseOrValue<BigNumberish>,
+            _seizeCollateral: PromiseOrValue<string>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        poolWithdraw(
+            _account: PromiseOrValue<string>,
+            _collateralAsset: PromiseOrValue<string>,
+            _amount: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        getPoolAccountDepositsValue(
+            _account: PromiseOrValue<string>,
+            _collateralAsset: PromiseOrValue<string>,
+            _ignoreFactors: PromiseOrValue<boolean>,
+            overrides?: CallOverrides,
+        ): Promise<PopulatedTransaction>;
+
+        getPoolAccountDepositsValueWithFees(
+            _account: PromiseOrValue<string>,
+            _collateralAsset: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<PopulatedTransaction>;
+
+        getPoolAccountDepositsWithFees(
+            _account: PromiseOrValue<string>,
+            _collateralAsset: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<PopulatedTransaction>;
+
+        getPoolAccountPrincipalDeposits(
+            _account: PromiseOrValue<string>,
+            _collateralAsset: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<PopulatedTransaction>;
+
+        getPoolAccountTotalDepositsValue(
+            _account: PromiseOrValue<string>,
+            _ignoreFactors: PromiseOrValue<boolean>,
+            overrides?: CallOverrides,
+        ): Promise<PopulatedTransaction>;
+
+        getPoolAccountTotalDepositsValueWithFees(
+            _account: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<PopulatedTransaction>;
+
+        getPoolAssetIsEnabled(_asset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+        getPoolCollateral(
+            _collateralAsset: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<PopulatedTransaction>;
+
+        getPoolCollateralAssets(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+        getPoolDebt(_kreskoAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+        getPoolDebtValue(
+            _kreskoAsset: PromiseOrValue<string>,
+            _ignoreFactors: PromiseOrValue<boolean>,
+            overrides?: CallOverrides,
+        ): Promise<PopulatedTransaction>;
+
+        getPoolDeposits(
+            _collateralAsset: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<PopulatedTransaction>;
+
+        getPoolDepositsValue(
+            _collateralAsset: PromiseOrValue<string>,
+            _ignoreFactors: PromiseOrValue<boolean>,
+            overrides?: CallOverrides,
+        ): Promise<PopulatedTransaction>;
+
+        getPoolIsSwapEnabled(
+            _assetIn: PromiseOrValue<string>,
+            _assetOut: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<PopulatedTransaction>;
+
+        getPoolKrAsset(_krAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+        getPoolKrAssets(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+        getPoolStats(_ignoreFactors: PromiseOrValue<boolean>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+        getPoolSwapDeposits(
+            _collateralAsset: PromiseOrValue<string>,
+            overrides?: CallOverrides,
+        ): Promise<PopulatedTransaction>;
+
+        getPoolSwapFeeRecipient(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+        cumulateIncome(
+            _incomeAsset: PromiseOrValue<string>,
+            _amount: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        getPrice(_asset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+        positionDepositA(
+            _to: PromiseOrValue<string>,
+            _amountA: PromiseOrValue<BigNumberish>,
+            _pos: PositionStruct,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        positionWithdrawA(
+            _from: PromiseOrValue<string>,
+            _amountA: PromiseOrValue<BigNumberish>,
+            _pos: PositionStruct,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        previewSwap(
+            _assetIn: PromiseOrValue<string>,
+            _assetOut: PromiseOrValue<string>,
+            _amountIn: PromiseOrValue<BigNumberish>,
+            _leverage: PromiseOrValue<BigNumberish>,
+            overrides?: CallOverrides,
+        ): Promise<PopulatedTransaction>;
+
+        swap(
+            _receiver: PromiseOrValue<string>,
+            _assetIn: PromiseOrValue<string>,
+            _assetOut: PromiseOrValue<string>,
+            _amountIn: PromiseOrValue<BigNumberish>,
+            _amountOutMin: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        swapIntoLeverage(
+            _sender: PromiseOrValue<string>,
+            _pos: NewPositionStruct,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        swapOutOfLeverage(
+            _pos: PositionStruct,
+            _liquidator: PromiseOrValue<string>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
         calcExpectedFee(
             _account: PromiseOrValue<string>,
             _kreskoAsset: PromiseOrValue<string>,
@@ -4205,7 +5155,7 @@ export interface Kresko extends BaseContract {
 
         getAccountMinimumCollateralValueAtRatio(
             _account: PromiseOrValue<string>,
-            _ratio: FixedPoint.UnsignedStruct,
+            _ratio: PromiseOrValue<BigNumberish>,
             overrides?: CallOverrides,
         ): Promise<PopulatedTransaction>;
 
@@ -4286,28 +5236,13 @@ export interface Kresko extends BaseContract {
 
         addCollateralAsset(
             _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
+            _config: CollateralAssetStruct,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<PopulatedTransaction>;
 
         addKreskoAsset(
             _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
-            overrides?: Overrides & { from?: PromiseOrValue<string> },
-        ): Promise<PopulatedTransaction>;
-
-        initialize(
-            args: MinterInitArgsStruct,
+            _config: KrAssetStruct,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<PopulatedTransaction>;
 
@@ -4324,11 +5259,7 @@ export interface Kresko extends BaseContract {
 
         updateCollateralAsset(
             _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
+            _config: CollateralAssetStruct,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<PopulatedTransaction>;
 
@@ -4350,13 +5281,7 @@ export interface Kresko extends BaseContract {
 
         updateKreskoAsset(
             _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
+            _config: KrAssetStruct,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<PopulatedTransaction>;
 
