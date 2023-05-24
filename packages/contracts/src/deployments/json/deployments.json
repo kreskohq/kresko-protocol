@@ -7629,7 +7629,7 @@
           ]
         },
         "ERC721Facet": {
-          "address": "0xfb1B27839d64070D8AcdBF02872653e1178062d4",
+          "address": "0xCc0498199e461c6e2dcFe4e21c380F0981Fc77aF",
           "abi": [
             {
               "inputs": [],
@@ -7788,6 +7788,19 @@
                   "internalType": "address",
                   "name": "operator",
                   "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "getCurrentId",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "",
+                  "type": "uint256"
                 }
               ],
               "stateMutability": "view",
@@ -16525,7 +16538,7 @@
           ]
         },
         "PositionsFacet": {
-          "address": "0x090E8043074dbCfDebC0F0B072Fc08159A6f8B07",
+          "address": "0xD409f9CE4037C06e6143580eF36a8fb5F275AD4A",
           "abi": [
             {
               "inputs": [
@@ -16731,6 +16744,87 @@
                   "internalType": "int128",
                   "name": "currentLeverage",
                   "type": "int128"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256[]",
+                  "name": "_ids",
+                  "type": "uint256[]"
+                }
+              ],
+              "name": "getPositions",
+              "outputs": [
+                {
+                  "components": [
+                    {
+                      "internalType": "address",
+                      "name": "account",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "address",
+                      "name": "assetA",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "address",
+                      "name": "assetB",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "amountA",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "amountB",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "valueBCache",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "leverage",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "liquidationIncentive",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "closeIncentive",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "creationTimestamp",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "lastUpdateTimestamp",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "nonce",
+                      "type": "uint256"
+                    }
+                  ],
+                  "internalType": "struct Position[]",
+                  "name": "",
+                  "type": "tuple[]"
                 }
               ],
               "stateMutability": "view",

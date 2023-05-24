@@ -70,6 +70,10 @@ contract ERC721Facet is IERC721Permit {
         ERC721().approve(spender, tokenId);
     }
 
+    function getCurrentId() external view returns (uint256) {
+        return ERC721().currentId;
+    }
+
     function name() external view returns (string memory) {
         return ERC721().name;
     }

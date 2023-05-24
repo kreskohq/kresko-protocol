@@ -134,6 +134,14 @@ contract PositionsFacet is IPositionsFacet, DiamondModifiers {
         return (pos().getPosition(_id), int128(pos().getRatio(_id)));
     }
 
+    function getPositions(uint256[] calldata _ids) external view returns (Position[] memory) {
+        Position[] memory results = new Position[](_ids.length);
+        for (uint256 i; i < _ids.length; i++) {
+            results[i] = pos().getPosition(_ids[i]);
+        }
+        return results;
+    }
+
     /// @inheritdoc IPositionsFacet
     function isLiquidatable(uint256[] calldata _ids) external view override returns (bool[] memory results) {
         results = new bool[](_ids.length);
