@@ -17,9 +17,7 @@ task(TASK_WHITELIST_COLLATERAL)
         const { symbol, cFactor, oracleAddr, marketStatusOracleAddr, log } = taskArgs;
         const logger = getLogger(TASK_WHITELIST_COLLATERAL, log);
 
-        const { deployer } = await hre.ethers.getNamedSigners();
-
-        const kresko = (await hre.getContractOrFork("Kresko")).connect(deployer);
+        const kresko = await hre.getContractOrFork("Kresko");
 
         if (cFactor == 1000) {
             console.error("Invalid cFactor for", symbol);
