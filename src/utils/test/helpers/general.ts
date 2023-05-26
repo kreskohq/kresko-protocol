@@ -1,15 +1,29 @@
 import { MockContract, smock } from "@defi-wonderland/smock";
 import { fromBig, toBig } from "@kreskolabs/lib";
 import hre, { ethers } from "hardhat";
-import { FluxPriceFeed__factory } from "types/typechain";
+import { FluxPriceFeed__factory, Kresko, SmockCollateralReceiver } from "types/typechain";
 import { defaultCloseFee, defaultOracleDecimals, defaultOraclePrice } from "../mocks";
 import { getCollateralConfig } from "./collaterals";
 import { getKrAssetConfig } from "./krassets";
 import { BigNumber } from "ethers";
+import { WrapperBuilder } from "@redstone-finance/evm-connector";
 
 /* -------------------------------------------------------------------------- */
 /*                                  GENERAL                                   */
 /* -------------------------------------------------------------------------- */
+
+export const wrapContractWithSigner = (contract: any, signer: Signer) =>
+    WrapperBuilder.wrap(contract.connect(signer)).usingSimpleNumericMock({
+        mockSignersCount: 1,
+        timestampMilliseconds: Date.now(),
+        dataPoints: [
+            { dataFeedId: "DAI", value: 0 },
+            { dataFeedId: "USDC", value: 0 },
+            { dataFeedId: "TSLA", value: 0 },
+            { dataFeedId: "ETH", value: 0 },
+            { dataFeedId: "BTC", value: 0 },
+        ],
+    });
 
 export const getHealthFactor = async (user: SignerWithAddress) => {
     const accountKrAssetValue = fromBig(await hre.Diamond.getAccountKrAssetValue(user.address), 8);
@@ -44,7 +58,7 @@ export const leverageKrAsset = async (
         [user.address]: toBig(collateralAmount),
     });
     if (!(await hre.Diamond.collateralAsset(collateralToUse.address)).exists) {
-        await hre.Diamond.connect(hre.users.deployer).addCollateralAsset(
+        await wrapContractWithSigner(hre.Diamond, hre.users.deployer).addCollateralAsset(
             collateralToUse.address,
             await getCollateralConfig(
                 collateralToUse.contract,
@@ -56,9 +70,13 @@ export const leverageKrAsset = async (
             ),
         );
     }
-    await hre.Diamond.connect(user).depositCollateral(user.address, collateralToUse.address, toBig(collateralAmount));
+    await wrapContractWithSigner(hre.Diamond, user).depositCollateral(
+        user.address,
+        collateralToUse.address,
+        toBig(collateralAmount),
+    );
     if (!(await hre.Diamond.kreskoAsset(krAsset.address)).exists) {
-        await hre.Diamond.connect(hre.users.deployer).addKreskoAsset(
+        await wrapContractWithSigner(hre.Diamond, hre.users.deployer).addKreskoAsset(
             krAsset.address,
             await getKrAssetConfig(
                 krAsset.contract,
@@ -72,10 +90,10 @@ export const leverageKrAsset = async (
             ),
         );
     }
-    await hre.Diamond.connect(user).mintKreskoAsset(user.address, krAsset.address, amount);
+    await wrapContractWithSigner(hre.Diamond, user).mintKreskoAsset(user.address, krAsset.address, amount);
 
     if (!(await hre.Diamond.collateralAsset(krAsset.address)).exists) {
-        await hre.Diamond.connect(hre.users.deployer).addCollateralAsset(
+        await wrapContractWithSigner(hre.Diamond, hre.users.deployer).addCollateralAsset(
             krAsset.address,
             await getCollateralConfig(
                 krAsset.contract,
@@ -87,7 +105,7 @@ export const leverageKrAsset = async (
             ),
         );
     }
-    await hre.Diamond.connect(user).depositCollateral(user.address, krAsset.address, amount);
+    await wrapContractWithSigner(hre.Diamond, user).depositCollateral(user.address, krAsset.address, amount);
 
     // Deposit krAsset and withdraw other collateral to bare minimum of within healthy range
     const accountMinCollateralRequired = await hre.Diamond.getAccountMinimumCollateralValueAtRatio(
@@ -100,7 +118,7 @@ export const leverageKrAsset = async (
     const amountToWithdraw = toBig(withdrawAmount).rayDiv(await hre.Diamond.getDebtIndexForAsset(krAsset.address));
 
     if (amountToWithdraw.gt(0)) {
-        await hre.Diamond.connect(user).withdrawCollateral(
+        await wrapContractWithSigner(hre.Diamond, user).withdrawCollateral(
             user.address,
             collateralToUse.address,
             amountToWithdraw,

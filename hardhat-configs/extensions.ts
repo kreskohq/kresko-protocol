@@ -7,6 +7,7 @@ import { ethers } from "ethers";
 import { extendEnvironment } from "hardhat/config";
 import SharedConfig from "src/deploy-config/shared";
 import { ContractTypes } from "types";
+
 extendEnvironment(async function (hre) {
     // for testing
     hre.users = await getUsers(hre);
@@ -47,13 +48,18 @@ extendEnvironment(function (hre) {
             throw new Error(`${deploymentId} not deployed on ${hre.network.name} network`);
         }
         if (type === "Kresko") {
-            return WrapperBuilder.wrap(await hre.ethers.getContractAt(type, deployment.address)).usingDataService(
+            return WrapperBuilder.wrap(await hre.ethers.getContractAt(type, deployment.address)).usingSimpleNumericMock(
                 {
-                    dataServiceId: "redstone-main-demo",
-                    dataFeeds: ["ETH", "BTC", "IBM", "USDC", "DAI"],
-                    uniqueSignersCount: 1,
+                    mockSignersCount: 1,
+                    timestampMilliseconds: Date.now(),
+                    dataPoints: [
+                        { dataFeedId: "DAI", value: 0 },
+                        { dataFeedId: "USDC", value: 0 },
+                        { dataFeedId: "TSLA", value: 0 },
+                        { dataFeedId: "ETH", value: 0 },
+                        { dataFeedId: "BTC", value: 0 },
+                    ],
                 },
-                ["https://d33trozg86ya9x.cloudfront.net"],
             ) as TC[typeof type];
         }
         return hre.ethers.getContractAt(type, deployment.address) as unknown as TC[typeof type];

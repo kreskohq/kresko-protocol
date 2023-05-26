@@ -104,6 +104,7 @@ struct MinterParams {
     uint256 liquidationOverflowPercentage;
     address feeRecipient;
     uint8 extOracleDecimals;
+    uint256 oracleDeviationPct;
 }
 
 /**

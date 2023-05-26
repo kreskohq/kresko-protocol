@@ -61,7 +61,7 @@ export const getMinterInitializer = async (
             minimumDebtValue: toBig(process.env.MINIMUM_DEBT_VALUE!, 8),
             liquidationThreshold: toBig(process.env.LIQUIDATION_THRESHOLD!),
             extOracleDecimals: 8,
-            oracleDeviationPct: toBig(1),
+            oracleDeviationPct: toBig(0.1),
         },
     };
 };

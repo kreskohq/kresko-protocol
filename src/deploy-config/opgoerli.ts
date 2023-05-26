@@ -23,7 +23,7 @@ const defaultParams: Omit<KreskoConstructor, "feeRecipient"> = {
 export const redstoneMap = {
     krETH: ethers.utils.formatBytes32String("ETH"),
     krBTC: ethers.utils.formatBytes32String("BTC"),
-    krTSLA: ethers.utils.formatBytes32String("IBM"),
+    krTSLA: ethers.utils.formatBytes32String("TSLA"),
     WETH: ethers.utils.formatBytes32String("ETH"),
     ETH: ethers.utils.formatBytes32String("ETH"),
     WBTC: ethers.utils.formatBytes32String("BTC"),
@@ -37,6 +37,12 @@ export const redstoneMap = {
     Collateral18Dec: ethers.utils.formatBytes32String("USDC"),
     Collateral8Dec: ethers.utils.formatBytes32String("USDC"),
     Collateral21Dec: ethers.utils.formatBytes32String("USDC"),
+    KreskoAssetLiquidation: ethers.utils.formatBytes32String("USDC"),
+    SecondKreskoAsset: ethers.utils.formatBytes32String("USDC"),
+    krasset2: ethers.utils.formatBytes32String("USDC"),
+    krasset3: ethers.utils.formatBytes32String("USDC"),
+    krasset4: ethers.utils.formatBytes32String("USDC"),
+    quick: ethers.utils.formatBytes32String("USDC"),
 };
 
 export const oracles = {

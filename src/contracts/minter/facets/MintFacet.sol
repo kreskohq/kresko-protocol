@@ -25,14 +25,6 @@ contract MintFacet is DiamondModifiers, MinterModifiers, IMintFacet {
     using Arrays for address[];
 
     /* -------------------------------------------------------------------------- */
-    /*                                TEST, REMOVE                                */
-    /* -------------------------------------------------------------------------- */
-
-    function priceIsRight() external view returns (uint256) {
-        return LibRedstone.getPrice(bytes32("TSLA"));
-    }
-
-    /* -------------------------------------------------------------------------- */
     /*                                  KrAssets                                  */
     /* -------------------------------------------------------------------------- */
 
