@@ -84,6 +84,7 @@ library Error {
     string public constant NO_COLLATERAL_DEPOSITS = "244"; // Account has no active Collateral deposits
     string public constant INVALID_ORACLE_DECIMALS = "245"; // Oracle decimals do not match extOracleDecimals
     string public constant PARAM_LIQUIDATION_OVERFLOW_LOW = "246"; // Liquidation overflow is less than MIN_LIQUIDATION_OVERFLOW
+    string public constant INVALID_ORACLE_DEVIATION_PCT = "247"; // Oracle deviation percentage is greater than 100%
 
     /* -------------------------------------------------------------------------- */
     /*                                   3. Staking                               */

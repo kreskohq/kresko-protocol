@@ -1,9 +1,12 @@
 import { TASK_DEPLOY_PRICE_FEED } from "@tasks";
 import { expect } from "@test/chai";
-import { withFixture } from "@utils/test";
+import { withFixture, defaultCollateralArgs } from "@utils/test";
 import hre from "hardhat";
+import { WrapperBuilder } from "@redstone-finance/evm-connector";
+import { toBig } from "@kreskolabs/lib";
+import { Kresko } from "types/typechain";
 
-describe("Flux Pricefeed", () => {
+describe("Oracle", () => {
     withFixture(["minter-test"]);
 
     const TEST_VALUE = 100;
@@ -25,7 +28,7 @@ describe("Flux Pricefeed", () => {
         this.pricefeed = feed;
     });
 
-    describe("functionality", () => {
+    describe("FluxPriceFeed", () => {
         it("should initialize timestamp value once the initial answer is submitted", async function () {
             expect(await this.pricefeed.latestTimestamp()).to.equal(0);
             await this.pricefeed.transmit(TEST_VALUE, true, {
@@ -126,6 +129,112 @@ describe("Flux Pricefeed", () => {
                 from: this.deployer.address,
             });
             expect(await this.pricefeed.latestRound()).to.equal(1);
+        });
+    });
+
+    describe("Redstone", () => {
+        let redstoneCollateral: TestCollateral;
+
+        beforeEach(async function () {
+            redstoneCollateral = this.collaterals!.find(c => c.deployArgs!.name === defaultCollateralArgs.name)!;
+
+            /// set initial collateral price
+            redstoneCollateral.setPrice(10);
+
+            const initialBalance = toBig(100000);
+            await redstoneCollateral.mocks!.contract.setVariable("_balances", {
+                [hre.users.userOne.address]: initialBalance,
+            });
+            await redstoneCollateral.mocks!.contract.setVariable("_allowances", {
+                [hre.users.userOne.address]: {
+                    [hre.Diamond.address]: initialBalance,
+                },
+            });
+
+            this.depositArgs = {
+                user: hre.users.userOne,
+                asset: redstoneCollateral,
+                amount: toBig(1),
+            };
+
+            await hre.Diamond.connect(this.depositArgs.user).depositCollateral(
+                this.depositArgs.user.address,
+                redstoneCollateral.address,
+                this.depositArgs.amount,
+            );
+
+            // check initial conditions
+            expect(await redstoneCollateral.getPrice()).to.equal(toBig(10, 8), "collateral price should be $10");
+            // As redstone price is 0, will use chainlink price = 10
+            // so collateral value = $10 * 1 = $10
+            expect(await hre.Diamond.getAccountCollateralValue(hre.users.userOne.address)).to.equal(
+                toBig(10, 8),
+                "collateral value should be $10",
+            );
+        });
+
+        it("should get redstone price when chainlink price = 0", async function () {
+            /// set chainlink price to 0
+            redstoneCollateral.setPrice(0);
+
+            const redstoneCollateralPrice = 20;
+
+            const redstoneDiamond: Kresko = WrapperBuilder.wrap(
+                hre.Diamond.connect(this.deployer),
+            ).usingSimpleNumericMock({
+                mockSignersCount: 1,
+                timestampMilliseconds: Date.now(),
+                dataPoints: [{ dataFeedId: "USDC", value: redstoneCollateralPrice }],
+            }) as Kresko;
+
+            // so collateral value = $20 * 1 = $20
+            expect(await redstoneDiamond.getAccountCollateralValue(hre.users.userOne.address)).to.equal(
+                toBig(redstoneCollateralPrice, 8),
+                "collateral value should be $20",
+            );
+        });
+
+        it("should get chainlink price when price +- oracleDeviationPct of redstone price ", async function () {
+            /// set chainlink price to 12
+            redstoneCollateral.setPrice(12);
+
+            const redstoneCollateralPrice = 11;
+
+            const redstoneDiamond: Kresko = WrapperBuilder.wrap(
+                hre.Diamond.connect(this.deployer),
+            ).usingSimpleNumericMock({
+                mockSignersCount: 1,
+                timestampMilliseconds: Date.now(),
+                dataPoints: [{ dataFeedId: "USDC", value: redstoneCollateralPrice }],
+            }) as Kresko;
+
+            // so collateral value = $12 * 1 = $12
+            expect(await redstoneDiamond.getAccountCollateralValue(hre.users.userOne.address)).to.equal(
+                toBig(12, 8),
+                "collateral value should be $20",
+            );
+        });
+
+        it("should get average price when price outside oracleDeviationPct of redstone price ", async function () {
+            /// set chainlink price to 20
+            redstoneCollateral.setPrice(20);
+
+            const redstoneCollateralPrice = 10;
+            const redstoneDiamond: Kresko = WrapperBuilder.wrap(
+                hre.Diamond.connect(this.deployer),
+            ).usingSimpleNumericMock({
+                mockSignersCount: 1,
+                timestampMilliseconds: Date.now(),
+                dataPoints: [{ dataFeedId: "USDC", value: redstoneCollateralPrice }],
+            }) as Kresko;
+
+            // so collateral value = $((20 + 10) / 2) * 1 = $12
+            expect(await redstoneDiamond.getAccountCollateralValue(hre.users.userOne.address)).to.equal(
+                toBig(15, 8),
+                "collateral value should be $20",
+            );
+
+            redstoneCollateral.setPrice(10);
         });
     });
 });

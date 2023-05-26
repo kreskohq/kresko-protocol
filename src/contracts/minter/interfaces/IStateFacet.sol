@@ -28,6 +28,9 @@ interface IStateFacet {
     /// @notice Multiplies max liquidatable value, allowing liquidations to go over LT.
     function maxLiquidationMultiplier() external view returns (uint256);
 
+    /// @notice max deviation between main oracle and fallback oracle
+    function oracleDeviationPct() external view returns (uint256);
+
     /// @notice The minimum ratio of collateral to debt that can be taken by direct action.
     function minimumCollateralizationRatio() external view returns (uint256);
 

@@ -3,8 +3,9 @@ pragma solidity >=0.8.20;
 import {IDepositWithdrawFacet} from "../minter/interfaces/IDepositWithdrawFacet.sol";
 import {ICollateralReceiver} from "../minter/interfaces/ICollateralReceiver.sol";
 import {IERC20Permit} from "../shared/IERC20Permit.sol";
+import {ProxyConnector} from "@redstone-finance/evm-connector/contracts/core/ProxyConnector.sol";
 
-contract SmockCollateralReceiver is ICollateralReceiver {
+contract SmockCollateralReceiver is ICollateralReceiver, ProxyConnector {
     IDepositWithdrawFacet public kresko;
     function(address, address, uint256, bytes memory) internal callbackLogic;
 
@@ -57,7 +58,15 @@ contract SmockCollateralReceiver is ICollateralReceiver {
     ) internal {
         callbackLogic = logic;
         withdrawalAmountRequested = _amount;
-        kresko.withdrawCollateralUnchecked(msg.sender, _collateralAsset, _amount, 0, data);
+        bytes memory encodedFunction = abi.encodeWithSelector(
+            kresko.withdrawCollateralUnchecked.selector,
+            msg.sender,
+            _collateralAsset,
+            _amount,
+            0,
+            data
+        );
+        proxyCalldata(address(kresko), encodedFunction, false);
     }
 
     /* -------------------------------------------------------------------------- */

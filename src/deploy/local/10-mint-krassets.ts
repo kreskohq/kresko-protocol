@@ -18,9 +18,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await DAI.approve(kresko.address, hre.ethers.constants.MaxUint256);
     await kresko.connect(deployer).depositCollateral(deployer.address, DAI.address, toBig(2_500_000_000));
 
-    await kresko
-        .connect(deployer)
-        .mintKreskoAsset(deployer.address, (await hre.getContractOrFork("KISS")).address, toBig(1200_000_000));
+    await kresko.mintKreskoAsset(deployer.address, (await hre.getContractOrFork("KISS")).address, toBig(1200_000_000));
 
     for (const krAsset of krAssets) {
         const asset = await hre.getContractOrFork("KreskoAsset", krAsset.symbol);

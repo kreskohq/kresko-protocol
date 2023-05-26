@@ -91,6 +91,7 @@ export const getNewMinterParams = (feeRecipient: string) => ({
     liquidationThreshold: toBig(1.3),
     feeRecipient: feeRecipient,
     MLM: toBig(1.0002),
+    oracleDeviationPct: toBig(0.2),
 });
 
 export default {

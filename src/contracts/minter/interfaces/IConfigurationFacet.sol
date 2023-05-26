@@ -103,4 +103,10 @@ interface IConfigurationFacet {
      * @param _decimals Amount of decimals
      */
     function updateExtOracleDecimals(uint8 _decimals) external;
+
+    /**
+     * @notice Sets the decimal precision of external oracle
+     * @param _oracleDeviationPct Amount of decimals
+     */
+    function updateOracleDeviationPct(uint256 _oracleDeviationPct) external;
 }

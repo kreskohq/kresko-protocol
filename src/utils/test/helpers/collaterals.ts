@@ -5,11 +5,14 @@ import { InputArgs, TestCollateralAssetArgs, TestCollateralAssetUpdate, defaultC
 import { envCheck } from "@utils/general";
 import { CollateralAssetStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 import { getMockOracleFor, setPrice } from "./oracle";
+import { redstoneMap } from "@deploy-config/opgoerli";
+import { expect } from "chai";
+import { wrapContractWithSigner } from "./general";
 
 envCheck();
 
 export const getCollateralConfig = async (
-    asset: { decimals: Function },
+    asset: { symbol: Function; decimals: Function },
     anchor: string,
     cFactor: BigNumber,
     liquidationIncentive: BigNumber,
@@ -18,6 +21,10 @@ export const getCollateralConfig = async (
 ): Promise<CollateralAssetStruct> => {
     if (cFactor.gt(toBig(1))) throw new Error("cFactor must be less than 1");
     if (liquidationIncentive.lt(toBig(1))) throw new Error("Liquidation incentive must be greater than 1");
+    const redstone = redstoneMap[(await asset.symbol()) as keyof typeof redstoneMap];
+    if (!redstone) {
+        throw new Error(`Redstone not found for ${await asset.symbol()}`);
+    }
     return {
         anchor,
         factor: cFactor,
@@ -26,6 +33,7 @@ export const getCollateralConfig = async (
         marketStatusOracle,
         decimals: await asset.decimals(),
         exists: true,
+        redstoneId: redstone,
     };
 };
 
@@ -44,7 +52,7 @@ export const addMockCollateralAsset = async (
     TestCollateral.decimals.returns(decimals);
     const cFactor = toBig(factor);
 
-    await hre.Diamond.connect(deployer).addCollateralAsset(
+    await wrapContractWithSigner(hre.Diamond, deployer).addCollateralAsset(
         TestCollateral.address,
         await getCollateralConfig(
             TestCollateral,
@@ -94,7 +102,7 @@ export const updateCollateralAsset = async (address: string, args: TestCollatera
     const { deployer } = await hre.ethers.getNamedSigners();
     const collateral = hre.collaterals.find(c => c.address === address);
 
-    await hre.Diamond.connect(deployer).updateCollateralAsset(
+    await wrapContractWithSigner(hre.Diamond, deployer).updateCollateralAsset(
         collateral!.address,
         await getCollateralConfig(
             collateral!.contract,
@@ -136,7 +144,11 @@ export const depositMockCollateral = async (args: InputArgs) => {
             [hre.Diamond.address]: depositAmount,
         },
     });
-    return hre.Diamond.connect(user).depositCollateral(user.address, asset.contract.address, depositAmount);
+    return wrapContractWithSigner(hre.Diamond, user).depositCollateral(
+        user.address,
+        asset.contract.address,
+        depositAmount,
+    );
 };
 
 export const depositCollateral = async (args: InputArgs) => {
@@ -144,7 +156,7 @@ export const depositCollateral = async (args: InputArgs) => {
     const { user, asset, amount } = args;
     const depositAmount = convert ? toBig(+amount) : amount;
     await asset.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
-    return hre.Diamond.connect(user).depositCollateral(user.address, asset.address, depositAmount);
+    return wrapContractWithSigner(hre.Diamond, user).depositCollateral(user.address, asset.address, depositAmount);
 };
 
 export const withdrawCollateral = async (args: InputArgs) => {
@@ -153,7 +165,12 @@ export const withdrawCollateral = async (args: InputArgs) => {
     const depositAmount = convert ? toBig(+amount) : amount;
     await asset.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
     const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(user.address, asset.address);
-    return hre.Diamond.connect(user).withdrawCollateral(user.address, asset.address, depositAmount, cIndex);
+    return wrapContractWithSigner(hre.Diamond, user).withdrawCollateral(
+        user.address,
+        asset.address,
+        depositAmount,
+        cIndex,
+    );
 };
 
 export const getMaxWithdrawal = async (user: string, collateral: any) => {

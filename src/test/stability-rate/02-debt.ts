@@ -1,7 +1,13 @@
 import { toBig } from "@kreskolabs/lib";
 import { oneRay } from "@kreskolabs/lib";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
-import { BASIS_POINT, defaultCollateralArgs, defaultKrAssetArgs, withFixture } from "@utils/test";
+import {
+    BASIS_POINT,
+    defaultCollateralArgs,
+    defaultKrAssetArgs,
+    withFixture,
+    wrapContractWithSigner,
+} from "@utils/test";
 import { addLiquidity, getTWAPUpdaterFor, swap } from "@utils/test/helpers/amm";
 import { ONE_YEAR, toScaledAmountUser } from "@utils/test/helpers/calculations";
 import { depositCollateral } from "@utils/test/helpers/collaterals";
@@ -492,7 +498,10 @@ describe("Stability Rates", function () {
             const principalDebt = await hre.Diamond.kreskoAssetDebtPrincipal(userTwo.address, this.krAsset.address);
 
             // repay accrued interest
-            await hre.Diamond.connect(userTwo).repayFullStabilityRateInterest(userTwo.address, this.krAsset.address);
+            await wrapContractWithSigner(hre.Diamond, userTwo).repayFullStabilityRateInterest(
+                userTwo.address,
+                this.krAsset.address,
+            );
 
             // get values after repayment
             const debt = await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address);
@@ -535,7 +544,7 @@ describe("Stability Rates", function () {
             const repaymentAmountAsset = accruedInterestBefore.assetAmount.div(5);
 
             // repay accrued interest
-            await hre.Diamond.connect(userTwo).repayStabilityRateInterestPartial(
+            await wrapContractWithSigner(hre.Diamond, userTwo).repayStabilityRateInterestPartial(
                 userTwo.address,
                 this.krAsset.address,
                 repaymentAmount,
@@ -571,7 +580,7 @@ describe("Stability Rates", function () {
                     async name =>
                         await addMockKreskoAsset({
                             name: name,
-                            symbol: name,
+                            symbol: "krasset2",
                             marketOpen: true,
                             factor: 1,
                             closeFee: 0,
@@ -612,7 +621,7 @@ describe("Stability Rates", function () {
                 user: userTwo,
             });
 
-            await hre.Diamond.connect(userTwo).batchRepayFullStabilityRateInterest(userTwo.address);
+            await wrapContractWithSigner(hre.Diamond, userTwo).batchRepayFullStabilityRateInterest(userTwo.address);
             const totalInterestInKISSAfterRepay = await hre.Diamond.kreskoAssetDebtInterestTotal(userTwo.address);
             expect(totalInterestInKISSAfterRepay).to.equal(0);
         });
@@ -646,7 +655,7 @@ describe("Stability Rates", function () {
             );
 
             // repay accrued interest
-            await hre.Diamond.connect(userTwo).burnKreskoAsset(
+            await wrapContractWithSigner(hre.Diamond, userTwo).burnKreskoAsset(
                 userTwo.address,
                 this.krAsset.address,
                 hre.ethers.constants.MaxUint256,
@@ -663,7 +672,10 @@ describe("Stability Rates", function () {
 
             const mintedKreskoAssetsBefore = await hre.Diamond.getMintedKreskoAssets(userTwo.address);
             expect(mintedKreskoAssetsBefore.length).to.equal(2);
-            await hre.Diamond.connect(userTwo).repayFullStabilityRateInterest(userTwo.address, this.krAsset.address);
+            await wrapContractWithSigner(hre.Diamond, userTwo).repayFullStabilityRateInterest(
+                userTwo.address,
+                this.krAsset.address,
+            );
             const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(userTwo.address);
             expect(mintedKreskoAssetsAfter.length).to.equal(1);
 
@@ -756,7 +768,7 @@ describe("Stability Rates", function () {
 
             await Promise.all(
                 krAssets.map(async asset =>
-                    hre.Diamond.connect(userTwo).burnKreskoAsset(
+                    wrapContractWithSigner(hre.Diamond, userTwo).burnKreskoAsset(
                         userTwo.address,
                         asset.address,
                         hre.ethers.constants.MaxUint256,
@@ -767,7 +779,7 @@ describe("Stability Rates", function () {
             const mintedKreskoAssetsBefore = await hre.Diamond.getMintedKreskoAssets(userTwo.address);
             expect(mintedKreskoAssetsBefore.length).to.equal(4);
 
-            await hre.Diamond.connect(userTwo).batchRepayFullStabilityRateInterest(userTwo.address);
+            await wrapContractWithSigner(hre.Diamond, userTwo).batchRepayFullStabilityRateInterest(userTwo.address);
             const totalInterestInKISSAfterRepay = await hre.Diamond.kreskoAssetDebtInterestTotal(userTwo.address);
             expect(totalInterestInKISSAfterRepay).to.equal(0);
             const mintedKreskoAssetsAfter = await hre.Diamond.getMintedKreskoAssets(userTwo.address);
@@ -803,7 +815,7 @@ describe("Stability Rates", function () {
             );
 
             // Wipe debt
-            await hre.Diamond.connect(userTwo).burnKreskoAsset(
+            await wrapContractWithSigner(hre.Diamond, userTwo).burnKreskoAsset(
                 userTwo.address,
                 this.krAsset.address,
                 hre.ethers.constants.MaxUint256,
@@ -827,7 +839,7 @@ describe("Stability Rates", function () {
             );
 
             // Burn all assets
-            await hre.Diamond.connect(userTwo).burnKreskoAsset(
+            await wrapContractWithSigner(hre.Diamond, userTwo).burnKreskoAsset(
                 userTwo.address,
                 this.krAsset.address,
                 hre.ethers.constants.MaxUint256,
@@ -843,7 +855,10 @@ describe("Stability Rates", function () {
             );
 
             // Repay all interest
-            await hre.Diamond.connect(userTwo).repayFullStabilityRateInterest(userTwo.address, this.krAsset.address);
+            await wrapContractWithSigner(hre.Diamond, userTwo).repayFullStabilityRateInterest(
+                userTwo.address,
+                this.krAsset.address,
+            );
             // Debt should be wiped
             expect(await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address)).to.eq(0);
 
@@ -890,7 +905,10 @@ describe("Stability Rates", function () {
             });
             await time.increase(ONE_YEAR);
 
-            await hre.Diamond.connect(userTwo).closeKrAssetDebtPosition(userTwo.address, this.krAsset.address);
+            await wrapContractWithSigner(hre.Diamond, userTwo).closeKrAssetDebtPosition(
+                userTwo.address,
+                this.krAsset.address,
+            );
 
             expect(await hre.Diamond.kreskoAssetDebt(userTwo.address, this.krAsset.address)).to.eq(0);
             expect(await hre.Diamond.kreskoAssetDebtPrincipal(userTwo.address, this.krAsset.address)).to.eq(0);
@@ -949,7 +967,7 @@ describe("Stability Rates", function () {
 
             // ~1M gas with 8 krAssets
             // console.log(+(await tx.wait()).gasUsed);
-            await hre.Diamond.connect(userTwo).batchCloseKrAssetDebtPositions(userTwo.address);
+            await wrapContractWithSigner(hre.Diamond, userTwo).batchCloseKrAssetDebtPositions(userTwo.address);
 
             const accruedInterest = await hre.Diamond.kreskoAssetDebtInterestTotal(userTwo.address);
             expect(accruedInterest).to.eq(0);

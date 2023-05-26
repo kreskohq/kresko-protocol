@@ -120,7 +120,7 @@ library LibBurn {
     ) internal {
         KrAsset memory krAsset = self.kreskoAssets[_kreskoAsset];
         // Calculate the value of the fee according to the value of the krAssets being burned.
-        uint256 feeValue = krAsset.uintUSD(_burnAmount).wadMul(krAsset.closeFee);
+        uint256 feeValue = krAsset.uintAggregateUSD(_burnAmount, self.oracleDeviationPct).wadMul(krAsset.closeFee);
 
         // Do nothing if the fee value is 0.
         if (feeValue == 0) {
@@ -178,7 +178,9 @@ library LibBurn {
         // debt value, close up to the minimum debt value instead.
         uint256 krAssetValue = self.getKrAssetValue(_kreskoAsset, _debtAmount - _burnAmount, true);
         if (krAssetValue > 0 && krAssetValue < self.minimumDebtValue) {
-            uint256 minDebtValue = self.minimumDebtValue.wadDiv(self.kreskoAssets[_kreskoAsset].uintPrice());
+            uint256 minDebtValue = self.minimumDebtValue.wadDiv(
+                self.kreskoAssets[_kreskoAsset].uintAggregatePrice(self.oracleDeviationPct)
+            );
             amount = _debtAmount - minDebtValue;
         } else {
             amount = _burnAmount;

@@ -1,5 +1,5 @@
 import hre from "hardhat";
-import { withFixture, Role } from "@utils/test";
+import { withFixture, Role, wrapContractWithSigner } from "@utils/test";
 import { expect } from "@test/chai";
 
 describe("Diamond", () => {
@@ -21,7 +21,7 @@ describe("Diamond", () => {
         it("sets the pending owner as new owner", async function () {
             const pendingOwner = hre.users.userOne;
             await hre.Diamond.transferOwnership(pendingOwner.address);
-            await hre.Diamond.connect(pendingOwner).acceptOwnership();
+            await wrapContractWithSigner(hre.Diamond, pendingOwner).acceptOwnership();
             expect(await hre.Diamond.owner()).to.equal(pendingOwner.address);
         });
     });
