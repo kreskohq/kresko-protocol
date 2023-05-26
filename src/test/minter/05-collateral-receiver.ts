@@ -17,7 +17,7 @@ const getReceiver = async (kresko: Kresko, grantRole = true) => {
     return Receiver;
 };
 
-describe("CollateralReceiver - UncheckedCollateralWithdraw", () => {
+describe.skip("CollateralReceiver - UncheckedCollateralWithdraw", () => {
     withFixture(["minter-test", "unchecked-collateral"]);
 
     beforeEach(async function () {

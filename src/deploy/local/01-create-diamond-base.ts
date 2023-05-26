@@ -3,7 +3,6 @@ import { DeployFunction, FacetCut, FacetCutAction } from "hardhat-deploy/dist/ty
 import { mergeABIs } from "hardhat-deploy/dist/src/utils";
 import { getLogger } from "@kreskolabs/lib";
 import { diamondFacets } from "@deploy-config/shared";
-import { WrapperBuilder } from "@redstone-finance/evm-connector";
 
 const logger = getLogger("create-diamond");
 
