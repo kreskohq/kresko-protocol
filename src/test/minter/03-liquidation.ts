@@ -8,7 +8,7 @@ import {
     withFixture,
 } from "@test-utils";
 import { expect } from "@test/chai";
-import { fromBig, getInternalEvent, toBig } from "@kreskolabs/lib";
+import { fromBig, getInternalEvent, getNamedEvent, toBig } from "@kreskolabs/lib";
 import { Error } from "@utils/test/errors";
 import { addMockCollateralAsset, depositCollateral, getCollateralConfig } from "@utils/test/helpers/collaterals";
 import { mintKrAsset } from "@utils/test/helpers/krassets";
@@ -160,6 +160,86 @@ describe("Minter", () => {
             const MLCalc = await getExpectedMaxLiq(hre.users.userThree, this.krAsset, this.collateral);
 
             expect(MLCalc).to.be.closeTo(maxLiquidatableValue, USD_DELTA);
+        });
+        it.only("docs example", async function () {
+            /* ---------------------------------- setup --------------------------------- */
+            const deposits = toBig(1500);
+            const borrows = toBig(833.333333);
+
+            this.collateral.setPrice(1);
+            this.krAsset.setPrice(1);
+
+            await hre.Diamond.updateLiquidationIncentiveMultiplier(this.collateral.address, toBig(1.05));
+            await this.krAsset.update({
+                factor: 1.2,
+                closeFee: 0,
+                openFee: 0,
+                supplyLimit: 100000,
+                name: "KrAsset",
+            });
+
+            await this.collateral.update({
+                factor: 1,
+                name: "Collateral",
+            });
+
+            await this.collateral.setBalance(hre.users.userThree, deposits);
+
+            /* ----------------------------- deposit & mint ----------------------------- */
+            await depositCollateral({
+                user: hre.users.userThree,
+                amount: deposits,
+                asset: this.collateral,
+            });
+
+            await mintKrAsset({
+                user: hre.users.userThree,
+                amount: borrows,
+                asset: this.krAsset,
+            });
+
+            expect(await hre.Diamond.isAccountLiquidatable(hre.users.userThree.address)).to.be.false;
+            expect(await getCR(hre.users.userThree.address)).to.be.closeTo(1.5, 0.0001);
+            const crBeforePrice = await getCR(hre.users.userThree.address);
+
+            /* ------------------------------ update price ------------------------------ */
+
+            this.krAsset.setPrice(1.1); // 10% price increase
+
+            expect(await getCR(hre.users.userThree.address)).to.be.closeTo(1.3636, 0.001);
+            expect(await hre.Diamond.isAccountLiquidatable(hre.users.userThree.address)).to.be.true;
+
+            /* ------------------------------- comparison ------------------------------- */
+            const maxLiquidatableValue = await hre.Diamond.getMaxLiquidation(
+                hre.users.userThree.address,
+                this.krAsset.address,
+                this.collateral.address,
+            );
+
+            const MLCalc = await getExpectedMaxLiq(hre.users.userThree, this.krAsset, this.collateral);
+            console.log("Max Liq USD JS", fromBig(MLCalc, 8));
+            expect(MLCalc).to.be.closeTo(maxLiquidatableValue, USD_DELTA);
+            console.log("Max Liq USD SOL", fromBig(maxLiquidatableValue, 8));
+
+            const crBeforeLiq = await getCR(hre.users.userThree.address);
+
+            /* -------------------------------- liquidate ------------------------------- */
+            const { tx } = await liquidate(hre.users.userThree, this.krAsset, this.collateral);
+
+            const event = await getInternalEvent<LiquidationOccurredEvent["args"]>(
+                // @ts-expect-error
+                tx,
+                hre.Diamond,
+                "LiquidationOccurred",
+            );
+
+            /* ----------------------------------- log ---------------------------------- */
+            console.log("CR before price change", crBeforePrice);
+            console.log("CR before liq", crBeforeLiq);
+            console.log("CR after liq", await getCR(hre.users.userThree.address));
+
+            console.log("Repaid Quantity KrAssets", fromBig(event.repayAmount));
+            console.log("Seized Quantity Collateral", fromBig(event.collateralSent));
         });
         it("calculates correct MLV when kFactor = 1, cFactor = 0.25", async function () {
             await hre.Diamond.updateMinimumDebtValue(0);
