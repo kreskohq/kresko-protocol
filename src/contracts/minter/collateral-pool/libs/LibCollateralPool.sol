@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.20;
+pragma solidity >=0.8.19;
 
 import {SafeERC20, IERC20Permit} from "../../../shared/SafeERC20.sol";
 import {WadRay} from "../../../libs/WadRay.sol";

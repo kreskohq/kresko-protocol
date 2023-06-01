@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity <=0.8.20;
+pragma solidity <=0.8.19;
 
 import {ERC721} from "../state/ERC721Storage.sol";
 import {IONFT721CoreUpgradeable} from "../interfaces/IONFT721CoreUpgradeable.sol";

@@ -97,7 +97,7 @@ import { deployPositions } from "../../scripts/deploy-positions";
         });
     });
 
-    describe.only("positions-deploy-24-05-2023", () => {
+    describe("positions-deploy-24-05-2023", () => {
         it("works", async function () {
             await deployPositions();
             const krETH = await hre.getContractOrFork("KreskoAsset", "krETH");

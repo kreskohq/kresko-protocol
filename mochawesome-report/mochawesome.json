@@ -2,15 +2,15 @@
   "stats": {
     "suites": 2,
     "tests": 1,
-    "passes": 1,
-    "pending": 0,
+    "passes": 0,
+    "pending": 1,
     "failures": 0,
-    "start": "2023-05-24T10:53:45.498Z",
-    "end": "2023-05-24T10:53:56.908Z",
-    "duration": 11410,
+    "start": "2023-06-01T06:54:05.110Z",
+    "end": "2023-06-01T06:54:05.111Z",
+    "duration": 1,
     "testsRegistered": 1,
-    "passPercent": 100,
-    "pendingPercent": 0,
+    "passPercent": null,
+    "pendingPercent": 100,
     "other": 0,
     "hasOther": false,
     "skipped": 0,
@@ -18,7 +18,7 @@
   },
   "results": [
     {
-      "uuid": "7de33851-0806-4f2f-a347-8b8761fc3383",
+      "uuid": "8ec4140d-b564-49ac-93f3-5e92c20935a2",
       "title": "",
       "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/forking/00-setup.ts",
       "file": "/src/test/forking/00-setup.ts",
@@ -27,7 +27,7 @@
       "tests": [],
       "suites": [
         {
-          "uuid": "bb5aae62-1f33-48ea-ae1e-ff9ad7b923a5",
+          "uuid": "08abac53-3378-40dd-be82-c73e6712f472",
           "title": "Forking",
           "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/forking/00-setup.ts",
           "file": "/src/test/forking/00-setup.ts",
@@ -36,7 +36,7 @@
           "tests": [],
           "suites": [
             {
-              "uuid": "f6a60e50-6037-4f59-bc28-f3d67830e2c4",
+              "uuid": "31efc47a-ee0b-444f-9987-a00c92b5c62f",
               "title": "positions-deploy-24-05-2023",
               "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/forking/00-setup.ts",
               "file": "/src/test/forking/00-setup.ts",
@@ -47,32 +47,32 @@
                   "title": "works",
                   "fullTitle": "Forking positions-deploy-24-05-2023 works",
                   "timedOut": false,
-                  "duration": 11408,
-                  "state": "passed",
-                  "speed": "slow",
-                  "pass": true,
+                  "duration": 0,
+                  "state": "pending",
+                  "speed": null,
+                  "pass": false,
                   "fail": false,
-                  "pending": false,
+                  "pending": true,
                   "context": null,
-                  "code": "await (0, _deploypositions.deployPositions)();\nconst krETH = await hre.getContractOrFork(\"KreskoAsset\", \"krETH\");\nconst KISS = await hre.getContractOrFork(\"KISS\");\nconst Kresko = await hre.getContractOrFork(\"Kresko\");\nconst { deployer  } = await hre.getNamedAccounts();\n(0, _chai.expect)((await Kresko.collateralAsset(krETH.address)).liquidationIncentive).to.equal((0, _lib.toBig)(1.05));\nawait (0, _chai.expect)(Kresko.depositCollateral(deployer, krETH.address, (0, _lib.toBig)(1))).to.not.be.reverted;\nawait (0, _chai.expect)(Kresko.mintKreskoAsset(deployer, krETH.address, (0, _lib.toBig)(0.1))).to.not.be.reverted;\nconst burnIdx = await Kresko.getMintedKreskoAssetsIndex(deployer, krETH.address);\nconst withdrawIdx = await Kresko.getDepositedCollateralAssetIndex(deployer, krETH.address);\nawait (0, _chai.expect)(Kresko.burnKreskoAsset(deployer, krETH.address, (0, _lib.toBig)(0.1), burnIdx)).to.not.be.reverted;\nawait (0, _chai.expect)(Kresko.withdrawCollateral(deployer, krETH.address, (0, _lib.toBig)(0.1), withdrawIdx)).to.not.be.reverted;\nconst oldDeployer = new hre.ethers.Wallet(process.env.OLD_PK).connect(hre.ethers.provider);\nawait (0, _chai.expect)(Kresko.connect(oldDeployer).batchRepayFullStabilityRateInterest(deployer)).to.not.be.reverted;\nawait krETH.connect(oldDeployer).approve(KISS.address, (0, _lib.toBig)(10000));\nawait krETH.connect(oldDeployer).approve(Kresko.address, (0, _lib.toBig)(10000));\nawait Kresko.connect(oldDeployer).poolDeposit(oldDeployer.address, KISS.address, (0, _lib.toBig)(100000));\nawait Kresko.connect(oldDeployer).swap(oldDeployer.address, krETH.address, KISS.address, (0, _lib.toBig)(0.1), 0);",
+                  "code": "",
                   "err": {},
-                  "uuid": "fead0152-c2b1-45f9-8682-e1328585d04a",
-                  "parentUUID": "f6a60e50-6037-4f59-bc28-f3d67830e2c4",
+                  "uuid": "56d15426-0bcf-480f-99b8-d10a8bd334d6",
+                  "parentUUID": "31efc47a-ee0b-444f-9987-a00c92b5c62f",
                   "isHook": false,
                   "skipped": false
                 }
               ],
               "suites": [],
-              "passes": [
-                "fead0152-c2b1-45f9-8682-e1328585d04a"
-              ],
+              "passes": [],
               "failures": [],
-              "pending": [],
+              "pending": [
+                "56d15426-0bcf-480f-99b8-d10a8bd334d6"
+              ],
               "skipped": [],
-              "duration": 11408,
+              "duration": 0,
               "root": false,
               "rootEmpty": false,
-              "_timeout": 300000
+              "_timeout": 15000
             }
           ],
           "passes": [],
@@ -82,7 +82,7 @@
           "duration": 0,
           "root": false,
           "rootEmpty": false,
-          "_timeout": 300000
+          "_timeout": 15000
         }
       ],
       "passes": [],
@@ -92,7 +92,7 @@
       "duration": 0,
       "root": true,
       "rootEmpty": true,
-      "_timeout": 300000
+      "_timeout": 15000
     }
   ],
   "meta": {

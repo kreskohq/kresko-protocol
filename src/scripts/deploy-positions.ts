@@ -148,9 +148,10 @@ export const deployPositions = async () => {
     ]);
 };
 
-deployPositions()
-    .then(() => process.exit(0))
-    .catch(error => {
-        console.error(error);
-        process.exit(1);
-    });
+// deployPositions.skip = async () => true;
+// deployPositions()
+//     .then(() => process.exit(0))
+//     .catch(error => {
+//         console.error(error);
+//         process.exit(1);
+//     });
