@@ -47,16 +47,19 @@ contract BurnFacet is DiamondModifiers, MinterModifiers, IBurnFacet {
             _burnAmount = debtAmount;
         }
 
-        // If sender repays all principal debt of asset with no stability rate, remove it from minted assets array.
-        // For assets with stability rate the revomal is done when repaying interest
-        if (irs().srAssets[_kreskoAsset].asset == address(0) && _burnAmount == debtAmount) {
-            s.mintedKreskoAssets[_account].removeAddress(_kreskoAsset, _mintedKreskoAssetIndex);
-        }
         // Charge the burn fee from collateral of _account
         s.chargeCloseFee(_account, _kreskoAsset, _burnAmount);
 
         // Record the burn
         s.burn(_kreskoAsset, s.kreskoAssets[_kreskoAsset].anchor, _burnAmount, _account);
+
+        // If sender repays all scaled debt of asset with no stability rate, remove it from minted assets array.
+        // For assets with stability rate the removal is done when repaying interest
+        if (
+            irs().srAssets[_kreskoAsset].asset == address(0) && s.getKreskoAssetDebtScaled(_account, _kreskoAsset) == 0
+        ) {
+            s.mintedKreskoAssets[_account].removeAddress(_kreskoAsset, _mintedKreskoAssetIndex);
+        }
 
         // Emit logs
         emit MinterEvent.KreskoAssetBurned(_account, _kreskoAsset, _burnAmount);
