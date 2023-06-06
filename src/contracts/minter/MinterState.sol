@@ -75,4 +75,10 @@ struct MinterState {
     uint8 extOracleDecimals;
     /// @notice Liquidation Overflow Multiplier, multiplies max liquidatable value.
     uint256 maxLiquidationMultiplier;
+    /* -------------------------------------------------------------------------- */
+    /*                                  ORACLE                                  */
+    /* -------------------------------------------------------------------------- */
+
+    /// @notice The oracle deviation percentage between the main oracle and fallback oracle.
+    uint256 oracleDeviationPct;
 }

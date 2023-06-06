@@ -30,7 +30,7 @@ task(TASK_MINT_OPTIMAL, "Mint KrAsset with optimal KISS collateral")
             "for account",
             signer.address,
         );
-        const Kresko = (await hre.getContractOrFork("Kresko")).connect(signer);
+        const Kresko = await hre.getContractOrFork("Kresko");
 
         const KrAsset = (await hre.getContractOrFork("KreskoAsset", taskArgs.kreskoAsset)).connect(signer);
         const KrAssetInfo = await Kresko.kreskoAsset(KrAsset.address);

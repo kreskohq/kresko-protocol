@@ -12,6 +12,7 @@ import {
     BatchInterestLiquidationOccurredEventObject,
     InterestLiquidationOccurredEventObject,
 } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
+import { wrapContractWithSigner } from "@utils/test";
 
 describe("Stability Rates", () => {
     withFixture(["minter-test", "uniswap"]);
@@ -107,7 +108,7 @@ describe("Stability Rates", () => {
 
             expect(await hre.Diamond.isAccountLiquidatable(userTwo.address)).to.be.false;
             await expect(
-                hre.Diamond.connect(liquidator).liquidateInterest(
+                wrapContractWithSigner(hre.Diamond, liquidator).liquidateInterest(
                     userTwo.address,
                     krAsset.address,
                     this.collateral.address,
@@ -138,7 +139,10 @@ describe("Stability Rates", () => {
 
             expect(await hre.Diamond.isAccountLiquidatable(userTwo.address)).to.be.false;
             await expect(
-                hre.Diamond.connect(liquidator).batchLiquidateInterest(userTwo.address, this.collateral.address),
+                wrapContractWithSigner(hre.Diamond, liquidator).batchLiquidateInterest(
+                    userTwo.address,
+                    this.collateral.address,
+                ),
             ).to.be.revertedWith(Error.NOT_LIQUIDATABLE);
         });
         it("can liquidate accrued interest of unhealthy account", async function () {
@@ -196,7 +200,7 @@ describe("Stability Rates", () => {
             await this.collateral.setBalance(liquidator, toBig(0));
 
             // Liquidate
-            const tx = await hre.Diamond.connect(liquidator).liquidateInterest(
+            const tx = await wrapContractWithSigner(hre.Diamond, liquidator).liquidateInterest(
                 userTwo.address,
                 krAsset.address,
                 this.collateral.address,
@@ -280,7 +284,7 @@ describe("Stability Rates", () => {
             // Wipe seized collateral balance before liquidation for easy comparison
             await this.collateral.setBalance(liquidator, toBig(0));
             // Liquidate
-            const tx = await hre.Diamond.connect(liquidator).batchLiquidateInterest(
+            const tx = await wrapContractWithSigner(hre.Diamond, liquidator).batchLiquidateInterest(
                 userTwo.address,
                 this.collateral.address,
             );

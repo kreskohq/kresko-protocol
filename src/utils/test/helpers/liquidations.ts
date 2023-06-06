@@ -3,6 +3,7 @@ import { BigNumber } from "ethers";
 import hre from "hardhat";
 import { addMockCollateralAsset, depositCollateral, depositMockCollateral } from "./collaterals";
 import { mintKrAsset } from "./krassets";
+import { wrapContractWithSigner } from "./general";
 
 export const getLiqAmount = async (user: SignerWithAddress, krAsset: any, collateral: any, log = false) => {
     const accountMinimumCollateralValue = await hre.Diamond.getAccountMinimumCollateralValueAtRatio(
@@ -126,7 +127,7 @@ export const liquidate = async (user: SignerWithAddress, krAsset: any, collatera
         amount: liquidationAmount,
     });
 
-    const tx = await hre.Diamond.connect(hre.users.liquidator).liquidate(
+    const tx = await wrapContractWithSigner(hre.Diamond, hre.users.liquidator).liquidate(
         user.address,
         krAsset.address,
         liquidationAmount,

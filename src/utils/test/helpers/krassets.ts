@@ -8,6 +8,8 @@ import roles from "../roles";
 import { FluxPriceFeed__factory, KreskoAssetAnchor__factory, KreskoAsset__factory } from "types/typechain";
 import { KrAssetStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 import { getMockOracleFor, setPrice, setMarketOpen } from "./oracle";
+import { redstoneMap } from "@deploy-config/opgoerli";
+import { wrapContractWithSigner } from "./general";
 
 export const getDebtIndexAdjustedBalance = async (user: SignerWithAddress, asset: TestKrAsset) => {
     const balance = await asset.contract.balanceOf(user.address);
@@ -15,6 +17,7 @@ export const getDebtIndexAdjustedBalance = async (user: SignerWithAddress, asset
 };
 
 export const getKrAssetConfig = async (
+    asset: { symbol: Function },
     anchor: string,
     kFactor: BigNumber,
     oracle: string,
@@ -23,6 +26,11 @@ export const getKrAssetConfig = async (
     closeFee: BigNumber,
     openFee: BigNumber,
 ): Promise<KrAssetStruct> => {
+    const redstone = redstoneMap[(await asset.symbol()) as keyof typeof redstoneMap];
+    if (!redstone) {
+        throw new Error(`Redstone not found for ${await asset.symbol()}`);
+    }
+
     return {
         anchor,
         kFactor,
@@ -32,6 +40,7 @@ export const getKrAssetConfig = async (
         closeFee,
         openFee,
         exists: true,
+        redstoneId: redstone,
     };
 };
 
@@ -59,9 +68,10 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
 
     // Add the asset to the protocol
     const kFactor = toBig(factor);
-    await hre.Diamond.connect(deployer).addKreskoAsset(
+    await wrapContractWithSigner(hre.Diamond, deployer).addKreskoAsset(
         krAsset.address,
         await getKrAssetConfig(
+            krAsset,
             akrAsset.address,
             kFactor,
             Oracle.address,
@@ -153,9 +163,10 @@ export const addMockKreskoAssetWithAMMPair = async (
 
     // Add the asset to the protocol
 
-    await hre.Diamond.connect(deployer).addKreskoAsset(
+    await wrapContractWithSigner(hre.Diamond, deployer).addKreskoAsset(
         krAsset.address,
         await getKrAssetConfig(
+            krAsset,
             akrAsset.address,
             toBig(factor),
             MockOracle.address,
@@ -219,9 +230,10 @@ export const addMockKreskoAssetWithAMMPair = async (
 export const updateKrAsset = async (address: string, args: TestKreskoAssetUpdate) => {
     const { deployer } = await hre.ethers.getNamedSigners();
     const krAsset = hre.krAssets.find(c => c.address === address)!;
-    await hre.Diamond.connect(deployer).updateKreskoAsset(
+    await wrapContractWithSigner(hre.Diamond, deployer).updateKreskoAsset(
         krAsset.address,
         await getKrAssetConfig(
+            krAsset.contract,
             krAsset.mocks.anchor!.address,
             toBig(args.factor),
             args.oracle || krAsset.priceFeed.address,
@@ -251,7 +263,11 @@ export const updateKrAsset = async (address: string, args: TestKreskoAssetUpdate
 export const mintKrAsset = async (args: InputArgsSimple) => {
     const convert = typeof args.amount === "string" || typeof args.amount === "number";
     const { user, asset, amount } = args;
-    await hre.Diamond.connect(user).mintKreskoAsset(user.address, asset.address, convert ? toBig(+amount) : amount);
+    await wrapContractWithSigner(hre.Diamond, user).mintKreskoAsset(
+        user.address,
+        asset.address,
+        convert ? toBig(+amount) : amount,
+    );
     return;
 };
 
@@ -260,7 +276,7 @@ export const burnKrAsset = async (args: InputArgsSimple) => {
     const { user, asset, amount } = args;
     const kIndex = await hre.Diamond.getMintedKreskoAssetsIndex(user.address, asset.address);
 
-    return hre.Diamond.connect(user).burnKreskoAsset(
+    return wrapContractWithSigner(hre.Diamond, user).burnKreskoAsset(
         user.address,
         asset.address,
         convert ? toBig(+amount) : amount,

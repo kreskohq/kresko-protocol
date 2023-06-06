@@ -6,6 +6,7 @@ import {
     defaultOraclePrice,
     Role,
     withFixture,
+    wrapContractWithSigner,
 } from "@test-utils";
 import hre from "hardhat";
 import { fromBig, toBig, getInternalEvent } from "@kreskolabs/lib";
@@ -39,8 +40,6 @@ describe("Minter - Deposit Withdraw", () => {
             },
         });
 
-        // expect(await this.collateral.contract.balanceOf(hre.users.userOne.address)).to.equal(this.initialBalance);
-
         this.depositArgs = {
             user: hre.users.userOne,
             asset: this.collateral,
@@ -59,7 +58,7 @@ describe("Minter - Deposit Withdraw", () => {
 
                 // Deposit collateral
                 await expect(
-                    hre.Diamond.connect(this.depositArgs.user).depositCollateral(
+                    wrapContractWithSigner(hre.Diamond, this.depositArgs.user).depositCollateral(
                         this.depositArgs.user.address,
                         this.collateral.address,
                         this.depositArgs.amount,
@@ -103,7 +102,7 @@ describe("Minter - Deposit Withdraw", () => {
 
                 // Deposit collateral
                 await expect(
-                    hre.Diamond.connect(hre.users.userThree).depositCollateral(
+                    wrapContractWithSigner(hre.Diamond, hre.users.userThree).depositCollateral(
                         this.depositArgs.user.address,
                         this.collateral.address,
                         this.depositArgs.amount,
@@ -137,7 +136,7 @@ describe("Minter - Deposit Withdraw", () => {
             it("should allow an account to deposit more collateral to an existing deposit", async function () {
                 // Deposit first batch of collateral
                 await expect(
-                    hre.Diamond.connect(this.depositArgs.user).depositCollateral(
+                    wrapContractWithSigner(hre.Diamond, this.depositArgs.user).depositCollateral(
                         this.depositArgs.user.address,
                         this.collateral.address,
                         this.depositArgs.amount,
@@ -146,7 +145,7 @@ describe("Minter - Deposit Withdraw", () => {
 
                 // Deposit second batch of collateral
                 await expect(
-                    hre.Diamond.connect(this.depositArgs.user).depositCollateral(
+                    wrapContractWithSigner(hre.Diamond, this.depositArgs.user).depositCollateral(
                         this.depositArgs.user.address,
                         this.collateral.address,
                         this.depositArgs.amount,
@@ -170,8 +169,8 @@ describe("Minter - Deposit Withdraw", () => {
             it("should allow an account to have deposited multiple collateral assets", async function () {
                 // Load user account with a different type of collateral
                 const collateralArgs = {
-                    name: "SecondCollateral",
-                    price: defaultOraclePrice, // $10
+                    name: "Collateral18Dec",
+                    price: defaultOraclePrice, // $1
                     factor: 1,
                     decimals: defaultDecimals,
                 };
@@ -188,7 +187,7 @@ describe("Minter - Deposit Withdraw", () => {
 
                 // Deposit batch of first collateral type
                 await expect(
-                    hre.Diamond.connect(this.depositArgs.user).depositCollateral(
+                    wrapContractWithSigner(hre.Diamond, this.depositArgs.user).depositCollateral(
                         this.depositArgs.user.address,
                         this.collateral.address,
                         this.depositArgs.amount,
@@ -197,7 +196,7 @@ describe("Minter - Deposit Withdraw", () => {
 
                 // Deposit batch of second collateral type
                 await expect(
-                    hre.Diamond.connect(this.depositArgs.user).depositCollateral(
+                    wrapContractWithSigner(hre.Diamond, this.depositArgs.user).depositCollateral(
                         this.depositArgs.user.address,
                         contract.address,
                         this.depositArgs.amount,
@@ -212,7 +211,7 @@ describe("Minter - Deposit Withdraw", () => {
             });
 
             it("should emit CollateralDeposited event", async function () {
-                const tx = await hre.Diamond.connect(this.depositArgs.user).depositCollateral(
+                const tx = await wrapContractWithSigner(hre.Diamond, this.depositArgs.user).depositCollateral(
                     this.depositArgs.user.address,
                     this.collateral.address,
                     this.depositArgs.amount,
@@ -229,7 +228,7 @@ describe("Minter - Deposit Withdraw", () => {
 
             it("should revert if depositing collateral that has not been whitelisted", async function () {
                 await expect(
-                    hre.Diamond.connect(this.depositArgs.user).depositCollateral(
+                    wrapContractWithSigner(hre.Diamond, this.depositArgs.user).depositCollateral(
                         this.depositArgs.user.address,
                         "0x0000000000000000000000000000000000000001",
                         this.depositArgs.amount,
@@ -239,7 +238,7 @@ describe("Minter - Deposit Withdraw", () => {
 
             it("should revert if depositing an amount of 0", async function () {
                 await expect(
-                    hre.Diamond.connect(this.depositArgs.user).depositCollateral(
+                    wrapContractWithSigner(hre.Diamond, this.depositArgs.user).depositCollateral(
                         this.depositArgs.user.address,
                         this.collateral.address,
                         0,
@@ -264,7 +263,7 @@ describe("Minter - Deposit Withdraw", () => {
                 expect(isDepositPaused).to.equal(true);
 
                 await expect(
-                    hre.Diamond.connect(this.depositArgs.user).depositCollateral(
+                    wrapContractWithSigner(hre.Diamond, this.depositArgs.user).depositCollateral(
                         this.depositArgs.user.address,
                         this.collateral.contract.address,
                         0,
@@ -277,7 +276,7 @@ describe("Minter - Deposit Withdraw", () => {
             beforeEach(async function () {
                 // Deposit collateral
                 await expect(
-                    hre.Diamond.connect(this.depositArgs.user).depositCollateral(
+                    wrapContractWithSigner(hre.Diamond, this.depositArgs.user).depositCollateral(
                         this.depositArgs.user.address,
                         this.collateral.contract.address,
                         this.depositArgs.amount,
@@ -295,7 +294,7 @@ describe("Minter - Deposit Withdraw", () => {
                     );
                     expect(depositedCollateralAssets).to.deep.equal([this.collateral.address]);
 
-                    await hre.Diamond.connect(hre.users.userOne).withdrawCollateral(
+                    await wrapContractWithSigner(hre.Diamond, hre.users.userOne).withdrawCollateral(
                         hre.users.userOne.address,
                         this.collateral.address,
                         this.depositAmount,
@@ -326,7 +325,7 @@ describe("Minter - Deposit Withdraw", () => {
                 it("should allow an account to withdraw a portion of their deposit", async function () {
                     const withdrawAmount = this.depositAmount.div(2);
 
-                    await hre.Diamond.connect(hre.users.userOne).withdrawCollateral(
+                    await wrapContractWithSigner(hre.Diamond, hre.users.userOne).withdrawCollateral(
                         hre.users.userOne.address,
                         this.collateral.address,
                         withdrawAmount,
@@ -355,7 +354,10 @@ describe("Minter - Deposit Withdraw", () => {
 
                 it("should allow trusted address to withdraw another accounts deposit", async function () {
                     // Grant userThree the MANAGER role
-                    await hre.Diamond.connect(hre.users.deployer).grantRole(Role.MANAGER, hre.users.userThree.address);
+                    await wrapContractWithSigner(hre.Diamond, hre.users.deployer).grantRole(
+                        Role.MANAGER,
+                        hre.users.userThree.address,
+                    );
                     expect(await hre.Diamond.hasRole(Role.MANAGER, hre.users.userThree.address)).to.equal(true);
 
                     const collateralBefore = await hre.Diamond.collateralDeposits(
@@ -364,7 +366,7 @@ describe("Minter - Deposit Withdraw", () => {
                     );
 
                     await expect(
-                        hre.Diamond.connect(hre.users.userThree).withdrawCollateral(
+                        wrapContractWithSigner(hre.Diamond, hre.users.userThree).withdrawCollateral(
                             hre.users.userOne.address,
                             this.collateral.address,
                             this.depositAmount,
@@ -381,7 +383,7 @@ describe("Minter - Deposit Withdraw", () => {
                 });
 
                 it("should emit CollateralWithdrawn event", async function () {
-                    const tx = await hre.Diamond.connect(hre.users.userOne).withdrawCollateral(
+                    const tx = await wrapContractWithSigner(hre.Diamond, hre.users.userOne).withdrawCollateral(
                         hre.users.userOne.address,
                         this.collateral.address,
                         this.depositAmount,
@@ -400,7 +402,7 @@ describe("Minter - Deposit Withdraw", () => {
 
                 it("should not allow untrusted address to withdraw another accounts deposit", async function () {
                     await expect(
-                        hre.Diamond.connect(hre.users.userThree).withdrawCollateral(
+                        wrapContractWithSigner(hre.Diamond, hre.users.userThree).withdrawCollateral(
                             hre.users.userOne.address,
                             this.collateral.address,
                             this.initialBalance,
@@ -419,7 +421,7 @@ describe("Minter - Deposit Withdraw", () => {
 
                         // userOne mints some kr assets
                         this.mintAmount = toBig(100);
-                        await hre.Diamond.connect(hre.users.userOne).mintKreskoAsset(
+                        await wrapContractWithSigner(hre.Diamond, hre.users.userOne).mintKreskoAsset(
                             hre.users.userOne.address,
                             this.krAsset!.address,
                             this.mintAmount,
@@ -454,7 +456,7 @@ describe("Minter - Deposit Withdraw", () => {
                         expect(accountCollateralValue.sub(withdrawnCollateralValue).gte(accountMinCollateralValue)).to
                             .be.true;
 
-                        await hre.Diamond.connect(hre.users.userOne).withdrawCollateral(
+                        await wrapContractWithSigner(hre.Diamond, hre.users.userOne).withdrawCollateral(
                             hre.users.userOne.address,
                             this.collateral.address,
                             withdrawAmount,
@@ -521,7 +523,7 @@ describe("Minter - Deposit Withdraw", () => {
                     it("should revert if withdrawing an amount of 0", async function () {
                         const withdrawAmount = 0;
                         await expect(
-                            hre.Diamond.connect(hre.users.userOne).withdrawCollateral(
+                            wrapContractWithSigner(hre.Diamond, hre.users.userOne).withdrawCollateral(
                                 hre.users.userOne.address,
                                 this.collateral.address,
                                 0,
@@ -552,7 +554,7 @@ describe("Minter - Deposit Withdraw", () => {
                             .true;
 
                         await expect(
-                            hre.Diamond.connect(hre.users.userOne).withdrawCollateral(
+                            wrapContractWithSigner(hre.Diamond, hre.users.userOne).withdrawCollateral(
                                 hre.users.userOne.address,
                                 this.collateral.address,
                                 withdrawAmount,
@@ -564,7 +566,7 @@ describe("Minter - Deposit Withdraw", () => {
                     it("should revert if the depositedCollateralAssetIndex is incorrect", async function () {
                         const withdrawAmount = this.depositAmount.div(2);
                         await expect(
-                            hre.Diamond.connect(hre.users.userOne).withdrawCollateral(
+                            wrapContractWithSigner(hre.Diamond, hre.users.userOne).withdrawCollateral(
                                 hre.users.userOne.address,
                                 this.collateral.address,
                                 withdrawAmount,
@@ -577,12 +579,10 @@ describe("Minter - Deposit Withdraw", () => {
         });
 
         describe("#deposit - rebase events", () => {
-            const mintAmount = toBig(10);
-            let arbitraryUserDiamond: typeof hre.Diamond;
+            const mintAmount = toBig(100);
             let arbitraryUser: SignerWithAddress;
             beforeEach(async function () {
                 arbitraryUser = hre.users.userThree;
-                arbitraryUserDiamond = hre.Diamond.connect(arbitraryUser);
                 await this.collateral.mocks!.contract.setVariable("_balances", {
                     [arbitraryUser.address]: this.initialBalance,
                 });
@@ -597,7 +597,7 @@ describe("Minter - Deposit Withdraw", () => {
                 const assetInfo = await this.krAsset!.kresko();
 
                 // Add krAsset as a collateral with anchor and cFactor of 1
-                await hre.Diamond.connect(hre.users.deployer).addCollateralAsset(
+                await wrapContractWithSigner(hre.Diamond, hre.users.deployer).addCollateralAsset(
                     this.krAsset!.contract.address,
                     await getCollateralConfig(
                         this.krAsset.contract,
@@ -616,24 +616,28 @@ describe("Minter - Deposit Withdraw", () => {
                 );
 
                 // Deposit some collateral
-                await arbitraryUserDiamond.depositCollateral(
+                await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                     arbitraryUser.address,
                     this.collateral.address,
                     this.depositArgs.amount,
                 );
 
                 // Mint some krAssets
-                await arbitraryUserDiamond.mintKreskoAsset(arbitraryUser.address, this.krAsset!.address, mintAmount);
+                await wrapContractWithSigner(hre.Diamond, arbitraryUser).mintKreskoAsset(
+                    arbitraryUser.address,
+                    this.krAsset!.address,
+                    mintAmount,
+                );
 
                 // Deposit all debt on tests
-                this.krAssetCollateralAmount = await arbitraryUserDiamond.kreskoAssetDebt(
+                this.krAssetCollateralAmount = await wrapContractWithSigner(hre.Diamond, arbitraryUser).kreskoAssetDebt(
                     arbitraryUser.address,
                     this.krAsset!.address,
                 );
             });
             describe("deposit amounts are calculated correctly", () => {
                 it("when deposit is made before positive rebase", async function () {
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         this.krAssetCollateralAmount,
@@ -668,7 +672,7 @@ describe("Minter - Deposit Withdraw", () => {
                     const depositAmountAfterRebase = this.krAssetCollateralAmount.div(denominator);
 
                     // Deposit
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         this.krAssetCollateralAmount,
@@ -705,7 +709,7 @@ describe("Minter - Deposit Withdraw", () => {
                     await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
                     // Deposit after the rebase
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         depositAmount,
@@ -736,7 +740,7 @@ describe("Minter - Deposit Withdraw", () => {
                     await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
                     // Deposit after the rebase
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         depositAmount,
@@ -762,7 +766,7 @@ describe("Minter - Deposit Withdraw", () => {
                     const halfDepositAfterRebase = this.krAssetCollateralAmount.div(2).mul(denominator);
                     const fullDepositAmount = this.krAssetCollateralAmount.mul(denominator);
 
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         halfDepositBeforeRebase,
@@ -779,7 +783,7 @@ describe("Minter - Deposit Withdraw", () => {
                     expect(depositsAfter).to.bignumber.equal(halfDepositAfterRebase);
 
                     // Deposit second time
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         halfDepositAfterRebase,
@@ -803,7 +807,7 @@ describe("Minter - Deposit Withdraw", () => {
                     const halfDepositAfterRebase = this.krAssetCollateralAmount.div(2).div(denominator);
                     const fullDepositAmount = this.krAssetCollateralAmount.div(denominator);
 
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         halfDepositBeforeRebase,
@@ -820,7 +824,7 @@ describe("Minter - Deposit Withdraw", () => {
                     expect(depositsAfterRebase).to.bignumber.equal(halfDepositAfterRebase);
 
                     // Deposit second time
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         halfDepositAfterRebase,
@@ -837,7 +841,7 @@ describe("Minter - Deposit Withdraw", () => {
             });
             describe("deposit usd values are calculated correctly", () => {
                 it("when deposit is made before positiveing rebase", async function () {
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         this.krAssetCollateralAmount,
@@ -860,7 +864,7 @@ describe("Minter - Deposit Withdraw", () => {
                     expect(valueBefore).to.bignumber.equal(valueAfter);
                 });
                 it("when deposit is made before negative rebase", async function () {
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         this.krAssetCollateralAmount,
@@ -902,7 +906,7 @@ describe("Minter - Deposit Withdraw", () => {
                     await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
                     // Deposit rebased amount after
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         depositAmount,
@@ -938,7 +942,7 @@ describe("Minter - Deposit Withdraw", () => {
                     await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
                     // Deposit rebased amount after
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         depositAmount,
@@ -965,7 +969,7 @@ describe("Minter - Deposit Withdraw", () => {
                     const halfDepositAfterRebase = this.krAssetCollateralAmount.div(2).mul(denominator);
                     const fullDepositAmount = this.krAssetCollateralAmount.mul(denominator);
 
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         halfDepositBeforeRebase,
@@ -999,7 +1003,7 @@ describe("Minter - Deposit Withdraw", () => {
                     );
 
                     // Deposit more
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         halfDepositAfterRebase,
@@ -1025,7 +1029,7 @@ describe("Minter - Deposit Withdraw", () => {
                     const halfDepositAfterRebase = this.krAssetCollateralAmount.div(2).div(denominator);
                     const fullDepositAmount = this.krAssetCollateralAmount.div(denominator);
 
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         halfDepositBeforeRebase,
@@ -1059,7 +1063,7 @@ describe("Minter - Deposit Withdraw", () => {
                     );
 
                     // Deposit more
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         halfDepositAfterRebase,
@@ -1078,12 +1082,10 @@ describe("Minter - Deposit Withdraw", () => {
         });
 
         describe("#withdraw - rebase events", () => {
-            const mintAmount = toBig(50);
+            const mintAmount = toBig(100);
             let arbitraryUser: SignerWithAddress;
-            let arbitraryUserDiamond: typeof hre.Diamond;
             beforeEach(async function () {
                 arbitraryUser = hre.users.userThree;
-                arbitraryUserDiamond = hre.Diamond.connect(arbitraryUser);
                 await this.collateral.mocks!.contract.setVariable("_balances", {
                     [arbitraryUser.address]: this.initialBalance,
                 });
@@ -1098,7 +1100,7 @@ describe("Minter - Deposit Withdraw", () => {
                 const assetInfo = await this.krAsset!.kresko();
 
                 // Add krAsset as a collateral with anchor and cFactor of 1
-                await hre.Diamond.connect(hre.users.deployer).addCollateralAsset(
+                await wrapContractWithSigner(hre.Diamond, hre.users.deployer).addCollateralAsset(
                     this.krAsset!.contract.address,
                     await getCollateralConfig(
                         this.krAsset.contract,
@@ -1117,17 +1119,21 @@ describe("Minter - Deposit Withdraw", () => {
                 );
 
                 // Deposit some collateral
-                await arbitraryUserDiamond.depositCollateral(
+                await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                     arbitraryUser.address,
                     this.collateral.address,
                     this.depositArgs.amount,
                 );
 
                 // Mint some krAssets
-                await arbitraryUserDiamond.mintKreskoAsset(arbitraryUser.address, this.krAsset!.address, mintAmount);
+                await wrapContractWithSigner(hre.Diamond, arbitraryUser).mintKreskoAsset(
+                    arbitraryUser.address,
+                    this.krAsset!.address,
+                    mintAmount,
+                );
 
                 // Deposit all debt on tests
-                this.krAssetCollateralAmount = await arbitraryUserDiamond.kreskoAssetDebt(
+                this.krAssetCollateralAmount = await wrapContractWithSigner(hre.Diamond, arbitraryUser).kreskoAssetDebt(
                     arbitraryUser.address,
                     this.krAsset!.address,
                 );
@@ -1140,7 +1146,7 @@ describe("Minter - Deposit Withdraw", () => {
                     const rebasedDepositAmount = this.krAssetCollateralAmount.mul(denominator);
 
                     // Deposit collateral before rebase
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         this.krAssetCollateralAmount,
@@ -1162,7 +1168,7 @@ describe("Minter - Deposit Withdraw", () => {
                     expect(depositsAfter).to.bignumber.equal(rebasedDepositAmount);
 
                     // Withdraw rebased amount
-                    await arbitraryUserDiamond.withdrawCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).withdrawCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         rebasedDepositAmount,
@@ -1185,7 +1191,7 @@ describe("Minter - Deposit Withdraw", () => {
                     const rebasedDepositAmount = this.krAssetCollateralAmount.div(denominator);
 
                     // Deposit collateral before rebase
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         this.krAssetCollateralAmount,
@@ -1207,7 +1213,7 @@ describe("Minter - Deposit Withdraw", () => {
                     expect(depositsAfter).to.bignumber.equal(rebasedDepositAmount);
 
                     // Withdraw rebased amount
-                    await arbitraryUserDiamond.withdrawCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).withdrawCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         rebasedDepositAmount,
@@ -1233,7 +1239,7 @@ describe("Minter - Deposit Withdraw", () => {
                     await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
                     // Deposit after the rebase
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         rebasedDepositAmount,
@@ -1254,7 +1260,7 @@ describe("Minter - Deposit Withdraw", () => {
                     expect(depositsAfter).to.bignumber.equal(rebasedDepositAmount);
 
                     // Withdraw rebased amount
-                    await arbitraryUserDiamond.withdrawCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).withdrawCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         rebasedDepositAmount,
@@ -1280,7 +1286,7 @@ describe("Minter - Deposit Withdraw", () => {
                     await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
                     // Deposit after the rebase
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         rebasedDepositAmount,
@@ -1300,7 +1306,7 @@ describe("Minter - Deposit Withdraw", () => {
                     expect(depositsAfter).to.bignumber.equal(rebasedDepositAmount);
 
                     // Withdraw rebased amount
-                    await arbitraryUserDiamond.withdrawCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).withdrawCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         rebasedDepositAmount,
@@ -1327,7 +1333,7 @@ describe("Minter - Deposit Withdraw", () => {
                     const fullDepositAmount = this.krAssetCollateralAmount.mul(denominator);
 
                     // Deposit before the rebase
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         firstDepositAmount,
@@ -1348,7 +1354,7 @@ describe("Minter - Deposit Withdraw", () => {
                     await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
                     // Deposit after the rebase
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         secondDepositAmount,
@@ -1364,7 +1370,7 @@ describe("Minter - Deposit Withdraw", () => {
                     expect(depositsAfter).to.bignumber.equal(fullDepositAmount);
 
                     // Withdraw rebased amount
-                    await arbitraryUserDiamond.withdrawCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).withdrawCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         fullDepositAmount,
@@ -1391,7 +1397,7 @@ describe("Minter - Deposit Withdraw", () => {
                     const fullDepositAmount = this.krAssetCollateralAmount.div(denominator);
 
                     // Deposit before the rebase
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         firstDepositAmount,
@@ -1412,7 +1418,7 @@ describe("Minter - Deposit Withdraw", () => {
                     await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
                     // Deposit after the rebase
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         secondDepositAmount,
@@ -1428,7 +1434,7 @@ describe("Minter - Deposit Withdraw", () => {
                     expect(depositsAfter).to.bignumber.equal(fullDepositAmount);
 
                     // Withdraw rebased amount
-                    await arbitraryUserDiamond.withdrawCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).withdrawCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         fullDepositAmount,
@@ -1452,7 +1458,7 @@ describe("Minter - Deposit Withdraw", () => {
                     const newPrice = fromBig(await this.krAsset!.getPrice(), 8) / denominator;
                     const withdrawAmount = toBig(10);
 
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         this.krAssetCollateralAmount,
@@ -1469,7 +1475,7 @@ describe("Minter - Deposit Withdraw", () => {
                         arbitraryUser.address,
                         this.collateral.address,
                     );
-                    await arbitraryUserDiamond.withdrawCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).withdrawCollateral(
                         arbitraryUser.address,
                         this.collateral.address,
                         withdrawAmount,
@@ -1489,7 +1495,7 @@ describe("Minter - Deposit Withdraw", () => {
                     const newPrice = fromBig(await this.krAsset!.getPrice(), 8) / denominator;
                     const rebasedDepositAmount = this.krAssetCollateralAmount.mul(denominator);
 
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         this.krAssetCollateralAmount,
@@ -1503,7 +1509,7 @@ describe("Minter - Deposit Withdraw", () => {
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
-                    await arbitraryUserDiamond.withdrawCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).withdrawCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         rebasedDepositAmount,
@@ -1527,7 +1533,7 @@ describe("Minter - Deposit Withdraw", () => {
                     const rebasedDepositAmount = this.krAssetCollateralAmount.div(denominator);
 
                     // Deposit
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         this.krAssetCollateralAmount,
@@ -1543,7 +1549,7 @@ describe("Minter - Deposit Withdraw", () => {
                     );
 
                     // Withdraw the full rebased amount
-                    await arbitraryUserDiamond.withdrawCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).withdrawCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         rebasedDepositAmount,
@@ -1572,7 +1578,7 @@ describe("Minter - Deposit Withdraw", () => {
                     await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
                     // Deposit rebased amount after
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         depositAmount,
@@ -1582,7 +1588,7 @@ describe("Minter - Deposit Withdraw", () => {
                         this.krAsset!.address,
                     );
                     // Withdraw the full rebased amount
-                    await arbitraryUserDiamond.withdrawCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).withdrawCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         depositAmount,
@@ -1611,7 +1617,7 @@ describe("Minter - Deposit Withdraw", () => {
                     await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
                     // Deposit rebased amount after
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         depositAmount,
@@ -1621,7 +1627,7 @@ describe("Minter - Deposit Withdraw", () => {
                         this.krAsset!.address,
                     );
                     // Withdraw the full rebased amount
-                    await arbitraryUserDiamond.withdrawCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).withdrawCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         depositAmount,
@@ -1648,7 +1654,7 @@ describe("Minter - Deposit Withdraw", () => {
                     const secondDepositAmount = this.krAssetCollateralAmount.div(2).mul(denominator);
                     const fullDepositAmount = this.krAssetCollateralAmount.mul(denominator);
 
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         firstDepositAmount,
@@ -1673,7 +1679,7 @@ describe("Minter - Deposit Withdraw", () => {
                     expect(expectedValue).to.bignumber.equal(valueAfterRebase);
 
                     // Deposit more
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         secondDepositAmount,
@@ -1684,7 +1690,7 @@ describe("Minter - Deposit Withdraw", () => {
                         this.krAsset!.address,
                     );
                     // Withdraw the full rebased amount
-                    await arbitraryUserDiamond.withdrawCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).withdrawCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         fullDepositAmount,
@@ -1712,7 +1718,7 @@ describe("Minter - Deposit Withdraw", () => {
                     const secondDepositAmount = this.krAssetCollateralAmount.div(denominator).div(2);
                     const fullDepositAmount = this.krAssetCollateralAmount.div(denominator);
 
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         firstDepositAmount,
@@ -1737,7 +1743,7 @@ describe("Minter - Deposit Withdraw", () => {
                     expect(expectedValue).to.bignumber.equal(valueAfterRebase);
 
                     // Deposit more
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         secondDepositAmount,
@@ -1748,7 +1754,7 @@ describe("Minter - Deposit Withdraw", () => {
                         this.krAsset!.address,
                     );
                     // Withdraw the full rebased amount
-                    await arbitraryUserDiamond.withdrawCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).withdrawCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         fullDepositAmount,
@@ -1772,7 +1778,7 @@ describe("Minter - Deposit Withdraw", () => {
                     const newPrice = fromBig(await this.krAsset!.getPrice(), 8) / denominator;
                     const withdrawAmount = toBig(10);
 
-                    await arbitraryUserDiamond.depositCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
                         arbitraryUser.address,
                         this.krAsset!.address,
                         this.krAssetCollateralAmount,
@@ -1798,7 +1804,7 @@ describe("Minter - Deposit Withdraw", () => {
                         arbitraryUser.address,
                         this.collateral.address,
                     );
-                    await arbitraryUserDiamond.withdrawCollateral(
+                    await wrapContractWithSigner(hre.Diamond, arbitraryUser).withdrawCollateral(
                         arbitraryUser.address,
                         this.collateral.address,
                         withdrawAmount,

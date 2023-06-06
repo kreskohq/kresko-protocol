@@ -11,12 +11,38 @@ import {
     SignMessageLib,
     SimulateTxAccessor,
 } from "./gnosis-safe";
+import { ethers } from "ethers";
 
 const defaultParams: Omit<KreskoConstructor, "feeRecipient"> = {
     liquidationIncentive: "1.05",
     minimumCollateralizationRatio: "1.5",
     minimumDebtValue: "10",
     liquidationThreshold: "1.4",
+};
+
+export const redstoneMap = {
+    krETH: ethers.utils.formatBytes32String("ETH"),
+    krBTC: ethers.utils.formatBytes32String("BTC"),
+    krTSLA: ethers.utils.formatBytes32String("TSLA"),
+    WETH: ethers.utils.formatBytes32String("ETH"),
+    ETH: ethers.utils.formatBytes32String("ETH"),
+    WBTC: ethers.utils.formatBytes32String("BTC"),
+    KISS: ethers.utils.formatBytes32String("USDC"),
+    DAI: ethers.utils.formatBytes32String("DAI"),
+    USDC: ethers.utils.formatBytes32String("USDC"),
+    Collateral: ethers.utils.formatBytes32String("USDC"),
+    KreskoAsset: ethers.utils.formatBytes32String("USDC"),
+    KreskoAssetPrice10USD: ethers.utils.formatBytes32String("USDC"),
+    CollateralAsset: ethers.utils.formatBytes32String("USDC"),
+    Collateral18Dec: ethers.utils.formatBytes32String("USDC"),
+    Collateral8Dec: ethers.utils.formatBytes32String("USDC"),
+    Collateral21Dec: ethers.utils.formatBytes32String("USDC"),
+    KreskoAssetLiquidation: ethers.utils.formatBytes32String("USDC"),
+    SecondKreskoAsset: ethers.utils.formatBytes32String("USDC"),
+    krasset2: ethers.utils.formatBytes32String("USDC"),
+    krasset3: ethers.utils.formatBytes32String("USDC"),
+    krasset4: ethers.utils.formatBytes32String("USDC"),
+    quick: ethers.utils.formatBytes32String("USDC"),
 };
 
 export const oracles = {

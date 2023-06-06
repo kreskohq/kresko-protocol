@@ -59,6 +59,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         updateLiquidationThreshold(args.liquidationThreshold);
         updateExtOracleDecimals(args.extOracleDecimals);
         updateMaxLiquidationMultiplier(Constants.MIN_MAX_LIQUIDATION_MULTIPLIER);
+        updateOracleDeviationPct(args.oracleDeviationPct);
 
         ms().initializations = 1;
         ms().domainSeparator = Meta.domainSeparator("Kresko Minter", "V1");
@@ -159,6 +160,12 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         ms().extOracleDecimals = _decimals;
     }
 
+    /// @inheritdoc IConfigurationFacet
+    function updateOracleDeviationPct(uint256 _oracleDeviationPct) public onlyRole(Role.ADMIN) {
+        require(_oracleDeviationPct <= 1 ether, Error.INVALID_ORACLE_DEVIATION_PCT);
+        ms().oracleDeviationPct = _oracleDeviationPct;
+    }
+
     /* -------------------------------------------------------------------------- */
     /*                                 COLLATERAL                                 */
     /* -------------------------------------------------------------------------- */
@@ -196,7 +203,8 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             marketStatusOracle: _config.marketStatusOracle,
             anchor: _config.anchor,
             exists: true,
-            decimals: IERC20Permit(_collateralAsset).decimals()
+            decimals: IERC20Permit(_collateralAsset).decimals(),
+            redstoneId: _config.redstoneId
         });
 
         emit MinterEvent.CollateralAssetAdded(
@@ -301,7 +309,8 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             supplyLimit: _config.supplyLimit,
             closeFee: _config.closeFee,
             openFee: _config.openFee,
-            exists: true
+            exists: true,
+            redstoneId: _config.redstoneId
         });
 
         emit MinterEvent.KreskoAssetAdded(
