@@ -75,7 +75,21 @@ contract MintFacet is DiamondModifiers, MinterModifiers, IMintFacet {
         // If the account does not have an existing debt for this Kresko Asset,
         // push it to the list of the account's minted Kresko Assets.
         if (existingDebt == 0) {
-            s.mintedKreskoAssets[_account].push(_kreskoAsset);
+            bool exists = false;
+            uint256 length = s.mintedKreskoAssets[_account].length;
+            for (uint256 i; i < length; ) {
+                if (s.mintedKreskoAssets[_account][i] == _kreskoAsset) {
+                    exists = true;
+                    break;
+                }
+                unchecked {
+                    ++i;
+                }
+            }
+
+            if (!exists) {
+                s.mintedKreskoAssets[_account].push(_kreskoAsset);
+            }
         }
 
         // Record the mint.
