@@ -74,7 +74,11 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
 
             // We limit liquidations to exactly Liquidation Threshold here.
             uint256 maxLiquidableUSD = s.getMaxLiquidation(_account, krAsset, _seizeAsset);
-            require(repayAmountUSD <= maxLiquidableUSD, Error.LIQUIDATION_OVERFLOW);
+
+            if (repayAmountUSD > maxLiquidableUSD) {
+                _repayAmount = maxLiquidableUSD.wadDiv(krAsset.uintAggregatePrice(s.oracleDeviationPct));
+                repayAmountUSD = maxLiquidableUSD;
+            }
         }
 
         /* ------------------------------- Charge fee ------------------------------- */
