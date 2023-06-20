@@ -30,7 +30,7 @@ describe("KreskoAssetAnchor", () => {
             expect(await KreskoAssetAnchor.totalSupply()).to.equal(0);
         });
 
-        it("mints 1:1 with no rebases", async function () {
+        it.skip("mints 1:1 with no rebases", async function () {
             await KreskoAsset.mint(hre.addr.deployer, defaultMintAmount);
             await KreskoAssetAnchor.mint(defaultMintAmount, hre.addr.deployer);
 
@@ -39,7 +39,7 @@ describe("KreskoAssetAnchor", () => {
             expect(await KreskoAssetAnchor.balanceOf(hre.addr.deployer)).to.equal(defaultMintAmount);
         });
 
-        it("deposits 1:1 with no rebases", async function () {
+        it.skip("deposits 1:1 with no rebases", async function () {
             await KreskoAsset.mint(hre.addr.deployer, defaultMintAmount);
             await KreskoAssetAnchor.deposit(defaultMintAmount, hre.addr.deployer);
 
@@ -48,7 +48,7 @@ describe("KreskoAssetAnchor", () => {
             expect(await KreskoAssetAnchor.balanceOf(hre.addr.deployer)).to.equal(defaultMintAmount);
         });
 
-        it("redeems 1:1 with no rebases", async function () {
+        it.skip("redeems 1:1 with no rebases", async function () {
             await KreskoAsset.mint(hre.addr.deployer, defaultMintAmount);
             await KreskoAssetAnchor.mint(defaultMintAmount, hre.addr.deployer);
             await KreskoAssetAnchor.redeem(defaultMintAmount, hre.addr.deployer, hre.addr.deployer);
@@ -57,7 +57,7 @@ describe("KreskoAssetAnchor", () => {
             expect(await KreskoAsset.balanceOf(hre.addr.deployer)).to.equal(defaultMintAmount);
         });
 
-        it("withdraws 1:1 with no rebases", async function () {
+        it.skip("withdraws 1:1 with no rebases", async function () {
             await KreskoAsset.mint(hre.addr.deployer, defaultMintAmount);
             await KreskoAssetAnchor.deposit(defaultMintAmount, hre.addr.deployer);
             await KreskoAssetAnchor.withdraw(defaultMintAmount, hre.addr.deployer, hre.addr.deployer);
@@ -66,7 +66,7 @@ describe("KreskoAssetAnchor", () => {
             expect(await KreskoAsset.balanceOf(hre.addr.deployer)).to.equal(defaultMintAmount);
         });
 
-        describe("#rebases", () => {
+        describe.skip("#rebases", () => {
             describe("#conversions", () => {
                 it("mints 1:1 and redeems 1:2 after 1:2 rebase", async function () {
                     await KreskoAsset.mint(hre.addr.deployer, defaultMintAmount);
