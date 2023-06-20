@@ -141,7 +141,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         }
 
         // If the liquidation repays entire asset debt, remove from minted assets array.
-        if (s.kreskoAssetDebt[params.account][params.repayAsset] == 0) {
+        if (s.getKreskoAssetDebtScaled(params.account, params.repayAsset) == 0) {
             s.mintedKreskoAssets[params.account].removeAddress(params.repayAsset, params.repayAssetIndex);
         }
 
