@@ -9,7 +9,7 @@ import { expect } from "chai";
 import hre from "hardhat";
 import { SafetyStateChangeEventObject } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
-describe.only("Safety Council", () => {
+describe("Safety Council", () => {
     withFixture(["minter-test"]);
     beforeEach(async function () {
         this.collateral = hre.collaterals.find(asset => asset.deployArgs!.name === defaultCollateralArgs.name)!;
