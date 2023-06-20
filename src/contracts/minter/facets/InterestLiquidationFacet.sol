@@ -43,10 +43,7 @@ contract InterestLiquidationFacet is DiamondModifiers, IInterestLiquidationFacet
             address repayKreskoAsset = mintedKreskoAssets[i];
             // Repays the full interest of this asset on behalf of the account being liquidated
             kissAmountToRepay += ms().repayFullStabilityRateInterest(_account, repayKreskoAsset);
-            // If the liquidation repays the user's entire Kresko asset balance, remove it from minted assets array.
-            if (ms().kreskoAssetDebt[_account][repayKreskoAsset] == 0) {
-                ms().mintedKreskoAssets[_account].removeAddress(repayKreskoAsset, i);
-            }
+
             // Check if the status with amount repaid is still underwater, if so no further liquidation is needed
             if (
                 !ms().isAccountLiquidatable(
