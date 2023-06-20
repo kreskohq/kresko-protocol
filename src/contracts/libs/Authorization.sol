@@ -107,7 +107,7 @@ library Authorization {
     }
 
     function transferSecurityCouncil(address _newCouncil) internal {
-        hasRole(Role.SAFETY_COUNCIL, msg.sender);
+        checkRole(Role.SAFETY_COUNCIL);
         require(IGnosisSafeL2(_newCouncil).getOwners().length >= 5, Error.MULTISIG_NOT_ENOUGH_OWNERS);
 
         // As this is called by the multisig - just check that it's not an EOA
