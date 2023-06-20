@@ -39,7 +39,8 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         uint256 _repayAmount,
         address _seizeAsset,
         uint256 _repayAssetIndex,
-        uint256 _seizeAssetIndex
+        uint256 _seizeAssetIndex,
+        bool _allowSeizeUnderflow
     ) external nonReentrant {
         MinterState storage s = ms();
 
@@ -94,7 +95,8 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
                 _repayAsset,
                 _repayAssetIndex,
                 _seizeAsset,
-                _seizeAssetIndex
+                _seizeAssetIndex,
+                _allowSeizeUnderflow
             )
         );
 
@@ -158,6 +160,8 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
                 .toNonRebasingAmount(params.seizeAmount);
 
             return params.seizeAmount; // Passthrough value as is.
+        } else if (collateralDeposits < params.seizeAmount) {
+            require(params.allowSeizeUnderflow, Error.SEIZED_COLLATERAL_UNDERFLOW);
         }
 
         /* ------------------- Exact or below collateral deposits ------------------- */

@@ -13,7 +13,7 @@ import { fromBig, getInternalEvent, toBig } from "@kreskolabs/lib";
 import { Error } from "@utils/test/errors";
 import { addMockCollateralAsset, depositCollateral, getCollateralConfig } from "@utils/test/helpers/collaterals";
 import { mintKrAsset } from "@utils/test/helpers/krassets";
-import { getExpectedMaxLiq, getCR, liquidate } from "@utils/test/helpers/liquidations";
+import { getExpectedMaxLiq, getCR, liquidate, getLiqAmount } from "@utils/test/helpers/liquidations";
 import { LiquidationOccurredEvent } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
 const INTEREST_RATE_DELTA = 0.01;
@@ -389,6 +389,7 @@ describe("Minter", () => {
                     this.collateral!.address,
                     mintedKreskoAssetIndex,
                     depositedCollateralAssetIndex,
+                    false,
                 );
 
                 // Confirm that the liquidated user's debt amount has decreased by the repaid amount
@@ -508,7 +509,7 @@ describe("Minter", () => {
 
                 expect(await hre.Diamond.isAccountLiquidatable(userThree.address)).to.be.true;
 
-                await liquidate(userThree, this.krAsset, this.collateral);
+                await liquidate(userThree, this.krAsset, this.collateral, true);
 
                 expect(await getCR(userThree.address)).to.be.lessThan(1.4);
                 expect(await hre.Diamond.isAccountLiquidatable(userThree.address)).to.be.true;
@@ -552,6 +553,7 @@ describe("Minter", () => {
                     this.collateral!.address,
                     mintedKreskoAssetIndex,
                     collateralIndex,
+                    false,
                 );
 
                 const event = await getInternalEvent<LiquidationOccurredEvent["args"]>(
@@ -601,6 +603,7 @@ describe("Minter", () => {
                         this.collateral!.address,
                         mintedKreskoAssetIndex,
                         depositedCollateralAssetIndex,
+                        false,
                     ),
                 ).to.be.revertedWith(Error.NOT_LIQUIDATABLE);
             });
@@ -616,6 +619,7 @@ describe("Minter", () => {
                         this.collateral!.address,
                         0,
                         0,
+                        false,
                     ),
                 ).to.be.revertedWith(Error.ZERO_REPAY);
             });
@@ -639,6 +643,7 @@ describe("Minter", () => {
                         this.collateral!.address,
                         0,
                         0,
+                        false,
                     ),
                 ).to.be.revertedWith(Error.KRASSET_BURN_AMOUNT_OVERFLOW);
             });
@@ -662,6 +667,7 @@ describe("Minter", () => {
                         this.collateral!.address,
                         0,
                         0,
+                        false,
                     ),
                 ).to.be.revertedWith(Error.LIQUIDATION_OVERFLOW);
             });
@@ -705,6 +711,7 @@ describe("Minter", () => {
                     this.collateral!.address,
                     mintedKreskoAssetIndex,
                     depositedCollateralAssetIndex,
+                    false,
                 );
 
                 // Confirm that liquidator's token approval is still 0
@@ -731,6 +738,7 @@ describe("Minter", () => {
                         this.collateral!.address,
                         mintedKreskoAssetIndex,
                         depositedCollateralAssetIndex,
+                        false,
                     ),
                 ).not.to.be.reverted;
 
@@ -751,8 +759,111 @@ describe("Minter", () => {
                         this.collateral!.address,
                         0,
                         0,
+                        false,
                     ),
                 ).to.be.revertedWith(Error.SELF_LIQUIDATION);
+            });
+            it("should not allow seized amount to underflow without liquidators permission", async function () {
+                const userThree = hre.users.userThree;
+                const deposits = toBig(15);
+                const borrows = toBig(10);
+
+                this.collateral.setPrice(10);
+                this.krAsset.setPrice(10);
+
+                await this.collateral.setBalance(userThree, deposits);
+                await depositCollateral({
+                    user: userThree,
+                    amount: deposits,
+                    asset: this.collateral,
+                });
+
+                await mintKrAsset({
+                    user: userThree,
+                    amount: borrows,
+                    asset: this.krAsset,
+                });
+
+                this.collateral.setPrice(2.5);
+
+                expect(await hre.Diamond.isAccountLiquidatable(userThree.address)).to.be.true;
+
+                await this.collateral.setBalance(hre.users.liquidator, deposits.mul(1000));
+                const liqAmount = await getLiqAmount(userThree, this.krAsset, this.collateral);
+                await depositCollateral({
+                    user: hre.users.liquidator,
+                    amount: deposits.mul(1000),
+                    asset: this.collateral,
+                });
+
+                await mintKrAsset({
+                    user: hre.users.liquidator,
+                    amount: liqAmount,
+                    asset: this.krAsset,
+                });
+                const allowSeizeUnderflow = false;
+                await expect(
+                    wrapContractWithSigner(hre.Diamond, hre.users.liquidator).liquidate(
+                        userThree.address,
+                        this.krAsset.address,
+                        liqAmount,
+                        this.collateral.address,
+                        await hre.Diamond.getMintedKreskoAssetsIndex(userThree.address, this.krAsset.address),
+                        await hre.Diamond.getDepositedCollateralAssetIndex(userThree.address, this.collateral.address),
+                        allowSeizeUnderflow,
+                    ),
+                ).to.be.revertedWith(Error.SEIZED_COLLATERAL_UNDERFLOW);
+            });
+            it("should allow seized amount to underflow with liquidators permission", async function () {
+                const userThree = hre.users.userThree;
+                const deposits = toBig(15);
+                const borrows = toBig(10);
+
+                this.collateral.setPrice(10);
+                this.krAsset.setPrice(10);
+
+                await this.collateral.setBalance(userThree, deposits);
+                await depositCollateral({
+                    user: userThree,
+                    amount: deposits,
+                    asset: this.collateral,
+                });
+
+                await mintKrAsset({
+                    user: userThree,
+                    amount: borrows,
+                    asset: this.krAsset,
+                });
+
+                this.collateral.setPrice(2.5);
+
+                expect(await hre.Diamond.isAccountLiquidatable(userThree.address)).to.be.true;
+
+                await this.collateral.setBalance(hre.users.liquidator, deposits.mul(1000));
+                const liqAmount = await getLiqAmount(userThree, this.krAsset, this.collateral);
+                await depositCollateral({
+                    user: hre.users.liquidator,
+                    amount: deposits.mul(1000),
+                    asset: this.collateral,
+                });
+
+                await mintKrAsset({
+                    user: hre.users.liquidator,
+                    amount: liqAmount,
+                    asset: this.krAsset,
+                });
+                const allowSeizeUnderflow = true;
+                await expect(
+                    wrapContractWithSigner(hre.Diamond, hre.users.liquidator).liquidate(
+                        userThree.address,
+                        this.krAsset.address,
+                        liqAmount,
+                        this.collateral.address,
+                        await hre.Diamond.getMintedKreskoAssetsIndex(userThree.address, this.krAsset.address),
+                        await hre.Diamond.getDepositedCollateralAssetIndex(userThree.address, this.collateral.address),
+                        allowSeizeUnderflow,
+                    ),
+                ).to.not.be.reverted;
             });
         });
         describe("#liquidate - rebasing events", () => {
@@ -800,6 +911,7 @@ describe("Minter", () => {
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidate.address)).to.be.false;
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidateTwo.address)).to.be.false;
             });
+
             it("should not allow liquidation of healthy accounts after a positive rebase", async function () {
                 // Rebase params
                 const denominator = 4;
@@ -821,6 +933,7 @@ describe("Minter", () => {
                             userToLiquidate.address,
                             this.collateral!.address,
                         ),
+                        false,
                     ),
                 ).to.be.revertedWith(Error.NOT_LIQUIDATABLE);
             });
@@ -847,6 +960,7 @@ describe("Minter", () => {
                             userToLiquidate.address,
                             this.collateral!.address,
                         ),
+                        false,
                     ),
                 ).to.be.revertedWith(Error.NOT_LIQUIDATABLE);
             });
@@ -862,7 +976,7 @@ describe("Minter", () => {
 
                 this.collateral!.setPrice(5);
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidate.address)).to.be.true;
-                await expect(liquidate(userToLiquidate, this.krAsset, this.collateral)).to.not.be.reverted;
+                await expect(liquidate(userToLiquidate, this.krAsset, this.collateral, true)).to.not.be.reverted;
             });
             it("should allow liquidations of unhealthy accounts after a negative rebase", async function () {
                 // Rebase params
@@ -877,7 +991,7 @@ describe("Minter", () => {
 
                 this.krAsset!.setPrice(rebasePrice * 2);
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidate.address)).to.be.true;
-                await expect(liquidate(userToLiquidate, this.krAsset, this.collateral)).to.not.be.reverted;
+                await expect(liquidate(userToLiquidate, this.krAsset, this.collateral, true)).to.not.be.reverted;
             });
             it("should liquidate correct amount of krAssets after a positive rebase", async function () {
                 // Change price to make user position unhealthy
