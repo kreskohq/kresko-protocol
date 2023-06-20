@@ -15,6 +15,7 @@ import { addMockCollateralAsset, depositCollateral, getCollateralConfig } from "
 import { mintKrAsset } from "@utils/test/helpers/krassets";
 import { getExpectedMaxLiq, getCR, liquidate, getLiqAmount } from "@utils/test/helpers/liquidations";
 import { LiquidationOccurredEvent } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
+import { BigNumber } from "ethers";
 
 const INTEREST_RATE_DELTA = 0.01;
 const USD_DELTA = toBig(0.1, "gwei");
@@ -649,27 +650,44 @@ describe("Minter", () => {
             });
 
             it("should not allow liquidations with USD value greater than the USD value required for regaining healthy position", async function () {
-                const maxLiquidation = fromBig(
-                    await hre.Diamond.getMaxLiquidation(
-                        hre.users.userOne.address,
-                        this.krAsset!.address,
-                        this.collateral.address,
-                    ),
-                    8,
+                const maxLiquidationUSD = await hre.Diamond.getMaxLiquidation(
+                    hre.users.userOne.address,
+                    this.krAsset!.address,
+                    this.collateral.address,
                 );
-                const repaymentAmount = toBig((maxLiquidation + 1) / this.krAsset!.deployArgs!.price);
+
+                const repaymentAmount = maxLiquidationUSD.add((1e9).toString()).wadDiv(await this.krAsset.getPrice());
+
                 // Ensure liquidation cannot happen
-                await expect(
-                    wrapContractWithSigner(hre.Diamond, hre.users.userTwo).liquidate(
-                        hre.users.userOne.address,
-                        this.krAsset!.address,
-                        repaymentAmount,
-                        this.collateral!.address,
-                        0,
-                        0,
-                        false,
-                    ),
-                ).to.be.revertedWith(Error.LIQUIDATION_OVERFLOW);
+                const tx = await wrapContractWithSigner(hre.Diamond, hre.users.userTwo).liquidate(
+                    hre.users.userOne.address,
+                    this.krAsset!.address,
+                    repaymentAmount,
+                    this.collateral!.address,
+                    0,
+                    0,
+                    false,
+                );
+
+                const event = await getInternalEvent<LiquidationOccurredEvent["args"]>(
+                    tx,
+                    hre.Diamond,
+                    "LiquidationOccurred",
+                );
+
+                const assetInfo = await this.collateral.kresko();
+                const expectedSeizedCollateralAmount = maxLiquidationUSD
+                    .wadMul(BigNumber.from(assetInfo.liquidationIncentive))
+                    .wadDiv(await this.collateral.getPrice());
+
+                expect(event.account).to.equal(hre.users.userOne.address);
+                expect(event.liquidator).to.equal(hre.users.userTwo.address);
+                expect(event.repayKreskoAsset).to.equal(this.krAsset!.address);
+                expect(event.seizedCollateralAsset).to.equal(this.collateral!.address);
+
+                expect(event.repayAmount).to.not.equal(repaymentAmount);
+                expect(event.repayAmount).to.be.closeTo(maxLiquidationUSD.wadDiv(await this.krAsset.getPrice()), 1e12);
+                expect(event.collateralSent).to.be.closeTo(expectedSeizedCollateralAmount, 1e12);
             });
 
             it("should not allow liquidations when account is under MCR but not under liquidation threshold", async function () {
