@@ -9,7 +9,7 @@ import { expect } from "chai";
 import hre from "hardhat";
 import { SafetyStateChangeEventObject } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 
-describe("Safety Council", () => {
+describe.only("Safety Council", () => {
     withFixture(["minter-test"]);
     beforeEach(async function () {
         this.collateral = hre.collaterals.find(asset => asset.deployArgs!.name === defaultCollateralArgs.name)!;
@@ -22,6 +22,24 @@ describe("Safety Council", () => {
         this.extOne = extOne;
         this.extTwo = extTwo;
         this.extThree = extThree;
+    });
+
+    describe("#toggleSafetyStateSet", () => {
+        it("correctly sets the safety state", async function () {
+            const beforeSafetyState = await hre.Diamond.safetyStateSet();
+            expect(beforeSafetyState).to.equal(false);
+
+            await executeContractCallWithSigners(
+                hre.Multisig,
+                hre.Diamond,
+                "toggleSafetyStateSet",
+                [true],
+                [this.deployer, this.devTwo, this.extOne],
+            );
+
+            const safetyState = await hre.Diamond.safetyStateSet();
+            expect(safetyState).to.equal(true);
+        });
     });
 
     describe("#toggleAssetsPaused", () => {

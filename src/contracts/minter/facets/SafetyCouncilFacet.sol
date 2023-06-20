@@ -57,6 +57,11 @@ contract SafetyCouncilFacet is MinterModifiers, DiamondModifiers, ISafetyCouncil
     }
 
     /// @inheritdoc ISafetyCouncilFacet
+    function toggleSafetyStateSet(bool val) external override onlyRole(Role.SAFETY_COUNCIL) {
+        ms().safetyStateSet = val;
+    }
+
+    /// @inheritdoc ISafetyCouncilFacet
     function safetyStateSet() external view override returns (bool) {
         return ms().safetyStateSet;
     }
