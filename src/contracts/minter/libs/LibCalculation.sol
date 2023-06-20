@@ -103,20 +103,6 @@ library LibCalculation {
 
         // If feeValue < depositValue, the entire fee can be charged for this collateral asset.
         if (_feeValue < depositValue) {
-            // We want to make sure that transferAmount is < depositAmount.
-            // Proof:
-            //   depositValue <= oraclePrice * depositAmount (<= due to a potential loss of precision)
-            //   feeValue < depositValue
-            // Meaning:
-            //   feeValue < oraclePrice * depositAmount
-            // Solving for depositAmount we get:
-            //   feeValue / oraclePrice < depositAmount
-            // Due to integer division:
-            //   transferAmount = floor(feeValue / oracleValue)
-            //   transferAmount <= feeValue / oraclePrice
-            // We see that:
-            //   transferAmount <= feeValue / oraclePrice < depositAmount
-            //   transferAmount < depositAmount
             transferAmount = self.collateralAssets[_collateralAsset].decimals.fromWad(_feeValue.wadDiv(oraclePrice));
             feeValuePaid = _feeValue;
         } else {
@@ -124,6 +110,9 @@ library LibCalculation {
             // should be taken as the fee.
             transferAmount = depositAmount;
             feeValuePaid = depositValue;
+        }
+
+        if (transferAmount == depositAmount) {
             // Because the entire deposit is taken, remove it from the depositCollateralAssets array.
             self.depositedCollateralAssets[_account].removeAddress(_collateralAsset, _collateralAssetIndex);
         }
