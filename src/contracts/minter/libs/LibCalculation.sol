@@ -188,7 +188,7 @@ library LibCalculation {
                 minimumDebtValue: state.minimumDebtValue,
                 seizeCollateralAccountValue: seizeCollateralAccountValue,
                 liquidationThreshold: liquidationThreshold,
-                maxLiquidationMultiplier: Constants.MIN_MAX_LIQUIDATION_MULTIPLIER
+                maxLiquidationMultiplier: state.maxLiquidationMultiplier
             });
     }
 }
