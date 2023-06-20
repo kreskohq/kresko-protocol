@@ -13,6 +13,9 @@ export const diamondAbiConfig: DiamondAbiUserConfig[] = [
         exclude: ["vendor", "test/*", "interfaces/*", "krasset/*", "KrStaking"],
         strict: false,
         filter(abiElement, index, abi, fq) {
+            if (abiElement.type === "error") {
+                return false;
+            }
             if (abiElement.type === "event") {
                 if (
                     abiElement.name === "CloseFeePaid" &&
