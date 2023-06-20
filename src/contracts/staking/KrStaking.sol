@@ -336,7 +336,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable, IKrS
         uint256 _pid,
         uint128 _newAllocPoint
     ) external payable onlyRole(OPERATOR_ROLE) ensurePoolExists(_pid) {
-        totalAllocPoint -= _poolInfo[_pid].allocPoint + _newAllocPoint;
+        totalAllocPoint = totalAllocPoint - _poolInfo[_pid].allocPoint + _newAllocPoint;
         _poolInfo[_pid].allocPoint = _newAllocPoint;
     }
 
