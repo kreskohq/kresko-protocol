@@ -93,7 +93,7 @@ library Authorization {
     }
 
     /**
-     * @notice Checks if the target contract implements the ERC165 interfaceId for the multisig.
+     * @notice setups the security council
      *
      */
     function setupSecurityCouncil(address _councilAddress) internal {
