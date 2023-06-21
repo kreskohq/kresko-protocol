@@ -285,7 +285,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable, IKrS
 
     /// @inheritdoc IKrStaking
     function emergencyWithdraw(uint256 _pid) external payable nonReentrant {
-        PoolInfo memory pool = updatePool(_pid);
+        PoolInfo memory pool = _poolInfo[_pid];
         UserInfo storage user = _userInfo[_pid][msg.sender];
         pool.depositToken.safeTransfer(address(msg.sender), user.amount);
         user.amount = 0;
