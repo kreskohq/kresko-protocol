@@ -41,7 +41,7 @@ library Constants {
     uint256 constant MAX_LIQUIDATION_INCENTIVE_MULTIPLIER = 1.25 ether; // 125%
 
     /// @dev The maximum configurable minimum debt USD value. 8 decimals.
-    uint256 constant MAX_MIN_DEBT_VALUE = 1000 gwei; // $1,000
+    uint256 constant MAX_MIN_DEBT_VALUE = 1_000 * 1e8; // $1,000
 }
 
 /* -------------------------------------------------------------------------- */
