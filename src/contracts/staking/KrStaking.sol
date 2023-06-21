@@ -400,7 +400,8 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable, IKrS
 
     /// @inheritdoc IKrStaking
     function rescueNative() external payable onlyRole(OPERATOR_ROLE) {
-        payable(msg.sender).transfer(address(this).balance);
+        (bool success, ) = msg.sender.call{value: address(this).balance}("");
+        require(success, "Transfer failed.");
     }
 
     /// @inheritdoc IKrStaking
