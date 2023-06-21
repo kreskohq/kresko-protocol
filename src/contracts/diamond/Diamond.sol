@@ -60,5 +60,14 @@ contract Diamond {
         }
     }
 
+    /**
+     * @notice A rescue function for missent msg.value
+     */
+    function rescueNative() external {
+        require(msg.sender == ds().contractOwner, "Unauthorized");
+        (bool success, ) = msg.sender.call{value: address(this).balance}("");
+        require(success, "Transfer failed.");
+    }
+
     receive() external payable {}
 }
