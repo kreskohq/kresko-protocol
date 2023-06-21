@@ -146,10 +146,10 @@ library LibCalculation {
             _repayKreskoAsset.closeFee).wadDiv(vars.debtFactor);
         return
             (vars.minCollateralValue - vars.accountCollateralValue)
+                .wadMul(vars.maxLiquidationMultiplier)
                 .wadDiv(valuePerUSDRepaid)
                 .wadDiv(vars.debtFactor)
-                .wadDiv(vars.collateral.factor)
-                .wadMul(vars.maxLiquidationMultiplier);
+                .wadDiv(vars.collateral.factor);
     }
 
     function _getMaxLiquidationParams(
