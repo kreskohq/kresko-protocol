@@ -82,6 +82,7 @@ contract UniswapV2Oracle is IUniswapV2Oracle {
 
     /// @inheritdoc IUniswapV2Oracle
     function setAdmin(address _newAdmin) external override onlyAdmin {
+        require(_newAdmin != address(0), Error.ADMIN_ADDRESS_IS_ZERO);
         admin = _newAdmin;
         emit NewAdmin(_newAdmin);
     }

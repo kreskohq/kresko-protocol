@@ -118,6 +118,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             _minimumCollateralizationRatio >= Constants.MIN_COLLATERALIZATION_RATIO,
             Error.PARAM_MIN_COLLATERAL_RATIO_LOW
         );
+        require(_minimumCollateralizationRatio >= ms().liquidationThreshold, Error.PARAM_COLLATERAL_RATIO_LOW_THAN_LT);
         ms().minimumCollateralizationRatio = _minimumCollateralizationRatio;
         emit MinterEvent.MinimumCollateralizationRatioUpdated(_minimumCollateralizationRatio);
     }
@@ -151,6 +152,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
 
     /// @inheritdoc IConfigurationFacet
     function updateAMMOracle(address _ammOracle) external onlyRole(Role.ADMIN) {
+        require(_ammOracle != address(0), Error.ADDRESS_INVALID_ORACLE);
         ms().ammOracle = _ammOracle;
         emit MinterEvent.AMMOracleUpdated(_ammOracle);
     }

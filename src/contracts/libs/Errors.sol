@@ -86,6 +86,7 @@ library Error {
     string public constant PARAM_LIQUIDATION_OVERFLOW_LOW = "246"; // Liquidation overflow is less than MIN_LIQUIDATION_OVERFLOW
     string public constant INVALID_ORACLE_DEVIATION_PCT = "247"; // Oracle deviation percentage is greater than 100%
     string public constant SEIZED_COLLATERAL_UNDERFLOW = "248"; // Amount of collateral seized is less than the amount calculated.
+    string public constant PARAM_COLLATERAL_RATIO_LOW_THAN_LT = "249"; // Minimum collateral ratio less than LT
 
     /* -------------------------------------------------------------------------- */
     /*                                   3. Staking                               */
@@ -135,6 +136,7 @@ library Error {
     string public constant STABILITY_RATE_REPAYMENT_AMOUNT_ZERO = "608"; // interest being repaid cannot be 0
     string public constant STABILITY_RATE_INTEREST_IS_ZERO = "609"; // account must have accrued interest to repay it
     string public constant INTEREST_REPAY_NOT_PARTIAL = "610"; // account must have accrued interest to repay it
+    string public constant INVALID_STABILITY_RATE_BASE = "610"; // the stability base rate is less than 1e27 for the asset
 
     /* -------------------------------------------------------------------------- */
     /*                              7. AMM ORACLE                                 */
@@ -151,6 +153,7 @@ library Error {
     string public constant CONSTRUCTOR_INVALID_ADMIN = "710"; // Admin cannot be zero address in the constructor
     string public constant CONSTRUCTOR_INVALID_FACTORY = "711"; // Factory cannot be the zero address
     string public constant NO_INCENTIVES_LEFT = "712"; // No incentives left for updating the price
+    string public constant ADMIN_ADDRESS_IS_ZERO = "713"; // admin address to configure cannot be zero
 
     /* -------------------------------------------------------------------------- */
     /*                              8. KISS                                 */

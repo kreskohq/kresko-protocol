@@ -64,6 +64,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable, IKrS
         address _operator
     ) external initializer {
         require(_rewardPerBlocks.length == _rewardTokens.length, "Reward tokens must have a rewardPerBlock value");
+        require(_startBlock <= block.number, "Start block must not be in the future");
 
         __AccessControl_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
