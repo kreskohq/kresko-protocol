@@ -143,7 +143,6 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable, IKrS
                 accRewardPerShare += (reward * 1e12) / depositTokenSupply;
 
                 rewards.amounts[rewardIndex] = (user.amount * accRewardPerShare) / 1e12 - user.rewardDebts[rewardIndex];
-                rewards.tokens[rewardIndex] = pool.rewardTokens[rewardIndex];
             }
         }
     }
