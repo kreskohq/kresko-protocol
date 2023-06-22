@@ -42,6 +42,9 @@ library Constants {
 
     /// @dev The maximum configurable minimum debt USD value. 8 decimals.
     uint256 constant MAX_MIN_DEBT_VALUE = 1000 gwei; // $1,000
+
+    /// @dev The minimum collateral amount for a kresko asset.
+    uint256 constant MIN_KRASSET_COLLATERAL_AMOUNT = 1e12;
 }
 
 /* -------------------------------------------------------------------------- */

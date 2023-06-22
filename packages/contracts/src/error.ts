@@ -85,6 +85,13 @@ export enum Error {
     KRASSET_INVALID_ANCHOR = "240", // krAsset anchor does not support the correct interfaceI,
     KRASSET_INVALID_CONTRACT = "241", // krAsset does not support the correct interfaceI,
     KRASSET_MARKET_CLOSED = "242", // KrAsset's market is currently close,
+    NO_KRASSETS_MINTED = "243", // Account has no active KreskoAsset positions
+    NO_COLLATERAL_DEPOSITS = "244", // Account has no active Collateral deposits
+    INVALID_ORACLE_DECIMALS = "245", // Oracle decimals do not match extOracleDecimals
+    PARAM_LIQUIDATION_OVERFLOW_LOW = "246", // Liquidation overflow is less than MIN_LIQUIDATION_OVERFLOW
+    INVALID_ORACLE_DEVIATION_PCT = "247", // Oracle deviation percentage is greater than 100%
+    SEIZED_COLLATERAL_UNDERFLOW = "248", // Amount of collateral seized is less than the amount calculated.
+    COLLATERAL_AMOUNT_TOO_LOW = "249", // Amount of krAsset collateral being deposited is less than the minimum amount
 
     /* -------------------------------------------------------------------------- */
     /*                                   3. Staking                               */

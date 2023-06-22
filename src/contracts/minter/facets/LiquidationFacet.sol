@@ -158,12 +158,24 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         uint256 collateralDeposits = s.getCollateralDeposits(params.account, params.seizedAsset);
 
         /* ------------------------ Above collateral deposits ----------------------- */
-        if (collateralDeposits > params.seizeAmount) {
-            s.collateralDeposits[params.account][params.seizedAsset] -= ms()
-                .collateralAssets[params.seizedAsset]
-                .toNonRebasingAmount(params.seizeAmount);
 
-            return params.seizeAmount; // Passthrough value as is.
+        if (collateralDeposits > params.seizeAmount) {
+            uint256 newDepositAmount = collateralDeposits - params.seizeAmount;
+
+            // If the collateral asset is also a kresko asset, ensure that collateral remains over minimum amount required.
+            if (
+                ms().collateralAssets[params.seizedAsset].anchor != address(0) &&
+                newDepositAmount < Constants.MIN_KRASSET_COLLATERAL_AMOUNT
+            ) {
+                params.seizeAmount -= Constants.MIN_KRASSET_COLLATERAL_AMOUNT - newDepositAmount;
+                newDepositAmount = Constants.MIN_KRASSET_COLLATERAL_AMOUNT;
+            }
+
+            s.collateralDeposits[params.account][params.seizedAsset] = ms()
+                .collateralAssets[params.seizedAsset]
+                .toNonRebasingAmount(newDepositAmount);
+
+            return params.seizeAmount;
         } else if (collateralDeposits < params.seizeAmount) {
             require(params.allowSeizeUnderflow, Error.SEIZED_COLLATERAL_UNDERFLOW);
         }

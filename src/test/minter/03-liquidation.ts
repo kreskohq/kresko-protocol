@@ -9,10 +9,10 @@ import {
     wrapContractWithSigner,
 } from "@test-utils";
 import { expect } from "@test/chai";
-import { fromBig, getInternalEvent, toBig } from "@kreskolabs/lib";
+import { fromBig, getInternalEvent, toBig, WAD } from "@kreskolabs/lib";
 import { Error } from "@utils/test/errors";
 import { addMockCollateralAsset, depositCollateral, getCollateralConfig } from "@utils/test/helpers/collaterals";
-import { mintKrAsset } from "@utils/test/helpers/krassets";
+import { addMockKreskoAsset, mintKrAsset } from "@utils/test/helpers/krassets";
 import { getExpectedMaxLiq, getCR, liquidate, getLiqAmount } from "@utils/test/helpers/liquidations";
 import { LiquidationOccurredEvent } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
 import { BigNumber } from "ethers";
@@ -1011,6 +1011,115 @@ describe("Minter", () => {
                 expect(await hre.Diamond.isAccountLiquidatable(userToLiquidate.address)).to.be.true;
                 await expect(liquidate(userToLiquidate, this.krAsset, this.collateral, true)).to.not.be.reverted;
             });
+            it("should liquidate krAsset collaterals up to min amount", async function () {
+                // Change price to make user position unhealthy
+                const startingPrice = fromBig(await this.krAsset!.getPrice(), 8);
+                const newPrice = startingPrice * 10;
+
+                await this.collateral.setBalance(userToLiquidate, toBig(100));
+                await wrapContractWithSigner(hre.Diamond, userToLiquidate).depositCollateral(
+                    userToLiquidate.address,
+                    this.collateral.address,
+                    toBig(100),
+                );
+                await wrapContractWithSigner(hre.Diamond, userToLiquidate).mintKreskoAsset(
+                    userToLiquidate.address,
+                    (
+                        await addMockKreskoAsset()
+                    ).address,
+                    toBig(65),
+                );
+                this.krAsset!.setPrice(newPrice);
+
+                const deposits = await hre.Diamond.collateralDeposits(userToLiquidate.address, this.krAsset!.address);
+                const debt = await hre.Diamond.kreskoAssetDebt(userToLiquidate.address, this.krAsset!.address);
+                const liqAmount = await getLiqAmount(userToLiquidate, this.krAsset, this.krAsset);
+
+                expect(deposits).to.equal(liqAmount);
+                expect(debt).to.gte(liqAmount);
+                await this.krAsset.setBalance(hre.users.liquidator, debt);
+
+                const assetInfoCollateral = await hre.Diamond.collateralAsset(this.krAsset!.address);
+                const assetInfoKr = await hre.Diamond.kreskoAsset(this.krAsset!.address);
+
+                const liquidationAmount = liqAmount
+                    .add("263684912200000000")
+                    .wadDiv(assetInfoCollateral.liquidationIncentive)
+                    .wadMul(BigNumber.from(WAD).sub(assetInfoKr.closeFee))
+                    .add(WAD);
+
+                await wrapContractWithSigner(hre.Diamond, hre.users.liquidator).liquidate(
+                    userToLiquidate.address,
+                    this.krAsset!.address,
+                    liquidationAmount,
+                    this.krAsset!.address,
+                    await hre.Diamond.getMintedKreskoAssetsIndex(userToLiquidate.address, this.krAsset!.address),
+                    await hre.Diamond.getDepositedCollateralAssetIndex(userToLiquidate.address, this.krAsset!.address),
+                    false,
+                );
+
+                const depositsAfter = await hre.Diamond.collateralDeposits(
+                    userToLiquidate.address,
+                    this.krAsset!.address,
+                );
+
+                expect(depositsAfter).to.equal((1e12).toString());
+            });
+            it("should liquidate krAsset collaterals to 0", async function () {
+                // Change price to make user position unhealthy
+                const startingPrice = fromBig(await this.krAsset!.getPrice(), 8);
+                const newPrice = startingPrice * 10;
+
+                await this.collateral.setBalance(userToLiquidate, toBig(100));
+                await wrapContractWithSigner(hre.Diamond, userToLiquidate).depositCollateral(
+                    userToLiquidate.address,
+                    this.collateral.address,
+                    toBig(100),
+                );
+                await wrapContractWithSigner(hre.Diamond, userToLiquidate).mintKreskoAsset(
+                    userToLiquidate.address,
+                    (
+                        await addMockKreskoAsset()
+                    ).address,
+                    toBig(65),
+                );
+                this.krAsset!.setPrice(newPrice);
+
+                const deposits = await hre.Diamond.collateralDeposits(userToLiquidate.address, this.krAsset!.address);
+                const debt = await hre.Diamond.kreskoAssetDebt(userToLiquidate.address, this.krAsset!.address);
+                const liqAmount = await getLiqAmount(userToLiquidate, this.krAsset, this.krAsset);
+
+                expect(deposits).to.equal(liqAmount);
+                expect(debt).to.gte(liqAmount);
+                await this.krAsset.setBalance(hre.users.liquidator, debt);
+
+                const assetInfoCollateral = await hre.Diamond.collateralAsset(this.krAsset!.address);
+                const assetInfoKr = await hre.Diamond.kreskoAsset(this.krAsset!.address);
+
+                const liquidationAmount = liqAmount
+                    .add("263684912400000000")
+                    .wadDiv(assetInfoCollateral.liquidationIncentive)
+                    .wadMul(BigNumber.from(WAD).sub(assetInfoKr.closeFee))
+                    .add(WAD);
+
+                await wrapContractWithSigner(hre.Diamond, hre.users.liquidator).liquidate(
+                    userToLiquidate.address,
+                    this.krAsset!.address,
+                    liquidationAmount,
+                    this.krAsset!.address,
+                    await hre.Diamond.getMintedKreskoAssetsIndex(userToLiquidate.address, this.krAsset!.address),
+                    await hre.Diamond.getDepositedCollateralAssetIndex(userToLiquidate.address, this.krAsset!.address),
+                    false,
+                );
+
+                const depositsAfter = await hre.Diamond.collateralDeposits(
+                    userToLiquidate.address,
+                    this.krAsset!.address,
+                );
+
+                expect(depositsAfter).to.equal(0);
+            });
+
             it("should liquidate correct amount of krAssets after a positive rebase", async function () {
                 // Change price to make user position unhealthy
                 const startingPrice = fromBig(await this.krAsset!.getPrice(), 8);

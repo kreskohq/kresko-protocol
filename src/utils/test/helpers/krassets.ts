@@ -115,6 +115,10 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
         setPrice: price => setPrice(mocks, price),
         setBalance: async (user, amount) => {
             const totalSupply = await krAsset.totalSupply();
+            await akrAsset.setVariable("_totalSupply", (await akrAsset.totalSupply()).add(amount));
+            await akrAsset.setVariable("_balances", {
+                [hre.Diamond.address]: (await mocks.contract.balanceOf(hre.Diamond.address)).add(amount),
+            });
             await mocks.contract.setVariable("_totalSupply", totalSupply.add(amount));
             await mocks.contract.setVariable("_balances", {
                 [user.address]: amount,
@@ -206,6 +210,10 @@ export const addMockKreskoAssetWithAMMPair = async (
         setPrice: price => setPrice(mocks, price),
         setBalance: async (user, amount) => {
             const totalSupply = await krAsset.totalSupply();
+            await akrAsset.setVariable("_totalSupply", (await akrAsset.totalSupply()).add(amount));
+            await akrAsset.setVariable("_balances", {
+                [hre.Diamond.address]: (await mocks.contract.balanceOf(hre.Diamond.address)).add(amount),
+            });
             await mocks.contract.setVariable("_totalSupply", totalSupply.add(amount));
             await mocks.contract.setVariable("_balances", {
                 [user.address]: amount,
