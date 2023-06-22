@@ -31,7 +31,7 @@ interface IConfigurationFacet {
     function updateCollateralAsset(address _collateralAsset, CollateralAsset memory _config) external;
 
     /**
-     * @notice Updates the k-factor of a previously added KreskoAsset.
+     * @notice Updates a previously added kresko asset.
      * @dev Only callable by the owner.
      * @param _krAsset The address of the KreskoAsset.
      * @param _config Configuration for the KreskoAsset.

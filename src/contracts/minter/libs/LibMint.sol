@@ -30,7 +30,7 @@ library LibMint {
     /// @dev Updates the principal in MinterState and stability rate adjusted values in InterestRateState
     /// @param _kreskoAsset the asset being repaid
     /// @param _anchor the anchor token of the asset being repaid
-    /// @param _amount the asset amount being burned
+    /// @param _amount the asset amount being minted
     /// @param _account the account the debt is subtracted from
     function mint(
         MinterState storage self,
