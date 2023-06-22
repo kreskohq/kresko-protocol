@@ -152,7 +152,7 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
             require(pendingOperatorUnlockTime < block.timestamp, Error.OPERATOR_WAIT_PERIOD_NOT_OVER);
             // Grant role
             _grantRole(Role.OPERATOR, pendingOperator);
-            emit NewOperator(_msgSender());
+            emit NewOperator(pendingOperator);
             // Reset pending owner
             // No need to touch the timestamp (next call will just trigger the cooldown period)
             pendingOperator = address(0);
@@ -161,7 +161,7 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
             require(getRoleMemberCount(Role.OPERATOR) < maxOperators, Error.OPERATOR_LIMIT_REACHED);
             // Set the timestamp for the cooldown period
             pendingOperatorUnlockTime = block.timestamp + pendingOperatorWaitPeriod;
-            // Set the pending oeprator, execution to upper if clause next call as this pending operator is set
+            // Set the pending operator, execution to upper if clause next call as this pending operator is set
             pendingOperator = _to;
             emit NewOperatorInitialized(_to, pendingOperatorUnlockTime);
         } else {
