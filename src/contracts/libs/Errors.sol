@@ -87,6 +87,7 @@ library Error {
     string public constant INVALID_ORACLE_DEVIATION_PCT = "247"; // Oracle deviation percentage is greater than 100%
     string public constant SEIZED_COLLATERAL_UNDERFLOW = "248"; // Amount of collateral seized is less than the amount calculated.
     string public constant PARAM_COLLATERAL_RATIO_LOW_THAN_LT = "249"; // Minimum collateral ratio less than LT
+    string public constant ZERO_DEBT = "250"; // debt must be greater than 0
 
     /* -------------------------------------------------------------------------- */
     /*                                   3. Staking                               */
