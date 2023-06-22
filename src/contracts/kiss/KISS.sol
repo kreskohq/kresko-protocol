@@ -54,7 +54,6 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
         name = name_;
         symbol = symbol_;
         decimals = dec_;
-        kresko = kresko_;
 
         // 2 operators needed at the time of writing, the volative market and the stable market.
         maxOperators = 2;
