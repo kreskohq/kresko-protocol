@@ -111,7 +111,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         emit MinterEvent.LiquidationOccurred(
             _account,
             // solhint-disable-next-line avoid-tx-origin
-            tx.origin,
+            msg.sender,
             _repayAsset,
             _repayAmount,
             _seizeAsset,

@@ -78,7 +78,7 @@ library LibDecimals {
     function divByPrice(uint256 _value, uint256 _priceWithOracleDecimals) internal view returns (uint256 wadValue) {
         uint8 oracleDecimals = ms().extOracleDecimals;
         if (oracleDecimals >= 18) return _priceWithOracleDecimals;
-        return (_value / _priceWithOracleDecimals) * 10 ** (oracleDecimals);
+        return (_value * 10 ** oracleDecimals) / _priceWithOracleDecimals;
     }
 
     /**

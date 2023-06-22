@@ -76,7 +76,7 @@ library LibCalculation {
     }
 
     /**
-     * @notice Calculates the fee to be taken from a user's deposited collateral assetself.
+     * @notice Calculates the fee to be taken from a user's deposited collateral asset.
      * @param _collateralAsset The collateral asset from which to take to the fee.
      * @param _account The owner of the collateral.
      * @param _feeValue The original value of the fee.
@@ -146,10 +146,10 @@ library LibCalculation {
             _repayKreskoAsset.closeFee).wadDiv(vars.debtFactor);
         return
             (vars.minCollateralValue - vars.accountCollateralValue)
+                .wadMul(vars.maxLiquidationMultiplier)
                 .wadDiv(valuePerUSDRepaid)
                 .wadDiv(vars.debtFactor)
-                .wadDiv(vars.collateral.factor)
-                .wadMul(vars.maxLiquidationMultiplier);
+                .wadDiv(vars.collateral.factor);
     }
 
     function _getMaxLiquidationParams(

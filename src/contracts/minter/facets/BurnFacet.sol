@@ -37,6 +37,7 @@ contract BurnFacet is DiamondModifiers, MinterModifiers, IBurnFacet {
 
         // Get accounts principal debt
         uint256 debtAmount = s.getKreskoAssetDebtPrincipal(_account, _kreskoAsset);
+        require(debtAmount != 0, Error.ZERO_DEBT);
 
         if (_burnAmount != type(uint256).max) {
             require(_burnAmount <= debtAmount, Error.KRASSET_BURN_AMOUNT_OVERFLOW);

@@ -228,10 +228,10 @@ describe("Oracle", () => {
                 dataPoints: [{ dataFeedId: "USDC", value: redstoneCollateralPrice }],
             }) as Kresko;
 
-            // so collateral value = $((20 + 10) / 2) * 1 = $12
+            // so collateral value = $((20 + 10) / 2) * 1 = $15
             expect(await redstoneDiamond.getAccountCollateralValue(hre.users.userOne.address)).to.equal(
                 toBig(15, 8),
-                "collateral value should be $20",
+                "collateral value should be $15",
             );
 
             redstoneCollateral.setPrice(10);

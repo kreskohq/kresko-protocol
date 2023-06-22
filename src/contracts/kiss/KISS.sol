@@ -20,7 +20,6 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/
 contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnumerableUpgradeable {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
-    bytes32 public constant OPERATOR_ROLE = 0x112e48a576fb3a75acc75d9fcf6e0bc670b27b1dbcd2463502e10e68cf57d6fd;
 
     modifier onlyContract() {
         require(msg.sender.code.length > 0, Error.CALLER_NOT_CONTRACT);
@@ -55,7 +54,6 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
         name = name_;
         symbol = symbol_;
         decimals = dec_;
-        kresko = kresko_;
 
         // 2 operators needed at the time of writing, the volative market and the stable market.
         maxOperators = 2;
@@ -152,7 +150,7 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
             require(pendingOperatorUnlockTime < block.timestamp, Error.OPERATOR_WAIT_PERIOD_NOT_OVER);
             // Grant role
             _grantRole(Role.OPERATOR, pendingOperator);
-            emit NewOperator(_msgSender());
+            emit NewOperator(pendingOperator);
             // Reset pending owner
             // No need to touch the timestamp (next call will just trigger the cooldown period)
             pendingOperator = address(0);
@@ -161,7 +159,7 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
             require(getRoleMemberCount(Role.OPERATOR) < maxOperators, Error.OPERATOR_LIMIT_REACHED);
             // Set the timestamp for the cooldown period
             pendingOperatorUnlockTime = block.timestamp + pendingOperatorWaitPeriod;
-            // Set the pending oeprator, execution to upper if clause next call as this pending operator is set
+            // Set the pending operator, execution to upper if clause next call as this pending operator is set
             pendingOperator = _to;
             emit NewOperatorInitialized(_to, pendingOperatorUnlockTime);
         } else {

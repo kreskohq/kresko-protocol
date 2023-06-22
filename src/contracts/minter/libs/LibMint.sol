@@ -30,7 +30,7 @@ library LibMint {
     /// @dev Updates the principal in MinterState and stability rate adjusted values in InterestRateState
     /// @param _kreskoAsset the asset being repaid
     /// @param _anchor the anchor token of the asset being repaid
-    /// @param _amount the asset amount being burned
+    /// @param _amount the asset amount being minted
     /// @param _account the account the debt is subtracted from
     function mint(
         MinterState storage self,
@@ -60,7 +60,7 @@ library LibMint {
      * @dev Takes the fee from the account's collateral assets. Attempts collateral assets
      *   in reverse order of the account's deposited collateral assets array.
      * @param _account The account to charge the open fee from.
-     * @param _kreskoAsset The address of the kresko asset being burned.
+     * @param _kreskoAsset The address of the kresko asset being minted.
      * @param _kreskoAssetAmountMinted The amount of the kresko asset being minted.
      */
     function chargeOpenFee(

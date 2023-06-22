@@ -42,6 +42,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable, IKrS
     event Withdraw(address indexed user, uint256 indexed pid, uint256 indexed amount);
     event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 indexed amount);
     event ClaimRewards(address indexed user, address indexed rewardToken, uint256 indexed amount);
+    event LogSetPool(uint256 indexed pid, uint256 indexed allocPoint);
 
     /**
      * ==================================================
@@ -64,8 +65,10 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable, IKrS
         address _operator
     ) external initializer {
         require(_rewardPerBlocks.length == _rewardTokens.length, "Reward tokens must have a rewardPerBlock value");
+        require(_startBlock <= block.number, "Start block must not be in the future");
 
         __AccessControl_init();
+        __ReentrancyGuard_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(DEFAULT_ADMIN_ROLE, _admin);
         _setupRole(OPERATOR_ROLE, _operator);
@@ -142,7 +145,6 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable, IKrS
                 accRewardPerShare += (reward * 1e12) / depositTokenSupply;
 
                 rewards.amounts[rewardIndex] = (user.amount * accRewardPerShare) / 1e12 - user.rewardDebts[rewardIndex];
-                rewards.tokens[rewardIndex] = pool.rewardTokens[rewardIndex];
             }
         }
     }
@@ -242,50 +244,17 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable, IKrS
 
     /// @inheritdoc IKrStaking
     function withdraw(uint256 _pid, uint256 _amount, address _rewardRecipient) external payable nonReentrant {
-        require(_amount > 0, "KR: 0-withdraw");
-        require(_rewardRecipient != address(0), "KR: !rewardRecipient");
-
-        PoolInfo memory pool = updatePool(_pid);
-        UserInfo storage user = _userInfo[_pid][msg.sender];
-
-        sendRewards(pool, user, _rewardRecipient);
-
-        // Send whole balance in case of amount exceeds deposits
-        if (_amount > user.amount) {
-            _amount = user.amount;
-            user.amount = 0;
-        } else {
-            user.amount -= _amount;
-        }
-
-        pool.depositToken.safeTransfer(address(msg.sender), _amount);
-
-        for (uint256 rewardIndex; rewardIndex < pool.rewardTokens.length; rewardIndex++) {
-            user.rewardDebts[rewardIndex] = (user.amount * pool.accRewardPerShares[rewardIndex]) / 1e12;
-        }
-
-        emit Withdraw(msg.sender, _pid, _amount);
+        _withdraw(msg.sender, _pid, _amount, _rewardRecipient, true);
     }
 
     /// @inheritdoc IKrStaking
     function claim(uint256 _pid, address _rewardRecipient) external payable nonReentrant {
-        require(_rewardRecipient != address(0), "KR: !rewardRecipient");
-
-        PoolInfo memory pool = updatePool(_pid);
-        UserInfo storage user = _userInfo[_pid][msg.sender];
-
-        if (user.amount > 0) {
-            sendRewards(pool, user, _rewardRecipient);
-
-            for (uint256 rewardIndex; rewardIndex < pool.rewardTokens.length; rewardIndex++) {
-                user.rewardDebts[rewardIndex] = (user.amount * pool.accRewardPerShares[rewardIndex]) / 1e12;
-            }
-        }
+        _claim(msg.sender, _pid, _rewardRecipient);
     }
 
     /// @inheritdoc IKrStaking
     function emergencyWithdraw(uint256 _pid) external payable nonReentrant {
-        PoolInfo memory pool = updatePool(_pid);
+        PoolInfo memory pool = _poolInfo[_pid];
         UserInfo storage user = _userInfo[_pid][msg.sender];
         pool.depositToken.safeTransfer(address(msg.sender), user.amount);
         user.amount = 0;
@@ -338,6 +307,8 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable, IKrS
     ) external payable onlyRole(OPERATOR_ROLE) ensurePoolExists(_pid) {
         totalAllocPoint = totalAllocPoint - _poolInfo[_pid].allocPoint + _newAllocPoint;
         _poolInfo[_pid].allocPoint = _newAllocPoint;
+
+        emit LogSetPool(_pid, _newAllocPoint);
     }
 
     /**
@@ -353,29 +324,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable, IKrS
         uint256 _amount,
         address _rewardRecipient
     ) external payable nonReentrant onlyRole(OPERATOR_ROLE) {
-        require(_amount > 0, "KR: 0-withdraw");
-        require(_rewardRecipient != address(0), "KR: !rewardRecipient");
-
-        PoolInfo memory pool = updatePool(_pid);
-        UserInfo storage user = _userInfo[_pid][_for];
-
-        sendRewards(pool, user, _rewardRecipient);
-
-        // Send whole balance in case of amount exceeds deposits
-        if (_amount > user.amount) {
-            _amount = user.amount;
-            user.amount = 0;
-        } else {
-            user.amount -= _amount;
-        }
-
-        pool.depositToken.safeTransfer(address(msg.sender), _amount);
-
-        for (uint256 rewardIndex; rewardIndex < pool.rewardTokens.length; rewardIndex++) {
-            user.rewardDebts[rewardIndex] = (user.amount * pool.accRewardPerShares[rewardIndex]) / 1e12;
-        }
-
-        emit Withdraw(_for, _pid, _amount);
+        _withdraw(_for, _pid, _amount, _rewardRecipient, false);
     }
 
     /// @inheritdoc IKrStaking
@@ -384,23 +333,13 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable, IKrS
         uint256 _pid,
         address _rewardRecipient
     ) external payable nonReentrant onlyRole(OPERATOR_ROLE) {
-        require(_rewardRecipient != address(0), "KR: !rewardRecipient");
-
-        PoolInfo memory pool = updatePool(_pid);
-        UserInfo storage user = _userInfo[_pid][_for];
-
-        if (user.amount > 0) {
-            sendRewards(pool, user, _rewardRecipient);
-
-            for (uint256 rewardIndex; rewardIndex < pool.rewardTokens.length; rewardIndex++) {
-                user.rewardDebts[rewardIndex] = (user.amount * pool.accRewardPerShares[rewardIndex]) / 1e12;
-            }
-        }
+        _claim(_for, _pid, _rewardRecipient);
     }
 
     /// @inheritdoc IKrStaking
     function rescueNative() external payable onlyRole(OPERATOR_ROLE) {
-        payable(msg.sender).transfer(address(this).balance);
+        (bool success, ) = msg.sender.call{value: address(this).balance}("");
+        require(success, "Transfer failed.");
     }
 
     /// @inheritdoc IKrStaking
@@ -431,6 +370,67 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable, IKrS
             if (pending > 0) {
                 IERC20(pool.rewardTokens[rewardIndex]).safeTransfer(recipient, pending);
                 emit ClaimRewards(recipient, pool.rewardTokens[rewardIndex], pending);
+            }
+        }
+    }
+
+    /**
+     * @notice Withdraw deposited tokens and rewards.
+     * @param _user user to withdraw for
+     * @param _pid id in `_poolInfo`
+     * @param _amount amount to withdraw
+     * @param _rewardRecipient address to send rewards to
+     * @param _transferToUser if true, withdraws to `_user` instead of `msg.sender`
+     */
+    function _withdraw(
+        address _user,
+        uint256 _pid,
+        uint256 _amount,
+        address _rewardRecipient,
+        bool _transferToUser
+    ) internal {
+        require(_amount > 0, "KR: 0-withdraw");
+        require(_rewardRecipient != address(0), "KR: !rewardRecipient");
+
+        PoolInfo memory pool = updatePool(_pid);
+        UserInfo storage user = _userInfo[_pid][_user];
+
+        sendRewards(pool, user, _rewardRecipient);
+
+        // Send whole balance in case of amount exceeds deposits
+        if (_amount > user.amount) {
+            _amount = user.amount;
+            user.amount = 0;
+        } else {
+            user.amount -= _amount;
+        }
+
+        pool.depositToken.safeTransfer(_transferToUser ? _user : address(msg.sender), _amount);
+
+        for (uint256 rewardIndex; rewardIndex < pool.rewardTokens.length; rewardIndex++) {
+            user.rewardDebts[rewardIndex] = (user.amount * pool.accRewardPerShares[rewardIndex]) / 1e12;
+        }
+
+        emit Withdraw(_user, _pid, _amount);
+    }
+
+    /**
+     * @notice Claim rewards
+     * @param _user user to claim for
+     * @param _pid id in `_poolInfo`
+     * @param _rewardRecipient address to send rewards to
+     */
+    function _claim(address _user, uint256 _pid, address _rewardRecipient) internal {
+        require(_rewardRecipient != address(0), "KR: !rewardRecipient");
+
+        PoolInfo memory pool = updatePool(_pid);
+        UserInfo storage user = _userInfo[_pid][_user];
+
+        if (user.amount > 0) {
+            sendRewards(pool, user, _rewardRecipient);
+
+            for (uint256 rewardIndex; rewardIndex < pool.rewardTokens.length; rewardIndex++) {
+                user.rewardDebts[rewardIndex] = (user.amount * pool.accRewardPerShares[rewardIndex]) / 1e12;
             }
         }
     }

@@ -24,6 +24,24 @@ describe("Safety Council", () => {
         this.extThree = extThree;
     });
 
+    describe("#setSafetyStateSet", () => {
+        it("correctly sets the safety state", async function () {
+            const beforeSafetyState = await hre.Diamond.safetyStateSet();
+            expect(beforeSafetyState).to.equal(false);
+
+            await executeContractCallWithSigners(
+                hre.Multisig,
+                hre.Diamond,
+                "setSafetyStateSet",
+                [true],
+                [this.deployer, this.devTwo, this.extOne],
+            );
+
+            const safetyState = await hre.Diamond.safetyStateSet();
+            expect(safetyState).to.equal(true);
+        });
+    });
+
     describe("#toggleAssetsPaused", () => {
         describe("multisig signature threshold", () => {
             it("multisig transacts successfully with majority of signers (3/5)", async function () {

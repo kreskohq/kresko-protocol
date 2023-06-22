@@ -80,6 +80,7 @@ contract StabilityRateFacet is IStabilityRateFacet, MinterModifiers, DiamondModi
         require(irs().srAssets[_asset].asset == _asset, Error.STABILITY_RATES_NOT_INITIALIZED);
         require(WadRay.RAY >= _setup.optimalPriceRate, Error.INVALID_OPTIMAL_RATE);
         require(WadRay.RAY >= _setup.priceRateDelta, Error.INVALID_PRICE_RATE_DELTA);
+        require(_setup.stabilityRateBase >= WadRay.RAY, Error.INVALID_STABILITY_RATE_BASE);
 
         irs().srAssets[_asset].rateSlope1 = _setup.rateSlope1;
         irs().srAssets[_asset].rateSlope2 = _setup.rateSlope2;

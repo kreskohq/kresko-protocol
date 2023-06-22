@@ -78,7 +78,7 @@ abstract contract ERC4626Upgradeable is IERC4626Upgradeable, ERC20Upgradeable {
     /* -------------------------------------------------------------------------- */
 
     /**
-     * @notice When new KreskoAssets are burned:
+     * @notice When new KreskoAssets are minted:
      * Issues the equivalent amount of anchor tokens to Kresko
      * Issues the equivalent amount of assets to user
      */

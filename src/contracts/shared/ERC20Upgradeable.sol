@@ -101,6 +101,8 @@ contract ERC20Upgradeable is Initializable, IERC20Permit {
     }
 
     function transfer(address to, uint256 amount) public virtual returns (bool) {
+        _beforeTokenTransfer(msg.sender, to, amount);
+
         _balances[msg.sender] -= amount;
 
         // Cannot overflow because the sum of all user
@@ -115,6 +117,8 @@ contract ERC20Upgradeable is Initializable, IERC20Permit {
     }
 
     function transferFrom(address from, address to, uint256 amount) public virtual returns (bool) {
+        _beforeTokenTransfer(from, to, amount);
+
         uint256 allowed = _allowances[from][msg.sender]; // Saves gas for limited approvals.
 
         if (allowed != type(uint256).max) _allowances[from][msg.sender] = allowed - amount;
@@ -204,6 +208,8 @@ contract ERC20Upgradeable is Initializable, IERC20Permit {
     /* -------------------------------------------------------------------------- */
 
     function _mint(address to, uint256 amount) internal virtual {
+        _beforeTokenTransfer(address(0), to, amount);
+
         _totalSupply += amount;
 
         // Cannot overflow because the sum of all user
@@ -216,6 +222,8 @@ contract ERC20Upgradeable is Initializable, IERC20Permit {
     }
 
     function _burn(address from, uint256 amount) internal virtual {
+        _beforeTokenTransfer(from, address(0), amount);
+
         _balances[from] -= amount;
 
         // Cannot underflow because a user's balance
