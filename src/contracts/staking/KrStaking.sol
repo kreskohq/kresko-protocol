@@ -42,6 +42,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable, IKrS
     event Withdraw(address indexed user, uint256 indexed pid, uint256 indexed amount);
     event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 indexed amount);
     event ClaimRewards(address indexed user, address indexed rewardToken, uint256 indexed amount);
+    event LogSetPool(uint256 indexed pid, uint256 indexed allocPoint);
 
     /**
      * ==================================================
@@ -306,6 +307,8 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable, IKrS
     ) external payable onlyRole(OPERATOR_ROLE) ensurePoolExists(_pid) {
         totalAllocPoint = totalAllocPoint - _poolInfo[_pid].allocPoint + _newAllocPoint;
         _poolInfo[_pid].allocPoint = _newAllocPoint;
+
+        emit LogSetPool(_pid, _newAllocPoint);
     }
 
     /**
