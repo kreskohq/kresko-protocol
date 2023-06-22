@@ -104,7 +104,7 @@ library Error {
 
     string public constant ARRAY_OUT_OF_BOUNDS = "400"; // Array out of bounds error
     string public constant PRICEFEEDS_MUST_MATCH_STATUS_FEEDS = "401"; // Supplied price feeds must match status feeds in length
-    string public constant ARRAY_INDEX_MISMATCH = "402"; // Array index mismatch
+    string public constant INCORRECT_INDEX = "402"; // Array index mismatch
 
     /* -------------------------------------------------------------------------- */
     /*                                   5. KrAsset                               */

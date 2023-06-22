@@ -15,7 +15,7 @@ library Arrays {
      * @param _elementIndex The index of the element to be removed.
      */
     function removeAddress(address[] storage _addresses, address _elementToRemove, uint256 _elementIndex) internal {
-        require(_addresses[_elementIndex] == _elementToRemove, Error.ARRAY_INDEX_MISMATCH);
+        require(_addresses[_elementIndex] == _elementToRemove, Error.INCORRECT_INDEX);
 
         uint256 lastIndex = _addresses.length - 1;
         // If the index to remove is not the last one, overwrite the element at the index
