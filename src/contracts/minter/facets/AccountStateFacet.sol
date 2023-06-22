@@ -16,7 +16,6 @@ import {ms} from "../MinterStorage.sol";
 contract AccountStateFacet is IAccountStateFacet {
     using LibDecimals for uint256;
     using LibDecimals for uint8;
-    using LibDecimals for uint256;
     using WadRay for uint256;
 
     /* -------------------------------------------------------------------------- */
