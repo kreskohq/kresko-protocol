@@ -146,38 +146,7 @@ contract UniswapV2Oracle is IUniswapV2Oracle {
 
     /// @inheritdoc IUniswapV2Oracle
     function update(address _pairAddress) external override {
-        PairData storage data = _pairs[_pairAddress];
-
-        // Ensure that the pair exists
-        require(data.blockTimestampLast != 0, Error.PAIR_DOES_NOT_EXIST);
-
-        (uint256 price0Cumulative, uint256 price1Cumulative, uint32 blockTimestamp) = currentCumulativePrices(
-            _pairAddress
-        );
-
-        uint32 timeElapsed = blockTimestamp - data.blockTimestampLast; // overflow is desired
-        // Ensure that at least one full period has passed since the last update
-        require(timeElapsed >= data.updatePeriod, Error.UPDATE_PERIOD_NOT_FINISHED);
-
-        // Overflow is desired, casting never truncates
-        // Cumulative price is in (uq112x112 price * seconds) units so we simply wrap it after division by time elapsed
-        data.price0Average = UQ.uq112x112(uint224((price0Cumulative - data.price0CumulativeLast) / timeElapsed));
-        data.price1Average = UQ.uq112x112(uint224((price1Cumulative - data.price1CumulativeLast) / timeElapsed));
-
-        // Update the cumulative prices
-        data.price0CumulativeLast = price0Cumulative;
-        data.price1CumulativeLast = price1Cumulative;
-        data.blockTimestampLast = blockTimestamp;
-
-        emit NewPrice(
-            data.token0,
-            data.token1,
-            blockTimestamp,
-            data.price0Average,
-            data.price1Average,
-            data.updatePeriod,
-            timeElapsed
-        );
+        _update(_pairAddress);
     }
 
     /// @inheritdoc IUniswapV2Oracle
@@ -187,36 +156,7 @@ contract UniswapV2Oracle is IUniswapV2Oracle {
 
     /// @inheritdoc IUniswapV2Oracle
     function updateWithIncentive(address _kreskoAsset) external override {
-        PairData storage data = _pairs[krAssets[_kreskoAsset]];
-        // Ensure that the pair exists
-        require(data.blockTimestampLast != 0, Error.PAIR_DOES_NOT_EXIST);
-        (uint256 price0Cumulative, uint256 price1Cumulative, uint32 blockTimestamp) = currentCumulativePrices(
-            krAssets[_kreskoAsset]
-        );
-
-        uint32 timeElapsed = blockTimestamp - data.blockTimestampLast; // overflow is desired
-        // Ensure that at least one full period has passed since the last update
-        require(timeElapsed >= data.updatePeriod, Error.UPDATE_PERIOD_NOT_FINISHED);
-
-        // Overflow is desired, casting never truncates
-        // Cumulative price is in (uq112x112 price * seconds) units so we simply wrap it after division by time elapsed
-        data.price0Average = UQ.uq112x112(uint224((price0Cumulative - data.price0CumulativeLast) / timeElapsed));
-        data.price1Average = UQ.uq112x112(uint224((price1Cumulative - data.price1CumulativeLast) / timeElapsed));
-
-        // Update the cumulative prices
-        data.price0CumulativeLast = price0Cumulative;
-        data.price1CumulativeLast = price1Cumulative;
-        data.blockTimestampLast = blockTimestamp;
-
-        emit NewPrice(
-            data.token0,
-            data.token1,
-            blockTimestamp,
-            data.price0Average,
-            data.price1Average,
-            data.updatePeriod,
-            timeElapsed
-        );
+        _update(krAssets[_kreskoAsset]);
 
         require(incentiveToken.balanceOf(address(this)) >= 3 ether, Error.NO_INCENTIVES_LEFT);
         incentiveToken.transfer(msg.sender, 3 ether);
@@ -288,5 +228,42 @@ contract UniswapV2Oracle is IUniswapV2Oracle {
             // counterfactual
             price1Cumulative += uint256(UQ.fraction(reserve0, reserve1)._x) * timeElapsed;
         }
+    }
+
+    /**
+     * @notice Updates the oracle values for a asset
+     * @param _asset Asset to update
+     */
+    function _update(address _asset) internal {
+        PairData storage data = _pairs[_asset];
+
+        // Ensure that the pair exists
+        require(data.blockTimestampLast != 0, Error.PAIR_DOES_NOT_EXIST);
+
+        (uint256 price0Cumulative, uint256 price1Cumulative, uint32 blockTimestamp) = currentCumulativePrices(_asset);
+
+        uint32 timeElapsed = blockTimestamp - data.blockTimestampLast; // overflow is desired
+        // Ensure that at least one full period has passed since the last update
+        require(timeElapsed >= data.updatePeriod, Error.UPDATE_PERIOD_NOT_FINISHED);
+
+        // Overflow is desired, casting never truncates
+        // Cumulative price is in (uq112x112 price * seconds) units so we simply wrap it after division by time elapsed
+        data.price0Average = UQ.uq112x112(uint224((price0Cumulative - data.price0CumulativeLast) / timeElapsed));
+        data.price1Average = UQ.uq112x112(uint224((price1Cumulative - data.price1CumulativeLast) / timeElapsed));
+
+        // Update the cumulative prices
+        data.price0CumulativeLast = price0Cumulative;
+        data.price1CumulativeLast = price1Cumulative;
+        data.blockTimestampLast = blockTimestamp;
+
+        emit NewPrice(
+            data.token0,
+            data.token1,
+            blockTimestamp,
+            data.price0Average,
+            data.price1Average,
+            data.updatePeriod,
+            timeElapsed
+        );
     }
 }
