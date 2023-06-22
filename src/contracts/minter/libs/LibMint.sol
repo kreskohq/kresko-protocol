@@ -60,7 +60,7 @@ library LibMint {
      * @dev Takes the fee from the account's collateral assets. Attempts collateral assets
      *   in reverse order of the account's deposited collateral assets array.
      * @param _account The account to charge the open fee from.
-     * @param _kreskoAsset The address of the kresko asset being burned.
+     * @param _kreskoAsset The address of the kresko asset being minted.
      * @param _kreskoAssetAmountMinted The amount of the kresko asset being minted.
      */
     function chargeOpenFee(
