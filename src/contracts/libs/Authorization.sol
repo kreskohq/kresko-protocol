@@ -145,7 +145,6 @@ library Authorization {
     function revokeRole(bytes32 role, address account) internal {
         checkRole(getRoleAdmin(role));
         _revokeRole(role, account);
-        ds()._roleMembers[role].remove(account);
     }
 
     /**
