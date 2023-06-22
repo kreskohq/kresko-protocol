@@ -67,6 +67,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable, IKrS
         require(_startBlock <= block.number, "Start block must not be in the future");
 
         __AccessControl_init();
+        __ReentrancyGuard_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(DEFAULT_ADMIN_ROLE, _admin);
         _setupRole(OPERATOR_ROLE, _operator);
