@@ -20,7 +20,6 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/
 contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnumerableUpgradeable {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
-    bytes32 public constant OPERATOR_ROLE = 0x112e48a576fb3a75acc75d9fcf6e0bc670b27b1dbcd2463502e10e68cf57d6fd;
 
     modifier onlyContract() {
         require(msg.sender.code.length > 0, Error.CALLER_NOT_CONTRACT);
