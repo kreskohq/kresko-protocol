@@ -28,7 +28,7 @@ interface ISafetyCouncilFacet {
     /**
      * @notice set the safetyStateSet flag
      */
-    function toggleSafetyStateSet(bool val) external;
+    function setSafetyStateSet(bool val) external;
 
     /**
      * @notice For external checks if a safety state has been set for any asset

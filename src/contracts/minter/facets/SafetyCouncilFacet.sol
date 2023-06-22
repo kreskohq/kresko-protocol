@@ -52,12 +52,12 @@ contract SafetyCouncilFacet is MinterModifiers, DiamondModifiers, ISafetyCouncil
                 _withDuration ? block.timestamp + _duration : 0
             );
             // Emit the actions taken
-            emit MinterEvent.SafetyStateChange(_action, asset, enabled ? "paused" : "unpaused");
+            emit MinterEvent.SafetyStateChange(_action, asset, willPause ? "paused" : "unpaused");
         }
     }
 
     /// @inheritdoc ISafetyCouncilFacet
-    function toggleSafetyStateSet(bool val) external override onlyRole(Role.SAFETY_COUNCIL) {
+    function setSafetyStateSet(bool val) external override onlyRole(Role.SAFETY_COUNCIL) {
         ms().safetyStateSet = val;
     }
 
