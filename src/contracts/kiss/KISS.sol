@@ -80,13 +80,13 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
     /// @inheritdoc IERC165
     function supportsInterface(
         bytes4 interfaceId
-    ) public pure override(AccessControlEnumerableUpgradeable, IERC165) returns (bool) {
-        return
-            interfaceId != 0xffffffff &&
+    ) public view override(AccessControlEnumerableUpgradeable, IERC165) returns (bool) {
+        return (interfaceId != 0xffffffff &&
             (interfaceId == type(IKISS).interfaceId ||
                 interfaceId == type(IKreskoAssetIssuer).interfaceId ||
                 interfaceId == 0x01ffc9a7 ||
-                interfaceId == 0x36372b07);
+                interfaceId == 0x36372b07 ||
+                super.supportsInterface(interfaceId)));
     }
 
     /// @inheritdoc IKISS
