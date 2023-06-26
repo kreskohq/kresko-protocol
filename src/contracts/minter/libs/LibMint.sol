@@ -71,9 +71,7 @@ library LibMint {
     ) internal {
         KrAsset memory krAsset = self.kreskoAssets[_kreskoAsset];
         // Calculate the value of the fee according to the value of the krAssets being minted.
-        uint256 feeValue = krAsset.uintAggregateUSD(_kreskoAssetAmountMinted, self.oracleDeviationPct).wadMul(
-            krAsset.openFee
-        );
+        uint256 feeValue = krAsset.uintUSD(_kreskoAssetAmountMinted, self.oracleDeviationPct).wadMul(krAsset.openFee);
 
         // Do nothing if the fee value is 0.
         if (feeValue == 0) {

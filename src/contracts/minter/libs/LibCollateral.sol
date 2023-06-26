@@ -60,7 +60,7 @@ library LibCollateral {
     ) internal view returns (uint256, uint256) {
         CollateralAsset memory asset = self.collateralAssets[_collateralAsset];
 
-        uint256 oraclePrice = asset.uintAggregatePrice(self.oracleDeviationPct);
+        uint256 oraclePrice = asset.uintPrice(self.oracleDeviationPct);
         uint256 value = asset.decimals.toWad(_amount).wadMul(oraclePrice);
 
         if (!_ignoreCollateralFactor) {

@@ -93,6 +93,10 @@ export enum Error {
     SEIZED_COLLATERAL_UNDERFLOW = "248", // Amount of collateral seized is less than the amount calculated.
     COLLATERAL_AMOUNT_TOO_LOW = "249", // Amount of krAsset collateral being deposited is less than the minimum amount
 
+    PARAM_COLLATERAL_RATIO_LOW_THAN_LT = "250", // Minimum collateral ratio less than LT
+    ZERO_DEBT = "251", // debt must be greater than 0
+    ORACLE_PRICE_UNSTABLE = "252", // debt must be greater than 0
+
     /* -------------------------------------------------------------------------- */
     /*                                   3. Staking                               */
     /* -------------------------------------------------------------------------- */

@@ -68,7 +68,7 @@ contract MintFacet is DiamondModifiers, MinterModifiers, IMintFacet {
         // The synthetic asset debt position must be greater than the minimum debt position value
         uint256 existingDebt = s.getKreskoAssetDebtScaled(_account, _kreskoAsset);
         require(
-            krAsset.uintAggregateUSD(existingDebt + _mintAmount, s.oracleDeviationPct) >= s.minimumDebtValue,
+            krAsset.uintUSD(existingDebt + _mintAmount, s.oracleDeviationPct) >= s.minimumDebtValue,
             Error.KRASSET_MINT_AMOUNT_LOW
         );
 

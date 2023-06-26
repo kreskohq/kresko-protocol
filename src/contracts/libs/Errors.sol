@@ -89,6 +89,7 @@ library Error {
     string public constant COLLATERAL_AMOUNT_TOO_LOW = "249"; // Amount of krAsset collateral being deposited is less than the minimum amount
     string public constant PARAM_COLLATERAL_RATIO_LOW_THAN_LT = "250"; // Minimum collateral ratio less than LT
     string public constant ZERO_DEBT = "251"; // debt must be greater than 0
+    string public constant ORACLE_PRICE_UNSTABLE = "252"; // debt must be greater than 0
 
     /* -------------------------------------------------------------------------- */
     /*                                   3. Staking                               */

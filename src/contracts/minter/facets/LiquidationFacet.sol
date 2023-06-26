@@ -63,7 +63,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
 
         /* ------------------------------ Amount checks ----------------------------- */
         // Repay amount USD = repay amount * KR asset USD exchange rate.
-        uint256 repayAmountUSD = krAsset.uintAggregateUSD(_repayAmount, s.oracleDeviationPct);
+        uint256 repayAmountUSD = krAsset.uintUSD(_repayAmount, s.oracleDeviationPct);
 
         // Avoid deep stack
         {
@@ -76,7 +76,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
             uint256 maxLiquidableUSD = s.getMaxLiquidation(_account, krAsset, _seizeAsset);
 
             if (repayAmountUSD > maxLiquidableUSD) {
-                _repayAmount = maxLiquidableUSD.wadDiv(krAsset.uintAggregatePrice(s.oracleDeviationPct));
+                _repayAmount = maxLiquidableUSD.wadDiv(krAsset.uintPrice(s.oracleDeviationPct));
                 repayAmountUSD = maxLiquidableUSD;
             }
         }
@@ -92,7 +92,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
                 collateral.decimals.fromWad(
                     LibCalculation.calculateAmountToSeize(
                         collateral.liquidationIncentive,
-                        collateral.uintAggregatePrice(s.oracleDeviationPct),
+                        collateral.uintPrice(s.oracleDeviationPct),
                         repayAmountUSD
                     )
                 ),

@@ -1,6 +1,6 @@
 import { TASK_DEPLOY_PRICE_FEED } from "@tasks";
 import { expect } from "@test/chai";
-import { withFixture, defaultCollateralArgs } from "@utils/test";
+import { withFixture, defaultCollateralArgs, Error } from "@utils/test";
 import hre from "hardhat";
 import { WrapperBuilder } from "@redstone-finance/evm-connector";
 import { toBig } from "@kreskolabs/lib";
@@ -215,7 +215,7 @@ describe("Oracle", () => {
             );
         });
 
-        it("should get average price when price outside oracleDeviationPct of redstone price ", async function () {
+        it("should revert if price deviates too much", async function () {
             /// set chainlink price to 20
             redstoneCollateral.setPrice(20);
 
@@ -229,11 +229,9 @@ describe("Oracle", () => {
             }) as Kresko;
 
             // so collateral value = $((20 + 10) / 2) * 1 = $15
-            expect(await redstoneDiamond.getAccountCollateralValue(hre.users.userOne.address)).to.equal(
-                toBig(15, 8),
-                "collateral value should be $15",
+            await expect(redstoneDiamond.getAccountCollateralValue(hre.users.userOne.address)).to.be.revertedWith(
+                Error.ORACLE_PRICE_UNSTABLE,
             );
-
             redstoneCollateral.setPrice(10);
         });
     });

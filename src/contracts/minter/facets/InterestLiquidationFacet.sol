@@ -145,7 +145,7 @@ contract InterestLiquidationFacet is DiamondModifiers, IInterestLiquidationFacet
         seizeAmount = s.collateralAssets[_collateralAssetToSeize].decimals.fromWad(
             LibCalculation.calculateAmountToSeize(
                 s.collateralAssets[_collateralAssetToSeize].liquidationIncentive,
-                s.collateralAssets[_collateralAssetToSeize].uintAggregatePrice(s.oracleDeviationPct),
+                s.collateralAssets[_collateralAssetToSeize].uintPrice(s.oracleDeviationPct),
                 _kissRepayAmount.fromWadPriceToUint()
             )
         );
