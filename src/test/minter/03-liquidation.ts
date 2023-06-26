@@ -21,7 +21,7 @@ const INTEREST_RATE_DELTA = 0.01;
 const USD_DELTA = toBig(0.1, "gwei");
 const CR_DELTA = 1e-4;
 
-describe("Minter", () => {
+describe("Minter - Liquidations", () => {
     withFixture(["minter-test"]);
     beforeEach(async function () {
         // -------------------------------- Set up mock assets --------------------------------
@@ -61,7 +61,7 @@ describe("Minter", () => {
                 toBig(1),
                 toBig(1.05),
                 assetInfo.oracle,
-                assetInfo.oracle,
+                assetInfo.marketStatusOracle,
             ),
         );
 

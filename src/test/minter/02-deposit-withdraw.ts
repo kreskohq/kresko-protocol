@@ -1,3 +1,4 @@
+import { fromBig, getInternalEvent, toBig } from "@kreskolabs/lib";
 import {
     Action,
     BASIS_POINT,
@@ -9,8 +10,6 @@ import {
     withFixture,
     wrapContractWithSigner,
 } from "@test-utils";
-import hre, { ethers } from "hardhat";
-import { fromBig, toBig, getInternalEvent } from "@kreskolabs/lib";
 import { executeContractCallWithSigners } from "@utils/gnosis/utils/execution";
 import { Error } from "@utils/test/errors";
 import {
@@ -19,13 +18,14 @@ import {
     getCollateralConfig,
     withdrawCollateral,
 } from "@utils/test/helpers/collaterals";
+import { addMockKreskoAsset } from "@utils/test/helpers/krassets";
 import { expect } from "chai";
 import { BigNumber } from "ethers";
+import hre from "hardhat";
 import {
     CollateralDepositedEventObject,
     CollateralWithdrawnEventObject,
 } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
-import { addMockKreskoAsset } from "@utils/test/helpers/krassets";
 
 describe("Minter - Deposit Withdraw", () => {
     withFixture(["minter-test"]);
@@ -81,8 +81,8 @@ describe("Minter - Deposit Withdraw", () => {
                         newKrAsset.anchor.address,
                         toBig(1),
                         toBig(1.05),
-                        newKrAsset.mocks.mockFeed.address,
-                        newKrAsset.mocks.mockFeed.address,
+                        newKrAsset.mocks.clFeed.address,
+                        newKrAsset.mocks.fluxFeed.address,
                     ),
                 );
                 const depositAmount = collateralAmount.div(2);
@@ -142,8 +142,8 @@ describe("Minter - Deposit Withdraw", () => {
                         newKrAsset.anchor.address,
                         toBig(1),
                         toBig(1.05),
-                        newKrAsset.mocks.mockFeed.address,
-                        newKrAsset.mocks.mockFeed.address,
+                        newKrAsset.mocks.clFeed.address,
+                        newKrAsset.mocks.fluxFeed.address,
                     ),
                 );
 
@@ -712,7 +712,7 @@ describe("Minter - Deposit Withdraw", () => {
                         toBig(1),
                         toBig(1.05),
                         assetInfo.oracle,
-                        assetInfo.oracle,
+                        assetInfo.marketStatusOracle,
                     ),
                 );
 
@@ -1215,7 +1215,7 @@ describe("Minter - Deposit Withdraw", () => {
                         toBig(1),
                         toBig(1.05),
                         assetInfo.oracle,
-                        assetInfo.oracle,
+                        assetInfo.marketStatusOracle,
                     ),
                 );
 

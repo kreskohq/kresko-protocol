@@ -9,7 +9,7 @@ pragma solidity >=0.8.20;
 /* solhint-disable avoid-low-level-calls */
 /* solhint-disable func-visibility */
 
-import {LibUI, IKrStaking, IUniswapV2Pair, IERC20Permit, AggregatorV2V3Interface, ms} from "../libs/LibUI.sol";
+import {LibUI, IKrStaking, IUniswapV2Pair, IERC20Permit, ms} from "../libs/LibUI.sol";
 
 /**
  * @author Kresko

@@ -14,7 +14,7 @@ import {LibRedstone} from "./LibRedstone.sol";
  */
 library LibAssetUtility {
     using WadRay for uint256;
-    using LibDecimals for int256;
+    using LibDecimals for uint256;
 
     /**
      * @notice Amount of non rebasing tokens -> amount of rebasing tokens
@@ -63,7 +63,9 @@ library LibAssetUtility {
      * @notice Get the oracle price of a collateral asset in uint256 with extOracleDecimals
      */
     function uintPrice(CollateralAsset memory self) internal view returns (uint256) {
-        return uint256(self.oracle.latestAnswer());
+        (, int256 answer, , , ) = self.oracle.latestRoundData();
+        require(answer >= 0, Error.NEGATIVE_ORACLE_PRICE);
+        return uint256(answer);
     }
 
     /**
@@ -77,7 +79,9 @@ library LibAssetUtility {
      * @notice Get the oracle price of a kresko asset in uint256 with extOracleDecimals
      */
     function uintPrice(KrAsset memory self) internal view returns (uint256) {
-        return uint256(self.oracle.latestAnswer());
+        (, int256 answer, , , ) = self.oracle.latestRoundData();
+        require(answer >= 0, Error.NEGATIVE_ORACLE_PRICE);
+        return uint256(answer);
     }
 
     /**
@@ -92,14 +96,14 @@ library LibAssetUtility {
      * @notice Get the oracle price of a collateral asset in uint256 with 18 decimals
      */
     function wadPrice(CollateralAsset memory self) internal view returns (uint256) {
-        return self.oracle.latestAnswer().oraclePriceToWad();
+        return self.uintPrice().oraclePriceToWad();
     }
 
     /**
      * @notice Get the oracle price of a kresko asset in uint256 with 18 decimals
      */
     function wadPrice(KrAsset memory self) internal view returns (uint256) {
-        return self.oracle.latestAnswer().oraclePriceToWad();
+        return self.uintPrice().oraclePriceToWad();
     }
 
     /**

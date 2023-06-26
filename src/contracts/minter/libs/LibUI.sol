@@ -3,7 +3,8 @@ pragma solidity >=0.8.20;
 
 // solhint-disable-next-line
 import {IERC20Permit} from "../../shared/IERC20Permit.sol";
-import {AggregatorV2V3Interface} from "../../vendor/flux/interfaces/AggregatorV2V3Interface.sol";
+import {IFluxPriceFeed} from "../../vendor/flux/interfaces/IFluxPriceFeed.sol";
+import {AggregatorV3Interface} from "../../vendor/AggregatorV3Interface.sol";
 import {IUniswapV2Pair} from "../../vendor/uniswap/v2-core/interfaces/IUniswapV2Pair.sol";
 import {IKrStaking} from "../../staking/interfaces/IKrStaking.sol";
 import {LibDecimals} from "../libs/LibDecimals.sol";
@@ -231,13 +232,16 @@ library LibUI {
     ) internal view returns (Price[] memory result) {
         require(_marketStatusFeeds.length == _priceFeeds.length, Error.PRICEFEEDS_MUST_MATCH_STATUS_FEEDS);
         result = new Price[](_assets.length);
+
         for (uint256 i; i < _assets.length; i++) {
+            (uint80 roundId, int256 answer, , uint256 timestamp, ) = AggregatorV3Interface(_priceFeeds[i])
+                .latestRoundData();
             result[i] = Price({
-                price: uint256(AggregatorV2V3Interface(_priceFeeds[i]).latestAnswer()),
-                timestamp: AggregatorV2V3Interface(_priceFeeds[i]).latestTimestamp(),
+                price: uint256(answer),
+                timestamp: timestamp,
                 assetAddress: _assets[i],
-                roundId: uint80(AggregatorV2V3Interface(_priceFeeds[i]).latestRound()),
-                marketOpen: AggregatorV2V3Interface(_marketStatusFeeds[i]).latestMarketOpen()
+                roundId: roundId,
+                marketOpen: IFluxPriceFeed(_marketStatusFeeds[i]).latestMarketOpen()
             });
         }
     }
@@ -255,6 +259,7 @@ library LibUI {
                 stabilityRate = irs().srAssets[assetAddress].calculateStabilityRate();
                 priceRate = irs().srAssets[assetAddress].getPriceRate();
             }
+            (, int256 answer, , , ) = krAsset.oracle.latestRoundData();
             result[i] = krAssetInfo({
                 value: ms().getKrAssetValue(assetAddress, 1 ether, false),
                 oracleAddress: address(krAsset.oracle),
@@ -263,7 +268,7 @@ library LibUI {
                 closeFee: krAsset.closeFee,
                 openFee: krAsset.openFee,
                 kFactor: krAsset.kFactor,
-                price: uint256(krAsset.oracle.latestAnswer()),
+                price: uint256(answer),
                 stabilityRate: stabilityRate,
                 priceRate: priceRate,
                 ammPrice: ammPrice,
@@ -360,6 +365,7 @@ library LibUI {
                     ammPrice = IUniswapV2OracleCompat(ms().ammOracle).consultKrAsset(assetAddress, 1 ether);
                 }
                 totalDebtUSD + amountUSD;
+                (, int256 answer, , , ) = krAsset.oracle.latestRoundData();
                 result[i] = krAssetInfoUser({
                     assetAddress: assetAddress,
                     oracleAddress: address(krAsset.oracle),
@@ -373,7 +379,7 @@ library LibUI {
                     priceRate: priceRate,
                     index: i,
                     kFactor: krAsset.kFactor,
-                    price: uint256(krAsset.oracle.latestAnswer()),
+                    price: uint256(answer),
                     ammPrice: ammPrice,
                     symbol: IERC20Permit(assetAddress).symbol(),
                     name: IERC20Permit(assetAddress).name()

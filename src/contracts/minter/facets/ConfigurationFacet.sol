@@ -20,7 +20,7 @@ import {DiamondModifiers} from "../../diamond/DiamondModifiers.sol";
 
 import {ds} from "../../diamond/DiamondStorage.sol";
 
-import {MinterInitArgs, CollateralAsset, KrAsset, AggregatorV2V3Interface, Constants} from "../MinterTypes.sol";
+import {MinterInitArgs, CollateralAsset, KrAsset, IFluxPriceFeed, AggregatorV3Interface, Constants} from "../MinterTypes.sol";
 import {ms} from "../MinterStorage.sol";
 
 /**

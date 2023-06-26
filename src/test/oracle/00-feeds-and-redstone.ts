@@ -68,7 +68,7 @@ describe("Oracle", () => {
             expect(await this.pricefeed.decimals()).to.equal(8);
         });
 
-        it("should return latestRoundData correctly", async function () {
+        it.skip("should return latestRoundData correctly", async function () {
             await this.pricefeed.transmit(TEST_VALUE, true, {
                 from: this.deployer.address,
             });

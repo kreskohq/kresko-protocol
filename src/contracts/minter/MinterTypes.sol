@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.20;
 
-import {AggregatorV2V3Interface} from "../vendor/flux/interfaces/AggregatorV2V3Interface.sol";
+import {IFluxPriceFeed} from "../vendor/flux/interfaces/IFluxPriceFeed.sol";
+import {AggregatorV3Interface} from "../vendor/AggregatorV3Interface.sol";
 import {IKreskoAssetAnchor} from "../kreskoasset/IKreskoAssetAnchor.sol";
 import {LibAssetUtility} from "./libs/LibAssetUtility.sol";
 
@@ -123,8 +124,8 @@ struct MinterParams {
  */
 struct KrAsset {
     uint256 kFactor;
-    AggregatorV2V3Interface oracle;
-    AggregatorV2V3Interface marketStatusOracle;
+    AggregatorV3Interface oracle;
+    IFluxPriceFeed marketStatusOracle;
     uint256 supplyLimit;
     address anchor;
     uint256 closeFee;
@@ -132,7 +133,9 @@ struct KrAsset {
     bool exists;
     bytes32 redstoneId;
 }
+
 using LibAssetUtility for KrAsset global;
+
 /**
  * @notice Information on a token that can be used as collateral.
  * @dev Setting the factor to zero effectively makes the asset useless as collateral while still allowing
@@ -146,8 +149,8 @@ using LibAssetUtility for KrAsset global;
  */
 struct CollateralAsset {
     uint256 factor;
-    AggregatorV2V3Interface oracle;
-    AggregatorV2V3Interface marketStatusOracle;
+    AggregatorV3Interface oracle;
+    IFluxPriceFeed marketStatusOracle;
     address anchor;
     uint8 decimals;
     bool exists;
