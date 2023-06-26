@@ -81,4 +81,8 @@ struct MinterState {
 
     /// @notice The oracle deviation percentage between the main oracle and fallback oracle.
     uint256 oracleDeviationPct;
+    /// @notice L2 sequencer feed address
+    address sequencerUptimeFeed;
+    /// @notice grace period of sequencer in seconds
+    uint256 sequencerGracePeriodTime;
 }

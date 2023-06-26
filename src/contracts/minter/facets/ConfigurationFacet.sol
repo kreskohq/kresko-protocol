@@ -60,6 +60,8 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         updateExtOracleDecimals(args.extOracleDecimals);
         updateMaxLiquidationMultiplier(Constants.MIN_MAX_LIQUIDATION_MULTIPLIER);
         updateOracleDeviationPct(args.oracleDeviationPct);
+        updateSequencerUptimeFeed(args.sequencerUptimeFeed);
+        updateSequencerGracePeriodTime(args.sequencerGracePeriodTime);
 
         ms().initializations = 1;
         ms().domainSeparator = Meta.domainSeparator("Kresko Minter", "V1");
@@ -166,6 +168,16 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
     function updateOracleDeviationPct(uint256 _oracleDeviationPct) public onlyRole(Role.ADMIN) {
         require(_oracleDeviationPct <= 1 ether, Error.INVALID_ORACLE_DEVIATION_PCT);
         ms().oracleDeviationPct = _oracleDeviationPct;
+    }
+
+    /// @inheritdoc IConfigurationFacet
+    function updateSequencerUptimeFeed(address _sequencerUptimeFeed) public override onlyRole(Role.ADMIN) {
+        ms().sequencerUptimeFeed = _sequencerUptimeFeed;
+    }
+
+    /// @inheritdoc IConfigurationFacet
+    function updateSequencerGracePeriodTime(uint256 _sequencerGracePeriodTime) public override onlyRole(Role.ADMIN) {
+        ms().sequencerGracePeriodTime = _sequencerGracePeriodTime;
     }
 
     /* -------------------------------------------------------------------------- */

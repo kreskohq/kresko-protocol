@@ -95,6 +95,8 @@ struct MinterInitArgs {
     uint256 minimumDebtValue;
     uint256 liquidationThreshold;
     uint256 oracleDeviationPct;
+    address sequencerUptimeFeed;
+    uint256 sequencerGracePeriodTime;
 }
 
 /**

@@ -4,7 +4,7 @@ import { withFixture, defaultCollateralArgs, Error } from "@utils/test";
 import hre from "hardhat";
 import { WrapperBuilder } from "@redstone-finance/evm-connector";
 import { toBig } from "@kreskolabs/lib";
-import { Kresko } from "types/typechain";
+import { Kresko, MockSequencerUptimeFeed } from "types/typechain";
 
 describe("Oracle", () => {
     withFixture(["minter-test"]);
@@ -134,8 +134,10 @@ describe("Oracle", () => {
 
     describe("Redstone", () => {
         let redstoneCollateral: TestCollateral;
+        let mockSequencerUptimeFeed: MockSequencerUptimeFeed;
 
         beforeEach(async function () {
+            const { ethers } = hre;
             redstoneCollateral = this.collaterals!.find(c => c.deployArgs!.name === defaultCollateralArgs.name)!;
 
             /// set initial collateral price
@@ -150,6 +152,8 @@ describe("Oracle", () => {
                     [hre.Diamond.address]: initialBalance,
                 },
             });
+            const MockSequencerUptimeFeed = await ethers.getContractFactory("MockSequencerUptimeFeed");
+            mockSequencerUptimeFeed = await MockSequencerUptimeFeed.deploy();
 
             this.depositArgs = {
                 user: hre.users.userOne,
@@ -228,10 +232,35 @@ describe("Oracle", () => {
                 dataPoints: [{ dataFeedId: "USDC", value: redstoneCollateralPrice }],
             }) as Kresko;
 
-            // so collateral value = $((20 + 10) / 2) * 1 = $15
+            // should revert if price deviates more than oracleDeviationPct
             await expect(redstoneDiamond.getAccountCollateralValue(hre.users.userOne.address)).to.be.revertedWith(
                 Error.ORACLE_PRICE_UNSTABLE,
             );
+            redstoneCollateral.setPrice(10);
+        });
+
+        it("should return redstone price if sequencer is down", async function () {
+            /// set chainlink price to 5
+            redstoneCollateral.setPrice(5);
+
+            const redstoneCollateralPrice = 200;
+            const redstoneDiamond: Kresko = WrapperBuilder.wrap(
+                hre.Diamond.connect(this.deployer),
+            ).usingSimpleNumericMock({
+                mockSignersCount: 1,
+                timestampMilliseconds: Date.now(),
+                dataPoints: [{ dataFeedId: "USDC", value: redstoneCollateralPrice }],
+            }) as Kresko;
+
+            /// set sequencer uptime feed address
+            await redstoneDiamond.updateSequencerUptimeFeed(mockSequencerUptimeFeed.address);
+
+            // should return redstone price if sequencer is down
+            expect(await redstoneDiamond.getAccountCollateralValue(hre.users.userOne.address)).to.be.equal(
+                toBig(redstoneCollateralPrice, 8),
+                "collateral value should be $200",
+            );
+
             redstoneCollateral.setPrice(10);
         });
     });

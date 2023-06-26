@@ -69,6 +69,7 @@ declare global {
     /* -------------------------------------------------------------------------- */
     /*                                   Oracles                                  */
     /* -------------------------------------------------------------------------- */
+    type SequencerUptimeFeed = Contracts.MockSequencerUptimeFeed;
     type FluxPriceFeed = TC["FluxPriceFeed"];
     type FluxPriceFeedFactory = TC["FluxPriceFeedFactory"];
     type UniV2Router = Contracts.UniswapV2Router02;

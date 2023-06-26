@@ -109,4 +109,16 @@ interface IConfigurationFacet {
      * @param _oracleDeviationPct Amount of decimals
      */
     function updateOracleDeviationPct(uint256 _oracleDeviationPct) external;
+
+    /**
+     * @notice Sets L2 sequencer uptime feed address
+     * @param _sequencerUptimeFeed sequencer uptime feed address
+     */
+    function updateSequencerUptimeFeed(address _sequencerUptimeFeed) external;
+
+    /**
+     * @notice Sets sequencer grace period time
+     * @param _sequencerGracePeriodTime grace period time
+     */
+    function updateSequencerGracePeriodTime(uint256 _sequencerGracePeriodTime) external;
 }

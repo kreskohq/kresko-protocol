@@ -6,6 +6,8 @@ import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
 import {WadRay} from "../../libs/WadRay.sol";
 import {Error} from "../../libs/Errors.sol";
 import {LibRedstone} from "./LibRedstone.sol";
+import {ms} from "../MinterStorage.sol";
+import {AggregatorV3Interface} from "../../vendor/AggregatorV3Interface.sol";
 
 /**
  * @title LibAssetUtility
@@ -195,7 +197,21 @@ library LibAssetUtility {
         uint256 _chainlinkPrice,
         uint256 _redstonePrice,
         uint256 _oracleDeviationPct
-    ) internal pure returns (uint256) {
+    ) internal view returns (uint256) {
+        if (ms().sequencerUptimeFeed != address(0)) {
+            (, int256 answer, uint256 startedAt, , ) = AggregatorV3Interface(ms().sequencerUptimeFeed)
+                .latestRoundData();
+            bool isSequencerUp = answer == 0;
+            if (!isSequencerUp) {
+                return _redstonePrice;
+            }
+            // Make sure the grace period has passed after the
+            // sequencer is back up.
+            uint256 timeSinceUp = block.timestamp - startedAt;
+            if (timeSinceUp <= ms().sequencerGracePeriodTime) {
+                return _redstonePrice;
+            }
+        }
         if (_chainlinkPrice == 0) return _redstonePrice;
         if (_redstonePrice == 0) return _chainlinkPrice;
         if (
