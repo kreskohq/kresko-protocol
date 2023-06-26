@@ -48,7 +48,7 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
     ) external initializer {
         // Few sanity checks, we do not want EOA's here
         require(kresko_.code.length > 0, Error.KRESKO_NOT_CONTRACT);
-        // require(admin_.code.length > 0, Error.ADMIN_NOT_A_CONTRACT);
+        require(admin_.code.length > 0, Error.ADMIN_NOT_A_CONTRACT);
 
         // ERC20
         name = name_;
@@ -71,10 +71,9 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
         _setupRole(MINTER_ROLE, kresko_);
         _setupRole(PAUSER_ROLE, kresko_);
 
-        // Deployer does not need roles, uncomment for mainnet
         renounceRole(MINTER_ROLE, msg.sender);
         renounceRole(PAUSER_ROLE, msg.sender);
-        // renounceRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        renounceRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     /// @inheritdoc IERC165
