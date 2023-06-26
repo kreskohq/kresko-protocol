@@ -156,7 +156,7 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
             pendingOperator = address(0);
         } else if (pendingOperatorUnlockTime != 0) {
             // Do not allow more than `maxOperators` of operators
-            require(getRoleMemberCount(Role.OPERATOR) < maxOperators, Error.OPERATOR_LIMIT_REACHED);
+            require(getRoleMemberCount(Role.OPERATOR) <= maxOperators, Error.OPERATOR_LIMIT_REACHED);
             // Set the timestamp for the cooldown period
             pendingOperatorUnlockTime = block.timestamp + pendingOperatorWaitPeriod;
             // Set the pending operator, execution to upper if clause next call as this pending operator is set
