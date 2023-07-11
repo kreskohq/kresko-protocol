@@ -97,6 +97,7 @@ struct MinterInitArgs {
     uint256 oracleDeviationPct;
     address sequencerUptimeFeed;
     uint256 sequencerGracePeriodTime;
+    uint256 oracleTimeout;
 }
 
 /**

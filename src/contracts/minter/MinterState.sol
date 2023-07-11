@@ -85,4 +85,6 @@ struct MinterState {
     address sequencerUptimeFeed;
     /// @notice grace period of sequencer in seconds
     uint256 sequencerGracePeriodTime;
+    /// @notice timeout for oracle in seconds
+    uint256 oracleTimeout;
 }

@@ -65,8 +65,12 @@ library LibAssetUtility {
      * @notice Get the oracle price of a collateral asset in uint256 with extOracleDecimals
      */
     function uintPrice(CollateralAsset memory self) internal view returns (uint256) {
-        (, int256 answer, , , ) = self.oracle.latestRoundData();
+        (, int256 answer, , uint256 updatedAt, ) = self.oracle.latestRoundData();
         require(answer >= 0, Error.NEGATIVE_ORACLE_PRICE);
+        // returning zero if oracle price is too old so that fallback oracle is used instead.
+        if (block.timestamp - updatedAt > ms().oracleTimeout) {
+            return 0;
+        }
         return uint256(answer);
     }
 
@@ -81,8 +85,12 @@ library LibAssetUtility {
      * @notice Get the oracle price of a kresko asset in uint256 with extOracleDecimals
      */
     function uintPrice(KrAsset memory self) internal view returns (uint256) {
-        (, int256 answer, , , ) = self.oracle.latestRoundData();
+        (, int256 answer, , uint256 updatedAt, ) = self.oracle.latestRoundData();
         require(answer >= 0, Error.NEGATIVE_ORACLE_PRICE);
+        // returning zero if oracle price is too old so that fallback oracle is used instead.
+        if (block.timestamp - updatedAt > ms().oracleTimeout) {
+            return 0;
+        }
         return uint256(answer);
     }
 

@@ -121,4 +121,10 @@ interface IConfigurationFacet {
      * @param _sequencerGracePeriodTime grace period time
      */
     function updateSequencerGracePeriodTime(uint256 _sequencerGracePeriodTime) external;
+
+    /**
+     * @notice Sets oracle timeout
+     * @param _oracleTimeout oracle timeout in seconds
+     */
+    function updateOracleTimeout(uint256 _oracleTimeout) external;
 }

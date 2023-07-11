@@ -65,6 +65,7 @@ export const getMinterInitializer = async (
             oracleDeviationPct: toBig(0.1),
             sequencerUptimeFeed: ethers.constants.AddressZero,
             sequencerGracePeriodTime: 3600,
+            oracleTimeout: ethers.constants.MaxUint256,
         },
     };
 };
