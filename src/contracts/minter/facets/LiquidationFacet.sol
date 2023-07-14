@@ -39,7 +39,8 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         uint256 _repayAmount,
         address _seizeAsset,
         uint256 _repayAssetIndex,
-        uint256 _seizeAssetIndex
+        uint256 _seizeAssetIndex,
+        bool _allowSeizeUnderflow
     ) external nonReentrant {
         MinterState storage s = ms();
 
@@ -62,7 +63,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
 
         /* ------------------------------ Amount checks ----------------------------- */
         // Repay amount USD = repay amount * KR asset USD exchange rate.
-        uint256 repayAmountUSD = krAsset.uintAggregateUSD(_repayAmount, s.oracleDeviationPct);
+        uint256 repayAmountUSD = krAsset.uintUSD(_repayAmount, s.oracleDeviationPct);
 
         // Avoid deep stack
         {
@@ -73,7 +74,11 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
 
             // We limit liquidations to exactly Liquidation Threshold here.
             uint256 maxLiquidableUSD = s.getMaxLiquidation(_account, krAsset, _seizeAsset);
-            require(repayAmountUSD <= maxLiquidableUSD, Error.LIQUIDATION_OVERFLOW);
+
+            if (repayAmountUSD > maxLiquidableUSD) {
+                _repayAmount = maxLiquidableUSD.wadDiv(krAsset.uintPrice(s.oracleDeviationPct));
+                repayAmountUSD = maxLiquidableUSD;
+            }
         }
 
         /* ------------------------------- Charge fee ------------------------------- */
@@ -87,14 +92,15 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
                 collateral.decimals.fromWad(
                     LibCalculation.calculateAmountToSeize(
                         collateral.liquidationIncentive,
-                        collateral.uintAggregatePrice(s.oracleDeviationPct),
+                        collateral.uintPrice(s.oracleDeviationPct),
                         repayAmountUSD
                     )
                 ),
                 _repayAsset,
                 _repayAssetIndex,
                 _seizeAsset,
-                _seizeAssetIndex
+                _seizeAssetIndex,
+                _allowSeizeUnderflow
             )
         );
 
@@ -105,7 +111,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         emit MinterEvent.LiquidationOccurred(
             _account,
             // solhint-disable-next-line avoid-tx-origin
-            tx.origin,
+            msg.sender,
             _repayAsset,
             _repayAmount,
             _seizeAsset,
@@ -141,7 +147,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         }
 
         // If the liquidation repays entire asset debt, remove from minted assets array.
-        if (s.kreskoAssetDebt[params.account][params.repayAsset] == 0) {
+        if (s.getKreskoAssetDebtScaled(params.account, params.repayAsset) == 0) {
             s.mintedKreskoAssets[params.account].removeAddress(params.repayAsset, params.repayAssetIndex);
         }
 
@@ -152,12 +158,26 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         uint256 collateralDeposits = s.getCollateralDeposits(params.account, params.seizedAsset);
 
         /* ------------------------ Above collateral deposits ----------------------- */
-        if (collateralDeposits > params.seizeAmount) {
-            s.collateralDeposits[params.account][params.seizedAsset] -= ms()
-                .collateralAssets[params.seizedAsset]
-                .toNonRebasingAmount(params.seizeAmount);
 
-            return params.seizeAmount; // Passthrough value as is.
+        if (collateralDeposits > params.seizeAmount) {
+            uint256 newDepositAmount = collateralDeposits - params.seizeAmount;
+
+            // If the collateral asset is also a kresko asset, ensure that collateral remains over minimum amount required.
+            if (
+                ms().collateralAssets[params.seizedAsset].anchor != address(0) &&
+                newDepositAmount < Constants.MIN_KRASSET_COLLATERAL_AMOUNT
+            ) {
+                params.seizeAmount -= Constants.MIN_KRASSET_COLLATERAL_AMOUNT - newDepositAmount;
+                newDepositAmount = Constants.MIN_KRASSET_COLLATERAL_AMOUNT;
+            }
+
+            s.collateralDeposits[params.account][params.seizedAsset] = ms()
+                .collateralAssets[params.seizedAsset]
+                .toNonRebasingAmount(newDepositAmount);
+
+            return params.seizeAmount;
+        } else if (collateralDeposits < params.seizeAmount) {
+            require(params.allowSeizeUnderflow, Error.SEIZED_COLLATERAL_UNDERFLOW);
         }
 
         /* ------------------- Exact or below collateral deposits ------------------- */

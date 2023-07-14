@@ -3,7 +3,8 @@ pragma solidity >=0.8.20;
 
 import {ms} from "../MinterStorage.sol";
 import {CollateralAsset} from "../MinterTypes.sol";
-import {AggregatorV2V3Interface} from "../../vendor/flux/FluxPriceFeed.sol";
+import {IFluxPriceFeed} from "../../vendor/flux/FluxPriceFeed.sol";
+import {AggregatorV3Interface} from "../../vendor/AggregatorV3Interface.sol";
 
 /* solhint-disable var-name-mixedcase */
 interface NewKresko {
@@ -13,8 +14,8 @@ interface NewKresko {
 interface OldKresko {
     struct CollateralOld {
         uint256 factor;
-        AggregatorV2V3Interface oracle;
-        AggregatorV2V3Interface marketStatusOracle;
+        AggregatorV3Interface oracle;
+        IFluxPriceFeed marketStatusOracle;
         address anchor;
         uint8 decimals;
         bool exists;

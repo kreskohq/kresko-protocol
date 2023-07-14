@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.20;
-import {AggregatorV2V3Interface} from "../../vendor/flux/interfaces/AggregatorV2V3Interface.sol";
 import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
 import {LibDecimals} from "../libs/LibDecimals.sol";
 import {Arrays} from "../../libs/Arrays.sol";
 import {Error} from "../../libs/Errors.sol";
 import {MinterEvent} from "../../libs/Events.sol";
 import {WadRay} from "../../libs/WadRay.sol";
-import {CollateralAsset} from "../MinterTypes.sol";
+import {CollateralAsset, Constants} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
 
 /**
@@ -60,7 +59,7 @@ library LibCollateral {
     ) internal view returns (uint256, uint256) {
         CollateralAsset memory asset = self.collateralAssets[_collateralAsset];
 
-        uint256 oraclePrice = asset.uintAggregatePrice(self.oracleDeviationPct);
+        uint256 oraclePrice = asset.uintPrice(self.oracleDeviationPct);
         uint256 value = asset.decimals.toWad(_amount).wadMul(oraclePrice);
 
         if (!_ignoreCollateralFactor) {
@@ -94,16 +93,27 @@ library LibCollateral {
         // Ensure that the operation passes checks MCR checks
         verifyAccountCollateral(self, _account, _collateralAsset, _withdrawAmount);
 
-        // Record the withdrawal.
-        self.collateralDeposits[_account][_collateralAsset] = self
-            .collateralAssets[_collateralAsset]
-            .toNonRebasingAmount(_collateralDeposits - _withdrawAmount);
+        uint256 newCollateralAmount = _collateralDeposits - _withdrawAmount;
+
+        // If the collateral asset is also a kresko asset, ensure that the deposit amount is above the minimum.
+        // This is done because kresko assets can be rebased.
+        if (self.collateralAssets[_collateralAsset].anchor != address(0)) {
+            require(
+                newCollateralAmount >= Constants.MIN_KRASSET_COLLATERAL_AMOUNT || newCollateralAmount == 0,
+                Error.COLLATERAL_AMOUNT_TOO_LOW
+            );
+        }
 
         // If the user is withdrawing all of the collateral asset, remove the collateral asset
         // from the user's deposited collateral assets array.
-        if (_withdrawAmount == _collateralDeposits) {
+        if (newCollateralAmount == 0) {
             self.depositedCollateralAssets[_account].removeAddress(_collateralAsset, _depositedCollateralAssetIndex);
         }
+
+        // Record the withdrawal.
+        self.collateralDeposits[_account][_collateralAsset] = self
+            .collateralAssets[_collateralAsset]
+            .toNonRebasingAmount(newCollateralAmount);
 
         emit MinterEvent.CollateralWithdrawn(_account, _collateralAsset, _withdrawAmount);
     }
@@ -128,15 +138,28 @@ library LibCollateral {
 
         // If the account does not have an existing deposit for this collateral asset,
         // push it to the list of the account's deposited collateral assets.
-        uint256 existingDepositAmount = self.getCollateralDeposits(_account, _collateralAsset);
-        if (existingDepositAmount == 0) {
+        uint256 existingCollateralAmount = self.getCollateralDeposits(_account, _collateralAsset);
+
+        if (existingCollateralAmount == 0) {
             self.depositedCollateralAssets[_account].push(_collateralAsset);
         }
+
+        uint256 newCollateralAmount = existingCollateralAmount + _depositAmount;
+
+        // If the collateral asset is also a kresko asset, ensure that the deposit amount is above the minimum.
+        // This is done because kresko assets can be rebased.
+        if (self.collateralAssets[_collateralAsset].anchor != address(0)) {
+            require(
+                newCollateralAmount >= Constants.MIN_KRASSET_COLLATERAL_AMOUNT || newCollateralAmount == 0,
+                Error.COLLATERAL_AMOUNT_TOO_LOW
+            );
+        }
+
         // Record the deposit.
         unchecked {
             self.collateralDeposits[_account][_collateralAsset] = self
                 .collateralAssets[_collateralAsset]
-                .toNonRebasingAmount(existingDepositAmount + _depositAmount);
+                .toNonRebasingAmount(newCollateralAmount);
         }
 
         emit MinterEvent.CollateralDeposited(_account, _collateralAsset, _depositAmount);
@@ -166,16 +189,27 @@ library LibCollateral {
         // ensure that the handler does not attempt to withdraw more collateral than the account has
         require(_collateralDeposits >= _withdrawAmount, Error.COLLATERAL_INSUFFICIENT_AMOUNT);
 
-        // Record the withdrawal.
-        self.collateralDeposits[_account][_collateralAsset] = self
-            .collateralAssets[_collateralAsset]
-            .toNonRebasingAmount(_collateralDeposits - _withdrawAmount);
+        uint256 newCollateralAmount = _collateralDeposits - _withdrawAmount;
+
+        // If the collateral asset is also a kresko asset, ensure that the deposit amount is above the minimum.
+        // This is done because kresko assets can be rebased.
+        if (self.collateralAssets[_collateralAsset].anchor != address(0)) {
+            require(
+                newCollateralAmount >= Constants.MIN_KRASSET_COLLATERAL_AMOUNT || newCollateralAmount == 0,
+                Error.COLLATERAL_AMOUNT_TOO_LOW
+            );
+        }
 
         // If the user is withdrawing all of the collateral asset, remove the collateral asset
         // from the user's deposited collateral assets array.
-        if (_withdrawAmount == _collateralDeposits) {
+        if (newCollateralAmount == 0) {
             self.depositedCollateralAssets[_account].removeAddress(_collateralAsset, _depositedCollateralAssetIndex);
         }
+
+        // Record the withdrawal.
+        self.collateralDeposits[_account][_collateralAsset] = self
+            .collateralAssets[_collateralAsset]
+            .toNonRebasingAmount(newCollateralAmount);
 
         emit MinterEvent.UncheckedCollateralWithdrawn(_account, _collateralAsset, _withdrawAmount);
     }

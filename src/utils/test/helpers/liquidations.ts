@@ -79,7 +79,12 @@ export const getExpectedMaxLiq = async (user: SignerWithAddress, krAsset: any, c
 
     return maxLiquidatableUSD;
 };
-export const liquidate = async (user: SignerWithAddress, krAsset: any, collateral: any) => {
+export const liquidate = async (
+    user: SignerWithAddress,
+    krAsset: any,
+    collateral: any,
+    allowSeizeUnderflow = false,
+) => {
     const depositsBefore = await hre.Diamond.collateralDeposits(user.address, collateral.address);
     const debtBefore = await hre.Diamond.kreskoAssetDebt(user.address, krAsset.address);
     const liqAmount = await getLiqAmount(user, krAsset, collateral);
@@ -134,13 +139,14 @@ export const liquidate = async (user: SignerWithAddress, krAsset: any, collatera
         collateral.address,
         await hre.Diamond.getMintedKreskoAssetsIndex(user.address, krAsset.address),
         await hre.Diamond.getDepositedCollateralAssetIndex(user.address, collateral.address),
+        allowSeizeUnderflow,
     );
     const depositsAfter = await hre.Diamond.collateralDeposits(user.address, collateral.address);
     const debtAfter = await hre.Diamond.kreskoAssetDebt(user.address, krAsset.address);
     return {
         collateralSeized: fromBig(depositsBefore.sub(depositsAfter), await collateral.contract.decimals()),
         debtRepaid: fromBig(debtBefore.sub(debtAfter), 18),
-        // tx,
+        tx,
     };
 };
 export const getCR = async (address: string, big = false) => {

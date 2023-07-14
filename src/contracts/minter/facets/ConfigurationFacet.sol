@@ -20,7 +20,7 @@ import {DiamondModifiers} from "../../diamond/DiamondModifiers.sol";
 
 import {ds} from "../../diamond/DiamondStorage.sol";
 
-import {MinterInitArgs, CollateralAsset, KrAsset, AggregatorV2V3Interface, Constants} from "../MinterTypes.sol";
+import {MinterInitArgs, CollateralAsset, KrAsset, IFluxPriceFeed, AggregatorV3Interface, Constants} from "../MinterTypes.sol";
 import {ms} from "../MinterStorage.sol";
 
 /**
@@ -60,6 +60,9 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         updateExtOracleDecimals(args.extOracleDecimals);
         updateMaxLiquidationMultiplier(Constants.MIN_MAX_LIQUIDATION_MULTIPLIER);
         updateOracleDeviationPct(args.oracleDeviationPct);
+        updateSequencerUptimeFeed(args.sequencerUptimeFeed);
+        updateSequencerGracePeriodTime(args.sequencerGracePeriodTime);
+        updateOracleTimeout(args.oracleTimeout);
 
         ms().initializations = 1;
         ms().domainSeparator = Meta.domainSeparator("Kresko Minter", "V1");
@@ -118,6 +121,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             _minimumCollateralizationRatio >= Constants.MIN_COLLATERALIZATION_RATIO,
             Error.PARAM_MIN_COLLATERAL_RATIO_LOW
         );
+        require(_minimumCollateralizationRatio >= ms().liquidationThreshold, Error.PARAM_COLLATERAL_RATIO_LOW_THAN_LT);
         ms().minimumCollateralizationRatio = _minimumCollateralizationRatio;
         emit MinterEvent.MinimumCollateralizationRatioUpdated(_minimumCollateralizationRatio);
     }
@@ -151,6 +155,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
 
     /// @inheritdoc IConfigurationFacet
     function updateAMMOracle(address _ammOracle) external onlyRole(Role.ADMIN) {
+        require(_ammOracle != address(0), Error.ADDRESS_INVALID_ORACLE);
         ms().ammOracle = _ammOracle;
         emit MinterEvent.AMMOracleUpdated(_ammOracle);
     }
@@ -164,6 +169,21 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
     function updateOracleDeviationPct(uint256 _oracleDeviationPct) public onlyRole(Role.ADMIN) {
         require(_oracleDeviationPct <= 1 ether, Error.INVALID_ORACLE_DEVIATION_PCT);
         ms().oracleDeviationPct = _oracleDeviationPct;
+    }
+
+    /// @inheritdoc IConfigurationFacet
+    function updateSequencerUptimeFeed(address _sequencerUptimeFeed) public override onlyRole(Role.ADMIN) {
+        ms().sequencerUptimeFeed = _sequencerUptimeFeed;
+    }
+
+    /// @inheritdoc IConfigurationFacet
+    function updateSequencerGracePeriodTime(uint256 _sequencerGracePeriodTime) public override onlyRole(Role.ADMIN) {
+        ms().sequencerGracePeriodTime = _sequencerGracePeriodTime;
+    }
+
+    /// @inheritdoc IConfigurationFacet
+    function updateOracleTimeout(uint256 _oracleTimeout) public override onlyRole(Role.ADMIN) {
+        ms().oracleTimeout = _oracleTimeout;
     }
 
     /* -------------------------------------------------------------------------- */
@@ -233,6 +253,8 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             Error.PARAM_LIQUIDATION_INCENTIVE_HIGH
         );
 
+        CollateralAsset memory collateralAsset = ms().collateralAssets[_collateralAsset];
+
         /* ------------------------------ Update anchor ----------------------------- */
         if (_config.anchor != address(0)) {
             bool krAsset = ms().kreskoAssets[_collateralAsset].exists;
@@ -242,34 +264,36 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
                     IERC165(_config.anchor).supportsInterface(type(IKreskoAssetIssuer).interfaceId),
                 Error.KRASSET_INVALID_ANCHOR
             );
-            ms().collateralAssets[_collateralAsset].anchor = _config.anchor;
+            collateralAsset.anchor = _config.anchor;
         }
 
         /* -------------------------- Market status oracle -------------------------- */
         if (address(_config.marketStatusOracle) != address(0)) {
-            ms().collateralAssets[_collateralAsset].marketStatusOracle = _config.marketStatusOracle;
+            collateralAsset.marketStatusOracle = _config.marketStatusOracle;
         }
 
         /* ------------------------------- Price feed ------------------------------- */
         if (address(_config.oracle) != address(0)) {
             require(_config.oracle.decimals() == ms().extOracleDecimals, Error.INVALID_ORACLE_DECIMALS);
-            ms().collateralAssets[_collateralAsset].oracle = _config.oracle;
-            require(ms().collateralAssets[_collateralAsset].uintPrice() != 0, Error.ADDRESS_INVALID_ORACLE);
+            collateralAsset.oracle = _config.oracle;
+            require(collateralAsset.uintPrice() != 0, Error.ADDRESS_INVALID_ORACLE);
         }
 
         /* --------------------------------- cFactor -------------------------------- */
-        ms().collateralAssets[_collateralAsset].factor = _config.factor;
+        collateralAsset.factor = _config.factor;
 
         /* ------------------------------ liqIncentive ------------------------------ */
-        ms().collateralAssets[_collateralAsset].liquidationIncentive = _config.liquidationIncentive;
+        collateralAsset.liquidationIncentive = _config.liquidationIncentive;
+
+        ms().collateralAssets[_collateralAsset] = collateralAsset;
 
         emit MinterEvent.CollateralAssetUpdated(
             _collateralAsset,
-            _config.factor,
-            address(ms().collateralAssets[_collateralAsset].oracle),
-            address(ms().collateralAssets[_collateralAsset].marketStatusOracle),
-            ms().collateralAssets[_collateralAsset].anchor,
-            _config.liquidationIncentive
+            collateralAsset.factor,
+            address(collateralAsset.oracle),
+            address(collateralAsset.marketStatusOracle),
+            collateralAsset.anchor,
+            collateralAsset.liquidationIncentive
         );
     }
 

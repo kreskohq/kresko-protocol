@@ -27,7 +27,11 @@ contract InterestLiquidationFacet is DiamondModifiers, IInterestLiquidationFacet
     using SafeERC20 for IERC20Permit;
 
     /// @inheritdoc IInterestLiquidationFacet
-    function batchLiquidateInterest(address _account, address _collateralAssetToSeize) external nonReentrant {
+    function batchLiquidateInterest(
+        address _account,
+        address _collateralAssetToSeize,
+        bool _allowSeizeUnderflow
+    ) external nonReentrant {
         // Borrower cannot liquidate themselves
         require(msg.sender != _account, Error.SELF_LIQUIDATION);
         // Check that this account is below its minimum collateralization ratio and can be liquidated.
@@ -43,10 +47,7 @@ contract InterestLiquidationFacet is DiamondModifiers, IInterestLiquidationFacet
             address repayKreskoAsset = mintedKreskoAssets[i];
             // Repays the full interest of this asset on behalf of the account being liquidated
             kissAmountToRepay += ms().repayFullStabilityRateInterest(_account, repayKreskoAsset);
-            // If the liquidation repays the user's entire Kresko asset balance, remove it from minted assets array.
-            if (ms().kreskoAssetDebt[_account][repayKreskoAsset] == 0) {
-                ms().mintedKreskoAssets[_account].removeAddress(repayKreskoAsset, i);
-            }
+
             // Check if the status with amount repaid is still underwater, if so no further liquidation is needed
             if (
                 !ms().isAccountLiquidatable(
@@ -66,7 +67,8 @@ contract InterestLiquidationFacet is DiamondModifiers, IInterestLiquidationFacet
             _account,
             _collateralAssetToSeize,
             ms().getDepositedCollateralAssetIndex(_account, _collateralAssetToSeize),
-            kissAmountToRepay
+            kissAmountToRepay,
+            _allowSeizeUnderflow
         );
 
         emit MinterEvent.BatchInterestLiquidationOccurred(
@@ -82,7 +84,8 @@ contract InterestLiquidationFacet is DiamondModifiers, IInterestLiquidationFacet
     function liquidateInterest(
         address _account,
         address _repayKreskoAsset,
-        address _collateralAssetToSeize
+        address _collateralAssetToSeize,
+        bool _allowSeizeUnderflow
     ) external nonReentrant {
         // Borrower cannot liquidate themselves
         require(msg.sender != _account, Error.SELF_LIQUIDATION);
@@ -103,7 +106,8 @@ contract InterestLiquidationFacet is DiamondModifiers, IInterestLiquidationFacet
             _account,
             _collateralAssetToSeize,
             ms().getDepositedCollateralAssetIndex(_account, _collateralAssetToSeize),
-            kissRepayAmount
+            kissRepayAmount,
+            _allowSeizeUnderflow
         );
 
         // If the liquidation repays the user's entire Kresko asset balance, remove it from minted assets array.
@@ -133,14 +137,15 @@ contract InterestLiquidationFacet is DiamondModifiers, IInterestLiquidationFacet
         address _account,
         address _collateralAssetToSeize,
         uint256 _depositedCollateralAssetIndex,
-        uint256 _kissRepayAmount
+        uint256 _kissRepayAmount,
+        bool _allowSeizeUnderflow
     ) internal returns (uint256 seizeAmount) {
         MinterState storage s = ms();
 
         seizeAmount = s.collateralAssets[_collateralAssetToSeize].decimals.fromWad(
             LibCalculation.calculateAmountToSeize(
                 s.collateralAssets[_collateralAssetToSeize].liquidationIncentive,
-                s.collateralAssets[_collateralAssetToSeize].uintAggregatePrice(s.oracleDeviationPct),
+                s.collateralAssets[_collateralAssetToSeize].uintPrice(s.oracleDeviationPct),
                 _kissRepayAmount.fromWadPriceToUint()
             )
         );
@@ -155,6 +160,9 @@ contract InterestLiquidationFacet is DiamondModifiers, IInterestLiquidationFacet
                 .collateralAssets[_collateralAssetToSeize]
                 .toNonRebasingAmount(seizeAmount);
         } else {
+            if (collateralDeposit < seizeAmount) {
+                require(_allowSeizeUnderflow, Error.SEIZED_COLLATERAL_UNDERFLOW);
+            }
             // This clause means user either has collateralDeposits equal or less than the _seizeAmount
             seizeAmount = collateralDeposit;
             // So we set the collateralDeposits to 0

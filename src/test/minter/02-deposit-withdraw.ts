@@ -1,5 +1,7 @@
+import { fromBig, getInternalEvent, toBig } from "@kreskolabs/lib";
 import {
     Action,
+    BASIS_POINT,
     defaultCollateralArgs,
     defaultDecimals,
     defaultKrAssetArgs,
@@ -8,8 +10,6 @@ import {
     withFixture,
     wrapContractWithSigner,
 } from "@test-utils";
-import hre from "hardhat";
-import { fromBig, toBig, getInternalEvent } from "@kreskolabs/lib";
 import { executeContractCallWithSigners } from "@utils/gnosis/utils/execution";
 import { Error } from "@utils/test/errors";
 import {
@@ -18,8 +18,10 @@ import {
     getCollateralConfig,
     withdrawCollateral,
 } from "@utils/test/helpers/collaterals";
+import { addMockKreskoAsset } from "@utils/test/helpers/krassets";
 import { expect } from "chai";
 import { BigNumber } from "ethers";
+import hre from "hardhat";
 import {
     CollateralDepositedEventObject,
     CollateralWithdrawnEventObject,
@@ -49,6 +51,111 @@ describe("Minter - Deposit Withdraw", () => {
 
     describe("#collateral", () => {
         describe("#deposit", () => {
+            it("should revert if withdrawing a krAsset collateral causing lower deposit amount than MIN_KRASSET_COLLATERAL_AMOUNT", async function () {
+                const arbitraryUser = hre.users.testUserSeven;
+                const collateralAmount = toBig(100);
+
+                const newKrAsset = await addMockKreskoAsset({
+                    name: "krTSLA",
+                    symbol: "krTSLA",
+                    marketOpen: true,
+                    factor: 1,
+                    closeFee: 0,
+                    openFee: 0,
+                    price: 10,
+                    supplyLimit: 2_000,
+                    stabilityRateBase: BASIS_POINT.mul(1000), // 10%
+                });
+
+                await newKrAsset.setBalance(arbitraryUser, collateralAmount);
+                await newKrAsset.mocks!.contract.setVariable("_allowances", {
+                    [arbitraryUser.address]: {
+                        [hre.Diamond.address]: collateralAmount.mul(4),
+                    },
+                });
+
+                await wrapContractWithSigner(hre.Diamond, hre.users.deployer).addCollateralAsset(
+                    newKrAsset.address,
+                    await getCollateralConfig(
+                        newKrAsset.contract,
+                        newKrAsset.anchor.address,
+                        toBig(1),
+                        toBig(1.05),
+                        newKrAsset.mocks.clFeed.address,
+                        newKrAsset.mocks.fluxFeed.address,
+                    ),
+                );
+                const depositAmount = collateralAmount.div(2);
+                await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
+                    arbitraryUser.address,
+                    newKrAsset.address,
+                    depositAmount,
+                );
+                // Rebase the asset according to params
+                const denominator = 4;
+                const positive = true;
+                await newKrAsset.contract.rebase(toBig(denominator), positive, []);
+
+                const rebasedDepositAmount = depositAmount.mul(denominator);
+                const withdrawAmount = rebasedDepositAmount.sub((9e11).toString());
+
+                expect(await hre.Diamond.getDepositedCollateralAssets(arbitraryUser.address)).to.deep.equal([
+                    newKrAsset.address,
+                ]);
+
+                await expect(
+                    wrapContractWithSigner(hre.Diamond, arbitraryUser).withdrawCollateral(
+                        arbitraryUser.address,
+                        newKrAsset.address,
+                        withdrawAmount,
+                        0,
+                    ),
+                ).to.be.revertedWith(Error.COLLATERAL_AMOUNT_TOO_LOW);
+            });
+            it("should revert if depositing a krAsset collateral causing lower deposit amount than MIN_KRASSET_COLLATERAL_AMOUNT", async function () {
+                const arbitraryUser = hre.users.testUserSeven;
+                const collateralAmount = toBig(100);
+
+                const newKrAsset = await addMockKreskoAsset({
+                    name: "krTSLA",
+                    symbol: "krTSLA",
+                    marketOpen: true,
+                    factor: 1,
+                    closeFee: 0,
+                    openFee: 0,
+                    price: 10,
+                    supplyLimit: 2_000,
+                    stabilityRateBase: BASIS_POINT.mul(1000), // 10%
+                });
+
+                await newKrAsset.setBalance(arbitraryUser, collateralAmount);
+                await newKrAsset.mocks!.contract.setVariable("_allowances", {
+                    [arbitraryUser.address]: {
+                        [hre.Diamond.address]: collateralAmount.mul(4),
+                    },
+                });
+
+                await wrapContractWithSigner(hre.Diamond, hre.users.deployer).addCollateralAsset(
+                    newKrAsset.address,
+                    await getCollateralConfig(
+                        newKrAsset.contract,
+                        newKrAsset.anchor.address,
+                        toBig(1),
+                        toBig(1.05),
+                        newKrAsset.mocks.clFeed.address,
+                        newKrAsset.mocks.fluxFeed.address,
+                    ),
+                );
+
+                await expect(
+                    wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
+                        arbitraryUser.address,
+                        newKrAsset.address,
+                        (9e11).toString(),
+                    ),
+                ).to.be.revertedWith(Error.COLLATERAL_AMOUNT_TOO_LOW);
+            });
+
             it("should allow an account to deposit whitelisted collateral", async function () {
                 // Account has no deposited assets
                 const depositedCollateralAssetsBefore = await hre.Diamond.getDepositedCollateralAssets(
@@ -605,7 +712,7 @@ describe("Minter - Deposit Withdraw", () => {
                         toBig(1),
                         toBig(1.05),
                         assetInfo.oracle,
-                        assetInfo.oracle,
+                        assetInfo.marketStatusOracle,
                     ),
                 );
 
@@ -1108,7 +1215,7 @@ describe("Minter - Deposit Withdraw", () => {
                         toBig(1),
                         toBig(1.05),
                         assetInfo.oracle,
-                        assetInfo.oracle,
+                        assetInfo.marketStatusOracle,
                     ),
                 );
 

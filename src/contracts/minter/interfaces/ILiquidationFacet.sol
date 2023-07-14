@@ -11,6 +11,7 @@ interface ILiquidationFacet {
      * @param _seizeAsset The address of the collateral asset to be seized.
      * @param _repayAssetIndex The index of the Kresko asset in the account's minted assets array.
      * @param _seizeAssetIndex Index of the collateral asset in the account's collateral assets array.
+     * @param _allowSeizeUnderflow Allow the amount of collateral to be seized to be less than the amount calculated.
      */
     function liquidate(
         address _account,
@@ -18,7 +19,8 @@ interface ILiquidationFacet {
         uint256 _repayAmount,
         address _seizeAsset,
         uint256 _repayAssetIndex,
-        uint256 _seizeAssetIndex
+        uint256 _seizeAssetIndex,
+        bool _allowSeizeUnderflow
     ) external;
 
     /**
@@ -30,7 +32,7 @@ interface ILiquidationFacet {
      * @param repayIndex The index of the Kresko asset in the user's minted assets array.
      * @param seizeAsset The address of the collateral asset to be seized.
      * @param seizeAssetIndex The index of the collateral asset in the account's collateral assets array.
-     * @param collateralDeposits The index of the collateral asset in the account's collateral assets array.
+     * @param allowSeizeUnderflow Allow the amount of collateral to be seized to be less than the amount calculated.
      */
     struct ExecutionParams {
         address account;
@@ -40,6 +42,7 @@ interface ILiquidationFacet {
         uint256 repayAssetIndex;
         address seizedAsset;
         uint256 seizedAssetIndex;
+        bool allowSeizeUnderflow;
     }
 
     /**

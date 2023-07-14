@@ -10,7 +10,7 @@ import {
 } from "@utils/test";
 import { addMockCollateralAsset } from "@utils/test/helpers/collaterals";
 import { addMockKreskoAsset, getKrAssetConfig } from "@utils/test/helpers/krassets";
-import { getMockOracleFor } from "@utils/test/helpers/oracle";
+import { getMockOraclesFor } from "@utils/test/helpers/oracle";
 
 describe("Minter - Configuration", () => {
     withFixture(["minter-init"]);
@@ -117,7 +117,7 @@ describe("Minter - Configuration", () => {
         it("can update values of a kresko asset", async function () {
             const { contract, anchor, priceFeed } = await addMockKreskoAsset();
 
-            const oracleAnswer = fromBig(await priceFeed.latestAnswer(), 8);
+            const oracleAnswer = fromBig((await priceFeed.latestRoundData())[1], 8);
             const kreskoAnswer = fromBig(await hre.Diamond.getKrAssetValue(contract.address, toBig(1), true), 8);
 
             expect(oracleAnswer).to.equal(kreskoAnswer);
@@ -131,7 +131,7 @@ describe("Minter - Configuration", () => {
                 openFee: toBig(0.02),
             };
 
-            const [newPriceFeed] = await getMockOracleFor(await contract.name(), update.price);
+            const [CLFeed, FluxFeed] = await getMockOraclesFor(await contract.name(), update.price);
 
             await wrapContractWithSigner(hre.Diamond, hre.users.deployer).updateKreskoAsset(
                 contract.address,
@@ -139,8 +139,8 @@ describe("Minter - Configuration", () => {
                     contract,
                     anchor!.address,
                     update.factor,
-                    newPriceFeed.address,
-                    newPriceFeed.address,
+                    CLFeed.address,
+                    FluxFeed.address,
                     toBig(update.supplyLimit),
                     update.closeFee,
                     update.openFee,
@@ -148,7 +148,7 @@ describe("Minter - Configuration", () => {
             );
 
             const newValues = await hre.Diamond.kreskoAsset(contract.address);
-            const updatedOracleAnswer = fromBig(await newPriceFeed.latestAnswer(), 8);
+            const updatedOracleAnswer = fromBig((await CLFeed.latestRoundData())[1], 8);
             const newKreskoAnswer = fromBig(await hre.Diamond.getKrAssetValue(contract.address, toBig(1), true), 8);
 
             expect(newValues.exists).to.equal(true);

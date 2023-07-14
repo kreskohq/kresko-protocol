@@ -1,31 +1,26 @@
-import { MockContract, smock } from "@defi-wonderland/smock";
+import { FakeContract, smock } from "@defi-wonderland/smock";
 import { toBig } from "@kreskolabs/lib";
-import { FluxPriceFeed__factory } from "types/typechain";
-import { defaultOraclePrice, defaultOracleDecimals } from "../mocks";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/runtime";
+import { MockAggregatorV3__factory } from "types/typechain";
+import { defaultOraclePrice } from "../mocks";
 
-export const getMockOracleFor = async (assetName = "Asset", price = defaultOraclePrice, marketOpen = true) => {
-    const FakeFeed = await smock.fake<FluxPriceFeed>("FluxPriceFeed");
-    const { deployer } = await hre.ethers.getNamedSigners();
+export const getMockOraclesFor = async (assetName = "Asset", price = defaultOraclePrice, marketOpen = true) => {
+    const CLFeed = await (await smock.mock<MockAggregatorV3__factory>("MockAggregatorV3")).deploy();
+    CLFeed.latestRoundData.returns([1, toBig(price, 8), 1, 1, 1]);
+    CLFeed.decimals.returns(8);
 
-    const MockFeed = await (
-        await smock.mock<FluxPriceFeed__factory>("FluxPriceFeed")
-    ).deploy(deployer.address, defaultOracleDecimals, assetName);
-
-    MockFeed.latestAnswer.returns(toBig(price, 8));
-    MockFeed.latestMarketOpen.returns(marketOpen);
-    MockFeed.decimals.returns(8);
-    FakeFeed.latestAnswer.returns(toBig(price, 8));
-    FakeFeed.latestMarketOpen.returns(marketOpen);
-    FakeFeed.decimals.returns(8);
-    return [MockFeed, FakeFeed] as const;
+    const FluxFeed = await smock.fake<FluxPriceFeed>("FluxPriceFeed");
+    FluxFeed.latestAnswer.returns(toBig(price, 8));
+    FluxFeed.latestMarketOpen.returns(marketOpen);
+    FluxFeed.decimals.returns(8);
+    return [CLFeed, FluxFeed] as const;
 };
 
 export const setPrice = (oracles: any, price: number) => {
-    oracles.priceFeed.latestAnswer.returns(toBig(price, 8));
-    oracles.mockFeed.latestAnswer.returns(toBig(price, 8));
+    oracles.fluxFeed.latestAnswer.returns(toBig(price, 8));
+    oracles.clFeed.latestRoundData.returns([1, toBig(price, 8), 1, 1, 1]);
 };
-export const setMarketOpen = <T extends "FluxPriceFeed">(oracle: MockContract<TC[T]>, marketOpen: boolean) => {
+export const setMarketOpen = <T extends "FluxPriceFeed">(oracle: FakeContract<TC[T]>, marketOpen: boolean) => {
     oracle.latestMarketOpen.returns(marketOpen);
 };
 

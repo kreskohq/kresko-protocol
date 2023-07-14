@@ -80,6 +80,7 @@ contract StabilityRateFacet is IStabilityRateFacet, MinterModifiers, DiamondModi
         require(irs().srAssets[_asset].asset == _asset, Error.STABILITY_RATES_NOT_INITIALIZED);
         require(WadRay.RAY >= _setup.optimalPriceRate, Error.INVALID_OPTIMAL_RATE);
         require(WadRay.RAY >= _setup.priceRateDelta, Error.INVALID_PRICE_RATE_DELTA);
+        require(_setup.stabilityRateBase >= WadRay.RAY, Error.INVALID_STABILITY_RATE_BASE);
 
         irs().srAssets[_asset].rateSlope1 = _setup.rateSlope1;
         irs().srAssets[_asset].rateSlope2 = _setup.rateSlope2;
@@ -136,7 +137,7 @@ contract StabilityRateFacet is IStabilityRateFacet, MinterModifiers, DiamondModi
         // Transfer the accrued interest
         IERC20Permit(irs().kiss).safeTransferFrom(msg.sender, ms().feeRecipient, _kissRepayAmount);
         uint256 assetAmount = _kissRepayAmount.divByPrice(
-            ms().kreskoAssets[_kreskoAsset].uintAggregatePrice(ms().oracleDeviationPct)
+            ms().kreskoAssets[_kreskoAsset].uintPrice(ms().oracleDeviationPct)
         );
         uint256 amountScaled = assetAmount.wadToRay().rayDiv(newDebtIndex);
         // Update scaled values for the user
