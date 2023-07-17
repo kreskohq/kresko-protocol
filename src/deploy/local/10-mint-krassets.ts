@@ -19,10 +19,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await DAI.approve(kresko.address, hre.ethers.constants.MaxUint256);
     await kresko.connect(deployer).depositCollateral(deployer.address, DAI.address, toBig(2_500_000_000));
 
-    console.log(`minting KISS`);
-    const collateralValue = await wrapKresko(kresko, deployer).getAccountCollateralValue(deployer.address);
-
-    console.log("collateralValue", collateralValue.toString());
     await wrapKresko(kresko, deployer).mintKreskoAsset(
         deployer.address,
         (
@@ -30,7 +26,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         ).address,
         toBig(1_200_000_000),
     );
-    console.log(`done minting KISS`);
 
     for (const krAsset of krAssets) {
         const asset = await hre.getContractOrFork("KreskoAsset", krAsset.symbol);
