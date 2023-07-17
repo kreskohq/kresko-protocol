@@ -35,7 +35,7 @@ library LibKrAsset {
         bool _ignoreKFactor
     ) internal view returns (uint256) {
         KrAsset memory krAsset = self.kreskoAssets[_kreskoAsset];
-        uint256 value = krAsset.uintAggregateUSD(_amount, self.oracleDeviationPct);
+        uint256 value = krAsset.uintUSD(_amount, self.oracleDeviationPct);
 
         if (!_ignoreKFactor) {
             value = value.wadMul(krAsset.kFactor);

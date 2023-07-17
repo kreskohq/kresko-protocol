@@ -1,15 +1,15 @@
 import { smock } from "@defi-wonderland/smock";
+import { redstoneMap } from "@deploy-config/opgoerli";
 import { anchorTokenPrefix } from "@deploy-config/shared";
 import { toBig } from "@kreskolabs/lib";
 import { expect } from "chai";
 import hre from "hardhat";
+import { KreskoAssetAnchor__factory, KreskoAsset__factory, MockAggregatorV3__factory } from "types/typechain";
+import { KrAssetStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 import { InputArgsSimple, TestKreskoAssetArgs, TestKreskoAssetUpdate, defaultKrAssetArgs } from "../mocks";
 import roles from "../roles";
-import { FluxPriceFeed__factory, KreskoAssetAnchor__factory, KreskoAsset__factory } from "types/typechain";
-import { KrAssetStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
-import { getMockOracleFor, setPrice, setMarketOpen } from "./oracle";
-import { redstoneMap } from "@deploy-config/opgoerli";
 import { wrapContractWithSigner } from "./general";
+import { getMockOraclesFor, setMarketOpen, setPrice } from "./oracle";
 
 export const getDebtIndexAdjustedBalance = async (user: SignerWithAddress, asset: TestKrAsset) => {
     const balance = await asset.contract.balanceOf(user.address);
@@ -49,7 +49,7 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
     const { name, symbol, price, marketOpen, factor, supplyLimit, closeFee, openFee, stabilityRateBase } = args;
 
     // Create an oracle with price supplied
-    const [MockOracle, Oracle] = await getMockOracleFor(name, price, marketOpen);
+    const [CLFeed, FluxFeed] = await getMockOraclesFor(name, price, marketOpen);
 
     // create the underlying rebasing krAsset
     const krAsset = await (await smock.mock<KreskoAsset__factory>("KreskoAsset")).deploy();
@@ -74,8 +74,8 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
             krAsset,
             akrAsset.address,
             kFactor,
-            Oracle.address,
-            MockOracle.address,
+            CLFeed.address,
+            FluxFeed.address,
             toBig(supplyLimit),
             toBig(closeFee),
             toBig(openFee),
@@ -99,8 +99,8 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
     const mocks = {
         contract: krAsset,
         anchor: akrAsset,
-        mockFeed: MockOracle,
-        priceFeed: Oracle,
+        clFeed: CLFeed,
+        fluxFeed: FluxFeed,
     };
     const asset: TestKrAsset = {
         krAsset: true,
@@ -109,20 +109,24 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
         kresko: async () => await hre.Diamond.kreskoAsset(krAsset.address),
         deployArgs: args,
         contract: KreskoAsset__factory.connect(krAsset.address, deployer),
-        priceFeed: FluxPriceFeed__factory.connect(Oracle.address, deployer),
+        priceFeed: MockAggregatorV3__factory.connect(CLFeed.address, deployer),
         mocks,
         anchor: KreskoAssetAnchor__factory.connect(akrAsset.address, deployer),
         setPrice: price => setPrice(mocks, price),
         setBalance: async (user, amount) => {
             const totalSupply = await krAsset.totalSupply();
+            await akrAsset.setVariable("_totalSupply", (await akrAsset.totalSupply()).add(amount));
+            await akrAsset.setVariable("_balances", {
+                [hre.Diamond.address]: (await mocks.contract.balanceOf(hre.Diamond.address)).add(amount),
+            });
             await mocks.contract.setVariable("_totalSupply", totalSupply.add(amount));
             await mocks.contract.setVariable("_balances", {
                 [user.address]: amount,
             });
         },
-        getPrice: () => MockOracle.latestAnswer(),
-        setMarketOpen: marketOpen => setMarketOpen(MockOracle, marketOpen),
-        getMarketOpen: () => MockOracle.latestMarketOpen(),
+        getPrice: async () => (await CLFeed.latestRoundData())[1],
+        setMarketOpen: marketOpen => setMarketOpen(FluxFeed, marketOpen),
+        getMarketOpen: () => FluxFeed.latestMarketOpen(),
         update: update => updateKrAsset(krAsset.address, update),
     };
 
@@ -144,7 +148,7 @@ export const addMockKreskoAssetWithAMMPair = async (
     const { name, symbol, price, marketOpen, factor, supplyLimit, closeFee, openFee } = args;
 
     // Create an oracle with price supplied
-    const [MockOracle, FakeOracle] = await getMockOracleFor(name, price, marketOpen);
+    const [CLFeed, FluxFeed] = await getMockOraclesFor(name, price, marketOpen);
 
     // create the underlying rebasing krAsset
     const krAsset = await (await smock.mock<KreskoAsset__factory>("KreskoAsset")).deploy();
@@ -169,8 +173,8 @@ export const addMockKreskoAssetWithAMMPair = async (
             krAsset,
             akrAsset.address,
             toBig(factor),
-            MockOracle.address,
-            MockOracle.address,
+            CLFeed.address,
+            FluxFeed.address,
             toBig(supplyLimit),
             toBig(closeFee),
             toBig(openFee),
@@ -190,8 +194,8 @@ export const addMockKreskoAssetWithAMMPair = async (
     const mocks = {
         contract: krAsset,
         anchor: akrAsset,
-        mockFeed: MockOracle,
-        priceFeed: FakeOracle,
+        clFeed: CLFeed,
+        fluxFeed: FluxFeed,
     };
     const asset: TestKrAsset = {
         krAsset: true,
@@ -200,20 +204,24 @@ export const addMockKreskoAssetWithAMMPair = async (
         kresko: async () => await hre.Diamond.kreskoAsset(krAsset.address),
         deployArgs: args,
         contract: KreskoAsset__factory.connect(krAsset.address, deployer),
-        priceFeed: FluxPriceFeed__factory.connect(FakeOracle.address, deployer),
+        priceFeed: MockAggregatorV3__factory.connect(CLFeed.address, deployer),
         mocks,
         anchor: KreskoAssetAnchor__factory.connect(akrAsset.address, deployer),
         setPrice: price => setPrice(mocks, price),
         setBalance: async (user, amount) => {
             const totalSupply = await krAsset.totalSupply();
+            await akrAsset.setVariable("_totalSupply", (await akrAsset.totalSupply()).add(amount));
+            await akrAsset.setVariable("_balances", {
+                [hre.Diamond.address]: (await mocks.contract.balanceOf(hre.Diamond.address)).add(amount),
+            });
             await mocks.contract.setVariable("_totalSupply", totalSupply.add(amount));
             await mocks.contract.setVariable("_balances", {
                 [user.address]: amount,
             });
         },
-        getPrice: () => MockOracle.latestAnswer(),
-        setMarketOpen: marketOpen => setMarketOpen(MockOracle, marketOpen),
-        getMarketOpen: () => MockOracle.latestMarketOpen(),
+        getPrice: async () => (await CLFeed.latestRoundData())[1],
+        setMarketOpen: marketOpen => setMarketOpen(FluxFeed, marketOpen),
+        getMarketOpen: () => FluxFeed.latestMarketOpen(),
         update: update => updateKrAsset(krAsset.address, update),
     };
 
@@ -236,8 +244,8 @@ export const updateKrAsset = async (address: string, args: TestKreskoAssetUpdate
             krAsset.contract,
             krAsset.mocks.anchor!.address,
             toBig(args.factor),
-            args.oracle || krAsset.priceFeed.address,
-            args.oracle || krAsset.priceFeed.address,
+            args.oracle || krAsset.mocks.clFeed.address,
+            args.oracle || krAsset.mocks.fluxFeed.address,
             toBig(args.supplyLimit, await krAsset.contract.decimals()),
             toBig(args.closeFee),
             toBig(args.openFee),

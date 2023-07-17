@@ -112,6 +112,7 @@ describe("Stability Rates", () => {
                     userTwo.address,
                     krAsset.address,
                     this.collateral.address,
+                    false,
                 ),
             ).to.be.revertedWith(Error.NOT_LIQUIDATABLE);
         });
@@ -142,6 +143,7 @@ describe("Stability Rates", () => {
                 wrapContractWithSigner(hre.Diamond, liquidator).batchLiquidateInterest(
                     userTwo.address,
                     this.collateral.address,
+                    false,
                 ),
             ).to.be.revertedWith(Error.NOT_LIQUIDATABLE);
         });
@@ -204,6 +206,7 @@ describe("Stability Rates", () => {
                 userTwo.address,
                 krAsset.address,
                 this.collateral.address,
+                false,
             );
 
             // Should all be wiped
@@ -238,6 +241,62 @@ describe("Stability Rates", () => {
             expect(fromBig(event.collateralSent).toFixed(6)).to.equal(expectedCollateral.toFixed(6));
             // liquidator received collateral
             expect(await this.collateral.contract.balanceOf(liquidator.address)).to.equal(event.collateralSent);
+        });
+        it("cannot underflow seized collateral without liquidators permission", async function () {
+            const KISS = await hre.getContractOrFork("KISS");
+
+            // mint each krasset
+            await Promise.all([
+                await KISS.connect(liquidator).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256),
+                await this.collateral.setBalance(userTwo, depositAmount),
+                // Deposit a bit more to cover the mints
+                await depositCollateral({
+                    asset: this.collateral,
+                    amount: depositAmount,
+                    user: userTwo,
+                }),
+                ...krAssets.map(krAsset =>
+                    mintKrAsset({
+                        asset: krAsset,
+                        amount: mintAmount,
+                        user: userTwo,
+                    }),
+                ),
+            ]);
+
+            // Up the asset prices
+            const newPrice = 15;
+            krAssets.map(asset => asset.setPrice(newPrice));
+            // increase time by a lot, so account is liquidatable and seized collateral will underflow
+            expect(await hre.Diamond.isAccountLiquidatable(userTwo.address)).to.be.false;
+            await time.increase(ONE_YEAR * 40);
+
+            // should be liquidatable
+            expect(await hre.Diamond.isAccountLiquidatable(userTwo.address)).to.be.true;
+
+            // Asset to liquidate
+            const krAsset = krAssets[0];
+
+            const interestUSDTotal = await hre.Diamond.kreskoAssetDebtInterestTotal(userTwo.address);
+            // Liquidator mints KISS
+            await mintKrAsset({
+                asset: KISS,
+                amount: interestUSDTotal.add(toBig(1)),
+                user: liquidator,
+            });
+
+            // Wipe seized collateral balance before liquidation for easy comparison
+            await this.collateral.setBalance(liquidator, toBig(0));
+
+            // Liquidate
+            await expect(
+                wrapContractWithSigner(hre.Diamond, liquidator).liquidateInterest(
+                    userTwo.address,
+                    krAsset.address,
+                    this.collateral.address,
+                    false,
+                ),
+            ).to.be.revertedWith(Error.SEIZED_COLLATERAL_UNDERFLOW);
         });
 
         it("can batch liquidate accrued interest of unhealthy account", async function () {
@@ -287,6 +346,7 @@ describe("Stability Rates", () => {
             const tx = await wrapContractWithSigner(hre.Diamond, liquidator).batchLiquidateInterest(
                 userTwo.address,
                 this.collateral.address,
+                false,
             );
 
             const interestKissTotalAfter = fromBig(await hre.Diamond.kreskoAssetDebtInterestTotal(userTwo.address));

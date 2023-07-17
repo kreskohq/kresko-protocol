@@ -4,7 +4,10 @@ import {CollateralAsset, KrAsset} from "../MinterTypes.sol";
 import {LibDecimals} from "../libs/LibDecimals.sol";
 import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
 import {WadRay} from "../../libs/WadRay.sol";
+import {Error} from "../../libs/Errors.sol";
 import {LibRedstone} from "./LibRedstone.sol";
+import {ms} from "../MinterStorage.sol";
+import {AggregatorV3Interface} from "../../vendor/AggregatorV3Interface.sol";
 
 /**
  * @title LibAssetUtility
@@ -13,7 +16,7 @@ import {LibRedstone} from "./LibRedstone.sol";
  */
 library LibAssetUtility {
     using WadRay for uint256;
-    using LibDecimals for int256;
+    using LibDecimals for uint256;
 
     /**
      * @notice Amount of non rebasing tokens -> amount of rebasing tokens
@@ -62,7 +65,13 @@ library LibAssetUtility {
      * @notice Get the oracle price of a collateral asset in uint256 with extOracleDecimals
      */
     function uintPrice(CollateralAsset memory self) internal view returns (uint256) {
-        return uint256(self.oracle.latestAnswer());
+        (, int256 answer, , uint256 updatedAt, ) = self.oracle.latestRoundData();
+        require(answer >= 0, Error.NEGATIVE_ORACLE_PRICE);
+        // returning zero if oracle price is too old so that fallback oracle is used instead.
+        if (block.timestamp - updatedAt > ms().oracleTimeout) {
+            return 0;
+        }
+        return uint256(answer);
     }
 
     /**
@@ -76,7 +85,13 @@ library LibAssetUtility {
      * @notice Get the oracle price of a kresko asset in uint256 with extOracleDecimals
      */
     function uintPrice(KrAsset memory self) internal view returns (uint256) {
-        return uint256(self.oracle.latestAnswer());
+        (, int256 answer, , uint256 updatedAt, ) = self.oracle.latestRoundData();
+        require(answer >= 0, Error.NEGATIVE_ORACLE_PRICE);
+        // returning zero if oracle price is too old so that fallback oracle is used instead.
+        if (block.timestamp - updatedAt > ms().oracleTimeout) {
+            return 0;
+        }
+        return uint256(answer);
     }
 
     /**
@@ -91,14 +106,14 @@ library LibAssetUtility {
      * @notice Get the oracle price of a collateral asset in uint256 with 18 decimals
      */
     function wadPrice(CollateralAsset memory self) internal view returns (uint256) {
-        return self.oracle.latestAnswer().oraclePriceToWad();
+        return self.uintPrice().oraclePriceToWad();
     }
 
     /**
      * @notice Get the oracle price of a kresko asset in uint256 with 18 decimals
      */
     function wadPrice(KrAsset memory self) internal view returns (uint256) {
-        return self.oracle.latestAnswer().oraclePriceToWad();
+        return self.uintPrice().oraclePriceToWad();
     }
 
     /**
@@ -138,11 +153,8 @@ library LibAssetUtility {
      * @param self the collateral asset struct
      * @param _oracleDeviationPct the deviation percentage to use for the oracle
      */
-    function uintAggregatePrice(
-        CollateralAsset memory self,
-        uint256 _oracleDeviationPct
-    ) internal view returns (uint256) {
-        return _aggregatePrice(self.uintPrice(), self.redstonePrice(), _oracleDeviationPct);
+    function uintPrice(CollateralAsset memory self, uint256 _oracleDeviationPct) internal view returns (uint256) {
+        return _getPrice(self.uintPrice(), self.redstonePrice(), _oracleDeviationPct);
     }
 
     /**
@@ -150,8 +162,8 @@ library LibAssetUtility {
      * @param self the kresko asset struct
      * @param _oracleDeviationPct the deviation percentage to use for the oracle
      */
-    function uintAggregatePrice(KrAsset memory self, uint256 _oracleDeviationPct) internal view returns (uint256) {
-        return _aggregatePrice(self.uintPrice(), self.redstonePrice(), _oracleDeviationPct);
+    function uintPrice(KrAsset memory self, uint256 _oracleDeviationPct) internal view returns (uint256) {
+        return _getPrice(self.uintPrice(), self.redstonePrice(), _oracleDeviationPct);
     }
 
     /**
@@ -160,12 +172,12 @@ library LibAssetUtility {
      * @param _assetAmount the amount to convert
      * @param _oracleDeviationPct the deviation percentage to use for the oracle
      */
-    function uintAggregateUSD(
+    function uintUSD(
         CollateralAsset memory self,
         uint256 _assetAmount,
         uint256 _oracleDeviationPct
     ) internal view returns (uint256) {
-        return _aggregatePrice(self.uintUSD(_assetAmount), self.uintUSDRedstone(_assetAmount), _oracleDeviationPct);
+        return _getPrice(self.uintUSD(_assetAmount), self.uintUSDRedstone(_assetAmount), _oracleDeviationPct);
     }
 
     /**
@@ -174,31 +186,48 @@ library LibAssetUtility {
      * @param _assetAmount the amount to convert
      * @param _oracleDeviationPct the deviation percentage to use for the oracle
      */
-    function uintAggregateUSD(
+    function uintUSD(
         KrAsset memory self,
         uint256 _assetAmount,
         uint256 _oracleDeviationPct
     ) internal view returns (uint256) {
-        return _aggregatePrice(self.uintUSD(_assetAmount), self.uintUSDRedstone(_assetAmount), _oracleDeviationPct);
+        return _getPrice(self.uintUSD(_assetAmount), self.uintUSDRedstone(_assetAmount), _oracleDeviationPct);
     }
 
     /**
-     * @notice perform checks on price and return the aggregated price
+     * @notice check the price and return it
+     * @notice reverts if the price deviates more than `_oracleDeviationPct`
      * @param _chainlinkPrice chainlink price
      * @param _redstonePrice redstone price
      * @param _oracleDeviationPct the deviation percentage to use for the oracle
      */
-    function _aggregatePrice(
+    function _getPrice(
         uint256 _chainlinkPrice,
         uint256 _redstonePrice,
         uint256 _oracleDeviationPct
-    ) internal pure returns (uint256) {
+    ) internal view returns (uint256) {
+        if (ms().sequencerUptimeFeed != address(0)) {
+            (, int256 answer, uint256 startedAt, , ) = AggregatorV3Interface(ms().sequencerUptimeFeed)
+                .latestRoundData();
+            bool isSequencerUp = answer == 0;
+            if (!isSequencerUp) {
+                return _redstonePrice;
+            }
+            // Make sure the grace period has passed after the
+            // sequencer is back up.
+            uint256 timeSinceUp = block.timestamp - startedAt;
+            if (timeSinceUp <= ms().sequencerGracePeriodTime) {
+                return _redstonePrice;
+            }
+        }
         if (_chainlinkPrice == 0) return _redstonePrice;
         if (_redstonePrice == 0) return _chainlinkPrice;
         if (
             (_redstonePrice.wadMul(1 ether - _oracleDeviationPct) <= _chainlinkPrice) &&
             (_redstonePrice.wadMul(1 ether + _oracleDeviationPct) >= _chainlinkPrice)
         ) return _chainlinkPrice;
-        return (_chainlinkPrice + _redstonePrice) / 2;
+
+        // Revert if price deviates more than `_oracleDeviationPct`
+        revert(Error.ORACLE_PRICE_UNSTABLE);
     }
 }

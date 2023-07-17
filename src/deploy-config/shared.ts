@@ -50,6 +50,7 @@ export const getMinterInitializer = async (
     hre: HardhatRuntimeEnvironment,
 ): Promise<MinterInitializer<MinterInitArgsStruct>> => {
     const { treasury, admin, multisig } = await getDeploymentUsers(hre);
+    const { ethers } = hre;
 
     return {
         name: "ConfigurationFacet",
@@ -62,6 +63,9 @@ export const getMinterInitializer = async (
             liquidationThreshold: toBig(process.env.LIQUIDATION_THRESHOLD!),
             extOracleDecimals: 8,
             oracleDeviationPct: toBig(0.1),
+            sequencerUptimeFeed: ethers.constants.AddressZero,
+            sequencerGracePeriodTime: 3600,
+            oracleTimeout: ethers.constants.MaxUint256,
         },
     };
 };

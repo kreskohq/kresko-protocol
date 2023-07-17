@@ -16,7 +16,6 @@ import {ms} from "../MinterStorage.sol";
 contract AccountStateFacet is IAccountStateFacet {
     using LibDecimals for uint256;
     using LibDecimals for uint8;
-    using LibDecimals for uint256;
     using WadRay for uint256;
 
     /* -------------------------------------------------------------------------- */
@@ -140,7 +139,7 @@ contract AccountStateFacet is IAccountStateFacet {
         KrAsset memory krAsset = ms().kreskoAssets[_kreskoAsset];
 
         // Calculate the value of the fee according to the value of the krAsset
-        uint256 feeValue = krAsset.uintAggregateUSD(_kreskoAssetAmount, ms().oracleDeviationPct).wadMul(
+        uint256 feeValue = krAsset.uintUSD(_kreskoAssetAmount, ms().oracleDeviationPct).wadMul(
             Fee(_feeType) == Fee.Open ? krAsset.openFee : krAsset.closeFee
         );
 

@@ -28,12 +28,12 @@ declare global {
         kresko: () => Promise<KrAssetStructOutput>;
         mocks: {
             contract: MockContract<KreskoAsset>;
-            mockFeed: MockContract<FluxPriceFeed>;
-            priceFeed: FakeContract<FluxPriceFeed>;
+            clFeed: MockContract<Contracts.MockAggregatorV3>;
+            fluxFeed: FakeContract<FluxPriceFeed>;
             anchor?: MockContract<KreskoAssetAnchor>;
         };
         anchor: KreskoAssetAnchor;
-        priceFeed: FluxPriceFeed;
+        priceFeed: Contracts.MockAggregatorV3;
         setBalance: (user: SignerWithAddress, balance: BigNumber) => Promise<void>;
         setPrice: (price: number) => void;
         getPrice: () => Promise<BigNumber>;
@@ -50,10 +50,11 @@ declare global {
         kresko: () => Promise<CollateralAssetStruct>;
         mocks?: {
             contract: MockContract<ERC20Upgradeable>;
-            priceFeed: FakeContract<FluxPriceFeed>;
+            clFeed: MockContract<Contracts.MockAggregatorV3>;
+            fluxFeed: FakeContract<FluxPriceFeed>;
             anchor?: MockContract<KreskoAssetAnchor>;
         };
-        priceFeed: FluxPriceFeed;
+        priceFeed: Contracts.MockAggregatorV3;
         anchor: KreskoAssetAnchor;
         setPrice: (price: number) => void;
         setBalance: (user: SignerWithAddress, amount: BigNumber) => Promise<void>;
@@ -68,6 +69,7 @@ declare global {
     /* -------------------------------------------------------------------------- */
     /*                                   Oracles                                  */
     /* -------------------------------------------------------------------------- */
+    type SequencerUptimeFeed = Contracts.MockSequencerUptimeFeed;
     type FluxPriceFeed = TC["FluxPriceFeed"];
     type FluxPriceFeedFactory = TC["FluxPriceFeedFactory"];
     type UniV2Router = Contracts.UniswapV2Router02;

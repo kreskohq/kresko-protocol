@@ -31,7 +31,7 @@ interface IConfigurationFacet {
     function updateCollateralAsset(address _collateralAsset, CollateralAsset memory _config) external;
 
     /**
-     * @notice Updates the k-factor of a previously added KreskoAsset.
+     * @notice Updates a previously added kresko asset.
      * @dev Only callable by the owner.
      * @param _krAsset The address of the KreskoAsset.
      * @param _config Configuration for the KreskoAsset.
@@ -109,4 +109,22 @@ interface IConfigurationFacet {
      * @param _oracleDeviationPct Amount of decimals
      */
     function updateOracleDeviationPct(uint256 _oracleDeviationPct) external;
+
+    /**
+     * @notice Sets L2 sequencer uptime feed address
+     * @param _sequencerUptimeFeed sequencer uptime feed address
+     */
+    function updateSequencerUptimeFeed(address _sequencerUptimeFeed) external;
+
+    /**
+     * @notice Sets sequencer grace period time
+     * @param _sequencerGracePeriodTime grace period time
+     */
+    function updateSequencerGracePeriodTime(uint256 _sequencerGracePeriodTime) external;
+
+    /**
+     * @notice Sets oracle timeout
+     * @param _oracleTimeout oracle timeout in seconds
+     */
+    function updateOracleTimeout(uint256 _oracleTimeout) external;
 }
