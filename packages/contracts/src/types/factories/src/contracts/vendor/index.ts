@@ -2,5 +2,4 @@
 // @ts-nocheck
 /* tslint:disable */
 /* eslint-disable */
-export * as flux from "./flux";
 export * as uniswap from "./uniswap";

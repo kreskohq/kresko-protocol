@@ -2,4 +2,5 @@
 // @ts-nocheck
 /* tslint:disable */
 /* eslint-disable */
-export type { UniswapV2Oracle } from "./UniswapV2Oracle";
+import type * as ammOracle from "./amm-oracle";
+export type { ammOracle };

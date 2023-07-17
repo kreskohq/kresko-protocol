@@ -14,9 +14,51 @@ import type {
     Signer,
     utils,
 } from "ethers";
-import type { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
+import type { FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent, PromiseOrValue } from "../../common";
+
+export type CollateralAssetStruct = {
+    factor: PromiseOrValue<BigNumberish>;
+    oracle: PromiseOrValue<string>;
+    anchor: PromiseOrValue<string>;
+    decimals: PromiseOrValue<BigNumberish>;
+    exists: PromiseOrValue<boolean>;
+    liquidationIncentive: PromiseOrValue<BigNumberish>;
+    redstoneId: PromiseOrValue<BytesLike>;
+};
+
+export type CollateralAssetStructOutput = [BigNumber, string, string, number, boolean, BigNumber, string] & {
+    factor: BigNumber;
+    oracle: string;
+    anchor: string;
+    decimals: number;
+    exists: boolean;
+    liquidationIncentive: BigNumber;
+    redstoneId: string;
+};
+
+export type KrAssetStruct = {
+    kFactor: PromiseOrValue<BigNumberish>;
+    oracle: PromiseOrValue<string>;
+    supplyLimit: PromiseOrValue<BigNumberish>;
+    anchor: PromiseOrValue<string>;
+    closeFee: PromiseOrValue<BigNumberish>;
+    openFee: PromiseOrValue<BigNumberish>;
+    exists: PromiseOrValue<boolean>;
+    redstoneId: PromiseOrValue<BytesLike>;
+};
+
+export type KrAssetStructOutput = [BigNumber, string, BigNumber, string, BigNumber, BigNumber, boolean, string] & {
+    kFactor: BigNumber;
+    oracle: string;
+    supplyLimit: BigNumber;
+    anchor: string;
+    closeFee: BigNumber;
+    openFee: BigNumber;
+    exists: boolean;
+    redstoneId: string;
+};
 
 export type MinterInitArgsStruct = {
     admin: PromiseOrValue<string>;
@@ -26,9 +68,25 @@ export type MinterInitArgsStruct = {
     minimumCollateralizationRatio: PromiseOrValue<BigNumberish>;
     minimumDebtValue: PromiseOrValue<BigNumberish>;
     liquidationThreshold: PromiseOrValue<BigNumberish>;
+    oracleDeviationPct: PromiseOrValue<BigNumberish>;
+    sequencerUptimeFeed: PromiseOrValue<string>;
+    sequencerGracePeriodTime: PromiseOrValue<BigNumberish>;
+    oracleTimeout: PromiseOrValue<BigNumberish>;
 };
 
-export type MinterInitArgsStructOutput = [string, string, string, number, BigNumber, BigNumber, BigNumber] & {
+export type MinterInitArgsStructOutput = [
+    string,
+    string,
+    string,
+    number,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    string,
+    BigNumber,
+    BigNumber,
+] & {
     admin: string;
     council: string;
     treasury: string;
@@ -36,6 +94,10 @@ export type MinterInitArgsStructOutput = [string, string, string, number, BigNum
     minimumCollateralizationRatio: BigNumber;
     minimumDebtValue: BigNumber;
     liquidationThreshold: BigNumber;
+    oracleDeviationPct: BigNumber;
+    sequencerUptimeFeed: string;
+    sequencerGracePeriodTime: BigNumber;
+    oracleTimeout: BigNumber;
 };
 
 export type PauseStruct = {
@@ -106,88 +168,24 @@ export type StabilityRateParamsStructOutput = [BigNumber, BigNumber, BigNumber, 
     priceRateDelta: BigNumber;
 };
 
-export type CollateralAssetStruct = {
-    factor: FixedPoint.UnsignedStruct;
-    oracle: PromiseOrValue<string>;
-    marketStatusOracle: PromiseOrValue<string>;
-    anchor: PromiseOrValue<string>;
-    decimals: PromiseOrValue<BigNumberish>;
-    exists: PromiseOrValue<boolean>;
-    liquidationIncentive: FixedPoint.UnsignedStruct;
-};
-
-export type CollateralAssetStructOutput = [
-    FixedPoint.UnsignedStructOutput,
-    string,
-    string,
-    string,
-    number,
-    boolean,
-    FixedPoint.UnsignedStructOutput,
-] & {
-    factor: FixedPoint.UnsignedStructOutput;
-    oracle: string;
-    marketStatusOracle: string;
-    anchor: string;
-    decimals: number;
-    exists: boolean;
-    liquidationIncentive: FixedPoint.UnsignedStructOutput;
-};
-
 export type MinterParamsStruct = {
-    minimumCollateralizationRatio: FixedPoint.UnsignedStruct;
-    minimumDebtValue: FixedPoint.UnsignedStruct;
-    liquidationThreshold: FixedPoint.UnsignedStruct;
-    liquidationOverflowPercentage: FixedPoint.UnsignedStruct;
+    minimumCollateralizationRatio: PromiseOrValue<BigNumberish>;
+    minimumDebtValue: PromiseOrValue<BigNumberish>;
+    liquidationThreshold: PromiseOrValue<BigNumberish>;
+    liquidationOverflowPercentage: PromiseOrValue<BigNumberish>;
     feeRecipient: PromiseOrValue<string>;
     extOracleDecimals: PromiseOrValue<BigNumberish>;
+    oracleDeviationPct: PromiseOrValue<BigNumberish>;
 };
 
-export type MinterParamsStructOutput = [
-    FixedPoint.UnsignedStructOutput,
-    FixedPoint.UnsignedStructOutput,
-    FixedPoint.UnsignedStructOutput,
-    FixedPoint.UnsignedStructOutput,
-    string,
-    number,
-] & {
-    minimumCollateralizationRatio: FixedPoint.UnsignedStructOutput;
-    minimumDebtValue: FixedPoint.UnsignedStructOutput;
-    liquidationThreshold: FixedPoint.UnsignedStructOutput;
-    liquidationOverflowPercentage: FixedPoint.UnsignedStructOutput;
+export type MinterParamsStructOutput = [BigNumber, BigNumber, BigNumber, BigNumber, string, number, BigNumber] & {
+    minimumCollateralizationRatio: BigNumber;
+    minimumDebtValue: BigNumber;
+    liquidationThreshold: BigNumber;
+    liquidationOverflowPercentage: BigNumber;
     feeRecipient: string;
     extOracleDecimals: number;
-};
-
-export type KrAssetStruct = {
-    kFactor: FixedPoint.UnsignedStruct;
-    oracle: PromiseOrValue<string>;
-    marketStatusOracle: PromiseOrValue<string>;
-    supplyLimit: PromiseOrValue<BigNumberish>;
-    anchor: PromiseOrValue<string>;
-    closeFee: FixedPoint.UnsignedStruct;
-    openFee: FixedPoint.UnsignedStruct;
-    exists: PromiseOrValue<boolean>;
-};
-
-export type KrAssetStructOutput = [
-    FixedPoint.UnsignedStructOutput,
-    string,
-    string,
-    BigNumber,
-    string,
-    FixedPoint.UnsignedStructOutput,
-    FixedPoint.UnsignedStructOutput,
-    boolean,
-] & {
-    kFactor: FixedPoint.UnsignedStructOutput;
-    oracle: string;
-    marketStatusOracle: string;
-    supplyLimit: BigNumber;
-    anchor: string;
-    closeFee: FixedPoint.UnsignedStructOutput;
-    openFee: FixedPoint.UnsignedStructOutput;
-    exists: boolean;
+    oracleDeviationPct: BigNumber;
 };
 
 export declare namespace IDiamondCutFacet {
@@ -216,12 +214,6 @@ export declare namespace IDiamondLoupeFacet {
     };
 }
 
-export declare namespace FixedPoint {
-    export type UnsignedStruct = { rawValue: PromiseOrValue<BigNumberish> };
-
-    export type UnsignedStructOutput = [BigNumber] & { rawValue: BigNumber };
-}
-
 export declare namespace LibUI {
     export type PriceStruct = {
         price: PromiseOrValue<BigNumberish>;
@@ -247,15 +239,15 @@ export declare namespace LibUI {
         amountScaled: PromiseOrValue<BigNumberish>;
         priceRate: PromiseOrValue<BigNumberish>;
         stabilityRate: PromiseOrValue<BigNumberish>;
-        amountUSD: FixedPoint.UnsignedStruct;
+        amountUSD: PromiseOrValue<BigNumberish>;
         index: PromiseOrValue<BigNumberish>;
-        kFactor: FixedPoint.UnsignedStruct;
+        kFactor: PromiseOrValue<BigNumberish>;
         price: PromiseOrValue<BigNumberish>;
         ammPrice: PromiseOrValue<BigNumberish>;
         symbol: PromiseOrValue<string>;
         name: PromiseOrValue<string>;
-        openFee: FixedPoint.UnsignedStruct;
-        closeFee: FixedPoint.UnsignedStruct;
+        openFee: PromiseOrValue<BigNumberish>;
+        closeFee: PromiseOrValue<BigNumberish>;
     };
 
     export type KrAssetInfoUserStructOutput = [
@@ -266,15 +258,15 @@ export declare namespace LibUI {
         BigNumber,
         BigNumber,
         BigNumber,
-        FixedPoint.UnsignedStructOutput,
         BigNumber,
-        FixedPoint.UnsignedStructOutput,
+        BigNumber,
+        BigNumber,
         BigNumber,
         BigNumber,
         string,
         string,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
+        BigNumber,
+        BigNumber,
     ] & {
         assetAddress: string;
         oracleAddress: string;
@@ -283,15 +275,15 @@ export declare namespace LibUI {
         amountScaled: BigNumber;
         priceRate: BigNumber;
         stabilityRate: BigNumber;
-        amountUSD: FixedPoint.UnsignedStructOutput;
+        amountUSD: BigNumber;
         index: BigNumber;
-        kFactor: FixedPoint.UnsignedStructOutput;
+        kFactor: BigNumber;
         price: BigNumber;
         ammPrice: BigNumber;
         symbol: string;
         name: string;
-        openFee: FixedPoint.UnsignedStructOutput;
-        closeFee: FixedPoint.UnsignedStructOutput;
+        openFee: BigNumber;
+        closeFee: BigNumber;
     };
 
     export type CollateralAssetInfoUserStruct = {
@@ -299,9 +291,9 @@ export declare namespace LibUI {
         oracleAddress: PromiseOrValue<string>;
         anchorAddress: PromiseOrValue<string>;
         amount: PromiseOrValue<BigNumberish>;
-        amountUSD: FixedPoint.UnsignedStruct;
-        cFactor: FixedPoint.UnsignedStruct;
-        liquidationIncentive: FixedPoint.UnsignedStruct;
+        amountUSD: PromiseOrValue<BigNumberish>;
+        cFactor: PromiseOrValue<BigNumberish>;
+        liquidationIncentive: PromiseOrValue<BigNumberish>;
         decimals: PromiseOrValue<BigNumberish>;
         index: PromiseOrValue<BigNumberish>;
         price: PromiseOrValue<BigNumberish>;
@@ -314,9 +306,9 @@ export declare namespace LibUI {
         string,
         string,
         BigNumber,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
+        BigNumber,
+        BigNumber,
+        BigNumber,
         number,
         BigNumber,
         BigNumber,
@@ -327,9 +319,9 @@ export declare namespace LibUI {
         oracleAddress: string;
         anchorAddress: string;
         amount: BigNumber;
-        amountUSD: FixedPoint.UnsignedStructOutput;
-        cFactor: FixedPoint.UnsignedStructOutput;
-        liquidationIncentive: FixedPoint.UnsignedStructOutput;
+        amountUSD: BigNumber;
+        cFactor: BigNumber;
+        liquidationIncentive: BigNumber;
         decimals: number;
         index: BigNumber;
         price: BigNumber;
@@ -340,35 +332,35 @@ export declare namespace LibUI {
     export type KreskoUserStruct = {
         krAssets: LibUI.KrAssetInfoUserStruct[];
         collateralAssets: LibUI.CollateralAssetInfoUserStruct[];
-        healthFactor: FixedPoint.UnsignedStruct;
-        debtActualUSD: FixedPoint.UnsignedStruct;
-        debtUSD: FixedPoint.UnsignedStruct;
-        collateralActualUSD: FixedPoint.UnsignedStruct;
-        collateralUSD: FixedPoint.UnsignedStruct;
-        minCollateralUSD: FixedPoint.UnsignedStruct;
-        borrowingPowerUSD: FixedPoint.UnsignedStruct;
+        healthFactor: PromiseOrValue<BigNumberish>;
+        debtActualUSD: PromiseOrValue<BigNumberish>;
+        debtUSD: PromiseOrValue<BigNumberish>;
+        collateralActualUSD: PromiseOrValue<BigNumberish>;
+        collateralUSD: PromiseOrValue<BigNumberish>;
+        minCollateralUSD: PromiseOrValue<BigNumberish>;
+        borrowingPowerUSD: PromiseOrValue<BigNumberish>;
     };
 
     export type KreskoUserStructOutput = [
         LibUI.KrAssetInfoUserStructOutput[],
         LibUI.CollateralAssetInfoUserStructOutput[],
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
     ] & {
         krAssets: LibUI.KrAssetInfoUserStructOutput[];
         collateralAssets: LibUI.CollateralAssetInfoUserStructOutput[];
-        healthFactor: FixedPoint.UnsignedStructOutput;
-        debtActualUSD: FixedPoint.UnsignedStructOutput;
-        debtUSD: FixedPoint.UnsignedStructOutput;
-        collateralActualUSD: FixedPoint.UnsignedStructOutput;
-        collateralUSD: FixedPoint.UnsignedStructOutput;
-        minCollateralUSD: FixedPoint.UnsignedStructOutput;
-        borrowingPowerUSD: FixedPoint.UnsignedStructOutput;
+        healthFactor: BigNumber;
+        debtActualUSD: BigNumber;
+        debtUSD: BigNumber;
+        collateralActualUSD: BigNumber;
+        collateralUSD: BigNumber;
+        minCollateralUSD: BigNumber;
+        borrowingPowerUSD: BigNumber;
     };
 
     export type BalanceStruct = {
@@ -386,7 +378,7 @@ export declare namespace LibUI {
         depositToken: PromiseOrValue<string>;
         totalDeposits: PromiseOrValue<BigNumberish>;
         allocPoint: PromiseOrValue<BigNumberish>;
-        rewardPerBlocks: PromiseOrValue<BigNumberish>[];
+        rewardPerBlocks: PromiseOrValue<BigNumberish>;
         lastRewardBlock: PromiseOrValue<BigNumberish>;
         depositAmount: PromiseOrValue<BigNumberish>;
         rewardTokens: PromiseOrValue<string>[];
@@ -398,7 +390,7 @@ export declare namespace LibUI {
         string,
         BigNumber,
         BigNumber,
-        BigNumber[],
+        BigNumber,
         BigNumber,
         BigNumber,
         string[],
@@ -408,7 +400,7 @@ export declare namespace LibUI {
         depositToken: string;
         totalDeposits: BigNumber;
         allocPoint: BigNumber;
-        rewardPerBlocks: BigNumber[];
+        rewardPerBlocks: BigNumber;
         lastRewardBlock: BigNumber;
         depositAmount: BigNumber;
         rewardTokens: string[];
@@ -435,8 +427,8 @@ export declare namespace LibUI {
         anchorAddress: PromiseOrValue<string>;
         price: PromiseOrValue<BigNumberish>;
         value: PromiseOrValue<BigNumberish>;
-        liquidationIncentive: FixedPoint.UnsignedStruct;
-        cFactor: FixedPoint.UnsignedStruct;
+        liquidationIncentive: PromiseOrValue<BigNumberish>;
+        cFactor: PromiseOrValue<BigNumberish>;
         decimals: PromiseOrValue<BigNumberish>;
         symbol: PromiseOrValue<string>;
         name: PromiseOrValue<string>;
@@ -449,8 +441,8 @@ export declare namespace LibUI {
         string,
         BigNumber,
         BigNumber,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
+        BigNumber,
+        BigNumber,
         number,
         string,
         string,
@@ -461,8 +453,8 @@ export declare namespace LibUI {
         anchorAddress: string;
         price: BigNumber;
         value: BigNumber;
-        liquidationIncentive: FixedPoint.UnsignedStructOutput;
-        cFactor: FixedPoint.UnsignedStructOutput;
+        liquidationIncentive: BigNumber;
+        cFactor: BigNumber;
         decimals: number;
         symbol: string;
         name: string;
@@ -478,9 +470,9 @@ export declare namespace LibUI {
         priceRate: PromiseOrValue<BigNumberish>;
         stabilityRate: PromiseOrValue<BigNumberish>;
         value: PromiseOrValue<BigNumberish>;
-        openFee: FixedPoint.UnsignedStruct;
-        closeFee: FixedPoint.UnsignedStruct;
-        kFactor: FixedPoint.UnsignedStruct;
+        openFee: PromiseOrValue<BigNumberish>;
+        closeFee: PromiseOrValue<BigNumberish>;
+        kFactor: PromiseOrValue<BigNumberish>;
         symbol: PromiseOrValue<string>;
         name: PromiseOrValue<string>;
         marketOpen: PromiseOrValue<boolean>;
@@ -495,9 +487,9 @@ export declare namespace LibUI {
         BigNumber,
         BigNumber,
         BigNumber,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
-        FixedPoint.UnsignedStructOutput,
+        BigNumber,
+        BigNumber,
+        BigNumber,
         string,
         string,
         boolean,
@@ -510,9 +502,9 @@ export declare namespace LibUI {
         priceRate: BigNumber;
         stabilityRate: BigNumber;
         value: BigNumber;
-        openFee: FixedPoint.UnsignedStructOutput;
-        closeFee: FixedPoint.UnsignedStructOutput;
-        kFactor: FixedPoint.UnsignedStructOutput;
+        openFee: BigNumber;
+        closeFee: BigNumber;
+        kFactor: BigNumber;
         symbol: string;
         name: string;
         marketOpen: boolean;
@@ -574,7 +566,7 @@ export interface KreskoInterface extends utils.Interface {
         "getAccountCollateralRatio(address)": FunctionFragment;
         "getAccountCollateralValue(address)": FunctionFragment;
         "getAccountKrAssetValue(address)": FunctionFragment;
-        "getAccountMinimumCollateralValueAtRatio(address,(uint256))": FunctionFragment;
+        "getAccountMinimumCollateralValueAtRatio(address,uint256)": FunctionFragment;
         "getCollateralAdjustedAndRealValue(address,address)": FunctionFragment;
         "getCollateralRatiosFor(address[])": FunctionFragment;
         "getDepositedCollateralAssetIndex(address,address)": FunctionFragment;
@@ -588,33 +580,38 @@ export interface KreskoInterface extends utils.Interface {
         "burnKreskoAsset(address,address,uint256,uint256)": FunctionFragment;
         "batchCloseKrAssetDebtPositions(address)": FunctionFragment;
         "closeKrAssetDebtPosition(address,address)": FunctionFragment;
-        "addCollateralAsset(address,address,uint256,uint256,address,address)": FunctionFragment;
-        "addKreskoAsset(address,address,uint256,address,address,uint256,uint256,uint256)": FunctionFragment;
-        "initialize((address,address,address,uint8,uint256,uint256,uint256))": FunctionFragment;
+        "addCollateralAsset(address,(uint256,address,address,uint8,bool,uint256,bytes32))": FunctionFragment;
+        "addKreskoAsset(address,(uint256,address,uint256,address,uint256,uint256,bool,bytes32))": FunctionFragment;
+        "initialize((address,address,address,uint8,uint256,uint256,uint256,uint256,address,uint256,uint256))": FunctionFragment;
         "updateAMMOracle(address)": FunctionFragment;
         "updateCFactor(address,uint256)": FunctionFragment;
-        "updateCollateralAsset(address,address,uint256,uint256,address,address)": FunctionFragment;
+        "updateCollateralAsset(address,(uint256,address,address,uint8,bool,uint256,bytes32))": FunctionFragment;
         "updateExtOracleDecimals(uint8)": FunctionFragment;
         "updateFeeRecipient(address)": FunctionFragment;
         "updateKFactor(address,uint256)": FunctionFragment;
-        "updateKreskoAsset(address,address,uint256,address,address,uint256,uint256,uint256)": FunctionFragment;
+        "updateKreskoAsset(address,(uint256,address,uint256,address,uint256,uint256,bool,bytes32))": FunctionFragment;
         "updateLiquidationIncentiveMultiplier(address,uint256)": FunctionFragment;
         "updateLiquidationThreshold(uint256)": FunctionFragment;
         "updateMaxLiquidationMultiplier(uint256)": FunctionFragment;
         "updateMinimumCollateralizationRatio(uint256)": FunctionFragment;
         "updateMinimumDebtValue(uint256)": FunctionFragment;
+        "updateOracleDeviationPct(uint256)": FunctionFragment;
+        "updateOracleTimeout(uint256)": FunctionFragment;
+        "updateSequencerGracePeriodTime(uint256)": FunctionFragment;
+        "updateSequencerUptimeFeed(address)": FunctionFragment;
         "depositCollateral(address,address,uint256)": FunctionFragment;
         "withdrawCollateral(address,address,uint256,uint256)": FunctionFragment;
         "withdrawCollateralUnchecked(address,address,uint256,uint256,bytes)": FunctionFragment;
-        "batchLiquidateInterest(address,address)": FunctionFragment;
-        "liquidateInterest(address,address,address)": FunctionFragment;
+        "batchLiquidateInterest(address,address,bool)": FunctionFragment;
+        "liquidateInterest(address,address,address,bool)": FunctionFragment;
         "getMaxLiquidation(address,address,address)": FunctionFragment;
         "isAccountLiquidatable(address)": FunctionFragment;
-        "liquidate(address,address,uint256,address,uint256,uint256)": FunctionFragment;
+        "liquidate(address,address,uint256,address,uint256,uint256,bool)": FunctionFragment;
         "mintKreskoAsset(address,address,uint256)": FunctionFragment;
         "assetActionPaused(uint8,address)": FunctionFragment;
         "safetyStateFor(address,uint8)": FunctionFragment;
         "safetyStateSet()": FunctionFragment;
+        "setSafetyStateSet(bool)": FunctionFragment;
         "toggleAssetsPaused(address[],uint8,bool,uint256)": FunctionFragment;
         "batchRepayFullStabilityRateInterest(address)": FunctionFragment;
         "getDebtIndexForAsset(address)": FunctionFragment;
@@ -646,6 +643,7 @@ export interface KreskoInterface extends utils.Interface {
         "minimumCollateralizationRatio()": FunctionFragment;
         "minimumDebtValue()": FunctionFragment;
         "minterInitializations()": FunctionFragment;
+        "oracleDeviationPct()": FunctionFragment;
         "batchOracleValues(address[],address[],address[])": FunctionFragment;
         "getAccountData(address,address[],address)": FunctionFragment;
         "getTokenData(address[],address[],address[],address[])": FunctionFragment;
@@ -709,6 +707,10 @@ export interface KreskoInterface extends utils.Interface {
             | "updateMaxLiquidationMultiplier"
             | "updateMinimumCollateralizationRatio"
             | "updateMinimumDebtValue"
+            | "updateOracleDeviationPct"
+            | "updateOracleTimeout"
+            | "updateSequencerGracePeriodTime"
+            | "updateSequencerUptimeFeed"
             | "depositCollateral"
             | "withdrawCollateral"
             | "withdrawCollateralUnchecked"
@@ -721,6 +723,7 @@ export interface KreskoInterface extends utils.Interface {
             | "assetActionPaused"
             | "safetyStateFor"
             | "safetyStateSet"
+            | "setSafetyStateSet"
             | "toggleAssetsPaused"
             | "batchRepayFullStabilityRateInterest"
             | "getDebtIndexForAsset"
@@ -752,6 +755,7 @@ export interface KreskoInterface extends utils.Interface {
             | "minimumCollateralizationRatio"
             | "minimumDebtValue"
             | "minterInitializations"
+            | "oracleDeviationPct"
             | "batchOracleValues"
             | "getAccountData"
             | "getTokenData"
@@ -821,7 +825,7 @@ export interface KreskoInterface extends utils.Interface {
     encodeFunctionData(functionFragment: "getAccountKrAssetValue", values: [PromiseOrValue<string>]): string;
     encodeFunctionData(
         functionFragment: "getAccountMinimumCollateralValueAtRatio",
-        values: [PromiseOrValue<string>, FixedPoint.UnsignedStruct],
+        values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
     ): string;
     encodeFunctionData(
         functionFragment: "getCollateralAdjustedAndRealValue",
@@ -867,28 +871,9 @@ export interface KreskoInterface extends utils.Interface {
     ): string;
     encodeFunctionData(
         functionFragment: "addCollateralAsset",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-        ],
+        values: [PromiseOrValue<string>, CollateralAssetStruct],
     ): string;
-    encodeFunctionData(
-        functionFragment: "addKreskoAsset",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-        ],
-    ): string;
+    encodeFunctionData(functionFragment: "addKreskoAsset", values: [PromiseOrValue<string>, KrAssetStruct]): string;
     encodeFunctionData(functionFragment: "initialize", values: [MinterInitArgsStruct]): string;
     encodeFunctionData(functionFragment: "updateAMMOracle", values: [PromiseOrValue<string>]): string;
     encodeFunctionData(
@@ -897,14 +882,7 @@ export interface KreskoInterface extends utils.Interface {
     ): string;
     encodeFunctionData(
         functionFragment: "updateCollateralAsset",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-        ],
+        values: [PromiseOrValue<string>, CollateralAssetStruct],
     ): string;
     encodeFunctionData(functionFragment: "updateExtOracleDecimals", values: [PromiseOrValue<BigNumberish>]): string;
     encodeFunctionData(functionFragment: "updateFeeRecipient", values: [PromiseOrValue<string>]): string;
@@ -912,19 +890,7 @@ export interface KreskoInterface extends utils.Interface {
         functionFragment: "updateKFactor",
         values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
     ): string;
-    encodeFunctionData(
-        functionFragment: "updateKreskoAsset",
-        values: [
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<string>,
-            PromiseOrValue<string>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-            PromiseOrValue<BigNumberish>,
-        ],
-    ): string;
+    encodeFunctionData(functionFragment: "updateKreskoAsset", values: [PromiseOrValue<string>, KrAssetStruct]): string;
     encodeFunctionData(
         functionFragment: "updateLiquidationIncentiveMultiplier",
         values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
@@ -939,6 +905,13 @@ export interface KreskoInterface extends utils.Interface {
         values: [PromiseOrValue<BigNumberish>],
     ): string;
     encodeFunctionData(functionFragment: "updateMinimumDebtValue", values: [PromiseOrValue<BigNumberish>]): string;
+    encodeFunctionData(functionFragment: "updateOracleDeviationPct", values: [PromiseOrValue<BigNumberish>]): string;
+    encodeFunctionData(functionFragment: "updateOracleTimeout", values: [PromiseOrValue<BigNumberish>]): string;
+    encodeFunctionData(
+        functionFragment: "updateSequencerGracePeriodTime",
+        values: [PromiseOrValue<BigNumberish>],
+    ): string;
+    encodeFunctionData(functionFragment: "updateSequencerUptimeFeed", values: [PromiseOrValue<string>]): string;
     encodeFunctionData(
         functionFragment: "depositCollateral",
         values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
@@ -964,11 +937,11 @@ export interface KreskoInterface extends utils.Interface {
     ): string;
     encodeFunctionData(
         functionFragment: "batchLiquidateInterest",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>],
+        values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<boolean>],
     ): string;
     encodeFunctionData(
         functionFragment: "liquidateInterest",
-        values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<string>],
+        values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<boolean>],
     ): string;
     encodeFunctionData(
         functionFragment: "getMaxLiquidation",
@@ -984,6 +957,7 @@ export interface KreskoInterface extends utils.Interface {
             PromiseOrValue<string>,
             PromiseOrValue<BigNumberish>,
             PromiseOrValue<BigNumberish>,
+            PromiseOrValue<boolean>,
         ],
     ): string;
     encodeFunctionData(
@@ -999,6 +973,7 @@ export interface KreskoInterface extends utils.Interface {
         values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
     ): string;
     encodeFunctionData(functionFragment: "safetyStateSet", values?: undefined): string;
+    encodeFunctionData(functionFragment: "setSafetyStateSet", values: [PromiseOrValue<boolean>]): string;
     encodeFunctionData(
         functionFragment: "toggleAssetsPaused",
         values: [
@@ -1068,6 +1043,7 @@ export interface KreskoInterface extends utils.Interface {
     encodeFunctionData(functionFragment: "minimumCollateralizationRatio", values?: undefined): string;
     encodeFunctionData(functionFragment: "minimumDebtValue", values?: undefined): string;
     encodeFunctionData(functionFragment: "minterInitializations", values?: undefined): string;
+    encodeFunctionData(functionFragment: "oracleDeviationPct", values?: undefined): string;
     encodeFunctionData(
         functionFragment: "batchOracleValues",
         values: [PromiseOrValue<string>[], PromiseOrValue<string>[], PromiseOrValue<string>[]],
@@ -1145,6 +1121,10 @@ export interface KreskoInterface extends utils.Interface {
     decodeFunctionResult(functionFragment: "updateMaxLiquidationMultiplier", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "updateMinimumCollateralizationRatio", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "updateMinimumDebtValue", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "updateOracleDeviationPct", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "updateOracleTimeout", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "updateSequencerGracePeriodTime", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "updateSequencerUptimeFeed", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "depositCollateral", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "withdrawCollateral", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "withdrawCollateralUnchecked", data: BytesLike): Result;
@@ -1157,6 +1137,7 @@ export interface KreskoInterface extends utils.Interface {
     decodeFunctionResult(functionFragment: "assetActionPaused", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "safetyStateFor", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "safetyStateSet", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "setSafetyStateSet", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "toggleAssetsPaused", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "batchRepayFullStabilityRateInterest", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "getDebtIndexForAsset", data: BytesLike): Result;
@@ -1188,439 +1169,15 @@ export interface KreskoInterface extends utils.Interface {
     decodeFunctionResult(functionFragment: "minimumCollateralizationRatio", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "minimumDebtValue", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "minterInitializations", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "oracleDeviationPct", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "batchOracleValues", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "getAccountData", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "getTokenData", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "getGlobalData", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "getPairsData", data: BytesLike): Result;
 
-    events: {
-        "DiamondCut(tuple[],address,bytes)": EventFragment;
-        "OwnershipTransferred(address,address)": EventFragment;
-        "PendingOwnershipTransfer(address,address)": EventFragment;
-        "Deployed(address,uint8)": EventFragment;
-        "Initialized(address,uint8)": EventFragment;
-        "KISSUpdated(address)": EventFragment;
-        "StabilityRateConfigured(address,uint256,uint256,uint256,uint256)": EventFragment;
-        "StabilityRateInterestBatchRepaid(address,uint256)": EventFragment;
-        "StabilityRateInterestRepaid(address,address,uint256)": EventFragment;
-        "AMMOracleUpdated(address)": EventFragment;
-        "BatchInterestLiquidationOccurred(address,address,address,uint256,uint256)": EventFragment;
-        "CFactorUpdated(address,uint256)": EventFragment;
-        "CloseFeePaid(address,address,uint256,uint256)": EventFragment;
-        "CollateralAssetAdded(address,uint256,address,address,address)": EventFragment;
-        "CollateralAssetUpdated(address,uint256,address,address,address)": EventFragment;
-        "CollateralDeposited(address,address,uint256)": EventFragment;
-        "CollateralWithdrawn(address,address,uint256)": EventFragment;
-        "DebtPositionClosed(address,address,uint256,uint256)": EventFragment;
-        "FeeRecipientUpdated(address)": EventFragment;
-        "InterestLiquidationOccurred(address,address,address,uint256,address,uint256)": EventFragment;
-        "KFactorUpdated(address,uint256)": EventFragment;
-        "KreskoAssetAdded(address,address,address,address,uint256,uint256,uint256,uint256)": EventFragment;
-        "KreskoAssetBurned(address,address,uint256)": EventFragment;
-        "KreskoAssetMinted(address,address,uint256)": EventFragment;
-        "KreskoAssetUpdated(address,address,address,address,uint256,uint256,uint256,uint256)": EventFragment;
-        "LiquidationIncentiveMultiplierUpdated(address,uint256)": EventFragment;
-        "LiquidationOccurred(address,address,address,uint256,address,uint256)": EventFragment;
-        "LiquidationThresholdUpdated(uint256)": EventFragment;
-        "MinimumCollateralizationRatioUpdated(uint256)": EventFragment;
-        "MinimumDebtValueUpdated(uint256)": EventFragment;
-        "OpenFeePaid(address,address,uint256,uint256)": EventFragment;
-        "SafetyStateChange(uint8,address,string)": EventFragment;
-        "UncheckedCollateralWithdrawn(address,address,uint256)": EventFragment;
-        "maxLiquidationMultiplierUpdated(uint256)": EventFragment;
-    };
-
-    getEvent(nameOrSignatureOrTopic: "DiamondCut"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "PendingOwnershipTransfer"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "Deployed"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "Initialized"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "KISSUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "StabilityRateConfigured"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "StabilityRateInterestBatchRepaid"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "StabilityRateInterestRepaid"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "AMMOracleUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "BatchInterestLiquidationOccurred"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "CFactorUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "CloseFeePaid"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "CollateralAssetAdded"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "CollateralAssetUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "CollateralDeposited"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "CollateralWithdrawn"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "DebtPositionClosed"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "FeeRecipientUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "InterestLiquidationOccurred"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "KFactorUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "KreskoAssetAdded"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "KreskoAssetBurned"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "KreskoAssetMinted"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "KreskoAssetUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "LiquidationIncentiveMultiplierUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "LiquidationOccurred"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "LiquidationThresholdUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "MinimumCollateralizationRatioUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "MinimumDebtValueUpdated"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "OpenFeePaid"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "SafetyStateChange"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "UncheckedCollateralWithdrawn"): EventFragment;
-    getEvent(nameOrSignatureOrTopic: "maxLiquidationMultiplierUpdated"): EventFragment;
+    events: {};
 }
-
-export interface DiamondCutEventObject {
-    _diamondCut: IDiamondCutFacet.FacetCutStructOutput[];
-    _init: string;
-    _calldata: string;
-}
-export type DiamondCutEvent = TypedEvent<
-    [IDiamondCutFacet.FacetCutStructOutput[], string, string],
-    DiamondCutEventObject
->;
-
-export type DiamondCutEventFilter = TypedEventFilter<DiamondCutEvent>;
-
-export interface OwnershipTransferredEventObject {
-    previousOwner: string;
-    newOwner: string;
-}
-export type OwnershipTransferredEvent = TypedEvent<[string, string], OwnershipTransferredEventObject>;
-
-export type OwnershipTransferredEventFilter = TypedEventFilter<OwnershipTransferredEvent>;
-
-export interface PendingOwnershipTransferEventObject {
-    previousOwner: string;
-    newOwner: string;
-}
-export type PendingOwnershipTransferEvent = TypedEvent<[string, string], PendingOwnershipTransferEventObject>;
-
-export type PendingOwnershipTransferEventFilter = TypedEventFilter<PendingOwnershipTransferEvent>;
-
-export interface DeployedEventObject {
-    owner: string;
-    version: number;
-}
-export type DeployedEvent = TypedEvent<[string, number], DeployedEventObject>;
-
-export type DeployedEventFilter = TypedEventFilter<DeployedEvent>;
-
-export interface InitializedEventObject {
-    operator: string;
-    version: number;
-}
-export type InitializedEvent = TypedEvent<[string, number], InitializedEventObject>;
-
-export type InitializedEventFilter = TypedEventFilter<InitializedEvent>;
-
-export interface KISSUpdatedEventObject {
-    KISS: string;
-}
-export type KISSUpdatedEvent = TypedEvent<[string], KISSUpdatedEventObject>;
-
-export type KISSUpdatedEventFilter = TypedEventFilter<KISSUpdatedEvent>;
-
-export interface StabilityRateConfiguredEventObject {
-    asset: string;
-    stabilityRateBase: BigNumber;
-    priceRateDelta: BigNumber;
-    rateSlope1: BigNumber;
-    rateSlope2: BigNumber;
-}
-export type StabilityRateConfiguredEvent = TypedEvent<
-    [string, BigNumber, BigNumber, BigNumber, BigNumber],
-    StabilityRateConfiguredEventObject
->;
-
-export type StabilityRateConfiguredEventFilter = TypedEventFilter<StabilityRateConfiguredEvent>;
-
-export interface StabilityRateInterestBatchRepaidEventObject {
-    account: string;
-    value: BigNumber;
-}
-export type StabilityRateInterestBatchRepaidEvent = TypedEvent<
-    [string, BigNumber],
-    StabilityRateInterestBatchRepaidEventObject
->;
-
-export type StabilityRateInterestBatchRepaidEventFilter = TypedEventFilter<StabilityRateInterestBatchRepaidEvent>;
-
-export interface StabilityRateInterestRepaidEventObject {
-    account: string;
-    asset: string;
-    value: BigNumber;
-}
-export type StabilityRateInterestRepaidEvent = TypedEvent<
-    [string, string, BigNumber],
-    StabilityRateInterestRepaidEventObject
->;
-
-export type StabilityRateInterestRepaidEventFilter = TypedEventFilter<StabilityRateInterestRepaidEvent>;
-
-export interface AMMOracleUpdatedEventObject {
-    ammOracle: string;
-}
-export type AMMOracleUpdatedEvent = TypedEvent<[string], AMMOracleUpdatedEventObject>;
-
-export type AMMOracleUpdatedEventFilter = TypedEventFilter<AMMOracleUpdatedEvent>;
-
-export interface BatchInterestLiquidationOccurredEventObject {
-    account: string;
-    liquidator: string;
-    seizedCollateralAsset: string;
-    repayUSD: BigNumber;
-    collateralSent: BigNumber;
-}
-export type BatchInterestLiquidationOccurredEvent = TypedEvent<
-    [string, string, string, BigNumber, BigNumber],
-    BatchInterestLiquidationOccurredEventObject
->;
-
-export type BatchInterestLiquidationOccurredEventFilter = TypedEventFilter<BatchInterestLiquidationOccurredEvent>;
-
-export interface CFactorUpdatedEventObject {
-    collateralAsset: string;
-    cFactor: BigNumber;
-}
-export type CFactorUpdatedEvent = TypedEvent<[string, BigNumber], CFactorUpdatedEventObject>;
-
-export type CFactorUpdatedEventFilter = TypedEventFilter<CFactorUpdatedEvent>;
-
-export interface CloseFeePaidEventObject {
-    account: string;
-    paymentCollateralAsset: string;
-    paymentAmount: BigNumber;
-    paymentValue: BigNumber;
-}
-export type CloseFeePaidEvent = TypedEvent<[string, string, BigNumber, BigNumber], CloseFeePaidEventObject>;
-
-export type CloseFeePaidEventFilter = TypedEventFilter<CloseFeePaidEvent>;
-
-export interface CollateralAssetAddedEventObject {
-    collateralAsset: string;
-    factor: BigNumber;
-    oracle: string;
-    marketStatusOracle: string;
-    anchor: string;
-}
-export type CollateralAssetAddedEvent = TypedEvent<
-    [string, BigNumber, string, string, string],
-    CollateralAssetAddedEventObject
->;
-
-export type CollateralAssetAddedEventFilter = TypedEventFilter<CollateralAssetAddedEvent>;
-
-export interface CollateralAssetUpdatedEventObject {
-    collateralAsset: string;
-    factor: BigNumber;
-    oracle: string;
-    marketStatusOracle: string;
-    anchor: string;
-}
-export type CollateralAssetUpdatedEvent = TypedEvent<
-    [string, BigNumber, string, string, string],
-    CollateralAssetUpdatedEventObject
->;
-
-export type CollateralAssetUpdatedEventFilter = TypedEventFilter<CollateralAssetUpdatedEvent>;
-
-export interface CollateralDepositedEventObject {
-    account: string;
-    collateralAsset: string;
-    amount: BigNumber;
-}
-export type CollateralDepositedEvent = TypedEvent<[string, string, BigNumber], CollateralDepositedEventObject>;
-
-export type CollateralDepositedEventFilter = TypedEventFilter<CollateralDepositedEvent>;
-
-export interface CollateralWithdrawnEventObject {
-    account: string;
-    collateralAsset: string;
-    amount: BigNumber;
-}
-export type CollateralWithdrawnEvent = TypedEvent<[string, string, BigNumber], CollateralWithdrawnEventObject>;
-
-export type CollateralWithdrawnEventFilter = TypedEventFilter<CollateralWithdrawnEvent>;
-
-export interface DebtPositionClosedEventObject {
-    account: string;
-    kreskoAsset: string;
-    amount: BigNumber;
-    interestRepaid: BigNumber;
-}
-export type DebtPositionClosedEvent = TypedEvent<[string, string, BigNumber, BigNumber], DebtPositionClosedEventObject>;
-
-export type DebtPositionClosedEventFilter = TypedEventFilter<DebtPositionClosedEvent>;
-
-export interface FeeRecipientUpdatedEventObject {
-    feeRecipient: string;
-}
-export type FeeRecipientUpdatedEvent = TypedEvent<[string], FeeRecipientUpdatedEventObject>;
-
-export type FeeRecipientUpdatedEventFilter = TypedEventFilter<FeeRecipientUpdatedEvent>;
-
-export interface InterestLiquidationOccurredEventObject {
-    account: string;
-    liquidator: string;
-    repayKreskoAsset: string;
-    repayUSD: BigNumber;
-    seizedCollateralAsset: string;
-    collateralSent: BigNumber;
-}
-export type InterestLiquidationOccurredEvent = TypedEvent<
-    [string, string, string, BigNumber, string, BigNumber],
-    InterestLiquidationOccurredEventObject
->;
-
-export type InterestLiquidationOccurredEventFilter = TypedEventFilter<InterestLiquidationOccurredEvent>;
-
-export interface KFactorUpdatedEventObject {
-    kreskoAsset: string;
-    kFactor: BigNumber;
-}
-export type KFactorUpdatedEvent = TypedEvent<[string, BigNumber], KFactorUpdatedEventObject>;
-
-export type KFactorUpdatedEventFilter = TypedEventFilter<KFactorUpdatedEvent>;
-
-export interface KreskoAssetAddedEventObject {
-    kreskoAsset: string;
-    anchor: string;
-    oracle: string;
-    marketStatusOracle: string;
-    kFactor: BigNumber;
-    supplyLimit: BigNumber;
-    closeFee: BigNumber;
-    openFee: BigNumber;
-}
-export type KreskoAssetAddedEvent = TypedEvent<
-    [string, string, string, string, BigNumber, BigNumber, BigNumber, BigNumber],
-    KreskoAssetAddedEventObject
->;
-
-export type KreskoAssetAddedEventFilter = TypedEventFilter<KreskoAssetAddedEvent>;
-
-export interface KreskoAssetBurnedEventObject {
-    account: string;
-    kreskoAsset: string;
-    amount: BigNumber;
-}
-export type KreskoAssetBurnedEvent = TypedEvent<[string, string, BigNumber], KreskoAssetBurnedEventObject>;
-
-export type KreskoAssetBurnedEventFilter = TypedEventFilter<KreskoAssetBurnedEvent>;
-
-export interface KreskoAssetMintedEventObject {
-    account: string;
-    kreskoAsset: string;
-    amount: BigNumber;
-}
-export type KreskoAssetMintedEvent = TypedEvent<[string, string, BigNumber], KreskoAssetMintedEventObject>;
-
-export type KreskoAssetMintedEventFilter = TypedEventFilter<KreskoAssetMintedEvent>;
-
-export interface KreskoAssetUpdatedEventObject {
-    kreskoAsset: string;
-    anchor: string;
-    oracle: string;
-    marketStatusOracle: string;
-    kFactor: BigNumber;
-    supplyLimit: BigNumber;
-    closeFee: BigNumber;
-    openFee: BigNumber;
-}
-export type KreskoAssetUpdatedEvent = TypedEvent<
-    [string, string, string, string, BigNumber, BigNumber, BigNumber, BigNumber],
-    KreskoAssetUpdatedEventObject
->;
-
-export type KreskoAssetUpdatedEventFilter = TypedEventFilter<KreskoAssetUpdatedEvent>;
-
-export interface LiquidationIncentiveMultiplierUpdatedEventObject {
-    asset: string;
-    liquidationIncentiveMultiplier: BigNumber;
-}
-export type LiquidationIncentiveMultiplierUpdatedEvent = TypedEvent<
-    [string, BigNumber],
-    LiquidationIncentiveMultiplierUpdatedEventObject
->;
-
-export type LiquidationIncentiveMultiplierUpdatedEventFilter =
-    TypedEventFilter<LiquidationIncentiveMultiplierUpdatedEvent>;
-
-export interface LiquidationOccurredEventObject {
-    account: string;
-    liquidator: string;
-    repayKreskoAsset: string;
-    repayAmount: BigNumber;
-    seizedCollateralAsset: string;
-    collateralSent: BigNumber;
-}
-export type LiquidationOccurredEvent = TypedEvent<
-    [string, string, string, BigNumber, string, BigNumber],
-    LiquidationOccurredEventObject
->;
-
-export type LiquidationOccurredEventFilter = TypedEventFilter<LiquidationOccurredEvent>;
-
-export interface LiquidationThresholdUpdatedEventObject {
-    liquidationThreshold: BigNumber;
-}
-export type LiquidationThresholdUpdatedEvent = TypedEvent<[BigNumber], LiquidationThresholdUpdatedEventObject>;
-
-export type LiquidationThresholdUpdatedEventFilter = TypedEventFilter<LiquidationThresholdUpdatedEvent>;
-
-export interface MinimumCollateralizationRatioUpdatedEventObject {
-    minimumCollateralizationRatio: BigNumber;
-}
-export type MinimumCollateralizationRatioUpdatedEvent = TypedEvent<
-    [BigNumber],
-    MinimumCollateralizationRatioUpdatedEventObject
->;
-
-export type MinimumCollateralizationRatioUpdatedEventFilter =
-    TypedEventFilter<MinimumCollateralizationRatioUpdatedEvent>;
-
-export interface MinimumDebtValueUpdatedEventObject {
-    minimumDebtValue: BigNumber;
-}
-export type MinimumDebtValueUpdatedEvent = TypedEvent<[BigNumber], MinimumDebtValueUpdatedEventObject>;
-
-export type MinimumDebtValueUpdatedEventFilter = TypedEventFilter<MinimumDebtValueUpdatedEvent>;
-
-export interface OpenFeePaidEventObject {
-    account: string;
-    paymentCollateralAsset: string;
-    paymentAmount: BigNumber;
-    paymentValue: BigNumber;
-}
-export type OpenFeePaidEvent = TypedEvent<[string, string, BigNumber, BigNumber], OpenFeePaidEventObject>;
-
-export type OpenFeePaidEventFilter = TypedEventFilter<OpenFeePaidEvent>;
-
-export interface SafetyStateChangeEventObject {
-    action: number;
-    asset: string;
-    description: string;
-}
-export type SafetyStateChangeEvent = TypedEvent<[number, string, string], SafetyStateChangeEventObject>;
-
-export type SafetyStateChangeEventFilter = TypedEventFilter<SafetyStateChangeEvent>;
-
-export interface UncheckedCollateralWithdrawnEventObject {
-    account: string;
-    collateralAsset: string;
-    amount: BigNumber;
-}
-export type UncheckedCollateralWithdrawnEvent = TypedEvent<
-    [string, string, BigNumber],
-    UncheckedCollateralWithdrawnEventObject
->;
-
-export type UncheckedCollateralWithdrawnEventFilter = TypedEventFilter<UncheckedCollateralWithdrawnEvent>;
-
-export interface maxLiquidationMultiplierUpdatedEventObject {
-    maxLiquidationMultiplier: BigNumber;
-}
-export type maxLiquidationMultiplierUpdatedEvent = TypedEvent<[BigNumber], maxLiquidationMultiplierUpdatedEventObject>;
-
-export type maxLiquidationMultiplierUpdatedEventFilter = TypedEventFilter<maxLiquidationMultiplierUpdatedEvent>;
 
 export interface Kresko extends BaseContract {
     contractName: "Kresko";
@@ -1714,11 +1271,11 @@ export interface Kresko extends BaseContract {
 
         acceptOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
-        initialized(overrides?: CallOverrides): Promise<[boolean]>;
+        initialized(overrides?: CallOverrides): Promise<[boolean] & { initialized_: boolean }>;
 
-        owner(overrides?: CallOverrides): Promise<[string]>;
+        owner(overrides?: CallOverrides): Promise<[string] & { owner_: string }>;
 
-        pendingOwner(overrides?: CallOverrides): Promise<[string]>;
+        pendingOwner(overrides?: CallOverrides): Promise<[string] & { pendingOwner_: string }>;
 
         transferOwnership(
             _newOwner: PromiseOrValue<string>,
@@ -1750,43 +1307,30 @@ export interface Kresko extends BaseContract {
         getAccountCollateralRatio(
             _account: PromiseOrValue<string>,
             overrides?: CallOverrides,
-        ): Promise<
-            [FixedPoint.UnsignedStructOutput] & {
-                ratio: FixedPoint.UnsignedStructOutput;
-            }
-        >;
+        ): Promise<[BigNumber] & { ratio: BigNumber }>;
 
-        getAccountCollateralValue(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[FixedPoint.UnsignedStructOutput]>;
+        getAccountCollateralValue(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
 
-        getAccountKrAssetValue(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<[FixedPoint.UnsignedStructOutput]>;
+        getAccountKrAssetValue(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
 
         getAccountMinimumCollateralValueAtRatio(
             _account: PromiseOrValue<string>,
-            _ratio: FixedPoint.UnsignedStruct,
+            _ratio: PromiseOrValue<BigNumberish>,
             overrides?: CallOverrides,
-        ): Promise<[FixedPoint.UnsignedStructOutput]>;
+        ): Promise<[BigNumber]>;
 
         getCollateralAdjustedAndRealValue(
             _account: PromiseOrValue<string>,
             _asset: PromiseOrValue<string>,
             overrides?: CallOverrides,
         ): Promise<
-            [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
-                adjustedValue: FixedPoint.UnsignedStructOutput;
-                realValue: FixedPoint.UnsignedStructOutput;
+            [BigNumber, BigNumber] & {
+                adjustedValue: BigNumber;
+                realValue: BigNumber;
             }
         >;
 
-        getCollateralRatiosFor(
-            _accounts: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<[FixedPoint.UnsignedStructOutput[]]>;
+        getCollateralRatiosFor(_accounts: PromiseOrValue<string>[], overrides?: CallOverrides): Promise<[BigNumber[]]>;
 
         getDepositedCollateralAssetIndex(
             _account: PromiseOrValue<string>,
@@ -1848,23 +1392,13 @@ export interface Kresko extends BaseContract {
 
         addCollateralAsset(
             _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
+            _config: CollateralAssetStruct,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<ContractTransaction>;
 
         addKreskoAsset(
             _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
+            _config: KrAssetStruct,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<ContractTransaction>;
 
@@ -1886,11 +1420,7 @@ export interface Kresko extends BaseContract {
 
         updateCollateralAsset(
             _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
+            _config: CollateralAssetStruct,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<ContractTransaction>;
 
@@ -1912,13 +1442,7 @@ export interface Kresko extends BaseContract {
 
         updateKreskoAsset(
             _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
+            _config: KrAssetStruct,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<ContractTransaction>;
 
@@ -1945,6 +1469,26 @@ export interface Kresko extends BaseContract {
 
         updateMinimumDebtValue(
             _minimumDebtValue: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        updateOracleDeviationPct(
+            _oracleDeviationPct: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        updateOracleTimeout(
+            _oracleTimeout: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        updateSequencerGracePeriodTime(
+            _sequencerGracePeriodTime: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
+
+        updateSequencerUptimeFeed(
+            _sequencerUptimeFeed: PromiseOrValue<string>,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<ContractTransaction>;
 
@@ -1975,6 +1519,7 @@ export interface Kresko extends BaseContract {
         batchLiquidateInterest(
             _account: PromiseOrValue<string>,
             _collateralAssetToSeize: PromiseOrValue<string>,
+            _allowSeizeUnderflow: PromiseOrValue<boolean>,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<ContractTransaction>;
 
@@ -1982,6 +1527,7 @@ export interface Kresko extends BaseContract {
             _account: PromiseOrValue<string>,
             _repayKreskoAsset: PromiseOrValue<string>,
             _collateralAssetToSeize: PromiseOrValue<string>,
+            _allowSeizeUnderflow: PromiseOrValue<boolean>,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<ContractTransaction>;
 
@@ -2001,6 +1547,7 @@ export interface Kresko extends BaseContract {
             _seizeAsset: PromiseOrValue<string>,
             _repayAssetIndex: PromiseOrValue<BigNumberish>,
             _seizeAssetIndex: PromiseOrValue<BigNumberish>,
+            _allowSeizeUnderflow: PromiseOrValue<boolean>,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<ContractTransaction>;
 
@@ -2024,6 +1571,11 @@ export interface Kresko extends BaseContract {
         ): Promise<[SafetyStateStructOutput]>;
 
         safetyStateSet(overrides?: CallOverrides): Promise<[boolean]>;
+
+        setSafetyStateSet(
+            val: PromiseOrValue<boolean>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<ContractTransaction>;
 
         toggleAssetsPaused(
             _assets: PromiseOrValue<string>[],
@@ -2126,23 +1678,14 @@ export interface Kresko extends BaseContract {
             _amount: PromiseOrValue<BigNumberish>,
             _ignoreCollateralFactor: PromiseOrValue<boolean>,
             overrides?: CallOverrides,
-        ): Promise<
-            [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
-                value: FixedPoint.UnsignedStructOutput;
-                oraclePrice: FixedPoint.UnsignedStructOutput;
-            }
-        >;
+        ): Promise<[BigNumber, BigNumber] & { value: BigNumber; oraclePrice: BigNumber }>;
 
         getKrAssetValue(
             _kreskoAsset: PromiseOrValue<string>,
             _amount: PromiseOrValue<BigNumberish>,
             _ignoreKFactor: PromiseOrValue<boolean>,
             overrides?: CallOverrides,
-        ): Promise<
-            [FixedPoint.UnsignedStructOutput] & {
-                value: FixedPoint.UnsignedStructOutput;
-            }
-        >;
+        ): Promise<[BigNumber] & { value: BigNumber }>;
 
         krAssetExists(
             _kreskoAsset: PromiseOrValue<string>,
@@ -2154,17 +1697,19 @@ export interface Kresko extends BaseContract {
             overrides?: CallOverrides,
         ): Promise<[KrAssetStructOutput] & { asset: KrAssetStructOutput }>;
 
-        liquidationIncentiveMultiplier(overrides?: CallOverrides): Promise<[FixedPoint.UnsignedStructOutput]>;
+        liquidationIncentiveMultiplier(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-        liquidationThreshold(overrides?: CallOverrides): Promise<[FixedPoint.UnsignedStructOutput]>;
+        liquidationThreshold(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-        maxLiquidationMultiplier(overrides?: CallOverrides): Promise<[FixedPoint.UnsignedStructOutput]>;
+        maxLiquidationMultiplier(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-        minimumCollateralizationRatio(overrides?: CallOverrides): Promise<[FixedPoint.UnsignedStructOutput]>;
+        minimumCollateralizationRatio(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-        minimumDebtValue(overrides?: CallOverrides): Promise<[FixedPoint.UnsignedStructOutput]>;
+        minimumDebtValue(overrides?: CallOverrides): Promise<[BigNumber]>;
 
         minterInitializations(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+        oracleDeviationPct(overrides?: CallOverrides): Promise<[BigNumber]>;
 
         batchOracleValues(
             _assets: PromiseOrValue<string>[],
@@ -2311,42 +1856,25 @@ export interface Kresko extends BaseContract {
         overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
-    getAccountCollateralRatio(
-        _account: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<FixedPoint.UnsignedStructOutput>;
+    getAccountCollateralRatio(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    getAccountCollateralValue(
-        _account: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<FixedPoint.UnsignedStructOutput>;
+    getAccountCollateralValue(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    getAccountKrAssetValue(
-        _account: PromiseOrValue<string>,
-        overrides?: CallOverrides,
-    ): Promise<FixedPoint.UnsignedStructOutput>;
+    getAccountKrAssetValue(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
     getAccountMinimumCollateralValueAtRatio(
         _account: PromiseOrValue<string>,
-        _ratio: FixedPoint.UnsignedStruct,
+        _ratio: PromiseOrValue<BigNumberish>,
         overrides?: CallOverrides,
-    ): Promise<FixedPoint.UnsignedStructOutput>;
+    ): Promise<BigNumber>;
 
     getCollateralAdjustedAndRealValue(
         _account: PromiseOrValue<string>,
         _asset: PromiseOrValue<string>,
         overrides?: CallOverrides,
-    ): Promise<
-        [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
-            adjustedValue: FixedPoint.UnsignedStructOutput;
-            realValue: FixedPoint.UnsignedStructOutput;
-        }
-    >;
+    ): Promise<[BigNumber, BigNumber] & { adjustedValue: BigNumber; realValue: BigNumber }>;
 
-    getCollateralRatiosFor(
-        _accounts: PromiseOrValue<string>[],
-        overrides?: CallOverrides,
-    ): Promise<FixedPoint.UnsignedStructOutput[]>;
+    getCollateralRatiosFor(_accounts: PromiseOrValue<string>[], overrides?: CallOverrides): Promise<BigNumber[]>;
 
     getDepositedCollateralAssetIndex(
         _account: PromiseOrValue<string>,
@@ -2405,23 +1933,13 @@ export interface Kresko extends BaseContract {
 
     addCollateralAsset(
         _collateralAsset: PromiseOrValue<string>,
-        _anchor: PromiseOrValue<string>,
-        _factor: PromiseOrValue<BigNumberish>,
-        _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-        _priceFeedOracle: PromiseOrValue<string>,
-        _marketStatusOracle: PromiseOrValue<string>,
+        _config: CollateralAssetStruct,
         overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     addKreskoAsset(
         _krAsset: PromiseOrValue<string>,
-        _anchor: PromiseOrValue<string>,
-        _kFactor: PromiseOrValue<BigNumberish>,
-        _priceFeedOracle: PromiseOrValue<string>,
-        _marketStatusOracle: PromiseOrValue<string>,
-        _supplyLimit: PromiseOrValue<BigNumberish>,
-        _closeFee: PromiseOrValue<BigNumberish>,
-        _openFee: PromiseOrValue<BigNumberish>,
+        _config: KrAssetStruct,
         overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
@@ -2443,11 +1961,7 @@ export interface Kresko extends BaseContract {
 
     updateCollateralAsset(
         _collateralAsset: PromiseOrValue<string>,
-        _anchor: PromiseOrValue<string>,
-        _factor: PromiseOrValue<BigNumberish>,
-        _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-        _priceFeedOracle: PromiseOrValue<string>,
-        _marketStatusOracle: PromiseOrValue<string>,
+        _config: CollateralAssetStruct,
         overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
@@ -2469,13 +1983,7 @@ export interface Kresko extends BaseContract {
 
     updateKreskoAsset(
         _krAsset: PromiseOrValue<string>,
-        _anchor: PromiseOrValue<string>,
-        _kFactor: PromiseOrValue<BigNumberish>,
-        _priceFeedOracle: PromiseOrValue<string>,
-        _marketStatusOracle: PromiseOrValue<string>,
-        _supplyLimit: PromiseOrValue<BigNumberish>,
-        _closeFee: PromiseOrValue<BigNumberish>,
-        _openFee: PromiseOrValue<BigNumberish>,
+        _config: KrAssetStruct,
         overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
@@ -2502,6 +2010,26 @@ export interface Kresko extends BaseContract {
 
     updateMinimumDebtValue(
         _minimumDebtValue: PromiseOrValue<BigNumberish>,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    updateOracleDeviationPct(
+        _oracleDeviationPct: PromiseOrValue<BigNumberish>,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    updateOracleTimeout(
+        _oracleTimeout: PromiseOrValue<BigNumberish>,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    updateSequencerGracePeriodTime(
+        _sequencerGracePeriodTime: PromiseOrValue<BigNumberish>,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    updateSequencerUptimeFeed(
+        _sequencerUptimeFeed: PromiseOrValue<string>,
         overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
@@ -2532,6 +2060,7 @@ export interface Kresko extends BaseContract {
     batchLiquidateInterest(
         _account: PromiseOrValue<string>,
         _collateralAssetToSeize: PromiseOrValue<string>,
+        _allowSeizeUnderflow: PromiseOrValue<boolean>,
         overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
@@ -2539,6 +2068,7 @@ export interface Kresko extends BaseContract {
         _account: PromiseOrValue<string>,
         _repayKreskoAsset: PromiseOrValue<string>,
         _collateralAssetToSeize: PromiseOrValue<string>,
+        _allowSeizeUnderflow: PromiseOrValue<boolean>,
         overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
@@ -2558,6 +2088,7 @@ export interface Kresko extends BaseContract {
         _seizeAsset: PromiseOrValue<string>,
         _repayAssetIndex: PromiseOrValue<BigNumberish>,
         _seizeAssetIndex: PromiseOrValue<BigNumberish>,
+        _allowSeizeUnderflow: PromiseOrValue<boolean>,
         overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
@@ -2581,6 +2112,11 @@ export interface Kresko extends BaseContract {
     ): Promise<SafetyStateStructOutput>;
 
     safetyStateSet(overrides?: CallOverrides): Promise<boolean>;
+
+    setSafetyStateSet(
+        val: PromiseOrValue<boolean>,
+        overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
 
     toggleAssetsPaused(
         _assets: PromiseOrValue<string>[],
@@ -2671,35 +2207,32 @@ export interface Kresko extends BaseContract {
         _amount: PromiseOrValue<BigNumberish>,
         _ignoreCollateralFactor: PromiseOrValue<boolean>,
         overrides?: CallOverrides,
-    ): Promise<
-        [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
-            value: FixedPoint.UnsignedStructOutput;
-            oraclePrice: FixedPoint.UnsignedStructOutput;
-        }
-    >;
+    ): Promise<[BigNumber, BigNumber] & { value: BigNumber; oraclePrice: BigNumber }>;
 
     getKrAssetValue(
         _kreskoAsset: PromiseOrValue<string>,
         _amount: PromiseOrValue<BigNumberish>,
         _ignoreKFactor: PromiseOrValue<boolean>,
         overrides?: CallOverrides,
-    ): Promise<FixedPoint.UnsignedStructOutput>;
+    ): Promise<BigNumber>;
 
     krAssetExists(_kreskoAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
 
     kreskoAsset(_kreskoAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<KrAssetStructOutput>;
 
-    liquidationIncentiveMultiplier(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
+    liquidationIncentiveMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
 
-    liquidationThreshold(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
+    liquidationThreshold(overrides?: CallOverrides): Promise<BigNumber>;
 
-    maxLiquidationMultiplier(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
+    maxLiquidationMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
 
-    minimumCollateralizationRatio(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
+    minimumCollateralizationRatio(overrides?: CallOverrides): Promise<BigNumber>;
 
-    minimumDebtValue(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
+    minimumDebtValue(overrides?: CallOverrides): Promise<BigNumber>;
 
     minterInitializations(overrides?: CallOverrides): Promise<BigNumber>;
+
+    oracleDeviationPct(overrides?: CallOverrides): Promise<BigNumber>;
 
     batchOracleValues(
         _assets: PromiseOrValue<string>[],
@@ -2839,42 +2372,30 @@ export interface Kresko extends BaseContract {
             overrides?: CallOverrides,
         ): Promise<BigNumber>;
 
-        getAccountCollateralRatio(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<FixedPoint.UnsignedStructOutput>;
+        getAccountCollateralRatio(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
-        getAccountCollateralValue(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<FixedPoint.UnsignedStructOutput>;
+        getAccountCollateralValue(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
-        getAccountKrAssetValue(
-            _account: PromiseOrValue<string>,
-            overrides?: CallOverrides,
-        ): Promise<FixedPoint.UnsignedStructOutput>;
+        getAccountKrAssetValue(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
         getAccountMinimumCollateralValueAtRatio(
             _account: PromiseOrValue<string>,
-            _ratio: FixedPoint.UnsignedStruct,
+            _ratio: PromiseOrValue<BigNumberish>,
             overrides?: CallOverrides,
-        ): Promise<FixedPoint.UnsignedStructOutput>;
+        ): Promise<BigNumber>;
 
         getCollateralAdjustedAndRealValue(
             _account: PromiseOrValue<string>,
             _asset: PromiseOrValue<string>,
             overrides?: CallOverrides,
         ): Promise<
-            [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
-                adjustedValue: FixedPoint.UnsignedStructOutput;
-                realValue: FixedPoint.UnsignedStructOutput;
+            [BigNumber, BigNumber] & {
+                adjustedValue: BigNumber;
+                realValue: BigNumber;
             }
         >;
 
-        getCollateralRatiosFor(
-            _accounts: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<FixedPoint.UnsignedStructOutput[]>;
+        getCollateralRatiosFor(_accounts: PromiseOrValue<string>[], overrides?: CallOverrides): Promise<BigNumber[]>;
 
         getDepositedCollateralAssetIndex(
             _account: PromiseOrValue<string>,
@@ -2930,23 +2451,13 @@ export interface Kresko extends BaseContract {
 
         addCollateralAsset(
             _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
+            _config: CollateralAssetStruct,
             overrides?: CallOverrides,
         ): Promise<void>;
 
         addKreskoAsset(
             _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
+            _config: KrAssetStruct,
             overrides?: CallOverrides,
         ): Promise<void>;
 
@@ -2962,11 +2473,7 @@ export interface Kresko extends BaseContract {
 
         updateCollateralAsset(
             _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
+            _config: CollateralAssetStruct,
             overrides?: CallOverrides,
         ): Promise<void>;
 
@@ -2982,13 +2489,7 @@ export interface Kresko extends BaseContract {
 
         updateKreskoAsset(
             _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
+            _config: KrAssetStruct,
             overrides?: CallOverrides,
         ): Promise<void>;
 
@@ -3015,6 +2516,23 @@ export interface Kresko extends BaseContract {
 
         updateMinimumDebtValue(
             _minimumDebtValue: PromiseOrValue<BigNumberish>,
+            overrides?: CallOverrides,
+        ): Promise<void>;
+
+        updateOracleDeviationPct(
+            _oracleDeviationPct: PromiseOrValue<BigNumberish>,
+            overrides?: CallOverrides,
+        ): Promise<void>;
+
+        updateOracleTimeout(_oracleTimeout: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<void>;
+
+        updateSequencerGracePeriodTime(
+            _sequencerGracePeriodTime: PromiseOrValue<BigNumberish>,
+            overrides?: CallOverrides,
+        ): Promise<void>;
+
+        updateSequencerUptimeFeed(
+            _sequencerUptimeFeed: PromiseOrValue<string>,
             overrides?: CallOverrides,
         ): Promise<void>;
 
@@ -3045,6 +2563,7 @@ export interface Kresko extends BaseContract {
         batchLiquidateInterest(
             _account: PromiseOrValue<string>,
             _collateralAssetToSeize: PromiseOrValue<string>,
+            _allowSeizeUnderflow: PromiseOrValue<boolean>,
             overrides?: CallOverrides,
         ): Promise<void>;
 
@@ -3052,6 +2571,7 @@ export interface Kresko extends BaseContract {
             _account: PromiseOrValue<string>,
             _repayKreskoAsset: PromiseOrValue<string>,
             _collateralAssetToSeize: PromiseOrValue<string>,
+            _allowSeizeUnderflow: PromiseOrValue<boolean>,
             overrides?: CallOverrides,
         ): Promise<void>;
 
@@ -3071,6 +2591,7 @@ export interface Kresko extends BaseContract {
             _seizeAsset: PromiseOrValue<string>,
             _repayAssetIndex: PromiseOrValue<BigNumberish>,
             _seizeAssetIndex: PromiseOrValue<BigNumberish>,
+            _allowSeizeUnderflow: PromiseOrValue<boolean>,
             overrides?: CallOverrides,
         ): Promise<void>;
 
@@ -3094,6 +2615,8 @@ export interface Kresko extends BaseContract {
         ): Promise<SafetyStateStructOutput>;
 
         safetyStateSet(overrides?: CallOverrides): Promise<boolean>;
+
+        setSafetyStateSet(val: PromiseOrValue<boolean>, overrides?: CallOverrides): Promise<void>;
 
         toggleAssetsPaused(
             _assets: PromiseOrValue<string>[],
@@ -3178,35 +2701,32 @@ export interface Kresko extends BaseContract {
             _amount: PromiseOrValue<BigNumberish>,
             _ignoreCollateralFactor: PromiseOrValue<boolean>,
             overrides?: CallOverrides,
-        ): Promise<
-            [FixedPoint.UnsignedStructOutput, FixedPoint.UnsignedStructOutput] & {
-                value: FixedPoint.UnsignedStructOutput;
-                oraclePrice: FixedPoint.UnsignedStructOutput;
-            }
-        >;
+        ): Promise<[BigNumber, BigNumber] & { value: BigNumber; oraclePrice: BigNumber }>;
 
         getKrAssetValue(
             _kreskoAsset: PromiseOrValue<string>,
             _amount: PromiseOrValue<BigNumberish>,
             _ignoreKFactor: PromiseOrValue<boolean>,
             overrides?: CallOverrides,
-        ): Promise<FixedPoint.UnsignedStructOutput>;
+        ): Promise<BigNumber>;
 
         krAssetExists(_kreskoAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
 
         kreskoAsset(_kreskoAsset: PromiseOrValue<string>, overrides?: CallOverrides): Promise<KrAssetStructOutput>;
 
-        liquidationIncentiveMultiplier(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
+        liquidationIncentiveMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
 
-        liquidationThreshold(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
+        liquidationThreshold(overrides?: CallOverrides): Promise<BigNumber>;
 
-        maxLiquidationMultiplier(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
+        maxLiquidationMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
 
-        minimumCollateralizationRatio(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
+        minimumCollateralizationRatio(overrides?: CallOverrides): Promise<BigNumber>;
 
-        minimumDebtValue(overrides?: CallOverrides): Promise<FixedPoint.UnsignedStructOutput>;
+        minimumDebtValue(overrides?: CallOverrides): Promise<BigNumber>;
 
         minterInitializations(overrides?: CallOverrides): Promise<BigNumber>;
+
+        oracleDeviationPct(overrides?: CallOverrides): Promise<BigNumber>;
 
         batchOracleValues(
             _assets: PromiseOrValue<string>[],
@@ -3263,343 +2783,7 @@ export interface Kresko extends BaseContract {
         ): Promise<LibUI.PairDataStructOutput[]>;
     };
 
-    filters: {
-        "DiamondCut(tuple[],address,bytes)"(_diamondCut?: null, _init?: null, _calldata?: null): DiamondCutEventFilter;
-        DiamondCut(_diamondCut?: null, _init?: null, _calldata?: null): DiamondCutEventFilter;
-
-        "OwnershipTransferred(address,address)"(
-            previousOwner?: PromiseOrValue<string> | null,
-            newOwner?: PromiseOrValue<string> | null,
-        ): OwnershipTransferredEventFilter;
-        OwnershipTransferred(
-            previousOwner?: PromiseOrValue<string> | null,
-            newOwner?: PromiseOrValue<string> | null,
-        ): OwnershipTransferredEventFilter;
-
-        "PendingOwnershipTransfer(address,address)"(
-            previousOwner?: PromiseOrValue<string> | null,
-            newOwner?: PromiseOrValue<string> | null,
-        ): PendingOwnershipTransferEventFilter;
-        PendingOwnershipTransfer(
-            previousOwner?: PromiseOrValue<string> | null,
-            newOwner?: PromiseOrValue<string> | null,
-        ): PendingOwnershipTransferEventFilter;
-
-        "Deployed(address,uint8)"(owner?: PromiseOrValue<string> | null, version?: null): DeployedEventFilter;
-        Deployed(owner?: PromiseOrValue<string> | null, version?: null): DeployedEventFilter;
-
-        "Initialized(address,uint8)"(operator?: PromiseOrValue<string> | null, version?: null): InitializedEventFilter;
-        Initialized(operator?: PromiseOrValue<string> | null, version?: null): InitializedEventFilter;
-
-        "KISSUpdated(address)"(KISS?: PromiseOrValue<string> | null): KISSUpdatedEventFilter;
-        KISSUpdated(KISS?: PromiseOrValue<string> | null): KISSUpdatedEventFilter;
-
-        "StabilityRateConfigured(address,uint256,uint256,uint256,uint256)"(
-            asset?: PromiseOrValue<string> | null,
-            stabilityRateBase?: null,
-            priceRateDelta?: null,
-            rateSlope1?: null,
-            rateSlope2?: null,
-        ): StabilityRateConfiguredEventFilter;
-        StabilityRateConfigured(
-            asset?: PromiseOrValue<string> | null,
-            stabilityRateBase?: null,
-            priceRateDelta?: null,
-            rateSlope1?: null,
-            rateSlope2?: null,
-        ): StabilityRateConfiguredEventFilter;
-
-        "StabilityRateInterestBatchRepaid(address,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            value?: null,
-        ): StabilityRateInterestBatchRepaidEventFilter;
-        StabilityRateInterestBatchRepaid(
-            account?: PromiseOrValue<string> | null,
-            value?: null,
-        ): StabilityRateInterestBatchRepaidEventFilter;
-
-        "StabilityRateInterestRepaid(address,address,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            asset?: PromiseOrValue<string> | null,
-            value?: null,
-        ): StabilityRateInterestRepaidEventFilter;
-        StabilityRateInterestRepaid(
-            account?: PromiseOrValue<string> | null,
-            asset?: PromiseOrValue<string> | null,
-            value?: null,
-        ): StabilityRateInterestRepaidEventFilter;
-
-        "AMMOracleUpdated(address)"(ammOracle?: PromiseOrValue<string> | null): AMMOracleUpdatedEventFilter;
-        AMMOracleUpdated(ammOracle?: PromiseOrValue<string> | null): AMMOracleUpdatedEventFilter;
-
-        "BatchInterestLiquidationOccurred(address,address,address,uint256,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            liquidator?: PromiseOrValue<string> | null,
-            seizedCollateralAsset?: PromiseOrValue<string> | null,
-            repayUSD?: null,
-            collateralSent?: null,
-        ): BatchInterestLiquidationOccurredEventFilter;
-        BatchInterestLiquidationOccurred(
-            account?: PromiseOrValue<string> | null,
-            liquidator?: PromiseOrValue<string> | null,
-            seizedCollateralAsset?: PromiseOrValue<string> | null,
-            repayUSD?: null,
-            collateralSent?: null,
-        ): BatchInterestLiquidationOccurredEventFilter;
-
-        "CFactorUpdated(address,uint256)"(
-            collateralAsset?: PromiseOrValue<string> | null,
-            cFactor?: null,
-        ): CFactorUpdatedEventFilter;
-        CFactorUpdated(collateralAsset?: PromiseOrValue<string> | null, cFactor?: null): CFactorUpdatedEventFilter;
-
-        "CloseFeePaid(address,address,uint256,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            paymentCollateralAsset?: PromiseOrValue<string> | null,
-            paymentAmount?: null,
-            paymentValue?: null,
-        ): CloseFeePaidEventFilter;
-        CloseFeePaid(
-            account?: PromiseOrValue<string> | null,
-            paymentCollateralAsset?: PromiseOrValue<string> | null,
-            paymentAmount?: null,
-            paymentValue?: null,
-        ): CloseFeePaidEventFilter;
-
-        "CollateralAssetAdded(address,uint256,address,address,address)"(
-            collateralAsset?: PromiseOrValue<string> | null,
-            factor?: null,
-            oracle?: PromiseOrValue<string> | null,
-            marketStatusOracle?: PromiseOrValue<string> | null,
-            anchor?: null,
-        ): CollateralAssetAddedEventFilter;
-        CollateralAssetAdded(
-            collateralAsset?: PromiseOrValue<string> | null,
-            factor?: null,
-            oracle?: PromiseOrValue<string> | null,
-            marketStatusOracle?: PromiseOrValue<string> | null,
-            anchor?: null,
-        ): CollateralAssetAddedEventFilter;
-
-        "CollateralAssetUpdated(address,uint256,address,address,address)"(
-            collateralAsset?: PromiseOrValue<string> | null,
-            factor?: null,
-            oracle?: PromiseOrValue<string> | null,
-            marketStatusOracle?: PromiseOrValue<string> | null,
-            anchor?: null,
-        ): CollateralAssetUpdatedEventFilter;
-        CollateralAssetUpdated(
-            collateralAsset?: PromiseOrValue<string> | null,
-            factor?: null,
-            oracle?: PromiseOrValue<string> | null,
-            marketStatusOracle?: PromiseOrValue<string> | null,
-            anchor?: null,
-        ): CollateralAssetUpdatedEventFilter;
-
-        "CollateralDeposited(address,address,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            collateralAsset?: PromiseOrValue<string> | null,
-            amount?: null,
-        ): CollateralDepositedEventFilter;
-        CollateralDeposited(
-            account?: PromiseOrValue<string> | null,
-            collateralAsset?: PromiseOrValue<string> | null,
-            amount?: null,
-        ): CollateralDepositedEventFilter;
-
-        "CollateralWithdrawn(address,address,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            collateralAsset?: PromiseOrValue<string> | null,
-            amount?: null,
-        ): CollateralWithdrawnEventFilter;
-        CollateralWithdrawn(
-            account?: PromiseOrValue<string> | null,
-            collateralAsset?: PromiseOrValue<string> | null,
-            amount?: null,
-        ): CollateralWithdrawnEventFilter;
-
-        "DebtPositionClosed(address,address,uint256,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            kreskoAsset?: PromiseOrValue<string> | null,
-            amount?: null,
-            interestRepaid?: null,
-        ): DebtPositionClosedEventFilter;
-        DebtPositionClosed(
-            account?: PromiseOrValue<string> | null,
-            kreskoAsset?: PromiseOrValue<string> | null,
-            amount?: null,
-            interestRepaid?: null,
-        ): DebtPositionClosedEventFilter;
-
-        "FeeRecipientUpdated(address)"(feeRecipient?: PromiseOrValue<string> | null): FeeRecipientUpdatedEventFilter;
-        FeeRecipientUpdated(feeRecipient?: PromiseOrValue<string> | null): FeeRecipientUpdatedEventFilter;
-
-        "InterestLiquidationOccurred(address,address,address,uint256,address,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            liquidator?: PromiseOrValue<string> | null,
-            repayKreskoAsset?: PromiseOrValue<string> | null,
-            repayUSD?: null,
-            seizedCollateralAsset?: null,
-            collateralSent?: null,
-        ): InterestLiquidationOccurredEventFilter;
-        InterestLiquidationOccurred(
-            account?: PromiseOrValue<string> | null,
-            liquidator?: PromiseOrValue<string> | null,
-            repayKreskoAsset?: PromiseOrValue<string> | null,
-            repayUSD?: null,
-            seizedCollateralAsset?: null,
-            collateralSent?: null,
-        ): InterestLiquidationOccurredEventFilter;
-
-        "KFactorUpdated(address,uint256)"(
-            kreskoAsset?: PromiseOrValue<string> | null,
-            kFactor?: null,
-        ): KFactorUpdatedEventFilter;
-        KFactorUpdated(kreskoAsset?: PromiseOrValue<string> | null, kFactor?: null): KFactorUpdatedEventFilter;
-
-        "KreskoAssetAdded(address,address,address,address,uint256,uint256,uint256,uint256)"(
-            kreskoAsset?: PromiseOrValue<string> | null,
-            anchor?: null,
-            oracle?: PromiseOrValue<string> | null,
-            marketStatusOracle?: PromiseOrValue<string> | null,
-            kFactor?: null,
-            supplyLimit?: null,
-            closeFee?: null,
-            openFee?: null,
-        ): KreskoAssetAddedEventFilter;
-        KreskoAssetAdded(
-            kreskoAsset?: PromiseOrValue<string> | null,
-            anchor?: null,
-            oracle?: PromiseOrValue<string> | null,
-            marketStatusOracle?: PromiseOrValue<string> | null,
-            kFactor?: null,
-            supplyLimit?: null,
-            closeFee?: null,
-            openFee?: null,
-        ): KreskoAssetAddedEventFilter;
-
-        "KreskoAssetBurned(address,address,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            kreskoAsset?: PromiseOrValue<string> | null,
-            amount?: null,
-        ): KreskoAssetBurnedEventFilter;
-        KreskoAssetBurned(
-            account?: PromiseOrValue<string> | null,
-            kreskoAsset?: PromiseOrValue<string> | null,
-            amount?: null,
-        ): KreskoAssetBurnedEventFilter;
-
-        "KreskoAssetMinted(address,address,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            kreskoAsset?: PromiseOrValue<string> | null,
-            amount?: null,
-        ): KreskoAssetMintedEventFilter;
-        KreskoAssetMinted(
-            account?: PromiseOrValue<string> | null,
-            kreskoAsset?: PromiseOrValue<string> | null,
-            amount?: null,
-        ): KreskoAssetMintedEventFilter;
-
-        "KreskoAssetUpdated(address,address,address,address,uint256,uint256,uint256,uint256)"(
-            kreskoAsset?: PromiseOrValue<string> | null,
-            anchor?: null,
-            oracle?: PromiseOrValue<string> | null,
-            marketStatusOracle?: PromiseOrValue<string> | null,
-            kFactor?: null,
-            supplyLimit?: null,
-            closeFee?: null,
-            openFee?: null,
-        ): KreskoAssetUpdatedEventFilter;
-        KreskoAssetUpdated(
-            kreskoAsset?: PromiseOrValue<string> | null,
-            anchor?: null,
-            oracle?: PromiseOrValue<string> | null,
-            marketStatusOracle?: PromiseOrValue<string> | null,
-            kFactor?: null,
-            supplyLimit?: null,
-            closeFee?: null,
-            openFee?: null,
-        ): KreskoAssetUpdatedEventFilter;
-
-        "LiquidationIncentiveMultiplierUpdated(address,uint256)"(
-            asset?: PromiseOrValue<string> | null,
-            liquidationIncentiveMultiplier?: null,
-        ): LiquidationIncentiveMultiplierUpdatedEventFilter;
-        LiquidationIncentiveMultiplierUpdated(
-            asset?: PromiseOrValue<string> | null,
-            liquidationIncentiveMultiplier?: null,
-        ): LiquidationIncentiveMultiplierUpdatedEventFilter;
-
-        "LiquidationOccurred(address,address,address,uint256,address,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            liquidator?: PromiseOrValue<string> | null,
-            repayKreskoAsset?: PromiseOrValue<string> | null,
-            repayAmount?: null,
-            seizedCollateralAsset?: null,
-            collateralSent?: null,
-        ): LiquidationOccurredEventFilter;
-        LiquidationOccurred(
-            account?: PromiseOrValue<string> | null,
-            liquidator?: PromiseOrValue<string> | null,
-            repayKreskoAsset?: PromiseOrValue<string> | null,
-            repayAmount?: null,
-            seizedCollateralAsset?: null,
-            collateralSent?: null,
-        ): LiquidationOccurredEventFilter;
-
-        "LiquidationThresholdUpdated(uint256)"(liquidationThreshold?: null): LiquidationThresholdUpdatedEventFilter;
-        LiquidationThresholdUpdated(liquidationThreshold?: null): LiquidationThresholdUpdatedEventFilter;
-
-        "MinimumCollateralizationRatioUpdated(uint256)"(
-            minimumCollateralizationRatio?: null,
-        ): MinimumCollateralizationRatioUpdatedEventFilter;
-        MinimumCollateralizationRatioUpdated(
-            minimumCollateralizationRatio?: null,
-        ): MinimumCollateralizationRatioUpdatedEventFilter;
-
-        "MinimumDebtValueUpdated(uint256)"(minimumDebtValue?: null): MinimumDebtValueUpdatedEventFilter;
-        MinimumDebtValueUpdated(minimumDebtValue?: null): MinimumDebtValueUpdatedEventFilter;
-
-        "OpenFeePaid(address,address,uint256,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            paymentCollateralAsset?: PromiseOrValue<string> | null,
-            paymentAmount?: null,
-            paymentValue?: null,
-        ): OpenFeePaidEventFilter;
-        OpenFeePaid(
-            account?: PromiseOrValue<string> | null,
-            paymentCollateralAsset?: PromiseOrValue<string> | null,
-            paymentAmount?: null,
-            paymentValue?: null,
-        ): OpenFeePaidEventFilter;
-
-        "SafetyStateChange(uint8,address,string)"(
-            action?: PromiseOrValue<BigNumberish> | null,
-            asset?: PromiseOrValue<string> | null,
-            description?: PromiseOrValue<string> | null,
-        ): SafetyStateChangeEventFilter;
-        SafetyStateChange(
-            action?: PromiseOrValue<BigNumberish> | null,
-            asset?: PromiseOrValue<string> | null,
-            description?: PromiseOrValue<string> | null,
-        ): SafetyStateChangeEventFilter;
-
-        "UncheckedCollateralWithdrawn(address,address,uint256)"(
-            account?: PromiseOrValue<string> | null,
-            collateralAsset?: PromiseOrValue<string> | null,
-            amount?: null,
-        ): UncheckedCollateralWithdrawnEventFilter;
-        UncheckedCollateralWithdrawn(
-            account?: PromiseOrValue<string> | null,
-            collateralAsset?: PromiseOrValue<string> | null,
-            amount?: null,
-        ): UncheckedCollateralWithdrawnEventFilter;
-
-        "maxLiquidationMultiplierUpdated(uint256)"(
-            maxLiquidationMultiplier?: null,
-        ): maxLiquidationMultiplierUpdatedEventFilter;
-        maxLiquidationMultiplierUpdated(maxLiquidationMultiplier?: null): maxLiquidationMultiplierUpdatedEventFilter;
-    };
+    filters: {};
 
     estimateGas: {
         getRoleAdmin(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<BigNumber>;
@@ -3700,7 +2884,7 @@ export interface Kresko extends BaseContract {
 
         getAccountMinimumCollateralValueAtRatio(
             _account: PromiseOrValue<string>,
-            _ratio: FixedPoint.UnsignedStruct,
+            _ratio: PromiseOrValue<BigNumberish>,
             overrides?: CallOverrides,
         ): Promise<BigNumber>;
 
@@ -3769,23 +2953,13 @@ export interface Kresko extends BaseContract {
 
         addCollateralAsset(
             _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
+            _config: CollateralAssetStruct,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<BigNumber>;
 
         addKreskoAsset(
             _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
+            _config: KrAssetStruct,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<BigNumber>;
 
@@ -3807,11 +2981,7 @@ export interface Kresko extends BaseContract {
 
         updateCollateralAsset(
             _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
+            _config: CollateralAssetStruct,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<BigNumber>;
 
@@ -3833,13 +3003,7 @@ export interface Kresko extends BaseContract {
 
         updateKreskoAsset(
             _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
+            _config: KrAssetStruct,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<BigNumber>;
 
@@ -3866,6 +3030,26 @@ export interface Kresko extends BaseContract {
 
         updateMinimumDebtValue(
             _minimumDebtValue: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        updateOracleDeviationPct(
+            _oracleDeviationPct: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        updateOracleTimeout(
+            _oracleTimeout: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        updateSequencerGracePeriodTime(
+            _sequencerGracePeriodTime: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
+
+        updateSequencerUptimeFeed(
+            _sequencerUptimeFeed: PromiseOrValue<string>,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<BigNumber>;
 
@@ -3896,6 +3080,7 @@ export interface Kresko extends BaseContract {
         batchLiquidateInterest(
             _account: PromiseOrValue<string>,
             _collateralAssetToSeize: PromiseOrValue<string>,
+            _allowSeizeUnderflow: PromiseOrValue<boolean>,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<BigNumber>;
 
@@ -3903,6 +3088,7 @@ export interface Kresko extends BaseContract {
             _account: PromiseOrValue<string>,
             _repayKreskoAsset: PromiseOrValue<string>,
             _collateralAssetToSeize: PromiseOrValue<string>,
+            _allowSeizeUnderflow: PromiseOrValue<boolean>,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<BigNumber>;
 
@@ -3922,6 +3108,7 @@ export interface Kresko extends BaseContract {
             _seizeAsset: PromiseOrValue<string>,
             _repayAssetIndex: PromiseOrValue<BigNumberish>,
             _seizeAssetIndex: PromiseOrValue<BigNumberish>,
+            _allowSeizeUnderflow: PromiseOrValue<boolean>,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<BigNumber>;
 
@@ -3945,6 +3132,11 @@ export interface Kresko extends BaseContract {
         ): Promise<BigNumber>;
 
         safetyStateSet(overrides?: CallOverrides): Promise<BigNumber>;
+
+        setSafetyStateSet(
+            val: PromiseOrValue<boolean>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<BigNumber>;
 
         toggleAssetsPaused(
             _assets: PromiseOrValue<string>[],
@@ -4056,6 +3248,8 @@ export interface Kresko extends BaseContract {
         minimumDebtValue(overrides?: CallOverrides): Promise<BigNumber>;
 
         minterInitializations(overrides?: CallOverrides): Promise<BigNumber>;
+
+        oracleDeviationPct(overrides?: CallOverrides): Promise<BigNumber>;
 
         batchOracleValues(
             _assets: PromiseOrValue<string>[],
@@ -4205,7 +3399,7 @@ export interface Kresko extends BaseContract {
 
         getAccountMinimumCollateralValueAtRatio(
             _account: PromiseOrValue<string>,
-            _ratio: FixedPoint.UnsignedStruct,
+            _ratio: PromiseOrValue<BigNumberish>,
             overrides?: CallOverrides,
         ): Promise<PopulatedTransaction>;
 
@@ -4286,23 +3480,13 @@ export interface Kresko extends BaseContract {
 
         addCollateralAsset(
             _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
+            _config: CollateralAssetStruct,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<PopulatedTransaction>;
 
         addKreskoAsset(
             _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
+            _config: KrAssetStruct,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<PopulatedTransaction>;
 
@@ -4324,11 +3508,7 @@ export interface Kresko extends BaseContract {
 
         updateCollateralAsset(
             _collateralAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _factor: PromiseOrValue<BigNumberish>,
-            _liquidationIncentiveMultiplier: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
+            _config: CollateralAssetStruct,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<PopulatedTransaction>;
 
@@ -4350,13 +3530,7 @@ export interface Kresko extends BaseContract {
 
         updateKreskoAsset(
             _krAsset: PromiseOrValue<string>,
-            _anchor: PromiseOrValue<string>,
-            _kFactor: PromiseOrValue<BigNumberish>,
-            _priceFeedOracle: PromiseOrValue<string>,
-            _marketStatusOracle: PromiseOrValue<string>,
-            _supplyLimit: PromiseOrValue<BigNumberish>,
-            _closeFee: PromiseOrValue<BigNumberish>,
-            _openFee: PromiseOrValue<BigNumberish>,
+            _config: KrAssetStruct,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<PopulatedTransaction>;
 
@@ -4383,6 +3557,26 @@ export interface Kresko extends BaseContract {
 
         updateMinimumDebtValue(
             _minimumDebtValue: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        updateOracleDeviationPct(
+            _oracleDeviationPct: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        updateOracleTimeout(
+            _oracleTimeout: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        updateSequencerGracePeriodTime(
+            _sequencerGracePeriodTime: PromiseOrValue<BigNumberish>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
+
+        updateSequencerUptimeFeed(
+            _sequencerUptimeFeed: PromiseOrValue<string>,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<PopulatedTransaction>;
 
@@ -4413,6 +3607,7 @@ export interface Kresko extends BaseContract {
         batchLiquidateInterest(
             _account: PromiseOrValue<string>,
             _collateralAssetToSeize: PromiseOrValue<string>,
+            _allowSeizeUnderflow: PromiseOrValue<boolean>,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<PopulatedTransaction>;
 
@@ -4420,6 +3615,7 @@ export interface Kresko extends BaseContract {
             _account: PromiseOrValue<string>,
             _repayKreskoAsset: PromiseOrValue<string>,
             _collateralAssetToSeize: PromiseOrValue<string>,
+            _allowSeizeUnderflow: PromiseOrValue<boolean>,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<PopulatedTransaction>;
 
@@ -4442,6 +3638,7 @@ export interface Kresko extends BaseContract {
             _seizeAsset: PromiseOrValue<string>,
             _repayAssetIndex: PromiseOrValue<BigNumberish>,
             _seizeAssetIndex: PromiseOrValue<BigNumberish>,
+            _allowSeizeUnderflow: PromiseOrValue<boolean>,
             overrides?: Overrides & { from?: PromiseOrValue<string> },
         ): Promise<PopulatedTransaction>;
 
@@ -4465,6 +3662,11 @@ export interface Kresko extends BaseContract {
         ): Promise<PopulatedTransaction>;
 
         safetyStateSet(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+        setSafetyStateSet(
+            val: PromiseOrValue<boolean>,
+            overrides?: Overrides & { from?: PromiseOrValue<string> },
+        ): Promise<PopulatedTransaction>;
 
         toggleAssetsPaused(
             _assets: PromiseOrValue<string>[],
@@ -4585,6 +3787,8 @@ export interface Kresko extends BaseContract {
         minimumDebtValue(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
         minterInitializations(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+        oracleDeviationPct(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
         batchOracleValues(
             _assets: PromiseOrValue<string>[],

@@ -14,8 +14,6 @@ export const coreExports = [
     "UniswapMath",
     "UniswapV2Pair",
     "UniswapV2LiquidityMathLibrary",
-    "FluxPriceFeedFactory",
-    "FluxPriceFeed",
     "KISS",
     "FunderTestnetExtended",
     "UniswapV2Oracle",
@@ -132,7 +130,7 @@ export const exportDeployments = async () => {
                     }
                     console.log(`hh-deploy export: ${stdout}`);
 
-                    await hre.run(TASK_WRITE_ORACLE_JSON);
+                    // await hre.run(TASK_WRITE_ORACLE_JSON);
                     exec("rm packages/contracts/src/types/hardhat.d.ts", () => {
                         resolve(true);
                     });

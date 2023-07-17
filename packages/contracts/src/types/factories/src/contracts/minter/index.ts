@@ -2,4 +2,4 @@
 // @ts-nocheck
 /* tslint:disable */
 /* eslint-disable */
-export { UniswapV2Oracle__factory } from "./UniswapV2Oracle__factory";
+export * as ammOracle from "./amm-oracle";
