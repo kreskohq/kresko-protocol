@@ -1,12 +1,10 @@
-import { MockContract, smock } from "@defi-wonderland/smock";
 import { fromBig, toBig } from "@kreskolabs/lib";
+import { WrapperBuilder } from "@redstone-finance/evm-connector";
+import { BigNumber } from "ethers";
 import hre, { ethers } from "hardhat";
-import { FluxPriceFeed__factory, Kresko, SmockCollateralReceiver } from "types/typechain";
-import { defaultCloseFee, defaultOracleDecimals, defaultOraclePrice } from "../mocks";
+import { defaultCloseFee } from "../mocks";
 import { getCollateralConfig } from "./collaterals";
 import { getKrAssetConfig } from "./krassets";
-import { BigNumber } from "ethers";
-import { WrapperBuilder } from "@redstone-finance/evm-connector";
 
 /* -------------------------------------------------------------------------- */
 /*                                  GENERAL                                   */
@@ -66,7 +64,6 @@ export const leverageKrAsset = async (
                 toBig(1),
                 toBig(process.env.LIQUIDATION_INCENTIVE!),
                 collateralToUse.priceFeed.address,
-                collateralToUse.priceFeed.address,
             ),
         );
     }
@@ -82,7 +79,6 @@ export const leverageKrAsset = async (
                 krAsset.contract,
                 krAsset.anchor.address,
                 toBig(1),
-                krAsset.priceFeed.address,
                 krAsset.priceFeed.address,
                 toBig(1_000_000),
                 toBig(defaultCloseFee),
@@ -100,7 +96,6 @@ export const leverageKrAsset = async (
                 krAsset.anchor.address,
                 toBig(1),
                 toBig(process.env.LIQUIDATION_INCENTIVE!),
-                krAsset.priceFeed.address,
                 krAsset.priceFeed.address,
             ),
         );

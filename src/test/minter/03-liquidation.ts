@@ -61,7 +61,6 @@ describe("Minter - Liquidations", () => {
                 toBig(1),
                 toBig(1.05),
                 assetInfo.oracle,
-                assetInfo.marketStatusOracle,
             ),
         );
 

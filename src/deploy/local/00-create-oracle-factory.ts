@@ -1,4 +1,4 @@
-import { assets as goerliAssets, testnetConfigs } from "@deploy-config/opgoerli";
+import { assets as goerliAssets, testnetConfigs } from "@deploy-config/arbitrumGoerli";
 import { getLogger } from "@kreskolabs/lib";
 import type { DeployFunction } from "hardhat-deploy/types";
 
@@ -49,6 +49,6 @@ const deploy: DeployFunction = async function (hre) {
 };
 
 deploy.tags = ["local", "oracles"];
-deploy.skip = async hre => hre.network.live;
+deploy.skip = async () => true;
 
 export default deploy;

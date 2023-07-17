@@ -230,4 +230,8 @@ library LibAssetUtility {
         // Revert if price deviates more than `_oracleDeviationPct`
         revert(Error.ORACLE_PRICE_UNSTABLE);
     }
+
+    function marketStatus(KrAsset memory self) internal pure returns (bool) {
+        return true;
+    }
 }

@@ -86,9 +86,9 @@ contract FluxPriceFeed is AccessControl, IFluxPriceFeed {
         // Check the report contents, and record the result
         latestAggregatorRoundId++;
         // solhint-disable-next-line not-rely-on-time
-        s_transmissions[latestAggregatorRoundId] = Transmission(_answer, uint64(block.timestamp), _marketOpen);
+        s_transmissions[latestAggregatorRoundId] = Transmission(_answer, uint64(block.timestamp), true);
 
-        emit NewTransmission(latestAggregatorRoundId, _answer, _marketOpen, msg.sender);
+        emit NewTransmission(latestAggregatorRoundId, _answer, true, msg.sender);
     }
 
     /*

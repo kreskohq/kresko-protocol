@@ -196,7 +196,6 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         CollateralAsset memory _config
     ) external nonReentrant onlyRole(Role.ADMIN) collateralAssetDoesNotExist(_collateralAsset) {
         require(_collateralAsset != address(0), Error.ADDRESS_INVALID_COLLATERAL);
-        require(address(_config.marketStatusOracle) != address(0), Error.ADDRESS_INVALID_ORACLE);
         require(_config.oracle.decimals() == ms().extOracleDecimals, Error.INVALID_ORACLE_DECIMALS);
         require(_config.factor <= Constants.ONE_HUNDRED_PERCENT, Error.COLLATERAL_INVALID_FACTOR);
         require(
@@ -220,7 +219,6 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             factor: _config.factor,
             oracle: _config.oracle,
             liquidationIncentive: _config.liquidationIncentive,
-            marketStatusOracle: _config.marketStatusOracle,
             anchor: _config.anchor,
             exists: true,
             decimals: IERC20Permit(_collateralAsset).decimals(),
@@ -231,7 +229,6 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             _collateralAsset,
             _config.factor,
             address(_config.oracle),
-            address(_config.marketStatusOracle),
             _config.anchor,
             _config.liquidationIncentive
         );
@@ -267,11 +264,6 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             collateralAsset.anchor = _config.anchor;
         }
 
-        /* -------------------------- Market status oracle -------------------------- */
-        if (address(_config.marketStatusOracle) != address(0)) {
-            collateralAsset.marketStatusOracle = _config.marketStatusOracle;
-        }
-
         /* ------------------------------- Price feed ------------------------------- */
         if (address(_config.oracle) != address(0)) {
             require(_config.oracle.decimals() == ms().extOracleDecimals, Error.INVALID_ORACLE_DECIMALS);
@@ -291,7 +283,6 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             _collateralAsset,
             collateralAsset.factor,
             address(collateralAsset.oracle),
-            address(collateralAsset.marketStatusOracle),
             collateralAsset.anchor,
             collateralAsset.liquidationIncentive
         );
@@ -328,7 +319,6 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         ms().kreskoAssets[_krAsset] = KrAsset({
             kFactor: _config.kFactor,
             oracle: _config.oracle,
-            marketStatusOracle: _config.marketStatusOracle,
             anchor: _config.anchor,
             supplyLimit: _config.supplyLimit,
             closeFee: _config.closeFee,
@@ -341,7 +331,6 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             _krAsset,
             _config.anchor,
             address(_config.oracle),
-            address(_config.marketStatusOracle),
             _config.kFactor,
             _config.supplyLimit,
             _config.closeFee,
@@ -374,11 +363,6 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             krAsset.anchor = _config.anchor;
         }
 
-        /* ------------------------------ Market status ----------------------------- */
-        if (address(_config.marketStatusOracle) != address(0)) {
-            krAsset.marketStatusOracle = _config.marketStatusOracle;
-        }
-
         /* ------------------------------- Price feed ------------------------------- */
         if (address(_config.oracle) != address(0)) {
             require(_config.oracle.decimals() == ms().extOracleDecimals, Error.INVALID_ORACLE_DECIMALS);
@@ -399,7 +383,6 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             _krAsset,
             krAsset.anchor,
             address(krAsset.oracle),
-            address(krAsset.marketStatusOracle),
             krAsset.kFactor,
             krAsset.supplyLimit,
             krAsset.closeFee,

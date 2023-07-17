@@ -82,7 +82,6 @@ describe("Minter - Deposit Withdraw", () => {
                         toBig(1),
                         toBig(1.05),
                         newKrAsset.mocks.clFeed.address,
-                        newKrAsset.mocks.fluxFeed.address,
                     ),
                 );
                 const depositAmount = collateralAmount.div(2);
@@ -143,7 +142,6 @@ describe("Minter - Deposit Withdraw", () => {
                         toBig(1),
                         toBig(1.05),
                         newKrAsset.mocks.clFeed.address,
-                        newKrAsset.mocks.fluxFeed.address,
                     ),
                 );
 
@@ -712,7 +710,6 @@ describe("Minter - Deposit Withdraw", () => {
                         toBig(1),
                         toBig(1.05),
                         assetInfo.oracle,
-                        assetInfo.marketStatusOracle,
                     ),
                 );
 
@@ -1215,7 +1212,6 @@ describe("Minter - Deposit Withdraw", () => {
                         toBig(1),
                         toBig(1.05),
                         assetInfo.oracle,
-                        assetInfo.marketStatusOracle,
                     ),
                 );
 

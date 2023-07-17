@@ -1,4 +1,4 @@
-import { testnetConfigs } from "@deploy-config/opgoerli";
+import { testnetConfigs } from "@deploy-config/arbitrumGoerli";
 import type { DeployFunction } from "hardhat-deploy/types";
 import { getLogger } from "@kreskolabs/lib";
 import { createKrAsset } from "@scripts/create-krasset";

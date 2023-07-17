@@ -20,13 +20,13 @@ task(TASK_WRITE_ORACLE_JSON).setAction(async function (_taskArgs: TaskArguments,
         }
         const collateralInfo = await Kresko.collateralAsset(contract.address);
         if (!collateral.oracle) continue;
+
         if (collateral.symbol === "" || collateral.symbol === "WETH") {
             values.push({
                 asset: await contract.symbol(),
                 assetAddress: contract.address,
                 assetType: "collateral",
                 feed: collateral.oracle.description,
-                marketstatus: collateralInfo.marketStatusOracle,
                 pricefeed: collateralInfo.oracle,
             });
             continue;
@@ -36,7 +36,6 @@ task(TASK_WRITE_ORACLE_JSON).setAction(async function (_taskArgs: TaskArguments,
             assetAddress: contract.address,
             assetType: "collateral",
             feed: collateral.oracle.description,
-            marketstatus: collateralInfo.marketStatusOracle,
             pricefeed: collateralInfo.oracle,
         });
     }
@@ -49,7 +48,6 @@ task(TASK_WRITE_ORACLE_JSON).setAction(async function (_taskArgs: TaskArguments,
             assetAddress: contract.address,
             assetType: "krAsset",
             feed: krAsset.oracle.description,
-            marketstatus: krAssetInfo.marketStatusOracle,
             pricefeed: krAssetInfo.oracle,
         });
     }

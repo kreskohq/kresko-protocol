@@ -1,4 +1,4 @@
-import { testnetConfigs } from "@deploy-config/opgoerli";
+import { testnetConfigs } from "@deploy-config/arbitrumGoerli";
 import { getLogger } from "@kreskolabs/lib";
 import { TASK_DEPLOY_STAKING, TASK_DEPLOY_TOKEN } from "@tasks";
 import type { DeployFunction } from "hardhat-deploy/types";

@@ -1,4 +1,4 @@
-import { testnetConfigs } from "@deploy-config/opgoerli";
+import { testnetConfigs } from "@deploy-config/arbitrumGoerli";
 import { JStoFixed, fromBig, getLogger, toBig } from "@kreskolabs/lib";
 import { TASK_UNIV2_ADD_LIQUIDITY } from "@tasks";
 import type { DeployFunction } from "hardhat-deploy/types";
