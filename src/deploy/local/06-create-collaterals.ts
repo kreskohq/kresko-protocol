@@ -1,5 +1,5 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { testnetConfigs } from "@deploy-config/opgoerli";
+import { testnetConfigs } from "@deploy-config/arbitrumGoerli";
 import type { DeployFunction } from "hardhat-deploy/types";
 import { WETH } from "types/typechain/src/contracts/test/WETH";
 import { getLogger, toBig } from "@kreskolabs/lib";

@@ -241,7 +241,7 @@ library LibUI {
                 timestamp: timestamp,
                 assetAddress: _assets[i],
                 roundId: roundId,
-                marketOpen: IFluxPriceFeed(_marketStatusFeeds[i]).latestMarketOpen()
+                marketOpen: true
             });
         }
     }
@@ -272,7 +272,7 @@ library LibUI {
                 stabilityRate: stabilityRate,
                 priceRate: priceRate,
                 ammPrice: ammPrice,
-                marketOpen: krAsset.marketStatusOracle.latestMarketOpen(),
+                marketOpen: true,
                 symbol: IERC20Permit(assetAddress).symbol(),
                 name: IERC20Permit(assetAddress).name()
             });
@@ -303,7 +303,7 @@ library LibUI {
                 cFactor: collateralAsset.factor,
                 decimals: decimals,
                 price: price,
-                marketOpen: collateralAsset.marketStatusOracle.latestMarketOpen(),
+                marketOpen: true,
                 symbol: IERC20Permit(assetAddress).symbol(),
                 name: IERC20Permit(assetAddress).name()
             });

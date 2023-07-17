@@ -131,7 +131,7 @@ describe("Minter - Configuration", () => {
                 openFee: toBig(0.02),
             };
 
-            const [CLFeed, FluxFeed] = await getMockOraclesFor(await contract.name(), update.price);
+            const [CLFeed] = await getMockOraclesFor(await contract.name(), update.price);
 
             await wrapContractWithSigner(hre.Diamond, hre.users.deployer).updateKreskoAsset(
                 contract.address,
@@ -140,7 +140,6 @@ describe("Minter - Configuration", () => {
                     anchor!.address,
                     update.factor,
                     CLFeed.address,
-                    FluxFeed.address,
                     toBig(update.supplyLimit),
                     update.closeFee,
                     update.openFee,

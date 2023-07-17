@@ -1,20 +1,20 @@
-import { fromBig, getLogger, toBig } from "@kreskolabs/lib";
+import { getLogger, toBig } from "@kreskolabs/lib";
 import type { TaskArguments } from "hardhat/types";
 
 import { anchorTokenPrefix } from "@deploy-config/shared";
 import { task, types } from "hardhat/config";
 import { TASK_WHITELIST_COLLATERAL } from "./names";
 import { redstoneMap } from "@deploy-config/opgoerli";
+import { wrapKresko } from "@deploy-config/arbitrumGoerli";
 
 task(TASK_WHITELIST_COLLATERAL)
     .addParam("symbol", "Name of the collateral")
     .addParam("cFactor", "cFactor for the collateral", 1000, types.float)
     .addParam("oracleAddr", "Price feed address")
-    .addParam("marketStatusOracleAddr", "Market status oracle address")
     .addOptionalParam("log", "Log outputs", false, types.boolean)
     .addOptionalParam("wait", "wait confirmations", 1, types.int)
     .setAction(async function (taskArgs: TaskArguments, hre) {
-        const { symbol, cFactor, oracleAddr, marketStatusOracleAddr, log } = taskArgs;
+        const { symbol, cFactor, oracleAddr, log } = taskArgs;
         const logger = getLogger(TASK_WHITELIST_COLLATERAL, log);
 
         const kresko = await hre.getContractOrFork("Kresko");
@@ -57,7 +57,6 @@ task(TASK_WHITELIST_COLLATERAL)
                 factor: toBig(cFactor),
                 liquidationIncentive: toBig(process.env.LIQUIDATION_INCENTIVE!),
                 oracle: oracleAddr,
-                marketStatusOracle: marketStatusOracleAddr,
                 decimals: await Collateral.decimals(),
                 exists: true,
                 redstoneId: redstone,
@@ -67,15 +66,8 @@ task(TASK_WHITELIST_COLLATERAL)
             if (log) {
                 const collateralDecimals = await Collateral.decimals();
                 logger.log(symbol, "decimals", collateralDecimals);
-                const [value, oraclePrice] = await kresko.getCollateralValueAndOraclePrice(
-                    Collateral.address,
-                    hre.ethers.utils.parseUnits("1", collateralDecimals),
-                    true,
-                );
 
                 logger.success(`Sucesfully added ${symbol} as collateral with a cFctor of:`, cFactor);
-                logger.log(`1 ${symbol} value: ${fromBig(value, 8)}`);
-                logger.log(`1 ${symbol} oracle price: ${fromBig(oraclePrice, 8)}`);
                 logger.log("txHash", tx.hash);
             }
         }

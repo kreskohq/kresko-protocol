@@ -14,10 +14,14 @@ import {
 import { ethers } from "ethers";
 
 const defaultParams: Omit<KreskoConstructor, "feeRecipient"> = {
-    liquidationIncentive: "1.05",
-    minimumCollateralizationRatio: "1.5",
-    minimumDebtValue: "10",
-    liquidationThreshold: "1.4",
+    extOracleDecimals: 8,
+    minimumCollateralizationRatio: 1.5,
+    minimumDebtValue: 10,
+    liquidationThreshold: 1.4,
+    oracleDeviationPct: 0.1,
+    sequencerGracePeriodTime: 3600,
+    sequencerUptimeFeed: ethers.constants.AddressZero,
+    oracleTimeout: ethers.constants.MaxUint256,
 };
 
 export const redstoneMap = {

@@ -1,9 +1,8 @@
-import { assets, testnetConfigs } from "@deploy-config/opgoerli";
+import { assets, testnetConfigs } from "@deploy-config/arbitrumGoerli";
 import type { DeployFunction } from "hardhat-deploy/types";
 import { getLogger } from "@kreskolabs/lib";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import { TASK_DEPLOY_KISS, TASK_WHITELIST_COLLATERAL, TASK_WHITELIST_KRASSET } from "@tasks";
-import { getOracle } from "@utils/test/helpers/oracle";
 
 const logger = getLogger("create-kiss");
 
@@ -20,20 +19,18 @@ const deploy: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
         logger.warn(`skipping KISS as it has no oracle`);
         return;
     }
-    const oracleAddress = await getOracle(assets.KISS.oracle.description, hre);
+    const oracleAddress = (await hre.deployments.get("KISSFeed")).address;
     await hre.run(TASK_WHITELIST_KRASSET, {
         symbol: assets.KISS.symbol,
         kFactor: assets.KISS.kFactor,
         supplyLimit: 2_000_000_000,
         oracleAddr: oracleAddress,
-        marketStatusOracleAddr: oracleAddress,
     });
 
     await hre.run(TASK_WHITELIST_COLLATERAL, {
         symbol: assets.KISS.symbol,
         cFactor: assets.KISS.cFactor,
         oracleAddr: oracleAddress,
-        marketStatusOracleAddr: oracleAddress,
         log: !process.env.TEST,
     });
 

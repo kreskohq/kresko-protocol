@@ -7,7 +7,11 @@ import { envCheck } from "@utils/general";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import type { MinterInitializer } from "types";
 import { MinterInitArgsStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
+import { testnetConfigs } from "./arbitrumGoerli";
+import { ethers } from "ethers";
+
 envCheck();
+
 // These function namings are ignored when generating ABI for the diamond
 const signatureFilters = ["init", "initializer"];
 
@@ -46,11 +50,13 @@ export const getDeploymentUsers = async (hre: HardhatRuntimeEnvironment) => {
     const treasury = hre.network.live ? users.treasury : Safe.address;
     return { admin: users.admin, multisig, treasury };
 };
+
 export const getMinterInitializer = async (
     hre: HardhatRuntimeEnvironment,
 ): Promise<MinterInitializer<MinterInitArgsStruct>> => {
     const { treasury, admin, multisig } = await getDeploymentUsers(hre);
-    const { ethers } = hre;
+
+    const config = testnetConfigs[hre.network.name].protocolParams;
 
     return {
         name: "ConfigurationFacet",
@@ -58,14 +64,14 @@ export const getMinterInitializer = async (
             admin,
             treasury,
             council: multisig,
-            minimumCollateralizationRatio: toBig(process.env.MINIMUM_COLLATERALIZATION_RATIO!),
-            minimumDebtValue: toBig(process.env.MINIMUM_DEBT_VALUE!, 8),
-            liquidationThreshold: toBig(process.env.LIQUIDATION_THRESHOLD!),
-            extOracleDecimals: 8,
-            oracleDeviationPct: toBig(0.1),
-            sequencerUptimeFeed: ethers.constants.AddressZero,
-            sequencerGracePeriodTime: 3600,
-            oracleTimeout: ethers.constants.MaxUint256,
+            minimumCollateralizationRatio: toBig(config.minimumCollateralizationRatio),
+            minimumDebtValue: toBig(config.minimumDebtValue, 8),
+            liquidationThreshold: toBig(config.liquidationThreshold),
+            extOracleDecimals: config.extOracleDecimals,
+            oracleDeviationPct: toBig(config.oracleDeviationPct),
+            sequencerUptimeFeed: hre.network.live ? config.sequencerUptimeFeed : ethers.constants.AddressZero,
+            sequencerGracePeriodTime: config.sequencerGracePeriodTime,
+            oracleTimeout: config.oracleTimeout,
         },
     };
 };

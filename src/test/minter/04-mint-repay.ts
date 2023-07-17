@@ -404,7 +404,7 @@ describe("Minter", () => {
                 ).to.be.revertedWith(Error.KRASSET_MAX_SUPPLY_REACHED);
             });
 
-            it("should not allow the minting of kreskoAssets if the market is closed", async function () {
+            it.skip("should not allow the minting of kreskoAssets if the market is closed", async function () {
                 this.krAsset.setMarketOpen(false);
                 await expect(
                     wrapContractWithSigner(hre.Diamond, hre.users.userOne).mintKreskoAsset(

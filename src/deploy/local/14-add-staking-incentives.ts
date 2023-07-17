@@ -1,4 +1,4 @@
-import { testnetConfigs } from "@deploy-config/opgoerli";
+import { testnetConfigs } from "@deploy-config/arbitrumGoerli";
 import { fromBig, getLogger, toBig } from "@kreskolabs/lib";
 import type { DeployFunction } from "hardhat-deploy/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";

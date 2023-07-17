@@ -5,7 +5,7 @@ import { InputArgs, TestCollateralAssetArgs, TestCollateralAssetUpdate, defaultC
 import { envCheck } from "@utils/general";
 import { CollateralAssetStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 import { getMockOraclesFor, setPrice } from "./oracle";
-import { redstoneMap } from "@deploy-config/opgoerli";
+import { redstoneMap } from "@deploy-config/arbitrumGoerli";
 import { expect } from "chai";
 import { wrapContractWithSigner } from "./general";
 
@@ -17,7 +17,6 @@ export const getCollateralConfig = async (
     cFactor: BigNumber,
     liquidationIncentive: BigNumber,
     oracle: string,
-    marketStatusOracle: string,
 ): Promise<CollateralAssetStruct> => {
     if (cFactor.gt(toBig(1))) throw new Error("cFactor must be less than 1");
     if (liquidationIncentive.lt(toBig(1))) throw new Error("Liquidation incentive must be greater than 1");
@@ -30,7 +29,6 @@ export const getCollateralConfig = async (
         factor: cFactor,
         liquidationIncentive,
         oracle,
-        marketStatusOracle,
         decimals: await asset.decimals(),
         exists: true,
         redstoneId: redstone,
@@ -60,7 +58,6 @@ export const addMockCollateralAsset = async (
             cFactor,
             toBig(process.env.LIQUIDATION_INCENTIVE!),
             CLFeed.address,
-            FluxFeed.address,
         ),
     );
     const mocks = {
@@ -110,7 +107,6 @@ export const updateCollateralAsset = async (address: string, args: TestCollatera
             toBig(args.factor),
             toBig(process.env.LIQUIDATION_INCENTIVE!),
             args.oracle || collateral!.mocks!.clFeed.address,
-            args.oracle || collateral!.mocks!.fluxFeed.address,
         ),
     );
     // @ts-expect-error

@@ -38,14 +38,12 @@ library MinterEvent {
      * @param collateralAsset The address of the collateral asset.
      * @param factor The collateral factor.
      * @param oracle The address of the oracle.
-     * @param marketStatusOracle The address of the market status oracle.
      * @param liquidationIncentive The liquidation incentive
      */
     event CollateralAssetAdded(
         address indexed collateralAsset,
         uint256 factor,
         address indexed oracle,
-        address indexed marketStatusOracle,
         address anchor,
         uint256 liquidationIncentive
     );
@@ -55,14 +53,12 @@ library MinterEvent {
      * @param collateralAsset The address of the collateral asset.
      * @param factor The collateral factor.
      * @param oracle The oracle address.
-     * @param marketStatusOracle The address of the market status oracle.
      * @param liquidationIncentive The liquidation incentive
      */
     event CollateralAssetUpdated(
         address indexed collateralAsset,
         uint256 factor,
         address indexed oracle,
-        address indexed marketStatusOracle,
         address anchor,
         uint256 liquidationIncentive
     );
@@ -108,7 +104,6 @@ library MinterEvent {
      * @param anchor anchor token
      * @param kFactor The k-factor.
      * @param oracle The address of the oracle.
-     * @param marketStatusOracle The address of the market status oracle.
      * @param supplyLimit The total supply limit.
      * @param closeFee The close fee percentage.
      * @param openFee The open fee percentage.
@@ -117,7 +112,6 @@ library MinterEvent {
         address indexed kreskoAsset,
         address anchor,
         address indexed oracle,
-        address indexed marketStatusOracle,
         uint256 kFactor,
         uint256 supplyLimit,
         uint256 closeFee,
@@ -129,7 +123,6 @@ library MinterEvent {
      * @param kreskoAsset The address of the Kresko asset.
      * @param kFactor The k-factor.
      * @param oracle The address of the oracle.
-     * @param marketStatusOracle The address of the market status oracle.
      * @param supplyLimit The total supply limit.
      * @param closeFee The close fee percentage.
      * @param openFee The open fee percentage.
@@ -138,7 +131,6 @@ library MinterEvent {
         address indexed kreskoAsset,
         address anchor,
         address indexed oracle,
-        address indexed marketStatusOracle,
         uint256 kFactor,
         uint256 supplyLimit,
         uint256 closeFee,

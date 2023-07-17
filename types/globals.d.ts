@@ -104,11 +104,18 @@ declare global {
     type DiamondCutInitializer = [string, BytesLike];
 
     interface KreskoConstructor {
-        feeRecipient: string;
-        liquidationIncentive: BigNumberish;
-        minimumCollateralizationRatio: BigNumberish;
-        minimumDebtValue: BigNumberish;
-        liquidationThreshold: BigNumberish;
+        admin?: string;
+        council?: string;
+        treasury?: string;
+        extOracleDecimals: number;
+        minimumCollateralizationRatio: number;
+        minimumDebtValue: number;
+        liquidationThreshold: number;
+        oracleDeviationPct: number;
+
+        sequencerUptimeFeed: string;
+        sequencerGracePeriodTime: BigNumberish;
+        oracleTimeout: BigNumberish;
     }
     interface KreskoAssetInitializer {
         name: string;

@@ -128,7 +128,6 @@ struct MinterParams {
 struct KrAsset {
     uint256 kFactor;
     AggregatorV3Interface oracle;
-    IFluxPriceFeed marketStatusOracle;
     uint256 supplyLimit;
     address anchor;
     uint256 closeFee;
@@ -153,7 +152,6 @@ using LibAssetUtility for KrAsset global;
 struct CollateralAsset {
     uint256 factor;
     AggregatorV3Interface oracle;
-    IFluxPriceFeed marketStatusOracle;
     address anchor;
     uint8 decimals;
     bool exists;
