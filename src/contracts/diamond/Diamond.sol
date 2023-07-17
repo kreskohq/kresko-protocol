@@ -3,7 +3,7 @@
 /* solhint-disable no-inline-assembly */
 /* solhint-disable no-empty-blocks */
 
-pragma solidity >=0.8.20;
+pragma solidity >=0.8.19;
 
 import {IDiamondCutFacet} from "./interfaces/IDiamondCutFacet.sol";
 import {Authorization, Role} from "../libs/Authorization.sol";

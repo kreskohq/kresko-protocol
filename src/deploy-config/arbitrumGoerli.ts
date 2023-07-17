@@ -110,6 +110,7 @@ export const oracles = {
         marketOpen: async () => {
             return true;
         },
+        chainlink: "0x1A604cF2957Abb03ce62a6642fd822EbcE15166b",
     },
 };
 

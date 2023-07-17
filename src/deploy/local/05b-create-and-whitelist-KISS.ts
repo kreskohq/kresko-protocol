@@ -46,6 +46,6 @@ deploy.skip = async hre => {
 };
 
 deploy.tags = ["local", "KISS", "minter-init"];
-deploy.dependencies = ["add-facets", "oracles"];
+deploy.dependencies = ["add-facets"];
 
 export default deploy;

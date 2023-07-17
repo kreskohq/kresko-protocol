@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.20;
+pragma solidity >=0.8.19;
 
 import {IFluxPriceFeed} from "../vendor/flux/interfaces/IFluxPriceFeed.sol";
 import {AggregatorV3Interface} from "../vendor/AggregatorV3Interface.sol";

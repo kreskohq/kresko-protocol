@@ -55,7 +55,7 @@ deploy.skip = async hre => {
     if (skip) {
         logger.log("Skipping deploying staking");
     }
-    return skip || hre.network.live;
+    return skip;
 };
 
 deploy.tags = ["local", "staking-incentive", "staking-deployment"];

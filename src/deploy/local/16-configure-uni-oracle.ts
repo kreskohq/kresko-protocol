@@ -22,6 +22,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 
 deploy.tags = ["local", "uniswap", "uniswap-oracle"];
-deploy.skip = async hre => hre.network.live;
+// deploy.skip = async hre => hre.network.live;
 
 export default deploy;

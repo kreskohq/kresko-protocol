@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.20;
+pragma solidity >=0.8.19;
 import {IERC20Minimal} from "../../vendor/uniswap/v2-core/interfaces/IERC20Minimal.sol";
 import {IUniswapV2Factory} from "../../vendor/uniswap/v2-periphery/libraries/UniswapV2Library.sol";
 

@@ -37,6 +37,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 deploy.tags = ["local", "whitelist-collaterals", "all"];
 deploy.dependencies = ["minter-init", "whitelist-krassets"];
-deploy.skip = async hre => hre.network.live;
+// deploy.skip = async hre => hre.network.live;
 
 export default deploy;
