@@ -1,4 +1,4 @@
-import { testnetConfigs } from "@deploy-config/opgoerli";
+import { testnetConfigs } from "@deploy-config/arbitrumGoerli";
 import { fromBig, getLogger } from "@kreskolabs/lib";
 
 export default async function run() {

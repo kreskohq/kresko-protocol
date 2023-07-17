@@ -4,7 +4,7 @@ import { defaultSupplyLimit } from "@utils/test/mocks";
 import { task, types } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
 import { TASK_WHITELIST_KRASSET } from "./names";
-import { redstoneMap } from "@deploy-config/opgoerli";
+import { redstoneMap } from "@deploy-config/arbitrumGoerli";
 
 task(TASK_WHITELIST_KRASSET)
     .addParam("symbol", "Name of the asset")

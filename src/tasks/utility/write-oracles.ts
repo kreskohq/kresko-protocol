@@ -1,4 +1,4 @@
-import { testnetConfigs } from "@deploy-config/opgoerli";
+import { testnetConfigs } from "@deploy-config/arbitrumGoerli";
 import { getLogger } from "@kreskolabs/lib";
 import { writeFileSync } from "fs";
 import { task } from "hardhat/config";

@@ -1,5 +1,5 @@
 import { smock } from "@defi-wonderland/smock";
-import { redstoneMap } from "@deploy-config/opgoerli";
+import { redstoneMap } from "@deploy-config/arbitrumGoerli";
 import { anchorTokenPrefix } from "@deploy-config/shared";
 import { toBig } from "@kreskolabs/lib";
 import { expect } from "chai";

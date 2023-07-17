@@ -5,7 +5,7 @@ import { InputArgs, TestCollateralAssetArgs, TestCollateralAssetUpdate, defaultC
 import { envCheck } from "@utils/general";
 import { CollateralAssetStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 import { getMockOraclesFor, setPrice } from "./oracle";
-import { redstoneMap } from "@deploy-config/opgoerli";
+import { redstoneMap } from "@deploy-config/arbitrumGoerli";
 import { expect } from "chai";
 import { wrapContractWithSigner } from "./general";
 
