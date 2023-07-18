@@ -271,6 +271,8 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             require(collateralAsset.uintPrice() != 0, Error.ADDRESS_INVALID_ORACLE);
         }
 
+        collateralAsset.redstoneId = _config.redstoneId;
+
         /* --------------------------------- cFactor -------------------------------- */
         collateralAsset.factor = _config.factor;
 
@@ -369,7 +371,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             krAsset.oracle = _config.oracle;
             require(krAsset.uintPrice() != 0, Error.ADDRESS_INVALID_ORACLE);
         }
-
+        krAsset.redstoneId = _config.redstoneId;
         /* -------------------------- Factors, Fees, Limits ------------------------- */
         krAsset.kFactor = _config.kFactor;
         krAsset.supplyLimit = _config.supplyLimit;

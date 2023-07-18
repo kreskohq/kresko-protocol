@@ -8,10 +8,7 @@ const logger = getLogger("create-kiss");
 
 const deploy: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     // Create KISS first
-    const { contract: KISSContract } = await hre.run(TASK_DEPLOY_KISS, {
-        amount: assets.KISS.mintAmount,
-        decimals: 18,
-    });
+    const { contract: KISSContract } = await hre.run(TASK_DEPLOY_KISS);
 
     logger.log(`whitelisting KISS`);
 

@@ -130,7 +130,7 @@ export const exportDeployments = async () => {
                     }
                     console.log(`hh-deploy export: ${stdout}`);
 
-                    // await hre.run(TASK_WRITE_ORACLE_JSON);
+                    await hre.run(TASK_WRITE_ORACLE_JSON);
                     exec("rm packages/contracts/src/types/hardhat.d.ts", () => {
                         resolve(true);
                     });

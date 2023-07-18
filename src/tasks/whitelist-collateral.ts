@@ -4,8 +4,7 @@ import type { TaskArguments } from "hardhat/types";
 import { anchorTokenPrefix } from "@deploy-config/shared";
 import { task, types } from "hardhat/config";
 import { TASK_WHITELIST_COLLATERAL } from "./names";
-import { redstoneMap } from "@deploy-config/opgoerli";
-import { wrapKresko } from "@deploy-config/arbitrumGoerli";
+import { redstoneMap } from "@deploy-config/arbitrumGoerli";
 
 task(TASK_WHITELIST_COLLATERAL)
     .addParam("symbol", "Name of the collateral")

@@ -1,5 +1,5 @@
 {
-  "address": "0x21D2cB7c7A54dE879dfEAf1eDFCDaa67786A9e0B",
+  "address": "0x8520C6452fc3ce680Bd1635D5B994cCE6b36D3Be",
   "abi": [
     {
       "anonymous": false,
@@ -153,6 +153,77 @@
       "anonymous": false,
       "inputs": [
         {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "newMaxOperators",
+          "type": "uint256"
+        }
+      ],
+      "name": "NewMaxOperators",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOperator",
+          "type": "address"
+        }
+      ],
+      "name": "NewOperator",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "pendingNewOperator",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "unlockTimestamp",
+          "type": "uint256"
+        }
+      ],
+      "name": "NewOperatorInitialized",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "newPeriod",
+          "type": "uint256"
+        }
+      ],
+      "name": "NewPendingOperatorWaitPeriod",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "Paused",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
           "indexed": true,
           "internalType": "bytes32",
           "name": "role",
@@ -250,6 +321,19 @@
       "type": "event"
     },
     {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "Unpaused",
+      "type": "event"
+    },
+    {
       "inputs": [],
       "name": "DEFAULT_ADMIN_ROLE",
       "outputs": [
@@ -276,6 +360,32 @@
       "type": "function"
     },
     {
+      "inputs": [],
+      "name": "MINTER_ROLE",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "PAUSER_ROLE",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [
         {
           "internalType": "address",
@@ -284,7 +394,7 @@
         },
         {
           "internalType": "address",
-          "name": "_account",
+          "name": "_spender",
           "type": "address"
         }
       ],
@@ -345,19 +455,39 @@
     {
       "inputs": [
         {
-          "internalType": "address",
-          "name": "_from",
-          "type": "address"
-        },
-        {
           "internalType": "uint256",
-          "name": "_amount",
+          "name": "shares",
           "type": "uint256"
         }
       ],
-      "name": "burn",
-      "outputs": [],
-      "stateMutability": "nonpayable",
+      "name": "convertToAssets",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "assets",
+          "type": "uint256"
+        }
+      ],
+      "name": "convertToShares",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "pure",
       "type": "function"
     },
     {
@@ -371,6 +501,30 @@
         }
       ],
       "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_from",
+          "type": "address"
+        }
+      ],
+      "name": "destroy",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -439,12 +593,12 @@
       "inputs": [
         {
           "internalType": "bytes32",
-          "name": "role",
+          "name": "_role",
           "type": "bytes32"
         },
         {
           "internalType": "address",
-          "name": "account",
+          "name": "_to",
           "type": "address"
         }
       ],
@@ -481,27 +635,27 @@
       "inputs": [
         {
           "internalType": "string",
-          "name": "_name",
+          "name": "name_",
           "type": "string"
         },
         {
           "internalType": "string",
-          "name": "_symbol",
+          "name": "symbol_",
           "type": "string"
         },
         {
           "internalType": "uint8",
-          "name": "_decimals",
+          "name": "dec_",
           "type": "uint8"
         },
         {
           "internalType": "address",
-          "name": "_admin",
+          "name": "admin_",
           "type": "address"
         },
         {
           "internalType": "address",
-          "name": "_kresko",
+          "name": "kresko_",
           "type": "address"
         }
       ],
@@ -511,16 +665,27 @@
       "type": "function"
     },
     {
-      "inputs": [],
-      "name": "isRebased",
-      "outputs": [
+      "inputs": [
         {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_to",
+          "type": "address"
         }
       ],
-      "stateMutability": "view",
+      "name": "issue",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -531,6 +696,19 @@
           "internalType": "address",
           "name": "",
           "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "maxOperators",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",
@@ -587,6 +765,65 @@
       "type": "function"
     },
     {
+      "inputs": [],
+      "name": "pause",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "paused",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "pendingOperator",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "pendingOperatorUnlockTime",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "pendingOperatorWaitPeriod",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [
         {
           "internalType": "address",
@@ -632,77 +869,6 @@
     {
       "inputs": [
         {
-          "internalType": "uint256",
-          "name": "_denominator",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bool",
-          "name": "_positive",
-          "type": "bool"
-        },
-        {
-          "internalType": "address[]",
-          "name": "_pools",
-          "type": "address[]"
-        }
-      ],
-      "name": "rebase",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "rebaseInfo",
-      "outputs": [
-        {
-          "components": [
-            {
-              "internalType": "bool",
-              "name": "positive",
-              "type": "bool"
-            },
-            {
-              "internalType": "uint256",
-              "name": "denominator",
-              "type": "uint256"
-            }
-          ],
-          "internalType": "struct IKreskoAsset.Rebase",
-          "name": "",
-          "type": "tuple"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "_name",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "_symbol",
-          "type": "string"
-        },
-        {
-          "internalType": "uint8",
-          "name": "_version",
-          "type": "uint8"
-        }
-      ],
-      "name": "reinitializeERC20",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
           "internalType": "bytes32",
           "name": "role",
           "type": "bytes32"
@@ -732,6 +898,32 @@
         }
       ],
       "name": "revokeRole",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_maxOperators",
+          "type": "uint256"
+        }
+      ],
+      "name": "setMaxOperators",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_newPeriod",
+          "type": "uint256"
+        }
+      ],
+      "name": "setPendingOperatorWaitPeriod",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -785,12 +977,12 @@
       "inputs": [
         {
           "internalType": "address",
-          "name": "_to",
+          "name": "to",
           "type": "address"
         },
         {
           "internalType": "uint256",
-          "name": "_amount",
+          "name": "amount",
           "type": "uint256"
         }
       ],
@@ -809,17 +1001,17 @@
       "inputs": [
         {
           "internalType": "address",
-          "name": "_from",
+          "name": "from",
           "type": "address"
         },
         {
           "internalType": "address",
-          "name": "_to",
+          "name": "to",
           "type": "address"
         },
         {
           "internalType": "uint256",
-          "name": "_amount",
+          "name": "amount",
           "type": "uint256"
         }
       ],
@@ -831,6 +1023,13 @@
           "type": "bool"
         }
       ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "unpause",
+      "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
     },
@@ -856,65 +1055,65 @@
       "type": "constructor"
     }
   ],
-  "transactionHash": "0x35b21106cab24fd9a6e9191ec35a646c51939dbe9e93d141800df2502b379dc2",
+  "transactionHash": "0x14bf0febfa556e0d76aa9598515f1ad09557429fde42f85343ef799a818294ae",
   "receipt": {
     "to": null,
     "from": "0xB48bB6b68Ab4D366B4f9A30eE6f7Ee55125c2D9d",
-    "contractAddress": "0x21D2cB7c7A54dE879dfEAf1eDFCDaa67786A9e0B",
+    "contractAddress": "0x8520C6452fc3ce680Bd1635D5B994cCE6b36D3Be",
     "transactionIndex": 1,
-    "gasUsed": "1016801",
-    "logsBloom": "0x00000004000000000400000000000000400000000000000000000000000000000001000000000000000000000000000000000000000020000000000000000000000000000000008004000000000002000000000000000000000000000000000000008000020000000000000000000800000000800000000000000000000000000000400000000000000000000000000000000000001080040010000000800000000100000000000000000000000400000000000000020000001000000000000000000020000000000000000000040000000000200401000100000000000020800000000000000004000000000000000004000000000000000800000000000000",
-    "blockHash": "0x480414d3cbdee7efd014fb85cf7713174f8ff3be1af8fa362c5aaacd63851032",
-    "transactionHash": "0x35b21106cab24fd9a6e9191ec35a646c51939dbe9e93d141800df2502b379dc2",
+    "gasUsed": "1261033",
+    "logsBloom": "0x00000004000000600400000000000000400000000000000000000000000000000000000000000010000000000000004000000000000020000000000000000000000000000000000000000000000002000000000000000000000000000000000000008002020000000000000000000800000000800000000000000000001000000000000000000000000000000000008000000000000080040010000000800100000100000000000000000000000600000000000000020000001000000000000000000020000000000000000000040000001000280401000100002000000020800000000000000004000000000000000004000400000000000000000200000002",
+    "blockHash": "0x8a7b41f39451672821cadbdfa28af14f7ef3760fbbaa5ff6e30dab7e85158730",
+    "transactionHash": "0x14bf0febfa556e0d76aa9598515f1ad09557429fde42f85343ef799a818294ae",
     "logs": [
       {
         "transactionIndex": 1,
-        "blockNumber": 30747344,
-        "transactionHash": "0x35b21106cab24fd9a6e9191ec35a646c51939dbe9e93d141800df2502b379dc2",
-        "address": "0x21D2cB7c7A54dE879dfEAf1eDFCDaa67786A9e0B",
+        "blockNumber": 30928297,
+        "transactionHash": "0x14bf0febfa556e0d76aa9598515f1ad09557429fde42f85343ef799a818294ae",
+        "address": "0x8520C6452fc3ce680Bd1635D5B994cCE6b36D3Be",
         "topics": [
           "0xbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b",
-          "0x000000000000000000000000694c200b67cd53feafb3e9ea44082775e2a36aaf"
+          "0x000000000000000000000000c68b751a4ecbac633a1e3b8f2fa1651dbd0da801"
         ],
         "data": "0x",
         "logIndex": 0,
-        "blockHash": "0x480414d3cbdee7efd014fb85cf7713174f8ff3be1af8fa362c5aaacd63851032"
+        "blockHash": "0x8a7b41f39451672821cadbdfa28af14f7ef3760fbbaa5ff6e30dab7e85158730"
       },
       {
         "transactionIndex": 1,
-        "blockNumber": 30747344,
-        "transactionHash": "0x35b21106cab24fd9a6e9191ec35a646c51939dbe9e93d141800df2502b379dc2",
-        "address": "0x21D2cB7c7A54dE879dfEAf1eDFCDaa67786A9e0B",
+        "blockNumber": 30928297,
+        "transactionHash": "0x14bf0febfa556e0d76aa9598515f1ad09557429fde42f85343ef799a818294ae",
+        "address": "0x8520C6452fc3ce680Bd1635D5B994cCE6b36D3Be",
         "topics": [
           "0x2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d",
           "0x0000000000000000000000000000000000000000000000000000000000000000",
-          "0x000000000000000000000000b48bb6b68ab4d366b4f9a30ee6f7ee55125c2d9d",
+          "0x00000000000000000000000083b92b8a21d56941cb9d056b36e0cc2ada15f1e1",
           "0x000000000000000000000000b48bb6b68ab4d366b4f9a30ee6f7ee55125c2d9d"
         ],
         "data": "0x",
         "logIndex": 1,
-        "blockHash": "0x480414d3cbdee7efd014fb85cf7713174f8ff3be1af8fa362c5aaacd63851032"
+        "blockHash": "0x8a7b41f39451672821cadbdfa28af14f7ef3760fbbaa5ff6e30dab7e85158730"
       },
       {
         "transactionIndex": 1,
-        "blockNumber": 30747344,
-        "transactionHash": "0x35b21106cab24fd9a6e9191ec35a646c51939dbe9e93d141800df2502b379dc2",
-        "address": "0x21D2cB7c7A54dE879dfEAf1eDFCDaa67786A9e0B",
+        "blockNumber": 30928297,
+        "transactionHash": "0x14bf0febfa556e0d76aa9598515f1ad09557429fde42f85343ef799a818294ae",
+        "address": "0x8520C6452fc3ce680Bd1635D5B994cCE6b36D3Be",
         "topics": [
           "0x2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d",
           "0xb9dacdf02281f2e98ddbadaaf44db270b3d5a916342df47c59f77937a6bcd5d8",
-          "0x000000000000000000000000b48bb6b68ab4d366b4f9a30ee6f7ee55125c2d9d",
+          "0x00000000000000000000000083b92b8a21d56941cb9d056b36e0cc2ada15f1e1",
           "0x000000000000000000000000b48bb6b68ab4d366b4f9a30ee6f7ee55125c2d9d"
         ],
         "data": "0x",
         "logIndex": 2,
-        "blockHash": "0x480414d3cbdee7efd014fb85cf7713174f8ff3be1af8fa362c5aaacd63851032"
+        "blockHash": "0x8a7b41f39451672821cadbdfa28af14f7ef3760fbbaa5ff6e30dab7e85158730"
       },
       {
         "transactionIndex": 1,
-        "blockNumber": 30747344,
-        "transactionHash": "0x35b21106cab24fd9a6e9191ec35a646c51939dbe9e93d141800df2502b379dc2",
-        "address": "0x21D2cB7c7A54dE879dfEAf1eDFCDaa67786A9e0B",
+        "blockNumber": 30928297,
+        "transactionHash": "0x14bf0febfa556e0d76aa9598515f1ad09557429fde42f85343ef799a818294ae",
+        "address": "0x8520C6452fc3ce680Bd1635D5B994cCE6b36D3Be",
         "topics": [
           "0x2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d",
           "0x112e48a576fb3a75acc75d9fcf6e0bc670b27b1dbcd2463502e10e68cf57d6fd",
@@ -923,42 +1122,72 @@
         ],
         "data": "0x",
         "logIndex": 3,
-        "blockHash": "0x480414d3cbdee7efd014fb85cf7713174f8ff3be1af8fa362c5aaacd63851032"
+        "blockHash": "0x8a7b41f39451672821cadbdfa28af14f7ef3760fbbaa5ff6e30dab7e85158730"
       },
       {
         "transactionIndex": 1,
-        "blockNumber": 30747344,
-        "transactionHash": "0x35b21106cab24fd9a6e9191ec35a646c51939dbe9e93d141800df2502b379dc2",
-        "address": "0x21D2cB7c7A54dE879dfEAf1eDFCDaa67786A9e0B",
+        "blockNumber": 30928297,
+        "transactionHash": "0x14bf0febfa556e0d76aa9598515f1ad09557429fde42f85343ef799a818294ae",
+        "address": "0x8520C6452fc3ce680Bd1635D5B994cCE6b36D3Be",
+        "topics": [
+          "0x2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d",
+          "0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6",
+          "0x0000000000000000000000000607e3b2a16048fa3c77ec3a935eced978b5c7f3",
+          "0x000000000000000000000000b48bb6b68ab4d366b4f9a30ee6f7ee55125c2d9d"
+        ],
+        "data": "0x",
+        "logIndex": 4,
+        "blockHash": "0x8a7b41f39451672821cadbdfa28af14f7ef3760fbbaa5ff6e30dab7e85158730"
+      },
+      {
+        "transactionIndex": 1,
+        "blockNumber": 30928297,
+        "transactionHash": "0x14bf0febfa556e0d76aa9598515f1ad09557429fde42f85343ef799a818294ae",
+        "address": "0x8520C6452fc3ce680Bd1635D5B994cCE6b36D3Be",
+        "topics": [
+          "0x2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d",
+          "0x65d7a28e3265b37a6474929f336521b332c1681b933f6cb9f3376673440d862a",
+          "0x0000000000000000000000000607e3b2a16048fa3c77ec3a935eced978b5c7f3",
+          "0x000000000000000000000000b48bb6b68ab4d366b4f9a30ee6f7ee55125c2d9d"
+        ],
+        "data": "0x",
+        "logIndex": 5,
+        "blockHash": "0x8a7b41f39451672821cadbdfa28af14f7ef3760fbbaa5ff6e30dab7e85158730"
+      },
+      {
+        "transactionIndex": 1,
+        "blockNumber": 30928297,
+        "transactionHash": "0x14bf0febfa556e0d76aa9598515f1ad09557429fde42f85343ef799a818294ae",
+        "address": "0x8520C6452fc3ce680Bd1635D5B994cCE6b36D3Be",
         "topics": [
           "0x7f26b83ff96e1f2b6a682f133852f6798a09c465da95921460cefb3847402498"
         ],
         "data": "0x0000000000000000000000000000000000000000000000000000000000000001",
-        "logIndex": 4,
-        "blockHash": "0x480414d3cbdee7efd014fb85cf7713174f8ff3be1af8fa362c5aaacd63851032"
+        "logIndex": 6,
+        "blockHash": "0x8a7b41f39451672821cadbdfa28af14f7ef3760fbbaa5ff6e30dab7e85158730"
       },
       {
         "transactionIndex": 1,
-        "blockNumber": 30747344,
-        "transactionHash": "0x35b21106cab24fd9a6e9191ec35a646c51939dbe9e93d141800df2502b379dc2",
-        "address": "0x21D2cB7c7A54dE879dfEAf1eDFCDaa67786A9e0B",
+        "blockNumber": 30928297,
+        "transactionHash": "0x14bf0febfa556e0d76aa9598515f1ad09557429fde42f85343ef799a818294ae",
+        "address": "0x8520C6452fc3ce680Bd1635D5B994cCE6b36D3Be",
         "topics": [
           "0x7e644d79422f17c01e4894b5f4f588d331ebfa28653d42ae832dc59e38c9798f"
         ],
         "data": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000006f925e1411a5356ebac07c4cb312682554d0c38e",
-        "logIndex": 5,
-        "blockHash": "0x480414d3cbdee7efd014fb85cf7713174f8ff3be1af8fa362c5aaacd63851032"
+        "logIndex": 7,
+        "blockHash": "0x8a7b41f39451672821cadbdfa28af14f7ef3760fbbaa5ff6e30dab7e85158730"
       }
     ],
-    "blockNumber": 30747344,
-    "cumulativeGasUsed": "1016801",
+    "blockNumber": 30928297,
+    "cumulativeGasUsed": "1261033",
     "status": 1,
     "byzantium": true
   },
   "args": [
-    "0x694C200B67cd53feAfb3e9Ea44082775E2A36AAf",
+    "0xc68b751a4ECBAC633a1E3b8F2FA1651DBd0dA801",
     "0x6f925E1411A5356eBaC07C4cB312682554D0C38E",
-    "0xc820f14600000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000e00000000000000000000000000000000000000000000000000000000000000012000000000000000000000000b48bb6b68ab4d366b4f9a30ee6f7ee55125c2d9d0000000000000000000000000607e3b2a16048fa3c77ec3a935eced978b5c7f3000000000000000000000000000000000000000000000000000000000000001f4b7265736b6f20496e746567726174656420537461626c652053797374656d0000000000000000000000000000000000000000000000000000000000000000044b49535300000000000000000000000000000000000000000000000000000000"
+    "0xc820f14600000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000e0000000000000000000000000000000000000000000000000000000000000001200000000000000000000000083b92b8a21d56941cb9d056b36e0cc2ada15f1e10000000000000000000000000607e3b2a16048fa3c77ec3a935eced978b5c7f300000000000000000000000000000000000000000000000000000000000000044b4953530000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044b49535300000000000000000000000000000000000000000000000000000000"
   ],
   "numDeployments": 1,
   "solcInputHash": "0e89febeebc7444140de8e67c9067d2c",
@@ -968,14 +1197,14 @@
   "execute": {
     "methodName": "initialize",
     "args": [
-      "Kresko Integrated Stable System",
+      "KISS",
       "KISS",
       18,
-      "0xB48bB6b68Ab4D366B4f9A30eE6f7Ee55125c2D9d",
+      "0x83b92b8A21d56941cB9d056B36E0cC2aDa15f1E1",
       "0x0607e3b2a16048Fa3c77ec3A935ecEd978B5C7F3"
     ]
   },
-  "implementation": "0x694C200B67cd53feAfb3e9Ea44082775E2A36AAf",
+  "implementation": "0xc68b751a4ECBAC633a1E3b8F2FA1651DBd0dA801",
   "devdoc": {
     "details": "This contract implements a proxy that is upgradeable by an admin. To avoid https://medium.com/nomic-labs-blog/malicious-backdoors-in-ethereum-proxies-62629adf3357[proxy selector clashing], which can potentially be used in an attack, this contract uses the https://blog.openzeppelin.com/the-transparent-proxy-pattern/[transparent proxy pattern]. This pattern implies two things that go hand in hand: 1. If any account other than the admin calls the proxy, the call will be forwarded to the implementation, even if that call matches one of the admin functions exposed by the proxy itself. 2. If the admin calls the proxy, it can access the admin functions, but its calls will never be forwarded to the implementation. If the admin tries to call a function on the implementation it will fail with an error that says \"admin cannot fallback to proxy target\". These properties mean that the admin account can only be used for admin actions like upgrading the proxy or changing the admin, so it's best if it's a dedicated account that is not used for anything else. This will avoid headaches due to sudden errors when trying to call a function from the proxy implementation. Our recommendation is for the dedicated account to be an instance of the {ProxyAdmin} contract. If set up this way, you should think of the `ProxyAdmin` instance as the real administrative interface of your proxy.",
     "kind": "dev",
