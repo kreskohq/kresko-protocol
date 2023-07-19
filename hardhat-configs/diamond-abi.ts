@@ -9,7 +9,7 @@ interface DiamondAbiUserConfig {
 export const diamondAbiConfig: DiamondAbiUserConfig[] = [
     {
         name: "Kresko",
-        include: ["facets/*"],
+        include: ["facets/*", "MinterEvent"],
         exclude: ["vendor", "test/*", "interfaces/*", "krasset/*", "KrStaking"],
         strict: false,
         filter(abiElement, index, abi, fq) {

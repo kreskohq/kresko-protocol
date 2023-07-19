@@ -14,7 +14,7 @@ import type {
     Signer,
     utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent, PromiseOrValue } from "../../common";
 
@@ -1167,8 +1167,325 @@ export interface KreskoInterface extends utils.Interface {
     decodeFunctionResult(functionFragment: "getGlobalData", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "getPairsData", data: BytesLike): Result;
 
-    events: {};
+    events: {
+        "AMMOracleUpdated(address)": EventFragment;
+        "BatchInterestLiquidationOccurred(address,address,address,uint256,uint256)": EventFragment;
+        "CFactorUpdated(address,uint256)": EventFragment;
+        "CloseFeePaid(address,address,uint256,uint256)": EventFragment;
+        "CollateralAssetAdded(address,uint256,address,address,uint256)": EventFragment;
+        "CollateralAssetUpdated(address,uint256,address,address,uint256)": EventFragment;
+        "CollateralDeposited(address,address,uint256)": EventFragment;
+        "CollateralWithdrawn(address,address,uint256)": EventFragment;
+        "DebtPositionClosed(address,address,uint256,uint256)": EventFragment;
+        "FeeRecipientUpdated(address)": EventFragment;
+        "InterestLiquidationOccurred(address,address,address,uint256,address,uint256)": EventFragment;
+        "KFactorUpdated(address,uint256)": EventFragment;
+        "KreskoAssetAdded(address,address,address,uint256,uint256,uint256,uint256)": EventFragment;
+        "KreskoAssetBurned(address,address,uint256)": EventFragment;
+        "KreskoAssetMinted(address,address,uint256)": EventFragment;
+        "KreskoAssetUpdated(address,address,address,uint256,uint256,uint256,uint256)": EventFragment;
+        "LiquidationIncentiveMultiplierUpdated(address,uint256)": EventFragment;
+        "LiquidationOccurred(address,address,address,uint256,address,uint256)": EventFragment;
+        "LiquidationThresholdUpdated(uint256)": EventFragment;
+        "MinimumCollateralizationRatioUpdated(uint256)": EventFragment;
+        "MinimumDebtValueUpdated(uint256)": EventFragment;
+        "OpenFeePaid(address,address,uint256,uint256)": EventFragment;
+        "SafetyStateChange(uint8,address,string)": EventFragment;
+        "UncheckedCollateralWithdrawn(address,address,uint256)": EventFragment;
+        "maxLiquidationMultiplierUpdated(uint256)": EventFragment;
+    };
+
+    getEvent(nameOrSignatureOrTopic: "AMMOracleUpdated"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "BatchInterestLiquidationOccurred"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "CFactorUpdated"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "CloseFeePaid"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "CollateralAssetAdded"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "CollateralAssetUpdated"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "CollateralDeposited"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "CollateralWithdrawn"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "DebtPositionClosed"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "FeeRecipientUpdated"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "InterestLiquidationOccurred"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "KFactorUpdated"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "KreskoAssetAdded"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "KreskoAssetBurned"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "KreskoAssetMinted"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "KreskoAssetUpdated"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "LiquidationIncentiveMultiplierUpdated"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "LiquidationOccurred"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "LiquidationThresholdUpdated"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "MinimumCollateralizationRatioUpdated"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "MinimumDebtValueUpdated"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "OpenFeePaid"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "SafetyStateChange"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "UncheckedCollateralWithdrawn"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "maxLiquidationMultiplierUpdated"): EventFragment;
 }
+
+export interface AMMOracleUpdatedEventObject {
+    ammOracle: string;
+}
+export type AMMOracleUpdatedEvent = TypedEvent<[string], AMMOracleUpdatedEventObject>;
+
+export type AMMOracleUpdatedEventFilter = TypedEventFilter<AMMOracleUpdatedEvent>;
+
+export interface BatchInterestLiquidationOccurredEventObject {
+    account: string;
+    liquidator: string;
+    seizedCollateralAsset: string;
+    repayUSD: BigNumber;
+    collateralSent: BigNumber;
+}
+export type BatchInterestLiquidationOccurredEvent = TypedEvent<
+    [string, string, string, BigNumber, BigNumber],
+    BatchInterestLiquidationOccurredEventObject
+>;
+
+export type BatchInterestLiquidationOccurredEventFilter = TypedEventFilter<BatchInterestLiquidationOccurredEvent>;
+
+export interface CFactorUpdatedEventObject {
+    collateralAsset: string;
+    cFactor: BigNumber;
+}
+export type CFactorUpdatedEvent = TypedEvent<[string, BigNumber], CFactorUpdatedEventObject>;
+
+export type CFactorUpdatedEventFilter = TypedEventFilter<CFactorUpdatedEvent>;
+
+export interface CloseFeePaidEventObject {
+    account: string;
+    paymentCollateralAsset: string;
+    paymentAmount: BigNumber;
+    paymentValue: BigNumber;
+}
+export type CloseFeePaidEvent = TypedEvent<[string, string, BigNumber, BigNumber], CloseFeePaidEventObject>;
+
+export type CloseFeePaidEventFilter = TypedEventFilter<CloseFeePaidEvent>;
+
+export interface CollateralAssetAddedEventObject {
+    collateralAsset: string;
+    factor: BigNumber;
+    oracle: string;
+    anchor: string;
+    liquidationIncentive: BigNumber;
+}
+export type CollateralAssetAddedEvent = TypedEvent<
+    [string, BigNumber, string, string, BigNumber],
+    CollateralAssetAddedEventObject
+>;
+
+export type CollateralAssetAddedEventFilter = TypedEventFilter<CollateralAssetAddedEvent>;
+
+export interface CollateralAssetUpdatedEventObject {
+    collateralAsset: string;
+    factor: BigNumber;
+    oracle: string;
+    anchor: string;
+    liquidationIncentive: BigNumber;
+}
+export type CollateralAssetUpdatedEvent = TypedEvent<
+    [string, BigNumber, string, string, BigNumber],
+    CollateralAssetUpdatedEventObject
+>;
+
+export type CollateralAssetUpdatedEventFilter = TypedEventFilter<CollateralAssetUpdatedEvent>;
+
+export interface CollateralDepositedEventObject {
+    account: string;
+    collateralAsset: string;
+    amount: BigNumber;
+}
+export type CollateralDepositedEvent = TypedEvent<[string, string, BigNumber], CollateralDepositedEventObject>;
+
+export type CollateralDepositedEventFilter = TypedEventFilter<CollateralDepositedEvent>;
+
+export interface CollateralWithdrawnEventObject {
+    account: string;
+    collateralAsset: string;
+    amount: BigNumber;
+}
+export type CollateralWithdrawnEvent = TypedEvent<[string, string, BigNumber], CollateralWithdrawnEventObject>;
+
+export type CollateralWithdrawnEventFilter = TypedEventFilter<CollateralWithdrawnEvent>;
+
+export interface DebtPositionClosedEventObject {
+    account: string;
+    kreskoAsset: string;
+    amount: BigNumber;
+    interestRepaid: BigNumber;
+}
+export type DebtPositionClosedEvent = TypedEvent<[string, string, BigNumber, BigNumber], DebtPositionClosedEventObject>;
+
+export type DebtPositionClosedEventFilter = TypedEventFilter<DebtPositionClosedEvent>;
+
+export interface FeeRecipientUpdatedEventObject {
+    feeRecipient: string;
+}
+export type FeeRecipientUpdatedEvent = TypedEvent<[string], FeeRecipientUpdatedEventObject>;
+
+export type FeeRecipientUpdatedEventFilter = TypedEventFilter<FeeRecipientUpdatedEvent>;
+
+export interface InterestLiquidationOccurredEventObject {
+    account: string;
+    liquidator: string;
+    repayKreskoAsset: string;
+    repayUSD: BigNumber;
+    seizedCollateralAsset: string;
+    collateralSent: BigNumber;
+}
+export type InterestLiquidationOccurredEvent = TypedEvent<
+    [string, string, string, BigNumber, string, BigNumber],
+    InterestLiquidationOccurredEventObject
+>;
+
+export type InterestLiquidationOccurredEventFilter = TypedEventFilter<InterestLiquidationOccurredEvent>;
+
+export interface KFactorUpdatedEventObject {
+    kreskoAsset: string;
+    kFactor: BigNumber;
+}
+export type KFactorUpdatedEvent = TypedEvent<[string, BigNumber], KFactorUpdatedEventObject>;
+
+export type KFactorUpdatedEventFilter = TypedEventFilter<KFactorUpdatedEvent>;
+
+export interface KreskoAssetAddedEventObject {
+    kreskoAsset: string;
+    anchor: string;
+    oracle: string;
+    kFactor: BigNumber;
+    supplyLimit: BigNumber;
+    closeFee: BigNumber;
+    openFee: BigNumber;
+}
+export type KreskoAssetAddedEvent = TypedEvent<
+    [string, string, string, BigNumber, BigNumber, BigNumber, BigNumber],
+    KreskoAssetAddedEventObject
+>;
+
+export type KreskoAssetAddedEventFilter = TypedEventFilter<KreskoAssetAddedEvent>;
+
+export interface KreskoAssetBurnedEventObject {
+    account: string;
+    kreskoAsset: string;
+    amount: BigNumber;
+}
+export type KreskoAssetBurnedEvent = TypedEvent<[string, string, BigNumber], KreskoAssetBurnedEventObject>;
+
+export type KreskoAssetBurnedEventFilter = TypedEventFilter<KreskoAssetBurnedEvent>;
+
+export interface KreskoAssetMintedEventObject {
+    account: string;
+    kreskoAsset: string;
+    amount: BigNumber;
+}
+export type KreskoAssetMintedEvent = TypedEvent<[string, string, BigNumber], KreskoAssetMintedEventObject>;
+
+export type KreskoAssetMintedEventFilter = TypedEventFilter<KreskoAssetMintedEvent>;
+
+export interface KreskoAssetUpdatedEventObject {
+    kreskoAsset: string;
+    anchor: string;
+    oracle: string;
+    kFactor: BigNumber;
+    supplyLimit: BigNumber;
+    closeFee: BigNumber;
+    openFee: BigNumber;
+}
+export type KreskoAssetUpdatedEvent = TypedEvent<
+    [string, string, string, BigNumber, BigNumber, BigNumber, BigNumber],
+    KreskoAssetUpdatedEventObject
+>;
+
+export type KreskoAssetUpdatedEventFilter = TypedEventFilter<KreskoAssetUpdatedEvent>;
+
+export interface LiquidationIncentiveMultiplierUpdatedEventObject {
+    asset: string;
+    liquidationIncentiveMultiplier: BigNumber;
+}
+export type LiquidationIncentiveMultiplierUpdatedEvent = TypedEvent<
+    [string, BigNumber],
+    LiquidationIncentiveMultiplierUpdatedEventObject
+>;
+
+export type LiquidationIncentiveMultiplierUpdatedEventFilter =
+    TypedEventFilter<LiquidationIncentiveMultiplierUpdatedEvent>;
+
+export interface LiquidationOccurredEventObject {
+    account: string;
+    liquidator: string;
+    repayKreskoAsset: string;
+    repayAmount: BigNumber;
+    seizedCollateralAsset: string;
+    collateralSent: BigNumber;
+}
+export type LiquidationOccurredEvent = TypedEvent<
+    [string, string, string, BigNumber, string, BigNumber],
+    LiquidationOccurredEventObject
+>;
+
+export type LiquidationOccurredEventFilter = TypedEventFilter<LiquidationOccurredEvent>;
+
+export interface LiquidationThresholdUpdatedEventObject {
+    liquidationThreshold: BigNumber;
+}
+export type LiquidationThresholdUpdatedEvent = TypedEvent<[BigNumber], LiquidationThresholdUpdatedEventObject>;
+
+export type LiquidationThresholdUpdatedEventFilter = TypedEventFilter<LiquidationThresholdUpdatedEvent>;
+
+export interface MinimumCollateralizationRatioUpdatedEventObject {
+    minimumCollateralizationRatio: BigNumber;
+}
+export type MinimumCollateralizationRatioUpdatedEvent = TypedEvent<
+    [BigNumber],
+    MinimumCollateralizationRatioUpdatedEventObject
+>;
+
+export type MinimumCollateralizationRatioUpdatedEventFilter =
+    TypedEventFilter<MinimumCollateralizationRatioUpdatedEvent>;
+
+export interface MinimumDebtValueUpdatedEventObject {
+    minimumDebtValue: BigNumber;
+}
+export type MinimumDebtValueUpdatedEvent = TypedEvent<[BigNumber], MinimumDebtValueUpdatedEventObject>;
+
+export type MinimumDebtValueUpdatedEventFilter = TypedEventFilter<MinimumDebtValueUpdatedEvent>;
+
+export interface OpenFeePaidEventObject {
+    account: string;
+    paymentCollateralAsset: string;
+    paymentAmount: BigNumber;
+    paymentValue: BigNumber;
+}
+export type OpenFeePaidEvent = TypedEvent<[string, string, BigNumber, BigNumber], OpenFeePaidEventObject>;
+
+export type OpenFeePaidEventFilter = TypedEventFilter<OpenFeePaidEvent>;
+
+export interface SafetyStateChangeEventObject {
+    action: number;
+    asset: string;
+    description: string;
+}
+export type SafetyStateChangeEvent = TypedEvent<[number, string, string], SafetyStateChangeEventObject>;
+
+export type SafetyStateChangeEventFilter = TypedEventFilter<SafetyStateChangeEvent>;
+
+export interface UncheckedCollateralWithdrawnEventObject {
+    account: string;
+    collateralAsset: string;
+    amount: BigNumber;
+}
+export type UncheckedCollateralWithdrawnEvent = TypedEvent<
+    [string, string, BigNumber],
+    UncheckedCollateralWithdrawnEventObject
+>;
+
+export type UncheckedCollateralWithdrawnEventFilter = TypedEventFilter<UncheckedCollateralWithdrawnEvent>;
+
+export interface maxLiquidationMultiplierUpdatedEventObject {
+    maxLiquidationMultiplier: BigNumber;
+}
+export type maxLiquidationMultiplierUpdatedEvent = TypedEvent<[BigNumber], maxLiquidationMultiplierUpdatedEventObject>;
+
+export type maxLiquidationMultiplierUpdatedEventFilter = TypedEventFilter<maxLiquidationMultiplierUpdatedEvent>;
 
 export interface Kresko extends BaseContract {
     contractName: "Kresko";
@@ -2762,7 +3079,274 @@ export interface Kresko extends BaseContract {
         ): Promise<LibUI.PairDataStructOutput[]>;
     };
 
-    filters: {};
+    filters: {
+        "AMMOracleUpdated(address)"(ammOracle?: PromiseOrValue<string> | null): AMMOracleUpdatedEventFilter;
+        AMMOracleUpdated(ammOracle?: PromiseOrValue<string> | null): AMMOracleUpdatedEventFilter;
+
+        "BatchInterestLiquidationOccurred(address,address,address,uint256,uint256)"(
+            account?: PromiseOrValue<string> | null,
+            liquidator?: PromiseOrValue<string> | null,
+            seizedCollateralAsset?: PromiseOrValue<string> | null,
+            repayUSD?: null,
+            collateralSent?: null,
+        ): BatchInterestLiquidationOccurredEventFilter;
+        BatchInterestLiquidationOccurred(
+            account?: PromiseOrValue<string> | null,
+            liquidator?: PromiseOrValue<string> | null,
+            seizedCollateralAsset?: PromiseOrValue<string> | null,
+            repayUSD?: null,
+            collateralSent?: null,
+        ): BatchInterestLiquidationOccurredEventFilter;
+
+        "CFactorUpdated(address,uint256)"(
+            collateralAsset?: PromiseOrValue<string> | null,
+            cFactor?: null,
+        ): CFactorUpdatedEventFilter;
+        CFactorUpdated(collateralAsset?: PromiseOrValue<string> | null, cFactor?: null): CFactorUpdatedEventFilter;
+
+        "CloseFeePaid(address,address,uint256,uint256)"(
+            account?: PromiseOrValue<string> | null,
+            paymentCollateralAsset?: PromiseOrValue<string> | null,
+            paymentAmount?: null,
+            paymentValue?: null,
+        ): CloseFeePaidEventFilter;
+        CloseFeePaid(
+            account?: PromiseOrValue<string> | null,
+            paymentCollateralAsset?: PromiseOrValue<string> | null,
+            paymentAmount?: null,
+            paymentValue?: null,
+        ): CloseFeePaidEventFilter;
+
+        "CollateralAssetAdded(address,uint256,address,address,uint256)"(
+            collateralAsset?: PromiseOrValue<string> | null,
+            factor?: null,
+            oracle?: PromiseOrValue<string> | null,
+            anchor?: null,
+            liquidationIncentive?: null,
+        ): CollateralAssetAddedEventFilter;
+        CollateralAssetAdded(
+            collateralAsset?: PromiseOrValue<string> | null,
+            factor?: null,
+            oracle?: PromiseOrValue<string> | null,
+            anchor?: null,
+            liquidationIncentive?: null,
+        ): CollateralAssetAddedEventFilter;
+
+        "CollateralAssetUpdated(address,uint256,address,address,uint256)"(
+            collateralAsset?: PromiseOrValue<string> | null,
+            factor?: null,
+            oracle?: PromiseOrValue<string> | null,
+            anchor?: null,
+            liquidationIncentive?: null,
+        ): CollateralAssetUpdatedEventFilter;
+        CollateralAssetUpdated(
+            collateralAsset?: PromiseOrValue<string> | null,
+            factor?: null,
+            oracle?: PromiseOrValue<string> | null,
+            anchor?: null,
+            liquidationIncentive?: null,
+        ): CollateralAssetUpdatedEventFilter;
+
+        "CollateralDeposited(address,address,uint256)"(
+            account?: PromiseOrValue<string> | null,
+            collateralAsset?: PromiseOrValue<string> | null,
+            amount?: null,
+        ): CollateralDepositedEventFilter;
+        CollateralDeposited(
+            account?: PromiseOrValue<string> | null,
+            collateralAsset?: PromiseOrValue<string> | null,
+            amount?: null,
+        ): CollateralDepositedEventFilter;
+
+        "CollateralWithdrawn(address,address,uint256)"(
+            account?: PromiseOrValue<string> | null,
+            collateralAsset?: PromiseOrValue<string> | null,
+            amount?: null,
+        ): CollateralWithdrawnEventFilter;
+        CollateralWithdrawn(
+            account?: PromiseOrValue<string> | null,
+            collateralAsset?: PromiseOrValue<string> | null,
+            amount?: null,
+        ): CollateralWithdrawnEventFilter;
+
+        "DebtPositionClosed(address,address,uint256,uint256)"(
+            account?: PromiseOrValue<string> | null,
+            kreskoAsset?: PromiseOrValue<string> | null,
+            amount?: null,
+            interestRepaid?: null,
+        ): DebtPositionClosedEventFilter;
+        DebtPositionClosed(
+            account?: PromiseOrValue<string> | null,
+            kreskoAsset?: PromiseOrValue<string> | null,
+            amount?: null,
+            interestRepaid?: null,
+        ): DebtPositionClosedEventFilter;
+
+        "FeeRecipientUpdated(address)"(feeRecipient?: PromiseOrValue<string> | null): FeeRecipientUpdatedEventFilter;
+        FeeRecipientUpdated(feeRecipient?: PromiseOrValue<string> | null): FeeRecipientUpdatedEventFilter;
+
+        "InterestLiquidationOccurred(address,address,address,uint256,address,uint256)"(
+            account?: PromiseOrValue<string> | null,
+            liquidator?: PromiseOrValue<string> | null,
+            repayKreskoAsset?: PromiseOrValue<string> | null,
+            repayUSD?: null,
+            seizedCollateralAsset?: null,
+            collateralSent?: null,
+        ): InterestLiquidationOccurredEventFilter;
+        InterestLiquidationOccurred(
+            account?: PromiseOrValue<string> | null,
+            liquidator?: PromiseOrValue<string> | null,
+            repayKreskoAsset?: PromiseOrValue<string> | null,
+            repayUSD?: null,
+            seizedCollateralAsset?: null,
+            collateralSent?: null,
+        ): InterestLiquidationOccurredEventFilter;
+
+        "KFactorUpdated(address,uint256)"(
+            kreskoAsset?: PromiseOrValue<string> | null,
+            kFactor?: null,
+        ): KFactorUpdatedEventFilter;
+        KFactorUpdated(kreskoAsset?: PromiseOrValue<string> | null, kFactor?: null): KFactorUpdatedEventFilter;
+
+        "KreskoAssetAdded(address,address,address,uint256,uint256,uint256,uint256)"(
+            kreskoAsset?: PromiseOrValue<string> | null,
+            anchor?: null,
+            oracle?: PromiseOrValue<string> | null,
+            kFactor?: null,
+            supplyLimit?: null,
+            closeFee?: null,
+            openFee?: null,
+        ): KreskoAssetAddedEventFilter;
+        KreskoAssetAdded(
+            kreskoAsset?: PromiseOrValue<string> | null,
+            anchor?: null,
+            oracle?: PromiseOrValue<string> | null,
+            kFactor?: null,
+            supplyLimit?: null,
+            closeFee?: null,
+            openFee?: null,
+        ): KreskoAssetAddedEventFilter;
+
+        "KreskoAssetBurned(address,address,uint256)"(
+            account?: PromiseOrValue<string> | null,
+            kreskoAsset?: PromiseOrValue<string> | null,
+            amount?: null,
+        ): KreskoAssetBurnedEventFilter;
+        KreskoAssetBurned(
+            account?: PromiseOrValue<string> | null,
+            kreskoAsset?: PromiseOrValue<string> | null,
+            amount?: null,
+        ): KreskoAssetBurnedEventFilter;
+
+        "KreskoAssetMinted(address,address,uint256)"(
+            account?: PromiseOrValue<string> | null,
+            kreskoAsset?: PromiseOrValue<string> | null,
+            amount?: null,
+        ): KreskoAssetMintedEventFilter;
+        KreskoAssetMinted(
+            account?: PromiseOrValue<string> | null,
+            kreskoAsset?: PromiseOrValue<string> | null,
+            amount?: null,
+        ): KreskoAssetMintedEventFilter;
+
+        "KreskoAssetUpdated(address,address,address,uint256,uint256,uint256,uint256)"(
+            kreskoAsset?: PromiseOrValue<string> | null,
+            anchor?: null,
+            oracle?: PromiseOrValue<string> | null,
+            kFactor?: null,
+            supplyLimit?: null,
+            closeFee?: null,
+            openFee?: null,
+        ): KreskoAssetUpdatedEventFilter;
+        KreskoAssetUpdated(
+            kreskoAsset?: PromiseOrValue<string> | null,
+            anchor?: null,
+            oracle?: PromiseOrValue<string> | null,
+            kFactor?: null,
+            supplyLimit?: null,
+            closeFee?: null,
+            openFee?: null,
+        ): KreskoAssetUpdatedEventFilter;
+
+        "LiquidationIncentiveMultiplierUpdated(address,uint256)"(
+            asset?: PromiseOrValue<string> | null,
+            liquidationIncentiveMultiplier?: null,
+        ): LiquidationIncentiveMultiplierUpdatedEventFilter;
+        LiquidationIncentiveMultiplierUpdated(
+            asset?: PromiseOrValue<string> | null,
+            liquidationIncentiveMultiplier?: null,
+        ): LiquidationIncentiveMultiplierUpdatedEventFilter;
+
+        "LiquidationOccurred(address,address,address,uint256,address,uint256)"(
+            account?: PromiseOrValue<string> | null,
+            liquidator?: PromiseOrValue<string> | null,
+            repayKreskoAsset?: PromiseOrValue<string> | null,
+            repayAmount?: null,
+            seizedCollateralAsset?: null,
+            collateralSent?: null,
+        ): LiquidationOccurredEventFilter;
+        LiquidationOccurred(
+            account?: PromiseOrValue<string> | null,
+            liquidator?: PromiseOrValue<string> | null,
+            repayKreskoAsset?: PromiseOrValue<string> | null,
+            repayAmount?: null,
+            seizedCollateralAsset?: null,
+            collateralSent?: null,
+        ): LiquidationOccurredEventFilter;
+
+        "LiquidationThresholdUpdated(uint256)"(liquidationThreshold?: null): LiquidationThresholdUpdatedEventFilter;
+        LiquidationThresholdUpdated(liquidationThreshold?: null): LiquidationThresholdUpdatedEventFilter;
+
+        "MinimumCollateralizationRatioUpdated(uint256)"(
+            minimumCollateralizationRatio?: null,
+        ): MinimumCollateralizationRatioUpdatedEventFilter;
+        MinimumCollateralizationRatioUpdated(
+            minimumCollateralizationRatio?: null,
+        ): MinimumCollateralizationRatioUpdatedEventFilter;
+
+        "MinimumDebtValueUpdated(uint256)"(minimumDebtValue?: null): MinimumDebtValueUpdatedEventFilter;
+        MinimumDebtValueUpdated(minimumDebtValue?: null): MinimumDebtValueUpdatedEventFilter;
+
+        "OpenFeePaid(address,address,uint256,uint256)"(
+            account?: PromiseOrValue<string> | null,
+            paymentCollateralAsset?: PromiseOrValue<string> | null,
+            paymentAmount?: null,
+            paymentValue?: null,
+        ): OpenFeePaidEventFilter;
+        OpenFeePaid(
+            account?: PromiseOrValue<string> | null,
+            paymentCollateralAsset?: PromiseOrValue<string> | null,
+            paymentAmount?: null,
+            paymentValue?: null,
+        ): OpenFeePaidEventFilter;
+
+        "SafetyStateChange(uint8,address,string)"(
+            action?: PromiseOrValue<BigNumberish> | null,
+            asset?: PromiseOrValue<string> | null,
+            description?: PromiseOrValue<string> | null,
+        ): SafetyStateChangeEventFilter;
+        SafetyStateChange(
+            action?: PromiseOrValue<BigNumberish> | null,
+            asset?: PromiseOrValue<string> | null,
+            description?: PromiseOrValue<string> | null,
+        ): SafetyStateChangeEventFilter;
+
+        "UncheckedCollateralWithdrawn(address,address,uint256)"(
+            account?: PromiseOrValue<string> | null,
+            collateralAsset?: PromiseOrValue<string> | null,
+            amount?: null,
+        ): UncheckedCollateralWithdrawnEventFilter;
+        UncheckedCollateralWithdrawn(
+            account?: PromiseOrValue<string> | null,
+            collateralAsset?: PromiseOrValue<string> | null,
+            amount?: null,
+        ): UncheckedCollateralWithdrawnEventFilter;
+
+        "maxLiquidationMultiplierUpdated(uint256)"(
+            maxLiquidationMultiplier?: null,
+        ): maxLiquidationMultiplierUpdatedEventFilter;
+        maxLiquidationMultiplierUpdated(maxLiquidationMultiplier?: null): maxLiquidationMultiplierUpdatedEventFilter;
+    };
 
     estimateGas: {
         getRoleAdmin(role: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<BigNumber>;

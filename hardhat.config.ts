@@ -34,8 +34,6 @@ const mnemonic = process.env.MNEMONIC;
 if (!mnemonic) {
     throw new Error("No mnemonic set");
 }
-const isExport = process.env.EXPORT;
-let exportUtil: any;
 
 /* -------------------------------------------------------------------------- */
 /*                                    Tasks                                   */
@@ -57,9 +55,9 @@ import "hardhat-configs/extensions";
 let externalArtifacts = [];
 let outDir = "types/typechain";
 
-if (isExport) {
-    console.log("isExport", isExport);
-    exportUtil = require("./src/utils/export");
+if (process.env.EXPORT) {
+    console.log("exporting artifacts..");
+    const exportUtil = require("./src/utils/export");
     externalArtifacts = exportUtil.externalArtifacts();
     outDir = "packages/contracts/src/types/";
 }

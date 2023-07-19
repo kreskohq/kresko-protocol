@@ -379,6 +379,679 @@ const _abi = [
         type: "function",
     },
     {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: "address",
+                name: "ammOracle",
+                type: "address",
+            },
+        ],
+        name: "AMMOracleUpdated",
+        type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: "address",
+                name: "account",
+                type: "address",
+            },
+            {
+                indexed: true,
+                internalType: "address",
+                name: "liquidator",
+                type: "address",
+            },
+            {
+                indexed: true,
+                internalType: "address",
+                name: "seizedCollateralAsset",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "repayUSD",
+                type: "uint256",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "collateralSent",
+                type: "uint256",
+            },
+        ],
+        name: "BatchInterestLiquidationOccurred",
+        type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: "address",
+                name: "collateralAsset",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "cFactor",
+                type: "uint256",
+            },
+        ],
+        name: "CFactorUpdated",
+        type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: "address",
+                name: "account",
+                type: "address",
+            },
+            {
+                indexed: true,
+                internalType: "address",
+                name: "paymentCollateralAsset",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "paymentAmount",
+                type: "uint256",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "paymentValue",
+                type: "uint256",
+            },
+        ],
+        name: "CloseFeePaid",
+        type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: "address",
+                name: "collateralAsset",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "factor",
+                type: "uint256",
+            },
+            {
+                indexed: true,
+                internalType: "address",
+                name: "oracle",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "address",
+                name: "anchor",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "liquidationIncentive",
+                type: "uint256",
+            },
+        ],
+        name: "CollateralAssetAdded",
+        type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: "address",
+                name: "collateralAsset",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "factor",
+                type: "uint256",
+            },
+            {
+                indexed: true,
+                internalType: "address",
+                name: "oracle",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "address",
+                name: "anchor",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "liquidationIncentive",
+                type: "uint256",
+            },
+        ],
+        name: "CollateralAssetUpdated",
+        type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: "address",
+                name: "account",
+                type: "address",
+            },
+            {
+                indexed: true,
+                internalType: "address",
+                name: "collateralAsset",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "amount",
+                type: "uint256",
+            },
+        ],
+        name: "CollateralDeposited",
+        type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: "address",
+                name: "account",
+                type: "address",
+            },
+            {
+                indexed: true,
+                internalType: "address",
+                name: "collateralAsset",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "amount",
+                type: "uint256",
+            },
+        ],
+        name: "CollateralWithdrawn",
+        type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: "address",
+                name: "account",
+                type: "address",
+            },
+            {
+                indexed: true,
+                internalType: "address",
+                name: "kreskoAsset",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "amount",
+                type: "uint256",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "interestRepaid",
+                type: "uint256",
+            },
+        ],
+        name: "DebtPositionClosed",
+        type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: "address",
+                name: "feeRecipient",
+                type: "address",
+            },
+        ],
+        name: "FeeRecipientUpdated",
+        type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: "address",
+                name: "account",
+                type: "address",
+            },
+            {
+                indexed: true,
+                internalType: "address",
+                name: "liquidator",
+                type: "address",
+            },
+            {
+                indexed: true,
+                internalType: "address",
+                name: "repayKreskoAsset",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "repayUSD",
+                type: "uint256",
+            },
+            {
+                indexed: false,
+                internalType: "address",
+                name: "seizedCollateralAsset",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "collateralSent",
+                type: "uint256",
+            },
+        ],
+        name: "InterestLiquidationOccurred",
+        type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: "address",
+                name: "kreskoAsset",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "kFactor",
+                type: "uint256",
+            },
+        ],
+        name: "KFactorUpdated",
+        type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: "address",
+                name: "kreskoAsset",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "address",
+                name: "anchor",
+                type: "address",
+            },
+            {
+                indexed: true,
+                internalType: "address",
+                name: "oracle",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "kFactor",
+                type: "uint256",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "supplyLimit",
+                type: "uint256",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "closeFee",
+                type: "uint256",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "openFee",
+                type: "uint256",
+            },
+        ],
+        name: "KreskoAssetAdded",
+        type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: "address",
+                name: "account",
+                type: "address",
+            },
+            {
+                indexed: true,
+                internalType: "address",
+                name: "kreskoAsset",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "amount",
+                type: "uint256",
+            },
+        ],
+        name: "KreskoAssetBurned",
+        type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: "address",
+                name: "account",
+                type: "address",
+            },
+            {
+                indexed: true,
+                internalType: "address",
+                name: "kreskoAsset",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "amount",
+                type: "uint256",
+            },
+        ],
+        name: "KreskoAssetMinted",
+        type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: "address",
+                name: "kreskoAsset",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "address",
+                name: "anchor",
+                type: "address",
+            },
+            {
+                indexed: true,
+                internalType: "address",
+                name: "oracle",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "kFactor",
+                type: "uint256",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "supplyLimit",
+                type: "uint256",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "closeFee",
+                type: "uint256",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "openFee",
+                type: "uint256",
+            },
+        ],
+        name: "KreskoAssetUpdated",
+        type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: "address",
+                name: "asset",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "liquidationIncentiveMultiplier",
+                type: "uint256",
+            },
+        ],
+        name: "LiquidationIncentiveMultiplierUpdated",
+        type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: "address",
+                name: "account",
+                type: "address",
+            },
+            {
+                indexed: true,
+                internalType: "address",
+                name: "liquidator",
+                type: "address",
+            },
+            {
+                indexed: true,
+                internalType: "address",
+                name: "repayKreskoAsset",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "repayAmount",
+                type: "uint256",
+            },
+            {
+                indexed: false,
+                internalType: "address",
+                name: "seizedCollateralAsset",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "collateralSent",
+                type: "uint256",
+            },
+        ],
+        name: "LiquidationOccurred",
+        type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "liquidationThreshold",
+                type: "uint256",
+            },
+        ],
+        name: "LiquidationThresholdUpdated",
+        type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "minimumCollateralizationRatio",
+                type: "uint256",
+            },
+        ],
+        name: "MinimumCollateralizationRatioUpdated",
+        type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "minimumDebtValue",
+                type: "uint256",
+            },
+        ],
+        name: "MinimumDebtValueUpdated",
+        type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: "address",
+                name: "account",
+                type: "address",
+            },
+            {
+                indexed: true,
+                internalType: "address",
+                name: "paymentCollateralAsset",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "paymentAmount",
+                type: "uint256",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "paymentValue",
+                type: "uint256",
+            },
+        ],
+        name: "OpenFeePaid",
+        type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: "enum Action",
+                name: "action",
+                type: "uint8",
+            },
+            {
+                indexed: true,
+                internalType: "address",
+                name: "asset",
+                type: "address",
+            },
+            {
+                indexed: true,
+                internalType: "string",
+                name: "description",
+                type: "string",
+            },
+        ],
+        name: "SafetyStateChange",
+        type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: "address",
+                name: "account",
+                type: "address",
+            },
+            {
+                indexed: true,
+                internalType: "address",
+                name: "collateralAsset",
+                type: "address",
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "amount",
+                type: "uint256",
+            },
+        ],
+        name: "UncheckedCollateralWithdrawn",
+        type: "event",
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "maxLiquidationMultiplier",
+                type: "uint256",
+            },
+        ],
+        name: "maxLiquidationMultiplierUpdated",
+        type: "event",
+    },
+    {
         inputs: [
             {
                 internalType: "address",

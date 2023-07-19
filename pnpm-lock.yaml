@@ -124,9 +124,9 @@ devDependencies:
   fs-extra: 10.1.0
   hardhat: 2.14.0_5o75j5ygh43aewe2xahjobrg7m
   hardhat-contract-sizer: 2.8.0_hardhat@2.14.0
-  hardhat-deploy: 0.11.29
-  hardhat-deploy-ethers: 0.4.0-next.1_mrqfsbbgecg76ux7iptpawu27i
-  hardhat-deploy-tenderly: 0.2.0_yxjgelpgemhfejeglkqg5snqfq
+  hardhat-deploy: 0.11.34
+  hardhat-deploy-ethers: 0.4.0-next.1_2wnjemwnbedyqqy4fgikhtkjgq
+  hardhat-deploy-tenderly: 0.2.0_gibrng4eaper7otudllge6fyt4
   hardhat-diamond-abi: 3.0.1_hardhat@2.14.0
   hardhat-gas-reporter: 1.0.9_hardhat@2.14.0
   hardhat-interface-generator: 0.0.6_hardhat@2.14.0
@@ -2056,7 +2056,7 @@ packages:
       ethers: 5.7.2
       fs-extra: 10.1.0
       hardhat: 2.14.0_5o75j5ygh43aewe2xahjobrg7m
-      hardhat-deploy: 0.11.29
+      hardhat-deploy: 0.11.34
       js-yaml: 4.1.0
       tenderly: 0.4.0_5o75j5ygh43aewe2xahjobrg7m
       tslog: 4.8.2
@@ -2266,7 +2266,7 @@ packages:
   /@types/bn.js/4.11.6:
     resolution: {integrity: sha512-pqr857jrp2kPuO9uRjZ3PwnJTjoQy+fcdxvBTvHm6dkmEL9q+hDD/2j/0ELOBPtPnS8LjCX0gI9nbl8lVkadpg==}
     dependencies:
-      '@types/node': 18.15.11
+      '@types/node': 18.15.13
     dev: true
 
   /@types/bn.js/5.1.1:
@@ -2280,7 +2280,7 @@ packages:
     dependencies:
       '@types/http-cache-semantics': 4.0.1
       '@types/keyv': 3.1.4
-      '@types/node': 18.15.11
+      '@types/node': 18.15.13
       '@types/responselike': 1.0.0
     dev: true
 
@@ -2297,7 +2297,7 @@ packages:
   /@types/concat-stream/1.6.1:
     resolution: {integrity: sha512-eHE4cQPoj6ngxBZMvVf6Hw7Mh4jMW4U9lpGmS5GBPB9RYxlFg+CHaVN7ErNY4W9XfLIEn20b4VDYaIrbq0q4uA==}
     dependencies:
-      '@types/node': 18.15.11
+      '@types/node': 18.15.13
     dev: true
 
   /@types/dotenv/8.2.0:
@@ -2323,7 +2323,7 @@ packages:
   /@types/form-data/0.0.33:
     resolution: {integrity: sha512-8BSvG1kGm83cyJITQMZSulnl6QV8jqAGreJsc5tPu1Jq0vTSOiY/k24Wx82JRpWwZSqrala6sd5rWi6aNXvqcw==}
     dependencies:
-      '@types/node': 18.15.11
+      '@types/node': 18.15.13
     dev: true
 
   /@types/fs-extra/9.0.13:
@@ -2336,7 +2336,7 @@ packages:
     resolution: {integrity: sha512-ZUxbzKl0IfJILTS6t7ip5fQQM/J3TJYubDm3nMbgubNNYS62eXeUpoLUC8/7fJNiFYHTrGPQn7hspDUzIHX3UA==}
     dependencies:
       '@types/minimatch': 5.1.2
-      '@types/node': 18.15.11
+      '@types/node': 18.15.13
     dev: true
 
   /@types/har-format/1.2.10:
@@ -2354,7 +2354,7 @@ packages:
   /@types/keyv/3.1.4:
     resolution: {integrity: sha512-BQ5aZNSCpj7D6K2ksrRCTmKRLEpnPvWDiLPfoGyhZ++8YtiK9d/3DBKPJgry359X/P1PfruyYwvnvwFjuEiEIg==}
     dependencies:
-      '@types/node': 18.15.11
+      '@types/node': 18.15.13
     dev: true
 
   /@types/lru-cache/5.1.1:
@@ -2398,6 +2398,10 @@ packages:
     resolution: {integrity: sha512-E5Kwq2n4SbMzQOn6wnmBjuK9ouqlURrcZDVfbo9ftDDTFt3nk7ZKK4GMOzoYgnpQJKcxwQw+lGaBvvlMo0qN/Q==}
     dev: true
 
+  /@types/node/18.15.13:
+    resolution: {integrity: sha512-N+0kuo9KgrUQ1Sn/ifDXsvg0TTleP7rIy4zOBGECxAljqvqfqpTfzx0Q1NUedOixRMBfe2Whhb056a42cWs26Q==}
+    dev: true
+
   /@types/node/8.10.66:
     resolution: {integrity: sha512-tktOkFUA4kXx2hhhrB8bIFb5TbwzS4uOhKEmwiD+NoiL0qtP2OQ9mFldbgD4dV1djrlBYP6eBuQZiWjuHUpqFw==}
     dev: true
@@ -2413,7 +2417,7 @@ packages:
   /@types/pbkdf2/3.1.0:
     resolution: {integrity: sha512-Cf63Rv7jCQ0LaL8tNXmEyqTHuIJxRdlS5vMh1mj5voN4+QFhVZnlZruezqpWYDiJ8UTzhP0VmeLXCmBk66YrMQ==}
     dependencies:
-      '@types/node': 18.15.11
+      '@types/node': 18.15.13
     dev: true
 
   /@types/prettier/2.7.2:
@@ -2427,26 +2431,26 @@ packages:
   /@types/readable-stream/2.3.15:
     resolution: {integrity: sha512-oM5JSKQCcICF1wvGgmecmHldZ48OZamtMxcGGVICOJA8o8cahXC1zEVAif8iwoc5j8etxFaRFnf095+CDsuoFQ==}
     dependencies:
-      '@types/node': 18.15.11
+      '@types/node': 18.15.13
       safe-buffer: 5.1.2
     dev: true
 
   /@types/resolve/0.0.8:
     resolution: {integrity: sha512-auApPaJf3NPfe18hSoJkp8EbZzer2ISk7o8mCC3M9he/a04+gbMF97NkpD2S8riMGvm4BMRI59/SZQSaLTKpsQ==}
     dependencies:
-      '@types/node': 18.15.11
+      '@types/node': 18.15.13
     dev: true
 
   /@types/responselike/1.0.0:
     resolution: {integrity: sha512-85Y2BjiufFzaMIlvJDvTTB8Fxl2xfLo4HgmHzVBz08w4wDePCTjYw66PdrolO0kzli3yam/YCgRufyo1DdQVTA==}
     dependencies:
-      '@types/node': 18.15.11
+      '@types/node': 18.15.13
     dev: true
 
   /@types/secp256k1/4.0.3:
     resolution: {integrity: sha512-Da66lEIFeIz9ltsdMZcpQvmrmmoqrfju8pm1BH8WbYjZSwUgCwXLb9C+9XYogwBITnbsSaMdVPb2ekf7TV+03w==}
     dependencies:
-      '@types/node': 18.15.11
+      '@types/node': 18.15.13
     dev: true
 
   /@types/semver/7.3.13:
@@ -7138,7 +7142,7 @@ packages:
       strip-ansi: 6.0.1
     dev: true
 
-  /hardhat-deploy-ethers/0.4.0-next.1_mrqfsbbgecg76ux7iptpawu27i:
+  /hardhat-deploy-ethers/0.4.0-next.1_2wnjemwnbedyqqy4fgikhtkjgq:
     resolution: {integrity: sha512-e+Tz1elQhMdUsCTVY7bIRHWPR1zElsT6/FvHJnpVXjaKBmLXWmmn2IHq0qQHfjKu5gZ93nuiM66XCkaHhSVGRA==}
     peerDependencies:
       '@nomiclabs/hardhat-ethers': ^2.2.1
@@ -7147,10 +7151,10 @@ packages:
     dependencies:
       '@nomiclabs/hardhat-ethers': 2.2.3_kftl4jxdh4nrzvmw72kgr5bdrq
       hardhat: 2.14.0_5o75j5ygh43aewe2xahjobrg7m
-      hardhat-deploy: 0.11.29
+      hardhat-deploy: 0.11.34
     dev: true
 
-  /hardhat-deploy-tenderly/0.2.0_yxjgelpgemhfejeglkqg5snqfq:
+  /hardhat-deploy-tenderly/0.2.0_gibrng4eaper7otudllge6fyt4:
     resolution: {integrity: sha512-obJm+Wh7tRsLRFgmZkkUGC1/RU37J2gHQfCt+ndbSswW5XCjSOIu6tkShhYp147HqOPml84X2qX6qZku1ykIZQ==}
     peerDependencies:
       hardhat: ^2.0.0
@@ -7158,14 +7162,14 @@ packages:
     dependencies:
       axios: 0.24.0
       hardhat: 2.14.0_5o75j5ygh43aewe2xahjobrg7m
-      hardhat-deploy: 0.11.29
+      hardhat-deploy: 0.11.34
       js-yaml: 4.1.0
     transitivePeerDependencies:
       - debug
     dev: true
 
-  /hardhat-deploy/0.11.29:
-    resolution: {integrity: sha512-9F+MRFkEocelzB8d+SDDCcTL7edBYAj2S63ldknvfIIBSajeB6q1/jm+dlK1GjcWzAzw7EVoxtjJXzxAxZfZcg==}
+  /hardhat-deploy/0.11.34:
+    resolution: {integrity: sha512-N6xcwD8LSMV/IyfEr8TfR2YRbOh9Q4QvitR9MKZRTXQmgQiiMGjX+2efMjKgNMxwCVlmpfnE1tyDxOJOOUseLQ==}
     dependencies:
       '@ethersproject/abi': 5.7.0
       '@ethersproject/abstract-signer': 5.7.0

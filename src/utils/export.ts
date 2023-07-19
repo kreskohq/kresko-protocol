@@ -136,6 +136,21 @@ export const exportDeployments = async () => {
                     });
                 },
             );
+            exec(
+                "npx hardhat export --export out/deployments.ts --network arbitrumGoerli",
+                async (error, stdout, stderr) => {
+                    if (error) {
+                        console.error(`exec error: ${error}`);
+                        return;
+                    }
+                    console.log(`hh-deploy export: ${stdout}`);
+
+                    await hre.run(TASK_WRITE_ORACLE_JSON);
+                    exec("rm packages/contracts/src/types/hardhat.d.ts", () => {
+                        resolve(true);
+                    });
+                },
+            );
         } catch (e) {
             console.error("exports failed:", e);
             reject(false);
