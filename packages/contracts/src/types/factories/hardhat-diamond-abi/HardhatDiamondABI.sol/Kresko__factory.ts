@@ -2443,16 +2443,6 @@ const _abi = [
                 name: "_assets",
                 type: "address[]",
             },
-            {
-                internalType: "address[]",
-                name: "_oracles",
-                type: "address[]",
-            },
-            {
-                internalType: "address[]",
-                name: "_marketStatusOracles",
-                type: "address[]",
-            },
         ],
         name: "batchOracleValues",
         outputs: [
@@ -2461,6 +2451,11 @@ const _abi = [
                     {
                         internalType: "uint256",
                         name: "price",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "redstonePrice",
                         type: "uint256",
                     },
                     {
@@ -2524,11 +2519,6 @@ const _abi = [
                             {
                                 internalType: "address",
                                 name: "oracleAddress",
-                                type: "address",
-                            },
-                            {
-                                internalType: "address",
-                                name: "anchorAddress",
                                 type: "address",
                             },
                             {
@@ -2596,6 +2586,11 @@ const _abi = [
                                 name: "closeFee",
                                 type: "uint256",
                             },
+                            {
+                                internalType: "bytes32",
+                                name: "redstoneId",
+                                type: "bytes32",
+                            },
                         ],
                         internalType: "struct LibUI.krAssetInfoUser[]",
                         name: "krAssets",
@@ -2611,11 +2606,6 @@ const _abi = [
                             {
                                 internalType: "address",
                                 name: "oracleAddress",
-                                type: "address",
-                            },
-                            {
-                                internalType: "address",
-                                name: "anchorAddress",
                                 type: "address",
                             },
                             {
@@ -2663,10 +2653,20 @@ const _abi = [
                                 name: "name",
                                 type: "string",
                             },
+                            {
+                                internalType: "bytes32",
+                                name: "redstoneId",
+                                type: "bytes32",
+                            },
                         ],
                         internalType: "struct LibUI.CollateralAssetInfoUser[]",
                         name: "collateralAssets",
                         type: "tuple[]",
+                    },
+                    {
+                        internalType: "bytes32[]",
+                        name: "redstoneIds",
+                        type: "bytes32[]",
                     },
                     {
                         internalType: "uint256",
@@ -2675,17 +2675,7 @@ const _abi = [
                     },
                     {
                         internalType: "uint256",
-                        name: "debtActualUSD",
-                        type: "uint256",
-                    },
-                    {
-                        internalType: "uint256",
                         name: "debtUSD",
-                        type: "uint256",
-                    },
-                    {
-                        internalType: "uint256",
-                        name: "collateralActualUSD",
                         type: "uint256",
                     },
                     {
@@ -2777,6 +2767,11 @@ const _abi = [
                 name: "stakingData",
                 type: "tuple[]",
             },
+            {
+                internalType: "uint256",
+                name: "ethBalance",
+                type: "uint256",
+            },
         ],
         stateMutability: "view",
         type: "function",
@@ -2791,16 +2786,6 @@ const _abi = [
             {
                 internalType: "address[]",
                 name: "_assets",
-                type: "address[]",
-            },
-            {
-                internalType: "address[]",
-                name: "_priceFeeds",
-                type: "address[]",
-            },
-            {
-                internalType: "address[]",
-                name: "_marketStatusOracles",
                 type: "address[]",
             },
         ],
@@ -2838,6 +2823,11 @@ const _abi = [
                     {
                         internalType: "uint256",
                         name: "price",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "redstonePrice",
                         type: "uint256",
                     },
                     {
@@ -2897,11 +2887,6 @@ const _abi = [
                         type: "address",
                     },
                     {
-                        internalType: "address",
-                        name: "anchorAddress",
-                        type: "address",
-                    },
-                    {
                         internalType: "uint256",
                         name: "price",
                         type: "uint256",
@@ -2941,6 +2926,11 @@ const _abi = [
                         name: "marketOpen",
                         type: "bool",
                     },
+                    {
+                        internalType: "bytes32",
+                        name: "redstoneId",
+                        type: "bytes32",
+                    },
                 ],
                 internalType: "struct LibUI.CollateralAssetInfo[]",
                 name: "collateralAssets",
@@ -2956,11 +2946,6 @@ const _abi = [
                     {
                         internalType: "address",
                         name: "assetAddress",
-                        type: "address",
-                    },
-                    {
-                        internalType: "address",
-                        name: "anchorAddress",
                         type: "address",
                     },
                     {
@@ -3017,6 +3002,11 @@ const _abi = [
                         internalType: "bool",
                         name: "marketOpen",
                         type: "bool",
+                    },
+                    {
+                        internalType: "bytes32",
+                        name: "redstoneId",
+                        type: "bytes32",
                     },
                 ],
                 internalType: "struct LibUI.krAssetInfo[]",

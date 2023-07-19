@@ -30,12 +30,10 @@ export const wrapKresko = (contract: Kresko, signer: any) =>
         mockSignersCount: 1,
         timestampMilliseconds: Date.now(),
         dataPoints: [
-            { dataFeedId: "DAI", value: 1 },
+            { dataFeedId: "DAI", value: 0 },
             { dataFeedId: "USDf", value: 0 },
-            { dataFeedId: "USDC", value: 0 },
-            { dataFeedId: "ETH", value: 1898.2191549 },
+            { dataFeedId: "ETH", value: 0 },
             { dataFeedId: "BTC", value: 0 },
-            { dataFeedId: "KISS", value: 0 },
         ],
     }) as Kresko;
 

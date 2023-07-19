@@ -217,14 +217,16 @@ export declare namespace IDiamondLoupeFacet {
 export declare namespace LibUI {
     export type PriceStruct = {
         price: PromiseOrValue<BigNumberish>;
+        redstonePrice: PromiseOrValue<BigNumberish>;
         timestamp: PromiseOrValue<BigNumberish>;
         assetAddress: PromiseOrValue<string>;
         roundId: PromiseOrValue<BigNumberish>;
         marketOpen: PromiseOrValue<boolean>;
     };
 
-    export type PriceStructOutput = [BigNumber, BigNumber, string, BigNumber, boolean] & {
+    export type PriceStructOutput = [BigNumber, BigNumber, BigNumber, string, BigNumber, boolean] & {
         price: BigNumber;
+        redstonePrice: BigNumber;
         timestamp: BigNumber;
         assetAddress: string;
         roundId: BigNumber;
@@ -234,7 +236,6 @@ export declare namespace LibUI {
     export type KrAssetInfoUserStruct = {
         assetAddress: PromiseOrValue<string>;
         oracleAddress: PromiseOrValue<string>;
-        anchorAddress: PromiseOrValue<string>;
         amount: PromiseOrValue<BigNumberish>;
         amountScaled: PromiseOrValue<BigNumberish>;
         priceRate: PromiseOrValue<BigNumberish>;
@@ -248,12 +249,12 @@ export declare namespace LibUI {
         name: PromiseOrValue<string>;
         openFee: PromiseOrValue<BigNumberish>;
         closeFee: PromiseOrValue<BigNumberish>;
+        redstoneId: PromiseOrValue<BytesLike>;
     };
 
     export type KrAssetInfoUserStructOutput = [
         string,
         string,
-        string,
         BigNumber,
         BigNumber,
         BigNumber,
@@ -267,10 +268,10 @@ export declare namespace LibUI {
         string,
         BigNumber,
         BigNumber,
+        string,
     ] & {
         assetAddress: string;
         oracleAddress: string;
-        anchorAddress: string;
         amount: BigNumber;
         amountScaled: BigNumber;
         priceRate: BigNumber;
@@ -284,12 +285,12 @@ export declare namespace LibUI {
         name: string;
         openFee: BigNumber;
         closeFee: BigNumber;
+        redstoneId: string;
     };
 
     export type CollateralAssetInfoUserStruct = {
         assetAddress: PromiseOrValue<string>;
         oracleAddress: PromiseOrValue<string>;
-        anchorAddress: PromiseOrValue<string>;
         amount: PromiseOrValue<BigNumberish>;
         amountUSD: PromiseOrValue<BigNumberish>;
         cFactor: PromiseOrValue<BigNumberish>;
@@ -299,10 +300,10 @@ export declare namespace LibUI {
         price: PromiseOrValue<BigNumberish>;
         symbol: PromiseOrValue<string>;
         name: PromiseOrValue<string>;
+        redstoneId: PromiseOrValue<BytesLike>;
     };
 
     export type CollateralAssetInfoUserStructOutput = [
-        string,
         string,
         string,
         BigNumber,
@@ -314,10 +315,10 @@ export declare namespace LibUI {
         BigNumber,
         string,
         string,
+        string,
     ] & {
         assetAddress: string;
         oracleAddress: string;
-        anchorAddress: string;
         amount: BigNumber;
         amountUSD: BigNumber;
         cFactor: BigNumber;
@@ -327,15 +328,15 @@ export declare namespace LibUI {
         price: BigNumber;
         symbol: string;
         name: string;
+        redstoneId: string;
     };
 
     export type KreskoUserStruct = {
         krAssets: LibUI.KrAssetInfoUserStruct[];
         collateralAssets: LibUI.CollateralAssetInfoUserStruct[];
+        redstoneIds: PromiseOrValue<BytesLike>[];
         healthFactor: PromiseOrValue<BigNumberish>;
-        debtActualUSD: PromiseOrValue<BigNumberish>;
         debtUSD: PromiseOrValue<BigNumberish>;
-        collateralActualUSD: PromiseOrValue<BigNumberish>;
         collateralUSD: PromiseOrValue<BigNumberish>;
         minCollateralUSD: PromiseOrValue<BigNumberish>;
         borrowingPowerUSD: PromiseOrValue<BigNumberish>;
@@ -344,8 +345,7 @@ export declare namespace LibUI {
     export type KreskoUserStructOutput = [
         LibUI.KrAssetInfoUserStructOutput[],
         LibUI.CollateralAssetInfoUserStructOutput[],
-        BigNumber,
-        BigNumber,
+        string[],
         BigNumber,
         BigNumber,
         BigNumber,
@@ -354,10 +354,9 @@ export declare namespace LibUI {
     ] & {
         krAssets: LibUI.KrAssetInfoUserStructOutput[];
         collateralAssets: LibUI.CollateralAssetInfoUserStructOutput[];
+        redstoneIds: string[];
         healthFactor: BigNumber;
-        debtActualUSD: BigNumber;
         debtUSD: BigNumber;
-        collateralActualUSD: BigNumber;
         collateralUSD: BigNumber;
         minCollateralUSD: BigNumber;
         borrowingPowerUSD: BigNumber;
@@ -424,7 +423,6 @@ export declare namespace LibUI {
     export type CollateralAssetInfoStruct = {
         assetAddress: PromiseOrValue<string>;
         oracleAddress: PromiseOrValue<string>;
-        anchorAddress: PromiseOrValue<string>;
         price: PromiseOrValue<BigNumberish>;
         value: PromiseOrValue<BigNumberish>;
         liquidationIncentive: PromiseOrValue<BigNumberish>;
@@ -433,10 +431,10 @@ export declare namespace LibUI {
         symbol: PromiseOrValue<string>;
         name: PromiseOrValue<string>;
         marketOpen: PromiseOrValue<boolean>;
+        redstoneId: PromiseOrValue<BytesLike>;
     };
 
     export type CollateralAssetInfoStructOutput = [
-        string,
         string,
         string,
         BigNumber,
@@ -447,10 +445,10 @@ export declare namespace LibUI {
         string,
         string,
         boolean,
+        string,
     ] & {
         assetAddress: string;
         oracleAddress: string;
-        anchorAddress: string;
         price: BigNumber;
         value: BigNumber;
         liquidationIncentive: BigNumber;
@@ -459,12 +457,12 @@ export declare namespace LibUI {
         symbol: string;
         name: string;
         marketOpen: boolean;
+        redstoneId: string;
     };
 
     export type KrAssetInfoStruct = {
         oracleAddress: PromiseOrValue<string>;
         assetAddress: PromiseOrValue<string>;
-        anchorAddress: PromiseOrValue<string>;
         price: PromiseOrValue<BigNumberish>;
         ammPrice: PromiseOrValue<BigNumberish>;
         priceRate: PromiseOrValue<BigNumberish>;
@@ -476,10 +474,10 @@ export declare namespace LibUI {
         symbol: PromiseOrValue<string>;
         name: PromiseOrValue<string>;
         marketOpen: PromiseOrValue<boolean>;
+        redstoneId: PromiseOrValue<BytesLike>;
     };
 
     export type KrAssetInfoStructOutput = [
-        string,
         string,
         string,
         BigNumber,
@@ -493,10 +491,10 @@ export declare namespace LibUI {
         string,
         string,
         boolean,
+        string,
     ] & {
         oracleAddress: string;
         assetAddress: string;
-        anchorAddress: string;
         price: BigNumber;
         ammPrice: BigNumber;
         priceRate: BigNumber;
@@ -508,6 +506,7 @@ export declare namespace LibUI {
         symbol: string;
         name: string;
         marketOpen: boolean;
+        redstoneId: string;
     };
 
     export type ProtocolParamsStruct = {
@@ -644,9 +643,9 @@ export interface KreskoInterface extends utils.Interface {
         "minimumDebtValue()": FunctionFragment;
         "minterInitializations()": FunctionFragment;
         "oracleDeviationPct()": FunctionFragment;
-        "batchOracleValues(address[],address[],address[])": FunctionFragment;
+        "batchOracleValues(address[])": FunctionFragment;
         "getAccountData(address,address[],address)": FunctionFragment;
-        "getTokenData(address[],address[],address[],address[])": FunctionFragment;
+        "getTokenData(address[],address[])": FunctionFragment;
         "getGlobalData(address[],address[])": FunctionFragment;
         "getPairsData(address[])": FunctionFragment;
     };
@@ -1044,22 +1043,14 @@ export interface KreskoInterface extends utils.Interface {
     encodeFunctionData(functionFragment: "minimumDebtValue", values?: undefined): string;
     encodeFunctionData(functionFragment: "minterInitializations", values?: undefined): string;
     encodeFunctionData(functionFragment: "oracleDeviationPct", values?: undefined): string;
-    encodeFunctionData(
-        functionFragment: "batchOracleValues",
-        values: [PromiseOrValue<string>[], PromiseOrValue<string>[], PromiseOrValue<string>[]],
-    ): string;
+    encodeFunctionData(functionFragment: "batchOracleValues", values: [PromiseOrValue<string>[]]): string;
     encodeFunctionData(
         functionFragment: "getAccountData",
         values: [PromiseOrValue<string>, PromiseOrValue<string>[], PromiseOrValue<string>],
     ): string;
     encodeFunctionData(
         functionFragment: "getTokenData",
-        values: [
-            PromiseOrValue<string>[],
-            PromiseOrValue<string>[],
-            PromiseOrValue<string>[],
-            PromiseOrValue<string>[],
-        ],
+        values: [PromiseOrValue<string>[], PromiseOrValue<string>[]],
     ): string;
     encodeFunctionData(
         functionFragment: "getGlobalData",
@@ -1713,8 +1704,6 @@ export interface Kresko extends BaseContract {
 
         batchOracleValues(
             _assets: PromiseOrValue<string>[],
-            _oracles: PromiseOrValue<string>[],
-            _marketStatusOracles: PromiseOrValue<string>[],
             overrides?: CallOverrides,
         ): Promise<[LibUI.PriceStructOutput[]] & { result: LibUI.PriceStructOutput[] }>;
 
@@ -1724,18 +1713,17 @@ export interface Kresko extends BaseContract {
             _staking: PromiseOrValue<string>,
             overrides?: CallOverrides,
         ): Promise<
-            [LibUI.KreskoUserStructOutput, LibUI.BalanceStructOutput[], LibUI.StakingDataStructOutput[]] & {
+            [LibUI.KreskoUserStructOutput, LibUI.BalanceStructOutput[], LibUI.StakingDataStructOutput[], BigNumber] & {
                 user: LibUI.KreskoUserStructOutput;
                 balances: LibUI.BalanceStructOutput[];
                 stakingData: LibUI.StakingDataStructOutput[];
+                ethBalance: BigNumber;
             }
         >;
 
         getTokenData(
             _allTokens: PromiseOrValue<string>[],
             _assets: PromiseOrValue<string>[],
-            _priceFeeds: PromiseOrValue<string>[],
-            _marketStatusOracles: PromiseOrValue<string>[],
             overrides?: CallOverrides,
         ): Promise<
             [LibUI.TokenMetadataStructOutput[], LibUI.PriceStructOutput[]] & {
@@ -2234,12 +2222,7 @@ export interface Kresko extends BaseContract {
 
     oracleDeviationPct(overrides?: CallOverrides): Promise<BigNumber>;
 
-    batchOracleValues(
-        _assets: PromiseOrValue<string>[],
-        _oracles: PromiseOrValue<string>[],
-        _marketStatusOracles: PromiseOrValue<string>[],
-        overrides?: CallOverrides,
-    ): Promise<LibUI.PriceStructOutput[]>;
+    batchOracleValues(_assets: PromiseOrValue<string>[], overrides?: CallOverrides): Promise<LibUI.PriceStructOutput[]>;
 
     getAccountData(
         _account: PromiseOrValue<string>,
@@ -2247,18 +2230,17 @@ export interface Kresko extends BaseContract {
         _staking: PromiseOrValue<string>,
         overrides?: CallOverrides,
     ): Promise<
-        [LibUI.KreskoUserStructOutput, LibUI.BalanceStructOutput[], LibUI.StakingDataStructOutput[]] & {
+        [LibUI.KreskoUserStructOutput, LibUI.BalanceStructOutput[], LibUI.StakingDataStructOutput[], BigNumber] & {
             user: LibUI.KreskoUserStructOutput;
             balances: LibUI.BalanceStructOutput[];
             stakingData: LibUI.StakingDataStructOutput[];
+            ethBalance: BigNumber;
         }
     >;
 
     getTokenData(
         _allTokens: PromiseOrValue<string>[],
         _assets: PromiseOrValue<string>[],
-        _priceFeeds: PromiseOrValue<string>[],
-        _marketStatusOracles: PromiseOrValue<string>[],
         overrides?: CallOverrides,
     ): Promise<
         [LibUI.TokenMetadataStructOutput[], LibUI.PriceStructOutput[]] & {
@@ -2730,8 +2712,6 @@ export interface Kresko extends BaseContract {
 
         batchOracleValues(
             _assets: PromiseOrValue<string>[],
-            _oracles: PromiseOrValue<string>[],
-            _marketStatusOracles: PromiseOrValue<string>[],
             overrides?: CallOverrides,
         ): Promise<LibUI.PriceStructOutput[]>;
 
@@ -2741,18 +2721,17 @@ export interface Kresko extends BaseContract {
             _staking: PromiseOrValue<string>,
             overrides?: CallOverrides,
         ): Promise<
-            [LibUI.KreskoUserStructOutput, LibUI.BalanceStructOutput[], LibUI.StakingDataStructOutput[]] & {
+            [LibUI.KreskoUserStructOutput, LibUI.BalanceStructOutput[], LibUI.StakingDataStructOutput[], BigNumber] & {
                 user: LibUI.KreskoUserStructOutput;
                 balances: LibUI.BalanceStructOutput[];
                 stakingData: LibUI.StakingDataStructOutput[];
+                ethBalance: BigNumber;
             }
         >;
 
         getTokenData(
             _allTokens: PromiseOrValue<string>[],
             _assets: PromiseOrValue<string>[],
-            _priceFeeds: PromiseOrValue<string>[],
-            _marketStatusOracles: PromiseOrValue<string>[],
             overrides?: CallOverrides,
         ): Promise<
             [LibUI.TokenMetadataStructOutput[], LibUI.PriceStructOutput[]] & {
@@ -3251,12 +3230,7 @@ export interface Kresko extends BaseContract {
 
         oracleDeviationPct(overrides?: CallOverrides): Promise<BigNumber>;
 
-        batchOracleValues(
-            _assets: PromiseOrValue<string>[],
-            _oracles: PromiseOrValue<string>[],
-            _marketStatusOracles: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<BigNumber>;
+        batchOracleValues(_assets: PromiseOrValue<string>[], overrides?: CallOverrides): Promise<BigNumber>;
 
         getAccountData(
             _account: PromiseOrValue<string>,
@@ -3268,8 +3242,6 @@ export interface Kresko extends BaseContract {
         getTokenData(
             _allTokens: PromiseOrValue<string>[],
             _assets: PromiseOrValue<string>[],
-            _priceFeeds: PromiseOrValue<string>[],
-            _marketStatusOracles: PromiseOrValue<string>[],
             overrides?: CallOverrides,
         ): Promise<BigNumber>;
 
@@ -3790,12 +3762,7 @@ export interface Kresko extends BaseContract {
 
         oracleDeviationPct(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-        batchOracleValues(
-            _assets: PromiseOrValue<string>[],
-            _oracles: PromiseOrValue<string>[],
-            _marketStatusOracles: PromiseOrValue<string>[],
-            overrides?: CallOverrides,
-        ): Promise<PopulatedTransaction>;
+        batchOracleValues(_assets: PromiseOrValue<string>[], overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
         getAccountData(
             _account: PromiseOrValue<string>,
@@ -3807,8 +3774,6 @@ export interface Kresko extends BaseContract {
         getTokenData(
             _allTokens: PromiseOrValue<string>[],
             _assets: PromiseOrValue<string>[],
-            _priceFeeds: PromiseOrValue<string>[],
-            _marketStatusOracles: PromiseOrValue<string>[],
             overrides?: CallOverrides,
         ): Promise<PopulatedTransaction>;
 

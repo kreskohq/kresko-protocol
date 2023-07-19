@@ -19,8 +19,6 @@ import "@nomiclabs/hardhat-web3";
 import "hardhat-contract-sizer";
 import "hardhat-interface-generator";
 import "solidity-coverage";
-import * as tdly from "@tenderly/hardhat-tenderly";
-tdly.setup();
 
 // import "hardhat-preprocessor";
 // import "hardhat-watcher";
@@ -109,11 +107,6 @@ const config: HardhatUserConfig = {
         apiKey: {
             optimisticGoerli: process.env.ETHERSCAN_API_KEY!,
         },
-    },
-    tenderly: {
-        project: "protocol",
-        username: "kresko",
-        privateVerification: true,
     },
 };
 
