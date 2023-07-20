@@ -52,14 +52,8 @@ import "hardhat-configs/extensions";
 /*                               CONFIGURATION                                */
 /* -------------------------------------------------------------------------- */
 
-let externalArtifacts = [];
-let outDir = "types/typechain";
-
 if (process.env.EXPORT) {
-    console.log("exporting artifacts..");
-    const exportUtil = require("./src/utils/export");
-    externalArtifacts = exportUtil.externalArtifacts();
-    outDir = "packages/contracts/src/types/";
+    console.log("exporting..");
 }
 
 const config: HardhatUserConfig = {
@@ -87,13 +81,13 @@ const config: HardhatUserConfig = {
     },
     diamondAbi: diamondAbiConfig,
     typechain: {
-        outDir,
+        outDir: "types/typechain",
         target: "ethers-v5",
         alwaysGenerateOverloads: false,
         dontOverrideCompile: false,
         discriminateTypes: true,
         tsNocheck: true,
-        externalArtifacts,
+        externalArtifacts: [],
     },
     contractSizer: {
         alphaSort: true,

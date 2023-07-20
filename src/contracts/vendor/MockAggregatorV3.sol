@@ -29,10 +29,9 @@ contract MockAggregatorV3 is AggregatorV3Interface {
      * @notice indicates that a new report was transmitted
      * @param aggregatorRoundId the round to which this report was assigned
      * @param answer value posted by validator
-     * @param marketOpen bool indicating if the market is open
      * @param transmitter address from which the report was transmitted
      */
-    event NewTransmission(uint32 indexed aggregatorRoundId, int192 answer, bool marketOpen, address transmitter);
+    event NewTransmission(uint32 indexed aggregatorRoundId, int192 answer, address transmitter);
     /**
      * @notice human-readable description of observable this contract is reporting on
      */
