@@ -31,6 +31,7 @@ export const wrapKresko = (contract: Kresko, signer: any) =>
         timestampMilliseconds: Date.now(),
         dataPoints: [
             { dataFeedId: "DAI", value: 0 },
+            { dataFeedId: "USDC", value: 0 },
             { dataFeedId: "USDf", value: 0 },
             { dataFeedId: "ETH", value: 0 },
             { dataFeedId: "BTC", value: 0 },

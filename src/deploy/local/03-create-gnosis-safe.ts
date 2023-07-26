@@ -10,7 +10,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const { ethers, deployments } = hre;
 
     // Multisig signers
-    const { deployer } = await ethers.getNamedSigners();
+    const { deployer, devTwo, extOne, extTwo } = await ethers.getNamedSigners();
 
     // Get the factory
     const Factory = await hre.getContractOrFork("GnosisSafeProxyFactory");
@@ -20,7 +20,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     // TODO: bring ReentrancyGuard back into this deployment
     // const ReentrancyGuard = await hre.getContractOrFork("ReentrancyTransactionGuard");
     // Multisig users
-    const safeUsers = [deployer];
+    const safeUsers = [deployer, devTwo, extOne, extTwo];
 
     const creationArgs = [
         safeUsers.map(user => user.address),
