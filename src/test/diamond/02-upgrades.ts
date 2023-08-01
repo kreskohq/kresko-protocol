@@ -101,12 +101,8 @@ describe("Diamond", () => {
 
             const contract = await hre.ethers.getContractAt("AuthEvent", hre.Diamond.address);
 
-            const filter = contract.filters["PendingOwnershipTransfer(address,address)"](
-                hre.addr.deployer,
-                correctOwner,
-            );
-            const [event] = await hre.Diamond.queryFilter(filter);
-
+            const filter = contract.filters.PendingOwnershipTransfer(hre.addr.deployer, correctOwner);
+            const [event] = await contract.queryFilter(filter);
             const { previousOwner, newOwner } = event.args;
             expect(previousOwner).to.equal(hre.addr.deployer);
             expect(newOwner).to.equal(correctOwner);

@@ -1,5 +1,4 @@
 import { getLogger, getNamedEvent } from "@kreskolabs/lib";
-import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ProxyCreationEvent } from "types/typechain/src/contracts/vendor/gnosis/GnosisSafeProxyFactory";
@@ -10,7 +9,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const { ethers, deployments } = hre;
 
     // Multisig signers
-    const { deployer, devTwo, extOne, extTwo } = await ethers.getNamedSigners();
+    const { deployer, devTwo, extOne, extTwo, devOne } = await ethers.getNamedSigners();
 
     // Get the factory
     const Factory = await hre.getContractOrFork("GnosisSafeProxyFactory");
@@ -20,11 +19,11 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     // TODO: bring ReentrancyGuard back into this deployment
     // const ReentrancyGuard = await hre.getContractOrFork("ReentrancyTransactionGuard");
     // Multisig users
-    const safeUsers = [deployer, devTwo, extOne, extTwo];
+    const safeUsers = [deployer, devOne, devTwo, extOne, extTwo];
 
     const creationArgs = [
         safeUsers.map(user => user.address),
-        BigNumber.from(1),
+        3,
         ethers.constants.AddressZero,
         "0x",
         ethers.constants.AddressZero,
