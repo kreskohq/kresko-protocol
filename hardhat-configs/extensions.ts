@@ -3,7 +3,6 @@ import { Fragment } from "@ethersproject/abi";
 import { WrapperBuilder } from "@redstone-finance/evm-connector";
 import { checkAddress } from "@scripts/check-address";
 import { getAddresses, getUsers } from "@utils/general";
-import { ethers } from "ethers";
 import { extendEnvironment } from "hardhat/config";
 import SharedConfig from "src/deploy-config/shared";
 import { ContractTypes } from "types";
@@ -60,7 +59,7 @@ extendEnvironment(function (hre) {
                         { dataFeedId: "BTC", value: 0 },
                     ],
                 },
-            ) as TC[typeof type];
+            ) as unknown as TC[typeof type];
         }
         return hre.ethers.getContractAt(type, deployment.address) as unknown as TC[typeof type];
     };
@@ -121,18 +120,18 @@ extendEnvironment(function (hre) {
         }
     };
     hre.getSignature = from =>
-        Fragment.from(from)?.type === "function" && ethers.utils.Interface.getSighash(Fragment.from(from));
+        Fragment.from(from)?.type === "function" && hre.ethers.utils.Interface.getSighash(Fragment.from(from));
     hre.getSignatures = abi =>
-        new ethers.utils.Interface(abi).fragments
+        new hre.ethers.utils.Interface(abi).fragments
             .filter(
                 f =>
                     f.type === "function" &&
                     !SharedConfig.signatureFilters.some(s => s.indexOf(f.name.toLowerCase()) > -1),
             )
-            .map(ethers.utils.Interface.getSighash);
+            .map(hre.ethers.utils.Interface.getSighash);
 
     hre.getSignaturesWithNames = abi =>
-        new ethers.utils.Interface(abi).fragments
+        new hre.ethers.utils.Interface(abi).fragments
             .filter(
                 f =>
                     f.type === "function" &&
@@ -140,6 +139,6 @@ extendEnvironment(function (hre) {
             )
             .map(fragment => ({
                 name: fragment.name,
-                sig: ethers.utils.Interface.getSighash(fragment),
+                sig: hre.ethers.utils.Interface.getSighash(fragment),
             }));
 });

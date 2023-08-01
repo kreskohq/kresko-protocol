@@ -89,7 +89,7 @@ library Error {
     string public constant COLLATERAL_AMOUNT_TOO_LOW = "249"; // Amount of krAsset collateral being deposited is less than the minimum amount
     string public constant PARAM_COLLATERAL_RATIO_LOW_THAN_LT = "250"; // Minimum collateral ratio less than LT
     string public constant ZERO_DEBT = "251"; // debt must be greater than 0
-    string public constant ORACLE_PRICE_UNSTABLE = "252"; // debt must be greater than 0
+    string public constant ORACLE_PRICE_UNSTABLE = "252"; // oracle price deviates too much between oracles
     string public constant NEGATIVE_ORACLE_PRICE = "253"; // Oracle price received is negative
 
     /* -------------------------------------------------------------------------- */
@@ -107,7 +107,7 @@ library Error {
     /* -------------------------------------------------------------------------- */
 
     string public constant ARRAY_OUT_OF_BOUNDS = "400"; // Array out of bounds error
-    string public constant PRICEFEEDS_MUST_MATCH_STATUS_FEEDS = "401"; // Supplied price feeds must match status feeds in length
+    string public constant PRICEFEEDS_MUST_MATCH_TOKENS = "401"; // Supplied price feeds must tokens supplied in length
     string public constant INCORRECT_INDEX = "402"; // Array index mismatch
 
     /* -------------------------------------------------------------------------- */

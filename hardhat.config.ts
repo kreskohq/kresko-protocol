@@ -19,8 +19,6 @@ import "@nomiclabs/hardhat-web3";
 import "hardhat-contract-sizer";
 import "hardhat-interface-generator";
 import "solidity-coverage";
-import * as tdly from "@tenderly/hardhat-tenderly";
-tdly.setup();
 
 // import "hardhat-preprocessor";
 // import "hardhat-watcher";
@@ -36,8 +34,6 @@ const mnemonic = process.env.MNEMONIC;
 if (!mnemonic) {
     throw new Error("No mnemonic set");
 }
-const isExport = process.env.EXPORT;
-let exportUtil: any;
 
 /* -------------------------------------------------------------------------- */
 /*                                    Tasks                                   */
@@ -56,14 +52,8 @@ import "hardhat-configs/extensions";
 /*                               CONFIGURATION                                */
 /* -------------------------------------------------------------------------- */
 
-let externalArtifacts = [];
-let outDir = "types/typechain";
-
-if (isExport) {
-    console.log("isExport", isExport);
-    exportUtil = require("./src/utils/export");
-    externalArtifacts = exportUtil.externalArtifacts();
-    outDir = "packages/contracts/src/types/";
+if (process.env.EXPORT) {
+    console.log("exporting..");
 }
 
 const config: HardhatUserConfig = {
@@ -91,13 +81,13 @@ const config: HardhatUserConfig = {
     },
     diamondAbi: diamondAbiConfig,
     typechain: {
-        outDir,
+        outDir: "types/typechain",
         target: "ethers-v5",
         alwaysGenerateOverloads: false,
         dontOverrideCompile: false,
         discriminateTypes: true,
         tsNocheck: true,
-        externalArtifacts,
+        externalArtifacts: [],
     },
     contractSizer: {
         alphaSort: true,
@@ -109,11 +99,6 @@ const config: HardhatUserConfig = {
         apiKey: {
             optimisticGoerli: process.env.ETHERSCAN_API_KEY!,
         },
-    },
-    tenderly: {
-        project: "protocol",
-        username: "kresko",
-        privateVerification: true,
     },
 };
 

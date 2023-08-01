@@ -27,7 +27,7 @@ deploy.skip = async hre => {
     const krAssets = testnetConfigs[hre.network.name].krAssets;
     const isFinished = await hre.deployments.getOrNull(krAssets[krAssets.length - 1].name);
     isFinished && logger.log("Skipping deploying krAssets");
-    return !!isFinished || hre.network.live;
+    return !!isFinished;
 };
 
 deploy.tags = ["local", "kresko-assets", "all"];

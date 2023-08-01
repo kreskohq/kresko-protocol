@@ -31,7 +31,7 @@ export const redstoneMap = {
     WETH: ethers.utils.formatBytes32String("ETH"),
     ETH: ethers.utils.formatBytes32String("ETH"),
     WBTC: ethers.utils.formatBytes32String("BTC"),
-    KISS: ethers.utils.formatBytes32String("USDC"),
+    KISS: ethers.utils.formatBytes32String("USDf"),
     DAI: ethers.utils.formatBytes32String("DAI"),
     USDC: ethers.utils.formatBytes32String("USDC"),
     Collateral: ethers.utils.formatBytes32String("USDC"),

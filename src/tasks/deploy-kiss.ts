@@ -1,10 +1,10 @@
-import { getDeploymentUsers } from "@deploy-config/shared";
 import { getLogger, toBig } from "@kreskolabs/lib";
 import { defaultKrAssetArgs } from "@utils/test/mocks";
 import { Role } from "@utils/test/roles";
 import { task, types } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
 import { TASK_DEPLOY_KISS } from "./names";
+import { getDeploymentUsers } from "@deploy-config/shared";
 
 const logger = getLogger(TASK_DEPLOY_KISS, true);
 
@@ -15,13 +15,13 @@ task(TASK_DEPLOY_KISS)
 
         const { multisig } = await getDeploymentUsers(hre);
         const { deployer } = await hre.ethers.getNamedSigners();
-
+        const Diamond = await hre.getContractOrFork("Diamond");
         const args = {
             name: "KISS",
             symbol: "KISS",
             decimals: 18,
             admin: multisig,
-            operator: hre.Diamond.address,
+            operator: Diamond.address,
         };
 
         const [KISSContract] = await hre.deploy("KISS", {

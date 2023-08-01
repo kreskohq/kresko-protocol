@@ -33,9 +33,8 @@ const subgraphExports: SubgraphExport[] = [
     },
     "KrStaking",
     "KrStakingHelper",
-    "FluxPriceFeedFactory",
     {
-        artifact: "FluxPriceFeed",
+        artifact: "MockAggregatorV3",
         includedABI: ["NewTransmission"],
     },
     {

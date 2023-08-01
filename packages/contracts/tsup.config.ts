@@ -1,12 +1,17 @@
 import { defineConfig } from "tsup";
-
 export default defineConfig(opts => {
     return {
-        entry: ["src/index.ts", "src/types/index.ts", "src/error.ts", "src/util.ts"],
-        format: ["cjs"],
-        target: "esnext",
+        entry: ["src/index.ts"],
+        format: ["esm"],
         dts: true,
+        sourcemap: false,
+        target: ["esnext"],
+        outDir: "dist",
+        platform: "node",
         clean: true,
-        splitting: false,
+        minify: true,
+        bundle: true,
+        splitting: true,
+        treeshake: true,
     };
 });

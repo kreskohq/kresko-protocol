@@ -1,0 +1,243 @@
+{
+  "address": "0xBdB1Ce795373b052d8b0469C5720C80E118dB3af",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "contract GnosisSafeProxy",
+          "name": "proxy",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "singleton",
+          "type": "address"
+        }
+      ],
+      "name": "ProxyCreation",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_singleton",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes",
+          "name": "initializer",
+          "type": "bytes"
+        },
+        {
+          "internalType": "uint256",
+          "name": "saltNonce",
+          "type": "uint256"
+        }
+      ],
+      "name": "calculateCreateProxyWithNonceAddress",
+      "outputs": [
+        {
+          "internalType": "contract GnosisSafeProxy",
+          "name": "proxy",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "singleton",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes",
+          "name": "data",
+          "type": "bytes"
+        }
+      ],
+      "name": "createProxy",
+      "outputs": [
+        {
+          "internalType": "contract GnosisSafeProxy",
+          "name": "proxy",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_singleton",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes",
+          "name": "initializer",
+          "type": "bytes"
+        },
+        {
+          "internalType": "uint256",
+          "name": "saltNonce",
+          "type": "uint256"
+        },
+        {
+          "internalType": "contract IProxyCreationCallback",
+          "name": "callback",
+          "type": "address"
+        }
+      ],
+      "name": "createProxyWithCallback",
+      "outputs": [
+        {
+          "internalType": "contract GnosisSafeProxy",
+          "name": "proxy",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_singleton",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes",
+          "name": "initializer",
+          "type": "bytes"
+        },
+        {
+          "internalType": "uint256",
+          "name": "saltNonce",
+          "type": "uint256"
+        }
+      ],
+      "name": "createProxyWithNonce",
+      "outputs": [
+        {
+          "internalType": "contract GnosisSafeProxy",
+          "name": "proxy",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "proxyCreationCode",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "proxyRuntimeCode",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0xbf1441ded8d7ef02a9527c9c7b9b9461a70f82e4b4c23d1420c81a81f0a0e5c7",
+  "receipt": {
+    "to": "0x4e59b44847b379578588920cA78FbF26c0B4956C",
+    "from": "0xB48bB6b68Ab4D366B4f9A30eE6f7Ee55125c2D9d",
+    "contractAddress": null,
+    "transactionIndex": 1,
+    "gasUsed": "733943",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x972278f665651e6052d3b59f6f2461f94b4af22028b31b82adbe2ca08db9adde",
+    "transactionHash": "0xbf1441ded8d7ef02a9527c9c7b9b9461a70f82e4b4c23d1420c81a81f0a0e5c7",
+    "logs": [],
+    "blockNumber": 30746510,
+    "cumulativeGasUsed": "733943",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 1,
+  "solcInputHash": "2796721ae8ad06f4477f7f47306878f4",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.19+commit.7dd6d404\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"contract GnosisSafeProxy\",\"name\":\"proxy\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"singleton\",\"type\":\"address\"}],\"name\":\"ProxyCreation\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_singleton\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"initializer\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"saltNonce\",\"type\":\"uint256\"}],\"name\":\"calculateCreateProxyWithNonceAddress\",\"outputs\":[{\"internalType\":\"contract GnosisSafeProxy\",\"name\":\"proxy\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"singleton\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"createProxy\",\"outputs\":[{\"internalType\":\"contract GnosisSafeProxy\",\"name\":\"proxy\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_singleton\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"initializer\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"saltNonce\",\"type\":\"uint256\"},{\"internalType\":\"contract IProxyCreationCallback\",\"name\":\"callback\",\"type\":\"address\"}],\"name\":\"createProxyWithCallback\",\"outputs\":[{\"internalType\":\"contract GnosisSafeProxy\",\"name\":\"proxy\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_singleton\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"initializer\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"saltNonce\",\"type\":\"uint256\"}],\"name\":\"createProxyWithNonce\",\"outputs\":[{\"internalType\":\"contract GnosisSafeProxy\",\"name\":\"proxy\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"proxyCreationCode\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"proxyRuntimeCode\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"Stefan George - <stefan@gnosis.pm>\",\"kind\":\"dev\",\"methods\":{\"calculateCreateProxyWithNonceAddress(address,bytes,uint256)\":{\"details\":\"Allows to get the address for a new proxy contact created via `createProxyWithNonce`      This method is only meant for address calculation purpose when you use an initializer that would revert,      therefore the response is returned with a revert. When calling this method set `from` to the address of the proxy factory.\",\"params\":{\"_singleton\":\"Address of singleton contract.\",\"initializer\":\"Payload for message call sent to new proxy contract.\",\"saltNonce\":\"Nonce that will be used to generate the salt to calculate the address of the new proxy contract.\"}},\"createProxy(address,bytes)\":{\"details\":\"Allows to create new proxy contact and execute a message call to the new proxy within one transaction.\",\"params\":{\"data\":\"Payload for message call sent to new proxy contract.\",\"singleton\":\"Address of singleton contract.\"}},\"createProxyWithCallback(address,bytes,uint256,address)\":{\"details\":\"Allows to create new proxy contact, execute a message call to the new proxy and call a specified callback within one transaction\",\"params\":{\"_singleton\":\"Address of singleton contract.\",\"callback\":\"Callback that will be invoked after the new proxy contract has been successfully deployed and initialized.\",\"initializer\":\"Payload for message call sent to new proxy contract.\",\"saltNonce\":\"Nonce that will be used to generate the salt to calculate the address of the new proxy contract.\"}},\"createProxyWithNonce(address,bytes,uint256)\":{\"details\":\"Allows to create new proxy contact and execute a message call to the new proxy within one transaction.\",\"params\":{\"_singleton\":\"Address of singleton contract.\",\"initializer\":\"Payload for message call sent to new proxy contract.\",\"saltNonce\":\"Nonce that will be used to generate the salt to calculate the address of the new proxy contract.\"}},\"proxyCreationCode()\":{\"details\":\"Allows to retrieve the creation code used for the Proxy deployment. With this it is easily possible to calculate predicted address.\"},\"proxyRuntimeCode()\":{\"details\":\"Allows to retrieve the runtime code of a deployed Proxy. This can be used to check that the expected Proxy was deployed.\"}},\"title\":\"Proxy Factory - Allows to create new proxy contact and execute a message call to the new proxy within one transaction.\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"src/contracts/vendor/gnosis/GnosisSafeProxyFactory.sol\":\"GnosisSafeProxyFactory\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"details\":{\"constantOptimizer\":false,\"cse\":true,\"deduplicate\":true,\"inliner\":true,\"jumpdestRemover\":true,\"orderLiterals\":true,\"peephole\":true,\"yul\":true,\"yulDetails\":{\"optimizerSteps\":\"dhfoDgvulfnTUtnIf[xa[r]EscLMcCTUtTOntnfDIulLculVcul [j]Tpeulxa[rul]xa[r]cLgvifCTUca[r]LSsTFOtfDnca[r]Iulc]jmul[jul] VcTOcul jmul:fDnTOc\",\"stackAllocation\":true}},\"runs\":2000000},\"remappings\":[],\"viaIR\":true},\"sources\":{\"@kreskolabs/gnosis-safe-contracts/contracts/proxies/GnosisSafeProxy.sol\":{\"content\":\"// SPDX-License-Identifier: LGPL-3.0-only\\npragma solidity >=0.7.0 <0.9.0;\\n\\n/// @title IProxy - Helper interface to access masterCopy of the Proxy on-chain\\n/// @author Richard Meissner - <richard@gnosis.io>\\ninterface IProxy {\\n    function masterCopy() external view returns (address);\\n}\\n\\n/// @title GnosisSafeProxy - Generic proxy contract allows to execute all transactions applying the code of a master contract.\\n/// @author Stefan George - <stefan@gnosis.io>\\n/// @author Richard Meissner - <richard@gnosis.io>\\ncontract GnosisSafeProxy {\\n    // singleton always needs to be first declared variable, to ensure that it is at the same location in the contracts to which calls are delegated.\\n    // To reduce deployment costs this variable is internal and needs to be retrieved via `getStorageAt`\\n    address internal singleton;\\n\\n    /// @dev Constructor function sets address of singleton contract.\\n    /// @param _singleton Singleton address.\\n    constructor(address _singleton) {\\n        require(_singleton != address(0), \\\"Invalid singleton address provided\\\");\\n        singleton = _singleton;\\n    }\\n\\n    /// @dev Fallback function forwards all transactions and returns all received return data.\\n    fallback() external payable {\\n        // solhint-disable-next-line no-inline-assembly\\n        assembly {\\n            let _singleton := and(sload(0), 0xffffffffffffffffffffffffffffffffffffffff)\\n            // 0xa619486e == keccak(\\\"masterCopy()\\\"). The value is right padded to 32-bytes with 0s\\n            if eq(calldataload(0), 0xa619486e00000000000000000000000000000000000000000000000000000000) {\\n                mstore(0, _singleton)\\n                return(0, 0x20)\\n            }\\n            calldatacopy(0, 0, calldatasize())\\n            let success := delegatecall(gas(), _singleton, 0, calldatasize(), 0, 0)\\n            returndatacopy(0, 0, returndatasize())\\n            if eq(success, 0) {\\n                revert(0, returndatasize())\\n            }\\n            return(0, returndatasize())\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0x3bfdd453d9f896f7029d15bcafd11886957b320ad1764309d9f74fa059715249\",\"license\":\"LGPL-3.0-only\"},\"@kreskolabs/gnosis-safe-contracts/contracts/proxies/IProxyCreationCallback.sol\":{\"content\":\"// SPDX-License-Identifier: LGPL-3.0-only\\npragma solidity >=0.7.0 <0.9.0;\\nimport \\\"./GnosisSafeProxy.sol\\\";\\n\\ninterface IProxyCreationCallback {\\n    function proxyCreated(\\n        GnosisSafeProxy proxy,\\n        address _singleton,\\n        bytes calldata initializer,\\n        uint256 saltNonce\\n    ) external;\\n}\\n\",\"keccak256\":\"0x51a9ce914a6a943651c803541e44218a7ed0a2f98a94d55df66b173b5a11e365\",\"license\":\"LGPL-3.0-only\"},\"src/contracts/vendor/gnosis/GnosisSafeProxyFactory.sol\":{\"content\":\"// SPDX-License-Identifier: LGPL-3.0-only\\npragma solidity >=0.7.0 <0.9.0;\\n\\nimport \\\"@kreskolabs/gnosis-safe-contracts/contracts/proxies/IProxyCreationCallback.sol\\\";\\nimport \\\"@kreskolabs/gnosis-safe-contracts/contracts/proxies/GnosisSafeProxy.sol\\\";\\n\\n/// @title Proxy Factory - Allows to create new proxy contact and execute a message call to the new proxy within one transaction.\\n/// @author Stefan George - <stefan@gnosis.pm>\\ncontract GnosisSafeProxyFactory {\\n    event ProxyCreation(GnosisSafeProxy proxy, address singleton);\\n\\n    /// @dev Allows to create new proxy contact and execute a message call to the new proxy within one transaction.\\n    /// @param singleton Address of singleton contract.\\n    /// @param data Payload for message call sent to new proxy contract.\\n    function createProxy(address singleton, bytes memory data) public returns (GnosisSafeProxy proxy) {\\n        proxy = new GnosisSafeProxy(singleton);\\n        if (data.length > 0)\\n            // solhint-disable-next-line no-inline-assembly\\n            assembly {\\n                if eq(call(gas(), proxy, 0, add(data, 0x20), mload(data), 0, 0), 0) {\\n                    revert(0, 0)\\n                }\\n            }\\n        emit ProxyCreation(proxy, singleton);\\n    }\\n\\n    /// @dev Allows to retrieve the runtime code of a deployed Proxy. This can be used to check that the expected Proxy was deployed.\\n    function proxyRuntimeCode() public pure returns (bytes memory) {\\n        return type(GnosisSafeProxy).runtimeCode;\\n    }\\n\\n    /// @dev Allows to retrieve the creation code used for the Proxy deployment. With this it is easily possible to calculate predicted address.\\n    function proxyCreationCode() public pure returns (bytes memory) {\\n        return type(GnosisSafeProxy).creationCode;\\n    }\\n\\n    /// @dev Allows to create new proxy contact using CREATE2 but it doesn't run the initializer.\\n    ///      This method is only meant as an utility to be called from other methods\\n    /// @param _singleton Address of singleton contract.\\n    /// @param initializer Payload for message call sent to new proxy contract.\\n    /// @param saltNonce Nonce that will be used to generate the salt to calculate the address of the new proxy contract.\\n    function deployProxyWithNonce(\\n        address _singleton,\\n        bytes memory initializer,\\n        uint256 saltNonce\\n    ) internal returns (GnosisSafeProxy proxy) {\\n        // If the initializer changes the proxy address should change too. Hashing the initializer data is cheaper than just concatinating it\\n        bytes32 salt = keccak256(abi.encodePacked(keccak256(initializer), saltNonce));\\n        bytes memory deploymentData = abi.encodePacked(\\n            type(GnosisSafeProxy).creationCode,\\n            uint256(uint160(_singleton))\\n        );\\n        // solhint-disable-next-line no-inline-assembly\\n        assembly {\\n            proxy := create2(0x0, add(0x20, deploymentData), mload(deploymentData), salt)\\n        }\\n        require(address(proxy) != address(0), \\\"Create2 call failed\\\");\\n    }\\n\\n    /// @dev Allows to create new proxy contact and execute a message call to the new proxy within one transaction.\\n    /// @param _singleton Address of singleton contract.\\n    /// @param initializer Payload for message call sent to new proxy contract.\\n    /// @param saltNonce Nonce that will be used to generate the salt to calculate the address of the new proxy contract.\\n    function createProxyWithNonce(\\n        address _singleton,\\n        bytes memory initializer,\\n        uint256 saltNonce\\n    ) public returns (GnosisSafeProxy proxy) {\\n        proxy = deployProxyWithNonce(_singleton, initializer, saltNonce);\\n        if (initializer.length > 0)\\n            // solhint-disable-next-line no-inline-assembly\\n            assembly {\\n                if eq(call(gas(), proxy, 0, add(initializer, 0x20), mload(initializer), 0, 0), 0) {\\n                    revert(0, 0)\\n                }\\n            }\\n        emit ProxyCreation(proxy, _singleton);\\n    }\\n\\n    /// @dev Allows to create new proxy contact, execute a message call to the new proxy and call a specified callback within one transaction\\n    /// @param _singleton Address of singleton contract.\\n    /// @param initializer Payload for message call sent to new proxy contract.\\n    /// @param saltNonce Nonce that will be used to generate the salt to calculate the address of the new proxy contract.\\n    /// @param callback Callback that will be invoked after the new proxy contract has been successfully deployed and initialized.\\n    function createProxyWithCallback(\\n        address _singleton,\\n        bytes memory initializer,\\n        uint256 saltNonce,\\n        IProxyCreationCallback callback\\n    ) public returns (GnosisSafeProxy proxy) {\\n        uint256 saltNonceWithCallback = uint256(keccak256(abi.encodePacked(saltNonce, callback)));\\n        proxy = createProxyWithNonce(_singleton, initializer, saltNonceWithCallback);\\n        if (address(callback) != address(0)) callback.proxyCreated(proxy, _singleton, initializer, saltNonce);\\n    }\\n\\n    /// @dev Allows to get the address for a new proxy contact created via `createProxyWithNonce`\\n    ///      This method is only meant for address calculation purpose when you use an initializer that would revert,\\n    ///      therefore the response is returned with a revert. When calling this method set `from` to the address of the proxy factory.\\n    /// @param _singleton Address of singleton contract.\\n    /// @param initializer Payload for message call sent to new proxy contract.\\n    /// @param saltNonce Nonce that will be used to generate the salt to calculate the address of the new proxy contract.\\n    function calculateCreateProxyWithNonceAddress(\\n        address _singleton,\\n        bytes calldata initializer,\\n        uint256 saltNonce\\n    ) external returns (GnosisSafeProxy proxy) {\\n        proxy = deployProxyWithNonce(_singleton, initializer, saltNonce);\\n        revert(string(abi.encodePacked(proxy)));\\n    }\\n}\\n\",\"keccak256\":\"0xd26602721569a3f0e2edcde3e653cf32c1240e39d4d9a99f2d519753ace8e3bc\",\"license\":\"LGPL-3.0-only\"}},\"version\":1}",
+  "bytecode": "0x6080806040523461001657610c57908161001c8239f35b600080fdfe6080604052600436101561001257600080fd5b6000803560e01c9081631688f0b91461007a575080632500510e1461007557806353e5d9351461007057806361b69abd1461006b578063addacc0f146100665763d18af54d1461006157600080fd5b61053a565b6104d6565b610399565b610334565b610243565b346101115760607ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc36011261011157600435906100b682610114565b6024359067ffffffffffffffff82116101115761010d6100e6846100dd3660048701610225565b604435916106ea565b60405173ffffffffffffffffffffffffffffffffffffffff90911681529081906020820190565b0390f35b80fd5b73ffffffffffffffffffffffffffffffffffffffff81160361013257565b600080fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b67ffffffffffffffff811161017a57604052565b610137565b90601f7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0910116810190811067ffffffffffffffff82111761017a57604052565b92919267ffffffffffffffff821161017a576040519161020860207fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0601f840116018461017f565b829481845281830111610132578281602093846000960137010152565b9080601f8301121561013257816020610240933591016101c0565b90565b346101325760607ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101325760043561027e81610114565b6024359067ffffffffffffffff9081831161013257366023840112156101325782600401359182116101325736602483850101116101325760246044359301906108c2565b600091031261013257565b60005b8381106102e15750506000910152565b81810151838201526020016102d1565b907fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0601f60209361032d815180928187528780880191016102ce565b0116010190565b346101325760007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101325761010d6101fd6040519061037a602082018361017f565b80825261098660208301396040519182916020835260208301906102f1565b346101325760407ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc360112610132576004356103d481610114565b67ffffffffffffffff602435818111610132576103f5903690600401610225565b906040516101fd808201928284109084111761017a57610986823973ffffffffffffffffffffffffffffffffffffffff8416825260208160009303019082f09182156104d157805190816104ba575b6040805173ffffffffffffffffffffffffffffffffffffffff86811682528716602082015261010d9186917f4f51faf6c4561ff95f067657e43439f0f856d97c04d9ec9070a6199ad418e2359190a160405173ffffffffffffffffffffffffffffffffffffffff90911681529081906020820190565b8291602083920182865af115610111578080610444565b6106de565b346101325760007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101325761010d609f6040519061051b602082018361017f565b808252610b8360208301396040519182916020835260208301906102f1565b346101325760807ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101325760043561057581610114565b60243567ffffffffffffffff811161013257610595903690600401610225565b90606435906044356105a683610114565b73ffffffffffffffffffffffffffffffffffffffff61063b604051602081019061063181610605898886906034927fffffffffffffffffffffffffffffffffffffffff00000000000000000000000091835260601b1660208201520190565b037fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0810183528261017f565b51902086856106ea565b931680610664575b60405173ffffffffffffffffffffffffffffffffffffffff85168152602090f35b803b15610132576106aa9460008094604051978895869485937f1e52b5180000000000000000000000000000000000000000000000000000000085528a60048601610882565b03925af19182156104d15761010d926106c5575b8080610643565b806106d26106d892610166565b806102c3565b386106be565b6040513d6000823e3d90fd5b9092916106f89084836107cd565b9280519081610750575b50506040805173ffffffffffffffffffffffffffffffffffffffff85811682529290921660208301527f4f51faf6c4561ff95f067657e43439f0f856d97c04d9ec9070a6199ad418e23591a1565b600091602083920182875af115610132573880610702565b1561076f57565b60646040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601360248201527f437265617465322063616c6c206661696c6564000000000000000000000000006044820152fd5b929181516020809301209160409283519282840191825284840152838352606083019083821067ffffffffffffffff83111761017a57848261086f92610844946108809852865190209560806101fd916108298884018561017f565b828452019061098682398251948592518092888501906102ce565b810173ffffffffffffffffffffffffffffffffffffffff809a1686820152038481018452018261017f565b805191016000f59283161515610768565b565b9493926108bd9160609373ffffffffffffffffffffffffffffffffffffffff80921688521660208701526080604087015260808601906102f1565b930152565b906108d3906108d9949336916101c0565b906107cd565b7fffffffffffffffffffffffffffffffffffffffff0000000000000000000000006040519160601b16602082015260148152604081019080821067ffffffffffffffff83111761017a577fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc090826040527f08c379a00000000000000000000000000000000000000000000000000000000083526020604482015261098060648201826102f1565b030190fdfe60803461014257601f6101fd388190039182017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe01683019167ffffffffffffffff83118484101761014757808492602094604052833981010312610142575173ffffffffffffffffffffffffffffffffffffffff8116908190036101425780156100bd57600080547fffffffffffffffffffffffff000000000000000000000000000000000000000016919091179055604051609f908161015e8239f35b6040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152602260248201527f496e76616c69642073696e676c65746f6e20616464726573732070726f76696460448201527f65640000000000000000000000000000000000000000000000000000000000006064820152608490fd5b600080fd5b634e487b7160e01b600052604160045260246000fdfe6080604052600073ffffffffffffffffffffffffffffffffffffffff815416907fa619486e00000000000000000000000000000000000000000000000000000000813514606257808092368280378136915af43d82803e15605e573d90f35b3d90fd5b6020918152f3fea2646970667358221220451700ea39758a5c86d744db6377594db1600ac2b033950f5499090272b827ce64736f6c634300081300336080604052600073ffffffffffffffffffffffffffffffffffffffff815416907fa619486e00000000000000000000000000000000000000000000000000000000813514606257808092368280378136915af43d82803e15605e573d90f35b3d90fd5b6020918152f3fea2646970667358221220451700ea39758a5c86d744db6377594db1600ac2b033950f5499090272b827ce64736f6c63430008130033a26469706673582212205db748a59b93a05bd0302984f08a05d7af2a48d9383a545a7ff1886eb714c72f64736f6c63430008130033",
+  "deployedBytecode": "0x6080604052600436101561001257600080fd5b6000803560e01c9081631688f0b91461007a575080632500510e1461007557806353e5d9351461007057806361b69abd1461006b578063addacc0f146100665763d18af54d1461006157600080fd5b61053a565b6104d6565b610399565b610334565b610243565b346101115760607ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc36011261011157600435906100b682610114565b6024359067ffffffffffffffff82116101115761010d6100e6846100dd3660048701610225565b604435916106ea565b60405173ffffffffffffffffffffffffffffffffffffffff90911681529081906020820190565b0390f35b80fd5b73ffffffffffffffffffffffffffffffffffffffff81160361013257565b600080fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b67ffffffffffffffff811161017a57604052565b610137565b90601f7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0910116810190811067ffffffffffffffff82111761017a57604052565b92919267ffffffffffffffff821161017a576040519161020860207fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0601f840116018461017f565b829481845281830111610132578281602093846000960137010152565b9080601f8301121561013257816020610240933591016101c0565b90565b346101325760607ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101325760043561027e81610114565b6024359067ffffffffffffffff9081831161013257366023840112156101325782600401359182116101325736602483850101116101325760246044359301906108c2565b600091031261013257565b60005b8381106102e15750506000910152565b81810151838201526020016102d1565b907fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0601f60209361032d815180928187528780880191016102ce565b0116010190565b346101325760007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101325761010d6101fd6040519061037a602082018361017f565b80825261098660208301396040519182916020835260208301906102f1565b346101325760407ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc360112610132576004356103d481610114565b67ffffffffffffffff602435818111610132576103f5903690600401610225565b906040516101fd808201928284109084111761017a57610986823973ffffffffffffffffffffffffffffffffffffffff8416825260208160009303019082f09182156104d157805190816104ba575b6040805173ffffffffffffffffffffffffffffffffffffffff86811682528716602082015261010d9186917f4f51faf6c4561ff95f067657e43439f0f856d97c04d9ec9070a6199ad418e2359190a160405173ffffffffffffffffffffffffffffffffffffffff90911681529081906020820190565b8291602083920182865af115610111578080610444565b6106de565b346101325760007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101325761010d609f6040519061051b602082018361017f565b808252610b8360208301396040519182916020835260208301906102f1565b346101325760807ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101325760043561057581610114565b60243567ffffffffffffffff811161013257610595903690600401610225565b90606435906044356105a683610114565b73ffffffffffffffffffffffffffffffffffffffff61063b604051602081019061063181610605898886906034927fffffffffffffffffffffffffffffffffffffffff00000000000000000000000091835260601b1660208201520190565b037fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0810183528261017f565b51902086856106ea565b931680610664575b60405173ffffffffffffffffffffffffffffffffffffffff85168152602090f35b803b15610132576106aa9460008094604051978895869485937f1e52b5180000000000000000000000000000000000000000000000000000000085528a60048601610882565b03925af19182156104d15761010d926106c5575b8080610643565b806106d26106d892610166565b806102c3565b386106be565b6040513d6000823e3d90fd5b9092916106f89084836107cd565b9280519081610750575b50506040805173ffffffffffffffffffffffffffffffffffffffff85811682529290921660208301527f4f51faf6c4561ff95f067657e43439f0f856d97c04d9ec9070a6199ad418e23591a1565b600091602083920182875af115610132573880610702565b1561076f57565b60646040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601360248201527f437265617465322063616c6c206661696c6564000000000000000000000000006044820152fd5b929181516020809301209160409283519282840191825284840152838352606083019083821067ffffffffffffffff83111761017a57848261086f92610844946108809852865190209560806101fd916108298884018561017f565b828452019061098682398251948592518092888501906102ce565b810173ffffffffffffffffffffffffffffffffffffffff809a1686820152038481018452018261017f565b805191016000f59283161515610768565b565b9493926108bd9160609373ffffffffffffffffffffffffffffffffffffffff80921688521660208701526080604087015260808601906102f1565b930152565b906108d3906108d9949336916101c0565b906107cd565b7fffffffffffffffffffffffffffffffffffffffff0000000000000000000000006040519160601b16602082015260148152604081019080821067ffffffffffffffff83111761017a577fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc090826040527f08c379a00000000000000000000000000000000000000000000000000000000083526020604482015261098060648201826102f1565b030190fdfe60803461014257601f6101fd388190039182017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe01683019167ffffffffffffffff83118484101761014757808492602094604052833981010312610142575173ffffffffffffffffffffffffffffffffffffffff8116908190036101425780156100bd57600080547fffffffffffffffffffffffff000000000000000000000000000000000000000016919091179055604051609f908161015e8239f35b6040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152602260248201527f496e76616c69642073696e676c65746f6e20616464726573732070726f76696460448201527f65640000000000000000000000000000000000000000000000000000000000006064820152608490fd5b600080fd5b634e487b7160e01b600052604160045260246000fdfe6080604052600073ffffffffffffffffffffffffffffffffffffffff815416907fa619486e00000000000000000000000000000000000000000000000000000000813514606257808092368280378136915af43d82803e15605e573d90f35b3d90fd5b6020918152f3fea2646970667358221220451700ea39758a5c86d744db6377594db1600ac2b033950f5499090272b827ce64736f6c634300081300336080604052600073ffffffffffffffffffffffffffffffffffffffff815416907fa619486e00000000000000000000000000000000000000000000000000000000813514606257808092368280378136915af43d82803e15605e573d90f35b3d90fd5b6020918152f3fea2646970667358221220451700ea39758a5c86d744db6377594db1600ac2b033950f5499090272b827ce64736f6c63430008130033a26469706673582212205db748a59b93a05bd0302984f08a05d7af2a48d9383a545a7ff1886eb714c72f64736f6c63430008130033",
+  "devdoc": {
+    "author": "Stefan George - <stefan@gnosis.pm>",
+    "kind": "dev",
+    "methods": {
+      "calculateCreateProxyWithNonceAddress(address,bytes,uint256)": {
+        "details": "Allows to get the address for a new proxy contact created via `createProxyWithNonce`      This method is only meant for address calculation purpose when you use an initializer that would revert,      therefore the response is returned with a revert. When calling this method set `from` to the address of the proxy factory.",
+        "params": {
+          "_singleton": "Address of singleton contract.",
+          "initializer": "Payload for message call sent to new proxy contract.",
+          "saltNonce": "Nonce that will be used to generate the salt to calculate the address of the new proxy contract."
+        }
+      },
+      "createProxy(address,bytes)": {
+        "details": "Allows to create new proxy contact and execute a message call to the new proxy within one transaction.",
+        "params": {
+          "data": "Payload for message call sent to new proxy contract.",
+          "singleton": "Address of singleton contract."
+        }
+      },
+      "createProxyWithCallback(address,bytes,uint256,address)": {
+        "details": "Allows to create new proxy contact, execute a message call to the new proxy and call a specified callback within one transaction",
+        "params": {
+          "_singleton": "Address of singleton contract.",
+          "callback": "Callback that will be invoked after the new proxy contract has been successfully deployed and initialized.",
+          "initializer": "Payload for message call sent to new proxy contract.",
+          "saltNonce": "Nonce that will be used to generate the salt to calculate the address of the new proxy contract."
+        }
+      },
+      "createProxyWithNonce(address,bytes,uint256)": {
+        "details": "Allows to create new proxy contact and execute a message call to the new proxy within one transaction.",
+        "params": {
+          "_singleton": "Address of singleton contract.",
+          "initializer": "Payload for message call sent to new proxy contract.",
+          "saltNonce": "Nonce that will be used to generate the salt to calculate the address of the new proxy contract."
+        }
+      },
+      "proxyCreationCode()": {
+        "details": "Allows to retrieve the creation code used for the Proxy deployment. With this it is easily possible to calculate predicted address."
+      },
+      "proxyRuntimeCode()": {
+        "details": "Allows to retrieve the runtime code of a deployed Proxy. This can be used to check that the expected Proxy was deployed."
+      }
+    },
+    "title": "Proxy Factory - Allows to create new proxy contact and execute a message call to the new proxy within one transaction.",
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [],
+    "types": null
+  }
+}

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.20;
+pragma solidity >=0.8.19;
 
 import {IERC165} from "../../shared/IERC165.sol";
 import {IERC20Permit} from "../../shared/IERC20Permit.sol";
@@ -271,6 +271,8 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             require(collateralAsset.uintPrice() != 0, Error.ADDRESS_INVALID_ORACLE);
         }
 
+        collateralAsset.redstoneId = _config.redstoneId;
+
         /* --------------------------------- cFactor -------------------------------- */
         collateralAsset.factor = _config.factor;
 
@@ -369,7 +371,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             krAsset.oracle = _config.oracle;
             require(krAsset.uintPrice() != 0, Error.ADDRESS_INVALID_ORACLE);
         }
-
+        krAsset.redstoneId = _config.redstoneId;
         /* -------------------------- Factors, Fees, Limits ------------------------- */
         krAsset.kFactor = _config.kFactor;
         krAsset.supplyLimit = _config.supplyLimit;

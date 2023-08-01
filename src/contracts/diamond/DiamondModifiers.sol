@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.20;
+pragma solidity >=0.8.19;
 
 import {Authorization, Role} from "../libs/Authorization.sol";
 import {Meta} from "../libs/Meta.sol";

@@ -8,9 +8,6 @@ import { TASK_WRITE_ORACLE_JSON } from "../names";
 const logger = getLogger(TASK_WRITE_ORACLE_JSON);
 
 task(TASK_WRITE_ORACLE_JSON).setAction(async function (_taskArgs: TaskArguments, hre) {
-    const { feedValidator } = await hre.ethers.getNamedSigners();
-    const factory = await hre.getContractOrFork("FluxPriceFeedFactory");
-
     const Kresko = await hre.getContractOrFork("Kresko");
     const values = [];
     for (const collateral of testnetConfigs[hre.network.name].collaterals) {
@@ -52,14 +49,6 @@ task(TASK_WRITE_ORACLE_JSON).setAction(async function (_taskArgs: TaskArguments,
         });
     }
 
-    const fluxFeedKiss = await factory.addressOfPricePair("KISS/USD", 8, feedValidator.address);
-    values.push({
-        asset: "KISS",
-        assetType: "KISS",
-        feed: "KISS/USD",
-        marketstatus: fluxFeedKiss,
-        pricefeed: fluxFeedKiss,
-    });
     writeFileSync("./packages/contracts/src/deployments/json/oracles.json", JSON.stringify(values));
     logger.success("feeds: packages/contracts/src/deployments/json/oracles.json");
 });

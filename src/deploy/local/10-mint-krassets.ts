@@ -56,7 +56,7 @@ deploy.skip = async hre => {
     if (isFinished) {
         logger.log("Skipping minting krAssets");
     }
-    return isFinished || hre.network.live;
+    return isFinished;
 };
 
 export default deploy;

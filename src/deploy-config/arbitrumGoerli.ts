@@ -30,11 +30,11 @@ export const wrapKresko = (contract: Kresko, signer: any) =>
         mockSignersCount: 1,
         timestampMilliseconds: Date.now(),
         dataPoints: [
-            { dataFeedId: "DAI", value: 1 },
-            { dataFeedId: "USDC", value: 1 },
-            { dataFeedId: "ETH", value: 1 },
-            { dataFeedId: "BTC", value: 1 },
-            { dataFeedId: "KISS", value: 1 },
+            { dataFeedId: "DAI", value: 0 },
+            { dataFeedId: "USDC", value: 0 },
+            { dataFeedId: "USDf", value: 0 },
+            { dataFeedId: "ETH", value: 0 },
+            { dataFeedId: "BTC", value: 0 },
         ],
     }) as Kresko;
 
@@ -110,6 +110,7 @@ export const oracles = {
         marketOpen: async () => {
             return true;
         },
+        chainlink: "0x1A604cF2957Abb03ce62a6642fd822EbcE15166b",
     },
 };
 

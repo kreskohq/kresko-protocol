@@ -1,12 +1,11 @@
 {
     "compilerOptions": {
         "target": "esnext",
-        "module": "CommonJS",
+        "module": "ESNext",
         "declaration": true,
-        "declarationMap": true,
         "moduleResolution": "node",
         "outDir": "dist",
-        "lib": ["ES2018", "DOM", "DOM.Iterable", "ES2019.Array", "ES2019.Object", "es2019", "ESNext"],
+        "lib": ["ESNext"],
         "strict": true,
         "baseUrl": "./",
         "rootDirs": ["src"],

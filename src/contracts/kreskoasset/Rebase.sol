@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.20;
+pragma solidity >=0.8.19;
 import {FixedPointMathLib} from "@rari-capital/solmate/src/utils/FixedPointMathLib.sol";
 import {IKreskoAsset} from "../kreskoasset/IKreskoAsset.sol";
 

@@ -28,6 +28,7 @@ export const hardhatUsers = {
     multisig: {
         default: 0,
         420: process.env.MULTISIG,
+        421613: "0x83b92b8A21d56941cB9d056B36E0cC2aDa15f1E1",
     },
     treasury: {
         default: process.env.TREASURY,
