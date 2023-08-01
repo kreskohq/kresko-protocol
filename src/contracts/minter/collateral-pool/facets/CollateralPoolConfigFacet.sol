@@ -66,6 +66,7 @@ contract CollateralPoolConfigFacet is ICollateralPoolConfigFacet, DiamondModifie
                 _configurations[i].liquidationIncentive >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
                 "li-too-low"
             );
+            require(_configurations[i].depositLimit > 0, "krasset-supply-limit-zero");
             require(
                 _configurations[i].liquidationIncentive <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER,
                 "li-too-high"
@@ -112,10 +113,15 @@ contract CollateralPoolConfigFacet is ICollateralPoolConfigFacet, DiamondModifie
     }
 
     /// @inheritdoc ICollateralPoolConfigFacet
-    function updatePoolCollateral(address _asset, uint256 _newLiquiditationIncentive) external onlyRole(Role.ADMIN) {
+    function updatePoolCollateral(
+        address _asset,
+        uint256 _newLiquiditationIncentive,
+        uint256 _newDepositLimit
+    ) external onlyRole(Role.ADMIN) {
         require(_newLiquiditationIncentive >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER, "li-too-low");
         require(_newLiquiditationIncentive <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER, "li-too-high");
         cps().poolCollateral[_asset].liquidationIncentive = _newLiquiditationIncentive;
+        cps().poolCollateral[_asset].depositLimit = _newDepositLimit;
     }
 
     /// @inheritdoc ICollateralPoolConfigFacet

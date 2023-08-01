@@ -61,9 +61,9 @@ contract CollateralPoolFacet is ICollateralPoolFacet, DiamondModifiers {
 
         cps().debt[_repayKrAsset] -= ms().repaySwap(_repayKrAsset, _repayAmount, msg.sender);
 
-        uint256 amountOutInternal = LibAmounts.getCollateralAmountWrite(_repayKrAsset, seizedAmount);
-        cps().swapDeposits[_seizeCollateral] -= amountOutInternal;
-        cps().totalDeposits[_seizeCollateral] -= amountOutInternal;
+        uint256 seizedAmountInternal = LibAmounts.getCollateralAmountWrite(_repayKrAsset, seizedAmount);
+        cps().swapDeposits[_seizeCollateral] -= seizedAmountInternal;
+        cps().totalDeposits[_seizeCollateral] -= seizedAmountInternal;
 
         // solhint-disable-next-line avoid-tx-origin
         emit CollateralPoolRepayment(tx.origin, _repayKrAsset, _repayAmount, _seizeCollateral, seizedAmount);

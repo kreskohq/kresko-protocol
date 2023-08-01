@@ -87,11 +87,12 @@ interface ICollateralPoolConfigFacet {
     /**
      * @notice Update the collateral configuration.
      * Only callable by admin.
-     * @param _asset The KreskoAsset to update
-     * @param _newLiquidationIncentive The new liquidation incentive.
+     * @param _asset The Collateral asset to update
+     * @param _newLiquidationIncentive The new liquidation incentive for the collateral.
+     * @param _newDepositLimit The new deposit limit for the collateral
      * emits PoolCollateralUpdated
      */
-    function updatePoolCollateral(address _asset, uint256 _newLiquidationIncentive) external;
+    function updatePoolCollateral(address _asset, uint256 _newLiquidationIncentive, uint256 _newDepositLimit) external;
 
     /**
      * @notice Disabled swaps and deposits for collaterals in the pool.

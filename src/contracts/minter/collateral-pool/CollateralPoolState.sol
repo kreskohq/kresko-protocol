@@ -14,6 +14,7 @@ using LibSwap for CollateralPoolState global;
 struct PoolCollateral {
     uint256 liquidationIncentive;
     uint128 liquidityIndex;
+    uint256 depositLimit;
     uint8 decimals;
 }
 

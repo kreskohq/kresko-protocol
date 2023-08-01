@@ -1,16 +1,16 @@
 import { getPositionsInitializer } from "@deploy-config/shared";
-import { RAY, fromBig, toBig } from "@kreskolabs/lib";
+import { fromBig, toBig } from "@kreskolabs/lib";
 import { expect } from "@test/chai";
 import { withFixture } from "@utils/test";
 import { getBlockTimestamp } from "@utils/test/helpers/calculations";
 import { addMockCollateralAsset } from "@utils/test/helpers/collaterals";
 import { addMockKreskoAsset } from "@utils/test/helpers/krassets";
 import { BigNumber } from "ethers";
-import hre from "hardhat";
+import hre, { ethers } from "hardhat";
 import { Positions } from "types/typechain";
 import { NewPositionStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Positions";
 
-describe("Leverage Positions NFT", function () {
+describe.only("Leverage Positions NFT", function () {
     it("should deploy with correct configuration", async () => {
         const initializerArgs = (await getPositionsInitializer(hre)).args;
         expect(await positions.name()).to.equal("Kresko Positions");
@@ -232,7 +232,7 @@ describe("Leverage Positions NFT", function () {
             expect(poolStatsAfter.debtValue).to.be.eq(0);
             expect(poolStatsAfter.cr).to.be.eq(0);
         });
-        it("anyone should be able to liquidate a losing position", async () => {
+        it.only("anyone should be able to liquidate a losing position", async () => {
             const PositionsUser = positions.connect(users[1]);
 
             await PositionsUser.createPosition({ ...position, leverage: toBig(3), amountBMin: 0 });
@@ -255,7 +255,8 @@ describe("Leverage Positions NFT", function () {
             expect(poolStatsAfter.debtValue).to.be.eq(0);
             expect(poolStatsAfter.cr).to.be.eq(0);
         });
-        it("anyone should be able to close a winning position", async () => {
+
+        it.only("anyone should be able to close a winning position", async () => {
             const PositionsUser = positions.connect(users[1]);
 
             await PositionsUser.createPosition({ ...position, leverage: toBig(3), amountBMin: 0 });
@@ -409,24 +410,28 @@ describe("Leverage Positions NFT", function () {
                 [assetAAsset.address, assetAAsset8Dec.address, KISS.address, krETH.address],
                 [
                     {
-                        decimals: 18,
+                        decimals: 0,
+                        liquidityIndex: 0,
                         liquidationIncentive: toBig(1.05),
-                        liquidityIndex: RAY,
+                        depositLimit: ethers.constants.MaxUint256,
                     },
                     {
                         decimals: 8,
+                        liquidityIndex: 0,
                         liquidationIncentive: toBig(1.05),
-                        liquidityIndex: RAY,
+                        depositLimit: ethers.constants.MaxUint256,
                     },
                     {
-                        decimals: 18,
+                        decimals: 0,
+                        liquidityIndex: 0,
                         liquidationIncentive: toBig(1.05),
-                        liquidityIndex: RAY,
+                        depositLimit: ethers.constants.MaxUint256,
                     },
                     {
-                        decimals: 18,
+                        decimals: 0,
+                        liquidityIndex: 0,
                         liquidationIncentive: toBig(1.05),
-                        liquidityIndex: RAY,
+                        depositLimit: ethers.constants.MaxUint256,
                     },
                 ],
             );

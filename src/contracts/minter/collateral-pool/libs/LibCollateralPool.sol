@@ -44,6 +44,11 @@ library LibCollateralPool {
                 self.poolCollateral[_collateralAsset].liquidityIndex
             );
         }
+
+        require(
+            self.totalDeposits[_collateralAsset] <= self.poolCollateral[_collateralAsset].depositLimit,
+            "deposit-limit"
+        );
     }
 
     /**
@@ -271,7 +276,7 @@ library LibCollateralPool {
     }
 
     /// @notice This function seizes collateral from the shared pool
-    /// @notice Adjusts everyones deposits if swap deposits do not cover the amount.
+    /// @notice Adjusts all deposits in the case where swap deposits do not cover the amount.
     function adjustSeizedCollateral(
         CollateralPoolState storage self,
         address _seizeAsset,

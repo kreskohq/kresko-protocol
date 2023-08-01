@@ -45,6 +45,7 @@ contract PositionsFacet is IPositionsFacet, DiamondModifiers {
 
     /// @inheritdoc IPositionsFacet
     function closePosition(uint256 _id) external {
+        // solhint-disable-next-line not-rely-on-time
         pos().positions[_id].lastUpdateTimestamp = block.timestamp;
 
         // check ownership
@@ -54,11 +55,9 @@ contract PositionsFacet is IPositionsFacet, DiamondModifiers {
             // allow closing and liquidations from external accounts
             if (pos().isLiquidatable(_id) || pos().isCloseable(_id)) {
                 liquidator = msg.sender;
+            } else {
+                require(ERC721().isApprovedForAll(owner, msg.sender), LibPositions.ERROR_POSITION_NOT_OWNED_BY_CALLER);
             }
-            require(
-                msg.sender == owner || ERC721().isApprovedForAll(owner, msg.sender),
-                LibPositions.ERROR_POSITION_NOT_OWNED_BY_CALLER
-            );
         }
 
         pos().positions[_id].valueOutCache += pos().kresko.getPrice(pos().positions[_id].assetA).wadMul(

@@ -79,7 +79,7 @@ contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
         address _sender,
         NewPosition memory _pos
     ) external nonReentrant returns (uint256 amountAFeeReduced, uint256 amountBOut) {
-        require(msg.sender == address(cps().positions), "closeLever-not-caller");
+        require(msg.sender == address(cps().positions), "positions-not-caller");
         require(_pos.account != address(0), "receiver-invalid");
         require(_pos.amountA > 0, "swap-amount-zero");
 
@@ -103,7 +103,7 @@ contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
         Position memory _pos,
         address _liquidator
     ) external nonReentrant returns (uint256 amountAOut) {
-        require(msg.sender == address(cps().positions), "closeLever-not-caller");
+        require(msg.sender == address(cps().positions), "positions-not-caller");
 
         bool isProfit;
         // Swap out leveraged debt back to collateral.

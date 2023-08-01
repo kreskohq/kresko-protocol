@@ -220,8 +220,8 @@ library LibSwap {
         address _collateralAsset,
         uint256 _amount
     ) internal returns (uint256 nextLiquidityIndex) {
-        //next liquidity index is calculated this way: `((amount / totalLiquidity) + 1) * liquidityIndex`
-        //division `amount / totalLiquidity` done in ray for precision
+        // Next liquidity index is calculated this way: `((amount / totalLiquidity) + 1) * liquidityIndex`
+        // division `amount / totalLiquidity` done in ray for precision
         uint256 result = (_amount.wadToRay().rayDiv(self.getPoolDeposits(_collateralAsset).wadToRay()) + WadRay.RAY)
             .rayMul(self.poolCollateral[_collateralAsset].liquidityIndex);
         self.poolCollateral[_collateralAsset].liquidityIndex = uint128(result);
