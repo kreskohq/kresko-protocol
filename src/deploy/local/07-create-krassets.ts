@@ -15,7 +15,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         // Deploy the asset
         logger.log(`Deploying krAsset ${krAsset.name}`);
         await createKrAsset(krAsset.name, krAsset.symbol);
-        // Configure stability rates
         logger.log(`Deployed ${krAsset.name}`);
     }
 

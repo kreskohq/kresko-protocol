@@ -39,29 +39,7 @@ contract AccountStateFacet is IAccountStateFacet {
 
     /// @inheritdoc IAccountStateFacet
     function kreskoAssetDebt(address _account, address _asset) external view returns (uint256) {
-        return ms().getKreskoAssetDebtScaled(_account, _asset);
-    }
-
-    /// @inheritdoc IAccountStateFacet
-    function kreskoAssetDebtPrincipal(address _account, address _asset) external view returns (uint256) {
         return ms().getKreskoAssetDebtPrincipal(_account, _asset);
-    }
-
-    /// @inheritdoc IAccountStateFacet
-    function kreskoAssetDebtInterest(
-        address _account,
-        address _asset
-    ) external view returns (uint256 assetAmount, uint256 kissAmount) {
-        return ms().getKreskoAssetDebtInterest(_account, _asset);
-    }
-
-    /// @inheritdoc IAccountStateFacet
-    function kreskoAssetDebtInterestTotal(address _account) external view returns (uint256 kissAmount) {
-        address[] memory mintedKreskoAssets = ms().mintedKreskoAssets[_account];
-        for (uint256 i; i < mintedKreskoAssets.length; i++) {
-            (, uint256 kissAmountForAsset) = ms().getKreskoAssetDebtInterest(_account, mintedKreskoAssets[i]);
-            kissAmount += kissAmountForAsset;
-        }
     }
 
     /* -------------------------------------------------------------------------- */

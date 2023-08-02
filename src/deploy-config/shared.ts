@@ -31,12 +31,10 @@ export const minterFacets = [
     "BurnHelperFacet",
     "ConfigurationFacet",
     "DepositWithdrawFacet",
-    "InterestLiquidationFacet",
     "LiquidationFacet",
     "MintFacet",
     "SafetyCouncilFacet",
     "StateFacet",
-    "StabilityRateFacet",
     "UIDataProviderFacet",
     "UIDataProviderFacet2",
 ] as const;

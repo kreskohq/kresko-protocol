@@ -13,7 +13,7 @@ import { getMockOraclesFor, setMarketOpen, setPrice } from "./oracle";
 
 export const getDebtIndexAdjustedBalance = async (user: SignerWithAddress, asset: TestKrAsset) => {
     const balance = await asset.contract.balanceOf(user.address);
-    return [balance, balance.rayMul(await hre.Diamond.getDebtIndexForAsset(asset.address))];
+    return [balance, balance];
 };
 
 export const getKrAssetConfig = async (
@@ -44,7 +44,7 @@ export const getKrAssetConfig = async (
 
 export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAssetArgs): Promise<TestKrAsset> => {
     const { deployer } = await hre.ethers.getNamedSigners();
-    const { name, symbol, price, marketOpen, factor, supplyLimit, closeFee, openFee, stabilityRateBase } = args;
+    const { name, symbol, price, marketOpen, factor, supplyLimit, closeFee, openFee } = args;
 
     // Create an oracle with price supplied
     const [CLFeed, FluxFeed] = await getMockOraclesFor(name, price, marketOpen);
@@ -79,11 +79,6 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
         ),
     );
     await krAsset.grantRole(roles.OPERATOR, akrAsset.address);
-    await hre.Diamond.setupStabilityRateParams(krAsset.address, {
-        ...defaultKrAssetArgs.stabilityRates,
-        stabilityRateBase:
-            stabilityRateBase == null ? defaultKrAssetArgs.stabilityRates.stabilityRateBase : stabilityRateBase,
-    });
 
     const krAssetHasOperator = await krAsset.hasRole(roles.OPERATOR, hre.Diamond.address);
     const akrAssetHasOperator = await akrAsset.hasRole(roles.OPERATOR, hre.Diamond.address);
@@ -177,7 +172,6 @@ export const addMockKreskoAssetWithAMMPair = async (
         ),
     );
     await krAsset.grantRole(roles.OPERATOR, akrAsset.address);
-    await hre.Diamond.setupStabilityRateParams(krAsset.address, defaultKrAssetArgs.stabilityRates);
 
     const krAssetHasOperator = await krAsset.hasRole(roles.OPERATOR, hre.Diamond.address);
     const akrAssetHasOperator = await akrAsset.hasRole(roles.OPERATOR, hre.Diamond.address);

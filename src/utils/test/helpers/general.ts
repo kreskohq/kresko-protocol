@@ -110,7 +110,7 @@ export const leverageKrAsset = async (
     const accountCollateral = await hre.Diamond.getAccountCollateralValue(user.address);
 
     const withdrawAmount = fromBig(accountCollateral.sub(accountMinCollateralRequired), 8) / price - 0.1;
-    const amountToWithdraw = toBig(withdrawAmount).rayDiv(await hre.Diamond.getDebtIndexForAsset(krAsset.address));
+    const amountToWithdraw = toBig(withdrawAmount);
 
     if (amountToWithdraw.gt(0)) {
         await wrapContractWithSigner(hre.Diamond, user).withdrawCollateral(

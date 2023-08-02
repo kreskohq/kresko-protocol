@@ -35,7 +35,6 @@ export type TestKreskoAssetArgs = {
     supplyLimit: number;
     closeFee: number;
     openFee: number;
-    stabilityRateBase?: BigNumber;
 };
 export type TestKreskoAssetUpdate = {
     name: string;
@@ -69,13 +68,6 @@ export const defaultKrAssetArgs = {
     supplyLimit: defaultSupplyLimit,
     closeFee: defaultCloseFee,
     openFee: defaultOpenFee,
-    stabilityRates: {
-        stabilityRateBase: BASIS_POINT.mul(150), // 1.5%
-        rateSlope1: BASIS_POINT.mul(200), // 2.0
-        rateSlope2: BASIS_POINT.mul(600), // 5.0
-        optimalPriceRate: oneRay, // price parity = 1 ray
-        priceRateDelta: BASIS_POINT.mul(300), // 3.0% delta
-    },
 };
 
 export const defaultCollateralArgs = {

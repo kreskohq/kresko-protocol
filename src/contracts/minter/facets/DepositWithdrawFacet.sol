@@ -12,7 +12,6 @@ import {MinterModifiers} from "../MinterModifiers.sol";
 import {DiamondModifiers} from "../../diamond/DiamondModifiers.sol";
 import {Action, KrAsset} from "../MinterTypes.sol";
 import {ms} from "../MinterStorage.sol";
-import {irs} from "../InterestRateState.sol";
 import {ICollateralReceiver} from "../interfaces/ICollateralReceiver.sol";
 
 /**

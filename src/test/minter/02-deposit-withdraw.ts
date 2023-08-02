@@ -64,7 +64,6 @@ describe("Minter - Deposit Withdraw", () => {
                     openFee: 0,
                     price: 10,
                     supplyLimit: 2_000,
-                    stabilityRateBase: BASIS_POINT.mul(1000), // 10%
                 });
 
                 await newKrAsset.setBalance(arbitraryUser, collateralAmount);
@@ -124,7 +123,6 @@ describe("Minter - Deposit Withdraw", () => {
                     openFee: 0,
                     price: 10,
                     supplyLimit: 2_000,
-                    stabilityRateBase: BASIS_POINT.mul(1000), // 10%
                 });
 
                 await newKrAsset.setBalance(arbitraryUser, collateralAmount);

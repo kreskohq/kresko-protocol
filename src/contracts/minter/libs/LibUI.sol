@@ -13,7 +13,6 @@ import {Error} from "../../libs/Errors.sol";
 import {IUniswapV2OracleCompat} from "../amm-oracle/IUniswapV2OracleCompat.sol";
 import {KrAsset, CollateralAsset} from "../MinterTypes.sol";
 import {MinterState, ms} from "../MinterStorage.sol";
-import {irs} from "../InterestRateState.sol";
 
 /* solhint-disable contract-name-camelcase */
 /* solhint-disable var-name-mixedcase */
@@ -65,9 +64,6 @@ library LibUI {
         address oracleAddress;
         address assetAddress;
         uint256 price;
-        uint256 ammPrice;
-        uint256 priceRate;
-        uint256 stabilityRate;
         uint256 value;
         uint256 openFee;
         uint256 closeFee;
@@ -152,14 +148,10 @@ library LibUI {
         address assetAddress;
         address oracleAddress;
         uint256 amount;
-        uint256 amountScaled;
-        uint256 priceRate;
-        uint256 stabilityRate;
         uint256 amountUSD;
         uint256 index;
         uint256 kFactor;
         uint256 price;
-        uint256 ammPrice;
         string symbol;
         string name;
         uint256 openFee;
@@ -263,14 +255,6 @@ library LibUI {
         for (uint256 i; i < assetAddresses.length; i++) {
             address assetAddress = assetAddresses[i];
             KrAsset memory krAsset = ms().kreskoAssets[assetAddress];
-            uint256 ammPrice;
-            uint256 stabilityRate;
-            uint256 priceRate;
-            if (irs().srAssets[assetAddress].asset != address(0)) {
-                ammPrice = IUniswapV2OracleCompat(ms().ammOracle).consultKrAsset(assetAddress, 1 ether);
-                stabilityRate = irs().srAssets[assetAddress].calculateStabilityRate();
-                priceRate = irs().srAssets[assetAddress].getPriceRate();
-            }
             result[i] = krAssetInfo({
                 value: ms().getKrAssetValue(assetAddress, 1 ether, false),
                 oracleAddress: address(krAsset.oracle),
@@ -279,9 +263,6 @@ library LibUI {
                 openFee: krAsset.openFee,
                 kFactor: krAsset.kFactor,
                 price: krAsset.uintPrice(ms().oracleDeviationPct),
-                stabilityRate: stabilityRate,
-                priceRate: priceRate,
-                ammPrice: ammPrice,
                 marketOpen: ms().kreskoAssets[assetAddress].marketStatus(),
                 symbol: IERC20Permit(assetAddress).symbol(),
                 name: IERC20Permit(assetAddress).name(),
@@ -364,17 +345,8 @@ library LibUI {
                 address assetAddress = krAssetAddresses[i];
                 KrAsset memory krAsset = ms().kreskoAssets[assetAddress];
                 uint256 amount = ms().getKreskoAssetDebtPrincipal(_account, assetAddress);
-                uint256 amountScaled = ms().getKreskoAssetDebtScaled(_account, assetAddress);
 
                 uint256 amountUSD = ms().getKrAssetValue(assetAddress, amount, true);
-                uint256 ammPrice;
-                uint256 stabilityRate;
-                uint256 priceRate;
-                if (irs().srAssets[assetAddress].asset != address(0)) {
-                    stabilityRate = irs().srAssets[assetAddress].calculateStabilityRate();
-                    priceRate = irs().srAssets[assetAddress].getPriceRate();
-                    ammPrice = IUniswapV2OracleCompat(ms().ammOracle).consultKrAsset(assetAddress, 1 ether);
-                }
                 totalDebtUSD + amountUSD;
                 result[i] = krAssetInfoUser({
                     assetAddress: assetAddress,
@@ -382,14 +354,10 @@ library LibUI {
                     openFee: krAsset.openFee,
                     closeFee: krAsset.closeFee,
                     amount: amount,
-                    amountScaled: amountScaled,
                     amountUSD: amountUSD,
-                    stabilityRate: stabilityRate,
-                    priceRate: priceRate,
                     index: i,
                     kFactor: krAsset.kFactor,
                     price: krAsset.uintPrice(ms().oracleDeviationPct),
-                    ammPrice: ammPrice,
                     symbol: IERC20Permit(assetAddress).symbol(),
                     name: IERC20Permit(assetAddress).name(),
                     redstoneId: krAsset.redstoneId
