@@ -913,10 +913,7 @@ describe("Minter", () => {
                 const kreskoAssetTotalSupplyBefore = await this.krAsset.contract.totalSupply();
 
                 // Calculate actual burn amount
-                const userOneDebt = await hre.Diamond.kreskoAssetDebtPrincipal(
-                    hre.users.userOne.address,
-                    this.krAsset.address,
-                );
+                const userOneDebt = await hre.Diamond.kreskoAssetDebt(hre.users.userOne.address, this.krAsset.address);
 
                 const minDebtValue = fromBig(await hre.Diamond.minimumDebtValue(), 8);
 
@@ -947,10 +944,7 @@ describe("Minter", () => {
                 expect(mintedKreskoAssetsAfter).to.deep.equal([this.krAsset.address]);
 
                 // Confirm the user's minted kresko asset amount has been updated
-                const newUserDebt = await hre.Diamond.kreskoAssetDebtPrincipal(
-                    hre.users.userOne.address,
-                    this.krAsset.address,
-                );
+                const newUserDebt = await hre.Diamond.kreskoAssetDebt(hre.users.userOne.address, this.krAsset.address);
                 expect(newUserDebt).to.be.equal(userOneDebt.sub(burnAmount));
             });
 
@@ -1313,15 +1307,12 @@ describe("Minter", () => {
                     await this.krAsset.contract.rebase(toBig(denominator), positive, []);
 
                     // Pay half of debt
-                    const debt = await hre.Diamond.kreskoAssetDebtPrincipal(
-                        hre.users.userOne.address,
-                        this.krAsset.address,
-                    );
+                    const debt = await hre.Diamond.kreskoAssetDebt(hre.users.userOne.address, this.krAsset.address);
                     const repayAmount = debt;
                     await userOne.burnKreskoAsset(hre.users.userOne.address, this.krAsset.address, repayAmount, 0);
 
                     // Debt value after half repayment
-                    const debtAfter = await hre.Diamond.kreskoAssetDebtPrincipal(
+                    const debtAfter = await hre.Diamond.kreskoAssetDebt(
                         hre.users.userOne.address,
                         this.krAsset.address,
                     );
@@ -1351,15 +1342,12 @@ describe("Minter", () => {
                     await this.krAsset.contract.rebase(toBig(denominator), positive, []);
 
                     // Pay half of debt
-                    const debt = await hre.Diamond.kreskoAssetDebtPrincipal(
-                        hre.users.userOne.address,
-                        this.krAsset.address,
-                    );
+                    const debt = await hre.Diamond.kreskoAssetDebt(hre.users.userOne.address, this.krAsset.address);
                     const repayAmount = debt.div(2);
                     await userOne.burnKreskoAsset(hre.users.userOne.address, this.krAsset.address, repayAmount, 0);
 
                     // Debt value after half repayment
-                    const debtAfter = await hre.Diamond.kreskoAssetDebtPrincipal(
+                    const debtAfter = await hre.Diamond.kreskoAssetDebt(
                         hre.users.userOne.address,
                         this.krAsset.address,
                     );
@@ -1394,15 +1382,12 @@ describe("Minter", () => {
                     await this.krAsset.contract.rebase(toBig(denominator), positive, []);
 
                     // Pay half of debt
-                    const debt = await hre.Diamond.kreskoAssetDebtPrincipal(
-                        hre.users.userOne.address,
-                        this.krAsset.address,
-                    );
+                    const debt = await hre.Diamond.kreskoAssetDebt(hre.users.userOne.address, this.krAsset.address);
                     const repayAmount = debt;
                     await userOne.burnKreskoAsset(hre.users.userOne.address, this.krAsset.address, repayAmount, 0);
 
                     // Debt value after half repayment
-                    const debtAfter = await hre.Diamond.kreskoAssetDebtPrincipal(
+                    const debtAfter = await hre.Diamond.kreskoAssetDebt(
                         hre.users.userOne.address,
                         this.krAsset.address,
                     );
@@ -1435,15 +1420,12 @@ describe("Minter", () => {
                     await this.krAsset.contract.rebase(toBig(denominator), positive, []);
 
                     // Pay half of debt
-                    const debt = await hre.Diamond.kreskoAssetDebtPrincipal(
-                        hre.users.userOne.address,
-                        this.krAsset.address,
-                    );
+                    const debt = await hre.Diamond.kreskoAssetDebt(hre.users.userOne.address, this.krAsset.address);
                     const repayAmount = debt.div(2);
                     await userOne.burnKreskoAsset(hre.users.userOne.address, this.krAsset.address, repayAmount, 0);
 
                     // Debt value after half repayment
-                    const debtAfter = await hre.Diamond.kreskoAssetDebtPrincipal(
+                    const debtAfter = await hre.Diamond.kreskoAssetDebt(
                         hre.users.userOne.address,
                         this.krAsset.address,
                     );
@@ -1483,18 +1465,12 @@ describe("Minter", () => {
                     await userOne.burnKreskoAsset(hre.users.userOne.address, this.krAsset.address, fullRepayAmount, 0);
 
                     // Debt value after half repayment
-                    const debtAfter = await hre.Diamond.kreskoAssetDebtPrincipal(
+                    const debtAfter = await hre.Diamond.kreskoAssetDebt(
                         hre.users.userOne.address,
                         this.krAsset.address,
                     );
                     const debtValueAfter = await hre.Diamond.getKrAssetValue(this.krAsset.address, debtAfter, false);
                     expect(debtValueAfter).to.equal(0);
-
-                    // Should still contain minted krAsset
-                    const mintedKreskoAssetsAfterBurn = await hre.Diamond.getMintedKreskoAssets(
-                        hre.users.userOne.address,
-                    );
-                    expect(mintedKreskoAssetsAfterBurn).to.contain(this.krAsset.address);
                 });
                 it("when repaying partial debt after a positive rebase", async function () {
                     const userOne = wrapContractWithSigner(hre.Diamond, hre.users.userOne);
@@ -1518,14 +1494,11 @@ describe("Minter", () => {
 
                     // Burn assets
                     // Pay half of debt
-                    const debt = await hre.Diamond.kreskoAssetDebtPrincipal(
-                        hre.users.userOne.address,
-                        this.krAsset.address,
-                    );
+                    const debt = await hre.Diamond.kreskoAssetDebt(hre.users.userOne.address, this.krAsset.address);
                     await userOne.burnKreskoAsset(hre.users.userOne.address, this.krAsset.address, debt.div(2), 0);
 
                     // Debt value after half repayment
-                    const debtAfter = await hre.Diamond.kreskoAssetDebtPrincipal(
+                    const debtAfter = await hre.Diamond.kreskoAssetDebt(
                         hre.users.userOne.address,
                         this.krAsset.address,
                     );
@@ -1557,17 +1530,12 @@ describe("Minter", () => {
                     await userOne.burnKreskoAsset(hre.users.userOne.address, this.krAsset.address, fullRepayAmount, 0);
 
                     // Debt value after half repayment
-                    const debtAfter = await hre.Diamond.kreskoAssetDebtPrincipal(
+                    const debtAfter = await hre.Diamond.kreskoAssetDebt(
                         hre.users.userOne.address,
                         this.krAsset.address,
                     );
                     const debtValueAfter = await hre.Diamond.getKrAssetValue(this.krAsset.address, debtAfter, false);
                     expect(debtValueAfter).to.equal(0);
-                    // Should still contain minted krAsset
-                    const mintedKreskoAssetsAfterBurn = await hre.Diamond.getMintedKreskoAssets(
-                        hre.users.userOne.address,
-                    );
-                    expect(mintedKreskoAssetsAfterBurn).to.contain(this.krAsset.address);
                 });
                 it("when repaying partial debt after a negative rebase", async function () {
                     const userOne = wrapContractWithSigner(hre.Diamond, hre.users.userOne);
@@ -1583,14 +1551,11 @@ describe("Minter", () => {
                     await this.krAsset.contract.rebase(toBig(denominator), positive, []);
 
                     // Pay half of debt
-                    const debt = await hre.Diamond.kreskoAssetDebtPrincipal(
-                        hre.users.userOne.address,
-                        this.krAsset.address,
-                    );
+                    const debt = await hre.Diamond.kreskoAssetDebt(hre.users.userOne.address, this.krAsset.address);
                     await userOne.burnKreskoAsset(hre.users.userOne.address, this.krAsset.address, debt.div(2), 0);
 
                     // Debt value after half repayment
-                    const debtAfter = await hre.Diamond.kreskoAssetDebtPrincipal(
+                    const debtAfter = await hre.Diamond.kreskoAssetDebt(
                         hre.users.userOne.address,
                         this.krAsset.address,
                     );

@@ -13,7 +13,6 @@ import {MinterModifiers} from "../MinterModifiers.sol";
 import {DiamondModifiers} from "../../diamond/DiamondModifiers.sol";
 import {Action, KrAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
-import {irs} from "../InterestRateState.sol";
 import {LibRedstone} from "../libs/LibRedstone.sol";
 
 /**
@@ -65,7 +64,7 @@ contract MintFacet is DiamondModifiers, MinterModifiers, IMintFacet {
         }
 
         // The synthetic asset debt position must be greater than the minimum debt position value
-        uint256 existingDebt = s.getKreskoAssetDebtScaled(_account, _kreskoAsset);
+        uint256 existingDebt = s.getKreskoAssetDebtPrincipal(_account, _kreskoAsset);
         require(
             krAsset.uintUSD(existingDebt + _mintAmount, s.oracleDeviationPct) >= s.minimumDebtValue,
             Error.KRASSET_MINT_AMOUNT_LOW

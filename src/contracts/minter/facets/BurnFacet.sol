@@ -11,7 +11,6 @@ import {MinterModifiers} from "../MinterModifiers.sol";
 import {DiamondModifiers} from "../../diamond/DiamondModifiers.sol";
 import {Action} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
-import {irs} from "../InterestRateState.sol";
 
 /**
  * @author Kresko
@@ -54,11 +53,8 @@ contract BurnFacet is DiamondModifiers, MinterModifiers, IBurnFacet {
         // Record the burn
         s.burn(_kreskoAsset, s.kreskoAssets[_kreskoAsset].anchor, _burnAmount, _account);
 
-        // If sender repays all scaled debt of asset with no stability rate, remove it from minted assets array.
-        // For assets with stability rate the removal is done when repaying interest
-        if (
-            irs().srAssets[_kreskoAsset].asset == address(0) && s.getKreskoAssetDebtScaled(_account, _kreskoAsset) == 0
-        ) {
+        // If sender repays all scaled debt of asset, remove it from minted assets array.
+        if (s.getKreskoAssetDebtPrincipal(_account, _kreskoAsset) == 0) {
             s.mintedKreskoAssets[_account].removeAddress(_kreskoAsset, _mintedKreskoAssetIndex);
         }
 

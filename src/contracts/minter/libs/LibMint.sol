@@ -14,7 +14,6 @@ import {WadRay} from "../../libs/WadRay.sol";
 import {LibCalculation} from "./LibCalculation.sol";
 import {KrAsset} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
-import {irs} from "../InterestRateState.sol";
 
 library LibMint {
     using Arrays for address[];
@@ -26,8 +25,8 @@ library LibMint {
     using SafeERC20 for IERC20Permit;
     using LibCalculation for MinterState;
 
-    /// @notice Mint kresko assets with stability rate updates.
-    /// @dev Updates the principal in MinterState and stability rate adjusted values in InterestRateState
+    /// @notice Mint kresko assets.
+    /// @dev Updates the principal in MinterState
     /// @param _kreskoAsset the asset being repaid
     /// @param _anchor the anchor token of the asset being repaid
     /// @param _amount the asset amount being minted
@@ -39,20 +38,10 @@ library LibMint {
         uint256 _amount,
         address _account
     ) internal {
-        // Update global debt index for the asset
-        uint256 newDebtIndex = irs().srAssets[_kreskoAsset].updateDebtIndex();
         // Get possibly rebalanced amount of kresko asset
         uint256 issued = IKreskoAssetIssuer(_anchor).issue(_amount, _account);
-        // Calculate debt index scaled value
-        uint256 amountScaled = issued.wadToRay().rayDiv(newDebtIndex);
-        require(amountScaled != 0, Error.INVALID_SCALED_AMOUNT);
         // Increase principal debt
         self.kreskoAssetDebt[_account][_kreskoAsset] += issued;
-        // Update scaled values for the user
-        irs().srUserInfo[_account][_kreskoAsset].debtScaled += uint128(amountScaled);
-        irs().srUserInfo[_account][_kreskoAsset].lastDebtIndex = uint128(newDebtIndex);
-        // Update the global rate for the asset
-        irs().srAssets[_kreskoAsset].updateStabilityRate();
     }
 
     /**

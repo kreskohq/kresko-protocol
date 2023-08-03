@@ -18,7 +18,6 @@ import {DiamondModifiers} from "../../diamond/DiamondModifiers.sol";
 
 import {Constants, KrAsset, CollateralAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
-import {irs} from "../InterestRateState.sol";
 
 /**
  * @author Kresko
@@ -67,7 +66,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
 
         // Avoid deep stack
         {
-            // Get the principal debt amount which is unscaled for interest.
+            // Get the principal debt amount
             uint256 krAssetDebt = s.getKreskoAssetDebtPrincipal(_account, _repayAsset);
             // Cannot liquidate more than the account's debt
             require(krAssetDebt >= _repayAmount, Error.KRASSET_BURN_AMOUNT_OVERFLOW);
@@ -120,7 +119,6 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
     }
 
     /// @notice Execute the liquidation
-    /// @dev Also updates stability rate and debt index
     function _liquidateAssets(ExecutionParams memory params) internal returns (uint256 seizedAmount) {
         MinterState storage s = ms();
 
@@ -134,20 +132,10 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
                 msg.sender
             );
             s.kreskoAssetDebt[params.account][params.repayAsset] -= destroyed;
-
-            /* ------------------------ Debt index + rate updates ----------------------- */
-
-            uint256 newDebtIndex = irs().srAssets[params.repayAsset].updateDebtIndex();
-            uint256 amountScaled = destroyed.wadToRay().rayDiv(newDebtIndex);
-
-            irs().srUserInfo[params.account][params.repayAsset].debtScaled -= uint128(amountScaled);
-            irs().srUserInfo[params.account][params.repayAsset].lastDebtIndex = uint128(newDebtIndex);
-
-            irs().srAssets[params.repayAsset].updateStabilityRate();
         }
 
         // If the liquidation repays entire asset debt, remove from minted assets array.
-        if (s.getKreskoAssetDebtScaled(params.account, params.repayAsset) == 0) {
+        if (s.getKreskoAssetDebtPrincipal(params.account, params.repayAsset) == 0) {
             s.mintedKreskoAssets[params.account].removeAddress(params.repayAsset, params.repayAssetIndex);
         }
 

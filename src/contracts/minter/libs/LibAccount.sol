@@ -6,7 +6,6 @@ import {KrAsset, CollateralAsset} from "../MinterTypes.sol";
 import {RebaseMath} from "../../kreskoasset/Rebase.sol";
 import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
 import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
-import {irs} from "../InterestRateState.sol";
 import {Error} from "../../libs/Errors.sol";
 import {LibDecimals} from "../libs/LibDecimals.sol";
 import {WadRay} from "../../libs/WadRay.sol";
@@ -158,28 +157,9 @@ library LibAccount {
         address[] memory assets = self.mintedKreskoAssets[_account];
         for (uint256 i = 0; i < assets.length; i++) {
             address asset = assets[i];
-            value += self.getKrAssetValue(asset, self.getKreskoAssetDebtScaled(_account, asset), false);
+            value += self.getKrAssetValue(asset, self.getKreskoAssetDebtPrincipal(_account, asset), false);
         }
         return value;
-    }
-
-    /**
-     * @notice Get accounts interested scaled debt amount for a KreskoAsset.
-     * @param _asset The asset address
-     * @param _account The account to get the amount for
-     * @return Amount of scaled debt.
-     */
-    function getKreskoAssetDebtScaled(
-        MinterState storage self,
-        address _account,
-        address _asset
-    ) internal view returns (uint256) {
-        uint256 debt = self.kreskoAssets[_asset].toRebasingAmount(irs().srUserInfo[_account][_asset].debtScaled);
-        if (debt == 0) {
-            return 0;
-        }
-
-        return debt.rayMul(irs().srAssets[_asset].getNormalizedDebtIndex()).rayToWad();
     }
 
     /**
@@ -195,22 +175,6 @@ library LibAccount {
         address _asset
     ) internal view returns (uint256) {
         return self.kreskoAssets[_asset].toRebasingAmount(self.kreskoAssetDebt[_account][_asset]);
-    }
-
-    /**
-     * @notice Get the total interest accrued on top of debt: Scaled Debt - Principal Debt
-     * @return assetAmount Interest denominated in _asset
-     * @return kissAmount Interest denominated in KISS. Ignores K-factor: $1 of interest = 1 KISS
-     **/
-    function getKreskoAssetDebtInterest(
-        MinterState storage self,
-        address _account,
-        address _asset
-    ) internal view returns (uint256 assetAmount, uint256 kissAmount) {
-        assetAmount =
-            self.getKreskoAssetDebtScaled(_account, _asset) -
-            self.getKreskoAssetDebtPrincipal(_account, _asset);
-        kissAmount = self.getKrAssetValue(_asset, assetAmount, true).oraclePriceToWad();
     }
 
     /**

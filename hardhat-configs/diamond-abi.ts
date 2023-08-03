@@ -24,16 +24,6 @@ export const diamondAbiConfig: DiamondAbiUserConfig[] = [
                     return false;
                 } else if (abiElement.name === "RoleGranted" && fq.includes("ConfigurationFacet")) {
                     return false;
-                } else if (
-                    abiElement.name === "StabilityRateInterestRepaid" &&
-                    (fq.includes("BurnHelperFacet") || fq.includes("InterestLiquidationFacet"))
-                ) {
-                    return false;
-                } else if (
-                    abiElement.name === "StabilityRateInterestBatchRepaid" &&
-                    fq.includes("InterestLiquidationFacet")
-                ) {
-                    return false;
                 }
             }
             return true;

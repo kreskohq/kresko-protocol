@@ -31,7 +31,6 @@ const deploy: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
         log: !process.env.TEST,
     });
 
-    await hre.Diamond.updateKiss(KISSContract.address);
     logger.success("Succesfully created KISS");
 };
 
