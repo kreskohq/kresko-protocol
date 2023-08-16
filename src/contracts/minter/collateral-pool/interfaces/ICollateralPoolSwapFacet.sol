@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
-import {Position, NewPosition} from "../position/state/PositionsStorage.sol";
 
 interface ICollateralPoolSwapFacet {
     event Swap(
@@ -22,14 +21,12 @@ interface ICollateralPoolSwapFacet {
      * @param _assetIn The asset to pay with.
      * @param _assetOut The asset to receive.
      * @param _amountIn The amount of _assetIn to pay.
-     * @param _leverage The leverage to use. 1e18 = 1x, 2e18 = 2x, etc.
      * @return amountOut The amount of `_assetOut` to receive according to `_amountIn`.
      */
     function previewSwap(
         address _assetIn,
         address _assetOut,
-        uint256 _amountIn,
-        uint256 _leverage
+        uint256 _amountIn
     ) external view returns (uint256 amountOut, uint256 feeAmount, uint256 protocolFee);
 
     /**
@@ -48,33 +45,6 @@ interface ICollateralPoolSwapFacet {
         uint256 _amountIn,
         uint256 _amountOutMin
     ) external;
-
-    /// @notice deposit collateral into a position
-    function positionDepositA(address _to, uint256 _amountA, Position memory _pos) external;
-
-    /// @notice withdraw collateral from a position
-    function positionWithdrawA(address _from, uint256 _amountA, Position memory _pos) external;
-
-    /**
-     * @notice Swap in to leverage. This is only callable by the positions NFT.
-     * @param _sender The account that funds the position.
-     * @param _pos The position to swap into.
-     * @return amountAInAfterFee Amount in after fees are paid.
-     * @return amountBOut Amount of `_assetOut` received.
-     */
-    function swapIntoLeverage(
-        address _sender,
-        NewPosition memory _pos
-    ) external returns (uint256 amountAInAfterFee, uint256 amountBOut);
-
-    /**
-     * @notice Swaps out of leverage. This is only callable by the positions NFT.
-     * @notice Called by the position contract.
-     * @param _pos The position to swap out of.
-     * @param _liquidator The incentive receiver if position is liquidated or closed by external caller.
-     * @return amountAOut The amount of `_assetOut` to receive.
-     */
-    function swapOutOfLeverage(Position memory _pos, address _liquidator) external returns (uint256 amountAOut);
 
     /**
      * @notice Accumulates fees to deposits as a fixed, instantaneous income.

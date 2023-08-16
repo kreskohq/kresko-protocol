@@ -55,8 +55,6 @@ struct CollateralPoolState {
     address[] krAssets;
     /// @notice User swap fee receiver
     address swapFeeRecipient;
-    /// @notice Positions NFT
-    IPositionsFacet positions;
 }
 
 // Storage position

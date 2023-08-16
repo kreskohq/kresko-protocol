@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 import {PoolKrAsset, PoolCollateral} from "../CollateralPoolState.sol";
-import {IPositionsFacet} from "../position/interfaces/IPositionsFacet.sol";
 
 interface ICollateralPoolConfigFacet {
     /**
@@ -14,7 +13,6 @@ interface ICollateralPoolConfigFacet {
         address swapFeeRecipient;
         uint256 mcr;
         uint256 lt;
-        IPositionsFacet positions;
     }
     // Emitted when a swap pair is disabled / enabled.
     event PairSet(address indexed assetIn, address indexed assetOut, bool enabled);

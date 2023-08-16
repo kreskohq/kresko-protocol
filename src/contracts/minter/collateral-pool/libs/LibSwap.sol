@@ -159,56 +159,6 @@ library LibSwap {
         require(amountOut == debtIn + collateralOut, "amount-out-mismatch");
     }
 
-    function handleProfitsOut(
-        CollateralPoolState storage self,
-        address _assetOut,
-        uint256 _balanceOut,
-        uint256 _profitsOut,
-        address _assetsTo
-    ) internal returns (uint256 transferOut) {
-        // Well, should be more than 0.
-        require(_profitsOut > 0, "amount-out-is-zero");
-        require(_assetsTo != address(this), "profit-to-this");
-
-        uint256 swapDeposits = self.getPoolSwapDeposits(_assetOut); // current "swap" collateral
-
-        uint256 collateralOut; // decrease in "swap" collateral
-        uint256 debtIn; // new debt required to mint
-
-        // Bookkeeping
-        if (swapDeposits == 0) {
-            // == No "swap" owned collateral available.
-            // 1. Issue full amount as debt.
-            debtIn = _profitsOut;
-            // 2. No decrease in collateral.
-        } else if (swapDeposits >= _profitsOut) {
-            // == "Swap" owned collateral exceeds requested amount
-            // 1. No debt issued.
-            // 2. Decrease collateral by full amount.
-            collateralOut = _profitsOut;
-        } else {
-            // == "Swap" owned collateral is less than requested amount.
-            // 1. Issue debt for remainder.
-            debtIn = _profitsOut - swapDeposits;
-            // 2. Reduce "swap" owned collateral to zero.
-            collateralOut = swapDeposits;
-        }
-        if (collateralOut > 0) {
-            uint256 amountOutInternal = LibAmounts.getCollateralAmountWrite(_assetOut, collateralOut);
-            // 1. Decrease collateral deposits.
-            self.totalDeposits[_assetOut] -= amountOutInternal;
-            // 2. Decrease "swap" owned collateral.
-            self.swapDeposits[_assetOut] -= amountOutInternal;
-        }
-        if (debtIn > 0) {
-            // 1. Issue required debt to the pool, minting new assets to receiver.
-            self.debt[_assetOut] += ms().mintSwap(_assetOut, debtIn, _assetsTo);
-        }
-
-        require(_profitsOut == debtIn + collateralOut, "profit-out-mismatch");
-        transferOut = collateralOut > 0 ? _balanceOut + collateralOut : _balanceOut;
-    }
-
     /**
      * @notice Accumulates fees to deposits as a fixed, instantaneous income.
      * @param _collateralAsset asset
