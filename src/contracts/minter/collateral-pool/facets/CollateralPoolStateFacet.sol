@@ -166,10 +166,7 @@ contract CollateralPoolStateFacet is ICollateralPoolStateFacet {
         bool _ignoreFactors
     ) external view returns (uint256 collateralValue, uint256 debtValue, uint256 cr) {
         collateralValue = cps().getTotalPoolDepositValue(_ignoreFactors);
-        debtValue = cps().getTotalPoolKrAssetValueAtRatio(
-            _ignoreFactors ? 1 ether : cps().minimumCollateralizationRatio,
-            _ignoreFactors
-        );
+        debtValue = cps().getTotalPoolKrAssetValueAtRatio(1 ether, _ignoreFactors);
         if (debtValue == 0) return (collateralValue, debtValue, 0);
         cr = collateralValue.wadDiv(debtValue);
     }

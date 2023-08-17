@@ -136,7 +136,8 @@ library LibCollateralPool {
             _withdrawalAmount,
             false // dont ignore cFactor
         );
-        return totalValue - withdrawalValue >= self.getTotalPoolKrAssetValueAtRatio(_collateralRatio, false); // dont ignore collaterRatio.
+
+        return totalValue - withdrawalValue >= self.getTotalPoolKrAssetValueAtRatio(_collateralRatio, false); // dont ignore ratios.
     }
 
     /**

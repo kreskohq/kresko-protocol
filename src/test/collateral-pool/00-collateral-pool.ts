@@ -13,7 +13,7 @@ import {
     SwapEvent,
 } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 
-describe("Collateral Pool", function () {
+describe.only("Collateral Pool", function () {
     describe("#Configuration", async () => {
         it("should be initialized with correct params", async () => {
             const { args } = await getCollateralPoolInitializer(hre);
@@ -1025,18 +1025,25 @@ describe("Collateral Pool", function () {
             const Kresko = wrapContractWithSigner(hre.Diamond, swapper);
             await Kresko.swap(swapper.address, KISS.address, KreskoAsset2.address, swapAmount, 0);
 
-            const newCollateralPrice = collateralPrice / 10;
-            CollateralAsset.setPrice(newCollateralPrice);
-            CollateralAsset8Dec.setPrice(newCollateralPrice);
-            const liquidator = hre.users.liquidator;
+            const newKreskoAssetPrice = 500;
+            KreskoAsset2.setPrice(newKreskoAssetPrice);
+            const KreskoLiquidator = wrapContractWithSigner(hre.Diamond, hre.users.liquidator);
 
-            const KreskoLiquidator = wrapContractWithSigner(hre.Diamond, liquidator);
-            await KreskoAsset2.setBalance(liquidator, toBig(1_000_000));
+            const repayAmount = (
+                await hre.Diamond.getMaxLiquidation(
+                    hre.ethers.constants.AddressZero,
+                    KreskoAsset2.address,
+                    CollateralAsset.address,
+                )
+            ).wadDiv(await KreskoAsset2.getPrice());
 
-            const repayAmount = toBig(7.7);
+            await KreskoAsset2.setBalance(hre.users.liquidator, repayAmount.add((1e18).toString()));
+
             const tx = await KreskoLiquidator.poolLiquidate(KreskoAsset2.address, repayAmount, CollateralAsset.address);
+
             expect((await hre.Diamond.getPoolStats(true)).cr).to.gt((await hre.Diamond.getCollateralPoolConfig()).lt);
 
+            expect(await KreskoLiquidator.poolIsLiquidatable()).to.equal(false);
             await expect(
                 KreskoLiquidator.poolLiquidate(KreskoAsset2.address, repayAmount, CollateralAsset8Dec.address),
             ).to.be.revertedWith("not-liquidatable");
@@ -1047,11 +1054,11 @@ describe("Collateral Pool", function () {
             );
 
             const expectedSeizeAmount = repayAmount
-                .wadMul(toBig(KreskoAsset2Price, 8))
+                .wadMul(toBig(newKreskoAssetPrice, 8))
                 .wadMul(toBig(1.05))
-                .wadDiv(toBig(newCollateralPrice, 8));
+                .wadDiv(toBig(collateralPrice, 8));
 
-            expect(event.args.liquidator).to.eq(liquidator.address);
+            expect(event.args.liquidator).to.eq(hre.users.liquidator.address);
             expect(event.args.seizeAmount).to.eq(expectedSeizeAmount);
             expect(event.args.repayAmount).to.eq(repayAmount);
             expect(event.args.seizeCollateral).to.eq(CollateralAsset.address);

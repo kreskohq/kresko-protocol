@@ -19,8 +19,6 @@ import {DiamondModifiers} from "../../diamond/DiamondModifiers.sol";
 import {Constants, KrAsset, CollateralAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 
-import {console} from "hardhat/console.sol";
-
 /**
  * @author Kresko
  * @title LiquidationFacet
@@ -70,9 +68,6 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         {
             // Get the principal debt amount
             uint256 krAssetDebt = s.getKreskoAssetDebtPrincipal(_account, _repayAsset);
-
-            console.log("krAssetDebt: ", krAssetDebt);
-            console.log("_repayAmount: ", _repayAmount);
 
             // Cannot liquidate more than the account's debt
             require(krAssetDebt >= _repayAmount, Error.KRASSET_BURN_AMOUNT_OVERFLOW);

@@ -125,12 +125,6 @@ export const addMockKreskoAsset = async (
             await mocks.contract.setVariable("_balances", {
                 [user.address]: amount,
             });
-
-            // we need to match balances here on the protocol side for shares
-            await mocks.anchor.setVariable("_totalSupply", (await akrAsset.totalSupply()).add(amount));
-            await mocks.anchor.setVariable("_balances", {
-                [hre.Diamond.address]: amount,
-            });
         },
         getPrice: async () => (await CLFeed.latestRoundData())[1],
         setMarketOpen: marketOpen => setMarketOpen(FluxFeed, marketOpen),
@@ -223,11 +217,6 @@ export const addMockKreskoAssetWithAMMPair = async (
             await mocks.contract.setVariable("_totalSupply", totalSupply.add(amount));
             await mocks.contract.setVariable("_balances", {
                 [user.address]: amount,
-            });
-            // we need to match balances here on the protocol side for shares
-            await mocks.anchor.setVariable("_totalSupply", (await akrAsset.totalSupply()).add(amount));
-            await mocks.anchor.setVariable("_balances", {
-                [hre.Diamond.address]: amount,
             });
         },
         getPrice: async () => (await CLFeed.latestRoundData())[1],
