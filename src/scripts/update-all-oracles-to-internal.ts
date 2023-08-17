@@ -1,4 +1,4 @@
-import { testnetConfigs } from "@deploy-config/opgoerli";
+import { testnetConfigs } from "@deploy-config/arbitrumGoerli";
 import { fromBig, getLogger } from "@kreskolabs/lib";
 
 export default async function run() {
@@ -24,7 +24,6 @@ export default async function run() {
         await Kresko.updateCollateralAsset(contract.address, {
             ...asset,
             oracle: priceFeed,
-            marketStatusOracle: fluxFeed,
         });
     }
     for (const krAsset of testnetConfigs[hre.network.name].krAssets) {
@@ -46,7 +45,6 @@ export default async function run() {
         await Kresko.updateKreskoAsset(contract.address, {
             ...asset,
             oracle: priceFeed,
-            marketStatusOracle: fluxFeed,
         });
     }
     logger.success("All price feeds updated");

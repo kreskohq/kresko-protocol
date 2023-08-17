@@ -80,7 +80,7 @@ library LibCalculation {
     }
 
     /**
-     * @notice Calculates the fee to be taken from a user's deposited collateral assetself.
+     * @notice Calculates the fee to be taken from a user's deposited collateral asset.
      * @param _collateralAsset The collateral asset from which to take to the fee.
      * @param _account The owner of the collateral.
      * @param _feeValue The original value of the fee.
@@ -113,6 +113,9 @@ library LibCalculation {
             // If the feeValue >= depositValue, the entire deposit should be taken as the fee.
             transferAmount = depositAmount;
             feeValuePaid = depositValue;
+        }
+
+        if (transferAmount == depositAmount) {
             // Because the entire deposit is taken, remove it from the depositCollateralAssets array.
             self.depositedCollateralAssets[_account].removeAddress(_collateralAsset, _collateralAssetIndex);
         }
@@ -146,10 +149,10 @@ library LibCalculation {
             _repayKreskoAsset.closeFee).wadDiv(vars.debtFactor);
         return
             (vars.minCollateralValue - vars.accountCollateralValue)
+                .wadMul(vars.maxLiquidationMultiplier)
                 .wadDiv(valuePerUSDRepaid)
                 .wadDiv(vars.debtFactor)
-                .wadDiv(vars.collateral.factor)
-                .wadMul(vars.maxLiquidationMultiplier);
+                .wadDiv(vars.collateral.factor);
     }
 
     function _getMaxLiquidationParams(
@@ -177,7 +180,7 @@ library LibCalculation {
                 minimumDebtValue: state.minimumDebtValue,
                 seizeCollateralAccountValue: seizeCollateralAccountValue,
                 liquidationThreshold: liquidationThreshold,
-                maxLiquidationMultiplier: Constants.MIN_MAX_LIQUIDATION_MULTIPLIER
+                maxLiquidationMultiplier: state.maxLiquidationMultiplier
             });
     }
 

@@ -66,6 +66,11 @@ contract StateFacet is IStateFacet {
     }
 
     /// @inheritdoc IStateFacet
+    function oracleDeviationPct() external view returns (uint256) {
+        return ms().oracleDeviationPct;
+    }
+
+    /// @inheritdoc IStateFacet
     function getAllParams() external view returns (MinterParams memory) {
         MinterState storage s = ms();
         return
@@ -75,7 +80,8 @@ contract StateFacet is IStateFacet {
                 s.liquidationThreshold,
                 s.liquidationIncentiveMultiplier,
                 s.feeRecipient,
-                s.extOracleDecimals
+                s.extOracleDecimals,
+                s.oracleDeviationPct
             );
     }
 

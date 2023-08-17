@@ -13,9 +13,9 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const { deployer } = await hre.getNamedAccounts();
 
-    if (hre.network.live) {
-        throw new Error("Trying to use local deployment script on live network.");
-    }
+    // if (hre.network.live) {
+    //     throw new Error("Trying to use local deployment script on live network.");
+    // }
 
     // #1.1 If deployed, set existing artifacts to runtime environment
     const DiamondDeployment = await hre.deployments.getOrNull("Diamond");
@@ -72,6 +72,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 
 deploy.tags = ["local", "minter-test", "diamond-init", "all"];
-deploy.skip = async hre => hre.network.live;
+// deploy.skip = async hre => hre.network.live;
 
 export default deploy;

@@ -9,7 +9,7 @@ import {DiamondState} from "../DiamondState.sol";
 // solhint-disable-next-line func-visibility
 function initializeDiamondCut(address _init, bytes memory _calldata) {
     if (_init == address(0)) {
-        require(_calldata.length == 0, "DiamondCut: _init is address(0) but_calldata is not empty");
+        require(_calldata.length == 0, "DiamondCut: _init is address(0) but _calldata is not empty");
     } else {
         require(_calldata.length > 0, "DiamondCut: _calldata is empty but _init is not address(0)");
         Meta.enforceHasContractCode(_init, "DiamondCut: _init address has no code");

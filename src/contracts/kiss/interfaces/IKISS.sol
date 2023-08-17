@@ -84,7 +84,7 @@ interface IKISS is IKreskoAssetIssuer, IERC165 {
      * @notice Overrides `AccessControl.grantRole` for following:
      * * Implement a cooldown period of `pendingOperatorWaitPeriod` minutes for setting a new OPERATOR_ROLE
      * * EOA cannot be granted the operator role
-     *
+     * * The first operator can be set without a cooldown period
      * @notice OPERATOR_ROLE can still be revoked without this cooldown period
      * @notice PAUSER_ROLE can still be granted without this cooldown period
      * @param _role role to grant

@@ -63,8 +63,8 @@ type LPValueArgs = {
 export const getLPTokenValue = async (args: LPValueArgs) => {
     const { token0, token1, LPPair, user } = args;
     const [tokenA, tokenB] = (await LPPair.token0()) === token0.address ? [token0, token1] : [token1, token0];
-    const tokenAPrice = fromBig(await tokenA.priceFeed.latestAnswer(), 8);
-    const tokenBPrice = fromBig(await tokenB.priceFeed.latestAnswer(), 8);
+    const tokenAPrice = fromBig(await tokenA.getPrice(), 8);
+    const tokenBPrice = fromBig(await tokenB.getPrice(), 8);
     const [rA, rB] = await LPPair.getReserves();
     const totalSupply = fromBig(await LPPair.totalSupply());
     const price = (fromBig(rA) * tokenAPrice + fromBig(rB) * tokenBPrice) / totalSupply;

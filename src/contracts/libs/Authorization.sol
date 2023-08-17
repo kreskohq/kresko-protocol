@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-only
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
 import {IGnosisSafeL2} from "../vendor/gnosis/IGnosisSafeL2.sol";
@@ -93,7 +93,7 @@ library Authorization {
     }
 
     /**
-     * @notice Checks if the target contract implements the ERC165 interfaceId for the multisig.
+     * @notice setups the security council
      *
      */
     function setupSecurityCouncil(address _councilAddress) internal {
@@ -107,7 +107,7 @@ library Authorization {
     }
 
     function transferSecurityCouncil(address _newCouncil) internal {
-        hasRole(Role.SAFETY_COUNCIL, msg.sender);
+        checkRole(Role.SAFETY_COUNCIL);
         require(IGnosisSafeL2(_newCouncil).getOwners().length >= 5, Error.MULTISIG_NOT_ENOUGH_OWNERS);
 
         // As this is called by the multisig - just check that it's not an EOA
@@ -145,7 +145,6 @@ library Authorization {
     function revokeRole(bytes32 role, address account) internal {
         checkRole(getRoleAdmin(role));
         _revokeRole(role, account);
-        ds()._roleMembers[role].remove(account);
     }
 
     /**

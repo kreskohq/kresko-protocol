@@ -1,5 +1,5 @@
 {
-    "exclude": ["temp", "mochawesome-report", "node_modules/**/*.ts", "cache/**/*"],
+    "exclude": ["temp", "mochawesome-report", "node_modules/**/*.ts", "cache/**/*", "out"],
     "include": ["hardhat.config.ts", "types", "src"],
     "compilerOptions": {
         "noErrorTruncation": true,

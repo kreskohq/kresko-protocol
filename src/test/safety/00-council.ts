@@ -16,12 +16,30 @@ describe("Safety Council", () => {
         this.krAsset = hre.krAssets.find(asset => asset.deployArgs!.symbol === defaultKrAssetArgs.symbol)!;
 
         // These are the 5 signers on the SafetyCouncil multisig
-        const { deployer, devTwo, extOne, extTwo, extThree } = await hre.ethers.getNamedSigners();
+        const { deployer, devTwo, extOne, extTwo, devOne } = await hre.ethers.getNamedSigners();
         this.deployer = deployer;
+        this.devOne = devOne;
         this.devTwo = devTwo;
         this.extOne = extOne;
         this.extTwo = extTwo;
-        this.extThree = extThree;
+    });
+
+    describe("#setSafetyStateSet", () => {
+        it("correctly sets the safety state", async function () {
+            const beforeSafetyState = await hre.Diamond.safetyStateSet();
+            expect(beforeSafetyState).to.equal(false);
+
+            await executeContractCallWithSigners(
+                hre.Multisig,
+                hre.Diamond,
+                "setSafetyStateSet",
+                [true],
+                [this.deployer, this.devTwo, this.extOne],
+            );
+
+            const safetyState = await hre.Diamond.safetyStateSet();
+            expect(safetyState).to.equal(true);
+        });
     });
 
     describe("#toggleAssetsPaused", () => {
@@ -64,7 +82,7 @@ describe("Safety Council", () => {
                     hre.Diamond,
                     "toggleAssetsPaused",
                     [[this.collateral.address], Action.DEPOSIT, false, 0],
-                    [this.deployer, this.devTwo, this.extOne, this.extTwo, this.extThree],
+                    [this.deployer, this.devOne, this.devTwo, this.extOne, this.extTwo],
                 );
 
                 const isPaused = await hre.Diamond.assetActionPaused(
@@ -81,7 +99,7 @@ describe("Safety Council", () => {
                         hre.Diamond,
                         "toggleAssetsPaused",
                         [[this.collateral.address], Action.DEPOSIT, false, 0],
-                        [this.deployer, this.devTwo],
+                        [this.deployer],
                     ),
                 ).to.be.revertedWith("");
 

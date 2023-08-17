@@ -21,12 +21,10 @@ contract CollateralPoolConfigFacet is ICollateralPoolConfigFacet, DiamondModifie
         require(_config.lt >= Constants.MIN_COLLATERALIZATION_RATIO, "lt-too-low");
         require(_config.lt <= _config.mcr, "lt-too-high");
         require(_config.swapFeeRecipient != address(0), "invalid-fee-receiver");
-        require(address(_config.positions) != address(0), "invalid-positions");
 
         cps().minimumCollateralizationRatio = _config.mcr;
         cps().liquidationThreshold = _config.lt;
         cps().swapFeeRecipient = _config.swapFeeRecipient;
-        cps().positions = _config.positions;
     }
 
     /// @inheritdoc ICollateralPoolConfigFacet
@@ -35,8 +33,7 @@ contract CollateralPoolConfigFacet is ICollateralPoolConfigFacet, DiamondModifie
             CollateralPoolConfig({
                 swapFeeRecipient: cps().swapFeeRecipient,
                 mcr: cps().minimumCollateralizationRatio,
-                lt: cps().liquidationThreshold,
-                positions: cps().positions
+                lt: cps().liquidationThreshold
             });
     }
 

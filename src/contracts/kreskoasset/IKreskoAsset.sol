@@ -9,7 +9,7 @@ interface IKreskoAsset is IERC20Permit, IAccessControlEnumerableUpgradeable, IER
     /**
      * @notice Rebase information
      * @param positive supply increasing/reducing rebase
-     * @param denominator the denumerator for the operator, 1 ether = 1
+     * @param denominator the denominator for the operator, 1 ether = 1
      */
     struct Rebase {
         bool positive;

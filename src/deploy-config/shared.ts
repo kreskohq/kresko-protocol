@@ -7,6 +7,8 @@ import { envCheck } from "@utils/general";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import type { CollateraPoolInitializer, MinterInitializer, PositionsInitializer } from "types";
 import { MinterInitArgsStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
+import { testnetConfigs } from "./arbitrumGoerli";
+import { ethers } from "ethers";
 
 envCheck();
 
@@ -29,12 +31,10 @@ export const minterFacets = [
     "BurnHelperFacet",
     "ConfigurationFacet",
     "DepositWithdrawFacet",
-    "InterestLiquidationFacet",
     "LiquidationFacet",
     "MintFacet",
     "SafetyCouncilFacet",
     "StateFacet",
-    "StabilityRateFacet",
     "UIDataProviderFacet",
     "UIDataProviderFacet2",
 ] as const;
@@ -55,10 +55,13 @@ export const getDeploymentUsers = async (hre: HardhatRuntimeEnvironment) => {
     const treasury = hre.network.live ? users.treasury : Safe.address;
     return { admin: users.admin, multisig, treasury, collateralPoolSwapRecipient: users.collateralPoolSwapRecipient };
 };
+
 export const getMinterInitializer = async (
     hre: HardhatRuntimeEnvironment,
 ): Promise<MinterInitializer<MinterInitArgsStruct>> => {
     const { treasury, admin, multisig } = await getDeploymentUsers(hre);
+
+    const config = testnetConfigs[hre.network.name].protocolParams;
 
     return {
         name: "ConfigurationFacet",
@@ -66,10 +69,14 @@ export const getMinterInitializer = async (
             admin,
             treasury,
             council: multisig,
-            minimumCollateralizationRatio: toBig(process.env.MINIMUM_COLLATERALIZATION_RATIO!),
-            minimumDebtValue: toBig(process.env.MINIMUM_DEBT_VALUE!, 8),
-            liquidationThreshold: toBig(process.env.LIQUIDATION_THRESHOLD!),
-            extOracleDecimals: 8,
+            minimumCollateralizationRatio: toBig(config.minimumCollateralizationRatio),
+            minimumDebtValue: toBig(config.minimumDebtValue, 8),
+            liquidationThreshold: toBig(config.liquidationThreshold),
+            extOracleDecimals: config.extOracleDecimals,
+            oracleDeviationPct: toBig(config.oracleDeviationPct),
+            sequencerUptimeFeed: hre.network.live ? config.sequencerUptimeFeed : ethers.constants.AddressZero,
+            sequencerGracePeriodTime: config.sequencerGracePeriodTime,
+            oracleTimeout: config.oracleTimeout,
         },
     };
 };
@@ -77,14 +84,12 @@ export const getCollateralPoolInitializer = async (
     hre: HardhatRuntimeEnvironment,
 ): Promise<CollateraPoolInitializer> => {
     const { collateralPoolSwapRecipient } = await getDeploymentUsers(hre);
-    const positions = await hre.deployments.get("Positions");
     return {
         name: "CollateralPoolConfigFacet",
         args: {
             lt: toBig(2),
             mcr: toBig(5),
             swapFeeRecipient: collateralPoolSwapRecipient,
-            positions: positions.address,
         },
     };
 };

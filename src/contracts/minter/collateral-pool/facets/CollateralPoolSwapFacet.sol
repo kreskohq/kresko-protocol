@@ -6,7 +6,6 @@ import {ms} from "../../MinterStorage.sol";
 import {WadRay} from "../../../libs/WadRay.sol";
 import {ICollateralPoolSwapFacet} from "../interfaces/ICollateralPoolSwapFacet.sol";
 import {cps} from "../CollateralPoolState.sol";
-import {Position, NewPosition} from "../position/state/PositionsStorage.sol";
 
 contract CollateralPoolSwapFacet is ICollateralPoolSwapFacet, DiamondModifiers {
     using SafeERC20 for IERC20Permit;

@@ -9,6 +9,7 @@ import {Role} from "../libs/Authorization.sol";
 
 import {IKreskoAssetIssuer} from "./IKreskoAssetIssuer.sol";
 import {IKreskoAssetAnchor} from "./IKreskoAssetAnchor.sol";
+import {IERC4626Upgradeable} from "./IERC4626Upgradeable.sol";
 import {ERC4626Upgradeable, IKreskoAsset} from "./ERC4626Upgradeable.sol";
 import {IERC165} from "../shared/IERC165.sol";
 
@@ -111,6 +112,34 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
         address _from
     ) public virtual override(ERC4626Upgradeable, IKreskoAssetIssuer) onlyRole(Role.OPERATOR) returns (uint256 shares) {
         shares = super.destroy(_assets, _from);
+    }
+
+    /// @notice reverting function, kept to maintain compatibility with ERC4626 standard
+    function deposit(uint256, address) public pure override(ERC4626Upgradeable, IERC4626Upgradeable) returns (uint256) {
+        revert("NOT_ALLOWED");
+    }
+
+    /// @notice reverting function, kept to maintain compatibility with ERC4626 standard
+    function withdraw(
+        uint256,
+        address,
+        address
+    ) public pure override(ERC4626Upgradeable, IERC4626Upgradeable) returns (uint256) {
+        revert("NOT_ALLOWED");
+    }
+
+    /// @notice reverting function, kept to maintain compatibility with ERC4626 standard
+    function mint(uint256, address) public pure override(ERC4626Upgradeable, IERC4626Upgradeable) returns (uint256) {
+        revert("NOT_ALLOWED");
+    }
+
+    /// @notice reverting function, kept to maintain compatibility with ERC4626 standard
+    function redeem(
+        uint256,
+        address,
+        address
+    ) public pure override(ERC4626Upgradeable, IERC4626Upgradeable) returns (uint256) {
+        revert("NOT_ALLOWED");
     }
 
     /* -------------------------------------------------------------------------- */

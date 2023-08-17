@@ -13,7 +13,7 @@ import {MinterModifiers} from "../MinterModifiers.sol";
 import {DiamondModifiers} from "../../diamond/DiamondModifiers.sol";
 import {Action, KrAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
-import {irs} from "../InterestRateState.sol";
+import {LibRedstone} from "../libs/LibRedstone.sol";
 
 /**
  * @author Kresko
@@ -39,10 +39,9 @@ contract MintFacet is DiamondModifiers, MinterModifiers, IMintFacet {
         if (s.safetyStateSet) {
             super.ensureNotPaused(_kreskoAsset, Action.Borrow);
         }
-
         // Enforce krAsset's total supply limit
         KrAsset memory krAsset = s.kreskoAssets[_kreskoAsset];
-        require(krAsset.marketStatusOracle.latestMarketOpen(), Error.KRASSET_MARKET_CLOSED);
+        require(krAsset.marketStatus(), Error.KRASSET_MARKET_CLOSED);
 
         require(
             IKreskoAsset(_kreskoAsset).totalSupply() + _mintAmount <= krAsset.supplyLimit,
@@ -65,13 +64,30 @@ contract MintFacet is DiamondModifiers, MinterModifiers, IMintFacet {
         }
 
         // The synthetic asset debt position must be greater than the minimum debt position value
-        uint256 existingDebt = s.getKreskoAssetDebtScaled(_account, _kreskoAsset);
-        require(krAsset.uintUSD(existingDebt + _mintAmount) >= s.minimumDebtValue, Error.KRASSET_MINT_AMOUNT_LOW);
+        uint256 existingDebt = s.getKreskoAssetDebtPrincipal(_account, _kreskoAsset);
+        require(
+            krAsset.uintUSD(existingDebt + _mintAmount, s.oracleDeviationPct) >= s.minimumDebtValue,
+            Error.KRASSET_MINT_AMOUNT_LOW
+        );
 
         // If the account does not have an existing debt for this Kresko Asset,
         // push it to the list of the account's minted Kresko Assets.
         if (existingDebt == 0) {
-            s.mintedKreskoAssets[_account].push(_kreskoAsset);
+            bool exists = false;
+            uint256 length = s.mintedKreskoAssets[_account].length;
+            for (uint256 i; i < length; ) {
+                if (s.mintedKreskoAssets[_account][i] == _kreskoAsset) {
+                    exists = true;
+                    break;
+                }
+                unchecked {
+                    ++i;
+                }
+            }
+
+            if (!exists) {
+                s.mintedKreskoAssets[_account].push(_kreskoAsset);
+            }
         }
 
         // Record the mint.

@@ -5,6 +5,8 @@ import {cps, PoolCollateral, PoolKrAsset} from "../CollateralPoolState.sol";
 import {ms} from "../../MinterStorage.sol";
 import {WadRay} from "../../../libs/WadRay.sol";
 
+import {console} from "hardhat/console.sol";
+
 /**
  * @title CollateralPoolStateFacet
  * @author Kresko

@@ -16,12 +16,11 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     hre.UniV2Oracle = UniV2Oracle;
 
     await hre.Diamond.updateAMMOracle(UniV2Oracle.address);
-    await hre.Diamond.updateKiss((await hre.deployments.get("KISS")).address);
 
     logger.success("UniV2Oracle deployed successfully");
 };
 
 deploy.tags = ["local", "uniswap", "uniswap-oracle"];
-deploy.skip = async hre => hre.network.live;
+// deploy.skip = async hre => hre.network.live;
 
 export default deploy;

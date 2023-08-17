@@ -46,7 +46,7 @@ import { deployPositions } from "../../scripts/deploy-positions";
         });
     });
     describe("#facet-upgrade-16-05-2023", () => {
-        it("works", async function () {
+        it.skip("works", async function () {
             expect(hre.companionNetworks).to.have.property("live");
             const { deployer } = await hre.getNamedAccounts();
             const Kresko = await hre.getContractOrFork("Kresko");

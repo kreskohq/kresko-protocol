@@ -13,6 +13,6 @@ const deploy: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
 deploy.tags = ["local", "helpers", "staking-deployment"];
 deploy.dependencies = ["staking-incentives"];
-deploy.skip = async hre => hre.network.live || !!process.env.COVERAGE;
+// deploy.skip = async hre => hre.network.live || !!process.env.COVERAGE;
 
 export default deploy;

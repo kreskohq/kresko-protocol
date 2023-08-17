@@ -74,13 +74,13 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
 
     /// @inheritdoc IKreskoAsset
     function totalSupply() public view override(ERC20Upgradeable, IKreskoAsset) returns (uint256) {
-        return !isRebased ? _totalSupply : _totalSupply.rebase(_rebaseInfo);
+        return _totalSupply.rebase(_rebaseInfo);
     }
 
     /// @inheritdoc IKreskoAsset
     function balanceOf(address _account) public view override(ERC20Upgradeable, IKreskoAsset) returns (uint256) {
         uint256 balance = _balances[_account];
-        return !isRebased ? balance : balance.rebase(_rebaseInfo);
+        return balance.rebase(_rebaseInfo);
     }
 
     /// @inheritdoc IKreskoAsset
@@ -156,7 +156,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
 
     /// @inheritdoc IKreskoAsset
     function mint(address _to, uint256 _amount) external onlyRole(Role.OPERATOR) {
-        uint256 normalizedAmount = !isRebased ? _amount : _amount.unrebase(_rebaseInfo);
+        uint256 normalizedAmount = _amount.unrebase(_rebaseInfo);
         _totalSupply += normalizedAmount;
 
         // Cannot overflow because the sum of all user
@@ -170,7 +170,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
 
     /// @inheritdoc IKreskoAsset
     function burn(address _from, uint256 _amount) external onlyRole(Role.OPERATOR) {
-        uint256 normalizedAmount = !isRebased ? _amount : _amount.unrebase(_rebaseInfo);
+        uint256 normalizedAmount = _amount.unrebase(_rebaseInfo);
 
         _balances[_from] -= normalizedAmount;
         // Cannot underflow because a user's balance
@@ -189,7 +189,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
     /// @dev Internal balances are always unrebased, events emitted are not.
     function _transfer(address _from, address _to, uint256 _amount) internal returns (bool) {
         require(_amount <= balanceOf(_from), Error.NOT_ENOUGH_BALANCE);
-        uint256 normalizedAmount = !isRebased ? _amount : _amount.unrebase(_rebaseInfo);
+        uint256 normalizedAmount = _amount.unrebase(_rebaseInfo);
 
         _balances[_from] -= normalizedAmount;
         unchecked {

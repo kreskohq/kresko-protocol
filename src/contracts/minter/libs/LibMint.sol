@@ -14,7 +14,6 @@ import {WadRay} from "../../libs/WadRay.sol";
 import {LibCalculation} from "./LibCalculation.sol";
 import {KrAsset} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
-import {irs} from "../InterestRateState.sol";
 
 library LibMint {
     using Arrays for address[];
@@ -26,9 +25,9 @@ library LibMint {
     using SafeERC20 for IERC20Permit;
     using LibCalculation for MinterState;
 
-    /// @notice Mint kresko assets with stability rate updates.
-    /// @dev Updates the principal in MinterState and stability rate adjusted values in InterestRateState
-    /// @param _kreskoAsset the asset being repaid
+    /// @notice Mint kresko assets.
+    /// @dev Updates the principal in MinterState
+    /// @param _kreskoAsset the asset being issued
     /// @param _anchor the anchor token of the asset being issued
     /// @param _amount the asset amount being minted
     /// @param _account the account to mint the assets to
@@ -39,20 +38,10 @@ library LibMint {
         uint256 _amount,
         address _account
     ) internal {
-        // Update global debt index for the asset
-        uint256 newDebtIndex = irs().srAssets[_kreskoAsset].updateDebtIndex();
         // Get possibly rebalanced amount of kresko asset
         uint256 issued = IKreskoAssetIssuer(_anchor).issue(_amount, _account);
-        // Calculate debt index scaled value
-        uint256 amountScaled = issued.wadToRay().rayDiv(newDebtIndex);
-        require(amountScaled != 0, Error.INVALID_SCALED_AMOUNT);
         // Increase principal debt
         self.kreskoAssetDebt[_account][_kreskoAsset] += issued;
-        // Update scaled values for the user
-        irs().srUserInfo[_account][_kreskoAsset].debtScaled += uint128(amountScaled);
-        irs().srUserInfo[_account][_kreskoAsset].lastDebtIndex = uint128(newDebtIndex);
-        // Update the global rate for the asset
-        irs().srAssets[_kreskoAsset].updateStabilityRate();
     }
 
     /// @notice Mint kresko assets for shared debt pool.
@@ -75,7 +64,7 @@ library LibMint {
      * @dev Takes the fee from the account's collateral assets. Attempts collateral assets
      *   in reverse order of the account's deposited collateral assets array.
      * @param _account The account to charge the open fee from.
-     * @param _kreskoAsset The address of the kresko asset being burned.
+     * @param _kreskoAsset The address of the kresko asset being minted.
      * @param _kreskoAssetAmountMinted The amount of the kresko asset being minted.
      */
     function chargeOpenFee(
@@ -86,7 +75,7 @@ library LibMint {
     ) internal {
         KrAsset memory krAsset = self.kreskoAssets[_kreskoAsset];
         // Calculate the value of the fee according to the value of the krAssets being minted.
-        uint256 feeValue = krAsset.uintUSD(_kreskoAssetAmountMinted).wadMul(krAsset.openFee);
+        uint256 feeValue = krAsset.uintUSD(_kreskoAssetAmountMinted, self.oracleDeviationPct).wadMul(krAsset.openFee);
 
         // Do nothing if the fee value is 0.
         if (feeValue == 0) {

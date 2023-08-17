@@ -9,7 +9,6 @@ import {Error} from "../../../libs/Errors.sol";
 import {LibAmounts} from "./LibAmounts.sol";
 import {cps, CollateralPoolState, PoolKrAsset} from "../CollateralPoolState.sol";
 import {ms} from "../../MinterStorage.sol";
-import {irs} from "../../InterestRateState.sol";
 
 /* solhint-disable not-rely-on-time */
 

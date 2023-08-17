@@ -1,7 +1,7 @@
 import { DeployFunction } from "hardhat-deploy/types";
 import { getLogger } from "@kreskolabs/lib";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { testnetConfigs } from "@deploy-config/opgoerli";
+import { testnetConfigs } from "@deploy-config/arbitrumGoerli";
 
 const logger = getLogger("gnosis-safe-contracts-for-tests");
 
@@ -83,6 +83,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
             break;
         }
+        case "arbitrumGoerli":
         case "hardhat": {
             await hre.deploy("GnosisSafeProxyFactory", {
                 from: deployer.address,
@@ -115,5 +116,5 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 
 deploy.tags = ["local", "gnosis-safe", "all"];
-deploy.skip = async hre => hre.network.live;
+// deploy.skip = async hre => hre.network.live;
 export default deploy;

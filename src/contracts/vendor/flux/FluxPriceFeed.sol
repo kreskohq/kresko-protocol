@@ -2,13 +2,13 @@
 pragma solidity >=0.8.19;
 
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
-import "./interfaces/AggregatorV2V3Interface.sol";
+import {IFluxPriceFeed} from "./interfaces/IFluxPriceFeed.sol";
 
 /** solhint-disable var-name-mixedcase */
 /**
  * @notice Simple data posting on chain of a scalar value, compatible with Chainlink V2 and V3 aggregator interface
  */
-contract FluxPriceFeed is AccessControl, AggregatorV2V3Interface {
+contract FluxPriceFeed is AccessControl, IFluxPriceFeed {
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant VALIDATOR_ROLE = keccak256("VALIDATOR_ROLE");
     uint32 public latestAggregatorRoundId;
@@ -86,9 +86,9 @@ contract FluxPriceFeed is AccessControl, AggregatorV2V3Interface {
         // Check the report contents, and record the result
         latestAggregatorRoundId++;
         // solhint-disable-next-line not-rely-on-time
-        s_transmissions[latestAggregatorRoundId] = Transmission(_answer, uint64(block.timestamp), _marketOpen);
+        s_transmissions[latestAggregatorRoundId] = Transmission(_answer, uint64(block.timestamp), true);
 
-        emit NewTransmission(latestAggregatorRoundId, _answer, _marketOpen, msg.sender);
+        emit NewTransmission(latestAggregatorRoundId, _answer, true, msg.sender);
     }
 
     /*

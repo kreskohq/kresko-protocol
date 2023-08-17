@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Fragment } from "@ethersproject/abi";
+import { WrapperBuilder } from "@redstone-finance/evm-connector";
 import { checkAddress } from "@scripts/check-address";
 import { getAddresses, getUsers } from "@utils/general";
-import { ethers } from "ethers";
 import { extendEnvironment } from "hardhat/config";
 import SharedConfig from "src/deploy-config/shared";
 import { ContractTypes } from "types";
@@ -23,15 +23,6 @@ extendEnvironment(function (hre) {
     hre.krAssets = [];
     hre.allAssets = [];
     hre.checkAddress = checkAddress;
-    // hre.forking = {
-    //     provider: new ethers.providers.JsonRpcProvider(
-    //         (networks(process.env.MNEMONIC!).ganache as HttpNetworkConfig).url,
-    //     ),
-    //     deploy: async (name, options) => {
-    //         const signer = options ? hre.forking.provider.getSigner(options.from) : hre.users.deployer;
-    //         return (await hre.deploy(name, { ...options, from: await signer.getAddress() }))[0];
-    //     },
-    // };
     hre.getDeploymentOrFork = async deploymentName => {
         const isFork = !hre.network.live && hre.companionNetworks["live"];
         const deployment = !isFork
@@ -55,7 +46,21 @@ extendEnvironment(function (hre) {
         if (!deployment) {
             throw new Error(`${deploymentId} not deployed on ${hre.network.name} network`);
         }
-
+        if (type === "Kresko") {
+            return WrapperBuilder.wrap(await hre.ethers.getContractAt(type, deployment.address)).usingSimpleNumericMock(
+                {
+                    mockSignersCount: 1,
+                    timestampMilliseconds: Date.now(),
+                    dataPoints: [
+                        { dataFeedId: "DAI", value: 0 },
+                        { dataFeedId: "USDC", value: 0 },
+                        { dataFeedId: "TSLA", value: 0 },
+                        { dataFeedId: "ETH", value: 0 },
+                        { dataFeedId: "BTC", value: 0 },
+                    ],
+                },
+            ) as unknown as TC[typeof type];
+        }
         return hre.ethers.getContractAt(type, deployment.address) as unknown as TC[typeof type];
     };
 
@@ -115,18 +120,18 @@ extendEnvironment(function (hre) {
         }
     };
     hre.getSignature = from =>
-        Fragment.from(from)?.type === "function" && ethers.utils.Interface.getSighash(Fragment.from(from));
+        Fragment.from(from)?.type === "function" && hre.ethers.utils.Interface.getSighash(Fragment.from(from));
     hre.getSignatures = abi =>
-        new ethers.utils.Interface(abi).fragments
+        new hre.ethers.utils.Interface(abi).fragments
             .filter(
                 f =>
                     f.type === "function" &&
                     !SharedConfig.signatureFilters.some(s => s.indexOf(f.name.toLowerCase()) > -1),
             )
-            .map(ethers.utils.Interface.getSighash);
+            .map(hre.ethers.utils.Interface.getSighash);
 
     hre.getSignaturesWithNames = abi =>
-        new ethers.utils.Interface(abi).fragments
+        new hre.ethers.utils.Interface(abi).fragments
             .filter(
                 f =>
                     f.type === "function" &&
@@ -134,6 +139,6 @@ extendEnvironment(function (hre) {
             )
             .map(fragment => ({
                 name: fragment.name,
-                sig: ethers.utils.Interface.getSighash(fragment),
+                sig: hre.ethers.utils.Interface.getSighash(fragment),
             }));
 });

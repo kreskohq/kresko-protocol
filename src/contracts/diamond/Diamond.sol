@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 /* solhint-disable no-complex-fallback  */
 /* solhint-disable no-inline-assembly */
 /* solhint-disable no-empty-blocks */
@@ -58,6 +58,15 @@ contract Diamond {
                 return(0, returndatasize())
             }
         }
+    }
+
+    /**
+     * @notice A rescue function for missent msg.value
+     */
+    function rescueNative() external {
+        require(msg.sender == ds().contractOwner, Error.DIAMOND_INVALID_OWNER);
+        (bool success, ) = msg.sender.call{value: address(this).balance}("");
+        require(success, "Transfer failed.");
     }
 
     receive() external payable {}

@@ -5,7 +5,7 @@ pragma solidity >=0.8.19;
 
 library Meta {
     bytes32 internal constant EIP712_DOMAIN_TYPEHASH =
-        keccak256(bytes("EIP712Domain(string name,string version,uint256 salt,address verifyingContract)"));
+        keccak256(bytes("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"));
 
     function domainSeparator(
         string memory name,

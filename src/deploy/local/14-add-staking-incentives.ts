@@ -1,4 +1,4 @@
-import { testnetConfigs } from "@deploy-config/opgoerli";
+import { testnetConfigs } from "@deploy-config/arbitrumGoerli";
 import { fromBig, getLogger, toBig } from "@kreskolabs/lib";
 import type { DeployFunction } from "hardhat-deploy/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
@@ -55,7 +55,7 @@ deploy.skip = async hre => {
     if (skip) {
         logger.log("Skipping deploying staking");
     }
-    return skip || hre.network.live;
+    return skip;
 };
 
 deploy.tags = ["local", "staking-incentive", "staking-deployment"];

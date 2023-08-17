@@ -1,5 +1,5 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { testnetConfigs } from "@deploy-config/opgoerli";
+import { testnetConfigs } from "@deploy-config/arbitrumGoerli";
 import type { DeployFunction } from "hardhat-deploy/types";
 import { WETH } from "types/typechain/src/contracts/test/WETH";
 import { getLogger, toBig } from "@kreskolabs/lib";
@@ -7,9 +7,9 @@ import { TASK_DEPLOY_TOKEN } from "@tasks";
 const logger = getLogger("deploy-tokens");
 
 const deploy: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
-    if (hre.network.live) {
-        throw new Error("Trying to use local deployment script on live network.");
-    }
+    // if (hre.network.live) {
+    //     throw new Error("Trying to use local deployment script on live network.");
+    // }
 
     const collaterals = testnetConfigs[hre.network.name].collaterals;
     for (const collateral of collaterals) {
@@ -54,7 +54,7 @@ deploy.skip = async hre => {
     if (isFinished) {
         logger.log("Skipping deploying mock tokens");
     }
-    return !!isFinished || hre.network.live;
+    return !!isFinished;
 };
 
 export default deploy;

@@ -10,12 +10,12 @@ contract DiamondOwnershipFacet is IDiamondOwnershipFacet, DiamondModifiers {
     /*                                    Write                                   */
     /* -------------------------------------------------------------------------- */
     /// @inheritdoc IDiamondOwnershipFacet
-    function transferOwnership(address _newOwner) external override onlyOwner {
+    function transferOwnership(address _newOwner) external override {
         ds().initiateOwnershipTransfer(_newOwner);
     }
 
     /// @inheritdoc IDiamondOwnershipFacet
-    function acceptOwnership() external override onlyPendingOwner {
+    function acceptOwnership() external override {
         ds().finalizeOwnershipTransfer();
     }
 

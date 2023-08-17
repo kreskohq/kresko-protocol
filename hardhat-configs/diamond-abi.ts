@@ -9,10 +9,13 @@ interface DiamondAbiUserConfig {
 export const diamondAbiConfig: DiamondAbiUserConfig[] = [
     {
         name: "Kresko",
-        include: ["facets/*"],
+        include: ["facets/*", "MinterEvent"],
         exclude: ["vendor", "test/*", "interfaces/*", "krasset/*", "KrStaking", "collateral-pool/position/*"],
         strict: false,
         filter(abiElement, index, abi, fq) {
+            if (abiElement.type === "error") {
+                return false;
+            }
             if (abiElement.type === "event") {
                 if (
                     abiElement.name === "CloseFeePaid" &&
@@ -20,16 +23,6 @@ export const diamondAbiConfig: DiamondAbiUserConfig[] = [
                 ) {
                     return false;
                 } else if (abiElement.name === "RoleGranted" && fq.includes("ConfigurationFacet")) {
-                    return false;
-                } else if (
-                    abiElement.name === "StabilityRateInterestRepaid" &&
-                    (fq.includes("BurnHelperFacet") || fq.includes("InterestLiquidationFacet"))
-                ) {
-                    return false;
-                } else if (
-                    abiElement.name === "StabilityRateInterestBatchRepaid" &&
-                    fq.includes("InterestLiquidationFacet")
-                ) {
                     return false;
                 }
             }

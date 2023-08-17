@@ -1,4 +1,5 @@
-import { testnetConfigs } from "@deploy-config/opgoerli";
+import { wrapKresko } from "@deploy-config/arbitrumGoerli";
+import { testnetConfigs } from "@deploy-config/arbitrumGoerli";
 import { fromBig, getLogger, toBig } from "@kreskolabs/lib";
 import { TASK_MINT_OPTIMAL } from "@tasks";
 import type { DeployFunction } from "hardhat-deploy/types";
@@ -18,9 +19,13 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await DAI.approve(kresko.address, hre.ethers.constants.MaxUint256);
     await kresko.connect(deployer).depositCollateral(deployer.address, DAI.address, toBig(2_500_000_000));
 
-    await kresko
-        .connect(deployer)
-        .mintKreskoAsset(deployer.address, (await hre.getContractOrFork("KISS")).address, toBig(1200_000_000));
+    await wrapKresko(kresko, deployer).mintKreskoAsset(
+        deployer.address,
+        (
+            await hre.getContractOrFork("KISS")
+        ).address,
+        toBig(1_200_000_000),
+    );
 
     for (const krAsset of krAssets) {
         const asset = await hre.getContractOrFork("KreskoAsset", krAsset.symbol);
@@ -51,7 +56,7 @@ deploy.skip = async hre => {
     if (isFinished) {
         logger.log("Skipping minting krAssets");
     }
-    return isFinished || hre.network.live;
+    return isFinished;
 };
 
 export default deploy;

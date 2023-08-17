@@ -65,7 +65,6 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
         accounts: { mnemonic },
         url: RPC_URL().arbitrumGoerli.alchemy,
         chainId: chains.arbitrumGoerli.id,
-        tags: ["arbitrumGoerli"],
         verify: {
             etherscan: ETHERSCAN.arbitrumGoerli.config,
         },

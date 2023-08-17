@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {AggregatorV2V3Interface} from "../vendor/flux/interfaces/AggregatorV2V3Interface.sol";
+import {IFluxPriceFeed} from "../vendor/flux/interfaces/IFluxPriceFeed.sol";
+import {AggregatorV3Interface} from "../vendor/AggregatorV3Interface.sol";
 import {IKreskoAssetAnchor} from "../kreskoasset/IKreskoAssetAnchor.sol";
 import {LibAssetUtility} from "./libs/LibAssetUtility.sol";
 
@@ -43,8 +44,11 @@ library Constants {
     /// This means liquidator receives 25% bonus collateral compared to the debt repaid.
     uint256 constant MAX_LIQUIDATION_INCENTIVE_MULTIPLIER = 1.25 ether; // 125%
 
+    /// @dev The minimum collateral amount for a kresko asset.
+    uint256 constant MIN_KRASSET_COLLATERAL_AMOUNT = 1e12;
+
     /// @dev The maximum configurable minimum debt USD value. 8 decimals.
-    uint256 constant MAX_MIN_DEBT_VALUE = 1000 gwei; // $1,000
+    uint256 constant MAX_MIN_DEBT_VALUE = 1_000 * 1e8; // $1,000
 }
 
 /* -------------------------------------------------------------------------- */
@@ -93,6 +97,10 @@ struct MinterInitArgs {
     uint256 minimumCollateralizationRatio;
     uint256 minimumDebtValue;
     uint256 liquidationThreshold;
+    uint256 oracleDeviationPct;
+    address sequencerUptimeFeed;
+    uint256 sequencerGracePeriodTime;
+    uint256 oracleTimeout;
 }
 
 /**
@@ -106,6 +114,7 @@ struct MinterParams {
     uint256 liquidationOverflowPercentage;
     address feeRecipient;
     uint8 extOracleDecimals;
+    uint256 oracleDeviationPct;
 }
 
 /**
@@ -121,15 +130,17 @@ struct MinterParams {
  */
 struct KrAsset {
     uint256 kFactor;
-    AggregatorV2V3Interface oracle;
-    AggregatorV2V3Interface marketStatusOracle;
+    AggregatorV3Interface oracle;
     uint256 supplyLimit;
     address anchor;
     uint256 closeFee;
     uint256 openFee;
     bool exists;
+    bytes32 redstoneId;
 }
+
 using LibAssetUtility for KrAsset global;
+
 /**
  * @notice Information on a token that can be used as collateral.
  * @dev Setting the factor to zero effectively makes the asset useless as collateral while still allowing
@@ -143,12 +154,12 @@ using LibAssetUtility for KrAsset global;
  */
 struct CollateralAsset {
     uint256 factor;
-    AggregatorV2V3Interface oracle;
-    AggregatorV2V3Interface marketStatusOracle;
+    AggregatorV3Interface oracle;
     address anchor;
     uint8 decimals;
     bool exists;
     uint256 liquidationIncentive;
+    bytes32 redstoneId;
 }
 using LibAssetUtility for CollateralAsset global;
 

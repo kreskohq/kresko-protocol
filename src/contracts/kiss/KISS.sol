@@ -20,7 +20,6 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/
 contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnumerableUpgradeable {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
-    bytes32 public constant OPERATOR_ROLE = 0x112e48a576fb3a75acc75d9fcf6e0bc670b27b1dbcd2463502e10e68cf57d6fd;
 
     modifier onlyContract() {
         require(msg.sender.code.length > 0, Error.CALLER_NOT_CONTRACT);
@@ -49,13 +48,12 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
     ) external initializer {
         // Few sanity checks, we do not want EOA's here
         require(kresko_.code.length > 0, Error.KRESKO_NOT_CONTRACT);
-        // require(admin_.code.length > 0, Error.ADMIN_NOT_A_CONTRACT);
+        require(admin_.code.length > 0, Error.ADMIN_NOT_A_CONTRACT);
 
         // ERC20
         name = name_;
         symbol = symbol_;
         decimals = dec_;
-        kresko = kresko_;
 
         // 2 operators needed at the time of writing, the volative market and the stable market.
         maxOperators = 2;
@@ -73,22 +71,21 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
         _setupRole(MINTER_ROLE, kresko_);
         _setupRole(PAUSER_ROLE, kresko_);
 
-        // Deployer does not need roles, uncomment for mainnet
         renounceRole(MINTER_ROLE, msg.sender);
         renounceRole(PAUSER_ROLE, msg.sender);
-        // renounceRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        renounceRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     /// @inheritdoc IERC165
     function supportsInterface(
         bytes4 interfaceId
-    ) public pure override(AccessControlEnumerableUpgradeable, IERC165) returns (bool) {
-        return
-            interfaceId != 0xffffffff &&
+    ) public view override(AccessControlEnumerableUpgradeable, IERC165) returns (bool) {
+        return (interfaceId != 0xffffffff &&
             (interfaceId == type(IKISS).interfaceId ||
                 interfaceId == type(IKreskoAssetIssuer).interfaceId ||
                 interfaceId == 0x01ffc9a7 ||
-                interfaceId == 0x36372b07);
+                interfaceId == 0x36372b07 ||
+                super.supportsInterface(interfaceId)));
     }
 
     /// @inheritdoc IKISS
@@ -152,16 +149,16 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
             require(pendingOperatorUnlockTime < block.timestamp, Error.OPERATOR_WAIT_PERIOD_NOT_OVER);
             // Grant role
             _grantRole(Role.OPERATOR, pendingOperator);
-            emit NewOperator(_msgSender());
+            emit NewOperator(pendingOperator);
             // Reset pending owner
             // No need to touch the timestamp (next call will just trigger the cooldown period)
             pendingOperator = address(0);
         } else if (pendingOperatorUnlockTime != 0) {
             // Do not allow more than `maxOperators` of operators
-            require(getRoleMemberCount(Role.OPERATOR) < maxOperators, Error.OPERATOR_LIMIT_REACHED);
+            require(getRoleMemberCount(Role.OPERATOR) <= maxOperators, Error.OPERATOR_LIMIT_REACHED);
             // Set the timestamp for the cooldown period
             pendingOperatorUnlockTime = block.timestamp + pendingOperatorWaitPeriod;
-            // Set the pending oeprator, execution to upper if clause next call as this pending operator is set
+            // Set the pending operator, execution to upper if clause next call as this pending operator is set
             pendingOperator = _to;
             emit NewOperatorInitialized(_to, pendingOperatorUnlockTime);
         } else {

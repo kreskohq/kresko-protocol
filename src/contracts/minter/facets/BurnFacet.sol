@@ -11,7 +11,6 @@ import {MinterModifiers} from "../MinterModifiers.sol";
 import {DiamondModifiers} from "../../diamond/DiamondModifiers.sol";
 import {Action} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
-import {irs} from "../InterestRateState.sol";
 
 /**
  * @author Kresko
@@ -37,6 +36,7 @@ contract BurnFacet is DiamondModifiers, MinterModifiers, IBurnFacet {
 
         // Get accounts principal debt
         uint256 debtAmount = s.getKreskoAssetDebtPrincipal(_account, _kreskoAsset);
+        require(debtAmount != 0, Error.ZERO_DEBT);
 
         if (_burnAmount != type(uint256).max) {
             require(_burnAmount <= debtAmount, Error.KRASSET_BURN_AMOUNT_OVERFLOW);
@@ -47,16 +47,16 @@ contract BurnFacet is DiamondModifiers, MinterModifiers, IBurnFacet {
             _burnAmount = debtAmount;
         }
 
-        // If sender repays all principal debt of asset with no stability rate, remove it from minted assets array.
-        // For assets with stability rate the revomal is done when repaying interest
-        if (irs().srAssets[_kreskoAsset].asset == address(0) && _burnAmount == debtAmount) {
-            s.mintedKreskoAssets[_account].removeAddress(_kreskoAsset, _mintedKreskoAssetIndex);
-        }
         // Charge the burn fee from collateral of _account
         s.chargeCloseFee(_account, _kreskoAsset, _burnAmount);
 
         // Record the burn
         s.burn(_kreskoAsset, s.kreskoAssets[_kreskoAsset].anchor, _burnAmount, _account);
+
+        // If sender repays all scaled debt of asset, remove it from minted assets array.
+        if (s.getKreskoAssetDebtPrincipal(_account, _kreskoAsset) == 0) {
+            s.mintedKreskoAssets[_account].removeAddress(_kreskoAsset, _mintedKreskoAssetIndex);
+        }
 
         // Emit logs
         emit MinterEvent.KreskoAssetBurned(_account, _kreskoAsset, _burnAmount);

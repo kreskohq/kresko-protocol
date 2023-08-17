@@ -1,7 +1,7 @@
 import { getCollateralPoolInitializer } from "@deploy-config/shared";
 import { RAY, getNamedEvent, toBig } from "@kreskolabs/lib";
 import { expect } from "@test/chai";
-import { withFixture } from "@utils/test";
+import { withFixture, wrapContractWithSigner } from "@utils/test";
 import { addMockCollateralAsset, depositCollateral } from "@utils/test/helpers/collaterals";
 import { addMockKreskoAsset, mintKrAsset } from "@utils/test/helpers/krassets";
 import hre, { ethers } from "hardhat";
@@ -227,7 +227,7 @@ describe("Collateral Pool", function () {
             const WITHOUT_FACTORS = true;
 
             for (const user of users) {
-                const Kresko = hre.Diamond.connect(user);
+                const Kresko = wrapContractWithSigner(hre.Diamond, user);
                 await Kresko.poolDeposit(user.address, CollateralAsset.address, depositAmount18Dec);
                 expect(await CollateralAsset.contract.balanceOf(user.address)).to.equal(0);
                 expect(await Kresko.getPoolAccountDepositsWithFees(user.address, CollateralAsset.address)).to.equal(
@@ -236,6 +236,7 @@ describe("Collateral Pool", function () {
                 expect(await Kresko.getPoolAccountPrincipalDeposits(user.address, CollateralAsset.address)).to.equal(
                     depositAmount18Dec,
                 );
+
                 // Unadjusted
                 expect(
                     await Kresko.getPoolAccountDepositsValue(user.address, CollateralAsset.address, WITHOUT_FACTORS),
@@ -293,7 +294,7 @@ describe("Collateral Pool", function () {
             const WITHOUT_FACTORS = true;
 
             for (const user of users) {
-                const Kresko = hre.Diamond.connect(user);
+                const Kresko = wrapContractWithSigner(hre.Diamond, user);
                 await Kresko.poolDeposit(user.address, CollateralAsset.address, depositAmount18Dec);
                 await Kresko.poolDeposit(user.address, CollateralAsset8Dec.address, depositAmount8Dec);
 
@@ -414,7 +415,7 @@ describe("Collateral Pool", function () {
         });
         it("should be able to withdraw full collateral of multiple assets", async () => {
             for (const user of users) {
-                const Kresko = hre.Diamond.connect(user);
+                const Kresko = wrapContractWithSigner(hre.Diamond, user);
                 await Kresko.poolDeposit(user.address, CollateralAsset.address, depositAmount18Dec);
                 await Kresko.poolDeposit(user.address, CollateralAsset8Dec.address, depositAmount8Dec);
                 expect(await Kresko.getPoolAccountDepositsWithFees(user.address, CollateralAsset.address)).to.equal(
@@ -471,7 +472,7 @@ describe("Collateral Pool", function () {
                 .div(300); // cfactor = 0.8
 
             for (const user of users) {
-                const Kresko = hre.Diamond.connect(user);
+                const Kresko = wrapContractWithSigner(hre.Diamond, user);
                 await Kresko.poolDeposit(user.address, CollateralAsset.address, depositAmount18Dec);
                 await Kresko.poolDeposit(user.address, CollateralAsset8Dec.address, depositAmount8Dec);
 
@@ -588,13 +589,13 @@ describe("Collateral Pool", function () {
             const expectedValueFees = expectedValueNoFees.mul(2);
 
             for (const user of users) {
-                const Kresko = hre.Diamond.connect(user);
+                const Kresko = wrapContractWithSigner(hre.Diamond, user);
                 await Kresko.poolDeposit(user.address, CollateralAsset.address, depositAmount18Dec);
             }
-            await hre.Diamond.connect(incomeCumulator).cumulateIncome(CollateralAsset.address, fees);
+            await wrapContractWithSigner(hre.Diamond, incomeCumulator).cumulateIncome(CollateralAsset.address, fees);
 
             for (const user of users) {
-                const Kresko = hre.Diamond.connect(user);
+                const Kresko = wrapContractWithSigner(hre.Diamond, user);
 
                 expect(await Kresko.getPoolAccountDepositsValue(user.address, CollateralAsset.address, true)).to.equal(
                     expectedValueNoFees, // fees are not collateralized
@@ -634,7 +635,7 @@ describe("Collateral Pool", function () {
 
             // withdraw fees
             for (const user of users) {
-                const Kresko = hre.Diamond.connect(user);
+                const Kresko = wrapContractWithSigner(hre.Diamond, user);
                 await Kresko.poolWithdraw(user.address, CollateralAsset.address, depositAmount18Dec);
                 // fees in user wallet
                 expect(await CollateralAsset.contract.balanceOf(user.address)).to.equal(
@@ -686,7 +687,6 @@ describe("Collateral Pool", function () {
                 KISS.address,
                 KreskoAsset2.address,
                 toBig(1),
-                toBig(1),
             );
             expect(amountOut).to.equal(expectedAmountOut);
             expect(feeAmount).to.equal(expectedFee);
@@ -697,7 +697,7 @@ describe("Collateral Pool", function () {
             const swapAmount = toBig(ONE_USD); // $1
             const expectedAmountOut = toBig(0.0096); // $100 * 0.0096 = $0.96
 
-            const Kresko = hre.Diamond.connect(swapper);
+            const Kresko = wrapContractWithSigner(hre.Diamond, swapper);
             const tx = await Kresko.swap(swapper.address, KISS.address, KreskoAsset2.address, swapAmount, 0);
             const event = await getNamedEvent<SwapEvent>(tx, "Swap");
             expect(event.args.who).to.equal(swapper.address);
@@ -740,7 +740,7 @@ describe("Collateral Pool", function () {
                 amount: toBig(0.1), // min allowed
             });
 
-            const Kresko = hre.Diamond.connect(swapper);
+            const Kresko = wrapContractWithSigner(hre.Diamond, swapper);
             await Kresko.swap(swapper.address, KISS.address, KreskoAsset2.address, swapAmount, 0);
 
             // the swap that clears debt
@@ -774,7 +774,7 @@ describe("Collateral Pool", function () {
             const expectedSecondFeeKISS = toBig(0.96).wadMul(toBig(0.04)); // 0.96 * 4% = 0.0384
             const expectedAmountOutKISS = toBig(0.96).sub(expectedSecondFeeKISS); // = 0.9216
 
-            const Kresko = hre.Diamond.connect(swapper);
+            const Kresko = wrapContractWithSigner(hre.Diamond, swapper);
             await Kresko.swap(swapper.address, KISS.address, KreskoAsset2.address, swapAmount, 0);
 
             const tx = await Kresko.swap(
@@ -836,7 +836,7 @@ describe("Collateral Pool", function () {
                 amount: toBig(1.04), // 0.96 + 1.04 = 2.
             });
 
-            const Kresko = hre.Diamond.connect(swapper);
+            const Kresko = wrapContractWithSigner(hre.Diamond, swapper);
             await Kresko.swap(swapper.address, KISS.address, KreskoAsset2.address, swapAmountKiss, 0);
 
             const stats = await hre.Diamond.getPoolStats(true);
@@ -977,7 +977,7 @@ describe("Collateral Pool", function () {
                 await KISS.setBalance(swapper, toBig(10_000));
             }
 
-            await hre.Diamond.connect(depositor).poolDeposit(
+            await wrapContractWithSigner(hre.Diamond, depositor).poolDeposit(
                 depositor.address,
                 CollateralAsset.address,
                 depositAmount18Dec, // $10k
@@ -988,18 +988,18 @@ describe("Collateral Pool", function () {
         it("should identify if the pool is not underwater", async () => {
             const swapAmount = toBig(ONE_USD * 2600); // $1
 
-            const Kresko = hre.Diamond.connect(swapper);
+            const Kresko = wrapContractWithSigner(hre.Diamond, swapper);
             await Kresko.swap(swapper.address, KISS.address, KreskoAsset2.address, swapAmount, 0);
             expect(await hre.Diamond.poolIsLiquidatable()).to.be.false;
         });
         it("should revert liquidations if the pool is not underwater", async () => {
             const swapAmount = toBig(ONE_USD * 2600); // $1
 
-            const Kresko = hre.Diamond.connect(swapper);
+            const Kresko = wrapContractWithSigner(hre.Diamond, swapper);
             await Kresko.swap(swapper.address, KISS.address, KreskoAsset2.address, swapAmount, 0);
             expect(await hre.Diamond.poolIsLiquidatable()).to.be.false;
 
-            const KreskoLiquidator = hre.Diamond.connect(hre.users.liquidator);
+            const KreskoLiquidator = wrapContractWithSigner(hre.Diamond, hre.users.liquidator);
             await KreskoAsset2.setBalance(hre.users.liquidator, toBig(1_000_000));
 
             await expect(
@@ -1009,7 +1009,7 @@ describe("Collateral Pool", function () {
         it("should identify if the pool is underwater", async () => {
             const swapAmount = toBig(ONE_USD * 2600); // $1
 
-            const Kresko = hre.Diamond.connect(swapper);
+            const Kresko = wrapContractWithSigner(hre.Diamond, swapper);
             await Kresko.swap(swapper.address, KISS.address, KreskoAsset2.address, swapAmount, 0);
             CollateralAsset.setPrice(collateralPrice / 1000);
             CollateralAsset8Dec.setPrice(collateralPrice / 1000);
@@ -1022,7 +1022,7 @@ describe("Collateral Pool", function () {
         it("should allow liquidating the underwater pool", async () => {
             const swapAmount = toBig(ONE_USD * 2600); // $1
 
-            const Kresko = hre.Diamond.connect(swapper);
+            const Kresko = wrapContractWithSigner(hre.Diamond, swapper);
             await Kresko.swap(swapper.address, KISS.address, KreskoAsset2.address, swapAmount, 0);
 
             const newCollateralPrice = collateralPrice / 10;
@@ -1030,7 +1030,7 @@ describe("Collateral Pool", function () {
             CollateralAsset8Dec.setPrice(newCollateralPrice);
             const liquidator = hre.users.liquidator;
 
-            const KreskoLiquidator = hre.Diamond.connect(liquidator);
+            const KreskoLiquidator = wrapContractWithSigner(hre.Diamond, liquidator);
             await KreskoAsset2.setBalance(liquidator, toBig(1_000_000));
 
             const repayAmount = toBig(7.7);
@@ -1065,14 +1065,14 @@ describe("Collateral Pool", function () {
                 expectedDepositsAfter,
             );
 
-            await hre.Diamond.connect(users[2]).poolDeposit(
+            await wrapContractWithSigner(hre.Diamond, users[2]).poolDeposit(
                 users[2].address,
                 CollateralAsset.address,
                 depositAmount18Dec.mul(10),
             );
             expect((await hre.Diamond.getPoolStats(true)).cr).to.gt((await hre.Diamond.getCollateralPoolConfig()).mcr);
             await expect(
-                hre.Diamond.connect(depositor).poolWithdraw(
+                wrapContractWithSigner(hre.Diamond, depositor).poolWithdraw(
                     depositor.address,
                     CollateralAsset.address,
                     expectedDepositsAfter,
@@ -1192,12 +1192,12 @@ describe("Collateral Pool", function () {
 
             await KISS.setBalance(swapper, toBig(10_000));
             await Promise.all([
-                hre.Diamond.connect(depositor).poolDeposit(
+                wrapContractWithSigner(hre.Diamond, depositor).poolDeposit(
                     depositor.address,
                     CollateralAsset.address,
                     depositAmount18Dec, // $10k
                 ),
-                hre.Diamond.connect(depositor).poolDeposit(
+                wrapContractWithSigner(hre.Diamond, depositor).poolDeposit(
                     depositor.address,
                     CollateralAsset8Dec.address,
                     depositAmount8Dec, // $8k
@@ -1218,7 +1218,7 @@ describe("Collateral Pool", function () {
             );
         });
         it("should revert withdrawing without deposits", async () => {
-            const KreskoUserNoDeposits = hre.Diamond.connect(swapper);
+            const KreskoUserNoDeposits = wrapContractWithSigner(hre.Diamond, swapper);
             await expect(
                 KreskoUserNoDeposits.poolWithdraw(depositor.address, CollateralAsset.address, 1),
             ).to.be.revertedWith("withdrawal-violation");
@@ -1227,11 +1227,15 @@ describe("Collateral Pool", function () {
         it("should revert withdrawals below MCR", async () => {
             const swapAmount = toBig(ONE_USD).mul(1000); // $1000
 
-            const Kresko = hre.Diamond.connect(swapper);
+            const Kresko = wrapContractWithSigner(hre.Diamond, swapper);
             await Kresko.swap(swapper.address, KISS.address, KreskoAsset2.address, swapAmount, 0); // generate debt
             const deposits = await Kresko.getPoolAccountPrincipalDeposits(depositor.address, CollateralAsset.address);
             await expect(
-                Kresko.connect(depositor).poolWithdraw(depositor.address, CollateralAsset.address, deposits),
+                wrapContractWithSigner(hre.Diamond, depositor).poolWithdraw(
+                    depositor.address,
+                    CollateralAsset.address,
+                    deposits,
+                ),
             ).to.be.revertedWith("withdraw-mcr-violation");
         });
 
@@ -1239,7 +1243,7 @@ describe("Collateral Pool", function () {
             const swapAmount = toBig(1);
             await KreskoAsset2.setBalance(swapper, swapAmount);
 
-            const Kresko = hre.Diamond.connect(swapper);
+            const Kresko = wrapContractWithSigner(hre.Diamond, swapper);
             await Kresko.swap(swapper.address, KreskoAsset2.address, KISS.address, swapAmount, 0);
             const deposits = await Kresko.getPoolSwapDeposits(KreskoAsset2.address);
             expect(deposits).to.be.gt(0);
@@ -1251,8 +1255,8 @@ describe("Collateral Pool", function () {
         it("should revert swapping with price below minAmountOut", async () => {
             const swapAmount = toBig(1);
             await KreskoAsset2.setBalance(swapper, swapAmount);
-            const Kresko = hre.Diamond.connect(swapper);
-            const [amountOut] = await Kresko.previewSwap(KreskoAsset2.address, KISS.address, swapAmount, toBig(1));
+            const Kresko = wrapContractWithSigner(hre.Diamond, swapper);
+            const [amountOut] = await Kresko.previewSwap(KreskoAsset2.address, KISS.address, swapAmount);
             await expect(
                 Kresko.swap(swapper.address, KreskoAsset2.address, KISS.address, swapAmount, amountOut.add(1)),
             ).to.be.revertedWith("swap-slippage");
@@ -1262,7 +1266,7 @@ describe("Collateral Pool", function () {
             const swapAmount = toBig(1);
             await KreskoAsset2.setBalance(swapper, swapAmount);
 
-            const Kresko = hre.Diamond.connect(swapper);
+            const Kresko = wrapContractWithSigner(hre.Diamond, swapper);
             await expect(
                 Kresko.swap(swapper.address, KreskoAsset2.address, CollateralAsset.address, swapAmount, 0),
             ).to.be.revertedWith("swap-disabled");
@@ -1271,7 +1275,7 @@ describe("Collateral Pool", function () {
             const swapAmount = toBig(1);
             await KreskoAsset2.setBalance(swapper, swapAmount);
 
-            const Kresko = hre.Diamond.connect(swapper);
+            const Kresko = wrapContractWithSigner(hre.Diamond, swapper);
             await hre.Diamond.disablePoolKrAssets([KreskoAsset2.address]);
             await expect(
                 Kresko.swap(swapper.address, KreskoAsset2.address, KISS.address, swapAmount, 0),
@@ -1281,7 +1285,7 @@ describe("Collateral Pool", function () {
             const swapAmount = toBig(1);
             await KreskoAsset2.setBalance(swapper, swapAmount);
 
-            const Kresko = hre.Diamond.connect(swapper);
+            const Kresko = wrapContractWithSigner(hre.Diamond, swapper);
             await hre.Diamond.disablePoolKrAssets([KreskoAsset2.address]);
             await expect(
                 Kresko.swap(swapper.address, KISS.address, KreskoAsset2.address, swapAmount, 0),
@@ -1291,7 +1295,7 @@ describe("Collateral Pool", function () {
             const swapAmount = toBig(1_000_000);
             await KreskoAsset2.setBalance(swapper, swapAmount);
 
-            const Kresko = hre.Diamond.connect(swapper);
+            const Kresko = wrapContractWithSigner(hre.Diamond, swapper);
             await expect(
                 Kresko.swap(swapper.address, KreskoAsset2.address, KISS.address, swapAmount, 0),
             ).to.be.revertedWith("swap-mcr-violation");
@@ -1399,7 +1403,7 @@ describe("Collateral Pool", function () {
                 await KISS.setBalance(swapper, toBig(10_000));
             }
 
-            await hre.Diamond.connect(depositor).poolDeposit(
+            await wrapContractWithSigner(hre.Diamond, depositor).poolDeposit(
                 depositor.address,
                 CollateralAsset.address,
                 depositAmount18Dec, // $10k

@@ -84,6 +84,13 @@ library Error {
     string public constant NO_COLLATERAL_DEPOSITS = "244"; // Account has no active Collateral deposits
     string public constant INVALID_ORACLE_DECIMALS = "245"; // Oracle decimals do not match extOracleDecimals
     string public constant PARAM_LIQUIDATION_OVERFLOW_LOW = "246"; // Liquidation overflow is less than MIN_LIQUIDATION_OVERFLOW
+    string public constant INVALID_ORACLE_DEVIATION_PCT = "247"; // Oracle deviation percentage is greater than 100%
+    string public constant SEIZED_COLLATERAL_UNDERFLOW = "248"; // Amount of collateral seized is less than the amount calculated.
+    string public constant COLLATERAL_AMOUNT_TOO_LOW = "249"; // Amount of krAsset collateral being deposited is less than the minimum amount
+    string public constant PARAM_COLLATERAL_RATIO_LOW_THAN_LT = "250"; // Minimum collateral ratio less than LT
+    string public constant ZERO_DEBT = "251"; // debt must be greater than 0
+    string public constant ORACLE_PRICE_UNSTABLE = "252"; // oracle price deviates too much between oracles
+    string public constant NEGATIVE_ORACLE_PRICE = "253"; // Oracle price received is negative
 
     /* -------------------------------------------------------------------------- */
     /*                                   3. Staking                               */
@@ -100,7 +107,8 @@ library Error {
     /* -------------------------------------------------------------------------- */
 
     string public constant ARRAY_OUT_OF_BOUNDS = "400"; // Array out of bounds error
-    string public constant PRICEFEEDS_MUST_MATCH_STATUS_FEEDS = "401"; // Supplied price feeds must match status feeds in length
+    string public constant PRICEFEEDS_MUST_MATCH_TOKENS = "401"; // Supplied price feeds must tokens supplied in length
+    string public constant INCORRECT_INDEX = "402"; // Array index mismatch
 
     /* -------------------------------------------------------------------------- */
     /*                                   5. KrAsset                               */
@@ -133,6 +141,7 @@ library Error {
     string public constant STABILITY_RATE_REPAYMENT_AMOUNT_ZERO = "608"; // interest being repaid cannot be 0
     string public constant STABILITY_RATE_INTEREST_IS_ZERO = "609"; // account must have accrued interest to repay it
     string public constant INTEREST_REPAY_NOT_PARTIAL = "610"; // account must have accrued interest to repay it
+    string public constant INVALID_STABILITY_RATE_BASE = "610"; // the stability base rate is less than 1e27 for the asset
 
     /* -------------------------------------------------------------------------- */
     /*                              7. AMM ORACLE                                 */
@@ -149,6 +158,7 @@ library Error {
     string public constant CONSTRUCTOR_INVALID_ADMIN = "710"; // Admin cannot be zero address in the constructor
     string public constant CONSTRUCTOR_INVALID_FACTORY = "711"; // Factory cannot be the zero address
     string public constant NO_INCENTIVES_LEFT = "712"; // No incentives left for updating the price
+    string public constant ADMIN_ADDRESS_IS_ZERO = "713"; // admin address to configure cannot be zero
 
     /* -------------------------------------------------------------------------- */
     /*                              8. KISS                                 */

@@ -14,8 +14,6 @@ export const coreExports = [
     "UniswapMath",
     "UniswapV2Pair",
     "UniswapV2LiquidityMathLibrary",
-    "FluxPriceFeedFactory",
-    "FluxPriceFeed",
     "KISS",
     "Positions",
     "FunderTestnetExtended",
@@ -123,21 +121,15 @@ export const externalArtifacts = () => {
 };
 export const exportDeployments = async () => {
     return new Promise(async (resolve, reject) => {
-        await hre.run("typechain");
         try {
             exec(
-                "npx hardhat export --export-all packages/contracts/src/deployments/json/deployments.json",
+                "npx hardhat export --export-all packages/contracts/src/deployments.ts",
                 async (error, stdout, stderr) => {
                     if (error) {
                         console.error(`exec error: ${error}`);
                         return;
                     }
                     console.log(`hh-deploy export: ${stdout}`);
-
-                    await hre.run(TASK_WRITE_ORACLE_JSON);
-                    exec("rm packages/contracts/src/types/hardhat.d.ts", () => {
-                        resolve(true);
-                    });
                 },
             );
         } catch (e) {

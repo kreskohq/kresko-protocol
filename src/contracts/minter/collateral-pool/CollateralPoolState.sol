@@ -3,7 +3,6 @@ pragma solidity >=0.8.19;
 import {LibCollateralPool} from "./libs/LibCollateralPool.sol";
 import {LibSwap} from "./libs/LibSwap.sol";
 import {LibAmounts} from "./libs/LibAmounts.sol";
-import {IPositionsFacet} from "./position/interfaces/IPositionsFacet.sol";
 
 /* solhint-disable var-name-mixedcase */
 

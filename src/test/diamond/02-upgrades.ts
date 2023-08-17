@@ -2,7 +2,7 @@ import { smock } from "@defi-wonderland/smock";
 import { addFacet } from "@scripts/add-facet";
 import { removeFacet } from "@scripts/remove-facet";
 import { expect } from "@test/chai";
-import { Error } from "@utils/test";
+import { Error, wrapContractWithSigner } from "@utils/test";
 import { withFixture } from "@utils/test/fixtures";
 import hre from "hardhat";
 import { FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
@@ -98,11 +98,17 @@ describe("Diamond", () => {
             expect(functionsAfterCut.length).to.equal(functions.length - 1);
 
             // Ensure delegatecall did set the correct pending owner with the cut
-            const newOwner = await hre.Diamond.pendingOwner();
+
+            const contract = await hre.ethers.getContractAt("AuthEvent", hre.Diamond.address);
+
+            const filter = contract.filters.PendingOwnershipTransfer(hre.addr.deployer, correctOwner);
+            const [event] = await contract.queryFilter(filter);
+            const { previousOwner, newOwner } = event.args;
+            expect(previousOwner).to.equal(hre.addr.deployer);
             expect(newOwner).to.equal(correctOwner);
 
             // Ensure there is no function to accept the ownership
-            await expect(hre.Diamond.connect(hre.users.nonadmin).acceptOwnership()).to.be.revertedWith(
+            await expect(wrapContractWithSigner(hre.Diamond, hre.users.nonadmin).acceptOwnership()).to.be.revertedWith(
                 Error.DIAMOND_INVALID_FUNCTION_SIGNATURE,
             );
         });
@@ -146,7 +152,7 @@ describe("Diamond", () => {
             await tx.wait();
 
             // Ensure function exists and revert is for invalid address instead of missing function
-            await expect(hre.Diamond.connect(hre.users.nonadmin).acceptOwnership()).to.be.revertedWith(
+            await expect(wrapContractWithSigner(hre.Diamond, hre.users.nonadmin).acceptOwnership()).to.be.revertedWith(
                 Error.DIAMOND_INVALID_PENDING_OWNER,
             );
 
@@ -161,7 +167,7 @@ describe("Diamond", () => {
             expect(functionsOldFacet.length).to.equal(allOwnershipFacetSignatures.length - 1);
 
             // Ensure correct owner can now accept the ownership
-            expect(hre.Diamond.connect(hre.users.userOne).acceptOwnership());
+            expect(wrapContractWithSigner(hre.Diamond, hre.users.userOne).acceptOwnership());
             const currentOwner = await hre.Diamond.owner();
             expect(currentOwner).to.equal(correctOwner);
         });

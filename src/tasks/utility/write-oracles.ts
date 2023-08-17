@@ -1,4 +1,4 @@
-import { testnetConfigs } from "@deploy-config/opgoerli";
+import { testnetConfigs } from "@deploy-config/arbitrumGoerli";
 import { getLogger } from "@kreskolabs/lib";
 import { writeFileSync } from "fs";
 import { task } from "hardhat/config";
@@ -8,9 +8,6 @@ import { TASK_WRITE_ORACLE_JSON } from "../names";
 const logger = getLogger(TASK_WRITE_ORACLE_JSON);
 
 task(TASK_WRITE_ORACLE_JSON).setAction(async function (_taskArgs: TaskArguments, hre) {
-    const { feedValidator } = await hre.ethers.getNamedSigners();
-    const factory = await hre.getContractOrFork("FluxPriceFeedFactory");
-
     const Kresko = await hre.getContractOrFork("Kresko");
     const values = [];
     for (const collateral of testnetConfigs[hre.network.name].collaterals) {
@@ -20,13 +17,13 @@ task(TASK_WRITE_ORACLE_JSON).setAction(async function (_taskArgs: TaskArguments,
         }
         const collateralInfo = await Kresko.collateralAsset(contract.address);
         if (!collateral.oracle) continue;
+
         if (collateral.symbol === "" || collateral.symbol === "WETH") {
             values.push({
                 asset: await contract.symbol(),
                 assetAddress: contract.address,
                 assetType: "collateral",
                 feed: collateral.oracle.description,
-                marketstatus: collateralInfo.marketStatusOracle,
                 pricefeed: collateralInfo.oracle,
             });
             continue;
@@ -36,7 +33,6 @@ task(TASK_WRITE_ORACLE_JSON).setAction(async function (_taskArgs: TaskArguments,
             assetAddress: contract.address,
             assetType: "collateral",
             feed: collateral.oracle.description,
-            marketstatus: collateralInfo.marketStatusOracle,
             pricefeed: collateralInfo.oracle,
         });
     }
@@ -49,19 +45,10 @@ task(TASK_WRITE_ORACLE_JSON).setAction(async function (_taskArgs: TaskArguments,
             assetAddress: contract.address,
             assetType: "krAsset",
             feed: krAsset.oracle.description,
-            marketstatus: krAssetInfo.marketStatusOracle,
             pricefeed: krAssetInfo.oracle,
         });
     }
 
-    const fluxFeedKiss = await factory.addressOfPricePair("KISS/USD", 8, feedValidator.address);
-    values.push({
-        asset: "KISS",
-        assetType: "KISS",
-        feed: "KISS/USD",
-        marketstatus: fluxFeedKiss,
-        pricefeed: fluxFeedKiss,
-    });
     writeFileSync("./packages/contracts/src/deployments/json/oracles.json", JSON.stringify(values));
     logger.success("feeds: packages/contracts/src/deployments/json/oracles.json");
 });

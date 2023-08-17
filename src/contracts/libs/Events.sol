@@ -38,14 +38,12 @@ library MinterEvent {
      * @param collateralAsset The address of the collateral asset.
      * @param factor The collateral factor.
      * @param oracle The address of the oracle.
-     * @param marketStatusOracle The address of the market status oracle.
      * @param liquidationIncentive The liquidation incentive
      */
     event CollateralAssetAdded(
         address indexed collateralAsset,
         uint256 factor,
         address indexed oracle,
-        address indexed marketStatusOracle,
         address anchor,
         uint256 liquidationIncentive
     );
@@ -55,14 +53,12 @@ library MinterEvent {
      * @param collateralAsset The address of the collateral asset.
      * @param factor The collateral factor.
      * @param oracle The oracle address.
-     * @param marketStatusOracle The address of the market status oracle.
      * @param liquidationIncentive The liquidation incentive
      */
     event CollateralAssetUpdated(
         address indexed collateralAsset,
         uint256 factor,
         address indexed oracle,
-        address indexed marketStatusOracle,
         address anchor,
         uint256 liquidationIncentive
     );
@@ -108,7 +104,6 @@ library MinterEvent {
      * @param anchor anchor token
      * @param kFactor The k-factor.
      * @param oracle The address of the oracle.
-     * @param marketStatusOracle The address of the market status oracle.
      * @param supplyLimit The total supply limit.
      * @param closeFee The close fee percentage.
      * @param openFee The open fee percentage.
@@ -117,7 +112,6 @@ library MinterEvent {
         address indexed kreskoAsset,
         address anchor,
         address indexed oracle,
-        address indexed marketStatusOracle,
         uint256 kFactor,
         uint256 supplyLimit,
         uint256 closeFee,
@@ -129,7 +123,6 @@ library MinterEvent {
      * @param kreskoAsset The address of the Kresko asset.
      * @param kFactor The k-factor.
      * @param oracle The address of the oracle.
-     * @param marketStatusOracle The address of the market status oracle.
      * @param supplyLimit The total supply limit.
      * @param closeFee The close fee percentage.
      * @param openFee The open fee percentage.
@@ -138,7 +131,6 @@ library MinterEvent {
         address indexed kreskoAsset,
         address anchor,
         address indexed oracle,
-        address indexed marketStatusOracle,
         uint256 kFactor,
         uint256 supplyLimit,
         uint256 closeFee,
@@ -166,14 +158,8 @@ library MinterEvent {
      * @param account The address of the account burning the Kresko asset.
      * @param kreskoAsset The address of the Kresko asset.
      * @param amount The amount of the KreskoAsset that was burned.
-     * @param interestRepaid The amount of the KISS repaid due to interest accrual
      */
-    event DebtPositionClosed(
-        address indexed account,
-        address indexed kreskoAsset,
-        uint256 amount,
-        uint256 interestRepaid
-    );
+    event DebtPositionClosed(address indexed account, address indexed kreskoAsset, uint256 amount);
 
     /**
      * @notice Emitted when cFactor is updated for a collateral asset.
@@ -358,31 +344,4 @@ library AuthEvent {
      *   - if using `renounceRole`, it is the role bearer (i.e. `account`)
      */
     event RoleRevoked(bytes32 indexed role, address indexed account, address indexed sender);
-}
-
-library InterestRateEvent {
-    /**
-     * @dev Emitted when @param account repaid their @param asset interest @param value
-     */
-    event StabilityRateConfigured(
-        address indexed asset,
-        uint256 stabilityRateBase,
-        uint256 priceRateDelta,
-        uint256 rateSlope1,
-        uint256 rateSlope2
-    );
-    /**
-     * @dev Emitted when @param account repaid their @param asset interest @param value
-     */
-    event StabilityRateInterestRepaid(address indexed account, address indexed asset, uint256 value);
-    /**
-     * @dev Emitted when @param account repaid all interest @param value
-     */
-    event StabilityRateInterestBatchRepaid(address indexed account, uint256 value);
-
-    /**
-     * @notice Emitted when KISS address is set.
-     * @param KISS The address of KISS.
-     */
-    event KISSUpdated(address indexed KISS);
 }
