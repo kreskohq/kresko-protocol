@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: BUSL-1.1
+// SPDX-License-Identifier: MIT
 /* solhint-disable no-complex-fallback  */
 /* solhint-disable no-inline-assembly */
 /* solhint-disable no-empty-blocks */
