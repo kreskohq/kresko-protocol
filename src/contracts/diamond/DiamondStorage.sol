@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: BUSL-1.1
+// SPDX-License-Identifier: MIT
 /* solhint-disable no-inline-assembly */
 /* solhint-disable avoid-low-level-calls */
 /* solhint-disable func-visibility */
