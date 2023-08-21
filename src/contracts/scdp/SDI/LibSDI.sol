@@ -25,58 +25,6 @@ library LibSDI {
         return uint256(answer);
     }
 
-    /// @notice get price of an asset from the oracle speficied.
-    function handleDepositFee(
-        Asset memory self,
-        uint256 assets
-    ) internal pure returns (uint256 assetsWithFee, uint256 fee) {
-        if (self.depositFee == 0) {
-            return (assets, 0);
-        }
-
-        fee = (assets * self.depositFee) / 1e18;
-        assetsWithFee = assets - fee;
-    }
-
-    /// @notice get price of an asset from the oracle speficied.
-    function handleMintFee(
-        Asset memory self,
-        uint256 assets
-    ) internal pure returns (uint256 assetsWithFee, uint256 fee) {
-        if (self.depositFee == 0) {
-            return (assets, 0);
-        }
-
-        assetsWithFee = assets.wadDiv(1e18 - self.depositFee);
-        fee = assetsWithFee - assets;
-    }
-
-    /// @notice get price of an asset from the oracle speficied.
-    function handleWithdrawFee(
-        Asset memory self,
-        uint256 assets
-    ) internal pure returns (uint256 assetsWithFee, uint256 fee) {
-        if (self.withdrawFee == 0) {
-            return (assets, 0);
-        }
-
-        assetsWithFee = assets.wadDiv(1e18 - self.withdrawFee);
-        fee = assetsWithFee - assets;
-    }
-
-    /// @notice get price of an asset from the oracle speficied.
-    function handleRedeemFee(
-        Asset memory self,
-        uint256 assets
-    ) internal pure returns (uint256 assetsWithFee, uint256 fee) {
-        if (self.withdrawFee == 0) {
-            return (assets, 0);
-        }
-
-        fee = (assets * self.withdrawFee) / 1e18;
-        assetsWithFee = assets - fee;
-    }
-
     /// @notice convert oracle decimal precision value to wad.
     function oracleToWad(uint256 value, uint8 oracleDecimals) internal pure returns (uint256) {
         return value * 10 ** (18 - oracleDecimals);
@@ -91,12 +39,6 @@ library LibSDI {
     /// @param amount amount of tokens to get USD value for.
     function usdWad(Asset memory self, uint256 amount, uint8 extOracleDecimals) internal view returns (uint256) {
         return (amount * (10 ** (18 - extOracleDecimals)) * self.price()) / 10 ** self.token.decimals();
-    }
-
-    /// @notice get oracle decimal precision USD value for `amount`.
-    /// @param amount amount of tokens to get USD value for.
-    function usdRay(Asset memory self, uint256 amount, uint8 extOracleDecimals) internal view returns (uint256) {
-        return (amount * (10 ** (27 - extOracleDecimals)) * self.price()) / 10 ** self.token.decimals();
     }
 
     /// @notice get oracle decimal precision USD value for `amount`.

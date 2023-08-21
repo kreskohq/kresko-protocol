@@ -17,7 +17,7 @@ export const compilers: SolcUserConfig[] = [
     {
         version: "0.8.19",
         settings: {
-            viaIR: !process.env.CI,
+            viaIR: false,
             optimizer: {
                 enabled: !process.env.CI,
                 runs: 200,
