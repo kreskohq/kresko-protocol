@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {MockERC20} from "./MockERC20.sol";
+import {MockERC20Restricted} from "./MockERC20.sol";
 import {WETH} from "./WETH.sol";
 import {IAccountStateFacet} from "minter/interfaces/IAccountStateFacet.sol";
 
@@ -16,14 +16,14 @@ contract FunderTestnetExtended {
     mapping(address => bool) public owners;
     mapping(address => bool) public funded;
     IAccountStateFacet public kresko;
-    MockERC20 public tokenToFund;
+    MockERC20Restricted public tokenToFund;
     uint256 public fundAmount = 10000 ether;
     event Funded(address indexed account);
 
     constructor(address _kresko, address _tokenToFund) {
         owners[msg.sender] = true;
         kresko = IAccountStateFacet(_kresko);
-        tokenToFund = MockERC20(_tokenToFund);
+        tokenToFund = MockERC20Restricted(_tokenToFund);
     }
 
     function toggleOwners(address[] calldata accounts) external {

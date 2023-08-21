@@ -1,46 +1,51 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
-import {console, Test} from "forge-std/Test.sol";
+import {console} from "forge-std/Test.sol";
+import {ISCDPStateFacet} from "scdp/interfaces/ISCDPStateFacet.sol";
+import {LibTest} from "kresko-helpers/utils/LibTest.sol";
+import {TestBase} from "kresko-helpers/utils/TestBase.sol";
+import {AggregatorV3Interface} from "common/AggregatorV3Interface.sol";
+import {SDI, Asset} from "scdp/SDI/SDI.sol";
+import {MockOracle} from "test/MockOracle.sol";
+import {MockERC20, WETH} from "test/MockERC20.sol";
 
-import {SDI} from "contracts/SDI/SDI.sol";
-import {MiniKresko} from "contracts/mocks/MiniKresko.sol";
-import {Oracle} from "contracts/mocks/MockOracle.sol";
-import {AggregatorV3Interface, Asset} from "contracts/IKreskoVault.sol";
-import "contracts/mocks/Tokens.sol";
-
-contract SDITest is Test {
+contract SDITest is TestBase {
     using LibTest for *;
 
-    uint256 constant PERCENT = 0.01e18;
-    MiniKresko kresko;
-    SDI sdi;
+    address internal user0 = address(121212);
+    address internal user1 = address(21212);
+    address internal user2 = address(21412);
 
-    ERC20Mock public btc;
-    ERC20Mock public weth;
-    ERC20Mock public kiss;
-    ERC20Mock public krETH;
-    ERC20Mock public krJPY;
+    uint256 internal constant PERCENT = 0.01e18;
+    ISCDPStateFacet internal kresko;
+    SDI internal sdi;
 
-    Oracle public kissOracle;
-    Oracle public btcOracle;
-    Oracle public ethOracle;
-    Oracle public jpyOracle;
+    MockERC20 internal btc;
+    MockERC20 internal weth;
+    MockERC20 internal kiss;
+    MockERC20 internal krETH;
+    MockERC20 internal krJPY;
+
+    MockOracle internal kissOracle;
+    MockOracle internal btcOracle;
+    MockOracle internal ethOracle;
+    MockOracle internal jpyOracle;
 
     address internal feeRecipient = address(0xFEE);
 
-    function setUp() public users(address(1240912421), address(94104921), address(491492421)) {
+    function setUp() public {
         // tokens
         weth = new WETH();
-        btc = new ERC20Mock("BTC", "BTC", 8);
-        kiss = new ERC20Mock("KISS", "KISS", 18);
-        krETH = new ERC20Mock("krETH", "krETH", 18);
-        krJPY = new ERC20Mock("krJPY", "krJPY", 18);
+        btc = new MockERC20("BTC", "BTC", 8);
+        kiss = new MockERC20("KISS", "KISS", 18);
+        krETH = new MockERC20("krETH", "krETH", 18);
+        krJPY = new MockERC20("krJPY", "krJPY", 18);
 
         // oracles
-        btcOracle = new Oracle(30000e8);
-        ethOracle = new Oracle(2000e8);
-        kissOracle = new Oracle(1e8);
-        jpyOracle = new Oracle(0.1e8);
+        btcOracle = new MockOracle(30000e8);
+        ethOracle = new MockOracle(2000e8);
+        kissOracle = new MockOracle(1e8);
+        jpyOracle = new MockOracle(0.1e8);
 
         address[] memory tokensKresko = new address[](3);
         tokensKresko[0] = address(kiss);
@@ -72,7 +77,7 @@ contract SDITest is Test {
         for (uint256 i; i < tokensSDI.length; i++) {
             sdi.addAsset(
                 Asset(
-                    ERC20Mock(tokensSDI[i]),
+                    MockERC20(tokensSDI[i]),
                     AggregatorV3Interface(address(oraclesSDI[i])),
                     type(uint256).max,
                     0,

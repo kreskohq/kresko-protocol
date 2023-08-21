@@ -3,7 +3,9 @@ pragma solidity >=0.8.19;
 
 import {ERC20} from "@rari-capital/solmate/src/tokens/ERC20.sol";
 
-contract MockERC20 is ERC20 {
+// solhint-disable no-empty-blocks
+
+contract MockERC20Restricted is ERC20 {
     mapping(address => bool) public minters;
     address public owner;
 
@@ -38,5 +40,30 @@ contract MockERC20 is ERC20 {
     function burn(address from, uint256 value) public virtual {
         require(minters[msg.sender], "!minter");
         _burn(from, value);
+    }
+}
+
+contract MockERC20 is ERC20 {
+    constructor(string memory name_, string memory symbol_, uint8 decimals_) ERC20(name_, symbol_, decimals_) {}
+
+    function mint(address to, uint256 amount) external {
+        _mint(to, amount);
+    }
+
+    function burn(address from, uint256 amount) external {
+        _burn(from, amount);
+    }
+}
+
+contract WETH is MockERC20 {
+    constructor() MockERC20("WETH", "WETH", 18) {}
+
+    function deposit() external payable {
+        _mint(msg.sender, msg.value);
+    }
+
+    function withdraw(uint256 amount) external {
+        _burn(msg.sender, amount);
+        payable(msg.sender).transfer(amount);
     }
 }

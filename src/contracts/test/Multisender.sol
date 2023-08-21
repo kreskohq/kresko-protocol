@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {MockERC20} from "./MockERC20.sol";
+import {MockERC20Restricted} from "./MockERC20.sol";
 import {WETH} from "./WETH.sol";
 
 /* solhint-disable no-empty-blocks */
@@ -63,12 +63,12 @@ contract Multisender {
 
             funded[accounts[i]] = true;
             for (uint256 j; j < tokens.length; j++) {
-                MockERC20(tokens[j].token).mint(accounts[i], tokens[j].amount);
+                MockERC20Restricted(tokens[j].token).mint(accounts[i], tokens[j].amount);
             }
 
             weth.deposit(wethAmount);
             weth.transfer(accounts[i], wethAmount);
-            MockERC20(kiss).transfer(accounts[i], kissAmount);
+            MockERC20Restricted(kiss).transfer(accounts[i], kissAmount);
 
             payable(accounts[i]).transfer(ethAmount);
 
@@ -83,7 +83,7 @@ contract Multisender {
 
     function drainERC20() external {
         require(owners[msg.sender], "!o");
-        MockERC20(kiss).transfer(msg.sender, MockERC20(kiss).balanceOf(address(this)));
+        MockERC20Restricted(kiss).transfer(msg.sender, MockERC20Restricted(kiss).balanceOf(address(this)));
     }
 
     receive() external payable {}
