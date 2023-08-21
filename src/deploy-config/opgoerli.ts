@@ -38,6 +38,7 @@ export const redstoneMap = {
     KreskoAsset: ethers.utils.formatBytes32String("USDC"),
     KreskoAssetPrice10USD: ethers.utils.formatBytes32String("USDC"),
     CollateralAsset: ethers.utils.formatBytes32String("USDC"),
+    CollateralAsset8Dec: ethers.utils.formatBytes32String("USDC"),
     Collateral18Dec: ethers.utils.formatBytes32String("USDC"),
     Collateral8Dec: ethers.utils.formatBytes32String("USDC"),
     Collateral21Dec: ethers.utils.formatBytes32String("USDC"),

@@ -41,17 +41,20 @@ export const wrapKresko = (contract: Kresko, signer: any) =>
 const redstoneTestAssets = {
     Collateral: ethers.utils.formatBytes32String("USDC"),
     KreskoAsset: ethers.utils.formatBytes32String("USDC"),
+    KreskoAsset2: ethers.utils.formatBytes32String("USDC"),
     KreskoAssetPrice10USD: ethers.utils.formatBytes32String("USDC"),
     CollateralAsset: ethers.utils.formatBytes32String("USDC"),
     Collateral18Dec: ethers.utils.formatBytes32String("USDC"),
     Collateral8Dec: ethers.utils.formatBytes32String("USDC"),
     Collateral21Dec: ethers.utils.formatBytes32String("USDC"),
+    CollateralAsset8Dec: ethers.utils.formatBytes32String("USDC"),
     KreskoAssetLiquidation: ethers.utils.formatBytes32String("USDC"),
     SecondKreskoAsset: ethers.utils.formatBytes32String("USDC"),
     krasset2: ethers.utils.formatBytes32String("USDC"),
     krasset3: ethers.utils.formatBytes32String("USDC"),
     krasset4: ethers.utils.formatBytes32String("USDC"),
     quick: ethers.utils.formatBytes32String("USDC"),
+    KreskoAssetPrice100USD: ethers.utils.formatBytes32String("USDC"),
 };
 export const redstoneMap = {
     krETH: ethers.utils.formatBytes32String("ETH"),

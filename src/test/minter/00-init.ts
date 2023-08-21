@@ -1,5 +1,5 @@
 import hre from "hardhat";
-import { diamondFacets, getMinterInitializer, minterFacets } from "@deploy-config/shared";
+import { collateralPoolFacets, diamondFacets, getMinterInitializer, minterFacets } from "@deploy-config/shared";
 import { Role, withFixture, Error } from "@utils/test";
 import { expect } from "@test/chai";
 
@@ -36,7 +36,7 @@ describe("Minter - Init", () => {
                 functionSelectors,
             }));
             const expectedFacets = await Promise.all(
-                [...minterFacets, ...diamondFacets].map(async name => {
+                [...minterFacets, ...diamondFacets, ...collateralPoolFacets].map(async name => {
                     const deployment = await hre.deployments.get(name);
                     return {
                         facetAddress: deployment.address,

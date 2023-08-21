@@ -45,6 +45,20 @@ library LibBurn {
         self.kreskoAssetDebt[_account][_kreskoAsset] -= destroyed;
     }
 
+    /// @notice Repay user global asset debt. Updates rates for regular market.
+    /// @param _kreskoAsset the asset being repaid
+    /// @param _burnAmount the asset amount being burned
+    function repaySwap(
+        MinterState storage self,
+        address _kreskoAsset,
+        uint256 _burnAmount,
+        address _from
+    ) internal returns (uint256 destroyed) {
+        // Burn assets from the protocol, as they are sent in. Get the destroyed shares.
+        destroyed = IKreskoAssetIssuer(self.kreskoAssets[_kreskoAsset].anchor).destroy(_burnAmount, _from);
+        require(destroyed != 0, "repay-destroyed-amount-invalid");
+    }
+
     /**
      * @notice Charges the protocol close fee based off the value of the burned asset.
      * @dev Takes the fee from the account's collateral assets. Attempts collateral assets

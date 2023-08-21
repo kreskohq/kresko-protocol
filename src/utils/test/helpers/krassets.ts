@@ -5,11 +5,12 @@ import { toBig } from "@kreskolabs/lib";
 import { expect } from "chai";
 import hre from "hardhat";
 import { KreskoAssetAnchor__factory, KreskoAsset__factory, MockAggregatorV3__factory } from "types/typechain";
-import { KrAssetStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 import { InputArgsSimple, TestKreskoAssetArgs, TestKreskoAssetUpdate, defaultKrAssetArgs } from "../mocks";
 import roles from "../roles";
+import { KrAssetStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
+import { getMockOraclesFor, setPrice, setMarketOpen } from "./oracle";
+import { getCollateralConfig } from "./collaterals";
 import { wrapContractWithSigner } from "./general";
-import { getMockOraclesFor, setMarketOpen, setPrice } from "./oracle";
 
 export const getDebtIndexAdjustedBalance = async (user: SignerWithAddress, asset: TestKrAsset) => {
     const balance = await asset.contract.balanceOf(user.address);
@@ -42,7 +43,10 @@ export const getKrAssetConfig = async (
     };
 };
 
-export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAssetArgs): Promise<TestKrAsset> => {
+export const addMockKreskoAsset = async (
+    args: TestKreskoAssetArgs = defaultKrAssetArgs,
+    asCollateral?: boolean,
+): Promise<TestKrAsset> => {
     const { deployer } = await hre.ethers.getNamedSigners();
     const { name, symbol, price, marketOpen, factor, supplyLimit, closeFee, openFee } = args;
 
@@ -78,6 +82,12 @@ export const addMockKreskoAsset = async (args: TestKreskoAssetArgs = defaultKrAs
             toBig(openFee),
         ),
     );
+    if (asCollateral) {
+        await hre.Diamond.connect(deployer).addCollateralAsset(
+            krAsset.address,
+            await getCollateralConfig(krAsset, akrAsset.address, toBig(1), toBig(1.05), CLFeed.address),
+        );
+    }
     await krAsset.grantRole(roles.OPERATOR, akrAsset.address);
 
     const krAssetHasOperator = await krAsset.hasRole(roles.OPERATOR, hre.Diamond.address);

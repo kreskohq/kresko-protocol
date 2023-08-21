@@ -9,6 +9,8 @@ import {WadRay} from "../../libs/WadRay.sol";
 import {CollateralAsset, Constants} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
 
+import {console} from "hardhat/console.sol";
+
 /**
  * @title Library for collateral related operations
  * @author Kresko

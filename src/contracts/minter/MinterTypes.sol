@@ -27,6 +27,9 @@ library Constants {
     /// @dev The maximum configurable open fee.
     uint256 constant MAX_OPEN_FEE = 0.1 ether; // 10%
 
+    /// @dev The maximum configurable protocol fee per asset for collateral pool swaps.
+    uint256 constant MAX_COLLATERAL_POOL_PROTOCOL_FEE = 0.5 ether; // 50%
+
     /// @dev Overflow over maximum liquidatable value to allow leeway for users after one happens.
     uint256 constant MIN_MAX_LIQUIDATION_MULTIPLIER = ONE_HUNDRED_PERCENT + BASIS_POINT; // 100.01% or .01% over
 

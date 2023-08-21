@@ -9,6 +9,8 @@ import {LibRedstone} from "./LibRedstone.sol";
 import {ms} from "../MinterStorage.sol";
 import {AggregatorV3Interface} from "../../vendor/AggregatorV3Interface.sol";
 
+import {console} from "hardhat/console.sol";
+
 /**
  * @title LibAssetUtility
  * @author Kresko

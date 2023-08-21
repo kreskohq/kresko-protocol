@@ -34,7 +34,7 @@ extendEnvironment(function (hre) {
                 ? await hre.deployments.getOrNull("Diamond")
                 : await hre.companionNetworks["live"].deployments.getOrNull("Diamond");
         }
-        return deployment;
+        return deployment || (await hre.deployments.getOrNull(deploymentName));
     };
     /* -------------------------------------------------------------------------- */
     /*                              Helper Functions                              */

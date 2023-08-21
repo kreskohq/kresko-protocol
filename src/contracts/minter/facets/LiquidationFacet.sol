@@ -68,6 +68,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         {
             // Get the principal debt amount
             uint256 krAssetDebt = s.getKreskoAssetDebtPrincipal(_account, _repayAsset);
+
             // Cannot liquidate more than the account's debt
             require(krAssetDebt >= _repayAmount, Error.KRASSET_BURN_AMOUNT_OVERFLOW);
 

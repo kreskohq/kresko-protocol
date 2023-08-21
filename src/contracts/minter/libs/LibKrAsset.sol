@@ -22,6 +22,20 @@ library LibKrAsset {
     }
 
     /**
+     * @notice Get possibly rebased amount of kreskoAssets. Use when saving to storage.
+     * @param _asset The asset address
+     * @param _amount The account to query amount for
+     * @return amount Amount of principal debt for `_asset`
+     */
+    function getKreskoAssetAmount(
+        MinterState storage self,
+        address _asset,
+        uint256 _amount
+    ) internal view returns (uint256 amount) {
+        return self.kreskoAssets[_asset].toRebasingAmount(_amount);
+    }
+
+    /**
      * @notice Gets the USD value for a single Kresko asset and amount.
      * @param _kreskoAsset The address of the Kresko asset.
      * @param _amount The amount of the Kresko asset to calculate the value for.
