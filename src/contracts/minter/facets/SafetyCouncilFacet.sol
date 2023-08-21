@@ -3,11 +3,11 @@ pragma solidity >=0.8.19;
 
 import {ISafetyCouncilFacet} from "../interfaces/ISafetyCouncilFacet.sol";
 
-import {Error} from "../../libs/Errors.sol";
-import {MinterEvent} from "../../libs/Events.sol";
-import {Authorization, Role} from "../../libs/Authorization.sol";
+import {Error} from "common/Errors.sol";
+import {MinterEvent} from "common/Events.sol";
+import {Authorization, Role} from "common/libs/Authorization.sol";
 
-import {DiamondModifiers} from "../../diamond/DiamondModifiers.sol";
+import {DiamondModifiers} from "diamond/DiamondModifiers.sol";
 import {MinterModifiers} from "../MinterModifiers.sol";
 
 import {Action, SafetyState, Pause} from "../MinterTypes.sol";

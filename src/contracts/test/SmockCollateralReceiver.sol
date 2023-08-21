@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19;
-import {IDepositWithdrawFacet} from "../minter/interfaces/IDepositWithdrawFacet.sol";
-import {ICollateralReceiver} from "../minter/interfaces/ICollateralReceiver.sol";
-import {IERC20Permit} from "../shared/IERC20Permit.sol";
+import {IDepositWithdrawFacet} from "minter/interfaces/IDepositWithdrawFacet.sol";
+import {ICollateralReceiver} from "minter/interfaces/ICollateralReceiver.sol";
+import {IERC20Permit} from "common/IERC20Permit.sol";
 import {ProxyConnector} from "@redstone-finance/evm-connector/contracts/core/ProxyConnector.sol";
 
 contract SmockCollateralReceiver is ICollateralReceiver, ProxyConnector {

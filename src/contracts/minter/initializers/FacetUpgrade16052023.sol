@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {ms} from "../MinterStorage.sol";
-import {CollateralAsset} from "../MinterTypes.sol";
-import {IFluxPriceFeed} from "../../vendor/flux/FluxPriceFeed.sol";
-import {AggregatorV3Interface} from "../../vendor/AggregatorV3Interface.sol";
+import {ms} from "minter/MinterStorage.sol";
+import {CollateralAsset} from "minter/MinterTypes.sol";
+import {IFluxPriceFeed} from "vendor/flux/FluxPriceFeed.sol";
+import {AggregatorV3Interface} from "common/AggregatorV3Interface.sol";
 
 /* solhint-disable var-name-mixedcase */
 interface NewKresko {

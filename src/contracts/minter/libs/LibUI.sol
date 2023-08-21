@@ -2,15 +2,12 @@
 pragma solidity >=0.8.19;
 
 // solhint-disable-next-line
-import {IERC20Permit} from "../../shared/IERC20Permit.sol";
-import {IFluxPriceFeed} from "../../vendor/flux/interfaces/IFluxPriceFeed.sol";
-import {AggregatorV3Interface} from "../../vendor/AggregatorV3Interface.sol";
-import {IUniswapV2Pair} from "../../vendor/uniswap/v2-core/interfaces/IUniswapV2Pair.sol";
-import {IKrStaking} from "../../staking/interfaces/IKrStaking.sol";
-import {LibDecimals} from "../libs/LibDecimals.sol";
-import {WadRay} from "../../libs/WadRay.sol";
-import {Error} from "../../libs/Errors.sol";
-import {IUniswapV2OracleCompat} from "../amm-oracle/IUniswapV2OracleCompat.sol";
+import {IERC20Permit} from "common/IERC20Permit.sol";
+import {AggregatorV3Interface} from "common/AggregatorV3Interface.sol";
+import {IKrStaking} from "contracts/staking/interfaces/IKrStaking.sol";
+import {LibDecimals} from "./LibDecimals.sol";
+import {WadRay} from "common/libs/WadRay.sol";
+import {Error} from "common/Errors.sol";
 import {KrAsset, CollateralAsset} from "../MinterTypes.sol";
 import {MinterState, ms} from "../MinterStorage.sol";
 

@@ -1,15 +1,14 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
-import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
-import {LibDecimals} from "../libs/LibDecimals.sol";
-import {Arrays} from "../../libs/Arrays.sol";
-import {Error} from "../../libs/Errors.sol";
-import {MinterEvent} from "../../libs/Events.sol";
-import {WadRay} from "../../libs/WadRay.sol";
+import {IKreskoAssetAnchor} from "kresko-asset/IKreskoAssetAnchor.sol";
+import {Arrays} from "common/libs/Arrays.sol";
+import {Error} from "common/Errors.sol";
+import {MinterEvent} from "common/Events.sol";
+import {WadRay} from "common/libs/WadRay.sol";
+
+import {LibDecimals} from "./LibDecimals.sol";
 import {CollateralAsset, Constants} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
-
-import {console} from "hardhat/console.sol";
 
 /**
  * @title Library for collateral related operations

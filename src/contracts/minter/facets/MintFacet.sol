@@ -2,18 +2,19 @@
 pragma solidity >=0.8.19;
 
 import {IMintFacet} from "../interfaces/IMintFacet.sol";
-import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
+import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 
-import {Arrays} from "../../libs/Arrays.sol";
-import {Error} from "../../libs/Errors.sol";
-import {Role} from "../../libs/Authorization.sol";
-import {MinterEvent} from "../../libs/Events.sol";
+import {Arrays} from "common/libs/Arrays.sol";
+import {Error} from "common/Errors.sol";
+import {Role} from "common/libs/Authorization.sol";
+import {MinterEvent} from "common/Events.sol";
+
+import {LibRedstone} from "minter/libs/LibRedstone.sol";
 
 import {MinterModifiers} from "../MinterModifiers.sol";
-import {DiamondModifiers} from "../../diamond/DiamondModifiers.sol";
+import {DiamondModifiers} from "diamond/DiamondModifiers.sol";
 import {Action, KrAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
-import {LibRedstone} from "../libs/LibRedstone.sol";
 
 /**
  * @author Kresko

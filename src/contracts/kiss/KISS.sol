@@ -3,12 +3,14 @@ pragma solidity >=0.8.19;
 
 // solhint-disable-next-line
 import {AccessControlEnumerableUpgradeable, AccessControlUpgradeable, IAccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
-import {ERC20Upgradeable} from "../shared/ERC20Upgradeable.sol";
-import {IKreskoAssetIssuer} from "../kreskoasset/IKreskoAssetIssuer.sol";
-import {IKISS, IERC165} from "./interfaces/IKISS.sol";
-import {Role} from "../libs/Authorization.sol";
-import {Error} from "../libs/Errors.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+
+import {ERC20Upgradeable} from "common/ERC20Upgradeable.sol";
+import {Role} from "common/libs/Authorization.sol";
+import {Error} from "common/Errors.sol";
+
+import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
+import {IKISS, IERC165} from "./interfaces/IKISS.sol";
 
 /* solhint-disable not-rely-on-time */
 

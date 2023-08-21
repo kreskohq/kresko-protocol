@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {Arrays} from "../../libs/Arrays.sol";
-import {MinterEvent} from "../../libs/Events.sol";
-import {LibDecimals} from "../libs/LibDecimals.sol";
-import {WadRay} from "../../libs/WadRay.sol";
+import {Arrays} from "common/libs/Arrays.sol";
+import {MinterEvent} from "common/Events.sol";
+import {WadRay} from "common/libs/WadRay.sol";
+
+import {LibDecimals} from "./LibDecimals.sol";
 import {MinterState} from "../MinterState.sol";
+
 import {KrAsset, CollateralAsset, Constants} from "../MinterTypes.sol";
-import {cps} from "../collateral-pool/CollateralPoolState.sol";
+import {scdp} from "scdp/SCDPStorage.sol";
 
 /**
  * @title Calculation library for liquidation & fee values
@@ -189,12 +191,12 @@ library LibCalculation {
         KrAsset memory _repayKreskoAsset,
         address _seizedCollateral
     ) private view returns (MaxLiquidationVars memory) {
-        uint256 liquidationThreshold = cps().liquidationThreshold;
-        uint256 minCollateralValue = cps().getTotalPoolKrAssetValueAtRatio(liquidationThreshold, false);
+        uint256 liquidationThreshold = scdp().liquidationThreshold;
+        uint256 minCollateralValue = scdp().getTotalPoolKrAssetValueAtRatio(liquidationThreshold, false);
 
-        (uint256 totalCollateralValue, uint256 seizeCollateralValue) = cps().getTotalPoolDepositValue(
+        (uint256 totalCollateralValue, uint256 seizeCollateralValue) = scdp().getTotalPoolDepositValue(
             _seizedCollateral,
-            cps().totalDeposits[_seizedCollateral],
+            scdp().totalDeposits[_seizedCollateral],
             false
         );
 

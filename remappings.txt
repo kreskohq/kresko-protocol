@@ -1,0 +1,12 @@
+ds-test/=lib/forge-std/lib/ds-test/src/
+forge-std/=lib/forge-std/src/
+solmate/=lib/solmate/src/
+contracts/=src/contracts/
+diamond/=src/contracts/diamond/
+minter/=src/contracts/minter/
+vendor/=src/contracts/vendor/
+scdp/=src/contracts/scdp/
+common/=src/contracts/common/
+test/=src/contracts/test/
+kresko-asset/=src/contracts/kresko-asset
+kiss/=src/contracts/kiss

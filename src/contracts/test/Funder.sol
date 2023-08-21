@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {IERC20Permit} from "../shared/IERC20Permit.sol";
+import {IERC20Permit} from "common/IERC20Permit.sol";
 import {WETH} from "./WETH.sol";
-import {IAccountStateFacet} from "../minter/interfaces/IAccountStateFacet.sol";
+import {IAccountStateFacet} from "minter/interfaces/IAccountStateFacet.sol";
 
 /* solhint-disable no-empty-blocks */
 

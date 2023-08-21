@@ -6,9 +6,9 @@
 pragma solidity >=0.8.19;
 
 import {IDiamondCutFacet} from "./interfaces/IDiamondCutFacet.sol";
-import {Authorization, Role} from "../libs/Authorization.sol";
-import {GeneralEvent} from "../libs/Events.sol";
-import {Error} from "../libs/Errors.sol";
+import {Authorization, Role} from "common/libs/Authorization.sol";
+import {GeneralEvent} from "common/Events.sol";
+import {Error} from "common/Errors.sol";
 
 import {initializeDiamondCut} from "./libs/LibDiamondCut.sol";
 import {ds} from "./DiamondStorage.sol";

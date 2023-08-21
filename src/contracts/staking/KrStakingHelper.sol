@@ -2,8 +2,8 @@
 pragma solidity >=0.8.19;
 
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {IUniswapV2Factory} from "../vendor/uniswap/v2-core/interfaces/IUniswapV2Factory.sol";
-import {IUniswapV2Router02} from "../vendor/uniswap/v2-periphery/interfaces/IUniswapV2Router02.sol";
+import {IUniswapV2Factory} from "vendor/uniswap/v2-core/interfaces/IUniswapV2Factory.sol";
+import {IUniswapV2Router02} from "vendor/uniswap/v2-periphery/interfaces/IUniswapV2Router02.sol";
 import {IKrStaking, IERC20} from "./interfaces/IKrStaking.sol";
 
 contract KrStakingHelper {

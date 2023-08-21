@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {Arrays} from "../../libs/Arrays.sol";
-import {Error} from "../../libs/Errors.sol";
-import {Role} from "../../libs/Authorization.sol";
-import {MinterEvent} from "../../libs/Events.sol";
+import {Arrays} from "common/libs/Arrays.sol";
+import {Role} from "common/libs/Authorization.sol";
+import {Error} from "common/Errors.sol";
+import {MinterEvent} from "common/Events.sol";
 
 import {IBurnHelperFacet} from "../interfaces/IBurnHelperFacet.sol";
 import {MinterModifiers} from "../MinterModifiers.sol";
-import {DiamondModifiers} from "../../diamond/DiamondModifiers.sol";
+import {DiamondModifiers} from "diamond/DiamondModifiers.sol";
 import {Action} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
 

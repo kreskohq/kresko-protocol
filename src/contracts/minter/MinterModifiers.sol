@@ -3,7 +3,7 @@ pragma solidity >=0.8.19;
 
 import {ms} from "./MinterStorage.sol";
 import {Action} from "./MinterTypes.sol";
-import {Error} from "../libs/Errors.sol";
+import {Error} from "common/Errors.sol";
 
 abstract contract MinterModifiers {
     /**

@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19;
-import {DiamondEvent} from "../../libs/Events.sol";
 
 interface IDiamondCutFacet {
     /// @dev  Add=0, Replace=1, Remove=2

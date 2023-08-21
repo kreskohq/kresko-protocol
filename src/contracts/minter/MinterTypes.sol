@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {IFluxPriceFeed} from "../vendor/flux/interfaces/IFluxPriceFeed.sol";
-import {AggregatorV3Interface} from "../vendor/AggregatorV3Interface.sol";
-import {IKreskoAssetAnchor} from "../kreskoasset/IKreskoAssetAnchor.sol";
+import {AggregatorV3Interface} from "common/AggregatorV3Interface.sol";
+import {IKreskoAssetAnchor} from "kresko-asset/IKreskoAssetAnchor.sol";
 import {LibAssetUtility} from "./libs/LibAssetUtility.sol";
 
 /* solhint-disable state-visibility */

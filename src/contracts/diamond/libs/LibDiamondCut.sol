@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19;
-import {IDiamondCutFacet} from "../interfaces/IDiamondCutFacet.sol";
 
-import {Meta} from "../../libs/Meta.sol";
-import {DiamondEvent} from "../../libs/Events.sol";
-import {DiamondState} from "../DiamondState.sol";
+import {Meta} from "common/libs/Meta.sol";
+import {DiamondEvent} from "common/Events.sol";
+
+import {DiamondState} from "diamond/DiamondState.sol";
+import {IDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
 
 // solhint-disable-next-line func-visibility
 function initializeDiamondCut(address _init, bytes memory _calldata) {

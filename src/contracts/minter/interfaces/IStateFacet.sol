@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {CollateralAsset, KrAsset, MinterParams} from "../MinterTypes.sol";
+import {CollateralAsset, KrAsset, MinterParams} from "minter/MinterTypes.sol";
 
 interface IStateFacet {
     /// @notice The EIP-712 typehash for the contract's domain.

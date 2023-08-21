@@ -19,6 +19,7 @@ import "@nomiclabs/hardhat-web3";
 import "hardhat-contract-sizer";
 import "hardhat-interface-generator";
 import "solidity-coverage";
+import "@nomicfoundation/hardhat-foundry";
 
 // import "hardhat-preprocessor";
 // import "hardhat-watcher";

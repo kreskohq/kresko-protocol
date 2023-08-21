@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19;
 
-import {IERC165} from "../../shared/IERC165.sol";
-import {IDiamondCutFacet} from "../interfaces/IDiamondCutFacet.sol";
-import {IDiamondLoupeFacet} from "../interfaces/IDiamondLoupeFacet.sol";
-import {IDiamondOwnershipFacet} from "../interfaces/IDiamondOwnershipFacet.sol";
-import {IAuthorizationFacet} from "../interfaces/IAuthorizationFacet.sol";
+import {IERC165} from "common/IERC165.sol";
+import {IDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
+import {IDiamondLoupeFacet} from "diamond/interfaces/IDiamondLoupeFacet.sol";
+import {IDiamondOwnershipFacet} from "diamond/interfaces/IDiamondOwnershipFacet.sol";
+import {IAuthorizationFacet} from "diamond/interfaces/IAuthorizationFacet.sol";
 
-import {GeneralEvent, AuthEvent} from "../../libs/Events.sol";
-import {Error} from "../../libs/Errors.sol";
-import {Meta} from "../../libs/Meta.sol";
+import {GeneralEvent, AuthEvent} from "common/Events.sol";
+import {Error} from "common/Errors.sol";
+import {Meta} from "common/libs/Meta.sol";
 
 import {NOT_ENTERED} from "../DiamondTypes.sol";
 import {DiamondState} from "../DiamondState.sol";

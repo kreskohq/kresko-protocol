@@ -2,7 +2,7 @@
 pragma solidity >=0.8.19;
 
 import {ISmockFacet} from "./interfaces/ISmockFacet.sol";
-import {DiamondModifiers} from "../diamond/DiamondModifiers.sol";
+import {DiamondModifiers} from "diamond/DiamondModifiers.sol";
 import {SmockStorage, Errors} from "./SmockStorage.sol";
 
 bytes32 constant TEST_OPERATOR_ROLE = keccak256("kresko.test.operator");

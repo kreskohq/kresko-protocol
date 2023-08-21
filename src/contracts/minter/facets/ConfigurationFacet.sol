@@ -1,26 +1,27 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {IERC165} from "../../shared/IERC165.sol";
-import {IERC20Permit} from "../../shared/IERC20Permit.sol";
-import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
-import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
-import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
-import {IKISS} from "../../kiss/interfaces/IKISS.sol";
+import {IERC165} from "common/IERC165.sol";
+import {IERC20Permit} from "common/IERC20Permit.sol";
+import {Authorization, Role} from "common/libs/Authorization.sol";
+import {Meta} from "common/libs/Meta.sol";
+
+import {Error} from "common/Errors.sol";
+import {MinterEvent, GeneralEvent} from "common/Events.sol";
+
+import {IKreskoAssetAnchor} from "kresko-asset/IKreskoAssetAnchor.sol";
+import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
+import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
+import {IKISS} from "kiss/interfaces/IKISS.sol";
 
 import {IConfigurationFacet} from "../interfaces/IConfigurationFacet.sol";
 
-import {Error} from "../../libs/Errors.sol";
-import {MinterEvent, GeneralEvent} from "../../libs/Events.sol";
-import {Authorization, Role} from "../../libs/Authorization.sol";
-import {Meta} from "../../libs/Meta.sol";
-
 import {MinterModifiers} from "../MinterModifiers.sol";
-import {DiamondModifiers} from "../../diamond/DiamondModifiers.sol";
 
-import {ds} from "../../diamond/DiamondStorage.sol";
+import {DiamondModifiers} from "diamond/DiamondModifiers.sol";
+import {ds} from "diamond/DiamondStorage.sol";
 
-import {MinterInitArgs, CollateralAsset, KrAsset, IFluxPriceFeed, AggregatorV3Interface, Constants} from "../MinterTypes.sol";
+import {MinterInitArgs, CollateralAsset, KrAsset, AggregatorV3Interface, Constants} from "../MinterTypes.sol";
 import {ms} from "../MinterStorage.sol";
 
 /**

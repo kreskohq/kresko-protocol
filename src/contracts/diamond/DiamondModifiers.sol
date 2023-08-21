@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {Authorization, Role} from "../libs/Authorization.sol";
-import {Meta} from "../libs/Meta.sol";
-import {Error} from "../libs/Errors.sol";
+import {Authorization, Role} from "common/libs/Authorization.sol";
+import {Meta} from "common/libs/Meta.sol";
+import {Error} from "common/Errors.sol";
 
-import {Action} from "../minter/MinterTypes.sol";
-import {ms} from "../minter/MinterStorage.sol";
+import {Action} from "minter/MinterTypes.sol";
+import {ms} from "minter/MinterStorage.sol";
 
-import {ENTERED, NOT_ENTERED} from "../diamond/DiamondTypes.sol";
-import {ds} from "../diamond/DiamondStorage.sol";
+import {ENTERED, NOT_ENTERED} from "./DiamondTypes.sol";
+import {ds} from "./DiamondStorage.sol";
 
 abstract contract DiamondModifiers {
     /**

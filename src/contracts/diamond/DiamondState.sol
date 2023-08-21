@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {EnumerableSet} from "../libs/EnumerableSet.sol";
+import {EnumerableSet} from "common/libs/EnumerableSet.sol";
 import {FacetAddressAndPosition, FacetFunctionSelectors, RoleData, ENTERED, NOT_ENTERED} from "./DiamondTypes.sol";
 
 import {LibDiamondCut} from "./libs/LibDiamondCut.sol";

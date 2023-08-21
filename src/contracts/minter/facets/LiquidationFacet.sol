@@ -3,18 +3,19 @@ pragma solidity >=0.8.19;
 
 // solhint-disable not-rely-on-time
 
-import {ILiquidationFacet} from "../interfaces/ILiquidationFacet.sol";
-import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
+import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
 
-import {Arrays} from "../../libs/Arrays.sol";
-import {Error} from "../../libs/Errors.sol";
-import {LibDecimals} from "../libs/LibDecimals.sol";
-import {LibCalculation} from "../libs/LibCalculation.sol";
-import {WadRay} from "../../libs/WadRay.sol";
-import {MinterEvent} from "../../libs/Events.sol";
+import {Arrays} from "common/libs/Arrays.sol";
+import {WadRay} from "common/libs/WadRay.sol";
+import {Error} from "common/Errors.sol";
+import {MinterEvent} from "common/Events.sol";
+import {SafeERC20, IERC20Permit} from "common/SafeERC20.sol";
 
-import {SafeERC20, IERC20Permit} from "../../shared/SafeERC20.sol";
-import {DiamondModifiers} from "../../diamond/DiamondModifiers.sol";
+import {LibDecimals} from "minter/libs/LibDecimals.sol";
+import {LibCalculation} from "minter/libs/LibCalculation.sol";
+import {ILiquidationFacet} from "minter/interfaces/ILiquidationFacet.sol";
+
+import {DiamondModifiers} from "diamond/DiamondModifiers.sol";
 
 import {Constants, KrAsset, CollateralAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";

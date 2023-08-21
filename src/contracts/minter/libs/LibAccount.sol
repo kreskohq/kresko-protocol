@@ -1,14 +1,16 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {MinterState} from "../MinterState.sol";
-import {KrAsset, CollateralAsset} from "../MinterTypes.sol";
-import {RebaseMath} from "../../kreskoasset/Rebase.sol";
-import {IKreskoAsset} from "../../kreskoasset/IKreskoAsset.sol";
-import {IKreskoAssetAnchor} from "../../kreskoasset/IKreskoAssetAnchor.sol";
-import {Error} from "../../libs/Errors.sol";
-import {LibDecimals} from "../libs/LibDecimals.sol";
-import {WadRay} from "../../libs/WadRay.sol";
+import {MinterState} from "minter/MinterState.sol";
+import {KrAsset, CollateralAsset} from "minter/MinterTypes.sol";
+import {LibDecimals} from "minter/libs/LibDecimals.sol";
+
+import {RebaseMath} from "kresko-asset/Rebase.sol";
+import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
+import {IKreskoAssetAnchor} from "kresko-asset/IKreskoAssetAnchor.sol";
+
+import {Error} from "common/Errors.sol";
+import {WadRay} from "common/libs/WadRay.sol";
 
 library LibAccount {
     using RebaseMath for uint256;

@@ -3,14 +3,14 @@ pragma solidity >=0.8.19;
 
 // solhint-disable not-rely-on-time
 // solhint-disable-next-line
-import {SafeERC20, IERC20Permit} from "../../shared/SafeERC20.sol";
-import {IKreskoAssetIssuer} from "../../kreskoasset/IKreskoAssetIssuer.sol";
-import {Arrays} from "../../libs/Arrays.sol";
-import {MinterEvent} from "../../libs/Events.sol";
-import {Error} from "../../libs/Errors.sol";
-import {LibDecimals} from "../libs/LibDecimals.sol";
-import {WadRay} from "../../libs/WadRay.sol";
+import {SafeERC20, IERC20Permit} from "common/SafeERC20.sol";
+import {Arrays} from "common/libs/Arrays.sol";
+import {WadRay} from "common/libs/WadRay.sol";
+import {MinterEvent} from "common/Events.sol";
+import {Error} from "common/Errors.sol";
+import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
 
+import {LibDecimals} from "./LibDecimals.sol";
 import {LibCalculation} from "./LibCalculation.sol";
 import {KrAsset} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
