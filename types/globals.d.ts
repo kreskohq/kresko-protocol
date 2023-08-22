@@ -23,11 +23,11 @@ declare global {
         krAsset?: boolean;
         collateral?: boolean;
         address: string;
-        contract: TC["KreskoAsset"];
+        contract: Contracts.KreskoAsset;
         deployArgs?: TestKreskoAssetArgs;
         kresko: () => Promise<KrAssetStructOutput>;
         mocks: {
-            contract: MockContract<KreskoAsset>;
+            contract: MockContract<Contracts.KreskoAsset>;
             mockFeed: MockContract<Contracts.MockAggregatorV3>;
             fakeFeed: FakeContract<Contracts.MockAggregatorV3>;
             anchor?: MockContract<KreskoAssetAnchor>;
@@ -67,8 +67,6 @@ declare global {
     /* -------------------------------------------------------------------------- */
     /*                                   Oracles                                  */
     /* -------------------------------------------------------------------------- */
-    type SequencerUptimeFeed = Contracts.MockSequencerUptimeFeed;
-    type FluxPriceFeedFactory = TC["FluxPriceFeedFactory"];
     type UniV2Router = Contracts.UniswapV2Router02;
     type UniV2Factory = Contracts.UniswapV2Factory;
     /* -------------------------------------------------------------------------- */
@@ -80,7 +78,6 @@ declare global {
 
     type KreskoAsset = TC["KreskoAsset"];
     type KrStaking = TC["KrStaking"];
-    type WETH9 = TC["WETH9"];
     type ERC20Upgradeable = TC["ERC20Upgradeable"];
     type IERC20 = TC["IERC20"];
     type BigNumberish = import("ethers").BigNumberish;
@@ -94,7 +91,6 @@ declare global {
     /* -------------------------------------------------------------------------- */
     /*                                 Deployments                                */
     /* -------------------------------------------------------------------------- */
-    type Artifact = import("hardhat/types").Artifact;
 
     // type DeployResultWithSignaturesUnknown<C extends Contract> = readonly [C, string[], DeployResult];
     type DeployResultWithSignatures<T> = readonly [T, string[], DeployResult];
@@ -128,13 +124,5 @@ declare global {
         name: string;
         symbol: string;
         owner: string;
-    }
-    interface Network {
-        rpcUrl?: string;
-        chainId?: number;
-        tags: string[];
-        gasPrice?: number | "auto" | undefined;
-        live?: boolean;
-        saveDeployments?: boolean;
     }
 }

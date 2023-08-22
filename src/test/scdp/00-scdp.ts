@@ -39,7 +39,7 @@ describe("SCDP", function () {
 
             const collaterals = await hre.Diamond.getPoolCollateralAssets();
             expect(collaterals).to.deep.equal([CollateralAsset.address]);
-            expect(await hre.Diamond.getPoolAssetIsEnabled(CollateralAsset.address)).to.equal(true);
+            expect(await hre.Diamond.getSCDPAssetEnabled(CollateralAsset.address)).to.equal(true);
         });
 
         it("should be able to update a whitelisted collateral", async () => {
@@ -70,7 +70,7 @@ describe("SCDP", function () {
             await hre.Diamond.disablePoolCollaterals([CollateralAsset.address]);
             const collaterals = await hre.Diamond.getPoolCollateralAssets();
             expect(collaterals).to.deep.equal([CollateralAsset.address]);
-            expect(await hre.Diamond.getPoolAssetIsEnabled(CollateralAsset.address)).to.equal(false);
+            expect(await hre.Diamond.getSCDPAssetEnabled(CollateralAsset.address)).to.equal(false);
         });
 
         it("should be able to remove a collateral asset", async () => {
@@ -84,7 +84,7 @@ describe("SCDP", function () {
             await hre.Diamond.removePoolCollaterals([CollateralAsset.address]);
             const collaterals = await hre.Diamond.getPoolCollateralAssets();
             expect(collaterals).to.deep.equal([]);
-            expect(await hre.Diamond.getPoolAssetIsEnabled(CollateralAsset.address)).to.equal(false);
+            expect(await hre.Diamond.getSCDPAssetEnabled(CollateralAsset.address)).to.equal(false);
         });
 
         it("should be able to add whitelisted kresko asset", async () => {
@@ -103,7 +103,7 @@ describe("SCDP", function () {
 
             const krAssets = await hre.Diamond.getPoolKrAssets();
             expect(krAssets).to.deep.equal([KreskoAsset.address]);
-            expect(await hre.Diamond.getPoolAssetIsEnabled(KreskoAsset.address)).to.equal(true);
+            expect(await hre.Diamond.getSCDPAssetEnabled(KreskoAsset.address)).to.equal(true);
         });
 
         it("should be able to update a whitelisted kresko asset", async () => {
@@ -129,7 +129,7 @@ describe("SCDP", function () {
 
             const krAssets = await hre.Diamond.getPoolKrAssets();
             expect(krAssets).to.deep.equal([KreskoAsset.address]);
-            expect(await hre.Diamond.getPoolAssetIsEnabled(KreskoAsset.address)).to.equal(true);
+            expect(await hre.Diamond.getSCDPAssetEnabled(KreskoAsset.address)).to.equal(true);
         });
         it("should be able to disable a whitelisted kresko asset", async () => {
             const configuration: PoolKrAssetStruct = {
@@ -142,7 +142,7 @@ describe("SCDP", function () {
             await hre.Diamond.disablePoolKrAssets([KreskoAsset.address]);
             const krAssets = await hre.Diamond.getPoolKrAssets();
             expect(krAssets).to.deep.equal([KreskoAsset.address]);
-            expect(await hre.Diamond.getPoolAssetIsEnabled(KreskoAsset.address)).to.equal(false);
+            expect(await hre.Diamond.getSCDPAssetEnabled(KreskoAsset.address)).to.equal(false);
         });
         it("should be able to remove a whitelisted kresko asset", async () => {
             const configuration: PoolKrAssetStruct = {
@@ -155,7 +155,7 @@ describe("SCDP", function () {
             await hre.Diamond.removePoolKrAssets([KreskoAsset.address]);
             const krAssets = await hre.Diamond.getPoolKrAssets();
             expect(krAssets).to.deep.equal([]);
-            expect(await hre.Diamond.getPoolAssetIsEnabled(KreskoAsset.address)).to.equal(false);
+            expect(await hre.Diamond.getSCDPAssetEnabled(KreskoAsset.address)).to.equal(false);
         });
 
         it("should be able to enable and disable swap pairs", async () => {
@@ -167,8 +167,8 @@ describe("SCDP", function () {
                 },
             ];
             await hre.Diamond.setSwapPairs(swapPairsEnabled);
-            expect(await hre.Diamond.getPoolIsSwapEnabled(CollateralAsset.address, KreskoAsset.address)).to.equal(true);
-            expect(await hre.Diamond.getPoolIsSwapEnabled(KreskoAsset.address, CollateralAsset.address)).to.equal(true);
+            expect(await hre.Diamond.getSCDPSwapEnabled(CollateralAsset.address, KreskoAsset.address)).to.equal(true);
+            expect(await hre.Diamond.getSCDPSwapEnabled(KreskoAsset.address, CollateralAsset.address)).to.equal(true);
 
             const swapPairsDisabled: ISCDPConfigFacet.PairSetterStruct[] = [
                 {
@@ -178,12 +178,8 @@ describe("SCDP", function () {
                 },
             ];
             await hre.Diamond.setSwapPairs(swapPairsDisabled);
-            expect(await hre.Diamond.getPoolIsSwapEnabled(CollateralAsset.address, KreskoAsset.address)).to.equal(
-                false,
-            );
-            expect(await hre.Diamond.getPoolIsSwapEnabled(KreskoAsset.address, CollateralAsset.address)).to.equal(
-                false,
-            );
+            expect(await hre.Diamond.getSCDPSwapEnabled(CollateralAsset.address, KreskoAsset.address)).to.equal(false);
+            expect(await hre.Diamond.getSCDPSwapEnabled(KreskoAsset.address, CollateralAsset.address)).to.equal(false);
         });
     });
 
