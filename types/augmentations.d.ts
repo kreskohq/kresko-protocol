@@ -1,16 +1,14 @@
 import type { FakeContract } from "@defi-wonderland/smock";
 import { Fragment, FunctionFragment, JsonFragment } from "@ethersproject/abi";
-import { fromBig, toBig } from "@kreskolabs/lib";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { checkAddress } from "@scripts/check-address";
-import { BytesLike, Contract, providers } from "ethers";
+import { providers } from "ethers";
 import { hardhatUsers } from "hardhat-configs/users";
-import { ABI, DeployOptions, Deployment, Facet, FacetCut } from "hardhat-deploy/dist/types";
+import { ABI, DeployOptions, Deployment, Facet } from "hardhat-deploy/dist/types";
 import "hardhat/types/config";
 import "mocha";
-import type { UniswapV2Factory, UniswapV2Oracle, UniswapV2Pair, UniswapV2Router02 } from "types/typechain";
+import type { UniswapV2Factory, UniswapV2Pair, UniswapV2Router02 } from "types/typechain";
 import * as Contracts from "./typechain";
-import { FacetCutAction } from "hardhat-deploy/types";
 /* ========================================================================== */
 /*                             TEST AUGMENTATIONS                             */
 /* ========================================================================== */
@@ -155,7 +153,7 @@ declare module "hardhat/types/runtime" {
         DiamondDeployment: Deployment;
         Diamond: TC["Kresko"];
         Multisig: TC["GnosisSafeL2"];
-        UniV2Oracle: UniswapV2Oracle;
+
         UniV2Factory: UniswapV2Factory;
         UniV2Router: UniswapV2Router02;
     }

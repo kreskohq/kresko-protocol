@@ -25,7 +25,7 @@ import hre from "hardhat";
 import {
     CollateralDepositedEventObject,
     CollateralWithdrawnEventObject,
-} from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
+} from "types/typechain/src/contracts/common/Events.sol/MinterEvent";
 
 describe("Minter - Deposit Withdraw", () => {
     withFixture(["minter-test"]);
@@ -80,7 +80,7 @@ describe("Minter - Deposit Withdraw", () => {
                         newKrAsset.anchor.address,
                         toBig(1),
                         toBig(1.05),
-                        newKrAsset.mocks.clFeed.address,
+                        newKrAsset.priceFeed.address,
                     ),
                 );
                 const depositAmount = collateralAmount.div(2);
@@ -139,7 +139,7 @@ describe("Minter - Deposit Withdraw", () => {
                         newKrAsset.anchor.address,
                         toBig(1),
                         toBig(1.05),
-                        newKrAsset.mocks.clFeed.address,
+                        newKrAsset.priceFeed.address,
                     ),
                 );
 

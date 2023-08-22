@@ -86,7 +86,7 @@ interface ISCDPStateFacet {
      * @notice Get the collateral debt amount for `_kreskoAsset`
      * @param _kreskoAsset The KreskoAsset
      */
-    function getPoolDebt(address _kreskoAsset) external view returns (uint256);
+    function getPoolKrAssetDebt(address _kreskoAsset) external view returns (uint256);
 
     /**
      * @notice Get the total debt value of krAssets in oracle precision
@@ -99,7 +99,7 @@ interface ISCDPStateFacet {
      * @param _kreskoAsset The KreskoAsset
      * @param _ignoreFactors Ignore factors when calculating collateral and debt value.
      */
-    function getPoolDebtValue(address _kreskoAsset, bool _ignoreFactors) external view returns (uint256);
+    function getPoolKrAssetDebtValue(address _kreskoAsset, bool _ignoreFactors) external view returns (uint256);
 
     /**
      * @notice Get the collateral configuration for `_collateralAsset`

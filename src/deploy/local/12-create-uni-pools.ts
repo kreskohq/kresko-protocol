@@ -22,9 +22,9 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         const pairAddress = await Factory.getPair(token0.address, token1.address);
 
         if (assetB.symbol === "WETH") {
-            await (await hre.getContractOrFork("WETH"))["deposit(uint256)"](toBig(amountB));
+            await (await hre.getContractOrFork("MockWETH"))["deposit(uint256)"](toBig(amountB));
         } else if (assetA.symbol === "WETH") {
-            await (await hre.getContractOrFork("WETH"))["deposit(uint256)"](toBig(amountA));
+            await (await hre.getContractOrFork("MockWETH"))["deposit(uint256)"](toBig(amountA));
         }
         if (pairAddress === hre.ethers.constants.AddressZero) {
             await hre.run(TASK_UNIV2_ADD_LIQUIDITY, {

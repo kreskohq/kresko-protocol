@@ -24,7 +24,7 @@ import {
     KreskoAssetBurnedEvent,
     KreskoAssetMintedEventObject,
     OpenFeePaidEventObject,
-} from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
+} from "types/typechain/src/contracts/common/Events.sol/MinterEvent";
 
 const INTEREST_RATE_DELTA = toBig("0.000001");
 const INTEREST_RATE_PRICE_DELTA = toBig("0.0001", 8);
@@ -38,7 +38,6 @@ describe("Minter", () => {
 
         await this.krAsset.contract.grantRole(Role.OPERATOR, hre.users.deployer.address);
         this.krAsset.setPrice(this.krAsset.deployArgs!.price);
-        this.krAsset.setMarketOpen(this.krAsset.deployArgs!.marketOpen);
 
         // Load account with collateral
         this.initialBalance = toBig(100000);
@@ -405,7 +404,6 @@ describe("Minter", () => {
             });
 
             it.skip("should not allow the minting of kreskoAssets if the market is closed", async function () {
-                this.krAsset.setMarketOpen(false);
                 await expect(
                     wrapContractWithSigner(hre.Diamond, hre.users.userOne).mintKreskoAsset(
                         hre.users.userOne.address,
@@ -419,7 +417,6 @@ describe("Minter", () => {
                 expect(mintedKreskoAssetsBefore).to.deep.equal([]);
 
                 // Confirm that opening the market makes krAsset mintable again
-                this.krAsset.setMarketOpen(true);
                 await wrapContractWithSigner(hre.Diamond, hre.users.userOne).mintKreskoAsset(
                     hre.users.userOne.address,
                     this.krAsset.address,

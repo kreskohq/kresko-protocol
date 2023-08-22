@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity <=0.8.19;
 
-import "@kreskolabs/gnosis-safe-contracts/contracts/base/ModuleManager.sol";
-import "@kreskolabs/gnosis-safe-contracts/contracts/base/OwnerManager.sol";
-import "@kreskolabs/gnosis-safe-contracts/contracts/base/FallbackManager.sol";
-import "@kreskolabs/gnosis-safe-contracts/contracts/base/GuardManager.sol";
-import "@kreskolabs/gnosis-safe-contracts/contracts/common/EtherPaymentFallback.sol";
-import "@kreskolabs/gnosis-safe-contracts/contracts/common/Singleton.sol";
-import "@kreskolabs/gnosis-safe-contracts/contracts/common/SignatureDecoder.sol";
-import "@kreskolabs/gnosis-safe-contracts/contracts/common/SecuredTokenTransfer.sol";
-import "@kreskolabs/gnosis-safe-contracts/contracts/common/StorageAccessible.sol";
-import "@kreskolabs/gnosis-safe-contracts/contracts/interfaces/ISignatureValidator.sol";
-import "@kreskolabs/gnosis-safe-contracts/contracts/external/GnosisSafeMath.sol";
+import {ModuleManager,Enum} from "@kreskolabs/gnosis-safe-contracts/contracts/base/ModuleManager.sol";
+import {OwnerManager} from "@kreskolabs/gnosis-safe-contracts/contracts/base/OwnerManager.sol";
+import {FallbackManager} from "@kreskolabs/gnosis-safe-contracts/contracts/base/FallbackManager.sol";
+import {GuardManager, Guard} from "@kreskolabs/gnosis-safe-contracts/contracts/base/GuardManager.sol";
+import {EtherPaymentFallback} from "@kreskolabs/gnosis-safe-contracts/contracts/common/EtherPaymentFallback.sol";
+import {Singleton} from "@kreskolabs/gnosis-safe-contracts/contracts/common/Singleton.sol";
+import {SignatureDecoder} from "@kreskolabs/gnosis-safe-contracts/contracts/common/SignatureDecoder.sol";
+import {SecuredTokenTransfer} from "@kreskolabs/gnosis-safe-contracts/contracts/common/SecuredTokenTransfer.sol";
+import {StorageAccessible} from "@kreskolabs/gnosis-safe-contracts/contracts/common/StorageAccessible.sol";
+import {ISignatureValidatorConstants,ISignatureValidator} from "@kreskolabs/gnosis-safe-contracts/contracts/interfaces/ISignatureValidator.sol";
+import {GnosisSafeMath} from "@kreskolabs/gnosis-safe-contracts/contracts/external/GnosisSafeMath.sol";
 
 /// @title Gnosis Safe - A multisignature wallet with support for confirmations using signed messages based on ERC191.
 /// @author Stefan George - <stefan@gnosis.io>
@@ -337,6 +337,7 @@ contract GnosisSafe is
     ) external returns (uint256) {
         uint256 startGas = gasleft();
         // We don't provide an error message here, as we use it to return the estimate
+        // solhint-disable-next-line reason-string
         require(execute(to, value, data, operation, gasleft()));
         uint256 requiredGas = startGas - gasleft();
         // Convert response to string and return via error message

@@ -10,7 +10,8 @@ import { getKrAssetConfig } from "./krassets";
 /*                                  GENERAL                                   */
 /* -------------------------------------------------------------------------- */
 
-export const wrapContractWithSigner = (contract: any, signer: Signer) =>
+export const wrapContractWithSigner = <T>(contract: T, signer: Signer) =>
+    // @ts-expect-error
     WrapperBuilder.wrap(contract.connect(signer)).usingSimpleNumericMock({
         mockSignersCount: 1,
         timestampMilliseconds: Date.now(),
@@ -21,7 +22,7 @@ export const wrapContractWithSigner = (contract: any, signer: Signer) =>
             { dataFeedId: "ETH", value: 0 },
             { dataFeedId: "BTC", value: 0 },
         ],
-    });
+    }) as T;
 
 export const getHealthFactor = async (user: SignerWithAddress) => {
     const accountKrAssetValue = fromBig(await hre.Diamond.getAccountKrAssetValue(user.address), 8);

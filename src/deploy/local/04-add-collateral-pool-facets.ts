@@ -1,4 +1,4 @@
-import { collateralPoolFacets, getCollateralPoolInitializer } from "@deploy-config/shared";
+import { scdpFacets, getSCDPInitializer } from "@deploy-config/shared";
 import { getLogger } from "@kreskolabs/lib";
 import { addFacets } from "@scripts/add-facets";
 import type { DeployFunction } from "hardhat-deploy/types";
@@ -11,10 +11,10 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         throw new Error("Diamond not deployed");
     }
 
-    const initializer = await getCollateralPoolInitializer(hre);
+    const initializer = await getSCDPInitializer(hre);
 
     await addFacets({
-        names: collateralPoolFacets,
+        names: scdpFacets,
         initializerName: initializer.name,
         initializerArgs: initializer.args,
     });

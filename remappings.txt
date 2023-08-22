@@ -11,4 +11,3 @@ test/=src/contracts/test/
 kresko-asset/=src/contracts/kresko-asset
 kiss/=src/contracts/kiss
 kresko-helpers/=lib/kresko-foundry-helpers/src/
-scripts/=src/contracts/utils/scripts/

@@ -128,7 +128,7 @@ contract SCDPStateFacet is ISCDPStateFacet {
     }
 
     /// @inheritdoc ISCDPStateFacet
-    function getPoolDebt(address _kreskoAsset) external view returns (uint256) {
+    function getPoolKrAssetDebt(address _kreskoAsset) external view returns (uint256) {
         return ms().getKreskoAssetAmount(_kreskoAsset, scdp().debt[_kreskoAsset]);
     }
 
@@ -138,7 +138,7 @@ contract SCDPStateFacet is ISCDPStateFacet {
     }
 
     /// @inheritdoc ISCDPStateFacet
-    function getPoolDebtValue(address _kreskoAsset, bool _ignoreFactors) external view returns (uint256) {
+    function getPoolKrAssetDebtValue(address _kreskoAsset, bool _ignoreFactors) external view returns (uint256) {
         return
             ms().getKrAssetValue(
                 _kreskoAsset,

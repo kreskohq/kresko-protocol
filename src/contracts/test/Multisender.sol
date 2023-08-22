@@ -2,7 +2,7 @@
 pragma solidity >=0.8.19;
 
 import {MockERC20Restricted} from "./MockERC20.sol";
-import {WETH} from "./WETH.sol";
+import {MockWETH} from "test/MockWETH.sol";
 
 /* solhint-disable no-empty-blocks */
 
@@ -16,7 +16,7 @@ contract Multisender {
     mapping(address => bool) public funded;
 
     Token[] internal tokens;
-    WETH internal weth;
+    MockWETH internal weth;
     address internal kiss;
 
     event Funded(address indexed account);
@@ -27,7 +27,7 @@ contract Multisender {
         for (uint256 i; i < _tokens.length; i++) {
             tokens.push(_tokens[i]);
         }
-        weth = WETH(_weth);
+        weth = MockWETH(_weth);
         kiss = _kiss;
     }
 

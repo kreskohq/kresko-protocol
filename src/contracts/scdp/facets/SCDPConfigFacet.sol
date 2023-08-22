@@ -18,21 +18,21 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DiamondModifiers, MinterModifiers 
     using Arrays for address[];
 
     /// @inheritdoc ISCDPConfigFacet
-    function initialize(CollateralPoolConfig memory _config) external onlyOwner {
-        require(_config.mcr >= Constants.MIN_COLLATERALIZATION_RATIO, "mcr-too-low");
-        require(_config.lt >= Constants.MIN_COLLATERALIZATION_RATIO, "lt-too-low");
-        require(_config.lt <= _config.mcr, "lt-too-high");
-        require(_config.swapFeeRecipient != address(0), "invalid-fee-receiver");
+    function initialize(SCDPInitArgs memory _init) external onlyOwner {
+        require(_init.mcr >= Constants.MIN_COLLATERALIZATION_RATIO, "mcr-too-low");
+        require(_init.lt >= Constants.MIN_COLLATERALIZATION_RATIO, "lt-too-low");
+        require(_init.lt <= _init.mcr, "lt-too-high");
+        require(_init.swapFeeRecipient != address(0), "invalid-fee-receiver");
 
-        scdp().minimumCollateralizationRatio = _config.mcr;
-        scdp().liquidationThreshold = _config.lt;
-        scdp().swapFeeRecipient = _config.swapFeeRecipient;
+        scdp().minimumCollateralizationRatio = _init.mcr;
+        scdp().liquidationThreshold = _init.lt;
+        scdp().swapFeeRecipient = _init.swapFeeRecipient;
     }
 
     /// @inheritdoc ISCDPConfigFacet
-    function getCollateralPoolConfig() external view override returns (CollateralPoolConfig memory) {
+    function getSCDPConfig() external view override returns (SCDPInitArgs memory) {
         return
-            CollateralPoolConfig({
+            SCDPInitArgs({
                 swapFeeRecipient: scdp().swapFeeRecipient,
                 mcr: scdp().minimumCollateralizationRatio,
                 lt: scdp().liquidationThreshold
@@ -40,13 +40,13 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DiamondModifiers, MinterModifiers 
     }
 
     /// @inheritdoc ISCDPConfigFacet
-    function setPoolMinimumCollateralizationRatio(uint256 _mcr) external onlyRole(Role.ADMIN) {
+    function setSCDPMCR(uint256 _mcr) external onlyRole(Role.ADMIN) {
         require(_mcr >= Constants.MIN_COLLATERALIZATION_RATIO, "mcr-too-low");
         scdp().minimumCollateralizationRatio = _mcr;
     }
 
     /// @inheritdoc ISCDPConfigFacet
-    function setPoolLiquidationThreshold(uint256 _lt) external onlyRole(Role.ADMIN) {
+    function setSCDPLT(uint256 _lt) external onlyRole(Role.ADMIN) {
         require(_lt >= Constants.MIN_COLLATERALIZATION_RATIO, "mcr-too-low");
         require(_lt <= scdp().minimumCollateralizationRatio, "lt-too-high");
         scdp().liquidationThreshold = _lt;
@@ -208,7 +208,7 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DiamondModifiers, MinterModifiers 
     /*                                    Swap                                    */
     /* -------------------------------------------------------------------------- */
     /// @inheritdoc ISCDPConfigFacet
-    function setFees(
+    function setSwapFee(
         address _krAsset,
         uint256 _openFee,
         uint256 _closeFee,

@@ -1,13 +1,12 @@
 import { smock } from "@defi-wonderland/smock";
-import { toBig } from "@kreskolabs/lib";
-import { ERC20Upgradeable__factory, FluxPriceFeed__factory, MockAggregatorV3__factory } from "types/typechain";
-import { InputArgs, TestCollateralAssetArgs, TestCollateralAssetUpdate, defaultCollateralArgs } from "../mocks";
-import { envCheck } from "@utils/general";
-import { CollateralAssetStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
-import { getMockOraclesFor, setPrice } from "./oracle";
 import { redstoneMap } from "@deploy-config/arbitrumGoerli";
-import { expect } from "chai";
+import { toBig } from "@kreskolabs/lib";
+import { envCheck } from "@utils/general";
+import { ERC20Upgradeable__factory, MockAggregatorV3__factory } from "types/typechain";
+import { CollateralAssetStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
+import { InputArgs, TestCollateralAssetArgs, TestCollateralAssetUpdate, defaultCollateralArgs } from "../mocks";
 import { wrapContractWithSigner } from "./general";
+import { getMockOracles, setPrice } from "./oracle";
 
 envCheck();
 
@@ -40,7 +39,7 @@ export const addMockCollateralAsset = async (
 ): Promise<TestCollateral> => {
     const { deployer } = await hre.ethers.getNamedSigners();
     const { name, price, factor, decimals } = args;
-    const [CLFeed, FluxFeed] = await getMockOraclesFor(name, price);
+    const [MockFeed, FakeFeed] = await getMockOracles(price);
 
     const TestCollateral = await (await smock.mock<ERC20Upgradeable__factory>("ERC20Upgradeable")).deploy();
     await TestCollateral.setVariable("_initialized", 0);
@@ -57,24 +56,24 @@ export const addMockCollateralAsset = async (
             hre.ethers.constants.AddressZero,
             cFactor,
             toBig(process.env.LIQUIDATION_INCENTIVE!),
-            CLFeed.address,
+            MockFeed.address,
         ),
     );
     const mocks = {
         contract: TestCollateral,
-        clFeed: CLFeed,
-        fluxFeed: FluxFeed,
+        mockFeed: MockFeed,
+        fakeFeed: FakeFeed,
     };
     const asset: TestCollateral = {
         address: TestCollateral.address,
         contract: ERC20Upgradeable__factory.connect(TestCollateral.address, deployer),
         kresko: () => hre.Diamond.collateralAsset(TestCollateral.address),
-        priceFeed: MockAggregatorV3__factory.connect(CLFeed.address, deployer),
+        priceFeed: MockAggregatorV3__factory.connect(MockFeed.address, deployer),
         deployArgs: args,
         anchor: {} as any,
         mocks,
         setPrice: price => setPrice(mocks, price),
-        getPrice: async () => (await CLFeed.latestRoundData())[1],
+        getPrice: async () => (await MockFeed.latestRoundData())[1],
         setBalance: async (user, amount) => {
             const totalSupply = await TestCollateral.totalSupply();
             await mocks.contract.setVariable("_totalSupply", totalSupply.add(amount));
@@ -106,7 +105,7 @@ export const updateCollateralAsset = async (address: string, args: TestCollatera
             hre.ethers.constants.AddressZero,
             toBig(args.factor),
             toBig(process.env.LIQUIDATION_INCENTIVE!),
-            args.oracle || collateral!.mocks!.clFeed.address,
+            args.oracle || collateral!.mocks!.mockFeed.address,
         ),
     );
     // @ts-expect-error

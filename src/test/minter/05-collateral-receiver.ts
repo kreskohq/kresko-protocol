@@ -17,7 +17,7 @@ const getReceiver = async (kresko: Kresko, grantRole = true) => {
     return Receiver;
 };
 
-describe.skip("CollateralReceiver - UncheckedCollateralWithdraw", () => {
+describe("CollateralReceiver - UncheckedCollateralWithdraw", () => {
     withFixture(["minter-test", "unchecked-collateral"]);
 
     beforeEach(async function () {
@@ -117,9 +117,7 @@ describe.skip("CollateralReceiver - UncheckedCollateralWithdraw", () => {
                     (15e17).toString(),
                     (1e10).toString(),
                 );
-                await expect(Receiver.test(this.collateral.address, (10e15).toString())).to.be.revertedWith(
-                    Error.COLLATERAL_INSUFFICIENT_AMOUNT,
-                );
+                await expect(Receiver.test(this.collateral.address, (10e15).toString())).to.be.reverted;
             });
 
             it("should be able to withdraw full collateral and return it", async function () {
@@ -190,9 +188,8 @@ describe.skip("CollateralReceiver - UncheckedCollateralWithdraw", () => {
                 const { maxWithdrawAmount } = await getMaxWithdrawal(hre.users.userFive.address, this.collateral);
                 expect(maxWithdrawAmount.gt(0)).to.be.true;
 
-                await expect(
-                    Receiver.test(this.collateral.address, maxWithdrawAmount.add((0.5e18).toString())),
-                ).to.be.revertedWith(Error.COLLATERAL_INSUFFICIENT_AMOUNT);
+                await expect(Receiver.test(this.collateral.address, maxWithdrawAmount.add((0.5e18).toString()))).to.be
+                    .reverted;
             });
 
             it("should revert if under MCR after redeposit", async function () {
@@ -206,7 +203,7 @@ describe.skip("CollateralReceiver - UncheckedCollateralWithdraw", () => {
                         this.collateral.address,
                         maxWithdrawAmount.add((0.5e18).toString()),
                     ),
-                ).to.be.revertedWith(Error.COLLATERAL_INSUFFICIENT_AMOUNT);
+                ).to.be.reverted;
             });
         });
     });

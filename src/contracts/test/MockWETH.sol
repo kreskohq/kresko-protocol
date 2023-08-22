@@ -3,7 +3,7 @@ pragma solidity >=0.8.19;
 
 import {WETH9} from "common/WETH9.sol";
 
-contract WETH is WETH9 {
+contract MockWETH is WETH9 {
     mapping(address => bool) public minters;
 
     constructor() {

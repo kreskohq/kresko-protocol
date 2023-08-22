@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity >=0.4.0 <0.8.0;
+pragma solidity ^0.8.0;
 
 import "./BitMath.sol";
 import "./FullMath.sol";
@@ -78,7 +78,7 @@ library UQ {
         uint224 uppero_lowers = uint224(upper_other) * lower_self; // * 2^-112
 
         // so the bit shift does not overflow
-        require(upper <= uint112(-1), "UQ::muluq: upper overflow");
+        require(upper <= type(uint112).max, "UQ::muluq: upper overflow");
 
         // this cannot exceed 256 bits, all values are 224 bits
         uint256 sum = uint256(upper << RESOLUTION) + uppers_lowero + uppero_lowers + (lower >> RESOLUTION);
@@ -95,7 +95,7 @@ library UQ {
         if (self._x == other._x) {
             return uq112x112(uint224(Q112));
         }
-        if (self._x <= uint144(-1)) {
+        if (self._x <= type(uint144).max) {
             uint256 value = (uint256(self._x) << RESOLUTION) / other._x;
             require(value <= type(uint224).max, "UQ::divuq: overflow");
             return uq112x112(uint224(value));
@@ -112,7 +112,7 @@ library UQ {
         require(denominator > 0, "UQ::fraction: division by zero");
         if (numerator == 0) return UQ.uq112x112(0);
 
-        if (numerator <= uint144(-1)) {
+        if (numerator <= type(uint144).max) {
             uint256 result = (numerator << RESOLUTION) / denominator;
             require(result <= type(uint224).max, "UQ::fraction: overflow");
             return uq112x112(uint224(result));
@@ -135,7 +135,7 @@ library UQ {
     // square root of a UQ112x112
     // lossy between 0/1 and 40 bits
     function sqrt(uq112x112 memory self) internal pure returns (uq112x112 memory) {
-        if (self._x <= uint144(-1)) {
+        if (self._x <= type(uint144).max) {
             return uq112x112(uint224(Babylonian.sqrt(uint256(self._x) << 112)));
         }
 

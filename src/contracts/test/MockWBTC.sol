@@ -3,7 +3,7 @@ pragma solidity >=0.8.19;
 
 import {WETH9} from "common/WETH9.sol";
 
-contract WBTC is WETH9 {
+contract MockWBTC is WETH9 {
     mapping(address => bool) public minters;
 
     constructor(string memory _name, string memory _symbol, uint8 _decimals) {

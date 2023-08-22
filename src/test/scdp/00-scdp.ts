@@ -1,11 +1,11 @@
-import { getCollateralPoolInitializer } from "@deploy-config/shared";
+import { getSCDPInitializer } from "@deploy-config/shared";
 import { RAY, getNamedEvent, toBig } from "@kreskolabs/lib";
 import { expect } from "@test/chai";
 import { withFixture, wrapContractWithSigner } from "@utils/test";
 import { addMockCollateralAsset, depositCollateral } from "@utils/test/helpers/collaterals";
 import { addMockKreskoAsset, mintKrAsset } from "@utils/test/helpers/krassets";
 import hre, { ethers } from "hardhat";
-import { ICollateralPoolConfigFacet } from "types/typechain";
+import { ISCDPConfigFacet } from "types/typechain";
 import {
     CollateralPoolLiquidationOccuredEvent,
     PoolCollateralStruct,
@@ -13,12 +13,12 @@ import {
     SwapEvent,
 } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 
-describe.only("Collateral Pool", function () {
+describe("SCDP", function () {
     describe("#Configuration", async () => {
         it("should be initialized with correct params", async () => {
-            const { args } = await getCollateralPoolInitializer(hre);
+            const { args } = await getSCDPInitializer(hre);
 
-            const configuration = await hre.Diamond.getCollateralPoolConfig();
+            const configuration = await hre.Diamond.getSCDPConfig();
             expect(configuration.swapFeeRecipient).to.equal(args.swapFeeRecipient);
             expect(configuration.lt).to.equal(args.lt);
             expect(configuration.mcr).to.equal(args.mcr);
@@ -159,7 +159,7 @@ describe.only("Collateral Pool", function () {
         });
 
         it("should be able to enable and disable swap pairs", async () => {
-            const swapPairsEnabled: ICollateralPoolConfigFacet.PairSetterStruct[] = [
+            const swapPairsEnabled: ISCDPConfigFacet.PairSetterStruct[] = [
                 {
                     assetIn: CollateralAsset.address,
                     assetOut: KreskoAsset.address,
@@ -170,7 +170,7 @@ describe.only("Collateral Pool", function () {
             expect(await hre.Diamond.getPoolIsSwapEnabled(CollateralAsset.address, KreskoAsset.address)).to.equal(true);
             expect(await hre.Diamond.getPoolIsSwapEnabled(KreskoAsset.address, CollateralAsset.address)).to.equal(true);
 
-            const swapPairsDisabled: ICollateralPoolConfigFacet.PairSetterStruct[] = [
+            const swapPairsDisabled: ISCDPConfigFacet.PairSetterStruct[] = [
                 {
                     assetIn: CollateralAsset.address,
                     assetOut: KreskoAsset.address,
@@ -714,8 +714,8 @@ describe.only("Collateral Pool", function () {
             expect(await Kresko.getPoolSwapDeposits(KISS.address)).to.equal(toBig(0.96));
             expect(await Kresko.getPoolDepositsValue(KISS.address, true)).to.equal(toBig(0.96, 8));
 
-            expect(await Kresko.getPoolDebtValue(KreskoAsset2.address, true)).to.equal(toBig(0.96, 8));
-            expect(await Kresko.getPoolDebt(KreskoAsset2.address)).to.equal(toBig(0.0096));
+            expect(await Kresko.getPoolKrAssetDebtValue(KreskoAsset2.address, true)).to.equal(toBig(0.96, 8));
+            expect(await Kresko.getPoolKrAssetDebt(KreskoAsset2.address)).to.equal(toBig(0.0096));
 
             const global = await hre.Diamond.getPoolStats(true);
             expect(global.collateralValue).to.equal(toBig(10000.96, 8));
@@ -757,8 +757,8 @@ describe.only("Collateral Pool", function () {
             expect(await Kresko.getPoolSwapDeposits(KISS.address)).to.equal(0);
             expect(await Kresko.getPoolDepositsValue(KISS.address, true)).to.equal(0);
 
-            expect(await Kresko.getPoolDebtValue(KreskoAsset2.address, true)).to.equal(0);
-            expect(await Kresko.getPoolDebt(KreskoAsset2.address)).to.equal(0);
+            expect(await Kresko.getPoolKrAssetDebtValue(KreskoAsset2.address, true)).to.equal(0);
+            expect(await Kresko.getPoolKrAssetDebt(KreskoAsset2.address)).to.equal(0);
 
             const global = await hre.Diamond.getPoolStats(true);
             // back to starting point
@@ -799,8 +799,8 @@ describe.only("Collateral Pool", function () {
             expect(await Kresko.getPoolSwapDeposits(KISS.address)).to.equal(expectedSecondFeeKISS);
             expect(await Kresko.getPoolDepositsValue(KISS.address, true)).to.equal(expectedSecondFeeValue);
 
-            expect(await Kresko.getPoolDebtValue(KreskoAsset2.address, true)).to.equal(expectedSecondFeeValue);
-            expect(await Kresko.getPoolDebt(KreskoAsset2.address)).to.equal(
+            expect(await Kresko.getPoolKrAssetDebtValue(KreskoAsset2.address, true)).to.equal(expectedSecondFeeValue);
+            expect(await Kresko.getPoolKrAssetDebt(KreskoAsset2.address)).to.equal(
                 expectedSecondFeeKISS.wadDiv(toBig(KreskoAsset2Price)),
             );
 
@@ -856,11 +856,11 @@ describe.only("Collateral Pool", function () {
             expect(await Kresko.getPoolSwapDeposits(KISS.address)).to.equal(0);
             expect(await Kresko.getPoolDepositsValue(KISS.address, true)).to.equal(0);
             // KrAsset debt is cleared
-            expect(await Kresko.getPoolDebtValue(KreskoAsset2.address, true)).to.equal(0);
-            expect(await Kresko.getPoolDebt(KreskoAsset2.address)).to.equal(0);
+            expect(await Kresko.getPoolKrAssetDebtValue(KreskoAsset2.address, true)).to.equal(0);
+            expect(await Kresko.getPoolKrAssetDebt(KreskoAsset2.address)).to.equal(0);
             // KISS debt is issued
-            expect(await Kresko.getPoolDebtValue(KISS.address, true)).to.equal(expectedDebtValueKiss);
-            expect(await Kresko.getPoolDebt(KISS.address)).to.equal(expectedDebtKiss);
+            expect(await Kresko.getPoolKrAssetDebtValue(KISS.address, true)).to.equal(expectedDebtValueKiss);
+            expect(await Kresko.getPoolKrAssetDebt(KISS.address)).to.equal(expectedDebtKiss);
 
             // krAsset collateral deposits added after debt cleared in swap
             expect(await Kresko.getPoolSwapDeposits(KreskoAsset2.address)).to.equal(expectedCollateralKrAsset);
@@ -1014,9 +1014,7 @@ describe.only("Collateral Pool", function () {
             CollateralAsset.setPrice(collateralPrice / 1000);
             CollateralAsset8Dec.setPrice(collateralPrice / 1000);
 
-            expect((await hre.Diamond.getPoolStats(true)).cr).to.be.lt(
-                (await hre.Diamond.getCollateralPoolConfig()).lt,
-            );
+            expect((await hre.Diamond.getPoolStats(true)).cr).to.be.lt((await hre.Diamond.getSCDPConfig()).lt);
             expect(await hre.Diamond.poolIsLiquidatable()).to.be.true;
         });
         it("should allow liquidating the underwater pool", async () => {
@@ -1041,7 +1039,7 @@ describe.only("Collateral Pool", function () {
 
             const tx = await KreskoLiquidator.poolLiquidate(KreskoAsset2.address, repayAmount, CollateralAsset.address);
 
-            expect((await hre.Diamond.getPoolStats(true)).cr).to.gt((await hre.Diamond.getCollateralPoolConfig()).lt);
+            expect((await hre.Diamond.getPoolStats(true)).cr).to.gt((await hre.Diamond.getSCDPConfig()).lt);
 
             expect(await KreskoLiquidator.poolIsLiquidatable()).to.equal(false);
             await expect(
@@ -1077,7 +1075,7 @@ describe.only("Collateral Pool", function () {
                 CollateralAsset.address,
                 depositAmount18Dec.mul(10),
             );
-            expect((await hre.Diamond.getPoolStats(true)).cr).to.gt((await hre.Diamond.getCollateralPoolConfig()).mcr);
+            expect((await hre.Diamond.getPoolStats(true)).cr).to.gt((await hre.Diamond.getSCDPConfig()).mcr);
             await expect(
                 wrapContractWithSigner(hre.Diamond, depositor).poolWithdraw(
                     depositor.address,
@@ -1216,7 +1214,7 @@ describe.only("Collateral Pool", function () {
     describe("#Error", () => {
         it("should revert depositing unsupported tokens", async () => {
             const [UnsupportedToken] = await hre.deploy("MockERC20", {
-                args: ["UnsupportedToken", "UnsupportedToken", 18, toBig(1_000_000)],
+                args: ["UnsupportedToken", "UnsupportedToken", 18, toBig(1)],
             });
             await UnsupportedToken.approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
             const { deployer } = await hre.getNamedAccounts();

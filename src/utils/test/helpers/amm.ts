@@ -139,8 +139,3 @@ export const swap = async (args: SwapArgs) => {
             +(await getBlockTimestamp()) + 1000,
         );
 };
-
-export const getTWAPUpdaterFor = (pair: string) => async () => {
-    await time.increase(60 * 60);
-    await hre.UniV2Oracle.update(pair);
-};

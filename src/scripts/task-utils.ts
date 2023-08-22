@@ -27,8 +27,6 @@ export const getDeployedContext = async () => {
     // get common contracts
     const Kresko = await hre.getContractOrFork("Kresko");
     const KISS = await hre.getContractOrFork("KISS");
-    const FluxPriceFactory = await hre.getContractOrFork("FluxPriceFeedFactory");
-    const UnsiwapV2Oracle = await hre.getContractOrFork("UniswapV2Oracle");
 
     // log the hre context
     await logContext(`kresko: ${Kresko.address}`, `randomAccount: ${randomAccount.address}`);
@@ -39,8 +37,6 @@ export const getDeployedContext = async () => {
         randomAccount,
         Kresko,
         KISS,
-        FluxPriceFactory,
-        UnsiwapV2Oracle,
     };
 };
 

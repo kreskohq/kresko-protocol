@@ -1,4 +1,3 @@
-import { smock } from "@defi-wonderland/smock";
 import { fromBig, toBig } from "@kreskolabs/lib";
 import { expect } from "@test/chai";
 import {
@@ -10,7 +9,7 @@ import {
 } from "@utils/test";
 import { addMockCollateralAsset } from "@utils/test/helpers/collaterals";
 import { addMockKreskoAsset, getKrAssetConfig } from "@utils/test/helpers/krassets";
-import { getMockOraclesFor } from "@utils/test/helpers/oracle";
+import { getMockOracles } from "@utils/test/helpers/oracle";
 
 describe("Minter - Configuration", () => {
     withFixture(["minter-init"]);
@@ -62,17 +61,12 @@ describe("Minter - Configuration", () => {
             expect(fromBig(values.openFee)).to.equal(defaultKrAssetArgs.openFee);
         });
 
-        it("can update AMM oracle", async function () {
-            const ammOracle = await smock.fake<TC["UniswapV2Oracle"]>("UniswapV2Oracle");
-            await hre.Diamond.updateAMMOracle(ammOracle.address);
-            expect(await hre.Diamond.ammOracle()).to.equal(ammOracle.address);
-        });
-
         it("can update external oracle decimals", async function () {
             const decimals = 8;
             await hre.Diamond.updateExtOracleDecimals(decimals);
             expect(await hre.Diamond.extOracleDecimals()).to.equal(decimals);
         });
+
         it("can update max liquidatable multiplier", async function () {
             const currentMLM = await hre.Diamond.maxLiquidationMultiplier();
             const newMLM = toBig(1.0002);
@@ -131,7 +125,7 @@ describe("Minter - Configuration", () => {
                 openFee: toBig(0.02),
             };
 
-            const [CLFeed] = await getMockOraclesFor(await contract.name(), update.price);
+            const [MockFeed] = await getMockOracles(update.price);
 
             await wrapContractWithSigner(hre.Diamond, hre.users.deployer).updateKreskoAsset(
                 contract.address,
@@ -139,7 +133,7 @@ describe("Minter - Configuration", () => {
                     contract,
                     anchor!.address,
                     update.factor,
-                    CLFeed.address,
+                    MockFeed.address,
                     toBig(update.supplyLimit),
                     update.closeFee,
                     update.openFee,
@@ -147,7 +141,7 @@ describe("Minter - Configuration", () => {
             );
 
             const newValues = await hre.Diamond.kreskoAsset(contract.address);
-            const updatedOracleAnswer = fromBig((await CLFeed.latestRoundData())[1], 8);
+            const updatedOracleAnswer = fromBig((await MockFeed.latestRoundData())[1], 8);
             const newKreskoAnswer = fromBig(await hre.Diamond.getKrAssetValue(contract.address, toBig(1), true), 8);
 
             expect(newValues.exists).to.equal(true);

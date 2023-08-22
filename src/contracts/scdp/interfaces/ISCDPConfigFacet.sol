@@ -4,12 +4,12 @@ import {PoolKrAsset, PoolCollateral} from "../SCDPStorage.sol";
 
 interface ISCDPConfigFacet {
     /**
-     * @notice Collateral pool configuration.
+     * @notice SCDP initializer configuration.
      * @param _swapFeeRecipient The swap fee recipient.
      * @param _mcr The minimum collateralization ratio.
      * @param _lt The liquidation threshold.
      */
-    struct CollateralPoolConfig {
+    struct SCDPInitArgs {
         address swapFeeRecipient;
         uint256 mcr;
         uint256 lt;
@@ -39,20 +39,20 @@ interface ISCDPConfigFacet {
     }
 
     /**
-     * @notice Initialize the collateral pool.
+     * @notice Initialize SCDP.
      * Callable by diamond owner only.
-     * @param _config The configuration for the pool.
+     * @param _init The initial configuration.
      */
-    function initialize(CollateralPoolConfig memory _config) external;
+    function initialize(SCDPInitArgs memory _init) external;
 
     /// @notice Get the pool configuration.
-    function getCollateralPoolConfig() external view returns (CollateralPoolConfig memory);
+    function getSCDPConfig() external view returns (SCDPInitArgs memory);
 
     /// @notice Set the pool minimum collateralization ratio.
-    function setPoolMinimumCollateralizationRatio(uint256 _mcr) external;
+    function setSCDPMCR(uint256 _mcr) external;
 
     /// @notice Set the pool liquidation threshold.
-    function setPoolLiquidationThreshold(uint256 _lt) external;
+    function setSCDPLT(uint256 _lt) external;
 
     /**
      * @notice Enable kresko assets in the pool.
@@ -144,5 +144,5 @@ interface ISCDPConfigFacet {
      * @param _closeFee The new close fee.
      * @param _protocolFee The protocol fee share.
      */
-    function setFees(address _krAsset, uint256 _openFee, uint256 _closeFee, uint256 _protocolFee) external;
+    function setSwapFee(address _krAsset, uint256 _openFee, uint256 _closeFee, uint256 _protocolFee) external;
 }

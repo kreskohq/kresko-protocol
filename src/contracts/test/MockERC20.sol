@@ -44,7 +44,14 @@ contract MockERC20Restricted is ERC20 {
 }
 
 contract MockERC20 is ERC20 {
-    constructor(string memory name_, string memory symbol_, uint8 decimals_) ERC20(name_, symbol_, decimals_) {}
+    constructor(
+        string memory name_,
+        string memory symbol_,
+        uint8 decimals_,
+        uint256 mintAmount
+    ) ERC20(name_, symbol_, decimals_) {
+        _mint(msg.sender, mintAmount);
+    }
 
     function mint(address to, uint256 amount) external {
         _mint(to, amount);
@@ -56,7 +63,7 @@ contract MockERC20 is ERC20 {
 }
 
 contract WETH is MockERC20 {
-    constructor() MockERC20("WETH", "WETH", 18) {}
+    constructor() MockERC20("WETH", "WETH", 18, 0) {}
 
     function deposit() external payable {
         _mint(msg.sender, msg.value);

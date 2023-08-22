@@ -8,7 +8,6 @@ dist/
 bin/
 lib/
 build/
-forge/
 node_modules/
 temp/
 types/typechain/

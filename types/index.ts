@@ -1,8 +1,7 @@
 import { GetContractTypes } from "@kreskolabs/configs";
 import { Address } from "hardhat-deploy/types";
 import type * as Contracts from "./typechain";
-import { ICollateralPoolConfigFacet } from "./typechain";
-import { PositionsInitializerStruct } from "./typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Positions";
+import { ISCDPConfigFacet } from "./typechain/src/contracts/scdp/interfaces";
 
 export type Split<S extends string, D extends string> = string extends S
     ? string[]
@@ -49,9 +48,7 @@ export type ContractExports =
     | Contracts.UniswapV2Router02
     | Contracts.KreskoAsset
     | Contracts.KreskoAssetAnchor
-    | Contracts.FluxPriceFeedFactory
-    | Contracts.FluxPriceFeed
-    | Contracts.UniswapV2Oracle
+    | Contracts.AggregatorV3Interface
     | Contracts.ERC20;
 
 // type x = ContractTypes["IKresko"];
@@ -98,13 +95,9 @@ export type MinterInitializer<A> = {
     name: "ConfigurationFacet";
     args: A;
 };
-export type CollateraPoolInitializer = {
-    name: "CollateralPoolConfigFacet";
-    args: ICollateralPoolConfigFacet.CollateralPoolConfigStruct;
-};
-export type PositionsInitializer = {
-    name: "PositionsConfigFacet";
-    args: PositionsInitializerStruct;
+export type SCDPInitializer = {
+    name: "SCDPConfigFacet";
+    args: ISCDPConfigFacet.SCDPInitArgsStruct;
 };
 
 export type GnosisSafeDeployment = {

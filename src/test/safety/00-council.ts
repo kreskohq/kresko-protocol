@@ -7,7 +7,7 @@ import { executeContractCallWithSigners } from "@utils/gnosis/utils/execution";
 import { withFixture } from "@utils/test";
 import { expect } from "chai";
 import hre from "hardhat";
-import { SafetyStateChangeEventObject } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
+import { SafetyStateChangeEventObject } from "types/typechain/src/contracts/common/Events.sol/MinterEvent";
 
 describe("Safety Council", () => {
     withFixture(["minter-test"]);

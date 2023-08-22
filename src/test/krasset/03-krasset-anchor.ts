@@ -1,7 +1,7 @@
 import { toBig } from "@kreskolabs/lib";
 import { expect } from "@test/chai";
 import { withFixture, Role, defaultMintAmount, defaultKrAssetArgs } from "@utils/test";
-import { KreskoAssetAnchor } from "types/typechain/src/contracts/kreskoasset/KreskoAssetAnchor";
+import { KreskoAssetAnchor } from "types/typechain/src/contracts/kresko-asset/KreskoAssetAnchor";
 
 describe("KreskoAssetAnchor", () => {
     let KreskoAsset: KreskoAsset;

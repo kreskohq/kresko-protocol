@@ -2,7 +2,6 @@
 pragma solidity >=0.8.19;
 
 import {MockERC20Restricted} from "./MockERC20.sol";
-import {WETH} from "./WETH.sol";
 import {IAccountStateFacet} from "minter/interfaces/IAccountStateFacet.sol";
 
 /* solhint-disable no-empty-blocks */

@@ -14,7 +14,7 @@ import { Error } from "@utils/test/errors";
 import { addMockCollateralAsset, depositCollateral, getCollateralConfig } from "@utils/test/helpers/collaterals";
 import { addMockKreskoAsset, mintKrAsset } from "@utils/test/helpers/krassets";
 import { getExpectedMaxLiq, getCR, liquidate, getLiqAmount } from "@utils/test/helpers/liquidations";
-import { LiquidationOccurredEvent } from "types/typechain/src/contracts/libs/Events.sol/MinterEvent";
+import { LiquidationOccurredEvent } from "types/typechain/src/contracts/common/Events.sol/MinterEvent";
 import { BigNumber } from "ethers";
 
 const INTEREST_RATE_DELTA = 0.01;

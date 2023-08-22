@@ -1,9 +1,6 @@
-import { assets, testnetConfigs } from "@deploy-config/arbitrumGoerli";
-import type { DeployFunction } from "hardhat-deploy/types";
 import { getLogger, toBig } from "@kreskolabs/lib";
+import type { DeployFunction } from "hardhat-deploy/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
-import { TASK_DEPLOY_KISS, TASK_WHITELIST_COLLATERAL, TASK_WHITELIST_KRASSET } from "@tasks";
-import { getOracle } from "@utils/test/helpers/oracle";
 
 const logger = getLogger("create-kiss");
 

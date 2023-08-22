@@ -5,8 +5,8 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
-if [ -e ./out/$@.sol/$@.json ]; then
-    cast abi-encode "f(bytes4[])" "$(jq -r '.methodIdentifiers | join(",") | "[" + . + "]"' ./out/$@.sol/$@.json)"
+if [ -e ./artifacts/foundry/$@.sol/$@.json ]; then
+    cast abi-encode "f(bytes4[])" "$(jq -r '.methodIdentifiers | join(",") | "[" + . + "]"' ./artifacts/foundry/$@.sol/$@.json)"
 else
     echo "Artifact not found" >&2
     exit 1

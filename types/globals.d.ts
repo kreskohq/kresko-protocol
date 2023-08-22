@@ -9,7 +9,7 @@ import type { BytesLike } from "ethers";
 import { DeployResult } from "hardhat-deploy/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ContractTypes } from "types";
-import { KreskoAssetAnchor } from "types/typechain/src/contracts/kreskoasset";
+import { KreskoAssetAnchor } from "types/typechain/src/contracts/kresko-asset";
 import type * as Contracts from "./typechain";
 import { CollateralAssetStruct, KrAssetStructOutput } from "./typechain/src/contracts/minter/facets/StateFacet";
 declare global {
@@ -28,8 +28,8 @@ declare global {
         kresko: () => Promise<KrAssetStructOutput>;
         mocks: {
             contract: MockContract<KreskoAsset>;
-            clFeed: MockContract<Contracts.MockAggregatorV3>;
-            fluxFeed: FakeContract<FluxPriceFeed>;
+            mockFeed: MockContract<Contracts.MockAggregatorV3>;
+            fakeFeed: FakeContract<Contracts.MockAggregatorV3>;
             anchor?: MockContract<KreskoAssetAnchor>;
         };
         anchor: KreskoAssetAnchor;
@@ -37,8 +37,6 @@ declare global {
         setBalance: (user: SignerWithAddress, balance: BigNumber) => Promise<void>;
         setPrice: (price: number) => void;
         getPrice: () => Promise<BigNumber>;
-        setMarketOpen: (marketOpen: boolean) => void;
-        getMarketOpen: () => Promise<boolean>;
         update: (update: TestKreskoAssetUpdate) => Promise<TestKrAsset>;
     };
     type TestCollateral = {
@@ -49,9 +47,9 @@ declare global {
         contract: ERC20Upgradeable;
         kresko: () => Promise<CollateralAssetStruct>;
         mocks?: {
-            contract: MockContract<ERC20Upgradeable>;
-            clFeed: MockContract<Contracts.MockAggregatorV3>;
-            fluxFeed: FakeContract<FluxPriceFeed>;
+            contract: MockContract<KreskoAsset | Contracts.ERC20Upgradeable>;
+            mockFeed: MockContract<Contracts.MockAggregatorV3>;
+            fakeFeed: FakeContract<Contracts.MockAggregatorV3>;
             anchor?: MockContract<KreskoAssetAnchor>;
         };
         priceFeed: Contracts.MockAggregatorV3;
@@ -70,7 +68,6 @@ declare global {
     /*                                   Oracles                                  */
     /* -------------------------------------------------------------------------- */
     type SequencerUptimeFeed = Contracts.MockSequencerUptimeFeed;
-    type FluxPriceFeed = TC["FluxPriceFeed"];
     type FluxPriceFeedFactory = TC["FluxPriceFeedFactory"];
     type UniV2Router = Contracts.UniswapV2Router02;
     type UniV2Factory = Contracts.UniswapV2Factory;
@@ -80,6 +77,7 @@ declare global {
 
     type Contract = import("ethers").Contract;
     type GnosisSafeL2 = TC["GnosisSafeL2"];
+
     type KreskoAsset = TC["KreskoAsset"];
     type KrStaking = TC["KrStaking"];
     type WETH9 = TC["WETH9"];
