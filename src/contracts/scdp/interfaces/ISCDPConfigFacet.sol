@@ -13,6 +13,7 @@ interface ISCDPConfigFacet {
         address swapFeeRecipient;
         uint256 mcr;
         uint256 lt;
+        address sdi;
     }
     // Emitted when a swap pair is disabled / enabled.
     event PairSet(address indexed assetIn, address indexed assetOut, bool enabled);
@@ -53,6 +54,9 @@ interface ISCDPConfigFacet {
 
     /// @notice Set the pool liquidation threshold.
     function setSCDPLT(uint256 _lt) external;
+
+    /// @notice Set the debt index contract
+    function setSDI(address _newSDI) external;
 
     /**
      * @notice Enable kresko assets in the pool.

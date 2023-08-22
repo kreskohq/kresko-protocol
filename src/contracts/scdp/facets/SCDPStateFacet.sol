@@ -140,6 +140,11 @@ contract SCDPStateFacet is ISCDPStateFacet {
     }
 
     /// @inheritdoc ISCDPStateFacet
+    function getPoolCollateralValue(bool _ignoreFactors) external view returns (uint256) {
+        return scdp().getTotalPoolDepositValue(_ignoreFactors);
+    }
+
+    /// @inheritdoc ISCDPStateFacet
     function getPoolKrAssetDebtValue(address _kreskoAsset, bool _ignoreFactors) external view returns (uint256) {
         return
             ms().getKrAssetValue(

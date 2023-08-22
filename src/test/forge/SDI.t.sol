@@ -1,4 +1,103 @@
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
+
+import {console} from "forge-std/Test.sol";
+import {IERC20Permit} from "common/IERC20Permit.sol";
+import {IKresko} from "common/IKresko.sol";
+import {LibTest} from "kresko-helpers/utils/LibTest.sol";
+import {TestBase} from "kresko-helpers/utils/TestBase.sol";
+import {AggregatorV3Interface} from "common/AggregatorV3Interface.sol";
+import {SDI, Asset} from "scdp/SDI/SDI.sol";
+import {MockOracle} from "test/MockOracle.sol";
+import {MockERC20, WETH} from "test/MockERC20.sol";
+import {KreskoDeployer} from "./utils/KreskoDeployer.sol";
+import {DiamondHelper} from "./utils/DiamondHelper.sol";
+import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
+
+contract SDITest is TestBase("MNEMONIC_TESTNET"), KreskoDeployer {
+    IKresko internal kresko;
+    SDI sdi;
+
+    using LibTest for *;
+    address internal admin = address(0xABABAB);
+
+    MockERC20 internal usdc;
+    KreskoAsset internal krETH;
+    KreskoAsset internal krJPY;
+
+    MockOracle internal usdcOracle;
+    MockOracle internal ethOracle;
+    MockOracle internal jpyOracle;
+
+    function setUp() public users(address(11), address(22), address(33)) {
+        (kresko, sdi) = deployDiamond(admin);
+        (usdc, usdcOracle) = deployAndWhitelistCollateral("USDC", 18, address(kresko), 1e8);
+        (krETH, , ethOracle) = deployAndWhitelistKrAsset("krETH", admin, address(kresko), 2000e8);
+        (krJPY, , jpyOracle) = deployAndWhitelistKrAsset("krJPY", admin, address(kresko), 0.01e8);
+        enableSCDPCollateral(kresko, address(usdc));
+        enableSCDPKrAsset(kresko, address(krETH));
+        enableSCDPKrAsset(kresko, address(krJPY));
+        enableSwapBothWays(kresko, address(usdc), address(krETH), true);
+        enableSwapBothWays(kresko, address(krJPY), address(krETH), true);
+        enableSwapBothWays(kresko, address(krJPY), address(usdc), true);
+        addSDIAsset(
+            sdi,
+            address(kresko),
+            Asset({
+                token: IERC20Permit(address(usdc)),
+                oracle: AggregatorV3Interface(address(usdcOracle)),
+                maxDeposits: type(uint256).max,
+                depositFee: 0,
+                withdrawFee: 0,
+                enabled: true
+            })
+        );
+        _approvals(user0);
+        _approvals(user1);
+        _approvals(user2);
+    }
+
+    function testSetup() public {
+        sdi.effectiveDebt.equals(0, "debt should be 0");
+        sdi.coverAsset(address(usdc)).enabled.equals(true);
+    }
+
+    function testDeposit() public {
+        uint256 amount = 1000e18;
+        depositCollateral(user0, address(usdc), amount);
+
+        sdi.totalSupply.equals(0, "total supply should be 0");
+        usdc.balanceOf(address(kresko)).equals(amount);
+
+        // [TODO]: continue working here, need to get redstone working with forge
+        kresko.getPoolCollateralValue(true).equals(amount);
+    }
+
+    function testWithdraw() public {
+        depositCollateral(user0, address(usdc), 1000e18);
+        sdi.totalSupply.equals(0, "total supply should be 0");
+    }
+
+    /* -------------------------------------------------------------------------- */
+    /*                                   helpers                                  */
+    /* -------------------------------------------------------------------------- */
+
+    function depositCollateral(address user, address asset, uint256 amount) internal prankAddr(user) {
+        MockERC20(asset).mint(user, amount);
+        kresko.poolDeposit(user, asset, amount);
+    }
+
+    function swap(address user, address assetIn, uint256 amount, address assetOut) internal prankAddr(user) {
+        kresko.swap(user, assetIn, assetOut, amount, 0);
+    }
+
+    function _approvals(address user) internal prankAddr(user) {
+        usdc.approve(address(kresko), type(uint256).max);
+        krETH.approve(address(kresko), type(uint256).max);
+        krJPY.approve(address(kresko), type(uint256).max);
+    }
+}
+
 // import {console} from "forge-std/Test.sol";
 // import {IERC20Permit} from "common/IERC20Permit.sol";
 // import {IKresko} from "scripts/IKresko.sol";

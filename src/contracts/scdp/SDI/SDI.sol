@@ -3,7 +3,7 @@ pragma solidity >=0.8.19;
 
 import {ISDI, Asset, IERC20Permit, SafeERC20} from "./ISDI.sol";
 import {FixedPointMathLib} from "@rari-capital/solmate/src/utils/FixedPointMathLib.sol";
-import {ISCDPStateFacet} from "scdp/interfaces/ISCDPStateFacet.sol";
+import {IKresko} from "common/IKresko.sol";
 import {LibSDI} from "./LibSDI.sol";
 
 contract SDI {
@@ -16,7 +16,7 @@ contract SDI {
     /*                                   Layout                                   */
     /* -------------------------------------------------------------------------- */
 
-    ISCDPStateFacet public kresko;
+    IKresko public kresko;
     address public governance;
 
     // internal bookeep of cover balances so users cannot send tokens into this contract and increase the price
@@ -24,16 +24,17 @@ contract SDI {
     mapping(address coverAsset => Asset assetConfig) internal _coverAssets;
     address[] public coverAssetList;
 
-    uint8 oracleDecimals = 8;
-    uint256 feeRecipient = 0xFEE;
+    uint8 oracleDecimals;
+    address public feeRecipient;
 
     int256 public totalDebt; // can go negative
     int256 public totalCover; // int256 just for compability with totalDebt
 
-    constructor(address _kresko, uint8 _oracleDecimals, address _governance) {
-        kresko = ISCDPStateFacet(_kresko);
+    constructor(address _kresko, address _feeRecipient, uint8 _oracleDecimals, address _governance) {
+        kresko = IKresko(_kresko);
         governance = _governance;
         _oracleDecimals = oracleDecimals;
+        feeRecipient = _feeRecipient;
     }
 
     /* -------------------------------------------------------------------------- */
@@ -106,6 +107,10 @@ contract SDI {
     /*                                    Views                                   */
     /* -------------------------------------------------------------------------- */
 
+    function coverAsset(address asset) external view returns (Asset memory) {
+        return _coverAssets[asset];
+    }
+
     /// @notice Simply returns the total supply of SDI.
     function totalSupply() public view returns (uint256) {
         return uint256(totalDebt + totalCover);
@@ -171,13 +176,13 @@ contract SDI {
         require(!_coverAssets[token].enabled, "ALREADY_SUPPORTED");
 
         coverAssetList.push(token);
-        _coverAssets[token] = config; // [TODO] Add fees.
+        _coverAssets[token] = config; // [TODO] fees?.
 
-        uint256 price = config.price();
-        // emit AssetAdded(token, address(config.oracle), price, config.maxDeposits, block.timestamp);
-        require(price != 0, "ZERO_PRICE");
+        require(config.price() != 0, "ZERO_PRICE");
         require(config.depositFee < 1e18, "INVALID_DEPOSIT_FEE");
         require(config.withdrawFee < 1e18, "INVALID_WITHDRAWAL_FEE");
+
+        // emit AssetAdded(token, address(config.oracle), price, config.maxDeposits, block.timestamp);
     }
 
     function setGov(address _governance) external onlyGov {

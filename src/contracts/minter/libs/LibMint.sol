@@ -14,6 +14,7 @@ import {LibDecimals} from "./LibDecimals.sol";
 import {LibCalculation} from "./LibCalculation.sol";
 import {KrAsset} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
+import {scdp} from "scdp/SCDPStorage.sol";
 
 library LibMint {
     using Arrays for address[];
@@ -57,6 +58,9 @@ library LibMint {
     ) internal returns (uint256 issued) {
         issued = IKreskoAssetIssuer(self.kreskoAssets[_kreskoAsset].anchor).issue(_amount, _to);
         require(issued != 0, "invalid-shared-pool-mint");
+
+        // SDI: Update the index
+        scdp().sdi.onSCDPMint(_kreskoAsset, issued);
     }
 
     /**

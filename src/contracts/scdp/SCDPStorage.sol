@@ -3,6 +3,7 @@ pragma solidity >=0.8.19;
 import {LibSCDP} from "./libs/LibSCDP.sol";
 import {LibSwap} from "./libs/LibSwap.sol";
 import {LibAmounts} from "./libs/LibAmounts.sol";
+import {SDI} from "./SDI/SDI.sol";
 
 /* solhint-disable var-name-mixedcase */
 
@@ -54,6 +55,8 @@ struct SCDPState {
     address[] krAssets;
     /// @notice User swap fee receiver
     address swapFeeRecipient;
+    /// @notice SCDP Debt Index
+    SDI sdi;
 }
 
 // Storage position

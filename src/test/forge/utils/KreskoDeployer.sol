@@ -41,6 +41,8 @@ import {KreskoAssetAnchor} from "kresko-asset/KreskoAssetAnchor.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 import {Test} from "forge-std/Test.sol";
 
+import {SDI, Asset} from "scdp/SDI/SDI.sol";
+
 abstract contract KreskoDeployer is Test {
     address[] internal councilUsers;
     address public constant TREASURY = address(0xFEE);
@@ -59,7 +61,7 @@ abstract contract KreskoDeployer is Test {
         init.oracleTimeout = type(uint256).max;
     }
 
-    function deployDiamond(address admin) internal returns (IKresko kresko) {
+    function deployDiamond(address admin) internal returns (IKresko, SDI) {
         vm.startPrank(admin);
         /* ------------------------------ DiamondFacets ----------------------------- */
         (
@@ -67,7 +69,7 @@ abstract contract KreskoDeployer is Test {
             Diamond.Initialization[] memory diamondInit
         ) = diamondFacets();
 
-        kresko = IKresko(address(new Diamond(admin, _diamondFacets, diamondInit)));
+        IKresko kresko = IKresko(address(new Diamond(admin, _diamondFacets, diamondInit)));
 
         /* ------------------------------ MinterFacets ------------------------------ */
         (IDiamondCutFacet.FacetCut[] memory _minterFacets, Diamond.Initialization memory minterInit) = minterFacets(
@@ -76,8 +78,27 @@ abstract contract KreskoDeployer is Test {
         kresko.diamondCut(_minterFacets, minterInit.initContract, minterInit.initData);
 
         /* ------------------------------- SCDPFacets ------------------------------- */
-        (IDiamondCutFacet.FacetCut[] memory _scdpFacets, Diamond.Initialization memory scdpInit) = scdpFacets();
+        vm.stopPrank();
+        SDI sdi = deploySDI(address(kresko));
+        vm.startPrank(admin);
+        (IDiamondCutFacet.FacetCut[] memory _scdpFacets, Diamond.Initialization memory scdpInit) = scdpFacets(
+            address(sdi)
+        );
         kresko.diamondCut(_scdpFacets, scdpInit.initContract, scdpInit.initData);
+        vm.stopPrank();
+
+        return (kresko, sdi);
+    }
+
+    function deploySDI(address kresko) internal returns (SDI sdi) {
+        vm.startPrank(IKresko(kresko).owner());
+        sdi = new SDI(kresko, TREASURY, 8, IKresko(kresko).owner());
+        vm.stopPrank();
+    }
+
+    function addSDIAsset(SDI sdi, address kresko, Asset memory config) internal {
+        vm.startPrank(IKresko(kresko).owner());
+        sdi.addAsset(config);
         vm.stopPrank();
     }
 
@@ -169,7 +190,9 @@ abstract contract KreskoDeployer is Test {
         return (_diamondCut, Diamond.Initialization(configurationFacetAddress, initData));
     }
 
-    function scdpFacets() internal returns (IDiamondCutFacet.FacetCut[] memory, Diamond.Initialization memory) {
+    function scdpFacets(
+        address sdi
+    ) internal returns (IDiamondCutFacet.FacetCut[] memory, Diamond.Initialization memory) {
         address configurationFacetAddress = address(new SCDPConfigFacet());
         IDiamondCutFacet.FacetCut[] memory _diamondCut = new IDiamondCutFacet.FacetCut[](4);
         _diamondCut[0] = IDiamondCutFacet.FacetCut({
@@ -195,7 +218,7 @@ abstract contract KreskoDeployer is Test {
 
         bytes memory initData = abi.encodeWithSelector(
             SCDPConfigFacet.initialize.selector,
-            ISCDPConfigFacet.SCDPInitArgs({swapFeeRecipient: TREASURY, mcr: 2e18, lt: 1.5e18})
+            ISCDPConfigFacet.SCDPInitArgs({swapFeeRecipient: TREASURY, mcr: 2e18, lt: 1.5e18, sdi: sdi})
         );
         return (_diamondCut, Diamond.Initialization(configurationFacetAddress, initData));
     }

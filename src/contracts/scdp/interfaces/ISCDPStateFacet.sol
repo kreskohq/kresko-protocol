@@ -95,6 +95,12 @@ interface ISCDPStateFacet {
     function getPoolDebtValue(bool _ignoreFactors) external view returns (uint256);
 
     /**
+     * @notice Get the total collateral value, oracle precision
+     * @param _ignoreFactors Ignore factors when calculating collateral value.
+     */
+    function getPoolCollateralValue(bool _ignoreFactors) external view returns (uint256);
+
+    /**
      * @notice Get the collateral debt value for `_kreskoAsset`
      * @param _kreskoAsset The KreskoAsset
      * @param _ignoreFactors Ignore factors when calculating collateral and debt value.

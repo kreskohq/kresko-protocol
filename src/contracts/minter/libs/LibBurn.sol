@@ -16,6 +16,7 @@ import {LibDecimals} from "./LibDecimals.sol";
 import {LibCalculation} from "./LibCalculation.sol";
 import {KrAsset} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
+import {scdp} from "scdp/SCDPStorage.sol";
 
 library LibBurn {
     using Arrays for address[];
@@ -58,6 +59,9 @@ library LibBurn {
         // Burn assets from the protocol, as they are sent in. Get the destroyed shares.
         destroyed = IKreskoAssetIssuer(self.kreskoAssets[_kreskoAsset].anchor).destroy(_burnAmount, _from);
         require(destroyed != 0, "repay-destroyed-amount-invalid");
+
+        // SDI: Update the index
+        scdp().sdi.onSCDPBurn(_kreskoAsset, destroyed);
     }
 
     /**

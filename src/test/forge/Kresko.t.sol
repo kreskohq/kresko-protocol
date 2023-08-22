@@ -29,7 +29,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoDeployer {
     MockOracle internal jpyOracle;
 
     function setUp() public {
-        kresko = deployDiamond(admin);
+        (kresko, ) = deployDiamond(admin);
         (usdc, usdcOracle) = deployAndWhitelistCollateral("USDC", 18, address(kresko), 1e8);
         (krETH, , ethOracle) = deployAndWhitelistKrAsset("krETH", admin, address(kresko), 2000e8);
         (krJPY, , jpyOracle) = deployAndWhitelistKrAsset("krJPY", admin, address(kresko), 0.01e8);

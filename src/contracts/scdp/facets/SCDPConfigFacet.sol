@@ -10,6 +10,7 @@ import {ms} from "minter/MinterStorage.sol";
 import {Constants} from "minter/MinterTypes.sol";
 import {DiamondModifiers, Role} from "diamond/DiamondModifiers.sol";
 
+import {SDI} from "scdp/SDI/SDI.sol";
 import {scdp} from "../SCDPStorage.sol";
 import {ISCDPConfigFacet, PoolCollateral, PoolKrAsset} from "../interfaces/ISCDPConfigFacet.sol";
 
@@ -23,10 +24,12 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DiamondModifiers, MinterModifiers 
         require(_init.lt >= Constants.MIN_COLLATERALIZATION_RATIO, "lt-too-low");
         require(_init.lt <= _init.mcr, "lt-too-high");
         require(_init.swapFeeRecipient != address(0), "invalid-fee-receiver");
+        require(_init.sdi != address(0), "invalid-sdi");
 
         scdp().minimumCollateralizationRatio = _init.mcr;
         scdp().liquidationThreshold = _init.lt;
         scdp().swapFeeRecipient = _init.swapFeeRecipient;
+        scdp().sdi = SDI(_init.sdi);
     }
 
     /// @inheritdoc ISCDPConfigFacet
@@ -35,8 +38,15 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DiamondModifiers, MinterModifiers 
             SCDPInitArgs({
                 swapFeeRecipient: scdp().swapFeeRecipient,
                 mcr: scdp().minimumCollateralizationRatio,
-                lt: scdp().liquidationThreshold
+                lt: scdp().liquidationThreshold,
+                sdi: address(scdp().sdi)
             });
+    }
+
+    /// @inheritdoc ISCDPConfigFacet
+    function setSDI(address _newSDI) external onlyRole(Role.ADMIN) {
+        require(_newSDI != address(0), "sdi-zero");
+        scdp().sdi = SDI(_newSDI);
     }
 
     /// @inheritdoc ISCDPConfigFacet
