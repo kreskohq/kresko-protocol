@@ -48,7 +48,7 @@ contract ERC20Upgradeable is Initializable, IERC20Permit {
     uint256 internal immutable INITIAL_CHAIN_ID;
     bytes32 internal immutable INITIAL_DOMAIN_SEPARATOR;
 
-    constructor() payable initializer {
+    constructor() payable {
         INITIAL_CHAIN_ID = block.chainid;
         INITIAL_DOMAIN_SEPARATOR = computeDomainSeparator();
     }

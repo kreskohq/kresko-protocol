@@ -12,6 +12,7 @@ import {MockOracle} from "test/MockOracle.sol";
 import {MockERC20, WETH} from "test/MockERC20.sol";
 import {KreskoDeployer} from "./utils/KreskoDeployer.sol";
 import {DiamondHelper} from "./utils/DiamondHelper.sol";
+import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 
 contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoDeployer {
     IKresko internal kresko;
@@ -19,12 +20,24 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoDeployer {
     using LibTest for *;
     address internal admin = address(0xABABAB);
 
-    function setUp() public prankAddr(admin) {
+    MockERC20 internal usdc;
+    KreskoAsset internal krETH;
+
+    MockOracle internal usdcOracle;
+    MockOracle internal ethOracle;
+
+    function setUp() public {
         kresko = deployDiamond(admin);
+        (usdc, usdcOracle) = deployAndWhitelistCollateral("USDC", 18, address(kresko), 1e8);
+        (krETH, , ethOracle) = deployAndWhitelistKrAsset("krETH", admin, address(kresko), 2000e8);
     }
 
     function testSetup() public {
         kresko.owner().equals(admin);
         kresko.minimumCollateralizationRatio().equals(1.5e18);
+        kresko.getSCDPConfig().mcr.equals(2e18);
+        kresko.getSCDPConfig().lt.equals(1.5e18);
+        kresko.collateralAsset(address(usdc)).exists.equals(true);
+        kresko.kreskoAsset(address(krETH)).exists.equals(true);
     }
 }

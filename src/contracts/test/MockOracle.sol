@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 contract MockOracle {
     uint256 public price;
+    uint256 public decimals;
 
     function latestRoundData()
         external
@@ -16,8 +17,9 @@ contract MockOracle {
         answeredInRound = 0;
     }
 
-    constructor(uint256 _price) {
+    constructor(uint256 _price, uint8 _decimals) {
         price = _price;
+        decimals = _decimals;
     }
 
     function setPrice(uint256 _price) external {

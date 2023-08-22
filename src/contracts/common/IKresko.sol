@@ -18,6 +18,7 @@ import {IDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
 import {IDiamondLoupeFacet} from "diamond/interfaces/IDiamondLoupeFacet.sol";
 import {IDiamondOwnershipFacet} from "diamond/interfaces/IDiamondOwnershipFacet.sol";
 
+// solhint-disable-next-line no-empty-blocks
 interface IKresko is
     IAuthorizationFacet,
     IDiamondCutFacet,
@@ -36,4 +37,6 @@ interface IKresko is
     IDepositWithdrawFacet,
     IAccountStateFacet,
     ILiquidationFacet
-{}
+{
+
+}

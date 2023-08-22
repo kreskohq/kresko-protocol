@@ -22,16 +22,25 @@ import {BurnHelperFacet} from "minter/facets/BurnHelperFacet.sol";
 import {SCDPStateFacet} from "scdp/facets/SCDPStateFacet.sol";
 import {SCDPFacet} from "scdp/facets/SCDPFacet.sol";
 import {SCDPSwapFacet} from "scdp/facets/SCDPSwapFacet.sol";
-import {SCDPConfigFacet, SCDPInitArgs} from "scdp/facets/SCDPConfigFacet.sol";
+import {SCDPConfigFacet} from "scdp/facets/SCDPConfigFacet.sol";
+import {ISCDPConfigFacet} from "scdp/interfaces/ISCDPConfigFacet.sol";
 
 import {DiamondHelper} from "./DiamondHelper.sol";
 import {IKresko} from "common/IKresko.sol";
-import {MinterInitArgs} from "minter/MinterTypes.sol";
+import {MockOracle} from "test/MockOracle.sol";
+import {MockERC20} from "test/MockERC20.sol";
+import {AggregatorV3Interface} from "common/AggregatorV3Interface.sol";
+import {MinterInitArgs, KrAsset, CollateralAsset} from "minter/MinterTypes.sol";
 import {MockSequencerUptimeFeed} from "test/MockSequencerUptimeFeed.sol";
 import {GnosisSafeL2} from "vendor/gnosis/GnosisSafeL2.sol";
 import {GnosisSafeProxyFactory, GnosisSafeProxy} from "vendor/gnosis/GnosisSafeProxyFactory.sol";
 
-abstract contract KreskoDeployer {
+import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
+import {KreskoAssetAnchor} from "kresko-asset/KreskoAssetAnchor.sol";
+import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
+import {Test} from "forge-std/Test.sol";
+
+abstract contract KreskoDeployer is Test {
     address[] internal councilUsers;
     address public constant TREASURY = address(0xFEE);
 
@@ -50,23 +59,25 @@ abstract contract KreskoDeployer {
     }
 
     function deployDiamond(address admin) internal returns (IKresko kresko) {
+        vm.startPrank(admin);
         /* ------------------------------ DiamondFacets ----------------------------- */
         (
-            IDiamondCutFacet.FacetCut[] memory diamondFacets,
+            IDiamondCutFacet.FacetCut[] memory _diamondFacets,
             Diamond.Initialization[] memory diamondInit
         ) = diamondFacets();
 
-        kresko = IKresko(address(new Diamond(admin, diamondFacets, diamondInit)));
+        kresko = IKresko(address(new Diamond(admin, _diamondFacets, diamondInit)));
 
         /* ------------------------------ MinterFacets ------------------------------ */
-        (IDiamondCutFacet.FacetCut[] memory minterFacets, Diamond.Initialization memory minterInit) = minterFacets(
+        (IDiamondCutFacet.FacetCut[] memory _minterFacets, Diamond.Initialization memory minterInit) = minterFacets(
             admin
         );
-        kresko.diamondCut(minterFacets, minterInit.initContract, minterInit.initData);
+        kresko.diamondCut(_minterFacets, minterInit.initContract, minterInit.initData);
 
         /* ------------------------------- SCDPFacets ------------------------------- */
-        (IDiamondCutFacet.FacetCut[] memory scdpFacets, Diamond.Initialization memory scdpInit) = scdpFacets();
-        kresko.diamondCut(scdpFacets, scdpInit.initContract, scdpInit.initData);
+        (IDiamondCutFacet.FacetCut[] memory _scdpFacets, Diamond.Initialization memory scdpInit) = scdpFacets();
+        kresko.diamondCut(_scdpFacets, scdpInit.initContract, scdpInit.initData);
+        vm.stopPrank();
     }
 
     function diamondFacets() internal returns (IDiamondCutFacet.FacetCut[] memory, Diamond.Initialization[] memory) {
@@ -183,9 +194,68 @@ abstract contract KreskoDeployer {
 
         bytes memory initData = abi.encodeWithSelector(
             SCDPConfigFacet.initialize.selector,
-            SCDPInitArgs({swapFeeRecipient: TREASURY, mcr: 2e18, lt: 1.5e18})
+            ISCDPConfigFacet.SCDPInitArgs({swapFeeRecipient: TREASURY, mcr: 2e18, lt: 1.5e18})
         );
         return (_diamondCut, Diamond.Initialization(configurationFacetAddress, initData));
+    }
+
+    function deployAndWhitelistKrAsset(
+        string memory _symbol,
+        address admin,
+        address kresko,
+        uint256 price
+    ) internal returns (KreskoAsset krAsset, KreskoAssetAnchor anchor, MockOracle oracle) {
+        vm.startPrank(IKresko(kresko).owner());
+        krAsset = new KreskoAsset();
+        krAsset.initialize(_symbol, _symbol, 18, admin, kresko);
+        anchor = new KreskoAssetAnchor(IKreskoAsset(krAsset));
+        anchor.initialize(IKreskoAsset(krAsset), string.concat("a", _symbol), string.concat("a", _symbol), admin);
+        oracle = new MockOracle(price, 8);
+        AggregatorV3Interface assetOracle = AggregatorV3Interface(address(oracle));
+
+        IKresko(kresko).addKreskoAsset(
+            address(krAsset),
+            KrAsset({
+                supplyLimit: type(uint256).max,
+                closeFee: 0.02e18,
+                openFee: 0,
+                exists: true,
+                redstoneId: bytes32(0),
+                anchor: address(anchor),
+                oracle: assetOracle,
+                kFactor: 1.2e18
+            })
+        );
+        vm.stopPrank();
+        return (krAsset, anchor, oracle);
+    }
+
+    function deployAndWhitelistCollateral(
+        string memory id,
+        uint8 decimals,
+        address kresko,
+        uint256 price
+    ) internal returns (MockERC20 collateral, MockOracle oracle) {
+        vm.startPrank(IKresko(kresko).owner());
+        collateral = new MockERC20(id, id, decimals, 0);
+        oracle = new MockOracle(price, 8);
+
+        AggregatorV3Interface assetOracle = AggregatorV3Interface(address(oracle));
+
+        IKresko(kresko).addCollateralAsset(
+            address(collateral),
+            CollateralAsset({
+                exists: true,
+                redstoneId: bytes32(0),
+                anchor: address(0),
+                oracle: assetOracle,
+                factor: 1e18,
+                decimals: decimals,
+                liquidationIncentive: 1.1e18
+            })
+        );
+        vm.stopPrank();
+        return (collateral, oracle);
     }
 }
 

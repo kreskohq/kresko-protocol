@@ -1,6 +1,11 @@
 {
-    "mochaExplorer.require": ["ts-node/register", "tsconfig-paths/register"],
-    "mochaExplorer.files": ["./src/test/**/*.ts"],
+    "mochaExplorer.require": [
+        "ts-node/register",
+        "tsconfig-paths/register"
+    ],
+    "mochaExplorer.files": [
+        "./src/test/**/*.ts"
+    ],
     "mochaExplorer.timeout": 120000,
     "mochaExplorer.multiFileSuites": true,
     "typescript.tsdk": "node_modules/typescript/lib",
@@ -14,10 +19,24 @@
         "packages/contracts/pnpm-lock.yaml": true
     },
     "editor.formatOnSave": true,
-    "prettier.documentSelectors": ["**/*.sol"],
-    "solidity.formatter": "prettier",
-    "[solidity]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
+    "prettier.documentSelectors": [
+        "**/*.sol"
+    ],
+    "solidity.remappingsUnix": [
+        "ds-test/=lib/forge-std/lib/ds-test/src/",
+        "forge-std/=lib/forge-std/src/",
+        "solmate/=lib/solmate/src/",
+        "contracts/=src/contracts/",
+        "diamond/=src/contracts/diamond/",
+        "minter/=src/contracts/minter/",
+        "vendor/=src/contracts/vendor/",
+        "scdp/=src/contracts/scdp/",
+        "common/=src/contracts/common/",
+        "test/=src/contracts/test/",
+        "kresko-asset/=src/contracts/kresko-asset/",
+        "kiss/=src/contracts/kiss/",
+        "kresko-helpers/=lib/kresko-foundry-helpers/src/"
+    ],
+   
     "solidity.defaultCompiler": "remote"
 }
