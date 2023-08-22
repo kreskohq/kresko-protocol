@@ -180,17 +180,17 @@ contract SCDPStateFacet is ISCDPStateFacet {
     }
 
     /// @inheritdoc ISCDPStateFacet
-    function getPoolSwapFeeRecipient() external view returns (address) {
+    function getSCDPFeeRecipient() external view returns (address) {
         return scdp().swapFeeRecipient;
     }
 
     /// @inheritdoc ISCDPStateFacet
-    function getPoolAssetIsEnabled(address _asset) external view returns (bool) {
+    function getSCDPAssetEnabled(address _asset) external view returns (bool) {
         return scdp().isEnabled[_asset];
     }
 
     /// @inheritdoc ISCDPStateFacet
-    function getPoolIsSwapEnabled(address _assetIn, address _assetOut) external view returns (bool) {
+    function getSCDPSwapEnabled(address _assetIn, address _assetOut) external view returns (bool) {
         return scdp().isSwapEnabled[_assetIn][_assetOut];
     }
 }

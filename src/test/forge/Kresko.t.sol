@@ -22,14 +22,21 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoDeployer {
 
     MockERC20 internal usdc;
     KreskoAsset internal krETH;
+    KreskoAsset internal krJPY;
 
     MockOracle internal usdcOracle;
     MockOracle internal ethOracle;
+    MockOracle internal jpyOracle;
 
     function setUp() public {
         kresko = deployDiamond(admin);
         (usdc, usdcOracle) = deployAndWhitelistCollateral("USDC", 18, address(kresko), 1e8);
         (krETH, , ethOracle) = deployAndWhitelistKrAsset("krETH", admin, address(kresko), 2000e8);
+        (krJPY, , jpyOracle) = deployAndWhitelistKrAsset("krJPY", admin, address(kresko), 0.01e8);
+        enableSCDPCollateral(kresko, address(usdc));
+        enableSCDPKrAsset(kresko, address(krETH));
+        enableSwapBothWays(kresko, address(usdc), address(krETH), true);
+        enableSwapSingleWay(kresko, address(krJPY), address(krETH), true);
     }
 
     function testSetup() public {
@@ -39,5 +46,23 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoDeployer {
         kresko.getSCDPConfig().lt.equals(1.5e18);
         kresko.collateralAsset(address(usdc)).exists.equals(true);
         kresko.kreskoAsset(address(krETH)).exists.equals(true);
+
+        kresko.getPoolCollateral(address(usdc)).liquidationIncentive.equals(1.1e18);
+        kresko.getPoolCollateral(address(usdc)).decimals.equals(usdc.decimals());
+        kresko.getPoolCollateral(address(usdc)).depositLimit.equals(type(uint256).max);
+        kresko.getPoolCollateral(address(usdc)).liquidityIndex.equals(1e27);
+
+        kresko.getPoolKrAsset(address(krETH)).openFee.equals(0.005e18);
+        kresko.getPoolKrAsset(address(krETH)).closeFee.equals(0.005e18);
+        kresko.getPoolKrAsset(address(krETH)).supplyLimit.equals(type(uint256).max);
+        kresko.getPoolKrAsset(address(krETH)).protocolFee.equals(0.5e18);
+
+        kresko.getSCDPSwapEnabled(address(usdc), address(krETH)).equals(true);
+        kresko.getSCDPSwapEnabled(address(krETH), address(usdc)).equals(true);
+        kresko.getSCDPSwapEnabled(address(krJPY), address(krETH)).equals(true);
+
+        kresko.getSCDPSwapEnabled(address(krETH), address(krJPY)).equals(false);
+        kresko.getSCDPSwapEnabled(address(krJPY), address(usdc)).equals(false);
+        kresko.getSCDPSwapEnabled(address(usdc), address(krJPY)).equals(false);
     }
 }

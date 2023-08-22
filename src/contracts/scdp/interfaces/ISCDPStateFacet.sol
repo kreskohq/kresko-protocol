@@ -134,17 +134,17 @@ interface ISCDPStateFacet {
     /**
      * @notice Get the swap fee recipient
      */
-    function getPoolSwapFeeRecipient() external view returns (address);
+    function getSCDPFeeRecipient() external view returns (address);
 
     /**
      * @notice Get enabled state of asset
      */
-    function getPoolAssetIsEnabled(address _asset) external view returns (bool);
+    function getSCDPAssetEnabled(address _asset) external view returns (bool);
 
     /**
      * @notice Get whether swap is enabled from `_assetIn` to `_assetOut`
      * @param _assetIn The asset to swap from
      * @param _assetOut The asset to swap to
      */
-    function getPoolIsSwapEnabled(address _assetIn, address _assetOut) external view returns (bool);
+    function getSCDPSwapEnabled(address _assetIn, address _assetOut) external view returns (bool);
 }

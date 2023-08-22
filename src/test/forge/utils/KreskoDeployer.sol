@@ -24,6 +24,7 @@ import {SCDPFacet} from "scdp/facets/SCDPFacet.sol";
 import {SCDPSwapFacet} from "scdp/facets/SCDPSwapFacet.sol";
 import {SCDPConfigFacet} from "scdp/facets/SCDPConfigFacet.sol";
 import {ISCDPConfigFacet} from "scdp/interfaces/ISCDPConfigFacet.sol";
+import {PoolCollateral, PoolKrAsset} from "scdp/SCDPStorage.sol";
 
 import {DiamondHelper} from "./DiamondHelper.sol";
 import {IKresko} from "common/IKresko.sol";
@@ -197,6 +198,52 @@ abstract contract KreskoDeployer is Test {
             ISCDPConfigFacet.SCDPInitArgs({swapFeeRecipient: TREASURY, mcr: 2e18, lt: 1.5e18})
         );
         return (_diamondCut, Diamond.Initialization(configurationFacetAddress, initData));
+    }
+
+    function enableSCDPCollateral(IKresko kresko, address asset) internal {
+        vm.startPrank(kresko.owner());
+        PoolCollateral[] memory configurations = new PoolCollateral[](1);
+        configurations[0] = PoolCollateral({
+            decimals: MockERC20(asset).decimals(),
+            liquidationIncentive: 1.1e18,
+            depositLimit: type(uint256).max,
+            liquidityIndex: 1e27
+        });
+        address[] memory assets = new address[](1);
+        assets[0] = asset;
+
+        kresko.enablePoolCollaterals(assets, configurations);
+        vm.stopPrank();
+    }
+
+    function enableSCDPKrAsset(IKresko kresko, address asset) internal {
+        vm.startPrank(kresko.owner());
+        PoolKrAsset[] memory configurations = new PoolKrAsset[](1);
+        configurations[0] = PoolKrAsset({
+            protocolFee: 0.5e18,
+            openFee: 0.005e18,
+            closeFee: 0.005e18,
+            supplyLimit: type(uint256).max
+        });
+        address[] memory assets = new address[](1);
+        assets[0] = asset;
+
+        kresko.enablePoolKrAssets(assets, configurations);
+        vm.stopPrank();
+    }
+
+    function enableSwapBothWays(IKresko kresko, address asset0, address asset1, bool enabled) internal {
+        vm.startPrank(kresko.owner());
+        ISCDPConfigFacet.PairSetter[] memory swapPairsEnabled = new ISCDPConfigFacet.PairSetter[](2);
+        swapPairsEnabled[0] = ISCDPConfigFacet.PairSetter({assetIn: asset0, assetOut: asset1, enabled: enabled});
+        kresko.setSwapPairs(swapPairsEnabled);
+        vm.stopPrank();
+    }
+
+    function enableSwapSingleWay(IKresko kresko, address asset0, address asset1, bool enabled) internal {
+        vm.startPrank(kresko.owner());
+        kresko.setSwapPairsSingle(ISCDPConfigFacet.PairSetter({assetIn: asset0, assetOut: asset1, enabled: enabled}));
+        vm.stopPrank();
     }
 
     function deployAndWhitelistKrAsset(
