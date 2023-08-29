@@ -10,13 +10,11 @@ import {AggregatorV3Interface} from "common/AggregatorV3Interface.sol";
 import {SDI, Asset} from "scdp/SDI/SDI.sol";
 import {MockOracle} from "test/MockOracle.sol";
 import {MockERC20, WETH} from "test/MockERC20.sol";
-import {KreskoDeployer} from "./utils/KreskoDeployer.sol";
-import {DiamondHelper} from "./utils/DiamondHelper.sol";
+import {DeployHelper} from "./utils/DeployHelper.sol";
 import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 
-contract SDITest is TestBase("MNEMONIC_TESTNET"), KreskoDeployer {
-    IKresko internal kresko;
-    SDI sdi;
+contract SDITest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
+    SDI internal sdi;
 
     using LibTest for *;
     address internal admin = address(0xABABAB);
@@ -30,19 +28,19 @@ contract SDITest is TestBase("MNEMONIC_TESTNET"), KreskoDeployer {
     MockOracle internal jpyOracle;
 
     function setUp() public users(address(11), address(22), address(33)) {
-        (kresko, sdi) = deployDiamond(admin);
-        (usdc, usdcOracle) = deployAndWhitelistCollateral("USDC", 18, address(kresko), 1e8);
-        (krETH, , ethOracle) = deployAndWhitelistKrAsset("krETH", admin, address(kresko), 2000e8);
-        (krJPY, , jpyOracle) = deployAndWhitelistKrAsset("krJPY", admin, address(kresko), 0.01e8);
-        enableSCDPCollateral(kresko, address(usdc));
-        enableSCDPKrAsset(kresko, address(krETH));
-        enableSCDPKrAsset(kresko, address(krJPY));
-        enableSwapBothWays(kresko, address(usdc), address(krETH), true);
-        enableSwapBothWays(kresko, address(krJPY), address(krETH), true);
-        enableSwapBothWays(kresko, address(krJPY), address(usdc), true);
+        vm.startPrank(admin);
+        (, sdi) = deployDiamond(admin);
+        (usdc, usdcOracle) = deployAndWhitelistCollateral("USDC", bytes32("USDC"), 18, 1e8);
+        (krETH, , ethOracle) = deployAndWhitelistKrAsset("krETH", bytes32("ETH"), admin, 2000e8);
+        (krJPY, , jpyOracle) = deployAndWhitelistKrAsset("krJPY", bytes32("JPY"), admin, 0.01e8);
+        enableSCDPCollateral(address(usdc));
+        enableSCDPKrAsset(address(krETH));
+        enableSCDPKrAsset(address(krJPY));
+        enableSwapBothWays(address(usdc), address(krETH), true);
+        enableSwapBothWays(address(krJPY), address(krETH), true);
+        enableSwapBothWays(address(krJPY), address(usdc), true);
         addSDIAsset(
             sdi,
-            address(kresko),
             Asset({
                 token: IERC20Permit(address(usdc)),
                 oracle: AggregatorV3Interface(address(usdcOracle)),
@@ -52,6 +50,9 @@ contract SDITest is TestBase("MNEMONIC_TESTNET"), KreskoDeployer {
                 enabled: true
             })
         );
+        bytes memory redstonePayload = getRedstonePayload("BTC:120:8,ETH:69:8");
+        emit log_bytes(redstonePayload);
+        vm.stopPrank();
         _approvals(user0);
         _approvals(user1);
         _approvals(user2);
