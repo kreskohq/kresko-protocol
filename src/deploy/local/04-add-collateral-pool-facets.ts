@@ -1,4 +1,5 @@
-import { scdpFacets, getSCDPInitializer } from "@deploy-config/shared";
+import { testnetConfigs } from "@deploy-config/arbitrumGoerli";
+import { scdpFacets, getSCDPInitializer, getDeploymentUsers } from "@deploy-config/shared";
 import { getLogger } from "@kreskolabs/lib";
 import { addFacets } from "@scripts/add-facets";
 import type { DeployFunction } from "hardhat-deploy/types";
@@ -10,15 +11,19 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (!hre.Diamond.address) {
         throw new Error("Diamond not deployed");
     }
-
-    const initializer = await getSCDPInitializer(hre);
+    const { treasury, admin: _admin, multisig } = await getDeploymentUsers(hre);
+    const config = testnetConfigs[hre.network.name].protocolParams;
+    const [SDI] = await hre.deploy("SDI", {
+        args: [hre.Diamond.address, treasury, config.extOracleDecimals, multisig],
+    });
+    const initializer = await getSCDPInitializer(hre, SDI.address);
 
     await addFacets({
         names: scdpFacets,
         initializerName: initializer.name,
         initializerArgs: initializer.args,
     });
-    logger.success("Added collateral pool facets, saved to diamond");
+    logger.success("Added SCDP facets, saved to diamond");
 };
 
 deploy.tags = ["minter-test", "local", "minter-init", "all", "add-facets"];

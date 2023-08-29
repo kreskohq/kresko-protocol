@@ -10,6 +10,7 @@ import {MinterEvent} from "common/Events.sol";
 import {Error} from "common/Errors.sol";
 import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
 
+import {LibRedstone} from "./LibRedstone.sol";
 import {LibDecimals} from "./LibDecimals.sol";
 import {LibCalculation} from "./LibCalculation.sol";
 import {KrAsset} from "../MinterTypes.sol";
@@ -60,7 +61,8 @@ library LibMint {
         require(issued != 0, "invalid-shared-pool-mint");
 
         // SDI: Update the index
-        scdp().sdi.onSCDPMint(_kreskoAsset, issued);
+        bytes memory encodedFunction = abi.encodeWithSelector(scdp().sdi.onSCDPMint.selector, _kreskoAsset, issued);
+        LibRedstone.proxyCalldata(address(scdp().sdi), encodedFunction, false);
     }
 
     /**

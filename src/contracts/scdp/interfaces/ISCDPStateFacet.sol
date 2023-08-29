@@ -129,6 +129,8 @@ interface ISCDPStateFacet {
      */
     function getPoolKrAssets() external view returns (address[] memory);
 
+    function getPoolCR() external view returns (uint256);
+
     /**
      * @notice Get pool collateral value, debt value and resulting CR.
      * @param _ignoreFactors Ignore factors when calculating collateral and debt value.

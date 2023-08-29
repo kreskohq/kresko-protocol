@@ -197,7 +197,11 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         CollateralAsset memory _config
     ) external nonReentrant onlyRole(Role.ADMIN) collateralAssetDoesNotExist(_collateralAsset) {
         require(_collateralAsset != address(0), Error.ADDRESS_INVALID_COLLATERAL);
+
         require(_config.oracle.decimals() == ms().extOracleDecimals, Error.INVALID_ORACLE_DECIMALS);
+        (, int256 answer, , , ) = _config.oracle.latestRoundData();
+        require(answer > 0, Error.ADDRESS_INVALID_ORACLE);
+
         require(_config.factor <= Constants.ONE_HUNDRED_PERCENT, Error.COLLATERAL_INVALID_FACTOR);
         require(
             _config.liquidationIncentive >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
@@ -268,8 +272,9 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         /* ------------------------------- Price feed ------------------------------- */
         if (address(_config.oracle) != address(0)) {
             require(_config.oracle.decimals() == ms().extOracleDecimals, Error.INVALID_ORACLE_DECIMALS);
+            (, int256 answer, , , ) = _config.oracle.latestRoundData();
+            require(answer > 0, Error.ADDRESS_INVALID_ORACLE);
             collateralAsset.oracle = _config.oracle;
-            require(collateralAsset.uintPrice() != 0, Error.ADDRESS_INVALID_ORACLE);
         }
 
         collateralAsset.redstoneId = _config.redstoneId;
@@ -317,6 +322,8 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
 
         // Oracle decimals must match the configuration.
         require(_config.oracle.decimals() == ms().extOracleDecimals, Error.INVALID_ORACLE_DECIMALS);
+        (, int256 answer, , , ) = _config.oracle.latestRoundData();
+        require(answer != 0, Error.ADDRESS_INVALID_ORACLE);
 
         /* ---------------------------------- Save ---------------------------------- */
         ms().kreskoAssets[_krAsset] = KrAsset({
@@ -370,7 +377,8 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         if (address(_config.oracle) != address(0)) {
             require(_config.oracle.decimals() == ms().extOracleDecimals, Error.INVALID_ORACLE_DECIMALS);
             krAsset.oracle = _config.oracle;
-            require(krAsset.uintPrice() != 0, Error.ADDRESS_INVALID_ORACLE);
+            (, int256 answer, , , ) = _config.oracle.latestRoundData();
+            require(answer != 0, Error.ADDRESS_INVALID_ORACLE);
         }
         krAsset.redstoneId = _config.redstoneId;
         /* -------------------------- Factors, Fees, Limits ------------------------- */

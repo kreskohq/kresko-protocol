@@ -75,11 +75,12 @@ export const getMinterInitializer = async (
         },
     };
 };
-export const getSCDPInitializer = async (hre: HardhatRuntimeEnvironment): Promise<SCDPInitializer> => {
+export const getSCDPInitializer = async (hre: HardhatRuntimeEnvironment, SDI: string): Promise<SCDPInitializer> => {
     const { swapFeeRecipient } = await getDeploymentUsers(hre);
     return {
         name: "SCDPConfigFacet",
         args: {
+            sdi: SDI,
             lt: toBig(2),
             mcr: toBig(5),
             swapFeeRecipient: swapFeeRecipient,

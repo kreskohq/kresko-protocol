@@ -112,7 +112,7 @@ library LibSwap {
         address _assetsTo
     ) internal returns (uint256 amountOut) {
         // Calculate amount to send out from value received in.
-        amountOut = _valueIn.wadDiv(ms().kreskoAssets[_assetOut].uintPrice());
+        amountOut = _valueIn.wadDiv(ms().kreskoAssets[_assetOut].uintPrice(ms().oracleDeviationPct));
         // Well, should be more than 0.
         require(amountOut > 0, "amount-out-is-zero");
 

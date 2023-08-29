@@ -174,6 +174,13 @@ contract SCDPStateFacet is ISCDPStateFacet {
         return scdp().krAssets;
     }
 
+    function getPoolCR() external view returns (uint256) {
+        uint256 collateralValue = scdp().getTotalPoolDepositValue(true);
+        uint256 debtValue = scdp().getTotalPoolKrAssetValueAtRatio(1 ether, true);
+        if (debtValue == 0) return 0;
+        return collateralValue.wadDiv(debtValue);
+    }
+
     /// @inheritdoc ISCDPStateFacet
     function getPoolStats(
         bool _ignoreFactors

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
+
 import {CollateralAsset, KrAsset} from "../MinterTypes.sol";
 import {ms} from "../MinterStorage.sol";
 import {LibDecimals} from "../libs/LibDecimals.sol";
@@ -66,7 +67,7 @@ library LibAssetUtility {
     /**
      * @notice Get the oracle price of a collateral asset in uint256 with extOracleDecimals
      */
-    function uintPrice(CollateralAsset memory self) internal view returns (uint256) {
+    function uintPrice(CollateralAsset memory self) private view returns (uint256) {
         (, int256 answer, , uint256 updatedAt, ) = self.oracle.latestRoundData();
         require(answer >= 0, Error.NEGATIVE_ORACLE_PRICE);
         // returning zero if oracle price is too old so that fallback oracle is used instead.
@@ -86,7 +87,7 @@ library LibAssetUtility {
     /**
      * @notice Get the oracle price of a kresko asset in uint256 with extOracleDecimals
      */
-    function uintPrice(KrAsset memory self) internal view returns (uint256) {
+    function uintPrice(KrAsset memory self) private view returns (uint256) {
         (, int256 answer, , uint256 updatedAt, ) = self.oracle.latestRoundData();
         require(answer >= 0, Error.NEGATIVE_ORACLE_PRICE);
         // returning zero if oracle price is too old so that fallback oracle is used instead.
@@ -107,22 +108,22 @@ library LibAssetUtility {
     /**
      * @notice Get the oracle price of a collateral asset in uint256 with 18 decimals
      */
-    function wadPrice(CollateralAsset memory self) internal view returns (uint256) {
-        return self.uintPrice().oraclePriceToWad();
+    function wadPrice(CollateralAsset memory self) private view returns (uint256) {
+        return uintPrice(self).oraclePriceToWad();
     }
 
     /**
      * @notice Get the oracle price of a kresko asset in uint256 with 18 decimals
      */
-    function wadPrice(KrAsset memory self) internal view returns (uint256) {
-        return self.uintPrice().oraclePriceToWad();
+    function wadPrice(KrAsset memory self) private view returns (uint256) {
+        return uintPrice(self).oraclePriceToWad();
     }
 
     /**
      * @notice Get value for @param _assetAmount of @param self in uint256
      */
-    function uintUSD(CollateralAsset memory self, uint256 _assetAmount) internal view returns (uint256) {
-        return self.uintPrice().wadMul(_assetAmount);
+    function uintUSD(CollateralAsset memory self, uint256 _assetAmount) private view returns (uint256) {
+        return uintPrice(self).wadMul(_assetAmount);
     }
 
     /**
@@ -130,15 +131,15 @@ library LibAssetUtility {
      * @param self the collateral asset struct
      * @param _assetAmount the amount to convert
      */
-    function uintUSDRedstone(CollateralAsset memory self, uint256 _assetAmount) internal view returns (uint256) {
-        return self.redstonePrice().wadMul(_assetAmount);
+    function uintUSDRedstone(CollateralAsset memory self, uint256 _assetAmount) private view returns (uint256) {
+        return redstonePrice(self).wadMul(_assetAmount);
     }
 
     /**
      * @notice Get value for @param _assetAmount of @param self in uint256
      */
-    function uintUSD(KrAsset memory self, uint256 _assetAmount) internal view returns (uint256) {
-        return self.uintPrice().wadMul(_assetAmount);
+    function uintUSD(KrAsset memory self, uint256 _assetAmount) private view returns (uint256) {
+        return uintPrice(self).wadMul(_assetAmount);
     }
 
     /**
@@ -146,8 +147,8 @@ library LibAssetUtility {
      * @param self the kresko asset struct
      * @param _assetAmount the amount to convert
      */
-    function uintUSDRedstone(KrAsset memory self, uint256 _assetAmount) internal view returns (uint256) {
-        return self.redstonePrice().wadMul(_assetAmount);
+    function uintUSDRedstone(KrAsset memory self, uint256 _assetAmount) private view returns (uint256) {
+        return redstonePrice(self).wadMul(_assetAmount);
     }
 
     /**
@@ -156,7 +157,7 @@ library LibAssetUtility {
      * @param _oracleDeviationPct the deviation percentage to use for the oracle
      */
     function uintPrice(CollateralAsset memory self, uint256 _oracleDeviationPct) internal view returns (uint256) {
-        return _getPrice(self.uintPrice(), self.redstonePrice(), _oracleDeviationPct);
+        return _getPrice(uintPrice(self), redstonePrice(self), _oracleDeviationPct);
     }
 
     /**
@@ -165,7 +166,7 @@ library LibAssetUtility {
      * @param _oracleDeviationPct the deviation percentage to use for the oracle
      */
     function uintPrice(KrAsset memory self, uint256 _oracleDeviationPct) internal view returns (uint256) {
-        return _getPrice(self.uintPrice(), self.redstonePrice(), _oracleDeviationPct);
+        return _getPrice(uintPrice(self), self.redstonePrice(), _oracleDeviationPct);
     }
 
     /**
@@ -179,7 +180,7 @@ library LibAssetUtility {
         uint256 _assetAmount,
         uint256 _oracleDeviationPct
     ) internal view returns (uint256) {
-        return _getPrice(self.uintUSD(_assetAmount), self.uintUSDRedstone(_assetAmount), _oracleDeviationPct);
+        return _getPrice(uintUSD(self, _assetAmount), uintUSDRedstone(self, _assetAmount), _oracleDeviationPct);
     }
 
     /**
@@ -193,7 +194,7 @@ library LibAssetUtility {
         uint256 _assetAmount,
         uint256 _oracleDeviationPct
     ) internal view returns (uint256) {
-        return _getPrice(self.uintUSD(_assetAmount), self.uintUSDRedstone(_assetAmount), _oracleDeviationPct);
+        return _getPrice(uintUSD(self, _assetAmount), uintUSDRedstone(self, _assetAmount), _oracleDeviationPct);
     }
 
     /**
@@ -222,7 +223,7 @@ library LibAssetUtility {
                 return _redstonePrice;
             }
         }
-        if (_chainlinkPrice == 0) return _redstonePrice;
+        if (_chainlinkPrice == 0 && _redstonePrice > 0) return _redstonePrice;
         if (_redstonePrice == 0) return _chainlinkPrice;
         if (
             (_redstonePrice.wadMul(1 ether - _oracleDeviationPct) <= _chainlinkPrice) &&

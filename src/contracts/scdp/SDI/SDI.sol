@@ -5,8 +5,9 @@ import {ISDI, Asset, IERC20Permit, SafeERC20} from "./ISDI.sol";
 import {FixedPointMathLib} from "@rari-capital/solmate/src/utils/FixedPointMathLib.sol";
 import {IKresko} from "common/IKresko.sol";
 import {LibSDI} from "./LibSDI.sol";
+import {ProxyConnector} from "@redstone-finance/evm-connector/contracts/core/ProxyConnector.sol";
 
-contract SDI {
+contract SDI is ProxyConnector {
     using LibSDI for uint256;
     using LibSDI for Asset;
     using SafeERC20 for IERC20Permit;
@@ -28,7 +29,7 @@ contract SDI {
     address public feeRecipient;
 
     int256 public totalDebt; // can go negative
-    int256 public totalCover; // int256 just for compability with totalDebt
+    int256 public _totalCover; // int256 just for compability with totalDebt
 
     constructor(address _kresko, address _feeRecipient, uint8 _oracleDecimals, address _governance) {
         kresko = IKresko(_kresko);
@@ -60,12 +61,12 @@ contract SDI {
     /*                                Functionality                               */
     /* -------------------------------------------------------------------------- */
 
-    function onSCDPMint(address asset, uint256 mintAmount) public onlyKresko returns (uint256 shares) {
-        totalDebt += int256(shares = previewMint(asset, mintAmount));
+    function onSCDPMint(address asset, uint256 value) public onlyKresko returns (uint256 shares) {
+        totalDebt += int256(shares = previewMint(asset, value));
     }
 
-    function onSCDPBurn(address asset, uint256 burnAmount) public onlyKresko returns (uint256 shares) {
-        totalDebt -= int256((shares = previewBurn(asset, burnAmount)));
+    function onSCDPBurn(address asset, uint256 value) public onlyKresko returns (uint256 shares) {
+        totalDebt -= int256((shares = previewBurn(asset, value)));
     }
 
     function onSCDPLiquidate(
@@ -76,6 +77,10 @@ contract SDI {
         totalDebt -= int256(shares);
     }
 
+    function totalCover() public view returns (uint256) {
+        return totalCoverUSD().mulDivDown(1e18, price());
+    }
+
     /// @notice Cover by pushing assets first then call this. (no need for approval)
     function cover(address asset) public check(asset) returns (uint256 shares, uint256 value) {
         uint256 balance = IERC20Permit(asset).balanceOf(address(this));
@@ -84,7 +89,7 @@ contract SDI {
         require(receivedAmount > 0, "NO_COVER_RECEIVED");
 
         value = _coverAssets[asset].usdWad(receivedAmount, oracleDecimals);
-        totalCover += int256((shares = value.mulDivDown(10 ** oracleDecimals, price())));
+        _totalCover += int256((shares = value.mulDivDown(10 ** oracleDecimals, price())));
 
         // Adjust amount after other adjustments!
         _coverBalances[asset] = balance;
@@ -95,7 +100,7 @@ contract SDI {
         require(amount > 0, "NO_COVER_RECEIVED");
 
         value = _coverAssets[asset].usdWad(amount, oracleDecimals);
-        totalCover += int256((shares = value.mulDivDown(10 ** oracleDecimals, price())));
+        _totalCover += int256((shares = value.mulDivDown(10 ** oracleDecimals, price())));
 
         // Adjust amount after other adjustments!
         _coverBalances[asset] += amount;
@@ -113,43 +118,57 @@ contract SDI {
 
     /// @notice Simply returns the total supply of SDI.
     function totalSupply() public view returns (uint256) {
-        return uint256(totalDebt + totalCover);
+        return uint256(totalDebt) + totalCover();
     }
 
     /// @notice Returns the total effective debt for the SCDP.
     function effectiveDebt() public view returns (uint256) {
-        if (totalCover >= totalDebt) {
+        int256 currentCover = int256(totalCover());
+        if (currentCover >= totalDebt) {
             return 0;
         }
-        return uint256(totalDebt - totalCover);
+        return uint256(totalDebt - currentCover);
     }
 
     /// @notice Preview how many SDI are removed when burning krAssets.
     function previewBurn(address asset, uint256 burnAmount) public view returns (uint256 shares) {
-        uint256 assetsValue = _coverAssets[asset].usdWad(burnAmount, oracleDecimals);
+        bytes memory encodedFunction = abi.encodeWithSelector(
+            kresko.getKrAssetValue.selector,
+            asset,
+            burnAmount,
+            false
+        );
+        uint256 assetsValue = abi.decode(proxyCalldataView(address(kresko), encodedFunction), (uint256));
 
-        return assetsValue.mulDivDown(10 ** oracleDecimals, price());
+        return assetsValue.mulDivDown(1e18, price());
     }
 
     /// @notice Preview how many SDI are minted when minting krAssets.
     function previewMint(address asset, uint256 mintAmount) public view returns (uint256 shares) {
-        uint256 assetsValue = _coverAssets[asset].usdWad(mintAmount, oracleDecimals);
+        bytes memory encodedFunction = abi.encodeWithSelector(
+            kresko.getKrAssetValue.selector,
+            asset,
+            mintAmount,
+            false
+        );
+        uint256 assetsValue = abi.decode(proxyCalldataView(address(kresko), encodedFunction), (uint256));
 
-        return assetsValue.mulDivDown(10 ** oracleDecimals, price());
+        return assetsValue.mulDivDown(1e18, price());
     }
 
     /// @notice Get the price of SDI in USD, oracle precision.
     function price() public view returns (uint256) {
-        uint256 totalValue = totalKrAssetDebtUSD() + totalCoverUSD();
+        uint256 totalValue = totalKrAssetDebtUSD();
         if (totalValue == 0) {
             return 1e8;
         }
-        return totalValue.mulDivDown(1e18, totalSupply());
+        return totalValue.mulDivDown(1e18, uint256(totalDebt));
     }
 
     /// @notice Gets the total debt value of krAssets, oracle precision
     function totalKrAssetDebtUSD() public view virtual returns (uint256 result) {
-        return kresko.getPoolDebtValue(false);
+        bytes memory encodedFunction = abi.encodeWithSelector(kresko.getPoolDebtValue.selector, false);
+        return abi.decode(proxyCalldataView(address(kresko), encodedFunction), (uint256));
     }
 
     /// @notice Gets the total cover debt value, oracle precision

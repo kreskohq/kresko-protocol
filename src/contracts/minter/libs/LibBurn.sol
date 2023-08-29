@@ -12,6 +12,7 @@ import {IERC20Permit} from "common/IERC20Permit.sol";
 import {SafeERC20} from "common/SafeERC20.sol";
 import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
 
+import {LibRedstone} from "./LibRedstone.sol";
 import {LibDecimals} from "./LibDecimals.sol";
 import {LibCalculation} from "./LibCalculation.sol";
 import {KrAsset} from "../MinterTypes.sol";
@@ -61,7 +62,8 @@ library LibBurn {
         require(destroyed != 0, "repay-destroyed-amount-invalid");
 
         // SDI: Update the index
-        scdp().sdi.onSCDPBurn(_kreskoAsset, destroyed);
+        bytes memory encodedFunction = abi.encodeWithSelector(scdp().sdi.onSCDPBurn.selector, _kreskoAsset, destroyed);
+        LibRedstone.proxyCalldata(address(scdp().sdi), encodedFunction, false);
     }
 
     /**

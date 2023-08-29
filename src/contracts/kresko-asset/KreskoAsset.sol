@@ -27,6 +27,8 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
     address public kresko;
     Rebase private _rebaseInfo;
 
+    constructor() initializer {}
+
     /// @inheritdoc IKreskoAsset
     function initialize(
         string memory _name,
@@ -79,8 +81,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
 
     /// @inheritdoc IKreskoAsset
     function balanceOf(address _account) public view override(ERC20Upgradeable, IKreskoAsset) returns (uint256) {
-        uint256 balance = _balances[_account];
-        return balance.rebase(_rebaseInfo);
+        return _balances[_account].rebase(_rebaseInfo);
     }
 
     /// @inheritdoc IKreskoAsset

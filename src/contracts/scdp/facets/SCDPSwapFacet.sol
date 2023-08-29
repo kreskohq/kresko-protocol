@@ -25,9 +25,9 @@ contract SCDPSwapFacet is ISCDPSwapFacet, DiamondModifiers {
 
     function getPrice(address _asset) external view returns (uint256 price) {
         if (address(ms().kreskoAssets[_asset].oracle) != address(0)) {
-            price = ms().kreskoAssets[_asset].uintPrice();
+            price = ms().kreskoAssets[_asset].uintPrice(ms().oracleDeviationPct);
         } else {
-            price = ms().collateralAssets[_asset].uintPrice();
+            price = ms().collateralAssets[_asset].uintPrice(ms().oracleDeviationPct);
         }
         require(price != 0, "price-0");
     }
@@ -43,9 +43,9 @@ contract SCDPSwapFacet is ISCDPSwapFacet, DiamondModifiers {
 
         // Get the fees from amount received.
         feeAmount = _amountIn.wadMul(feePercentage);
-        uint256 valueIn = ms().kreskoAssets[_assetIn].uintUSD(_amountIn - feeAmount);
+        uint256 valueIn = ms().kreskoAssets[_assetIn].uintUSD(_amountIn - feeAmount, ms().oracleDeviationPct);
 
-        amountOut = valueIn.wadDiv(ms().kreskoAssets[_assetOut].uintPrice());
+        amountOut = valueIn.wadDiv(ms().kreskoAssets[_assetOut].uintPrice(ms().oracleDeviationPct));
         feeAmountProtocol = feeAmount.wadMul(protocolFee);
         feeAmount -= feeAmountProtocol;
     }
