@@ -18,13 +18,14 @@ import {DiamondModifiers} from "../../diamond/DiamondModifiers.sol";
 
 import {Constants, KrAsset, CollateralAsset} from "../MinterTypes.sol";
 import {ms, MinterState} from "../MinterStorage.sol";
+import {MinterModifiers} from "../MinterModifiers.sol";
 
 /**
  * @author Kresko
  * @title LiquidationFacet
  * @notice Main end-user functionality concerning liquidations within the Kresko protocol
  */
-contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
+contract LiquidationFacet is DiamondModifiers, MinterModifiers, ILiquidationFacet {
     using Arrays for address[];
     using LibDecimals for uint8;
     using LibDecimals for uint256;
@@ -40,7 +41,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         uint256 _repayAssetIndex,
         uint256 _seizeAssetIndex,
         bool _allowSeizeUnderflow
-    ) external nonReentrant {
+    ) external nonReentrant gate {
         MinterState storage s = ms();
 
         CollateralAsset memory collateral = s.collateralAssets[_seizeAsset];

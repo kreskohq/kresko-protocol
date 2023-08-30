@@ -63,6 +63,9 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         updateSequencerUptimeFeed(args.sequencerUptimeFeed);
         updateSequencerGracePeriodTime(args.sequencerGracePeriodTime);
         updateOracleTimeout(args.oracleTimeout);
+        updatePhase(args.phase);
+        updateKreskian(args.kreskian);
+        updateQuestForKresk(args.questForKresk);
 
         ms().initializations = 1;
         ms().domainSeparator = Meta.domainSeparator("Kresko Minter", "V1");
@@ -184,6 +187,21 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
     /// @inheritdoc IConfigurationFacet
     function updateOracleTimeout(uint256 _oracleTimeout) public override onlyRole(Role.ADMIN) {
         ms().oracleTimeout = _oracleTimeout;
+    }
+
+    /// @inheritdoc IConfigurationFacet
+    function updatePhase(uint8 _phase) public override onlyRole(Role.ADMIN) {
+        ms().phase = _phase;
+    }
+
+    /// @inheritdoc IConfigurationFacet
+    function updateKreskian(address _kreskian) public override onlyRole(Role.ADMIN) {
+        ms().kreskian = _kreskian;
+    }
+
+    /// @inheritdoc IConfigurationFacet
+    function updateQuestForKresk(address _questForKresk) public override onlyRole(Role.ADMIN) {
+        ms().questForKresk = _questForKresk;
     }
 
     /* -------------------------------------------------------------------------- */

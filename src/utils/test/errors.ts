@@ -157,4 +157,10 @@ export enum Error {
     INVALID_LIQUIDITY = "706", // Pair initializaition requires that the pair has liquidit,
     UPDATE_PERIOD_NOT_FINISHED = "707", // Update can only be called once per update perio,
     INVALID_PAIR = "708", // Pair being consulted does not have the token that the price was requested fo,
+
+    /* -------------------------------------------------------------------------- */
+    /*                              9. GATING                                 */
+    /* -------------------------------------------------------------------------- */
+
+    INSUFFICIENT_NFT_BALANCE = "900", // User does not have the required NFT balance
 }

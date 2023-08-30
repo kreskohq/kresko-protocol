@@ -5,6 +5,8 @@ import {ms} from "./MinterStorage.sol";
 import {Action} from "./MinterTypes.sol";
 import {Error} from "../libs/Errors.sol";
 
+import {IERC1155} from "./interfaces/IERC1155.sol";
+
 abstract contract MinterModifiers {
     /**
      * @notice Reverts if a collateral asset does not exist within the protocol.
@@ -40,6 +42,21 @@ abstract contract MinterModifiers {
      */
     modifier kreskoAssetDoesNotExist(address _kreskoAsset) {
         require(!ms().kreskoAssets[_kreskoAsset].exists, Error.KRASSET_EXISTS);
+        _;
+    }
+
+    /// @notice Reverts if the caller does not have the required NFT's for the gated phase
+    modifier gate() {
+        uint8 phase = ms().phase;
+        if (phase <= 2) {
+            require(IERC1155(ms().kreskian).balanceOf(msg.sender, 0) > 0, Error.INSUFFICIENT_NFT_BALANCE);
+        }
+        if (phase <= 1) {
+            require(IERC1155(ms().questForKresk).balanceOf(msg.sender, 2) > 0, Error.INSUFFICIENT_NFT_BALANCE);
+        }
+        if (phase == 0) {
+            require(IERC1155(ms().questForKresk).balanceOf(msg.sender, 3) > 0, Error.INSUFFICIENT_NFT_BALANCE);
+        }
         _;
     }
 

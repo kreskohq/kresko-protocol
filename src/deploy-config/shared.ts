@@ -77,6 +77,9 @@ export const getMinterInitializer = async (
             sequencerUptimeFeed: hre.network.live ? config.sequencerUptimeFeed : ethers.constants.AddressZero,
             sequencerGracePeriodTime: config.sequencerGracePeriodTime,
             oracleTimeout: config.oracleTimeout,
+            phase: 3,
+            kreskian: hre.ethers.constants.AddressZero,
+            questForKresk: hre.ethers.constants.AddressZero,
         },
     };
 };

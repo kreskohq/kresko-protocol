@@ -171,4 +171,10 @@ library Error {
     string public constant KRESKO_NOT_CONTRACT = "804"; // Operator role can only be granted to a contract
     string public constant ADMIN_NOT_A_CONTRACT = "805"; // Operator role can only be granted to a contract
     string public constant OPERATOR_WAIT_PERIOD_TOO_SHORT = "806"; // Operator assignment cooldown period must be greater than 15 minutes
+
+    /* -------------------------------------------------------------------------- */
+    /*                              9. GATING                                 */
+    /* -------------------------------------------------------------------------- */
+
+    string public constant INSUFFICIENT_NFT_BALANCE = "900"; // Insufficient NFT balance
 }

@@ -87,4 +87,14 @@ struct MinterState {
     uint256 sequencerGracePeriodTime;
     /// @notice timeout for oracle in seconds
     uint256 oracleTimeout;
+    /* -------------------------------------------------------------------------- */
+    /*                                  GATING                                  */
+    /* -------------------------------------------------------------------------- */
+
+    /// @notice The current gating phase.
+    uint8 phase;
+    /// @notice Kreskian NFT contract address
+    address kreskian;
+    /// @notice Quest For Kresk NFT contract address
+    address questForKresk;
 }
