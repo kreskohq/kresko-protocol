@@ -147,6 +147,48 @@ contract SDITest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         logSimple("#4 1 krETH debt repaid", newPrices);
     }
 
+    function testGas() public prankAddr(user0) {
+        uint256 depositValueWad = 20000e18;
+        mintKISS(user0, depositValueWad);
+        bool success;
+
+        bytes memory redstonePayload = getRedstonePayload(initialPrices);
+
+        uint256 scdpDepositAmount = depositValueWad / 2;
+        uint256 swapValueWad = ((scdpDepositAmount / 2) * 1e8) / kissOracle.price();
+
+        bytes memory depositData = abi.encodePacked(
+            abi.encodeWithSelector(kresko.poolDeposit.selector, user0, address(KISS), scdpDepositAmount),
+            redstonePayload
+        );
+        uint256 gasDeposit = gasleft();
+        (success, ) = address(kresko).call(depositData);
+        console.log("gasPoolDeposit", gasDeposit - gasleft());
+        require(success, "!success");
+
+        bytes memory withdrawData = abi.encodePacked(
+            abi.encodeWithSelector(kresko.poolWithdraw.selector, user0, address(KISS), scdpDepositAmount),
+            redstonePayload
+        );
+        uint256 gasWithdraw = gasleft();
+        (success, ) = address(kresko).call(withdrawData);
+        console.log("gasPoolWithdraw", gasWithdraw - gasleft());
+
+        require(success, "!success");
+
+        address(kresko).call(depositData);
+
+        bytes memory swapData = abi.encodePacked(
+            abi.encodeWithSelector(kresko.swap.selector, user0, address(KISS), address(krETH), swapValueWad, 0),
+            redstonePayload
+        );
+        uint256 gasSwap = gasleft();
+        (success, ) = address(kresko).call(swapData);
+        console.log("gasPoolSwap", gasSwap - gasleft());
+
+        require(success, "!success");
+    }
+
     /* -------------------------------------------------------------------------- */
     /*                                   helpers                                  */
     /* -------------------------------------------------------------------------- */

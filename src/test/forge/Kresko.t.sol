@@ -21,15 +21,18 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
     MockERC20 internal usdc;
     KreskoAsset internal krETH;
     KreskoAsset internal krJPY;
+    KreskoAsset internal KISS;
 
     MockOracle internal usdcOracle;
     MockOracle internal ethOracle;
     MockOracle internal jpyOracle;
+    MockOracle internal kissOracle;
 
     string usdcPrice = "USDC:1:8";
     string ethPrice = "ETH:2000:8";
     string jpyPrice = "JPY:1:8";
-    string initialPrices = "USDC:1:8,ETH:2000:8,JPY:1:8";
+    string kissPrice = "KISS:1:8";
+    string initialPrices = "USDC:1:8,ETH:2000:8,JPY:1:8,KISS:1:8";
 
     function setUp() public users(address(111), address(222), address(333)) {
         vm.startPrank(admin);
@@ -38,6 +41,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         vm.warp(3601);
         (usdc, usdcOracle) = deployAndWhitelistCollateral("USDC", bytes32("USDC"), 18, 1e8);
         (krETH, , ethOracle) = deployAndWhitelistKrAsset("krETH", bytes32("ETH"), admin, 2000e8);
+        (KISS, , kissOracle) = deployAndWhitelistKrAsset("KISS", bytes32("KISS"), admin, 1e8);
         (krJPY, , jpyOracle) = deployAndWhitelistKrAsset("krJPY", bytes32("JPY"), admin, 1e8);
         enableSCDPCollateral(address(usdc), initialPrices);
         enableSCDPKrAsset(address(krETH), initialPrices);
@@ -132,5 +136,46 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
 
         staticCall(kresko.getAccountCollateralValue.selector, user0, usdcPrice).equals(0e8);
         staticCall(kresko.getAccountKrAssetValue.selector, user0, initialPrices).equals(0);
+    }
+
+    function testGas() public prankAddr(user0) {
+        uint256 depositAmount = 1000e18;
+        uint256 mintAmount = 100e18;
+        bytes memory redstonePayload = getRedstonePayload(initialPrices);
+        bool success;
+
+        usdc.mint(user0, depositAmount);
+        usdc.approve(address(kresko), depositAmount);
+
+        uint256 gasDeposit = gasleft();
+        kresko.depositCollateral(user0, address(usdc), depositAmount);
+        console.log("gasDepositCollateral", gasDeposit - gasleft());
+
+        bytes memory mintData = abi.encodePacked(
+            abi.encodeWithSelector(kresko.mintKreskoAsset.selector, user0, address(krJPY), mintAmount),
+            redstonePayload
+        );
+        uint256 gasMint = gasleft();
+        (success, ) = address(kresko).call(mintData);
+        console.log("gasMintKreskoAsset", gasMint - gasleft());
+        require(success, "!success");
+
+        bytes memory burnData = abi.encodePacked(
+            abi.encodeWithSelector(kresko.burnKreskoAsset.selector, user0, address(krJPY), mintAmount, 0),
+            redstonePayload
+        );
+        uint256 gasBurn = gasleft();
+        (success, ) = address(kresko).call(burnData);
+        console.log("gasBurnKreskoAsset", gasBurn - gasleft());
+        require(success, "!success");
+
+        bytes memory withdrawData = abi.encodePacked(
+            abi.encodeWithSelector(kresko.withdrawCollateral.selector, user0, address(usdc), 998e18, 0),
+            redstonePayload
+        );
+        uint256 gasWithdraw = gasleft();
+        (success, ) = address(kresko).call(withdrawData);
+        console.log("gasWithdrawCollateral", gasWithdraw - gasleft());
+        require(success, "!success");
     }
 }

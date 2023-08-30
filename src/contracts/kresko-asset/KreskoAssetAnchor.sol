@@ -31,7 +31,7 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
     /* -------------------------------------------------------------------------- */
     /*                                 Immutables                                 */
     /* -------------------------------------------------------------------------- */
-    constructor(IKreskoAsset _asset) payable ERC4626Upgradeable(_asset) initializer {}
+    constructor(IKreskoAsset _asset) payable ERC4626Upgradeable(_asset) {}
 
     /// @inheritdoc IKreskoAssetAnchor
     function initialize(
