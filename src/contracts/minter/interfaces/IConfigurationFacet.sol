@@ -127,4 +127,22 @@ interface IConfigurationFacet {
      * @param _oracleTimeout oracle timeout in seconds
      */
     function updateOracleTimeout(uint256 _oracleTimeout) external;
+
+    /**
+     * @notice Sets phase of gating mechanism
+     * @param _phase phase id
+     */
+    function updatePhase(uint8 _phase) external;
+
+    /**
+     * @notice Sets address of Kreskian NFT contract
+     * @param _kreskian kreskian nft contract address
+     */
+    function updateKreskian(address _kreskian) external;
+
+    /**
+     * @notice Sets address of Quest For Kresk NFT contract
+     * @param _questForKresk Quest For Kresk NFT contract address
+     */
+    function updateQuestForKresk(address _questForKresk) external;
 }
