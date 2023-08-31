@@ -162,5 +162,7 @@ export enum Error {
     /*                              9. GATING                                 */
     /* -------------------------------------------------------------------------- */
 
-    INSUFFICIENT_NFT_BALANCE = "900", // User does not have the required NFT balance
+    MISSING_PHASE_1_NFT = "900", // Insufficient Phase 1 NFT balance
+    MISSING_PHASE_2_NFT = "901", // Insufficient Phase 2 NFT balance
+    MISSING_PHASE_3_NFT = "902", // Insufficient Phase 3 NFT balance
 }

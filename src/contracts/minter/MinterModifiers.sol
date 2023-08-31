@@ -49,13 +49,16 @@ abstract contract MinterModifiers {
     modifier gate() {
         uint8 phase = ms().phase;
         if (phase <= 2) {
-            require(IERC1155(ms().kreskian).balanceOf(msg.sender, 0) > 0, Error.INSUFFICIENT_NFT_BALANCE);
+            require(IERC1155(ms().kreskian).balanceOf(msg.sender, 0) > 0, Error.MISSING_PHASE_3_NFT);
         }
-        if (phase <= 1) {
-            require(IERC1155(ms().questForKresk).balanceOf(msg.sender, 2) > 0, Error.INSUFFICIENT_NFT_BALANCE);
-        }
-        if (phase == 0) {
-            require(IERC1155(ms().questForKresk).balanceOf(msg.sender, 3) > 0, Error.INSUFFICIENT_NFT_BALANCE);
+        if (phase == 1) {
+            require(
+                IERC1155(ms().questForKresk).balanceOf(msg.sender, 2) > 0 ||
+                    IERC1155(ms().questForKresk).balanceOf(msg.sender, 3) > 0,
+                Error.MISSING_PHASE_2_NFT
+            );
+        } else if (phase == 0) {
+            require(IERC1155(ms().questForKresk).balanceOf(msg.sender, 3) > 0, Error.MISSING_PHASE_1_NFT);
         }
         _;
     }

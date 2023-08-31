@@ -56,7 +56,7 @@ describe("Gating", () => {
                 this.collateral.address,
                 this.depositArgsOne.amount,
             ),
-        ).to.be.revertedWith(Error.INSUFFICIENT_NFT_BALANCE);
+        ).to.be.revertedWith(Error.MISSING_PHASE_3_NFT);
     });
 
     it("should allow to deposit collateral if the user has the required nft's", async function () {
