@@ -40,6 +40,7 @@ export const minterFacets = [
 ] as const;
 
 export const scdpFacets = ["SCDPStateFacet", "SCDPFacet", "SCDPConfigFacet", "SCDPSwapFacet"] as const;
+export const sdiFacets = ["SDIFacet"] as const;
 
 export const getDeploymentUsers = async (hre: HardhatRuntimeEnvironment) => {
     const users = await hre.getNamedAccounts();
@@ -75,12 +76,11 @@ export const getMinterInitializer = async (
         },
     };
 };
-export const getSCDPInitializer = async (hre: HardhatRuntimeEnvironment, SDI: string): Promise<SCDPInitializer> => {
+export const getSCDPInitializer = async (hre: HardhatRuntimeEnvironment): Promise<SCDPInitializer> => {
     const { swapFeeRecipient } = await getDeploymentUsers(hre);
     return {
         name: "SCDPConfigFacet",
         args: {
-            sdi: SDI,
             lt: toBig(2),
             mcr: toBig(5),
             swapFeeRecipient: swapFeeRecipient,

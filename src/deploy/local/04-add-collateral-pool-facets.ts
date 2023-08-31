@@ -1,5 +1,4 @@
-import { testnetConfigs } from "@deploy-config/arbitrumGoerli";
-import { scdpFacets, getSCDPInitializer, getDeploymentUsers } from "@deploy-config/shared";
+import { getSCDPInitializer, scdpFacets } from "@deploy-config/shared";
 import { getLogger } from "@kreskolabs/lib";
 import { addFacets } from "@scripts/add-facets";
 import type { DeployFunction } from "hardhat-deploy/types";
@@ -11,17 +10,18 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (!hre.Diamond.address) {
         throw new Error("Diamond not deployed");
     }
-    const { treasury, admin: _admin, multisig } = await getDeploymentUsers(hre);
-    const config = testnetConfigs[hre.network.name].protocolParams;
-    const [SDI] = await hre.deploy("SDI", {
-        args: [hre.Diamond.address, treasury, config.extOracleDecimals, multisig],
-    });
-    const initializer = await getSCDPInitializer(hre, SDI.address);
+
+    const initializer = await getSCDPInitializer(hre);
 
     await addFacets({
         names: scdpFacets,
         initializerName: initializer.name,
         initializerArgs: initializer.args,
+    });
+    await addFacets({
+        names: ["SDIFacet"],
+        initializerName: "SDIFacet",
+        initializerArgs: hre.Diamond.address,
     });
     logger.success("Added SCDP facets, saved to diamond");
 };

@@ -23,6 +23,7 @@ import {SCDPStateFacet} from "scdp/facets/SCDPStateFacet.sol";
 import {SCDPFacet} from "scdp/facets/SCDPFacet.sol";
 import {SCDPSwapFacet} from "scdp/facets/SCDPSwapFacet.sol";
 import {SCDPConfigFacet} from "scdp/facets/SCDPConfigFacet.sol";
+import {SDIFacet} from "scdp/facets/SDIFacet.sol";
 import {ISCDPConfigFacet} from "scdp/interfaces/ISCDPConfigFacet.sol";
 import {PoolCollateral, PoolKrAsset} from "scdp/SCDPStorage.sol";
 
@@ -40,8 +41,6 @@ import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {KreskoAssetAnchor} from "kresko-asset/KreskoAssetAnchor.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 import {Test} from "forge-std/Test.sol";
-
-import {SDI, Asset} from "scdp/SDI/SDI.sol";
 
 import {RedstoneHelper} from "./RedstoneHelper.sol";
 
@@ -64,7 +63,7 @@ abstract contract DeployHelper is RedstoneHelper {
         init.oracleTimeout = type(uint256).max;
     }
 
-    function deployDiamond(address admin, address sequencerUptimeFeed) internal returns (IKresko, SDI) {
+    function deployDiamond(address admin, address sequencerUptimeFeed) internal returns (IKresko) {
         /* ------------------------------ DiamondFacets ----------------------------- */
         (
             IDiamondCutFacet.FacetCut[] memory _diamondFacets,
@@ -81,22 +80,21 @@ abstract contract DeployHelper is RedstoneHelper {
         kresko.diamondCut(_minterFacets, minterInit.initContract, minterInit.initData);
 
         /* ------------------------------- SCDPFacets ------------------------------- */
-        SDI sdi = deploySDI();
 
-        (IDiamondCutFacet.FacetCut[] memory _scdpFacets, Diamond.Initialization memory scdpInit) = scdpFacets(
-            address(sdi)
-        );
+        (IDiamondCutFacet.FacetCut[] memory _scdpFacets, Diamond.Initialization memory scdpInit) = scdpFacets();
         kresko.diamondCut(_scdpFacets, scdpInit.initContract, scdpInit.initData);
 
-        return (kresko, sdi);
-    }
+        /* -------------------------------------------------------------------------- */
+        /*                                  SDIFacet                                  */
+        /* -------------------------------------------------------------------------- */
 
-    function deploySDI() internal returns (SDI sdi) {
-        sdi = new SDI(address(kresko), TREASURY, 8, kresko.owner());
-    }
+        (IDiamondCutFacet.FacetCut[] memory _sdiFacets, Diamond.Initialization memory sdiInit) = sdiFacets(
+            address(this)
+        );
 
-    function addSDIAsset(SDI sdi, Asset memory config) internal {
-        sdi.addAsset(config);
+        kresko.diamondCut(_sdiFacets, sdiInit.initContract, sdiInit.initData);
+
+        return (kresko);
     }
 
     function diamondFacets() internal returns (IDiamondCutFacet.FacetCut[] memory, Diamond.Initialization[] memory) {
@@ -191,9 +189,7 @@ abstract contract DeployHelper is RedstoneHelper {
         return (_diamondCut, Diamond.Initialization(configurationFacetAddress, initData));
     }
 
-    function scdpFacets(
-        address sdi
-    ) internal returns (IDiamondCutFacet.FacetCut[] memory, Diamond.Initialization memory) {
+    function scdpFacets() internal returns (IDiamondCutFacet.FacetCut[] memory, Diamond.Initialization memory) {
         address configurationFacetAddress = address(new SCDPConfigFacet());
         IDiamondCutFacet.FacetCut[] memory _diamondCut = new IDiamondCutFacet.FacetCut[](4);
         _diamondCut[0] = IDiamondCutFacet.FacetCut({
@@ -219,16 +215,30 @@ abstract contract DeployHelper is RedstoneHelper {
 
         bytes memory initData = abi.encodeWithSelector(
             SCDPConfigFacet.initialize.selector,
-            ISCDPConfigFacet.SCDPInitArgs({swapFeeRecipient: TREASURY, mcr: 2e18, lt: 1.5e18, sdi: sdi})
+            ISCDPConfigFacet.SCDPInitArgs({swapFeeRecipient: TREASURY, mcr: 2e18, lt: 1.5e18})
         );
         return (_diamondCut, Diamond.Initialization(configurationFacetAddress, initData));
+    }
+
+    function sdiFacets(
+        address coverReceiver
+    ) internal returns (IDiamondCutFacet.FacetCut[] memory, Diamond.Initialization memory) {
+        address facetAddress = address(new SDIFacet());
+        IDiamondCutFacet.FacetCut[] memory _diamondCut = new IDiamondCutFacet.FacetCut[](1);
+        _diamondCut[0] = IDiamondCutFacet.FacetCut({
+            facetAddress: facetAddress,
+            action: IDiamondCutFacet.FacetCutAction.Add,
+            functionSelectors: DiamondHelper.getSelectorsFromArtifact("SDIFacet")
+        });
+
+        bytes memory initData = abi.encodeWithSelector(SDIFacet.initialize.selector, coverReceiver);
+        return (_diamondCut, Diamond.Initialization(facetAddress, initData));
     }
 
     function enableSCDPCollateral(address asset, string memory prices) internal {
         PoolCollateral[] memory configurations = new PoolCollateral[](1);
         configurations[0] = PoolCollateral({
             decimals: MockERC20(asset).decimals(),
-            liquidationIncentive: 1.1e18,
             depositLimit: type(uint256).max,
             liquidityIndex: 1e27
         });
@@ -249,6 +259,7 @@ abstract contract DeployHelper is RedstoneHelper {
         PoolKrAsset[] memory configurations = new PoolKrAsset[](1);
         configurations[0] = PoolKrAsset({
             protocolFee: 0.5e18,
+            liquidationIncentive: 1.1e18,
             openFee: 0.005e18,
             closeFee: 0.005e18,
             supplyLimit: type(uint256).max
@@ -411,6 +422,13 @@ abstract contract DeployHelper is RedstoneHelper {
         );
         require(success, _getRevertMsg(data));
         return abi.decode(data, (uint256));
+    }
+
+    function call(bytes4 selector, address param1, uint256 param2, string memory prices) public {
+        bytes memory redstonePayload = getRedstonePayload(prices);
+        bytes memory encodedFunction = abi.encodeWithSelector(selector, param1, param2);
+        (bool success, bytes memory data) = address(kresko).call(abi.encodePacked(encodedFunction, redstonePayload));
+        require(success, _getRevertMsg(data));
     }
 
     function call(bytes4 selector, address param1, address param2, uint256 param3, string memory prices) public {

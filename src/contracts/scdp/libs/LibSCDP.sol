@@ -4,8 +4,11 @@ pragma solidity >=0.8.19;
 import {SafeERC20, IERC20Permit} from "common/SafeERC20.sol";
 import {WadRay} from "common/libs/WadRay.sol";
 import {LibAmounts} from "./LibAmounts.sol";
-import {scdp, SCDPState} from "../SCDPStorage.sol";
+import {LibDecimals} from "minter/libs/LibDecimals.sol";
+import {scdp, SCDPState} from "scdp/SCDPStorage.sol";
+import {sdi} from "scdp/SDIStorage.sol";
 import {ms} from "minter/MinterStorage.sol";
+import {CollateralAsset} from "minter/MinterTypes.sol";
 
 /* solhint-disable not-rely-on-time */
 
@@ -18,6 +21,7 @@ library LibSCDP {
     using WadRay for uint128;
     using LibAmounts for SCDPState;
     using LibSCDP for SCDPState;
+    using LibDecimals for uint8;
 
     /**
      * @notice Records a deposit of collateral asset.
@@ -34,6 +38,7 @@ library LibSCDP {
     ) internal {
         require(self.isEnabled[_collateralAsset], "asset-disabled");
         uint256 depositAmount = LibAmounts.getCollateralAmountWrite(_collateralAsset, _depositAmount);
+
         unchecked {
             // Save global deposits.
             self.totalDeposits[_collateralAsset] += depositAmount;
@@ -110,7 +115,7 @@ library LibSCDP {
      * @param self Collateral Pool State
      * @param _collateralRatio ratio to check
      */
-    function checkRatio(SCDPState storage self, uint256 _collateralRatio) internal view returns (bool) {
+    function checkRatioWithdrawal(SCDPState storage self, uint256 _collateralRatio) internal view returns (bool) {
         return
             self.getTotalPoolDepositValue(
                 false // dont ignore cFactor
@@ -118,26 +123,15 @@ library LibSCDP {
     }
 
     /**
-     * @notice Checks whether the collateral ratio is equal to or above to ratio supplied after withdrawal.
+     * @notice Checks whether the collateral ratio is equal to or above to ratio supplied.
      * @param self Collateral Pool State
-     * @param _collateralAsset collateral asset
-     * @param _withdrawalAmount amount of collateral asset to withdraw
      * @param _collateralRatio ratio to check
      */
-    function checkRatio(
-        SCDPState storage self,
-        address _collateralAsset,
-        uint256 _withdrawalAmount,
-        uint256 _collateralRatio
-    ) internal view returns (bool) {
-        // total collateral and withdrawal value
-        (uint256 totalValue, uint256 withdrawalValue) = self.getTotalPoolDepositValue(
-            _collateralAsset,
-            _withdrawalAmount,
-            false // dont ignore cFactor
-        );
-
-        return totalValue - withdrawalValue >= self.getTotalPoolKrAssetValueAtRatio(_collateralRatio, false); // dont ignore ratios.
+    function checkRatio(SCDPState storage self, uint256 _collateralRatio) internal view returns (bool) {
+        return
+            self.getTotalPoolDepositValue(
+                false // dont ignore cFactor
+            ) >= sdi().effectiveDebtUSD().wadMul(_collateralRatio);
     }
 
     /**
@@ -165,9 +159,12 @@ library LibSCDP {
         bool _ignorekFactor
     ) internal view returns (uint256 value) {
         address[] memory assets = self.krAssets;
-        for (uint256 i; i < assets.length; i++) {
+        for (uint256 i; i < assets.length; ) {
             address asset = assets[i];
             value += ms().getKrAssetValue(asset, ms().getKreskoAssetAmount(asset, self.debt[asset]), _ignorekFactor);
+            unchecked {
+                i++;
+            }
         }
 
         // We dont need to multiply this.
@@ -189,7 +186,7 @@ library LibSCDP {
         bool _ignoreFactors
     ) internal view returns (uint256 value) {
         address[] memory assets = self.collaterals;
-        for (uint256 i; i < assets.length; i++) {
+        for (uint256 i; i < assets.length; ) {
             address asset = assets[i];
             (uint256 assetValue, ) = ms().getCollateralValueAndOraclePrice(
                 asset,
@@ -197,6 +194,10 @@ library LibSCDP {
                 _ignoreFactors
             );
             value += assetValue;
+
+            unchecked {
+                i++;
+            }
         }
     }
 
@@ -214,7 +215,7 @@ library LibSCDP {
         bool _ignoreFactors
     ) internal view returns (uint256 totalValue, uint256 amountValue) {
         address[] memory assets = self.collaterals;
-        for (uint256 i; i < assets.length; i++) {
+        for (uint256 i; i < assets.length; ) {
             address asset = assets[i];
             (uint256 assetValue, uint256 price) = ms().getCollateralValueAndOraclePrice(
                 asset,
@@ -224,9 +225,14 @@ library LibSCDP {
 
             totalValue += assetValue;
             if (asset == _collateralAsset) {
-                amountValue = _amount.wadMul(
-                    _ignoreFactors ? price : price.wadMul(ms().collateralAssets[asset].factor)
+                CollateralAsset memory collateral = ms().collateralAssets[_collateralAsset];
+                amountValue = collateral.decimals.toWad(_amount).wadMul(
+                    _ignoreFactors ? price : price.wadMul(collateral.factor)
                 );
+            }
+
+            unchecked {
+                i++;
             }
         }
     }
@@ -242,7 +248,7 @@ library LibSCDP {
         bool _ignoreFactors
     ) internal view returns (uint256 totalValue) {
         address[] memory assets = self.collaterals;
-        for (uint256 i; i < assets.length; i++) {
+        for (uint256 i; i < assets.length; ) {
             address asset = assets[i];
             (uint256 assetValue, ) = ms().getCollateralValueAndOraclePrice(
                 asset,
@@ -251,6 +257,10 @@ library LibSCDP {
             );
 
             totalValue += assetValue;
+
+            unchecked {
+                i++;
+            }
         }
     }
 
@@ -264,7 +274,7 @@ library LibSCDP {
         address _account
     ) internal view returns (uint256 totalValue) {
         address[] memory assets = self.collaterals;
-        for (uint256 i; i < assets.length; i++) {
+        for (uint256 i; i < assets.length; ) {
             address asset = assets[i];
             (uint256 assetValue, ) = ms().getCollateralValueAndOraclePrice(
                 asset,
@@ -273,6 +283,10 @@ library LibSCDP {
             );
 
             totalValue += assetValue;
+
+            unchecked {
+                i++;
+            }
         }
     }
 
@@ -289,46 +303,12 @@ library LibSCDP {
         } else {
             // swap deposits do not cover the amount
             uint256 amountToCover = _seizeAmount - swapDeposits;
-            self.swapDeposits[_seizeAsset] = 0;
-
             // reduce everyones deposits by the same ratio
             self.poolCollateral[_seizeAsset].liquidityIndex -= uint128(
-                amountToCover.wadToRay().rayDiv(self.getPoolDeposits(_seizeAsset).wadToRay())
+                amountToCover.wadToRay().rayDiv(self.getUserPoolDeposits(_seizeAsset).wadToRay())
             );
-
+            self.swapDeposits[_seizeAsset] = 0;
             self.totalDeposits[_seizeAsset] -= LibAmounts.getCollateralAmountWrite(_seizeAsset, amountToCover);
         }
     }
-
-    // /**
-    //  * @notice Returns the krAsset value of a single asset in the pool.
-    //  * Performs possible rebasing conversions for the pool balance.
-    //  * @param self Collateral Pool State
-    //  * @param _kreskoAsset krAsset
-    //  * @param _ignorekFactor whether to ignore the k factor
-    //  * @return value The krAsset value in USD
-    //  */
-    // function getPoolKrAssetValue(
-    //     SCDPState storage self,
-    //     address _kreskoAsset,
-    //     bool _ignorekFactor
-    // ) internal view returns (uint256 value) {
-
-    // }
-
-    // /**
-    //  * @notice Get the current price rate between AMM and oracle pricing
-    //  * @dev Raw return value of ammPrice == 0 when no AMM pair exists OR liquidity of the pair does not qualify
-    //  * @param self rate configuration for the asset
-    //  * @return priceRate the current price rate
-    //  */
-    // function getPriceRate(StabilityRateConfig storage self) internal view returns (uint256 priceRate) {
-    //     FixedPoint.Unsigned memory oraclePrice = ms().getKrAssetValue(self.asset, 1 ether, true);
-    //     FixedPoint.Unsigned memory ammPrice = ms().getKrAssetAMMPrice(self.asset, 1 ether);
-    //     // no pair, no effect
-    //     if (ammPrice.rawValue == 0) {
-    //         return 0;
-    //     }
-    //     return ammPrice.div(oraclePrice).div(10).rawValue;
-    // }
 }

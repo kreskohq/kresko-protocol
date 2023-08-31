@@ -3,7 +3,6 @@ pragma solidity >=0.8.19;
 import {LibSCDP} from "./libs/LibSCDP.sol";
 import {LibSwap} from "./libs/LibSwap.sol";
 import {LibAmounts} from "./libs/LibAmounts.sol";
-import {SDI} from "./SDI/SDI.sol";
 
 /* solhint-disable var-name-mixedcase */
 
@@ -12,14 +11,14 @@ using LibAmounts for SCDPState global;
 using LibSwap for SCDPState global;
 
 struct PoolCollateral {
-    uint256 liquidationIncentive;
     uint128 liquidityIndex;
     uint256 depositLimit;
     uint8 decimals;
 }
 
 struct PoolKrAsset {
-    uint256 protocolFee; // Taken from the open/close fee. Goes to protocol.
+    uint256 liquidationIncentive;
+    uint256 protocolFee; // Taken from the open+close fee. Goes to protocol.
     uint256 openFee;
     uint256 closeFee;
     uint256 supplyLimit;
@@ -55,8 +54,9 @@ struct SCDPState {
     address[] krAssets;
     /// @notice User swap fee receiver
     address swapFeeRecipient;
-    /// @notice SCDP Debt Index
-    SDI sdi;
+    /// @notice Liquidation Overflow Multiplier, multiplies max liquidatable value.
+    uint256 maxLiquidationMultiplier;
+    address feeAsset;
 }
 
 // Storage position

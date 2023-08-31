@@ -13,7 +13,6 @@ interface ISCDPConfigFacet {
         address swapFeeRecipient;
         uint256 mcr;
         uint256 lt;
-        address sdi;
     }
     // Emitted when a swap pair is disabled / enabled.
     event PairSet(address indexed assetIn, address indexed assetOut, bool enabled);
@@ -49,14 +48,13 @@ interface ISCDPConfigFacet {
     /// @notice Get the pool configuration.
     function getSCDPConfig() external view returns (SCDPInitArgs memory);
 
+    function setSCDPFeeAsset(address asset) external;
+
     /// @notice Set the pool minimum collateralization ratio.
     function setSCDPMCR(uint256 _mcr) external;
 
     /// @notice Set the pool liquidation threshold.
     function setSCDPLT(uint256 _lt) external;
-
-    /// @notice Set the debt index contract
-    function setSDI(address _newSDI) external;
 
     /**
      * @notice Enable kresko assets in the pool.
@@ -90,11 +88,10 @@ interface ISCDPConfigFacet {
      * @notice Update the collateral configuration.
      * Only callable by admin.
      * @param _asset The Collateral asset to update
-     * @param _newLiquidationIncentive The new liquidation incentive for the collateral.
      * @param _newDepositLimit The new deposit limit for the collateral
      * emits PoolCollateralUpdated
      */
-    function updatePoolCollateral(address _asset, uint256 _newLiquidationIncentive, uint256 _newDepositLimit) external;
+    function updatePoolCollateral(address _asset, uint256 _newDepositLimit) external;
 
     /**
      * @notice Disabled swaps and deposits for collaterals in the pool.

@@ -7,7 +7,6 @@ import {IKresko} from "common/IKresko.sol";
 import {LibTest} from "kresko-helpers/utils/LibTest.sol";
 import {TestBase} from "kresko-helpers/utils/TestBase.sol";
 import {AggregatorV3Interface} from "common/AggregatorV3Interface.sol";
-import {SDI, Asset} from "scdp/SDI/SDI.sol";
 import {MockOracle} from "test/MockOracle.sol";
 import {MockERC20, WETH} from "test/MockERC20.sol";
 import {DeployHelper} from "./utils/DeployHelper.sol";
@@ -16,8 +15,6 @@ import {KreskoAssetAnchor} from "kresko-asset/KreskoAssetAnchor.sol";
 import {MockSequencerUptimeFeed} from "test/MockSequencerUptimeFeed.sol";
 
 contract SDITest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
-    SDI internal sdi;
-
     using LibTest for *;
     address internal admin = address(0xABABAB);
 
@@ -42,12 +39,15 @@ contract SDITest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
 
     function setUp() public users(address(11), address(22), address(33)) {
         vm.startPrank(admin);
-        (, sdi) = deployDiamond(admin, address(new MockSequencerUptimeFeed()));
+        deployDiamond(admin, address(new MockSequencerUptimeFeed()));
         vm.warp(3602);
         (usdc, usdcOracle) = deployAndWhitelistCollateral("USDC", bytes32("USDC"), 18, 1e8);
         (KISS, aKISS, kissOracle) = deployAndWhitelistKrAsset("KISS", bytes32("KISS"), admin, 1e8);
         (krETH, akrETH, ethOracle) = deployAndWhitelistKrAsset("krETH", bytes32("ETH"), admin, 2000e8);
         (krJPY, akrJPY, jpyOracle) = deployAndWhitelistKrAsset("krJPY", bytes32("JPY"), admin, 1e8);
+
+        kresko.setSCDPFeeAsset(address(KISS));
+
         whitelistCollateral(address(KISS), address(aKISS), address(kissOracle), bytes32("KISS"));
         enableSCDPCollateral(address(usdc), initialPrices);
         enableSCDPCollateral(address(KISS), initialPrices);
@@ -56,17 +56,7 @@ contract SDITest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         enableSCDPKrAsset(address(KISS), initialPrices);
         enableSwapBothWays(address(KISS), address(krETH), true);
         enableSwapBothWays(address(krJPY), address(krETH), true);
-        addSDIAsset(
-            sdi,
-            Asset({
-                token: IERC20Permit(address(KISS)),
-                oracle: AggregatorV3Interface(address(kissOracle)),
-                maxDeposits: type(uint256).max,
-                depositFee: 0,
-                withdrawFee: 0,
-                enabled: true
-            })
-        );
+        kresko.addAssetSDI(address(KISS), address(kissOracle), bytes32("KISS"));
         vm.stopPrank();
         _approvals(user0);
         _approvals(user1);
@@ -74,15 +64,15 @@ contract SDITest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
     }
 
     function testSetup() public {
-        staticCall(address(sdi), sdi.effectiveDebt.selector, initialPrices).equals(0, "debt should be 0");
-        staticCall(address(sdi), sdi.totalSupply.selector, initialPrices).equals(0, "total supply should be 0");
-        sdi.coverAsset(address(KISS)).enabled.equals(true);
+        staticCall(kresko.getEffectiveSDIDebt.selector, initialPrices).equals(0, "debt should be 0");
+        staticCall(kresko.totalSDI.selector, initialPrices).equals(0, "total supply should be 0");
+        kresko.getSDICoverAsset(address(KISS)).enabled.equals(true);
     }
 
     function testDeposit() public {
         uint256 amount = 1000e18;
         poolDeposit(user0, address(usdc), amount, initialPrices);
-        staticCall(address(sdi), sdi.totalSupply.selector, initialPrices).equals(0, "total supply should be 0");
+        staticCall(kresko.totalSDI.selector, initialPrices).equals(0, "total supply should be 0");
         usdc.balanceOf(address(kresko)).equals(amount);
 
         staticCall(kresko.getPoolCollateralValue.selector, true, initialPrices).equals(1000e8);
@@ -113,30 +103,31 @@ contract SDITest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         logSimple("testSwap");
     }
 
-    function testCover1() public {
+    function testCover() public {
         vm.startPrank(user0);
         initSCDPETH();
-        logSimple("#1 Init: $15,000 collateral | $5k KISS -> krETH");
+        logSimple("#1 Init: $15,000 collateral | Swap $5,000 KISS -> krETH");
+
+        staticCall(kresko.getEffectiveSDIDebt.selector, initialPrices).equals(5940e18);
+        kresko.getTotalSDIDebt.equals(5940e18, "total-debt");
 
         changePrank(user1);
         mintKISS(user1, 1000e18);
         cover(address(KISS), 1000e18, initialPrices);
 
-        staticCall(kresko.getPoolDebtValue.selector, false, initialPrices).equals(5940e8);
-        sdi.totalDebt().equals(5940e18, "total-debt");
-
-        uint256 totalCoverBefore = staticCall(address(sdi), sdi.totalCover.selector, initialPrices);
+        uint256 totalCoverBefore = staticCall(kresko.getSDICoverAmount.selector, initialPrices);
         totalCoverBefore.equals(1000e18, "total-cover-before");
 
-        staticCall(address(sdi), sdi.effectiveDebt.selector, initialPrices).equals(4940e18);
-        staticCall(address(sdi), sdi.price.selector, initialPrices).equals(1e8, "sdi-price");
+        kresko.getTotalSDIDebt.equals(5940e18, "total-debt");
+        staticCall(kresko.getEffectiveSDIDebt.selector, initialPrices).equals(4940e18);
+        staticCall(kresko.getSDIPrice.selector, initialPrices).equals(1e8, "sdi-price");
 
-        logSimple("#2 Cover 100 KISS ($100)");
+        logSimple("#2 Cover 1000 KISS ($1,000)");
 
         ethOracle.setPrice(2666e8);
         string memory newPrices = "USDC:1:8,ETH:2666:8,JPY:1:8,KISS:1:8";
 
-        uint256 totalCoverAfter = staticCall(address(sdi), sdi.totalCover.selector, newPrices);
+        uint256 totalCoverAfter = staticCall(kresko.getSDICoverAmount.selector, newPrices);
 
         totalCoverAfter.lt(totalCoverBefore, "total-cover-after");
 
@@ -187,6 +178,38 @@ contract SDITest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         console.log("gasPoolSwap", gasSwap - gasleft());
 
         require(success, "!success");
+
+        bytes memory swapData2 = abi.encodePacked(
+            abi.encodeWithSelector(
+                kresko.swap.selector,
+                user0,
+                address(krETH),
+                address(KISS),
+                krETH.balanceOf(user0),
+                0
+            ),
+            redstonePayload
+        );
+        uint256 gasSwap2 = gasleft();
+        (success, ) = address(kresko).call(swapData2);
+        console.log("gasPoolSwap2", gasSwap2 - gasleft());
+
+        require(success, "!success");
+
+        bytes memory swapData3 = abi.encodePacked(
+            abi.encodeWithSelector(
+                kresko.swap.selector,
+                user0,
+                address(KISS),
+                address(krETH),
+                KISS.balanceOf(user0),
+                0
+            ),
+            redstonePayload
+        );
+        uint256 gasSwap3 = gasleft();
+        (success, ) = address(kresko).call(swapData3);
+        console.log("gasPoolSwap3", gasSwap3 - gasleft());
     }
 
     /* -------------------------------------------------------------------------- */
@@ -231,7 +254,7 @@ contract SDITest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
     }
 
     function cover(address asset, uint256 amount, string memory prices) internal {
-        call(address(sdi), abi.encodeWithSignature("cover(address,uint256)", asset, amount), prices);
+        call(kresko.SDICover.selector, asset, amount, prices);
     }
 
     function _approvals(address user) internal prankAddr(user) {
@@ -239,55 +262,28 @@ contract SDITest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         krETH.approve(address(kresko), type(uint256).max);
         KISS.approve(address(kresko), type(uint256).max);
         krJPY.approve(address(kresko), type(uint256).max);
-        usdc.approve(address(sdi), type(uint256).max);
-        krETH.approve(address(sdi), type(uint256).max);
-        KISS.approve(address(sdi), type(uint256).max);
-        krJPY.approve(address(sdi), type(uint256).max);
     }
 
     function logSimple(string memory prefix) internal {
-        prefix = prefix.and(" | ");
-        prefix.and("*****************").clg();
-
-        uint256 sdiPrice = staticCall(address(sdi), sdi.price.selector, initialPrices);
-        uint256 sdiTotalSupply = staticCall(address(sdi), sdi.totalSupply.selector, initialPrices);
-        uint256 totalCover = staticCall(address(sdi), sdi.totalCover.selector, initialPrices);
-        uint256 collateralUSD = staticCall(kresko.getPoolCollateralValue.selector, false, initialPrices);
-        uint256 debtUSD = staticCall(kresko.getPoolDebtValue.selector, false, initialPrices);
-
-        uint256 effectiveDebt = staticCall(address(sdi), sdi.effectiveDebt.selector, initialPrices);
-        uint256 sdiDebtUSD = (effectiveDebt * sdiPrice) / 1e18;
-
-        sdiPrice.clg(prefix.and("SDI Price"), 8);
-        sdiTotalSupply.clg(prefix.and("SDI totalSupply"));
-        sdi.totalDebt().clg(prefix.and("SCDP SDI Debt Amount"));
-        totalCover.clg(prefix.and("SCDP SDI Cover Amount"));
-        effectiveDebt.clg(prefix.and("SCDP Effective SDI Debt Amount"));
-
-        collateralUSD.clg(prefix.and("SCDP Collateral USD"), 8);
-        debtUSD.clg(prefix.and("SCDP KrAsset Debt USD"), 8);
-        ((uint256(totalCover) * sdiPrice) / 1e18).clg(prefix.and("SCDP SDI Cover USD"), 8);
-        sdiDebtUSD.clg(prefix.and("SCDP SDI Debt USD"), 8);
-
-        staticCall(kresko.getPoolCR.selector, initialPrices).clg(prefix.and("SCDP CR %"), 16);
+        logSimple(prefix, initialPrices);
     }
 
     function logSimple(string memory prefix, string memory prices) internal {
         prefix = prefix.and(" | ");
         prefix.and("*****************").clg();
 
-        uint256 sdiPrice = staticCall(address(sdi), sdi.price.selector, prices);
-        uint256 sdiTotalSupply = staticCall(address(sdi), sdi.totalSupply.selector, prices);
-        uint256 totalCover = staticCall(address(sdi), sdi.totalCover.selector, prices);
+        uint256 sdiPrice = staticCall(kresko.getSDIPrice.selector, prices);
+        uint256 sdiTotalSupply = staticCall(kresko.totalSDI.selector, prices);
+        uint256 totalCover = staticCall(kresko.getSDICoverAmount.selector, prices);
         uint256 collateralUSD = staticCall(kresko.getPoolCollateralValue.selector, false, prices);
         uint256 debtUSD = staticCall(kresko.getPoolDebtValue.selector, false, prices);
 
-        uint256 effectiveDebt = staticCall(address(sdi), sdi.effectiveDebt.selector, prices);
+        uint256 effectiveDebt = staticCall(kresko.getEffectiveSDIDebt.selector, prices);
         uint256 sdiDebtUSD = (effectiveDebt * sdiPrice) / 1e18;
 
         sdiPrice.clg(prefix.and("SDI Price"), 8);
         sdiTotalSupply.clg(prefix.and("SDI totalSupply"));
-        sdi.totalDebt().clg(prefix.and("SCDP SDI Debt Amount"));
+        kresko.getTotalSDIDebt().clg(prefix.and("SCDP SDI Debt Amount"));
         totalCover.clg(prefix.and("SCDP SDI Cover Amount"));
         effectiveDebt.clg(prefix.and("SCDP Effective SDI Debt Amount"));
 

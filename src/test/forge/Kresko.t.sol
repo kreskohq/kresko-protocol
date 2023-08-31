@@ -7,7 +7,6 @@ import {IKresko} from "common/IKresko.sol";
 import {LibTest} from "kresko-helpers/utils/LibTest.sol";
 import {TestBase} from "kresko-helpers/utils/TestBase.sol";
 import {AggregatorV3Interface} from "common/AggregatorV3Interface.sol";
-import {SDI, Asset} from "scdp/SDI/SDI.sol";
 import {MockOracle} from "test/MockOracle.sol";
 import {MockERC20, WETH} from "test/MockERC20.sol";
 import {DeployHelper} from "./utils/DeployHelper.sol";
@@ -59,11 +58,11 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         kresko.collateralAsset(address(usdc)).exists.equals(true);
         kresko.kreskoAsset(address(krETH)).exists.equals(true);
 
-        kresko.getPoolCollateral(address(usdc)).liquidationIncentive.equals(1.1e18);
         kresko.getPoolCollateral(address(usdc)).decimals.equals(usdc.decimals());
         kresko.getPoolCollateral(address(usdc)).depositLimit.equals(type(uint256).max);
         kresko.getPoolCollateral(address(usdc)).liquidityIndex.equals(1e27);
 
+        kresko.getPoolKrAsset(address(krETH)).liquidationIncentive.equals(1.1e18);
         kresko.getPoolKrAsset(address(krETH)).openFee.equals(0.005e18);
         kresko.getPoolKrAsset(address(krETH)).closeFee.equals(0.005e18);
         kresko.getPoolKrAsset(address(krETH)).supplyLimit.equals(type(uint256).max);

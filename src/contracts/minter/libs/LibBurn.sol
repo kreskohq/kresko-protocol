@@ -18,6 +18,7 @@ import {LibCalculation} from "./LibCalculation.sol";
 import {KrAsset} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
 import {scdp} from "scdp/SCDPStorage.sol";
+import {sdi} from "scdp/SDIStorage.sol";
 
 library LibBurn {
     using Arrays for address[];
@@ -61,9 +62,7 @@ library LibBurn {
         destroyed = IKreskoAssetIssuer(self.kreskoAssets[_kreskoAsset].anchor).destroy(_burnAmount, _from);
         require(destroyed != 0, "repay-destroyed-amount-invalid");
 
-        // SDI: Update the index
-        bytes memory encodedFunction = abi.encodeWithSelector(scdp().sdi.onSCDPBurn.selector, _kreskoAsset, destroyed);
-        LibRedstone.proxyCalldata(address(scdp().sdi), encodedFunction, false);
+        sdi().totalDebt -= sdi().previewBurn(_kreskoAsset, destroyed, false);
     }
 
     /**

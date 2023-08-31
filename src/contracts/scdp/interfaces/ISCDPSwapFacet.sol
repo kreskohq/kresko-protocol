@@ -9,7 +9,7 @@ interface ISCDPSwapFacet {
         uint256 amountIn,
         uint256 amountOut
     );
-    event SwapFee(address indexed assetIn, uint256 feeAmount, uint256 protocolFeeAmount);
+    event SwapFee(address indexed feeAsset, address indexed assetIn, uint256 feeAmount, uint256 protocolFeeAmount);
 
     event Income(address asset, uint256 amount);
 
@@ -50,6 +50,7 @@ interface ISCDPSwapFacet {
      * @notice Accumulates fees to deposits as a fixed, instantaneous income.
      * @param _incomeAsset the income asset
      * @param _amount amount to accumulate
+     * @return nextLiquidityIndex the next liquidity index
      */
-    function cumulateIncome(address _incomeAsset, uint256 _amount) external;
+    function cumulateIncome(address _incomeAsset, uint256 _amount) external returns (uint256 nextLiquidityIndex);
 }

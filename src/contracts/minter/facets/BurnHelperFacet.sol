@@ -54,8 +54,11 @@ contract BurnHelperFacet is IBurnHelperFacet, DiamondModifiers, MinterModifiers 
         address _account
     ) external onlyRoleIf(_account != msg.sender, Role.MANAGER) {
         address[] memory mintedKreskoAssets = ms().getMintedKreskoAssets(_account);
-        for (uint256 i; i < mintedKreskoAssets.length; i++) {
+        for (uint256 i; i < mintedKreskoAssets.length; ) {
             closeKrAssetDebtPosition(_account, mintedKreskoAssets[i]);
+            unchecked {
+                i++;
+            }
         }
     }
 }

@@ -64,22 +64,23 @@ library LibSwap {
 
         // Bookkeeping
         if (debt >= _amountIn) {
-            // == Debt is equal to or greater than the amount.
+            // == Debt is greater than the amount.
             // 1. Burn full amount received.
             debtOut = _amountIn;
             // 2. No increase in collateral.
-        } else if (debt < _amountIn) {
+        } else {
             // == Debt is less than the amount received.
             // 1. Burn full debt.
             debtOut = debt;
             // 2. Increase collateral by remainder.
             collateralIn = _amountIn - debt;
-        } else {
-            // == Debt is 0.
-            // 1. Burn nothing.
-            // 2. Increase collateral by full amount.
-            collateralIn = _amountIn;
         }
+        // else {
+        //     // == Debt is 0.
+        //     // 1. Burn nothing.
+        //     // 2. Increase collateral by full amount.
+        //     collateralIn = _amountIn;
+        // }
 
         if (collateralIn > 0) {
             uint256 collateralInInternal = LibAmounts.getCollateralAmountWrite(_assetIn, collateralIn);
@@ -94,7 +95,7 @@ library LibSwap {
             self.debt[_assetIn] -= ms().repaySwap(_assetIn, debtOut, _assetsFrom);
         }
 
-        require(_amountIn == debtOut + collateralIn, "assets-in-mismatch");
+        assert(_amountIn == debtOut + collateralIn);
     }
 
     /**
@@ -122,12 +123,7 @@ library LibSwap {
         uint256 debtIn; // new debt required to mint
 
         // Bookkeeping
-        if (swapDeposits == 0) {
-            // == No "swap" owned collateral available.
-            // 1. Issue full amount as debt.
-            debtIn = amountOut;
-            // 2. No decrease in collateral.
-        } else if (swapDeposits >= amountOut) {
+        if (swapDeposits >= amountOut) {
             // == "Swap" owned collateral exceeds requested amount
             // 1. No debt issued.
             // 2. Decrease collateral by full amount.
@@ -139,6 +135,7 @@ library LibSwap {
             // 2. Reduce "swap" owned collateral to zero.
             collateralOut = swapDeposits;
         }
+
         if (collateralOut > 0) {
             uint256 amountOutInternal = LibAmounts.getCollateralAmountWrite(_assetOut, collateralOut);
             // 1. Decrease collateral deposits.
@@ -156,7 +153,7 @@ library LibSwap {
             self.debt[_assetOut] += ms().mintSwap(_assetOut, debtIn, _assetsTo);
         }
 
-        require(amountOut == debtIn + collateralOut, "amount-out-mismatch");
+        assert(amountOut == debtIn + collateralOut);
     }
 
     /**
@@ -170,11 +167,11 @@ library LibSwap {
         address _collateralAsset,
         uint256 _amount
     ) internal returns (uint256 nextLiquidityIndex) {
-        // Next liquidity index is calculated this way: `((amount / totalLiquidity) + 1) * liquidityIndex`
+        // liquidity index increment is calculated this way: `(amount / totalLiquidity)`
         // division `amount / totalLiquidity` done in ray for precision
-        uint256 result = (_amount.wadToRay().rayDiv(self.getPoolDeposits(_collateralAsset).wadToRay()) + WadRay.RAY)
-            .rayMul(self.poolCollateral[_collateralAsset].liquidityIndex);
-        self.poolCollateral[_collateralAsset].liquidityIndex = uint128(result);
-        return result;
+
+        return (self.poolCollateral[_collateralAsset].liquidityIndex += uint128(
+            (_amount.wadToRay().rayDiv(self.getUserPoolDeposits(_collateralAsset).wadToRay()))
+        ));
     }
 }

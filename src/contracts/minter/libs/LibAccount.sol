@@ -94,7 +94,7 @@ library LibAccount {
         address _account
     ) internal view returns (uint256 totalCollateralValue) {
         address[] memory assets = self.depositedCollateralAssets[_account];
-        for (uint256 i = 0; i < assets.length; i++) {
+        for (uint256 i; i < assets.length; ) {
             address asset = assets[i];
             (uint256 collateralValue, ) = self.getCollateralValueAndOraclePrice(
                 asset,
@@ -102,6 +102,9 @@ library LibAccount {
                 false // Take the collateral factor into consideration.
             );
             totalCollateralValue += collateralValue;
+            unchecked {
+                i++;
+            }
         }
 
         return totalCollateralValue;
@@ -120,7 +123,7 @@ library LibAccount {
         address _collateralAsset
     ) internal view returns (uint256 totalCollateralValue, uint256 specificValue) {
         address[] memory assets = self.depositedCollateralAssets[_account];
-        for (uint256 i = 0; i < assets.length; i++) {
+        for (uint256 i; i < assets.length; ) {
             address asset = assets[i];
             (uint256 collateralValue, ) = self.getCollateralValueAndOraclePrice(
                 asset,
@@ -130,6 +133,10 @@ library LibAccount {
             totalCollateralValue += collateralValue;
             if (asset == _collateralAsset) {
                 specificValue = collateralValue;
+            }
+
+            unchecked {
+                i++;
             }
         }
     }
@@ -157,9 +164,12 @@ library LibAccount {
      */
     function getAccountKrAssetValue(MinterState storage self, address _account) internal view returns (uint256 value) {
         address[] memory assets = self.mintedKreskoAssets[_account];
-        for (uint256 i = 0; i < assets.length; i++) {
+        for (uint256 i; i < assets.length; ) {
             address asset = assets[i];
             value += self.getKrAssetValue(asset, self.getKreskoAssetDebtPrincipal(_account, asset), false);
+            unchecked {
+                i++;
+            }
         }
         return value;
     }
@@ -192,9 +202,12 @@ library LibAccount {
     ) internal view returns (uint256 i) {
         uint256 length = self.mintedKreskoAssets[_account].length;
         require(length > 0, Error.NO_KRASSETS_MINTED);
-        for (i; i < length; i++) {
+        for (i; i < length; ) {
             if (self.mintedKreskoAssets[_account][i] == _kreskoAsset) {
                 break;
+            }
+            unchecked {
+                i++;
             }
         }
     }
@@ -212,9 +225,12 @@ library LibAccount {
     ) internal view returns (uint256 i) {
         uint256 length = self.depositedCollateralAssets[_account].length;
         require(length > 0, Error.NO_COLLATERAL_DEPOSITS);
-        for (i; i < length; i++) {
+        for (i; i < length; ) {
             if (self.depositedCollateralAssets[_account][i] == _collateralAsset) {
                 break;
+            }
+            unchecked {
+                i++;
             }
         }
     }

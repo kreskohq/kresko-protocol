@@ -12,7 +12,7 @@ import {LibCalculation} from "minter/libs/LibCalculation.sol";
 import {LibDecimals} from "minter/libs/LibDecimals.sol";
 
 import {LibAmounts} from "scdp/libs/LibAmounts.sol";
-import {scdp} from "../SCDPStorage.sol";
+import {scdp, PoolKrAsset} from "../SCDPStorage.sol";
 import {ISCDPFacet} from "../interfaces/ISCDPFacet.sol";
 
 contract SCDPFacet is ISCDPFacet, DiamondModifiers {
@@ -41,8 +41,7 @@ contract SCDPFacet is ISCDPFacet, DiamondModifiers {
         );
 
         // ensure that global pool is left with CR over MCR.
-        require(scdp().checkRatio(scdp().minimumCollateralizationRatio), "withdraw-mcr-violation");
-
+        require(scdp().checkRatioWithdrawal(scdp().minimumCollateralizationRatio), "withdraw-mcr-violation");
         // Send out the collateral.
         IERC20Permit(_collateralAsset).safeTransfer(_account, collateralOut + feesOut);
 
@@ -52,14 +51,13 @@ contract SCDPFacet is ISCDPFacet, DiamondModifiers {
 
     /// @inheritdoc ISCDPFacet
     function poolRepay(address _repayKrAsset, uint256 _repayAmount, address _seizeCollateral) external nonReentrant {
-        require(scdp().debt[_repayKrAsset] >= 0, "repay-no-debt");
+        require(_repayAmount != 0, "repay-zero");
         require(scdp().debt[_repayKrAsset] >= _repayAmount, "repay-too-much");
-        require(scdp().swapDeposits[_seizeCollateral] >= 0, "repay-no-assets-available");
 
         uint256 seizedAmount = ms().kreskoAssets[_repayKrAsset].uintUSD(_repayAmount, ms().oracleDeviationPct).wadDiv(
             ms().collateralAssets[_seizeCollateral].uintPrice(ms().oracleDeviationPct)
         );
-        require(scdp().swapDeposits[_seizeCollateral] >= seizedAmount, "repay-too-much");
+        require(scdp().swapDeposits[_seizeCollateral] >= seizedAmount, "no-swap-deposits");
 
         scdp().debt[_repayKrAsset] -= ms().repaySwap(_repayKrAsset, _repayAmount, msg.sender);
 
@@ -75,28 +73,37 @@ contract SCDPFacet is ISCDPFacet, DiamondModifiers {
         return scdp().isLiquidatable();
     }
 
+    function getMaxLiquidationSCDP(address _kreskoAsset, address _seizeCollateral) external view returns (uint256) {
+        return
+            ms().getMaxLiquidationShared(
+                scdp().poolKrAsset[_kreskoAsset],
+                ms().kreskoAssets[_kreskoAsset],
+                _seizeCollateral
+            );
+    }
+
     /// @inheritdoc ISCDPFacet
     function poolLiquidate(
         address _repayKrAsset,
         uint256 _repayAmount,
         address _seizeCollateral
     ) external nonReentrant {
-        require(_repayAmount > 0, "liquidate-zero-amount");
         require(scdp().debt[_repayKrAsset] >= _repayAmount, "liquidate-too-much");
         require(scdp().isLiquidatable(), "not-liquidatable");
 
         KrAsset memory krAsset = ms().kreskoAssets[_repayKrAsset];
+        PoolKrAsset memory poolKrAsset = scdp().poolKrAsset[_repayKrAsset];
         CollateralAsset memory collateral = ms().collateralAssets[_seizeCollateral];
         uint256 repayAmountUSD = krAsset.uintUSD(_repayAmount, ms().oracleDeviationPct);
 
         require(
-            ms().getMaxLiquidation(address(0), krAsset, _seizeCollateral) >= repayAmountUSD,
+            ms().getMaxLiquidationShared(poolKrAsset, krAsset, _seizeCollateral) >= repayAmountUSD,
             Error.LIQUIDATION_OVERFLOW
         );
 
         uint256 seizeAmount = collateral.decimals.fromWad(
             LibCalculation.calculateAmountToSeize(
-                collateral.liquidationIncentive,
+                poolKrAsset.liquidationIncentive,
                 collateral.uintPrice(ms().oracleDeviationPct),
                 repayAmountUSD
             )
@@ -116,4 +123,6 @@ contract SCDPFacet is ISCDPFacet, DiamondModifiers {
             seizeAmount
         );
     }
+
+    error LiquidateZero();
 }

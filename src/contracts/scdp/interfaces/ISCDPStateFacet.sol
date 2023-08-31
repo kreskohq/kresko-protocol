@@ -28,6 +28,8 @@ interface ISCDPStateFacet {
         address _collateralAsset
     ) external view returns (uint256);
 
+    function getPoolAccountFeesGained(address _account, address _collateralAsset) external view returns (uint256);
+
     /**
      * @notice Get the  collateral deposit value for `_account`
      * @param _account The account.

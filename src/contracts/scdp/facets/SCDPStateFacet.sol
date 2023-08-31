@@ -4,6 +4,7 @@ pragma solidity >=0.8.19;
 
 import {ISCDPStateFacet} from "scdp/interfaces/ISCDPStateFacet.sol";
 import {scdp, PoolCollateral, PoolKrAsset} from "scdp/SCDPStorage.sol";
+import {sdi} from "scdp/SDIStorage.sol";
 import {ms} from "minter/MinterStorage.sol";
 import {WadRay} from "common/libs/WadRay.sol";
 
@@ -29,6 +30,13 @@ contract SCDPStateFacet is ISCDPStateFacet {
         address _collateralAsset
     ) external view returns (uint256) {
         return scdp().getAccountPrincipalDeposits(_account, _collateralAsset);
+    }
+
+    /// @inheritdoc ISCDPStateFacet
+    function getPoolAccountFeesGained(address _account, address _collateralAsset) external view returns (uint256) {
+        return
+            scdp().getAccountDepositsWithFees(_account, _collateralAsset) -
+            scdp().getAccountPrincipalDeposits(_account, _collateralAsset);
     }
 
     /// @inheritdoc ISCDPStateFacet
@@ -86,7 +94,7 @@ contract SCDPStateFacet is ISCDPStateFacet {
         address[] memory krAssets = scdp().krAssets;
         results = new AssetData[](krAssets.length);
 
-        for (uint256 i = 0; i < krAssets.length; i++) {
+        for (uint256 i; i < krAssets.length; ) {
             address asset = krAssets[i];
             results[i] = AssetData({
                 asset: asset,
@@ -95,6 +103,10 @@ contract SCDPStateFacet is ISCDPStateFacet {
                 krAsset: scdp().poolKrAsset[asset], // just get default values
                 collateralAsset: scdp().poolCollateral[asset]
             });
+
+            unchecked {
+                i++;
+            }
         }
     }
 
@@ -175,8 +187,8 @@ contract SCDPStateFacet is ISCDPStateFacet {
     }
 
     function getPoolCR() external view returns (uint256) {
-        uint256 collateralValue = scdp().getTotalPoolDepositValue(true);
-        uint256 debtValue = scdp().getTotalPoolKrAssetValueAtRatio(1 ether, true);
+        uint256 collateralValue = scdp().getTotalPoolDepositValue(false);
+        uint256 debtValue = sdi().effectiveDebtUSD();
         if (debtValue == 0) return 0;
         return collateralValue.wadDiv(debtValue);
     }

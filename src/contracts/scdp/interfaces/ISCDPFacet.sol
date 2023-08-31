@@ -58,4 +58,6 @@ interface ISCDPFacet {
      * @param _seizeCollateral The collateral asset to seize.
      */
     function poolLiquidate(address _repayKrAsset, uint256 _repayAmount, address _seizeCollateral) external;
+
+    function getMaxLiquidationSCDP(address _kreskoAsset, address _seizeCollateral) external view returns (uint256);
 }

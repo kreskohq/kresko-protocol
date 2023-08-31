@@ -62,9 +62,18 @@ library LibAmounts {
     }
 
     /**
-     * @notice Get "swap" collateral deposits.
+     * @notice Get pool user collateral deposits of an asset.
      * @param _asset The asset address
      * @return Amount of scaled debt.
+     */
+    function getUserPoolDeposits(SCDPState storage self, address _asset) internal view returns (uint256) {
+        return getCollateralAmountRead(_asset, self.totalDeposits[_asset] - self.swapDeposits[_asset]);
+    }
+
+    /**
+     * @notice Get "swap" collateral deposits.
+     * @param _asset The asset address
+     * @return Amount of debt.
      */
     function getPoolSwapDeposits(SCDPState storage self, address _asset) internal view returns (uint256) {
         return getCollateralAmountRead(_asset, self.swapDeposits[_asset]);

@@ -10,7 +10,6 @@ import {ms} from "minter/MinterStorage.sol";
 import {Constants} from "minter/MinterTypes.sol";
 import {DiamondModifiers, Role} from "diamond/DiamondModifiers.sol";
 
-import {SDI} from "scdp/SDI/SDI.sol";
 import {scdp} from "../SCDPStorage.sol";
 import {ISCDPConfigFacet, PoolCollateral, PoolKrAsset} from "../interfaces/ISCDPConfigFacet.sol";
 
@@ -24,12 +23,11 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DiamondModifiers, MinterModifiers 
         require(_init.lt >= Constants.MIN_COLLATERALIZATION_RATIO, "lt-too-low");
         require(_init.lt <= _init.mcr, "lt-too-high");
         require(_init.swapFeeRecipient != address(0), "invalid-fee-receiver");
-        require(_init.sdi != address(0), "invalid-sdi");
 
         scdp().minimumCollateralizationRatio = _init.mcr;
         scdp().liquidationThreshold = _init.lt;
         scdp().swapFeeRecipient = _init.swapFeeRecipient;
-        scdp().sdi = SDI(_init.sdi);
+        scdp().maxLiquidationMultiplier = Constants.MIN_MAX_LIQUIDATION_MULTIPLIER;
     }
 
     /// @inheritdoc ISCDPConfigFacet
@@ -38,15 +36,12 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DiamondModifiers, MinterModifiers 
             SCDPInitArgs({
                 swapFeeRecipient: scdp().swapFeeRecipient,
                 mcr: scdp().minimumCollateralizationRatio,
-                lt: scdp().liquidationThreshold,
-                sdi: address(scdp().sdi)
+                lt: scdp().liquidationThreshold
             });
     }
 
-    /// @inheritdoc ISCDPConfigFacet
-    function setSDI(address _newSDI) external onlyRole(Role.ADMIN) {
-        require(_newSDI != address(0), "sdi-zero");
-        scdp().sdi = SDI(_newSDI);
+    function setSCDPFeeAsset(address asset) external onlyRole(Role.ADMIN) {
+        scdp().feeAsset = asset;
     }
 
     /// @inheritdoc ISCDPConfigFacet
@@ -74,15 +69,7 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DiamondModifiers, MinterModifiers 
                 ms().collateralAssets[_enabledCollaterals[i]].uintPrice(ms().oracleDeviationPct) != 0,
                 "collateral-no-price"
             );
-            require(
-                _configurations[i].liquidationIncentive >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
-                "li-too-low"
-            );
             require(_configurations[i].depositLimit > 0, "krasset-supply-limit-zero");
-            require(
-                _configurations[i].liquidationIncentive <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER,
-                "li-too-high"
-            );
             require(scdp().poolCollateral[_enabledCollaterals[i]].liquidityIndex == 0, "collateral-already-enabled");
 
             // We don't care what values are set for decimals or liquidityIndex. Overriding.
@@ -111,6 +98,14 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DiamondModifiers, MinterModifiers 
                 _configurations[i].protocolFee <= Constants.MAX_COLLATERAL_POOL_PROTOCOL_FEE,
                 "krasset-protocol-fee-too-high"
             );
+            require(
+                _configurations[i].liquidationIncentive >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
+                "li-too-low"
+            );
+            require(
+                _configurations[i].liquidationIncentive <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER,
+                "li-too-high"
+            );
 
             // Save to state
             scdp().poolKrAsset[_enabledKrAssets[i]] = _configurations[i];
@@ -121,18 +116,13 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DiamondModifiers, MinterModifiers 
 
     /// @inheritdoc ISCDPConfigFacet
     function updatePoolKrAsset(address _asset, PoolKrAsset calldata _configuration) external onlyRole(Role.ADMIN) {
+        require(_configuration.liquidationIncentive >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER, "li-too-low");
+        require(_configuration.liquidationIncentive <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER, "li-too-high");
         scdp().poolKrAsset[_asset] = _configuration;
     }
 
     /// @inheritdoc ISCDPConfigFacet
-    function updatePoolCollateral(
-        address _asset,
-        uint256 _newLiquiditationIncentive,
-        uint256 _newDepositLimit
-    ) external onlyRole(Role.ADMIN) {
-        require(_newLiquiditationIncentive >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER, "li-too-low");
-        require(_newLiquiditationIncentive <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER, "li-too-high");
-        scdp().poolCollateral[_asset].liquidationIncentive = _newLiquiditationIncentive;
+    function updatePoolCollateral(address _asset, uint256 _newDepositLimit) external onlyRole(Role.ADMIN) {
         scdp().poolCollateral[_asset].depositLimit = _newDepositLimit;
     }
 

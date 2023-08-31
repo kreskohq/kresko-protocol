@@ -9,7 +9,8 @@ import {LibDecimals} from "./LibDecimals.sol";
 import {MinterState} from "../MinterState.sol";
 
 import {KrAsset, CollateralAsset, Constants} from "../MinterTypes.sol";
-import {scdp} from "scdp/SCDPStorage.sol";
+import {scdp, PoolKrAsset} from "scdp/SCDPStorage.sol";
+import {sdi} from "scdp/SDIStorage.sol";
 
 /**
  * @title Calculation library for liquidation & fee values
@@ -45,15 +46,36 @@ library LibCalculation {
         KrAsset memory _repayKreskoAsset,
         address _seizedCollateral
     ) internal view returns (uint256 maxLiquidatableUSD) {
-        MaxLiquidationVars memory vars = _account != address(0)
-            ? _getMaxLiquidationParams(self, _account, _repayKreskoAsset, _seizedCollateral)
-            : _getMaxLiquidationParamsShared(self, _repayKreskoAsset, _seizedCollateral);
+        MaxLiquidationVars memory vars = _getMaxLiquidationParams(self, _account, _repayKreskoAsset, _seizedCollateral);
         // Account is not liquidatable
         if (vars.accountCollateralValue >= (vars.minCollateralValue)) {
             return 0;
         }
 
         maxLiquidatableUSD = _getMaxLiquidatableUSD(vars, _repayKreskoAsset);
+
+        if (vars.seizeCollateralAccountValue < maxLiquidatableUSD) {
+            return vars.seizeCollateralAccountValue;
+        } else if (maxLiquidatableUSD < vars.minimumDebtValue) {
+            return vars.minimumDebtValue;
+        } else {
+            return maxLiquidatableUSD;
+        }
+    }
+
+    function getMaxLiquidationShared(
+        MinterState storage self,
+        PoolKrAsset memory _repayAssetConfig,
+        KrAsset memory _repayKreskoAsset,
+        address _seizedCollateral
+    ) internal view returns (uint256 maxLiquidatableUSD) {
+        MaxLiquidationVars memory vars = _getMaxLiquidationParamsShared(self, _repayKreskoAsset, _seizedCollateral);
+        // Account is not liquidatable
+        if (vars.accountCollateralValue >= (vars.minCollateralValue)) {
+            return 0;
+        }
+
+        maxLiquidatableUSD = _getMaxLiquidatableUSDShared(vars, _repayAssetConfig);
 
         if (vars.seizeCollateralAccountValue < maxLiquidatableUSD) {
             return vars.seizeCollateralAccountValue;
@@ -157,6 +179,19 @@ library LibCalculation {
                 .wadDiv(vars.collateral.factor);
     }
 
+    function _getMaxLiquidatableUSDShared(
+        MaxLiquidationVars memory vars,
+        PoolKrAsset memory _repayKreskoAsset
+    ) private pure returns (uint256) {
+        uint256 valuePerUSDRepaid = (vars.debtFactor - _repayKreskoAsset.liquidationIncentive).wadDiv(vars.debtFactor);
+        return
+            (vars.minCollateralValue - vars.accountCollateralValue)
+                .wadMul(vars.maxLiquidationMultiplier)
+                .wadDiv(valuePerUSDRepaid)
+                .wadDiv(vars.debtFactor)
+                .wadDiv(vars.collateral.factor);
+    }
+
     function _getMaxLiquidationParams(
         MinterState storage state,
         address _account,
@@ -192,7 +227,7 @@ library LibCalculation {
         address _seizedCollateral
     ) private view returns (MaxLiquidationVars memory) {
         uint256 liquidationThreshold = scdp().liquidationThreshold;
-        uint256 minCollateralValue = scdp().getTotalPoolKrAssetValueAtRatio(liquidationThreshold, false);
+        uint256 minCollateralValue = sdi().effectiveDebtUSD().wadMul(liquidationThreshold);
 
         (uint256 totalCollateralValue, uint256 seizeCollateralValue) = scdp().getTotalPoolDepositValue(
             _seizedCollateral,
@@ -211,7 +246,7 @@ library LibCalculation {
                 minimumDebtValue: state.minimumDebtValue,
                 seizeCollateralAccountValue: seizeCollateralValue,
                 liquidationThreshold: liquidationThreshold,
-                maxLiquidationMultiplier: Constants.MIN_MAX_LIQUIDATION_MULTIPLIER
+                maxLiquidationMultiplier: state.maxLiquidationMultiplier
             });
     }
 }

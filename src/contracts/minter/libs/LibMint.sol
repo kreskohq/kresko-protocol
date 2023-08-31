@@ -16,6 +16,7 @@ import {LibCalculation} from "./LibCalculation.sol";
 import {KrAsset} from "../MinterTypes.sol";
 import {MinterState} from "../MinterState.sol";
 import {scdp} from "scdp/SCDPStorage.sol";
+import {sdi} from "scdp/SDIStorage.sol";
 
 library LibMint {
     using Arrays for address[];
@@ -60,9 +61,7 @@ library LibMint {
         issued = IKreskoAssetIssuer(self.kreskoAssets[_kreskoAsset].anchor).issue(_amount, _to);
         require(issued != 0, "invalid-shared-pool-mint");
 
-        // SDI: Update the index
-        bytes memory encodedFunction = abi.encodeWithSelector(scdp().sdi.onSCDPMint.selector, _kreskoAsset, issued);
-        LibRedstone.proxyCalldata(address(scdp().sdi), encodedFunction, false);
+        sdi().totalDebt += sdi().previewMint(_kreskoAsset, issued, false);
     }
 
     /**

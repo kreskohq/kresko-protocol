@@ -158,11 +158,15 @@ library LibRedstone {
         uint256[] memory uniqueSignerCountForDataFeedIds = new uint256[](dataFeedIds.length);
         uint256[] memory signersBitmapForDataFeedIds = new uint256[](dataFeedIds.length);
         uint256[][] memory valuesForDataFeeds = new uint256[][](dataFeedIds.length);
-        for (uint256 i = 0; i < dataFeedIds.length; i++) {
+        for (uint256 i; i < dataFeedIds.length; ) {
             // The line below is commented because newly allocated arrays are filled with zeros
             // But we left it for better readability
             // signersBitmapForDataFeedIds[i] = 0; // <- setting to an empty bitmap
             valuesForDataFeeds[i] = new uint256[](getUniqueSignersThreshold());
+
+            unchecked {
+                i++;
+            }
         }
 
         // Extracting the number of data packages from calldata
@@ -177,7 +181,7 @@ library LibRedstone {
         }
 
         // Data packages extraction in a loop
-        for (uint256 dataPackageIndex = 0; dataPackageIndex < dataPackagesCount; dataPackageIndex++) {
+        for (uint256 dataPackageIndex; dataPackageIndex < dataPackagesCount; ) {
             // Extract data package details and update calldata offset
             uint256 dataPackageByteSize = _extractDataPackage(
                 dataFeedIds,
@@ -191,6 +195,10 @@ library LibRedstone {
             // Shifting memory pointer back to the "safe" value
             assembly {
                 mstore(FREE_MEMORY_PTR, freeMemPtr)
+            }
+
+            unchecked {
+                dataPackageIndex++;
             }
         }
 
