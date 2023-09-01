@@ -5,9 +5,9 @@
     "passes": 0,
     "pending": 0,
     "failures": 1,
-    "start": "2023-08-31T00:52:31.220Z",
-    "end": "2023-08-31T00:52:40.684Z",
-    "duration": 9464,
+    "start": "2023-09-01T02:27:35.045Z",
+    "end": "2023-09-01T02:27:46.750Z",
+    "duration": 11705,
     "testsRegistered": 1,
     "passPercent": 0,
     "pendingPercent": 0,
@@ -18,7 +18,7 @@
   },
   "results": [
     {
-      "uuid": "be224547-84c2-4c95-b68c-bd51fafc8b75",
+      "uuid": "9efd2677-be68-4431-9e9b-1aa43230419d",
       "title": "",
       "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/scdp/00-scdp.ts",
       "file": "/src/test/scdp/00-scdp.ts",
@@ -27,7 +27,7 @@
       "tests": [],
       "suites": [
         {
-          "uuid": "b7165dc1-006f-4752-83ae-5280576378a8",
+          "uuid": "c7f3eb75-63ac-4a11-a474-9577e2e430c0",
           "title": "SCDP",
           "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/scdp/00-scdp.ts",
           "file": "/src/test/scdp/00-scdp.ts",
@@ -36,7 +36,7 @@
               "title": "\"before each\" hook in \"SCDP\"",
               "fullTitle": "SCDP \"before each\" hook in \"SCDP\"",
               "timedOut": false,
-              "duration": 46,
+              "duration": 55,
               "state": null,
               "speed": null,
               "pass": false,
@@ -45,8 +45,8 @@
               "context": null,
               "code": "const fixture = await _hardhat.default.deployments.createFixture(async (hre)=>{\n    const result = await hre.deployments.fixture(fixtureName);\n    await _hardhatnetworkhelpers.time.increase(3602);\n    if (result.Diamond) {\n        hre.Diamond = _evmconnector.WrapperBuilder.wrap(await hre.getContractOrFork(\"Kresko\")).usingSimpleNumericMock({\n            mockSignersCount: 1,\n            timestampMilliseconds: Date.now(),\n            dataPoints: [\n                {\n                    dataFeedId: \"DAI\",\n                    value: 0\n                },\n                {\n                    dataFeedId: \"USDC\",\n                    value: 0\n                },\n                {\n                    dataFeedId: \"TSLA\",\n                    value: 0\n                },\n                {\n                    dataFeedId: \"ETH\",\n                    value: 0\n                },\n                {\n                    dataFeedId: \"BTC\",\n                    value: 0\n                }\n            ]\n        });\n    }\n    return {\n        facets: result.Diamond ? result.Diamond.facets : [],\n        collaterals: hre.collaterals,\n        krAssets: hre.krAssets\n    };\n})();\nthis.facets = fixture.facets || [];\nthis.collaterals = fixture.collaterals;\nthis.krAssets = fixture.krAssets;",
               "err": {},
-              "uuid": "afd0acf5-8c80-4093-8fa3-1b505c67f2ee",
-              "parentUUID": "b7165dc1-006f-4752-83ae-5280576378a8",
+              "uuid": "57bb441c-4dae-4e16-afeb-fdfe354e2362",
+              "parentUUID": "c7f3eb75-63ac-4a11-a474-9577e2e430c0",
               "isHook": true,
               "skipped": false
             },
@@ -54,7 +54,7 @@
               "title": "\"before each\" hook in \"SCDP\"",
               "fullTitle": "SCDP \"before each\" hook in \"SCDP\"",
               "timedOut": false,
-              "duration": 4795,
+              "duration": 6681,
               "state": null,
               "speed": null,
               "pass": false,
@@ -63,8 +63,8 @@
               "context": null,
               "code": "users = [\n    _hardhat.default.users.testUserFive,\n    _hardhat.default.users.testUserSix,\n    _hardhat.default.users.testUserSeven\n];\n[KreskoAsset, CollateralAsset, CollateralAsset8Dec] = await Promise.all([\n    (0, _krassets.addMockKreskoAsset)({\n        name: \"KreskoAssetPrice10USD\",\n        price: collateralPrice,\n        symbol: \"KreskoAssetPrice10USD\",\n        closeFee: 0.1,\n        openFee: 0.1,\n        marketOpen: true,\n        factor: 1.25,\n        supplyLimit: 100000\n    }, true),\n    (0, _collaterals.addMockCollateralAsset)({\n        name: \"Collateral18Dec\",\n        price: collateralPrice,\n        factor: 1,\n        decimals: 18\n    }),\n    (0, _collaterals.addMockCollateralAsset)({\n        name: \"Collateral8Dec\",\n        price: collateralPrice,\n        factor: 0.8,\n        decimals: 8\n    })\n]);\nfor (const user of users){\n    await Promise.all([\n        await CollateralAsset.setBalance(user, depositAmount18Dec),\n        await CollateralAsset8Dec.setBalance(user, depositAmount8Dec),\n        await CollateralAsset.contract.connect(user).approve(_hardhat.default.Diamond.address, _hardhat.default.ethers.constants.MaxUint256),\n        await CollateralAsset8Dec.contract.connect(user).approve(_hardhat.default.Diamond.address, _hardhat.default.ethers.constants.MaxUint256)\n    ]);\n}",
               "err": {},
-              "uuid": "71e70aa5-005c-40bb-b220-bd1cbbadb77e",
-              "parentUUID": "b7165dc1-006f-4752-83ae-5280576378a8",
+              "uuid": "e28ca1b4-6172-4f73-91e1-2919312f0c49",
+              "parentUUID": "c7f3eb75-63ac-4a11-a474-9577e2e430c0",
               "isHook": true,
               "skipped": false
             }
@@ -73,7 +73,7 @@
           "tests": [],
           "suites": [
             {
-              "uuid": "4dd77df9-cb61-4c07-b049-d979b2a4b3cc",
+              "uuid": "9cc590f2-7430-4b9f-ac2c-877a9502ce97",
               "title": "#Swap",
               "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/scdp/00-scdp.ts",
               "file": "/src/test/scdp/00-scdp.ts",
@@ -82,7 +82,7 @@
                   "title": "\"before each\" hook in \"#Swap\"",
                   "fullTitle": "SCDP #Swap \"before each\" hook in \"#Swap\"",
                   "timedOut": false,
-                  "duration": 3611,
+                  "duration": 4307,
                   "state": null,
                   "speed": null,
                   "pass": false,
@@ -91,8 +91,8 @@
                   "context": null,
                   "code": "swapper = users[0];\ndepositor = users[1];\n[KreskoAsset2, KISS] = await Promise.all([\n    (0, _krassets.addMockKreskoAsset)({\n        name: \"KreskoAssetPrice100USD\",\n        price: KreskoAsset2Price,\n        symbol: \"KreskoAssetPrice100USD\",\n        closeFee: 0.05,\n        openFee: 0.05,\n        marketOpen: true,\n        factor: 1,\n        supplyLimit: 1000\n    }, true),\n    (0, _krassets.addMockKreskoAsset)({\n        name: \"KISS\",\n        price: ONE_USD,\n        symbol: \"KISS\",\n        closeFee: 0.025,\n        openFee: 0.025,\n        marketOpen: true,\n        factor: 1,\n        supplyLimit: 1000000\n    }, true)\n]);\nawait _hardhat.default.Diamond.setSCDPFeeAsset(KISS.address);\n// setup collaterals and krAssets in shared pool\nconst krAssetConfig = {\n    openFee: (0, _lib.toBig)(0.015),\n    closeFee: (0, _lib.toBig)(0.015),\n    liquidationIncentive: (0, _lib.toBig)(1.05),\n    protocolFee: (0, _lib.toBig)(0.25),\n    supplyLimit: (0, _lib.toBig)(1000000)\n};\nconst KISSConfig = {\n    openFee: (0, _lib.toBig)(0.025),\n    closeFee: (0, _lib.toBig)(0.025),\n    liquidationIncentive: (0, _lib.toBig)(1.05),\n    protocolFee: (0, _lib.toBig)(0.25),\n    supplyLimit: (0, _lib.toBig)(1000000)\n};\nawait Promise.all([\n    await _hardhat.default.Diamond.enablePoolCollaterals([\n        CollateralAsset.address,\n        CollateralAsset8Dec.address,\n        KISS.address,\n        KreskoAsset.address,\n        KreskoAsset2.address\n    ], [\n        defaultCollateralConfig,\n        defaultCollateralConfig,\n        defaultCollateralConfig,\n        defaultCollateralConfig,\n        defaultCollateralConfig\n    ]),\n    await _hardhat.default.Diamond.enablePoolKrAssets([\n        KreskoAsset.address,\n        KreskoAsset2.address,\n        KISS.address\n    ], [\n        krAssetConfig,\n        krAssetConfig,\n        KISSConfig\n    ]),\n    await _hardhat.default.Diamond.setSwapPairs([\n        {\n            assetIn: KreskoAsset2.address,\n            assetOut: KreskoAsset.address,\n            enabled: true\n        },\n        {\n            assetIn: KISS.address,\n            assetOut: KreskoAsset2.address,\n            enabled: true\n        },\n        {\n            assetIn: KreskoAsset.address,\n            assetOut: KISS.address,\n            enabled: true\n        }\n    ])\n]);\n// mint some KISS for users\nfor (const user of users){\n    await CollateralAsset.setBalance(user, (0, _lib.toBig)(1000000));\n    await CollateralAsset.contract.connect(user).approve(_hardhat.default.Diamond.address, _hardhat.default.ethers.constants.MaxUint256);\n    await KISS.contract.connect(user).approve(_hardhat.default.Diamond.address, _hardhat.default.ethers.constants.MaxUint256);\n    await KreskoAsset2.contract.connect(user).approve(_hardhat.default.Diamond.address, _hardhat.default.ethers.constants.MaxUint256);\n}\nawait KISS.setBalance(swapper, (0, _lib.toBig)(10000));\nawait KISS.setBalance(depositor, (0, _lib.toBig)(10000));\n// await wrapContractWithSigner(hre.Diamond, depositor).poolDeposit(\n//     depositor.address,\n//     CollateralAsset.address,\n//     depositAmount18Dec, // $10k\n// );\nawait (0, _test.wrapContractWithSigner)(_hardhat.default.Diamond, depositor).poolDeposit(depositor.address, KISS.address, depositAmount18Dec);",
                   "err": {},
-                  "uuid": "e90b6e76-4869-41a7-b48d-cb17935d2500",
-                  "parentUUID": "4dd77df9-cb61-4c07-b049-d979b2a4b3cc",
+                  "uuid": "28129bd8-b49b-4850-bf05-a8b0b9c3c956",
+                  "parentUUID": "9cc590f2-7430-4b9f-ac2c-877a9502ce97",
                   "isHook": true,
                   "skipped": false
                 }
@@ -100,24 +100,24 @@
               "afterHooks": [],
               "tests": [
                 {
-                  "title": "should be able to swap, shared debt == assetsIn | swap collateral == assetsOut",
-                  "fullTitle": "SCDP #Swap should be able to swap, shared debt == assetsIn | swap collateral == assetsOut",
+                  "title": "should be able to swap, shared debt > assetsIn | swap collateral > assetsOut",
+                  "fullTitle": "SCDP #Swap should be able to swap, shared debt > assetsIn | swap collateral > assetsOut",
                   "timedOut": false,
-                  "duration": 1006,
+                  "duration": 658,
                   "state": "failed",
                   "speed": null,
                   "pass": false,
                   "fail": true,
                   "pending": false,
                   "context": null,
-                  "code": "const swapAmount = (0, _lib.toBig)(ONE_USD).mul(100); // $100\nconst swapAmountAsset = (0, _lib.toBig)(1); // $100\nconst expectedKissOut = (0, _lib.toBig)(96); // $100 * 0.96 = $96\n// deposit some to kresko for minting first\nawait (0, _collaterals.depositCollateral)({\n    user: swapper,\n    asset: KISS,\n    amount: (0, _lib.toBig)(100)\n});\nawait (0, _krassets.mintKrAsset)({\n    user: swapper,\n    asset: KreskoAsset2,\n    amount: (0, _lib.toBig)(0.1)\n});\nconst Kresko = (0, _test.wrapContractWithSigner)(_hardhat.default.Diamond, swapper);\nawait Kresko.swap(swapper.address, KISS.address, KreskoAsset2.address, swapAmount, 0);\n// the swap that clears debt\nconst tx = await Kresko.swap(swapper.address, KreskoAsset2.address, KISS.address, swapAmountAsset, 0);\nconst event = await (0, _lib.getNamedEvent)(tx, \"Swap\");\n(0, _chai.expect)(event.args.who).to.equal(swapper.address);\n(0, _chai.expect)(event.args.assetIn).to.equal(KreskoAsset2.address);\n(0, _chai.expect)(event.args.assetOut).to.equal(KISS.address);\n(0, _chai.expect)(event.args.amountIn).to.equal(swapAmountAsset);\n(0, _chai.expect)(event.args.amountOut).to.equal(expectedKissOut);\n(0, _chai.expect)(await Kresko.getPoolSwapDeposits(KISS.address)).to.equal(0);\n(0, _chai.expect)(await Kresko.getPoolDepositsValue(KISS.address, true)).to.equal(1000e8);\n(0, _chai.expect)(await Kresko.getPoolKrAssetDebtValue(KreskoAsset2.address, true)).to.equal(0);\n(0, _chai.expect)(await Kresko.getPoolKrAssetDebt(KreskoAsset2.address)).to.equal(0);\nconst global = await _hardhat.default.Diamond.getPoolStats(true);\n// back to starting point\n(0, _chai.expect)(global.collateralValue).to.equal((0, _lib.toBig)(10000, 8));\n(0, _chai.expect)(global.debtValue).to.equal(0);\n(0, _chai.expect)(global.cr).to.equal(0);",
+                  "code": "const swapAmount = (0, _lib.toBig)(ONE_USD); // $1\nconst expectedAmountOutAsset = (0, _lib.toBig)(0.0096); // $100 * 0.0096 = $0.96\nconst expectedSecondFeeValue = (0, _lib.toBig)(0.96, 8).wadMul((0, _lib.toBig)(0.04)); // $0.96 * 4% = $0.0384\nconst expectedSecondFeeKISS = (0, _lib.toBig)(0.96).wadMul((0, _lib.toBig)(0.04)); // 0.96 * 4% = 0.0384\nconst expectedAmountOutKISS = (0, _lib.toBig)(0.96).sub(expectedSecondFeeKISS); // = 0.9216\nconst Kresko = (0, _test.wrapContractWithSigner)(_hardhat.default.Diamond, swapper);\nawait Kresko.swap(swapper.address, KISS.address, KreskoAsset2.address, swapAmount, 0);\nconst tx = await Kresko.swap(swapper.address, KreskoAsset2.address, KISS.address, expectedAmountOutAsset, 0);\nconst event = await (0, _lib.getNamedEvent)(tx, \"Swap\");\n(0, _chai.expect)(event.args.who).to.equal(swapper.address);\n(0, _chai.expect)(event.args.assetIn).to.equal(KreskoAsset2.address);\n(0, _chai.expect)(event.args.assetOut).to.equal(KISS.address);\n(0, _chai.expect)(event.args.amountIn).to.equal(expectedAmountOutAsset);\n(0, _chai.expect)(event.args.amountOut).to.equal(expectedAmountOutKISS);\n(0, _chai.expect)(await Kresko.getPoolAccountDepositsValue(swapper.address, KreskoAsset2.address, true)).to.equal(0);\n(0, _chai.expect)(await Kresko.getPoolAccountDepositsValue(swapper.address, KISS.address, true)).to.equal(0);\n(0, _chai.expect)(await Kresko.getPoolSwapDeposits(KISS.address)).to.equal(expectedSecondFeeKISS);\n(0, _chai.expect)(await Kresko.getPoolDepositsValue(KISS.address, true)).to.equal(expectedSecondFeeValue);\n(0, _chai.expect)(await Kresko.getPoolKrAssetDebtValue(KreskoAsset2.address, true)).to.equal(expectedSecondFeeValue);\n(0, _chai.expect)(await Kresko.getPoolKrAssetDebt(KreskoAsset2.address)).to.equal(expectedSecondFeeKISS.wadDiv((0, _lib.toBig)(KreskoAsset2Price)));\nconst global = await _hardhat.default.Diamond.getPoolStats(true);\nconst expectedCollateralValue = (0, _lib.toBig)(10000, 8).add(expectedSecondFeeValue);\nconst expectedDebtValue = expectedSecondFeeValue;\n(0, _chai.expect)(global.collateralValue).to.equal(expectedCollateralValue);\n(0, _chai.expect)(global.debtValue).to.equal(expectedDebtValue);\n(0, _chai.expect)(global.cr).to.equal(expectedCollateralValue.wadDiv(expectedDebtValue));",
                   "err": {
-                    "message": "AssertionError: Expected \"100400000000\" to be equal 1000000000000",
-                    "estack": "AssertionError: Expected \"100400000000\" to be equal 1000000000000\n    at Proxy.<anonymous> (node_modules/.pnpm/@ethereum-waffle+chai@3.4.4/node_modules/@ethereum-waffle/chai/dist/cjs/matchers/bigNumber.js:33:18)\n    at Proxy.overwritingMethodWrapper (node_modules/.pnpm/chai@4.3.7/node_modules/chai/lib/chai/utils/overwriteMethod.js:78:33)\n    at doAsserterAsyncAndAddThen (node_modules/.pnpm/chai-as-promised@7.1.1_chai@4.3.7/node_modules/chai-as-promised/lib/chai-as-promised.js:289:22)\n    at Proxy.<anonymous> (node_modules/.pnpm/chai-as-promised@7.1.1_chai@4.3.7/node_modules/chai-as-promised/lib/chai-as-promised.js:255:20)\n    at Proxy.equal (node_modules/.pnpm/chai@4.3.7/node_modules/chai/lib/chai/utils/overwriteMethod.js:78:33)\n    at Context.<anonymous> (src/test/scdp/00-scdp.ts:659:47)\n    at runMicrotasks (<anonymous>)\n    at processTicksAndRejections (node:internal/process/task_queues:96:5)\n    at runNextTicks (node:internal/process/task_queues:65:3)\n    at listOnTimeout (node:internal/timers:526:9)",
-                    "diff": " {\n-   \"_hex\": \"0xe8d4a51000\"\n+   \"_hex\": \"0x17604e6c00\"\n   \"_isBigNumber\": true\n }\n"
+                    "message": "AssertionError: Expected \"0\" to be equal 38400000000000000",
+                    "estack": "AssertionError: Expected \"0\" to be equal 38400000000000000\n    at Proxy.<anonymous> (node_modules/.pnpm/@ethereum-waffle+chai@3.4.4/node_modules/@ethereum-waffle/chai/dist/cjs/matchers/bigNumber.js:33:18)\n    at Proxy.overwritingMethodWrapper (node_modules/.pnpm/chai@4.3.7/node_modules/chai/lib/chai/utils/overwriteMethod.js:78:33)\n    at doAsserterAsyncAndAddThen (node_modules/.pnpm/chai-as-promised@7.1.1_chai@4.3.7/node_modules/chai-as-promised/lib/chai-as-promised.js:289:22)\n    at Proxy.<anonymous> (node_modules/.pnpm/chai-as-promised@7.1.1_chai@4.3.7/node_modules/chai-as-promised/lib/chai-as-promised.js:255:20)\n    at Proxy.equal (node_modules/.pnpm/chai@4.3.7/node_modules/chai/lib/chai/utils/overwriteMethod.js:78:33)\n    at Context.<anonymous> (src/test/scdp/00-scdp.ts:714:71)\n    at runMicrotasks (<anonymous>)\n    at processTicksAndRejections (node:internal/process/task_queues:96:5)\n    at runNextTicks (node:internal/process/task_queues:65:3)\n    at listOnTimeout (node:internal/timers:526:9)",
+                    "diff": " {\n-   \"_hex\": \"0x886c98b7600000\"\n+   \"_hex\": \"0x00\"\n   \"_isBigNumber\": true\n }\n"
                   },
-                  "uuid": "3ba8d2bf-fab5-4ce5-8520-9dd1f248ce65",
-                  "parentUUID": "4dd77df9-cb61-4c07-b049-d979b2a4b3cc",
+                  "uuid": "6c454464-1889-40c8-a306-4b5f8ae6bd4e",
+                  "parentUUID": "9cc590f2-7430-4b9f-ac2c-877a9502ce97",
                   "isHook": false,
                   "skipped": false
                 }
@@ -125,11 +125,11 @@
               "suites": [],
               "passes": [],
               "failures": [
-                "3ba8d2bf-fab5-4ce5-8520-9dd1f248ce65"
+                "6c454464-1889-40c8-a306-4b5f8ae6bd4e"
               ],
               "pending": [],
               "skipped": [],
-              "duration": 1006,
+              "duration": 658,
               "root": false,
               "rootEmpty": false,
               "_timeout": 15000

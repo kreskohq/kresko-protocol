@@ -26,6 +26,7 @@ const defaultCollateralConfig: PoolCollateralStruct = {
     depositLimit: ethers.constants.MaxUint256,
     liquidityIndex: RAY,
 };
+
 describe.only("SCDP", function () {
     describe("#Configuration", async () => {
         it("should be initialized with correct params", async () => {
@@ -365,6 +366,7 @@ describe.only("SCDP", function () {
             expect(await hre.Diamond.getPoolDepositsValue(CollateralAsset.address, false)).to.equal(0);
             expect(await hre.Diamond.getPoolDepositsValue(CollateralAsset8Dec.address, true)).to.equal(0);
             expect(await hre.Diamond.getPoolDepositsValue(CollateralAsset8Dec.address, false)).to.equal(0);
+
             const globals = await hre.Diamond.getPoolStats(true);
             expect(globals.collateralValue).to.equal(0);
             expect(globals.debtValue).to.equal(0);
@@ -554,10 +556,10 @@ describe.only("SCDP", function () {
             expect(await hre.Diamond.getPoolDepositsValue(CollateralAsset.address, false)).to.equal(0);
         });
     });
-    describe.only("#Swap", () => {
+    describe("#Swap", () => {
         it("should have collateral in pool", async () => {
             const value = await hre.Diamond.getPoolStats(false);
-            expect(value.collateralValue).to.equal(toBig(10000, 8));
+            expect(value.collateralValue).to.equal(toBig(1000, 8));
             expect(value.debtValue).to.equal(0);
             expect(value.cr).to.equal(0);
         });
@@ -617,10 +619,10 @@ describe.only("SCDP", function () {
             expect(global.cr).to.equal(toBig(1000.96, 8).wadDiv(toBig(0.96, 8)));
         });
 
-        it.only("should be able to swap, shared debt == assetsIn | swap collateral == assetsOut", async () => {
+        it("should be able to swap, shared debt == assetsIn | swap collateral == assetsOut", async () => {
             const swapAmount = toBig(ONE_USD).mul(100); // $100
-            const swapAmountAsset = toBig(1); // $100
-            const expectedKissOut = toBig(96); // $100 * 0.96 = $96
+            const swapAmountAsset = toBig(0.96); // $96
+            const expectedKissOut = toBig(92.16); // $100 * 0.96 = $96
             // deposit some to kresko for minting first
             await depositCollateral({
                 user: swapper,
@@ -634,11 +636,21 @@ describe.only("SCDP", function () {
                 amount: toBig(0.1), // min allowed
             });
 
+            const globalBefore = await hre.Diamond.getPoolStats(true);
+            // back to starting point
+            expect(globalBefore.collateralValue).to.equal(toBig(1000, 8));
+
             const Kresko = wrapContractWithSigner(hre.Diamond, swapper);
+            console.log(fromBig(await hre.Diamond.getPoolAccountDepositsWithFees(depositor.address, KISS.address)));
             await Kresko.swap(swapper.address, KISS.address, KreskoAsset2.address, swapAmount, 0);
+            console.log("first swap", { collateralsInfo: await hre.Diamond.getPoolCollateralsInfo() });
 
             // the swap that clears debt
+            console.log(fromBig(await hre.Diamond.getPoolAccountDepositsWithFees(depositor.address, KISS.address)));
             const tx = await Kresko.swap(swapper.address, KreskoAsset2.address, KISS.address, swapAmountAsset, 0);
+
+            console.log("second swap", { collateralsInfo: await hre.Diamond.getPoolCollateralsInfo() });
+            console.log(fromBig(await hre.Diamond.getPoolAccountDepositsWithFees(depositor.address, KISS.address)));
 
             const event = await getNamedEvent<SwapEvent>(tx, "Swap");
 
@@ -647,6 +659,8 @@ describe.only("SCDP", function () {
             expect(event.args.assetOut).to.equal(KISS.address);
             expect(event.args.amountIn).to.equal(swapAmountAsset);
             expect(event.args.amountOut).to.equal(expectedKissOut);
+            // 92160000000000000000
+            // 9216000000000000000000
 
             expect(await Kresko.getPoolSwapDeposits(KISS.address)).to.equal(0);
             expect(await Kresko.getPoolDepositsValue(KISS.address, true)).to.equal(1000e8);
@@ -655,13 +669,20 @@ describe.only("SCDP", function () {
             expect(await Kresko.getPoolKrAssetDebt(KreskoAsset2.address)).to.equal(0);
 
             const global = await hre.Diamond.getPoolStats(true);
+
             // back to starting point
-            expect(global.collateralValue).to.equal(toBig(10000, 8));
+            console.log(fromBig(await hre.Diamond.getPoolAccountDepositsWithFees(swapper.address, KISS.address)));
+            console.log(fromBig(await hre.Diamond.getPoolAccountDepositsWithFees(depositor.address, KISS.address)));
+            console.log(fromBig(await hre.Diamond.getPoolDeposits(KISS.address)));
+
+            console.log({ collateralsInfo: await hre.Diamond.getPoolCollateralsInfo() });
+
+            expect(global.collateralValue).to.equal(toBig(1000, 8));
             expect(global.debtValue).to.equal(0);
             expect(global.cr).to.equal(0);
         });
 
-        it("should be able to swap, shared debt > assetsIn | swap collateral > assetsOut", async () => {
+        it.only("should be able to swap, shared debt > assetsIn | swap collateral > assetsOut", async () => {
             const swapAmount = toBig(ONE_USD); // $1
             const expectedAmountOutAsset = toBig(0.0096); // $100 * 0.0096 = $0.96
             const expectedSecondFeeValue = toBig(0.96, 8).wadMul(toBig(0.04)); // $0.96 * 4% = $0.0384
@@ -735,6 +756,7 @@ describe.only("SCDP", function () {
 
             const stats = await hre.Diamond.getPoolStats(true);
             expect(stats.collateralValue).to.be.gt(toBig(10000, 8));
+
             // the swap that matters, here user has 0.96 krAsset in wallet, 1.04 minted. swaps expecting 192 kiss after fees.
             const tx = await Kresko.swap(swapper.address, KreskoAsset2.address, KISS.address, swapAmountKrAsset, 0);
 

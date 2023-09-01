@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: BUSL-1.1
-
 pragma solidity >=0.8.19;
 
 import {ISCDPStateFacet} from "scdp/interfaces/ISCDPStateFacet.sol";
 import {scdp, PoolCollateral, PoolKrAsset} from "scdp/SCDPStorage.sol";
 import {sdi} from "scdp/SDIStorage.sol";
+import {LibAmounts} from "scdp/libs/LibAmounts.sol";
 import {ms} from "minter/MinterStorage.sol";
 import {WadRay} from "common/libs/WadRay.sol";
+import {IERC20Permit} from "common/IERC20Permit.sol";
 
 /**
  * @title SCDPStateFacet
@@ -80,9 +81,11 @@ contract SCDPStateFacet is ISCDPStateFacet {
             results[i] = AssetData({
                 asset: asset,
                 depositAmount: scdp().getPoolDeposits(asset),
-                debtAmount: ms().getKreskoAssetAmount(asset, scdp().debt[asset]),
+                debtAmount: LibAmounts.getCollateralAmountRead(asset, scdp().debt[asset]),
+                swapDeposits: scdp().getPoolSwapDeposits(asset),
                 krAsset: scdp().poolKrAsset[asset], // just get default values
-                collateralAsset: scdp().poolCollateral[asset]
+                collateralAsset: scdp().poolCollateral[asset],
+                symbol: IERC20Permit(asset).symbol()
             });
             unchecked {
                 i++;
@@ -100,8 +103,10 @@ contract SCDPStateFacet is ISCDPStateFacet {
                 asset: asset,
                 depositAmount: scdp().getPoolDeposits(asset),
                 debtAmount: ms().getKreskoAssetAmount(asset, scdp().debt[asset]),
+                swapDeposits: scdp().getPoolSwapDeposits(asset),
                 krAsset: scdp().poolKrAsset[asset], // just get default values
-                collateralAsset: scdp().poolCollateral[asset]
+                collateralAsset: scdp().poolCollateral[asset],
+                symbol: IERC20Permit(asset).symbol()
             });
 
             unchecked {

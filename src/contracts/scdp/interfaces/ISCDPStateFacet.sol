@@ -7,8 +7,10 @@ interface ISCDPStateFacet {
         address asset;
         uint256 depositAmount;
         uint256 debtAmount;
+        uint256 swapDeposits;
         PoolKrAsset krAsset;
         PoolCollateral collateralAsset;
+        string symbol;
     }
 
     /**
