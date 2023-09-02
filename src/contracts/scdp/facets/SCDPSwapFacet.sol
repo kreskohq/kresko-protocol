@@ -9,6 +9,8 @@ import {ms} from "minter/MinterStorage.sol";
 import {ISCDPSwapFacet} from "../interfaces/ISCDPSwapFacet.sol";
 import {scdp} from "../SCDPStorage.sol";
 
+import {console} from "forge-std/Console.sol";
+
 contract SCDPSwapFacet is ISCDPSwapFacet, DiamondModifiers {
     using SafeERC20 for IERC20Permit;
     using WadRay for uint256;
@@ -59,8 +61,9 @@ contract SCDPSwapFacet is ISCDPSwapFacet, DiamondModifiers {
         uint256 _amountIn,
         uint256 _amountOutMin
     ) external nonReentrant {
+        console.log("swap", _amountIn);
         require(_amountIn > 0, "swap-amount-zero");
-
+        console.log("henlo");
         // Transfer assets into this contract.
         IERC20Permit(_assetIn).safeTransferFrom(msg.sender, address(this), _amountIn);
         address receiver = _receiver == address(0) ? msg.sender : _receiver;
@@ -74,6 +77,7 @@ contract SCDPSwapFacet is ISCDPSwapFacet, DiamondModifiers {
                 ? _swapFeeAssetOut(receiver, _assetIn, _amountIn, _amountOutMin)
                 : _swap(receiver, _assetIn, _assetOut, _amountIn, _amountOutMin)
         );
+        console.log("swaped");
     }
 
     /**
@@ -184,8 +188,8 @@ contract SCDPSwapFacet is ISCDPSwapFacet, DiamondModifiers {
         uint256 protocolFeeTaken = _feeAmount.wadMul(_protocolFee);
         _feeAmount -= protocolFeeTaken;
 
-        scdp().cumulateIncome(_feeAsset, _feeAmount);
-        IERC20Permit(_feeAsset).safeTransfer(ms().feeRecipient, protocolFeeTaken);
+        if (_feeAmount > 0) scdp().cumulateIncome(_feeAsset, _feeAmount);
+        if (protocolFeeTaken > 0) IERC20Permit(_feeAsset).safeTransfer(ms().feeRecipient, protocolFeeTaken);
 
         emit SwapFee(_feeAsset, _payAsset, _feeAmount, protocolFeeTaken);
     }

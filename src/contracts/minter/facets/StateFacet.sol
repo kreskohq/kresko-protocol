@@ -31,11 +31,6 @@ contract StateFacet is IStateFacet {
     }
 
     /// @inheritdoc IStateFacet
-    function ammOracle() external view returns (address) {
-        return ms().ammOracle;
-    }
-
-    /// @inheritdoc IStateFacet
     function extOracleDecimals() external view returns (uint8) {
         return ms().extOracleDecimals;
     }
@@ -43,11 +38,6 @@ contract StateFacet is IStateFacet {
     /// @inheritdoc IStateFacet
     function minimumCollateralizationRatio() external view returns (uint256) {
         return ms().minimumCollateralizationRatio;
-    }
-
-    /// @inheritdoc IStateFacet
-    function liquidationIncentiveMultiplier() external view returns (uint256) {
-        return ms().liquidationIncentiveMultiplier;
     }
 
     /// @inheritdoc IStateFacet
@@ -78,7 +68,7 @@ contract StateFacet is IStateFacet {
                 s.minimumCollateralizationRatio,
                 s.minimumDebtValue,
                 s.liquidationThreshold,
-                s.liquidationIncentiveMultiplier,
+                s.maxLiquidationMultiplier,
                 s.feeRecipient,
                 s.extOracleDecimals,
                 s.oracleDeviationPct

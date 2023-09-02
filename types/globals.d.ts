@@ -34,7 +34,7 @@ declare global {
         };
         anchor: KreskoAssetAnchor;
         priceFeed: Contracts.MockAggregatorV3;
-        setBalance: (user: SignerWithAddress, balance: BigNumber) => Promise<void>;
+        setBalance: (user: SignerWithAddress, balance: BigNumber) => Promise<true>;
         setPrice: (price: number) => void;
         getPrice: () => Promise<BigNumber>;
         update: (update: TestKreskoAssetUpdate) => Promise<TestKrAsset>;
@@ -55,7 +55,7 @@ declare global {
         priceFeed: Contracts.MockAggregatorV3;
         anchor: KreskoAssetAnchor;
         setPrice: (price: number) => void;
-        setBalance: (user: SignerWithAddress, amount: BigNumber) => Promise<void>;
+        setBalance: (user: SignerWithAddress, amount: BigNumber) => Promise<true>;
         getPrice: () => Promise<BigNumber>;
         update: (update: TestCollateralAssetUpdate) => Promise<TestCollateral>;
     };

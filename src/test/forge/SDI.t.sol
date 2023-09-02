@@ -225,7 +225,10 @@ contract SDITest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
 
         swapValueWad = ((scdpDepositAmount / 2) * 1e8) / kissOracle.price();
 
+        swapValueWad.clg("SWAP VALUE WAD");
+
         call(kresko.swap.selector, user0, address(KISS), address(krETH), swapValueWad, 0, initialPrices);
+        console.log("success");
     }
 
     function mintKISS(address user, uint256 amount) internal {

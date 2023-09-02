@@ -42,6 +42,7 @@ declare module "mocha" {
             liquidator?: SignerWithAddress;
             treasury?: SignerWithAddress;
         };
+        usersArr: SignerWithAddress[];
         /* -------------------------------------------------------------------------- */
         /*                                   Diamond                                  */
         /* -------------------------------------------------------------------------- */
@@ -61,7 +62,6 @@ declare module "mocha" {
         UniV2Factory: Contracts.UniswapV2Factory;
         lpPair: Contracts.UniswapV2Pair;
         treasury: string;
-        pricefeed: Contracts.FluxPriceFeed;
         // @todo DEPRECATING
         Oracles: FakeContract[];
         TKN1: Contracts.ERC20Upgradeable;
@@ -70,7 +70,6 @@ declare module "mocha" {
         krTSLA: Contracts.KreskoAsset;
         Kresko: Contracts.Kresko;
         WETH10OraclePrice: number;
-        WETH10Oracle: Contracts.FluxPriceFeed;
     }
 }
 export {};

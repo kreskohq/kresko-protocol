@@ -93,12 +93,6 @@ interface IConfigurationFacet {
     function updateLiquidationThreshold(uint256 _liquidationThreshold) external;
 
     /**
-     * @notice Sets the protocol AMM oracle address
-     * @param _ammOracle  The address of the oracle
-     */
-    function updateAMMOracle(address _ammOracle) external;
-
-    /**
      * @notice Sets the decimal precision of external oracle
      * @param _decimals Amount of decimals
      */

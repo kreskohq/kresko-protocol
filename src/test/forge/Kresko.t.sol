@@ -66,7 +66,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         kresko.getPoolKrAsset(address(krETH)).openFee.equals(0.005e18);
         kresko.getPoolKrAsset(address(krETH)).closeFee.equals(0.005e18);
         kresko.getPoolKrAsset(address(krETH)).supplyLimit.equals(type(uint256).max);
-        kresko.getPoolKrAsset(address(krETH)).protocolFee.equals(0.5e18);
+        kresko.getPoolKrAsset(address(krETH)).protocolFee.equals(0.25e18);
 
         kresko.getSCDPSwapEnabled(address(usdc), address(krETH)).equals(true);
         kresko.getSCDPSwapEnabled(address(krETH), address(usdc)).equals(true);

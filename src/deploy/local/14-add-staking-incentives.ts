@@ -60,5 +60,6 @@ deploy.skip = async hre => {
 
 deploy.tags = ["local", "staking-incentive", "staking-deployment"];
 deploy.dependencies = ["staking"];
+deploy.skip = async () => true;
 
 export default deploy;

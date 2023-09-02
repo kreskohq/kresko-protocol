@@ -41,6 +41,7 @@ export const wrapKresko = (contract: Kresko, signer: any) =>
 const redstoneTestAssets = {
     Collateral: ethers.utils.formatBytes32String("USDC"),
     KreskoAsset: ethers.utils.formatBytes32String("USDC"),
+    KreskoAsset1: ethers.utils.formatBytes32String("USDC"),
     KreskoAsset2: ethers.utils.formatBytes32String("USDC"),
     KreskoAssetPrice10USD: ethers.utils.formatBytes32String("USDC"),
     CollateralAsset: ethers.utils.formatBytes32String("USDC"),

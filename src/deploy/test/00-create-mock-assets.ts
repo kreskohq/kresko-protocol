@@ -4,7 +4,7 @@ import { addMockCollateralAsset } from "@utils/test/helpers/collaterals";
 import { addMockKreskoAsset } from "@utils/test/helpers/krassets";
 
 const func: DeployFunction = async function (hre) {
-    const logger = getLogger("deploy-oracle");
+    const logger = getLogger("mock-assets");
     if (!hre.Diamond) {
         throw new Error("No diamond deployed");
     }

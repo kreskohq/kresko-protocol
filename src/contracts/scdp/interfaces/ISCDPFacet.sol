@@ -60,4 +60,6 @@ interface ISCDPFacet {
     function poolLiquidate(address _repayKrAsset, uint256 _repayAmount, address _seizeCollateral) external;
 
     function getMaxLiquidationSCDP(address _kreskoAsset, address _seizeCollateral) external view returns (uint256);
+
+    function poolIsLiquidatable() external view returns (bool);
 }

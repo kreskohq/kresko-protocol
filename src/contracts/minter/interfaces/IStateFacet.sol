@@ -13,17 +13,11 @@ interface IStateFacet {
     /// @notice The recipient of protocol fees.
     function feeRecipient() external view returns (address);
 
-    /// @notice The AMM oracle address.
-    function ammOracle() external view returns (address);
-
     /// @notice Offchain oracle decimals
     function extOracleDecimals() external view returns (uint8);
 
     /// @notice The collateralization ratio at which positions may be liquidated.
     function liquidationThreshold() external view returns (uint256);
-
-    /// @notice The factor used to calculate the incentive a liquidator receives in the form of seized collateral.
-    function liquidationIncentiveMultiplier() external view returns (uint256);
 
     /// @notice Multiplies max liquidatable value, allowing liquidations to go over LT.
     function maxLiquidationMultiplier() external view returns (uint256);

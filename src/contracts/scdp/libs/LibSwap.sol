@@ -167,11 +167,14 @@ library LibSwap {
         address _collateralAsset,
         uint256 _amount
     ) internal returns (uint256 nextLiquidityIndex) {
+        require(_amount != 0, "amount-zero");
+        uint256 poolDeposits = self.getPoolDeposits(_collateralAsset);
+        require(poolDeposits != 0, "no-deposits");
         // liquidity index increment is calculated this way: `(amount / totalLiquidity)`
         // division `amount / totalLiquidity` done in ray for precision
 
         return (self.poolCollateral[_collateralAsset].liquidityIndex += uint128(
-            (_amount.wadToRay().rayDiv(self.getUserPoolDeposits(_collateralAsset).wadToRay()))
+            (_amount.wadToRay().rayDiv(poolDeposits.wadToRay()))
         ));
     }
 }

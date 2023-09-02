@@ -53,5 +53,6 @@ deploy.skip = async hre => {
 };
 deploy.tags = ["local", "staking", "staking-deployment"];
 deploy.dependencies = ["add-liquidity"];
+deploy.skip = async () => true;
 
 export default deploy;

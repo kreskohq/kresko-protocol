@@ -39,26 +39,28 @@ export const addMockCollateralAsset = async (
 ): Promise<TestCollateral> => {
     const { deployer } = await hre.ethers.getNamedSigners();
     const { name, price, factor, decimals } = args;
-    const [MockFeed, FakeFeed] = await getMockOracles(price);
-
-    const TestCollateral = await (await smock.mock<ERC20Upgradeable__factory>("ERC20Upgradeable")).deploy();
-    await TestCollateral.setVariable("_initialized", 0);
+    const cFactor = toBig(factor);
+    const [[MockFeed, FakeFeed], TestCollateral] = await Promise.all([
+        getMockOracles(price),
+        (await smock.mock<ERC20Upgradeable__factory>("ERC20Upgradeable")).deploy(),
+    ]);
 
     TestCollateral.name.returns(name);
     TestCollateral.symbol.returns(name);
     TestCollateral.decimals.returns(decimals);
-    const cFactor = toBig(factor);
 
-    await wrapContractWithSigner(hre.Diamond, deployer).addCollateralAsset(
-        TestCollateral.address,
-        await getCollateralConfig(
+    const [collateralConfig] = await Promise.all([
+        getCollateralConfig(
             TestCollateral,
             hre.ethers.constants.AddressZero,
             cFactor,
             toBig(process.env.LIQUIDATION_INCENTIVE!),
             MockFeed.address,
         ),
-    );
+        TestCollateral.setVariable("_initialized", 0),
+    ]);
+
+    await wrapContractWithSigner(hre.Diamond, deployer).addCollateralAsset(TestCollateral.address, collateralConfig);
     const mocks = {
         contract: TestCollateral,
         mockFeed: MockFeed,
@@ -75,11 +77,13 @@ export const addMockCollateralAsset = async (
         setPrice: price => setPrice(mocks, price),
         getPrice: async () => (await MockFeed.latestRoundData())[1],
         setBalance: async (user, amount) => {
-            const totalSupply = await TestCollateral.totalSupply();
-            await mocks.contract.setVariable("_totalSupply", totalSupply.add(amount));
-            await mocks.contract.setVariable("_balances", {
-                [user.address]: amount,
+            await mocks.contract.setVariables({
+                _totalSupply: (await TestCollateral.totalSupply()).add(amount),
+                _balances: {
+                    [user.address]: amount,
+                },
             });
+            return true;
         },
         update: update => updateCollateralAsset(TestCollateral.address, update),
     };
@@ -129,16 +133,17 @@ export const depositMockCollateral = async (args: InputArgs) => {
     const convert = typeof args.amount === "string" || typeof args.amount === "number";
     const { user, asset, amount } = args;
     const depositAmount = convert ? toBig(+amount, await asset.contract.decimals()) : amount;
+    await Promise.all([
+        await asset.mocks.contract.setVariable("_balances", {
+            [user.address]: depositAmount,
+        }),
+        await asset.mocks.contract.setVariable("_allowances", {
+            [user.address]: {
+                [hre.Diamond.address]: depositAmount,
+            },
+        }),
+    ]);
 
-    await asset.mocks.contract.setVariable("_balances", {
-        [user.address]: depositAmount,
-    });
-
-    await asset.mocks.contract.setVariable("_allowances", {
-        [user.address]: {
-            [hre.Diamond.address]: depositAmount,
-        },
-    });
     return wrapContractWithSigner(hre.Diamond, user).depositCollateral(
         user.address,
         asset.contract.address,

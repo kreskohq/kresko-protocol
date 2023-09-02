@@ -258,7 +258,7 @@ abstract contract DeployHelper is RedstoneHelper {
     function enableSCDPKrAsset(address asset, string memory prices) internal {
         PoolKrAsset[] memory configurations = new PoolKrAsset[](1);
         configurations[0] = PoolKrAsset({
-            protocolFee: 0.5e18,
+            protocolFee: 0.25e18,
             liquidationIncentive: 1.1e18,
             openFee: 0.005e18,
             closeFee: 0.005e18,

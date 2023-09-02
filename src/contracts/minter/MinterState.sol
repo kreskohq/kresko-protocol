@@ -35,8 +35,6 @@ struct MinterState {
 
     /// @notice The recipient of protocol fees.
     address feeRecipient;
-    /// @notice The factor used to calculate the incentive a liquidator receives in the form of seized collateral.
-    uint256 liquidationIncentiveMultiplier;
     /// @notice The minimum ratio of collateral to debt that can be taken by direct action.
     uint256 minimumCollateralizationRatio;
     /// @notice The minimum USD value of an individual synthetic asset debt position.
@@ -69,8 +67,6 @@ struct MinterState {
     mapping(address => mapping(address => uint256)) kreskoAssetDebt;
     /// @notice Mapping of account -> addresses of borrowed krAssets
     mapping(address => address[]) mintedKreskoAssets;
-    /// @notice The AMM oracle address.
-    address ammOracle;
     /// @notice Offchain oracle decimals
     uint8 extOracleDecimals;
     /// @notice Liquidation Overflow Multiplier, multiplies max liquidatable value.

@@ -155,13 +155,6 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
     }
 
     /// @inheritdoc IConfigurationFacet
-    function updateAMMOracle(address _ammOracle) external onlyRole(Role.ADMIN) {
-        require(_ammOracle != address(0), Error.ADDRESS_INVALID_ORACLE);
-        ms().ammOracle = _ammOracle;
-        emit MinterEvent.AMMOracleUpdated(_ammOracle);
-    }
-
-    /// @inheritdoc IConfigurationFacet
     function updateExtOracleDecimals(uint8 _decimals) public onlyRole(Role.ADMIN) {
         ms().extOracleDecimals = _decimals;
     }
