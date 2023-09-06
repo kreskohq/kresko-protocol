@@ -2,10 +2,9 @@
 pragma solidity >=0.8.19;
 
 import {ISCDPStateFacet} from "scdp/interfaces/ISCDPStateFacet.sol";
-import {scdp, PoolCollateral, PoolKrAsset} from "scdp/SCDPStorage.sol";
-import {sdi} from "scdp/SDIStorage.sol";
-import {LibAmounts} from "scdp/libs/LibAmounts.sol";
-import {ms} from "minter/MinterStorage.sol";
+import {sdi} from "scdp/libs/LibSDI.sol";
+import {LibAmounts, scdp, PoolCollateral, PoolKrAsset} from "scdp/libs/LibSCDP.sol";
+import {ms} from "minter/libs/LibMinter.sol";
 import {WadRay} from "common/libs/WadRay.sol";
 import {IERC20Permit} from "common/IERC20Permit.sol";
 

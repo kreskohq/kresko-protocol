@@ -2,11 +2,9 @@
 pragma solidity >=0.8.19;
 
 import {IAccountStateFacet} from "../interfaces/IAccountStateFacet.sol";
-import {Fee, KrAsset, CollateralAsset} from "../MinterTypes.sol";
 import {Error} from "common/Errors.sol";
 import {WadRay} from "common/libs/WadRay.sol";
-import {LibDecimals} from "minter/libs/LibDecimals.sol";
-import {ms} from "../MinterStorage.sol";
+import {ms, LibDecimals, Fee, KrAsset} from "../libs/LibMinter.sol";
 
 /**
  * @author Kresko

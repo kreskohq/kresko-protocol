@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19;
 
-import {Error} from "common/Errors.sol";
-import {DiamondModifiers, Role} from "../DiamondModifiers.sol";
 import {IERC165Facet} from "../interfaces/IERC165Facet.sol";
-import {ds, DiamondState} from "../DiamondStorage.sol";
+import {Role} from "common/libs/Authorization.sol";
+import {ds, DiamondState, DiamondModifiers} from "../libs/LibDiamond.sol";
 
 contract ERC165Facet is IERC165Facet, DiamondModifiers {
     /// @inheritdoc IERC165Facet

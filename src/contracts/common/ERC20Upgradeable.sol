@@ -2,7 +2,7 @@
 pragma solidity >=0.8.19;
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import {IERC20Permit} from "./IERC20Permit.sol";
+import {IERC20Permit} from "common/IERC20Permit.sol";
 
 /* solhint-disable var-name-mixedcase */
 /* solhint-disable not-rely-on-time */

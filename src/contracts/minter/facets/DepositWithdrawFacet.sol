@@ -2,18 +2,13 @@
 pragma solidity >=0.8.19;
 
 import {IDepositWithdrawFacet} from "../interfaces/IDepositWithdrawFacet.sol";
+import {ICollateralReceiver} from "../interfaces/ICollateralReceiver.sol";
 
-import {Error} from "common/Errors.sol";
-import {MinterEvent} from "common/Events.sol";
 import {Role} from "common/libs/Authorization.sol";
 import {SafeERC20, IERC20Permit} from "common/SafeERC20.sol";
 
-import {MinterModifiers} from "../MinterModifiers.sol";
-import {DiamondModifiers} from "diamond/DiamondModifiers.sol";
-
-import {Action, KrAsset} from "../MinterTypes.sol";
-import {ms} from "../MinterStorage.sol";
-import {ICollateralReceiver} from "../interfaces/ICollateralReceiver.sol";
+import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
+import {ms, MinterModifiers, Action} from "../libs/LibMinter.sol";
 
 /**
  * @author Kresko

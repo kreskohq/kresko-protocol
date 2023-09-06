@@ -3,11 +3,11 @@ pragma solidity >=0.8.19;
 
 import {SafeERC20, IERC20Permit} from "common/SafeERC20.sol";
 import {WadRay} from "common/libs/WadRay.sol";
-import {DiamondModifiers} from "diamond/DiamondModifiers.sol";
-import {ms} from "minter/MinterStorage.sol";
+import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
+import {ms} from "minter/libs/LibMinter.sol";
 
 import {ISCDPSwapFacet} from "../interfaces/ISCDPSwapFacet.sol";
-import {scdp} from "../SCDPStorage.sol";
+import {scdp} from "../libs/LibSCDP.sol";
 
 import {console} from "forge-std/Console.sol";
 
@@ -61,9 +61,7 @@ contract SCDPSwapFacet is ISCDPSwapFacet, DiamondModifiers {
         uint256 _amountIn,
         uint256 _amountOutMin
     ) external nonReentrant {
-        console.log("swap", _amountIn);
-        require(_amountIn > 0, "swap-amount-zero");
-        console.log("henlo");
+        require(_amountIn != 0, "swap-amount-zero");
         // Transfer assets into this contract.
         IERC20Permit(_assetIn).safeTransferFrom(msg.sender, address(this), _amountIn);
         address receiver = _receiver == address(0) ? msg.sender : _receiver;
@@ -77,7 +75,6 @@ contract SCDPSwapFacet is ISCDPSwapFacet, DiamondModifiers {
                 ? _swapFeeAssetOut(receiver, _assetIn, _amountIn, _amountOutMin)
                 : _swap(receiver, _assetIn, _assetOut, _amountIn, _amountOutMin)
         );
-        console.log("swaped");
     }
 
     /**
@@ -132,8 +129,6 @@ contract SCDPSwapFacet is ISCDPSwapFacet, DiamondModifiers {
         // Check that assets can be swapped, get the fee percentages.
         (uint256 feePercentage, uint256 protocolFee) = scdp().checkAssets(_assetIn, assetOut);
 
-        // Get the fees from amount received.
-
         // Assets received pay off debt and/or increase SCDP owned collateral.
         uint256 valueIn = scdp().handleAssetsIn(_assetIn, _amountIn, address(this));
 
@@ -172,24 +167,24 @@ contract SCDPSwapFacet is ISCDPSwapFacet, DiamondModifiers {
         uint256 _amountOut,
         uint256 _amountOutMin,
         uint256 _feeAmount,
-        uint256 _protocolFee
+        uint256 _protocolFeePct
     ) private {
         // State modifications done, check MCR and slippage.
         require(_amountOut >= _amountOutMin, "lev-swap-slippage");
-        _payFee(scdp().feeAsset, _payAsset, _feeAmount, _protocolFee);
+        if (_feeAmount != 0) _payFee(scdp().feeAsset, _payAsset, _feeAmount, _protocolFeePct);
         require(scdp().checkRatio(scdp().minimumCollateralizationRatio), "lev-swap-mcr-violation");
     }
 
-    function _payFee(address _feeAsset, address _payAsset, uint256 _feeAmount, uint256 _protocolFee) private {
+    function _payFee(address _feeAsset, address _payAsset, uint256 _feeAmount, uint256 _protocolFeePct) private {
         if (_feeAsset != _payAsset) {
             _feeAmount = _feeSwap(address(this), _payAsset, _feeAsset, _feeAmount);
         }
 
-        uint256 protocolFeeTaken = _feeAmount.wadMul(_protocolFee);
+        uint256 protocolFeeTaken = _feeAmount.wadMul(_protocolFeePct);
         _feeAmount -= protocolFeeTaken;
 
-        if (_feeAmount > 0) scdp().cumulateIncome(_feeAsset, _feeAmount);
-        if (protocolFeeTaken > 0) IERC20Permit(_feeAsset).safeTransfer(ms().feeRecipient, protocolFeeTaken);
+        if (_feeAmount != 0) scdp().cumulateIncome(_feeAsset, _feeAmount);
+        if (protocolFeeTaken != 0) IERC20Permit(_feeAsset).safeTransfer(ms().feeRecipient, protocolFeeTaken);
 
         emit SwapFee(_feeAsset, _payAsset, _feeAmount, protocolFeeTaken);
     }

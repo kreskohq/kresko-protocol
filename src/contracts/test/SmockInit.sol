@@ -2,7 +2,8 @@
 pragma solidity >=0.8.19;
 
 import {GeneralEvent} from "common/Events.sol";
-import {Authorization, ds, Role, DiamondModifiers} from "diamond/DiamondModifiers.sol";
+import {Authorization, Role} from "common/libs/Authorization.sol";
+import {ds, DiamondModifiers} from "diamond/libs/LibDiamond.sol";
 
 import {ISmockFacet} from "./interfaces/ISmockFacet.sol";
 import {TEST_OPERATOR_ROLE} from "./SmockFacet.sol";

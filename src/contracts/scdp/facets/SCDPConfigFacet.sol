@@ -4,14 +4,13 @@ pragma solidity >=0.8.19;
 import {SafeERC20, IERC20Permit} from "common/SafeERC20.sol";
 import {Arrays} from "common/libs/Arrays.sol";
 import {WadRay} from "common/libs/WadRay.sol";
+import {Role} from "common/libs/Authorization.sol";
 
-import {MinterModifiers} from "minter/MinterModifiers.sol";
-import {ms} from "minter/MinterStorage.sol";
-import {Constants} from "minter/MinterTypes.sol";
-import {DiamondModifiers, Role} from "diamond/DiamondModifiers.sol";
+import {Constants, ms, MinterModifiers} from "minter/libs/LibMinter.sol";
+import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
 
-import {scdp} from "../SCDPStorage.sol";
-import {ISCDPConfigFacet, PoolCollateral, PoolKrAsset} from "../interfaces/ISCDPConfigFacet.sol";
+import {scdp, PoolCollateral, PoolKrAsset} from "../libs/LibSCDP.sol";
+import {ISCDPConfigFacet} from "../interfaces/ISCDPConfigFacet.sol";
 
 contract SCDPConfigFacet is ISCDPConfigFacet, DiamondModifiers, MinterModifiers {
     using SafeERC20 for IERC20Permit;

@@ -1,6 +1,14 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
+interface Mega {
+    function getMintedKreskoAssets(address _account) external view returns (address[] memory);
+}
+
+interface Mega2 {
+    function getMintedKreskoAssets(address _account) external view returns (address[] memory);
+}
+
 interface IBurnHelperFacet {
     /**
      * @notice Attempts to close all debt positions and interest

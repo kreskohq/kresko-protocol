@@ -9,7 +9,7 @@ import {Meta} from "./Meta.sol";
 import {AuthEvent} from "../Events.sol";
 import {Error} from "../Errors.sol";
 
-import {ds} from "diamond/DiamondStorage.sol";
+import {ds} from "diamond/libs/LibDiamond.sol";
 
 /* solhint-disable state-visibility */
 

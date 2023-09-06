@@ -5,11 +5,8 @@ pragma solidity >=0.8.19;
 import {IERC20Permit} from "common/IERC20Permit.sol";
 import {AggregatorV3Interface} from "common/AggregatorV3Interface.sol";
 import {IKrStaking} from "contracts/staking/interfaces/IKrStaking.sol";
-import {LibDecimals} from "./LibDecimals.sol";
 import {WadRay} from "common/libs/WadRay.sol";
-import {Error} from "common/Errors.sol";
-import {KrAsset, CollateralAsset} from "../MinterTypes.sol";
-import {MinterState, ms} from "../MinterStorage.sol";
+import {LibDecimals, KrAsset, CollateralAsset, ms} from "./LibMinter.sol";
 
 /* solhint-disable contract-name-camelcase */
 /* solhint-disable var-name-mixedcase */

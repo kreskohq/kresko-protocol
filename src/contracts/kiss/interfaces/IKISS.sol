@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
-import {IERC20Permit} from "common/IERC20Permit.sol";
+
 import {IERC165} from "common/IERC165.sol";
 import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
 

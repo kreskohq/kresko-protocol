@@ -2,9 +2,8 @@
 pragma solidity >=0.8.19;
 
 import {IDiamondCutFacet} from "../interfaces/IDiamondCutFacet.sol";
-import {DiamondModifiers, Role} from "../DiamondModifiers.sol";
-import {initializeDiamondCut} from "diamond/libs/LibDiamondCut.sol";
-import {ds} from "../DiamondStorage.sol";
+import {Role} from "common/libs/Authorization.sol";
+import {ds, initializeDiamondCut, DiamondModifiers} from "../libs/LibDiamond.sol";
 
 /**
  * @title EIP2535-pattern upgrades.

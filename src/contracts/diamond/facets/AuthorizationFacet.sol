@@ -2,7 +2,7 @@
 pragma solidity >=0.8.19;
 
 import {IAuthorizationFacet} from "../interfaces/IAuthorizationFacet.sol";
-import {Authorization, Role} from "common/libs/Authorization.sol";
+import {Authorization} from "common/libs/Authorization.sol";
 
 /**
  * @title Enumerable access control for the EIP2535-pattern following the OZ implementation.

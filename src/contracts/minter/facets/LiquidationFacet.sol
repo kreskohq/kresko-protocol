@@ -4,6 +4,7 @@ pragma solidity >=0.8.19;
 // solhint-disable not-rely-on-time
 
 import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
+import {ILiquidationFacet} from "minter/interfaces/ILiquidationFacet.sol";
 
 import {Arrays} from "common/libs/Arrays.sol";
 import {WadRay} from "common/libs/WadRay.sol";
@@ -11,14 +12,8 @@ import {Error} from "common/Errors.sol";
 import {MinterEvent} from "common/Events.sol";
 import {SafeERC20, IERC20Permit} from "common/SafeERC20.sol";
 
-import {LibDecimals} from "minter/libs/LibDecimals.sol";
-import {LibCalculation} from "minter/libs/LibCalculation.sol";
-import {ILiquidationFacet} from "minter/interfaces/ILiquidationFacet.sol";
-
-import {DiamondModifiers} from "diamond/DiamondModifiers.sol";
-
-import {Constants, KrAsset, CollateralAsset} from "../MinterTypes.sol";
-import {ms, MinterState} from "../MinterStorage.sol";
+import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
+import {Constants, KrAsset, CollateralAsset, ms, LibDecimals, LibCalculation, MinterState} from "../libs/LibMinter.sol";
 
 /**
  * @author Kresko

@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
-import {ms} from "minter/MinterStorage.sol";
-import {sdi, Asset} from "scdp/SDIStorage.sol";
-import {scdp} from "scdp/SCDPStorage.sol";
+
+import {sdi, Asset} from "scdp/libs/LibSDI.sol";
+// import {ms} from "minter/libs/LibMinter.sol";
+// import {scdp} from "scdp/libs/LibSCDP.sol";
 import {ISDIFacet} from "scdp/interfaces/ISDIFacet.sol";
 import {IERC20Permit} from "common/IERC20Permit.sol";
-import {DiamondModifiers} from "diamond/DiamondModifiers.sol";
-import {Authorization, Role} from "common/libs/Authorization.sol";
+import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
+import {Role} from "common/libs/Authorization.sol";
 import {AggregatorV3Interface} from "common/AggregatorV3Interface.sol";
 
 contract SDIFacet is ISDIFacet, DiamondModifiers {

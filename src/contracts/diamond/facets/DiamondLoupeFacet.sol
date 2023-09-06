@@ -2,7 +2,7 @@
 pragma solidity >=0.8.19;
 
 import {IDiamondLoupeFacet} from "../interfaces/IDiamondLoupeFacet.sol";
-import {ds, DiamondState} from "../DiamondStorage.sol";
+import {ds, DiamondState} from "../libs/LibDiamond.sol";
 
 contract DiamondLoupeFacet is IDiamondLoupeFacet {
     /// @inheritdoc IDiamondLoupeFacet

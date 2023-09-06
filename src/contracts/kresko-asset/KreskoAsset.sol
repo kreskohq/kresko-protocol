@@ -7,7 +7,7 @@ import {Role} from "common/libs/Authorization.sol";
 import {Error} from "common/Errors.sol";
 import {ERC20Upgradeable} from "common/ERC20Upgradeable.sol";
 import {IERC165} from "common/IERC165.sol";
-import {RebaseMath} from "./Rebase.sol";
+import {RebaseMath} from "kresko-asset/Rebase.sol";
 import {IKreskoAsset} from "./IKreskoAsset.sol";
 import {IUniswapV2Pair} from "vendor/uniswap/v2-core/interfaces/IUniswapV2Pair.sol";
 

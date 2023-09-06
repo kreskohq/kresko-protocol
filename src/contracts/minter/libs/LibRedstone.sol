@@ -16,6 +16,7 @@ import "@redstone-finance/evm-connector/contracts/core/CalldataExtractor.sol";
  */
 library RedstoneError {
     // Error messages
+    error ProxyCalldataFailedWithoutErrMsg2();
     error ProxyCalldataFailedWithoutErrMsg();
     error CalldataOverOrUnderFlow();
     error ProxyCalldataFailedWithCustomError(bytes result);

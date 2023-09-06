@@ -2,7 +2,7 @@
 pragma solidity >=0.8.19;
 
 import {ISmockFacet} from "./interfaces/ISmockFacet.sol";
-import {DiamondModifiers} from "diamond/DiamondModifiers.sol";
+import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
 import {SmockStorage, Errors} from "./SmockStorage.sol";
 
 bytes32 constant TEST_OPERATOR_ROLE = keccak256("kresko.test.operator");
@@ -43,6 +43,7 @@ contract SmockFacet is DiamondModifiers, ISmockFacet {
         require(SmockStorage.state().isActive, Errors.ACTIVE);
         _;
     }
+
     modifier onlyDisabled() {
         require(!SmockStorage.state().isActive, Errors.NOT_ACTIVE);
         _;

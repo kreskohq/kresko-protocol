@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
+import {ms, MinterState} from "minter/libs/LibMinter.sol";
+
 interface ICollateralReceiver {
     function onUncheckedCollateralWithdraw(
         address _account,
         address _collateralAsset,
-        uint _withdrawalAmount,
-        uint _depositedCollateralAssetIndex,
+        uint256 _withdrawalAmount,
+        uint256 _depositedCollateralAssetIndex,
         bytes memory _userData
     ) external returns (bytes memory);
 }

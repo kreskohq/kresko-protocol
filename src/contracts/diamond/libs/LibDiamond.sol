@@ -1,11 +1,106 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19;
 
-import {Meta} from "common/libs/Meta.sol";
+import {Authorization} from "common/libs/Authorization.sol";
 import {DiamondEvent} from "common/Events.sol";
-
-import {DiamondState} from "diamond/DiamondState.sol";
+import {IERC165} from "common/IERC165.sol";
+import {IDiamondLoupeFacet} from "diamond/interfaces/IDiamondLoupeFacet.sol";
+import {IDiamondOwnershipFacet} from "diamond/interfaces/IDiamondOwnershipFacet.sol";
+import {IAuthorizationFacet} from "diamond/interfaces/IAuthorizationFacet.sol";
 import {IDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
+import {EnumerableSet} from "common/libs/EnumerableSet.sol";
+import {GeneralEvent, AuthEvent} from "common/Events.sol";
+import {Error} from "common/Errors.sol";
+import {Meta} from "common/libs/Meta.sol";
+
+// Storage position
+bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("kresko.diamond.storage");
+
+function ds() pure returns (DiamondState storage state) {
+    bytes32 position = DIAMOND_STORAGE_POSITION;
+    assembly {
+        state.slot := position
+    }
+}
+
+/// @dev set the initial value to 1 as we do not
+/// wanna hinder possible gas refunds by setting it to 0 on exit.
+
+/* -------------------------------------------------------------------------- */
+/*                                 Reentrancy                                 */
+/* -------------------------------------------------------------------------- */
+uint256 constant NOT_ENTERED = 1;
+uint256 constant ENTERED = 2;
+
+/* ========================================================================== */
+/*                                   STRUCTS                                  */
+/* ========================================================================== */
+
+struct FacetAddressAndPosition {
+    address facetAddress;
+    // position in facetFunctionSelectors.functionSelectors array
+    uint96 functionSelectorPosition;
+}
+
+struct FacetFunctionSelectors {
+    bytes4[] functionSelectors;
+    // position of facetAddress in facetAddresses array
+    uint256 facetAddressPosition;
+}
+
+struct RoleData {
+    mapping(address => bool) members;
+    bytes32 adminRole;
+}
+
+using LibDiamondCut for DiamondState global;
+using LibOwnership for DiamondState global;
+
+/* -------------------------------------------------------------------------- */
+/*                                 Main Layout                                */
+/* -------------------------------------------------------------------------- */
+
+struct DiamondState {
+    /* -------------------------------------------------------------------------- */
+    /*                                   Proxy                                    */
+    /* -------------------------------------------------------------------------- */
+    /// @notice Maps function selector to the facet address and
+    /// the position of the selector in the facetFunctionSelectors.selectors array
+    mapping(bytes4 => FacetAddressAndPosition) selectorToFacetAndPosition;
+    /// @notice Maps facet addresses to function selectors
+    mapping(address => FacetFunctionSelectors) facetFunctionSelectors;
+    /// @notice Facet addresses
+    address[] facetAddresses;
+    /// @notice ERC165 query implementation
+    mapping(bytes4 => bool) supportedInterfaces;
+    /* -------------------------------------------------------------------------- */
+    /*                               Initialization                               */
+    /* -------------------------------------------------------------------------- */
+    /// @notice Initialization status
+    bool initialized;
+    /// @notice Domain field separator
+    bytes32 domainSeparator;
+    /* -------------------------------------------------------------------------- */
+    /*                                  Ownership                                 */
+    /* -------------------------------------------------------------------------- */
+    /// @notice Current owner of the diamond
+    address contractOwner;
+    /// @notice Pending new diamond owner
+    address pendingOwner;
+    /// @notice Storage version
+    uint8 storageVersion;
+    /// @notice address(this) replacement for FF
+    address self;
+    /* -------------------------------------------------------------------------- */
+    /*                               Access Control                               */
+    /* -------------------------------------------------------------------------- */
+    mapping(bytes32 => RoleData) _roles;
+    mapping(bytes32 => EnumerableSet.AddressSet) _roleMembers;
+    /* -------------------------------------------------------------------------- */
+    /*                                 Reentrancy                                 */
+    /* -------------------------------------------------------------------------- */
+    uint256 entered;
+}
 
 // solhint-disable-next-line func-visibility
 function initializeDiamondCut(address _init, bytes memory _calldata) {
@@ -158,5 +253,102 @@ library LibDiamondCut {
             self.facetAddresses.pop();
             delete self.facetFunctionSelectors[_facetAddress].facetAddressPosition;
         }
+    }
+}
+
+library LibOwnership {
+    /* -------------------------------------------------------------------------- */
+    /*                         Initialization & Ownership                         */
+    /* -------------------------------------------------------------------------- */
+
+    /// @notice Ownership initializer
+    /// @notice Only called on the first deployment
+    function initialize(DiamondState storage self, address _owner) internal {
+        require(!self.initialized, Error.ALREADY_INITIALIZED);
+        self.entered = NOT_ENTERED;
+        self.initialized = true;
+        self.storageVersion++;
+        self.contractOwner = _owner;
+
+        self.supportedInterfaces[type(IDiamondLoupeFacet).interfaceId] = true;
+        self.supportedInterfaces[type(IERC165).interfaceId] = true;
+        self.supportedInterfaces[type(IDiamondCutFacet).interfaceId] = true;
+        self.supportedInterfaces[type(IDiamondOwnershipFacet).interfaceId] = true;
+        self.supportedInterfaces[type(IAuthorizationFacet).interfaceId] = true;
+
+        emit GeneralEvent.Deployed(_owner, self.storageVersion);
+        emit AuthEvent.OwnershipTransferred(address(0), _owner);
+    }
+
+    /**
+     * @dev Initiate ownership transfer to a new address
+     * @param _newOwner address that is set as the pending new owner
+     * @notice caller must be the current contract owner
+     */
+    function initiateOwnershipTransfer(DiamondState storage self, address _newOwner) internal {
+        require(Meta.msgSender() == self.contractOwner, Error.DIAMOND_INVALID_OWNER);
+        require(_newOwner != address(0), "DS: Owner cannot be 0-address");
+
+        self.pendingOwner = _newOwner;
+
+        emit AuthEvent.PendingOwnershipTransfer(self.contractOwner, _newOwner);
+    }
+
+    /**
+     * @dev Transfer the ownership to the new pending owner
+     * @notice caller must be the pending owner
+     */
+    function finalizeOwnershipTransfer(DiamondState storage self) internal {
+        address sender = Meta.msgSender();
+        require(sender == self.pendingOwner, Error.DIAMOND_INVALID_PENDING_OWNER);
+        self.contractOwner = self.pendingOwner;
+        self.pendingOwner = address(0);
+
+        emit AuthEvent.OwnershipTransferred(self.contractOwner, sender);
+    }
+}
+
+abstract contract DiamondModifiers {
+    /**
+     * @dev Modifier that checks that an account has a specific role. Reverts
+     * with a standardized message including the required role.
+     *
+     * The format of the revert reason is given by the following regular expression:
+     *
+     *  /^Authorization: account (0x[0-9a-f]{40}) is missing role (0x[0-9a-f]{64})$/
+     *
+     * _Available since v4.1._
+     */
+    modifier onlyRole(bytes32 role) {
+        Authorization.checkRole(role);
+        _;
+    }
+
+    /**
+     * @notice Ensure only trusted contracts can act on behalf of `_account`
+     * @param _accountIsNotMsgSender The address of the collateral asset.
+     */
+    modifier onlyRoleIf(bool _accountIsNotMsgSender, bytes32 role) {
+        if (_accountIsNotMsgSender) {
+            Authorization.checkRole(role);
+        }
+        _;
+    }
+
+    modifier onlyOwner() {
+        require(Meta.msgSender() == ds().contractOwner, Error.DIAMOND_INVALID_OWNER);
+        _;
+    }
+
+    modifier onlyPendingOwner() {
+        require(Meta.msgSender() == ds().pendingOwner, Error.DIAMOND_INVALID_PENDING_OWNER);
+        _;
+    }
+
+    modifier nonReentrant() {
+        require(ds().entered == NOT_ENTERED, Error.RE_ENTRANCY);
+        ds().entered = ENTERED;
+        _;
+        ds().entered = NOT_ENTERED;
     }
 }

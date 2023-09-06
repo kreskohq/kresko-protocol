@@ -9,7 +9,8 @@ pragma solidity >=0.8.19;
 /* solhint-disable avoid-low-level-calls */
 /* solhint-disable func-visibility */
 
-import {LibUI, IKrStaking, IERC20Permit, ms} from "minter/libs/LibUI.sol";
+import {LibUI} from "minter/libs/LibUI.sol";
+import {ms} from "minter/libs/LibMinter.sol";
 
 /**
  * @author Kresko

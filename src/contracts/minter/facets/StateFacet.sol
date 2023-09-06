@@ -2,9 +2,7 @@
 pragma solidity >=0.8.19;
 
 import {IStateFacet} from "../interfaces/IStateFacet.sol";
-
-import {MinterParams, KrAsset, CollateralAsset} from "../MinterTypes.sol";
-import {MinterState, ms} from "../MinterStorage.sol";
+import {MinterState, ms, MinterParams, KrAsset, CollateralAsset} from "../libs/LibMinter.sol";
 
 /**
  * @author Kresko

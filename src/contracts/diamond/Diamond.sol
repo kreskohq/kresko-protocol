@@ -10,8 +10,7 @@ import {Authorization, Role} from "common/libs/Authorization.sol";
 import {GeneralEvent} from "common/Events.sol";
 import {Error} from "common/Errors.sol";
 
-import {initializeDiamondCut} from "./libs/LibDiamondCut.sol";
-import {ds} from "./DiamondStorage.sol";
+import {ds, initializeDiamondCut} from "./libs/LibDiamond.sol";
 
 contract Diamond {
     struct Initialization {

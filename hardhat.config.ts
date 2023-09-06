@@ -4,6 +4,7 @@
 import { HardhatUserConfig } from "hardhat/config";
 import { resolve } from "path";
 import "tsconfig-paths/register";
+import "@nomicfoundation/hardhat-foundry";
 /* -------------------------------------------------------------------------- */
 /*                                   Plugins                                  */
 /* -------------------------------------------------------------------------- */
@@ -19,7 +20,6 @@ import "@nomiclabs/hardhat-web3";
 import "hardhat-contract-sizer";
 import "hardhat-interface-generator";
 import "solidity-coverage";
-import "@nomicfoundation/hardhat-foundry";
 
 // import "hardhat-preprocessor";
 // import "hardhat-watcher";
@@ -39,7 +39,7 @@ if (!mnemonic) {
 /* -------------------------------------------------------------------------- */
 /*                                    Tasks                                   */
 /* -------------------------------------------------------------------------- */
-import "./src/tasks";
+import "src/tasks";
 /* -------------------------------------------------------------------------- */
 /*                                Config helpers                              */
 /* -------------------------------------------------------------------------- */
@@ -68,10 +68,10 @@ const config: HardhatUserConfig = {
     paths: {
         artifacts: "artifacts",
         cache: "cache",
-        sources: "src/contracts",
-        tests: "src/test",
-        deploy: "src/deploy",
-        deployments: "deployments",
+        sources: "src/contracts/",
+        tests: "src/test/",
+        deploy: "src/deploy/",
+        deployments: "deployments/",
     },
     external: {
         contracts: [

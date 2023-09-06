@@ -7,10 +7,8 @@ import {Role} from "common/libs/Authorization.sol";
 import {MinterEvent} from "common/Events.sol";
 import {Error} from "common/Errors.sol";
 
-import {MinterModifiers} from "../MinterModifiers.sol";
-import {DiamondModifiers} from "diamond/DiamondModifiers.sol";
-import {Action} from "../MinterTypes.sol";
-import {ms, MinterState} from "../MinterStorage.sol";
+import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
+import {ms, Action, MinterState, MinterModifiers} from "../libs/LibMinter.sol";
 
 /**
  * @author Kresko

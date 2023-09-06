@@ -5,14 +5,10 @@ import {SafeERC20, IERC20Permit} from "common/SafeERC20.sol";
 import {Error} from "common/Errors.sol";
 import {WadRay} from "common/libs/WadRay.sol";
 
-import {DiamondModifiers} from "diamond/DiamondModifiers.sol";
-import {ms} from "minter/MinterStorage.sol";
-import {CollateralAsset, KrAsset} from "minter/MinterTypes.sol";
-import {LibCalculation} from "minter/libs/LibCalculation.sol";
-import {LibDecimals} from "minter/libs/LibDecimals.sol";
+import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
+import {ms, LibDecimals, LibCalculation, CollateralAsset, KrAsset} from "minter/libs/LibMinter.sol";
 
-import {LibAmounts} from "scdp/libs/LibAmounts.sol";
-import {scdp, PoolKrAsset} from "../SCDPStorage.sol";
+import {scdp, LibAmounts, PoolKrAsset} from "scdp/libs/LibSCDP.sol";
 import {ISCDPFacet} from "../interfaces/ISCDPFacet.sol";
 
 contract SCDPFacet is ISCDPFacet, DiamondModifiers {

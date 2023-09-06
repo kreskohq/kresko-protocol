@@ -9,12 +9,8 @@ import {Error} from "common/Errors.sol";
 import {Role} from "common/libs/Authorization.sol";
 import {MinterEvent} from "common/Events.sol";
 
-import {LibRedstone} from "minter/libs/LibRedstone.sol";
-
-import {MinterModifiers} from "../MinterModifiers.sol";
-import {DiamondModifiers} from "diamond/DiamondModifiers.sol";
-import {Action, KrAsset} from "../MinterTypes.sol";
-import {ms, MinterState} from "../MinterStorage.sol";
+import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
+import {ms, MinterState, Action, KrAsset, MinterModifiers} from "../libs/LibMinter.sol";
 
 /**
  * @author Kresko

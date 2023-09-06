@@ -3,8 +3,6 @@ pragma solidity >=0.8.19;
 
 import {AccessControlEnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 
-import {SafeTransferLib} from "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
-
 import {Role} from "common/libs/Authorization.sol";
 
 import {IKreskoAssetIssuer} from "./IKreskoAssetIssuer.sol";
