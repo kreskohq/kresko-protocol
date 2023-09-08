@@ -47,7 +47,7 @@ interface IAccountStateFacet {
      * @param _account The account to calculate the collateral value for.
      * @return The collateral value of a particular account.
      */
-    function accountCollateralValue(address _account) external view returns (uint256);
+    function getAccountCollateralValue(address _account) external view returns (uint256);
 
     /**
      * @notice Get an account's minimum collateral value required
