@@ -6,7 +6,9 @@ import {IERC20Permit} from "common/IERC20Permit.sol";
 import {AggregatorV3Interface} from "common/AggregatorV3Interface.sol";
 import {IKrStaking} from "contracts/staking/interfaces/IKrStaking.sol";
 import {WadRay} from "common/libs/WadRay.sol";
-import {LibDecimals, KrAsset, CollateralAsset, ms} from "./LibMinter.sol";
+import {ms} from "./LibMinterBig.sol";
+import {Shared} from "common/libs/Shared.sol";
+import {KrAsset, CollateralAsset} from "common/libs/Assets.sol";
 
 /* solhint-disable contract-name-camelcase */
 /* solhint-disable var-name-mixedcase */
@@ -16,7 +18,7 @@ import {LibDecimals, KrAsset, CollateralAsset, ms} from "./LibMinter.sol";
  * @author Kresko
  */
 library LibUI {
-    using LibDecimals for uint256;
+    using Shared for uint256;
     using WadRay for uint256;
 
     struct CollateralAssetInfoUser {
@@ -207,7 +209,7 @@ library LibUI {
             _account,
             ms().minimumCollateralizationRatio
         );
-        uint256 collateral = ms().getAccountCollateralValue(_account);
+        uint256 collateral = ms().accountCollateralValue(_account);
 
         if (collateral < minCollateral) {
             return 0;
@@ -250,7 +252,7 @@ library LibUI {
             address assetAddress = assetAddresses[i];
             KrAsset memory krAsset = ms().kreskoAssets[assetAddress];
             result[i] = krAssetInfo({
-                value: ms().getKrAssetValue(assetAddress, 1 ether, false),
+                value: ms().getKrAssetUSD(assetAddress, 1 ether, false),
                 oracleAddress: address(krAsset.oracle),
                 assetAddress: assetAddress,
                 closeFee: krAsset.closeFee,
@@ -274,11 +276,7 @@ library LibUI {
             CollateralAsset memory collateralAsset = ms().collateralAssets[assetAddress];
             uint8 decimals = IERC20Permit(assetAddress).decimals();
 
-            (uint256 value, uint256 price) = ms().getCollateralValueAndOraclePrice(
-                assetAddress,
-                1 * 10 ** decimals,
-                false
-            );
+            (uint256 value, uint256 price) = ms().getCollateralValueAndPrice(assetAddress, 1 * 10 ** decimals, false);
 
             result[i] = CollateralAssetInfo({
                 value: value,
@@ -308,7 +306,7 @@ library LibUI {
 
                 uint256 amount = ms().getCollateralDeposits(_account, assetAddress);
 
-                (uint256 amountUSD, uint256 price) = ms().getCollateralValueAndOraclePrice(assetAddress, amount, true);
+                (uint256 amountUSD, uint256 price) = ms().getCollateralValueAndPrice(assetAddress, amount, true);
 
                 totalCollateralUSD + amountUSD;
                 result[i] = CollateralAssetInfoUser({
@@ -340,7 +338,7 @@ library LibUI {
                 KrAsset memory krAsset = ms().kreskoAssets[assetAddress];
                 uint256 amount = ms().getKreskoAssetDebtPrincipal(_account, assetAddress);
 
-                uint256 amountUSD = ms().getKrAssetValue(assetAddress, amount, true);
+                uint256 amountUSD = ms().getKrAssetUSD(assetAddress, amount, true);
                 totalDebtUSD + amountUSD;
                 result[i] = krAssetInfoUser({
                     assetAddress: assetAddress,
@@ -362,7 +360,7 @@ library LibUI {
 
     function healthFactorFor(address _account) internal view returns (uint256) {
         uint256 userDebt = ms().getAccountKrAssetValue(_account);
-        uint256 userCollateral = ms().getAccountCollateralValue(_account);
+        uint256 userCollateral = ms().accountCollateralValue(_account);
 
         if (userDebt > 0) {
             return userCollateral.wadDiv(userDebt);
@@ -397,7 +395,7 @@ library LibUI {
                 borrowingPowerUSD: borrowingPowerUSD(_account),
                 healthFactor: healthFactorFor(_account),
                 debtUSD: ms().getAccountKrAssetValue(_account),
-                collateralUSD: ms().getAccountCollateralValue(_account),
+                collateralUSD: ms().accountCollateralValue(_account),
                 minCollateralUSD: ms().getAccountMinimumCollateralValueAtRatio(
                     _account,
                     ms().minimumCollateralizationRatio

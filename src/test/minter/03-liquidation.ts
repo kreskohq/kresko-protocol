@@ -704,7 +704,7 @@ describe("Minter - Liquidations", () => {
                 );
                 this.collateral!.setPrice(this.collateral!.deployArgs!.price * 0.775);
 
-                const accountCollateralValue = await hre.Diamond.getAccountCollateralValue(hre.users.userOne.address);
+                const accountCollateralValue = await hre.Diamond.accountCollateralValue(hre.users.userOne.address);
 
                 expect(accountCollateralValue.lt(minCollateralUSD)).to.be.true;
                 expect(accountCollateralValue.gt(liquidationThresholdUSD)).to.be.true;
@@ -1142,7 +1142,7 @@ describe("Minter - Liquidations", () => {
                     results.debtRepaid += values.debtRepaid;
                 }
                 results.userOneValueAfter = fromBig(
-                    await hre.Diamond.getAccountCollateralValue(userToLiquidate.address),
+                    await hre.Diamond.accountCollateralValue(userToLiquidate.address),
                     8,
                 );
 
@@ -1166,7 +1166,7 @@ describe("Minter - Liquidations", () => {
                 }
 
                 results.userTwoValueAfter = fromBig(
-                    await hre.Diamond.getAccountCollateralValue(userToLiquidateTwo.address),
+                    await hre.Diamond.accountCollateralValue(userToLiquidateTwo.address),
                     8,
                 );
                 results.userTwoHFAfter = (await getCR(userToLiquidateTwo.address)) as number;
@@ -1203,7 +1203,7 @@ describe("Minter - Liquidations", () => {
                     results.debtRepaid += values.debtRepaid;
                 }
                 results.userOneValueAfter = fromBig(
-                    await hre.Diamond.getAccountCollateralValue(userToLiquidate.address),
+                    await hre.Diamond.accountCollateralValue(userToLiquidate.address),
                     8,
                 );
 
@@ -1227,7 +1227,7 @@ describe("Minter - Liquidations", () => {
                     results.debtRepaidRebase += values.debtRepaid;
                 }
                 results.userTwoValueAfter = fromBig(
-                    await hre.Diamond.getAccountCollateralValue(userToLiquidateTwo.address),
+                    await hre.Diamond.accountCollateralValue(userToLiquidateTwo.address),
                     8,
                 );
                 results.userTwoHFAfter = (await getCR(userToLiquidateTwo.address)) as number;

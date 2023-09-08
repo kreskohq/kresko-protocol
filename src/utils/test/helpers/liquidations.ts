@@ -11,7 +11,7 @@ export const getLiqAmount = async (user: SignerWithAddress, krAsset: any, collat
         await hre.Diamond.liquidationThreshold(),
     );
 
-    const accountCollateralValue = await hre.Diamond.getAccountCollateralValue(user.address);
+    const accountCollateralValue = await hre.Diamond.accountCollateralValue(user.address);
 
     const ratio = await hre.Diamond.getAccountCollateralRatio(user.address);
 
@@ -38,7 +38,7 @@ export const getLiqAmount = async (user: SignerWithAddress, krAsset: any, collat
     return maxLiquidatableValue.wadDiv(krAssetPrice);
 };
 export const getExpectedMaxLiq = async (user: SignerWithAddress, krAsset: any, collateral: any) => {
-    const collateralValue = await hre.Diamond.getAccountCollateralValue(user.address);
+    const collateralValue = await hre.Diamond.accountCollateralValue(user.address);
     const minCollateralValue = await hre.Diamond.getAccountMinimumCollateralValueAtRatio(
         user.address,
         await hre.Diamond.liquidationThreshold(),
@@ -150,7 +150,7 @@ export const liquidate = async (
     };
 };
 export const getCR = async (address: string, big = false) => {
-    const accountCollateralValue = await hre.Diamond.getAccountCollateralValue(address);
+    const accountCollateralValue = await hre.Diamond.accountCollateralValue(address);
     const debtValue = await hre.Diamond.getAccountKrAssetValue(address);
     const result = accountCollateralValue.wadDiv(debtValue);
     if (big) {

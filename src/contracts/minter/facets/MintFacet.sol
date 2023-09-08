@@ -10,13 +10,15 @@ import {Role} from "common/libs/Authorization.sol";
 import {MinterEvent} from "common/Events.sol";
 
 import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
-import {ms, MinterState, Action, KrAsset, MinterModifiers} from "../libs/LibMinter.sol";
+import {ms, MinterState, Action, KrAsset} from "../libs/LibMinterBig.sol";
+import {MinterModifiers} from "minter/Modifiers.sol";
 
 /**
  * @author Kresko
  * @title MintFacet
  * @notice Main end-user functionality concerning minting kresko assets
  */
+
 contract MintFacet is DiamondModifiers, MinterModifiers, IMintFacet {
     using Arrays for address[];
 
@@ -55,7 +57,7 @@ contract MintFacet is DiamondModifiers, MinterModifiers, IMintFacet {
             require(
                 s.getAccountMinimumCollateralValueAtRatio(_account, s.minimumCollateralizationRatio) +
                     s.getMinimumCollateralValueAtRatio(_kreskoAsset, _mintAmount, s.minimumCollateralizationRatio) <=
-                    s.getAccountCollateralValue(_account),
+                    s.accountCollateralValue(_account),
                 Error.KRASSET_COLLATERAL_LOW
             );
         }

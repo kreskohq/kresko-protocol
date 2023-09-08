@@ -5,16 +5,19 @@ import {IDepositWithdrawFacet} from "../interfaces/IDepositWithdrawFacet.sol";
 import {ICollateralReceiver} from "../interfaces/ICollateralReceiver.sol";
 
 import {Role} from "common/libs/Authorization.sol";
-import {SafeERC20, IERC20Permit} from "common/SafeERC20.sol";
+import {SafeERC20} from "common/SafeERC20.sol";
+import {IERC20Permit} from "common/IERC20Permit.sol";
 
 import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
-import {ms, MinterModifiers, Action} from "../libs/LibMinter.sol";
+import {ms, Action} from "../libs/LibMinterBig.sol";
+import {MinterModifiers} from "minter/Modifiers.sol";
 
 /**
  * @author Kresko
  * @title DepositWithdrawFacet
  * @notice Main end-user functionality concerning collateral asset deposits and withdrawals within the Kresko protocol
  */
+
 contract DepositWithdrawFacet is DiamondModifiers, MinterModifiers, IDepositWithdrawFacet {
     using SafeERC20 for IERC20Permit;
 

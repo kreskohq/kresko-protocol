@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {Action} from "minter/libs/LibMinter.sol";
+import {Action} from "minter/libs/LibMinterBig.sol";
 
 interface IAccountStateFacet {
     // ExpectedFeeRuntimeInfo is used for stack size optimization
@@ -24,7 +24,7 @@ interface IAccountStateFacet {
      * @param _kreskoAsset The asset lookup address.
      * @return index of the minted Kresko asset.
      */
-    function getMintedKreskoAssetsIndex(address _account, address _kreskoAsset) external view returns (uint256);
+    function getMintIndex(address _account, address _kreskoAsset) external view returns (uint256);
 
     /**
      * @notice Gets the Kresko asset value in USD of a particular account.
@@ -47,7 +47,7 @@ interface IAccountStateFacet {
      * @param _account The account to calculate the collateral value for.
      * @return The collateral value of a particular account.
      */
-    function getAccountCollateralValue(address _account) external view returns (uint256);
+    function accountCollateralValue(address _account) external view returns (uint256);
 
     /**
      * @notice Get an account's minimum collateral value required
@@ -91,10 +91,7 @@ interface IAccountStateFacet {
      * @param _collateralAsset The asset lookup address.
      * @return i = index of the minted collateral asset.
      */
-    function getDepositedCollateralAssetIndex(
-        address _account,
-        address _collateralAsset
-    ) external view returns (uint256 i);
+    function getDepositIndex(address _account, address _collateralAsset) external view returns (uint256 i);
 
     /**
      * @notice Gets an array of collateral assets the account has deposited.

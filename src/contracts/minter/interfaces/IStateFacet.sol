@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {CollateralAsset, KrAsset, MinterParams} from "minter/libs/LibMinter.sol";
+import {CollateralAsset, KrAsset, MinterParams} from "minter/libs/LibMinterBig.sol";
 
 interface IStateFacet {
     /// @notice The EIP-712 typehash for the contract's domain.
@@ -39,10 +39,10 @@ interface IStateFacet {
      * @param _asset Address of the asset.
      * @return State of assets `KrAsset` struct
      */
-    function kreskoAsset(address _asset) external view returns (KrAsset memory);
+    function getKreskoAsset(address _asset) external view returns (KrAsset memory);
 
     /// @notice Mapping of collateral asset token address to information on the collateral asset.
-    function collateralAsset(address _asset) external view returns (CollateralAsset memory);
+    function getCollateralAsset(address _asset) external view returns (CollateralAsset memory);
 
     /// @notice simple check if collateral asset exists
     function collateralExists(address _collateralAsset) external view returns (bool);
@@ -56,7 +56,7 @@ interface IStateFacet {
      * @param _amount The amount of the collateral asset to calculate the value for.
      * @param _ignoreCollateralFactor Boolean indicating if the asset's collateral factor should be ignored.
      */
-    function getCollateralValueAndOraclePrice(
+    function getCollateralValueAndPrice(
         address _collateralAsset,
         uint256 _amount,
         bool _ignoreCollateralFactor

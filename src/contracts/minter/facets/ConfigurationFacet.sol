@@ -17,7 +17,9 @@ import {IConfigurationFacet} from "../interfaces/IConfigurationFacet.sol";
 
 import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
 
-import {ms, MinterModifiers, MinterInitArgs, CollateralAsset, KrAsset, Constants} from "../libs/LibMinter.sol";
+import {ms, MinterInitArgs, CollateralAsset, KrAsset} from "../libs/LibMinterBig.sol";
+import {Constants} from "minter/Constants.sol";
+import {MinterModifiers} from "minter/Modifiers.sol";
 
 /**
  * @author Kresko

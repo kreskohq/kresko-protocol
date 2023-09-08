@@ -6,7 +6,9 @@ import {Arrays} from "common/libs/Arrays.sol";
 import {WadRay} from "common/libs/WadRay.sol";
 import {Role} from "common/libs/Authorization.sol";
 
-import {Constants, ms, MinterModifiers} from "minter/libs/LibMinter.sol";
+import {ms} from "minter/libs/LibMinterBig.sol";
+import {Constants} from "minter/Constants.sol";
+import {MinterModifiers} from "minter/Modifiers.sol";
 import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
 
 import {scdp, PoolCollateral, PoolKrAsset} from "../libs/LibSCDP.sol";

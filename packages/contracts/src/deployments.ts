@@ -1969,7 +1969,7 @@ export const deployments = {
                             type: "address",
                         },
                     ],
-                    name: "getAccountCollateralValue",
+                    name: "accountCollateralValue",
                     outputs: [
                         {
                             internalType: "uint256",

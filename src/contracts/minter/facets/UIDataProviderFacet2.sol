@@ -10,7 +10,7 @@ pragma solidity >=0.8.19;
 /* solhint-disable func-visibility */
 
 import {LibUI} from "minter/libs/LibUI.sol";
-import {ms} from "minter/libs/LibMinter.sol";
+import {ms} from "minter/libs/LibMinterBig.sol";
 
 /**
  * @author Kresko

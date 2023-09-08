@@ -26,7 +26,7 @@ export const wrapContractWithSigner = <T>(contract: T, signer: Signer) =>
 
 export const getHealthFactor = async (user: SignerWithAddress) => {
     const accountKrAssetValue = fromBig(await hre.Diamond.getAccountKrAssetValue(user.address), 8);
-    const accountCollateral = fromBig(await hre.Diamond.getAccountCollateralValue(user.address), 8);
+    const accountCollateral = fromBig(await hre.Diamond.accountCollateralValue(user.address), 8);
 
     return accountCollateral / accountKrAssetValue;
 };
@@ -108,7 +108,7 @@ export const leverageKrAsset = async (
         user.address,
         hre.Diamond.minimumCollateralizationRatio(),
     );
-    const accountCollateral = await hre.Diamond.getAccountCollateralValue(user.address);
+    const accountCollateral = await hre.Diamond.accountCollateralValue(user.address);
 
     const withdrawAmount = fromBig(accountCollateral.sub(accountMinCollateralRequired), 8) / price - 0.1;
     const amountToWithdraw = toBig(withdrawAmount);

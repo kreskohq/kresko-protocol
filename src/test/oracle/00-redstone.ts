@@ -57,7 +57,7 @@ describe("Redstone", () => {
             expect(await redstoneCollateral.getPrice()).to.equal(toBig(10, 8), "collateral price should be $10");
             // As redstone price is 0, will use chainlink price = 10
             // so collateral value = $10 * 1 = $10
-            expect(await hre.Diamond.getAccountCollateralValue(hre.users.userOne.address)).to.equal(
+            expect(await hre.Diamond.accountCollateralValue(hre.users.userOne.address)).to.equal(
                 toBig(10, 8),
                 "collateral value should be $10",
             );
@@ -78,7 +78,7 @@ describe("Redstone", () => {
             }) as Kresko;
 
             // so collateral value = $20 * 1 = $20
-            expect(await redstoneDiamond.getAccountCollateralValue(hre.users.userOne.address)).to.equal(
+            expect(await redstoneDiamond.accountCollateralValue(hre.users.userOne.address)).to.equal(
                 toBig(redstoneCollateralPrice, 8),
                 "collateral value should be $20",
             );
@@ -99,7 +99,7 @@ describe("Redstone", () => {
             }) as Kresko;
 
             // so collateral value = $12 * 1 = $12
-            expect(await redstoneDiamond.getAccountCollateralValue(hre.users.userOne.address)).to.equal(
+            expect(await redstoneDiamond.accountCollateralValue(hre.users.userOne.address)).to.equal(
                 toBig(12, 8),
                 "collateral value should be $20",
             );
@@ -119,7 +119,7 @@ describe("Redstone", () => {
             }) as Kresko;
 
             // should revert if price deviates more than oracleDeviationPct
-            await expect(redstoneDiamond.getAccountCollateralValue(hre.users.userOne.address)).to.be.revertedWith(
+            await expect(redstoneDiamond.accountCollateralValue(hre.users.userOne.address)).to.be.revertedWith(
                 Error.ORACLE_PRICE_UNSTABLE,
             );
             redstoneCollateral.setPrice(10);
@@ -142,7 +142,7 @@ describe("Redstone", () => {
             await redstoneDiamond.updateSequencerUptimeFeed(mockSequencerUptimeFeed.address);
 
             // should return redstone price if sequencer is down
-            expect(await redstoneDiamond.getAccountCollateralValue(hre.users.userOne.address)).to.be.equal(
+            expect(await redstoneDiamond.accountCollateralValue(hre.users.userOne.address)).to.be.equal(
                 toBig(redstoneCollateralPrice, 8),
                 "collateral value should be $200",
             );

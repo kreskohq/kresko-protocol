@@ -2,7 +2,7 @@
 pragma solidity >=0.8.19;
 
 import {IStateFacet} from "../interfaces/IStateFacet.sol";
-import {MinterState, ms, MinterParams, KrAsset, CollateralAsset} from "../libs/LibMinter.sol";
+import {MinterState, ms, MinterParams, KrAsset, CollateralAsset} from "../libs/LibMinterBig.sol";
 
 /**
  * @author Kresko
@@ -82,7 +82,7 @@ contract StateFacet is IStateFacet {
     }
 
     /// @inheritdoc IStateFacet
-    function kreskoAsset(address _kreskoAsset) external view returns (KrAsset memory asset) {
+    function getKreskoAsset(address _kreskoAsset) external view returns (KrAsset memory asset) {
         return ms().kreskoAsset(_kreskoAsset);
     }
 
@@ -92,7 +92,7 @@ contract StateFacet is IStateFacet {
     }
 
     /// @inheritdoc IStateFacet
-    function collateralAsset(address _collateralAsset) external view returns (CollateralAsset memory asset) {
+    function getCollateralAsset(address _collateralAsset) external view returns (CollateralAsset memory asset) {
         return ms().collateralAssets[_collateralAsset];
     }
 
@@ -102,7 +102,7 @@ contract StateFacet is IStateFacet {
         uint256 _amount,
         bool _ignoreCollateralFactor
     ) external view returns (uint256 value, uint256 oraclePrice) {
-        return ms().getCollateralValueAndOraclePrice(_collateralAsset, _amount, _ignoreCollateralFactor);
+        return ms().getCollateralValueAndPrice(_collateralAsset, _amount, _ignoreCollateralFactor);
     }
 
     /// @inheritdoc IStateFacet
@@ -111,6 +111,6 @@ contract StateFacet is IStateFacet {
         uint256 _amount,
         bool _ignoreKFactor
     ) external view returns (uint256 value) {
-        return ms().getKrAssetValue(_kreskoAsset, _amount, _ignoreKFactor);
+        return ms().getKrAssetUSD(_kreskoAsset, _amount, _ignoreKFactor);
     }
 }

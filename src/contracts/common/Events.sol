@@ -2,7 +2,7 @@
 pragma solidity >=0.8.19;
 
 import {IDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
-import {Action} from "minter/libs/LibMinter.sol";
+import {Action} from "minter/libs/LibMinterBig.sol";
 
 /* solhint-disable var-name-mixedcase */
 struct Kek {

@@ -4,16 +4,20 @@ pragma solidity >=0.8.19;
 import {IAccountStateFacet} from "../interfaces/IAccountStateFacet.sol";
 import {Error} from "common/Errors.sol";
 import {WadRay} from "common/libs/WadRay.sol";
-import {ms, LibDecimals, Fee, KrAsset} from "../libs/LibMinter.sol";
+import {ms, Fee} from "../libs/LibMinterBig.sol";
+import {Shared} from "common/libs/Shared.sol";
+import {KrAsset} from "common/libs/Assets.sol";
+import {fromWad} from "common/Functions.sol";
 
 /**
  * @author Kresko
  * @title AccountStateFacet
  * @notice Views concerning account state
  */
+
 contract AccountStateFacet is IAccountStateFacet {
-    using LibDecimals for uint256;
-    using LibDecimals for uint8;
+    using Shared for uint256;
+    using Shared for uint8;
     using WadRay for uint256;
 
     /* -------------------------------------------------------------------------- */
@@ -21,8 +25,8 @@ contract AccountStateFacet is IAccountStateFacet {
     /* -------------------------------------------------------------------------- */
 
     /// @inheritdoc IAccountStateFacet
-    function getMintedKreskoAssetsIndex(address _account, address _kreskoAsset) external view returns (uint256) {
-        return ms().getMintedKreskoAssetsIndex(_account, _kreskoAsset);
+    function getMintIndex(address _account, address _kreskoAsset) external view returns (uint256) {
+        return ms().mintIndex(_account, _kreskoAsset);
     }
 
     /// @inheritdoc IAccountStateFacet
@@ -55,16 +59,13 @@ contract AccountStateFacet is IAccountStateFacet {
     }
 
     /// @inheritdoc IAccountStateFacet
-    function getDepositedCollateralAssetIndex(
-        address _account,
-        address _collateralAsset
-    ) external view returns (uint256 i) {
-        return ms().getDepositedCollateralAssetIndex(_account, _collateralAsset);
+    function getDepositIndex(address _account, address _collateralAsset) external view returns (uint256 i) {
+        return ms().depositIndex(_account, _collateralAsset);
     }
 
     /// @inheritdoc IAccountStateFacet
     function getAccountCollateralValue(address _account) public view returns (uint256) {
-        return ms().getAccountCollateralValue(_account);
+        return ms().accountCollateralValue(_account);
     }
 
     /// @inheritdoc IAccountStateFacet
@@ -74,7 +75,7 @@ contract AccountStateFacet is IAccountStateFacet {
 
     /// @inheritdoc IAccountStateFacet
     function getAccountCollateralRatio(address _account) public view returns (uint256 ratio) {
-        uint256 collateralValue = ms().getAccountCollateralValue(_account);
+        uint256 collateralValue = ms().accountCollateralValue(_account);
         if (collateralValue == 0) {
             return 0;
         }
@@ -91,7 +92,7 @@ contract AccountStateFacet is IAccountStateFacet {
         address _asset
     ) external view returns (uint256 adjustedValue, uint256 realValue) {
         uint256 depositAmount = ms().getCollateralDeposits(_account, _asset);
-        return ms().getCollateralValueAndOraclePrice(_asset, depositAmount, false);
+        return ms().getCollateralValueAndPrice(_asset, depositAmount, false);
     }
 
     /// @inheritdoc IAccountStateFacet
@@ -136,7 +137,7 @@ contract AccountStateFacet is IAccountStateFacet {
             uint256 depositAmount = ms().getCollateralDeposits(_account, collateralAssetAddress);
 
             // Don't take the collateral asset's collateral factor into consideration.
-            (uint256 depositValue, uint256 oraclePrice) = ms().getCollateralValueAndOraclePrice(
+            (uint256 depositValue, uint256 oraclePrice) = ms().getCollateralValueAndPrice(
                 collateralAssetAddress,
                 depositAmount,
                 true
@@ -146,7 +147,8 @@ contract AccountStateFacet is IAccountStateFacet {
             uint256 transferAmount;
             // If feeValue < depositValue, the entire fee can be charged for this collateral asset.
             if (feeValue < depositValue) {
-                transferAmount = ms().collateralAssets[collateralAssetAddress].decimals.fromWad(
+                transferAmount = fromWad(
+                    ms().collateralAssets[collateralAssetAddress].decimals,
                     feeValue.wadDiv(oraclePrice)
                 );
                 feeValuePaid = feeValue;

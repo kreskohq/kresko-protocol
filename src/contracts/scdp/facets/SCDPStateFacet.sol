@@ -3,16 +3,19 @@ pragma solidity >=0.8.19;
 
 import {ISCDPStateFacet} from "scdp/interfaces/ISCDPStateFacet.sol";
 import {sdi} from "scdp/libs/LibSDI.sol";
-import {LibAmounts, scdp, PoolCollateral, PoolKrAsset} from "scdp/libs/LibSCDP.sol";
-import {ms} from "minter/libs/LibMinter.sol";
+import {scdp, PoolCollateral, PoolKrAsset} from "scdp/libs/LibSCDP.sol";
+import {ms} from "minter/libs/LibMinterBig.sol";
 import {WadRay} from "common/libs/WadRay.sol";
 import {IERC20Permit} from "common/IERC20Permit.sol";
+import {Shared} from "common/libs/Shared.sol";
+import {Rebase} from "common/libs/Rebase.sol";
 
 /**
  * @title SCDPStateFacet
  * @author Kresko
  * @notice  This facet is used to view the state of the scdp.
  */
+
 contract SCDPStateFacet is ISCDPStateFacet {
     using WadRay for uint256;
 
@@ -48,7 +51,7 @@ contract SCDPStateFacet is ISCDPStateFacet {
         uint256 principalDeposits = scdp().getAccountPrincipalDeposits(_account, _collateralAsset);
         uint256 scaledDeposits = scdp().getAccountDepositsWithFees(_account, _collateralAsset);
 
-        (uint256 assetValue, ) = ms().getCollateralValueAndOraclePrice(
+        (uint256 assetValue, ) = ms().getCollateralValueAndPrice(
             _collateralAsset,
             principalDeposits > scaledDeposits ? scaledDeposits : principalDeposits,
             _ignoreFactors
@@ -62,7 +65,7 @@ contract SCDPStateFacet is ISCDPStateFacet {
         address _account,
         address _collateralAsset
     ) external view returns (uint256) {
-        (uint256 assetValue, ) = ms().getCollateralValueAndOraclePrice(
+        (uint256 assetValue, ) = ms().getCollateralValueAndPrice(
             _collateralAsset,
             scdp().getAccountDepositsWithFees(_account, _collateralAsset),
             true
@@ -80,7 +83,7 @@ contract SCDPStateFacet is ISCDPStateFacet {
             results[i] = AssetData({
                 asset: asset,
                 depositAmount: scdp().getPoolDeposits(asset),
-                debtAmount: LibAmounts.getCollateralAmountRead(asset, scdp().debt[asset]),
+                debtAmount: Rebase.getCollateralAmountRead(asset, scdp().debt[asset]),
                 swapDeposits: scdp().getPoolSwapDeposits(asset),
                 krAsset: scdp().poolKrAsset[asset], // just get default values
                 collateralAsset: scdp().poolCollateral[asset],
@@ -101,7 +104,7 @@ contract SCDPStateFacet is ISCDPStateFacet {
             results[i] = AssetData({
                 asset: asset,
                 depositAmount: scdp().getPoolDeposits(asset),
-                debtAmount: ms().getKreskoAssetAmount(asset, scdp().debt[asset]),
+                debtAmount: Rebase.getKreskoAssetAmount(asset, scdp().debt[asset]),
                 swapDeposits: scdp().getPoolSwapDeposits(asset),
                 krAsset: scdp().poolKrAsset[asset], // just get default values
                 collateralAsset: scdp().poolCollateral[asset],
@@ -116,12 +119,12 @@ contract SCDPStateFacet is ISCDPStateFacet {
 
     /// @inheritdoc ISCDPStateFacet
     function getPoolAccountTotalDepositsValue(address _account, bool _ignoreFactors) external view returns (uint256) {
-        return scdp().getAccountTotalDepositValuePrincipal(_account, _ignoreFactors);
+        return Shared.getAccountTotalDepositValuePrincipal(_account, _ignoreFactors);
     }
 
     /// @inheritdoc ISCDPStateFacet
     function getPoolAccountTotalDepositsValueWithFees(address _account) external view returns (uint256) {
-        return scdp().getAccountTotalDepositValueWithFees(_account);
+        return Shared.getAccountTotalDepositValueWithFees(_account);
     }
 
     /// @inheritdoc ISCDPStateFacet
@@ -131,7 +134,7 @@ contract SCDPStateFacet is ISCDPStateFacet {
 
     /// @inheritdoc ISCDPStateFacet
     function getPoolDepositsValue(address _collateralAsset, bool _ignoreFactors) external view returns (uint256) {
-        (uint256 assetValue, ) = ms().getCollateralValueAndOraclePrice(
+        (uint256 assetValue, ) = ms().getCollateralValueAndPrice(
             _collateralAsset,
             scdp().getPoolDeposits(_collateralAsset),
             _ignoreFactors
@@ -147,25 +150,25 @@ contract SCDPStateFacet is ISCDPStateFacet {
 
     /// @inheritdoc ISCDPStateFacet
     function getPoolKrAssetDebt(address _kreskoAsset) external view returns (uint256) {
-        return ms().getKreskoAssetAmount(_kreskoAsset, scdp().debt[_kreskoAsset]);
+        return Rebase.getKreskoAssetAmount(_kreskoAsset, scdp().debt[_kreskoAsset]);
     }
 
     /// @inheritdoc ISCDPStateFacet
     function getPoolDebtValue(bool _ignoreFactors) external view returns (uint256) {
-        return scdp().getTotalPoolKrAssetValueAtRatio(1 ether, _ignoreFactors);
+        return Shared.getTotalPoolKrAssetValueAtRatio(1 ether, _ignoreFactors);
     }
 
     /// @inheritdoc ISCDPStateFacet
     function getPoolCollateralValue(bool _ignoreFactors) external view returns (uint256) {
-        return scdp().getTotalPoolDepositValue(_ignoreFactors);
+        return Shared.getTotalPoolDepositValue(_ignoreFactors);
     }
 
     /// @inheritdoc ISCDPStateFacet
     function getPoolKrAssetDebtValue(address _kreskoAsset, bool _ignoreFactors) external view returns (uint256) {
         return
-            ms().getKrAssetValue(
+            Shared.getKrAssetValue(
                 _kreskoAsset,
-                ms().getKreskoAssetAmount(_kreskoAsset, scdp().debt[_kreskoAsset]),
+                Rebase.getKreskoAssetAmount(_kreskoAsset, scdp().debt[_kreskoAsset]),
                 _ignoreFactors
             );
     }
@@ -191,7 +194,7 @@ contract SCDPStateFacet is ISCDPStateFacet {
     }
 
     function getPoolCR() external view returns (uint256) {
-        uint256 collateralValue = scdp().getTotalPoolDepositValue(false);
+        uint256 collateralValue = Shared.getTotalPoolDepositValue(false);
         uint256 debtValue = sdi().effectiveDebtUSD();
         if (debtValue == 0) return 0;
         return collateralValue.wadDiv(debtValue);
@@ -201,8 +204,8 @@ contract SCDPStateFacet is ISCDPStateFacet {
     function getPoolStats(
         bool _ignoreFactors
     ) external view returns (uint256 collateralValue, uint256 debtValue, uint256 cr) {
-        collateralValue = scdp().getTotalPoolDepositValue(_ignoreFactors);
-        debtValue = scdp().getTotalPoolKrAssetValueAtRatio(1 ether, _ignoreFactors);
+        collateralValue = Shared.getTotalPoolDepositValue(_ignoreFactors);
+        debtValue = Shared.getTotalPoolKrAssetValueAtRatio(1 ether, _ignoreFactors);
         if (debtValue == 0) return (collateralValue, debtValue, 0);
         cr = collateralValue.wadDiv(debtValue);
     }

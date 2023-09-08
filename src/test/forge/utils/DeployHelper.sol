@@ -32,7 +32,7 @@ import {IKresko} from "common/IKresko.sol";
 import {MockOracle} from "test/MockOracle.sol";
 import {MockERC20} from "test/MockERC20.sol";
 import {AggregatorV3Interface} from "common/AggregatorV3Interface.sol";
-import {MinterInitArgs, KrAsset, CollateralAsset} from "minter/libs/LibMinter.sol";
+import {MinterInitArgs, KrAsset, CollateralAsset} from "minter/libs/LibMinterBig.sol";
 
 import {GnosisSafeL2} from "vendor/gnosis/GnosisSafeL2.sol";
 import {GnosisSafeProxyFactory, GnosisSafeProxy} from "vendor/gnosis/GnosisSafeProxyFactory.sol";

@@ -2,8 +2,9 @@
 pragma solidity >=0.8.19;
 
 import {sdi, Asset} from "scdp/libs/LibSDI.sol";
-// import {ms} from "minter/libs/LibMinter.sol";
+// import {ms} from "minter/libs/LibMinterBig.sol";
 // import {scdp} from "scdp/libs/LibSCDP.sol";
+import {Shared} from "common/libs/Shared.sol";
 import {ISDIFacet} from "scdp/interfaces/ISDIFacet.sol";
 import {IERC20Permit} from "common/IERC20Permit.sol";
 import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
@@ -44,7 +45,7 @@ contract SDIFacet is ISDIFacet, DiamondModifiers {
         uint256 burnAmount,
         bool ignoreFactors
     ) external view returns (uint256 shares) {
-        return sdi().previewBurn(asset, burnAmount, ignoreFactors);
+        return Shared.previewSCDPBurn(asset, burnAmount, ignoreFactors);
     }
 
     function previewSCDPMint(
@@ -52,12 +53,12 @@ contract SDIFacet is ISDIFacet, DiamondModifiers {
         uint256 mintAmount,
         bool ignoreFactors
     ) external view returns (uint256 shares) {
-        return sdi().previewMint(asset, mintAmount, ignoreFactors);
+        return Shared.previewSCDPMint(asset, mintAmount, ignoreFactors);
     }
 
     /// @notice Get the price of SDI in USD, oracle precision.
     function getSDIPrice() external view returns (uint256) {
-        return sdi().SDIPrice();
+        return Shared.SDIPrice();
     }
 
     function getSDICoverAsset(address asset) external view returns (Asset memory) {

@@ -22,7 +22,7 @@
   "solidity.linter": "solhint",
   "solidity.validationDelay": 350,
   "solidity.compileUsingRemoteVersion": "v0.8.19+commit.7dd6d404",
-  "solidity.monoRepoSupport": true,
+  "solidity.monoRepoSupport": false,
   "solidity.nodemodulespackage": "solc",
   "solidity.packageDefaultDependenciesContractsDirectory": "src",
   "solidity.packageDefaultDependenciesDirectory": ["node_modules", "lib"],

@@ -16,7 +16,7 @@ describe("Asset Amounts & Values", function () {
                 CollateralAsset.address,
                 depositAmount,
             );
-            const depositValue = await hre.Diamond.getAccountCollateralValue(user.address);
+            const depositValue = await hre.Diamond.accountCollateralValue(user.address);
             expect(depositValue).to.equal(expectedDepositValue);
         });
         it("should return the correct deposit value with less than 18 decimals", async () => {
@@ -27,7 +27,7 @@ describe("Asset Amounts & Values", function () {
                 CollateralAsset8Dec.address,
                 depositAmount,
             );
-            const depositValue = await hre.Diamond.getAccountCollateralValue(user.address);
+            const depositValue = await hre.Diamond.accountCollateralValue(user.address);
             expect(depositValue).to.equal(expectedDepositValue);
         });
         it("should return the correct deposit value with over 18 decimals", async () => {
@@ -38,7 +38,7 @@ describe("Asset Amounts & Values", function () {
                 CollateralAsset21Dec.address,
                 depositAmount,
             );
-            const depositValue = await hre.Diamond.getAccountCollateralValue(user.address);
+            const depositValue = await hre.Diamond.accountCollateralValue(user.address);
             expect(depositValue).to.equal(expectedDepositValue);
         });
 
@@ -59,7 +59,7 @@ describe("Asset Amounts & Values", function () {
                 toBig(10, 21),
             );
             const expectedDepositValue = toBig(150, oracleDecimals); // cfactor = 0.5, collateralPrice = 10, depositAmount = 30
-            const depositValue = await hre.Diamond.getAccountCollateralValue(user.address);
+            const depositValue = await hre.Diamond.accountCollateralValue(user.address);
             expect(depositValue).to.equal(expectedDepositValue);
         });
     });
@@ -154,7 +154,7 @@ describe("Asset Amounts & Values", function () {
             );
             const expectedDepositValue = toBig(49.5, oracleDecimals); // cfactor = 0.5, collateralPrice = 10, depositAmount = 10, openFee = 0.1
 
-            const depositValue = await hre.Diamond.getAccountCollateralValue(user.address);
+            const depositValue = await hre.Diamond.accountCollateralValue(user.address);
             expect(depositValue).to.equal(expectedDepositValue);
 
             const mintValue = await hre.Diamond.getAccountKrAssetValue(user.address);
@@ -185,7 +185,7 @@ describe("Asset Amounts & Values", function () {
             );
             const expectedDepositValue = toBig(49.5, oracleDecimals); // cfactor = 0.5, collateralPrice = 10, depositAmount = 10, openFee = 0.1
 
-            const depositValue = await hre.Diamond.getAccountCollateralValue(user.address);
+            const depositValue = await hre.Diamond.accountCollateralValue(user.address);
             expect(depositValue).to.equal(expectedDepositValue);
 
             const mintValue = await hre.Diamond.getAccountKrAssetValue(user.address);
@@ -216,7 +216,7 @@ describe("Asset Amounts & Values", function () {
             );
             const expectedDepositValue = toBig(49.5, oracleDecimals); // cfactor = 0.5, collateralPrice = 10, depositAmount = 10, openFee = 0.1
 
-            const depositValue = await hre.Diamond.getAccountCollateralValue(user.address);
+            const depositValue = await hre.Diamond.accountCollateralValue(user.address);
             expect(depositValue).to.equal(expectedDepositValue);
 
             const mintValue = await hre.Diamond.getAccountKrAssetValue(user.address);

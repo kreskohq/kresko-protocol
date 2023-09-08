@@ -15,6 +15,7 @@ import {MockSequencerUptimeFeed} from "test/MockSequencerUptimeFeed.sol";
 
 contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
     using LibTest for *;
+
     address internal admin = address(0xABABAB);
 
     MockERC20 internal usdc;
@@ -85,7 +86,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
 
         kresko.depositCollateral(user0, address(usdc), depositAmount);
         kresko.collateralDeposits(user0, address(usdc)).equals(depositAmount);
-        staticCall(kresko.getAccountCollateralValue.selector, user0, usdcPrice).equals(100e8);
+        staticCall(kresko.accountCollateralValue.selector, user0, usdcPrice).equals(100e8);
     }
 
     function testMint() public prankAddr(user0) {
@@ -99,7 +100,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         kresko.collateralDeposits(user0, address(usdc)).equals(depositAmount);
 
         call(kresko.mintKreskoAsset.selector, user0, address(krJPY), mintAmount, initialPrices);
-        staticCall(kresko.getAccountCollateralValue.selector, user0, usdcPrice).equals(1000e8);
+        staticCall(kresko.accountCollateralValue.selector, user0, usdcPrice).equals(1000e8);
         staticCall(kresko.getAccountKrAssetValue.selector, user0, initialPrices).equals(120e8);
     }
 
@@ -115,7 +116,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
 
         call(kresko.mintKreskoAsset.selector, user0, address(krJPY), mintAmount, initialPrices);
         call(kresko.burnKreskoAsset.selector, user0, address(krJPY), mintAmount, 0, initialPrices);
-        staticCall(kresko.getAccountCollateralValue.selector, user0, usdcPrice).equals(998e8);
+        staticCall(kresko.accountCollateralValue.selector, user0, usdcPrice).equals(998e8);
         staticCall(kresko.getAccountKrAssetValue.selector, user0, initialPrices).equals(0);
     }
 
@@ -133,7 +134,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         call(kresko.burnKreskoAsset.selector, user0, address(krJPY), mintAmount, 0, initialPrices);
         call(kresko.withdrawCollateral.selector, user0, address(usdc), 998e18, 0, initialPrices);
 
-        staticCall(kresko.getAccountCollateralValue.selector, user0, usdcPrice).equals(0e8);
+        staticCall(kresko.accountCollateralValue.selector, user0, usdcPrice).equals(0e8);
         staticCall(kresko.getAccountKrAssetValue.selector, user0, initialPrices).equals(0);
     }
 

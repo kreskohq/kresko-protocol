@@ -1,5 +1,4 @@
-[profile]
-[default]
+[profile.default]
 src = 'src/contracts/'
 out = 'out/foundry/'
 libs = ['node_modules/', 'lib/']

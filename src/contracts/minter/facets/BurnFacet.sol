@@ -8,7 +8,8 @@ import {MinterEvent} from "common/Events.sol";
 import {Error} from "common/Errors.sol";
 
 import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
-import {ms, Action, MinterState, MinterModifiers} from "../libs/LibMinter.sol";
+import {ms, Action, MinterState} from "../libs/LibMinterBig.sol";
+import {MinterModifiers} from "minter/Modifiers.sol";
 
 /**
  * @author Kresko

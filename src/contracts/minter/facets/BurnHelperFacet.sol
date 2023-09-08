@@ -6,15 +6,17 @@ import {Role} from "common/libs/Authorization.sol";
 import {Error} from "common/Errors.sol";
 import {MinterEvent} from "common/Events.sol";
 
-import {Mega, IBurnHelperFacet} from "../interfaces/IBurnHelperFacet.sol";
+import {IBurnHelperFacet} from "../interfaces/IBurnHelperFacet.sol";
 import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
-import {ms, Action, MinterState, MinterModifiers} from "../libs/LibMinter.sol";
+import {ms, Action, MinterState} from "../libs/LibMinterBig.sol";
+import {MinterModifiers} from "minter/Modifiers.sol";
 
 /**
  * @author Kresko
  * @title BurnHelperFacet
  * @notice Helper functions for reducing positions
  */
+
 contract BurnHelperFacet is IBurnHelperFacet, DiamondModifiers, MinterModifiers {
     using Arrays for address[];
 
