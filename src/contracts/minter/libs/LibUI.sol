@@ -6,9 +6,10 @@ import {IERC20Permit} from "common/IERC20Permit.sol";
 import {AggregatorV3Interface} from "common/AggregatorV3Interface.sol";
 import {IKrStaking} from "contracts/staking/interfaces/IKrStaking.sol";
 import {WadRay} from "common/libs/WadRay.sol";
-import {ms} from "./LibMinterBig.sol";
+import {ms} from "./LibMinter.sol";
 import {Shared} from "common/libs/Shared.sol";
 import {KrAsset, CollateralAsset} from "common/libs/Assets.sol";
+import {krAssetAmountToValue, collateralAmountToValue} from "minter/libs/Conversions.sol";
 
 /* solhint-disable contract-name-camelcase */
 /* solhint-disable var-name-mixedcase */
@@ -205,10 +206,7 @@ library LibUI {
     }
 
     function borrowingPowerUSD(address _account) internal view returns (uint256) {
-        uint256 minCollateral = ms().getAccountMinimumCollateralValueAtRatio(
-            _account,
-            ms().minimumCollateralizationRatio
-        );
+        uint256 minCollateral = ms().accountMinCollateralAtRatio(_account, ms().minCollateralRatio);
         uint256 collateral = ms().accountCollateralValue(_account);
 
         if (collateral < minCollateral) {
@@ -252,7 +250,7 @@ library LibUI {
             address assetAddress = assetAddresses[i];
             KrAsset memory krAsset = ms().kreskoAssets[assetAddress];
             result[i] = krAssetInfo({
-                value: ms().getKrAssetUSD(assetAddress, 1 ether, false),
+                value: krAssetAmountToValue(assetAddress, 1 ether, false),
                 oracleAddress: address(krAsset.oracle),
                 assetAddress: assetAddress,
                 closeFee: krAsset.closeFee,
@@ -276,7 +274,7 @@ library LibUI {
             CollateralAsset memory collateralAsset = ms().collateralAssets[assetAddress];
             uint8 decimals = IERC20Permit(assetAddress).decimals();
 
-            (uint256 value, uint256 price) = ms().getCollateralValueAndPrice(assetAddress, 1 * 10 ** decimals, false);
+            (uint256 value, uint256 price) = collateralAmountToValue(assetAddress, 1 * 10 ** decimals, false);
 
             result[i] = CollateralAssetInfo({
                 value: value,
@@ -297,16 +295,16 @@ library LibUI {
     function collateralAssetInfoFor(
         address _account
     ) internal view returns (CollateralAssetInfoUser[] memory result, uint256 totalCollateralUSD) {
-        address[] memory collateralAssetAddresses = ms().getDepositedCollateralAssets(_account);
+        address[] memory collateralAssetAddresses = ms().accountCollateralAssets(_account);
         if (collateralAssetAddresses.length > 0) {
             result = new CollateralAssetInfoUser[](collateralAssetAddresses.length);
             for (uint256 i; i < collateralAssetAddresses.length; i++) {
                 address assetAddress = collateralAssetAddresses[i];
                 uint8 decimals = IERC20Permit(assetAddress).decimals();
 
-                uint256 amount = ms().getCollateralDeposits(_account, assetAddress);
+                uint256 amount = ms().accountCollateralAmount(_account, assetAddress);
 
-                (uint256 amountUSD, uint256 price) = ms().getCollateralValueAndPrice(assetAddress, amount, true);
+                (uint256 amountUSD, uint256 price) = collateralAmountToValue(assetAddress, amount, true);
 
                 totalCollateralUSD + amountUSD;
                 result[i] = CollateralAssetInfoUser({
@@ -336,9 +334,9 @@ library LibUI {
             for (uint256 i; i < krAssetAddresses.length; i++) {
                 address assetAddress = krAssetAddresses[i];
                 KrAsset memory krAsset = ms().kreskoAssets[assetAddress];
-                uint256 amount = ms().getKreskoAssetDebtPrincipal(_account, assetAddress);
+                uint256 amount = ms().accountDebtAmount(_account, assetAddress);
 
-                uint256 amountUSD = ms().getKrAssetUSD(assetAddress, amount, true);
+                uint256 amountUSD = krAssetAmountToValue(assetAddress, amount, true);
                 totalDebtUSD + amountUSD;
                 result[i] = krAssetInfoUser({
                     assetAddress: assetAddress,
@@ -359,7 +357,7 @@ library LibUI {
     }
 
     function healthFactorFor(address _account) internal view returns (uint256) {
-        uint256 userDebt = ms().getAccountKrAssetValue(_account);
+        uint256 userDebt = ms().accountDebtValue(_account);
         uint256 userCollateral = ms().accountCollateralValue(_account);
 
         if (userDebt > 0) {
@@ -394,12 +392,9 @@ library LibUI {
                 redstoneIds: getRedstoneIds(krInfos, collateralInfos),
                 borrowingPowerUSD: borrowingPowerUSD(_account),
                 healthFactor: healthFactorFor(_account),
-                debtUSD: ms().getAccountKrAssetValue(_account),
+                debtUSD: ms().accountDebtValue(_account),
                 collateralUSD: ms().accountCollateralValue(_account),
-                minCollateralUSD: ms().getAccountMinimumCollateralValueAtRatio(
-                    _account,
-                    ms().minimumCollateralizationRatio
-                )
+                minCollateralUSD: ms().accountMinCollateralAtRatio(_account, ms().minCollateralRatio)
             });
         }
     }

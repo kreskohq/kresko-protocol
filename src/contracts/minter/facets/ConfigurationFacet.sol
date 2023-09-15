@@ -4,7 +4,6 @@ pragma solidity >=0.8.19;
 import {IERC165} from "common/IERC165.sol";
 import {IERC20Permit} from "common/IERC20Permit.sol";
 import {Authorization, Role} from "common/libs/Authorization.sol";
-import {Meta} from "common/libs/Meta.sol";
 
 import {Error} from "common/Errors.sol";
 import {MinterEvent, GeneralEvent} from "common/Events.sol";
@@ -15,9 +14,10 @@ import {IKISS} from "kiss/interfaces/IKISS.sol";
 
 import {IConfigurationFacet} from "../interfaces/IConfigurationFacet.sol";
 
-import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
+import {DiamondModifiers, ds} from "diamond/libs/LibDiamond.sol";
 
-import {ms, MinterInitArgs, CollateralAsset, KrAsset} from "../libs/LibMinterBig.sol";
+import {KrAsset, CollateralAsset} from "common/libs/Assets.sol";
+import {ms, MinterInitArgs} from "minter/libs/LibMinter.sol";
 import {Constants} from "minter/Constants.sol";
 import {MinterModifiers} from "minter/Modifiers.sol";
 
@@ -33,7 +33,8 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
     /* -------------------------------------------------------------------------- */
 
     function initialize(MinterInitArgs calldata args) external onlyOwner {
-        require(ms().initializations == 0, Error.ALREADY_INITIALIZED);
+        require(ds().storageVersion == 1, Error.ALREADY_INITIALIZED);
+
         // Temporarily set ADMIN role for deployer
         Authorization._grantRole(Role.DEFAULT_ADMIN, msg.sender);
         Authorization._grantRole(Role.ADMIN, msg.sender);
@@ -52,8 +53,8 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         Authorization.setupSecurityCouncil(args.council);
 
         updateFeeRecipient(args.treasury);
-        updateMinimumCollateralizationRatio(args.minimumCollateralizationRatio);
-        updateMinimumDebtValue(args.minimumDebtValue);
+        updateMinCollateralRatio(args.minCollateralRatio);
+        updateMinDebtValue(args.minDebtValue);
         updateLiquidationThreshold(args.liquidationThreshold);
         updateExtOracleDecimals(args.extOracleDecimals);
         updateMaxLiquidationMultiplier(Constants.MIN_MAX_LIQUIDATION_MULTIPLIER);
@@ -62,83 +63,79 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         updateSequencerGracePeriodTime(args.sequencerGracePeriodTime);
         updateOracleTimeout(args.oracleTimeout);
 
-        ms().initializations = 1;
-        ms().domainSeparator = Meta.domainSeparator("Kresko Minter", "V1");
         emit GeneralEvent.Initialized(args.admin, 1);
     }
 
     /// @inheritdoc IConfigurationFacet
-    function updateFeeRecipient(address _feeRecipient) public override onlyRole(Role.ADMIN) {
-        require(_feeRecipient != address(0), Error.ADDRESS_INVALID_FEERECIPIENT);
-        ms().feeRecipient = _feeRecipient;
-        emit MinterEvent.FeeRecipientUpdated(_feeRecipient);
+    function updateFeeRecipient(address _newFeeRecipient) public override onlyRole(Role.ADMIN) {
+        require(_newFeeRecipient != address(0), Error.ADDRESS_INVALID_FEERECIPIENT);
+
+        ms().feeRecipient = _newFeeRecipient;
+        emit MinterEvent.FeeRecipientUpdated(_newFeeRecipient);
     }
 
     /// @inheritdoc IConfigurationFacet
-    function updateLiquidationIncentiveMultiplier(
+    function updateLiquidationIncentiveOf(
         address _collateralAsset,
-        uint256 _liquidationIncentiveMultiplier
+        uint256 _newLiquidationIncentive
     ) public override collateralAssetExists(_collateralAsset) onlyRole(Role.ADMIN) {
         require(
-            _liquidationIncentiveMultiplier >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
+            _newLiquidationIncentive >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
             Error.PARAM_LIQUIDATION_INCENTIVE_LOW
         );
         require(
-            _liquidationIncentiveMultiplier <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER,
+            _newLiquidationIncentive <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER,
             Error.PARAM_LIQUIDATION_INCENTIVE_HIGH
         );
-        ms().collateralAssets[_collateralAsset].liquidationIncentive = _liquidationIncentiveMultiplier;
-        emit MinterEvent.LiquidationIncentiveMultiplierUpdated(_collateralAsset, _liquidationIncentiveMultiplier);
+
+        ms().collateralAssets[_collateralAsset].liquidationIncentive = _newLiquidationIncentive;
+        emit MinterEvent.LiquidationIncentiveMultiplierUpdated(_collateralAsset, _newLiquidationIncentive);
     }
 
     /// @inheritdoc IConfigurationFacet
-    function updateCFactor(
+    function updateCollateralFactor(
         address _collateralAsset,
-        uint256 _cFactor
+        uint256 _newFactor
     ) public override collateralAssetExists(_collateralAsset) onlyRole(Role.ADMIN) {
-        require(_cFactor <= Constants.ONE_HUNDRED_PERCENT, Error.COLLATERAL_INVALID_FACTOR);
-        ms().collateralAssets[_collateralAsset].factor = _cFactor;
-        emit MinterEvent.CFactorUpdated(_collateralAsset, _cFactor);
+        require(_newFactor <= Constants.ONE_HUNDRED_PERCENT, Error.COLLATERAL_INVALID_FACTOR);
+        ms().collateralAssets[_collateralAsset].factor = _newFactor;
+        emit MinterEvent.CFactorUpdated(_collateralAsset, _newFactor);
     }
 
     /// @inheritdoc IConfigurationFacet
     function updateKFactor(
         address _kreskoAsset,
-        uint256 _kFactor
+        uint256 _newFactor
     ) public override kreskoAssetExists(_kreskoAsset) onlyRole(Role.ADMIN) {
-        require(_kFactor >= Constants.ONE_HUNDRED_PERCENT, Error.KRASSET_INVALID_FACTOR);
-        ms().kreskoAssets[_kreskoAsset].kFactor = _kFactor;
-        emit MinterEvent.CFactorUpdated(_kreskoAsset, _kFactor);
+        require(_newFactor >= Constants.ONE_HUNDRED_PERCENT, Error.KRASSET_INVALID_FACTOR);
+        ms().kreskoAssets[_kreskoAsset].kFactor = _newFactor;
+        emit MinterEvent.CFactorUpdated(_kreskoAsset, _newFactor);
     }
 
     /// @inheritdoc IConfigurationFacet
-    function updateMinimumCollateralizationRatio(
-        uint256 _minimumCollateralizationRatio
-    ) public override onlyRole(Role.ADMIN) {
-        require(
-            _minimumCollateralizationRatio >= Constants.MIN_COLLATERALIZATION_RATIO,
-            Error.PARAM_MIN_COLLATERAL_RATIO_LOW
-        );
-        require(_minimumCollateralizationRatio >= ms().liquidationThreshold, Error.PARAM_COLLATERAL_RATIO_LOW_THAN_LT);
-        ms().minimumCollateralizationRatio = _minimumCollateralizationRatio;
-        emit MinterEvent.MinimumCollateralizationRatioUpdated(_minimumCollateralizationRatio);
+    function updateMinCollateralRatio(uint256 _newMinCollateralRatio) public override onlyRole(Role.ADMIN) {
+        require(_newMinCollateralRatio >= Constants.MIN_COLLATERALIZATION_RATIO, Error.PARAM_MIN_COLLATERAL_RATIO_LOW);
+        require(_newMinCollateralRatio >= ms().liquidationThreshold, Error.PARAM_COLLATERAL_RATIO_LOW_THAN_LT);
+        ms().minCollateralRatio = _newMinCollateralRatio;
+        emit MinterEvent.MinimumCollateralizationRatioUpdated(_newMinCollateralRatio);
     }
 
     /// @inheritdoc IConfigurationFacet
-    function updateMinimumDebtValue(uint256 _minimumDebtValue) public override onlyRole(Role.ADMIN) {
-        require(_minimumDebtValue <= Constants.MAX_MIN_DEBT_VALUE, Error.PARAM_MIN_DEBT_AMOUNT_HIGH);
-        ms().minimumDebtValue = _minimumDebtValue;
-        emit MinterEvent.MinimumDebtValueUpdated(_minimumDebtValue);
+    function updateMinDebtValue(uint256 _newMinDebtValue) public override onlyRole(Role.ADMIN) {
+        require(_newMinDebtValue <= Constants.MAX_MIN_DEBT_VALUE, Error.PARAM_MIN_DEBT_AMOUNT_HIGH);
+        ms().minDebtValue = _newMinDebtValue;
+
+        emit MinterEvent.MinimumDebtValueUpdated(_newMinDebtValue);
     }
 
     /// @inheritdoc IConfigurationFacet
-    function updateLiquidationThreshold(uint256 _liquidationThreshold) public override onlyRole(Role.ADMIN) {
+    function updateLiquidationThreshold(uint256 _newThreshold) public override onlyRole(Role.ADMIN) {
         // Liquidation threshold cannot be greater than minimum collateralization ratio
 
-        require(_liquidationThreshold <= ms().minimumCollateralizationRatio, Error.INVALID_LT);
+        require(_newThreshold <= ms().minCollateralRatio, Error.INVALID_LT);
 
-        ms().liquidationThreshold = _liquidationThreshold;
-        emit MinterEvent.LiquidationThresholdUpdated(_liquidationThreshold);
+        ms().liquidationThreshold = _newThreshold;
+        emit MinterEvent.LiquidationThresholdUpdated(_newThreshold);
     }
 
     /// @inheritdoc IConfigurationFacet
@@ -148,7 +145,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             Error.PARAM_LIQUIDATION_OVERFLOW_LOW
         );
         ms().maxLiquidationMultiplier = _maxLiquidationMultiplier;
-        emit MinterEvent.maxLiquidationMultiplierUpdated(_maxLiquidationMultiplier);
+        emit MinterEvent.MaxLiquidationMultiplierUpdated(_maxLiquidationMultiplier);
     }
 
     /// @inheritdoc IConfigurationFacet
@@ -168,12 +165,12 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
     }
 
     /// @inheritdoc IConfigurationFacet
-    function updateSequencerGracePeriodTime(uint256 _sequencerGracePeriodTime) public override onlyRole(Role.ADMIN) {
+    function updateSequencerGracePeriodTime(uint256 _sequencerGracePeriodTime) public onlyRole(Role.ADMIN) {
         ms().sequencerGracePeriodTime = _sequencerGracePeriodTime;
     }
 
     /// @inheritdoc IConfigurationFacet
-    function updateOracleTimeout(uint256 _oracleTimeout) public override onlyRole(Role.ADMIN) {
+    function updateOracleTimeout(uint256 _oracleTimeout) public onlyRole(Role.ADMIN) {
         ms().oracleTimeout = _oracleTimeout;
     }
 

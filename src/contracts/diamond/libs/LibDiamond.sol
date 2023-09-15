@@ -16,6 +16,12 @@ import {Meta} from "common/libs/Meta.sol";
 // Storage position
 bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("kresko.diamond.storage");
 
+/**
+ * @notice Ds, a pure free function.
+ * @return state A DiamondState value.
+ * @custom:signature ds()
+ * @custom:selector 0x30dce62b
+ */
 function ds() pure returns (DiamondState storage state) {
     bytes32 position = DIAMOND_STORAGE_POSITION;
     assembly {
@@ -79,7 +85,7 @@ struct DiamondState {
     /// @notice Initialization status
     bool initialized;
     /// @notice Domain field separator
-    bytes32 domainSeparator;
+    bytes32 diamondDomainSeparator;
     /* -------------------------------------------------------------------------- */
     /*                                  Ownership                                 */
     /* -------------------------------------------------------------------------- */
@@ -128,7 +134,7 @@ library LibDiamondCut {
     /*                              Diamond Functions                             */
     /* -------------------------------------------------------------------------- */
 
-    function diamondCut(
+    function cut(
         DiamondState storage self,
         IDiamondCutFacet.FacetCut[] memory _diamondCut,
         address _init,
@@ -268,6 +274,7 @@ library LibOwnership {
         self.entered = NOT_ENTERED;
         self.initialized = true;
         self.storageVersion++;
+        ds().diamondDomainSeparator = Meta.domainSeparator("Kresko Protocol", "V1");
         self.contractOwner = _owner;
 
         self.supportedInterfaces[type(IDiamondLoupeFacet).interfaceId] = true;

@@ -9,7 +9,7 @@ import {SafeERC20} from "common/SafeERC20.sol";
 import {IERC20Permit} from "common/IERC20Permit.sol";
 
 import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
-import {ms, Action} from "../libs/LibMinterBig.sol";
+import {ms, Action} from "../libs/LibMinter.sol";
 import {MinterModifiers} from "minter/Modifiers.sol";
 
 /**
@@ -39,7 +39,7 @@ contract DepositWithdrawFacet is DiamondModifiers, MinterModifiers, IDepositWith
         IERC20Permit(_collateralAsset).safeTransferFrom(msg.sender, address(this), _depositAmount);
 
         // Record the collateral deposit.
-        ms().recordCollateralDeposit(_account, _collateralAsset, _depositAmount);
+        ms().handleDeposit(_account, _collateralAsset, _depositAmount);
     }
 
     /// @inheritdoc IDepositWithdrawFacet
@@ -53,14 +53,14 @@ contract DepositWithdrawFacet is DiamondModifiers, MinterModifiers, IDepositWith
             ensureNotPaused(_collateralAsset, Action.Withdraw);
         }
 
-        uint256 collateralDeposits = ms().getCollateralDeposits(_account, _collateralAsset);
-        _withdrawAmount = (_withdrawAmount > collateralDeposits ? collateralDeposits : _withdrawAmount);
+        uint256 collateralAmount = ms().accountCollateralAmount(_account, _collateralAsset);
+        _withdrawAmount = (_withdrawAmount > collateralAmount ? collateralAmount : _withdrawAmount);
 
-        ms().verifyAndRecordCollateralWithdrawal(
+        ms().handleWithdrawal(
             _account,
             _collateralAsset,
             _withdrawAmount,
-            collateralDeposits,
+            collateralAmount,
             _depositedCollateralAssetIndex
         );
 
@@ -79,11 +79,11 @@ contract DepositWithdrawFacet is DiamondModifiers, MinterModifiers, IDepositWith
             ensureNotPaused(_collateralAsset, Action.Withdraw);
         }
 
-        uint256 collateralDeposits = ms().getCollateralDeposits(_account, _collateralAsset);
+        uint256 collateralDeposits = ms().accountCollateralAmount(_account, _collateralAsset);
         _withdrawAmount = (_withdrawAmount > collateralDeposits ? collateralDeposits : _withdrawAmount);
 
         // perform unchecked withdrawal
-        ms().recordCollateralWithdrawal(
+        ms().recordWithdrawal(
             _account,
             _collateralAsset,
             _withdrawAmount,

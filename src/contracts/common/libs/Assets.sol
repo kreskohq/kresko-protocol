@@ -4,7 +4,7 @@ pragma solidity >=0.8.19;
 import {LibRedstone} from "common/libs/LibRedstone.sol";
 import {IKreskoAssetAnchor} from "kresko-asset/IKreskoAssetAnchor.sol";
 import {AggregatorV3Interface} from "common/AggregatorV3Interface.sol";
-import {safePrice, oraclePrice, oraclePriceToWad} from "common/Functions.sol";
+import {safePrice, oraclePrice, oraclePriceToWad} from "common/funcs/Prices.sol";
 import {WadRay} from "common/libs/WadRay.sol";
 
 using Assets for KrAsset global;
@@ -19,8 +19,8 @@ using Assets for CollateralAsset global;
  * @param closeFee The percentage paid in fees when closing a debt position of this type.
  * @param openFee The percentage paid in fees when opening a debt position of this type.
  * @param exists Whether the KreskoAsset exists within the protocol.
+ * @param redstoneId Redstone id for the asset
  */
-
 struct KrAsset {
     uint256 kFactor;
     AggregatorV3Interface oracle;
@@ -42,6 +42,7 @@ struct KrAsset {
  * @param decimals The decimals for the token, stored here to avoid repetitive external calls.
  * @param exists Whether the collateral asset exists within the protocol.
  * @param liquidationIncentive The liquidation incentive for the asset
+ * @param redstoneId Redstone id for the asset
  */
 struct CollateralAsset {
     uint256 factor;

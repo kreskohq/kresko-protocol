@@ -6,7 +6,7 @@ import {Arrays} from "common/libs/Arrays.sol";
 import {WadRay} from "common/libs/WadRay.sol";
 import {Role} from "common/libs/Authorization.sol";
 
-import {ms} from "minter/libs/LibMinterBig.sol";
+import {ms} from "minter/libs/LibMinter.sol";
 import {Constants} from "minter/Constants.sol";
 import {MinterModifiers} from "minter/Modifiers.sol";
 import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
@@ -25,7 +25,7 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DiamondModifiers, MinterModifiers 
         require(_init.lt <= _init.mcr, "lt-too-high");
         require(_init.swapFeeRecipient != address(0), "invalid-fee-receiver");
 
-        scdp().minimumCollateralizationRatio = _init.mcr;
+        scdp().minCollateralRatio = _init.mcr;
         scdp().liquidationThreshold = _init.lt;
         scdp().swapFeeRecipient = _init.swapFeeRecipient;
         scdp().maxLiquidationMultiplier = Constants.MIN_MAX_LIQUIDATION_MULTIPLIER;
@@ -36,7 +36,7 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DiamondModifiers, MinterModifiers 
         return
             SCDPInitArgs({
                 swapFeeRecipient: scdp().swapFeeRecipient,
-                mcr: scdp().minimumCollateralizationRatio,
+                mcr: scdp().minCollateralRatio,
                 lt: scdp().liquidationThreshold
             });
     }
@@ -48,13 +48,13 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DiamondModifiers, MinterModifiers 
     /// @inheritdoc ISCDPConfigFacet
     function setSCDPMCR(uint256 _mcr) external onlyRole(Role.ADMIN) {
         require(_mcr >= Constants.MIN_COLLATERALIZATION_RATIO, "mcr-too-low");
-        scdp().minimumCollateralizationRatio = _mcr;
+        scdp().minCollateralRatio = _mcr;
     }
 
     /// @inheritdoc ISCDPConfigFacet
     function setSCDPLT(uint256 _lt) external onlyRole(Role.ADMIN) {
         require(_lt >= Constants.MIN_COLLATERALIZATION_RATIO, "mcr-too-low");
-        require(_lt <= scdp().minimumCollateralizationRatio, "lt-too-high");
+        require(_lt <= scdp().minCollateralRatio, "lt-too-high");
         scdp().liquidationThreshold = _lt;
     }
 

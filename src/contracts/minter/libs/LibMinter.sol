@@ -12,7 +12,8 @@ import {WadRay} from "contracts/common/libs/WadRay.sol";
 import {MinterEvent} from "common/Events.sol";
 import {Error} from "common/Errors.sol";
 import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
-import {fromWad, toWad} from "common/Functions.sol";
+import {fromWad} from "common/funcs/Conversions.sol";
+import {krAssetAmountToValue, collateralAmountToValue, collateralAmountRead} from "./Conversions.sol";
 import {CollateralAsset, KrAsset} from "common/libs/Assets.sol";
 import {Constants} from "minter/Constants.sol";
 
@@ -34,22 +35,15 @@ function ms() pure returns (MinterState storage state) {
  */
 struct MinterState {
     /* -------------------------------------------------------------------------- */
-    /*                               Initialization                               */
-    /* -------------------------------------------------------------------------- */
-
-    /// @notice Initialization version
-    uint256 initializations;
-    bytes32 domainSeparator;
-    /* -------------------------------------------------------------------------- */
     /*                           Configurable Parameters                          */
     /* -------------------------------------------------------------------------- */
 
     /// @notice The recipient of protocol fees.
     address feeRecipient;
     /// @notice The minimum ratio of collateral to debt that can be taken by direct action.
-    uint256 minimumCollateralizationRatio;
+    uint256 minCollateralRatio;
     /// @notice The minimum USD value of an individual synthetic asset debt position.
-    uint256 minimumDebtValue;
+    uint256 minDebtValue;
     /// @notice The collateralization ratio at which positions may be liquidated.
     uint256 liquidationThreshold;
     /// @notice Flag tells if there is a need to perform safety checks on user actions
@@ -140,8 +134,8 @@ struct MinterInitArgs {
     address council;
     address treasury;
     uint8 extOracleDecimals;
-    uint256 minimumCollateralizationRatio;
-    uint256 minimumDebtValue;
+    uint256 minCollateralRatio;
+    uint256 minDebtValue;
     uint256 liquidationThreshold;
     uint256 oracleDeviationPct;
     address sequencerUptimeFeed;
@@ -154,10 +148,10 @@ struct MinterInitArgs {
  */
 
 struct MinterParams {
-    uint256 minimumCollateralizationRatio;
-    uint256 minimumDebtValue;
+    uint256 minCollateralRatio;
+    uint256 minDebtValue;
     uint256 liquidationThreshold;
-    uint256 liquidationOverflowPercentage;
+    uint256 maxLiquidationMultiplier;
     address feeRecipient;
     uint8 extOracleDecimals;
     uint256 oracleDeviationPct;
@@ -186,10 +180,7 @@ library LibMinter {
      * @return An array of addresses of Kresko assets the account has minted.
      */
 
-    function getMintedKreskoAssets(
-        MinterState storage self,
-        address _account
-    ) internal view returns (address[] memory) {
+    function accountDebtAssets(MinterState storage self, address _account) internal view returns (address[] memory) {
         return self.mintedKreskoAssets[_account];
     }
 
@@ -198,7 +189,7 @@ library LibMinter {
      * @param _account The account to get the deposited collateral assets for.
      * @return An array of addresses of collateral assets the account has deposited.
      */
-    function getDepositedCollateralAssets(
+    function accountCollateralAssets(
         MinterState storage self,
         address _account
     ) internal view returns (address[] memory) {
@@ -212,12 +203,12 @@ library LibMinter {
      * @param _account The account to query amount for
      * @return uint256 amount of collateral for `_asset`
      */
-    function getCollateralDeposits(
+    function accountCollateralAmount(
         MinterState storage self,
         address _account,
         address _asset
     ) internal view returns (uint256) {
-        return self.collateralAssets[_asset].toRebasingAmount(self.collateralDeposits[_account][_asset]);
+        return collateralAmountRead(_asset, self.collateralDeposits[_account][_asset]);
     }
 
     /**
@@ -233,9 +224,10 @@ library LibMinter {
         address[] memory assets = self.depositedCollateralAssets[_account];
         for (uint256 i; i < assets.length; ) {
             address asset = assets[i];
-            (uint256 collateralValue, ) = self.collateralValueAndPrice(
+
+            (uint256 collateralValue, ) = collateralAmountToValue(
                 asset,
-                self.getCollateralDeposits(_account, asset),
+                self.accountCollateralAmount(_account, asset),
                 false // Take the collateral factor into consideration.
             );
             totalCollateralValue += collateralValue;
@@ -253,8 +245,9 @@ library LibMinter {
      * @param _account The account to calculate the collateral value for.
      * @param _collateralAsset The collateral asset to get the collateral value.
      * @return totalCollateralValue The collateral value of a particular account.
+     * @return specificValue The collateral value of a particular account.
      */
-    function accountCollateralValue(
+    function accountCollateralAssetValue(
         MinterState storage self,
         address _account,
         address _collateralAsset
@@ -262,9 +255,9 @@ library LibMinter {
         address[] memory assets = self.depositedCollateralAssets[_account];
         for (uint256 i; i < assets.length; ) {
             address asset = assets[i];
-            (uint256 collateralValue, ) = self.collateralValueAndPrice(
+            (uint256 collateralValue, ) = collateralAmountToValue(
                 asset,
-                self.getCollateralDeposits(_account, asset),
+                self.accountCollateralAmount(_account, asset),
                 false // Take the collateral factor into consideration.
             );
             totalCollateralValue += collateralValue;
@@ -286,24 +279,24 @@ library LibMinter {
      * @param _ratio The collateralization ratio to get min collateral value against.
      * @return The min collateral value at given collateralization ratio for the account.
      */
-    function getAccountMinimumCollateralValueAtRatio(
+    function accountMinCollateralAtRatio(
         MinterState storage self,
         address _account,
         uint256 _ratio
     ) internal view returns (uint256) {
-        return self.getAccountKrAssetValue(_account).wadMul(_ratio);
+        return self.accountDebtValue(_account).wadMul(_ratio);
     }
 
     /**
-     * @notice Gets the total KreskoAsset value in USD for an account.
+     * @notice Gets the total debt value in USD for an account.
      * @param _account The account to calculate the KreskoAsset value for.
-     * @return value The KreskoAsset value of the account.
+     * @return value The KreskoAsset debt value of the account.
      */
-    function getAccountKrAssetValue(MinterState storage self, address _account) internal view returns (uint256 value) {
+    function accountDebtValue(MinterState storage self, address _account) internal view returns (uint256 value) {
         address[] memory assets = self.mintedKreskoAssets[_account];
         for (uint256 i; i < assets.length; ) {
             address asset = assets[i];
-            value += self.getKrAssetUSD(asset, self.getKreskoAssetDebtPrincipal(_account, asset), false);
+            value += krAssetAmountToValue(asset, self.accountDebtAmount(_account, asset), false);
             unchecked {
                 i++;
             }
@@ -318,7 +311,7 @@ library LibMinter {
      * @param _account The account to query amount for
      * @return Amount of principal debt for `_asset`
      */
-    function getKreskoAssetDebtPrincipal(
+    function accountDebtAmount(
         MinterState storage self,
         address _account,
         address _asset
@@ -332,7 +325,7 @@ library LibMinter {
      * @param _kreskoAsset The asset lookup address.
      * @return i = index of the minted Kresko asset.
      */
-    function mintIndex(
+    function accountMintIndex(
         MinterState storage self,
         address _account,
         address _kreskoAsset
@@ -355,7 +348,7 @@ library LibMinter {
      * @param _collateralAsset The asset lookup address.
      * @return i = index of the minted collateral asset.
      */
-    function depositIndex(
+    function accountDepositIndex(
         MinterState storage self,
         address _account,
         address _collateralAsset
@@ -415,26 +408,23 @@ library LibMinter {
     /* -------------------------------------------------------------------------- */
 
     /**
-     * @notice verifies that the account has sufficient collateral for the requested amount and records the collateral
+     * @notice Verifies that the account has sufficient collateral for the requested amount and records the collateral
      * @param _account The address of the account to verify the collateral for.
      * @param _collateralAsset The address of the collateral asset.
      * @param _withdrawAmount The amount of the collateral asset to withdraw.
      * @param _collateralDeposits Collateral deposits for the account.
-     * @param _depositedCollateralAssetIndex Index of the collateral asset in the account's deposited collateral assets array.
+     * @param _collateralIndex Index of the collateral asset in the account's deposited collateral assets array.
      */
-    function verifyAndRecordCollateralWithdrawal(
+    function handleWithdrawal(
         MinterState storage self,
         address _account,
         address _collateralAsset,
         uint256 _withdrawAmount,
         uint256 _collateralDeposits,
-        uint256 _depositedCollateralAssetIndex
+        uint256 _collateralIndex
     ) internal {
         require(_withdrawAmount > 0, Error.ZERO_WITHDRAW);
-        require(
-            _depositedCollateralAssetIndex <= self.depositedCollateralAssets[_account].length - 1,
-            Error.ARRAY_OUT_OF_BOUNDS
-        );
+        require(_collateralIndex <= self.depositedCollateralAssets[_account].length - 1, Error.ARRAY_OUT_OF_BOUNDS);
 
         // Ensure that the operation passes checks MCR checks
         verifyAccountCollateral(self, _account, _collateralAsset, _withdrawAmount);
@@ -453,7 +443,7 @@ library LibMinter {
         // If the user is withdrawing all of the collateral asset, remove the collateral asset
         // from the user's deposited collateral assets array.
         if (newCollateralAmount == 0) {
-            self.depositedCollateralAssets[_account].removeAddress(_collateralAsset, _depositedCollateralAssetIndex);
+            self.depositedCollateralAssets[_account].removeAddress(_collateralAsset, _collateralIndex);
         }
 
         // Record the withdrawal.
@@ -471,7 +461,7 @@ library LibMinter {
      * @param _collateralAsset The address of the collateral asset.
      * @param _depositAmount The amount of the collateral asset deposited.
      */
-    function recordCollateralDeposit(
+    function handleDeposit(
         MinterState storage self,
         address _account,
         address _collateralAsset,
@@ -484,7 +474,7 @@ library LibMinter {
 
         // If the account does not have an existing deposit for this collateral asset,
         // push it to the list of the account's deposited collateral assets.
-        uint256 existingCollateralAmount = self.getCollateralDeposits(_account, _collateralAsset);
+        uint256 existingCollateralAmount = self.accountCollateralAmount(_account, _collateralAsset);
 
         if (existingCollateralAmount == 0) {
             self.depositedCollateralAssets[_account].push(_collateralAsset);
@@ -519,7 +509,7 @@ library LibMinter {
      * @param _collateralDeposits Collateral deposits for the account.
      * @param _depositedCollateralAssetIndex Index of the collateral asset in the account's deposited collateral assets array.
      */
-    function recordCollateralWithdrawal(
+    function recordWithdrawal(
         MinterState storage self,
         address _account,
         address _collateralAsset,
@@ -573,48 +563,6 @@ library LibMinter {
     }
 
     /**
-     * @notice Gets the collateral value for a single collateral asset and amount.
-     * @param _collateralAsset The address of the collateral asset.
-     * @param _amount The amount of the collateral asset to calculate the collateral value for.
-     * @param _ignoreCollateralFactor Boolean indicating if the asset's collateral factor should be ignored.
-     * @return The collateral value for the provided amount of the collateral asset.
-     */
-    function collateralValueAndPrice(
-        MinterState storage self,
-        address _collateralAsset,
-        uint256 _amount,
-        bool _ignoreCollateralFactor
-    ) internal view returns (uint256, uint256) {
-        CollateralAsset memory asset = self.collateralAssets[_collateralAsset];
-
-        uint256 oraclePrice = asset.uintPrice(self.oracleDeviationPct);
-        uint256 value = toWad(asset.decimals, _amount).wadMul(oraclePrice);
-
-        if (!_ignoreCollateralFactor) {
-            value = value.wadMul(asset.factor);
-        }
-        return (value, oraclePrice);
-    }
-
-    /**
-     * @notice Get the minimum collateral value required to
-     * back a Kresko asset amount at a given collateralization ratio.
-     * @param _krAsset The address of the Kresko asset.
-     * @param _amount The Kresko Asset debt amount.
-     * @return minCollateralValue is the minimum collateral value required for this Kresko Asset amount.
-     * @param _ratio The collateralization ratio required: higher ratio = more collateral required.
-     */
-    function getMinimumCollateralValueAtRatio(
-        MinterState storage self,
-        address _krAsset,
-        uint256 _amount,
-        uint256 _ratio
-    ) internal view returns (uint256 minCollateralValue) {
-        // Calculate the collateral value required to back this Kresko asset amount at the given ratio
-        return self.getKrAssetUSD(_krAsset, _amount, false).wadMul(_ratio);
-    }
-
-    /**
      * @notice verifies that the account collateral
      * @param _account The address of the account to verify the collateral for.
      * @param _collateralAsset The address of the collateral asset.
@@ -632,23 +580,17 @@ library LibMinter {
         // I.e. the new account's collateral value must still exceed the account's minimum
         // collateral value.
         // Get the account's current collateral value.
-        uint256 accountCollateralValue = self.accountCollateralValue(_account);
+        uint256 collateralValue = self.accountCollateralValue(_account);
         // Get the collateral value that the account will lose as a result of this withdrawal.
-        (uint256 withdrawnCollateralValue, ) = self.collateralValueAndPrice(
+        (uint256 withdrawnCollateralValue, ) = collateralAmountToValue(
             _collateralAsset,
             _withdrawAmount,
             false // Take the collateral factor into consideration.
         );
         // Get the account's minimum collateral value.
-        uint256 accountMinCollateralValue = self.getAccountMinimumCollateralValueAtRatio(
-            _account,
-            self.minimumCollateralizationRatio
-        );
+        uint256 minCollateralValue = self.accountMinCollateralAtRatio(_account, self.minCollateralRatio);
         // Require accountMinCollateralValue <= accountCollateralValue - withdrawnCollateralValue.
-        require(
-            accountMinCollateralValue <= accountCollateralValue - withdrawnCollateralValue,
-            Error.COLLATERAL_INSUFFICIENT_AMOUNT
-        );
+        require(minCollateralValue <= collateralValue - withdrawnCollateralValue, Error.COLLATERAL_INSUFFICIENT_AMOUNT);
     }
 
     /**
@@ -659,7 +601,7 @@ library LibMinter {
      * @param _debtAmount The debt amount of `_account`
      * @return amount == 0 or >= minDebtAmount
      */
-    function ensureNotDustPosition(
+    function handleDustPosition(
         MinterState storage self,
         address _kreskoAsset,
         uint256 _burnAmount,
@@ -667,9 +609,9 @@ library LibMinter {
     ) internal view returns (uint256 amount) {
         // If the requested burn would put the user's debt position below the minimum
         // debt value, close up to the minimum debt value instead.
-        uint256 krAssetValue = self.getKrAssetUSD(_kreskoAsset, _debtAmount - _burnAmount, true);
-        if (krAssetValue > 0 && krAssetValue < self.minimumDebtValue) {
-            uint256 minDebtValue = self.minimumDebtValue.wadDiv(
+        uint256 krAssetValue = krAssetAmountToValue(_kreskoAsset, _debtAmount - _burnAmount, true);
+        if (krAssetValue > 0 && krAssetValue < self.minDebtValue) {
+            uint256 minDebtValue = self.minDebtValue.wadDiv(
                 self.kreskoAssets[_kreskoAsset].uintPrice(self.oracleDeviationPct)
             );
             amount = _debtAmount - minDebtValue;
@@ -691,29 +633,6 @@ library LibMinter {
         return self.kreskoAssets[_asset];
     }
 
-    /**
-     * @notice Gets the USD value for a single Kresko asset and amount.
-     * @param _kreskoAsset The address of the Kresko asset.
-     * @param _amount The amount of the Kresko asset to calculate the value for.
-     * @param _ignoreKFactor Boolean indicating if the asset's k-factor should be ignored.
-     * @return The value for the provided amount of the Kresko asset.
-     */
-    function getKrAssetUSD(
-        MinterState storage self,
-        address _kreskoAsset,
-        uint256 _amount,
-        bool _ignoreKFactor
-    ) internal view returns (uint256) {
-        KrAsset memory krAsset = self.kreskoAssets[_kreskoAsset];
-        uint256 value = krAsset.uintUSD(_amount, self.oracleDeviationPct);
-
-        if (!_ignoreKFactor) {
-            value = value.wadMul(krAsset.kFactor);
-        }
-
-        return value;
-    }
-
     /* -------------------------------------------------------------------------- */
     /*                                    Fees                                    */
     /* -------------------------------------------------------------------------- */
@@ -726,7 +645,7 @@ library LibMinter {
      * @param _kreskoAsset The address of the kresko asset being minted.
      * @param _kreskoAssetAmountMinted The amount of the kresko asset being minted.
      */
-    function chargeOpenFee(
+    function handleOpenFee(
         MinterState storage self,
         address _account,
         address _kreskoAsset,
@@ -741,29 +660,24 @@ library LibMinter {
             return;
         }
 
-        address[] memory accountCollateralAssets = self.depositedCollateralAssets[_account];
+        address[] memory accountCollaterals = self.depositedCollateralAssets[_account];
         // Iterate backward through the account's deposited collateral assets to safely
         // traverse the array while still being able to remove elements if necessary.
         // This is because removing the last element of the array does not shift around
         // other elements in the array.
-        for (uint256 i = accountCollateralAssets.length - 1; i >= 0; i--) {
-            address collateralAssetAddress = accountCollateralAssets[i];
+        for (uint256 i = accountCollaterals.length - 1; i >= 0; i--) {
+            address currentCollateral = accountCollaterals[i];
 
-            (uint256 transferAmount, uint256 feeValuePaid) = self.calcFee(
-                collateralAssetAddress,
-                _account,
-                feeValue,
-                i
-            );
+            (uint256 transferAmount, uint256 feeValuePaid) = self.calcFee(currentCollateral, _account, feeValue, i);
 
             // Remove the transferAmount from the stored deposit for the account.
-            self.collateralDeposits[_account][collateralAssetAddress] -= self
-                .collateralAssets[collateralAssetAddress]
+            self.collateralDeposits[_account][currentCollateral] -= self
+                .collateralAssets[currentCollateral]
                 .toNonRebasingAmount(transferAmount);
 
             // Transfer the fee to the feeRecipient.
-            IERC20Permit(collateralAssetAddress).safeTransfer(self.feeRecipient, transferAmount);
-            emit MinterEvent.OpenFeePaid(_account, collateralAssetAddress, transferAmount, feeValuePaid);
+            IERC20Permit(currentCollateral).safeTransfer(self.feeRecipient, transferAmount);
+            emit MinterEvent.OpenFeePaid(_account, currentCollateral, transferAmount, feeValuePaid);
 
             feeValue = feeValue - feeValuePaid;
             // If the entire fee has been paid, no more action needed.
@@ -781,7 +695,7 @@ library LibMinter {
      * @param _kreskoAsset The address of the kresko asset being burned.
      * @param _burnAmount The amount of the kresko asset being burned.
      */
-    function chargeCloseFee(
+    function handleCloseFee(
         MinterState storage self,
         address _account,
         address _kreskoAsset,
@@ -796,30 +710,25 @@ library LibMinter {
             return;
         }
 
-        address[] memory accountCollateralAssets = self.depositedCollateralAssets[_account];
+        address[] memory accountCollaterals = self.depositedCollateralAssets[_account];
         // Iterate backward through the account's deposited collateral assets to safely
         // traverse the array while still being able to remove elements if necessary.
         // This is because removing the last element of the array does not shift around
         // other elements in the array.
 
-        for (uint256 i = accountCollateralAssets.length - 1; i >= 0; i--) {
-            address collateralAssetAddress = accountCollateralAssets[i];
+        for (uint256 i = accountCollaterals.length - 1; i >= 0; i--) {
+            address currentCollateral = accountCollaterals[i];
 
-            (uint256 transferAmount, uint256 feeValuePaid) = self.calcFee(
-                collateralAssetAddress,
-                _account,
-                feeValue,
-                i
-            );
+            (uint256 transferAmount, uint256 feeValuePaid) = self.calcFee(currentCollateral, _account, feeValue, i);
 
             // Remove the transferAmount from the stored deposit for the account.
-            self.collateralDeposits[_account][collateralAssetAddress] -= self
-                .collateralAssets[collateralAssetAddress]
+            self.collateralDeposits[_account][currentCollateral] -= self
+                .collateralAssets[currentCollateral]
                 .toNonRebasingAmount(transferAmount);
 
             // Transfer the fee to the feeRecipient.
-            IERC20Permit(collateralAssetAddress).safeTransfer(self.feeRecipient, transferAmount);
-            emit MinterEvent.CloseFeePaid(_account, collateralAssetAddress, transferAmount, feeValuePaid);
+            IERC20Permit(currentCollateral).safeTransfer(self.feeRecipient, transferAmount);
+            emit MinterEvent.CloseFeePaid(_account, currentCollateral, transferAmount, feeValuePaid);
 
             feeValue = feeValue - feeValuePaid;
             // If the entire fee has been paid, no more action needed.
@@ -846,14 +755,10 @@ library LibMinter {
         uint256 _feeValue,
         uint256 _collateralAssetIndex
     ) internal returns (uint256 transferAmount, uint256 feeValuePaid) {
-        uint256 depositAmount = self.getCollateralDeposits(_account, _collateralAsset);
+        uint256 depositAmount = self.accountCollateralAmount(_account, _collateralAsset);
 
         // Don't take the collateral asset's collateral factor into consideration.
-        (uint256 depositValue, uint256 oraclePrice) = self.collateralValueAndPrice(
-            _collateralAsset,
-            depositAmount,
-            true
-        );
+        (uint256 depositValue, uint256 oraclePrice) = collateralAmountToValue(_collateralAsset, depositAmount, true);
 
         if (_feeValue < depositValue) {
             // If feeValue < depositValue, the entire fee can be charged for this collateral asset.

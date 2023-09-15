@@ -8,7 +8,7 @@ import {MinterEvent} from "common/Events.sol";
 import {Error} from "common/Errors.sol";
 
 import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
-import {ms, Action, MinterState} from "../libs/LibMinterBig.sol";
+import {ms, Action, MinterState} from "../libs/LibMinter.sol";
 import {MinterModifiers} from "minter/Modifiers.sol";
 
 /**
@@ -34,26 +34,26 @@ contract BurnFacet is DiamondModifiers, MinterModifiers, IBurnFacet {
         }
 
         // Get accounts principal debt
-        uint256 debtAmount = s.getKreskoAssetDebtPrincipal(_account, _kreskoAsset);
+        uint256 debtAmount = s.accountDebtAmount(_account, _kreskoAsset);
         require(debtAmount != 0, Error.ZERO_DEBT);
 
         if (_burnAmount != type(uint256).max) {
             require(_burnAmount <= debtAmount, Error.KRASSET_BURN_AMOUNT_OVERFLOW);
             // Ensure principal left is either 0 or >= minDebtValue
-            _burnAmount = s.ensureNotDustPosition(_kreskoAsset, _burnAmount, debtAmount);
+            _burnAmount = s.handleDustPosition(_kreskoAsset, _burnAmount, debtAmount);
         } else {
             // _burnAmount of uint256 max, burn all principal debt
             _burnAmount = debtAmount;
         }
 
         // Charge the burn fee from collateral of _account
-        s.chargeCloseFee(_account, _kreskoAsset, _burnAmount);
+        s.handleCloseFee(_account, _kreskoAsset, _burnAmount);
 
         // Record the burn
         s.burn(_kreskoAsset, s.kreskoAssets[_kreskoAsset].anchor, _burnAmount, _account);
 
         // If sender repays all scaled debt of asset, remove it from minted assets array.
-        if (s.getKreskoAssetDebtPrincipal(_account, _kreskoAsset) == 0) {
+        if (s.accountDebtAmount(_account, _kreskoAsset) == 0) {
             s.mintedKreskoAssets[_account].removeAddress(_kreskoAsset, _mintedKreskoAssetIndex);
         }
 

@@ -20,3 +20,7 @@ remappings = [
   'kresko-helpers/=lib/kresko-foundry-helpers/src/',
   '@openzeppelin/=node_modules/@openzeppelin/',
 ]
+[fmt]
+multiline_func_header = 'attributes_first'
+single_line_block_style = 'single'
+line_length = 120

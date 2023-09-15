@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19;
 
-import {ms, Action} from "./libs/LibMinterBig.sol";
+import {ms, Action} from "./libs/LibMinter.sol";
 import {Error} from "common/Errors.sol";
 
 abstract contract MinterModifiers {

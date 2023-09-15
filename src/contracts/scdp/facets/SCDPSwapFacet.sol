@@ -4,7 +4,7 @@ pragma solidity >=0.8.19;
 import {SafeERC20, IERC20Permit} from "common/SafeERC20.sol";
 import {WadRay} from "common/libs/WadRay.sol";
 import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
-import {ms} from "minter/libs/LibMinterBig.sol";
+import {ms} from "minter/libs/LibMinter.sol";
 
 import {ISCDPSwapFacet} from "../interfaces/ISCDPSwapFacet.sol";
 import {scdp} from "../libs/LibSCDP.sol";
@@ -171,7 +171,7 @@ contract SCDPSwapFacet is ISCDPSwapFacet, DiamondModifiers {
         // State modifications done, check MCR and slippage.
         require(_amountOut >= _amountOutMin, "lev-swap-slippage");
         if (_feeAmount != 0) _payFee(scdp().feeAsset, _payAsset, _feeAmount, _protocolFeePct);
-        require(Shared.checkSCDPRatio(scdp().minimumCollateralizationRatio), "lev-swap-mcr-violation");
+        require(Shared.checkSCDPRatio(scdp().minCollateralRatio), "lev-swap-mcr-violation");
     }
 
     function _payFee(address _feeAsset, address _payAsset, uint256 _feeAmount, uint256 _protocolFeePct) private {

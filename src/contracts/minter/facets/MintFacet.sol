@@ -9,8 +9,10 @@ import {Error} from "common/Errors.sol";
 import {Role} from "common/libs/Authorization.sol";
 import {MinterEvent} from "common/Events.sol";
 
+import {KrAsset} from "common/libs/Assets.sol";
 import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
-import {ms, MinterState, Action, KrAsset} from "../libs/LibMinterBig.sol";
+import {minCollateralValueAtRatio} from "../libs/Common.sol";
+import {ms, MinterState, Action} from "../libs/LibMinter.sol";
 import {MinterModifiers} from "minter/Modifiers.sol";
 
 /**
@@ -48,24 +50,24 @@ contract MintFacet is DiamondModifiers, MinterModifiers, IMintFacet {
         );
 
         if (krAsset.openFee > 0) {
-            s.chargeOpenFee(_account, _kreskoAsset, _mintAmount);
+            s.handleOpenFee(_account, _kreskoAsset, _mintAmount);
         }
         {
             // Get the account's current minimum collateral value required to maintain current debts.
             // Calculate additional collateral amount required to back requested additional mint.
             // Verify that minter has sufficient collateral to back current debt + new requested debt.
             require(
-                s.getAccountMinimumCollateralValueAtRatio(_account, s.minimumCollateralizationRatio) +
-                    s.getMinimumCollateralValueAtRatio(_kreskoAsset, _mintAmount, s.minimumCollateralizationRatio) <=
+                s.accountMinCollateralAtRatio(_account, s.minCollateralRatio) +
+                    minCollateralValueAtRatio(_kreskoAsset, _mintAmount, s.minCollateralRatio) <=
                     s.accountCollateralValue(_account),
                 Error.KRASSET_COLLATERAL_LOW
             );
         }
 
         // The synthetic asset debt position must be greater than the minimum debt position value
-        uint256 existingDebt = s.getKreskoAssetDebtPrincipal(_account, _kreskoAsset);
+        uint256 existingDebt = s.accountDebtAmount(_account, _kreskoAsset);
         require(
-            krAsset.uintUSD(existingDebt + _mintAmount, s.oracleDeviationPct) >= s.minimumDebtValue,
+            krAsset.uintUSD(existingDebt + _mintAmount, s.oracleDeviationPct) >= s.minDebtValue,
             Error.KRASSET_MINT_AMOUNT_LOW
         );
 

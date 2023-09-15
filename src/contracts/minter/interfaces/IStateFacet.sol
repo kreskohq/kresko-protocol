@@ -1,38 +1,38 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {CollateralAsset, KrAsset, MinterParams} from "minter/libs/LibMinterBig.sol";
+import {CollateralAsset, KrAsset, MinterParams} from "minter/libs/LibMinter.sol";
 
 interface IStateFacet {
     /// @notice The EIP-712 typehash for the contract's domain.
     function domainSeparator() external view returns (bytes32);
 
-    /// @notice amount of times the minter has been initialized
-    function minterInitializations() external view returns (uint256);
+    /// @notice amount of times the storage has been upgraded
+    function getStorageVersion() external view returns (uint256);
 
     /// @notice The recipient of protocol fees.
-    function feeRecipient() external view returns (address);
+    function getFeeRecipient() external view returns (address);
 
     /// @notice Offchain oracle decimals
-    function extOracleDecimals() external view returns (uint8);
+    function getExtOracleDecimals() external view returns (uint8);
 
     /// @notice The collateralization ratio at which positions may be liquidated.
-    function liquidationThreshold() external view returns (uint256);
+    function getLiquidationThreshold() external view returns (uint256);
 
     /// @notice Multiplies max liquidatable value, allowing liquidations to go over LT.
-    function maxLiquidationMultiplier() external view returns (uint256);
+    function getMaxLiquidationMultiplier() external view returns (uint256);
 
     /// @notice max deviation between main oracle and fallback oracle
-    function oracleDeviationPct() external view returns (uint256);
+    function getOracleDeviationPct() external view returns (uint256);
 
     /// @notice The minimum ratio of collateral to debt that can be taken by direct action.
-    function minimumCollateralizationRatio() external view returns (uint256);
+    function getMinCollateralRatio() external view returns (uint256);
 
     /// @notice The minimum USD value of an individual synthetic asset debt position.
-    function minimumDebtValue() external view returns (uint256);
+    function getMinDebtValue() external view returns (uint256);
 
     /// @notice simple check if kresko asset exists
-    function krAssetExists(address _krAsset) external view returns (bool);
+    function getKrAssetExists(address _krAsset) external view returns (bool);
 
     /**
      * @notice Get the state of a specific krAsset
@@ -45,10 +45,10 @@ interface IStateFacet {
     function getCollateralAsset(address _asset) external view returns (CollateralAsset memory);
 
     /// @notice simple check if collateral asset exists
-    function collateralExists(address _collateralAsset) external view returns (bool);
+    function getCollateralExists(address _collateralAsset) external view returns (bool);
 
     /// @notice get all meaningful protocol parameters
-    function getAllParams() external view returns (MinterParams memory);
+    function getCurrentParameters() external view returns (MinterParams memory);
 
     /**
      * @notice Gets the USD value for a single collateral asset and amount.
@@ -56,7 +56,7 @@ interface IStateFacet {
      * @param _amount The amount of the collateral asset to calculate the value for.
      * @param _ignoreCollateralFactor Boolean indicating if the asset's collateral factor should be ignored.
      */
-    function getCollateralValueAndPrice(
+    function getCollateralAmountToValue(
         address _collateralAsset,
         uint256 _amount,
         bool _ignoreCollateralFactor
@@ -69,7 +69,7 @@ interface IStateFacet {
      * @param _ignoreKFactor Boolean indicating if the asset's k-factor should be ignored.
      * @return The value for the provided amount of the Kresko asset.
      */
-    function getKrAssetValue(
+    function getDebtAmountToValue(
         address _kreskoAsset,
         uint256 _amount,
         bool _ignoreKFactor

@@ -4,9 +4,8 @@ pragma solidity >=0.8.19;
 import {SafeERC20} from "common/SafeERC20.sol";
 import {IERC20Permit} from "common/IERC20Permit.sol";
 import {WadRay} from "common/libs/WadRay.sol";
-import {Rebase} from "common/libs/Rebase.sol";
 import {sdi} from "./LibSDI.sol";
-import {getKrAssetValue, krAssetValueToAmount} from "common/libs/KrAsset.sol";
+import "minter/libs/Conversions.sol";
 
 /* solhint-disable not-rely-on-time */
 /* solhint-disable var-name-mixedcase */
@@ -14,7 +13,7 @@ import {getKrAssetValue, krAssetValueToAmount} from "common/libs/KrAsset.sol";
 // Storage layout
 struct SCDPState {
     /// @notice The minimum ratio of collateral to debt that can be taken by direct action.
-    uint256 minimumCollateralizationRatio;
+    uint256 minCollateralRatio;
     /// @notice The collateralization ratio at which positions may be liquidated.
     uint256 liquidationThreshold;
     /// @notice Mapping of krAsset -> pooled debt
@@ -83,7 +82,7 @@ library LibSCDP {
         uint256 _depositAmount
     ) internal {
         require(self.isEnabled[_collateralAsset], "asset-disabled");
-        uint256 depositAmount = Rebase.getCollateralAmountWrite(_collateralAsset, _depositAmount);
+        uint256 depositAmount = collateralAmountWrite(_collateralAsset, _depositAmount);
 
         unchecked {
             // Save global deposits.
@@ -126,7 +125,7 @@ library LibSCDP {
             collateralOut = _amount;
             // 2. No fees.
             // 3. Possibly un-rebased amount for internal bookeeping.
-            uint256 withdrawAmountInternal = Rebase.getCollateralAmountWrite(_collateralAsset, _amount);
+            uint256 withdrawAmountInternal = collateralAmountWrite(_collateralAsset, _amount);
             unchecked {
                 // 4. Reduce global deposits.
                 self.totalDeposits[_collateralAsset] -= withdrawAmountInternal;
@@ -149,10 +148,7 @@ library LibSCDP {
             self.depositsPrincipal[_account][_collateralAsset] = 0;
             self.deposits[_account][_collateralAsset] = 0;
             // 5. Reduce global by ONLY by the principal, fees are not collateral.
-            self.totalDeposits[_collateralAsset] -= Rebase.getCollateralAmountWrite(
-                _collateralAsset,
-                depositsPrincipal
-            );
+            self.totalDeposits[_collateralAsset] -= collateralAmountWrite(_collateralAsset, depositsPrincipal);
         }
     }
 
@@ -170,7 +166,7 @@ library LibSCDP {
         uint256 swapDeposits = self.getPoolSwapDeposits(_seizeAsset); // current "swap" collateral
 
         if (swapDeposits >= _seizeAmount) {
-            uint256 amountOutInternal = Rebase.getCollateralAmountWrite(_seizeAsset, _seizeAmount);
+            uint256 amountOutInternal = collateralAmountWrite(_seizeAsset, _seizeAmount);
             // swap deposits cover the amount
             self.swapDeposits[_seizeAsset] -= amountOutInternal;
             self.totalDeposits[_seizeAsset] -= amountOutInternal;
@@ -182,7 +178,7 @@ library LibSCDP {
                 amountToCover.wadToRay().rayDiv(self.getUserPoolDeposits(_seizeAsset).wadToRay())
             );
             self.swapDeposits[_seizeAsset] = 0;
-            self.totalDeposits[_seizeAsset] -= Rebase.getCollateralAmountWrite(_seizeAsset, amountToCover);
+            self.totalDeposits[_seizeAsset] -= collateralAmountWrite(_seizeAsset, amountToCover);
         }
     }
 
@@ -197,7 +193,7 @@ library LibSCDP {
         address _account,
         address _asset
     ) internal view returns (uint256) {
-        uint256 deposits = Rebase.getCollateralAmountRead(_asset, self.deposits[_account][_asset]);
+        uint256 deposits = collateralAmountRead(_asset, self.deposits[_account][_asset]);
         if (deposits == 0) {
             return 0;
         }
@@ -216,7 +212,7 @@ library LibSCDP {
         address _collateralAsset
     ) internal view returns (uint256) {
         uint256 deposits = self.getAccountDepositsWithFees(_account, _collateralAsset);
-        uint256 depositsPrincipal = Rebase.getCollateralAmountRead(
+        uint256 depositsPrincipal = collateralAmountRead(
             _collateralAsset,
             self.depositsPrincipal[_account][_collateralAsset]
         );
@@ -235,7 +231,7 @@ library LibSCDP {
      * @return Amount of scaled debt.
      */
     function getPoolDeposits(SCDPState storage self, address _asset) internal view returns (uint256) {
-        return Rebase.getCollateralAmountRead(_asset, self.totalDeposits[_asset]);
+        return collateralAmountRead(_asset, self.totalDeposits[_asset]);
     }
 
     /**
@@ -244,7 +240,7 @@ library LibSCDP {
      * @return Amount of scaled debt.
      */
     function getUserPoolDeposits(SCDPState storage self, address _asset) internal view returns (uint256) {
-        return Rebase.getCollateralAmountRead(_asset, self.totalDeposits[_asset] - self.swapDeposits[_asset]);
+        return collateralAmountRead(_asset, self.totalDeposits[_asset] - self.swapDeposits[_asset]);
     }
 
     /**
@@ -253,7 +249,7 @@ library LibSCDP {
      * @return Amount of debt.
      */
     function getPoolSwapDeposits(SCDPState storage self, address _asset) internal view returns (uint256) {
-        return Rebase.getCollateralAmountRead(_asset, self.swapDeposits[_asset]);
+        return collateralAmountRead(_asset, self.swapDeposits[_asset]);
     }
 
     /**
@@ -290,8 +286,8 @@ library LibSCDP {
         uint256 _amountIn,
         address _assetsFrom
     ) internal returns (uint256 valueIn) {
-        uint256 debt = Rebase.getKreskoAssetAmount(_assetIn, self.debt[_assetIn]);
-        valueIn = getKrAssetValue(_assetIn, _amountIn, true); // ignore kFactor here
+        uint256 debt = kreskoAssetAmount(_assetIn, self.debt[_assetIn]);
+        valueIn = krAssetAmountToValue(_assetIn, _amountIn, true); // ignore kFactor here
 
         uint256 collateralIn; // assets used increase "swap" owned collateral
         uint256 debtOut; // assets used to burn debt
@@ -317,7 +313,7 @@ library LibSCDP {
         // }
 
         if (collateralIn > 0) {
-            uint256 collateralInInternal = Rebase.getCollateralAmountWrite(_assetIn, collateralIn);
+            uint256 collateralInInternal = collateralAmountWrite(_assetIn, collateralIn);
             // 1. Increase collateral deposits.
             self.totalDeposits[_assetIn] += collateralInInternal;
             // 2. Increase "swap" collateral.
@@ -371,7 +367,7 @@ library LibSCDP {
         }
 
         if (collateralOut > 0) {
-            uint256 amountOutInternal = Rebase.getCollateralAmountWrite(_assetOut, collateralOut);
+            uint256 amountOutInternal = collateralAmountWrite(_assetOut, collateralOut);
             // 1. Decrease collateral deposits.
             self.totalDeposits[_assetOut] -= amountOutInternal;
             // 2. Decrease "swap" owned collateral.

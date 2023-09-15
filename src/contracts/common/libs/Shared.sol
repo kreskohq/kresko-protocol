@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19;
 
-import {ms} from "minter/libs/LibMinterBig.sol";
+import {ms} from "minter/libs/LibMinter.sol";
 import {scdp} from "scdp/libs/LibSCDP.sol";
 import {sdi} from "scdp/libs/LibSDI.sol";
 import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
 import {KrAsset, CollateralAsset} from "common/libs/Assets.sol";
 import {WadRay} from "common/libs/WadRay.sol";
-import {toWad} from "common/Functions.sol";
-import {Rebase} from "common/libs/Rebase.sol";
+import "minter/libs/Conversions.sol";
 
 // Storage position
 
@@ -48,7 +47,7 @@ library Shared {
         uint256 burnAmount,
         bool ignoreFactors
     ) internal view returns (uint256 shares) {
-        return ms().getKrAssetUSD(asset, burnAmount, ignoreFactors).wadDiv(SDIPrice());
+        return krAssetAmountToValue(asset, burnAmount, ignoreFactors).wadDiv(SDIPrice());
     }
 
     /// @notice Preview how many SDI are minted when minting krAssets.
@@ -57,7 +56,7 @@ library Shared {
         uint256 mintAmount,
         bool ignoreFactors
     ) internal view returns (uint256 shares) {
-        return ms().getKrAssetUSD(asset, mintAmount, ignoreFactors).wadDiv(SDIPrice());
+        return krAssetAmountToValue(asset, mintAmount, ignoreFactors).wadDiv(SDIPrice());
     }
 
     function oracleDeviationPct() internal view returns (uint256) {
@@ -106,7 +105,7 @@ library Shared {
         address[] memory assets = scdp().krAssets;
         for (uint256 i; i < assets.length; ) {
             address asset = assets[i];
-            value += getKrAssetValue(asset, Rebase.getKreskoAssetAmount(asset, scdp().debt[asset]), _ignorekFactor);
+            value += krAssetAmountToValue(asset, kreskoAssetAmount(asset, scdp().debt[asset]), _ignorekFactor);
             unchecked {
                 i++;
             }
@@ -151,11 +150,7 @@ library Shared {
         address[] memory assets = scdp().collaterals;
         for (uint256 i; i < assets.length; ) {
             address asset = assets[i];
-            (uint256 assetValue, ) = ms().getCollateralValueAndPrice(
-                asset,
-                scdp().getPoolDeposits(asset),
-                _ignoreFactors
-            );
+            (uint256 assetValue, ) = collateralAmountToValue(asset, scdp().getPoolDeposits(asset), _ignoreFactors);
             value += assetValue;
 
             unchecked {
@@ -179,7 +174,7 @@ library Shared {
         address[] memory assets = scdp().collaterals;
         for (uint256 i; i < assets.length; ) {
             address asset = assets[i];
-            (uint256 assetValue, uint256 price) = ms().getCollateralValueAndPrice(
+            (uint256 assetValue, uint256 price) = collateralAmountToValue(
                 asset,
                 scdp().getPoolDeposits(asset),
                 _ignoreFactors
@@ -211,7 +206,7 @@ library Shared {
         address[] memory assets = scdp().collaterals;
         for (uint256 i; i < assets.length; ) {
             address asset = assets[i];
-            (uint256 assetValue, ) = ms().getCollateralValueAndPrice(
+            (uint256 assetValue, ) = collateralAmountToValue(
                 asset,
                 scdp().getAccountPrincipalDeposits(_account, asset),
                 _ignoreFactors
@@ -234,7 +229,7 @@ library Shared {
         address[] memory assets = scdp().collaterals;
         for (uint256 i; i < assets.length; ) {
             address asset = assets[i];
-            (uint256 assetValue, ) = ms().getCollateralValueAndPrice(
+            (uint256 assetValue, ) = collateralAmountToValue(
                 asset,
                 scdp().getAccountDepositsWithFees(_account, asset),
                 true

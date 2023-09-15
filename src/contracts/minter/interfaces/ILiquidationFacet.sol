@@ -34,6 +34,7 @@ interface ILiquidationFacet {
      * @param seizeAssetIndex The index of the collateral asset in the account's collateral assets array.
      * @param allowSeizeUnderflow Allow the amount of collateral to be seized to be less than the amount calculated.
      */
+
     struct ExecutionParams {
         address account;
         uint256 repayAmount;
@@ -64,5 +65,5 @@ interface ILiquidationFacet {
      * @param _account The account to check.
      * @return A boolean indicating if the account can be liquidated.
      */
-    function isAccountLiquidatable(address _account) external view returns (bool);
+    function isLiquidatable(address _account) external view returns (bool);
 }

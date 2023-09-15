@@ -4,10 +4,11 @@ pragma solidity >=0.8.19;
 import {IAccountStateFacet} from "../interfaces/IAccountStateFacet.sol";
 import {Error} from "common/Errors.sol";
 import {WadRay} from "common/libs/WadRay.sol";
-import {ms, Fee} from "../libs/LibMinterBig.sol";
+import {ms, Fee} from "minter/libs/LibMinter.sol";
 import {Shared} from "common/libs/Shared.sol";
 import {KrAsset} from "common/libs/Assets.sol";
-import {fromWad} from "common/Functions.sol";
+import "minter/libs/Conversions.sol";
+import {fromWad} from "common/funcs/Conversions.sol";
 
 /**
  * @author Kresko
@@ -25,23 +26,23 @@ contract AccountStateFacet is IAccountStateFacet {
     /* -------------------------------------------------------------------------- */
 
     /// @inheritdoc IAccountStateFacet
-    function getMintIndex(address _account, address _kreskoAsset) external view returns (uint256) {
-        return ms().mintIndex(_account, _kreskoAsset);
+    function getAccountMintIndex(address _account, address _kreskoAsset) external view returns (uint256) {
+        return ms().accountMintIndex(_account, _kreskoAsset);
     }
 
     /// @inheritdoc IAccountStateFacet
-    function getMintedKreskoAssets(address _account) external view returns (address[] memory) {
+    function getAccountMintedAssets(address _account) external view returns (address[] memory) {
         return ms().mintedKreskoAssets[_account];
     }
 
     /// @inheritdoc IAccountStateFacet
-    function getAccountKrAssetValue(address _account) external view returns (uint256) {
-        return ms().getAccountKrAssetValue(_account);
+    function getAccountDebtValue(address _account) external view returns (uint256) {
+        return ms().accountDebtValue(_account);
     }
 
     /// @inheritdoc IAccountStateFacet
-    function kreskoAssetDebt(address _account, address _asset) external view returns (uint256) {
-        return ms().getKreskoAssetDebtPrincipal(_account, _asset);
+    function getAccountDebtOf(address _account, address _asset) external view returns (uint256) {
+        return ms().accountDebtAmount(_account, _asset);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -49,18 +50,18 @@ contract AccountStateFacet is IAccountStateFacet {
     /* -------------------------------------------------------------------------- */
 
     /// @inheritdoc IAccountStateFacet
-    function getDepositedCollateralAssets(address _account) external view returns (address[] memory) {
+    function getAccountCollateralAssets(address _account) external view returns (address[] memory) {
         return ms().depositedCollateralAssets[_account];
     }
 
     /// @inheritdoc IAccountStateFacet
-    function collateralDeposits(address _account, address _asset) external view returns (uint256) {
-        return ms().getCollateralDeposits(_account, _asset);
+    function getAccountCollateralAmount(address _account, address _asset) external view returns (uint256) {
+        return ms().accountCollateralAmount(_account, _asset);
     }
 
     /// @inheritdoc IAccountStateFacet
-    function getDepositIndex(address _account, address _collateralAsset) external view returns (uint256 i) {
-        return ms().depositIndex(_account, _collateralAsset);
+    function getAccountDepositIndex(address _account, address _collateralAsset) external view returns (uint256 i) {
+        return ms().accountDepositIndex(_account, _collateralAsset);
     }
 
     /// @inheritdoc IAccountStateFacet
@@ -69,8 +70,8 @@ contract AccountStateFacet is IAccountStateFacet {
     }
 
     /// @inheritdoc IAccountStateFacet
-    function getAccountMinimumCollateralValueAtRatio(address _account, uint256 _ratio) public view returns (uint256) {
-        return ms().getAccountMinimumCollateralValueAtRatio(_account, _ratio);
+    function getAccountMinCollateralAtRatio(address _account, uint256 _ratio) public view returns (uint256) {
+        return ms().accountMinCollateralAtRatio(_account, _ratio);
     }
 
     /// @inheritdoc IAccountStateFacet
@@ -79,20 +80,20 @@ contract AccountStateFacet is IAccountStateFacet {
         if (collateralValue == 0) {
             return 0;
         }
-        uint256 krAssetValue = ms().getAccountKrAssetValue(_account);
-        if (krAssetValue == 0) {
+        uint256 debtValue = ms().accountDebtValue(_account);
+        if (debtValue == 0) {
             return 0;
         }
-        ratio = collateralValue.wadDiv(krAssetValue);
+
+        ratio = collateralValue.wadDiv(debtValue);
     }
 
     /// @inheritdoc IAccountStateFacet
-    function getCollateralAdjustedAndRealValue(
+    function getAccountCollateralValueOf(
         address _account,
         address _asset
     ) external view returns (uint256 adjustedValue, uint256 realValue) {
-        uint256 depositAmount = ms().getCollateralDeposits(_account, _asset);
-        return ms().getCollateralValueAndPrice(_asset, depositAmount, false);
+        return collateralAmountToValue(_asset, ms().accountCollateralAmount(_account, _asset), false);
     }
 
     /// @inheritdoc IAccountStateFacet
@@ -105,7 +106,7 @@ contract AccountStateFacet is IAccountStateFacet {
     }
 
     /// @inheritdoc IAccountStateFacet
-    function calcExpectedFee(
+    function previewFee(
         address _account,
         address _kreskoAsset,
         uint256 _kreskoAssetAmount,
@@ -134,10 +135,10 @@ contract AccountStateFacet is IAccountStateFacet {
         for (uint256 i = accountCollateralAssets.length - 1; i >= 0; i--) {
             address collateralAssetAddress = accountCollateralAssets[i];
 
-            uint256 depositAmount = ms().getCollateralDeposits(_account, collateralAssetAddress);
+            uint256 depositAmount = ms().accountCollateralAmount(_account, collateralAssetAddress);
 
             // Don't take the collateral asset's collateral factor into consideration.
-            (uint256 depositValue, uint256 oraclePrice) = ms().getCollateralValueAndPrice(
+            (uint256 depositValue, uint256 oraclePrice) = collateralAmountToValue(
                 collateralAssetAddress,
                 depositAmount,
                 true

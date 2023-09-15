@@ -6,7 +6,7 @@ import {IERC20Permit} from "common/IERC20Permit.sol";
 import {AggregatorV3Interface} from "common/AggregatorV3Interface.sol";
 import {WadRay} from "common/libs/WadRay.sol";
 import {Shared} from "common/libs/Shared.sol";
-import {usdWad} from "common/Functions.sol";
+import {usdWad} from "common/funcs/Prices.sol";
 
 /**
  * @notice Asset struct for cover assets

@@ -14,6 +14,8 @@ import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {KreskoAssetAnchor} from "kresko-asset/KreskoAssetAnchor.sol";
 import {MockSequencerUptimeFeed} from "test/MockSequencerUptimeFeed.sol";
 
+// solhint-disable
+
 contract SDITest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
     using LibTest for *;
     address internal admin = address(0xABABAB);

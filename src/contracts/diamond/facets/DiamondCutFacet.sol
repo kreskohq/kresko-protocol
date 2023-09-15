@@ -17,7 +17,7 @@ contract DiamondCutFacet is IDiamondCutFacet, DiamondModifiers {
         address _init,
         bytes calldata _calldata
     ) external onlyRole(Role.ADMIN) {
-        ds().diamondCut(_diamondCut, _init, _calldata);
+        ds().cut(_diamondCut, _init, _calldata);
     }
 
     /// @inheritdoc IDiamondCutFacet

@@ -31,7 +31,7 @@ contract Funder {
     }
 
     function isEligible(address account) public view returns (bool) {
-        return account.balance < 0.001 ether && kresko.getAccountKrAssetValue(account) > 0 && !funded[account];
+        return account.balance < 0.001 ether && kresko.getAccountDebtValue(account) > 0 && !funded[account];
     }
 
     function distribute(address[] calldata accounts, uint256 ethAmount) external {

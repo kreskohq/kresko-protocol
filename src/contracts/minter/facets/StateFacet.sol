@@ -2,7 +2,10 @@
 pragma solidity >=0.8.19;
 
 import {IStateFacet} from "../interfaces/IStateFacet.sol";
-import {MinterState, ms, MinterParams, KrAsset, CollateralAsset} from "../libs/LibMinterBig.sol";
+import {KrAsset, CollateralAsset} from "common/libs/Assets.sol";
+import {MinterState, ms, MinterParams} from "minter/libs/LibMinter.sol";
+import {krAssetAmountToValue, collateralAmountToValue} from "minter/libs/Conversions.sol";
+import {ds} from "diamond/libs/LibDiamond.sol";
 
 /**
  * @author Kresko
@@ -12,59 +15,59 @@ import {MinterState, ms, MinterParams, KrAsset, CollateralAsset} from "../libs/L
 contract StateFacet is IStateFacet {
     /// @inheritdoc IStateFacet
     function domainSeparator() external view returns (bytes32) {
-        return ms().domainSeparator;
+        return ds().diamondDomainSeparator;
     }
 
     /// @inheritdoc IStateFacet
-    function minterInitializations() external view returns (uint256) {
-        return ms().initializations;
+    function getStorageVersion() external view returns (uint256) {
+        return ds().storageVersion;
     }
 
     /* -------------------------------------------------------------------------- */
     /*                                Configurables                               */
     /* -------------------------------------------------------------------------- */
     /// @inheritdoc IStateFacet
-    function feeRecipient() external view returns (address) {
+    function getFeeRecipient() external view returns (address) {
         return ms().feeRecipient;
     }
 
     /// @inheritdoc IStateFacet
-    function extOracleDecimals() external view returns (uint8) {
+    function getExtOracleDecimals() external view returns (uint8) {
         return ms().extOracleDecimals;
     }
 
     /// @inheritdoc IStateFacet
-    function minimumCollateralizationRatio() external view returns (uint256) {
-        return ms().minimumCollateralizationRatio;
+    function getMinCollateralRatio() external view returns (uint256) {
+        return ms().minCollateralRatio;
     }
 
     /// @inheritdoc IStateFacet
-    function minimumDebtValue() external view returns (uint256) {
-        return ms().minimumDebtValue;
+    function getMinDebtValue() external view returns (uint256) {
+        return ms().minDebtValue;
     }
 
     /// @inheritdoc IStateFacet
-    function liquidationThreshold() external view returns (uint256) {
+    function getLiquidationThreshold() external view returns (uint256) {
         return ms().liquidationThreshold;
     }
 
     /// @inheritdoc IStateFacet
-    function maxLiquidationMultiplier() external view returns (uint256) {
+    function getMaxLiquidationMultiplier() external view returns (uint256) {
         return ms().maxLiquidationMultiplier;
     }
 
     /// @inheritdoc IStateFacet
-    function oracleDeviationPct() external view returns (uint256) {
+    function getOracleDeviationPct() external view returns (uint256) {
         return ms().oracleDeviationPct;
     }
 
     /// @inheritdoc IStateFacet
-    function getAllParams() external view returns (MinterParams memory) {
+    function getCurrentParameters() external view returns (MinterParams memory) {
         MinterState storage s = ms();
         return
             MinterParams(
-                s.minimumCollateralizationRatio,
-                s.minimumDebtValue,
+                s.minCollateralRatio,
+                s.minDebtValue,
                 s.liquidationThreshold,
                 s.maxLiquidationMultiplier,
                 s.feeRecipient,
@@ -77,7 +80,7 @@ contract StateFacet is IStateFacet {
     /*                                   Assets                                   */
     /* -------------------------------------------------------------------------- */
     /// @inheritdoc IStateFacet
-    function krAssetExists(address _kreskoAsset) external view returns (bool exists) {
+    function getKrAssetExists(address _kreskoAsset) external view returns (bool exists) {
         return ms().kreskoAssets[_kreskoAsset].exists;
     }
 
@@ -87,7 +90,7 @@ contract StateFacet is IStateFacet {
     }
 
     /// @inheritdoc IStateFacet
-    function collateralExists(address _collateralAsset) external view returns (bool exists) {
+    function getCollateralExists(address _collateralAsset) external view returns (bool exists) {
         return ms().collateralAssets[_collateralAsset].exists;
     }
 
@@ -97,20 +100,20 @@ contract StateFacet is IStateFacet {
     }
 
     /// @inheritdoc IStateFacet
-    function getCollateralValueAndOraclePrice(
+    function getCollateralAmountToValue(
         address _collateralAsset,
         uint256 _amount,
         bool _ignoreCollateralFactor
     ) external view returns (uint256 value, uint256 oraclePrice) {
-        return ms().getCollateralValueAndPrice(_collateralAsset, _amount, _ignoreCollateralFactor);
+        return collateralAmountToValue(_collateralAsset, _amount, _ignoreCollateralFactor);
     }
 
     /// @inheritdoc IStateFacet
-    function getKrAssetValue(
+    function getDebtAmountToValue(
         address _kreskoAsset,
         uint256 _amount,
         bool _ignoreKFactor
     ) external view returns (uint256 value) {
-        return ms().getKrAssetUSD(_kreskoAsset, _amount, _ignoreKFactor);
+        return krAssetAmountToValue(_kreskoAsset, _amount, _ignoreKFactor);
     }
 }

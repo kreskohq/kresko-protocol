@@ -1,10 +1,92 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {MinterInitArgs, KrAsset, CollateralAsset} from "minter/libs/LibMinterBig.sol";
+import {MinterInitArgs, KrAsset, CollateralAsset} from "minter/libs/LibMinter.sol";
+import {IKISS} from "kiss/interfaces/IKISS.sol";
 
 interface IConfigurationFacet {
     function initialize(MinterInitArgs calldata args) external;
+
+    /**
+     * @notice Updates the fee recipient.
+     * @param _newFeeRecipient The new fee recipient.
+     */
+    function updateFeeRecipient(address _newFeeRecipient) external;
+
+    /**
+     * @notice Updates the liquidation incentive multiplier.
+     * @param _collateralAsset The collateral asset to update.
+     * @param _newLiquidationIncentive The new liquidation incentive multiplier for the asset.
+     */
+    function updateLiquidationIncentiveOf(address _collateralAsset, uint256 _newLiquidationIncentive) external;
+
+    /**
+     * @notice  Updates the cFactor of a KreskoAsset.
+     * @param _collateralAsset The collateral asset.
+     * @param _newFactor The new collateral factor.
+     */
+    function updateCollateralFactor(address _collateralAsset, uint256 _newFactor) external;
+
+    /**
+     * @notice Updates the kFactor of a KreskoAsset.
+     * @param _kreskoAsset The KreskoAsset.
+     * @param _kFactor The new kFactor.
+     */
+    function updateKFactor(address _kreskoAsset, uint256 _kFactor) external;
+
+    /**
+     * @dev Updates the contract's collateralization ratio.
+     * @param _newMinCollateralRatio The new minimum collateralization ratio as wad.
+     */
+    function updateMinCollateralRatio(uint256 _newMinCollateralRatio) external;
+
+    /**
+     * @dev Updates the contract's minimum debt value.
+     * @param _newMinDebtValue The new minimum debt value as a wad.
+     */
+    function updateMinDebtValue(uint256 _newMinDebtValue) external;
+
+    /**
+     * @dev Updates the contract's liquidation threshold value
+     * @param _newThreshold The new liquidation threshold value
+     */
+    function updateLiquidationThreshold(uint256 _newThreshold) external;
+
+    /**
+     * @notice Updates the max liquidation usd overflow multiplier value.
+     * @param _maxLiquidationMultiplier Overflow value in percent, 18 decimals.
+     */
+    function updateMaxLiquidationMultiplier(uint256 _maxLiquidationMultiplier) external;
+
+    /**
+     * @notice Sets the decimal precision of external oracle
+     * @param _decimals Amount of decimals
+     */
+    function updateExtOracleDecimals(uint8 _decimals) external;
+
+    /**
+     * @notice Sets the decimal precision of external oracle
+     * @param _oracleDeviationPct Amount of decimals
+     */
+    function updateOracleDeviationPct(uint256 _oracleDeviationPct) external;
+
+    /**
+     * @notice Sets L2 sequencer uptime feed address
+     * @param _sequencerUptimeFeed sequencer uptime feed address
+     */
+    function updateSequencerUptimeFeed(address _sequencerUptimeFeed) external;
+
+    /**
+     * @notice Sets sequencer grace period time
+     * @param _sequencerGracePeriodTime grace period time
+     */
+    function updateSequencerGracePeriodTime(uint256 _sequencerGracePeriodTime) external;
+
+    /**
+     * @notice Sets oracle timeout
+     * @param _oracleTimeout oracle timeout in seconds
+     */
+    function updateOracleTimeout(uint256 _oracleTimeout) external;
 
     /**
      * @notice Adds a collateral asset to the protocol.
@@ -37,88 +119,4 @@ interface IConfigurationFacet {
      * @param _config Configuration for the KreskoAsset.
      */
     function updateKreskoAsset(address _krAsset, KrAsset memory _config) external;
-
-    /**
-     * @notice Updates the fee recipient.
-     * @param _feeRecipient The new fee recipient.
-     */
-    function updateFeeRecipient(address _feeRecipient) external;
-
-    /**
-     * @notice  Updates the cFactor of a KreskoAsset.
-     * @param _collateralAsset The collateral asset.
-     * @param _cFactor The new cFactor.
-     */
-    function updateCFactor(address _collateralAsset, uint256 _cFactor) external;
-
-    /**
-     * @notice Updates the kFactor of a KreskoAsset.
-     * @param _kreskoAsset The KreskoAsset.
-     * @param _kFactor The new kFactor.
-     */
-    function updateKFactor(address _kreskoAsset, uint256 _kFactor) external;
-
-    /**
-     * @notice Updates the liquidation incentive multiplier.
-     * @param _collateralAsset The collateral asset to update it for.
-     * @param _liquidationIncentiveMultiplier The new liquidation incentive multiplie.
-     */
-    function updateLiquidationIncentiveMultiplier(
-        address _collateralAsset,
-        uint256 _liquidationIncentiveMultiplier
-    ) external;
-
-    /**
-     * @notice Updates the max liquidation usd overflow multiplier value.
-     * @param _maxLiquidationMultiplier Overflow value in percent, 18 decimals.
-     */
-    function updateMaxLiquidationMultiplier(uint256 _maxLiquidationMultiplier) external;
-
-    /**
-     * @dev Updates the contract's collateralization ratio.
-     * @param _minimumCollateralizationRatio The new minimum collateralization ratio as wad.
-     */
-    function updateMinimumCollateralizationRatio(uint256 _minimumCollateralizationRatio) external;
-
-    /**
-     * @dev Updates the contract's minimum debt value.
-     * @param _minimumDebtValue The new minimum debt value as a wad.
-     */
-    function updateMinimumDebtValue(uint256 _minimumDebtValue) external;
-
-    /**
-     * @dev Updates the contract's liquidation threshold value
-     * @param _liquidationThreshold The new liquidation threshold value
-     */
-    function updateLiquidationThreshold(uint256 _liquidationThreshold) external;
-
-    /**
-     * @notice Sets the decimal precision of external oracle
-     * @param _decimals Amount of decimals
-     */
-    function updateExtOracleDecimals(uint8 _decimals) external;
-
-    /**
-     * @notice Sets the decimal precision of external oracle
-     * @param _oracleDeviationPct Amount of decimals
-     */
-    function updateOracleDeviationPct(uint256 _oracleDeviationPct) external;
-
-    /**
-     * @notice Sets L2 sequencer uptime feed address
-     * @param _sequencerUptimeFeed sequencer uptime feed address
-     */
-    function updateSequencerUptimeFeed(address _sequencerUptimeFeed) external;
-
-    /**
-     * @notice Sets sequencer grace period time
-     * @param _sequencerGracePeriodTime grace period time
-     */
-    function updateSequencerGracePeriodTime(uint256 _sequencerGracePeriodTime) external;
-
-    /**
-     * @notice Sets oracle timeout
-     * @param _oracleTimeout oracle timeout in seconds
-     */
-    function updateOracleTimeout(uint256 _oracleTimeout) external;
 }

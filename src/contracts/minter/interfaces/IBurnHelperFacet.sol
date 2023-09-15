@@ -15,7 +15,7 @@ interface IBurnHelperFacet {
      * @notice Account must have enough of krAsset balance to burn and enough KISS to cover interest
      * @param _account The address to close the positions for
      */
-    function batchCloseKrAssetDebtPositions(address _account) external;
+    function closeAllDebtPositions(address _account) external;
 
     /**
      * @notice Burns all Kresko asset debt and repays interest.
@@ -23,5 +23,5 @@ interface IBurnHelperFacet {
      * @param _account The address to close the position for
      * @param _kreskoAsset The address of the Kresko asset.
      */
-    function closeKrAssetDebtPosition(address _account, address _kreskoAsset) external;
+    function closeDebtPosition(address _account, address _kreskoAsset) external;
 }

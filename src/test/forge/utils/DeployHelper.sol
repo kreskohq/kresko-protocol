@@ -32,7 +32,7 @@ import {IKresko} from "common/IKresko.sol";
 import {MockOracle} from "test/MockOracle.sol";
 import {MockERC20} from "test/MockERC20.sol";
 import {AggregatorV3Interface} from "common/AggregatorV3Interface.sol";
-import {MinterInitArgs, KrAsset, CollateralAsset} from "minter/libs/LibMinterBig.sol";
+import {MinterInitArgs, KrAsset, CollateralAsset} from "minter/libs/LibMinter.sol";
 
 import {GnosisSafeL2} from "vendor/gnosis/GnosisSafeL2.sol";
 import {GnosisSafeProxyFactory, GnosisSafeProxy} from "vendor/gnosis/GnosisSafeProxyFactory.sol";
@@ -54,8 +54,8 @@ abstract contract DeployHelper is RedstoneHelper {
         init.treasury = TREASURY;
         init.council = address(LibSafe.createSafe(admin));
         init.extOracleDecimals = 8;
-        init.minimumCollateralizationRatio = 1.5e18;
-        init.minimumDebtValue = 10e8;
+        init.minCollateralRatio = 1.5e18;
+        init.minDebtValue = 10e8;
         init.liquidationThreshold = 1.4e18;
         init.oracleDeviationPct = 0.01e18;
         init.sequencerUptimeFeed = sequencerUptimeFeed;
@@ -72,21 +72,21 @@ abstract contract DeployHelper is RedstoneHelper {
 
         kresko = IKresko(address(new Diamond(admin, _diamondFacets, diamondInit)));
 
-        /* ------------------------------ MinterFacets ------------------------------ */
+        // /* ------------------------------ MinterFacets ------------------------------ */
         (IDiamondCutFacet.FacetCut[] memory _minterFacets, Diamond.Initialization memory minterInit) = minterFacets(
             admin,
             sequencerUptimeFeed
         );
         kresko.diamondCut(_minterFacets, minterInit.initContract, minterInit.initData);
 
-        /* ------------------------------- SCDPFacets ------------------------------- */
+        // /* ------------------------------- SCDPFacets ------------------------------- */
 
         (IDiamondCutFacet.FacetCut[] memory _scdpFacets, Diamond.Initialization memory scdpInit) = scdpFacets();
         kresko.diamondCut(_scdpFacets, scdpInit.initContract, scdpInit.initData);
 
-        /* -------------------------------------------------------------------------- */
-        /*                                  SDIFacet                                  */
-        /* -------------------------------------------------------------------------- */
+        // /* -------------------------------------------------------------------------- */
+        // /*                                  SDIFacet                                  */
+        // /* -------------------------------------------------------------------------- */
 
         (IDiamondCutFacet.FacetCut[] memory _sdiFacets, Diamond.Initialization memory sdiInit) = sdiFacets(
             address(this)

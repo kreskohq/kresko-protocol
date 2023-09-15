@@ -10,7 +10,7 @@ pragma solidity >=0.8.19;
 /* solhint-disable func-visibility */
 
 import {LibUI} from "minter/libs/LibUI.sol";
-import {ms} from "minter/libs/LibMinterBig.sol";
+import {ms} from "minter/libs/LibMinter.sol";
 
 /**
  * @author Kresko
@@ -33,8 +33,8 @@ contract UIDataProviderFacet2 {
         collateralAssets = LibUI.collateralAssetInfos(_collateralAssets);
         krAssets = LibUI.krAssetInfos(_krAssets);
         protocolParams = LibUI.ProtocolParams({
-            minCollateralRatio: ms().minimumCollateralizationRatio,
-            minDebtValue: ms().minimumDebtValue,
+            minCollateralRatio: ms().minCollateralRatio,
+            minDebtValue: ms().minDebtValue,
             liquidationThreshold: ms().liquidationThreshold
         });
     }

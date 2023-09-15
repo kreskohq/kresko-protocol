@@ -2,7 +2,7 @@
 pragma solidity >=0.8.19;
 
 import {IDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
-import {Action} from "minter/libs/LibMinterBig.sol";
+import {Action} from "minter/libs/LibMinter.sol";
 
 /* solhint-disable var-name-mixedcase */
 struct Kek {
@@ -287,19 +287,19 @@ library MinterEvent {
      * @notice Emitted when the liquidation overflow multiplier is updated.
      * @param maxLiquidationMultiplier The new liquidation overflow multiplier value.
      */
-    event maxLiquidationMultiplierUpdated(uint256 maxLiquidationMultiplier);
+    event MaxLiquidationMultiplierUpdated(uint256 maxLiquidationMultiplier);
 
     /**
      * @notice Emitted when the minimum collateralization ratio is updated.
-     * @param minimumCollateralizationRatio The new minimum collateralization ratio raw value.
+     * @param minCollateralRatio The new minimum collateralization ratio raw value.
      */
-    event MinimumCollateralizationRatioUpdated(uint256 minimumCollateralizationRatio);
+    event MinimumCollateralizationRatioUpdated(uint256 minCollateralRatio);
 
     /**
      * @notice Emitted when the minimum debt value updated.
-     * @param minimumDebtValue The new minimum debt value.
+     * @param minDebtValue The new minimum debt value.
      */
-    event MinimumDebtValueUpdated(uint256 minimumDebtValue);
+    event MinimumDebtValueUpdated(uint256 minDebtValue);
 
     /**
      * @notice Emitted when the liquidation threshold value is updated

@@ -24,7 +24,7 @@ contract Diamond {
         Initialization[] memory _initializations
     ) {
         ds().initialize(_owner);
-        ds().diamondCut(_diamondCut, address(0), "");
+        ds().cut(_diamondCut, address(0), "");
         Authorization._grantRole(Role.ADMIN, _owner);
 
         for (uint256 i = 0; i < _initializations.length; i++) {

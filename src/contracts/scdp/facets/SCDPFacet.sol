@@ -6,15 +6,15 @@ import {Error} from "common/Errors.sol";
 import {WadRay} from "common/libs/WadRay.sol";
 
 import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
-import {ms} from "minter/libs/LibMinterBig.sol";
+import {ms} from "minter/libs/LibMinter.sol";
 import {CollateralAsset, KrAsset} from "common/libs/Assets.sol";
 import {Shared} from "common/libs/Shared.sol";
 import {sdi} from "scdp/libs/LibSDI.sol";
-import {LibLiquidation} from "minter/libs/LibLiquidation.sol";
+import {Liquidations} from "minter/libs/Liquidations.sol";
 import {scdp, PoolKrAsset} from "scdp/libs/LibSCDP.sol";
 import {ISCDPFacet} from "../interfaces/ISCDPFacet.sol";
-import {Rebase} from "common/libs/Rebase.sol";
-import {fromWad} from "common/Functions.sol";
+import {fromWad} from "common/funcs/Conversions.sol";
+import {collateralAmountWrite} from "minter/libs/Conversions.sol";
 
 contract SCDPFacet is ISCDPFacet, DiamondModifiers {
     using SafeERC20 for IERC20Permit;
@@ -37,7 +37,7 @@ contract SCDPFacet is ISCDPFacet, DiamondModifiers {
         (uint256 collateralOut, uint256 feesOut) = scdp().recordPoolWithdraw(msg.sender, _collateralAsset, _amount);
 
         // ensure that global pool is left with CR over MCR.
-        require(Shared.checkSCDPRatioWithdrawal(scdp().minimumCollateralizationRatio), "withdraw-mcr-violation");
+        require(Shared.checkSCDPRatioWithdrawal(scdp().minCollateralRatio), "withdraw-mcr-violation");
         // Send out the collateral.
         IERC20Permit(_collateralAsset).safeTransfer(_account, collateralOut + feesOut);
 
@@ -57,7 +57,7 @@ contract SCDPFacet is ISCDPFacet, DiamondModifiers {
 
         scdp().debt[_repayKrAsset] -= sdi().repaySwap(_repayKrAsset, _repayAmount, msg.sender);
 
-        uint256 seizedAmountInternal = Rebase.getCollateralAmountWrite(_repayKrAsset, seizedAmount);
+        uint256 seizedAmountInternal = collateralAmountWrite(_repayKrAsset, seizedAmount);
         scdp().swapDeposits[_seizeCollateral] -= seizedAmountInternal;
         scdp().totalDeposits[_seizeCollateral] -= seizedAmountInternal;
 
@@ -66,13 +66,12 @@ contract SCDPFacet is ISCDPFacet, DiamondModifiers {
     }
 
     function poolIsLiquidatable() external view returns (bool) {
-        return LibLiquidation.isSCDPLiquidatable();
+        return Liquidations.isSCDPLiquidatable();
     }
 
     function getMaxLiquidationSCDP(address _kreskoAsset, address _seizeCollateral) external view returns (uint256) {
         return
-            LibLiquidation.getMaxLiquidationShared(
-                ms(),
+            Liquidations.maxLiquidatableValueSCDP(
                 scdp().poolKrAsset[_kreskoAsset],
                 ms().kreskoAssets[_kreskoAsset],
                 _seizeCollateral
@@ -86,7 +85,7 @@ contract SCDPFacet is ISCDPFacet, DiamondModifiers {
         address _seizeCollateral
     ) external nonReentrant {
         require(scdp().debt[_repayKrAsset] >= _repayAmount, "liquidate-too-much");
-        require(LibLiquidation.isSCDPLiquidatable(), "not-liquidatable");
+        require(Liquidations.isSCDPLiquidatable(), "not-liquidatable");
 
         KrAsset memory krAsset = ms().kreskoAssets[_repayKrAsset];
         PoolKrAsset memory poolKrAsset = scdp().poolKrAsset[_repayKrAsset];
@@ -94,13 +93,13 @@ contract SCDPFacet is ISCDPFacet, DiamondModifiers {
         uint256 repayAmountUSD = krAsset.uintUSD(_repayAmount, ms().oracleDeviationPct);
 
         require(
-            LibLiquidation.getMaxLiquidationShared(ms(), poolKrAsset, krAsset, _seizeCollateral) >= repayAmountUSD,
+            Liquidations.maxLiquidatableValueSCDP(poolKrAsset, krAsset, _seizeCollateral) >= repayAmountUSD,
             Error.LIQUIDATION_OVERFLOW
         );
 
         uint256 seizeAmount = fromWad(
             collateral.decimals,
-            LibLiquidation.calculateAmountToSeize(
+            Liquidations.calcSeizeAmount(
                 poolKrAsset.liquidationIncentive,
                 collateral.uintPrice(ms().oracleDeviationPct),
                 repayAmountUSD

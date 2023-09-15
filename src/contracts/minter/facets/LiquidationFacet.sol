@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
 
-// solhint-disable not-rely-on-time
+pragma solidity >=0.8.19;
 
 import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
 import {ILiquidationFacet} from "minter/interfaces/ILiquidationFacet.sol";
@@ -14,18 +13,18 @@ import {SafeERC20} from "common/SafeERC20.sol";
 import {IERC20Permit} from "common/IERC20Permit.sol";
 
 import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
-import {LibLiquidation} from "minter/libs/LibLiquidation.sol";
-import {KrAsset, CollateralAsset, ms, MinterState} from "minter/libs/LibMinterBig.sol";
+import {Liquidations} from "minter/libs/Liquidations.sol";
+import {KrAsset, CollateralAsset} from "common/libs/Assets.sol";
+import {ms, MinterState} from "minter/libs/LibMinter.sol";
 import {Constants} from "minter/Constants.sol";
 import {Shared} from "common/libs/Shared.sol";
-import {fromWad} from "common/Functions.sol";
+import {fromWad} from "common/funcs/Conversions.sol";
 
 /**
  * @author Kresko
  * @title LiquidationFacet
  * @notice Main end-user functionality concerning liquidations within the Kresko protocol
  */
-
 contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
     using Arrays for address[];
     using Shared for uint8;
@@ -59,7 +58,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
             // Collateral exists
             require(collateral.exists, Error.COLLATERAL_DOESNT_EXIST);
             // Check that this account is below its minimum collateralization ratio and can be liquidated.
-            require(LibLiquidation.isAccountLiquidatable(s, _account), Error.NOT_LIQUIDATABLE);
+            require(Liquidations.isAccountLiquidatable(_account), Error.NOT_LIQUIDATABLE);
         }
 
         /* ------------------------------ Amount checks ----------------------------- */
@@ -69,13 +68,13 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         // Avoid deep stack
         {
             // Get the principal debt amount
-            uint256 krAssetDebt = s.getKreskoAssetDebtPrincipal(_account, _repayAsset);
+            uint256 krAssetDebt = s.accountDebtAmount(_account, _repayAsset);
 
             // Cannot liquidate more than the account's debt
             require(krAssetDebt >= _repayAmount, Error.KRASSET_BURN_AMOUNT_OVERFLOW);
 
             // We limit liquidations to exactly Liquidation Threshold here.
-            uint256 maxLiquidableUSD = LibLiquidation.getMaxLiquidation(s, _account, krAsset, _seizeAsset);
+            uint256 maxLiquidableUSD = Liquidations.maxLiquidatableValue(_account, krAsset, _seizeAsset);
 
             if (repayAmountUSD > maxLiquidableUSD) {
                 _repayAmount = maxLiquidableUSD.wadDiv(krAsset.uintPrice(s.oracleDeviationPct));
@@ -84,7 +83,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         }
 
         /* ------------------------------- Charge fee ------------------------------- */
-        s.chargeCloseFee(_account, _repayAsset, _repayAmount);
+        s.handleCloseFee(_account, _repayAsset, _repayAmount);
 
         /* -------------------------------- Liquidate ------------------------------- */
         uint256 seizedAmount = _liquidateAssets(
@@ -93,7 +92,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
                 _repayAmount,
                 fromWad(
                     collateral.decimals,
-                    LibLiquidation.calculateAmountToSeize(
+                    Liquidations.calcSeizeAmount(
                         collateral.liquidationIncentive,
                         collateral.uintPrice(s.oracleDeviationPct),
                         repayAmountUSD
@@ -106,7 +105,6 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
                 _allowSeizeUnderflow
             )
         );
-
         /* ---------------------------- Balance transfer ---------------------------- */
         // Send liquidator the seized collateral.
         IERC20Permit(_seizeAsset).safeTransfer(msg.sender, seizedAmount);
@@ -122,7 +120,6 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         );
     }
 
-    /// @notice Execute the liquidation
     function _liquidateAssets(ExecutionParams memory params) internal returns (uint256 seizedAmount) {
         MinterState storage s = ms();
 
@@ -139,7 +136,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         }
 
         // If the liquidation repays entire asset debt, remove from minted assets array.
-        if (s.getKreskoAssetDebtPrincipal(params.account, params.repayAsset) == 0) {
+        if (s.accountDebtAmount(params.account, params.repayAsset) == 0) {
             s.mintedKreskoAssets[params.account].removeAddress(params.repayAsset, params.repayAssetIndex);
         }
 
@@ -147,7 +144,7 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         /*                              Reduce collateral                             */
         /* -------------------------------------------------------------------------- */
 
-        uint256 collateralDeposits = s.getCollateralDeposits(params.account, params.seizedAsset);
+        uint256 collateralDeposits = s.accountCollateralAmount(params.account, params.seizedAsset);
 
         /* ------------------------ Above collateral deposits ----------------------- */
 
@@ -182,8 +179,8 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
     }
 
     /// @inheritdoc ILiquidationFacet
-    function isAccountLiquidatable(address _account) external view returns (bool) {
-        return LibLiquidation.isAccountLiquidatable(ms(), _account);
+    function isLiquidatable(address _account) external view returns (bool) {
+        return Liquidations.isAccountLiquidatable(_account);
     }
 
     /// @inheritdoc ILiquidationFacet
@@ -193,11 +190,6 @@ contract LiquidationFacet is DiamondModifiers, ILiquidationFacet {
         address _collateralAssetToSeize
     ) public view returns (uint256 maxLiquidatableUSD) {
         return
-            LibLiquidation.getMaxLiquidation(
-                ms(),
-                _account,
-                ms().kreskoAssets[_repayKreskoAsset],
-                _collateralAssetToSeize
-            );
+            Liquidations.maxLiquidatableValue(_account, ms().kreskoAssets[_repayKreskoAsset], _collateralAssetToSeize);
     }
 }

@@ -9,7 +9,7 @@ import {Role} from "common/libs/Authorization.sol";
 
 import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
 
-import {ms, Action, SafetyState, Pause} from "../libs/LibMinterBig.sol";
+import {ms, Action, SafetyState, Pause} from "../libs/LibMinter.sol";
 import {MinterModifiers} from "../Modifiers.sol";
 
 /* solhint-disable not-rely-on-time */
