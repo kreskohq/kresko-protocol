@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {SafeERC20, IERC20Permit} from "common/SafeERC20.sol";
-import {WadRay} from "common/libs/WadRay.sol";
-import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
-import {ms} from "minter/libs/LibMinter.sol";
+import {SafeERC20, IERC20Permit} from "vendor/SafeERC20.sol";
+import {WadRay} from "libs/WadRay.sol";
+import {DSModifiers} from "diamond/Modifiers.sol";
+import {ms} from "minter/State.sol";
 
-import {ISCDPSwapFacet} from "../interfaces/ISCDPSwapFacet.sol";
-import {scdp} from "../libs/LibSCDP.sol";
-import {Shared} from "common/libs/Shared.sol";
+import {ISCDPSwapFacet} from "scdp/interfaces/ISCDPSwapFacet.sol";
+import {scdp} from "scdp/State.sol";
 
-contract SCDPSwapFacet is ISCDPSwapFacet, DiamondModifiers {
+contract SCDPSwapFacet is ISCDPSwapFacet, DSModifiers {
     using SafeERC20 for IERC20Permit;
     using WadRay for uint256;
 
@@ -171,7 +170,6 @@ contract SCDPSwapFacet is ISCDPSwapFacet, DiamondModifiers {
         // State modifications done, check MCR and slippage.
         require(_amountOut >= _amountOutMin, "lev-swap-slippage");
         if (_feeAmount != 0) _payFee(scdp().feeAsset, _payAsset, _feeAmount, _protocolFeePct);
-        require(Shared.checkSCDPRatio(scdp().minCollateralRatio), "lev-swap-mcr-violation");
     }
 
     function _payFee(address _feeAsset, address _payAsset, uint256 _feeAmount, uint256 _protocolFeePct) private {

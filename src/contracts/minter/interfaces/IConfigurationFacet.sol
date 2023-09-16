@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {MinterInitArgs, KrAsset, CollateralAsset} from "minter/libs/LibMinter.sol";
-import {IKISS} from "kiss/interfaces/IKISS.sol";
+import {MinterInitArgs, KrAsset, CollateralAsset} from "../Types.sol";
 
 interface IConfigurationFacet {
-    function initialize(MinterInitArgs calldata args) external;
+    function initializeMinter(MinterInitArgs calldata args) external;
 
     /**
      * @notice Updates the fee recipient.

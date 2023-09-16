@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19;
 
-import {IDiamondLoupeFacet} from "../interfaces/IDiamondLoupeFacet.sol";
-import {ds, DiamondState} from "../libs/LibDiamond.sol";
+import {IDiamondLoupeFacet} from "diamond/interfaces/IDiamondLoupeFacet.sol";
+import {ds, DiamondState} from "diamond/State.sol";
+import {Facet} from "diamond/Types.sol";
 
 contract DiamondLoupeFacet is IDiamondLoupeFacet {
     /// @inheritdoc IDiamondLoupeFacet

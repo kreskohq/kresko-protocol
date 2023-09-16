@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {ISafetyCouncilFacet} from "../interfaces/ISafetyCouncilFacet.sol";
-
 import {Error} from "common/Errors.sol";
-import {MinterEvent} from "common/Events.sol";
-import {Role} from "common/libs/Authorization.sol";
+import {Role} from "common/Types.sol";
 
-import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
+import {DSModifiers} from "diamond/Modifiers.sol";
 
-import {ms, Action, SafetyState, Pause} from "../libs/LibMinter.sol";
-import {MinterModifiers} from "../Modifiers.sol";
+import {ISafetyCouncilFacet} from "minter/interfaces/ISafetyCouncilFacet.sol";
+import {MEvent} from "minter/Events.sol";
+import {Action, SafetyState, Pause} from "minter/Types.sol";
+import {MSModifiers} from "minter/Modifiers.sol";
+import {ms} from "minter/State.sol";
 
 /* solhint-disable not-rely-on-time */
 
@@ -19,7 +19,7 @@ import {MinterModifiers} from "../Modifiers.sol";
  * @title SafetyCouncilFacet - protocol safety controls
  * @notice `Role.SAFETY_COUNCIL` must be a multisig.
  */
-contract SafetyCouncilFacet is MinterModifiers, DiamondModifiers, ISafetyCouncilFacet {
+contract SafetyCouncilFacet is MSModifiers, DSModifiers, ISafetyCouncilFacet {
     /// @inheritdoc ISafetyCouncilFacet
     function toggleAssetsPaused(
         address[] calldata _assets,
@@ -51,7 +51,7 @@ contract SafetyCouncilFacet is MinterModifiers, DiamondModifiers, ISafetyCouncil
                 _withDuration ? block.timestamp + _duration : 0
             );
             // Emit the actions taken
-            emit MinterEvent.SafetyStateChange(_action, asset, willPause ? "paused" : "unpaused");
+            emit MEvent.SafetyStateChange(_action, asset, willPause ? "paused" : "unpaused");
         }
     }
 

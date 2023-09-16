@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {Action} from "minter/libs/LibMinter.sol";
-
 interface IAccountStateFacet {
     // ExpectedFeeRuntimeInfo is used for stack size optimization
     struct ExpectedFeeRuntimeInfo {

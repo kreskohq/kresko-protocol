@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
-import {PoolKrAsset, PoolCollateral} from "../libs/LibSCDP.sol";
+import {PoolKrAsset, PoolCollateral} from "scdp/Types.sol";
 
 interface ISCDPConfigFacet {
     /**

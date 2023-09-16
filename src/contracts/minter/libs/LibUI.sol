@@ -2,14 +2,14 @@
 pragma solidity >=0.8.19;
 
 // solhint-disable-next-line
-import {IERC20Permit} from "common/IERC20Permit.sol";
-import {AggregatorV3Interface} from "common/AggregatorV3Interface.sol";
+import {IERC20Permit} from "vendor/IERC20Permit.sol";
+import {AggregatorV3Interface} from "vendor/AggregatorV3Interface.sol";
 import {IKrStaking} from "contracts/staking/interfaces/IKrStaking.sol";
-import {WadRay} from "common/libs/WadRay.sol";
-import {ms} from "./LibMinter.sol";
-import {Shared} from "common/libs/Shared.sol";
-import {KrAsset, CollateralAsset} from "common/libs/Assets.sol";
-import {krAssetAmountToValue, collateralAmountToValue} from "minter/libs/Conversions.sol";
+import {WadRay} from "libs/WadRay.sol";
+
+import {ms} from "minter/State.sol";
+import {KrAsset, CollateralAsset} from "minter/Types.sol";
+import {krAssetAmountToValue, collateralAmountToValue} from "minter/funcs/Conversions.sol";
 
 /* solhint-disable contract-name-camelcase */
 /* solhint-disable var-name-mixedcase */
@@ -19,7 +19,6 @@ import {krAssetAmountToValue, collateralAmountToValue} from "minter/libs/Convers
  * @author Kresko
  */
 library LibUI {
-    using Shared for uint256;
     using WadRay for uint256;
 
     struct CollateralAssetInfoUser {

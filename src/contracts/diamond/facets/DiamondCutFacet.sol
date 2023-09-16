@@ -1,16 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19;
 
-import {IDiamondCutFacet} from "../interfaces/IDiamondCutFacet.sol";
-import {Role} from "common/libs/Authorization.sol";
-import {ds, initializeDiamondCut, DiamondModifiers} from "../libs/LibDiamond.sol";
+import {Role} from "common/Types.sol";
+
+import {IDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
+import {ds} from "diamond/State.sol";
+import {FacetCut} from "diamond/Types.sol";
+import {DSModifiers} from "diamond/Modifiers.sol";
+import {initializeDiamondCut} from "diamond/funcs/Cuts.sol";
 
 /**
  * @title EIP2535-pattern upgrades.
  * @author Kresko
  * @notice The storage area is in the main proxy diamond storage.
  */
-contract DiamondCutFacet is IDiamondCutFacet, DiamondModifiers {
+contract DiamondCutFacet is IDiamondCutFacet, DSModifiers {
     /// @inheritdoc IDiamondCutFacet
     function diamondCut(
         FacetCut[] calldata _diamondCut,

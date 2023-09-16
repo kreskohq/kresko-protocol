@@ -1,15 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {Arrays} from "common/libs/Arrays.sol";
-import {Role} from "common/libs/Authorization.sol";
+import {Arrays} from "libs/Arrays.sol";
+import {Role} from "common/Types.sol";
 import {Error} from "common/Errors.sol";
-import {MinterEvent} from "common/Events.sol";
 
-import {IBurnHelperFacet} from "../interfaces/IBurnHelperFacet.sol";
-import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
-import {ms, Action, MinterState} from "../libs/LibMinter.sol";
-import {MinterModifiers} from "minter/Modifiers.sol";
+import {DSModifiers} from "diamond/Modifiers.sol";
+
+import {IBurnHelperFacet} from "minter/interfaces/IBurnHelperFacet.sol";
+import {MSModifiers} from "minter/Modifiers.sol";
+import {MEvent} from "minter/Events.sol";
+import {Action} from "minter/Types.sol";
+import {ms, MinterState} from "minter/State.sol";
+import {handleMinterCloseFee} from "minter/funcs/Fees.sol";
 
 /**
  * @author Kresko
@@ -17,7 +20,7 @@ import {MinterModifiers} from "minter/Modifiers.sol";
  * @notice Helper functions for reducing positions
  */
 
-contract BurnHelperFacet is IBurnHelperFacet, DiamondModifiers, MinterModifiers {
+contract BurnHelperFacet is IBurnHelperFacet, DSModifiers, MSModifiers {
     using Arrays for address[];
 
     /// @inheritdoc IBurnHelperFacet
@@ -35,7 +38,7 @@ contract BurnHelperFacet is IBurnHelperFacet, DiamondModifiers, MinterModifiers 
         require(principalDebt != 0, Error.ZERO_BURN);
 
         // Charge the burn fee from collateral of _account
-        s.handleCloseFee(_account, _kreskoAsset, principalDebt);
+        handleMinterCloseFee(_account, _kreskoAsset, principalDebt);
 
         // Record the burn
         s.burn(_kreskoAsset, s.kreskoAssets[_kreskoAsset].anchor, principalDebt, _account);
@@ -43,7 +46,7 @@ contract BurnHelperFacet is IBurnHelperFacet, DiamondModifiers, MinterModifiers 
         // All principal debt of asset is repayed remove it from minted assets array.
         s.mintedKreskoAssets[_account].removeAddress(_kreskoAsset, ms().accountMintIndex(_account, _kreskoAsset));
 
-        emit MinterEvent.DebtPositionClosed(_account, _kreskoAsset, principalDebt);
+        emit MEvent.DebtPositionClosed(_account, _kreskoAsset, principalDebt);
     }
 
     /// @inheritdoc IBurnHelperFacet

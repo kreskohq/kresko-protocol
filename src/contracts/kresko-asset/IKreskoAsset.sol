@@ -2,8 +2,12 @@
 pragma solidity >=0.8.19;
 
 import {IAccessControlEnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/IAccessControlEnumerableUpgradeable.sol";
-import {IERC20Permit} from "common/IERC20Permit.sol";
-import {IERC165} from "common/IERC165.sol";
+import {IERC20Permit} from "vendor/IERC20Permit.sol";
+import {IERC165} from "vendor/IERC165.sol";
+
+interface ISyncable {
+    function sync() external;
+}
 
 interface IKreskoAsset is IERC20Permit, IAccessControlEnumerableUpgradeable, IERC165 {
     /**

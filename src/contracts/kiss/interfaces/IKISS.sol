@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {IERC165} from "common/IERC165.sol";
+import {IERC165} from "vendor/IERC165.sol";
 import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
 
 interface IKISS is IKreskoAssetIssuer, IERC165 {

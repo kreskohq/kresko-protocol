@@ -1,13 +1,19 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
+import {AggregatorV3Interface} from "vendor/AggregatorV3Interface.sol";
+import {GnosisSafeL2} from "vendor/gnosis/GnosisSafeL2.sol";
+import {GnosisSafeProxyFactory, GnosisSafeProxy} from "vendor/gnosis/GnosisSafeProxyFactory.sol";
+
+import {IKresko} from "common/IKresko.sol";
+import {DiamondHelper} from "./DiamondHelper.sol";
 
 import {Diamond} from "diamond/Diamond.sol";
-import {IDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
 import {DiamondCutFacet} from "diamond/facets/DiamondCutFacet.sol";
 import {DiamondOwnershipFacet} from "diamond/facets/DiamondOwnershipFacet.sol";
 import {DiamondLoupeFacet} from "diamond/facets/DiamondLoupeFacet.sol";
 import {AuthorizationFacet} from "diamond/facets/AuthorizationFacet.sol";
 import {ERC165Facet} from "diamond/facets/ERC165Facet.sol";
+import {FacetCut, Initialization, FacetCutAction} from "diamond/Types.sol";
 
 import {MintFacet} from "minter/facets/MintFacet.sol";
 import {BurnFacet} from "minter/facets/BurnFacet.sol";
@@ -18,6 +24,7 @@ import {LiquidationFacet} from "minter/facets/LiquidationFacet.sol";
 import {ConfigurationFacet} from "minter/facets/ConfigurationFacet.sol";
 import {SafetyCouncilFacet} from "minter/facets/SafetyCouncilFacet.sol";
 import {BurnHelperFacet} from "minter/facets/BurnHelperFacet.sol";
+import {MinterInitArgs, KrAsset, CollateralAsset} from "minter/Types.sol";
 
 import {SCDPStateFacet} from "scdp/facets/SCDPStateFacet.sol";
 import {SCDPFacet} from "scdp/facets/SCDPFacet.sol";
@@ -25,17 +32,10 @@ import {SCDPSwapFacet} from "scdp/facets/SCDPSwapFacet.sol";
 import {SCDPConfigFacet} from "scdp/facets/SCDPConfigFacet.sol";
 import {SDIFacet} from "scdp/facets/SDIFacet.sol";
 import {ISCDPConfigFacet} from "scdp/interfaces/ISCDPConfigFacet.sol";
-import {PoolCollateral, PoolKrAsset} from "scdp/libs/LibSCDP.sol";
+import {PoolCollateral, PoolKrAsset} from "scdp/Types.sol";
 
-import {DiamondHelper} from "./DiamondHelper.sol";
-import {IKresko} from "common/IKresko.sol";
 import {MockOracle} from "test/MockOracle.sol";
 import {MockERC20} from "test/MockERC20.sol";
-import {AggregatorV3Interface} from "common/AggregatorV3Interface.sol";
-import {MinterInitArgs, KrAsset, CollateralAsset} from "minter/libs/LibMinter.sol";
-
-import {GnosisSafeL2} from "vendor/gnosis/GnosisSafeL2.sol";
-import {GnosisSafeProxyFactory, GnosisSafeProxy} from "vendor/gnosis/GnosisSafeProxyFactory.sol";
 
 import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {KreskoAssetAnchor} from "kresko-asset/KreskoAssetAnchor.sol";
@@ -63,153 +63,145 @@ abstract contract DeployHelper is RedstoneHelper {
         init.oracleTimeout = type(uint256).max;
     }
 
-    function deployDiamond(address admin, address sequencerUptimeFeed) internal returns (IKresko) {
+    function deployDiamond(address admin, address seqFeed) internal returns (IKresko) {
         /* ------------------------------ DiamondFacets ----------------------------- */
-        (
-            IDiamondCutFacet.FacetCut[] memory _diamondFacets,
-            Diamond.Initialization[] memory diamondInit
-        ) = diamondFacets();
+        (FacetCut[] memory _dFacets, Initialization[] memory dInit) = diamondFacets();
 
-        kresko = IKresko(address(new Diamond(admin, _diamondFacets, diamondInit)));
+        kresko = IKresko(address(new Diamond(admin, _dFacets, dInit)));
 
         // /* ------------------------------ MinterFacets ------------------------------ */
-        (IDiamondCutFacet.FacetCut[] memory _minterFacets, Diamond.Initialization memory minterInit) = minterFacets(
-            admin,
-            sequencerUptimeFeed
-        );
-        kresko.diamondCut(_minterFacets, minterInit.initContract, minterInit.initData);
+        (FacetCut[] memory _mFacets, Initialization memory mInit) = minterFacets(admin, seqFeed);
+        kresko.diamondCut(_mFacets, mInit.initContract, mInit.initData);
 
         // /* ------------------------------- SCDPFacets ------------------------------- */
 
-        (IDiamondCutFacet.FacetCut[] memory _scdpFacets, Diamond.Initialization memory scdpInit) = scdpFacets();
-        kresko.diamondCut(_scdpFacets, scdpInit.initContract, scdpInit.initData);
+        (FacetCut[] memory _sFacets, Initialization memory sInit) = scdpFacets();
+        kresko.diamondCut(_sFacets, sInit.initContract, sInit.initData);
 
         // /* -------------------------------------------------------------------------- */
         // /*                                  SDIFacet                                  */
         // /* -------------------------------------------------------------------------- */
 
-        (IDiamondCutFacet.FacetCut[] memory _sdiFacets, Diamond.Initialization memory sdiInit) = sdiFacets(
-            address(this)
-        );
+        (FacetCut[] memory _sdFacets, Initialization memory sdiInit) = sdiFacets(address(this));
 
-        kresko.diamondCut(_sdiFacets, sdiInit.initContract, sdiInit.initData);
+        kresko.diamondCut(_sdFacets, sdiInit.initContract, sdiInit.initData);
 
         return (kresko);
     }
 
-    function diamondFacets() internal returns (IDiamondCutFacet.FacetCut[] memory, Diamond.Initialization[] memory) {
-        IDiamondCutFacet.FacetCut[] memory _diamondCut = new IDiamondCutFacet.FacetCut[](5);
-        _diamondCut[0] = IDiamondCutFacet.FacetCut({
+    function diamondFacets() internal returns (FacetCut[] memory, Initialization[] memory) {
+        FacetCut[] memory _diamondCut = new FacetCut[](5);
+        _diamondCut[0] = FacetCut({
             facetAddress: address(new DiamondCutFacet()),
-            action: IDiamondCutFacet.FacetCutAction.Add,
+            action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("DiamondCutFacet")
         });
-        _diamondCut[1] = IDiamondCutFacet.FacetCut({
+        _diamondCut[1] = FacetCut({
             facetAddress: address(new DiamondOwnershipFacet()),
-            action: IDiamondCutFacet.FacetCutAction.Add,
+            action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("DiamondOwnershipFacet")
         });
-        _diamondCut[2] = IDiamondCutFacet.FacetCut({
+        _diamondCut[2] = FacetCut({
             facetAddress: address(new DiamondLoupeFacet()),
-            action: IDiamondCutFacet.FacetCutAction.Add,
+            action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("DiamondLoupeFacet")
         });
-        _diamondCut[3] = IDiamondCutFacet.FacetCut({
+        _diamondCut[3] = FacetCut({
             facetAddress: address(new AuthorizationFacet()),
-            action: IDiamondCutFacet.FacetCutAction.Add,
+            action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("AuthorizationFacet")
         });
-        _diamondCut[4] = IDiamondCutFacet.FacetCut({
+        _diamondCut[4] = FacetCut({
             facetAddress: address(new ERC165Facet()),
-            action: IDiamondCutFacet.FacetCutAction.Add,
+            action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("ERC165Facet")
         });
 
-        Diamond.Initialization[] memory diamondInit = new Diamond.Initialization[](1);
-        diamondInit[0] = Diamond.Initialization({initContract: address(0), initData: ""});
+        Initialization[] memory diamondInit = new Initialization[](1);
+        diamondInit[0] = Initialization({initContract: address(0), initData: ""});
         return (_diamondCut, diamondInit);
     }
 
     function minterFacets(
         address admin,
         address sequencerUptimeFeed
-    ) internal returns (IDiamondCutFacet.FacetCut[] memory, Diamond.Initialization memory) {
+    ) internal returns (FacetCut[] memory, Initialization memory) {
         address configurationFacetAddress = address(new ConfigurationFacet());
-        IDiamondCutFacet.FacetCut[] memory _diamondCut = new IDiamondCutFacet.FacetCut[](9);
-        _diamondCut[0] = IDiamondCutFacet.FacetCut({
+        FacetCut[] memory _diamondCut = new FacetCut[](9);
+        _diamondCut[0] = FacetCut({
             facetAddress: address(new MintFacet()),
-            action: IDiamondCutFacet.FacetCutAction.Add,
+            action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("MintFacet")
         });
-        _diamondCut[1] = IDiamondCutFacet.FacetCut({
+        _diamondCut[1] = FacetCut({
             facetAddress: address(new BurnFacet()),
-            action: IDiamondCutFacet.FacetCutAction.Add,
+            action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("BurnFacet")
         });
-        _diamondCut[2] = IDiamondCutFacet.FacetCut({
+        _diamondCut[2] = FacetCut({
             facetAddress: address(new StateFacet()),
-            action: IDiamondCutFacet.FacetCutAction.Add,
+            action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("StateFacet")
         });
-        _diamondCut[3] = IDiamondCutFacet.FacetCut({
+        _diamondCut[3] = FacetCut({
             facetAddress: configurationFacetAddress,
-            action: IDiamondCutFacet.FacetCutAction.Add,
+            action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("ConfigurationFacet")
         });
-        _diamondCut[4] = IDiamondCutFacet.FacetCut({
+        _diamondCut[4] = FacetCut({
             facetAddress: address(new DepositWithdrawFacet()),
-            action: IDiamondCutFacet.FacetCutAction.Add,
+            action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("DepositWithdrawFacet")
         });
-        _diamondCut[5] = IDiamondCutFacet.FacetCut({
+        _diamondCut[5] = FacetCut({
             facetAddress: address(new BurnHelperFacet()),
-            action: IDiamondCutFacet.FacetCutAction.Add,
+            action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("BurnHelperFacet")
         });
-        _diamondCut[6] = IDiamondCutFacet.FacetCut({
+        _diamondCut[6] = FacetCut({
             facetAddress: address(new AccountStateFacet()),
-            action: IDiamondCutFacet.FacetCutAction.Add,
+            action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("AccountStateFacet")
         });
-        _diamondCut[7] = IDiamondCutFacet.FacetCut({
+        _diamondCut[7] = FacetCut({
             facetAddress: address(new LiquidationFacet()),
-            action: IDiamondCutFacet.FacetCutAction.Add,
+            action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("LiquidationFacet")
         });
-        _diamondCut[8] = IDiamondCutFacet.FacetCut({
+        _diamondCut[8] = FacetCut({
             facetAddress: address(new SafetyCouncilFacet()),
-            action: IDiamondCutFacet.FacetCutAction.Add,
+            action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("SafetyCouncilFacet")
         });
 
         bytes memory initData = abi.encodeWithSelector(
-            ConfigurationFacet.initialize.selector,
+            ConfigurationFacet.initializeMinter.selector,
             getInitializer(admin, sequencerUptimeFeed)
         );
-        return (_diamondCut, Diamond.Initialization(configurationFacetAddress, initData));
+        return (_diamondCut, Initialization(configurationFacetAddress, initData));
     }
 
-    function scdpFacets() internal returns (IDiamondCutFacet.FacetCut[] memory, Diamond.Initialization memory) {
+    function scdpFacets() internal returns (FacetCut[] memory, Initialization memory) {
         address configurationFacetAddress = address(new SCDPConfigFacet());
-        IDiamondCutFacet.FacetCut[] memory _diamondCut = new IDiamondCutFacet.FacetCut[](4);
-        _diamondCut[0] = IDiamondCutFacet.FacetCut({
+        FacetCut[] memory _diamondCut = new FacetCut[](4);
+        _diamondCut[0] = FacetCut({
             facetAddress: address(new SCDPFacet()),
-            action: IDiamondCutFacet.FacetCutAction.Add,
+            action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("SCDPFacet")
         });
-        _diamondCut[1] = IDiamondCutFacet.FacetCut({
+        _diamondCut[1] = FacetCut({
             facetAddress: address(new SCDPStateFacet()),
-            action: IDiamondCutFacet.FacetCutAction.Add,
+            action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("SCDPStateFacet")
         });
-        _diamondCut[2] = IDiamondCutFacet.FacetCut({
+        _diamondCut[2] = FacetCut({
             facetAddress: configurationFacetAddress,
-            action: IDiamondCutFacet.FacetCutAction.Add,
+            action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("SCDPConfigFacet")
         });
-        _diamondCut[3] = IDiamondCutFacet.FacetCut({
+        _diamondCut[3] = FacetCut({
             facetAddress: address(new SCDPSwapFacet()),
-            action: IDiamondCutFacet.FacetCutAction.Add,
+            action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("SCDPSwapFacet")
         });
 
@@ -217,22 +209,20 @@ abstract contract DeployHelper is RedstoneHelper {
             SCDPConfigFacet.initialize.selector,
             ISCDPConfigFacet.SCDPInitArgs({swapFeeRecipient: TREASURY, mcr: 2e18, lt: 1.5e18})
         );
-        return (_diamondCut, Diamond.Initialization(configurationFacetAddress, initData));
+        return (_diamondCut, Initialization(configurationFacetAddress, initData));
     }
 
-    function sdiFacets(
-        address coverReceiver
-    ) internal returns (IDiamondCutFacet.FacetCut[] memory, Diamond.Initialization memory) {
+    function sdiFacets(address coverReceiver) internal returns (FacetCut[] memory, Initialization memory) {
         address facetAddress = address(new SDIFacet());
-        IDiamondCutFacet.FacetCut[] memory _diamondCut = new IDiamondCutFacet.FacetCut[](1);
-        _diamondCut[0] = IDiamondCutFacet.FacetCut({
+        FacetCut[] memory _diamondCut = new FacetCut[](1);
+        _diamondCut[0] = FacetCut({
             facetAddress: facetAddress,
-            action: IDiamondCutFacet.FacetCutAction.Add,
+            action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("SDIFacet")
         });
 
         bytes memory initData = abi.encodeWithSelector(SDIFacet.initialize.selector, coverReceiver);
-        return (_diamondCut, Diamond.Initialization(facetAddress, initData));
+        return (_diamondCut, Initialization(facetAddress, initData));
     }
 
     function enableSCDPCollateral(address asset, string memory prices) internal {

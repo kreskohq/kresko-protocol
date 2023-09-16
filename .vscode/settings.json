@@ -35,6 +35,7 @@
     "forge-std/=lib/forge-std/src/",
     "solmate/=lib/solmate/src/",
     "contracts/=src/contracts/",
+    "libs/=src/contracts/libs/",
     "diamond/=src/contracts/diamond/",
     "minter/=src/contracts/minter/",
     "vendor/=src/contracts/vendor/",

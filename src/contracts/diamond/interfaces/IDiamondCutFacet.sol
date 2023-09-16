@@ -1,20 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19;
+import {FacetCut} from "diamond/Types.sol";
 
 interface IDiamondCutFacet {
-    /// @dev  Add=0, Replace=1, Remove=2
-    enum FacetCutAction {
-        Add,
-        Replace,
-        Remove
-    }
-
-    struct FacetCut {
-        address facetAddress;
-        FacetCutAction action;
-        bytes4[] functionSelectors;
-    }
-
     /**
      *@notice Add/replace/remove any number of functions, optionally execute a function with delegatecall
      * @param _diamondCut Contains the facet addresses and function selectors

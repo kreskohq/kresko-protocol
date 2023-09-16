@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {IStateFacet} from "../interfaces/IStateFacet.sol";
-import {KrAsset, CollateralAsset} from "common/libs/Assets.sol";
-import {MinterState, ms, MinterParams} from "minter/libs/LibMinter.sol";
-import {krAssetAmountToValue, collateralAmountToValue} from "minter/libs/Conversions.sol";
-import {ds} from "diamond/libs/LibDiamond.sol";
+import {ds} from "diamond/State.sol";
+import {ms} from "minter/State.sol";
+
+import {IStateFacet} from "minter/interfaces/IStateFacet.sol";
+import {KrAsset, CollateralAsset, MinterParams} from "minter/Types.sol";
+import {krAssetAmountToValue, collateralAmountToValue} from "minter/funcs/Conversions.sol";
+import {kreskoAsset, collateralAsset} from "minter/funcs/Common.sol";
 
 /**
  * @author Kresko
@@ -63,16 +65,15 @@ contract StateFacet is IStateFacet {
 
     /// @inheritdoc IStateFacet
     function getCurrentParameters() external view returns (MinterParams memory) {
-        MinterState storage s = ms();
         return
             MinterParams(
-                s.minCollateralRatio,
-                s.minDebtValue,
-                s.liquidationThreshold,
-                s.maxLiquidationMultiplier,
-                s.feeRecipient,
-                s.extOracleDecimals,
-                s.oracleDeviationPct
+                ms().minCollateralRatio,
+                ms().minDebtValue,
+                ms().liquidationThreshold,
+                ms().maxLiquidationMultiplier,
+                ms().feeRecipient,
+                ms().extOracleDecimals,
+                ms().oracleDeviationPct
             );
     }
 
@@ -81,22 +82,22 @@ contract StateFacet is IStateFacet {
     /* -------------------------------------------------------------------------- */
     /// @inheritdoc IStateFacet
     function getKrAssetExists(address _kreskoAsset) external view returns (bool exists) {
-        return ms().kreskoAssets[_kreskoAsset].exists;
+        return kreskoAsset(_kreskoAsset).exists;
     }
 
     /// @inheritdoc IStateFacet
     function getKreskoAsset(address _kreskoAsset) external view returns (KrAsset memory asset) {
-        return ms().kreskoAsset(_kreskoAsset);
+        return kreskoAsset(_kreskoAsset);
     }
 
     /// @inheritdoc IStateFacet
     function getCollateralExists(address _collateralAsset) external view returns (bool exists) {
-        return ms().collateralAssets[_collateralAsset].exists;
+        return collateralAsset(_collateralAsset).exists;
     }
 
     /// @inheritdoc IStateFacet
     function getCollateralAsset(address _collateralAsset) external view returns (CollateralAsset memory asset) {
-        return ms().collateralAssets[_collateralAsset];
+        return collateralAsset(_collateralAsset);
     }
 
     /// @inheritdoc IStateFacet

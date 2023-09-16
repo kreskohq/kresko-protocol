@@ -2,7 +2,7 @@
 pragma solidity >=0.8.19;
 
 import {IAuthorizationFacet} from "../interfaces/IAuthorizationFacet.sol";
-import {Authorization} from "common/libs/Authorization.sol";
+import {Auth} from "common/Auth.sol";
 
 /**
  * @title Enumerable access control for the EIP2535-pattern following the OZ implementation.
@@ -11,7 +11,7 @@ import {Authorization} from "common/libs/Authorization.sol";
  * @dev Difference here is the logic library that is shared and reused, there is no state here.
  */
 contract AuthorizationFacet is IAuthorizationFacet {
-    using Authorization for bytes32;
+    using Auth for bytes32;
 
     /// @inheritdoc IAuthorizationFacet
     function getRoleMember(bytes32 role, uint256 index) external view returns (address) {

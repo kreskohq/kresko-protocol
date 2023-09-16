@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
-import {Asset} from "scdp/libs/LibSDI.sol";
+import {CoverAsset} from "scdp/Types.sol";
 
 interface ISDIFacet {
     function initialize(address coverRecipient) external;
@@ -33,7 +33,7 @@ interface ISDIFacet {
 
     function setCoverRecipientSDI(address coverRecipient) external;
 
-    function getSDICoverAsset(address asset) external view returns (Asset memory);
+    function getSDICoverAsset(address asset) external view returns (CoverAsset memory);
 
     /// @notice Simply returns the total supply of SDI.
     function totalSDI() external view returns (uint256);

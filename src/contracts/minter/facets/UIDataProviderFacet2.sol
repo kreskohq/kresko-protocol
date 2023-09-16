@@ -10,7 +10,7 @@ pragma solidity >=0.8.19;
 /* solhint-disable func-visibility */
 
 import {LibUI} from "minter/libs/LibUI.sol";
-import {ms} from "minter/libs/LibMinter.sol";
+import {ms} from "minter/State.sol";
 
 /**
  * @author Kresko
@@ -38,19 +38,4 @@ contract UIDataProviderFacet2 {
             liquidationThreshold: ms().liquidationThreshold
         });
     }
-
-    // function getPairsData(address[] memory _pairAddresses) external view returns (LibUI.PairData[] memory result) {
-    //     result = new LibUI.PairData[](_pairAddresses.length);
-    //     for (uint256 i; i < _pairAddresses.length; i++) {
-    //         IUniswapV2Pair pair = IUniswapV2Pair(_pairAddresses[i]);
-    //         (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
-    //         result[i] = LibUI.PairData({
-    //             decimals0: IERC20Permit(pair.token0()).decimals(),
-    //             decimals1: IERC20Permit(pair.token1()).decimals(),
-    //             totalSupply: pair.totalSupply(),
-    //             reserve0: reserve0,
-    //             reserve1: reserve1
-    //         });
-    //     }
-    // }
 }

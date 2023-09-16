@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {IAccountStateFacet} from "../interfaces/IAccountStateFacet.sol";
+import {WadRay} from "libs/WadRay.sol";
+
 import {Error} from "common/Errors.sol";
-import {WadRay} from "common/libs/WadRay.sol";
-import {ms, Fee} from "minter/libs/LibMinter.sol";
-import {Shared} from "common/libs/Shared.sol";
-import {KrAsset} from "common/libs/Assets.sol";
-import "minter/libs/Conversions.sol";
-import {fromWad} from "common/funcs/Conversions.sol";
+import {fromWad} from "common/funcs/Math.sol";
+
+import {IAccountStateFacet} from "minter/interfaces/IAccountStateFacet.sol";
+import {ms} from "minter/State.sol";
+import {KrAsset, Fee} from "minter/Types.sol";
+import {collateralAmountToValue} from "minter/funcs/Conversions.sol";
 
 /**
  * @author Kresko
@@ -17,8 +18,6 @@ import {fromWad} from "common/funcs/Conversions.sol";
  */
 
 contract AccountStateFacet is IAccountStateFacet {
-    using Shared for uint256;
-    using Shared for uint8;
     using WadRay for uint256;
 
     /* -------------------------------------------------------------------------- */

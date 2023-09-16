@@ -1,22 +1,26 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {IBurnFacet} from "../interfaces/IBurnFacet.sol";
-import {Arrays} from "common/libs/Arrays.sol";
-import {Role} from "common/libs/Authorization.sol";
-import {MinterEvent} from "common/Events.sol";
+import {Arrays} from "libs/Arrays.sol";
+import {Role} from "common/Types.sol";
 import {Error} from "common/Errors.sol";
+import {burnKrAsset} from "common/funcs/Actions.sol";
 
-import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
-import {ms, Action, MinterState} from "../libs/LibMinter.sol";
-import {MinterModifiers} from "minter/Modifiers.sol";
+import {DSModifiers} from "diamond/Modifiers.sol";
+
+import {IBurnFacet} from "minter/interfaces/IBurnFacet.sol";
+import {MSModifiers} from "minter/Modifiers.sol";
+import {ms, MinterState} from "minter/State.sol";
+import {MEvent} from "minter/Events.sol";
+import {Action} from "minter/Types.sol";
+import {handleMinterCloseFee} from "minter/funcs/Fees.sol";
 
 /**
  * @author Kresko
  * @title BurnFacet
  * @notice Main end-user functionality concerning burning of kresko assets
  */
-contract BurnFacet is DiamondModifiers, MinterModifiers, IBurnFacet {
+contract BurnFacet is DSModifiers, MSModifiers, IBurnFacet {
     using Arrays for address[];
 
     /// @inheritdoc IBurnFacet
@@ -47,10 +51,14 @@ contract BurnFacet is DiamondModifiers, MinterModifiers, IBurnFacet {
         }
 
         // Charge the burn fee from collateral of _account
-        s.handleCloseFee(_account, _kreskoAsset, _burnAmount);
+        handleMinterCloseFee(_account, _kreskoAsset, _burnAmount);
 
         // Record the burn
-        s.burn(_kreskoAsset, s.kreskoAssets[_kreskoAsset].anchor, _burnAmount, _account);
+        s.kreskoAssetDebt[_account][_kreskoAsset] -= burnKrAsset(
+            _burnAmount,
+            _account,
+            s.kreskoAssets[_kreskoAsset].anchor
+        );
 
         // If sender repays all scaled debt of asset, remove it from minted assets array.
         if (s.accountDebtAmount(_account, _kreskoAsset) == 0) {
@@ -58,6 +66,6 @@ contract BurnFacet is DiamondModifiers, MinterModifiers, IBurnFacet {
         }
 
         // Emit logs
-        emit MinterEvent.KreskoAssetBurned(_account, _kreskoAsset, _burnAmount);
+        emit MEvent.KreskoAssetBurned(_account, _kreskoAsset, _burnAmount);
     }
 }

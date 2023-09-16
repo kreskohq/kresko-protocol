@@ -1,25 +1,26 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {IERC165} from "common/IERC165.sol";
-import {IERC20Permit} from "common/IERC20Permit.sol";
-import {Authorization, Role} from "common/libs/Authorization.sol";
-
+import {IERC165} from "vendor/IERC165.sol";
+import {IERC20Permit} from "vendor/IERC20Permit.sol";
+import {Auth} from "common/Auth.sol";
+import {Role} from "common/Types.sol";
 import {Error} from "common/Errors.sol";
-import {MinterEvent, GeneralEvent} from "common/Events.sol";
+import {DiamondEvent} from "common/Events.sol";
 
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
 import {IKISS} from "kiss/interfaces/IKISS.sol";
 
-import {IConfigurationFacet} from "../interfaces/IConfigurationFacet.sol";
+import {DSModifiers} from "diamond/Modifiers.sol";
+import {ds} from "diamond/State.sol";
 
-import {DiamondModifiers, ds} from "diamond/libs/LibDiamond.sol";
-
-import {KrAsset, CollateralAsset} from "common/libs/Assets.sol";
-import {ms, MinterInitArgs} from "minter/libs/LibMinter.sol";
+import {IConfigurationFacet} from "minter/interfaces/IConfigurationFacet.sol";
+import {MEvent} from "minter/Events.sol";
+import {ms} from "minter/State.sol";
+import {MinterInitArgs, KrAsset, CollateralAsset} from "minter/Types.sol";
 import {Constants} from "minter/Constants.sol";
-import {MinterModifiers} from "minter/Modifiers.sol";
+import {MSModifiers} from "minter/Modifiers.sol";
 
 /**
  * @author Kresko
@@ -27,21 +28,21 @@ import {MinterModifiers} from "minter/Modifiers.sol";
  * @notice Functionality for `Role.ADMIN` level actions.
  * @notice Can be only initialized by the deployer/owner.
  */
-contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfigurationFacet {
+contract ConfigurationFacet is DSModifiers, MSModifiers, IConfigurationFacet {
     /* -------------------------------------------------------------------------- */
     /*                                 Initialize                                 */
     /* -------------------------------------------------------------------------- */
 
-    function initialize(MinterInitArgs calldata args) external onlyOwner {
+    function initializeMinter(MinterInitArgs calldata args) external onlyOwner {
         require(ds().storageVersion == 1, Error.ALREADY_INITIALIZED);
 
         // Temporarily set ADMIN role for deployer
-        Authorization._grantRole(Role.DEFAULT_ADMIN, msg.sender);
-        Authorization._grantRole(Role.ADMIN, msg.sender);
+        Auth._grantRole(Role.DEFAULT_ADMIN, msg.sender);
+        Auth._grantRole(Role.ADMIN, msg.sender);
 
         // Grant the admin role to admin
-        Authorization._grantRole(Role.DEFAULT_ADMIN, args.admin);
-        Authorization._grantRole(Role.ADMIN, args.admin);
+        Auth._grantRole(Role.DEFAULT_ADMIN, args.admin);
+        Auth._grantRole(Role.ADMIN, args.admin);
 
         /**
          * @notice Council can be set only by this specific function.
@@ -50,7 +51,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
          * - address `_council` must implement ERC165 and a specific multisig interfaceId.
          * - reverts if above is not true.
          */
-        Authorization.setupSecurityCouncil(args.council);
+        Auth.setupSecurityCouncil(args.council);
 
         updateFeeRecipient(args.treasury);
         updateMinCollateralRatio(args.minCollateralRatio);
@@ -63,7 +64,8 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         updateSequencerGracePeriodTime(args.sequencerGracePeriodTime);
         updateOracleTimeout(args.oracleTimeout);
 
-        emit GeneralEvent.Initialized(args.admin, 1);
+        ds().storageVersion++;
+        emit DiamondEvent.Initialized(args.admin, ds().storageVersion);
     }
 
     /// @inheritdoc IConfigurationFacet
@@ -71,7 +73,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         require(_newFeeRecipient != address(0), Error.ADDRESS_INVALID_FEERECIPIENT);
 
         ms().feeRecipient = _newFeeRecipient;
-        emit MinterEvent.FeeRecipientUpdated(_newFeeRecipient);
+        emit MEvent.FeeRecipientUpdated(_newFeeRecipient);
     }
 
     /// @inheritdoc IConfigurationFacet
@@ -89,7 +91,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         );
 
         ms().collateralAssets[_collateralAsset].liquidationIncentive = _newLiquidationIncentive;
-        emit MinterEvent.LiquidationIncentiveMultiplierUpdated(_collateralAsset, _newLiquidationIncentive);
+        emit MEvent.LiquidationIncentiveMultiplierUpdated(_collateralAsset, _newLiquidationIncentive);
     }
 
     /// @inheritdoc IConfigurationFacet
@@ -99,7 +101,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
     ) public override collateralAssetExists(_collateralAsset) onlyRole(Role.ADMIN) {
         require(_newFactor <= Constants.ONE_HUNDRED_PERCENT, Error.COLLATERAL_INVALID_FACTOR);
         ms().collateralAssets[_collateralAsset].factor = _newFactor;
-        emit MinterEvent.CFactorUpdated(_collateralAsset, _newFactor);
+        emit MEvent.CFactorUpdated(_collateralAsset, _newFactor);
     }
 
     /// @inheritdoc IConfigurationFacet
@@ -109,7 +111,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
     ) public override kreskoAssetExists(_kreskoAsset) onlyRole(Role.ADMIN) {
         require(_newFactor >= Constants.ONE_HUNDRED_PERCENT, Error.KRASSET_INVALID_FACTOR);
         ms().kreskoAssets[_kreskoAsset].kFactor = _newFactor;
-        emit MinterEvent.CFactorUpdated(_kreskoAsset, _newFactor);
+        emit MEvent.CFactorUpdated(_kreskoAsset, _newFactor);
     }
 
     /// @inheritdoc IConfigurationFacet
@@ -117,7 +119,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         require(_newMinCollateralRatio >= Constants.MIN_COLLATERALIZATION_RATIO, Error.PARAM_MIN_COLLATERAL_RATIO_LOW);
         require(_newMinCollateralRatio >= ms().liquidationThreshold, Error.PARAM_COLLATERAL_RATIO_LOW_THAN_LT);
         ms().minCollateralRatio = _newMinCollateralRatio;
-        emit MinterEvent.MinimumCollateralizationRatioUpdated(_newMinCollateralRatio);
+        emit MEvent.MinimumCollateralizationRatioUpdated(_newMinCollateralRatio);
     }
 
     /// @inheritdoc IConfigurationFacet
@@ -125,7 +127,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         require(_newMinDebtValue <= Constants.MAX_MIN_DEBT_VALUE, Error.PARAM_MIN_DEBT_AMOUNT_HIGH);
         ms().minDebtValue = _newMinDebtValue;
 
-        emit MinterEvent.MinimumDebtValueUpdated(_newMinDebtValue);
+        emit MEvent.MinimumDebtValueUpdated(_newMinDebtValue);
     }
 
     /// @inheritdoc IConfigurationFacet
@@ -135,7 +137,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         require(_newThreshold <= ms().minCollateralRatio, Error.INVALID_LT);
 
         ms().liquidationThreshold = _newThreshold;
-        emit MinterEvent.LiquidationThresholdUpdated(_newThreshold);
+        emit MEvent.LiquidationThresholdUpdated(_newThreshold);
     }
 
     /// @inheritdoc IConfigurationFacet
@@ -145,7 +147,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             Error.PARAM_LIQUIDATION_OVERFLOW_LOW
         );
         ms().maxLiquidationMultiplier = _maxLiquidationMultiplier;
-        emit MinterEvent.MaxLiquidationMultiplierUpdated(_maxLiquidationMultiplier);
+        emit MEvent.MaxLiquidationMultiplierUpdated(_maxLiquidationMultiplier);
     }
 
     /// @inheritdoc IConfigurationFacet
@@ -217,7 +219,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             redstoneId: _config.redstoneId
         });
 
-        emit MinterEvent.CollateralAssetAdded(
+        emit MEvent.CollateralAssetAdded(
             _collateralAsset,
             _config.factor,
             address(_config.oracle),
@@ -274,7 +276,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
 
         ms().collateralAssets[_collateralAsset] = collateralAsset;
 
-        emit MinterEvent.CollateralAssetUpdated(
+        emit MEvent.CollateralAssetUpdated(
             _collateralAsset,
             collateralAsset.factor,
             address(collateralAsset.oracle),
@@ -324,7 +326,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
             redstoneId: _config.redstoneId
         });
 
-        emit MinterEvent.KreskoAssetAdded(
+        emit MEvent.KreskoAssetAdded(
             _krAsset,
             _config.anchor,
             address(_config.oracle),
@@ -377,7 +379,7 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         /* ---------------------------------- Save ---------------------------------- */
         ms().kreskoAssets[_krAsset] = krAsset;
 
-        emit MinterEvent.KreskoAssetUpdated(
+        emit MEvent.KreskoAssetUpdated(
             _krAsset,
             krAsset.anchor,
             address(krAsset.oracle),

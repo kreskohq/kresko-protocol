@@ -1,13 +1,69 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19;
 
-import {WadRay} from "common/libs/WadRay.sol";
+import {WadRay} from "libs/WadRay.sol";
+import {MaxLiqVars} from "common/Types.sol";
+import {PoolKrAsset} from "scdp/Types.sol";
 
 using WadRay for uint256;
 
 /* -------------------------------------------------------------------------- */
+/*                                Liquidations                                */
+/* -------------------------------------------------------------------------- */
+
+function calcMaxLiquidationValue(MaxLiqVars memory vars, uint256 _closeFee) pure returns (uint256) {
+    return
+        _calcMaxLiquidationValue(
+            vars,
+            (vars.debtFactor - vars.collateral.liquidationIncentive - _closeFee).wadDiv(vars.debtFactor)
+        );
+}
+
+function calcMaxLiquidationValue(MaxLiqVars memory vars, PoolKrAsset memory _repayKreskoAsset) pure returns (uint256) {
+    return
+        _calcMaxLiquidationValue(
+            vars,
+            (vars.debtFactor - _repayKreskoAsset.liquidationIncentive).wadDiv(vars.debtFactor)
+        );
+}
+
+/**
+ * @notice Calculates the maximum USD value of a given kreskoAsset that can be liquidated given a liquidation pair
+ * Calculates the value gained per USD repaid in liquidation for a given kreskoAsset
+ * debtFactor = debtFactor = k * LT / cFactor;
+ * valPerUSD = (DebtFactor - Asset closeFee - liquidationIncentive) / DebtFactor
+ *
+ * Calculates the maximum amount of USD value that can be liquidated given the account's collateral value
+ * maxLiquidatableUSD = (MCV - ACV) / valPerUSD / debtFactor / cFactor * LOM
+ * @dev This function is used by getMaxLiquidation and is factored out for readability
+ * @param vars liquidation variables struct
+ * @param _valuePerUSDRepaid Pre-calculated value per USD repaid
+ */
+function _calcMaxLiquidationValue(MaxLiqVars memory vars, uint256 _valuePerUSDRepaid) pure returns (uint256) {
+    return
+        (vars.minCollateralValue - vars.accountCollateralValue)
+            .wadMul(vars.maxLiquidationMultiplier)
+            .wadDiv(_valuePerUSDRepaid)
+            .wadDiv(vars.debtFactor)
+            .wadDiv(vars.collateral.factor);
+}
+
+/* -------------------------------------------------------------------------- */
 /*                                   General                                  */
 /* -------------------------------------------------------------------------- */
+
+/**
+ * @notice Calculate amount for value provided with possible incentive multiplier for value.
+ * @param _incentiveMultiplier The incentive multiplier (>= 1e18).
+ * @param _price The price in USD for the output asset.
+ * @param _repayValue Value to be converted to amount.
+ */
+function valueToAmount(uint256 _incentiveMultiplier, uint256 _price, uint256 _repayValue) pure returns (uint256) {
+    // Seize amount = (repay amount USD * liquidation incentive / collateral price USD).
+    // Denominate seize amount in collateral type
+    // Apply liquidation incentive multiplier
+    return _repayValue.wadMul(_incentiveMultiplier).wadDiv(_price);
+}
 
 /**
  * @notice For a given collateral asset and amount, returns a wad represenatation.

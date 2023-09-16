@@ -3,13 +3,14 @@ pragma solidity >=0.8.19;
 
 // solhint-disable-next-line
 import {AccessControlEnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
-import {Role} from "common/libs/Authorization.sol";
+import {ERC20Upgradeable} from "vendor/ERC20Upgradeable.sol";
+import {IERC165} from "vendor/IERC165.sol";
+
 import {Error} from "common/Errors.sol";
-import {ERC20Upgradeable} from "common/ERC20Upgradeable.sol";
-import {IERC165} from "common/IERC165.sol";
-import {Rebase as RebaseMath} from "common/libs/Rebase.sol";
-import {IKreskoAsset} from "./IKreskoAsset.sol";
-import {IUniswapV2Pair} from "vendor/uniswap/v2-core/interfaces/IUniswapV2Pair.sol";
+import {Role} from "common/Types.sol";
+
+import {Rebaser} from "./Rebaser.sol";
+import {IKreskoAsset, ISyncable} from "./IKreskoAsset.sol";
 
 /**
  * @title Kresko Synthethic Asset - rebasing ERC20.
@@ -21,7 +22,7 @@ import {IUniswapV2Pair} from "vendor/uniswap/v2-core/interfaces/IUniswapV2Pair.s
  */
 
 contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IKreskoAsset {
-    using RebaseMath for uint256;
+    using Rebaser for uint256;
 
     bool public isRebased;
     address public kresko;
@@ -148,7 +149,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
         }
         uint256 length = _pools.length;
         for (uint256 i; i < length; ) {
-            IUniswapV2Pair(_pools[i]).sync();
+            ISyncable(_pools[i]).sync();
             unchecked {
                 ++i;
             }

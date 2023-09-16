@@ -2,9 +2,10 @@
 pragma solidity >=0.8.19;
 
 import {IDiamondOwnershipFacet} from "../interfaces/IDiamondOwnershipFacet.sol";
-import {ds, DiamondModifiers} from "../libs/LibDiamond.sol";
+import {DSModifiers} from "diamond/Modifiers.sol";
+import {ds} from "diamond/State.sol";
 
-contract DiamondOwnershipFacet is IDiamondOwnershipFacet, DiamondModifiers {
+contract DiamondOwnershipFacet is IDiamondOwnershipFacet, DSModifiers {
     /* -------------------------------------------------------------------------- */
     /*                                    Write                                   */
     /* -------------------------------------------------------------------------- */

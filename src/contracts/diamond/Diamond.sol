@@ -5,33 +5,25 @@
 
 pragma solidity >=0.8.19;
 
-import {IDiamondCutFacet} from "./interfaces/IDiamondCutFacet.sol";
-import {Authorization, Role} from "common/libs/Authorization.sol";
-import {GeneralEvent} from "common/Events.sol";
+import {Auth, Role} from "common/Auth.sol";
+import {DiamondEvent} from "common/Events.sol";
 import {Error} from "common/Errors.sol";
 
-import {ds, initializeDiamondCut} from "./libs/LibDiamond.sol";
+import {ds} from "./State.sol";
+import {FacetCut, Initialization} from "./Types.sol";
+import {initializeDiamondCut} from "./funcs/Cuts.sol";
 
 contract Diamond {
-    struct Initialization {
-        address initContract;
-        bytes initData;
-    }
-
-    constructor(
-        address _owner,
-        IDiamondCutFacet.FacetCut[] memory _diamondCut,
-        Initialization[] memory _initializations
-    ) {
+    constructor(address _owner, FacetCut[] memory _diamondCut, Initialization[] memory _initializations) {
         ds().initialize(_owner);
         ds().cut(_diamondCut, address(0), "");
-        Authorization._grantRole(Role.ADMIN, _owner);
+        Auth._grantRole(Role.ADMIN, _owner);
 
         for (uint256 i = 0; i < _initializations.length; i++) {
             initializeDiamondCut(_initializations[i].initContract, _initializations[i].initData);
         }
 
-        emit GeneralEvent.Initialized(_owner, ds().storageVersion);
+        emit DiamondEvent.Initialized(_owner, ds().storageVersion);
     }
 
     // Find facet for function that is called and execute the
@@ -57,15 +49,6 @@ contract Diamond {
                 return(0, returndatasize())
             }
         }
-    }
-
-    /**
-     * @notice A rescue function for missent msg.value
-     */
-    function rescueNative() external {
-        require(msg.sender == ds().contractOwner, Error.DIAMOND_INVALID_OWNER);
-        (bool success, ) = msg.sender.call{value: address(this).balance}("");
-        require(success, "Transfer failed.");
     }
 
     receive() external payable {}

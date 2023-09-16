@@ -1,9 +1,29 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19;
-import {WadRay} from "common/libs/WadRay.sol";
-import {krAssetAmountToValue} from "minter/libs/Conversions.sol";
+import {WadRay} from "libs/WadRay.sol";
+import {krAssetAmountToValue} from "minter/funcs/Conversions.sol";
+import {ms} from "minter/State.sol";
+import {CollateralAsset, KrAsset} from "minter/Types.sol";
 
 using WadRay for uint256;
+
+/**
+ * @notice Get the state of a specific collateral asset
+ * @param _asset Address of the asset.
+ * @return State of assets `CollateralAsset` struct
+ */
+function collateralAsset(address _asset) view returns (CollateralAsset memory) {
+    return ms().collateralAssets[_asset];
+}
+
+/**
+ * @notice Get the state of a specific krAsset
+ * @param _asset Address of the asset.
+ * @return State of assets `KrAsset` struct
+ */
+function kreskoAsset(address _asset) view returns (KrAsset memory) {
+    return ms().kreskoAssets[_asset];
+}
 
 /**
  * @notice Get the minimum collateral value required to

@@ -1,19 +1,21 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {IMintFacet} from "../interfaces/IMintFacet.sol";
+import {Arrays} from "libs/Arrays.sol";
+import {Error} from "common/Errors.sol";
+import {Role} from "common/Types.sol";
+import {mintKrAsset} from "common/funcs/Actions.sol";
+
+import {DSModifiers} from "diamond/Modifiers.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 
-import {Arrays} from "common/libs/Arrays.sol";
-import {Error} from "common/Errors.sol";
-import {Role} from "common/libs/Authorization.sol";
-import {MinterEvent} from "common/Events.sol";
-
-import {KrAsset} from "common/libs/Assets.sol";
-import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
-import {minCollateralValueAtRatio} from "../libs/Common.sol";
-import {ms, MinterState, Action} from "../libs/LibMinter.sol";
-import {MinterModifiers} from "minter/Modifiers.sol";
+import {IMintFacet} from "minter/interfaces/IMintFacet.sol";
+import {MSModifiers} from "minter/Modifiers.sol";
+import {MEvent} from "minter/Events.sol";
+import {ms, MinterState} from "minter/State.sol";
+import {Action, KrAsset} from "minter/Types.sol";
+import {minCollateralValueAtRatio} from "minter/funcs/Common.sol";
+import {handleMinterOpenFee} from "minter/funcs/Fees.sol";
 
 /**
  * @author Kresko
@@ -21,7 +23,7 @@ import {MinterModifiers} from "minter/Modifiers.sol";
  * @notice Main end-user functionality concerning minting kresko assets
  */
 
-contract MintFacet is DiamondModifiers, MinterModifiers, IMintFacet {
+contract MintFacet is DSModifiers, MSModifiers, IMintFacet {
     using Arrays for address[];
 
     /* -------------------------------------------------------------------------- */
@@ -50,7 +52,7 @@ contract MintFacet is DiamondModifiers, MinterModifiers, IMintFacet {
         );
 
         if (krAsset.openFee > 0) {
-            s.handleOpenFee(_account, _kreskoAsset, _mintAmount);
+            handleMinterOpenFee(_account, _kreskoAsset, _mintAmount);
         }
         {
             // Get the account's current minimum collateral value required to maintain current debts.
@@ -92,9 +94,9 @@ contract MintFacet is DiamondModifiers, MinterModifiers, IMintFacet {
         }
 
         // Record the mint.
-        s.mint(_kreskoAsset, krAsset.anchor, _mintAmount, _account);
+        s.kreskoAssetDebt[_account][_kreskoAsset] += mintKrAsset(_mintAmount, _account, krAsset.anchor);
 
         // Emit logs
-        emit MinterEvent.KreskoAssetMinted(_account, _kreskoAsset, _mintAmount);
+        emit MEvent.KreskoAssetMinted(_account, _kreskoAsset, _mintAmount);
     }
 }

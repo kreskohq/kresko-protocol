@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19;
 
-import {IERC20Permit} from "common/IERC20Permit.sol";
+import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {AddressUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 /**

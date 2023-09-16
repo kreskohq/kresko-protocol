@@ -1,20 +1,22 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {SafeERC20, IERC20Permit} from "common/SafeERC20.sol";
-import {Arrays} from "common/libs/Arrays.sol";
-import {WadRay} from "common/libs/WadRay.sol";
-import {Role} from "common/libs/Authorization.sol";
+import {SafeERC20, IERC20Permit} from "vendor/SafeERC20.sol";
+import {Arrays} from "libs/Arrays.sol";
+import {WadRay} from "libs/WadRay.sol";
+import {Role} from "common/Types.sol";
 
-import {ms} from "minter/libs/LibMinter.sol";
+import {DSModifiers} from "diamond/Modifiers.sol";
+
 import {Constants} from "minter/Constants.sol";
-import {MinterModifiers} from "minter/Modifiers.sol";
-import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
+import {MSModifiers} from "minter/Modifiers.sol";
+import {ms} from "minter/State.sol";
 
-import {scdp, PoolCollateral, PoolKrAsset} from "../libs/LibSCDP.sol";
-import {ISCDPConfigFacet} from "../interfaces/ISCDPConfigFacet.sol";
+import {ISCDPConfigFacet} from "scdp/interfaces/ISCDPConfigFacet.sol";
+import {PoolCollateral, PoolKrAsset} from "scdp/Types.sol";
+import {scdp} from "scdp/State.sol";
 
-contract SCDPConfigFacet is ISCDPConfigFacet, DiamondModifiers, MinterModifiers {
+contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, MSModifiers {
     using SafeERC20 for IERC20Permit;
     using Arrays for address[];
 

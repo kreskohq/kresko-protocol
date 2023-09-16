@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19;
 
-import {ms, Action} from "./libs/LibMinter.sol";
+import {ms} from "./State.sol";
+import {Action} from "./Types.sol";
 import {Error} from "common/Errors.sol";
 
-abstract contract MinterModifiers {
+abstract contract MSModifiers {
     /**
      * @notice Reverts if a collateral asset does not exist within the protocol.
      * @param _collateralAsset The address of the collateral asset.

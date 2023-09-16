@@ -2,7 +2,7 @@
 pragma solidity >=0.8.19;
 
 import {ISmockFacet} from "./interfaces/ISmockFacet.sol";
-import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
+import {DSModifiers} from "diamond/Modifiers.sol";
 import {SmockStorage, Errors} from "./SmockStorage.sol";
 
 bytes32 constant TEST_OPERATOR_ROLE = keccak256("kresko.test.operator");
@@ -10,7 +10,7 @@ bytes32 constant TEST_OPERATOR_ROLE = keccak256("kresko.test.operator");
 /**
  * @dev Use for Smock fakes / mocks.
  */
-contract SmockFacet is DiamondModifiers, ISmockFacet {
+contract SmockFacet is DSModifiers, ISmockFacet {
     uint256 public constant MESSAGE_THROTTLE = 2;
 
     function operator() external view returns (address) {

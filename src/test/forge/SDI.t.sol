@@ -2,13 +2,10 @@
 pragma solidity ^0.8.0;
 
 import {console} from "forge-std/Test.sol";
-import {IERC20Permit} from "common/IERC20Permit.sol";
-import {IKresko} from "common/IKresko.sol";
 import {LibTest} from "kresko-helpers/utils/LibTest.sol";
 import {TestBase} from "kresko-helpers/utils/TestBase.sol";
-import {AggregatorV3Interface} from "common/AggregatorV3Interface.sol";
 import {MockOracle} from "test/MockOracle.sol";
-import {MockERC20, WETH} from "test/MockERC20.sol";
+import {MockERC20} from "test/MockERC20.sol";
 import {DeployHelper} from "./utils/DeployHelper.sol";
 import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {KreskoAssetAnchor} from "kresko-asset/KreskoAssetAnchor.sol";

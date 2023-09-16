@@ -2,8 +2,7 @@
 pragma solidity >=0.8.19;
 
 import {FixedPointMathLib} from "@rari-capital/solmate/src/utils/FixedPointMathLib.sol";
-
-import {SafeERC20} from "common/SafeERC20.sol";
+import {SafeERC20} from "vendor/SafeERC20.sol";
 import {Error} from "common/Errors.sol";
 
 import {IKreskoAsset, IERC20Permit} from "./IKreskoAsset.sol";

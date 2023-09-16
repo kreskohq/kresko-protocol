@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {IDepositWithdrawFacet} from "../interfaces/IDepositWithdrawFacet.sol";
-import {ICollateralReceiver} from "../interfaces/ICollateralReceiver.sol";
+import {SafeERC20} from "vendor/SafeERC20.sol";
+import {IERC20Permit} from "vendor/IERC20Permit.sol";
+import {Role} from "common/Types.sol";
 
-import {Role} from "common/libs/Authorization.sol";
-import {SafeERC20} from "common/SafeERC20.sol";
-import {IERC20Permit} from "common/IERC20Permit.sol";
+import {DSModifiers} from "diamond/Modifiers.sol";
 
-import {DiamondModifiers} from "diamond/libs/LibDiamond.sol";
-import {ms, Action} from "../libs/LibMinter.sol";
-import {MinterModifiers} from "minter/Modifiers.sol";
+import {IDepositWithdrawFacet} from "minter/interfaces/IDepositWithdrawFacet.sol";
+import {ICollateralReceiver} from "minter/interfaces/ICollateralReceiver.sol";
+import {ms} from "minter/State.sol";
+import {Action} from "minter/Types.sol";
+import {MSModifiers} from "minter/Modifiers.sol";
 
 /**
  * @author Kresko
@@ -18,7 +19,7 @@ import {MinterModifiers} from "minter/Modifiers.sol";
  * @notice Main end-user functionality concerning collateral asset deposits and withdrawals within the Kresko protocol
  */
 
-contract DepositWithdrawFacet is DiamondModifiers, MinterModifiers, IDepositWithdrawFacet {
+contract DepositWithdrawFacet is DSModifiers, MSModifiers, IDepositWithdrawFacet {
     using SafeERC20 for IERC20Permit;
 
     /* -------------------------------------------------------------------------- */

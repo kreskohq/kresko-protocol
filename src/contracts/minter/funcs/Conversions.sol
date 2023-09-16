@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19;
-import {KrAsset, CollateralAsset} from "common/libs/Assets.sol";
-import {toWad} from "common/funcs/Conversions.sol";
-import {ms} from "minter/libs/LibMinter.sol";
-import {WadRay} from "common/libs/WadRay.sol";
+import {toWad} from "common/funcs/Math.sol";
+import {WadRay} from "libs/WadRay.sol";
+
+import {KrAsset, CollateralAsset} from "minter/Types.sol";
+import {ms} from "minter/State.sol";
 
 using WadRay for uint256;
 

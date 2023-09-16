@@ -2,14 +2,14 @@
 pragma solidity >=0.8.19;
 
 import {AccessControlEnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
+import {IERC165} from "vendor/IERC165.sol";
 
-import {Role} from "common/libs/Authorization.sol";
+import {Role} from "common/Types.sol";
 
 import {IKreskoAssetIssuer} from "./IKreskoAssetIssuer.sol";
 import {IKreskoAssetAnchor} from "./IKreskoAssetAnchor.sol";
 import {IERC4626Upgradeable} from "./IERC4626Upgradeable.sol";
 import {ERC4626Upgradeable, IKreskoAsset} from "./ERC4626Upgradeable.sol";
-import {IERC165} from "common/IERC165.sol";
 
 /* solhint-disable no-empty-blocks */
 

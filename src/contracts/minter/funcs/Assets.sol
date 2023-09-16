@@ -1,60 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19;
 
-import {LibRedstone} from "common/libs/LibRedstone.sol";
+import {Redstone} from "libs/Redstone.sol";
 import {IKreskoAssetAnchor} from "kresko-asset/IKreskoAssetAnchor.sol";
-import {AggregatorV3Interface} from "common/AggregatorV3Interface.sol";
 import {safePrice, oraclePrice, oraclePriceToWad} from "common/funcs/Prices.sol";
-import {WadRay} from "common/libs/WadRay.sol";
+import {WadRay} from "libs/WadRay.sol";
 
-using Assets for KrAsset global;
-using Assets for CollateralAsset global;
-/**
- * @notice Information on a token that is a KreskoAsset.
- * @dev Each KreskoAsset has 18 decimals.
- * @param kFactor The k-factor used for calculating the required collateral value for KreskoAsset debt.
- * @param oracle The oracle that provides the USD price of one KreskoAsset.
- * @param supplyLimit The total supply limit of the KreskoAsset.
- * @param anchor The anchor address
- * @param closeFee The percentage paid in fees when closing a debt position of this type.
- * @param openFee The percentage paid in fees when opening a debt position of this type.
- * @param exists Whether the KreskoAsset exists within the protocol.
- * @param redstoneId Redstone id for the asset
- */
-struct KrAsset {
-    uint256 kFactor;
-    AggregatorV3Interface oracle;
-    uint256 supplyLimit;
-    address anchor;
-    uint256 closeFee;
-    uint256 openFee;
-    bool exists;
-    bytes32 redstoneId;
-}
+import {KrAsset, CollateralAsset} from "minter/Types.sol";
 
-/**
- * @notice Information on a token that can be used as collateral.
- * @dev Setting the factor to zero effectively makes the asset useless as collateral while still allowing
- * it to be deposited and withdrawn.
- * @param factor The collateral factor used for calculating the value of the collateral.
- * @param oracle The oracle that provides the USD price of one collateral asset.
- * @param anchor If the collateral is a KreskoAsset, the anchor address
- * @param decimals The decimals for the token, stored here to avoid repetitive external calls.
- * @param exists Whether the collateral asset exists within the protocol.
- * @param liquidationIncentive The liquidation incentive for the asset
- * @param redstoneId Redstone id for the asset
- */
-struct CollateralAsset {
-    uint256 factor;
-    AggregatorV3Interface oracle;
-    address anchor;
-    uint8 decimals;
-    bool exists;
-    uint256 liquidationIncentive;
-    bytes32 redstoneId;
-}
-
-library Assets {
+library MAssets {
     using WadRay for uint256;
 
     /* -------------------------------------------------------------------------- */
@@ -123,7 +77,7 @@ library Assets {
      * @notice Get the oracle price of a kresko asset in uint256 with extOracleDecimals
      */
     function redstonePrice(CollateralAsset memory self) internal view returns (uint256) {
-        return LibRedstone.getPrice(self.redstoneId);
+        return Redstone.getPrice(self.redstoneId);
     }
 
     /**
@@ -138,7 +92,7 @@ library Assets {
      * @param self the kresko asset struct
      */
     function redstonePrice(KrAsset memory self) internal view returns (uint256) {
-        return LibRedstone.getPrice(self.redstoneId);
+        return Redstone.getPrice(self.redstoneId);
     }
 
     /**

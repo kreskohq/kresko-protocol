@@ -2,9 +2,9 @@
 pragma solidity >=0.8.19;
 
 import {FixedPointMathLib} from "@rari-capital/solmate/src/utils/FixedPointMathLib.sol";
-import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
+import {IKreskoAsset} from "./IKreskoAsset.sol";
 
-library Rebase {
+library Rebaser {
     using FixedPointMathLib for uint256;
 
     /**
