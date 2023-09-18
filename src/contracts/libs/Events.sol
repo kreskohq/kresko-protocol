@@ -37,13 +37,11 @@ library MinterEvent {
      * @dev Can only be emitted once for a given collateral asset.
      * @param collateralAsset The address of the collateral asset.
      * @param factor The collateral factor.
-     * @param oracle The address of the oracle.
      * @param liquidationIncentive The liquidation incentive
      */
     event CollateralAssetAdded(
         address indexed collateralAsset,
         uint256 factor,
-        address indexed oracle,
         address anchor,
         uint256 liquidationIncentive
     );
@@ -52,13 +50,11 @@ library MinterEvent {
      * @notice Emitted when a collateral asset is updated.
      * @param collateralAsset The address of the collateral asset.
      * @param factor The collateral factor.
-     * @param oracle The oracle address.
      * @param liquidationIncentive The liquidation incentive
      */
     event CollateralAssetUpdated(
         address indexed collateralAsset,
         uint256 factor,
-        address indexed oracle,
         address anchor,
         uint256 liquidationIncentive
     );
@@ -103,7 +99,6 @@ library MinterEvent {
      * @param kreskoAsset The address of the Kresko asset.
      * @param anchor anchor token
      * @param kFactor The k-factor.
-     * @param oracle The address of the oracle.
      * @param supplyLimit The total supply limit.
      * @param closeFee The close fee percentage.
      * @param openFee The open fee percentage.
@@ -111,7 +106,6 @@ library MinterEvent {
     event KreskoAssetAdded(
         address indexed kreskoAsset,
         address anchor,
-        address indexed oracle,
         uint256 kFactor,
         uint256 supplyLimit,
         uint256 closeFee,
@@ -122,7 +116,6 @@ library MinterEvent {
      * @notice Emitted when a Kresko asset's oracle is updated.
      * @param kreskoAsset The address of the Kresko asset.
      * @param kFactor The k-factor.
-     * @param oracle The address of the oracle.
      * @param supplyLimit The total supply limit.
      * @param closeFee The close fee percentage.
      * @param openFee The open fee percentage.
@@ -130,7 +123,6 @@ library MinterEvent {
     event KreskoAssetUpdated(
         address indexed kreskoAsset,
         address anchor,
-        address indexed oracle,
         uint256 kFactor,
         uint256 supplyLimit,
         uint256 closeFee,

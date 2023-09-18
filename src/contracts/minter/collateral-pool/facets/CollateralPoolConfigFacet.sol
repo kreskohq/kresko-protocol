@@ -58,7 +58,10 @@ contract CollateralPoolConfigFacet is ICollateralPoolConfigFacet, DiamondModifie
         require(_enabledCollaterals.length == _configurations.length, "collateral-length-mismatch");
         for (uint256 i; i < _enabledCollaterals.length; i++) {
             // Checks
-            require(ms().collateralAssets[_enabledCollaterals[i]].uintPrice() != 0, "collateral-no-price");
+            require(
+                ms().collateralAssets[_enabledCollaterals[i]].uintPrice(ms().oracleDeviationPct) != 0,
+                "collateral-no-price"
+            );
             require(
                 _configurations[i].liquidationIncentive >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
                 "li-too-low"
@@ -89,7 +92,7 @@ contract CollateralPoolConfigFacet is ICollateralPoolConfigFacet, DiamondModifie
         require(_enabledKrAssets.length == _configurations.length, "krasset-length-mismatch");
         for (uint256 i; i < _enabledKrAssets.length; i++) {
             // Checks
-            require(ms().kreskoAssets[_enabledKrAssets[i]].uintPrice() != 0, "krasset-no-price");
+            require(ms().kreskoAssets[_enabledKrAssets[i]].uintPrice(ms().oracleDeviationPct) != 0, "krasset-no-price");
             require(cps().poolKrAsset[_enabledKrAssets[i]].supplyLimit == 0, "krasset-already-enabled");
             require(_configurations[i].supplyLimit > 0, "krasset-supply-limit-zero");
             require(

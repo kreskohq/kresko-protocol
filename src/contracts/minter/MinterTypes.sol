@@ -5,6 +5,7 @@ import {IFluxPriceFeed} from "../vendor/flux/interfaces/IFluxPriceFeed.sol";
 import {AggregatorV3Interface} from "../vendor/AggregatorV3Interface.sol";
 import {IKreskoAssetAnchor} from "../kreskoasset/IKreskoAssetAnchor.sol";
 import {LibAssetUtility} from "./libs/LibAssetUtility.sol";
+import {LibPrice} from "../oracle/libs/LibPrice.sol";
 
 /* solhint-disable state-visibility */
 
@@ -133,16 +134,17 @@ struct MinterParams {
  */
 struct KrAsset {
     uint256 kFactor;
-    AggregatorV3Interface oracle;
     uint256 supplyLimit;
     address anchor;
     uint256 closeFee;
     uint256 openFee;
     bool exists;
-    bytes32 redstoneId;
+    bytes32 id;
+    uint8[2] oracles;
 }
 
 using LibAssetUtility for KrAsset global;
+using LibPrice for KrAsset global;
 
 /**
  * @notice Information on a token that can be used as collateral.
@@ -157,14 +159,15 @@ using LibAssetUtility for KrAsset global;
  */
 struct CollateralAsset {
     uint256 factor;
-    AggregatorV3Interface oracle;
     address anchor;
     uint8 decimals;
     bool exists;
     uint256 liquidationIncentive;
-    bytes32 redstoneId;
+    bytes32 id;
+    uint8[2] oracles;
 }
 using LibAssetUtility for CollateralAsset global;
+using LibPrice for CollateralAsset global;
 
 /// @notice Configuration for pausing `Action`
 struct Pause {

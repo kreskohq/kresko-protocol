@@ -54,8 +54,8 @@ contract CollateralPoolFacet is ICollateralPoolFacet, DiamondModifiers {
         require(cps().debt[_repayKrAsset] >= _repayAmount, "repay-too-much");
         require(cps().swapDeposits[_seizeCollateral] >= 0, "repay-no-assets-available");
 
-        uint256 seizedAmount = ms().kreskoAssets[_repayKrAsset].uintUSD(_repayAmount).wadDiv(
-            ms().collateralAssets[_seizeCollateral].uintPrice()
+        uint256 seizedAmount = ms().kreskoAssets[_repayKrAsset].uintUSD(_repayAmount, ms().oracleDeviationPct).wadDiv(
+            ms().collateralAssets[_seizeCollateral].uintPrice(ms().oracleDeviationPct)
         );
         require(cps().swapDeposits[_seizeCollateral] >= seizedAmount, "repay-too-much");
 
@@ -85,7 +85,7 @@ contract CollateralPoolFacet is ICollateralPoolFacet, DiamondModifiers {
 
         KrAsset memory krAsset = ms().kreskoAssets[_repayKrAsset];
         CollateralAsset memory collateral = ms().collateralAssets[_seizeCollateral];
-        uint256 repayAmountUSD = krAsset.uintUSD(_repayAmount);
+        uint256 repayAmountUSD = krAsset.uintUSD(_repayAmount, ms().oracleDeviationPct);
 
         require(
             ms().getMaxLiquidation(address(0), krAsset, _seizeCollateral) >= repayAmountUSD,
@@ -95,7 +95,7 @@ contract CollateralPoolFacet is ICollateralPoolFacet, DiamondModifiers {
         uint256 seizeAmount = collateral.decimals.fromWad(
             LibCalculation.calculateAmountToSeize(
                 collateral.liquidationIncentive,
-                collateral.uintPrice(),
+                collateral.uintPrice(ms().oracleDeviationPct),
                 repayAmountUSD
             )
         );
