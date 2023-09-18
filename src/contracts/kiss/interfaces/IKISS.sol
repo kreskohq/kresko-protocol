@@ -49,16 +49,18 @@ interface IKISS is IVaultExtender, IKreskoAssetIssuer, IERC165 {
     function unpause() external;
 
     /**
+     * @notice Exchange rate of vKISS to USD.
+     * @return rate vKISS/USD exchange rate.
+     * @custom:signature exchangeRate()
+     * @custom:selector 0x3ba0b9a9
+     */
+    function exchangeRate() external view returns (uint256 rate);
+
+    /**
      * @notice Overrides `AccessControl.grantRole` for following:
      * @notice EOA cannot be granted Role.OPERATOR role
      * @param _role role to grant
      * @param _to address to grant role for
      */
     function grantRole(bytes32 _role, address _to) external;
-
-    /**
-     * @notice Returns vKISS/USD exchanage rate
-     * @return rate vKISS/USD exchanage rate
-     */
-    function exchangeRate() external view returns (uint256 rate);
 }

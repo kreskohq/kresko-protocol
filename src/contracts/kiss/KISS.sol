@@ -172,16 +172,9 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
     /*                                    Views                                   */
     /* -------------------------------------------------------------------------- */
 
-    /// @inheritdoc IERC165
-    function supportsInterface(
-        bytes4 interfaceId
-    ) public view override(AccessControlEnumerableUpgradeable, IERC165) returns (bool) {
-        return (interfaceId != 0xffffffff &&
-            (interfaceId == type(IKISS).interfaceId ||
-                interfaceId == type(IKreskoAssetIssuer).interfaceId ||
-                interfaceId == 0x01ffc9a7 ||
-                interfaceId == 0x36372b07 ||
-                super.supportsInterface(interfaceId)));
+    /// @inheritdoc IKISS
+    function exchangeRate() external view returns (uint256) {
+        return IVault(vKISS).exchangeRate();
     }
 
     /// @inheritdoc IKreskoAssetIssuer
@@ -194,8 +187,16 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
         return shares;
     }
 
-    function exchangeRate() external view returns (uint256) {
-        return IVault(vKISS).exchangeRate();
+    /// @inheritdoc IERC165
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override(AccessControlEnumerableUpgradeable, IERC165) returns (bool) {
+        return (interfaceId != 0xffffffff &&
+            (interfaceId == type(IKISS).interfaceId ||
+                interfaceId == type(IKreskoAssetIssuer).interfaceId ||
+                interfaceId == 0x01ffc9a7 ||
+                interfaceId == 0x36372b07 ||
+                super.supportsInterface(interfaceId)));
     }
 
     /* -------------------------------------------------------------------------- */
