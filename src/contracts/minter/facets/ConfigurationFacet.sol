@@ -65,6 +65,7 @@ contract ConfigurationFacet is DSModifiers, MSModifiers, IConfigurationFacet {
         updateOracleTimeout(args.oracleTimeout);
 
         ds().storageVersion++;
+
         emit DiamondEvent.Initialized(args.admin, ds().storageVersion);
     }
 
@@ -142,11 +143,9 @@ contract ConfigurationFacet is DSModifiers, MSModifiers, IConfigurationFacet {
 
     /// @inheritdoc IConfigurationFacet
     function updateMaxLiquidationMultiplier(uint256 _maxLiquidationMultiplier) public override onlyRole(Role.ADMIN) {
-        require(
-            _maxLiquidationMultiplier >= Constants.MIN_MAX_LIQUIDATION_MULTIPLIER,
-            Error.PARAM_LIQUIDATION_OVERFLOW_LOW
-        );
+        require(_maxLiquidationMultiplier >= Constants.MIN_MAX_LIQUIDATION_MULTIPLIER, Error.PARAM_LIQUIDATION_OVERFLOW_LOW);
         ms().maxLiquidationMultiplier = _maxLiquidationMultiplier;
+
         emit MEvent.MaxLiquidationMultiplierUpdated(_maxLiquidationMultiplier);
     }
 
@@ -302,10 +301,7 @@ contract ConfigurationFacet is DSModifiers, MSModifiers, IConfigurationFacet {
                 IERC165(_krAsset).supportsInterface(type(IKreskoAsset).interfaceId),
             Error.KRASSET_INVALID_CONTRACT
         );
-        require(
-            IERC165(_config.anchor).supportsInterface(type(IKreskoAssetIssuer).interfaceId),
-            Error.KRASSET_INVALID_ANCHOR
-        );
+        require(IERC165(_config.anchor).supportsInterface(type(IKreskoAssetIssuer).interfaceId), Error.KRASSET_INVALID_ANCHOR);
         // The diamond needs the operator role
         require(IKreskoAsset(_krAsset).hasRole(Role.OPERATOR, address(this)), Error.NOT_OPERATOR);
 

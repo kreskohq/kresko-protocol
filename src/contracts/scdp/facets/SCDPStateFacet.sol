@@ -19,18 +19,12 @@ contract SCDPStateFacet is ISCDPStateFacet {
     using WadRay for uint256;
 
     /// @inheritdoc ISCDPStateFacet
-    function getPoolAccountDepositsWithFees(
-        address _account,
-        address _collateralAsset
-    ) external view returns (uint256) {
+    function getPoolAccountDepositsWithFees(address _account, address _collateralAsset) external view returns (uint256) {
         return scdp().accountDepositsWithFees(_account, _collateralAsset);
     }
 
     /// @inheritdoc ISCDPStateFacet
-    function getPoolAccountPrincipalDeposits(
-        address _account,
-        address _collateralAsset
-    ) external view returns (uint256) {
+    function getPoolAccountPrincipalDeposits(address _account, address _collateralAsset) external view returns (uint256) {
         return scdp().accountPrincipalDeposits(_account, _collateralAsset);
     }
 
@@ -60,10 +54,7 @@ contract SCDPStateFacet is ISCDPStateFacet {
     }
 
     /// @inheritdoc ISCDPStateFacet
-    function getPoolAccountDepositsValueWithFees(
-        address _account,
-        address _collateralAsset
-    ) external view returns (uint256) {
+    function getPoolAccountDepositsValueWithFees(address _account, address _collateralAsset) external view returns (uint256) {
         (uint256 assetValue, ) = collateralAmountToValue(
             _collateralAsset,
             scdp().accountDepositsWithFees(_account, _collateralAsset),
@@ -164,12 +155,7 @@ contract SCDPStateFacet is ISCDPStateFacet {
 
     /// @inheritdoc ISCDPStateFacet
     function getPoolKrAssetDebtValue(address _kreskoAsset, bool _ignoreFactors) external view returns (uint256) {
-        return
-            krAssetAmountToValue(
-                _kreskoAsset,
-                kreskoAssetAmount(_kreskoAsset, scdp().debt[_kreskoAsset]),
-                _ignoreFactors
-            );
+        return krAssetAmountToValue(_kreskoAsset, kreskoAssetAmount(_kreskoAsset, scdp().debt[_kreskoAsset]), _ignoreFactors);
     }
 
     /// @inheritdoc ISCDPStateFacet
@@ -200,9 +186,7 @@ contract SCDPStateFacet is ISCDPStateFacet {
     }
 
     /// @inheritdoc ISCDPStateFacet
-    function getPoolStats(
-        bool _ignoreFactors
-    ) external view returns (uint256 collateralValue, uint256 debtValue, uint256 cr) {
+    function getPoolStats(bool _ignoreFactors) external view returns (uint256 collateralValue, uint256 debtValue, uint256 cr) {
         collateralValue = scdp().totalCollateralValueSCDP(_ignoreFactors);
         debtValue = scdp().totalDebtValueAtRatioSCDP(1 ether, _ignoreFactors);
         if (debtValue == 0) return (collateralValue, debtValue, 0);

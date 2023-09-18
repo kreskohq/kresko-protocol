@@ -74,20 +74,11 @@ contract SCDPFacet is ISCDPFacet, DSModifiers {
     }
 
     function getMaxLiquidationSCDP(address _kreskoAsset, address _seizeCollateral) external view returns (uint256) {
-        return
-            maxLiquidatableValueSCDP(
-                scdp().poolKrAsset[_kreskoAsset],
-                ms().kreskoAssets[_kreskoAsset],
-                _seizeCollateral
-            );
+        return maxLiquidatableValueSCDP(scdp().poolKrAsset[_kreskoAsset], ms().kreskoAssets[_kreskoAsset], _seizeCollateral);
     }
 
     /// @inheritdoc ISCDPFacet
-    function poolLiquidate(
-        address _repayKrAsset,
-        uint256 _repayAmount,
-        address _seizeCollateral
-    ) external nonReentrant {
+    function poolLiquidate(address _repayKrAsset, uint256 _repayAmount, address _seizeCollateral) external nonReentrant {
         SCDPState storage s = scdp();
         MinterState storage m = ms();
         require(s.debt[_repayKrAsset] >= _repayAmount, "liquidate-too-much");
@@ -98,10 +89,7 @@ contract SCDPFacet is ISCDPFacet, DSModifiers {
         PoolKrAsset memory poolKrAsset = s.poolKrAsset[_repayKrAsset];
         uint256 repayAmountUSD = krAsset.uintUSD(_repayAmount, m.oracleDeviationPct);
 
-        require(
-            maxLiquidatableValueSCDP(poolKrAsset, krAsset, _seizeCollateral) >= repayAmountUSD,
-            Error.LIQUIDATION_OVERFLOW
-        );
+        require(maxLiquidatableValueSCDP(poolKrAsset, krAsset, _seizeCollateral) >= repayAmountUSD, Error.LIQUIDATION_OVERFLOW);
 
         uint256 seizeAmount = fromWad(
             collateral.decimals,

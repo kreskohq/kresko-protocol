@@ -27,7 +27,6 @@ using Arrays for address[];
  * @param _kreskoAsset The address of the kresko asset being minted.
  * @param _kreskoAssetAmountMinted The amount of the kresko asset being minted.
  */
-
 function handleMinterOpenFee(address _account, address _kreskoAsset, uint256 _kreskoAssetAmountMinted) {
     KrAsset memory krAsset = ms().kreskoAssets[_kreskoAsset];
     // Calculate the value of the fee according to the value of the krAssets being minted.
@@ -49,9 +48,9 @@ function handleMinterOpenFee(address _account, address _kreskoAsset, uint256 _kr
         (uint256 transferAmount, uint256 feeValuePaid) = calcMinterFee(currentCollateral, _account, feeValue, i);
 
         // Remove the transferAmount from the stored deposit for the account.
-        ms().collateralDeposits[_account][currentCollateral] -= ms()
-            .collateralAssets[currentCollateral]
-            .toNonRebasingAmount(transferAmount);
+        ms().collateralDeposits[_account][currentCollateral] -= ms().collateralAssets[currentCollateral].toNonRebasingAmount(
+            transferAmount
+        );
 
         // Transfer the fee to the feeRecipient.
         IERC20Permit(currentCollateral).safeTransfer(ms().feeRecipient, transferAmount);
@@ -95,9 +94,9 @@ function handleMinterCloseFee(address _account, address _kreskoAsset, uint256 _b
         (uint256 transferAmount, uint256 feeValuePaid) = calcMinterFee(currentCollateral, _account, feeValue, i);
 
         // Remove the transferAmount from the stored deposit for the account.
-        ms().collateralDeposits[_account][currentCollateral] -= ms()
-            .collateralAssets[currentCollateral]
-            .toNonRebasingAmount(transferAmount);
+        ms().collateralDeposits[_account][currentCollateral] -= ms().collateralAssets[currentCollateral].toNonRebasingAmount(
+            transferAmount
+        );
 
         // Transfer the fee to the feeRecipient.
         IERC20Permit(currentCollateral).safeTransfer(ms().feeRecipient, transferAmount);

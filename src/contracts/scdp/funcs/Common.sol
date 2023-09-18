@@ -46,10 +46,7 @@ library SCommon {
      * @param _ignoreFactors whether to ignore factors
      * @return value in USD
      */
-    function totalCollateralValueSCDP(
-        SCDPState storage self,
-        bool _ignoreFactors
-    ) internal view returns (uint256 value) {
+    function totalCollateralValueSCDP(SCDPState storage self, bool _ignoreFactors) internal view returns (uint256 value) {
         address[] memory assets = self.collaterals;
         for (uint256 i; i < assets.length; ) {
             address asset = assets[i];

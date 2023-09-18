@@ -149,12 +149,7 @@ contract SCDPSwapFacet is ISCDPSwapFacet, DSModifiers {
      * @param _assetOut The asset to swap out.
      * @param _amountIn The amount of `_assetIn` to swap in
      */
-    function _feeSwap(
-        address _receiver,
-        address _assetIn,
-        address _assetOut,
-        uint256 _amountIn
-    ) internal returns (uint256) {
+    function _feeSwap(address _receiver, address _assetIn, address _assetOut, uint256 _amountIn) internal returns (uint256) {
         require(scdp().isSwapEnabled[_assetIn][_assetOut], "swap-disabled");
         require(_assetIn != _assetOut, "same-asset");
         return scdp().handleAssetsOut(_assetOut, scdp().handleAssetsIn(_assetIn, _amountIn, address(this)), _receiver);

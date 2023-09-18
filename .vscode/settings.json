@@ -27,6 +27,7 @@
   "solidity.compilerPackage": "solc",
   "solidity.formatter": "prettier",
   "solidity.sources": "",
+  "solidity.initExclude": ["test"],
   "solidity.libs": ["node_modules", "lib"],
   "solidity.libSources": ["src", "contracts"],
   "solidity.enabledAsYouTypeCompilationErrorCheck": false,

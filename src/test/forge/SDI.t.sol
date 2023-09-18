@@ -179,14 +179,7 @@ contract SDITest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         require(success, "!success");
 
         bytes memory swapData2 = abi.encodePacked(
-            abi.encodeWithSelector(
-                kresko.swap.selector,
-                user0,
-                address(krETH),
-                address(KISS),
-                krETH.balanceOf(user0),
-                0
-            ),
+            abi.encodeWithSelector(kresko.swap.selector, user0, address(krETH), address(KISS), krETH.balanceOf(user0), 0),
             redstonePayload
         );
         uint256 gasSwap2 = gasleft();
@@ -196,14 +189,7 @@ contract SDITest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         require(success, "!success");
 
         bytes memory swapData3 = abi.encodePacked(
-            abi.encodeWithSelector(
-                kresko.swap.selector,
-                user0,
-                address(KISS),
-                address(krETH),
-                KISS.balanceOf(user0),
-                0
-            ),
+            abi.encodeWithSelector(kresko.swap.selector, user0, address(KISS), address(krETH), KISS.balanceOf(user0), 0),
             redstonePayload
         );
         uint256 gasSwap3 = gasleft();

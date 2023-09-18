@@ -1,5 +1,6 @@
 {
     "arrowParens": "avoid",
+    "bracketSameLine": true,
     "bracketSpacing": true,
     "endOfLine": "auto",
     "printWidth": 120,
@@ -11,9 +12,11 @@
         {
             "files": "*.sol",
             "options": {
-                "printWidth": 120,
+                "printWidth": 128,
                 "tabWidth": 4,
                 "useTabs": false,
+                "bracketSameLine": true,
+                "proseWrap": "preserve",
                 "singleQuote": false,
                 "bracketSpacing": false
             }

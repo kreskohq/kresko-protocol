@@ -14,11 +14,7 @@ library SAccounts {
      * @param _account The account to get the amount for
      * @return Amount of scaled debt.
      */
-    function accountDepositsWithFees(
-        SCDPState storage self,
-        address _account,
-        address _asset
-    ) internal view returns (uint256) {
+    function accountDepositsWithFees(SCDPState storage self, address _account, address _asset) internal view returns (uint256) {
         uint256 deposits = collateralAmountRead(_asset, self.deposits[_account][_asset]);
         if (deposits == 0) {
             return 0;
@@ -30,7 +26,7 @@ library SAccounts {
      * @notice Get accounts principle collateral deposits.
      * @param _account The account to get the amount for
      * @param _collateralAsset The collateral asset address
-     * @return Amount of scaled debt.
+     * @return uint256 Amount of scaled debt.
      */
     function accountPrincipalDeposits(
         SCDPState storage self,
@@ -38,10 +34,7 @@ library SAccounts {
         address _collateralAsset
     ) internal view returns (uint256) {
         uint256 deposits = self.accountDepositsWithFees(_account, _collateralAsset);
-        uint256 depositsPrincipal = collateralAmountRead(
-            _collateralAsset,
-            self.depositsPrincipal[_account][_collateralAsset]
-        );
+        uint256 depositsPrincipal = collateralAmountRead(_collateralAsset, self.depositsPrincipal[_account][_collateralAsset]);
 
         if (deposits == 0) {
             return 0;
@@ -53,8 +46,8 @@ library SAccounts {
 
     /**
      * @notice Returns the value of the collateral assets in the pool for `_account`.
-     * @param _account account
-     * @param _ignoreFactors whether to ignore cFactor and kFactor
+     * @param _account Account to get total deposit value for
+     * @param _ignoreFactors Whether to ignore cFactor and kFactor
      */
     function accountTotalDepositValuePrincipal(
         SCDPState storage self,
@@ -90,11 +83,7 @@ library SAccounts {
         address[] memory assets = self.collaterals;
         for (uint256 i; i < assets.length; ) {
             address asset = assets[i];
-            (uint256 assetValue, ) = collateralAmountToValue(
-                asset,
-                self.accountDepositsWithFees(_account, asset),
-                true
-            );
+            (uint256 assetValue, ) = collateralAmountToValue(asset, self.accountDepositsWithFees(_account, asset), true);
 
             totalValue += assetValue;
 
