@@ -64,9 +64,7 @@ contract ConfigurationFacet is DSModifiers, MSModifiers, IConfigurationFacet {
         updateSequencerGracePeriodTime(args.sequencerGracePeriodTime);
         updateOracleTimeout(args.oracleTimeout);
 
-        ds().storageVersion++;
-
-        emit DiamondEvent.Initialized(args.admin, ds().storageVersion);
+        emit DiamondEvent.Initialized(args.admin, ds().storageVersion++);
     }
 
     /// @inheritdoc IConfigurationFacet

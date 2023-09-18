@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity ^0.8.0;
 
-import {CollateralAsset, KrAsset, MinterParams} from "../Types.sol";
+import {CollateralAsset, KrAsset, MinterParams} from "minter/Types.sol";
 
 interface IStateFacet {
     /// @notice The EIP-712 typehash for the contract's domain.
@@ -69,9 +69,5 @@ interface IStateFacet {
      * @param _ignoreKFactor Boolean indicating if the asset's k-factor should be ignored.
      * @return The value for the provided amount of the Kresko asset.
      */
-    function getDebtAmountToValue(
-        address _kreskoAsset,
-        uint256 _amount,
-        bool _ignoreKFactor
-    ) external view returns (uint256);
+    function getDebtAmountToValue(address _kreskoAsset, uint256 _amount, bool _ignoreKFactor) external view returns (uint256);
 }

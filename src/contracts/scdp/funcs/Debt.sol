@@ -23,7 +23,7 @@ library SDebt {
         uint256 amount
     ) internal returns (uint256 shares, uint256 value) {
         require(amount > 0, "NO_COVER_RECEIVED");
-        CoverAsset memory asset = self.sdi.coverAssets[coverAsset];
+        CoverAsset memory asset = self.sdi.coverAsset[coverAsset];
         value = usdWad(amount, price(asset), asset.decimals);
         self.sdi.totalCover += (shares = valueToSDI(value, SDIPrice(self)));
 
@@ -98,7 +98,7 @@ library SDebt {
 
     /// @notice Gets the total cover debt value, oracle precision
     function totalCoverValue(SCDPState storage self) internal view returns (uint256 result) {
-        address[] memory assets = self.sdi.coverAssetList;
+        address[] memory assets = self.sdi.coverAssets;
         for (uint256 i; i < assets.length; ) {
             result += coverAssetValue(self, assets[i]);
             unchecked {
@@ -117,7 +117,7 @@ library SDebt {
         uint256 bal = IERC20Permit(asset).balanceOf(self.sdi.coverRecipient);
         if (bal == 0) return 0;
 
-        CoverAsset memory assetInfo = self.sdi.coverAssets[asset];
+        CoverAsset memory assetInfo = self.sdi.coverAsset[asset];
         return (bal * price(assetInfo)) / 10 ** assetInfo.decimals;
     }
 

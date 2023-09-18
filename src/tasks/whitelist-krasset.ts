@@ -27,7 +27,7 @@ task(TASK_WHITELIST_KRASSET)
         const KrAsset = await hre.getContractOrFork("KreskoAsset", symbol);
         const KrAssetAnchor = await hre.getDeploymentOrFork(`${anchorTokenPrefix}${symbol}`);
 
-        const krAssetInfo = await kresko.kreskoAsset(KrAsset.address);
+        const krAssetInfo = await kresko.getKreskoAsset(KrAsset.address);
         const exists = krAssetInfo.exists;
 
         const redstone = redstoneMap[symbol as keyof typeof redstoneMap];

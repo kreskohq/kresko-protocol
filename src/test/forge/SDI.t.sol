@@ -148,7 +148,7 @@ contract SDITest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         uint256 swapValueWad = ((scdpDepositAmount / 2) * 1e8) / kissOracle.price();
 
         bytes memory depositData = abi.encodePacked(
-            abi.encodeWithSelector(kresko.poolDeposit.selector, user0, address(KISS), scdpDepositAmount),
+            abi.encodeWithSelector(kresko.depositSCDP.selector, user0, address(KISS), scdpDepositAmount),
             redstonePayload
         );
         uint256 gasDeposit = gasleft();
@@ -157,7 +157,7 @@ contract SDITest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         require(success, "!success");
 
         bytes memory withdrawData = abi.encodePacked(
-            abi.encodeWithSelector(kresko.poolWithdraw.selector, user0, address(KISS), scdpDepositAmount),
+            abi.encodeWithSelector(kresko.withdrawSCDP.selector, user0, address(KISS), scdpDepositAmount),
             redstonePayload
         );
         uint256 gasWithdraw = gasleft();
@@ -206,7 +206,7 @@ contract SDITest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         mintKISS(user0, depositValueWad);
 
         uint256 scdpDepositAmount = depositValueWad / 2;
-        call(kresko.poolDeposit.selector, user0, address(KISS), scdpDepositAmount, initialPrices);
+        call(kresko.depositSCDP.selector, user0, address(KISS), scdpDepositAmount, initialPrices);
 
         swapValueWad = ((scdpDepositAmount / 2) * 1e8) / kissOracle.price();
 
@@ -224,11 +224,11 @@ contract SDITest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
 
     function poolDeposit(address user, address asset, uint256 amount, string memory prices) internal prankAddr(user) {
         MockERC20(asset).mint(user, amount);
-        call(kresko.poolDeposit.selector, user, asset, amount, prices);
+        call(kresko.depositSCDP.selector, user, asset, amount, prices);
     }
 
     function poolWithdraw(address user, address asset, uint256 amount, string memory prices) internal prankAddr(user) {
-        call(kresko.poolWithdraw.selector, user, asset, amount, prices);
+        call(kresko.withdrawSCDP.selector, user, asset, amount, prices);
     }
 
     function swap(

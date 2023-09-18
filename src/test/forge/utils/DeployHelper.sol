@@ -32,7 +32,7 @@ import {SCDPSwapFacet} from "scdp/facets/SCDPSwapFacet.sol";
 import {SCDPConfigFacet} from "scdp/facets/SCDPConfigFacet.sol";
 import {SDIFacet} from "scdp/facets/SDIFacet.sol";
 import {ISCDPConfigFacet} from "scdp/interfaces/ISCDPConfigFacet.sol";
-import {PoolCollateral, PoolKrAsset} from "scdp/Types.sol";
+import {SCDPCollateral, SCDPKrAsset, PairSetter} from "scdp/Types.sol";
 
 import {MockOracle} from "test/MockOracle.sol";
 import {MockERC20} from "test/MockERC20.sol";
@@ -204,30 +204,22 @@ abstract contract DeployHelper is RedstoneHelper {
             action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("SCDPSwapFacet")
         });
+        _diamondCut[4] = FacetCut({
+            facetAddress: address(new SDIFacet()),
+            action: FacetCutAction.Add,
+            functionSelectors: DiamondHelper.getSelectorsFromArtifact("SDIFacet")
+        });
 
         bytes memory initData = abi.encodeWithSelector(
-            SCDPConfigFacet.initialize.selector,
+            SCDPConfigFacet.initializeSCDP.selector,
             ISCDPConfigFacet.SCDPInitArgs({swapFeeRecipient: TREASURY, mcr: 2e18, lt: 1.5e18})
         );
         return (_diamondCut, Initialization(configurationFacetAddress, initData));
     }
 
-    function sdiFacets(address coverReceiver) internal returns (FacetCut[] memory, Initialization memory) {
-        address facetAddress = address(new SDIFacet());
-        FacetCut[] memory _diamondCut = new FacetCut[](1);
-        _diamondCut[0] = FacetCut({
-            facetAddress: facetAddress,
-            action: FacetCutAction.Add,
-            functionSelectors: DiamondHelper.getSelectorsFromArtifact("SDIFacet")
-        });
-
-        bytes memory initData = abi.encodeWithSelector(SDIFacet.initialize.selector, coverReceiver);
-        return (_diamondCut, Initialization(facetAddress, initData));
-    }
-
     function enableSCDPCollateral(address asset, string memory prices) internal {
-        PoolCollateral[] memory configurations = new PoolCollateral[](1);
-        configurations[0] = PoolCollateral({
+        SCDPCollateral[] memory configurations = new SCDPCollateral[](1);
+        configurations[0] = SCDPCollateral({
             decimals: MockERC20(asset).decimals(),
             depositLimit: type(uint256).max,
             liquidityIndex: 1e27
@@ -238,7 +230,7 @@ abstract contract DeployHelper is RedstoneHelper {
         bytes memory redstonePayload = getRedstonePayload(prices);
         (bool success, bytes memory data) = address(kresko).call(
             abi.encodePacked(
-                abi.encodeWithSelector(kresko.enablePoolCollaterals.selector, assets, configurations),
+                abi.encodeWithSelector(kresko.enableCollateralsSCDP.selector, assets, configurations),
                 redstonePayload
             )
         );
@@ -246,8 +238,8 @@ abstract contract DeployHelper is RedstoneHelper {
     }
 
     function enableSCDPKrAsset(address asset, string memory prices) internal {
-        PoolKrAsset[] memory configurations = new PoolKrAsset[](1);
-        configurations[0] = PoolKrAsset({
+        SCDPKrAsset[] memory configurations = new SCDPKrAsset[](1);
+        configurations[0] = SCDPKrAsset({
             protocolFee: 0.25e18,
             liquidationIncentive: 1.1e18,
             openFee: 0.005e18,
@@ -260,7 +252,7 @@ abstract contract DeployHelper is RedstoneHelper {
         bytes memory redstonePayload = getRedstonePayload(prices);
         (bool success, bytes memory data) = address(kresko).call(
             abi.encodePacked(
-                abi.encodeWithSelector(kresko.enablePoolKrAssets.selector, assets, configurations),
+                abi.encodeWithSelector(kresko.enableKrAssetsSCDP.selector, assets, configurations),
                 redstonePayload
             )
         );
@@ -268,13 +260,13 @@ abstract contract DeployHelper is RedstoneHelper {
     }
 
     function enableSwapBothWays(address asset0, address asset1, bool enabled) internal {
-        ISCDPConfigFacet.PairSetter[] memory swapPairsEnabled = new ISCDPConfigFacet.PairSetter[](2);
-        swapPairsEnabled[0] = ISCDPConfigFacet.PairSetter({assetIn: asset0, assetOut: asset1, enabled: enabled});
+        PairSetter[] memory swapPairsEnabled = new PairSetter[](2);
+        swapPairsEnabled[0] = PairSetter({assetIn: asset0, assetOut: asset1, enabled: enabled});
         kresko.setSwapPairs(swapPairsEnabled);
     }
 
     function enableSwapSingleWay(address asset0, address asset1, bool enabled) internal {
-        kresko.setSwapPairsSingle(ISCDPConfigFacet.PairSetter({assetIn: asset0, assetOut: asset1, enabled: enabled}));
+        kresko.setSwapPairsSingle(PairSetter({assetIn: asset0, assetOut: asset1, enabled: enabled}));
     }
 
     function deployAndWhitelistKrAsset(
@@ -347,9 +339,7 @@ abstract contract DeployHelper is RedstoneHelper {
         bytes memory redstonePayload = getRedstonePayload(prices);
 
         bytes memory encodedFunction = abi.encodeWithSelector(selector);
-        (bool success, bytes memory data) = address(target).staticcall(
-            abi.encodePacked(encodedFunction, redstonePayload)
-        );
+        (bool success, bytes memory data) = address(target).staticcall(abi.encodePacked(encodedFunction, redstonePayload));
         require(success, _getRevertMsg(data));
         return abi.decode(data, (uint256));
     }
@@ -358,25 +348,16 @@ abstract contract DeployHelper is RedstoneHelper {
         bytes memory redstonePayload = getRedstonePayload(prices);
 
         bytes memory encodedFunction = abi.encodeWithSelector(selector);
-        (bool success, bytes memory data) = address(kresko).staticcall(
-            abi.encodePacked(encodedFunction, redstonePayload)
-        );
+        (bool success, bytes memory data) = address(kresko).staticcall(abi.encodePacked(encodedFunction, redstonePayload));
         require(success, _getRevertMsg(data));
         return abi.decode(data, (uint256));
     }
 
-    function staticCall(
-        bytes4 selector,
-        address param1,
-        address param2,
-        string memory prices
-    ) public returns (uint256) {
+    function staticCall(bytes4 selector, address param1, address param2, string memory prices) public returns (uint256) {
         bytes memory redstonePayload = getRedstonePayload(prices);
 
         bytes memory encodedFunction = abi.encodeWithSelector(selector, param1, param2);
-        (bool success, bytes memory data) = address(kresko).staticcall(
-            abi.encodePacked(encodedFunction, redstonePayload)
-        );
+        (bool success, bytes memory data) = address(kresko).staticcall(abi.encodePacked(encodedFunction, redstonePayload));
         require(success, _getRevertMsg(data));
         return abi.decode(data, (uint256));
     }
@@ -385,9 +366,7 @@ abstract contract DeployHelper is RedstoneHelper {
         bytes memory redstonePayload = getRedstonePayload(prices);
 
         bytes memory encodedFunction = abi.encodeWithSelector(selector, param1);
-        (bool success, bytes memory data) = address(kresko).staticcall(
-            abi.encodePacked(encodedFunction, redstonePayload)
-        );
+        (bool success, bytes memory data) = address(kresko).staticcall(abi.encodePacked(encodedFunction, redstonePayload));
         require(success, _getRevertMsg(data));
         return abi.decode(data, (uint256));
     }
@@ -396,9 +375,7 @@ abstract contract DeployHelper is RedstoneHelper {
         bytes memory redstonePayload = getRedstonePayload(prices);
 
         bytes memory encodedFunction = abi.encodeWithSelector(selector, param1, param2);
-        (bool success, bytes memory data) = address(kresko).staticcall(
-            abi.encodePacked(encodedFunction, redstonePayload)
-        );
+        (bool success, bytes memory data) = address(kresko).staticcall(abi.encodePacked(encodedFunction, redstonePayload));
         require(success, _getRevertMsg(data));
         return abi.decode(data, (uint256));
     }
@@ -407,9 +384,7 @@ abstract contract DeployHelper is RedstoneHelper {
         bytes memory redstonePayload = getRedstonePayload(prices);
 
         bytes memory encodedFunction = abi.encodeWithSelector(selector, param1);
-        (bool success, bytes memory data) = address(kresko).staticcall(
-            abi.encodePacked(encodedFunction, redstonePayload)
-        );
+        (bool success, bytes memory data) = address(kresko).staticcall(abi.encodePacked(encodedFunction, redstonePayload));
         require(success, _getRevertMsg(data));
         return abi.decode(data, (uint256));
     }

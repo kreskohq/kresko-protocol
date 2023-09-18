@@ -19,7 +19,7 @@ library SAccounts {
         if (deposits == 0) {
             return 0;
         }
-        return deposits.rayMul(self.poolCollateral[_asset].liquidityIndex).rayToWad();
+        return deposits.rayMul(self.collateral[_asset].liquidityIndex).rayToWad();
     }
 
     /**

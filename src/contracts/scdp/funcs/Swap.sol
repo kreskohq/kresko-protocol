@@ -14,7 +14,7 @@ library Swap {
     using WadRay for uint256;
     using SafeERC20 for IERC20Permit;
 
-    /// @notice Repay user global asset debt. Updates rates for regular market.
+    /// @notice Repay SCDP debt.
     /// @param _kreskoAsset the asset being repaid
     /// @param _burnAmount the asset amount being burned
     function repaySwap(
@@ -27,8 +27,7 @@ library Swap {
         self.sdi.totalDebt -= krAssetAmountToSDI(_kreskoAsset, destroyed, false);
     }
 
-    /// @notice Mint kresko assets for shared debt pool.
-    /// @dev Updates general markets stability rates and debt index.
+    /// @notice Mint kresko assets for SCDP.
     /// @param _kreskoAsset the asset requested
     /// @param _amount the asset amount requested
     /// @param _to the account to mint the assets to
@@ -83,11 +82,11 @@ library Swap {
         // }
 
         if (collateralIn > 0) {
-            uint256 collateralInInternal = collateralAmountWrite(_assetIn, collateralIn);
+            uint256 collateralInWrite = collateralAmountWrite(_assetIn, collateralIn);
             // 1. Increase collateral deposits.
-            self.totalDeposits[_assetIn] += collateralInInternal;
+            self.totalDeposits[_assetIn] += collateralInWrite;
             // 2. Increase "swap" collateral.
-            self.swapDeposits[_assetIn] += collateralInInternal;
+            self.swapDeposits[_assetIn] += collateralInWrite;
         }
 
         if (debtOut > 0) {
@@ -173,7 +172,7 @@ library Swap {
         // liquidity index increment is calculated this way: `(amount / totalLiquidity)`
         // division `amount / totalLiquidity` done in ray for precision
 
-        return (self.poolCollateral[_collateralAsset].liquidityIndex += uint128(
+        return (self.collateral[_collateralAsset].liquidityIndex += uint128(
             (_amount.wadToRay().rayDiv(poolDeposits.wadToRay()))
         ));
     }

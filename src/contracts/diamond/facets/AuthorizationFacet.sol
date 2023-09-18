@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {IAuthorizationFacet} from "../interfaces/IAuthorizationFacet.sol";
+import {IAuthorizationFacet} from "diamond/interfaces/IAuthorizationFacet.sol";
 import {Auth} from "common/Auth.sol";
 
 /**

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity ^0.8.0;
 
-import {Action, SafetyState} from "../Types.sol";
+import {Action, SafetyState} from "minter/Types.sol";
 
 interface ISafetyCouncilFacet {
     /**
@@ -18,12 +18,7 @@ interface ISafetyCouncilFacet {
      * @param _withDuration Set a duration for this pause - @todo: implement it if required
      * @param _duration Duration for the pause if `_withDuration` is true
      */
-    function toggleAssetsPaused(
-        address[] memory _assets,
-        Action _action,
-        bool _withDuration,
-        uint256 _duration
-    ) external;
+    function toggleAssetsPaused(address[] memory _assets, Action _action, bool _withDuration, uint256 _duration) external;
 
     /**
      * @notice set the safetyStateSet flag

@@ -1,9 +1,9 @@
-// SPDX-License-Identifier: BUSL-1.1
+// SPDX-License-Identifier: MIT
 /* solhint-disable no-complex-fallback  */
 /* solhint-disable no-inline-assembly */
 /* solhint-disable no-empty-blocks */
 
-pragma solidity >=0.8.19;
+pragma solidity ^0.8.0;
 
 import {Auth, Role} from "common/Auth.sol";
 import {DiamondEvent} from "common/Events.sol";

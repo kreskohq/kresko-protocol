@@ -39,8 +39,7 @@ export const minterFacets = [
     "UIDataProviderFacet2",
 ] as const;
 
-export const scdpFacets = ["SCDPStateFacet", "SCDPFacet", "SCDPConfigFacet", "SCDPSwapFacet"] as const;
-export const sdiFacets = ["SDIFacet"] as const;
+export const scdpFacets = ["SCDPStateFacet", "SCDPFacet", "SCDPConfigFacet", "SCDPSwapFacet", "SDIFacet"] as const;
 
 export const getDeploymentUsers = async (hre: HardhatRuntimeEnvironment) => {
     const users = await hre.getNamedAccounts();
@@ -65,8 +64,8 @@ export const getMinterInitializer = async (
             admin,
             treasury,
             council: multisig,
-            minimumCollateralizationRatio: toBig(config.minimumCollateralizationRatio),
-            minimumDebtValue: toBig(config.minimumDebtValue, 8),
+            minCollateralRatio: toBig(config.minCollateralRatio),
+            minDebtValue: toBig(config.minDebtValue, 8),
             liquidationThreshold: toBig(config.liquidationThreshold),
             extOracleDecimals: config.extOracleDecimals,
             oracleDeviationPct: toBig(config.oracleDeviationPct),

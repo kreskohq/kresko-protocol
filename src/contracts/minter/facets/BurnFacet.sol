@@ -44,7 +44,7 @@ contract BurnFacet is DSModifiers, MSModifiers, IBurnFacet {
         if (_burnAmount != type(uint256).max) {
             require(_burnAmount <= debtAmount, Error.KRASSET_BURN_AMOUNT_OVERFLOW);
             // Ensure principal left is either 0 or >= minDebtValue
-            _burnAmount = s.handleDustPosition(_kreskoAsset, _burnAmount, debtAmount);
+            _burnAmount = s.checkDust(_kreskoAsset, _burnAmount, debtAmount);
         } else {
             // _burnAmount of uint256 max, burn all principal debt
             _burnAmount = debtAmount;
@@ -54,11 +54,7 @@ contract BurnFacet is DSModifiers, MSModifiers, IBurnFacet {
         handleMinterCloseFee(_account, _kreskoAsset, _burnAmount);
 
         // Record the burn
-        s.kreskoAssetDebt[_account][_kreskoAsset] -= burnKrAsset(
-            _burnAmount,
-            _account,
-            s.kreskoAssets[_kreskoAsset].anchor
-        );
+        s.kreskoAssetDebt[_account][_kreskoAsset] -= burnKrAsset(_burnAmount, msg.sender, s.kreskoAssets[_kreskoAsset].anchor);
 
         // If sender repays all scaled debt of asset, remove it from minted assets array.
         if (s.accountDebtAmount(_account, _kreskoAsset) == 0) {

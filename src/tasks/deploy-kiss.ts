@@ -63,7 +63,7 @@ task(TASK_DEPLOY_KISS)
                 openFee: defaultKrAssetArgs.openFee,
             },
             mocks: {} as any,
-            kresko: async () => await hre.Diamond.kreskoAsset(KISSContract.address),
+            kresko: async () => await hre.Diamond.getKreskoAsset(KISSContract.address),
             getPrice: async () => toBig(1, 8),
             priceFeed: {} as any,
         };

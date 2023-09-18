@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity ^0.8.0;
+
 import {ISCDPConfigFacet} from "scdp/interfaces/ISCDPConfigFacet.sol";
 import {ISCDPStateFacet} from "scdp/interfaces/ISCDPStateFacet.sol";
 import {ISCDPFacet} from "scdp/interfaces/ISCDPFacet.sol";

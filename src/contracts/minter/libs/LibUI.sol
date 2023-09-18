@@ -4,7 +4,7 @@ pragma solidity >=0.8.19;
 // solhint-disable-next-line
 import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {AggregatorV3Interface} from "vendor/AggregatorV3Interface.sol";
-import {IKrStaking} from "contracts/staking/interfaces/IKrStaking.sol";
+import {IKrStaking} from "../../staking/interfaces/IKrStaking.sol";
 import {WadRay} from "libs/WadRay.sol";
 
 import {ms} from "minter/State.sol";
@@ -264,9 +264,7 @@ library LibUI {
         }
     }
 
-    function collateralAssetInfos(
-        address[] memory assetAddresses
-    ) internal view returns (CollateralAssetInfo[] memory result) {
+    function collateralAssetInfos(address[] memory assetAddresses) internal view returns (CollateralAssetInfo[] memory result) {
         result = new CollateralAssetInfo[](assetAddresses.length);
         for (uint256 i; i < assetAddresses.length; i++) {
             address assetAddress = assetAddresses[i];
@@ -324,9 +322,7 @@ library LibUI {
         }
     }
 
-    function krAssetInfoFor(
-        address _account
-    ) internal view returns (krAssetInfoUser[] memory result, uint256 totalDebtUSD) {
+    function krAssetInfoFor(address _account) internal view returns (krAssetInfoUser[] memory result, uint256 totalDebtUSD) {
         address[] memory krAssetAddresses = ms().mintedKreskoAssets[_account];
         if (krAssetAddresses.length > 0) {
             result = new krAssetInfoUser[](krAssetAddresses.length);

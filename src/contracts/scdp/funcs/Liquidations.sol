@@ -3,28 +3,28 @@ pragma solidity >=0.8.19;
 
 import {WadRay} from "libs/WadRay.sol";
 import {MaxLiqVars} from "common/Types.sol";
-import {calcMaxLiquidationValue} from "common/funcs/Math.sol";
+import {calcMaxLiqValue} from "common/funcs/Math.sol";
 
 import {ms} from "minter/State.sol";
 import {CollateralAsset, KrAsset} from "minter/Types.sol";
 
-import {PoolKrAsset} from "scdp/Types.sol";
+import {SCDPKrAsset} from "scdp/Types.sol";
 import {scdp, SCDPState} from "scdp/State.sol";
 
 using WadRay for uint256;
 
-function maxLiquidatableValueSCDP(
-    PoolKrAsset memory _repayAssetConfig,
+function maxLiqValueSCDP(
+    SCDPKrAsset memory _repaySCDPKrAsset,
     KrAsset memory _repayKreskoAsset,
     address _seizedCollateral
 ) view returns (uint256 maxLiquidatableUSD) {
-    MaxLiqVars memory vars = _getMaxLiquidationVarsSCDP(_repayKreskoAsset, _seizedCollateral);
+    MaxLiqVars memory vars = _getMaxLiqVarsSCDP(_repayKreskoAsset, _seizedCollateral);
     // Account is not liquidatable
     if (vars.accountCollateralValue >= (vars.minCollateralValue)) {
         return 0;
     }
 
-    maxLiquidatableUSD = calcMaxLiquidationValue(vars, _repayAssetConfig);
+    maxLiquidatableUSD = calcMaxLiqValue(vars, _repaySCDPKrAsset);
 
     if (vars.seizeCollateralAccountValue < maxLiquidatableUSD) {
         return vars.seizeCollateralAccountValue;
@@ -35,10 +35,7 @@ function maxLiquidatableValueSCDP(
     }
 }
 
-function _getMaxLiquidationVarsSCDP(
-    KrAsset memory _repayKreskoAsset,
-    address _seizedCollateral
-) view returns (MaxLiqVars memory) {
+function _getMaxLiqVarsSCDP(KrAsset memory _repayKreskoAsset, address _seizedCollateral) view returns (MaxLiqVars memory) {
     SCDPState storage s = scdp();
     uint256 liquidationThreshold = s.liquidationThreshold;
     uint256 minCollateralValue = s.effectiveDebtValue().wadMul(liquidationThreshold);

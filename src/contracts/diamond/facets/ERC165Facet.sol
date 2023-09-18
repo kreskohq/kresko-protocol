@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19;
 
-import {IERC165Facet} from "../interfaces/IERC165Facet.sol";
+import {IERC165Facet} from "diamond/interfaces/IERC165Facet.sol";
 import {Role} from "common/Types.sol";
 import {ds, DiamondState} from "diamond/State.sol";
 import {DSModifiers} from "diamond/Modifiers.sol";
@@ -13,10 +13,7 @@ contract ERC165Facet is IERC165Facet, DSModifiers {
     }
 
     /// @inheritdoc IERC165Facet
-    function setERC165(
-        bytes4[] calldata interfaceIds,
-        bytes4[] calldata interfaceIdsToRemove
-    ) external onlyRole(Role.ADMIN) {
+    function setERC165(bytes4[] calldata interfaceIds, bytes4[] calldata interfaceIdsToRemove) external onlyRole(Role.ADMIN) {
         DiamondState storage s = ds();
 
         for (uint256 i = 0; i < interfaceIds.length; i++) {

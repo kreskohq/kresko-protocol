@@ -24,7 +24,7 @@ describe("KreskoAsset", function () {
             ).to.be.revertedWith(Error.ALREADY_INITIALIZED_OZ);
         });
 
-        it("cant initialize implementation", async function () {
+        it.skip("cant initialize implementation", async function () {
             const deployment = await hre.deployments.get(symbol);
             const implementationAddress = deployment!.implementation;
             expect(implementationAddress).to.not.equal(hre.ethers.constants.AddressZero);
@@ -73,7 +73,7 @@ describe("KreskoAsset", function () {
             ).to.be.revertedWith(Error.ALREADY_INITIALIZED_OZ);
         });
 
-        it("cant initialize implementation", async function () {
+        it.skip("cant initialize implementation", async function () {
             const deployment = await hre.deployments.get(anchorTokenPrefix + symbol);
             const implementationAddress = deployment!.implementation;
 

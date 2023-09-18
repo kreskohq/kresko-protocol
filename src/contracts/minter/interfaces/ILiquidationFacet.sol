@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity ^0.8.0;
 
 interface ILiquidationFacet {
     /**
@@ -57,13 +57,4 @@ interface ILiquidationFacet {
         address _repayKreskoAsset,
         address _collateralAssetToSeize
     ) external view returns (uint256 maxLiquidatableUSD);
-
-    /**
-     * @notice Calculates if an account's current collateral value is under its minimum collateral value
-     * @dev Returns true if the account's current collateral value is below the minimum collateral value
-     * required to consider the position healthy.
-     * @param _account The account to check.
-     * @return A boolean indicating if the account can be liquidated.
-     */
-    function isLiquidatable(address _account) external view returns (bool);
 }

@@ -69,7 +69,7 @@ export const addMockCollateralAsset = async (
     const asset: TestCollateral = {
         address: TestCollateral.address,
         contract: ERC20Upgradeable__factory.connect(TestCollateral.address, deployer),
-        kresko: () => hre.Diamond.collateralAsset(TestCollateral.address),
+        kresko: () => hre.Diamond.getCollateralAsset(TestCollateral.address),
         priceFeed: MockAggregatorV3__factory.connect(MockFeed.address, deployer),
         deployArgs: args,
         anchor: {} as any,
@@ -164,7 +164,7 @@ export const withdrawCollateral = async (args: InputArgs) => {
     const { user, asset, amount } = args;
     const depositAmount = convert ? toBig(+amount) : amount;
     await asset.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
-    const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(user.address, asset.address);
+    const cIndex = await hre.Diamond.getAccountDepositIndex(user.address, asset.address);
     return wrapContractWithSigner(hre.Diamond, user).withdrawCollateral(
         user.address,
         asset.address,
@@ -174,11 +174,11 @@ export const withdrawCollateral = async (args: InputArgs) => {
 };
 
 export const getMaxWithdrawal = async (user: string, collateral: any) => {
-    const [collateralValue] = await hre.Diamond.getCollateralAdjustedAndRealValue(user, collateral.address);
+    const [collateralValue] = await hre.Diamond.getAccountCollateralValueOf(user, collateral.address);
 
-    const minCollateralRequired = await hre.Diamond.getAccountMinimumCollateralValueAtRatio(
+    const minCollateralRequired = await hre.Diamond.getAccountMinCollateralAtRatio(
         user,
-        (await hre.Diamond.minimumCollateralizationRatio()).add((15e8).toString()),
+        (await hre.Diamond.getMinCollateralRatio()).add((15e8).toString()),
     );
     const maxWithdrawValue = collateralValue.sub(minCollateralRequired);
     const maxWithdrawAmount = maxWithdrawValue.wadDiv(await collateral.getPrice());

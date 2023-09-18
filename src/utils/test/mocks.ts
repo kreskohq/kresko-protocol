@@ -78,8 +78,8 @@ export const defaultCollateralArgs = {
 };
 
 export const getNewMinterParams = (feeRecipient: string) => ({
-    minimumCollateralizationRatio: toBig(1.4),
-    minimumDebtValue: toBig(20, 8),
+    minCollateralRatio: toBig(1.4),
+    minDebtValue: toBig(20, 8),
     liquidationThreshold: toBig(1.3),
     feeRecipient: feeRecipient,
     MLM: toBig(1.0002),

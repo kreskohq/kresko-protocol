@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity ^0.8.0;
 
-import {MinterInitArgs, KrAsset, CollateralAsset} from "../Types.sol";
+import {MinterInitArgs, KrAsset, CollateralAsset} from "minter/Types.sol";
 
 interface IConfigurationFacet {
     function initializeMinter(MinterInitArgs calldata args) external;

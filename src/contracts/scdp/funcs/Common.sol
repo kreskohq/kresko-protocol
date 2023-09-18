@@ -6,7 +6,7 @@ import {toWad} from "common/funcs/Math.sol";
 import {collateralAmountRead, collateralAmountToValue} from "minter/funcs/Conversions.sol";
 import {CollateralAsset} from "minter/Types.sol";
 import {ms} from "minter/State.sol";
-import {PoolKrAsset} from "scdp/Types.sol";
+import {SCDPKrAsset} from "scdp/Types.sol";
 import {SCDPState} from "scdp/State.sol";
 
 library SCommon {
@@ -15,8 +15,8 @@ library SCommon {
     /**
      * @notice Checks whether the shared debt pool can be liquidated.
      */
-    function isSCDPLiquidatable(SCDPState storage self) internal view returns (bool) {
-        return self.checkSCDPRatio(self.liquidationThreshold);
+    function isLiquidatableSCDP(SCDPState storage self) internal view returns (bool) {
+        return !self.checkSCDPRatio(self.liquidationThreshold);
     }
 
     // /**
@@ -135,8 +135,8 @@ library SCommon {
         require(self.isEnabled[_assetIn], "asset-in-disabled");
         require(self.isEnabled[_assetOut], "asset-out-disabled");
         require(_assetIn != _assetOut, "same-asset");
-        PoolKrAsset memory assetIn = self.poolKrAsset[_assetIn];
-        PoolKrAsset memory assetOut = self.poolKrAsset[_assetOut];
+        SCDPKrAsset memory assetIn = self.krAsset[_assetIn];
+        SCDPKrAsset memory assetOut = self.krAsset[_assetOut];
 
         feePercentage = assetOut.openFee + assetIn.closeFee;
         protocolFee = assetIn.protocolFee + assetOut.protocolFee;

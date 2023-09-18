@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
+
 import {CoverAsset} from "scdp/Types.sol";
 
 interface ISDIFacet {
@@ -15,17 +16,9 @@ interface ISDIFacet {
 
     function getSDICoverAmount() external view returns (uint256);
 
-    function previewSCDPBurn(
-        address asset,
-        uint256 burnAmount,
-        bool ignoreFactors
-    ) external view returns (uint256 shares);
+    function previewSCDPBurn(address asset, uint256 burnAmount, bool ignoreFactors) external view returns (uint256 shares);
 
-    function previewSCDPMint(
-        address asset,
-        uint256 mintAmount,
-        bool ignoreFactors
-    ) external view returns (uint256 shares);
+    function previewSCDPMint(address asset, uint256 mintAmount, bool ignoreFactors) external view returns (uint256 shares);
 
     function disableAssetSDI(address asset) external;
 

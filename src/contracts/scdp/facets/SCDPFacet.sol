@@ -13,30 +13,31 @@ import {CollateralAsset, KrAsset} from "minter/Types.sol";
 import {collateralAmountWrite} from "minter/funcs/Conversions.sol";
 
 import {ISCDPFacet} from "scdp/interfaces/ISCDPFacet.sol";
-import {PoolKrAsset} from "scdp/Types.sol";
+import {SCDPKrAsset} from "scdp/Types.sol";
 import {scdp, SCDPState} from "scdp/State.sol";
-import {maxLiquidatableValueSCDP} from "scdp/funcs/Liquidations.sol";
+import {maxLiqValueSCDP} from "scdp/funcs/Liquidations.sol";
+import {SEvent} from "scdp/Events.sol";
 
 contract SCDPFacet is ISCDPFacet, DSModifiers {
     using SafeERC20 for IERC20Permit;
     using WadRay for uint256;
 
     /// @inheritdoc ISCDPFacet
-    function poolDeposit(address _account, address _collateralAsset, uint256 _amount) external nonReentrant {
+    function depositSCDP(address _account, address _collateralAsset, uint256 _amount) external nonReentrant {
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
         IERC20Permit(_collateralAsset).safeTransferFrom(msg.sender, address(this), _amount);
 
         // Record the collateral deposit.
-        scdp().handleSCDPDeposit(_account, _collateralAsset, _amount);
+        scdp().handleDepositSCDP(_account, _collateralAsset, _amount);
 
-        emit CollateralPoolDeposit(_account, _collateralAsset, _amount);
+        emit SEvent.SCDPDeposit(_account, _collateralAsset, _amount);
     }
 
     /// @inheritdoc ISCDPFacet
-    function poolWithdraw(address _account, address _collateralAsset, uint256 _amount) external nonReentrant {
+    function withdrawSCDP(address _account, address _collateralAsset, uint256 _amount) external nonReentrant {
         SCDPState storage s = scdp();
         // When principal deposits are less or equal to requested amount. We send full deposit + fees in this case.
-        (uint256 collateralOut, uint256 feesOut) = s.handleSCDPWithdraw(msg.sender, _collateralAsset, _amount);
+        (uint256 collateralOut, uint256 feesOut) = s.handleWithdrawSCDP(msg.sender, _collateralAsset, _amount);
 
         // ensure that global pool is left with CR over MCR.
         require(s.checkSCDPRatio(s.minCollateralRatio), "withdraw-mcr-violation");
@@ -44,11 +45,11 @@ contract SCDPFacet is ISCDPFacet, DSModifiers {
         IERC20Permit(_collateralAsset).safeTransfer(_account, collateralOut + feesOut);
 
         // Emit event.
-        emit CollateralPoolWithdraw(_account, _collateralAsset, collateralOut, feesOut);
+        emit SEvent.SCDPWithdraw(_account, _collateralAsset, collateralOut, feesOut);
     }
 
     /// @inheritdoc ISCDPFacet
-    function poolRepay(address _repayKrAsset, uint256 _repayAmount, address _seizeCollateral) external nonReentrant {
+    function repaySCDP(address _repayKrAsset, uint256 _repayAmount, address _seizeCollateral) external nonReentrant {
         require(_repayAmount != 0, "repay-zero");
         SCDPState storage s = scdp();
         MinterState storage m = ms();
@@ -66,42 +67,42 @@ contract SCDPFacet is ISCDPFacet, DSModifiers {
         s.totalDeposits[_seizeCollateral] -= seizedAmountInternal;
 
         // solhint-disable-next-line avoid-tx-origin
-        emit CollateralPoolRepayment(tx.origin, _repayKrAsset, _repayAmount, _seizeCollateral, seizedAmount);
+        emit SEvent.SCDPRepay(tx.origin, _repayKrAsset, _repayAmount, _seizeCollateral, seizedAmount);
     }
 
-    function poolIsLiquidatable() external view returns (bool) {
-        return scdp().isSCDPLiquidatable();
+    function getLiquidatableSCDP() external view returns (bool) {
+        return scdp().isLiquidatableSCDP();
     }
 
-    function getMaxLiquidationSCDP(address _kreskoAsset, address _seizeCollateral) external view returns (uint256) {
-        return maxLiquidatableValueSCDP(scdp().poolKrAsset[_kreskoAsset], ms().kreskoAssets[_kreskoAsset], _seizeCollateral);
+    function getMaxLiqValueSCDP(address _kreskoAsset, address _seizeCollateral) external view returns (uint256) {
+        return maxLiqValueSCDP(scdp().krAsset[_kreskoAsset], ms().kreskoAssets[_kreskoAsset], _seizeCollateral);
     }
 
     /// @inheritdoc ISCDPFacet
-    function poolLiquidate(address _repayKrAsset, uint256 _repayAmount, address _seizeCollateral) external nonReentrant {
+    function liquidateSCDP(address _repayKrAsset, uint256 _repayAmount, address _seizeCollateral) external nonReentrant {
         SCDPState storage s = scdp();
         MinterState storage m = ms();
         require(s.debt[_repayKrAsset] >= _repayAmount, "liquidate-too-much");
-        require(s.isSCDPLiquidatable(), "not-liquidatable");
+        require(s.isLiquidatableSCDP(), "not-liquidatable");
 
         CollateralAsset memory collateral = m.collateralAssets[_seizeCollateral];
         KrAsset memory krAsset = m.kreskoAssets[_repayKrAsset];
-        PoolKrAsset memory poolKrAsset = s.poolKrAsset[_repayKrAsset];
+        SCDPKrAsset memory scdpKrAsset = s.krAsset[_repayKrAsset];
         uint256 repayAmountUSD = krAsset.uintUSD(_repayAmount, m.oracleDeviationPct);
 
-        require(maxLiquidatableValueSCDP(poolKrAsset, krAsset, _seizeCollateral) >= repayAmountUSD, Error.LIQUIDATION_OVERFLOW);
+        require(maxLiqValueSCDP(scdpKrAsset, krAsset, _seizeCollateral) >= repayAmountUSD, Error.LIQUIDATION_OVERFLOW);
 
         uint256 seizeAmount = fromWad(
             collateral.decimals,
-            valueToAmount(poolKrAsset.liquidationIncentive, collateral.uintPrice(m.oracleDeviationPct), repayAmountUSD)
+            valueToAmount(scdpKrAsset.liquidationIncentive, collateral.uintPrice(m.oracleDeviationPct), repayAmountUSD)
         );
 
         s.debt[_repayKrAsset] -= s.repaySwap(_repayKrAsset, _repayAmount, msg.sender);
-        s.handleSCDPSeizeCollateral(_seizeCollateral, seizeAmount);
+        s.handleSeizeSCDP(_seizeCollateral, seizeAmount);
 
         IERC20Permit(_seizeCollateral).safeTransfer(msg.sender, seizeAmount);
 
-        emit CollateralPoolLiquidationOccured(
+        emit SEvent.SCDPLiquidationOccured(
             // solhint-disable-next-line avoid-tx-origin
             tx.origin,
             _repayKrAsset,

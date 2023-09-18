@@ -4,7 +4,7 @@ import { addFacets } from "@scripts/add-facets";
 import type { DeployFunction } from "hardhat-deploy/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 
-const logger = getLogger("init-minter");
+const logger = getLogger("init-scdp-facets");
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (!hre.Diamond.address) {
@@ -16,13 +16,10 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await addFacets({
         names: scdpFacets,
         initializerName: initializer.name,
+        initializerFunction: "initializeSCDP",
         initializerArgs: initializer.args,
     });
-    await addFacets({
-        names: ["SDIFacet"],
-        initializerName: "SDIFacet",
-        initializerArgs: hre.Diamond.address,
-    });
+
     logger.success("Added SCDP facets, saved to diamond");
 };
 

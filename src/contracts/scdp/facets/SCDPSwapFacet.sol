@@ -8,23 +8,24 @@ import {ms} from "minter/State.sol";
 
 import {ISCDPSwapFacet} from "scdp/interfaces/ISCDPSwapFacet.sol";
 import {scdp} from "scdp/State.sol";
+import {SEvent} from "scdp/Events.sol";
 
 contract SCDPSwapFacet is ISCDPSwapFacet, DSModifiers {
     using SafeERC20 for IERC20Permit;
     using WadRay for uint256;
 
     /// @inheritdoc ISCDPSwapFacet
-    function cumulateIncome(address _incomeAsset, uint256 _amount) external nonReentrant returns (uint256) {
-        require(scdp().poolCollateral[_incomeAsset].liquidityIndex != 0, "not-collateral");
+    function cumulateIncomeSCDP(address _incomeAsset, uint256 _amount) external nonReentrant returns (uint256) {
+        require(scdp().collateral[_incomeAsset].liquidityIndex != 0, "not-collateral");
         require(scdp().isEnabled[_incomeAsset], "collateral-not-enabled");
         require(scdp().totalDeposits[_incomeAsset] > 0, "no-deposits");
         IERC20Permit(_incomeAsset).safeTransferFrom(msg.sender, address(this), _amount);
 
-        emit Income(_incomeAsset, _amount);
+        emit SEvent.Income(_incomeAsset, _amount);
         return scdp().cumulateIncome(_incomeAsset, _amount);
     }
 
-    function getPrice(address _asset) external view returns (uint256 price) {
+    function getPriceSCDP(address _asset) external view returns (uint256 price) {
         if (address(ms().kreskoAssets[_asset].oracle) != address(0)) {
             price = ms().kreskoAssets[_asset].uintPrice(ms().oracleDeviationPct);
         } else {
@@ -34,7 +35,7 @@ contract SCDPSwapFacet is ISCDPSwapFacet, DSModifiers {
     }
 
     /// @inheritdoc ISCDPSwapFacet
-    function previewSwap(
+    function previewSwapSCDP(
         address _assetIn,
         address _assetOut,
         uint256 _amountIn
@@ -52,7 +53,7 @@ contract SCDPSwapFacet is ISCDPSwapFacet, DSModifiers {
     }
 
     /// @inheritdoc ISCDPSwapFacet
-    function swap(
+    function swapSCDP(
         address _receiver,
         address _assetIn,
         address _assetOut,
@@ -64,7 +65,7 @@ contract SCDPSwapFacet is ISCDPSwapFacet, DSModifiers {
         IERC20Permit(_assetIn).safeTransferFrom(msg.sender, address(this), _amountIn);
         address receiver = _receiver == address(0) ? msg.sender : _receiver;
 
-        emit Swap(
+        emit SEvent.Swap(
             msg.sender,
             _assetIn,
             _assetOut,
@@ -165,6 +166,7 @@ contract SCDPSwapFacet is ISCDPSwapFacet, DSModifiers {
         // State modifications done, check MCR and slippage.
         require(_amountOut >= _amountOutMin, "lev-swap-slippage");
         if (_feeAmount != 0) _payFee(scdp().feeAsset, _payAsset, _feeAmount, _protocolFeePct);
+        require(scdp().checkSCDPRatio(scdp().minCollateralRatio), "swap-mcr-violation");
     }
 
     function _payFee(address _feeAsset, address _payAsset, uint256 _feeAmount, uint256 _protocolFeePct) private {
@@ -178,6 +180,6 @@ contract SCDPSwapFacet is ISCDPSwapFacet, DSModifiers {
         if (_feeAmount != 0) scdp().cumulateIncome(_feeAsset, _feeAmount);
         if (protocolFeeTaken != 0) IERC20Permit(_feeAsset).safeTransfer(ms().feeRecipient, protocolFeeTaken);
 
-        emit SwapFee(_feeAsset, _payAsset, _feeAmount, protocolFeeTaken);
+        emit SEvent.SwapFee(_feeAsset, _payAsset, _feeAmount, protocolFeeTaken);
     }
 }

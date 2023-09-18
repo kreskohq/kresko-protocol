@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.19;
+pragma solidity ^0.8.0;
 
 import {Meta} from "libs/Meta.sol";
 import {Error} from "common/Errors.sol";

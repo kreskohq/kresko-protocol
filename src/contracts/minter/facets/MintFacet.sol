@@ -24,8 +24,6 @@ import {handleMinterOpenFee} from "minter/funcs/Fees.sol";
  */
 
 contract MintFacet is DSModifiers, MSModifiers, IMintFacet {
-    using Arrays for address[];
-
     /* -------------------------------------------------------------------------- */
     /*                                  KrAssets                                  */
     /* -------------------------------------------------------------------------- */

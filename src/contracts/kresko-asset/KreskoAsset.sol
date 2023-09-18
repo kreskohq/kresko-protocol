@@ -28,7 +28,9 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
     address public kresko;
     Rebase private _rebaseInfo;
 
-    constructor() {}
+    constructor() {
+        //
+    }
 
     /// @inheritdoc IKreskoAsset
     function initialize(

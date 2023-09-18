@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity ^0.8.0;
 
 interface IAccountStateFacet {
     // ExpectedFeeRuntimeInfo is used for stack size optimization
@@ -8,6 +8,15 @@ interface IAccountStateFacet {
         uint256[] amounts;
         uint256 collateralTypeCount;
     }
+
+    /**
+     * @notice Calculates if an account's current collateral value is under its minimum collateral value
+     * @dev Returns true if the account's current collateral value is below the minimum collateral value
+     * required to consider the position healthy.
+     * @param _account The account to check.
+     * @return A boolean indicating if the account can be liquidated.
+     */
+    function getAccountLiquidatable(address _account) external view returns (bool);
 
     /**
      * @notice Gets an array of Kresko assets the account has minted.
@@ -37,7 +46,7 @@ interface IAccountStateFacet {
      * @param _account The account to query amount for
      * @return Amount of debt for `_asset`
      */
-    function getAccountDebtOf(address _account, address _asset) external view returns (uint256);
+    function getAccountDebtAmount(address _account, address _asset) external view returns (uint256);
 
     /**
      * @notice Gets the collateral value of a particular account.

@@ -123,7 +123,7 @@ describe("CollateralReceiver - UncheckedCollateralWithdraw", () => {
             it("should be able to withdraw full collateral and return it", async function () {
                 const Receiver = wrapContractWithSigner(await getReceiver(hre.Diamond), hre.users.userFive);
 
-                const deposits = await hre.Diamond.collateralDeposits(
+                const deposits = await hre.Diamond.getAccountCollateralAmount(
                     hre.users.userFive.address,
                     this.collateral.address,
                 );
@@ -142,7 +142,7 @@ describe("CollateralReceiver - UncheckedCollateralWithdraw", () => {
             it("should be able to withdraw full collateral and deposit another asset in its place", async function () {
                 const Receiver = wrapContractWithSigner(await getReceiver(hre.Diamond), hre.users.userFive);
 
-                const deposits = await hre.Diamond.collateralDeposits(
+                const deposits = await hre.Diamond.getAccountCollateralAmount(
                     hre.users.userFive.address,
                     this.collateral.address,
                 );
@@ -164,7 +164,7 @@ describe("CollateralReceiver - UncheckedCollateralWithdraw", () => {
                 });
                 await Receiver.testDepositAlternate(this.collateral.address, deposits, this.secondCollateral.address);
 
-                const secondCollateralDeposits = await hre.Diamond.collateralDeposits(
+                const secondCollateralDeposits = await hre.Diamond.getAccountCollateralAmount(
                     hre.users.userFive.address,
                     this.secondCollateral.address,
                 );

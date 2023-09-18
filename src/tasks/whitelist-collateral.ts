@@ -27,7 +27,7 @@ task(TASK_WHITELIST_COLLATERAL)
 
         logger.log("Collateral address", Collateral.address);
 
-        const collateralAsset = await kresko.collateralAsset(Collateral.address);
+        const collateralAsset = await kresko.getCollateralAsset(Collateral.address);
         const anchor = await hre.deployments.getOrNull(anchorTokenPrefix + symbol);
         const exists = collateralAsset.exists;
 

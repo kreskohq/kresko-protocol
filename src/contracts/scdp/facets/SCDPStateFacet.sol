@@ -6,7 +6,7 @@ import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {collateralAmountToValue, kreskoAssetAmount, krAssetAmountToValue, collateralAmountRead} from "minter/funcs/Conversions.sol";
 
 import {ISCDPStateFacet} from "scdp/interfaces/ISCDPStateFacet.sol";
-import {PoolCollateral, PoolKrAsset} from "scdp/Types.sol";
+import {SCDPCollateral, SCDPKrAsset, AssetData} from "scdp/Types.sol";
 import {scdp} from "scdp/State.sol";
 
 /**
@@ -18,34 +18,37 @@ import {scdp} from "scdp/State.sol";
 contract SCDPStateFacet is ISCDPStateFacet {
     using WadRay for uint256;
 
+    /* -------------------------------------------------------------------------- */
+    /*                                  Accounts                                  */
+    /* -------------------------------------------------------------------------- */
+
     /// @inheritdoc ISCDPStateFacet
-    function getPoolAccountDepositsWithFees(address _account, address _collateralAsset) external view returns (uint256) {
-        return scdp().accountDepositsWithFees(_account, _collateralAsset);
+    function getAccountDepositsWithFeesSCDP(address _account, address _depositAsset) external view returns (uint256) {
+        return scdp().accountDepositsWithFees(_account, _depositAsset);
     }
 
     /// @inheritdoc ISCDPStateFacet
-    function getPoolAccountPrincipalDeposits(address _account, address _collateralAsset) external view returns (uint256) {
-        return scdp().accountPrincipalDeposits(_account, _collateralAsset);
+    function getAccountPrincipalDepositsSCDP(address _account, address _depositAsset) external view returns (uint256) {
+        return scdp().accountPrincipalDeposits(_account, _depositAsset);
     }
 
     /// @inheritdoc ISCDPStateFacet
-    function getPoolAccountFeesGained(address _account, address _collateralAsset) external view returns (uint256) {
+    function getAccountDepositFeesGainedSCDP(address _account, address _depositAsset) external view returns (uint256) {
         return
-            scdp().accountDepositsWithFees(_account, _collateralAsset) -
-            scdp().accountPrincipalDeposits(_account, _collateralAsset);
+            scdp().accountDepositsWithFees(_account, _depositAsset) - scdp().accountPrincipalDeposits(_account, _depositAsset);
     }
 
     /// @inheritdoc ISCDPStateFacet
-    function getPoolAccountDepositsValue(
+    function getAccountDepositValueSCDP(
         address _account,
-        address _collateralAsset,
+        address _depositAsset,
         bool _ignoreFactors
     ) external view returns (uint256) {
-        uint256 principalDeposits = scdp().accountPrincipalDeposits(_account, _collateralAsset);
-        uint256 scaledDeposits = scdp().accountDepositsWithFees(_account, _collateralAsset);
+        uint256 principalDeposits = scdp().accountPrincipalDeposits(_account, _depositAsset);
+        uint256 scaledDeposits = scdp().accountDepositsWithFees(_account, _depositAsset);
 
         (uint256 assetValue, ) = collateralAmountToValue(
-            _collateralAsset,
+            _depositAsset,
             principalDeposits > scaledDeposits ? scaledDeposits : principalDeposits,
             _ignoreFactors
         );
@@ -54,17 +57,132 @@ contract SCDPStateFacet is ISCDPStateFacet {
     }
 
     /// @inheritdoc ISCDPStateFacet
-    function getPoolAccountDepositsValueWithFees(address _account, address _collateralAsset) external view returns (uint256) {
+    function getAccountDepositValueWithFeesSCDP(address _account, address _depositAsset) external view returns (uint256) {
         (uint256 assetValue, ) = collateralAmountToValue(
-            _collateralAsset,
-            scdp().accountDepositsWithFees(_account, _collateralAsset),
+            _depositAsset,
+            scdp().accountDepositsWithFees(_account, _depositAsset),
             true
         );
 
         return assetValue;
     }
 
-    function getPoolCollateralsInfo() external view returns (AssetData[] memory results) {
+    /// @inheritdoc ISCDPStateFacet
+    function getAccountTotalDepositsValuePrincipalSCDP(address _account, bool _ignoreFactors) external view returns (uint256) {
+        return scdp().accountTotalDepositValuePrincipal(_account, _ignoreFactors);
+    }
+
+    /// @inheritdoc ISCDPStateFacet
+    function getAccountTotalDepositsValueWithFeesSCDP(address _account) external view returns (uint256) {
+        return scdp().accountTotalDepositValueWithFees(_account);
+    }
+
+    /* -------------------------------------------------------------------------- */
+    /*                                 Collaterals                                */
+    /* -------------------------------------------------------------------------- */
+
+    /// @inheritdoc ISCDPStateFacet
+    function getDepositAssetsSCDP() external view returns (address[] memory) {
+        return scdp().collaterals;
+    }
+
+    /// @inheritdoc ISCDPStateFacet
+    function getDepositAssetSCDP(address _collateralAsset) external view returns (SCDPCollateral memory) {
+        return scdp().collateral[_collateralAsset];
+    }
+
+    /// @inheritdoc ISCDPStateFacet
+    function getDepositsSCDP(address _depositAsset) external view returns (uint256) {
+        return scdp().totalDepositAmount(_depositAsset);
+    }
+
+    /// @inheritdoc ISCDPStateFacet
+    function getSwapDepositsSCDP(address _collateralAsset) external view returns (uint256) {
+        return scdp().swapDepositAmount(_collateralAsset);
+    }
+
+    /// @inheritdoc ISCDPStateFacet
+    function getCollateralValueSCDP(address _depositAsset, bool _ignoreFactors) external view returns (uint256) {
+        (uint256 assetValue, ) = collateralAmountToValue(
+            _depositAsset,
+            scdp().totalDepositAmount(_depositAsset),
+            _ignoreFactors
+        );
+
+        return assetValue;
+    }
+
+    /// @inheritdoc ISCDPStateFacet
+    function getTotalCollateralValueSCDP(bool _ignoreFactors) external view returns (uint256) {
+        return scdp().totalCollateralValueSCDP(_ignoreFactors);
+    }
+
+    /* -------------------------------------------------------------------------- */
+    /*                                KreskoAssets                                */
+    /* -------------------------------------------------------------------------- */
+
+    /// @inheritdoc ISCDPStateFacet
+    function getKreskoAssetSCDP(address _krAsset) external view returns (SCDPKrAsset memory) {
+        return scdp().krAsset[_krAsset];
+    }
+
+    /// @inheritdoc ISCDPStateFacet
+    function getKreskoAssetsSCDP() external view returns (address[] memory) {
+        return scdp().krAssets;
+    }
+
+    /// @inheritdoc ISCDPStateFacet
+    function getDebtSCDP(address _kreskoAsset) external view returns (uint256) {
+        return kreskoAssetAmount(_kreskoAsset, scdp().debt[_kreskoAsset]);
+    }
+
+    /// @inheritdoc ISCDPStateFacet
+    function getDebtValueSCDP(address _kreskoAsset, bool _ignoreFactors) external view returns (uint256) {
+        return krAssetAmountToValue(_kreskoAsset, kreskoAssetAmount(_kreskoAsset, scdp().debt[_kreskoAsset]), _ignoreFactors);
+    }
+
+    /// @inheritdoc ISCDPStateFacet
+    function getTotalDebtValueSCDP(bool _ignoreFactors) external view returns (uint256) {
+        return scdp().totalDebtValueAtRatioSCDP(1 ether, _ignoreFactors);
+    }
+
+    /* -------------------------------------------------------------------------- */
+    /*                                    MISC                                    */
+    /* -------------------------------------------------------------------------- */
+
+    /// @inheritdoc ISCDPStateFacet
+    function getFeeRecipientSCDP() external view returns (address) {
+        return scdp().swapFeeRecipient;
+    }
+
+    /// @inheritdoc ISCDPStateFacet
+    function getAssetEnabledSCDP(address _asset) external view returns (bool) {
+        return scdp().isEnabled[_asset];
+    }
+
+    /// @inheritdoc ISCDPStateFacet
+    function getSwapEnabledSCDP(address _assetIn, address _assetOut) external view returns (bool) {
+        return scdp().isSwapEnabled[_assetIn][_assetOut];
+    }
+
+    function getCollateralRatioSCDP() public view returns (uint256) {
+        uint256 collateralValue = scdp().totalCollateralValueSCDP(false);
+        uint256 debtValue = scdp().effectiveDebtValue();
+        if (debtValue == 0) return 0;
+        return collateralValue.wadDiv(debtValue);
+    }
+
+    /// @inheritdoc ISCDPStateFacet
+    function getStatisticsSCDP(
+        bool _ignoreFactors
+    ) external view returns (uint256 collateralValue, uint256 debtValue, uint256 cr) {
+        collateralValue = scdp().totalCollateralValueSCDP(_ignoreFactors);
+        debtValue = scdp().totalDebtValueAtRatioSCDP(1 ether, _ignoreFactors);
+        if (debtValue == 0) return (collateralValue, debtValue, 0);
+        cr = collateralValue.wadDiv(debtValue);
+    }
+
+    function getCollateralsInfoSCDP() external view returns (AssetData[] memory results) {
         address[] memory collateralAssets = scdp().collaterals;
         results = new AssetData[](collateralAssets.length);
 
@@ -75,8 +193,8 @@ contract SCDPStateFacet is ISCDPStateFacet {
                 depositAmount: scdp().totalDepositAmount(asset),
                 debtAmount: collateralAmountRead(asset, scdp().debt[asset]),
                 swapDeposits: scdp().swapDepositAmount(asset),
-                krAsset: scdp().poolKrAsset[asset], // just get default values
-                collateralAsset: scdp().poolCollateral[asset],
+                krAsset: scdp().krAsset[asset], // just get default values
+                collateralAsset: scdp().collateral[asset],
                 symbol: IERC20Permit(asset).symbol()
             });
             unchecked {
@@ -85,7 +203,7 @@ contract SCDPStateFacet is ISCDPStateFacet {
         }
     }
 
-    function getPoolKrAssetsInfo() external view returns (AssetData[] memory results) {
+    function getKrAssetsInfoSCDP() external view returns (AssetData[] memory results) {
         address[] memory krAssets = scdp().krAssets;
         results = new AssetData[](krAssets.length);
 
@@ -96,8 +214,8 @@ contract SCDPStateFacet is ISCDPStateFacet {
                 depositAmount: scdp().totalDepositAmount(asset),
                 debtAmount: kreskoAssetAmount(asset, scdp().debt[asset]),
                 swapDeposits: scdp().swapDepositAmount(asset),
-                krAsset: scdp().poolKrAsset[asset], // just get default values
-                collateralAsset: scdp().poolCollateral[asset],
+                krAsset: scdp().krAsset[asset], // just get default values
+                collateralAsset: scdp().collateral[asset],
                 symbol: IERC20Permit(asset).symbol()
             });
 
@@ -105,106 +223,5 @@ contract SCDPStateFacet is ISCDPStateFacet {
                 i++;
             }
         }
-    }
-
-    /// @inheritdoc ISCDPStateFacet
-    function getPoolAccountTotalDepositsValue(address _account, bool _ignoreFactors) external view returns (uint256) {
-        return scdp().accountTotalDepositValuePrincipal(_account, _ignoreFactors);
-    }
-
-    /// @inheritdoc ISCDPStateFacet
-    function getPoolAccountTotalDepositsValueWithFees(address _account) external view returns (uint256) {
-        return scdp().accountTotalDepositValueWithFees(_account);
-    }
-
-    /// @inheritdoc ISCDPStateFacet
-    function getPoolDeposits(address _collateralAsset) external view returns (uint256) {
-        return scdp().totalDepositAmount(_collateralAsset);
-    }
-
-    /// @inheritdoc ISCDPStateFacet
-    function getPoolDepositsValue(address _collateralAsset, bool _ignoreFactors) external view returns (uint256) {
-        (uint256 assetValue, ) = collateralAmountToValue(
-            _collateralAsset,
-            scdp().totalDepositAmount(_collateralAsset),
-            _ignoreFactors
-        );
-
-        return assetValue;
-    }
-
-    /// @inheritdoc ISCDPStateFacet
-    function getPoolSwapDeposits(address _collateralAsset) external view returns (uint256) {
-        return scdp().swapDepositAmount(_collateralAsset);
-    }
-
-    /// @inheritdoc ISCDPStateFacet
-    function getPoolKrAssetDebt(address _kreskoAsset) external view returns (uint256) {
-        return kreskoAssetAmount(_kreskoAsset, scdp().debt[_kreskoAsset]);
-    }
-
-    /// @inheritdoc ISCDPStateFacet
-    function getPoolDebtValue(bool _ignoreFactors) external view returns (uint256) {
-        return scdp().totalDebtValueAtRatioSCDP(1 ether, _ignoreFactors);
-    }
-
-    /// @inheritdoc ISCDPStateFacet
-    function getPoolCollateralValue(bool _ignoreFactors) external view returns (uint256) {
-        return scdp().totalCollateralValueSCDP(_ignoreFactors);
-    }
-
-    /// @inheritdoc ISCDPStateFacet
-    function getPoolKrAssetDebtValue(address _kreskoAsset, bool _ignoreFactors) external view returns (uint256) {
-        return krAssetAmountToValue(_kreskoAsset, kreskoAssetAmount(_kreskoAsset, scdp().debt[_kreskoAsset]), _ignoreFactors);
-    }
-
-    /// @inheritdoc ISCDPStateFacet
-    function getPoolCollateral(address _collateralAsset) external view returns (PoolCollateral memory) {
-        return scdp().poolCollateral[_collateralAsset];
-    }
-
-    /// @inheritdoc ISCDPStateFacet
-    function getPoolCollateralAssets() external view returns (address[] memory) {
-        return scdp().collaterals;
-    }
-
-    /// @inheritdoc ISCDPStateFacet
-    function getPoolKrAsset(address _krAsset) external view returns (PoolKrAsset memory) {
-        return scdp().poolKrAsset[_krAsset];
-    }
-
-    /// @inheritdoc ISCDPStateFacet
-    function getPoolKrAssets() external view returns (address[] memory) {
-        return scdp().krAssets;
-    }
-
-    function getPoolCR() public view returns (uint256) {
-        uint256 collateralValue = scdp().totalCollateralValueSCDP(false);
-        uint256 debtValue = scdp().effectiveDebtValue();
-        if (debtValue == 0) return 0;
-        return collateralValue.wadDiv(debtValue);
-    }
-
-    /// @inheritdoc ISCDPStateFacet
-    function getPoolStats(bool _ignoreFactors) external view returns (uint256 collateralValue, uint256 debtValue, uint256 cr) {
-        collateralValue = scdp().totalCollateralValueSCDP(_ignoreFactors);
-        debtValue = scdp().totalDebtValueAtRatioSCDP(1 ether, _ignoreFactors);
-        if (debtValue == 0) return (collateralValue, debtValue, 0);
-        cr = collateralValue.wadDiv(debtValue);
-    }
-
-    /// @inheritdoc ISCDPStateFacet
-    function getSCDPFeeRecipient() external view returns (address) {
-        return scdp().swapFeeRecipient;
-    }
-
-    /// @inheritdoc ISCDPStateFacet
-    function getSCDPAssetEnabled(address _asset) external view returns (bool) {
-        return scdp().isEnabled[_asset];
-    }
-
-    /// @inheritdoc ISCDPStateFacet
-    function getSCDPSwapEnabled(address _assetIn, address _assetOut) external view returns (bool) {
-        return scdp().isSwapEnabled[_assetIn][_assetOut];
     }
 }

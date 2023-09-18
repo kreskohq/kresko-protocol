@@ -20,6 +20,11 @@ import {collateralAmountToValue} from "minter/funcs/Conversions.sol";
 contract AccountStateFacet is IAccountStateFacet {
     using WadRay for uint256;
 
+    /// @inheritdoc IAccountStateFacet
+    function getAccountLiquidatable(address _account) external view returns (bool) {
+        return ms().isAccountLiquidatable(_account);
+    }
+
     /* -------------------------------------------------------------------------- */
     /*                                  KrAssets                                  */
     /* -------------------------------------------------------------------------- */
@@ -40,7 +45,7 @@ contract AccountStateFacet is IAccountStateFacet {
     }
 
     /// @inheritdoc IAccountStateFacet
-    function getAccountDebtOf(address _account, address _asset) external view returns (uint256) {
+    function getAccountDebtAmount(address _account, address _asset) external view returns (uint256) {
         return ms().accountDebtAmount(_account, _asset);
     }
 
@@ -137,20 +142,13 @@ contract AccountStateFacet is IAccountStateFacet {
             uint256 depositAmount = ms().accountCollateralAmount(_account, collateralAssetAddress);
 
             // Don't take the collateral asset's collateral factor into consideration.
-            (uint256 depositValue, uint256 oraclePrice) = collateralAmountToValue(
-                collateralAssetAddress,
-                depositAmount,
-                true
-            );
+            (uint256 depositValue, uint256 oraclePrice) = collateralAmountToValue(collateralAssetAddress, depositAmount, true);
 
             uint256 feeValuePaid;
             uint256 transferAmount;
             // If feeValue < depositValue, the entire fee can be charged for this collateral asset.
             if (feeValue < depositValue) {
-                transferAmount = fromWad(
-                    ms().collateralAssets[collateralAssetAddress].decimals,
-                    feeValue.wadDiv(oraclePrice)
-                );
+                transferAmount = fromWad(ms().collateralAssets[collateralAssetAddress].decimals, feeValue.wadDiv(oraclePrice));
                 feeValuePaid = feeValue;
             } else {
                 transferAmount = depositAmount;

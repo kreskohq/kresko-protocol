@@ -418,7 +418,7 @@ pragma solidity >=0.8.19;
 //      * @param _collateralAsset The asset lookup address.
 //      * @return i = index of the minted collateral asset.
 //      */
-//     function getDepositedCollateralAssetIndex(MinterState storage self, address _account, address _collateralAsset)
+//     function getAccountDepositIndex(MinterState storage self, address _account, address _collateralAsset)
 //         internal
 //         view
 //         returns (uint256 i)

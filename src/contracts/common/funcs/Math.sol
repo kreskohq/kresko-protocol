@@ -1,9 +1,9 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
 import {WadRay} from "libs/WadRay.sol";
 import {MaxLiqVars} from "common/Types.sol";
-import {PoolKrAsset} from "scdp/Types.sol";
+import {SCDPKrAsset} from "scdp/Types.sol";
 
 using WadRay for uint256;
 
@@ -11,20 +11,12 @@ using WadRay for uint256;
 /*                                Liquidations                                */
 /* -------------------------------------------------------------------------- */
 
-function calcMaxLiquidationValue(MaxLiqVars memory vars, uint256 _closeFee) pure returns (uint256) {
-    return
-        _calcMaxLiquidationValue(
-            vars,
-            (vars.debtFactor - vars.collateral.liquidationIncentive - _closeFee).wadDiv(vars.debtFactor)
-        );
+function calcMaxLiqValue(MaxLiqVars memory vars, uint256 _closeFee) pure returns (uint256) {
+    return _calcMaxLiqValue(vars, (vars.debtFactor - vars.collateral.liquidationIncentive - _closeFee).wadDiv(vars.debtFactor));
 }
 
-function calcMaxLiquidationValue(MaxLiqVars memory vars, PoolKrAsset memory _repayKreskoAsset) pure returns (uint256) {
-    return
-        _calcMaxLiquidationValue(
-            vars,
-            (vars.debtFactor - _repayKreskoAsset.liquidationIncentive).wadDiv(vars.debtFactor)
-        );
+function calcMaxLiqValue(MaxLiqVars memory vars, SCDPKrAsset memory _repayKreskoAsset) pure returns (uint256) {
+    return _calcMaxLiqValue(vars, (vars.debtFactor - _repayKreskoAsset.liquidationIncentive).wadDiv(vars.debtFactor));
 }
 
 /**
@@ -39,7 +31,7 @@ function calcMaxLiquidationValue(MaxLiqVars memory vars, PoolKrAsset memory _rep
  * @param vars liquidation variables struct
  * @param _valuePerUSDRepaid Pre-calculated value per USD repaid
  */
-function _calcMaxLiquidationValue(MaxLiqVars memory vars, uint256 _valuePerUSDRepaid) pure returns (uint256) {
+function _calcMaxLiqValue(MaxLiqVars memory vars, uint256 _valuePerUSDRepaid) pure returns (uint256) {
     return
         (vars.minCollateralValue - vars.accountCollateralValue)
             .wadMul(vars.maxLiquidationMultiplier)

@@ -20,8 +20,3 @@ function valueToSDI(uint256 valueIn, uint256 sdiPrice) view returns (uint256) {
 function krAssetAmountToSDI(address asset, uint256 amount, bool ignoreFactors) view returns (uint256 shares) {
     return krAssetAmountToValue(asset, amount, ignoreFactors).wadDiv(scdp().SDIPrice());
 }
-
-// /// @notice Preview how many SDI are minted when minting krAssets.
-// function mintAmountToSDI(address asset, uint256 mintAmount, bool ignoreFactors) view returns (uint256 shares) {
-//     return krAssetAmountToValue(asset, mintAmount, ignoreFactors).wadDiv(scdp().SDIPrice());
-// }

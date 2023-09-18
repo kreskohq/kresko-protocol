@@ -7,21 +7,24 @@ import {WadRay} from "libs/WadRay.sol";
 import {Role} from "common/Types.sol";
 
 import {DSModifiers} from "diamond/Modifiers.sol";
+import {ds} from "diamond/State.sol";
+import {DiamondEvent} from "common/Events.sol";
 
 import {Constants} from "minter/Constants.sol";
 import {MSModifiers} from "minter/Modifiers.sol";
 import {ms} from "minter/State.sol";
 
 import {ISCDPConfigFacet} from "scdp/interfaces/ISCDPConfigFacet.sol";
-import {PoolCollateral, PoolKrAsset} from "scdp/Types.sol";
+import {SCDPCollateral, SCDPKrAsset, SCDPInitArgs, PairSetter} from "scdp/Types.sol";
 import {scdp} from "scdp/State.sol";
+import {SEvent} from "scdp/Events.sol";
 
 contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, MSModifiers {
     using SafeERC20 for IERC20Permit;
     using Arrays for address[];
 
     /// @inheritdoc ISCDPConfigFacet
-    function initialize(SCDPInitArgs memory _init) external onlyOwner {
+    function initializeSCDP(SCDPInitArgs memory _init) external onlyOwner {
         require(_init.mcr >= Constants.MIN_COLLATERALIZATION_RATIO, "mcr-too-low");
         require(_init.lt >= Constants.MIN_COLLATERALIZATION_RATIO, "lt-too-low");
         require(_init.lt <= _init.mcr, "lt-too-high");
@@ -31,10 +34,12 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, MSModifiers {
         scdp().liquidationThreshold = _init.lt;
         scdp().swapFeeRecipient = _init.swapFeeRecipient;
         scdp().maxLiquidationMultiplier = Constants.MIN_MAX_LIQUIDATION_MULTIPLIER;
+
+        emit DiamondEvent.Initialized(msg.sender, ds().storageVersion++);
     }
 
     /// @inheritdoc ISCDPConfigFacet
-    function getSCDPConfig() external view override returns (SCDPInitArgs memory) {
+    function getCurrentParametersSCDP() external view override returns (SCDPInitArgs memory) {
         return
             SCDPInitArgs({
                 swapFeeRecipient: scdp().swapFeeRecipient,
@@ -43,27 +48,27 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, MSModifiers {
             });
     }
 
-    function setSCDPFeeAsset(address asset) external onlyRole(Role.ADMIN) {
+    function setFeeAssetSCDP(address asset) external onlyRole(Role.ADMIN) {
         scdp().feeAsset = asset;
     }
 
     /// @inheritdoc ISCDPConfigFacet
-    function setSCDPMCR(uint256 _mcr) external onlyRole(Role.ADMIN) {
+    function setMinCollateralRatioSCDP(uint256 _mcr) external onlyRole(Role.ADMIN) {
         require(_mcr >= Constants.MIN_COLLATERALIZATION_RATIO, "mcr-too-low");
         scdp().minCollateralRatio = _mcr;
     }
 
     /// @inheritdoc ISCDPConfigFacet
-    function setSCDPLT(uint256 _lt) external onlyRole(Role.ADMIN) {
+    function setLiquidationThresholdSCDP(uint256 _lt) external onlyRole(Role.ADMIN) {
         require(_lt >= Constants.MIN_COLLATERALIZATION_RATIO, "mcr-too-low");
         require(_lt <= scdp().minCollateralRatio, "lt-too-high");
         scdp().liquidationThreshold = _lt;
     }
 
     /// @inheritdoc ISCDPConfigFacet
-    function enablePoolCollaterals(
+    function enableCollateralsSCDP(
         address[] calldata _enabledCollaterals,
-        PoolCollateral[] memory _configurations
+        SCDPCollateral[] memory _configurations
     ) external onlyRole(Role.ADMIN) {
         require(_enabledCollaterals.length == _configurations.length, "collateral-length-mismatch");
         for (uint256 i; i < _enabledCollaterals.length; i++) {
@@ -73,64 +78,58 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, MSModifiers {
                 "collateral-no-price"
             );
             require(_configurations[i].depositLimit > 0, "krasset-supply-limit-zero");
-            require(scdp().poolCollateral[_enabledCollaterals[i]].liquidityIndex == 0, "collateral-already-enabled");
+            require(scdp().collateral[_enabledCollaterals[i]].liquidityIndex == 0, "collateral-already-enabled");
 
             // We don't care what values are set for decimals or liquidityIndex. Overriding.
             _configurations[i].decimals = IERC20Permit(_enabledCollaterals[i]).decimals();
             _configurations[i].liquidityIndex = uint128(WadRay.RAY);
 
             // Save to state
-            scdp().poolCollateral[_enabledCollaterals[i]] = _configurations[i];
+            scdp().collateral[_enabledCollaterals[i]] = _configurations[i];
             scdp().isEnabled[_enabledCollaterals[i]] = true;
             scdp().collaterals.push(_enabledCollaterals[i]);
         }
     }
 
     /// @inheritdoc ISCDPConfigFacet
-    function enablePoolKrAssets(
+    function enableKrAssetsSCDP(
         address[] calldata _enabledKrAssets,
-        PoolKrAsset[] memory _configurations
+        SCDPKrAsset[] memory _configurations
     ) external onlyRole(Role.ADMIN) {
         require(_enabledKrAssets.length == _configurations.length, "krasset-length-mismatch");
         for (uint256 i; i < _enabledKrAssets.length; i++) {
             // Checks
             require(ms().kreskoAssets[_enabledKrAssets[i]].uintPrice(ms().oracleDeviationPct) != 0, "krasset-no-price");
-            require(scdp().poolKrAsset[_enabledKrAssets[i]].supplyLimit == 0, "krasset-already-enabled");
+            require(scdp().krAsset[_enabledKrAssets[i]].supplyLimit == 0, "krasset-already-enabled");
             require(_configurations[i].supplyLimit > 0, "krasset-supply-limit-zero");
             require(
                 _configurations[i].protocolFee <= Constants.MAX_COLLATERAL_POOL_PROTOCOL_FEE,
                 "krasset-protocol-fee-too-high"
             );
-            require(
-                _configurations[i].liquidationIncentive >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
-                "li-too-low"
-            );
-            require(
-                _configurations[i].liquidationIncentive <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER,
-                "li-too-high"
-            );
+            require(_configurations[i].liquidationIncentive >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER, "li-too-low");
+            require(_configurations[i].liquidationIncentive <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER, "li-too-high");
 
             // Save to state
-            scdp().poolKrAsset[_enabledKrAssets[i]] = _configurations[i];
+            scdp().krAsset[_enabledKrAssets[i]] = _configurations[i];
             scdp().isEnabled[_enabledKrAssets[i]] = true;
             scdp().krAssets.push(_enabledKrAssets[i]);
         }
     }
 
     /// @inheritdoc ISCDPConfigFacet
-    function updatePoolKrAsset(address _asset, PoolKrAsset calldata _configuration) external onlyRole(Role.ADMIN) {
+    function updateKrAssetSCDP(address _asset, SCDPKrAsset calldata _configuration) external onlyRole(Role.ADMIN) {
         require(_configuration.liquidationIncentive >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER, "li-too-low");
         require(_configuration.liquidationIncentive <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER, "li-too-high");
-        scdp().poolKrAsset[_asset] = _configuration;
+        scdp().krAsset[_asset] = _configuration;
     }
 
     /// @inheritdoc ISCDPConfigFacet
-    function updatePoolCollateral(address _asset, uint256 _newDepositLimit) external onlyRole(Role.ADMIN) {
-        scdp().poolCollateral[_asset].depositLimit = _newDepositLimit;
+    function updateCollateralSCDP(address _asset, uint256 _newDepositLimit) external onlyRole(Role.ADMIN) {
+        scdp().collateral[_asset].depositLimit = _newDepositLimit;
     }
 
     /// @inheritdoc ISCDPConfigFacet
-    function disablePoolCollaterals(address[] calldata _disabledAssets) external onlyRole(Role.ADMIN) {
+    function disableCollateralsSCDP(address[] calldata _disabledAssets) external onlyRole(Role.ADMIN) {
         require(_disabledAssets.length > 0, "collateral-disable-length-0");
         address[] memory enabledCollaterals = scdp().collaterals;
         bool didDisable;
@@ -149,7 +148,7 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, MSModifiers {
     }
 
     /// @inheritdoc ISCDPConfigFacet
-    function disablePoolKrAssets(address[] calldata _disabledAssets) external onlyRole(Role.ADMIN) {
+    function disableKrAssetsSCDP(address[] calldata _disabledAssets) external onlyRole(Role.ADMIN) {
         require(_disabledAssets.length > 0, "krasset-disable-length-0");
         address[] memory enabledKrAssets = scdp().krAssets;
         bool didDisable;
@@ -168,7 +167,7 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, MSModifiers {
     }
 
     /// @inheritdoc ISCDPConfigFacet
-    function removePoolCollaterals(address[] calldata _removedAssets) external onlyRole(Role.ADMIN) {
+    function removeCollateralsSCDP(address[] calldata _removedAssets) external onlyRole(Role.ADMIN) {
         require(_removedAssets.length > 0, "collateral-remove-length-0");
         address[] memory enabledCollaterals = scdp().collaterals;
         bool didRemove;
@@ -189,7 +188,7 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, MSModifiers {
     }
 
     /// @inheritdoc ISCDPConfigFacet
-    function removePoolKrAssets(address[] calldata _removedAssets) external onlyRole(Role.ADMIN) {
+    function removeKrAssetsSCDP(address[] calldata _removedAssets) external onlyRole(Role.ADMIN) {
         require(_removedAssets.length > 0, "krasset-disable-length-0");
         address[] memory enabledKrAssets = scdp().krAssets;
         bool didRemove;
@@ -220,10 +219,10 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, MSModifiers {
         uint256 _closeFee,
         uint256 _protocolFee
     ) external onlyRole(Role.ADMIN) {
-        scdp().poolKrAsset[_krAsset].openFee = _openFee;
-        scdp().poolKrAsset[_krAsset].closeFee = _closeFee;
-        scdp().poolKrAsset[_krAsset].protocolFee = _protocolFee;
-        emit FeeSet(_krAsset, _openFee, _closeFee, _protocolFee);
+        scdp().krAsset[_krAsset].openFee = _openFee;
+        scdp().krAsset[_krAsset].closeFee = _closeFee;
+        scdp().krAsset[_krAsset].protocolFee = _protocolFee;
+        emit SEvent.FeeSet(_krAsset, _openFee, _closeFee, _protocolFee);
     }
 
     /// @inheritdoc ISCDPConfigFacet
@@ -231,14 +230,14 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, MSModifiers {
         for (uint256 i; i < _pairs.length; i++) {
             scdp().isSwapEnabled[_pairs[i].assetIn][_pairs[i].assetOut] = _pairs[i].enabled;
             scdp().isSwapEnabled[_pairs[i].assetOut][_pairs[i].assetIn] = _pairs[i].enabled;
-            emit PairSet(_pairs[i].assetIn, _pairs[i].assetOut, _pairs[i].enabled);
-            emit PairSet(_pairs[i].assetOut, _pairs[i].assetIn, _pairs[i].enabled);
+            emit SEvent.PairSet(_pairs[i].assetIn, _pairs[i].assetOut, _pairs[i].enabled);
+            emit SEvent.PairSet(_pairs[i].assetOut, _pairs[i].assetIn, _pairs[i].enabled);
         }
     }
 
     /// @inheritdoc ISCDPConfigFacet
     function setSwapPairsSingle(PairSetter calldata _pair) external onlyRole(Role.ADMIN) {
         scdp().isSwapEnabled[_pair.assetIn][_pair.assetOut] = _pair.enabled;
-        emit PairSet(_pair.assetIn, _pair.assetOut, _pair.enabled);
+        emit SEvent.PairSet(_pair.assetIn, _pair.assetOut, _pair.enabled);
     }
 }

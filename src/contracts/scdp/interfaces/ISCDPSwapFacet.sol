@@ -1,20 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity ^0.8.0;
 
 interface ISCDPSwapFacet {
-    event Swap(
-        address indexed who,
-        address indexed assetIn,
-        address indexed assetOut,
-        uint256 amountIn,
-        uint256 amountOut
-    );
-    event SwapFee(address indexed feeAsset, address indexed assetIn, uint256 feeAmount, uint256 protocolFeeAmount);
-
-    event Income(address asset, uint256 amount);
-
     /// @notice Get a price for an asset. It is `extOracleDecimals()` of precision.
-    function getPrice(address _asset) external view returns (uint256 price);
+    function getPriceSCDP(address _asset) external view returns (uint256 price);
 
     /**
      * @notice Preview the amount out received.
@@ -23,7 +12,7 @@ interface ISCDPSwapFacet {
      * @param _amountIn The amount of _assetIn to pay.
      * @return amountOut The amount of `_assetOut` to receive according to `_amountIn`.
      */
-    function previewSwap(
+    function previewSwapSCDP(
         address _assetIn,
         address _assetOut,
         uint256 _amountIn
@@ -38,13 +27,7 @@ interface ISCDPSwapFacet {
      * @param _amountIn The amount of _assetIn to pay.
      * @param _amountOutMin The minimum amount of _assetOut to receive, this is due to possible oracle price change.
      */
-    function swap(
-        address _account,
-        address _assetIn,
-        address _assetOut,
-        uint256 _amountIn,
-        uint256 _amountOutMin
-    ) external;
+    function swapSCDP(address _account, address _assetIn, address _assetOut, uint256 _amountIn, uint256 _amountOutMin) external;
 
     /**
      * @notice Accumulates fees to deposits as a fixed, instantaneous income.
@@ -52,5 +35,5 @@ interface ISCDPSwapFacet {
      * @param _amount amount to accumulate
      * @return nextLiquidityIndex the next liquidity index
      */
-    function cumulateIncome(address _incomeAsset, uint256 _amount) external returns (uint256 nextLiquidityIndex);
+    function cumulateIncomeSCDP(address _incomeAsset, uint256 _amount) external returns (uint256 nextLiquidityIndex);
 }

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
 import {Arrays} from "libs/Arrays.sol";
@@ -19,13 +19,7 @@ library MCore {
     /*                            Kresko Assets Actions                           */
     /* -------------------------------------------------------------------------- */
 
-    function mint(
-        MinterState storage self,
-        address _kreskoAsset,
-        address _anchor,
-        uint256 _amount,
-        address _account
-    ) internal {
+    function mint(MinterState storage self, address _kreskoAsset, address _anchor, uint256 _amount, address _account) internal {
         // Increase principal debt
         self.kreskoAssetDebt[_account][_kreskoAsset] += IKreskoAssetIssuer(_anchor).issue(_amount, _account);
     }
@@ -91,9 +85,9 @@ library MCore {
         }
 
         // Record the withdrawal.
-        self.collateralDeposits[_account][_collateralAsset] = self
-            .collateralAssets[_collateralAsset]
-            .toNonRebasingAmount(newCollateralAmount);
+        self.collateralDeposits[_account][_collateralAsset] = self.collateralAssets[_collateralAsset].toNonRebasingAmount(
+            newCollateralAmount
+        );
 
         emit MEvent.CollateralWithdrawn(_account, _collateralAsset, _withdrawAmount);
     }
@@ -137,9 +131,9 @@ library MCore {
 
         // Record the deposit.
         unchecked {
-            self.collateralDeposits[_account][_collateralAsset] = self
-                .collateralAssets[_collateralAsset]
-                .toNonRebasingAmount(newCollateralAmount);
+            self.collateralDeposits[_account][_collateralAsset] = self.collateralAssets[_collateralAsset].toNonRebasingAmount(
+                newCollateralAmount
+            );
         }
 
         emit MEvent.CollateralDeposited(_account, _collateralAsset, _depositAmount);
@@ -187,9 +181,9 @@ library MCore {
         }
 
         // Record the withdrawal.
-        self.collateralDeposits[_account][_collateralAsset] = self
-            .collateralAssets[_collateralAsset]
-            .toNonRebasingAmount(newCollateralAmount);
+        self.collateralDeposits[_account][_collateralAsset] = self.collateralAssets[_collateralAsset].toNonRebasingAmount(
+            newCollateralAmount
+        );
 
         emit MEvent.UncheckedCollateralWithdrawn(_account, _collateralAsset, _withdrawAmount);
     }
@@ -237,7 +231,7 @@ library MCore {
      * @param _debtAmount The debt amount of `_account`
      * @return amount == 0 or >= minDebtAmount
      */
-    function handleDustPosition(
+    function checkDust(
         MinterState storage self,
         address _kreskoAsset,
         uint256 _burnAmount,
@@ -247,9 +241,7 @@ library MCore {
         // debt value, close up to the minimum debt value instead.
         uint256 krAssetValue = krAssetAmountToValue(_kreskoAsset, _debtAmount - _burnAmount, true);
         if (krAssetValue > 0 && krAssetValue < self.minDebtValue) {
-            uint256 minDebtValue = self.minDebtValue.wadDiv(
-                self.kreskoAssets[_kreskoAsset].uintPrice(self.oracleDeviationPct)
-            );
+            uint256 minDebtValue = self.minDebtValue.wadDiv(self.kreskoAssets[_kreskoAsset].uintPrice(self.oracleDeviationPct));
             amount = _debtAmount - minDebtValue;
         } else {
             amount = _burnAmount;

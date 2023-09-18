@@ -55,7 +55,7 @@ import Role from "@utils/test/roles";
             // await expect(Kresko.depositCollateral(deployer, krETH.address, toBig(1))).to.not.be.reverted;
             // await expect(Kresko.mintKreskoAsset(deployer, krETH.address, toBig(0.1))).to.not.be.reverted;
             // const burnIdx = await Kresko.getMintedKreskoAssetsIndex(deployer, krETH.address);
-            // const withdrawIdx = await Kresko.getDepositedCollateralAssetIndex(deployer, krETH.address);
+            // const withdrawIdx = await Kresko.getAccountDepositIndex(deployer, krETH.address);
             // await expect(Kresko.burnKreskoAsset(deployer, krETH.address, toBig(0.1), burnIdx)).to.not.be.reverted;
             // await expect(Kresko.withdrawCollateral(deployer, krETH.address, toBig(0.1), withdrawIdx)).to.not.be
             //     .reverted;

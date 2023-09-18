@@ -1,5 +1,6 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
+
 import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {SafeERC20} from "vendor/SafeERC20.sol";
 import {Arrays} from "libs/Arrays.sol";

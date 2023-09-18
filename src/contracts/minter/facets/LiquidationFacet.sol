@@ -90,11 +90,7 @@ contract LiquidationFacet is DSModifiers, ILiquidationFacet {
                 _repayAmount,
                 fromWad(
                     collateral.decimals,
-                    valueToAmount(
-                        collateral.liquidationIncentive,
-                        collateral.uintPrice(s.oracleDeviationPct),
-                        repayAmountUSD
-                    )
+                    valueToAmount(collateral.liquidationIncentive, collateral.uintPrice(s.oracleDeviationPct), repayAmountUSD)
                 ),
                 _repayAsset,
                 _repayAssetIndex,
@@ -174,11 +170,6 @@ contract LiquidationFacet is DSModifiers, ILiquidationFacet {
         s.depositedCollateralAssets[params.account].removeAddress(params.seizedAsset, params.seizedAssetIndex);
         // Seized amount is the collateral deposits.
         return collateralDeposits;
-    }
-
-    /// @inheritdoc ILiquidationFacet
-    function isLiquidatable(address _account) external view returns (bool) {
-        return ms().isAccountLiquidatable(_account);
     }
 
     /// @inheritdoc ILiquidationFacet

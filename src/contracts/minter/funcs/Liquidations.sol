@@ -1,7 +1,8 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
+
 import {WadRay} from "libs/WadRay.sol";
-import {calcMaxLiquidationValue} from "common/funcs/Math.sol";
+import {calcMaxLiqValue} from "common/funcs/Math.sol";
 import {MaxLiqVars} from "common/Types.sol";
 
 import {CollateralAsset, KrAsset} from "minter/Types.sol";
@@ -27,7 +28,7 @@ function maxLiquidatableValue(
         return 0;
     }
 
-    maxLiquidatableUSD = calcMaxLiquidationValue(vars, _repayKreskoAsset.closeFee);
+    maxLiquidatableUSD = calcMaxLiqValue(vars, _repayKreskoAsset.closeFee);
 
     if (vars.seizeCollateralAccountValue < maxLiquidatableUSD) {
         return vars.seizeCollateralAccountValue;

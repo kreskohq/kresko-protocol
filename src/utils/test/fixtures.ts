@@ -58,7 +58,7 @@ export const getSCDPFixture = (params: SCDPFixtureParams) =>
         for (const user of users) {
             await Promise.all([
                 time.increase(3602),
-                hre.Diamond.setSCDPFeeAsset(krAssets[2].address),
+                hre.Diamond.setFeeAssetSCDP(krAssets[2].address),
                 ...krAssets.map(async asset =>
                     asset.contract.connect(user).approve(hre.Diamond.address, MAX_UINT_AMOUNT),
                 ),

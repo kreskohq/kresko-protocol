@@ -25,7 +25,7 @@ import hre from "hardhat";
 import {
     CollateralDepositedEventObject,
     CollateralWithdrawnEventObject,
-} from "types/typechain/src/contracts/common/Events.sol/MinterEvent";
+} from "types/typechain/src/contracts/minter/Events.sol/MEvent";
 
 describe("Minter - Deposit Withdraw", () => {
     withFixture(["minter-test"]);
@@ -97,7 +97,7 @@ describe("Minter - Deposit Withdraw", () => {
                 const rebasedDepositAmount = depositAmount.mul(denominator);
                 const withdrawAmount = rebasedDepositAmount.sub((9e11).toString());
 
-                expect(await hre.Diamond.getDepositedCollateralAssets(arbitraryUser.address)).to.deep.equal([
+                expect(await hre.Diamond.getAccountCollateralAssets(arbitraryUser.address)).to.deep.equal([
                     newKrAsset.address,
                 ]);
 
@@ -154,7 +154,7 @@ describe("Minter - Deposit Withdraw", () => {
 
             it("should allow an account to deposit whitelisted collateral", async function () {
                 // Account has no deposited assets
-                const depositedCollateralAssetsBefore = await hre.Diamond.getDepositedCollateralAssets(
+                const depositedCollateralAssetsBefore = await hre.Diamond.getAccountCollateralAssets(
                     this.depositArgs.user.address,
                 );
                 expect(depositedCollateralAssetsBefore).to.deep.equal([]);
@@ -169,13 +169,16 @@ describe("Minter - Deposit Withdraw", () => {
                 ).not.to.be.reverted;
 
                 // Account now has deposited assets
-                const depositedCollateralAssetsAfter = await hre.Diamond.getDepositedCollateralAssets(
+                const depositedCollateralAssetsAfter = await hre.Diamond.getAccountCollateralAssets(
                     this.depositArgs.user.address,
                 );
                 expect(depositedCollateralAssetsAfter).to.deep.equal([this.collateral.address]);
                 // Account's collateral deposit balances have increased
                 expect(
-                    await hre.Diamond.collateralDeposits(this.depositArgs.user.address, this.collateral.address),
+                    await hre.Diamond.getAccountCollateralAmount(
+                        this.depositArgs.user.address,
+                        this.collateral.address,
+                    ),
                 ).to.equal(this.depositArgs.amount);
                 // Kresko contract's collateral balance has increased
                 expect(await this.collateral.contract.balanceOf(hre.Diamond.address)).to.equal(this.depositArgs.amount);
@@ -198,7 +201,7 @@ describe("Minter - Deposit Withdraw", () => {
                 });
 
                 // Initially, the array of the user's deposited collateral assets should be empty.
-                const depositedCollateralAssetsBefore = await hre.Diamond.getDepositedCollateralAssets(
+                const depositedCollateralAssetsBefore = await hre.Diamond.getAccountCollateralAssets(
                     this.depositArgs.user.address,
                 );
                 expect(depositedCollateralAssetsBefore).to.deep.equal([]);
@@ -213,13 +216,13 @@ describe("Minter - Deposit Withdraw", () => {
                 ).not.to.be.reverted;
 
                 // Confirm the array of the user's deposited collateral assets has been pushed to.
-                const depositedCollateralAssetsAfter = await hre.Diamond.getDepositedCollateralAssets(
+                const depositedCollateralAssetsAfter = await hre.Diamond.getAccountCollateralAssets(
                     this.depositArgs.user.address,
                 );
                 expect(depositedCollateralAssetsAfter).to.deep.equal([this.collateral.address]);
 
                 // Confirm the amount deposited is recorded for the user.
-                const amountDeposited = await hre.Diamond.collateralDeposits(
+                const amountDeposited = await hre.Diamond.getAccountCollateralAmount(
                     this.depositArgs.user.address,
                     this.collateral.address,
                 );
@@ -256,13 +259,13 @@ describe("Minter - Deposit Withdraw", () => {
                 ).not.to.be.reverted;
 
                 // Confirm the array of the user's deposited collateral assets hasn't been double-pushed to.
-                const depositedCollateralAssetsAfter = await hre.Diamond.getDepositedCollateralAssets(
+                const depositedCollateralAssetsAfter = await hre.Diamond.getAccountCollateralAssets(
                     this.depositArgs.user.address,
                 );
                 expect(depositedCollateralAssetsAfter).to.deep.equal([this.collateral.address]);
 
                 // Confirm the amount deposited is recorded for the user.
-                const amountDeposited = await hre.Diamond.collateralDeposits(
+                const amountDeposited = await hre.Diamond.getAccountCollateralAmount(
                     this.depositArgs.user.address,
                     this.collateral.address,
                 );
@@ -307,7 +310,7 @@ describe("Minter - Deposit Withdraw", () => {
                 ).not.to.be.reverted;
 
                 // Confirm the array of the user's deposited collateral assets contains both collateral assets
-                const depositedCollateralAssetsAfter = await hre.Diamond.getDepositedCollateralAssets(
+                const depositedCollateralAssetsAfter = await hre.Diamond.getAccountCollateralAssets(
                     this.depositArgs.user.address,
                 );
                 expect(depositedCollateralAssetsAfter).to.deep.equal([this.collateral.address, contract.address]);
@@ -392,7 +395,7 @@ describe("Minter - Deposit Withdraw", () => {
 
             describe("when the account's minimum collateral value is 0", function () {
                 it("should allow an account to withdraw their entire deposit", async function () {
-                    const depositedCollateralAssets = await hre.Diamond.getDepositedCollateralAssets(
+                    const depositedCollateralAssets = await hre.Diamond.getAccountCollateralAssets(
                         hre.users.userOne.address,
                     );
                     expect(depositedCollateralAssets).to.deep.equal([this.collateral.address]);
@@ -406,13 +409,13 @@ describe("Minter - Deposit Withdraw", () => {
 
                     // Ensure that the collateral asset is removed from the account's deposited collateral
                     // assets array.
-                    const depositedCollateralAssetsPostWithdraw = await hre.Diamond.getDepositedCollateralAssets(
+                    const depositedCollateralAssetsPostWithdraw = await hre.Diamond.getAccountCollateralAssets(
                         hre.users.userOne.address,
                     );
                     expect(depositedCollateralAssetsPostWithdraw).to.deep.equal([]);
 
                     // Ensure the change in the user's deposit is recorded.
-                    const amountDeposited = await hre.Diamond.collateralDeposits(
+                    const amountDeposited = await hre.Diamond.getAccountCollateralAmount(
                         hre.users.userOne.address,
                         this.collateral.address,
                     );
@@ -436,7 +439,7 @@ describe("Minter - Deposit Withdraw", () => {
                     );
 
                     // Ensure the change in the user's deposit is recorded.
-                    const amountDeposited = await hre.Diamond.collateralDeposits(
+                    const amountDeposited = await hre.Diamond.getAccountCollateralAmount(
                         hre.users.userOne.address,
                         this.collateral.address,
                     );
@@ -444,7 +447,7 @@ describe("Minter - Deposit Withdraw", () => {
 
                     // Ensure that the collateral asset is still in the account's deposited collateral
                     // assets array.
-                    const depositedCollateralAssets = await hre.Diamond.getDepositedCollateralAssets(
+                    const depositedCollateralAssets = await hre.Diamond.getAccountCollateralAssets(
                         hre.users.userOne.address,
                     );
                     expect(depositedCollateralAssets).to.deep.equal([this.collateral.address]);
@@ -463,7 +466,7 @@ describe("Minter - Deposit Withdraw", () => {
                     );
                     expect(await hre.Diamond.hasRole(Role.MANAGER, hre.users.userThree.address)).to.equal(true);
 
-                    const collateralBefore = await hre.Diamond.collateralDeposits(
+                    const collateralBefore = await hre.Diamond.getAccountCollateralAmount(
                         hre.users.userOne.address,
                         this.collateral.address,
                     );
@@ -477,7 +480,7 @@ describe("Minter - Deposit Withdraw", () => {
                         ),
                     ).to.not.be.reverted;
 
-                    const collateralAfter = await hre.Diamond.collateralDeposits(
+                    const collateralAfter = await hre.Diamond.getAccountCollateralAmount(
                         hre.users.userOne.address,
                         this.collateral.address,
                     );
@@ -530,13 +533,13 @@ describe("Minter - Deposit Withdraw", () => {
                             this.mintAmount,
                         );
                         // Mint amount differs from deposited amount due to open fee
-                        const amountDeposited = await hre.Diamond.collateralDeposits(
+                        const amountDeposited = await hre.Diamond.getAccountCollateralAmount(
                             hre.users.userOne.address,
                             this.collateral.address,
                         );
                         this.initialUserOneDeposited = amountDeposited;
 
-                        this.mcr = await hre.Diamond.minimumCollateralizationRatio();
+                        this.mcr = await hre.Diamond.getMinCollateralRatio();
                     });
 
                     it("should allow an account to withdraw their deposit if it does not violate the health factor", async function () {
@@ -544,14 +547,14 @@ describe("Minter - Deposit Withdraw", () => {
 
                         // Ensure that the withdrawal would not put the account's collateral value
                         // less than the account's minimum collateral value:
-                        const accountMinCollateralValue = await hre.Diamond.getAccountMinimumCollateralValueAtRatio(
+                        const accountMinCollateralValue = await hre.Diamond.getAccountMinCollateralAtRatio(
                             hre.users.userOne.address,
                             this.mcr,
                         );
-                        const accountCollateralValue = await hre.Diamond.accountCollateralValue(
+                        const accountCollateralValue = await hre.Diamond.getAccountCollateralValue(
                             hre.users.userOne.address,
                         );
-                        const [withdrawnCollateralValue] = await hre.Diamond.getCollateralValueAndOraclePrice(
+                        const [withdrawnCollateralValue] = await hre.Diamond.getCollateralAmountToValue(
                             this.collateral.address,
                             withdrawAmount,
                             false,
@@ -567,13 +570,13 @@ describe("Minter - Deposit Withdraw", () => {
                         );
                         // Ensure that the collateral asset is still in the account's deposited collateral
                         // assets array.
-                        const depositedCollateralAssets = await hre.Diamond.getDepositedCollateralAssets(
+                        const depositedCollateralAssets = await hre.Diamond.getAccountCollateralAssets(
                             hre.users.userOne.address,
                         );
                         expect(depositedCollateralAssets).to.deep.equal([this.collateral.address]);
 
                         // Ensure the change in the user's deposit is recorded.
-                        const amountDeposited = await hre.Diamond.collateralDeposits(
+                        const amountDeposited = await hre.Diamond.getAccountCollateralAmount(
                             hre.users.userOne.address,
                             this.collateral.address,
                         );
@@ -589,12 +592,11 @@ describe("Minter - Deposit Withdraw", () => {
                         );
 
                         // Ensure the account's minimum collateral value is <= the account collateral value
-                        const accountMinCollateralValueAfter =
-                            await hre.Diamond.getAccountMinimumCollateralValueAtRatio(
-                                hre.users.userOne.address,
-                                this.mcr,
-                            );
-                        const accountCollateralValueAfter = await hre.Diamond.accountCollateralValue(
+                        const accountMinCollateralValueAfter = await hre.Diamond.getAccountMinCollateralAtRatio(
+                            hre.users.userOne.address,
+                            this.mcr,
+                        );
+                        const accountCollateralValueAfter = await hre.Diamond.getAccountCollateralValue(
                             hre.users.userOne.address,
                         );
                         expect(accountMinCollateralValueAfter.lte(accountCollateralValueAfter)).to.be.true;
@@ -641,14 +643,14 @@ describe("Minter - Deposit Withdraw", () => {
 
                         // Ensure that the withdrawal would in fact put the account's collateral value
                         // less than the account's minimum collateral value:
-                        const accountMinCollateralValue = await hre.Diamond.getAccountMinimumCollateralValueAtRatio(
+                        const accountMinCollateralValue = await hre.Diamond.getAccountMinCollateralAtRatio(
                             hre.users.userOne.address,
                             this.mcr,
                         );
-                        const accountCollateralValue = await hre.Diamond.accountCollateralValue(
+                        const accountCollateralValue = await hre.Diamond.getAccountCollateralValue(
                             hre.users.userOne.address,
                         );
-                        const [withdrawnCollateralValue] = await hre.Diamond.getCollateralValueAndOraclePrice(
+                        const [withdrawnCollateralValue] = await hre.Diamond.getCollateralAmountToValue(
                             this.collateral.address,
                             withdrawAmount,
                             false,
@@ -732,10 +734,10 @@ describe("Minter - Deposit Withdraw", () => {
                 );
 
                 // Deposit all debt on tests
-                this.krAssetCollateralAmount = await wrapContractWithSigner(hre.Diamond, arbitraryUser).kreskoAssetDebt(
-                    arbitraryUser.address,
-                    this.krAsset!.address,
-                );
+                this.krAssetCollateralAmount = await wrapContractWithSigner(
+                    hre.Diamond,
+                    arbitraryUser,
+                ).getAccountDebtAmount(arbitraryUser.address, this.krAsset!.address);
             });
             describe("deposit amounts are calculated correctly", () => {
                 it("when deposit is made before positive rebase", async function () {
@@ -750,7 +752,7 @@ describe("Minter - Deposit Withdraw", () => {
                     const positive = true;
                     const expectedDepositsAfter = this.krAssetCollateralAmount.mul(denominator);
 
-                    const depositsBefore = await hre.Diamond.collateralDeposits(
+                    const depositsBefore = await hre.Diamond.getAccountCollateralAmount(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -758,7 +760,7 @@ describe("Minter - Deposit Withdraw", () => {
                     // Rebase the asset according to params
                     await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
-                    const finalDeposits = await hre.Diamond.collateralDeposits(
+                    const finalDeposits = await hre.Diamond.getAccountCollateralAmount(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -780,7 +782,7 @@ describe("Minter - Deposit Withdraw", () => {
                         this.krAssetCollateralAmount,
                     );
 
-                    const depositsBefore = await hre.Diamond.collateralDeposits(
+                    const depositsBefore = await hre.Diamond.getAccountCollateralAmount(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -788,7 +790,7 @@ describe("Minter - Deposit Withdraw", () => {
                     // Rebase the asset according to params
                     await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
-                    const finalDeposits = await hre.Diamond.collateralDeposits(
+                    const finalDeposits = await hre.Diamond.getAccountCollateralAmount(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -803,7 +805,7 @@ describe("Minter - Deposit Withdraw", () => {
                     const positive = true;
                     const depositAmount = this.krAssetCollateralAmount.mul(denominator);
 
-                    const depositsBefore = await hre.Diamond.collateralDeposits(
+                    const depositsBefore = await hre.Diamond.getAccountCollateralAmount(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -818,7 +820,7 @@ describe("Minter - Deposit Withdraw", () => {
                     );
 
                     // Get collateral deposits after
-                    const finalDeposits = await hre.Diamond.collateralDeposits(
+                    const finalDeposits = await hre.Diamond.getAccountCollateralAmount(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -834,7 +836,7 @@ describe("Minter - Deposit Withdraw", () => {
                     const positive = false;
                     const depositAmount = this.krAssetCollateralAmount.div(denominator);
 
-                    const depositsBefore = await hre.Diamond.collateralDeposits(
+                    const depositsBefore = await hre.Diamond.getAccountCollateralAmount(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -849,7 +851,7 @@ describe("Minter - Deposit Withdraw", () => {
                     );
 
                     // Get collateral deposits after
-                    const finalDeposits = await hre.Diamond.collateralDeposits(
+                    const finalDeposits = await hre.Diamond.getAccountCollateralAmount(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -877,7 +879,7 @@ describe("Minter - Deposit Withdraw", () => {
                     await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
                     // Get deposits after
-                    const depositsAfter = await hre.Diamond.collateralDeposits(
+                    const depositsAfter = await hre.Diamond.getAccountCollateralAmount(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -891,7 +893,7 @@ describe("Minter - Deposit Withdraw", () => {
                         halfDepositAfterRebase,
                     );
                     // Get deposits after
-                    const finalDeposits = await hre.Diamond.collateralDeposits(
+                    const finalDeposits = await hre.Diamond.getAccountCollateralAmount(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -918,7 +920,7 @@ describe("Minter - Deposit Withdraw", () => {
                     await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
                     // Get deposits after
-                    const depositsAfterRebase = await hre.Diamond.collateralDeposits(
+                    const depositsAfterRebase = await hre.Diamond.getAccountCollateralAmount(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -932,7 +934,7 @@ describe("Minter - Deposit Withdraw", () => {
                         halfDepositAfterRebase,
                     );
                     // Get deposits after
-                    const finalDeposits = await hre.Diamond.collateralDeposits(
+                    const finalDeposits = await hre.Diamond.getAccountCollateralAmount(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -948,7 +950,7 @@ describe("Minter - Deposit Withdraw", () => {
                         this.krAsset!.address,
                         this.krAssetCollateralAmount,
                     );
-                    const valueBefore = await hre.Diamond.accountCollateralValue(arbitraryUser.address);
+                    const valueBefore = await hre.Diamond.getAccountCollateralValue(arbitraryUser.address);
 
                     // Rebase params
                     const denominator = 4;
@@ -960,7 +962,7 @@ describe("Minter - Deposit Withdraw", () => {
                     await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
                     // Get collateral value of account after
-                    const valueAfter = await hre.Diamond.accountCollateralValue(arbitraryUser.address);
+                    const valueAfter = await hre.Diamond.getAccountCollateralValue(arbitraryUser.address);
 
                     // Ensure that the collateral value stays the same
                     expect(valueBefore).to.bignumber.equal(valueAfter);
@@ -971,7 +973,7 @@ describe("Minter - Deposit Withdraw", () => {
                         this.krAsset!.address,
                         this.krAssetCollateralAmount,
                     );
-                    const valueBefore = await hre.Diamond.accountCollateralValue(arbitraryUser.address);
+                    const valueBefore = await hre.Diamond.getAccountCollateralValue(arbitraryUser.address);
 
                     // Rebase params
                     const denominator = 4;
@@ -983,7 +985,7 @@ describe("Minter - Deposit Withdraw", () => {
                     await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
                     // Get collateral value of account after
-                    const valueAfter = await hre.Diamond.accountCollateralValue(arbitraryUser.address);
+                    const valueAfter = await hre.Diamond.getAccountCollateralValue(arbitraryUser.address);
 
                     // Ensure that the collateral value stays the same
                     expect(valueBefore).to.bignumber.equal(valueAfter);
@@ -995,7 +997,7 @@ describe("Minter - Deposit Withdraw", () => {
                     const newPrice = fromBig(await this.krAsset!.getPrice(), 8) / denominator;
 
                     // Get expected value before rebase and deposit
-                    const [expectedValue] = await hre.Diamond.getCollateralValueAndOraclePrice(
+                    const [expectedValue] = await hre.Diamond.getCollateralAmountToValue(
                         this.krAsset!.address,
                         this.krAssetCollateralAmount,
                         false,
@@ -1015,7 +1017,7 @@ describe("Minter - Deposit Withdraw", () => {
                     );
 
                     // Get collateral value of account after
-                    const [valueAfter] = await hre.Diamond.getCollateralValueAndOraclePrice(
+                    const [valueAfter] = await hre.Diamond.getCollateralAmountToValue(
                         this.krAsset!.address,
                         depositAmount,
                         false,
@@ -1031,7 +1033,7 @@ describe("Minter - Deposit Withdraw", () => {
                     const newPrice = fromBig(await this.krAsset!.getPrice(), 8) * denominator;
 
                     // Get expected value before rebase and deposit
-                    const [expectedValue] = await hre.Diamond.getCollateralValueAndOraclePrice(
+                    const [expectedValue] = await hre.Diamond.getCollateralAmountToValue(
                         this.krAsset!.address,
                         this.krAssetCollateralAmount,
                         false,
@@ -1051,7 +1053,7 @@ describe("Minter - Deposit Withdraw", () => {
                     );
 
                     // Get collateral value of account after
-                    const [valueAfter] = await hre.Diamond.getCollateralValueAndOraclePrice(
+                    const [valueAfter] = await hre.Diamond.getCollateralAmountToValue(
                         this.krAsset!.address,
                         depositAmount,
                         false,
@@ -1077,7 +1079,7 @@ describe("Minter - Deposit Withdraw", () => {
                         halfDepositBeforeRebase,
                     );
 
-                    const [expectedValue] = await hre.Diamond.getCollateralValueAndOraclePrice(
+                    const [expectedValue] = await hre.Diamond.getCollateralAmountToValue(
                         this.krAsset!.address,
                         halfDepositBeforeRebase,
                         false,
@@ -1088,7 +1090,7 @@ describe("Minter - Deposit Withdraw", () => {
                     await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
                     // Get value after
-                    const [valueAfterRebase] = await hre.Diamond.getCollateralValueAndOraclePrice(
+                    const [valueAfterRebase] = await hre.Diamond.getCollateralAmountToValue(
                         this.krAsset!.address,
                         halfDepositAfterRebase,
                         false,
@@ -1098,7 +1100,7 @@ describe("Minter - Deposit Withdraw", () => {
                     expect(expectedValue).to.bignumber.equal(valueAfterRebase);
 
                     // Calculate added value since price adjusted in the rebase
-                    const [expectedValueAfterSecondDeposit] = await hre.Diamond.getCollateralValueAndOraclePrice(
+                    const [expectedValueAfterSecondDeposit] = await hre.Diamond.getCollateralAmountToValue(
                         this.krAsset!.address,
                         fullDepositAmount,
                         false,
@@ -1112,7 +1114,7 @@ describe("Minter - Deposit Withdraw", () => {
                     );
 
                     // Get value
-                    const [finalValue] = await hre.Diamond.getCollateralAdjustedAndRealValue(
+                    const [finalValue] = await hre.Diamond.getAccountCollateralValueOf(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1137,7 +1139,7 @@ describe("Minter - Deposit Withdraw", () => {
                         halfDepositBeforeRebase,
                     );
 
-                    const [expectedValue] = await hre.Diamond.getCollateralValueAndOraclePrice(
+                    const [expectedValue] = await hre.Diamond.getCollateralAmountToValue(
                         this.krAsset!.address,
                         halfDepositBeforeRebase,
                         false,
@@ -1148,7 +1150,7 @@ describe("Minter - Deposit Withdraw", () => {
                     await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
                     // Get value after
-                    const [valueAfterRebase] = await hre.Diamond.getCollateralValueAndOraclePrice(
+                    const [valueAfterRebase] = await hre.Diamond.getCollateralAmountToValue(
                         this.krAsset!.address,
                         halfDepositAfterRebase,
                         false,
@@ -1158,7 +1160,7 @@ describe("Minter - Deposit Withdraw", () => {
                     expect(expectedValue).to.bignumber.equal(valueAfterRebase);
 
                     // Calculate added value since price adjusted in the rebase
-                    const [expectedValueAfterSecondDeposit] = await hre.Diamond.getCollateralValueAndOraclePrice(
+                    const [expectedValueAfterSecondDeposit] = await hre.Diamond.getCollateralAmountToValue(
                         this.krAsset!.address,
                         fullDepositAmount,
                         false,
@@ -1172,7 +1174,7 @@ describe("Minter - Deposit Withdraw", () => {
                     );
 
                     // Get deposits after
-                    const [finalValue] = await hre.Diamond.getCollateralAdjustedAndRealValue(
+                    const [finalValue] = await hre.Diamond.getAccountCollateralValueOf(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1234,10 +1236,10 @@ describe("Minter - Deposit Withdraw", () => {
                 );
 
                 // Deposit all debt on tests
-                this.krAssetCollateralAmount = await wrapContractWithSigner(hre.Diamond, arbitraryUser).kreskoAssetDebt(
-                    arbitraryUser.address,
-                    this.krAsset!.address,
-                );
+                this.krAssetCollateralAmount = await wrapContractWithSigner(
+                    hre.Diamond,
+                    arbitraryUser,
+                ).getAccountDebtAmount(arbitraryUser.address, this.krAsset!.address);
             });
             describe("withdraw amounts are calculated correctly", () => {
                 it("when withdrawing a deposit made before positive rebase", async function () {
@@ -1253,7 +1255,7 @@ describe("Minter - Deposit Withdraw", () => {
                         this.krAssetCollateralAmount,
                     );
 
-                    const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
+                    const cIndex = await hre.Diamond.getAccountDepositIndex(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1261,7 +1263,7 @@ describe("Minter - Deposit Withdraw", () => {
                     // Rebase the asset according to params
                     await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
-                    const depositsAfter = await hre.Diamond.collateralDeposits(
+                    const depositsAfter = await hre.Diamond.getAccountCollateralAmount(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1276,7 +1278,7 @@ describe("Minter - Deposit Withdraw", () => {
                         cIndex,
                     );
 
-                    const finalDeposits = await hre.Diamond.collateralDeposits(
+                    const finalDeposits = await hre.Diamond.getAccountCollateralAmount(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1298,7 +1300,7 @@ describe("Minter - Deposit Withdraw", () => {
                         this.krAssetCollateralAmount,
                     );
 
-                    const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
+                    const cIndex = await hre.Diamond.getAccountDepositIndex(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1306,7 +1308,7 @@ describe("Minter - Deposit Withdraw", () => {
                     // Rebase the asset according to params
                     await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
-                    const depositsAfter = await hre.Diamond.collateralDeposits(
+                    const depositsAfter = await hre.Diamond.getAccountCollateralAmount(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1321,7 +1323,7 @@ describe("Minter - Deposit Withdraw", () => {
                         cIndex,
                     );
 
-                    const finalDeposits = await hre.Diamond.collateralDeposits(
+                    const finalDeposits = await hre.Diamond.getAccountCollateralAmount(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1346,13 +1348,13 @@ describe("Minter - Deposit Withdraw", () => {
                         rebasedDepositAmount,
                     );
 
-                    const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
+                    const cIndex = await hre.Diamond.getAccountDepositIndex(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
 
                     // Get collateral deposits after
-                    const depositsAfter = await hre.Diamond.collateralDeposits(
+                    const depositsAfter = await hre.Diamond.getAccountCollateralAmount(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1368,7 +1370,7 @@ describe("Minter - Deposit Withdraw", () => {
                         cIndex,
                     );
 
-                    const finalDeposits = await hre.Diamond.collateralDeposits(
+                    const finalDeposits = await hre.Diamond.getAccountCollateralAmount(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1392,13 +1394,13 @@ describe("Minter - Deposit Withdraw", () => {
                         this.krAsset!.address,
                         rebasedDepositAmount,
                     );
-                    const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
+                    const cIndex = await hre.Diamond.getAccountDepositIndex(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
 
                     // Get collateral deposits after
-                    const depositsAfter = await hre.Diamond.collateralDeposits(
+                    const depositsAfter = await hre.Diamond.getAccountCollateralAmount(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1414,7 +1416,7 @@ describe("Minter - Deposit Withdraw", () => {
                         cIndex,
                     );
 
-                    const finalDeposits = await hre.Diamond.collateralDeposits(
+                    const finalDeposits = await hre.Diamond.getAccountCollateralAmount(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1439,13 +1441,13 @@ describe("Minter - Deposit Withdraw", () => {
                         this.krAsset!.address,
                         firstDepositAmount,
                     );
-                    const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
+                    const cIndex = await hre.Diamond.getAccountDepositIndex(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
 
                     // Get deposits before
-                    const depositsFirst = await hre.Diamond.collateralDeposits(
+                    const depositsFirst = await hre.Diamond.getAccountCollateralAmount(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1462,7 +1464,7 @@ describe("Minter - Deposit Withdraw", () => {
                     );
 
                     // Get collateral deposits after
-                    const depositsAfter = await hre.Diamond.collateralDeposits(
+                    const depositsAfter = await hre.Diamond.getAccountCollateralAmount(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1478,7 +1480,7 @@ describe("Minter - Deposit Withdraw", () => {
                         cIndex,
                     );
 
-                    const finalDeposits = await hre.Diamond.collateralDeposits(
+                    const finalDeposits = await hre.Diamond.getAccountCollateralAmount(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1503,13 +1505,13 @@ describe("Minter - Deposit Withdraw", () => {
                         this.krAsset!.address,
                         firstDepositAmount,
                     );
-                    const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
+                    const cIndex = await hre.Diamond.getAccountDepositIndex(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
 
                     // Get deposits before
-                    const depositsFirst = await hre.Diamond.collateralDeposits(
+                    const depositsFirst = await hre.Diamond.getAccountCollateralAmount(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1526,7 +1528,7 @@ describe("Minter - Deposit Withdraw", () => {
                     );
 
                     // Get collateral deposits after
-                    const depositsAfter = await hre.Diamond.collateralDeposits(
+                    const depositsAfter = await hre.Diamond.getAccountCollateralAmount(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1542,7 +1544,7 @@ describe("Minter - Deposit Withdraw", () => {
                         cIndex,
                     );
 
-                    const finalDeposits = await hre.Diamond.collateralDeposits(
+                    const finalDeposits = await hre.Diamond.getAccountCollateralAmount(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1572,7 +1574,7 @@ describe("Minter - Deposit Withdraw", () => {
                     this.krAsset!.setPrice(newPrice);
                     await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
-                    const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
+                    const cIndex = await hre.Diamond.getAccountDepositIndex(
                         arbitraryUser.address,
                         this.collateral.address,
                     );
@@ -1606,7 +1608,7 @@ describe("Minter - Deposit Withdraw", () => {
                     this.krAsset!.setPrice(newPrice);
                     await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
-                    const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
+                    const cIndex = await hre.Diamond.getAccountDepositIndex(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1616,7 +1618,7 @@ describe("Minter - Deposit Withdraw", () => {
                         rebasedDepositAmount,
                         cIndex,
                     );
-                    const [finalValue] = await hre.Diamond.getCollateralAdjustedAndRealValue(
+                    const [finalValue] = await hre.Diamond.getAccountCollateralValueOf(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1644,7 +1646,7 @@ describe("Minter - Deposit Withdraw", () => {
                     this.krAsset!.setPrice(newPrice);
                     await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
-                    const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
+                    const cIndex = await hre.Diamond.getAccountDepositIndex(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1657,7 +1659,7 @@ describe("Minter - Deposit Withdraw", () => {
                         cIndex,
                     );
                     // Get value
-                    const [finalValue] = await hre.Diamond.getCollateralAdjustedAndRealValue(
+                    const [finalValue] = await hre.Diamond.getAccountCollateralValueOf(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1684,7 +1686,7 @@ describe("Minter - Deposit Withdraw", () => {
                         this.krAsset!.address,
                         depositAmount,
                     );
-                    const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
+                    const cIndex = await hre.Diamond.getAccountDepositIndex(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1696,7 +1698,7 @@ describe("Minter - Deposit Withdraw", () => {
                         cIndex,
                     );
                     // Get value
-                    const [finalValue] = await hre.Diamond.getCollateralAdjustedAndRealValue(
+                    const [finalValue] = await hre.Diamond.getAccountCollateralValueOf(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1723,7 +1725,7 @@ describe("Minter - Deposit Withdraw", () => {
                         this.krAsset!.address,
                         depositAmount,
                     );
-                    const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
+                    const cIndex = await hre.Diamond.getAccountDepositIndex(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1735,7 +1737,7 @@ describe("Minter - Deposit Withdraw", () => {
                         cIndex,
                     );
                     // Get value
-                    const [finalValue] = await hre.Diamond.getCollateralAdjustedAndRealValue(
+                    const [finalValue] = await hre.Diamond.getAccountCollateralValueOf(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1761,7 +1763,7 @@ describe("Minter - Deposit Withdraw", () => {
                         firstDepositAmount,
                     );
 
-                    const [expectedValue] = await hre.Diamond.getCollateralAdjustedAndRealValue(
+                    const [expectedValue] = await hre.Diamond.getAccountCollateralValueOf(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1771,7 +1773,7 @@ describe("Minter - Deposit Withdraw", () => {
                     await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
                     // Get value after
-                    const [valueAfterRebase] = await hre.Diamond.getCollateralAdjustedAndRealValue(
+                    const [valueAfterRebase] = await hre.Diamond.getAccountCollateralValueOf(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1786,7 +1788,7 @@ describe("Minter - Deposit Withdraw", () => {
                         secondDepositAmount,
                     );
 
-                    const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
+                    const cIndex = await hre.Diamond.getAccountDepositIndex(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1798,7 +1800,7 @@ describe("Minter - Deposit Withdraw", () => {
                         cIndex,
                     );
                     // Get value
-                    const [finalValue] = await hre.Diamond.getCollateralAdjustedAndRealValue(
+                    const [finalValue] = await hre.Diamond.getAccountCollateralValueOf(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1825,7 +1827,7 @@ describe("Minter - Deposit Withdraw", () => {
                         firstDepositAmount,
                     );
 
-                    const [expectedValue] = await hre.Diamond.getCollateralAdjustedAndRealValue(
+                    const [expectedValue] = await hre.Diamond.getAccountCollateralValueOf(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1835,7 +1837,7 @@ describe("Minter - Deposit Withdraw", () => {
                     await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
                     // Get value after
-                    const [valueAfterRebase] = await hre.Diamond.getCollateralAdjustedAndRealValue(
+                    const [valueAfterRebase] = await hre.Diamond.getAccountCollateralValueOf(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1850,7 +1852,7 @@ describe("Minter - Deposit Withdraw", () => {
                         secondDepositAmount,
                     );
 
-                    const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
+                    const cIndex = await hre.Diamond.getAccountDepositIndex(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1862,7 +1864,7 @@ describe("Minter - Deposit Withdraw", () => {
                         cIndex,
                     );
                     // Get value
-                    const [finalValue] = await hre.Diamond.getCollateralAdjustedAndRealValue(
+                    const [finalValue] = await hre.Diamond.getAccountCollateralValueOf(
                         arbitraryUser.address,
                         this.krAsset!.address,
                     );
@@ -1885,12 +1887,12 @@ describe("Minter - Deposit Withdraw", () => {
                         this.krAssetCollateralAmount,
                     );
 
-                    const accountValueBefore = await hre.Diamond.accountCollateralValue(arbitraryUser.address);
-                    const [nrcValueBefore] = await hre.Diamond.getCollateralAdjustedAndRealValue(
+                    const accountValueBefore = await hre.Diamond.getAccountCollateralValue(arbitraryUser.address);
+                    const [nrcValueBefore] = await hre.Diamond.getAccountCollateralValueOf(
                         arbitraryUser.address,
                         this.collateral.address,
                     );
-                    const [withdrawValue] = await hre.Diamond.getCollateralValueAndOraclePrice(
+                    const [withdrawValue] = await hre.Diamond.getCollateralAmountToValue(
                         this.collateral.address,
                         withdrawAmount,
                         false,
@@ -1901,7 +1903,7 @@ describe("Minter - Deposit Withdraw", () => {
                     this.krAsset!.setPrice(newPrice);
                     await this.krAsset!.contract.rebase(toBig(denominator), positive, []);
 
-                    const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
+                    const cIndex = await hre.Diamond.getAccountDepositIndex(
                         arbitraryUser.address,
                         this.collateral.address,
                     );
@@ -1911,8 +1913,8 @@ describe("Minter - Deposit Withdraw", () => {
                         withdrawAmount,
                         cIndex,
                     );
-                    const finalAccountValue = await hre.Diamond.accountCollateralValue(arbitraryUser.address);
-                    const [finalValue] = await hre.Diamond.getCollateralAdjustedAndRealValue(
+                    const finalAccountValue = await hre.Diamond.getAccountCollateralValue(arbitraryUser.address);
+                    const [finalValue] = await hre.Diamond.getAccountCollateralValueOf(
                         arbitraryUser.address,
                         this.collateral.address,
                     );

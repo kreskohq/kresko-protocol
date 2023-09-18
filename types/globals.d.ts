@@ -102,8 +102,8 @@ declare global {
         council?: string;
         treasury?: string;
         extOracleDecimals: number;
-        minimumCollateralizationRatio: number;
-        minimumDebtValue: number;
+        minCollateralRatio: number;
+        minDebtValue: number;
         liquidationThreshold: number;
         oracleDeviationPct: number;
 

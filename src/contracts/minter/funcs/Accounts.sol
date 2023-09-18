@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
 import {SafeERC20} from "vendor/SafeERC20.sol";
@@ -25,9 +25,7 @@ library MAccounts {
      * @return A boolean indicating if the account can be liquidated.
      */
     function isAccountLiquidatable(MinterState storage self, address _account) internal view returns (bool) {
-        return
-            self.accountCollateralValue(_account) <
-            self.accountMinCollateralAtRatio(_account, self.liquidationThreshold);
+        return self.accountCollateralValue(_account) < self.accountMinCollateralAtRatio(_account, self.liquidationThreshold);
     }
 
     /**
@@ -74,11 +72,7 @@ library MAccounts {
      * @param _account The account to query amount for
      * @return Amount of principal debt for `_asset`
      */
-    function accountDebtAmount(
-        MinterState storage self,
-        address _account,
-        address _asset
-    ) internal view returns (uint256) {
+    function accountDebtAmount(MinterState storage self, address _account, address _asset) internal view returns (uint256) {
         return self.kreskoAssets[_asset].toRebasingAmount(self.kreskoAssetDebt[_account][_asset]);
     }
 
@@ -139,10 +133,7 @@ library MAccounts {
      * @param _account The account to get the deposited collateral assets for.
      * @return An array of addresses of collateral assets the account has deposited.
      */
-    function accountCollateralAssets(
-        MinterState storage self,
-        address _account
-    ) internal view returns (address[] memory) {
+    function accountCollateralAssets(MinterState storage self, address _account) internal view returns (address[] memory) {
         return self.depositedCollateralAssets[_account];
     }
 

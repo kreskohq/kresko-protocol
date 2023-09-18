@@ -17,8 +17,8 @@ import { Kresko } from "types/typechain";
 
 const defaultParams: Omit<KreskoConstructor, "feeRecipient"> = {
     extOracleDecimals: 8,
-    minimumCollateralizationRatio: 1.5,
-    minimumDebtValue: 10,
+    minCollateralRatio: 1.5,
+    minDebtValue: 10,
     liquidationThreshold: 1.4,
     oracleDeviationPct: 0.1,
     sequencerGracePeriodTime: 3600,

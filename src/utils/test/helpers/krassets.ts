@@ -115,7 +115,7 @@ export const addMockKreskoAsset = async (
         krAsset: true,
         address: krAsset.address,
         // @ts-ignore
-        kresko: async () => await hre.Diamond.kreskoAsset(krAsset.address),
+        kresko: async () => await hre.Diamond.getKreskoAsset(krAsset.address),
         deployArgs: args,
         contract: KreskoAsset__factory.connect(krAsset.address, deployer),
         priceFeed: MockAggregatorV3__factory.connect(MockFeed.address, deployer),
@@ -206,7 +206,7 @@ export const mintKrAsset = async (args: InputArgsSimple) => {
 export const burnKrAsset = async (args: InputArgsSimple) => {
     const convert = typeof args.amount === "string" || typeof args.amount === "number";
     const { user, asset, amount } = args;
-    const kIndex = await hre.Diamond.getMintedKreskoAssetsIndex(user.address, asset.address);
+    const kIndex = await hre.Diamond.getAccountMintIndex(user.address, asset.address);
 
     return wrapContractWithSigner(hre.Diamond, user).burnKreskoAsset(
         user.address,
