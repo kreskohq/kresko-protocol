@@ -13,6 +13,7 @@ remappings = [
     'minter/=src/contracts/minter/',
     'vendor/=src/contracts/vendor/',
     'scdp/=src/contracts/scdp/',
+    'vault/=src/contracts/vault/',
     'common/=src/contracts/common/',
     'test/=src/contracts/test/',
     'kresko-asset/=src/contracts/kresko-asset/',

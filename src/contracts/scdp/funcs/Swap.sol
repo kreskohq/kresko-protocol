@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19;
 import {IERC20Permit} from "vendor/IERC20Permit.sol";
-import {SafeERC20} from "vendor/SafeERC20.sol";
+import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {burnKrAsset, mintKrAsset} from "common/funcs/Actions.sol";
 
@@ -12,7 +12,7 @@ import {krAssetAmountToSDI} from "scdp/funcs/Conversions.sol";
 
 library Swap {
     using WadRay for uint256;
-    using SafeERC20 for IERC20Permit;
+    using SafeERC20Permit for IERC20Permit;
 
     /// @notice Repay SCDP debt.
     /// @param _kreskoAsset the asset being repaid

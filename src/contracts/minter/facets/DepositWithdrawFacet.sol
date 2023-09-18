@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {SafeERC20} from "vendor/SafeERC20.sol";
+import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
 import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {Role} from "common/Types.sol";
 
@@ -20,7 +20,7 @@ import {MSModifiers} from "minter/Modifiers.sol";
  */
 
 contract DepositWithdrawFacet is DSModifiers, MSModifiers, IDepositWithdrawFacet {
-    using SafeERC20 for IERC20Permit;
+    using SafeERC20Permit for IERC20Permit;
 
     /* -------------------------------------------------------------------------- */
     /*                                 Collateral                                 */
@@ -57,13 +57,7 @@ contract DepositWithdrawFacet is DSModifiers, MSModifiers, IDepositWithdrawFacet
         uint256 collateralAmount = ms().accountCollateralAmount(_account, _collateralAsset);
         _withdrawAmount = (_withdrawAmount > collateralAmount ? collateralAmount : _withdrawAmount);
 
-        ms().handleWithdrawal(
-            _account,
-            _collateralAsset,
-            _withdrawAmount,
-            collateralAmount,
-            _depositedCollateralAssetIndex
-        );
+        ms().handleWithdrawal(_account, _collateralAsset, _withdrawAmount, collateralAmount, _depositedCollateralAssetIndex);
 
         IERC20Permit(_collateralAsset).safeTransfer(_account, _withdrawAmount);
     }
@@ -84,13 +78,7 @@ contract DepositWithdrawFacet is DSModifiers, MSModifiers, IDepositWithdrawFacet
         _withdrawAmount = (_withdrawAmount > collateralDeposits ? collateralDeposits : _withdrawAmount);
 
         // perform unchecked withdrawal
-        ms().recordWithdrawal(
-            _account,
-            _collateralAsset,
-            _withdrawAmount,
-            collateralDeposits,
-            _depositedCollateralAssetIndex
-        );
+        ms().recordWithdrawal(_account, _collateralAsset, _withdrawAmount, collateralDeposits, _depositedCollateralAssetIndex);
 
         // transfer the withdrawn asset to the caller
         IERC20Permit(_collateralAsset).safeTransfer(msg.sender, _withdrawAmount);

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity ^0.8.0;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20Permit} from "vendor/IERC20Permit.sol";
 
 interface IKrStaking {
     struct UserInfo {
@@ -10,7 +10,7 @@ interface IKrStaking {
     }
 
     struct PoolInfo {
-        IERC20 depositToken; // Address of LP token contract.
+        IERC20Permit depositToken; // Address of LP token contract.
         uint128 allocPoint; // How many allocation points assigned to this pool.
         uint128 lastRewardBlock; // Last block number that rewards distribution occurs.
         uint256[] accRewardPerShares; // Accumulated rewards per share, times 1e12.
@@ -97,7 +97,7 @@ interface IKrStaking {
      * @notice A rescue function for missent tokens / airdrops
      * @notice This cannot withdraw any deposits due `ensurePoolDoesNotExist` modifier.
      */
-    function rescueNonPoolToken(IERC20 _tokenToRescue, uint256 _amount) external payable;
+    function rescueNonPoolToken(IERC20Permit _tokenToRescue, uint256 _amount) external payable;
 
     /**
      * @notice Set new allocations for a pool
@@ -117,7 +117,7 @@ interface IKrStaking {
      */
     function addPool(
         address[] calldata _rewardTokens,
-        IERC20 _depositToken,
+        IERC20Permit _depositToken,
         uint128 _allocPoint,
         uint128 _startBlock
     ) external payable;

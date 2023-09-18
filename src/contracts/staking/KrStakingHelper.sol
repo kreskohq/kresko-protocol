@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IUniswapV2Factory} from "vendor/uniswap/v2-core/interfaces/IUniswapV2Factory.sol";
 import {IUniswapV2Router02} from "vendor/uniswap/v2-periphery/interfaces/IUniswapV2Router02.sol";
-import {IKrStaking, IERC20} from "./interfaces/IKrStaking.sol";
+import {IERC20Permit} from "vendor/IERC20Permit.sol";
+import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
+import {IKrStaking} from "./interfaces/IKrStaking.sol";
 
 contract KrStakingHelper {
-    using SafeERC20 for IERC20;
+    using SafeERC20Permit for IERC20Permit;
 
     IUniswapV2Router02 public immutable router;
     IUniswapV2Factory public immutable factory;
@@ -62,11 +63,11 @@ contract KrStakingHelper {
 
         require(found, "KR: !poolExists");
 
-        IERC20(tokenA).safeTransferFrom(msg.sender, address(this), amountADesired);
-        IERC20(tokenB).safeTransferFrom(msg.sender, address(this), amountBDesired);
+        IERC20Permit(tokenA).safeTransferFrom(msg.sender, address(this), amountADesired);
+        IERC20Permit(tokenB).safeTransferFrom(msg.sender, address(this), amountBDesired);
 
-        IERC20(tokenA).approve(address(router), amountADesired);
-        IERC20(tokenB).approve(address(router), amountBDesired);
+        IERC20Permit(tokenA).approve(address(router), amountADesired);
+        IERC20Permit(tokenB).approve(address(router), amountBDesired);
 
         (, , uint256 liquidity) = router.addLiquidity(
             tokenA,
@@ -79,7 +80,7 @@ contract KrStakingHelper {
             deadline
         );
 
-        IERC20(pair).approve(address(staking), liquidity);
+        IERC20Permit(pair).approve(address(staking), liquidity);
         staking.deposit(to, pid, liquidity);
 
         emit LiquidityAndStakeAdded(to, liquidity, pid);
@@ -113,7 +114,7 @@ contract KrStakingHelper {
 
         staking.withdrawFor(msg.sender, pid, liquidity, to);
 
-        IERC20(pair).approve(address(router), liquidity);
+        IERC20Permit(pair).approve(address(router), liquidity);
         router.removeLiquidity(tokenA, tokenB, liquidity, amountAMin, amountBMin, to, deadline);
 
         emit LiquidityAndStakeRemoved(to, liquidity, pid);

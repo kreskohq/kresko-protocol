@@ -74,3 +74,42 @@ contract WETH is MockERC20 {
         payable(msg.sender).transfer(amount);
     }
 }
+
+contract USDC is MockERC20 {
+    constructor() MockERC20("USDC", "USDC", 18, 0) {}
+
+    function deposit() external payable {
+        _mint(msg.sender, msg.value);
+    }
+
+    function withdraw(uint256 amount) external {
+        _burn(msg.sender, amount);
+        payable(msg.sender).transfer(amount);
+    }
+}
+
+contract DAI is MockERC20 {
+    constructor() MockERC20("DAI", "DAI", 18, 0) {}
+
+    function deposit() external payable {
+        _mint(msg.sender, msg.value);
+    }
+
+    function withdraw(uint256 amount) external {
+        _burn(msg.sender, amount);
+        payable(msg.sender).transfer(amount);
+    }
+}
+
+contract USDT is MockERC20 {
+    constructor() MockERC20("USDT", "USDT", 6, 0) {}
+
+    function deposit() external payable {
+        _mint(msg.sender, msg.value);
+    }
+
+    function withdraw(uint256 amount) external {
+        _burn(msg.sender, amount);
+        payable(msg.sender).transfer(amount);
+    }
+}

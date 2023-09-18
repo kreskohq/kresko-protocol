@@ -3,7 +3,7 @@
 pragma solidity >=0.8.19;
 
 import {IERC20Permit} from "vendor/IERC20Permit.sol";
-import {SafeERC20} from "vendor/SafeERC20.sol";
+import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
 import {Arrays} from "libs/Arrays.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {Error} from "common/Errors.sol";
@@ -28,7 +28,7 @@ import {maxLiquidatableValue} from "minter/funcs/Liquidations.sol";
 contract LiquidationFacet is DSModifiers, ILiquidationFacet {
     using Arrays for address[];
     using WadRay for uint256;
-    using SafeERC20 for IERC20Permit;
+    using SafeERC20Permit for IERC20Permit;
 
     /// @inheritdoc ILiquidationFacet
     function liquidate(

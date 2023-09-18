@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19;
 
-import {SafeERC20} from "vendor/SafeERC20.sol";
+import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
 import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {WadRay} from "libs/WadRay.sol";
 
@@ -12,7 +12,7 @@ import {SCDPState} from "scdp/State.sol";
 library SDeposits {
     using WadRay for uint256;
     using WadRay for uint128;
-    using SafeERC20 for IERC20Permit;
+    using SafeERC20Permit for IERC20Permit;
 
     /**
      * @notice Records a deposit of collateral asset.

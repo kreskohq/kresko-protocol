@@ -5,7 +5,7 @@ pragma solidity >=0.8.19;
 // // solhint-disable-next-line
 // /* solhint-disable state-visibility */
 
-// import {SafeERC20} from "common/SafeERC20.sol";
+// import {SafeERC20Permit} from "common/SafeERC20Permit.sol";
 // import {IERC20Permit} from "common/IERC20Permit.sol";
 // import {Arrays} from "common/libs/Arrays.sol";
 // import {WadRay} from "contracts/common/libs/WadRay.sol";
@@ -672,7 +672,7 @@ pragma solidity >=0.8.19;
 //     using LibDecimals for uint256;
 //     using WadRay for uint256;
 
-//     using SafeERC20 for IERC20Permit;
+//     using SafeERC20Permit for IERC20Permit;
 
 //     /// @notice Repay user kresko asset debt.
 //     /// @dev Updates the principal in MinterState
@@ -1434,7 +1434,7 @@ pragma solidity >=0.8.19;
 //     using LibDecimals for uint256;
 //     using WadRay for uint256;
 
-//     using SafeERC20 for IERC20Permit;
+//     using SafeERC20Permit for IERC20Permit;
 
 //     /// @notice Mint kresko assets.
 //     /// @dev Updates the principal in MinterState

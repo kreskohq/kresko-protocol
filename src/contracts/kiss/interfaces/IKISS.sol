@@ -1,53 +1,37 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity ^0.8.0;
 
 import {IERC165} from "vendor/IERC165.sol";
 import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
+import {IVaultExtender} from "vault/interfaces/IVaultExtender.sol";
 
-interface IKISS is IKreskoAssetIssuer, IERC165 {
+interface IKISS is IVaultExtender, IKreskoAssetIssuer, IERC165 {
     /* -------------------------------------------------------------------------- */
     /*                                   Events                                   */
     /* -------------------------------------------------------------------------- */
-    event NewOperatorInitialized(address indexed pendingNewOperator, uint256 unlockTimestamp);
-    event NewOperator(address indexed newOperator);
-    event NewMaxOperators(uint256 newMaxOperators);
-    event NewPendingOperatorWaitPeriod(uint256 newPeriod);
-
-    function pendingOperatorUnlockTime() external returns (uint256);
-
-    function pendingOperator() external returns (address);
-
-    function maxOperators() external returns (uint256);
 
     /**
      * @notice This function adds KISS to circulation
      * Caller must be a contract and have the OPERATOR_ROLE
-     * @param _to address to mint tokens to
      * @param _amount amount to mint
-     * @return amount minted
-     */
-    function issue(uint256 _amount, address _to) external returns (uint256);
-
-    /**
-     * @notice Use operator role for minting, so override the parent
-     * Caller must be a contract and have the OPERATOR_ROLE
      * @param _to address to mint tokens to
-     * @param _amount amount to mint
-     * @dev Does not return a value
+     * @return uint256 amount minted
      */
-    function mint(address _to, uint256 _amount) external;
+    function issue(uint256 _amount, address _to) external override returns (uint256);
 
     /**
      * @notice This function removes KISS from circulation
      * Caller must be a contract and have the OPERATOR_ROLE
+     * @param _amount amount to burn
      * @param _from address to burn tokens from
-     * @param destroyed amount burned
+     * @return uint256 amount burned
+     *
      * @inheritdoc IKreskoAssetIssuer
      */
-    function destroy(uint256 _amount, address _from) external returns (uint256 destroyed);
+    function destroy(uint256 _amount, address _from) external override returns (uint256);
 
     /**
-     * @dev Triggers stopped state.
+     * @notice Triggers stopped state.
      *
      * Requirements:
      *
@@ -56,7 +40,7 @@ interface IKISS is IKreskoAssetIssuer, IERC165 {
     function pause() external;
 
     /**
-     * @dev Returns to normal state.
+     * @notice  Returns to normal state.
      *
      * Requirements:
      *
@@ -65,29 +49,16 @@ interface IKISS is IKreskoAssetIssuer, IERC165 {
     function unpause() external;
 
     /**
-     * @notice Set a new waiting period for a new operator
-     *
-     * Must be at least 15 minutes
-     *
-     * @param _newPeriod the period, in seconds
-     */
-    function setPendingOperatorWaitPeriod(uint256 _newPeriod) external;
-
-    /**
-     * @notice Allows ADMIN_ROLE to change the maximum operators
-     * @param _maxOperators new maximum amount of operators
-     */
-    function setMaxOperators(uint256 _maxOperators) external;
-
-    /**
      * @notice Overrides `AccessControl.grantRole` for following:
-     * * Implement a cooldown period of `pendingOperatorWaitPeriod` minutes for setting a new OPERATOR_ROLE
-     * * EOA cannot be granted the operator role
-     * * The first operator can be set without a cooldown period
-     * @notice OPERATOR_ROLE can still be revoked without this cooldown period
-     * @notice PAUSER_ROLE can still be granted without this cooldown period
+     * @notice EOA cannot be granted Role.OPERATOR role
      * @param _role role to grant
      * @param _to address to grant role for
      */
     function grantRole(bytes32 _role, address _to) external;
+
+    /**
+     * @notice Returns vKISS/USD exchanage rate
+     * @return rate vKISS/USD exchanage rate
+     */
+    function exchangeRate() external view returns (uint256 rate);
 }

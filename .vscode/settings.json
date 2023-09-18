@@ -38,6 +38,7 @@
     "libs/=src/contracts/libs/",
     "diamond/=src/contracts/diamond/",
     "minter/=src/contracts/minter/",
+    "vault/=src/contracts/vault/",
     "vendor/=src/contracts/vendor/",
     "scdp/=src/contracts/scdp/",
     "common/=src/contracts/common/",

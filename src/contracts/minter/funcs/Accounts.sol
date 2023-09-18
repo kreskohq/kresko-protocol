@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {SafeERC20} from "vendor/SafeERC20.sol";
+import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
 import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {Arrays} from "libs/Arrays.sol";
@@ -13,7 +13,7 @@ import {krAssetAmountToValue, collateralAmountToValue, collateralAmountRead} fro
 library MAccounts {
     using WadRay for uint256;
     using Arrays for address[];
-    using SafeERC20 for IERC20Permit;
+    using SafeERC20Permit for IERC20Permit;
 
     /* -------------------------------------------------------------------------- */
     /*                             Account Liquidation                            */

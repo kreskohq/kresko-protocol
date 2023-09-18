@@ -2,7 +2,7 @@
 pragma solidity >=0.8.19;
 
 import {FixedPointMathLib} from "@rari-capital/solmate/src/utils/FixedPointMathLib.sol";
-import {SafeERC20} from "vendor/SafeERC20.sol";
+import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
 import {Error} from "common/Errors.sol";
 
 import {IKreskoAsset, IERC20Permit} from "./IKreskoAsset.sol";
@@ -19,7 +19,7 @@ import {ERC20Upgradeable} from "./KreskoAsset.sol";
 /// @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/mixins/ERC4626.sol)
 /// @author Kresko (https://www.kresko.fi)
 abstract contract ERC4626Upgradeable is IERC4626Upgradeable, ERC20Upgradeable {
-    using SafeERC20 for IKreskoAsset;
+    using SafeERC20Permit for IKreskoAsset;
     using FixedPointMathLib for uint256;
 
     /* -------------------------------------------------------------------------- */
@@ -30,21 +30,9 @@ abstract contract ERC4626Upgradeable is IERC4626Upgradeable, ERC20Upgradeable {
 
     event Deposit(address indexed caller, address indexed owner, uint256 assets, uint256 shares);
 
-    event Destroy(
-        address indexed caller,
-        address indexed receiver,
-        address indexed owner,
-        uint256 assets,
-        uint256 shares
-    );
+    event Destroy(address indexed caller, address indexed receiver, address indexed owner, uint256 assets, uint256 shares);
 
-    event Withdraw(
-        address indexed caller,
-        address indexed receiver,
-        address indexed owner,
-        uint256 assets,
-        uint256 shares
-    );
+    event Withdraw(address indexed caller, address indexed receiver, address indexed owner, uint256 assets, uint256 shares);
 
     /* -------------------------------------------------------------------------- */
     /*                                 Immutables                                 */

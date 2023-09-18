@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {SafeERC20, IERC20Permit} from "vendor/SafeERC20.sol";
+import {SafeERC20Permit, IERC20Permit} from "vendor/SafeERC20Permit.sol";
 import {Arrays} from "libs/Arrays.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {Role} from "common/Types.sol";
@@ -20,7 +20,7 @@ import {scdp} from "scdp/State.sol";
 import {SEvent} from "scdp/Events.sol";
 
 contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, MSModifiers {
-    using SafeERC20 for IERC20Permit;
+    using SafeERC20Permit for IERC20Permit;
     using Arrays for address[];
 
     /// @inheritdoc ISCDPConfigFacet

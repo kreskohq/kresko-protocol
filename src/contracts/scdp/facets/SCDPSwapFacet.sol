@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {SafeERC20, IERC20Permit} from "vendor/SafeERC20.sol";
+import {SafeERC20Permit, IERC20Permit} from "vendor/SafeERC20Permit.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {DSModifiers} from "diamond/Modifiers.sol";
 import {ms} from "minter/State.sol";
@@ -11,7 +11,7 @@ import {scdp} from "scdp/State.sol";
 import {SEvent} from "scdp/Events.sol";
 
 contract SCDPSwapFacet is ISCDPSwapFacet, DSModifiers {
-    using SafeERC20 for IERC20Permit;
+    using SafeERC20Permit for IERC20Permit;
     using WadRay for uint256;
 
     /// @inheritdoc ISCDPSwapFacet

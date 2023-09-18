@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity >=0.8.0;
 
-import { ERC20 } from "./ERC20.sol";
+import { ERC20Upgradeable } from "./ERC20Upgradeable.sol";
 
 /// @notice Safe ETH and ERC20 transfer library that gracefully handles missing return values.
 /// @author Solmate (https://github.com/transmissions11/solmate/blob/main/src/utils/SafeTransferLib.sol)
 /// @dev Use with caution! Some functions in this library knowingly create dirty bits at the destination of the free memory pointer.
 /// @dev Note that none of the functions in this library check that a token has code at all! That responsibility is delegated to the caller.
-library SafeERC20 {
+library SafeERC20Upgradeable {
   /*//////////////////////////////////////////////////////////////
                              ETH OPERATIONS
     //////////////////////////////////////////////////////////////*/
@@ -28,7 +28,12 @@ library SafeERC20 {
                             ERC20 OPERATIONS
     //////////////////////////////////////////////////////////////*/
 
-  function safeTransferFrom(ERC20 token, address from, address to, uint256 amount) internal {
+  function safeTransferFrom(
+    ERC20Upgradeable token,
+    address from,
+    address to,
+    uint256 amount
+  ) internal {
     bool success;
 
     /// @solidity memory-safe-assembly
@@ -57,7 +62,7 @@ library SafeERC20 {
     require(success, "TRANSFER_FROM_FAILED");
   }
 
-  function safeTransfer(ERC20 token, address to, uint256 amount) internal {
+  function safeTransfer(ERC20Upgradeable token, address to, uint256 amount) internal {
     bool success;
 
     /// @solidity memory-safe-assembly
@@ -85,7 +90,7 @@ library SafeERC20 {
     require(success, "TRANSFER_FAILED");
   }
 
-  function safeApprove(ERC20 token, address to, uint256 amount) internal {
+  function safeApprove(ERC20Upgradeable token, address to, uint256 amount) internal {
     bool success;
 
     /// @solidity memory-safe-assembly

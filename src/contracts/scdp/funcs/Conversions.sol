@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19;
 
-import {SafeERC20} from "vendor/SafeERC20.sol";
+import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
 import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {WadRay} from "libs/WadRay.sol";
 
@@ -10,7 +10,7 @@ import {ms} from "minter/State.sol";
 import {scdp} from "scdp/State.sol";
 
 using WadRay for uint256;
-using SafeERC20 for IERC20Permit;
+using SafeERC20Permit for IERC20Permit;
 
 function valueToSDI(uint256 valueIn, uint256 sdiPrice) view returns (uint256) {
     return (valueIn * 10 ** ms().extOracleDecimals).wadDiv(sdiPrice);

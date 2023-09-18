@@ -2,7 +2,7 @@
 pragma solidity >=0.8.19;
 
 import {IERC20Permit} from "vendor/IERC20Permit.sol";
-import {SafeERC20} from "vendor/SafeERC20.sol";
+import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
 import {Arrays} from "libs/Arrays.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {fromWad} from "common/funcs/Math.sol";
@@ -13,7 +13,7 @@ import {KrAsset} from "minter/Types.sol";
 import {MEvent} from "minter/Events.sol";
 
 using WadRay for uint256;
-using SafeERC20 for IERC20Permit;
+using SafeERC20Permit for IERC20Permit;
 using Arrays for address[];
 
 /* -------------------------------------------------------------------------- */
