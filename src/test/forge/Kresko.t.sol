@@ -9,6 +9,7 @@ import {MockERC20} from "test/MockERC20.sol";
 import {DeployHelper} from "./utils/DeployHelper.sol";
 import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {MockSequencerUptimeFeed} from "test/MockSequencerUptimeFeed.sol";
+import {SCDPCollateral, SCDPKrAsset} from "scdp/Types.sol";
 
 // solhint-disable
 
@@ -52,29 +53,31 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
 
     function testSetup() public {
         kresko.owner().equals(admin);
+        SCDPCollateral memory usdcConfig = kresko.getDepositAssetSCDP(address(usdc));
+        SCDPKrAsset memory krETHConfig = kresko.getKreskoAssetSCDP(address(krETH));
         kresko.getMinCollateralRatio().equals(1.5e18);
-        kresko.getSCDPConfig().mcr.equals(2e18);
-        kresko.getSCDPConfig().lt.equals(1.5e18);
+        kresko.getCurrentParametersSCDP().mcr.equals(2e18);
+        kresko.getCurrentParametersSCDP().lt.equals(1.5e18);
         kresko.getCollateralAsset(address(usdc)).exists.equals(true);
+
+        usdcConfig.decimals.equals(usdc.decimals());
+        usdcConfig.depositLimit.equals(type(uint256).max);
+        usdcConfig.liquidityIndex.equals(1e27);
+
         kresko.getKreskoAsset(address(krETH)).exists.equals(true);
+        krETHConfig.liquidationIncentive.equals(1.1e18);
+        krETHConfig.openFee.equals(0.005e18);
+        krETHConfig.closeFee.equals(0.005e18);
+        krETHConfig.supplyLimit.equals(type(uint256).max);
+        krETHConfig.protocolFee.equals(0.25e18);
 
-        kresko.getPoolCollateral(address(usdc)).decimals.equals(usdc.decimals());
-        kresko.getPoolCollateral(address(usdc)).depositLimit.equals(type(uint256).max);
-        kresko.getPoolCollateral(address(usdc)).liquidityIndex.equals(1e27);
+        kresko.getSwapEnabledSCDP(address(usdc), address(krETH)).equals(true);
+        kresko.getSwapEnabledSCDP(address(krETH), address(usdc)).equals(true);
+        kresko.getSwapEnabledSCDP(address(krJPY), address(krETH)).equals(true);
 
-        kresko.getPoolKrAsset(address(krETH)).liquidationIncentive.equals(1.1e18);
-        kresko.getPoolKrAsset(address(krETH)).openFee.equals(0.005e18);
-        kresko.getPoolKrAsset(address(krETH)).closeFee.equals(0.005e18);
-        kresko.getPoolKrAsset(address(krETH)).supplyLimit.equals(type(uint256).max);
-        kresko.getPoolKrAsset(address(krETH)).protocolFee.equals(0.25e18);
-
-        kresko.getSCDPSwapEnabled(address(usdc), address(krETH)).equals(true);
-        kresko.getSCDPSwapEnabled(address(krETH), address(usdc)).equals(true);
-        kresko.getSCDPSwapEnabled(address(krJPY), address(krETH)).equals(true);
-
-        kresko.getSCDPSwapEnabled(address(krETH), address(krJPY)).equals(false);
-        kresko.getSCDPSwapEnabled(address(krJPY), address(usdc)).equals(false);
-        kresko.getSCDPSwapEnabled(address(usdc), address(krJPY)).equals(false);
+        kresko.getSwapEnabledSCDP(address(krETH), address(krJPY)).equals(false);
+        kresko.getSwapEnabledSCDP(address(krJPY), address(usdc)).equals(false);
+        kresko.getSwapEnabledSCDP(address(usdc), address(krJPY)).equals(false);
     }
 
     function testDeposit() public prankAddr(user0) {

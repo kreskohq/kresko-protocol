@@ -117,7 +117,7 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, MSModifiers {
     }
 
     /// @inheritdoc ISCDPConfigFacet
-    function updateKrAssetSCDP(address _asset, SCDPKrAsset calldata _configuration) external onlyRole(Role.ADMIN) {
+    function updateKrAssetSCDP(address _asset, SCDPKrAsset memory _configuration) external onlyRole(Role.ADMIN) {
         require(_configuration.liquidationIncentive >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER, "li-too-low");
         require(_configuration.liquidationIncentive <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER, "li-too-high");
         scdp().krAsset[_asset] = _configuration;

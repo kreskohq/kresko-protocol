@@ -36,7 +36,7 @@ interface ISCDPConfigFacet {
      * @param _enabledKrAssets The list of KreskoAssets to enable
      * @param _configurations The configurations for the KreskoAssets. Must match length above.
      */
-    function enableKrAssetsSCDP(address[] memory _enabledKrAssets, SCDPKrAsset[] memory _configurations) external;
+    function enableKrAssetsSCDP(address[] calldata _enabledKrAssets, SCDPKrAsset[] memory _configurations) external;
 
     /**
      * @notice Update the KreskoAsset pool configuration.
@@ -45,7 +45,7 @@ interface ISCDPConfigFacet {
      * @param _configuration The configuration.
      * emits PoolKrAssetUpdated
      */
-    function updateKrAssetSCDP(address _asset, SCDPKrAsset calldata _configuration) external;
+    function updateKrAssetSCDP(address _asset, SCDPKrAsset memory _configuration) external;
 
     /**
      * @notice Update the collateral configuration.

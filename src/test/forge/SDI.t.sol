@@ -45,7 +45,7 @@ contract SDITest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         (krETH, akrETH, ethOracle) = deployAndWhitelistKrAsset("krETH", bytes32("ETH"), admin, 2000e8);
         (krJPY, akrJPY, jpyOracle) = deployAndWhitelistKrAsset("krJPY", bytes32("JPY"), admin, 1e8);
 
-        kresko.setSCDPFeeAsset(address(KISS));
+        kresko.setFeeAssetSCDP(address(KISS));
 
         whitelistCollateral(address(KISS), address(aKISS), address(kissOracle), bytes32("KISS"));
         enableSCDPCollateral(address(usdc), initialPrices);
@@ -74,13 +74,13 @@ contract SDITest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         staticCall(kresko.totalSDI.selector, initialPrices).equals(0, "total supply should be 0");
         usdc.balanceOf(address(kresko)).equals(amount);
 
-        staticCall(kresko.getPoolCollateralValue.selector, true, initialPrices).equals(1000e8);
+        staticCall(kresko.getTotalCollateralValueSCDP.selector, true, initialPrices).equals(1000e8);
     }
 
     function testWithdraw() public {
         poolDeposit(user0, address(usdc), 1000e18, initialPrices);
         poolWithdraw(user0, address(usdc), 1000e18, initialPrices);
-        staticCall(kresko.getPoolCollateralValue.selector, true, initialPrices).equals(0);
+        staticCall(kresko.getTotalCollateralValueSCDP.selector, true, initialPrices).equals(0);
     }
 
     function testSwap() public {
@@ -133,7 +133,7 @@ contract SDITest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         logSimple("#3 krETH price up to: $2,666", newPrices);
 
         changePrank(user0);
-        call(kresko.swap.selector, user0, address(krETH), address(KISS), krETH.balanceOf(user0), 0, newPrices);
+        call(kresko.swapSCDP.selector, user0, address(krETH), address(KISS), krETH.balanceOf(user0), 0, newPrices);
         logSimple("#4 1 krETH debt repaid", newPrices);
     }
 
@@ -169,7 +169,7 @@ contract SDITest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         address(kresko).call(depositData);
 
         bytes memory swapData = abi.encodePacked(
-            abi.encodeWithSelector(kresko.swap.selector, user0, address(KISS), address(krETH), swapValueWad, 0),
+            abi.encodeWithSelector(kresko.swapSCDP.selector, user0, address(KISS), address(krETH), swapValueWad, 0),
             redstonePayload
         );
         uint256 gasSwap = gasleft();
@@ -179,7 +179,7 @@ contract SDITest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         require(success, "!success");
 
         bytes memory swapData2 = abi.encodePacked(
-            abi.encodeWithSelector(kresko.swap.selector, user0, address(krETH), address(KISS), krETH.balanceOf(user0), 0),
+            abi.encodeWithSelector(kresko.swapSCDP.selector, user0, address(krETH), address(KISS), krETH.balanceOf(user0), 0),
             redstonePayload
         );
         uint256 gasSwap2 = gasleft();
@@ -189,7 +189,7 @@ contract SDITest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         require(success, "!success");
 
         bytes memory swapData3 = abi.encodePacked(
-            abi.encodeWithSelector(kresko.swap.selector, user0, address(KISS), address(krETH), KISS.balanceOf(user0), 0),
+            abi.encodeWithSelector(kresko.swapSCDP.selector, user0, address(KISS), address(krETH), KISS.balanceOf(user0), 0),
             redstonePayload
         );
         uint256 gasSwap3 = gasleft();
@@ -210,9 +210,7 @@ contract SDITest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
 
         swapValueWad = ((scdpDepositAmount / 2) * 1e8) / kissOracle.price();
 
-        swapValueWad.clg("SWAP VALUE WAD");
-
-        call(kresko.swap.selector, user0, address(KISS), address(krETH), swapValueWad, 0, initialPrices);
+        call(kresko.swapSCDP.selector, user0, address(KISS), address(krETH), swapValueWad, 0, initialPrices);
         console.log("success");
     }
 
@@ -238,7 +236,7 @@ contract SDITest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         address assetOut,
         string memory prices
     ) internal prankAddr(user) {
-        call(kresko.swap.selector, user, assetIn, assetOut, amount, 0, prices);
+        call(kresko.swapSCDP.selector, user, assetIn, assetOut, amount, 0, prices);
     }
 
     function cover(address asset, uint256 amount, string memory prices) internal {
@@ -263,8 +261,8 @@ contract SDITest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         uint256 sdiPrice = staticCall(kresko.getSDIPrice.selector, prices);
         uint256 sdiTotalSupply = staticCall(kresko.totalSDI.selector, prices);
         uint256 totalCover = staticCall(kresko.getSDICoverAmount.selector, prices);
-        uint256 collateralUSD = staticCall(kresko.getPoolCollateralValue.selector, false, prices);
-        uint256 debtUSD = staticCall(kresko.getPoolDebtValue.selector, false, prices);
+        uint256 collateralUSD = staticCall(kresko.getTotalCollateralValueSCDP.selector, false, prices);
+        uint256 debtUSD = staticCall(kresko.getTotalDebtValueSCDP.selector, false, prices);
 
         uint256 effectiveDebt = staticCall(kresko.getEffectiveSDIDebt.selector, prices);
         uint256 sdiDebtUSD = (effectiveDebt * sdiPrice) / 1e18;
@@ -280,7 +278,7 @@ contract SDITest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         ((uint256(totalCover) * sdiPrice) / 1e18).clg(prefix.and("SCDP SDI Cover USD"), 8);
         sdiDebtUSD.clg(prefix.and("SCDP SDI Debt USD"), 8);
 
-        staticCall(kresko.getPoolCR.selector, prices).clg(prefix.and("SCDP CR %"), 16);
+        staticCall(kresko.getCollateralRatioSCDP.selector, prices).clg(prefix.and("SCDP CR %"), 16);
     }
 }
 

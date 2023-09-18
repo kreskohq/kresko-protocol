@@ -31,8 +31,7 @@ import {SCDPFacet} from "scdp/facets/SCDPFacet.sol";
 import {SCDPSwapFacet} from "scdp/facets/SCDPSwapFacet.sol";
 import {SCDPConfigFacet} from "scdp/facets/SCDPConfigFacet.sol";
 import {SDIFacet} from "scdp/facets/SDIFacet.sol";
-import {ISCDPConfigFacet} from "scdp/interfaces/ISCDPConfigFacet.sol";
-import {SCDPCollateral, SCDPKrAsset, PairSetter} from "scdp/Types.sol";
+import {SCDPInitArgs, SCDPCollateral, SCDPKrAsset, PairSetter} from "scdp/Types.sol";
 
 import {MockOracle} from "test/MockOracle.sol";
 import {MockERC20} from "test/MockERC20.sol";
@@ -40,7 +39,6 @@ import {MockERC20} from "test/MockERC20.sol";
 import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {KreskoAssetAnchor} from "kresko-asset/KreskoAssetAnchor.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
-import {Test} from "forge-std/Test.sol";
 
 import {RedstoneHelper} from "./RedstoneHelper.sol";
 
@@ -77,15 +75,7 @@ abstract contract DeployHelper is RedstoneHelper {
 
         (FacetCut[] memory _sFacets, Initialization memory sInit) = scdpFacets();
         kresko.diamondCut(_sFacets, sInit.initContract, sInit.initData);
-
-        // /* -------------------------------------------------------------------------- */
-        // /*                                  SDIFacet                                  */
-        // /* -------------------------------------------------------------------------- */
-
-        (FacetCut[] memory _sdFacets, Initialization memory sdiInit) = sdiFacets(address(this));
-
-        kresko.diamondCut(_sdFacets, sdiInit.initContract, sdiInit.initData);
-
+        //0x5038b245
         return (kresko);
     }
 
@@ -183,7 +173,7 @@ abstract contract DeployHelper is RedstoneHelper {
 
     function scdpFacets() internal returns (FacetCut[] memory, Initialization memory) {
         address configurationFacetAddress = address(new SCDPConfigFacet());
-        FacetCut[] memory _diamondCut = new FacetCut[](4);
+        FacetCut[] memory _diamondCut = new FacetCut[](5);
         _diamondCut[0] = FacetCut({
             facetAddress: address(new SCDPFacet()),
             action: FacetCutAction.Add,
@@ -209,10 +199,9 @@ abstract contract DeployHelper is RedstoneHelper {
             action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("SDIFacet")
         });
-
         bytes memory initData = abi.encodeWithSelector(
             SCDPConfigFacet.initializeSCDP.selector,
-            ISCDPConfigFacet.SCDPInitArgs({swapFeeRecipient: TREASURY, mcr: 2e18, lt: 1.5e18})
+            SCDPInitArgs({swapFeeRecipient: TREASURY, mcr: 2e18, lt: 1.5e18})
         );
         return (_diamondCut, Initialization(configurationFacetAddress, initData));
     }
