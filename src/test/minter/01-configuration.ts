@@ -38,11 +38,10 @@ describe("Minter - Configuration", () => {
         it("can add a collateral asset", async function () {
             const { contract } = await addMockCollateralAsset(defaultCollateralArgs);
             expect(await hre.Diamond.collateralExists(contract.address)).to.equal(true);
-            const [, oraclePrice] = await hre.Diamond.getCollateralValueAndOraclePrice(
-                contract.address,
-                toBig(1),
-                true,
-            );
+            const [, oraclePrice] = await wrapContractWithSigner(
+                hre.Diamond,
+                hre.users.deployer,
+            ).getCollateralValueAndOraclePrice(contract.address, toBig(1), true);
 
             expect(Number(oraclePrice)).to.equal(toBig(defaultCollateralArgs.price, 8));
         });
@@ -51,7 +50,14 @@ describe("Minter - Configuration", () => {
             const { contract, kresko } = await addMockKreskoAsset();
 
             const values = await kresko();
-            const kreskoPriceAnswer = fromBig(await hre.Diamond.getKrAssetValue(contract.address, toBig(1), true), 8);
+            const kreskoPriceAnswer = fromBig(
+                await wrapContractWithSigner(hre.Diamond, hre.users.deployer).getKrAssetValue(
+                    contract.address,
+                    toBig(1),
+                    true,
+                ),
+                8,
+            );
 
             expect(await hre.Diamond.krAssetExists(contract.address)).to.equal(true);
             expect(values.exists).to.equal(true);
@@ -118,7 +124,14 @@ describe("Minter - Configuration", () => {
             const { contract, anchor, priceFeed } = await addMockKreskoAsset();
 
             const oracleAnswer = fromBig((await priceFeed.latestRoundData())[1], 8);
-            const kreskoAnswer = fromBig(await hre.Diamond.getKrAssetValue(contract.address, toBig(1), true), 8);
+            const kreskoAnswer = fromBig(
+                await wrapContractWithSigner(hre.Diamond, hre.users.deployer).getKrAssetValue(
+                    contract.address,
+                    toBig(1),
+                    true,
+                ),
+                8,
+            );
 
             expect(oracleAnswer).to.equal(kreskoAnswer);
             expect(oracleAnswer).to.equal(defaultKrAssetArgs.price);
@@ -148,7 +161,14 @@ describe("Minter - Configuration", () => {
 
             const newValues = await hre.Diamond.kreskoAsset(contract.address);
             const updatedOracleAnswer = fromBig((await CLFeed.latestRoundData())[1], 8);
-            const newKreskoAnswer = fromBig(await hre.Diamond.getKrAssetValue(contract.address, toBig(1), true), 8);
+            const newKreskoAnswer = fromBig(
+                await wrapContractWithSigner(hre.Diamond, hre.users.deployer).getKrAssetValue(
+                    contract.address,
+                    toBig(1),
+                    true,
+                ),
+                8,
+            );
 
             expect(newValues.exists).to.equal(true);
             expect(Number(newValues.kFactor)).to.equal(Number(update.factor));

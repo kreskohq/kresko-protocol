@@ -1,6 +1,6 @@
 import { TASK_DEPLOY_PRICE_FEED } from "@tasks";
 import { expect } from "@test/chai";
-import { withFixture, defaultCollateralArgs, Error } from "@utils/test";
+import { withFixture, defaultCollateralArgs, Error, wrapContractWithSigner } from "@utils/test";
 import hre from "hardhat";
 import { WrapperBuilder } from "@redstone-finance/evm-connector";
 import { toBig } from "@kreskolabs/lib";
@@ -171,10 +171,11 @@ describe("Oracle", () => {
             expect(await redstoneCollateral.getPrice()).to.equal(toBig(10, 8), "collateral price should be $10");
             // As redstone price is 0, will use chainlink price = 10
             // so collateral value = $10 * 1 = $10
-            expect(await hre.Diamond.getAccountCollateralValue(hre.users.userOne.address)).to.equal(
-                toBig(10, 8),
-                "collateral value should be $10",
-            );
+            expect(
+                await wrapContractWithSigner(hre.Diamond, hre.users.deployer).getAccountCollateralValue(
+                    hre.users.userOne.address,
+                ),
+            ).to.equal(toBig(10, 8), "collateral value should be $10");
         });
 
         it("should get redstone price when chainlink price = 0", async function () {
@@ -188,7 +189,7 @@ describe("Oracle", () => {
             ).usingSimpleNumericMock({
                 mockSignersCount: 1,
                 timestampMilliseconds: Date.now(),
-                dataPoints: [{ dataFeedId: "USDC", value: redstoneCollateralPrice }],
+                dataPoints: [{ dataFeedId: "Collateral", value: redstoneCollateralPrice }],
             }) as Kresko;
 
             // so collateral value = $20 * 1 = $20
@@ -209,7 +210,7 @@ describe("Oracle", () => {
             ).usingSimpleNumericMock({
                 mockSignersCount: 1,
                 timestampMilliseconds: Date.now(),
-                dataPoints: [{ dataFeedId: "USDC", value: redstoneCollateralPrice }],
+                dataPoints: [{ dataFeedId: "Collateral", value: redstoneCollateralPrice }],
             }) as Kresko;
 
             // so collateral value = $12 * 1 = $12
@@ -229,7 +230,7 @@ describe("Oracle", () => {
             ).usingSimpleNumericMock({
                 mockSignersCount: 1,
                 timestampMilliseconds: Date.now(),
-                dataPoints: [{ dataFeedId: "USDC", value: redstoneCollateralPrice }],
+                dataPoints: [{ dataFeedId: "Collateral", value: redstoneCollateralPrice }],
             }) as Kresko;
 
             // should revert if price deviates more than oracleDeviationPct
@@ -249,7 +250,7 @@ describe("Oracle", () => {
             ).usingSimpleNumericMock({
                 mockSignersCount: 1,
                 timestampMilliseconds: Date.now(),
-                dataPoints: [{ dataFeedId: "USDC", value: redstoneCollateralPrice }],
+                dataPoints: [{ dataFeedId: "Collateral", value: redstoneCollateralPrice }],
             }) as Kresko;
 
             /// set sequencer uptime feed address

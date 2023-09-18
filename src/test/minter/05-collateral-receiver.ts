@@ -113,10 +113,11 @@ describe.skip("CollateralReceiver - UncheckedCollateralWithdraw", () => {
                 expect(await Receiver.withdrawalAmountRequested()).to.equal(maxWithdrawAmount);
                 expect(await Receiver.withdrawalAmountReceived()).to.equal(maxWithdrawAmount);
                 expect(await this.collateral.contract.balanceOf(Receiver.address)).to.equal(maxWithdrawAmount);
-                expect(await hre.Diamond.getAccountCollateralRatio(hre.users.userFive.address)).to.be.closeTo(
-                    (15e17).toString(),
-                    (1e10).toString(),
-                );
+                expect(
+                    await wrapContractWithSigner(hre.Diamond, hre.users.deployer).getAccountCollateralRatio(
+                        hre.users.userFive.address,
+                    ),
+                ).to.be.closeTo((15e17).toString(), (1e10).toString());
                 await expect(Receiver.test(this.collateral.address, (10e15).toString())).to.be.revertedWith(
                     Error.COLLATERAL_INSUFFICIENT_AMOUNT,
                 );
@@ -125,7 +126,7 @@ describe.skip("CollateralReceiver - UncheckedCollateralWithdraw", () => {
             it("should be able to withdraw full collateral and return it", async function () {
                 const Receiver = wrapContractWithSigner(await getReceiver(hre.Diamond), hre.users.userFive);
 
-                const deposits = await hre.Diamond.collateralDeposits(
+                const deposits = await wrapContractWithSigner(hre.Diamond, hre.users.deployer).collateralDeposits(
                     hre.users.userFive.address,
                     this.collateral.address,
                 );
@@ -144,7 +145,7 @@ describe.skip("CollateralReceiver - UncheckedCollateralWithdraw", () => {
             it("should be able to withdraw full collateral and deposit another asset in its place", async function () {
                 const Receiver = wrapContractWithSigner(await getReceiver(hre.Diamond), hre.users.userFive);
 
-                const deposits = await hre.Diamond.collateralDeposits(
+                const deposits = await wrapContractWithSigner(hre.Diamond, hre.users.deployer).collateralDeposits(
                     hre.users.userFive.address,
                     this.collateral.address,
                 );
@@ -166,10 +167,10 @@ describe.skip("CollateralReceiver - UncheckedCollateralWithdraw", () => {
                 });
                 await Receiver.testDepositAlternate(this.collateral.address, deposits, this.secondCollateral.address);
 
-                const secondCollateralDeposits = await hre.Diamond.collateralDeposits(
-                    hre.users.userFive.address,
-                    this.secondCollateral.address,
-                );
+                const secondCollateralDeposits = await wrapContractWithSigner(
+                    hre.Diamond,
+                    hre.users.deployer,
+                ).collateralDeposits(hre.users.userFive.address, this.secondCollateral.address);
                 expect(secondCollateralDeposits.eq(deposits)).to.be.true;
             });
         });

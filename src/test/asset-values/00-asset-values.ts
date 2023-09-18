@@ -16,7 +16,10 @@ describe("Asset Amounts & Values", function () {
                 CollateralAsset.address,
                 depositAmount,
             );
-            const depositValue = await hre.Diamond.getAccountCollateralValue(user.address);
+            const depositValue = await wrapContractWithSigner(
+                hre.Diamond,
+                hre.users.deployer,
+            ).getAccountCollateralValue(user.address);
             expect(depositValue).to.equal(expectedDepositValue);
         });
         it("should return the correct deposit value with less than 18 decimals", async () => {
@@ -27,7 +30,10 @@ describe("Asset Amounts & Values", function () {
                 CollateralAsset8Dec.address,
                 depositAmount,
             );
-            const depositValue = await hre.Diamond.getAccountCollateralValue(user.address);
+            const depositValue = await wrapContractWithSigner(
+                hre.Diamond,
+                hre.users.deployer,
+            ).getAccountCollateralValue(user.address);
             expect(depositValue).to.equal(expectedDepositValue);
         });
         it("should return the correct deposit value with over 18 decimals", async () => {
@@ -38,7 +44,10 @@ describe("Asset Amounts & Values", function () {
                 CollateralAsset21Dec.address,
                 depositAmount,
             );
-            const depositValue = await hre.Diamond.getAccountCollateralValue(user.address);
+            const depositValue = await wrapContractWithSigner(
+                hre.Diamond,
+                hre.users.deployer,
+            ).getAccountCollateralValue(user.address);
             expect(depositValue).to.equal(expectedDepositValue);
         });
 
@@ -59,7 +68,10 @@ describe("Asset Amounts & Values", function () {
                 toBig(10, 21),
             );
             const expectedDepositValue = toBig(150, oracleDecimals); // cfactor = 0.5, collateralPrice = 10, depositAmount = 30
-            const depositValue = await hre.Diamond.getAccountCollateralValue(user.address);
+            const depositValue = await wrapContractWithSigner(
+                hre.Diamond,
+                hre.users.deployer,
+            ).getAccountCollateralValue(user.address);
             expect(depositValue).to.equal(expectedDepositValue);
         });
     });
@@ -72,11 +84,14 @@ describe("Asset Amounts & Values", function () {
                 CollateralAsset.address,
                 depositAmount,
             );
-            const withdrawIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
+            const withdrawIndex = await wrapContractWithSigner(
+                hre.Diamond,
+                hre.users.deployer,
+            ).getDepositedCollateralAssetIndex(user.address, CollateralAsset.address);
+            const deposits = await wrapContractWithSigner(hre.Diamond, hre.users.deployer).collateralDeposits(
                 user.address,
                 CollateralAsset.address,
             );
-            const deposits = await hre.Diamond.collateralDeposits(user.address, CollateralAsset.address);
             expect(deposits).to.equal(depositAmount);
             await wrapContractWithSigner(hre.Diamond, user).withdrawCollateral(
                 user.address,
@@ -95,11 +110,14 @@ describe("Asset Amounts & Values", function () {
                 CollateralAsset8Dec.address,
                 depositAmount,
             );
-            const withdrawIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
+            const withdrawIndex = await wrapContractWithSigner(
+                hre.Diamond,
+                hre.users.deployer,
+            ).getDepositedCollateralAssetIndex(user.address, CollateralAsset8Dec.address);
+            const deposits = await wrapContractWithSigner(hre.Diamond, hre.users.deployer).collateralDeposits(
                 user.address,
                 CollateralAsset8Dec.address,
             );
-            const deposits = await hre.Diamond.collateralDeposits(user.address, CollateralAsset8Dec.address);
             expect(deposits).to.equal(depositAmount);
             await wrapContractWithSigner(hre.Diamond, user).withdrawCollateral(
                 user.address,
@@ -118,11 +136,14 @@ describe("Asset Amounts & Values", function () {
                 CollateralAsset21Dec.address,
                 depositAmount,
             );
-            const withdrawIndex = await hre.Diamond.getDepositedCollateralAssetIndex(
+            const withdrawIndex = await wrapContractWithSigner(
+                hre.Diamond,
+                hre.users.deployer,
+            ).getDepositedCollateralAssetIndex(user.address, CollateralAsset21Dec.address);
+            const deposits = await wrapContractWithSigner(hre.Diamond, hre.users.deployer).collateralDeposits(
                 user.address,
                 CollateralAsset21Dec.address,
             );
-            const deposits = await hre.Diamond.collateralDeposits(user.address, CollateralAsset21Dec.address);
             expect(deposits).to.equal(depositAmount);
             await wrapContractWithSigner(hre.Diamond, user).withdrawCollateral(
                 user.address,
@@ -154,14 +175,25 @@ describe("Asset Amounts & Values", function () {
             );
             const expectedDepositValue = toBig(49.5, oracleDecimals); // cfactor = 0.5, collateralPrice = 10, depositAmount = 10, openFee = 0.1
 
-            const depositValue = await hre.Diamond.getAccountCollateralValue(user.address);
+            const depositValue = await wrapContractWithSigner(
+                hre.Diamond,
+                hre.users.deployer,
+            ).getAccountCollateralValue(user.address);
             expect(depositValue).to.equal(expectedDepositValue);
 
-            const mintValue = await hre.Diamond.getAccountKrAssetValue(user.address);
+            const mintValue = await wrapContractWithSigner(hre.Diamond, hre.users.deployer).getAccountKrAssetValue(
+                user.address,
+            );
             expect(mintValue).to.equal(expectedMintValue);
 
-            const assetValue = await hre.Diamond.getKrAssetValue(KreskoAsset.address, mintAmount, true);
-            const kFactor = (await hre.Diamond.kreskoAsset(KreskoAsset.address)).kFactor;
+            const assetValue = await wrapContractWithSigner(hre.Diamond, hre.users.deployer).getKrAssetValue(
+                KreskoAsset.address,
+                mintAmount,
+                true,
+            );
+            const kFactor = (
+                await wrapContractWithSigner(hre.Diamond, hre.users.deployer).kreskoAsset(KreskoAsset.address)
+            ).kFactor;
             expect(assetValue).to.equal(expectedMintValue.wadDiv(kFactor));
 
             const collateralRatio = await getCR(user.address, true); // big
@@ -185,14 +217,25 @@ describe("Asset Amounts & Values", function () {
             );
             const expectedDepositValue = toBig(49.5, oracleDecimals); // cfactor = 0.5, collateralPrice = 10, depositAmount = 10, openFee = 0.1
 
-            const depositValue = await hre.Diamond.getAccountCollateralValue(user.address);
+            const depositValue = await wrapContractWithSigner(
+                hre.Diamond,
+                hre.users.deployer,
+            ).getAccountCollateralValue(user.address);
             expect(depositValue).to.equal(expectedDepositValue);
 
-            const mintValue = await hre.Diamond.getAccountKrAssetValue(user.address);
+            const mintValue = await wrapContractWithSigner(hre.Diamond, hre.users.deployer).getAccountKrAssetValue(
+                user.address,
+            );
             expect(mintValue).to.equal(expectedMintValue);
 
-            const assetValue = await hre.Diamond.getKrAssetValue(KreskoAsset.address, mintAmount, true);
-            const kFactor = (await hre.Diamond.kreskoAsset(KreskoAsset.address)).kFactor;
+            const assetValue = await wrapContractWithSigner(hre.Diamond, hre.users.deployer).getKrAssetValue(
+                KreskoAsset.address,
+                mintAmount,
+                true,
+            );
+            const kFactor = (
+                await wrapContractWithSigner(hre.Diamond, hre.users.deployer).kreskoAsset(KreskoAsset.address)
+            ).kFactor;
             expect(assetValue).to.equal(expectedMintValue.wadDiv(kFactor));
 
             const collateralRatio = await getCR(user.address, true); // big
@@ -216,14 +259,25 @@ describe("Asset Amounts & Values", function () {
             );
             const expectedDepositValue = toBig(49.5, oracleDecimals); // cfactor = 0.5, collateralPrice = 10, depositAmount = 10, openFee = 0.1
 
-            const depositValue = await hre.Diamond.getAccountCollateralValue(user.address);
+            const depositValue = await wrapContractWithSigner(
+                hre.Diamond,
+                hre.users.deployer,
+            ).getAccountCollateralValue(user.address);
             expect(depositValue).to.equal(expectedDepositValue);
 
-            const mintValue = await hre.Diamond.getAccountKrAssetValue(user.address);
+            const mintValue = await wrapContractWithSigner(hre.Diamond, hre.users.deployer).getAccountKrAssetValue(
+                user.address,
+            );
             expect(mintValue).to.equal(expectedMintValue);
 
-            const assetValue = await hre.Diamond.getKrAssetValue(KreskoAsset.address, mintAmount, true);
-            const kFactor = (await hre.Diamond.kreskoAsset(KreskoAsset.address)).kFactor;
+            const assetValue = await wrapContractWithSigner(hre.Diamond, hre.users.deployer).getKrAssetValue(
+                KreskoAsset.address,
+                mintAmount,
+                true,
+            );
+            const kFactor = (
+                await wrapContractWithSigner(hre.Diamond, hre.users.deployer).kreskoAsset(KreskoAsset.address)
+            ).kFactor;
             expect(assetValue).to.equal(expectedMintValue.wadDiv(kFactor));
 
             const collateralRatio = await getCR(user.address, true); // big
@@ -243,7 +297,7 @@ describe("Asset Amounts & Values", function () {
     let oracleDecimals: number;
     beforeEach(async function () {
         user = hre.users.testUserSeven;
-        oracleDecimals = await hre.Diamond.extOracleDecimals();
+        oracleDecimals = await wrapContractWithSigner(hre.Diamond, hre.users.deployer).extOracleDecimals();
         KreskoAsset = await addMockKreskoAsset({
             name: "KreskoAssetPrice10USD",
             price: collateralPrice,
