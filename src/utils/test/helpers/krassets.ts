@@ -31,6 +31,7 @@ export const getKrAssetConfig = async (
         throw new Error(`Redstone not found for ${await asset.symbol()}`);
     }
     await wrapContractWithSigner(hre.Diamond, hre.users.deployer).setChainlinkFeeds([redstone], [oracle]);
+    await wrapContractWithSigner(hre.Diamond, hre.users.deployer).setRedstoneFeeds([redstone]);
 
     return {
         anchor,

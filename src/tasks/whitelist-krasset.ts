@@ -50,8 +50,9 @@ task(TASK_WHITELIST_KRASSET)
                 oracles: oracles,
                 id: redstone,
             };
-
+            console.log("oracle address", oracleAddr);
             await kresko.setChainlinkFeeds([redstone], [oracleAddr]);
+            await kresko.setRedstoneFeeds([redstone]);
 
             const tx = await kresko.addKreskoAsset(KrAsset.address, config);
             logger.success("txHash", tx.hash);

@@ -91,6 +91,7 @@ library Error {
     string public constant ZERO_DEBT = "251"; // debt must be greater than 0
     string public constant ORACLE_PRICE_UNSTABLE = "252"; // oracle price deviates too much between oracles
     string public constant NEGATIVE_ORACLE_PRICE = "253"; // Oracle price received is negative
+    string public constant NO_REDSTONE_ORACLE = "254"; // Sequencer down and redstone oracle not in oracles list
 
     /* -------------------------------------------------------------------------- */
     /*                                   3. Staking                               */
