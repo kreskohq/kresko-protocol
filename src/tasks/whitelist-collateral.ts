@@ -64,7 +64,6 @@ task(TASK_WHITELIST_COLLATERAL)
             };
 
             await kresko.setChainlinkFeeds([redstone], [oracleAddr]);
-            await kresko.setRedstoneFeeds([redstone]);
 
             const tx = await kresko.addCollateralAsset(Collateral.address, config);
             if (log) {

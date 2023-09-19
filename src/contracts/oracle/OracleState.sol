@@ -4,7 +4,7 @@ pragma solidity >=0.8.19;
 
 struct Oracle {
     address feed;
-    function(bytes32, address) view returns (uint256) priceGetter;
+    function(address) external view returns (uint256) priceGetter;
 }
 
 enum OracleType {

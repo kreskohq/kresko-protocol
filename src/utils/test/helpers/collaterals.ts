@@ -26,7 +26,6 @@ export const getCollateralConfig = async (
     }
 
     await wrapContractWithSigner(hre.Diamond, hre.users.deployer).setChainlinkFeeds([redstone], [oracle]);
-    await wrapContractWithSigner(hre.Diamond, hre.users.deployer).setRedstoneFeeds([redstone]);
 
     return {
         anchor,
