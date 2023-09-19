@@ -27,9 +27,9 @@ library LibPrice {
             if (self.oracles[0] != 1 && self.oracles[1] != 1) {
                 revert("Sequencer down and redstone oracle not in oracles list");
             }
-            return _getRedstonePrice(self.id);
+            return _redstonePrice(self.id);
         }
-        return _getPrice(self.id, self.oracles, _oracleDeviationPct);
+        return _price(self.id, self.oracles, _oracleDeviationPct);
     }
 
     /**
@@ -45,22 +45,36 @@ library LibPrice {
             if (self.oracles[0] != 1 && self.oracles[1] != 1) {
                 revert("Sequencer down and redstone oracle not in oracles list");
             }
-            return _getRedstonePrice(self.id);
+            return _redstonePrice(self.id);
         }
-        return _getPrice(self.id, self.oracles, _oracleDeviationPct);
+        return _price(self.id, self.oracles, _oracleDeviationPct);
     }
 
-    function getOraclePrices(CollateralAsset memory self) internal view returns (uint256[] memory) {
+    /**
+     * @notice Oracle prices, an internal view library function.
+     * @param self The self (CollateralAsset).
+     * @return uint256 List of uint256s.
+     * @custom:signature oraclePrices((uint256,address,uint8,bool,uint256,bytes32,uint8[2]))
+     * @custom:selector 0xf43c93ea
+     */
+    function oraclePrices(CollateralAsset memory self) internal view returns (uint256[] memory) {
         uint256[] memory prices = new uint256[](2);
-        prices[0] = _selectOracle(self.oracles[0], self.id);
-        prices[1] = _selectOracle(self.oracles[1], self.id);
+        prices[0] = _oraclePrice(self.oracles[0], self.id);
+        prices[1] = _oraclePrice(self.oracles[1], self.id);
         return prices;
     }
 
-    function getOraclePrices(KrAsset memory self) internal view returns (uint256[] memory) {
+    /**
+     * @notice Oracle prices, an internal view library function.
+     * @param self The self (KrAsset).
+     * @return uint256 List of uint256s.
+     * @custom:signature oraclePrices((uint256,uint256,address,uint256,uint256,bool,bytes32,uint8[2]))
+     * @custom:selector 0x48948447
+     */
+    function oraclePrices(KrAsset memory self) internal view returns (uint256[] memory) {
         uint256[] memory prices = new uint256[](2);
-        prices[0] = _selectOracle(self.oracles[0], self.id);
-        prices[1] = _selectOracle(self.oracles[1], self.id);
+        prices[0] = _oraclePrice(self.oracles[0], self.id);
+        prices[1] = _oraclePrice(self.oracles[1], self.id);
         return prices;
     }
 
@@ -86,8 +100,9 @@ library LibPrice {
         return true;
     }
 
-    function _selectOracle(uint8 _oracle, bytes32 id) private view returns (uint256) {
-        return _oracle == 0 ? _getChainlinkPrice(id) : _oracle == 1 ? _getRedstonePrice(id) : _getApi3Price(id);
+    function _oraclePrice(uint8 _oracle, bytes32 _assetId) private view returns (uint256) {
+        return
+            _oracle == 0 ? _chainlinkPrice(_assetId) : _oracle == 1 ? _redstonePrice(_assetId) : _api3Price(_assetId);
     }
 
     /**
@@ -97,14 +112,10 @@ library LibPrice {
      * @param oracles list of oracles
      * @param _oracleDeviationPct the deviation percentage to use for the oracle
      */
-    function _getPrice(
-        bytes32 id,
-        uint8[2] memory oracles,
-        uint256 _oracleDeviationPct
-    ) private view returns (uint256) {
+    function _price(bytes32 id, uint8[2] memory oracles, uint256 _oracleDeviationPct) private view returns (uint256) {
         uint256[] memory prices = new uint256[](2);
-        prices[0] = _selectOracle(oracles[0], id);
-        prices[1] = _selectOracle(oracles[1], id);
+        prices[0] = _oraclePrice(oracles[0], id);
+        prices[1] = _oraclePrice(oracles[1], id);
 
         if (prices[0] == 0) return prices[1];
         if (prices[1] == 0) return prices[0];
@@ -117,7 +128,7 @@ library LibPrice {
         revert(Error.ORACLE_PRICE_UNSTABLE);
     }
 
-    function _getChainlinkPrice(bytes32 id) private view returns (uint256) {
+    function _chainlinkPrice(bytes32 id) private view returns (uint256) {
         (, int256 answer, , uint256 updatedAt, ) = AggregatorV3Interface(os().chainlinkFeeds[id]).latestRoundData();
         require(answer >= 0, Error.NEGATIVE_ORACLE_PRICE);
         // returning zero if oracle price is too old so that fallback oracle is used instead.
@@ -128,11 +139,11 @@ library LibPrice {
         return uint256(answer);
     }
 
-    function _getRedstonePrice(bytes32 id) private view returns (uint256) {
+    function _redstonePrice(bytes32 id) private view returns (uint256) {
         return LibRedstone.getPrice(id);
     }
 
-    function _getApi3Price(bytes32 id) private view returns (uint256) {
+    function _api3Price(bytes32 id) private view returns (uint256) {
         (int256 answer, uint256 updatedAt) = IProxy(os().api3Feeds[id]).read();
         require(answer >= 0, Error.NEGATIVE_ORACLE_PRICE);
         // returning zero if oracle price is too old so that fallback oracle is used instead.

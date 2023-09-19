@@ -226,9 +226,9 @@ library LibUI {
         for (uint256 i; i < _assets.length; i++) {
             uint256[] memory prices = new uint256[](2);
             if (ms().collateralAssets[_assets[i]].id != bytes32(0)) {
-                prices = ms().collateralAssets[_assets[i]].getOraclePrices();
+                prices = ms().collateralAssets[_assets[i]].oraclePrices();
             } else if (ms().kreskoAssets[_assets[i]].id != bytes32(0)) {
-                prices = ms().kreskoAssets[_assets[i]].getOraclePrices();
+                prices = ms().kreskoAssets[_assets[i]].oraclePrices();
             } else {
                 revert("BatchOracleValues: Asset not found");
             }
