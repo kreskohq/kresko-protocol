@@ -5,6 +5,8 @@ import { task, types } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
 import { TASK_WHITELIST_KRASSET } from "./names";
 import { redstoneMap } from "@deploy-config/arbitrumGoerli";
+import { PromiseOrValue } from "types/typechain/common";
+import { wrapContractWithSigner } from "@utils/test";
 
 task(TASK_WHITELIST_KRASSET)
     .addParam("symbol", "Name of the asset")
@@ -37,16 +39,20 @@ task(TASK_WHITELIST_KRASSET)
             logger.warn(`KrAsset ${symbol} already exists! Skipping..`);
         } else {
             logger.log(`Whitelisting Kresko Asset: ${symbol}, anchor: ${KrAssetAnchor?.address}}`);
+            const oracles: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>] = [0, 1];
             const config = {
                 anchor: KrAssetAnchor ? KrAssetAnchor.address : KrAsset.address,
                 kFactor: toBig(kFactor),
-                oracle: oracleAddr,
                 supplyLimit: toBig(supplyLimit),
                 closeFee: toBig(0.02),
                 openFee: toBig(0),
                 exists: true,
-                redstoneId: redstone,
+                oracles: oracles,
+                id: redstone,
             };
+            console.log("oracle address", oracleAddr);
+            await kresko.setChainlinkFeeds([redstone], [oracleAddr]);
+
             const tx = await kresko.addKreskoAsset(KrAsset.address, config);
             logger.success("txHash", tx.hash);
             await tx.wait();

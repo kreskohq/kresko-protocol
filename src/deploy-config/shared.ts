@@ -46,6 +46,8 @@ export const collateralPoolFacets = [
     "CollateralPoolSwapFacet",
 ] as const;
 
+export const oracleFacets = ["OracleConfigFacet", "OracleViewFacet"] as const;
+
 export const getDeploymentUsers = async (hre: HardhatRuntimeEnvironment) => {
     const users = await hre.getNamedAccounts();
     const Safe = await hre.getContractOrFork("GnosisSafeL2");

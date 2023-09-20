@@ -106,11 +106,9 @@ library LibUI {
     }
 
     struct Price {
-        uint256 price;
-        uint256 redstonePrice;
-        uint256 timestamp;
+        uint256 primaryOraclePrice;
+        uint256 secondaryOraclePrice;
         address assetAddress;
-        uint80 roundId;
         bool marketOpen;
     }
 
@@ -226,25 +224,19 @@ library LibUI {
         result = new Price[](_assets.length);
 
         for (uint256 i; i < _assets.length; i++) {
-            uint256 redstonePrice;
-            AggregatorV3Interface oracle;
-            if (ms().collateralAssets[_assets[i]].redstoneId != bytes32(0)) {
-                redstonePrice = ms().collateralAssets[_assets[i]].redstonePrice();
-                oracle = ms().collateralAssets[_assets[i]].oracle;
-            } else if (ms().kreskoAssets[_assets[i]].redstoneId != bytes32(0)) {
-                redstonePrice = ms().kreskoAssets[_assets[i]].redstonePrice();
-                oracle = ms().kreskoAssets[_assets[i]].oracle;
+            uint256[] memory prices = new uint256[](2);
+            if (ms().collateralAssets[_assets[i]].id != bytes32(0)) {
+                prices = ms().collateralAssets[_assets[i]].oraclePrices();
+            } else if (ms().kreskoAssets[_assets[i]].id != bytes32(0)) {
+                prices = ms().kreskoAssets[_assets[i]].oraclePrices();
             } else {
                 revert("BatchOracleValues: Asset not found");
             }
 
-            (uint80 roundId, int256 answer, , uint256 timestamp, ) = oracle.latestRoundData();
             result[i] = Price({
-                price: uint256(answer),
-                redstonePrice: redstonePrice,
-                timestamp: timestamp,
+                primaryOraclePrice: prices[0],
+                secondaryOraclePrice: prices[1],
                 assetAddress: _assets[i],
-                roundId: roundId,
                 marketOpen: ms().kreskoAssets[_assets[i]].marketStatus()
             });
         }
@@ -257,7 +249,7 @@ library LibUI {
             KrAsset memory krAsset = ms().kreskoAssets[assetAddress];
             result[i] = krAssetInfo({
                 value: ms().getKrAssetValue(assetAddress, 1 ether, false),
-                oracleAddress: address(krAsset.oracle),
+                oracleAddress: address(0),
                 assetAddress: assetAddress,
                 closeFee: krAsset.closeFee,
                 openFee: krAsset.openFee,
@@ -266,7 +258,7 @@ library LibUI {
                 marketOpen: ms().kreskoAssets[assetAddress].marketStatus(),
                 symbol: IERC20Permit(assetAddress).symbol(),
                 name: IERC20Permit(assetAddress).name(),
-                redstoneId: krAsset.redstoneId
+                redstoneId: krAsset.id
             });
         }
     }
@@ -288,7 +280,7 @@ library LibUI {
 
             result[i] = CollateralAssetInfo({
                 value: value,
-                oracleAddress: address(collateralAsset.oracle),
+                oracleAddress: address(0),
                 assetAddress: assetAddress,
                 liquidationIncentive: collateralAsset.liquidationIncentive,
                 cFactor: collateralAsset.factor,
@@ -297,7 +289,7 @@ library LibUI {
                 marketOpen: true,
                 symbol: IERC20Permit(assetAddress).symbol(),
                 name: IERC20Permit(assetAddress).name(),
-                redstoneId: collateralAsset.redstoneId
+                redstoneId: collateralAsset.id
             });
         }
     }
@@ -316,12 +308,12 @@ library LibUI {
 
                 (uint256 amountUSD, uint256 price) = ms().getCollateralValueAndOraclePrice(assetAddress, amount, true);
 
-                totalCollateralUSD + amountUSD;
+                totalCollateralUSD += amountUSD;
                 result[i] = CollateralAssetInfoUser({
                     amount: amount,
                     amountUSD: amountUSD,
                     liquidationIncentive: ms().collateralAssets[assetAddress].liquidationIncentive,
-                    oracleAddress: address(ms().collateralAssets[assetAddress].oracle),
+                    oracleAddress: address(0),
                     assetAddress: assetAddress,
                     cFactor: ms().collateralAssets[assetAddress].factor,
                     decimals: decimals,
@@ -329,7 +321,7 @@ library LibUI {
                     price: price,
                     symbol: IERC20Permit(assetAddress).symbol(),
                     name: IERC20Permit(assetAddress).name(),
-                    redstoneId: ms().collateralAssets[assetAddress].redstoneId
+                    redstoneId: ms().collateralAssets[assetAddress].id
                 });
             }
         }
@@ -350,7 +342,7 @@ library LibUI {
                 totalDebtUSD + amountUSD;
                 result[i] = krAssetInfoUser({
                     assetAddress: assetAddress,
-                    oracleAddress: address(krAsset.oracle),
+                    oracleAddress: address(0),
                     openFee: krAsset.openFee,
                     closeFee: krAsset.closeFee,
                     amount: amount,
@@ -360,7 +352,7 @@ library LibUI {
                     price: krAsset.uintPrice(ms().oracleDeviationPct),
                     symbol: IERC20Permit(assetAddress).symbol(),
                     name: IERC20Permit(assetAddress).name(),
-                    redstoneId: krAsset.redstoneId
+                    redstoneId: krAsset.id
                 });
             }
         }

@@ -24,14 +24,17 @@ export const getCollateralConfig = async (
     if (!redstone) {
         throw new Error(`Redstone not found for ${await asset.symbol()}`);
     }
+
+    await wrapContractWithSigner(hre.Diamond, hre.users.deployer).setChainlinkFeeds([redstone], [oracle]);
+
     return {
         anchor,
         factor: cFactor,
         liquidationIncentive,
-        oracle,
         decimals: await asset.decimals(),
         exists: true,
-        redstoneId: redstone,
+        id: redstone,
+        oracles: [0, 1],
     };
 };
 
@@ -160,7 +163,10 @@ export const withdrawCollateral = async (args: InputArgs) => {
     const { user, asset, amount } = args;
     const depositAmount = convert ? toBig(+amount) : amount;
     await asset.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
-    const cIndex = await hre.Diamond.getDepositedCollateralAssetIndex(user.address, asset.address);
+    const cIndex = await wrapContractWithSigner(hre.Diamond, hre.users.deployer).getDepositedCollateralAssetIndex(
+        user.address,
+        asset.address,
+    );
     return wrapContractWithSigner(hre.Diamond, user).withdrawCollateral(
         user.address,
         asset.address,
@@ -170,9 +176,15 @@ export const withdrawCollateral = async (args: InputArgs) => {
 };
 
 export const getMaxWithdrawal = async (user: string, collateral: any) => {
-    const [collateralValue] = await hre.Diamond.getCollateralAdjustedAndRealValue(user, collateral.address);
+    const [collateralValue] = await wrapContractWithSigner(
+        hre.Diamond,
+        hre.users.deployer,
+    ).getCollateralAdjustedAndRealValue(user, collateral.address);
 
-    const minCollateralRequired = await hre.Diamond.getAccountMinimumCollateralValueAtRatio(
+    const minCollateralRequired = await wrapContractWithSigner(
+        hre.Diamond,
+        hre.users.deployer,
+    ).getAccountMinimumCollateralValueAtRatio(
         user,
         (await hre.Diamond.minimumCollateralizationRatio()).add((15e8).toString()),
     );

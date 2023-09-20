@@ -180,7 +180,7 @@ describe("Safety Council", () => {
             });
 
             // TODO: should the protocol be updated to use duration based pausing, we can test it at the end of this function
-            it("duration based pause functionality should expire after the duration has passed [PLACEHOLDER]", async function () {
+            it("duration based pause functionality should expire after the duration has passed", async function () {
                 const duration = 100000;
 
                 await executeContractCallWithSigners(

@@ -20,12 +20,35 @@ export const wrapContractWithSigner = (contract: any, signer: Signer) =>
             { dataFeedId: "TSLA", value: 0 },
             { dataFeedId: "ETH", value: 0 },
             { dataFeedId: "BTC", value: 0 },
+            { dataFeedId: "Collateral", value: 0 },
+            { dataFeedId: "KreskoAsset", value: 0 },
+            { dataFeedId: "KreskoAsset2", value: 0 },
+            { dataFeedId: "KreskoAssetPrice10USD", value: 0 },
+            { dataFeedId: "CollateralAsset", value: 0 },
+            { dataFeedId: "CollateralAssetNew", value: 0 },
+            { dataFeedId: "Collateral18Dec", value: 0 },
+            { dataFeedId: "Collateral8Dec", value: 0 },
+            { dataFeedId: "Collateral21Dec", value: 0 },
+            { dataFeedId: "CollateralAsset8Dec", value: 0 },
+            { dataFeedId: "KreskoAssetLiquidation", value: 0 },
+            { dataFeedId: "SecondKreskoAsset", value: 0 },
+            { dataFeedId: "krasset2", value: 0 },
+            { dataFeedId: "krasset3", value: 0 },
+            { dataFeedId: "krasset4", value: 0 },
+            { dataFeedId: "quick", value: 0 },
+            { dataFeedId: "KreskoAssetPrice100USD", value: 0 },
         ],
     });
 
 export const getHealthFactor = async (user: SignerWithAddress) => {
-    const accountKrAssetValue = fromBig(await hre.Diamond.getAccountKrAssetValue(user.address), 8);
-    const accountCollateral = fromBig(await hre.Diamond.getAccountCollateralValue(user.address), 8);
+    const accountKrAssetValue = fromBig(
+        await wrapContractWithSigner(hre.Diamond, hre.users.deployer).getAccountKrAssetValue(user.address),
+        8,
+    );
+    const accountCollateral = fromBig(
+        await wrapContractWithSigner(hre.Diamond, hre.users.deployer).getAccountCollateralValue(user.address),
+        8,
+    );
 
     return accountCollateral / accountKrAssetValue;
 };
@@ -39,15 +62,17 @@ export const leverageKrAsset = async (
     await collateralToUse.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
     await krAsset.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
 
-    const krAssetValue = fromBig(await hre.Diamond.getKrAssetValue(krAsset.address, amount, false), 8);
+    const krAssetValue = fromBig(
+        await wrapContractWithSigner(hre.Diamond, hre.users.deployer).getKrAssetValue(krAsset.address, amount, false),
+        8,
+    );
     const MCR = fromBig(await hre.Diamond.minimumCollateralizationRatio());
     const collateralValueRequired = krAssetValue * MCR;
 
-    const [collateralValue] = await hre.Diamond.getCollateralValueAndOraclePrice(
-        collateralToUse.address,
-        toBig(1),
-        false,
-    );
+    const [collateralValue] = await wrapContractWithSigner(
+        hre.Diamond,
+        hre.users.deployer,
+    ).getCollateralValueAndOraclePrice(collateralToUse.address, toBig(1), false);
 
     const price = fromBig(collateralValue, 8);
     const collateralAmount = collateralValueRequired / price;
@@ -103,11 +128,13 @@ export const leverageKrAsset = async (
     await wrapContractWithSigner(hre.Diamond, user).depositCollateral(user.address, krAsset.address, amount);
 
     // Deposit krAsset and withdraw other collateral to bare minimum of within healthy range
-    const accountMinCollateralRequired = await hre.Diamond.getAccountMinimumCollateralValueAtRatio(
+    const accountMinCollateralRequired = await wrapContractWithSigner(
+        hre.Diamond,
+        hre.users.deployer,
+    ).getAccountMinimumCollateralValueAtRatio(user.address, hre.Diamond.minimumCollateralizationRatio());
+    const accountCollateral = await wrapContractWithSigner(hre.Diamond, hre.users.deployer).getAccountCollateralValue(
         user.address,
-        hre.Diamond.minimumCollateralizationRatio(),
     );
-    const accountCollateral = await hre.Diamond.getAccountCollateralValue(user.address);
 
     const withdrawAmount = fromBig(accountCollateral.sub(accountMinCollateralRequired), 8) / price - 0.1;
     const amountToWithdraw = toBig(withdrawAmount);
@@ -117,7 +144,10 @@ export const leverageKrAsset = async (
             user.address,
             collateralToUse.address,
             amountToWithdraw,
-            await hre.Diamond.getDepositedCollateralAssetIndex(user.address, collateralToUse.address),
+            await wrapContractWithSigner(hre.Diamond, hre.users.deployer).getDepositedCollateralAssetIndex(
+                user.address,
+                collateralToUse.address,
+            ),
         );
 
         // "burn" collateral not needed

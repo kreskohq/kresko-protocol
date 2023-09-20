@@ -1,7 +1,7 @@
 import hre from "hardhat";
 import { expect } from "@test/chai";
 import { Error, Role, withFixture } from "@utils/test";
-import { testnetConfigs } from "@deploy-config/opgoerli";
+import { testnetConfigs } from "@deploy-config/arbitrumGoerli";
 import { anchorTokenPrefix } from "@deploy-config/shared";
 import type { KreskoAssetAnchor } from "types/typechain/src/contracts/kreskoasset/KreskoAssetAnchor";
 
@@ -42,7 +42,7 @@ describe("KreskoAsset", function () {
             expect(await KreskoAsset.hasRole(Role.ADMIN, hre.addr.deployer)).to.equal(true);
             expect(await KreskoAsset.hasRole(Role.OPERATOR, hre.Diamond.address)).to.equal(true);
 
-            expect(await KreskoAsset.totalSupply()).to.equal("64000000000000000000");
+            expect(await KreskoAsset.totalSupply()).to.equal("5000000000000000000");
             expect(await KreskoAsset.isRebased()).to.equal(false);
 
             const rebaseInfo = await KreskoAsset.rebaseInfo();
@@ -102,7 +102,7 @@ describe("KreskoAsset", function () {
             expect(await KreskoAssetAnchor.hasRole(Role.ADMIN, hre.addr.deployer)).to.equal(true);
             expect(await KreskoAssetAnchor.hasRole(Role.OPERATOR, hre.Diamond.address)).to.equal(true);
 
-            expect(await KreskoAssetAnchor.totalSupply()).to.equal("64000000000000000000");
+            expect(await KreskoAssetAnchor.totalSupply()).to.equal("5000000000000000000");
             expect(await KreskoAssetAnchor.totalAssets()).to.equal(await KreskoAsset.totalSupply());
 
             const rebaseInfo = await KreskoAsset.rebaseInfo();

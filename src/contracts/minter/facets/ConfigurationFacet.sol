@@ -214,7 +214,6 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         CollateralAsset memory _config
     ) external nonReentrant onlyRole(Role.ADMIN) collateralAssetDoesNotExist(_collateralAsset) {
         require(_collateralAsset != address(0), Error.ADDRESS_INVALID_COLLATERAL);
-        require(_config.oracle.decimals() == ms().extOracleDecimals, Error.INVALID_ORACLE_DECIMALS);
         require(_config.factor <= Constants.ONE_HUNDRED_PERCENT, Error.COLLATERAL_INVALID_FACTOR);
         require(
             _config.liquidationIncentive >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
@@ -235,18 +234,17 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         /* ---------------------------------- Save ---------------------------------- */
         ms().collateralAssets[_collateralAsset] = CollateralAsset({
             factor: _config.factor,
-            oracle: _config.oracle,
             liquidationIncentive: _config.liquidationIncentive,
             anchor: _config.anchor,
             exists: true,
             decimals: IERC20Permit(_collateralAsset).decimals(),
-            redstoneId: _config.redstoneId
+            id: _config.id,
+            oracles: _config.oracles
         });
 
         emit MinterEvent.CollateralAssetAdded(
             _collateralAsset,
             _config.factor,
-            address(_config.oracle),
             _config.anchor,
             _config.liquidationIncentive
         );
@@ -283,13 +281,10 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         }
 
         /* ------------------------------- Price feed ------------------------------- */
-        if (address(_config.oracle) != address(0)) {
-            require(_config.oracle.decimals() == ms().extOracleDecimals, Error.INVALID_ORACLE_DECIMALS);
-            collateralAsset.oracle = _config.oracle;
-            require(collateralAsset.uintPrice() != 0, Error.ADDRESS_INVALID_ORACLE);
-        }
+        collateralAsset.oracles = _config.oracles;
+        require(collateralAsset.uintPrice(ms().oracleDeviationPct) != 0, Error.ADDRESS_INVALID_ORACLE);
 
-        collateralAsset.redstoneId = _config.redstoneId;
+        collateralAsset.id = _config.id;
 
         /* --------------------------------- cFactor -------------------------------- */
         collateralAsset.factor = _config.factor;
@@ -302,7 +297,6 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         emit MinterEvent.CollateralAssetUpdated(
             _collateralAsset,
             collateralAsset.factor,
-            address(collateralAsset.oracle),
             collateralAsset.anchor,
             collateralAsset.liquidationIncentive
         );
@@ -332,25 +326,21 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         // The diamond needs the operator role
         require(IKreskoAsset(_krAsset).hasRole(Role.OPERATOR, address(this)), Error.NOT_OPERATOR);
 
-        // Oracle decimals must match the configuration.
-        require(_config.oracle.decimals() == ms().extOracleDecimals, Error.INVALID_ORACLE_DECIMALS);
-
         /* ---------------------------------- Save ---------------------------------- */
         ms().kreskoAssets[_krAsset] = KrAsset({
             kFactor: _config.kFactor,
-            oracle: _config.oracle,
             anchor: _config.anchor,
             supplyLimit: _config.supplyLimit,
             closeFee: _config.closeFee,
             openFee: _config.openFee,
             exists: true,
-            redstoneId: _config.redstoneId
+            id: _config.id,
+            oracles: _config.oracles
         });
 
         emit MinterEvent.KreskoAssetAdded(
             _krAsset,
             _config.anchor,
-            address(_config.oracle),
             _config.kFactor,
             _config.supplyLimit,
             _config.closeFee,
@@ -384,12 +374,11 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         }
 
         /* ------------------------------- Price feed ------------------------------- */
-        if (address(_config.oracle) != address(0)) {
-            require(_config.oracle.decimals() == ms().extOracleDecimals, Error.INVALID_ORACLE_DECIMALS);
-            krAsset.oracle = _config.oracle;
-            require(krAsset.uintPrice() != 0, Error.ADDRESS_INVALID_ORACLE);
-        }
-        krAsset.redstoneId = _config.redstoneId;
+
+        krAsset.oracles = _config.oracles;
+        require(krAsset.uintPrice(ms().oracleDeviationPct) != 0, Error.ADDRESS_INVALID_ORACLE);
+
+        krAsset.id = _config.id;
         /* -------------------------- Factors, Fees, Limits ------------------------- */
         krAsset.kFactor = _config.kFactor;
         krAsset.supplyLimit = _config.supplyLimit;
@@ -402,7 +391,6 @@ contract ConfigurationFacet is DiamondModifiers, MinterModifiers, IConfiguration
         emit MinterEvent.KreskoAssetUpdated(
             _krAsset,
             krAsset.anchor,
-            address(krAsset.oracle),
             krAsset.kFactor,
             krAsset.supplyLimit,
             krAsset.closeFee,

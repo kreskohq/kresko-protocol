@@ -30,16 +30,17 @@ export const getKrAssetConfig = async (
     if (!redstone) {
         throw new Error(`Redstone not found for ${await asset.symbol()}`);
     }
+    await wrapContractWithSigner(hre.Diamond, hre.users.deployer).setChainlinkFeeds([redstone], [oracle]);
 
     return {
         anchor,
         kFactor,
-        oracle,
         supplyLimit,
         closeFee,
         openFee,
         exists: true,
-        redstoneId: redstone,
+        oracles: [0, 1],
+        id: redstone,
     };
 };
 
@@ -281,7 +282,10 @@ export const mintKrAsset = async (args: InputArgsSimple) => {
 export const burnKrAsset = async (args: InputArgsSimple) => {
     const convert = typeof args.amount === "string" || typeof args.amount === "number";
     const { user, asset, amount } = args;
-    const kIndex = await hre.Diamond.getMintedKreskoAssetsIndex(user.address, asset.address);
+    const kIndex = await wrapContractWithSigner(hre.Diamond, hre.users.deployer).getMintedKreskoAssetsIndex(
+        user.address,
+        asset.address,
+    );
 
     return wrapContractWithSigner(hre.Diamond, user).burnKreskoAsset(
         user.address,
