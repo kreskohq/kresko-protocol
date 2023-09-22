@@ -1,18 +1,24 @@
 import { anchorTokenPrefix } from "@deploy-config/shared";
 import { toBig, oneRay } from "@kreskolabs/lib";
+import { OracleType } from "./oracles";
 
 export type TestCollateralAssetArgs = {
     name: string;
+    symbol: string;
+    redstoneId: string;
     price: number;
     factor: number;
     decimals: number;
-    oracle?: string;
+    pushOracle?: string;
+    oracleIds?: [OracleType, OracleType];
 };
 
 export type TestCollateralAssetUpdate = {
     name: string;
     factor: number;
-    oracle?: string;
+    pushOracle?: string;
+    oracleIds?: [OracleType, OracleType];
+    redstoneId: string;
 };
 export type InputArgs = {
     user: SignerWithAddress;
@@ -31,18 +37,22 @@ export type TestKreskoAssetArgs = {
     price: number;
     marketOpen: boolean;
     oracle?: string;
+    oracleIds?: [OracleType, OracleType];
     factor: number;
     supplyLimit: number;
     closeFee: number;
     openFee: number;
+    redstoneId: string;
 };
 export type TestKreskoAssetUpdate = {
     name: string;
     oracle?: string;
+    oracleIds?: [OracleType, OracleType];
     factor: number;
     supplyLimit: number;
     closeFee: number;
     openFee: number;
+    redstoneId: string;
 };
 
 export const defaultOraclePrice = 10;
@@ -59,10 +69,12 @@ export const defaultOpenFee = 0; // 0%
 export const BASIS_POINT = oneRay.div(10000);
 export const ONE_PERCENT = oneRay.div(100);
 export const defaultKrAssetArgs = {
-    name: "KreskoAsset",
-    symbol: "KreskoAsset",
-    anchorTokenPrefix: anchorTokenPrefix + "KreskoAsset",
+    name: "MockKreskoAsset",
+    symbol: "MockKreskoAsset",
+    redstoneId: "MockKreskoAsset",
+    anchorTokenPrefix: anchorTokenPrefix + "MockKreskoAsset",
     price: defaultOraclePrice,
+    oracleIds: [OracleType.Redstone, OracleType.Chainlink] as [OracleType, OracleType],
     marketOpen: true,
     factor: 1,
     supplyLimit: defaultSupplyLimit,
@@ -70,11 +82,14 @@ export const defaultKrAssetArgs = {
     openFee: defaultOpenFee,
 };
 
-export const defaultCollateralArgs = {
-    name: "Collateral",
+export const defaultCollateralArgs: TestCollateralAssetArgs = {
+    name: "MockCollateral",
+    symbol: "MockCollateral",
+    redstoneId: "MockCollateral",
     price: defaultOraclePrice,
     factor: 1,
     decimals: defaultDecimals,
+    oracleIds: [OracleType.Redstone, OracleType.Chainlink] as [OracleType, OracleType],
 };
 
 export const getNewMinterParams = (feeRecipient: string) => ({

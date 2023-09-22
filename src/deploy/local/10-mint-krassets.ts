@@ -1,7 +1,7 @@
-import { wrapKresko } from "@deploy-config/arbitrumGoerli";
 import { testnetConfigs } from "@deploy-config/arbitrumGoerli";
 import { fromBig, getLogger, toBig } from "@kreskolabs/lib";
 import { TASK_MINT_OPTIMAL } from "@tasks";
+import { wrapKresko } from "@utils/redstone";
 import type { DeployFunction } from "hardhat-deploy/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -47,6 +47,7 @@ deploy.tags = ["local", "mint-krassets"];
 deploy.dependencies = ["collaterals"];
 
 deploy.skip = async hre => {
+    if (hre.network.name === "hardhat") return true;
     const krAssets = testnetConfigs[hre.network.name].krAssets;
     const kresko = await hre.getContractOrFork("Kresko");
     const lastAsset = await hre.deployments.get(krAssets[krAssets.length - 1].symbol);

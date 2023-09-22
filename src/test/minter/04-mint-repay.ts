@@ -197,6 +197,7 @@ describe("Minter", () => {
                 const secondKrAssetArgs = {
                     name: "SecondKreskoAsset",
                     symbol: "SecondKreskoAsset",
+                    redstoneId: "SecondKreskoAsset",
                     price: 5, // $5
                     marketOpen: true,
                     factor: 1,

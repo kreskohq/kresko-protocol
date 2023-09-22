@@ -53,7 +53,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
 
     function testSetup() public {
         kresko.owner().equals(admin);
-        SCDPCollateral memory usdcConfig = kresko.getDepositAssetSCDP(address(usdc));
+        SCDPCollateral memory usdcConfig = kresko.getCollateralSCDP(address(usdc));
         SCDPKrAsset memory krETHConfig = kresko.getKreskoAssetSCDP(address(krETH));
         kresko.getMinCollateralRatio().equals(1.5e18);
         kresko.getCurrentParametersSCDP().mcr.equals(2e18);

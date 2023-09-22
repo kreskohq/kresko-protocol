@@ -1,16 +1,19 @@
+import hre from "hardhat";
 import { smock } from "@defi-wonderland/smock";
-import { redstoneMap } from "@deploy-config/arbitrumGoerli";
-import { anchorTokenPrefix } from "@deploy-config/shared";
+import { anchorTokenPrefix, allRedstoneAssets } from "@deploy-config/shared";
 import { toBig } from "@kreskolabs/lib";
 import { expect } from "chai";
-import hre from "hardhat";
-import { KreskoAssetAnchor__factory, KreskoAsset__factory, MockAggregatorV3__factory } from "types/typechain";
-import { KrAssetStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
+import { KreskoAssetAnchor__factory, KreskoAsset__factory } from "types/typechain";
+import {
+    KrAssetStruct,
+    OracleConfigurationStruct,
+} from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 import { InputArgsSimple, TestKreskoAssetArgs, TestKreskoAssetUpdate, defaultKrAssetArgs } from "../mocks";
 import roles from "../roles";
 import { getCollateralConfig } from "./collaterals";
 import { wrapContractWithSigner } from "./general";
 import { getMockOracles, setPrice } from "./oracle";
+import { OracleType } from "../oracles";
 
 export const getDebtIndexAdjustedBalance = async (user: SignerWithAddress, asset: TestKrAsset) => {
     const balance = await asset.contract.balanceOf(user.address);
@@ -18,29 +21,41 @@ export const getDebtIndexAdjustedBalance = async (user: SignerWithAddress, asset
 };
 
 export const getKrAssetConfig = async (
-    asset: { symbol: Function },
+    asset: { symbol: Function; redstoneId?: string },
     anchor: string,
     kFactor: BigNumber,
-    oracle: string,
     supplyLimit: BigNumber,
     closeFee: BigNumber,
     openFee: BigNumber,
-): Promise<KrAssetStruct> => {
-    const redstone = redstoneMap[(await asset.symbol()) as keyof typeof redstoneMap];
-    if (!redstone) {
-        throw new Error(`Redstone not found for ${await asset.symbol()}`);
+    oracle: string,
+    customRedstoneId?: string,
+    oracleIds: [OracleType, OracleType] = [OracleType.Redstone, OracleType.Chainlink],
+): Promise<[OracleConfigurationStruct, KrAssetStruct]> => {
+    const redstoneId = customRedstoneId
+        ? hre.ethers.utils.formatBytes32String(customRedstoneId)
+        : allRedstoneAssets[(await asset.symbol()) as keyof typeof allRedstoneAssets];
+    if (!redstoneId) {
+        throw new Error(`redstoneId not found for ${await asset.symbol()}`);
     }
 
-    return {
+    const oracleConfig: OracleConfigurationStruct = {
+        oracleIds: oracleIds,
+        feeds:
+            oracleIds[0] === OracleType.Redstone
+                ? [hre.ethers.constants.AddressZero, oracle]
+                : [oracle, hre.ethers.constants.AddressZero],
+    };
+    const assetConfig: KrAssetStruct = {
         anchor,
         kFactor,
-        oracle,
+        oracles: oracleIds,
         supplyLimit,
         closeFee,
         openFee,
         exists: true,
-        redstoneId: redstone,
+        id: redstoneId,
     };
+    return [oracleConfig, assetConfig];
 };
 
 export const addMockKreskoAsset = async (
@@ -64,10 +79,13 @@ export const addMockKreskoAsset = async (
     krAsset.decimals.returns(18);
 
     // Initialize the underlying krAsset
-    await krAsset.initialize(name, symbol, 18, deployer.address, hre.Diamond.address);
+    const [, akrAsset] = await Promise.all([
+        krAsset.initialize(name, symbol, 18, deployer.address, hre.Diamond.address),
+        anchorFactory.deploy(krAsset.address),
+    ]);
 
     // Create the fixed krAsset
-    const akrAsset = await anchorFactory.deploy(krAsset.address);
+    // const akrAsset = await anchorFactory.deploy(krAsset.address);
 
     await akrAsset.setVariable("_initialized", 0);
 
@@ -76,25 +94,36 @@ export const addMockKreskoAsset = async (
             krAsset,
             akrAsset.address,
             kFactor,
-            MockFeed.address,
             toBig(supplyLimit),
             toBig(closeFee),
             toBig(openFee),
+            MockFeed.address,
+            args.redstoneId,
+            args.oracleIds,
         ),
         akrAsset.initialize(krAsset.address, name, anchorTokenPrefix + symbol, deployer.address),
     ]);
+
     akrAsset.decimals.returns(18);
 
     // Add the asset to the protocol
-
-    await wrapContractWithSigner(hre.Diamond, deployer).addKreskoAsset(krAsset.address, krAssetConfig);
+    await Promise.all([
+        hre.Diamond.connect(deployer).addKreskoAsset(krAsset.address, ...krAssetConfig),
+        krAsset.grantRole(roles.OPERATOR, akrAsset.address),
+    ]);
     if (asCollateral) {
-        await hre.Diamond.connect(deployer).addCollateralAsset(
-            krAsset.address,
-            await getCollateralConfig(krAsset, akrAsset.address, toBig(1), toBig(1.05), MockFeed.address),
+        const config = await getCollateralConfig(
+            krAsset,
+            akrAsset.address,
+            toBig(1),
+            toBig(1.05),
+            MockFeed.address,
+            args.redstoneId,
+            args.oracleIds,
         );
+        await hre.Diamond.connect(deployer).addCollateralAsset(krAsset.address, ...config);
     }
-    await krAsset.grantRole(roles.OPERATOR, akrAsset.address);
+
     const [krAssetHasOperator, akrAssetHasOperator, akrAssetIsOperatorForKrAsset] = await Promise.all([
         krAsset.hasRole(roles.OPERATOR, hre.Diamond.address),
         akrAsset.hasRole(roles.OPERATOR, hre.Diamond.address),
@@ -115,10 +144,10 @@ export const addMockKreskoAsset = async (
         krAsset: true,
         address: krAsset.address,
         // @ts-ignore
-        kresko: async () => await hre.Diamond.getKreskoAsset(krAsset.address),
+        kresko: async () => hre.Diamond.getKreskoAsset(krAsset.address),
         deployArgs: args,
         contract: KreskoAsset__factory.connect(krAsset.address, deployer),
-        priceFeed: MockAggregatorV3__factory.connect(MockFeed.address, deployer),
+        priceFeed: MockFeed.connect(deployer),
         mocks,
         anchor: KreskoAssetAnchor__factory.connect(akrAsset.address, deployer),
         setPrice: price => setPrice(mocks, price),
@@ -145,6 +174,7 @@ export const addMockKreskoAsset = async (
             ]);
             return true;
         },
+        setOracleOrder: order => hre.Diamond.updateKrAssetOracleOrder(krAsset.address, order),
         getPrice: async () => (await MockFeed.latestRoundData())[1],
         update: update => updateKrAsset(krAsset.address, update),
     };
@@ -165,15 +195,17 @@ export const updateKrAsset = async (address: string, args: TestKreskoAssetUpdate
     const krAsset = hre.krAssets.find(c => c.address === address)!;
     await wrapContractWithSigner(hre.Diamond, deployer).updateKreskoAsset(
         krAsset.address,
-        await getKrAssetConfig(
+        ...(await getKrAssetConfig(
             krAsset.contract,
             krAsset.mocks.anchor!.address,
             toBig(args.factor),
-            args.oracle || krAsset.mocks.mockFeed.address,
             toBig(args.supplyLimit, await krAsset.contract.decimals()),
             toBig(args.closeFee),
             toBig(args.openFee),
-        ),
+            args.oracle || krAsset.mocks.mockFeed.address,
+            args.redstoneId,
+            args.oracleIds,
+        )),
     );
 
     const asset: TestKrAsset = {

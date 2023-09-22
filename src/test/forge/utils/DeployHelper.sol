@@ -3,8 +3,8 @@ pragma solidity >=0.8.19;
 import {AggregatorV3Interface} from "vendor/AggregatorV3Interface.sol";
 import {GnosisSafeL2} from "vendor/gnosis/GnosisSafeL2.sol";
 import {GnosisSafeProxyFactory, GnosisSafeProxy} from "vendor/gnosis/GnosisSafeProxyFactory.sol";
+import {IKresko} from "periphery/IKresko.sol";
 
-import {IKresko} from "common/IKresko.sol";
 import {DiamondHelper} from "./DiamondHelper.sol";
 
 import {Diamond} from "diamond/Diamond.sol";
@@ -23,8 +23,8 @@ import {StateFacet} from "minter/facets/StateFacet.sol";
 import {LiquidationFacet} from "minter/facets/LiquidationFacet.sol";
 import {ConfigurationFacet} from "minter/facets/ConfigurationFacet.sol";
 import {SafetyCouncilFacet} from "minter/facets/SafetyCouncilFacet.sol";
-import {BurnHelperFacet} from "minter/facets/BurnHelperFacet.sol";
 import {MinterInitArgs, KrAsset, CollateralAsset} from "minter/Types.sol";
+// import {BurnHelperFacet} from "minter/facets/BurnHelperFacet.sol";
 
 import {SCDPStateFacet} from "scdp/facets/SCDPStateFacet.sol";
 import {SCDPFacet} from "scdp/facets/SCDPFacet.sol";
@@ -32,14 +32,15 @@ import {SCDPSwapFacet} from "scdp/facets/SCDPSwapFacet.sol";
 import {SCDPConfigFacet} from "scdp/facets/SCDPConfigFacet.sol";
 import {SDIFacet} from "scdp/facets/SDIFacet.sol";
 import {SCDPInitArgs, SCDPCollateral, SCDPKrAsset, PairSetter} from "scdp/Types.sol";
-
+import {OracleConfiguration, OracleType} from "oracle/Types.sol";
+import {OracleConfigFacet} from "oracle/facets/OracleConfigFacet.sol";
+import {OracleViewFacet} from "oracle/facets/OracleViewFacet.sol";
 import {MockOracle} from "test/MockOracle.sol";
 import {MockERC20} from "test/MockERC20.sol";
 
 import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {KreskoAssetAnchor} from "kresko-asset/KreskoAssetAnchor.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
-
 import {RedstoneHelper} from "./RedstoneHelper.sol";
 
 abstract contract DeployHelper is RedstoneHelper {
@@ -117,7 +118,7 @@ abstract contract DeployHelper is RedstoneHelper {
         address sequencerUptimeFeed
     ) internal returns (FacetCut[] memory, Initialization memory) {
         address configurationFacetAddress = address(new ConfigurationFacet());
-        FacetCut[] memory _diamondCut = new FacetCut[](9);
+        FacetCut[] memory _diamondCut = new FacetCut[](10);
         _diamondCut[0] = FacetCut({
             facetAddress: address(new MintFacet()),
             action: FacetCutAction.Add,
@@ -143,26 +144,37 @@ abstract contract DeployHelper is RedstoneHelper {
             action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("DepositWithdrawFacet")
         });
+
         _diamondCut[5] = FacetCut({
-            facetAddress: address(new BurnHelperFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: DiamondHelper.getSelectorsFromArtifact("BurnHelperFacet")
-        });
-        _diamondCut[6] = FacetCut({
             facetAddress: address(new AccountStateFacet()),
             action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("AccountStateFacet")
         });
-        _diamondCut[7] = FacetCut({
+        _diamondCut[6] = FacetCut({
             facetAddress: address(new LiquidationFacet()),
             action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("LiquidationFacet")
         });
-        _diamondCut[8] = FacetCut({
+        _diamondCut[7] = FacetCut({
             facetAddress: address(new SafetyCouncilFacet()),
             action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("SafetyCouncilFacet")
         });
+        _diamondCut[8] = FacetCut({
+            facetAddress: address(new OracleConfigFacet()),
+            action: FacetCutAction.Add,
+            functionSelectors: DiamondHelper.getSelectorsFromArtifact("OracleConfigFacet")
+        });
+        _diamondCut[9] = FacetCut({
+            facetAddress: address(new OracleViewFacet()),
+            action: FacetCutAction.Add,
+            functionSelectors: DiamondHelper.getSelectorsFromArtifact("OracleViewFacet")
+        });
+        // _diamondCut[10] = FacetCut({
+        //     facetAddress: address(new BurnHelperFacet()),
+        //     action: FacetCutAction.Add,
+        //     functionSelectors: DiamondHelper.getSelectorsFromArtifact("BurnHelperFacet")
+        // });
 
         bytes memory initData = abi.encodeWithSelector(
             ConfigurationFacet.initializeMinter.selector,
@@ -219,7 +231,7 @@ abstract contract DeployHelper is RedstoneHelper {
         bytes memory redstonePayload = getRedstonePayload(prices);
         (bool success, bytes memory data) = address(kresko).call(
             abi.encodePacked(
-                abi.encodeWithSelector(kresko.enableCollateralsSCDP.selector, assets, configurations),
+                abi.encodeWithSelector(kresko.enableDepositAssetsSCDP.selector, assets, configurations),
                 redstonePayload
             )
         );
@@ -270,16 +282,20 @@ abstract contract DeployHelper is RedstoneHelper {
         anchor.initialize(IKreskoAsset(krAsset), string.concat("a", _symbol), string.concat("a", _symbol), admin);
 
         krAsset.grantRole(keccak256("kresko.roles.minter.operator"), address(anchor));
+        oracle = new MockOracle(price, 8);
+        OracleType[2] memory oracleTypes = [OracleType.Redstone, OracleType.Chainlink];
+
         kresko.addKreskoAsset(
             address(krAsset),
+            OracleConfiguration(oracleTypes, [address(0), address(oracle)]),
             KrAsset({
                 supplyLimit: type(uint256).max,
                 closeFee: 0.02e18,
                 openFee: 0,
                 exists: true,
-                redstoneId: redstoneId,
+                id: redstoneId,
                 anchor: address(anchor),
-                oracle: AggregatorV3Interface(address(oracle = new MockOracle(price, 8))),
+                oracles: oracleTypes,
                 kFactor: 1.2e18
             })
         );
@@ -293,15 +309,18 @@ abstract contract DeployHelper is RedstoneHelper {
         uint256 price
     ) internal returns (MockERC20 collateral, MockOracle oracle) {
         collateral = new MockERC20(id, id, decimals, 0);
+        oracle = new MockOracle(price, 8);
+        OracleType[2] memory oracleTypes = [OracleType.Redstone, OracleType.Chainlink];
 
         kresko.addCollateralAsset(
             address(collateral),
+            OracleConfiguration(oracleTypes, [address(0), address(oracle)]),
             CollateralAsset({
-                exists: true,
-                redstoneId: redstoneId,
-                anchor: address(0),
-                oracle: AggregatorV3Interface(address(oracle = new MockOracle(price, 8))),
                 factor: 1e18,
+                exists: true,
+                id: redstoneId,
+                anchor: address(0),
+                oracles: oracleTypes,
                 decimals: decimals,
                 liquidationIncentive: 1.1e18
             })
@@ -310,13 +329,16 @@ abstract contract DeployHelper is RedstoneHelper {
     }
 
     function whitelistCollateral(address collateral, address anchor, address oracle, bytes32 redstoneId) internal {
+        OracleType[2] memory oracleTypes = [OracleType.Redstone, OracleType.Chainlink];
+
         kresko.addCollateralAsset(
             collateral,
+            OracleConfiguration(oracleTypes, [address(0), oracle]),
             CollateralAsset({
                 exists: true,
-                redstoneId: redstoneId,
+                id: redstoneId,
                 anchor: anchor,
-                oracle: AggregatorV3Interface(oracle),
+                oracles: oracleTypes,
                 factor: 1e18,
                 decimals: MockERC20(collateral).decimals(),
                 liquidationIncentive: 1.1e18

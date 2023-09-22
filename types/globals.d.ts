@@ -9,9 +9,13 @@ import type { BytesLike } from "ethers";
 import { DeployResult } from "hardhat-deploy/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ContractTypes } from "types";
-import { KreskoAssetAnchor } from "types/typechain/src/contracts/kresko-asset";
 import type * as Contracts from "./typechain";
-import { CollateralAssetStruct, KrAssetStructOutput } from "./typechain/src/contracts/minter/facets/StateFacet";
+import { OracleType } from "@utils/test/oracles";
+import {
+    KrAssetStructOutput,
+    CollateralAssetStruct,
+} from "./typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
+import { MockOracle } from "./typechain";
 declare global {
     const hre: HardhatRuntimeEnvironment;
     /* -------------------------------------------------------------------------- */
@@ -28,14 +32,15 @@ declare global {
         kresko: () => Promise<KrAssetStructOutput>;
         mocks: {
             contract: MockContract<Contracts.KreskoAsset>;
-            mockFeed: MockContract<Contracts.MockAggregatorV3>;
-            fakeFeed: FakeContract<Contracts.MockAggregatorV3>;
-            anchor?: MockContract<KreskoAssetAnchor>;
+            mockFeed: MockContract<Contracts.MockOracle>;
+            fakeFeed: FakeContract<Contracts.MockOracle>;
+            anchor?: MockContract<Contracts.KreskoAssetAnchor>;
         };
-        anchor: KreskoAssetAnchor;
-        priceFeed: Contracts.MockAggregatorV3;
+        anchor: Contracts.KreskoAssetAnchor;
+        priceFeed: MockContract<MockOracle> | FakeContract<MockOracle>;
         setBalance: (user: SignerWithAddress, balance: BigNumber) => Promise<true>;
         setPrice: (price: number) => void;
+        setOracleOrder: (order: [OracleType, OracleType]) => void;
         getPrice: () => Promise<BigNumber>;
         update: (update: TestKreskoAssetUpdate) => Promise<TestKrAsset>;
     };
@@ -48,13 +53,14 @@ declare global {
         kresko: () => Promise<CollateralAssetStruct>;
         mocks?: {
             contract: MockContract<KreskoAsset | Contracts.ERC20Upgradeable>;
-            mockFeed: MockContract<Contracts.MockAggregatorV3>;
-            fakeFeed: FakeContract<Contracts.MockAggregatorV3>;
-            anchor?: MockContract<KreskoAssetAnchor>;
+            mockFeed: MockContract<Contracts.MockOracle>;
+            fakeFeed: FakeContract<Contracts.MockOracle>;
+            anchor?: MockContract<Contracts.KreskoAssetAnchor>;
         };
-        priceFeed: Contracts.MockAggregatorV3;
-        anchor: KreskoAssetAnchor;
+        priceFeed: MockContract<MockOracle> | FakeContract<MockOracle>;
+        anchor: Contracts.KreskoAssetAnchor;
         setPrice: (price: number) => void;
+        setOracleOrder: (order: [OracleType, OracleType]) => Promise<any>;
         setBalance: (user: SignerWithAddress, amount: BigNumber) => Promise<true>;
         getPrice: () => Promise<BigNumber>;
         update: (update: TestCollateralAssetUpdate) => Promise<TestCollateral>;
@@ -67,19 +73,19 @@ declare global {
     /* -------------------------------------------------------------------------- */
     /*                                   Oracles                                  */
     /* -------------------------------------------------------------------------- */
-    type UniV2Router = Contracts.UniswapV2Router02;
-    type UniV2Factory = Contracts.UniswapV2Factory;
+    // type UniV2Router = Contracts.UniswapV2Router02;
+    // type UniV2Factory = Contracts.UniswapV2Factory;
     /* -------------------------------------------------------------------------- */
     /*                               Misc Contracts                               */
     /* -------------------------------------------------------------------------- */
 
     type Contract = import("ethers").Contract;
-    type GnosisSafeL2 = TC["GnosisSafeL2"];
+    type GnosisSafeL2 = any;
 
     type KreskoAsset = TC["KreskoAsset"];
-    type KrStaking = TC["KrStaking"];
+    type KrStaking = any;
     type ERC20Upgradeable = TC["ERC20Upgradeable"];
-    type IERC20 = TC["IERC20"];
+    type IERC20 = TC["IERC20Permit"];
     type BigNumberish = import("ethers").BigNumberish;
     type BigNumber = import("ethers").BigNumber;
     /* -------------------------------------------------------------------------- */

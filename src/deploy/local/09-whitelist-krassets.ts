@@ -18,8 +18,8 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         const oracleAddr = hre.network.live
             ? krAsset.oracle.chainlink
             : (
-                  await hre.deploy("SimpleFeed", {
-                      deploymentName: "SimpleFeed_" + krAsset.symbol,
+                  await hre.deploy("MockOracle", {
+                      deploymentName: "MockOracle_" + krAsset.symbol,
                       args: [`${krAsset.symbol}/USD`, await krAsset.price()],
                   })
               )[0].address;

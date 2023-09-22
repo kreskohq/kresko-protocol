@@ -5,6 +5,8 @@ import hre, { ethers } from "hardhat";
 import { defaultCloseFee } from "../mocks";
 import { getCollateralConfig } from "./collaterals";
 import { getKrAssetConfig } from "./krassets";
+import { defaultRedstoneDataPoints } from "@deploy-config/shared";
+import { wrapKresko } from "@utils/redstone";
 
 /* -------------------------------------------------------------------------- */
 /*                                  GENERAL                                   */
@@ -15,13 +17,7 @@ export const wrapContractWithSigner = <T>(contract: T, signer: Signer) =>
     WrapperBuilder.wrap(contract.connect(signer)).usingSimpleNumericMock({
         mockSignersCount: 1,
         timestampMilliseconds: Date.now(),
-        dataPoints: [
-            { dataFeedId: "DAI", value: 0 },
-            { dataFeedId: "USDC", value: 0 },
-            { dataFeedId: "TSLA", value: 0 },
-            { dataFeedId: "ETH", value: 0 },
-            { dataFeedId: "BTC", value: 0 },
-        ],
+        dataPoints: defaultRedstoneDataPoints,
     }) as T;
 
 export const getHealthFactor = async (user: SignerWithAddress) => {
@@ -37,14 +33,20 @@ export const leverageKrAsset = async (
     collateralToUse: TestCollateral,
     amount: BigNumber,
 ) => {
-    await collateralToUse.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
-    await krAsset.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
-
-    const krAssetValue = fromBig(await hre.Diamond.getDebtAmountToValue(krAsset.address, amount, false), 8);
-    const MCR = fromBig(await hre.Diamond.getMinCollateralRatio());
+    const [krAssetValueBig, mcrBig, [collateralValue], collateralToUseInfo, krAssetInfo, krAssetCollateralInfo] =
+        await Promise.all([
+            hre.Diamond.getDebtAmountToValue(krAsset.address, amount, false),
+            hre.Diamond.getMinCollateralRatio(),
+            hre.Diamond.getCollateralAmountToValue(collateralToUse.address, toBig(1), false),
+            hre.Diamond.getCollateralAsset(collateralToUse.address),
+            hre.Diamond.getKreskoAsset(krAsset.address),
+            hre.Diamond.getCollateralAsset(krAsset.address),
+            collateralToUse.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256),
+            krAsset.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256),
+        ]);
+    const krAssetValue = fromBig(krAssetValueBig, 8);
+    const MCR = fromBig(mcrBig);
     const collateralValueRequired = krAssetValue * MCR;
-
-    const [collateralValue] = await hre.Diamond.getCollateralAmountToValue(collateralToUse.address, toBig(1), false);
 
     const price = fromBig(collateralValue, 8);
     const collateralAmount = collateralValueRequired / price;
@@ -52,52 +54,60 @@ export const leverageKrAsset = async (
     await collateralToUse.mocks?.contract.setVariable("_balances", {
         [user.address]: toBig(collateralAmount),
     });
-    if (!(await hre.Diamond.getCollateralAsset(collateralToUse.address)).exists) {
-        await wrapContractWithSigner(hre.Diamond, hre.users.deployer).addCollateralAsset(
-            collateralToUse.address,
-            await getCollateralConfig(
-                collateralToUse.contract,
-                collateralToUse.anchor ? collateralToUse.anchor.address : ethers.constants.AddressZero,
-                toBig(1),
-                toBig(process.env.LIQUIDATION_INCENTIVE!),
-                collateralToUse.priceFeed.address,
-            ),
-        );
-    }
-    await wrapContractWithSigner(hre.Diamond, user).depositCollateral(
-        user.address,
-        collateralToUse.address,
-        toBig(collateralAmount),
-    );
-    if (!(await hre.Diamond.getKreskoAsset(krAsset.address)).exists) {
-        await wrapContractWithSigner(hre.Diamond, hre.users.deployer).addKreskoAsset(
-            krAsset.address,
-            await getKrAssetConfig(
-                krAsset.contract,
-                krAsset.anchor.address,
-                toBig(1),
-                krAsset.priceFeed.address,
-                toBig(1_000_000),
-                toBig(defaultCloseFee),
-                BigNumber.from(0),
-            ),
-        );
-    }
-    await wrapContractWithSigner(hre.Diamond, user).mintKreskoAsset(user.address, krAsset.address, amount);
 
-    if (!(await hre.Diamond.getCollateralAsset(krAsset.address)).exists) {
-        await wrapContractWithSigner(hre.Diamond, hre.users.deployer).addCollateralAsset(
-            krAsset.address,
-            await getCollateralConfig(
-                krAsset.contract,
-                krAsset.anchor.address,
-                toBig(1),
-                toBig(process.env.LIQUIDATION_INCENTIVE!),
-                krAsset.priceFeed.address,
+    let addPromises: Promise<any>[] = [];
+    if (!collateralToUseInfo.exists) {
+        addPromises.push(
+            hre.Diamond.addCollateralAsset(
+                collateralToUse.address,
+                ...(await getCollateralConfig(
+                    collateralToUse.contract,
+                    collateralToUse.anchor ? collateralToUse.anchor.address : ethers.constants.AddressZero,
+                    toBig(1),
+                    toBig(process.env.LIQUIDATION_INCENTIVE!),
+                    collateralToUse.priceFeed.address,
+                    "MockCollateral8",
+                )),
             ),
         );
     }
-    await wrapContractWithSigner(hre.Diamond, user).depositCollateral(user.address, krAsset.address, amount);
+    if (!krAssetInfo.exists) {
+        addPromises.push(
+            hre.Diamond.addKreskoAsset(
+                krAsset.address,
+                ...(await getKrAssetConfig(
+                    krAsset.contract,
+                    krAsset.anchor.address,
+                    toBig(1),
+                    toBig(1_000_000),
+                    toBig(defaultCloseFee),
+                    BigNumber.from(0),
+                    krAsset.priceFeed.address,
+                )),
+            ),
+        );
+    }
+    if (!krAssetCollateralInfo.exists) {
+        addPromises.push(
+            hre.Diamond.addCollateralAsset(
+                krAsset.address,
+                ...(await getCollateralConfig(
+                    krAsset.contract,
+                    krAsset.anchor.address,
+                    toBig(1),
+                    toBig(process.env.LIQUIDATION_INCENTIVE!),
+                    krAsset.priceFeed.address,
+                )),
+            ),
+        );
+    }
+    await Promise.all(addPromises);
+    const UserKresko = wrapKresko(hre.Diamond, user);
+    await UserKresko.depositCollateral(user.address, collateralToUse.address, toBig(collateralAmount));
+    await Promise.all([
+        UserKresko.mintKreskoAsset(user.address, krAsset.address, amount),
+        UserKresko.depositCollateral(user.address, krAsset.address, amount),
+    ]);
 
     // Deposit krAsset and withdraw other collateral to bare minimum of within healthy range
     const accountMinCollateralRequired = await hre.Diamond.getAccountMinCollateralAtRatio(
@@ -110,11 +120,11 @@ export const leverageKrAsset = async (
     const amountToWithdraw = toBig(withdrawAmount);
 
     if (amountToWithdraw.gt(0)) {
-        await wrapContractWithSigner(hre.Diamond, user).withdrawCollateral(
+        await UserKresko.withdrawCollateral(
             user.address,
             collateralToUse.address,
             amountToWithdraw,
-            await hre.Diamond.getAccountDepositIndex(user.address, collateralToUse.address),
+            hre.Diamond.getAccountDepositIndex(user.address, collateralToUse.address),
         );
 
         // "burn" collateral not needed

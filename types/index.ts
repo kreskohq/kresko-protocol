@@ -1,7 +1,7 @@
 import { GetContractTypes } from "@kreskolabs/configs";
 import { Address } from "hardhat-deploy/types";
 import type * as Contracts from "./typechain";
-import { ISCDPConfigFacet } from "./typechain/src/contracts/scdp/interfaces";
+import { SCDPInitArgsStruct } from "./typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 
 export type Split<S extends string, D extends string> = string extends S
     ? string[]
@@ -39,13 +39,7 @@ export type ContractNames = keyof ContractTypes;
 
 export type ContractExports =
     | Contracts.Diamond
-    | Contracts.Multisender
-    | Contracts.UniswapMath
-    | Contracts.UniswapV2LiquidityMathLibrary
     | Contracts.WETH9
-    | Contracts.UniswapV2Pair
-    | Contracts.UniswapV2Factory
-    | Contracts.UniswapV2Router02
     | Contracts.KreskoAsset
     | Contracts.KreskoAssetAnchor
     | Contracts.AggregatorV3Interface
@@ -82,11 +76,6 @@ export type NetworkConfig = {
         protocolParams: Omit<KreskoConstructor, "feeRecipient">;
         collaterals: Asset[];
         krAssets: Asset[];
-        pools: [Asset, Asset, number][];
-        rewardTokens: Asset[];
-        rewardTokenAmounts: number[];
-        rewardsPerBlock: number[];
-        stakingPools: StakingPoolConfig[];
         gnosisSafeDeployments?: GnosisSafeDeployment[];
     };
 };
@@ -97,7 +86,7 @@ export type MinterInitializer<A> = {
 };
 export type SCDPInitializer = {
     name: "SCDPConfigFacet";
-    args: ISCDPConfigFacet.SCDPInitArgsStruct;
+    args: SCDPInitArgsStruct;
 };
 
 export type GnosisSafeDeployment = {

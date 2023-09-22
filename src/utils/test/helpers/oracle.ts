@@ -1,15 +1,13 @@
 import { smock } from "@defi-wonderland/smock";
 import { toBig } from "@kreskolabs/lib";
-import { MockAggregatorV3__factory } from "types/typechain";
 import { defaultOraclePrice } from "../mocks";
-import { MockAggregatorV3 } from "types/typechain/src/contracts/test/MockOracleFull.sol";
+import { MockOracle, MockOracle__factory } from "types/typechain";
 
 export const getMockOracles = async (price = defaultOraclePrice, marketOpen = true) => {
-    const MockFeed = await (await smock.mock<MockAggregatorV3__factory>("MockAggregatorV3")).deploy();
-    MockFeed.latestRoundData.returns([1, toBig(price, 8), 1, 1, 1]);
+    const MockFeed = await (await smock.mock<MockOracle__factory>("MockOracle")).deploy("SOME/FEED", toBig(price, 8));
     MockFeed.decimals.returns(8);
 
-    const FakeFeed = await smock.fake<MockAggregatorV3>("MockAggregatorV3");
+    const FakeFeed = await smock.fake<MockOracle>("MockOracle");
     FakeFeed.latestRoundData.returns([1, toBig(price, 8), 1, 1, 1]);
     FakeFeed.decimals.returns(8);
 

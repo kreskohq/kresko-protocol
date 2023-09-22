@@ -5,6 +5,8 @@ import { task, types } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
 import { TASK_WHITELIST_KRASSET } from "./names";
 import { redstoneMap } from "@deploy-config/arbitrumGoerli";
+import { OracleType } from "@utils/test/oracles";
+import { OracleConfigurationStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 
 task(TASK_WHITELIST_KRASSET)
     .addParam("symbol", "Name of the asset")
@@ -22,21 +24,22 @@ task(TASK_WHITELIST_KRASSET)
         }
         hre.checkAddress(oracleAddr, `Invalid oracle address: ${oracleAddr}, Kresko Asset: ${symbol}`);
 
-        const kresko = await hre.getContractOrFork("Kresko");
+        const Kresko = await hre.getContractOrFork("Kresko");
 
         const KrAsset = await hre.getContractOrFork("KreskoAsset", symbol);
         const KrAssetAnchor = await hre.getDeploymentOrFork(`${anchorTokenPrefix}${symbol}`);
 
-        const krAssetInfo = await kresko.getKreskoAsset(KrAsset.address);
+        const krAssetInfo = await Kresko.getKreskoAsset(KrAsset.address);
         const exists = krAssetInfo.exists;
 
-        const redstone = redstoneMap[symbol as keyof typeof redstoneMap];
-        if (!redstone) throw new Error(`Redstone not found for ${symbol}`);
+        const redstoneId = redstoneMap[symbol as keyof typeof redstoneMap];
+        if (!redstoneId) throw new Error(`Redstone not found for ${symbol}`);
 
         if (exists) {
             logger.warn(`KrAsset ${symbol} already exists! Skipping..`);
         } else {
             logger.log(`Whitelisting Kresko Asset: ${symbol}, anchor: ${KrAssetAnchor?.address}}`);
+            const oracles: [number, number] = [OracleType.Redstone, OracleType.Chainlink];
             const config = {
                 anchor: KrAssetAnchor ? KrAssetAnchor.address : KrAsset.address,
                 kFactor: toBig(kFactor),
@@ -45,9 +48,14 @@ task(TASK_WHITELIST_KRASSET)
                 closeFee: toBig(0.02),
                 openFee: toBig(0),
                 exists: true,
-                redstoneId: redstone,
+                id: redstoneId,
+                oracles: oracles,
             };
-            const tx = await kresko.addKreskoAsset(KrAsset.address, config);
+            const oracleConfig: OracleConfigurationStruct = {
+                oracleIds: oracles,
+                feeds: [hre.ethers.constants.AddressZero, oracleAddr],
+            };
+            const tx = await Kresko.addKreskoAsset(KrAsset.address, oracleConfig, config);
             logger.success("txHash", tx.hash);
             await tx.wait();
             logger.success(`Succesfully whitelisted Kresko Asset ${symbol} with a kFactor of ${kFactor}`);

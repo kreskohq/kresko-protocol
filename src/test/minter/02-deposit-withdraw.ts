@@ -19,6 +19,7 @@ import {
     withdrawCollateral,
 } from "@utils/test/helpers/collaterals";
 import { addMockKreskoAsset } from "@utils/test/helpers/krassets";
+import { OracleType } from "@utils/test/oracles";
 import { expect } from "chai";
 import { BigNumber } from "ethers";
 import hre from "hardhat";
@@ -64,6 +65,7 @@ describe("Minter - Deposit Withdraw", () => {
                     openFee: 0,
                     price: 10,
                     supplyLimit: 2_000,
+                    redstoneId: "NewKreskoAsset",
                 });
 
                 await newKrAsset.setBalance(arbitraryUser, collateralAmount);
@@ -75,13 +77,13 @@ describe("Minter - Deposit Withdraw", () => {
 
                 await wrapContractWithSigner(hre.Diamond, hre.users.deployer).addCollateralAsset(
                     newKrAsset.address,
-                    await getCollateralConfig(
+                    ...(await getCollateralConfig(
                         newKrAsset.contract,
                         newKrAsset.anchor.address,
                         toBig(1),
                         toBig(1.05),
                         newKrAsset.priceFeed.address,
-                    ),
+                    )),
                 );
                 const depositAmount = collateralAmount.div(2);
                 await wrapContractWithSigner(hre.Diamond, arbitraryUser).depositCollateral(
@@ -123,6 +125,7 @@ describe("Minter - Deposit Withdraw", () => {
                     openFee: 0,
                     price: 10,
                     supplyLimit: 2_000,
+                    redstoneId: "NewKreskoAsset",
                 });
 
                 await newKrAsset.setBalance(arbitraryUser, collateralAmount);
@@ -134,13 +137,13 @@ describe("Minter - Deposit Withdraw", () => {
 
                 await wrapContractWithSigner(hre.Diamond, hre.users.deployer).addCollateralAsset(
                     newKrAsset.address,
-                    await getCollateralConfig(
+                    ...(await getCollateralConfig(
                         newKrAsset.contract,
                         newKrAsset.anchor.address,
                         toBig(1),
                         toBig(1.05),
                         newKrAsset.priceFeed.address,
-                    ),
+                    )),
                 );
 
                 await expect(
@@ -275,7 +278,8 @@ describe("Minter - Deposit Withdraw", () => {
             it("should allow an account to have deposited multiple collateral assets", async function () {
                 // Load user account with a different type of collateral
                 const collateralArgs = {
-                    name: "Collateral18Dec",
+                    ...defaultCollateralArgs,
+                    redstoneId: "Collateral18Dec",
                     price: defaultOraclePrice, // $1
                     factor: 1,
                     decimals: defaultDecimals,
@@ -699,18 +703,17 @@ describe("Minter - Deposit Withdraw", () => {
                 this.krAsset = this.krAssets!.find(k => k.deployArgs!.name === defaultKrAssetArgs.name)!;
                 // grant operator role to deployer for rebases
                 await this.krAsset!.contract.grantRole(Role.OPERATOR, hre.users.deployer.address);
-                const assetInfo = await this.krAsset!.kresko();
 
                 // Add krAsset as a collateral with anchor and cFactor of 1
                 await wrapContractWithSigner(hre.Diamond, hre.users.deployer).addCollateralAsset(
                     this.krAsset!.contract.address,
-                    await getCollateralConfig(
+                    ...(await getCollateralConfig(
                         this.krAsset.contract,
                         this.krAsset!.anchor!.address,
                         toBig(1),
                         toBig(1.05),
-                        assetInfo.oracle,
-                    ),
+                        await hre.Diamond.getFeedForAddress(this.krAsset.address, OracleType.Chainlink),
+                    )),
                 );
 
                 // Allowance for Kresko
@@ -1201,18 +1204,17 @@ describe("Minter - Deposit Withdraw", () => {
                 this.krAsset = this.krAssets!.find(k => k.deployArgs!.name === defaultKrAssetArgs.name)!;
                 // grant operator role to deployer for rebases
                 await this.krAsset!.contract.grantRole(Role.OPERATOR, hre.users.deployer.address);
-                const assetInfo = await this.krAsset!.kresko();
 
                 // Add krAsset as a collateral with anchor and cFactor of 1
                 await wrapContractWithSigner(hre.Diamond, hre.users.deployer).addCollateralAsset(
                     this.krAsset!.contract.address,
-                    await getCollateralConfig(
+                    ...(await getCollateralConfig(
                         this.krAsset.contract,
                         this.krAsset!.anchor!.address,
                         toBig(1),
                         toBig(1.05),
-                        assetInfo.oracle,
-                    ),
+                        await hre.Diamond.getFeedForAddress(this.krAsset.address, OracleType.Chainlink),
+                    )),
                 );
 
                 // Allowance for Kresko

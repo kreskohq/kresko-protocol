@@ -1,6 +1,6 @@
 import { getPriceFromTwelveData, toBig } from "@kreskolabs/lib";
 import { ethers } from "ethers";
-import { Asset, GnosisSafeDeployment, NetworkConfig, StakingPoolConfig } from "types";
+import { Asset, GnosisSafeDeployment, NetworkConfig } from "types";
 import {
     CompatibilityFallbackHandler,
     CreateCall,
@@ -12,8 +12,6 @@ import {
     SignMessageLib,
     SimulateTxAccessor,
 } from "./gnosis-safe";
-import { WrapperBuilder } from "@redstone-finance/evm-connector";
-import { Kresko } from "types/typechain";
 
 const defaultParams: Omit<KreskoConstructor, "feeRecipient"> = {
     extOracleDecimals: 8,
@@ -25,38 +23,7 @@ const defaultParams: Omit<KreskoConstructor, "feeRecipient"> = {
     sequencerUptimeFeed: "0x4da69F028a5790fCCAfe81a75C0D24f46ceCDd69",
     oracleTimeout: ethers.constants.MaxUint256,
 };
-export const wrapKresko = (contract: Kresko, signer: any) =>
-    WrapperBuilder.wrap(contract.connect(signer)).usingSimpleNumericMock({
-        mockSignersCount: 1,
-        timestampMilliseconds: Date.now(),
-        dataPoints: [
-            { dataFeedId: "DAI", value: 0 },
-            { dataFeedId: "USDC", value: 0 },
-            { dataFeedId: "USDf", value: 0 },
-            { dataFeedId: "ETH", value: 0 },
-            { dataFeedId: "BTC", value: 0 },
-        ],
-    }) as Kresko;
 
-const redstoneTestAssets = {
-    Collateral: ethers.utils.formatBytes32String("USDC"),
-    KreskoAsset: ethers.utils.formatBytes32String("USDC"),
-    KreskoAsset1: ethers.utils.formatBytes32String("USDC"),
-    KreskoAsset2: ethers.utils.formatBytes32String("USDC"),
-    KreskoAssetPrice10USD: ethers.utils.formatBytes32String("USDC"),
-    CollateralAsset: ethers.utils.formatBytes32String("USDC"),
-    Collateral18Dec: ethers.utils.formatBytes32String("USDC"),
-    Collateral8Dec: ethers.utils.formatBytes32String("USDC"),
-    Collateral21Dec: ethers.utils.formatBytes32String("USDC"),
-    CollateralAsset8Dec: ethers.utils.formatBytes32String("USDC"),
-    KreskoAssetLiquidation: ethers.utils.formatBytes32String("USDC"),
-    SecondKreskoAsset: ethers.utils.formatBytes32String("USDC"),
-    krasset2: ethers.utils.formatBytes32String("USDC"),
-    krasset3: ethers.utils.formatBytes32String("USDC"),
-    krasset4: ethers.utils.formatBytes32String("USDC"),
-    quick: ethers.utils.formatBytes32String("USDC"),
-    KreskoAssetPrice100USD: ethers.utils.formatBytes32String("USDC"),
-};
 export const redstoneMap = {
     krETH: ethers.utils.formatBytes32String("ETH"),
     krBTC: ethers.utils.formatBytes32String("BTC"),
@@ -67,7 +34,6 @@ export const redstoneMap = {
     KISS: ethers.utils.formatBytes32String("USDC"),
     DAI: ethers.utils.formatBytes32String("DAI"),
     USDC: ethers.utils.formatBytes32String("USDC"),
-    ...redstoneTestAssets,
 };
 
 export const oracles = {
@@ -162,7 +128,7 @@ export const assets: { [asset: string]: Asset } = {
         mintAmount: 50_000_000,
     },
     krBTC: {
-        name: "Bitcoin",
+        name: "Kresko Asset: Bitcoin",
         symbol: "krBTC",
         decimals: 18,
         price: async () => toBig(await getPriceFromTwelveData("BTC/USD"), 8),
@@ -175,7 +141,7 @@ export const assets: { [asset: string]: Asset } = {
         mintAmount: 5,
     },
     krETH: {
-        name: "Ethereum",
+        name: "Kresko Asset: Ether",
         symbol: "krETH",
         decimals: 18,
         price: async () => toBig(await getPriceFromTwelveData("ETH/USD"), 8),
@@ -195,30 +161,6 @@ export const assets: { [asset: string]: Asset } = {
     },
 };
 
-const defaultPools: [Asset, Asset, number][] = [
-    [assets.KISS, assets.DAI, 2_500_500!],
-    [assets.KISS, assets.krETH, assets.krETH.mintAmount!],
-    [assets.KISS, assets.krBTC, assets.krBTC.mintAmount!],
-];
-
-const defaultStakingPools: StakingPoolConfig[] = [
-    {
-        lpToken: [assets.KISS, assets.DAI],
-        allocPoint: 1500,
-        startBlock: 0,
-    },
-    {
-        lpToken: [assets.KISS, assets.krETH],
-        allocPoint: 1000,
-        startBlock: 0,
-    },
-    {
-        lpToken: [assets.KISS, assets.krBTC],
-        allocPoint: 1000,
-        startBlock: 0,
-    },
-];
-
 const gnosisSafeDeployments: GnosisSafeDeployment[] = [
     CompatibilityFallbackHandler,
     CreateCall,
@@ -234,35 +176,20 @@ const gnosisSafeDeployments: GnosisSafeDeployment[] = [
 export const testnetConfigs: NetworkConfig = {
     hardhat: {
         protocolParams: defaultParams,
-        collaterals: [assets.DAI, assets.KISS, assets.krBTC, assets.krETH],
-        krAssets: [assets.KISS, assets.krBTC, assets.krETH],
-        pools: defaultPools,
-        stakingPools: defaultStakingPools,
-        rewardTokens: [assets.krCUBE],
-        rewardTokenAmounts: [1_000_000],
-        rewardsPerBlock: [0.02],
+        collaterals: [assets.KISS, assets.krETH],
+        krAssets: [assets.KISS, assets.krETH],
         gnosisSafeDeployments,
     },
     localhost: {
         protocolParams: defaultParams,
         collaterals: [assets.DAI, assets.KISS, assets.krBTC, assets.krETH],
         krAssets: [assets.KISS, assets.krBTC, assets.krETH],
-        pools: defaultPools,
-        stakingPools: defaultStakingPools,
-        rewardTokens: [assets.krCUBE],
-        rewardTokenAmounts: [1_000_000],
-        rewardsPerBlock: [0.02],
         gnosisSafeDeployments,
     },
     arbitrumGoerli: {
         protocolParams: defaultParams,
         collaterals: [assets.DAI, assets.KISS, assets.krBTC, assets.krETH],
         krAssets: [assets.KISS, assets.krBTC, assets.krETH],
-        pools: defaultPools,
-        stakingPools: defaultStakingPools,
-        rewardTokens: [assets.krCUBE],
-        rewardTokenAmounts: [1_000_000],
-        rewardsPerBlock: [0.02],
         gnosisSafeDeployments,
     },
 };

@@ -5,6 +5,8 @@ import { anchorTokenPrefix } from "@deploy-config/shared";
 import { task, types } from "hardhat/config";
 import { TASK_WHITELIST_COLLATERAL } from "./names";
 import { redstoneMap } from "@deploy-config/arbitrumGoerli";
+import { OracleConfigurationStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
+import { OracleType } from "@utils/test/oracles";
 
 task(TASK_WHITELIST_COLLATERAL)
     .addParam("symbol", "Name of the collateral")
@@ -51,17 +53,24 @@ task(TASK_WHITELIST_COLLATERAL)
             const redstone = redstoneMap[symbol as keyof typeof redstoneMap];
             if (!redstone) throw new Error(`Redstone not found for ${symbol}`);
 
+            const oracleIds: [number, number] = [OracleType.Redstone, OracleType.Chainlink];
+
             const config = {
                 anchor: anchor?.address ?? hre.ethers.constants.AddressZero,
                 factor: toBig(cFactor),
                 liquidationIncentive: toBig(process.env.LIQUIDATION_INCENTIVE!),
-                oracle: oracleAddr,
                 decimals: await Collateral.decimals(),
                 exists: true,
-                redstoneId: redstone,
+                id: redstone,
+                oracles: oracleIds,
             };
 
-            const tx = await kresko.addCollateralAsset(Collateral.address, config);
+            const oracleConfig: OracleConfigurationStruct = {
+                oracleIds: oracleIds,
+                feeds: [hre.ethers.constants.AddressZero, oracleAddr],
+            };
+
+            const tx = await kresko.addCollateralAsset(Collateral.address, oracleConfig, config);
             if (log) {
                 const collateralDecimals = await Collateral.decimals();
                 logger.log(symbol, "decimals", collateralDecimals);

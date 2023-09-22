@@ -22,7 +22,9 @@ describe("CollateralReceiver - UncheckedCollateralWithdraw", () => {
 
     beforeEach(async function () {
         this.secondCollateral = await addMockCollateralAsset({
-            name: "Collateral",
+            name: "SecondCollateral",
+            symbol: "SecondCollateral",
+            redstoneId: "SecondCollateral",
             price: 1,
             factor: 1,
             decimals: 18,
@@ -31,6 +33,7 @@ describe("CollateralReceiver - UncheckedCollateralWithdraw", () => {
         const krAssetArgs = {
             name: "krasset2",
             symbol: "krasset2",
+            redstoneId: "krasset2",
             price: 10, // $10
             marketOpen: true,
             factor: 1,

@@ -237,8 +237,9 @@ describe("Asset Amounts & Values", function () {
         oracleDecimals = await hre.Diamond.getExtOracleDecimals();
         KreskoAsset = await addMockKreskoAsset({
             name: "KreskoAssetPrice10USD",
-            price: collateralPrice,
             symbol: "KreskoAssetPrice10USD",
+            redstoneId: "KreskoAssetPrice10USD",
+            price: collateralPrice,
             closeFee: 0.1,
             openFee: 0.1,
             marketOpen: true,
@@ -247,6 +248,8 @@ describe("Asset Amounts & Values", function () {
         });
         CollateralAsset = await addMockCollateralAsset({
             name: "Collateral18Dec",
+            symbol: "Collateral18Dec",
+            redstoneId: "Collateral18Dec",
             price: kreskoAssetPrice,
             factor: 0.5,
             decimals: 18,
@@ -254,12 +257,16 @@ describe("Asset Amounts & Values", function () {
 
         CollateralAsset8Dec = await addMockCollateralAsset({
             name: "Collateral8Dec",
+            symbol: "Collateral8Dec",
+            redstoneId: "Collateral8Dec",
             price: kreskoAssetPrice,
             factor: 0.5,
             decimals: 8, // eg USDT
         });
         CollateralAsset21Dec = await addMockCollateralAsset({
             name: "Collateral21Dec",
+            symbol: "Collateral21Dec",
+            redstoneId: "Collateral21Dec",
             price: kreskoAssetPrice,
             factor: 0.5,
             decimals: 21, // more

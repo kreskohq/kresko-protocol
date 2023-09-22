@@ -17,14 +17,9 @@ export const compilers: SolcUserConfig[] = [
     {
         version: "0.8.19",
         settings: {
-            viaIR: false,
+            viaIR: true,
             optimizer: {
-                enabled: !process.env.CI,
-                runs: 200,
-                details: {
-                    constantOptimizer: false,
-                    deduplicate: true,
-                },
+                enabled: true,
             },
             outputSelection: {
                 "*": {

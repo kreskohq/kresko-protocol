@@ -1,12 +1,18 @@
 import { smock } from "@defi-wonderland/smock";
-import { redstoneMap } from "@deploy-config/arbitrumGoerli";
+import { allRedstoneAssets } from "@deploy-config/shared";
 import { toBig } from "@kreskolabs/lib";
 import { envCheck } from "@utils/general";
-import { ERC20Upgradeable__factory, MockAggregatorV3__factory } from "types/typechain";
-import { CollateralAssetStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
+import { wrapKresko } from "@utils/redstone";
+import hre from "hardhat";
+
+import {
+    CollateralAssetStruct,
+    OracleConfigurationStruct,
+} from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 import { InputArgs, TestCollateralAssetArgs, TestCollateralAssetUpdate, defaultCollateralArgs } from "../mocks";
-import { wrapContractWithSigner } from "./general";
+import { OracleType } from "../oracles";
 import { getMockOracles, setPrice } from "./oracle";
+import { ERC20Upgradeable__factory } from "types/typechain";
 
 envCheck();
 
@@ -15,30 +21,44 @@ export const getCollateralConfig = async (
     anchor: string,
     cFactor: BigNumber,
     liquidationIncentive: BigNumber,
-    oracle: string,
-): Promise<CollateralAssetStruct> => {
+    pushOracle: string,
+    customRedstoneId?: string,
+    oracleIds: [OracleType, OracleType] = [OracleType.Redstone, OracleType.Chainlink],
+): Promise<[OracleConfigurationStruct, CollateralAssetStruct]> => {
     if (cFactor.gt(toBig(1))) throw new Error("cFactor must be less than 1");
     if (liquidationIncentive.lt(toBig(1))) throw new Error("Liquidation incentive must be greater than 1");
-    const redstone = redstoneMap[(await asset.symbol()) as keyof typeof redstoneMap];
-    if (!redstone) {
-        throw new Error(`Redstone not found for ${await asset.symbol()}`);
+    const [decimals, symbol] = await Promise.all([asset.decimals(), asset.symbol()]);
+    const redstoneId = customRedstoneId
+        ? hre.ethers.utils.formatBytes32String(customRedstoneId)
+        : allRedstoneAssets[symbol as keyof typeof allRedstoneAssets];
+    if (!redstoneId) {
+        throw new Error(`redstoneId not found for ${symbol})}`);
     }
-    return {
+
+    const oracleConfig: OracleConfigurationStruct = {
+        oracleIds: oracleIds,
+        feeds:
+            oracleIds[0] === OracleType.Redstone
+                ? [hre.ethers.constants.AddressZero, pushOracle]
+                : [pushOracle, hre.ethers.constants.AddressZero],
+    };
+    const AssetConfig: CollateralAssetStruct = {
         anchor,
         factor: cFactor,
         liquidationIncentive,
-        oracle,
-        decimals: await asset.decimals(),
+        decimals,
         exists: true,
-        redstoneId: redstone,
+        id: redstoneId,
+        oracles: oracleIds,
     };
+    return [oracleConfig, AssetConfig];
 };
 
 export const addMockCollateralAsset = async (
     args: TestCollateralAssetArgs = defaultCollateralArgs,
 ): Promise<TestCollateral> => {
     const { deployer } = await hre.ethers.getNamedSigners();
-    const { name, price, factor, decimals } = args;
+    const { name, price, factor, symbol, decimals } = args;
     const cFactor = toBig(factor);
     const [[MockFeed, FakeFeed], TestCollateral] = await Promise.all([
         getMockOracles(price),
@@ -46,21 +66,23 @@ export const addMockCollateralAsset = async (
     ]);
 
     TestCollateral.name.returns(name);
-    TestCollateral.symbol.returns(name);
+    TestCollateral.symbol.returns(symbol);
     TestCollateral.decimals.returns(decimals);
 
-    const [collateralConfig] = await Promise.all([
+    const [config] = await Promise.all([
         getCollateralConfig(
             TestCollateral,
             hre.ethers.constants.AddressZero,
             cFactor,
             toBig(process.env.LIQUIDATION_INCENTIVE!),
-            MockFeed.address,
+            args.pushOracle || MockFeed.address,
+            args.redstoneId,
+            args.oracleIds,
         ),
         TestCollateral.setVariable("_initialized", 0),
     ]);
+    await wrapKresko(hre.Diamond, deployer).addCollateralAsset(TestCollateral.address, ...config);
 
-    await wrapContractWithSigner(hre.Diamond, deployer).addCollateralAsset(TestCollateral.address, collateralConfig);
     const mocks = {
         contract: TestCollateral,
         mockFeed: MockFeed,
@@ -70,15 +92,16 @@ export const addMockCollateralAsset = async (
         address: TestCollateral.address,
         contract: ERC20Upgradeable__factory.connect(TestCollateral.address, deployer),
         kresko: () => hre.Diamond.getCollateralAsset(TestCollateral.address),
-        priceFeed: MockAggregatorV3__factory.connect(MockFeed.address, deployer),
+        priceFeed: MockFeed.connect(deployer),
         deployArgs: args,
         anchor: {} as any,
         mocks,
         setPrice: price => setPrice(mocks, price),
+        setOracleOrder: order => hre.Diamond.updateCollateralOracleOrder(TestCollateral.address, order),
         getPrice: async () => (await MockFeed.latestRoundData())[1],
         setBalance: async (user, amount) => {
             await mocks.contract.setVariables({
-                _totalSupply: (await TestCollateral.totalSupply()).add(amount),
+                _totalSupply: (await mocks.contract.totalSupply()).add(amount),
                 _balances: {
                     [user.address]: amount,
                 },
@@ -102,15 +125,17 @@ export const updateCollateralAsset = async (address: string, args: TestCollatera
     const { deployer } = await hre.ethers.getNamedSigners();
     const collateral = hre.collaterals.find(c => c.address === address);
 
-    await wrapContractWithSigner(hre.Diamond, deployer).updateCollateralAsset(
+    await wrapKresko(hre.Diamond, deployer).updateCollateralAsset(
         collateral!.address,
-        await getCollateralConfig(
+        ...(await getCollateralConfig(
             collateral!.contract,
             hre.ethers.constants.AddressZero,
             toBig(args.factor),
             toBig(process.env.LIQUIDATION_INCENTIVE!),
-            args.oracle || collateral!.mocks!.mockFeed.address,
-        ),
+            args.pushOracle || collateral!.mocks!.mockFeed.address,
+            args.redstoneId,
+            args.oracleIds,
+        )),
     );
     // @ts-expect-error
     const asset: TestCollateral = {
@@ -134,21 +159,17 @@ export const depositMockCollateral = async (args: InputArgs) => {
     const { user, asset, amount } = args;
     const depositAmount = convert ? toBig(+amount, await asset.contract.decimals()) : amount;
     await Promise.all([
-        await asset.mocks.contract.setVariable("_balances", {
+        asset.mocks.contract.setVariable("_balances", {
             [user.address]: depositAmount,
         }),
-        await asset.mocks.contract.setVariable("_allowances", {
+        asset.mocks.contract.setVariable("_allowances", {
             [user.address]: {
                 [hre.Diamond.address]: depositAmount,
             },
         }),
     ]);
 
-    return wrapContractWithSigner(hre.Diamond, user).depositCollateral(
-        user.address,
-        asset.contract.address,
-        depositAmount,
-    );
+    return wrapKresko(hre.Diamond, user).depositCollateral(user.address, asset.contract.address, depositAmount);
 };
 
 export const depositCollateral = async (args: InputArgs) => {
@@ -156,32 +177,29 @@ export const depositCollateral = async (args: InputArgs) => {
     const { user, asset, amount } = args;
     const depositAmount = convert ? toBig(+amount) : amount;
     await asset.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
-    return wrapContractWithSigner(hre.Diamond, user).depositCollateral(user.address, asset.address, depositAmount);
+    return wrapKresko(hre.Diamond, user).depositCollateral(user.address, asset.address, depositAmount);
 };
 
 export const withdrawCollateral = async (args: InputArgs) => {
     const convert = typeof args.amount === "string" || typeof args.amount === "number";
     const { user, asset, amount } = args;
     const depositAmount = convert ? toBig(+amount) : amount;
-    await asset.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
-    const cIndex = await hre.Diamond.getAccountDepositIndex(user.address, asset.address);
-    return wrapContractWithSigner(hre.Diamond, user).withdrawCollateral(
-        user.address,
-        asset.address,
-        depositAmount,
-        cIndex,
-    );
+    const [depositIndex] = await Promise.all([hre.Diamond.getAccountDepositIndex(user.address, asset.address)]);
+
+    return wrapKresko(hre.Diamond, user).withdrawCollateral(user.address, asset.address, depositAmount, depositIndex);
 };
 
 export const getMaxWithdrawal = async (user: string, collateral: any) => {
-    const [collateralValue] = await hre.Diamond.getAccountCollateralValueOf(user, collateral.address);
+    // const [collateralValue] = await hre.Diamond.getAccountCollateralValueOf(user, collateral.address);
+    const [[collateralValue], MCR, collateralPrice] = await Promise.all([
+        hre.Diamond.getAccountCollateralValueOf(user, collateral.address),
+        hre.Diamond.getMinCollateralRatio(),
+        collateral.getPrice(),
+    ]);
 
-    const minCollateralRequired = await hre.Diamond.getAccountMinCollateralAtRatio(
-        user,
-        (await hre.Diamond.getMinCollateralRatio()).add((15e8).toString()),
-    );
+    const minCollateralRequired = await hre.Diamond.getAccountMinCollateralAtRatio(user, MCR.add((15e8).toString()));
     const maxWithdrawValue = collateralValue.sub(minCollateralRequired);
-    const maxWithdrawAmount = maxWithdrawValue.wadDiv(await collateral.getPrice());
+    const maxWithdrawAmount = maxWithdrawValue.wadDiv(collateralPrice);
 
     return { maxWithdrawValue, maxWithdrawAmount };
 };

@@ -12,10 +12,13 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const { deployer, devTwo, extOne, extTwo, devOne } = await ethers.getNamedSigners();
 
     // Get the factory
-    const Factory = await hre.getContractOrFork("GnosisSafeProxyFactory");
+    const FactoryDeployment = await deployments.get("GnosisSafeProxyFactory");
+    const Factory = await ethers.getContractAt(FactoryDeployment.abi, FactoryDeployment.address);
 
     // Local mastercopy
-    const MasterCopy = await hre.getContractOrFork("GnosisSafeL2");
+    const MasterCopyDeployment = await deployments.get("GnosisSafeL2");
+
+    const MasterCopy = await ethers.getContractAt(MasterCopyDeployment.abi, MasterCopyDeployment.address);
     // TODO: bring ReentrancyGuard back into this deployment
     // const ReentrancyGuard = await hre.getContractOrFork("ReentrancyTransactionGuard");
     // Multisig users
@@ -43,7 +46,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const receipt = await tx.wait();
 
     const SafeDeployment = await deployments.get("GnosisSafeL2");
-    const SafeProxy = await ethers.getContractAt("GnosisSafeL2", creationEvent.args.proxy);
+    const SafeProxy = await ethers.getContractAt(SafeDeployment.abi, creationEvent.args.proxy);
     await deployments.save("GnosisSafeL2", {
         abi: SafeDeployment.abi,
         address: creationEvent.args.proxy,

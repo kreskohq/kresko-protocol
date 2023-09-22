@@ -10,7 +10,7 @@ export const diamondAbiConfig: DiamondAbiUserConfig[] = [
     {
         name: "Kresko",
         include: ["facets/*", "MEvent", "SEvent"],
-        exclude: ["vendor", "test/*", "interfaces/*", "krasset/*", "KrStaking"],
+        exclude: ["vendor", "test/*", "interfaces/*", "krasset/*", "KrStaking", "periphery/*"],
         strict: false,
         filter(abiElement, index, abi, fq) {
             if (abiElement.type === "error") {

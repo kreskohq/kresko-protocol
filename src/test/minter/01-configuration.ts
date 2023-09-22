@@ -10,6 +10,7 @@ import {
 import { addMockCollateralAsset } from "@utils/test/helpers/collaterals";
 import { addMockKreskoAsset, getKrAssetConfig } from "@utils/test/helpers/krassets";
 import { getMockOracles } from "@utils/test/helpers/oracle";
+import { OracleType } from "@utils/test/oracles";
 
 describe("Minter - Configuration", () => {
     withFixture(["minter-init"]);
@@ -127,15 +128,17 @@ describe("Minter - Configuration", () => {
 
             await wrapContractWithSigner(hre.Diamond, hre.users.deployer).updateKreskoAsset(
                 contract.address,
-                await getKrAssetConfig(
+                ...(await getKrAssetConfig(
                     contract,
                     anchor!.address,
                     update.factor,
-                    MockFeed.address,
                     toBig(update.supplyLimit),
                     update.closeFee,
                     update.openFee,
-                ),
+                    MockFeed.address,
+                    "MockKreskoAsset",
+                    [OracleType.Chainlink, OracleType.Redstone],
+                )),
             );
 
             const newValues = await hre.Diamond.getKreskoAsset(contract.address);

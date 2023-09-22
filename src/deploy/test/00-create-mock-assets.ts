@@ -9,14 +9,6 @@ const func: DeployFunction = async function (hre) {
         throw new Error("No diamond deployed");
     }
 
-    const { deployer, feedValidator } = await hre.ethers.getNamedSigners();
-
-    if (hre.network.name === "hardhat" && (await hre.ethers.provider.getBalance(feedValidator.address)).eq(0)) {
-        await deployer.sendTransaction({
-            to: feedValidator.address,
-            value: hre.ethers.utils.parseEther("10"),
-        });
-    }
     await addMockCollateralAsset();
     await addMockKreskoAsset();
 

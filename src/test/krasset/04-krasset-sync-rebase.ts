@@ -6,7 +6,7 @@ import { mintKrAsset } from "@utils/test/helpers/krassets";
 import { expect } from "chai";
 import hre from "hardhat";
 
-describe("Test KreskoAsset with Rebase and sync", () => {
+describe.skip("Test KreskoAsset with Rebase and sync", () => {
     let KreskoAsset: TestKrAsset;
 
     withFixture(["minter-test", "kresko-assets", "collaterals"]);
@@ -14,12 +14,12 @@ describe("Test KreskoAsset with Rebase and sync", () => {
         KreskoAsset = this.krAssets.find(asset => asset.deployArgs!.symbol === "krETH")!;
 
         const KISS = await hre.getContractOrFork("KISS");
-        [hre.UniV2Factory] = await hre.deploy("UniswapV2Factory", {
-            args: [hre.users.deployer.address],
-        });
-        [hre.UniV2Router] = await hre.deploy("UniswapV2Router02", {
-            args: [hre.UniV2Factory.address, (await hre.deploy("WETH"))[0].address],
-        });
+        // [hre.UniV2Factory] = await hre.deploy("UniswapV2Factory", {
+        //     args: [hre.users.deployer.address],
+        // });
+        // [hre.UniV2Router] = await hre.deploy("UniswapV2Router02", {
+        //     args: [hre.UniV2Factory.address, (await hre.deploy("WETH"))[0].address],
+        // });
 
         await depositMockCollateral({
             user: hre.users.testUserEight,

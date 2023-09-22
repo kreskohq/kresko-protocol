@@ -6,7 +6,6 @@ import { testnetConfigs } from "@deploy-config/arbitrumGoerli";
 const logger = getLogger("gnosis-safe-contracts-for-tests");
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-    const { deployer } = await hre.ethers.getNamedSigners();
     switch (hre.network.name) {
         // For public chains we use the pre-deployed contracts
         case "opgoerli": {
@@ -74,7 +73,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             // let ReentrancyTransactionGuardContract: Contract;
             // // Deploy the ReentrancyTransactionGuard contract if it does not exist
             // if (!ReentrancyTransactionGuardArtifact) {
-            //     [ReentrancyTransactionGuardContract] = await hre.deploy(reentrancyTransactionGuardName, { from: deployer, log: true });
             //     await deployments.save("ReentrancyTransactionGuard", {
             //         abi: ReentrancyTransactionGuardArtifact.abi,
             //         address:   ReentrancyTransactionGuardContract.address,
@@ -85,25 +83,34 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         }
         case "arbitrumGoerli":
         case "hardhat": {
-            await hre.deploy("GnosisSafeProxyFactory", {
-                from: deployer.address,
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            const safeProxyFactoryArtifact = require("../../utils/gnosis/artifacts/GnosisSafeProxyFactory2.json");
+            const safeProxyFactoryFactory = await hre.ethers.getContractFactoryFromArtifact(safeProxyFactoryArtifact);
+            const proxyFactory = await safeProxyFactoryFactory.deploy();
+            await hre.deployments.save("GnosisSafeProxyFactory", {
+                abi: safeProxyFactoryArtifact.abi,
+                address: proxyFactory.address,
                 args: [],
-                log: true,
-                deterministicDeployment: true,
             });
 
-            await hre.deploy("GnosisSafe", {
-                from: deployer.address,
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            const safeProxyArtifact = require("../../utils/gnosis/artifacts/GnosisSafe.json");
+            const safeProxyFactory = await hre.ethers.getContractFactoryFromArtifact(safeProxyArtifact);
+            const safeProxy = await safeProxyFactory.deploy();
+            await hre.deployments.save("GnosisSafe", {
+                abi: safeProxyArtifact.abi,
+                address: safeProxy.address,
                 args: [],
-                log: true,
-                deterministicDeployment: true,
             });
-
-            await hre.deploy("GnosisSafeL2", {
-                from: deployer.address,
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            const safeProxyL2Artifact = require("../../utils/gnosis/artifacts/GnosisSafeL2.json");
+            const safeProxyL2Factory = await hre.ethers.getContractFactoryFromArtifact(safeProxyL2Artifact);
+            const safeProxyL2 = await safeProxyL2Factory.deploy();
+            await hre.deployments.save("GnosisSafeL2", {
+                abi: safeProxyL2Artifact.abi,
+                deployedBytecode: safeProxyL2.deployedBytecode,
+                address: safeProxyL2.address,
                 args: [],
-                log: true,
-                deterministicDeployment: true,
             });
 
             break;

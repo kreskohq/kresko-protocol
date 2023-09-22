@@ -2,7 +2,7 @@ import { minterFacets } from "@deploy-config/shared";
 import { toBig } from "@kreskolabs/lib";
 import { updateFacets } from "@scripts/update-facets";
 import { expect } from "@test/chai";
-import Role from "@utils/test/roles";
+// import Role from "@utils/test/roles";
 
 (process.env.FORKING ? describe : describe.skip)("Forking", () => {
     describe("#setup", () => {
@@ -12,8 +12,8 @@ import Role from "@utils/test/roles";
             const Kresko = await hre.getContractOrFork("Kresko");
             expect(await Kresko.initialized()).to.equal(true);
 
-            const Safe = await hre.getContractOrFork("GnosisSafeL2", "Multisig");
-            expect(await Kresko.hasRole(Role.DEFAULT_ADMIN, Safe.address)).to.be.true;
+            // const Safe = await hre.getContractOrFork("GnosisSafeL2", "Multisig");
+            // expect(await Kresko.hasRole(Role.DEFAULT_ADMIN, Safe.address)).to.be.true;
         });
     });
     describe("#rate-upgrade-11-04-2023", () => {

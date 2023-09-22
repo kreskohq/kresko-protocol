@@ -64,19 +64,20 @@ const config: HardhatUserConfig = {
     mocha: {
         reporter: "mochawesome",
         timeout: process.env.CI ? 45000 : process.env.FORKING ? 300000 : 15000,
+        parallel: false,
     },
     paths: {
         artifacts: "artifacts",
         cache: "cache",
         tests: "src/test/",
-        sources: "src/contracts/",
+        sources: "src/contracts/core",
         deploy: "src/deploy/",
         deployments: "deployments/",
     },
     external: {
         contracts: [
             {
-                artifacts: "./node_modules/@kreskolabs/gnosis-safe-contracts/build/artifacts",
+                artifacts: "@kreskolabs/gnosis-safe-contracts/build/artifacts",
             },
         ],
     },
