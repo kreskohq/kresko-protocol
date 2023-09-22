@@ -16,6 +16,7 @@ import {
     CollateralAssetStruct,
 } from "./typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 import { MockOracle } from "./typechain";
+import { setBalanceCollateralFunc, setBalanceKrAssetFunc } from "@utils/test/helpers/smock";
 declare global {
     const hre: HardhatRuntimeEnvironment;
     /* -------------------------------------------------------------------------- */
@@ -27,18 +28,12 @@ declare global {
         krAsset?: boolean;
         collateral?: boolean;
         address: string;
-        contract: Contracts.KreskoAsset;
+        contract: MockContract<Contracts.KreskoAsset>;
         deployArgs?: TestKreskoAssetArgs;
         kresko: () => Promise<KrAssetStructOutput>;
-        mocks: {
-            contract: MockContract<Contracts.KreskoAsset>;
-            mockFeed: MockContract<Contracts.MockOracle>;
-            fakeFeed: FakeContract<Contracts.MockOracle>;
-            anchor?: MockContract<Contracts.KreskoAssetAnchor>;
-        };
-        anchor: Contracts.KreskoAssetAnchor;
-        priceFeed: MockContract<MockOracle> | FakeContract<MockOracle>;
-        setBalance: (user: SignerWithAddress, balance: BigNumber) => Promise<true>;
+        anchor: MockContract<Contracts.KreskoAssetAnchor>;
+        priceFeed: FakeContract<MockOracle>;
+        setBalance: ReturnType<typeof setBalanceKrAssetFunc>;
         setPrice: (price: number) => void;
         setOracleOrder: (order: [OracleType, OracleType]) => void;
         getPrice: () => Promise<BigNumber>;
@@ -49,19 +44,12 @@ declare global {
         collateral?: boolean;
         krAsset?: boolean;
         deployArgs: TestCollateralAssetArgs;
-        contract: ERC20Upgradeable;
+        contract: MockContract<ERC20Upgradeable>;
         kresko: () => Promise<CollateralAssetStruct>;
-        mocks?: {
-            contract: MockContract<KreskoAsset | Contracts.ERC20Upgradeable>;
-            mockFeed: MockContract<Contracts.MockOracle>;
-            fakeFeed: FakeContract<Contracts.MockOracle>;
-            anchor?: MockContract<Contracts.KreskoAssetAnchor>;
-        };
-        priceFeed: MockContract<MockOracle> | FakeContract<MockOracle>;
-        anchor: Contracts.KreskoAssetAnchor;
+        priceFeed: FakeContract<MockOracle>;
         setPrice: (price: number) => void;
         setOracleOrder: (order: [OracleType, OracleType]) => Promise<any>;
-        setBalance: (user: SignerWithAddress, amount: BigNumber) => Promise<true>;
+        setBalance: ReturnType<typeof setBalanceCollateralFunc>;
         getPrice: () => Promise<BigNumber>;
         update: (update: TestCollateralAssetUpdate) => Promise<TestCollateral>;
     };

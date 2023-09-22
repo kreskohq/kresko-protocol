@@ -11,6 +11,7 @@ library Constants {
     uint256 internal constant FP_SCALING_FACTOR = 10 ** FP_DECIMALS;
 
     uint256 internal constant ONE_HUNDRED_PERCENT = 1 ether;
+    uint256 internal constant ONE_PERCENT = 0.01 ether;
 
     uint256 internal constant BASIS_POINT = 1e14;
 
@@ -22,9 +23,6 @@ library Constants {
 
     /// @dev The maximum configurable protocol fee per asset for collateral pool swaps.
     uint256 internal constant MAX_COLLATERAL_POOL_PROTOCOL_FEE = 0.5 ether; // 50%
-
-    /// @dev Overflow over maximum liquidatable value to allow leeway for users after one happens.
-    uint256 internal constant MIN_MAX_LIQUIDATION_MULTIPLIER = ONE_HUNDRED_PERCENT + BASIS_POINT; // 100.01% or .01% over
 
     /// @dev The minimum configurable minimum collateralization ratio.
     uint256 internal constant MIN_COLLATERALIZATION_RATIO = ONE_HUNDRED_PERCENT;

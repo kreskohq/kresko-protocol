@@ -57,8 +57,8 @@ struct MinterState {
     mapping(address => address[]) mintedKreskoAssets;
     /// @notice Offchain oracle decimals
     uint8 extOracleDecimals;
-    /// @notice Liquidation Overflow Multiplier, multiplies max liquidatable value.
-    uint256 maxLiquidationMultiplier;
+    /// @notice Max liquidation ratio, this is the max collateral ratio liquidations can liquidate to.
+    uint256 maxLiquidationRatio;
     /* -------------------------------------------------------------------------- */
     /*                                  ORACLE                                  */
     /* -------------------------------------------------------------------------- */

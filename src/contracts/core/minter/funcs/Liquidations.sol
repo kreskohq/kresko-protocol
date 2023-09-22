@@ -44,9 +44,8 @@ function _createVars(
     KrAsset memory _repayKreskoAsset,
     address _seizedCollateral
 ) view returns (MaxLiqVars memory) {
-    uint256 liquidationThreshold = ms().liquidationThreshold;
-
-    uint256 minCollateralValue = ms().accountMinCollateralAtRatio(_account, liquidationThreshold);
+    uint256 maxLiquidationRatio = ms().maxLiquidationRatio;
+    uint256 minCollateralValue = ms().accountMinCollateralAtRatio(_account, maxLiquidationRatio);
 
     (uint256 accountCollateralValue, uint256 seizeCollateralAccountValue) = ms().accountCollateralAssetValue(
         _account,
@@ -59,11 +58,10 @@ function _createVars(
         MaxLiqVars({
             collateral: collateral,
             accountCollateralValue: accountCollateralValue,
-            debtFactor: _repayKreskoAsset.kFactor.wadMul(liquidationThreshold).wadDiv(collateral.factor),
+            debtFactor: _repayKreskoAsset.kFactor.wadMul(maxLiquidationRatio).wadDiv(collateral.factor),
             minCollateralValue: minCollateralValue,
             minDebtValue: ms().minDebtValue,
             seizeCollateralAccountValue: seizeCollateralAccountValue,
-            liquidationThreshold: liquidationThreshold,
-            maxLiquidationMultiplier: ms().maxLiquidationMultiplier
+            maxLiquidationRatio: maxLiquidationRatio
         });
 }

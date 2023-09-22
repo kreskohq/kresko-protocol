@@ -23,7 +23,7 @@ export type TestCollateralAssetUpdate = {
 export type InputArgs = {
     user: SignerWithAddress;
     asset: TestAsset | { address: string; contract: any; mocks: any };
-    amount: string | number | BigNumber;
+    amount: BigNumber;
 };
 
 export type InputArgsSimple = Omit<InputArgs, "asset"> & {
@@ -34,8 +34,8 @@ export type TestKreskoAssetArgs = {
     name: string;
     symbol?: string;
     anchorSymbol?: string;
-    price: number;
-    marketOpen: boolean;
+    price?: number;
+    marketOpen?: boolean;
     oracle?: string;
     oracleIds?: [OracleType, OracleType];
     factor: number;
@@ -52,10 +52,11 @@ export type TestKreskoAssetUpdate = {
     supplyLimit: number;
     closeFee: number;
     openFee: number;
+    price?: number;
     redstoneId: string;
 };
 
-export const defaultOraclePrice = 10;
+export const TEN_USD = 10;
 export const defaultOracleDecimals = 8;
 
 export const defaultDecimals = 18;
@@ -73,7 +74,7 @@ export const defaultKrAssetArgs = {
     symbol: "MockKreskoAsset",
     redstoneId: "MockKreskoAsset",
     anchorTokenPrefix: anchorTokenPrefix + "MockKreskoAsset",
-    price: defaultOraclePrice,
+    price: TEN_USD,
     oracleIds: [OracleType.Redstone, OracleType.Chainlink] as [OracleType, OracleType],
     marketOpen: true,
     factor: 1,
@@ -86,7 +87,7 @@ export const defaultCollateralArgs: TestCollateralAssetArgs = {
     name: "MockCollateral",
     symbol: "MockCollateral",
     redstoneId: "MockCollateral",
-    price: defaultOraclePrice,
+    price: TEN_USD,
     factor: 1,
     decimals: defaultDecimals,
     oracleIds: [OracleType.Redstone, OracleType.Chainlink] as [OracleType, OracleType],
@@ -97,7 +98,7 @@ export const getNewMinterParams = (feeRecipient: string) => ({
     minDebtValue: toBig(20, 8),
     liquidationThreshold: toBig(1.3),
     feeRecipient: feeRecipient,
-    MLM: toBig(1.0002),
+    MLR: toBig(1.32),
     oracleDeviationPct: toBig(0.2),
 });
 
@@ -110,7 +111,7 @@ export default {
     collateralArgs: defaultCollateralArgs,
     krAssetArgs: defaultKrAssetArgs,
     oracle: {
-        price: defaultOraclePrice,
+        price: TEN_USD,
         decimals: defaultOracleDecimals,
     },
     getNewMinterParams,

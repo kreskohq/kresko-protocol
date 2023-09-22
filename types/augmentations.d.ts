@@ -57,10 +57,6 @@ declare module "mocha" {
         /* -------------------------------------------------------------------------- */
         /*                              Misc / Deprecated                             */
         /* -------------------------------------------------------------------------- */
-        // @todo DEPRECATING
-        UniV2Router: Contracts.UniswapV2Router02;
-        UniV2Factory: Contracts.UniswapV2Factory;
-        lpPair: Contracts.UniswapV2Pair;
         treasury: string;
         // @todo DEPRECATING
         Oracles: FakeContract[];

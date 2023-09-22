@@ -36,7 +36,7 @@ struct SCDPState {
     /// @notice User swap fee receiver
     address swapFeeRecipient;
     /// @notice Liquidation Overflow Multiplier, multiplies max liquidatable value.
-    uint256 maxLiquidationMultiplier;
+    uint256 maxLiquidationRatio;
     address feeAsset;
     /// @notice Debt Index State
     SDIState sdi;

@@ -54,8 +54,8 @@ contract StateFacet is IStateFacet {
     }
 
     /// @inheritdoc IStateFacet
-    function getMaxLiquidationMultiplier() external view returns (uint256) {
-        return ms().maxLiquidationMultiplier;
+    function getMaxLiquidationRatio() external view returns (uint256) {
+        return ms().maxLiquidationRatio;
     }
 
     /// @inheritdoc IStateFacet
@@ -70,7 +70,7 @@ contract StateFacet is IStateFacet {
                 ms().minCollateralRatio,
                 ms().minDebtValue,
                 ms().liquidationThreshold,
-                ms().maxLiquidationMultiplier,
+                ms().maxLiquidationRatio,
                 ms().feeRecipient,
                 ms().extOracleDecimals,
                 ms().oracleDeviationPct

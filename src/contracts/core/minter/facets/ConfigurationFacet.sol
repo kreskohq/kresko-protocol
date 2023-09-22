@@ -60,7 +60,6 @@ contract ConfigurationFacet is DSModifiers, MSModifiers, IConfigurationFacet {
         updateMinDebtValue(args.minDebtValue);
         updateLiquidationThreshold(args.liquidationThreshold);
         updateExtOracleDecimals(args.extOracleDecimals);
-        updateMaxLiquidationMultiplier(Constants.MIN_MAX_LIQUIDATION_MULTIPLIER);
         updateOracleDeviationPct(args.oracleDeviationPct);
         updateSequencerUptimeFeed(args.sequencerUptimeFeed);
         updateSequencerGracePeriodTime(args.sequencerGracePeriodTime);
@@ -133,20 +132,19 @@ contract ConfigurationFacet is DSModifiers, MSModifiers, IConfigurationFacet {
 
     /// @inheritdoc IConfigurationFacet
     function updateLiquidationThreshold(uint256 _newThreshold) public override onlyRole(Role.ADMIN) {
-        // Liquidation threshold cannot be greater than minimum collateralization ratio
-
+        require(_newThreshold >= Constants.MIN_COLLATERALIZATION_RATIO, "lt-too-low");
         require(_newThreshold <= ms().minCollateralRatio, Error.INVALID_LT);
-
         ms().liquidationThreshold = _newThreshold;
+        ms().maxLiquidationRatio = _newThreshold + Constants.ONE_PERCENT;
         emit MEvent.LiquidationThresholdUpdated(_newThreshold);
     }
 
     /// @inheritdoc IConfigurationFacet
-    function updateMaxLiquidationMultiplier(uint256 _maxLiquidationMultiplier) public override onlyRole(Role.ADMIN) {
-        require(_maxLiquidationMultiplier >= Constants.MIN_MAX_LIQUIDATION_MULTIPLIER, Error.PARAM_LIQUIDATION_OVERFLOW_LOW);
-        ms().maxLiquidationMultiplier = _maxLiquidationMultiplier;
+    function updateMaxLiquidationRatio(uint256 _newMaxLiquidationRatio) public override onlyRole(Role.ADMIN) {
+        require(_newMaxLiquidationRatio >= ms().liquidationThreshold, Error.PARAM_LIQUIDATION_OVERFLOW_LOW);
+        ms().maxLiquidationRatio = _newMaxLiquidationRatio;
 
-        emit MEvent.MaxLiquidationMultiplierUpdated(_maxLiquidationMultiplier);
+        emit MEvent.MaxLiquidationRatioUpdated(_newMaxLiquidationRatio);
     }
 
     /// @inheritdoc IConfigurationFacet

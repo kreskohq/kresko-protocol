@@ -53,10 +53,11 @@ interface IConfigurationFacet {
     function updateLiquidationThreshold(uint256 _newThreshold) external;
 
     /**
-     * @notice Updates the max liquidation usd overflow multiplier value.
-     * @param _maxLiquidationMultiplier Overflow value in percent, 18 decimals.
+     * @notice Updates the max liquidation ratior value.
+     * @notice This is the maximum collateral ratio that liquidations can liquidate to.
+     * @param _newMaxLiquidationRatio Percent value in wad precision.
      */
-    function updateMaxLiquidationMultiplier(uint256 _maxLiquidationMultiplier) external;
+    function updateMaxLiquidationRatio(uint256 _newMaxLiquidationRatio) external;
 
     /**
      * @notice Sets the decimal precision of external oracle

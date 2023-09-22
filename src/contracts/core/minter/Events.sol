@@ -239,10 +239,10 @@ library MEvent {
     event LiquidationIncentiveMultiplierUpdated(address indexed asset, uint256 liquidationIncentiveMultiplier);
 
     /**
-     * @notice Emitted when the liquidation overflow multiplier is updated.
-     * @param maxLiquidationMultiplier The new liquidation overflow multiplier value.
+     * @notice Emitted when the max liquidation ratio is updated.
+     * @param newMaxLiquidationRatio The new max liquidation ratio.
      */
-    event MaxLiquidationMultiplierUpdated(uint256 maxLiquidationMultiplier);
+    event MaxLiquidationRatioUpdated(uint256 newMaxLiquidationRatio);
 
     /**
      * @notice Emitted when the minimum collateralization ratio is updated.

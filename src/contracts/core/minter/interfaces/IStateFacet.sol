@@ -19,8 +19,8 @@ interface IStateFacet {
     /// @notice The collateralization ratio at which positions may be liquidated.
     function getLiquidationThreshold() external view returns (uint256);
 
-    /// @notice Multiplies max liquidatable value, allowing liquidations to go over LT.
-    function getMaxLiquidationMultiplier() external view returns (uint256);
+    /// @notice Multiplies max liquidation multiplier, if a full liquidation happens this is the resulting CR.
+    function getMaxLiquidationRatio() external view returns (uint256);
 
     /// @notice max deviation between main oracle and fallback oracle
     function getOracleDeviationPct() external view returns (uint256);

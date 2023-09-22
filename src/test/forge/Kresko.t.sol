@@ -14,7 +14,7 @@ import {SCDPCollateral, SCDPKrAsset} from "scdp/Types.sol";
 // solhint-disable
 
 contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
-    using LibTest for *;
+    using LibTest for function(SCDPCollateral memory) returns (bool);
 
     address internal admin = address(0xABABAB);
 

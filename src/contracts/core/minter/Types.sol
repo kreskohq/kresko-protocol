@@ -85,7 +85,7 @@ struct MinterParams {
     uint256 minCollateralRatio;
     uint256 minDebtValue;
     uint256 liquidationThreshold;
-    uint256 maxLiquidationMultiplier;
+    uint256 maxLiquidationRatio;
     address feeRecipient;
     uint8 extOracleDecimals;
     uint256 oracleDeviationPct;

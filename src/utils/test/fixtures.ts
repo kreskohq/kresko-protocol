@@ -7,25 +7,6 @@ import {
     SCDPKrAssetStruct,
 } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 
-type MinterFixtureParams = string[];
-type MinterFixtureReturn = {
-    facets: Facet[];
-    collaterals: TestCollateral[];
-    krAssets: TestKrAsset[];
-};
-const minterFixture = hre.deployments.createFixture<MinterFixtureReturn, MinterFixtureParams>(async (hre, params) => {
-    const result = await hre.deployments.fixture(params);
-    await time.increase(3602);
-    if (result.Diamond) {
-        hre.Diamond = wrapKresko(await hre.getContractOrFork("Kresko"));
-    }
-    return {
-        facets: result.Diamond?.facets?.length ? result.Diamond.facets : [],
-        collaterals: hre.collaterals,
-        krAssets: hre.krAssets,
-    };
-});
-
 type SCDPFixtureParams = {
     krAssets: () => Promise<TestKrAsset>[];
     collaterals: () => Promise<TestCollateral>[];
@@ -98,7 +79,6 @@ export const scdpFixture = hre.deployments.createFixture<SCDPFixtureReturn, SCDP
         ]),
     ]);
 
-    console.debug("SCDPFixture!");
     return {
         collaterals,
         krAssets,
@@ -108,10 +88,13 @@ export const scdpFixture = hre.deployments.createFixture<SCDPFixtureReturn, SCDP
 
 export const withFixture = (fixtureName: string[]) => {
     beforeEach(async function () {
-        // const fixture = awaithre.deployments.fixture("scdp-init");
-        const fixture = await minterFixture(fixtureName);
-        this.facets = fixture.facets || [];
-        this.collaterals = fixture.collaterals;
-        this.krAssets = fixture.krAssets;
+        const result = await hre.deployments.fixture(fixtureName);
+        await time.increase(3602);
+        if (result.Diamond) {
+            hre.Diamond = wrapKresko(await hre.getContractOrFork("Kresko"));
+        }
+        this.facets = result.Diamond?.facets?.length ? result.Diamond.facets : [];
+        this.collaterals = hre.collaterals;
+        this.krAssets = hre.krAssets;
     });
 };

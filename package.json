@@ -10,7 +10,7 @@
     "devDependencies": {
         "@commitlint/cli": "^12.1.4",
         "@commitlint/config-conventional": "^12.1.4",
-        "@defi-wonderland/smock": "^2.3.1",
+        "@defi-wonderland/smock": "^2.3.5",
         "@ethersproject/abi": "^5.7.0",
         "@ethersproject/abstract-signer": "^5.7.0",
         "@kreskolabs/configs": "^8.7.5",

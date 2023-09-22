@@ -33,7 +33,7 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, MSModifiers {
         scdp().minCollateralRatio = _init.mcr;
         scdp().liquidationThreshold = _init.lt;
         scdp().swapFeeRecipient = _init.swapFeeRecipient;
-        scdp().maxLiquidationMultiplier = Constants.MIN_MAX_LIQUIDATION_MULTIPLIER;
+        scdp().maxLiquidationRatio = _init.lt + Constants.BASIS_POINT;
 
         emit DiamondEvent.Initialized(msg.sender, ds().storageVersion++);
     }
@@ -63,6 +63,12 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, MSModifiers {
         require(_lt >= Constants.MIN_COLLATERALIZATION_RATIO, "mcr-too-low");
         require(_lt <= scdp().minCollateralRatio, "lt-too-high");
         scdp().liquidationThreshold = _lt;
+        scdp().maxLiquidationRatio = _lt + Constants.ONE_PERCENT;
+    }
+
+    function setMaxLiquidationRatioSCDP(uint256 _mlr) external onlyRole(Role.ADMIN) {
+        require(_mlr >= scdp().liquidationThreshold, "mlr-too-lo");
+        scdp().maxLiquidationRatio = _mlr;
     }
 
     /// @inheritdoc ISCDPConfigFacet

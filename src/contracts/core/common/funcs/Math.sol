@@ -33,11 +33,9 @@ function calcMaxLiqValue(MaxLiqVars memory vars, SCDPKrAsset memory _repayKresko
  */
 function _calcMaxLiqValue(MaxLiqVars memory vars, uint256 _valuePerUSDRepaid) pure returns (uint256) {
     return
-        (vars.minCollateralValue - vars.accountCollateralValue)
-            .wadMul(vars.maxLiquidationMultiplier)
-            .wadDiv(_valuePerUSDRepaid)
-            .wadDiv(vars.debtFactor)
-            .wadDiv(vars.collateral.factor);
+        (vars.minCollateralValue - vars.accountCollateralValue).wadDiv(_valuePerUSDRepaid).wadDiv(vars.debtFactor).wadDiv(
+            vars.collateral.factor
+        );
 }
 
 /* -------------------------------------------------------------------------- */

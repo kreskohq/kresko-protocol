@@ -7,7 +7,7 @@ overrides:
 specifiers:
   '@commitlint/cli': ^12.1.4
   '@commitlint/config-conventional': ^12.1.4
-  '@defi-wonderland/smock': ^2.3.1
+  '@defi-wonderland/smock': ^2.3.5
   '@ethersproject/abi': ^5.7.0
   '@ethersproject/abstract-signer': ^5.7.0
   '@kreskolabs/configs': ^8.7.5
@@ -81,7 +81,7 @@ specifiers:
 devDependencies:
   '@commitlint/cli': 12.1.4
   '@commitlint/config-conventional': 12.1.4
-  '@defi-wonderland/smock': 2.3.4_efkhpjjs3djq3mxlylgiay2pya
+  '@defi-wonderland/smock': 2.3.5_efkhpjjs3djq3mxlylgiay2pya
   '@ethersproject/abi': 5.7.0
   '@ethersproject/abstract-signer': 5.7.0
   '@kreskolabs/configs': 8.7.5_typescript@5.0.3
@@ -387,8 +387,8 @@ packages:
       '@jridgewell/trace-mapping': 0.3.9
     dev: true
 
-  /@defi-wonderland/smock/2.3.4_efkhpjjs3djq3mxlylgiay2pya:
-    resolution: {integrity: sha512-VYJbsoCOdFRyGkAwvaQhQRrU6V8AjK3five8xdbo41DEE9n3qXzUNBUxyD9HhXB/dWWPFWT21IGw5Ztl6Qw3Ew==}
+  /@defi-wonderland/smock/2.3.5_efkhpjjs3djq3mxlylgiay2pya:
+    resolution: {integrity: sha512-klANj1hUpc3cd2ShXdVH/bEGwxJd+LxOngkF5gLcIbg6b37RCgMPMmR/94/hgL62F8bfWtuNKsQD7K+c6M5fWQ==}
     peerDependencies:
       '@ethersproject/abi': ^5
       '@ethersproject/abstract-provider': ^5
@@ -409,7 +409,7 @@ packages:
       lodash.isequal: 4.5.0
       lodash.isequalwith: 4.4.0
       rxjs: 7.8.0
-      semver: 7.3.8
+      semver: 7.5.4
     transitivePeerDependencies:
       - supports-color
     dev: true

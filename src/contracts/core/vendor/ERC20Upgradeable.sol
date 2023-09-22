@@ -62,11 +62,7 @@ contract ERC20Upgradeable is Initializable, IERC20Permit {
      * All two of these values are immutable: they can only be set once during
      * construction.
      */
-    function __ERC20Upgradeable_init(
-        string memory _name,
-        string memory _symbol,
-        uint8 _decimals
-    ) internal onlyInitializing {
+    function __ERC20Upgradeable_init(string memory _name, string memory _symbol, uint8 _decimals) internal onlyInitializing {
         name = _name;
         symbol = _symbol;
         decimals = _decimals;
@@ -161,9 +157,7 @@ contract ERC20Upgradeable is Initializable, IERC20Permit {
                         DOMAIN_SEPARATOR(),
                         keccak256(
                             abi.encode(
-                                keccak256(
-                                    "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
-                                ),
+                                keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"),
                                 owner,
                                 spender,
                                 value,

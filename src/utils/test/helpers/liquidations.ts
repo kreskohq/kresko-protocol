@@ -6,26 +6,20 @@ import { mintKrAsset } from "./krassets";
 import { wrapContractWithSigner } from "./general";
 
 export const getLiqAmount = async (user: SignerWithAddress, krAsset: any, collateral: any, log = false) => {
-    const liqThreshold = await hre.Diamond.getLiquidationThreshold();
-    const [
-        accountMinimumCollateralValue,
-        accountCollateralValue,
-        ratio,
-        kreskoAssetDebt,
-        maxLiquidatableValue,
-        krAssetPrice,
-        collateralPrice,
-    ] = await Promise.all([
-        hre.Diamond.getAccountMinCollateralAtRatio(user.address, liqThreshold),
-        hre.Diamond.getAccountCollateralValue(user.address),
-        hre.Diamond.getAccountCollateralRatio(user.address),
-        hre.Diamond.getAccountDebtAmount(user.address, krAsset.address),
+    const [maxLiquidatableValue, krAssetPrice] = await Promise.all([
         hre.Diamond.getMaxLiquidation(user.address, krAsset.address, collateral.address),
         krAsset.getPrice(),
-        collateral.getPrice(),
     ]);
 
     if (log) {
+        const [accountMinimumCollateralValue, accountCollateralValue, ratio, kreskoAssetDebt, collateralPrice] =
+            await Promise.all([
+                hre.Diamond.getAccountMinCollateralAtRatio(user.address, hre.Diamond.getLiquidationThreshold()),
+                hre.Diamond.getAccountCollateralValue(user.address),
+                hre.Diamond.getAccountCollateralRatio(user.address),
+                hre.Diamond.getAccountDebtAmount(user.address, krAsset.address),
+                collateral.getPrice(),
+            ]);
         console.table({
             krAssetPrice,
             collateralPrice,
@@ -42,7 +36,7 @@ export const getLiqAmount = async (user: SignerWithAddress, krAsset: any, collat
     return maxLiquidatableValue.wadDiv(krAssetPrice);
 };
 export const getExpectedMaxLiq = async (user: SignerWithAddress, krAsset: any, collateral: any) => {
-    const liquidationThreshold = await hre.Diamond.getLiquidationThreshold();
+    const liquidationThreshold = await hre.Diamond.getMaxLiquidationRatio();
     const [collateralValue, minCollateralValue, kreskoAsset, collateralAsset, collateralDepositValue, minDebt] =
         await Promise.all([
             hre.Diamond.getAccountCollateralValue(user.address),
@@ -92,9 +86,6 @@ export const liquidate = async (
         hre.Diamond.getAccountDebtAmount(user.address, krAsset.address),
         getLiqAmount(user, krAsset, collateral),
     ]);
-    // const depositsBefore = await hre.Diamond.getAccountCollateralAmount(user.address, collateral.address);
-    // const debtBefore = await hre.Diamond.getAccountDebtAmount(user.address, krAsset.address);
-    // const liqAmount = await getLiqAmount(user, krAsset, collateral);
 
     if (liqAmount.eq(0)) {
         return {
@@ -104,56 +95,37 @@ export const liquidate = async (
         };
     }
     if (krAsset.address === collateral.address) {
-        const mockAsset = await addMockCollateralAsset({
-            name: "KreskoAssetLiquidate",
-            symbol: "KreskoAssetLiquidate",
-            decimals: 18,
-            redstoneId: "KreskoAssetLiquidate",
-            price: 1,
-            factor: 1,
-        });
-
-        await mockAsset.mocks!.contract.setVariable("_balances", {
-            [hre.users.liquidator.address]: toBig(100_000),
-        });
+        const mockCollateral2 = hre.collaterals.find(c => c.deployArgs.name === "MockCollateral2");
         await depositMockCollateral({
             user: hre.users.liquidator,
-            asset: mockAsset,
+            asset: mockCollateral2!,
             amount: toBig(100_000),
         });
     } else {
         await collateral.mocks.contract.setVariable("_balances", {
-            [hre.users.liquidator.address]: toBig(100),
+            [hre.users.liquidator.address]: toBig(100_000),
         });
-        await depositMockCollateral({
+        await depositCollateral({
             user: hre.users.liquidator,
             asset: collateral,
             amount: toBig(100_000),
         });
     }
-
-    // const minDebt = await hre.Diamond.getMinDebtValue();
-    // const krAssetprice = await krAsset.getPrice();
-
     const [minDebt, krAssetPrice] = await Promise.all([hre.Diamond.getMinDebtValue(), krAsset.getPrice()]);
     const liquidationAmount = liqAmount.lt(minDebt.wadDiv(krAssetPrice)) ? minDebt.wadDiv(krAssetPrice) : liqAmount;
 
-    const [, mintIndex, depositIndex] = await Promise.all([
-        mintKrAsset({
-            user: hre.users.liquidator,
-            asset: krAsset,
-            amount: liquidationAmount,
-        }),
-        hre.Diamond.getAccountMintIndex(user.address, krAsset.address),
-        hre.Diamond.getAccountDepositIndex(user.address, collateral.address),
-    ]);
+    await mintKrAsset({
+        user: hre.users.liquidator,
+        asset: krAsset,
+        amount: liquidationAmount,
+    });
     const tx = await wrapContractWithSigner(hre.Diamond, hre.users.liquidator).liquidate(
         user.address,
         krAsset.address,
         liquidationAmount,
         collateral.address,
-        mintIndex,
-        depositIndex,
+        hre.Diamond.getAccountMintIndex(user.address, krAsset.address),
+        hre.Diamond.getAccountDepositIndex(user.address, collateral.address),
         allowSeizeUnderflow,
     );
 

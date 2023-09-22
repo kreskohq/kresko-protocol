@@ -12,8 +12,10 @@ import { addMockKreskoAsset, getKrAssetConfig } from "@utils/test/helpers/krasse
 import { getMockOracles } from "@utils/test/helpers/oracle";
 import { OracleType } from "@utils/test/oracles";
 
-describe("Minter - Configuration", () => {
-    withFixture(["minter-init"]);
+describe("Minter - Configuration", function () {
+    withFixture([]);
+
+    this.slow(1000);
 
     describe("#configuration", () => {
         it("can modify all parameters", async function () {
@@ -23,7 +25,7 @@ describe("Minter - Configuration", () => {
             await expect(Diamond.updateMinDebtValue(update.minDebtValue)).to.not.be.reverted;
             await expect(Diamond.updateLiquidationThreshold(update.liquidationThreshold)).to.not.be.reverted;
             await expect(Diamond.updateFeeRecipient(update.feeRecipient)).to.not.be.reverted;
-            await expect(hre.Diamond.updateMaxLiquidationMultiplier(update.MLM)).to.not.be.reverted;
+            await expect(hre.Diamond.updateMaxLiquidationRatio(update.MLR)).to.not.be.reverted;
             await expect(hre.Diamond.updateOracleDeviationPct(update.oracleDeviationPct)).to.not.be.reverted;
             const { minCollateralRatio, minDebtValue, feeRecipient, oracleDeviationPct } =
                 await hre.Diamond.getCurrentParameters();
@@ -66,14 +68,14 @@ describe("Minter - Configuration", () => {
             expect(await hre.Diamond.getExtOracleDecimals()).to.equal(decimals);
         });
 
-        it("can update max liquidatable multiplier", async function () {
-            const currentMLM = await hre.Diamond.getMaxLiquidationMultiplier();
-            const newMLM = toBig(1.0002);
+        it("can update max liquidation ratio", async function () {
+            const currentMLM = await hre.Diamond.getMaxLiquidationRatio();
+            const newMLR = toBig(1.42);
 
-            expect(currentMLM.eq(newMLM)).to.be.false;
+            expect(currentMLM.eq(newMLR)).to.be.false;
 
-            await expect(hre.Diamond.updateMaxLiquidationMultiplier(newMLM)).to.not.be.reverted;
-            expect((await hre.Diamond.getMaxLiquidationMultiplier()).eq(newMLM)).to.be.true;
+            await expect(hre.Diamond.updateMaxLiquidationRatio(newMLR)).to.not.be.reverted;
+            expect((await hre.Diamond.getMaxLiquidationRatio()).eq(newMLR)).to.be.true;
         });
 
         it("can update oracle deviation pct", async function () {

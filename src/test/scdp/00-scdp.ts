@@ -113,7 +113,7 @@ const swapKISSConfig = {
     supplyLimit: toBig(1000000),
 };
 
-describe.only("SCDP", async function () {
+describe("SCDP", async function () {
     let swapper: SignerWithAddress;
     let depositor: SignerWithAddress;
     let depositor2: SignerWithAddress;
@@ -170,7 +170,6 @@ describe.only("SCDP", async function () {
             await CollateralAsset.setBalance(user, depositAmount18Dec);
             await CollateralAsset8Dec.setBalance(user, depositAmount8Dec);
         }
-        console.debug("Reset!");
     };
 
     describe("#Test", async function () {
@@ -1250,7 +1249,7 @@ describe.only("SCDP", async function () {
                 expect(depositsWithFeesEnd).to.eq(0);
             });
         });
-        describe.only("#Error", () => {
+        describe("#Error", () => {
             beforeEach(async function () {
                 await Promise.all(this.usersArr.map(signer => CollateralAsset.setBalance(signer, toBig(1_000_000))));
                 await KISS.setBalance(swapper, toBig(10_000));

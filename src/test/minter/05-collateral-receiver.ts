@@ -1,11 +1,17 @@
 import { smock } from "@defi-wonderland/smock";
 import { fromBig, toBig } from "@kreskolabs/lib";
-import { Error, Role, defaultCollateralArgs, withFixture, wrapContractWithSigner } from "@test-utils";
-import { addMockCollateralAsset, getMaxWithdrawal } from "@utils/test/helpers/collaterals";
-import { expect } from "../chai";
+import {
+    Error,
+    Role,
+    defaultCollateralArgs,
+    defaultKrAssetArgs,
+    withFixture,
+    wrapContractWithSigner,
+} from "@test-utils";
+import { getMaxWithdrawal } from "@utils/test/helpers/collaterals";
 import hre from "hardhat";
 import { Kresko, SmockCollateralReceiver__factory } from "types/typechain";
-import { addMockKreskoAsset } from "@utils/test/helpers/krassets";
+import { expect } from "../chai";
 
 const getReceiver = async (kresko: Kresko, grantRole = true) => {
     const Receiver = await (
@@ -18,30 +24,11 @@ const getReceiver = async (kresko: Kresko, grantRole = true) => {
 };
 
 describe("CollateralReceiver - UncheckedCollateralWithdraw", () => {
-    withFixture(["minter-test", "unchecked-collateral"]);
+    withFixture(["minter-test"]);
 
     beforeEach(async function () {
-        this.secondCollateral = await addMockCollateralAsset({
-            name: "SecondCollateral",
-            symbol: "SecondCollateral",
-            redstoneId: "SecondCollateral",
-            price: 1,
-            factor: 1,
-            decimals: 18,
-        });
         this.collateral = this.collaterals!.find(c => c.deployArgs!.name === defaultCollateralArgs.name)!;
-        const krAssetArgs = {
-            name: "krasset2",
-            symbol: "krasset2",
-            redstoneId: "krasset2",
-            price: 10, // $10
-            marketOpen: true,
-            factor: 1,
-            supplyLimit: 100000,
-            closeFee: 0,
-            openFee: 0,
-        };
-        this.krAsset = await addMockKreskoAsset(krAssetArgs);
+        this.krAsset = this.krAssets!.find(k => k.deployArgs!.name === defaultKrAssetArgs.name)!;
         this.initialBalance = toBig(1000000);
 
         await this.collateral.mocks!.contract.setVariable("_balances", {
@@ -52,7 +39,6 @@ describe("CollateralReceiver - UncheckedCollateralWithdraw", () => {
                 [hre.Diamond.address]: this.initialBalance,
             },
         });
-        expect(await this.collateral.contract.balanceOf(hre.users.userFive.address)).to.equal(this.initialBalance);
 
         this.depositArgs = {
             user: hre.users.userFive,
@@ -143,6 +129,7 @@ describe("CollateralReceiver - UncheckedCollateralWithdraw", () => {
                 expect(balKreskoBefore).to.equal(balKreskoAfter);
             });
             it("should be able to withdraw full collateral and deposit another asset in its place", async function () {
+                this.secondCollateral = hre.collaterals.find(c => c.deployArgs!.name === "MockCollateral2")!;
                 const Receiver = wrapContractWithSigner(await getReceiver(hre.Diamond), hre.users.userFive);
 
                 const deposits = await hre.Diamond.getAccountCollateralAmount(

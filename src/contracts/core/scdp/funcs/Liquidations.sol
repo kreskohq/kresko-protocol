@@ -37,8 +37,8 @@ function maxLiqValueSCDP(
 
 function _getMaxLiqVarsSCDP(KrAsset memory _repayKreskoAsset, address _seizedCollateral) view returns (MaxLiqVars memory) {
     SCDPState storage s = scdp();
-    uint256 liquidationThreshold = s.liquidationThreshold;
-    uint256 minCollateralValue = s.effectiveDebtValue().wadMul(liquidationThreshold);
+    uint256 maxLiquidationRatio = s.maxLiquidationRatio;
+    uint256 minCollateralValue = s.effectiveDebtValue().wadMul(maxLiquidationRatio);
 
     (uint256 totalCollateralValue, uint256 seizeCollateralValue) = s.collateralValueSCDP(
         _seizedCollateral,
@@ -52,11 +52,10 @@ function _getMaxLiqVarsSCDP(KrAsset memory _repayKreskoAsset, address _seizedCol
         MaxLiqVars({
             collateral: collateral,
             accountCollateralValue: totalCollateralValue,
-            debtFactor: _repayKreskoAsset.kFactor.wadMul(liquidationThreshold).wadDiv(collateral.factor),
+            debtFactor: _repayKreskoAsset.kFactor.wadMul(maxLiquidationRatio).wadDiv(collateral.factor),
             minCollateralValue: minCollateralValue,
             minDebtValue: ms().minDebtValue,
             seizeCollateralAccountValue: seizeCollateralValue,
-            liquidationThreshold: liquidationThreshold,
-            maxLiquidationMultiplier: ms().maxLiquidationMultiplier
+            maxLiquidationRatio: maxLiquidationRatio
         });
 }
