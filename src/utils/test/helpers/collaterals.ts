@@ -13,7 +13,7 @@ import {
 import { InputArgs, TestCollateralAssetArgs, TestCollateralAssetUpdate, defaultCollateralArgs } from "../mocks";
 import { OracleType } from "../oracles";
 import { getFakeOracle, setPrice } from "./oracle";
-import { setBalanceCollateralFunc } from "./smock";
+import { getBalanceCollateralFunc, setBalanceCollateralFunc } from "./smock";
 
 envCheck();
 
@@ -94,6 +94,7 @@ export const addMockCollateralAsset = async (
         setOracleOrder: order => hre.Diamond.updateCollateralOracleOrder(contract.address, order),
         getPrice: async () => (await fakeFeed.latestRoundData())[1],
         setBalance: setBalanceCollateralFunc(contract),
+        balanceOf: getBalanceCollateralFunc(contract),
         update: update => updateCollateralAsset(contract.address, update),
     };
     const found = hre.collaterals.findIndex(c => c.address === asset.address);

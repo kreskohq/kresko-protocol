@@ -4,14 +4,23 @@ pragma solidity >=0.8.19;
 import {AggregatorV3Interface} from "vendor/AggregatorV3Interface.sol";
 
 contract MockOracle is AggregatorV3Interface {
-    uint8 public override decimals = 8;
+    uint8 public decimals = 8;
     string public override description;
     uint256 public override version = 1;
     int256 public initialAnswer;
 
-    constructor(string memory _description, int256 _initialAnswer) {
+    constructor(string memory _description, uint256 _initialAnswer, uint8 decimals) {
         description = _description;
-        initialAnswer = _initialAnswer;
+        initialAnswer = int256(_initialAnswer);
+        decimals = decimals;
+    }
+
+    function setPrice(uint256 _answer) external {
+        initialAnswer = int256(_answer);
+    }
+
+    function price() external view returns (uint256) {
+        return uint256(initialAnswer);
     }
 
     function getRoundData(

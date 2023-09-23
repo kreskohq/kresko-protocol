@@ -3,43 +3,13 @@ pragma solidity >=0.8.19;
 import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
 import {WadRay} from "libs/WadRay.sol";
-import {burnKrAsset, mintKrAsset} from "common/funcs/Actions.sol";
-
+import {mintSCDP, burnSCDP} from "common/funcs/Actions.sol";
 import {krAssetAmountToValue, krAssetValueToAmount, kreskoAssetAmount, collateralAmountWrite} from "minter/funcs/Conversions.sol";
-
 import {SCDPState} from "scdp/State.sol";
-import {krAssetAmountToSDI} from "scdp/funcs/Conversions.sol";
 
 library Swap {
     using WadRay for uint256;
     using SafeERC20Permit for IERC20Permit;
-
-    /// @notice Repay SCDP debt.
-    /// @param _kreskoAsset the asset being repaid
-    /// @param _burnAmount the asset amount being burned
-    function repaySwap(
-        SCDPState storage self,
-        address _kreskoAsset,
-        uint256 _burnAmount,
-        address _from
-    ) internal returns (uint256 destroyed) {
-        destroyed = burnKrAsset(_kreskoAsset, _burnAmount, _from);
-        self.sdi.totalDebt -= krAssetAmountToSDI(_kreskoAsset, destroyed, false);
-    }
-
-    /// @notice Mint kresko assets for SCDP.
-    /// @param _kreskoAsset the asset requested
-    /// @param _amount the asset amount requested
-    /// @param _to the account to mint the assets to
-    function mintSwap(
-        SCDPState storage self,
-        address _kreskoAsset,
-        uint256 _amount,
-        address _to
-    ) internal returns (uint256 issued) {
-        issued = mintKrAsset(_kreskoAsset, _amount, _to);
-        self.sdi.totalDebt += krAssetAmountToSDI(_kreskoAsset, issued, false);
-    }
 
     /**
      * @notice Records the assets received from account in a swap.
@@ -91,7 +61,7 @@ library Swap {
 
         if (debtOut > 0) {
             // 1. Burn debt that was repaid from the assets received.
-            self.debt[_assetIn] -= self.repaySwap(_assetIn, debtOut, _assetsFrom);
+            self.debt[_assetIn] -= burnSCDP(_assetIn, debtOut, _assetsFrom);
         }
 
         assert(_amountIn == debtOut + collateralIn);
@@ -149,7 +119,7 @@ library Swap {
 
         if (debtIn > 0) {
             // 1. Issue required debt to the pool, minting new assets to receiver.
-            self.debt[_assetOut] += self.mintSwap(_assetOut, debtIn, _assetsTo);
+            self.debt[_assetOut] += mintSCDP(_assetOut, debtIn, _assetsTo);
         }
 
         assert(amountOut == debtIn + collateralOut);

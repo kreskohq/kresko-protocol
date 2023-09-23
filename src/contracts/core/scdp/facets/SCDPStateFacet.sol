@@ -6,8 +6,8 @@ import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {collateralAmountToValue, krAssetAmountToValues, kreskoAssetAmount, krAssetAmountToValue, collateralAmountToValues} from "minter/funcs/Conversions.sol";
 
 import {ISCDPStateFacet} from "scdp/interfaces/ISCDPStateFacet.sol";
-import {SCDPCollateral, SCDPKrAsset, AssetData, UserData, UserAssetData, GlobalData} from "scdp/Types.sol";
-import {scdp} from "scdp/State.sol";
+import {SCDPCollateral, SCDPKrAsset, AssetData, UserData, GlobalData} from "scdp/Types.sol";
+import {scdp, sdi} from "scdp/State.sol";
 
 /**
  * @title SCDPStateFacet
@@ -188,7 +188,7 @@ contract SCDPStateFacet is ISCDPStateFacet {
 
     function getCollateralRatioSCDP() public view returns (uint256) {
         uint256 collateralValue = scdp().totalCollateralValueSCDP(false);
-        uint256 debtValue = scdp().effectiveDebtValue();
+        uint256 debtValue = sdi().effectiveDebtValue();
         if (debtValue == 0) return 0;
         return collateralValue.wadDiv(debtValue);
     }
@@ -196,7 +196,7 @@ contract SCDPStateFacet is ISCDPStateFacet {
     /// @inheritdoc ISCDPStateFacet
     function getStatisticsSCDP() external view returns (GlobalData memory) {
         (uint256 debtValue, uint256 debtValueAdjusted) = scdp().totalDebtValuesAtRatioSCDP(1 ether);
-        uint256 effectiveDebtValue = scdp().effectiveDebtValue();
+        uint256 effectiveDebtValue = sdi().effectiveDebtValue();
         (uint256 collateralValue, uint256 collateralValueAdjusted) = scdp().totalCollateralValuesSCDP();
         return
             GlobalData({

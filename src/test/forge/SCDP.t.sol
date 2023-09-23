@@ -4,12 +4,12 @@ pragma solidity ^0.8.0;
 import {console} from "forge-std/Test.sol";
 import {LibTest} from "kresko-helpers/utils/LibTest.sol";
 import {TestBase} from "kresko-helpers/utils/TestBase.sol";
-import {MockOracle} from "test/MockOracle.sol";
-import {MockERC20} from "test/MockERC20.sol";
+import {MockOracle} from "mocks/MockOracle.sol";
+import {MockERC20} from "mocks/MockERC20.sol";
+import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
 import {DeployHelper} from "./utils/DeployHelper.sol";
 import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {KreskoAssetAnchor} from "kresko-asset/KreskoAssetAnchor.sol";
-import {MockSequencerUptimeFeed} from "test/MockSequencerUptimeFeed.sol";
 
 // solhint-disable
 

@@ -2,7 +2,9 @@
 pragma solidity >=0.8.19;
 
 import {ms} from "minter/State.sol";
+import {sdi} from "scdp/State.sol";
 import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
+import {krAssetAmountToSDI} from "scdp/funcs/Conversions.sol";
 
 /* -------------------------------------------------------------------------- */
 /*                                   Actions                                  */
@@ -40,4 +42,22 @@ function mintKrAsset(address _kreskoAsset, uint256 _amount, address _to) returns
 function mintKrAsset(uint256 _amount, address _to, address _anchor) returns (uint256 minted) {
     minted = IKreskoAssetIssuer(_anchor).issue(_amount, _to);
     require(minted != 0, "zero-mint");
+}
+
+/// @notice Repay SCDP swap debt.
+/// @param _kreskoAsset the asset being repaid
+/// @param _burnAmount the asset amount being burned
+/// @param _from the account to burn assets from
+function burnSCDP(address _kreskoAsset, uint256 _burnAmount, address _from) returns (uint256 destroyed) {
+    destroyed = burnKrAsset(_kreskoAsset, _burnAmount, _from);
+    sdi().totalDebt -= krAssetAmountToSDI(_kreskoAsset, destroyed, false);
+}
+
+/// @notice Mint kresko assets from SCDP swap.
+/// @param _kreskoAsset the asset requested
+/// @param _amount the asset amount requested
+/// @param _to the account to mint the assets to
+function mintSCDP(address _kreskoAsset, uint256 _amount, address _to) returns (uint256 issued) {
+    issued = mintKrAsset(_kreskoAsset, _amount, _to);
+    sdi().totalDebt += krAssetAmountToSDI(_kreskoAsset, issued, false);
 }

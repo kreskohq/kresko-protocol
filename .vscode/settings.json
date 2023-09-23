@@ -48,6 +48,7 @@
     "vault/=src/contracts/core/vault/",
     "common/=src/contracts/core/common/",
     "test/=src/contracts/test/",
+    "mocks/=src/contracts/core/test/mocks",
     "kresko-asset/=src/contracts/core/kresko-asset/",
     "kiss/=src/contracts/core/kiss/",
     "kresko-helpers/=lib/kresko-foundry-helpers/src/",

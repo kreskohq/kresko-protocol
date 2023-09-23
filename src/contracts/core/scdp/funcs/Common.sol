@@ -7,7 +7,7 @@ import {collateralAmountRead, collateralAmountToValue, collateralAmountToValues}
 import {CollateralAsset} from "minter/Types.sol";
 import {ms} from "minter/State.sol";
 import {SCDPKrAsset} from "scdp/Types.sol";
-import {SCDPState} from "scdp/State.sol";
+import {SCDPState, sdi} from "scdp/State.sol";
 
 library SCommon {
     using WadRay for uint256;
@@ -38,7 +38,7 @@ library SCommon {
         return
             self.totalCollateralValueSCDP(
                 false // dont ignore cFactor
-            ) >= self.effectiveDebtValue().wadMul(_ratio);
+            ) >= sdi().effectiveDebtValue().wadMul(_ratio);
     }
 
     /**

@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 import {AggregatorV3Interface} from "vendor/AggregatorV3Interface.sol";
-import {GnosisSafeL2} from "vendor/gnosis/GnosisSafeL2.sol";
-import {GnosisSafeProxyFactory, GnosisSafeProxy} from "vendor/gnosis/GnosisSafeProxyFactory.sol";
+
 import {IKresko} from "periphery/IKresko.sol";
 
 import {DiamondHelper} from "./DiamondHelper.sol";
@@ -24,7 +23,6 @@ import {LiquidationFacet} from "minter/facets/LiquidationFacet.sol";
 import {ConfigurationFacet} from "minter/facets/ConfigurationFacet.sol";
 import {SafetyCouncilFacet} from "minter/facets/SafetyCouncilFacet.sol";
 import {MinterInitArgs, KrAsset, CollateralAsset} from "minter/Types.sol";
-// import {BurnHelperFacet} from "minter/facets/BurnHelperFacet.sol";
 
 import {SCDPStateFacet} from "scdp/facets/SCDPStateFacet.sol";
 import {SCDPFacet} from "scdp/facets/SCDPFacet.sol";
@@ -35,8 +33,8 @@ import {SCDPInitArgs, SCDPCollateral, SCDPKrAsset, PairSetter} from "scdp/Types.
 import {OracleConfiguration, OracleType} from "oracle/Types.sol";
 import {OracleConfigFacet} from "oracle/facets/OracleConfigFacet.sol";
 import {OracleViewFacet} from "oracle/facets/OracleViewFacet.sol";
-import {MockOracle} from "test/MockOracle.sol";
-import {MockERC20} from "test/MockERC20.sol";
+import {MockOracle} from "mocks/MockOracle.sol";
+import {MockERC20} from "mocks/MockERC20.sol";
 
 import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {KreskoAssetAnchor} from "kresko-asset/KreskoAssetAnchor.sol";
@@ -231,7 +229,7 @@ abstract contract DeployHelper is RedstoneHelper {
         bytes memory redstonePayload = getRedstonePayload(prices);
         (bool success, bytes memory data) = address(kresko).call(
             abi.encodePacked(
-                abi.encodeWithSelector(kresko.enableDepositAssetsSCDP.selector, assets, configurations),
+                abi.encodeWithSelector(kresko.addDepositAssetsSCDP.selector, assets, configurations),
                 redstonePayload
             )
         );
@@ -252,10 +250,7 @@ abstract contract DeployHelper is RedstoneHelper {
 
         bytes memory redstonePayload = getRedstonePayload(prices);
         (bool success, bytes memory data) = address(kresko).call(
-            abi.encodePacked(
-                abi.encodeWithSelector(kresko.enableKrAssetsSCDP.selector, assets, configurations),
-                redstonePayload
-            )
+            abi.encodePacked(abi.encodeWithSelector(kresko.addKrAssetsSCDP.selector, assets, configurations), redstonePayload)
         );
         require(success, _getRevertMsg(data));
     }
@@ -282,7 +277,7 @@ abstract contract DeployHelper is RedstoneHelper {
         anchor.initialize(IKreskoAsset(krAsset), string.concat("a", _symbol), string.concat("a", _symbol), admin);
 
         krAsset.grantRole(keccak256("kresko.roles.minter.operator"), address(anchor));
-        oracle = new MockOracle(price, 8);
+        oracle = new MockOracle(_symbol, price, 8);
         OracleType[2] memory oracleTypes = [OracleType.Redstone, OracleType.Chainlink];
 
         kresko.addKreskoAsset(
@@ -309,7 +304,7 @@ abstract contract DeployHelper is RedstoneHelper {
         uint256 price
     ) internal returns (MockERC20 collateral, MockOracle oracle) {
         collateral = new MockERC20(id, id, decimals, 0);
-        oracle = new MockOracle(price, 8);
+        oracle = new MockOracle(id, price, 8);
         OracleType[2] memory oracleTypes = [OracleType.Redstone, OracleType.Chainlink];
 
         kresko.addCollateralAsset(
@@ -465,36 +460,65 @@ abstract contract DeployHelper is RedstoneHelper {
     }
 }
 
+contract GnosisSafeL2Mock {
+    function setup(
+        address[] memory _owners,
+        uint256 _threshold,
+        address _to,
+        bytes memory _data,
+        address _fallbackHandler,
+        address _paymentToken,
+        uint256 _payment
+    ) public {}
+
+    function isOwner(address owner) external view returns (bool) {
+        return true;
+    }
+
+    function getOwners() external view returns (address[] memory) {
+        address[] memory owners = new address[](6);
+        owners[0] = address(0x0);
+        owners[1] = address(0x011);
+        owners[2] = address(0x022);
+        owners[3] = address(0x033);
+        owners[4] = address(0x044);
+        owners[5] = address(0x055);
+        return owners;
+    }
+}
+
 library LibSafe {
     address public constant USER1 = address(0x011);
     address public constant USER2 = address(0x022);
     address public constant USER3 = address(0x033);
     address public constant USER4 = address(0x044);
 
-    function createSafe(address admin) internal returns (GnosisSafeProxy) {
-        GnosisSafeL2 masterCopy = new GnosisSafeL2();
-        GnosisSafeProxyFactory proxyFactory = new GnosisSafeProxyFactory();
-        address[] memory councilUsers = new address[](5);
-        councilUsers[0] = (admin);
-        councilUsers[1] = (USER1);
-        councilUsers[2] = (USER2);
-        councilUsers[3] = (USER3);
-        councilUsers[4] = (USER4);
-
-        return
-            proxyFactory.createProxy(
-                address(masterCopy),
-                abi.encodeWithSelector(
-                    masterCopy.setup.selector,
-                    councilUsers,
-                    3,
-                    address(0),
-                    "0x",
-                    address(0),
-                    address(0),
-                    0,
-                    admin
-                )
-            );
+    function createSafe(address admin) internal returns (GnosisSafeL2Mock) {
+        return new GnosisSafeL2Mock();
     }
+    //     GnosisSafeL2 masterCopy = new GnosisSafeL2();
+    //     GnosisSafeProxyFactory proxyFactory = new GnosisSafeProxy();
+    //     address[] memory councilUsers = new address[](5);
+    //     councilUsers[0] = (admin);
+    //     councilUsers[1] = (USER1);
+    //     councilUsers[2] = (USER2);
+    //     councilUsers[3] = (USER3);
+    //     councilUsers[4] = (USER4);
+
+    //     return
+    //         proxyFactory.createProxy(
+    //             address(masterCopy),
+    //             abi.encodeWithSelector(
+    //                 masterCopy.setup.selector,
+    //                 councilUsers,
+    //                 3,
+    //                 address(0),
+    //                 "0x",
+    //                 address(0),
+    //                 address(0),
+    //                 0,
+    //                 admin
+    //             )
+    //         );
+    // }
 }

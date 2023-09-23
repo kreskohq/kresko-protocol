@@ -16,7 +16,12 @@ import {
     CollateralAssetStruct,
 } from "./typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 import { MockOracle } from "./typechain";
-import { setBalanceCollateralFunc, setBalanceKrAssetFunc } from "@utils/test/helpers/smock";
+import {
+    getBalanceCollateralFunc,
+    getBalanceKrAssetFunc,
+    setBalanceCollateralFunc,
+    setBalanceKrAssetFunc,
+} from "@utils/test/helpers/smock";
 declare global {
     const hre: HardhatRuntimeEnvironment;
     /* -------------------------------------------------------------------------- */
@@ -34,6 +39,7 @@ declare global {
         anchor: MockContract<Contracts.KreskoAssetAnchor>;
         priceFeed: FakeContract<MockOracle>;
         setBalance: ReturnType<typeof setBalanceKrAssetFunc>;
+        balanceOf: ReturnType<typeof getBalanceKrAssetFunc>;
         setPrice: (price: number) => void;
         setOracleOrder: (order: [OracleType, OracleType]) => void;
         getPrice: () => Promise<BigNumber>;
@@ -50,6 +56,7 @@ declare global {
         setPrice: (price: number) => void;
         setOracleOrder: (order: [OracleType, OracleType]) => Promise<any>;
         setBalance: ReturnType<typeof setBalanceCollateralFunc>;
+        balanceOf: ReturnType<typeof getBalanceCollateralFunc>;
         getPrice: () => Promise<BigNumber>;
         update: (update: TestCollateralAssetUpdate) => Promise<TestCollateral>;
     };

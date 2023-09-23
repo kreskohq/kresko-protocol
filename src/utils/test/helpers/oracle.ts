@@ -12,5 +12,6 @@ export const getFakeOracle = async (price = TEN_USD, marketOpen = true) => {
 };
 
 export const setPrice = (fakeOracle: FakeContract<MockOracle>, price: number) => {
+    fakeOracle.initialAnswer.returns(toBig(price, 8));
     fakeOracle.latestRoundData.returns([1, toBig(price, 8), 1, 1, 1]);
 };

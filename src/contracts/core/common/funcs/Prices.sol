@@ -9,6 +9,7 @@ import {PushPrice} from "common/Types.sol";
 import {Error} from "common/Errors.sol";
 import {Redstone} from "libs/Redstone.sol";
 import {ms} from "minter/State.sol";
+import {scdp, sdi} from "scdp/State.sol";
 import {os} from "oracle/State.sol";
 import {Oracle, OracleType} from "oracle/Types.sol";
 
@@ -17,6 +18,16 @@ using WadRay for uint256;
 /* -------------------------------------------------------------------------- */
 /*                                   Getters                                  */
 /* -------------------------------------------------------------------------- */
+
+/// @notice Get the price of SDI in USD, oracle precision.
+function SDIPrice() view returns (uint256) {
+    uint256 totalValue = scdp().totalDebtValueAtRatioSCDP(1 ether, false);
+    if (totalValue == 0) {
+        return 10 ** ms().extOracleDecimals;
+    }
+    return totalValue.wadDiv(sdi().totalDebt);
+}
+
 /**
  * @notice Get the oracle price using safety checks for deviation and sequencer uptime
  * @notice reverts if the price deviates more than `_oracleDeviationPct`

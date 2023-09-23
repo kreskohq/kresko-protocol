@@ -20,7 +20,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             : (
                   await hre.deploy("MockOracle", {
                       deploymentName: "MockOracle_" + collateral.symbol,
-                      args: [`${collateral.symbol}/USD`, await collateral.price()],
+                      args: [`${collateral.symbol}/USD`, await collateral.price(), 8],
                   })
               )[0].address;
 

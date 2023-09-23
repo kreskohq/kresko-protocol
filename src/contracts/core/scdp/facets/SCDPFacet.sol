@@ -5,6 +5,7 @@ import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
 import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {Error} from "common/Errors.sol";
+import {burnSCDP} from "common/funcs/Actions.sol";
 import {fromWad, valueToAmount} from "common/funcs/Math.sol";
 
 import {DSModifiers} from "diamond/Modifiers.sol";
@@ -60,7 +61,7 @@ contract SCDPFacet is ISCDPFacet, DSModifiers {
         );
         require(s.swapDeposits[_seizeCollateral] >= seizedAmount, "no-swap-deposits");
 
-        s.debt[_repayKrAsset] -= s.repaySwap(_repayKrAsset, _repayAmount, msg.sender);
+        s.debt[_repayKrAsset] -= burnSCDP(_repayKrAsset, _repayAmount, msg.sender);
 
         uint256 seizedAmountInternal = collateralAmountWrite(_repayKrAsset, seizedAmount);
         s.swapDeposits[_seizeCollateral] -= seizedAmountInternal;
@@ -97,7 +98,7 @@ contract SCDPFacet is ISCDPFacet, DSModifiers {
             valueToAmount(scdpKrAsset.liquidationIncentive, collateral.price(), repayAmountUSD)
         );
 
-        s.debt[_repayKrAsset] -= s.repaySwap(_repayKrAsset, _repayAmount, msg.sender);
+        s.debt[_repayKrAsset] -= burnSCDP(_repayKrAsset, _repayAmount, msg.sender);
         s.handleSeizeSCDP(_seizeCollateral, seizeAmount);
 
         IERC20Permit(_seizeCollateral).safeTransfer(msg.sender, seizeAmount);

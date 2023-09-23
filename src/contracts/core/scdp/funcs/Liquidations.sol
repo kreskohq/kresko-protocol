@@ -9,7 +9,7 @@ import {ms} from "minter/State.sol";
 import {CollateralAsset, KrAsset} from "minter/Types.sol";
 
 import {SCDPKrAsset} from "scdp/Types.sol";
-import {scdp, SCDPState} from "scdp/State.sol";
+import {scdp, sdi} from "scdp/State.sol";
 
 using WadRay for uint256;
 
@@ -36,13 +36,12 @@ function maxLiqValueSCDP(
 }
 
 function _getMaxLiqVarsSCDP(KrAsset memory _repayKreskoAsset, address _seizedCollateral) view returns (MaxLiqVars memory) {
-    SCDPState storage s = scdp();
-    uint256 maxLiquidationRatio = s.maxLiquidationRatio;
-    uint256 minCollateralValue = s.effectiveDebtValue().wadMul(maxLiquidationRatio);
+    uint256 maxLiquidationRatio = scdp().maxLiquidationRatio;
+    uint256 minCollateralValue = sdi().effectiveDebtValue().wadMul(maxLiquidationRatio);
 
-    (uint256 totalCollateralValue, uint256 seizeCollateralValue) = s.collateralValueSCDP(
+    (uint256 totalCollateralValue, uint256 seizeCollateralValue) = scdp().collateralValueSCDP(
         _seizedCollateral,
-        s.totalDeposits[_seizedCollateral],
+        scdp().totalDeposits[_seizedCollateral],
         false
     );
 

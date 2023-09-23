@@ -4,9 +4,9 @@ pragma solidity ^0.8.0;
 import {Test} from "forge-std/Test.sol";
 import {VaultAsset} from "vault/Types.sol";
 import {Vault} from "vault/Vault.sol";
-import {MockOracle} from "test/MockOracle.sol";
+import {MockOracle} from "mocks/MockOracle.sol";
 import {AggregatorV3Interface} from "vendor/AggregatorV3Interface.sol";
-import {MockERC20, USDC, USDT, DAI} from "test/MockERC20.sol";
+import {MockERC20, USDC, USDT, DAI} from "mocks/MockERC20.sol";
 import {ERC20} from "vendor/ERC20.sol";
 
 // solhint-disable private-vars-leading-underscore
@@ -56,9 +56,9 @@ contract vKISSTest is Test {
         usdtAddr = address(usdt);
 
         // oracles
-        usdcOracle = new MockOracle(1e8, 8);
-        daiOracle = new MockOracle(1e8, 8);
-        usdtOracle = new MockOracle(1e8, 8);
+        usdcOracle = new MockOracle("USDC/USD", 1e8, 8);
+        daiOracle = new MockOracle("DAI/USD", 1e8, 8);
+        usdtOracle = new MockOracle("USDT/USD", 1e8, 8);
 
         // add assets
         vkiss.addAsset(VaultAsset(ERC20(usdcAddr), AggregatorV3Interface(address(usdcOracle)), type(uint256).max, 0, 0, true));

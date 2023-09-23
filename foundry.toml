@@ -18,6 +18,7 @@ remappings = [
     'common/=src/contracts/core/common/',
     'kiss/=src/contracts/core/kiss/',
     'test/=src/contracts/test/',
+    "mocks/=src/contracts/core/test/mocks",
     "periphery/=src/contracts/periphery/",
     'kresko-asset/=src/contracts/core/kresko-asset/',
     'kresko-helpers/=lib/kresko-foundry-helpers/src/',

@@ -9,7 +9,7 @@ import {
 } from "@utils/test";
 import { addMockCollateralAsset } from "@utils/test/helpers/collaterals";
 import { addMockKreskoAsset, getKrAssetConfig } from "@utils/test/helpers/krassets";
-import { getMockOracles } from "@utils/test/helpers/oracle";
+import { getFakeOracle } from "@utils/test/helpers/oracle";
 import { OracleType } from "@utils/test/oracles";
 
 describe("Minter - Configuration", function () {
@@ -126,7 +126,7 @@ describe("Minter - Configuration", function () {
                 openFee: toBig(0.02),
             };
 
-            const [MockFeed] = await getMockOracles(update.price);
+            const FakeFeed = await getFakeOracle(update.price);
 
             await wrapContractWithSigner(hre.Diamond, hre.users.deployer).updateKreskoAsset(
                 contract.address,
@@ -137,14 +137,14 @@ describe("Minter - Configuration", function () {
                     toBig(update.supplyLimit),
                     update.closeFee,
                     update.openFee,
-                    MockFeed.address,
+                    FakeFeed.address,
                     "MockKreskoAsset",
                     [OracleType.Chainlink, OracleType.Redstone],
                 )),
             );
 
             const newValues = await hre.Diamond.getKreskoAsset(contract.address);
-            const updatedOracleAnswer = fromBig((await MockFeed.latestRoundData())[1], 8);
+            const updatedOracleAnswer = fromBig((await FakeFeed.latestRoundData())[1], 8);
             const newKreskoAnswer = fromBig(
                 await hre.Diamond.getDebtAmountToValue(contract.address, toBig(1), true),
                 8,

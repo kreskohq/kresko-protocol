@@ -4,17 +4,18 @@ pragma solidity >=0.8.19;
 import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {AggregatorV3Interface} from "vendor/AggregatorV3Interface.sol";
 import {Role} from "common/Types.sol";
+import {SDIPrice} from "common/funcs/Prices.sol";
 
 import {DSModifiers} from "diamond/Modifiers.sol";
 
 import {krAssetAmountToSDI} from "scdp/funcs/Conversions.sol";
-import {scdp, SDIState} from "scdp/State.sol";
+import {sdi} from "scdp/State.sol";
 import {CoverAsset} from "scdp/Types.sol";
 import {ISDIFacet} from "scdp/interfaces/ISDIFacet.sol";
 
 contract SDIFacet is ISDIFacet, DSModifiers {
     function initialize(address coverRecipient) external onlyOwner {
-        scdp().sdi.coverRecipient = coverRecipient;
+        sdi().coverRecipient = coverRecipient;
     }
 
     /* -------------------------------------------------------------------------- */
@@ -22,23 +23,23 @@ contract SDIFacet is ISDIFacet, DSModifiers {
     /* -------------------------------------------------------------------------- */
     /// @notice Simply returns the total supply of SDI.
     function totalSDI() external view returns (uint256) {
-        return scdp().totalSDI();
+        return sdi().totalSDI();
     }
 
     function getTotalSDIDebt() external view returns (uint256) {
-        return uint256(scdp().sdi.totalDebt);
+        return uint256(sdi().totalDebt);
     }
 
     function getEffectiveSDIDebt() external view returns (uint256) {
-        return scdp().effectiveDebt();
+        return sdi().effectiveDebt();
     }
 
     function getEffectiveSDIDebtUSD() external view returns (uint256) {
-        return scdp().effectiveDebtValue();
+        return sdi().effectiveDebtValue();
     }
 
     function getSDICoverAmount() external view returns (uint256) {
-        return scdp().totalCoverAmount();
+        return sdi().totalCoverAmount();
     }
 
     function previewSCDPBurn(address asset, uint256 burnAmount, bool ignoreFactors) external view returns (uint256 shares) {
@@ -51,11 +52,11 @@ contract SDIFacet is ISDIFacet, DSModifiers {
 
     /// @notice Get the price of SDI in USD, oracle precision.
     function getSDIPrice() external view returns (uint256) {
-        return scdp().SDIPrice();
+        return SDIPrice();
     }
 
     function getSDICoverAsset(address asset) external view returns (CoverAsset memory) {
-        return scdp().sdi.coverAsset[asset];
+        return sdi().coverAsset[asset];
     }
 
     /* -------------------------------------------------------------------------- */
@@ -63,7 +64,7 @@ contract SDIFacet is ISDIFacet, DSModifiers {
     /* -------------------------------------------------------------------------- */
 
     function SDICover(address asset, uint256 amount) external returns (uint256 shares, uint256 value) {
-        return scdp().cover(asset, amount);
+        return sdi().cover(asset, amount);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -71,23 +72,22 @@ contract SDIFacet is ISDIFacet, DSModifiers {
     /* -------------------------------------------------------------------------- */
 
     function addAssetSDI(address asset, address oracle, bytes32 redstoneId) external onlyRole(Role.ADMIN) {
-        SDIState storage sdi = scdp().sdi;
-        require(sdi.coverAsset[asset].decimals == 0, "ASSET_ALREADY_ADDED");
-        sdi.coverAsset[asset] = CoverAsset(AggregatorV3Interface(oracle), redstoneId, true, IERC20Permit(asset).decimals());
-        sdi.coverAssets.push(asset);
+        require(sdi().coverAsset[asset].decimals == 0, "ASSET_ALREADY_ADDED");
+        sdi().coverAsset[asset] = CoverAsset(AggregatorV3Interface(oracle), redstoneId, true, IERC20Permit(asset).decimals());
+        sdi().coverAssets.push(asset);
     }
 
     function disableAssetSDI(address asset) external onlyRole(Role.ADMIN) {
-        require(scdp().sdi.coverAsset[asset].decimals != 0, "ASSET_NOT_ADDED");
-        scdp().sdi.coverAsset[asset].enabled = false;
+        require(sdi().coverAsset[asset].decimals != 0, "ASSET_NOT_ADDED");
+        sdi().coverAsset[asset].enabled = false;
     }
 
     function enableAssetSDI(address asset) external onlyRole(Role.ADMIN) {
-        require(scdp().sdi.coverAsset[asset].decimals != 0, "ASSET_NOT_ADDED");
-        scdp().sdi.coverAsset[asset].enabled = true;
+        require(sdi().coverAsset[asset].decimals != 0, "ASSET_NOT_ADDED");
+        sdi().coverAsset[asset].enabled = true;
     }
 
     function setCoverRecipientSDI(address coverRecipient) external onlyRole(Role.ADMIN) {
-        scdp().sdi.coverRecipient = coverRecipient;
+        sdi().coverRecipient = coverRecipient;
     }
 }

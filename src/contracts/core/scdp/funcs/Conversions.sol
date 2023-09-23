@@ -7,16 +7,16 @@ import {WadRay} from "libs/WadRay.sol";
 
 import {krAssetAmountToValue} from "minter/funcs/Conversions.sol";
 import {ms} from "minter/State.sol";
-import {scdp} from "scdp/State.sol";
+import {SDIPrice} from "common/funcs/Prices.sol";
 
 using WadRay for uint256;
 using SafeERC20Permit for IERC20Permit;
 
-function valueToSDI(uint256 valueIn, uint256 sdiPrice) view returns (uint256) {
-    return (valueIn * 10 ** ms().extOracleDecimals).wadDiv(sdiPrice);
+function valueToSDI(uint256 valueIn) view returns (uint256) {
+    return (valueIn * 10 ** ms().extOracleDecimals).wadDiv(SDIPrice());
 }
 
 /// @notice Preview SDI amount from krAsset amount.
 function krAssetAmountToSDI(address asset, uint256 amount, bool ignoreFactors) view returns (uint256 shares) {
-    return krAssetAmountToValue(asset, amount, ignoreFactors).wadDiv(scdp().SDIPrice());
+    return krAssetAmountToValue(asset, amount, ignoreFactors).wadDiv(SDIPrice());
 }

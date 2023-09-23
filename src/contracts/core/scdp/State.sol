@@ -7,6 +7,7 @@ import {SDeposits} from "scdp/funcs/Deposits.sol";
 import {SAccounts} from "scdp/funcs/Accounts.sol";
 import {SDebt} from "scdp/funcs/Debt.sol";
 import {Swap} from "scdp/funcs/Swap.sol";
+import {SDebtIndex} from "scdp/funcs/SDI.sol";
 /* -------------------------------------------------------------------------- */
 /*                                   Usings                                   */
 /* -------------------------------------------------------------------------- */
@@ -16,6 +17,8 @@ using SDeposits for SCDPState global;
 using SAccounts for SCDPState global;
 using SDebt for SCDPState global;
 using Swap for SCDPState global;
+
+using SDebtIndex for SDIState global;
 
 /* -------------------------------------------------------------------------- */
 /*                                    State                                   */
@@ -38,8 +41,6 @@ struct SCDPState {
     /// @notice Liquidation Overflow Multiplier, multiplies max liquidatable value.
     uint256 maxLiquidationRatio;
     address feeAsset;
-    /// @notice Debt Index State
-    SDIState sdi;
     /* -------------------------------------------------------------------------- */
     /*                                 Accounting                                 */
     /* -------------------------------------------------------------------------- */
@@ -86,10 +87,18 @@ struct SDIState {
 
 // Storage position
 bytes32 constant SCDP_STORAGE_POSITION = keccak256("kresko.scdp.storage");
+bytes32 constant SDI_STORAGE_POSITION = keccak256("kresko.scdp.sdi.storage");
 
 // solhint-disable func-visibility
 function scdp() pure returns (SCDPState storage state) {
     bytes32 position = SCDP_STORAGE_POSITION;
+    assembly {
+        state.slot := position
+    }
+}
+
+function sdi() pure returns (SDIState storage state) {
+    bytes32 position = SDI_STORAGE_POSITION;
     assembly {
         state.slot := position
     }

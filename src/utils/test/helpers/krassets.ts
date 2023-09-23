@@ -16,7 +16,7 @@ import roles from "../roles";
 import { getCollateralConfig } from "./collaterals";
 import { wrapContractWithSigner } from "./general";
 import { getFakeOracle, setPrice } from "./oracle";
-import { setBalanceKrAssetFunc } from "./smock";
+import { getBalanceKrAssetFunc, setBalanceKrAssetFunc } from "./smock";
 
 export const getDebtIndexAdjustedBalance = async (user: SignerWithAddress, asset: TestKrAsset) => {
     const balance = await asset.contract.balanceOf(user.address);
@@ -138,6 +138,7 @@ export const addMockKreskoAsset = async (
         anchor: akrAsset,
         setPrice: price => setPrice(fakeFeed, price),
         setBalance: setBalanceKrAssetFunc(krAsset, akrAsset),
+        balanceOf: getBalanceKrAssetFunc(krAsset),
         setOracleOrder: order => hre.Diamond.updateKrAssetOracleOrder(krAsset.address, order),
         getPrice: async () => (await fakeFeed.latestRoundData())[1],
         update: update => updateKrAsset(krAsset.address, update),

@@ -4,11 +4,11 @@ const oldCompilerSettings = {
     settings: {
         optimizer: {
             enabled: !process.env.CI,
-            runs: 200,
+            runs: 1000,
         },
         outputSelection: {
             "*": {
-                "*": ["metadata", "evm.methodIdentifiers", "devdoc", "userdoc", "evm.gasEstimates"],
+                "*": ["storageLayout", "evm.gasEstimates"],
             },
         },
     },
@@ -17,21 +17,22 @@ export const compilers: SolcUserConfig[] = [
     {
         version: "0.8.19",
         settings: {
-            viaIR: true,
+            viaIR: false,
             optimizer: {
                 enabled: true,
+                runs: 1,
             },
             outputSelection: {
                 "*": {
                     "*": [
-                        "metadata",
+                        // "metadata",
                         "abi",
                         "storageLayout",
-                        "evm.methodIdentifiers",
-                        "devdoc",
-                        "userdoc",
-                        "evm.gasEstimates",
-                        "evm.byteCode",
+                        // "evm.methodIdentifiers",
+                        // "devdoc",
+                        // "userdoc",
+                        // "evm.gasEstimates",
+                        // "evm.byteCode",
                     ],
                 },
             },

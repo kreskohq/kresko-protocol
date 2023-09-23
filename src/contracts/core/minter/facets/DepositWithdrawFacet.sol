@@ -35,7 +35,6 @@ contract DepositWithdrawFacet is DSModifiers, MSModifiers, IDepositWithdrawFacet
         if (ms().safetyStateSet) {
             super.ensureNotPaused(_collateralAsset, Action.Deposit);
         }
-
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
         IERC20Permit(_collateralAsset).safeTransferFrom(msg.sender, address(this), _depositAmount);
 

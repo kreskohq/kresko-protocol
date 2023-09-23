@@ -7,7 +7,7 @@ const logger = getLogger("create-kiss");
 const deploy: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     await hre.deploy("MockOracle", {
         deploymentName: "KISSFeed",
-        args: ["KISS/USD", toBig(1, 8)],
+        args: ["KISS/USD", toBig(1, 8), 8],
     });
     logger.success("Succesfully created KISS oracle");
 };
