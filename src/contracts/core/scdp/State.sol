@@ -30,18 +30,6 @@ using SDebtIndex for SDIState global;
  */
 struct SCDPState {
     /* -------------------------------------------------------------------------- */
-    /*                           Configurable Parameters                          */
-    /* -------------------------------------------------------------------------- */
-    /// @notice The minimum ratio of collateral to debt that can be taken by direct action.
-    uint256 minCollateralRatio;
-    /// @notice The collateralization ratio at which positions may be liquidated.
-    uint256 liquidationThreshold;
-    /// @notice User swap fee receiver
-    address swapFeeRecipient;
-    /// @notice Liquidation Overflow Multiplier, multiplies max liquidatable value.
-    uint256 maxLiquidationRatio;
-    address feeAsset;
-    /* -------------------------------------------------------------------------- */
     /*                                 Accounting                                 */
     /* -------------------------------------------------------------------------- */
     /// @notice Mapping of krAsset -> pooled debt
@@ -71,6 +59,18 @@ struct SCDPState {
     address[] collaterals;
     /// @notice Array of kresko assets that can be minted and swapped.
     address[] krAssets;
+    /* -------------------------------------------------------------------------- */
+    /*                           Configurable Parameters                          */
+    /* -------------------------------------------------------------------------- */
+    /// @notice The minimum ratio of collateral to debt that can be taken by direct action.
+    uint256 minCollateralRatio;
+    /// @notice The collateralization ratio at which positions may be liquidated.
+    uint256 liquidationThreshold;
+    /// @notice User swap fee receiver
+    address swapFeeRecipient;
+    /// @notice Liquidation Overflow Multiplier, multiplies max liquidatable value.
+    uint256 maxLiquidationRatio;
+    address feeAsset;
 }
 
 struct SDIState {

@@ -5,10 +5,8 @@ pragma solidity >=0.8.19;
 import {AccessControlEnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import {ERC20Upgradeable} from "vendor/ERC20Upgradeable.sol";
 import {IERC165} from "vendor/IERC165.sol";
-
 import {Error} from "common/Errors.sol";
 import {Role} from "common/Types.sol";
-
 import {Rebaser} from "./Rebaser.sol";
 import {IKreskoAsset, ISyncable} from "./IKreskoAsset.sol";
 
@@ -23,10 +21,9 @@ import {IKreskoAsset, ISyncable} from "./IKreskoAsset.sol";
 
 contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IKreskoAsset {
     using Rebaser for uint256;
-
-    bool public isRebased;
-    address public kresko;
     Rebase private _rebaseInfo;
+    address public kresko;
+    bool public isRebased;
 
     constructor() {
         //

@@ -42,7 +42,7 @@ describe("Minter", () => {
         // Load account with collateral
         this.initialBalance = toBig(100000);
         await this.collateral.setBalance(hre.users.userOne, this.initialBalance);
-        await this.collateral.mocks!.contract.setVariable("_allowances", {
+        await this.collateral.contract.setVariable("_allowances", {
             [hre.users.userOne.address]: {
                 [hre.Diamond.address]: this.initialBalance,
             },
@@ -85,7 +85,7 @@ describe("Minter", () => {
                 );
                 expect(amountMinted).to.equal(mintAmount);
                 // Confirm the user's Kresko asset balance has increased
-                const userBalance = await this.krAsset.mocks.contract.balanceOf(hre.users.userOne.address);
+                const userBalance = await this.krAsset.contract.balanceOf(hre.users.userOne.address);
                 expect(userBalance).to.equal(mintAmount);
                 // Confirm that the Kresko asset's total supply increased as expected
                 const kreskoAssetTotalSupplyAfter = await this.krAsset.contract.totalSupply();
@@ -841,10 +841,10 @@ describe("Minter", () => {
                 );
 
                 // Load userThree with Kresko Assets
-                await this.collateral.mocks!.contract.setVariable("_balances", {
+                await this.collateral.contract.setVariable("_balances", {
                     [hre.users.userThree.address]: this.initialBalance,
                 });
-                await this.collateral.mocks!.contract.setVariable("_allowances", {
+                await this.collateral.contract.setVariable("_allowances", {
                     [hre.users.userThree.address]: {
                         [hre.Diamond.address]: this.initialBalance,
                     },
@@ -968,7 +968,7 @@ describe("Minter", () => {
                 const minDebtValue = fromBig(await hre.Diamond.getMinDebtValue(), 8);
 
                 const oraclePrice = this.krAsset.deployArgs!.price;
-                const burnAmount = toBig(fromBig(userOneDebt) - minDebtValue / oraclePrice);
+                const burnAmount = toBig(fromBig(userOneDebt) - minDebtValue / oraclePrice!);
 
                 // Burn Kresko asset
                 const kreskoAssetIndex = 0;

@@ -18,47 +18,23 @@ using MCore for MinterState global;
  */
 struct MinterState {
     /* -------------------------------------------------------------------------- */
-    /*                           Configurable Parameters                          */
-    /* -------------------------------------------------------------------------- */
-
-    /// @notice The recipient of protocol fees.
-    address feeRecipient;
-    /// @notice The minimum ratio of collateral to debt that can be taken by direct action.
-    uint256 minCollateralRatio;
-    /// @notice The minimum USD value of an individual synthetic asset debt position.
-    uint256 minDebtValue;
-    /// @notice The collateralization ratio at which positions may be liquidated.
-    uint256 liquidationThreshold;
-    /// @notice Flag tells if there is a need to perform safety checks on user actions
-    bool safetyStateSet;
-    /// @notice asset -> action -> state
-    mapping(address => mapping(Action => SafetyState)) safetyState;
-    /* -------------------------------------------------------------------------- */
     /*                              Collateral Assets                             */
     /* -------------------------------------------------------------------------- */
-
-    /// @notice Mapping of collateral asset token address to information on the collateral asset.
-    mapping(address => CollateralAsset) collateralAssets;
-    /**
-     * @notice Mapping of account -> asset -> deposit amount
-     */
-    mapping(address => mapping(address => uint256)) collateralDeposits;
     /// @notice Mapping of account -> collateral asset addresses deposited
     mapping(address => address[]) depositedCollateralAssets;
+    /// @notice Mapping of account -> asset -> deposit amount
+    mapping(address => mapping(address => uint256)) collateralDeposits;
+    /// @notice Mapping of collateral asset token address to information on the collateral asset.
+    mapping(address => CollateralAsset) collateralAssets;
     /* -------------------------------------------------------------------------- */
     /*                                Kresko Assets                               */
     /* -------------------------------------------------------------------------- */
-
     /// @notice Mapping of kresko asset token address to information on the Kresko asset.
     mapping(address => KrAsset) kreskoAssets;
     /// @notice Mapping of account -> krAsset -> debt amount owed to the protocol
     mapping(address => mapping(address => uint256)) kreskoAssetDebt;
     /// @notice Mapping of account -> addresses of borrowed krAssets
     mapping(address => address[]) mintedKreskoAssets;
-    /// @notice Offchain oracle decimals
-    uint8 extOracleDecimals;
-    /// @notice Max liquidation ratio, this is the max collateral ratio liquidations can liquidate to.
-    uint256 maxLiquidationRatio;
     /* -------------------------------------------------------------------------- */
     /*                                  ORACLE                                  */
     /* -------------------------------------------------------------------------- */
@@ -71,6 +47,25 @@ struct MinterState {
     uint256 sequencerGracePeriodTime;
     /// @notice timeout for oracle in seconds
     uint256 oracleTimeout;
+    /* -------------------------------------------------------------------------- */
+    /*                           Configurable Parameters                          */
+    /* -------------------------------------------------------------------------- */
+    /// @notice asset -> action -> state
+    mapping(address => mapping(Action => SafetyState)) safetyState;
+    /// @notice Max liquidation ratio, this is the max collateral ratio liquidations can liquidate to.
+    uint256 maxLiquidationRatio;
+    /// @notice The recipient of protocol fees.
+    address feeRecipient;
+    /// @notice The minimum ratio of collateral to debt that can be taken by direct action.
+    uint256 minCollateralRatio;
+    /// @notice The minimum USD value of an individual synthetic asset debt position.
+    uint256 minDebtValue;
+    /// @notice The collateralization ratio at which positions may be liquidated.
+    uint256 liquidationThreshold;
+    /// @notice Flag tells if there is a need to perform safety checks on user actions
+    bool safetyStateSet;
+    /// @notice Offchain oracle decimals
+    uint8 extOracleDecimals;
 }
 
 /* -------------------------------------------------------------------------- */

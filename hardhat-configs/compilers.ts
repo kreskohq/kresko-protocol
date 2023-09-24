@@ -17,22 +17,22 @@ export const compilers: SolcUserConfig[] = [
     {
         version: "0.8.19",
         settings: {
-            viaIR: false,
+            viaIR: true,
             optimizer: {
                 enabled: true,
-                runs: 1,
+                runs: 1000,
             },
             outputSelection: {
                 "*": {
                     "*": [
-                        // "metadata",
+                        "metadata",
                         "abi",
                         "storageLayout",
-                        // "evm.methodIdentifiers",
-                        // "devdoc",
-                        // "userdoc",
-                        // "evm.gasEstimates",
-                        // "evm.byteCode",
+                        "evm.methodIdentifiers",
+                        "devdoc",
+                        "userdoc",
+                        "evm.gasEstimates",
+                        "evm.byteCode",
                     ],
                 },
             },

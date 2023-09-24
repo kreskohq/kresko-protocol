@@ -75,7 +75,7 @@ contract LiquidationFacet is DSModifiers, ILiquidationFacet {
             uint256 maxLiquidatableUSD = maxLiquidatableValue(_account, krAsset, _seizeAsset);
 
             if (repayAmountUSD > maxLiquidatableUSD) {
-                _repayAmount = maxLiquidatableUSD.wadDiv(krAsset.price(s.oracleDeviationPct));
+                _repayAmount = maxLiquidatableUSD.wadDiv(krAsset.price());
                 repayAmountUSD = maxLiquidatableUSD;
             }
         }
@@ -147,8 +147,8 @@ contract LiquidationFacet is DSModifiers, ILiquidationFacet {
 
             // If the collateral asset is also a kresko asset, ensure that collateral remains over minimum amount required.
             if (
-                ms().collateralAssets[params.seizedAsset].anchor != address(0) &&
-                newDepositAmount < Constants.MIN_KRASSET_COLLATERAL_AMOUNT
+                newDepositAmount < Constants.MIN_KRASSET_COLLATERAL_AMOUNT &&
+                ms().collateralAssets[params.seizedAsset].anchor != address(0)
             ) {
                 params.seizeAmount -= Constants.MIN_KRASSET_COLLATERAL_AMOUNT - newDepositAmount;
                 newDepositAmount = Constants.MIN_KRASSET_COLLATERAL_AMOUNT;

@@ -31,10 +31,10 @@ describe("CollateralReceiver - UncheckedCollateralWithdraw", () => {
         this.krAsset = this.krAssets!.find(k => k.deployArgs!.name === defaultKrAssetArgs.name)!;
         this.initialBalance = toBig(1000000);
 
-        await this.collateral.mocks!.contract.setVariable("_balances", {
+        await this.collateral.contract.setVariable("_balances", {
             [hre.users.userFive.address]: this.initialBalance,
         });
-        await this.collateral.mocks!.contract.setVariable("_allowances", {
+        await this.collateral.contract.setVariable("_allowances", {
             [hre.users.userFive.address]: {
                 [hre.Diamond.address]: this.initialBalance,
             },
@@ -142,11 +142,11 @@ describe("CollateralReceiver - UncheckedCollateralWithdraw", () => {
                 // set second collateral price to half of the first and balance to twice that
                 await this.secondCollateral.setPrice(fromBig(await this.collateral.getPrice(), 8));
 
-                await this.secondCollateral.mocks!.contract.setVariable("_balances", {
+                await this.secondCollateral.contract.setVariable("_balances", {
                     [hre.users.userFive.address]: this.initialBalance,
                 });
 
-                await this.secondCollateral.mocks!.contract.setVariable("_allowances", {
+                await this.secondCollateral.contract.setVariable("_allowances", {
                     [hre.users.userFive.address]: {
                         [hre.Diamond.address]: this.initialBalance,
                         [Receiver.address]: this.initialBalance,

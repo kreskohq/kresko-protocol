@@ -27,14 +27,7 @@ describe("Oracles", () => {
             redstoneCollateral.setPrice(10);
 
             const initialBalance = toBig(100000);
-            await redstoneCollateral.mocks!.contract.setVariable("_balances", {
-                [hre.users.userOne.address]: initialBalance,
-            });
-            await redstoneCollateral.mocks!.contract.setVariable("_allowances", {
-                [hre.users.userOne.address]: {
-                    [hre.Diamond.address]: initialBalance,
-                },
-            });
+            await redstoneCollateral.setBalance(hre.users.userOne, initialBalance, hre.Diamond.address);
 
             mockSequencerUptimeFeed = await (await ethers.getContractFactory("MockSequencerUptimeFeed")).deploy();
 
