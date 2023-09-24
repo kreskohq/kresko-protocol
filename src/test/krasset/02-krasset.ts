@@ -1,14 +1,12 @@
 import { toBig } from "@kreskolabs/lib";
 import { expect } from "@test/chai";
-import { defaultKrAssetArgs, defaultMintAmount, Error, Role, withFixture } from "@utils/test";
+import { defaultMintAmount, Error, kreskoAssetFixture, Role } from "@utils/test";
 
 describe("KreskoAsset", () => {
     let KreskoAsset: KreskoAsset;
 
-    withFixture(["minter-test", "kresko-assets", "collaterals"]);
-
     beforeEach(async function () {
-        KreskoAsset = hre.krAssets.find(asset => asset.deployArgs!.symbol === defaultKrAssetArgs.symbol)!.contract;
+        ({ KreskoAsset } = await kreskoAssetFixture());
         // Grant minting rights for test deployer
         await KreskoAsset.grantRole(Role.OPERATOR, hre.addr.deployer);
     });

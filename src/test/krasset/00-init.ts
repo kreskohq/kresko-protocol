@@ -1,7 +1,7 @@
-import { expect } from "@test/chai";
-import { Error, Role, withFixture } from "@utils/test";
 import { testnetConfigs } from "@deploy-config/arbitrumGoerli";
 import { anchorTokenPrefix } from "@deploy-config/shared";
+import { expect } from "@test/chai";
+import { DefaultFixture, Error, Role, defaultFixture } from "@utils/test";
 import type { KreskoAssetAnchor } from "types/typechain";
 
 const { name, symbol } = testnetConfigs.hardhat.krAssets[1];
@@ -9,13 +9,14 @@ const { name, symbol } = testnetConfigs.hardhat.krAssets[1];
 describe("KreskoAsset", function () {
     let KreskoAsset: KreskoAsset;
     let KreskoAssetAnchor: KreskoAssetAnchor;
-    withFixture(["minter-test", "kresko-assets", "collaterals"]);
+    let f: DefaultFixture;
 
     describe("#initialization - anchor", () => {
         beforeEach(async function () {
-            const deployment = this.krAssets!.find(k => k.deployArgs!.name === name)!;
-            KreskoAsset = deployment!.contract;
-            KreskoAssetAnchor = deployment!.anchor!;
+            f = await defaultFixture();
+            const deployment = f.krAssets.find(k => k.deployArgs!.name === name)!;
+            KreskoAsset = deployment.contract as unknown as KreskoAsset;
+            KreskoAssetAnchor = deployment.anchor! as unknown as KreskoAssetAnchor;
         });
         it("cant initialize twice", async function () {
             await expect(
@@ -61,15 +62,24 @@ describe("KreskoAsset", function () {
     });
 
     describe("#initialization - wrapped", () => {
-        beforeEach(async function () {
-            const deployment = hre.krAssets.find(k => k.deployArgs!.name === name);
-            KreskoAsset = deployment!.contract;
-            KreskoAssetAnchor = deployment!.anchor!;
-        });
         it("cant initialize twice", async function () {
             await expect(
                 KreskoAssetAnchor.initialize(KreskoAsset.address, name, symbol, hre.addr.deployer),
             ).to.be.revertedWith(Error.ALREADY_INITIALIZED_OZ);
+        });
+        it("sets correct state", async function () {
+            expect(await KreskoAssetAnchor.name()).to.equal(name);
+            expect(await KreskoAssetAnchor.symbol()).to.equal(anchorTokenPrefix + symbol);
+            expect(await KreskoAssetAnchor.asset()).to.equal(KreskoAsset.address);
+            expect(await KreskoAssetAnchor.hasRole(Role.ADMIN, hre.addr.deployer)).to.equal(true);
+            expect(await KreskoAssetAnchor.hasRole(Role.OPERATOR, hre.Diamond.address)).to.equal(true);
+
+            expect(await KreskoAssetAnchor.totalSupply()).to.equal(0);
+            expect(await KreskoAssetAnchor.totalAssets()).to.equal(await KreskoAsset.totalSupply());
+
+            const rebaseInfo = await KreskoAsset.rebaseInfo();
+            expect(rebaseInfo.denominator).to.equal(0);
+            expect(rebaseInfo.positive).to.equal(false);
         });
 
         it.skip("cant initialize implementation", async function () {
@@ -92,21 +102,7 @@ describe("KreskoAsset", function () {
             );
             expect(await KreskoAssetAnchor.name()).to.equal(newName);
             expect(await KreskoAssetAnchor.symbol()).to.equal(newSymbol);
-        });
-
-        it("sets correct state", async function () {
-            expect(await KreskoAssetAnchor.name()).to.equal(name);
-            expect(await KreskoAssetAnchor.symbol()).to.equal(anchorTokenPrefix + symbol);
-            expect(await KreskoAssetAnchor.asset()).to.equal(KreskoAsset.address);
-            expect(await KreskoAssetAnchor.hasRole(Role.ADMIN, hre.addr.deployer)).to.equal(true);
-            expect(await KreskoAssetAnchor.hasRole(Role.OPERATOR, hre.Diamond.address)).to.equal(true);
-
-            expect(await KreskoAssetAnchor.totalSupply()).to.equal(0);
-            expect(await KreskoAssetAnchor.totalAssets()).to.equal(await KreskoAsset.totalSupply());
-
-            const rebaseInfo = await KreskoAsset.rebaseInfo();
-            expect(rebaseInfo.denominator).to.equal(0);
-            expect(rebaseInfo.positive).to.equal(false);
+            await KreskoAssetAnchor.reinitializeERC20(name, symbol, 3);
         });
     });
 });

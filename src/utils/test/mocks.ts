@@ -58,6 +58,7 @@ export type TestKreskoAssetUpdate = {
 };
 
 export const TEN_USD = 10;
+export const ONE_USD = 1;
 export const defaultOracleDecimals = 8;
 
 export const defaultDecimals = 18;
@@ -65,7 +66,7 @@ export const defaultDecimals = 18;
 export const defaultDepositAmount = toBig(10, defaultDecimals);
 export const defaultMintAmount = toBig(100, defaultDecimals);
 
-export const defaultSupplyLimit = 10000000;
+export const defaultSupplyLimit = 1000000000;
 export const defaultCloseFee = 0.02; // 2%
 export const defaultOpenFee = 0; // 0%
 export const BASIS_POINT = oneRay.div(10000);

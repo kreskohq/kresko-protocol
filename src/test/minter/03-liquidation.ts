@@ -1,5 +1,5 @@
 import { fromBig, getNamedEvent, toBig } from "@kreskolabs/lib";
-import { LiquidationFixtureParams, liquidationsFixture } from "@test-utils";
+import { LiquidationFixture, liquidationsFixture } from "@test-utils";
 import { expect } from "@test/chai";
 import { Error } from "@utils/test/errors";
 import { depositMockCollateral } from "@utils/test/helpers/collaterals";
@@ -14,7 +14,7 @@ const CR_DELTA = 1e-4;
 
 // -------------------------------- Set up mock assets --------------------------------
 
-describe.only("Minter - Liquidations", function () {
+describe("Minter - Liquidations", function () {
     let Liquidator: Kresko;
     let LiquidatorTwo: Kresko;
     let User: Kresko;
@@ -26,7 +26,7 @@ describe.only("Minter - Liquidations", function () {
     let user4: SignerWithAddress;
     let user5: SignerWithAddress;
 
-    let f: LiquidationFixtureParams;
+    let f: LiquidationFixture;
 
     this.slow(4000);
     beforeEach(async function () {
@@ -428,8 +428,8 @@ describe.only("Minter - Liquidations", function () {
                         f.KrAsset.address,
                         liqAmount,
                         f.Collateral.address,
-                        hre.Diamond.getAccountMintIndex(user1.address, f.KrAsset.address),
-                        hre.Diamond.getAccountDepositIndex(user1.address, f.Collateral.address),
+                        optimized.getAccountMintIndex(user1.address, f.KrAsset.address),
+                        optimized.getAccountDepositIndex(user1.address, f.Collateral.address),
                         allowSeizeUnderflow,
                     ),
                 ).to.not.be.reverted;

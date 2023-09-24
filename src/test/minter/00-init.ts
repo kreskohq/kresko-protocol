@@ -1,10 +1,11 @@
-import hre from "hardhat";
-import { scdpFacets, diamondFacets, getMinterInitializer, minterFacets } from "@deploy-config/shared";
-import { Role, withFixture, Error } from "@utils/test";
+import { diamondFacets, getMinterInitializer, minterFacets, scdpFacets } from "@deploy-config/shared";
 import { expect } from "@test/chai";
+import { Error, Role, defaultFixture } from "@utils/test";
 
 describe("Minter - Init", () => {
-    withFixture(["minter-init"]);
+    beforeEach(async function () {
+        await defaultFixture();
+    });
     describe("#initialization", () => {
         it("sets correct initial state", async function () {
             expect(await hre.Diamond.getStorageVersion()).to.equal(3);

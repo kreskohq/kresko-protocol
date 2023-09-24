@@ -42,14 +42,13 @@ export async function createKrAsset(name: string, symbol: string, decimals = 18)
 
     await KreskoAsset.grantRole(Role.OPERATOR, KreskoAssetAnchor.address);
 
-    const asset: TestKrAsset = {
+    const asset: any = {
         address: KreskoAsset.address,
         contract: KreskoAsset,
         anchor: KreskoAssetAnchor,
         deployArgs: {
             name,
             symbol,
-            // @ts-expect-error
             decimals,
             anchorSymbol,
         },

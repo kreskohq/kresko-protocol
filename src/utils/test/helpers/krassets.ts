@@ -2,7 +2,7 @@ import { smock } from "@defi-wonderland/smock";
 import { allRedstoneAssets, anchorTokenPrefix } from "@deploy-config/shared";
 import { toBig } from "@kreskolabs/lib";
 import { wrapKresko } from "@utils/redstone";
-import { expect } from "chai";
+import optimized from "./optimizations";
 import { BigNumber } from "ethers";
 import hre from "hardhat";
 import { KreskoAssetAnchor__factory, KreskoAsset__factory } from "types/typechain";
@@ -204,6 +204,6 @@ export const burnKrAsset = async (args: InputArgsSimple) => {
         user.address,
         asset.address,
         convert ? toBig(+amount) : amount,
-        hre.Diamond.getAccountMintIndex(user.address, asset.address),
+        optimized.getAccountMintIndex(user.address, asset.address),
     );
 };

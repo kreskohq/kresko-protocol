@@ -1,10 +1,9 @@
 import { fromBig, getInternalEvent, toBig } from "@kreskolabs/lib";
-import { Action, DepositWithdrawFixtureParams, Role, depositWithdrawFixture, withFixture } from "@test-utils";
+import { Action, DepositWithdrawFixture, Role, depositWithdrawFixture } from "@test-utils";
 import { executeContractCallWithSigners } from "@utils/gnosis/utils/execution";
 import { wrapKresko } from "@utils/redstone";
 import { Error } from "@utils/test/errors";
 import { depositCollateral, withdrawCollateral } from "@utils/test/helpers/collaterals";
-import { mintKrAsset } from "@utils/test/helpers/krassets";
 import optimized from "@utils/test/helpers/optimizations";
 import { expect } from "chai";
 import { BigNumber } from "ethers";
@@ -16,7 +15,6 @@ import {
 } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 
 describe("Minter - Deposit Withdraw", function () {
-    withFixture(["minter-init"]);
     let depositor: SignerWithAddress;
     let withdrawer: SignerWithAddress;
 
@@ -25,18 +23,12 @@ describe("Minter - Deposit Withdraw", function () {
     let Depositor: Kresko;
     let Withdrawer: Kresko;
 
-    let depositAmount: BigNumber;
-    let f: DepositWithdrawFixtureParams;
-    this.slow(1);
+    let f: DepositWithdrawFixture;
+    this.slow(600);
 
     beforeEach(async function () {
         f = await depositWithdrawFixture();
         [[user, User], [depositor, Depositor], [withdrawer, Withdrawer]] = f.users;
-        depositAmount = f.initialDeposits;
-
-        this.initialBalance = toBig(100000);
-
-        await f.Collateral.setBalance(depositor, this.initialBalance, hre.Diamond.address);
     });
 
     describe("#collateral", () => {
@@ -72,8 +64,8 @@ describe("Minter - Deposit Withdraw", function () {
             });
 
             it("should allow an account to deposit whitelisted collateral", async function () {
-                await expect(Depositor.depositCollateral(depositor.address, f.Collateral.address, depositAmount)).not.to
-                    .be.reverted;
+                await expect(Depositor.depositCollateral(depositor.address, f.Collateral.address, f.initialDeposits))
+                    .not.to.be.reverted;
 
                 // Account has deposit entry
                 const depositedCollateralAssetsAfter = await optimized.getAccountCollateralAssets(depositor.address);
@@ -81,53 +73,16 @@ describe("Minter - Deposit Withdraw", function () {
 
                 // Account's collateral deposit balances have increased
                 expect(await optimized.getAccountCollateralAmount(depositor.address, f.Collateral.address)).to.equal(
-                    depositAmount,
+                    f.initialDeposits,
                 );
                 // Kresko's balance has increased
                 expect(await f.Collateral.balanceOf(hre.Diamond.address)).to.equal(
-                    depositAmount.add(f.initialDeposits),
+                    f.initialDeposits.add(f.initialDeposits),
                 );
                 // Account's balance has decreased
                 expect(fromBig(await f.Collateral.balanceOf(depositor.address))).to.equal(
-                    fromBig(this.initialBalance) - fromBig(depositAmount),
+                    fromBig(f.initialBalance) - fromBig(f.initialDeposits),
                 );
-            });
-
-            it.skip("testNormal", async function () {
-                await mintKrAsset({
-                    user: withdrawer,
-                    asset: f.KrAsset,
-                    amount: toBig(1),
-                });
-                const collateralAssets = await hre.Diamond.getAccountCollateralAssets(withdrawer.address);
-                const depositAmount = await hre.Diamond.getAccountCollateralAmount(
-                    withdrawer.address,
-                    f.Collateral.address,
-                );
-                const debtAmount = await User.getAccountDebtAmount(withdrawer.address, f.KrAsset.address);
-                const krAssets = await User.getAccountMintedAssets(withdrawer.address);
-                expect(debtAmount).gt(0);
-                expect(depositAmount).gt(0);
-                expect(krAssets).to.deep.equal([f.KrAsset.address]);
-                expect(collateralAssets).to.deep.equal([f.Collateral.address]);
-            });
-            it.skip("testLeet", async function () {
-                await mintKrAsset({
-                    user: withdrawer,
-                    asset: f.KrAsset,
-                    amount: toBig(1),
-                });
-                const collateralAssets = await optimized.getAccountCollateralAssets(withdrawer.address);
-                const depositAmount = await optimized.getAccountCollateralAmount(
-                    withdrawer.address,
-                    f.Collateral.address,
-                );
-                const debtAmount = await optimized.getAccountDebtAmount(withdrawer.address, f.KrAsset);
-                const krAssets = await optimized.getAccountMintedAssets(withdrawer.address);
-                expect(debtAmount).gt(0);
-                expect(depositAmount).gt(0);
-                expect(krAssets).to.deep.equal([f.KrAsset.address]);
-                expect(collateralAssets).to.deep.equal([f.Collateral.address]);
             });
 
             it("should allow an arbitrary account to deposit whitelisted collateral on behalf of another account", async function () {
@@ -136,8 +91,8 @@ describe("Minter - Deposit Withdraw", function () {
                 expect(depositedCollateralAssetsBefore).to.deep.equal([]);
 
                 // Deposit collateral, from depositor -> user.
-                await expect(Depositor.depositCollateral(user.address, f.Collateral.address, depositAmount)).not.to.be
-                    .reverted;
+                await expect(Depositor.depositCollateral(user.address, f.Collateral.address, f.initialDeposits)).not.to
+                    .be.reverted;
 
                 // Confirm the array of the user's deposited collateral assets has been pushed to.
                 const depositedCollateralAssetsAfter = await hre.Diamond.getAccountCollateralAssets(user.address);
@@ -148,25 +103,25 @@ describe("Minter - Deposit Withdraw", function () {
                     user.address,
                     f.Collateral.address,
                 );
-                expect(amountDeposited).to.equal(depositAmount);
+                expect(amountDeposited).to.equal(f.initialDeposits);
 
                 // Confirm the amount as been transferred from the user into Kresko.sol
                 const kreskoBalance = await f.Collateral.balanceOf(hre.Diamond.address);
-                expect(kreskoBalance).to.equal(depositAmount.add(f.initialDeposits));
+                expect(kreskoBalance).to.equal(f.initialDeposits.add(f.initialDeposits));
 
                 // Confirm the depositor's wallet balance has been adjusted accordingly
                 const depositorBalanceAfter = await f.Collateral.balanceOf(depositor.address);
-                expect(fromBig(depositorBalanceAfter)).to.equal(fromBig(this.initialBalance) - fromBig(depositAmount));
+                expect(fromBig(depositorBalanceAfter)).to.equal(fromBig(f.initialBalance) - fromBig(f.initialDeposits));
             });
 
             it("should allow an account to deposit more collateral to an existing deposit", async function () {
                 // Deposit first batch of collateral
-                await expect(Depositor.depositCollateral(depositor.address, f.Collateral.address, depositAmount)).not.to
-                    .be.reverted;
+                await expect(Depositor.depositCollateral(depositor.address, f.Collateral.address, f.initialDeposits))
+                    .not.to.be.reverted;
 
                 // Deposit second batch of collateral
-                await expect(Depositor.depositCollateral(depositor.address, f.Collateral.address, depositAmount)).not.to
-                    .be.reverted;
+                await expect(Depositor.depositCollateral(depositor.address, f.Collateral.address, f.initialDeposits))
+                    .not.to.be.reverted;
 
                 // Confirm the array of the user's deposited collateral assets hasn't been double-pushed to.
                 const depositedCollateralAssetsAfter = await hre.Diamond.getAccountCollateralAssets(depositor.address);
@@ -177,20 +132,20 @@ describe("Minter - Deposit Withdraw", function () {
                     depositor.address,
                     f.Collateral.address,
                 );
-                expect(amountDeposited).to.equal(depositAmount.add(depositAmount));
+                expect(amountDeposited).to.equal(f.initialDeposits.add(f.initialDeposits));
             });
 
             it("should allow an account to have deposited multiple collateral assets", async function () {
                 // Load user account with a different type of collateral
-                await f.Collateral2.setBalance(depositor, this.initialBalance, hre.Diamond.address);
+                await f.Collateral2.setBalance(depositor, f.initialBalance, hre.Diamond.address);
 
                 // Deposit batch of first collateral type
-                await expect(Depositor.depositCollateral(depositor.address, f.Collateral.address, depositAmount)).not.to
-                    .be.reverted;
+                await expect(Depositor.depositCollateral(depositor.address, f.Collateral.address, f.initialDeposits))
+                    .not.to.be.reverted;
 
                 // Deposit batch of second collateral type
-                await expect(Depositor.depositCollateral(depositor.address, f.Collateral2.address, depositAmount)).not
-                    .to.be.reverted;
+                await expect(Depositor.depositCollateral(depositor.address, f.Collateral2.address, f.initialDeposits))
+                    .not.to.be.reverted;
 
                 // Confirm the array of the user's deposited collateral assets contains both collateral assets
                 const depositedCollateralAssetsAfter = await hre.Diamond.getAccountCollateralAssets(depositor.address);
@@ -198,7 +153,11 @@ describe("Minter - Deposit Withdraw", function () {
             });
 
             it("should emit CollateralDeposited event", async function () {
-                const tx = await Depositor.depositCollateral(depositor.address, f.Collateral.address, depositAmount);
+                const tx = await Depositor.depositCollateral(
+                    depositor.address,
+                    f.Collateral.address,
+                    f.initialDeposits,
+                );
                 const event = await getInternalEvent<CollateralDepositedEventObject>(
                     tx,
                     hre.Diamond,
@@ -206,7 +165,7 @@ describe("Minter - Deposit Withdraw", function () {
                 );
                 expect(event.account).to.equal(depositor.address);
                 expect(event.collateralAsset).to.equal(f.Collateral.address);
-                expect(event.amount).to.equal(depositAmount);
+                expect(event.amount).to.equal(f.initialDeposits);
             });
 
             it("should revert if depositing collateral that has not been whitelisted", async function () {
@@ -214,7 +173,7 @@ describe("Minter - Deposit Withdraw", function () {
                     Depositor.depositCollateral(
                         depositor.address,
                         "0x0000000000000000000000000000000000000001",
-                        depositAmount,
+                        f.initialDeposits,
                     ),
                 ).to.be.revertedWith(Error.COLLATERAL_DOESNT_EXIST);
             });
@@ -281,7 +240,7 @@ describe("Minter - Deposit Withdraw", function () {
                 });
 
                 it("should allow an account to withdraw a portion of their deposit", async function () {
-                    const withdrawAmount = depositAmount.div(2);
+                    const withdrawAmount = f.initialDeposits.div(2);
 
                     await Withdrawer.withdrawCollateral(withdrawer.address, f.Collateral.address, withdrawAmount, 0);
 
@@ -290,7 +249,7 @@ describe("Minter - Deposit Withdraw", function () {
                         withdrawer.address,
                         f.Collateral.address,
                     );
-                    expect(amountDeposited).to.equal(depositAmount.sub(withdrawAmount));
+                    expect(amountDeposited).to.equal(f.initialDeposits.sub(withdrawAmount));
 
                     // Ensure that the collateral asset is still in the account's deposited collateral
                     // assets array.
@@ -298,7 +257,7 @@ describe("Minter - Deposit Withdraw", function () {
                     expect(depositedCollateralAssets).to.deep.equal([f.Collateral.address]);
 
                     const kreskoBalance = await f.Collateral.balanceOf(hre.Diamond.address);
-                    expect(kreskoBalance).to.equal(depositAmount.sub(withdrawAmount));
+                    expect(kreskoBalance).to.equal(f.initialDeposits.sub(withdrawAmount));
                     const userOneBalance = await f.Collateral.balanceOf(withdrawer.address);
                     expect(userOneBalance).to.equal(f.initialDeposits.sub(amountDeposited));
                 });
@@ -313,22 +272,23 @@ describe("Minter - Deposit Withdraw", function () {
                         f.Collateral.address,
                     );
 
-                    await expect(User.withdrawCollateral(withdrawer.address, f.Collateral.address, depositAmount, 0)).to
-                        .not.be.reverted;
+                    await expect(
+                        User.withdrawCollateral(withdrawer.address, f.Collateral.address, f.initialDeposits, 0),
+                    ).to.not.be.reverted;
 
                     const collateralAfter = await hre.Diamond.getAccountCollateralAmount(
                         withdrawer.address,
                         f.Collateral.address,
                     );
                     // Ensure that collateral was withdrawn
-                    expect(collateralAfter).to.equal(collateralBefore.sub(depositAmount));
+                    expect(collateralAfter).to.equal(collateralBefore.sub(f.initialDeposits));
                 });
 
                 it("should emit CollateralWithdrawn event", async function () {
                     const tx = await Withdrawer.withdrawCollateral(
                         withdrawer.address,
                         f.Collateral.address,
-                        depositAmount,
+                        f.initialDeposits,
                         0,
                     );
 
@@ -339,14 +299,14 @@ describe("Minter - Deposit Withdraw", function () {
                     );
                     expect(event.account).to.equal(withdrawer.address);
                     expect(event.collateralAsset).to.equal(f.Collateral.address);
-                    expect(event.amount).to.equal(depositAmount);
+                    expect(event.amount).to.equal(f.initialDeposits);
                 });
 
                 it("should not allow untrusted address to withdraw another accounts deposit", async function () {
                     await expect(
-                        User.withdrawCollateral(withdrawer.address, f.Collateral.address, this.initialBalance, 0),
+                        User.withdrawCollateral(withdrawer.address, f.Collateral.address, f.initialBalance, 0),
                     ).to.be.revertedWith(
-                        `AccessControl: account ${hre.users.userThree.address.toLowerCase()} is missing role 0x46925e0f0cc76e485772167edccb8dc449d43b23b55fc4e756b063f49099e6a0`,
+                        `AccessControl: account ${user.address.toLowerCase()} is missing role 0x46925e0f0cc76e485772167edccb8dc449d43b23b55fc4e756b063f49099e6a0`,
                     );
                 });
 
@@ -403,11 +363,11 @@ describe("Minter - Deposit Withdraw", function () {
                             f.Collateral.address,
                         );
 
-                        expect(amountDeposited).to.equal(depositAmount.sub(withdrawAmount));
+                        expect(amountDeposited).to.equal(f.initialDeposits.sub(withdrawAmount));
 
                         // Check the balances of the contract and user
                         const kreskoBalance = await f.Collateral.balanceOf(hre.Diamond.address);
-                        expect(kreskoBalance).to.equal(depositAmount.sub(withdrawAmount));
+                        expect(kreskoBalance).to.equal(f.initialDeposits.sub(withdrawAmount));
                         const withdrawerBalance = await f.Collateral.balanceOf(withdrawer.address);
                         expect(withdrawerBalance).to.equal(withdrawAmount);
 
@@ -454,7 +414,7 @@ describe("Minter - Deposit Withdraw", function () {
 
                     it("should revert if the withdrawal violates the health factor", async function () {
                         // userOne has a debt position, so attempting to withdraw the entire collateral deposit should be impossible
-                        const withdrawAmount = this.initialBalance;
+                        const withdrawAmount = f.initialBalance;
 
                         // Ensure that the withdrawal would in fact put the account's collateral value
                         // less than the account's minimum collateral value:
@@ -477,7 +437,7 @@ describe("Minter - Deposit Withdraw", function () {
                     });
 
                     it("should revert if the depositedCollateralAssetIndex is incorrect", async function () {
-                        const withdrawAmount = depositAmount.div(2);
+                        const withdrawAmount = f.initialDeposits.div(2);
                         await expect(
                             Withdrawer.withdrawCollateral(
                                 withdrawer.address,
@@ -491,11 +451,11 @@ describe("Minter - Deposit Withdraw", function () {
             });
         });
 
-        describe("#deposit - rebase events", function () {
+        describe("#deposit - rebase", function () {
             const mintAmount = toBig(100);
             this.slow(1500);
             beforeEach(async function () {
-                await f.Collateral.setBalance(user, this.initialBalance, hre.Diamond.address);
+                await f.Collateral.setBalance(user, f.initialBalance, hre.Diamond.address);
 
                 // Add krAsset as a collateral with anchor and cFactor of 1
                 // Allowance for Kresko
@@ -506,7 +466,7 @@ describe("Minter - Deposit Withdraw", function () {
                 });
 
                 // Deposit some collateral
-                await User.depositCollateral(user.address, f.Collateral.address, depositAmount);
+                await User.depositCollateral(user.address, f.Collateral.address, f.initialDeposits);
 
                 // Mint some krAssets
                 await User.mintKreskoAsset(user.address, f.KrAssetCollateral.address, mintAmount);
@@ -915,7 +875,7 @@ describe("Minter - Deposit Withdraw", function () {
             });
         });
 
-        describe("#withdraw - rebase events", function () {
+        describe("#withdraw - rebase", function () {
             const mintAmount = toBig(100);
             this.slow(1500);
             beforeEach(async function () {

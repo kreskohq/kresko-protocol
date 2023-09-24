@@ -4,7 +4,7 @@ import { toBig } from "@kreskolabs/lib";
 import { envCheck } from "@utils/general";
 import { wrapKresko } from "@utils/redstone";
 import hre from "hardhat";
-
+import optimized from "./optimizations";
 import { ERC20Upgradeable__factory } from "types/typechain";
 import {
     CollateralAssetStruct,
@@ -158,7 +158,7 @@ export const depositCollateral = async (args: InputArgs) => {
     const convert = typeof args.amount === "string" || typeof args.amount === "number";
     const { user, asset, amount } = args;
     const depositAmount = convert ? toBig(+amount) : amount;
-    if (!(await asset.contract.allowance(user.address, hre.Diamond.address)).gte(depositAmount)) {
+    if ((await asset.contract.allowance(user.address, hre.Diamond.address)).lt(depositAmount)) {
         await asset.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
     }
     return wrapKresko(hre.Diamond, user).depositCollateral(user.address, asset.address, depositAmount);
@@ -173,7 +173,7 @@ export const withdrawCollateral = async (args: InputArgs) => {
         user.address,
         asset.address,
         depositAmount,
-        hre.Diamond.getAccountDepositIndex(user.address, asset.address),
+        optimized.getAccountDepositIndex(user.address, asset.address),
     );
 };
 

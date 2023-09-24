@@ -3,13 +3,14 @@ import { addFacet } from "@scripts/add-facet";
 import { removeFacet } from "@scripts/remove-facet";
 import { expect } from "@test/chai";
 import { Error, wrapContractWithSigner } from "@utils/test";
-import { withFixture } from "@utils/test/fixtures";
-import hre from "hardhat";
+import { diamondFixture } from "@utils/test/fixtures";
 import { FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
 import { SmockFacet2__factory, SmockFacet__factory, SmockInit__factory } from "types/typechain";
 
 describe("Diamond", () => {
-    withFixture(["diamond-init"]);
+    beforeEach(async function () {
+        await diamondFixture();
+    });
 
     describe("#upgrades", () => {
         it("can add a new facet", async function () {

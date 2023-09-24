@@ -2,19 +2,16 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
 import { getInternalEvent } from "@kreskolabs/lib";
-import { Action, defaultCollateralArgs, defaultKrAssetArgs } from "@test-utils";
+import { Action, DefaultFixture, defaultFixture } from "@test-utils";
 import { executeContractCallWithSigners } from "@utils/gnosis/utils/execution";
-import { withFixture } from "@utils/test";
 import { expect } from "chai";
-import hre from "hardhat";
-import { SafetyStateChangeEventObject } from "types/typechain/src/contracts/minter/Events.sol/MEvent";
+import { SafetyStateChangeEventObject } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 
 describe("Safety Council", () => {
-    withFixture(["minter-test"]);
-    beforeEach(async function () {
-        this.collateral = hre.collaterals.find(asset => asset.deployArgs!.name === defaultCollateralArgs.name)!;
-        this.krAsset = hre.krAssets.find(asset => asset.deployArgs!.symbol === defaultKrAssetArgs.symbol)!;
+    let f: DefaultFixture;
 
+    beforeEach(async function () {
+        f = await defaultFixture();
         // These are the 5 signers on the SafetyCouncil multisig
         const { deployer, devTwo, extOne, extTwo, devOne } = await hre.ethers.getNamedSigners();
         this.deployer = deployer;
@@ -49,14 +46,11 @@ describe("Safety Council", () => {
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.collateral.address], Action.DEPOSIT, false, 0],
+                    [[f.Collateral.address], Action.DEPOSIT, false, 0],
                     [this.deployer, this.devTwo, this.extOne],
                 );
 
-                const isPaused = await hre.Diamond.assetActionPaused(
-                    Action.DEPOSIT.toString(),
-                    this.collateral.address,
-                );
+                const isPaused = await hre.Diamond.assetActionPaused(Action.DEPOSIT.toString(), f.Collateral.address);
                 expect(isPaused).to.equal(true);
             });
 
@@ -65,14 +59,11 @@ describe("Safety Council", () => {
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.collateral.address], Action.DEPOSIT, false, 0],
+                    [[f.Collateral.address], Action.DEPOSIT, false, 0],
                     [this.deployer, this.devTwo, this.extOne, this.extTwo],
                 );
 
-                const isPaused = await hre.Diamond.assetActionPaused(
-                    Action.DEPOSIT.toString(),
-                    this.collateral.address,
-                );
+                const isPaused = await hre.Diamond.assetActionPaused(Action.DEPOSIT.toString(), f.Collateral.address);
                 expect(isPaused).to.equal(true);
             });
 
@@ -81,14 +72,11 @@ describe("Safety Council", () => {
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.collateral.address], Action.DEPOSIT, false, 0],
+                    [[f.Collateral.address], Action.DEPOSIT, false, 0],
                     [this.deployer, this.devOne, this.devTwo, this.extOne, this.extTwo],
                 );
 
-                const isPaused = await hre.Diamond.assetActionPaused(
-                    Action.DEPOSIT.toString(),
-                    this.collateral.address,
-                );
+                const isPaused = await hre.Diamond.assetActionPaused(Action.DEPOSIT.toString(), f.Collateral.address);
                 expect(isPaused).to.equal(true);
             });
 
@@ -98,15 +86,12 @@ describe("Safety Council", () => {
                         hre.Multisig,
                         hre.Diamond,
                         "toggleAssetsPaused",
-                        [[this.collateral.address], Action.DEPOSIT, false, 0],
+                        [[f.Collateral.address], Action.DEPOSIT, false, 0],
                         [this.deployer],
                     ),
                 ).to.be.revertedWith("");
 
-                const isPaused = await hre.Diamond.assetActionPaused(
-                    Action.DEPOSIT.toString(),
-                    this.collateral.address,
-                );
+                const isPaused = await hre.Diamond.assetActionPaused(Action.DEPOSIT.toString(), f.Collateral.address);
                 expect(isPaused).to.equal(false);
             });
         });
@@ -117,14 +102,11 @@ describe("Safety Council", () => {
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.collateral.address], Action.DEPOSIT, false, 0],
+                    [[f.Collateral.address], Action.DEPOSIT, false, 0],
                     [this.deployer, this.devTwo, this.extOne],
                 );
 
-                const isPaused = await hre.Diamond.assetActionPaused(
-                    Action.DEPOSIT.toString(),
-                    this.collateral.address,
-                );
+                const isPaused = await hre.Diamond.assetActionPaused(Action.DEPOSIT.toString(), f.Collateral.address);
                 expect(isPaused).to.equal(true);
             });
 
@@ -133,11 +115,11 @@ describe("Safety Council", () => {
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.krAsset.address], Action.REPAY, false, 0],
+                    [[f.KrAsset.address], Action.REPAY, false, 0],
                     [this.deployer, this.devTwo, this.extOne],
                 );
 
-                const isPaused = await hre.Diamond.assetActionPaused(Action.REPAY.toString(), this.krAsset.address);
+                const isPaused = await hre.Diamond.assetActionPaused(Action.REPAY.toString(), f.KrAsset.address);
                 expect(isPaused).to.equal(true);
             });
 
@@ -169,11 +151,11 @@ describe("Safety Council", () => {
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.collateral.address], Action.DEPOSIT, true, duration],
+                    [[f.Collateral.address], Action.DEPOSIT, true, duration],
                     [this.deployer, this.devTwo, this.extOne],
                 );
 
-                const depositSafetyState = await hre.Diamond.safetyStateFor(this.collateral.address, Action.DEPOSIT);
+                const depositSafetyState = await hre.Diamond.safetyStateFor(f.Collateral.address, Action.DEPOSIT);
                 expect(depositSafetyState.length).to.equal(1);
                 // Blocktime timestamp + duration should be equal to final timestamp
                 expect(depositSafetyState[0].timestamp0.add(duration)).eq(depositSafetyState[0].timestamp1);
@@ -187,11 +169,11 @@ describe("Safety Council", () => {
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.collateral.address], Action.DEPOSIT, true, duration],
+                    [[f.Collateral.address], Action.DEPOSIT, true, duration],
                     [this.deployer, this.devTwo, this.extOne],
                 );
 
-                const depositSafetyState = await hre.Diamond.safetyStateFor(this.collateral.address, Action.DEPOSIT);
+                const depositSafetyState = await hre.Diamond.safetyStateFor(f.Collateral.address, Action.DEPOSIT);
                 expect(depositSafetyState.length).to.equal(1);
 
                 // Blocktime timestamp + duration should be equal to final timestamp
@@ -228,22 +210,22 @@ describe("Safety Council", () => {
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.collateral.address], Action.DEPOSIT, false, 0],
+                    [[f.Collateral.address], Action.DEPOSIT, false, 0],
                     [this.deployer, this.devTwo, this.extOne],
                 );
 
-                let isPaused = await hre.Diamond.assetActionPaused(Action.DEPOSIT.toString(), this.collateral.address);
+                let isPaused = await hre.Diamond.assetActionPaused(Action.DEPOSIT.toString(), f.Collateral.address);
                 expect(isPaused).to.equal(true);
 
                 await executeContractCallWithSigners(
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.collateral.address], Action.DEPOSIT, false, 0],
+                    [[f.Collateral.address], Action.DEPOSIT, false, 0],
                     [this.deployer, this.devTwo, this.extOne],
                 );
 
-                isPaused = await hre.Diamond.assetActionPaused(Action.DEPOSIT.toString(), this.collateral.address);
+                isPaused = await hre.Diamond.assetActionPaused(Action.DEPOSIT.toString(), f.Collateral.address);
                 expect(isPaused).to.equal(false);
             });
 
@@ -252,22 +234,22 @@ describe("Safety Council", () => {
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.collateral.address], Action.WITHDRAW, false, 0],
+                    [[f.Collateral.address], Action.WITHDRAW, false, 0],
                     [this.deployer, this.devTwo, this.extOne],
                 );
 
-                let isPaused = await hre.Diamond.assetActionPaused(Action.WITHDRAW.toString(), this.collateral.address);
+                let isPaused = await hre.Diamond.assetActionPaused(Action.WITHDRAW.toString(), f.Collateral.address);
                 expect(isPaused).to.equal(true);
 
                 await executeContractCallWithSigners(
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.collateral.address], Action.WITHDRAW, false, 0],
+                    [[f.Collateral.address], Action.WITHDRAW, false, 0],
                     [this.deployer, this.devTwo, this.extOne],
                 );
 
-                isPaused = await hre.Diamond.assetActionPaused(Action.WITHDRAW.toString(), this.collateral.address);
+                isPaused = await hre.Diamond.assetActionPaused(Action.WITHDRAW.toString(), f.Collateral.address);
                 expect(isPaused).to.equal(false);
             });
 
@@ -276,22 +258,22 @@ describe("Safety Council", () => {
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.collateral.address], Action.REPAY, false, 0],
+                    [[f.Collateral.address], Action.REPAY, false, 0],
                     [this.deployer, this.devTwo, this.extOne],
                 );
 
-                let isPaused = await hre.Diamond.assetActionPaused(Action.REPAY.toString(), this.collateral.address);
+                let isPaused = await hre.Diamond.assetActionPaused(Action.REPAY.toString(), f.Collateral.address);
                 expect(isPaused).to.equal(true);
 
                 await executeContractCallWithSigners(
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.collateral.address], Action.REPAY, false, 0],
+                    [[f.Collateral.address], Action.REPAY, false, 0],
                     [this.deployer, this.devTwo, this.extOne],
                 );
 
-                isPaused = await hre.Diamond.assetActionPaused(Action.REPAY.toString(), this.collateral.address);
+                isPaused = await hre.Diamond.assetActionPaused(Action.REPAY.toString(), f.Collateral.address);
                 expect(isPaused).to.equal(false);
             });
 
@@ -300,22 +282,22 @@ describe("Safety Council", () => {
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.collateral.address], Action.BORROW, false, 0],
+                    [[f.Collateral.address], Action.BORROW, false, 0],
                     [this.deployer, this.devTwo, this.extOne],
                 );
 
-                let isPaused = await hre.Diamond.assetActionPaused(Action.BORROW.toString(), this.collateral.address);
+                let isPaused = await hre.Diamond.assetActionPaused(Action.BORROW.toString(), f.Collateral.address);
                 expect(isPaused).to.equal(true);
 
                 await executeContractCallWithSigners(
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.collateral.address], Action.BORROW, false, 0],
+                    [[f.Collateral.address], Action.BORROW, false, 0],
                     [this.deployer, this.devTwo, this.extOne],
                 );
 
-                isPaused = await hre.Diamond.assetActionPaused(Action.BORROW.toString(), this.collateral.address);
+                isPaused = await hre.Diamond.assetActionPaused(Action.BORROW.toString(), f.Collateral.address);
                 expect(isPaused).to.equal(false);
             });
 
@@ -324,25 +306,22 @@ describe("Safety Council", () => {
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.collateral.address], Action.LIQUIDATION, false, 0],
+                    [[f.Collateral.address], Action.LIQUIDATION, false, 0],
                     [this.deployer, this.devTwo, this.extOne],
                 );
 
-                let isPaused = await hre.Diamond.assetActionPaused(
-                    Action.LIQUIDATION.toString(),
-                    this.collateral.address,
-                );
+                let isPaused = await hre.Diamond.assetActionPaused(Action.LIQUIDATION.toString(), f.Collateral.address);
                 expect(isPaused).to.equal(true);
 
                 await executeContractCallWithSigners(
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.collateral.address], Action.LIQUIDATION, false, 0],
+                    [[f.Collateral.address], Action.LIQUIDATION, false, 0],
                     [this.deployer, this.devTwo, this.extOne],
                 );
 
-                isPaused = await hre.Diamond.assetActionPaused(Action.LIQUIDATION.toString(), this.collateral.address);
+                isPaused = await hre.Diamond.assetActionPaused(Action.LIQUIDATION.toString(), f.Collateral.address);
                 expect(isPaused).to.equal(false);
             });
         });
@@ -353,7 +332,7 @@ describe("Safety Council", () => {
                     hre.Multisig,
                     hre.Diamond,
                     "toggleAssetsPaused",
-                    [[this.collateral.address], Action.DEPOSIT, false, 0],
+                    [[f.Collateral.address], Action.DEPOSIT, false, 0],
                     [this.deployer, this.devTwo, this.extOne],
                 );
 
@@ -363,7 +342,7 @@ describe("Safety Council", () => {
                     "SafetyStateChange",
                 );
                 expect(event.action).to.equal(Action.DEPOSIT);
-                expect(event.asset).to.equal(this.collateral.address);
+                expect(event.asset).to.equal(f.Collateral.address);
                 // @ts-ignore
                 expect(event.description.hash!).to.equal(
                     hre.ethers.utils.keccak256(hre.ethers.utils.toUtf8Bytes("paused")),
