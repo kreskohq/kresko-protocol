@@ -294,18 +294,6 @@ export const assetValuesFixture = hre.deployments.createFixture<AssetValuesFixtu
         CollateralAsset21Dec,
     };
 });
-export const withFixture = (fixtureName: string[]) => {
-    beforeEach(async function () {
-        const result = await hre.deployments.fixture(fixtureName);
-        if (result.Diamond) {
-            hre.Diamond = wrapKresko(await hre.getContractOrFork("Kresko"));
-        }
-        await time.increase(3602);
-        this.facets = result.Diamond?.facets?.length ? result.Diamond.facets : [];
-        this.collaterals = hre.collaterals;
-        this.krAssets = hre.krAssets;
-    });
-};
 
 export type DepositWithdrawFixture = {
     users: [SignerWithAddress, Kresko][];

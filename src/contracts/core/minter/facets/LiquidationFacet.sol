@@ -11,6 +11,7 @@ import {valueToAmount, fromWad} from "common/funcs/Math.sol";
 
 import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
 import {DSModifiers} from "diamond/Modifiers.sol";
+import {MSModifiers} from "minter/Modifiers.sol";
 
 import {ILiquidationFacet} from "minter/interfaces/ILiquidationFacet.sol";
 import {Constants} from "minter/Constants.sol";
@@ -25,7 +26,7 @@ import {maxLiquidatableValue} from "minter/funcs/Liquidations.sol";
  * @title LiquidationFacet
  * @notice Main end-user functionality concerning liquidations within the Kresko protocol
  */
-contract LiquidationFacet is DSModifiers, ILiquidationFacet {
+contract LiquidationFacet is DSModifiers, MSModifiers, ILiquidationFacet {
     using Arrays for address[];
     using WadRay for uint256;
     using SafeERC20Permit for IERC20Permit;

@@ -1,5 +1,5 @@
 import { toBig } from "@kreskolabs/lib";
-import { Role, defaultCollateralArgs, defaultMintAmount, withFixture } from "@utils/test";
+import { Role, defaultCollateralArgs, defaultMintAmount } from "@utils/test";
 import { addLiquidity } from "@utils/test/helpers/amm";
 import { depositMockCollateral } from "@utils/test/helpers/collaterals";
 import { mintKrAsset } from "@utils/test/helpers/krassets";
@@ -9,7 +9,6 @@ import hre from "hardhat";
 describe.skip("Test KreskoAsset with Rebase and sync", () => {
     let KreskoAsset: TestKrAsset;
 
-    withFixture(["minter-test", "kresko-assets", "collaterals"]);
     beforeEach(async function () {
         KreskoAsset = this.krAssets.find(asset => asset.deployArgs!.symbol === "krETH")!;
 

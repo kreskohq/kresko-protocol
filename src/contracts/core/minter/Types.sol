@@ -75,6 +75,9 @@ struct MinterInitArgs {
     address sequencerUptimeFeed;
     uint256 sequencerGracePeriodTime;
     uint256 oracleTimeout;
+    uint8 phase;
+    address kreskian;
+    address questForKresk;
 }
 
 /**

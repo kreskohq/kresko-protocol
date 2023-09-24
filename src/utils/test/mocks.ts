@@ -102,6 +102,9 @@ export const getNewMinterParams = (feeRecipient: string) => ({
     feeRecipient: feeRecipient,
     MLR: toBig(1.32),
     oracleDeviationPct: toBig(0.2),
+    phase: 3,
+    kreskian: hre.ethers.constants.AddressZero,
+    questForKresk: hre.ethers.constants.AddressZero,
 });
 
 export default {
