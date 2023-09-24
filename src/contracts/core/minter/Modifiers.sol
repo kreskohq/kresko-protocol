@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import {ms} from "./State.sol";
 import {Action} from "./Types.sol";
 import {Error} from "common/Errors.sol";
+import {IERC1155} from "./interfaces/IERC1155.sol";
 
 abstract contract MSModifiers {
     /**
@@ -40,6 +41,24 @@ abstract contract MSModifiers {
      */
     modifier kreskoAssetDoesNotExist(address _kreskoAsset) {
         require(!ms().kreskoAssets[_kreskoAsset].exists, Error.KRASSET_EXISTS);
+        _;
+    }
+
+    /// @notice Reverts if the caller does not have the required NFT's for the gated phase
+    modifier gate() {
+        uint8 phase = ms().phase;
+        if (phase <= 2) {
+            require(IERC1155(ms().kreskian).balanceOf(msg.sender, 0) > 0, Error.MISSING_PHASE_3_NFT);
+        }
+        if (phase == 1) {
+            require(
+                IERC1155(ms().questForKresk).balanceOf(msg.sender, 2) > 0 ||
+                    IERC1155(ms().questForKresk).balanceOf(msg.sender, 3) > 0,
+                Error.MISSING_PHASE_2_NFT
+            );
+        } else if (phase == 0) {
+            require(IERC1155(ms().questForKresk).balanceOf(msg.sender, 3) > 0, Error.MISSING_PHASE_1_NFT);
+        }
         _;
     }
 

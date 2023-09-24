@@ -40,6 +40,7 @@ export const getKrAssetConfig = async (
     if (!redstoneId) {
         throw new Error(`redstoneId not found for ${await asset.symbol()}`);
     }
+    // await wrapContractWithSigner(hre.Diamond, hre.users.deployer).setChainlinkFeeds([redstoneId], [oracle]);
 
     const oracleConfig: OracleConfigurationStruct = {
         oracleIds: oracleIds,

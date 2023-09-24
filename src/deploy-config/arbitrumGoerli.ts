@@ -23,7 +23,6 @@ const defaultParams: Omit<KreskoConstructor, "feeRecipient"> = {
     sequencerUptimeFeed: "0x4da69F028a5790fCCAfe81a75C0D24f46ceCDd69",
     oracleTimeout: ethers.constants.MaxUint256,
 };
-
 export const redstoneMap = {
     krETH: ethers.utils.formatBytes32String("ETH"),
     krBTC: ethers.utils.formatBytes32String("BTC"),

@@ -31,7 +31,7 @@ contract DepositWithdrawFacet is DSModifiers, MSModifiers, IDepositWithdrawFacet
         address _account,
         address _collateralAsset,
         uint256 _depositAmount
-    ) external nonReentrant collateralAssetExists(_collateralAsset) {
+    ) external nonReentrant gate collateralAssetExists(_collateralAsset) {
         if (ms().safetyStateSet) {
             super.ensureNotPaused(_collateralAsset, Action.Deposit);
         }

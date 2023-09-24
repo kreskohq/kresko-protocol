@@ -33,7 +33,7 @@ contract MintFacet is DSModifiers, MSModifiers, IMintFacet {
         address _account,
         address _kreskoAsset,
         uint256 _mintAmount
-    ) external nonReentrant kreskoAssetExists(_kreskoAsset) onlyRoleIf(_account != msg.sender, Role.MANAGER) {
+    ) external nonReentrant gate kreskoAssetExists(_kreskoAsset) onlyRoleIf(_account != msg.sender, Role.MANAGER) {
         require(_mintAmount > 0, Error.ZERO_MINT);
 
         MinterState storage s = ms();

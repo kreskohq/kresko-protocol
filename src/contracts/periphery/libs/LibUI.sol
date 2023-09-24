@@ -107,7 +107,6 @@ library LibUI {
         uint256 pushPrice;
         uint256 timestamp;
         address assetAddress;
-        uint80 roundId;
         bool marketOpen;
     }
 
@@ -307,7 +306,7 @@ library LibUI {
 
                 (uint256 amountUSD, uint256 price) = collateralAmountToValue(assetAddress, amount, true);
 
-                totalCollateralUSD + amountUSD;
+                totalCollateralUSD += amountUSD;
                 result[i] = CollateralAssetInfoUser({
                     amount: amount,
                     amountUSD: amountUSD,

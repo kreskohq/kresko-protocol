@@ -1,6 +1,5 @@
 import { getLogger, toBig } from "@kreskolabs/lib";
 import type { TaskArguments } from "hardhat/types";
-
 import { anchorTokenPrefix } from "@deploy-config/shared";
 import { task, types } from "hardhat/config";
 import { TASK_WHITELIST_COLLATERAL } from "./names";

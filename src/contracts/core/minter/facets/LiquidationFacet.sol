@@ -39,7 +39,7 @@ contract LiquidationFacet is DSModifiers, ILiquidationFacet {
         uint256 _repayAssetIndex,
         uint256 _seizeAssetIndex,
         bool _allowSeizeUnderflow
-    ) external nonReentrant {
+    ) external nonReentrant gate {
         MinterState storage s = ms();
 
         CollateralAsset memory collateral = s.collateralAssets[_seizeAsset];

@@ -157,4 +157,12 @@ export enum Error {
     INVALID_LIQUIDITY = "706", // Pair initializaition requires that the pair has liquidit,
     UPDATE_PERIOD_NOT_FINISHED = "707", // Update can only be called once per update perio,
     INVALID_PAIR = "708", // Pair being consulted does not have the token that the price was requested fo,
+
+    /* -------------------------------------------------------------------------- */
+    /*                              9. GATING                                 */
+    /* -------------------------------------------------------------------------- */
+
+    MISSING_PHASE_1_NFT = "900", // Insufficient Phase 1 NFT balance
+    MISSING_PHASE_2_NFT = "901", // Insufficient Phase 2 NFT balance
+    MISSING_PHASE_3_NFT = "902", // Insufficient Phase 3 NFT balance
 }

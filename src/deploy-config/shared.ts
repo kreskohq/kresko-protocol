@@ -132,6 +132,8 @@ export const peripheryFacets = ["UIDataProviderFacet", "UIDataProviderFacet2", "
 
 export const scdpFacets = ["SCDPStateFacet", "SCDPFacet", "SCDPConfigFacet", "SCDPSwapFacet", "SDIFacet"] as const;
 
+export const oracleFacets = ["OracleConfigFacet", "OracleViewFacet"] as const;
+
 export const getDeploymentUsers = async (hre: HardhatRuntimeEnvironment) => {
     const users = await hre.getNamedAccounts();
     const Safe = await hre.deployments.getOrNull("GnosisSafeL2");
@@ -163,6 +165,9 @@ export const getMinterInitializer = async (
             sequencerUptimeFeed: hre.network.live ? config.sequencerUptimeFeed : ethers.constants.AddressZero,
             sequencerGracePeriodTime: config.sequencerGracePeriodTime,
             oracleTimeout: config.oracleTimeout,
+            phase: 3,
+            kreskian: hre.ethers.constants.AddressZero,
+            questForKresk: hre.ethers.constants.AddressZero,
         },
     };
 };

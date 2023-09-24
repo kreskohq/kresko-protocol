@@ -64,6 +64,9 @@ contract ConfigurationFacet is DSModifiers, MSModifiers, IConfigurationFacet {
         updateSequencerUptimeFeed(args.sequencerUptimeFeed);
         updateSequencerGracePeriodTime(args.sequencerGracePeriodTime);
         updateOracleTimeout(args.oracleTimeout);
+        updatePhase(args.phase);
+        updateKreskian(args.kreskian);
+        updateQuestForKresk(args.questForKresk);
 
         emit DiamondEvent.Initialized(args.admin, ds().storageVersion++);
     }
@@ -173,6 +176,21 @@ contract ConfigurationFacet is DSModifiers, MSModifiers, IConfigurationFacet {
         ms().oracleTimeout = _oracleTimeout;
     }
 
+    /// @inheritdoc IConfigurationFacet
+    function updatePhase(uint8 _phase) public override onlyRole(Role.ADMIN) {
+        ms().phase = _phase;
+    }
+
+    /// @inheritdoc IConfigurationFacet
+    function updateKreskian(address _kreskian) public override onlyRole(Role.ADMIN) {
+        ms().kreskian = _kreskian;
+    }
+
+    /// @inheritdoc IConfigurationFacet
+    function updateQuestForKresk(address _questForKresk) public override onlyRole(Role.ADMIN) {
+        ms().questForKresk = _questForKresk;
+    }
+
     /* -------------------------------------------------------------------------- */
     /*                                 COLLATERAL                                 */
     /* -------------------------------------------------------------------------- */
@@ -184,7 +202,6 @@ contract ConfigurationFacet is DSModifiers, MSModifiers, IConfigurationFacet {
         CollateralAsset memory _config
     ) external nonReentrant onlyRole(Role.ADMIN) collateralAssetDoesNotExist(_collateralAsset) {
         require(_collateralAsset != address(0), Error.ADDRESS_INVALID_COLLATERAL);
-
         require(_config.factor <= Constants.ONE_HUNDRED_PERCENT, Error.COLLATERAL_INVALID_FACTOR);
         require(
             _config.liquidationIncentive >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,

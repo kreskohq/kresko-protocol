@@ -43,7 +43,6 @@ task(TASK_WHITELIST_KRASSET)
             const config = {
                 anchor: KrAssetAnchor ? KrAssetAnchor.address : KrAsset.address,
                 kFactor: toBig(kFactor),
-                oracle: oracleAddr,
                 supplyLimit: toBig(supplyLimit),
                 closeFee: toBig(0.02),
                 openFee: toBig(0),

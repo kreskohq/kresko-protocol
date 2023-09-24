@@ -3840,7 +3840,7 @@ export const deployments = {
                                 },
                                 {
                                     internalType: "uint256",
-                                    name: "redstonePrice",
+                                    name: "_redstonePrice",
                                     type: "uint256",
                                 },
                                 {
@@ -4212,7 +4212,7 @@ export const deployments = {
                                 },
                                 {
                                     internalType: "uint256",
-                                    name: "redstonePrice",
+                                    name: "_redstonePrice",
                                     type: "uint256",
                                 },
                                 {

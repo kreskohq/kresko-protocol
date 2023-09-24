@@ -66,6 +66,9 @@ struct MinterState {
     bool safetyStateSet;
     /// @notice Offchain oracle decimals
     uint8 extOracleDecimals;
+    uint8 phase;
+    address kreskian;
+    address questForKresk;
 }
 
 /* -------------------------------------------------------------------------- */

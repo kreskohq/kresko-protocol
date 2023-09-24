@@ -114,11 +114,14 @@ export const leverageKrAsset = async (
     ]);
 
     // Deposit krAsset and withdraw other collateral to bare minimum of within healthy range
+
     const accountMinCollateralRequired = await hre.Diamond.getAccountMinCollateralAtRatio(
         user.address,
         optimized.getMinCollateralRatio(),
     );
-    const accountCollateral = await hre.Diamond.getAccountCollateralValue(user.address);
+    const accountCollateral = await wrapContractWithSigner(hre.Diamond, hre.users.deployer).getAccountCollateralValue(
+        user.address,
+    );
 
     const withdrawAmount = fromBig(accountCollateral.sub(accountMinCollateralRequired), 8) / price - 0.1;
     const amountToWithdraw = toBig(withdrawAmount);
