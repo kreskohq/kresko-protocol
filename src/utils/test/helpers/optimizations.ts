@@ -166,8 +166,7 @@ export async function getIsRebased<T extends KreskoAsset | ERC20Upgradeable>(ass
             );
         } catch {}
         isRebased = denominator.gt(toBig(1));
-    } catch (e) {
-        console.debug(e);
+    } catch {
         // @ts-expect-error
         isRebased = await asset.isRebased();
     }
@@ -178,8 +177,7 @@ export async function getAccountDepositIndex(address: string, asset: string) {
     try {
         const assets = await getAccountCollateralAssets(address);
         return assets.indexOf(asset);
-    } catch (e) {
-        console.debug("dindex", e);
+    } catch {
         return hre.Diamond.getAccountDepositIndex(address, asset);
     }
 }
@@ -187,8 +185,7 @@ export async function getAccountMintIndex(address: string, asset: string) {
     try {
         const assets = await getAccountMintedAssets(address);
         return assets.indexOf(asset);
-    } catch (e) {
-        console.debug("mindex", e);
+    } catch {
         return hre.Diamond.getAccountMintIndex(address, asset);
     }
 }
