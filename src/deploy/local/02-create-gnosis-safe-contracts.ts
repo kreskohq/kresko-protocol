@@ -84,7 +84,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         case "arbitrumGoerli":
         case "hardhat": {
             // eslint-disable-next-line @typescript-eslint/no-var-requires
-            const safeProxyFactoryArtifact = require("../../utils/gnosis/artifacts/GnosisSafeProxyFactory2.json");
+            const safeProxyFactoryArtifact = require("../../utils/gnosis/json/GnosisSafeProxyFactory2.json");
             const safeProxyFactoryFactory = await hre.ethers.getContractFactoryFromArtifact(safeProxyFactoryArtifact);
             const proxyFactory = await safeProxyFactoryFactory.deploy();
             await hre.deployments.save("GnosisSafeProxyFactory", {
@@ -94,7 +94,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             });
 
             // eslint-disable-next-line @typescript-eslint/no-var-requires
-            const safeProxyArtifact = require("../../utils/gnosis/artifacts/GnosisSafe.json");
+            const safeProxyArtifact = require("../../utils/gnosis/json/GnosisSafe.json");
             const safeProxyFactory = await hre.ethers.getContractFactoryFromArtifact(safeProxyArtifact);
             const safeProxy = await safeProxyFactory.deploy();
             await hre.deployments.save("GnosisSafe", {
@@ -103,7 +103,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
                 args: [],
             });
             // eslint-disable-next-line @typescript-eslint/no-var-requires
-            const safeProxyL2Artifact = require("../../utils/gnosis/artifacts/GnosisSafeL2.json");
+            const safeProxyL2Artifact = require("../../utils/gnosis/json/GnosisSafeL2.json");
             const safeProxyL2Factory = await hre.ethers.getContractFactoryFromArtifact(safeProxyL2Artifact);
             const safeProxyL2 = await safeProxyL2Factory.deploy();
             await hre.deployments.save("GnosisSafeL2", {
