@@ -1,23 +1,30 @@
 import { anchorTokenPrefix } from "@deploy-config/shared";
 import { toBig, oneRay } from "@kreskolabs/lib";
+import { OracleType } from "./oracles";
 
 export type TestCollateralAssetArgs = {
     name: string;
+    symbol: string;
+    redstoneId: string;
     price: number;
     factor: number;
     decimals: number;
-    oracle?: string;
+    pushOracle?: string;
+    oracleIds?: [OracleType, OracleType];
 };
 
 export type TestCollateralAssetUpdate = {
     name: string;
     factor: number;
-    oracle?: string;
+    price?: any;
+    pushOracle?: string;
+    oracleIds?: [OracleType, OracleType];
+    redstoneId: string;
 };
 export type InputArgs = {
     user: SignerWithAddress;
-    asset: TestAsset | { address: string; contract: any; mocks: any };
-    amount: string | number | BigNumber;
+    asset: TestAsset;
+    amount: BigNumber;
 };
 
 export type InputArgsSimple = Omit<InputArgs, "asset"> & {
@@ -28,24 +35,30 @@ export type TestKreskoAssetArgs = {
     name: string;
     symbol?: string;
     anchorSymbol?: string;
-    price: number;
-    marketOpen: boolean;
+    price?: number;
+    marketOpen?: boolean;
     oracle?: string;
+    oracleIds?: [OracleType, OracleType];
     factor: number;
     supplyLimit: number;
     closeFee: number;
     openFee: number;
+    redstoneId: string;
 };
 export type TestKreskoAssetUpdate = {
     name: string;
     oracle?: string;
+    oracleIds?: [OracleType, OracleType];
     factor: number;
     supplyLimit: number;
     closeFee: number;
     openFee: number;
+    price?: number;
+    redstoneId: string;
 };
 
-export const defaultOraclePrice = 10;
+export const TEN_USD = 10;
+export const ONE_USD = 1;
 export const defaultOracleDecimals = 8;
 
 export const defaultDecimals = 18;
@@ -53,16 +66,18 @@ export const defaultDecimals = 18;
 export const defaultDepositAmount = toBig(10, defaultDecimals);
 export const defaultMintAmount = toBig(100, defaultDecimals);
 
-export const defaultSupplyLimit = 100000;
+export const defaultSupplyLimit = 1000000000;
 export const defaultCloseFee = 0.02; // 2%
 export const defaultOpenFee = 0; // 0%
 export const BASIS_POINT = oneRay.div(10000);
 export const ONE_PERCENT = oneRay.div(100);
 export const defaultKrAssetArgs = {
-    name: "KreskoAsset",
-    symbol: "KreskoAsset",
-    anchorTokenPrefix: anchorTokenPrefix + "KreskoAsset",
-    price: defaultOraclePrice,
+    name: "MockKreskoAsset",
+    symbol: "MockKreskoAsset",
+    redstoneId: "MockKreskoAsset",
+    anchorTokenPrefix: anchorTokenPrefix + "MockKreskoAsset",
+    price: TEN_USD,
+    oracleIds: [OracleType.Redstone, OracleType.Chainlink] as [OracleType, OracleType],
     marketOpen: true,
     factor: 1,
     supplyLimit: defaultSupplyLimit,
@@ -70,20 +85,26 @@ export const defaultKrAssetArgs = {
     openFee: defaultOpenFee,
 };
 
-export const defaultCollateralArgs = {
-    name: "Collateral",
-    price: defaultOraclePrice,
+export const defaultCollateralArgs: TestCollateralAssetArgs = {
+    name: "MockCollateral",
+    symbol: "MockCollateral",
+    redstoneId: "MockCollateral",
+    price: TEN_USD,
     factor: 1,
     decimals: defaultDecimals,
+    oracleIds: [OracleType.Redstone, OracleType.Chainlink] as [OracleType, OracleType],
 };
 
 export const getNewMinterParams = (feeRecipient: string) => ({
-    minimumCollateralizationRatio: toBig(1.4),
-    minimumDebtValue: toBig(20, 8),
+    minCollateralRatio: toBig(1.4),
+    minDebtValue: toBig(20, 8),
     liquidationThreshold: toBig(1.3),
     feeRecipient: feeRecipient,
-    MLM: toBig(1.0002),
+    MLR: toBig(1.32),
     oracleDeviationPct: toBig(0.2),
+    phase: 3,
+    kreskian: hre.ethers.constants.AddressZero,
+    questForKresk: hre.ethers.constants.AddressZero,
 });
 
 export default {
@@ -95,7 +116,7 @@ export default {
     collateralArgs: defaultCollateralArgs,
     krAssetArgs: defaultKrAssetArgs,
     oracle: {
-        price: defaultOraclePrice,
+        price: TEN_USD,
         decimals: defaultOracleDecimals,
     },
     getNewMinterParams,

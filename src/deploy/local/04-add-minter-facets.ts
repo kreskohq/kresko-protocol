@@ -4,7 +4,7 @@ import { getLogger } from "@kreskolabs/lib";
 import { addFacets } from "@scripts/add-facets";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 
-const logger = getLogger("init-minter");
+const logger = getLogger("init-minter-facets");
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (!hre.Diamond.address) {
@@ -16,6 +16,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await addFacets({
         names: minterFacets,
         initializerName: initializer.name,
+        initializerFunction: "initializeMinter",
         initializerArgs: initializer.args,
     });
     logger.success("Added minter facets and saved to diamond");

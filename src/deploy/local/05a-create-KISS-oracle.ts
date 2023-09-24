@@ -1,16 +1,13 @@
-import { assets, testnetConfigs } from "@deploy-config/arbitrumGoerli";
-import type { DeployFunction } from "hardhat-deploy/types";
 import { getLogger, toBig } from "@kreskolabs/lib";
+import type { DeployFunction } from "hardhat-deploy/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
-import { TASK_DEPLOY_KISS, TASK_WHITELIST_COLLATERAL, TASK_WHITELIST_KRASSET } from "@tasks";
-import { getOracle } from "@utils/test/helpers/oracle";
 
 const logger = getLogger("create-kiss");
 
 const deploy: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
-    await hre.deploy("SimpleFeed", {
+    await hre.deploy("MockOracle", {
         deploymentName: "KISSFeed",
-        args: ["KISS/USD", toBig(1, 8)],
+        args: ["KISS/USD", toBig(1, 8), 8],
     });
     logger.success("Succesfully created KISS oracle");
 };

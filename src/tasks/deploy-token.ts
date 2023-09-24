@@ -14,7 +14,7 @@ task(TASK_DEPLOY_TOKEN)
         const { deployer } = await getNamedAccounts();
 
         const { name, symbol, amount, decimals } = taskArgs;
-        const [Token] = await hre.deploy("MockERC20", {
+        const [Token] = await hre.deploy("MockERC20Restricted", {
             from: deployer,
             deploymentName: symbol,
             args: [name, symbol, decimals, toBig(amount, decimals)],

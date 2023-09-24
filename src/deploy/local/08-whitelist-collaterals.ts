@@ -18,9 +18,9 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         const oracleAddr = hre.network.live
             ? collateral.oracle.chainlink
             : (
-                  await hre.deploy("SimpleFeed", {
-                      deploymentName: "SimpleFeed_" + collateral.symbol,
-                      args: [`${collateral.symbol}/USD`, await collateral.price()],
+                  await hre.deploy("MockOracle", {
+                      deploymentName: "MockOracle_" + collateral.symbol,
+                      args: [`${collateral.symbol}/USD`, await collateral.price(), 8],
                   })
               )[0].address;
 

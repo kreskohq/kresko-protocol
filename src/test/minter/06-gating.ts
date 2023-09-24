@@ -1,43 +1,30 @@
-import { defaultCollateralArgs, withFixture, wrapContractWithSigner, Error } from "@utils/test";
-import { expect } from "@test/chai";
 import { toBig } from "@kreskolabs/lib";
+import { expect } from "@test/chai";
+import { DefaultFixture, Error, defaultFixture, wrapContractWithSigner } from "@utils/test";
 
 describe("Gating", () => {
-    withFixture(["minter-init"]);
+    let f: DefaultFixture;
 
     beforeEach(async function () {
+        f = await defaultFixture();
         // Set Gating phase to 3
-        const Diamond = wrapContractWithSigner(hre.Diamond, hre.users.deployer);
-        await Diamond.updatePhase(2);
+
+        await hre.Diamond.updatePhase(2);
 
         // setup collateral for userOne and userTwo
-        this.collateral = this.collaterals!.find(c => c.deployArgs!.name === defaultCollateralArgs.name)!;
         this.initialBalance = toBig(100000);
-        await this.collateral.mocks!.contract.setVariable("_balances", {
-            [hre.users.userOne.address]: this.initialBalance,
-        });
-        await this.collateral.mocks!.contract.setVariable("_allowances", {
-            [hre.users.userOne.address]: {
-                [hre.Diamond.address]: this.initialBalance,
-            },
-        });
-        await this.collateral.mocks!.contract.setVariable("_balances", {
-            [hre.users.userTwo.address]: this.initialBalance,
-        });
-        await this.collateral.mocks!.contract.setVariable("_allowances", {
-            [hre.users.userTwo.address]: {
-                [hre.Diamond.address]: this.initialBalance,
-            },
-        });
+
+        await f.Collateral.setBalance(hre.users.userOne, this.initialBalance, hre.Diamond.address);
+        await f.Collateral.setBalance(hre.users.userTwo, this.initialBalance, hre.Diamond.address);
 
         this.depositArgsOne = {
             user: hre.users.userOne,
-            asset: this.collateral,
+            asset: f.Collateral,
             amount: toBig(10000),
         };
         this.depositArgsTwo = {
             user: hre.users.userTwo,
-            asset: this.collateral,
+            asset: f.Collateral,
             amount: toBig(10000),
         };
 
@@ -46,14 +33,14 @@ describe("Gating", () => {
             args: [],
             from: hre.users.deployer.address,
         });
-        await Diamond.updateKreskian(this.nft.address);
+        await hre.Diamond.updateKreskian(this.nft.address);
     });
 
     it("should not allow to deposit collateral if the user doesn't have required nft's", async function () {
         await expect(
             wrapContractWithSigner(hre.Diamond, this.depositArgsOne.user).depositCollateral(
                 this.depositArgsOne.user.address,
-                this.collateral.address,
+                f.Collateral.address,
                 this.depositArgsOne.amount,
             ),
         ).to.be.revertedWith(Error.MISSING_PHASE_3_NFT);
@@ -61,27 +48,23 @@ describe("Gating", () => {
 
     it("should allow to deposit collateral if the user has the required nft's", async function () {
         await this.nft.safeTransferFrom(hre.users.deployer.address, this.depositArgsOne.user.address, 0, 1, "0x00");
-
-        // Anyone should be able to deposit collateral
         await expect(
             wrapContractWithSigner(hre.Diamond, this.depositArgsOne.user).depositCollateral(
                 this.depositArgsOne.user.address,
-                this.collateral.address,
+                f.Collateral.address,
                 this.depositArgsOne.amount,
             ),
         ).not.to.be.reverted;
     });
 
     it("After all the phases anyone should be able to deposit collateral", async function () {
-        // Set Gating Phase to 0
-        const Diamond = wrapContractWithSigner(hre.Diamond, hre.users.deployer);
-        await Diamond.updatePhase(3);
+        await hre.Diamond.updatePhase(3);
 
         // Anyone should be able to deposit collateral
         await expect(
             wrapContractWithSigner(hre.Diamond, this.depositArgsTwo.user).depositCollateral(
                 this.depositArgsTwo.user.address,
-                this.collateral.address,
+                f.Collateral.address,
                 this.depositArgsTwo.amount,
             ),
         ).not.to.be.reverted;

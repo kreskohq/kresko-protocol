@@ -9,7 +9,7 @@ export const getBlockTimestamp = async () => {
 };
 
 export const oraclePriceToWad = async (price: Promise<BigNumber>): Promise<BigNumber> =>
-    (await price).mul(10 ** (18 - (await hre.Diamond.extOracleDecimals())));
+    (await price).mul(10 ** (18 - (await hre.Diamond.getExtOracleDecimals())));
 
 export const fromScaledAmount = async (amount: BigNumber, asset: TestAsset) => {
     return amount;

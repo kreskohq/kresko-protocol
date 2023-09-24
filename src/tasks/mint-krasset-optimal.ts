@@ -33,13 +33,13 @@ task(TASK_MINT_OPTIMAL, "Mint KrAsset with optimal KISS collateral")
         const Kresko = await hre.getContractOrFork("Kresko");
 
         const KrAsset = (await hre.getContractOrFork("KreskoAsset", taskArgs.kreskoAsset)).connect(signer);
-        const KrAssetInfo = await Kresko.kreskoAsset(KrAsset.address);
+        const KrAssetInfo = await Kresko.getKreskoAsset(KrAsset.address);
 
         if (!KrAssetInfo.exists) {
             throw new Error(`Kresko Asset with name ${taskArgs.kreskoAsset} does not exist`);
         }
         const mintAmount = hre.ethers.utils.parseUnits(String(taskArgs.amount), 18);
-        const mintValue = await Kresko.getKrAssetValue(KrAsset.address, mintAmount, true);
+        const mintValue = await Kresko.getDebtAmountToValue(KrAsset.address, mintAmount, true);
         const parsedValue = fromBig(mintValue, 8) * 2;
 
         const KISS = (await hre.getContractOrFork("KISS")).connect(signer);

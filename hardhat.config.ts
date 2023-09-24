@@ -4,6 +4,7 @@
 import { HardhatUserConfig } from "hardhat/config";
 import { resolve } from "path";
 import "tsconfig-paths/register";
+import "@nomicfoundation/hardhat-foundry";
 /* -------------------------------------------------------------------------- */
 /*                                   Plugins                                  */
 /* -------------------------------------------------------------------------- */
@@ -38,7 +39,7 @@ if (!mnemonic) {
 /* -------------------------------------------------------------------------- */
 /*                                    Tasks                                   */
 /* -------------------------------------------------------------------------- */
-import "./src/tasks";
+import "src/tasks";
 /* -------------------------------------------------------------------------- */
 /*                                Config helpers                              */
 /* -------------------------------------------------------------------------- */
@@ -67,15 +68,15 @@ const config: HardhatUserConfig = {
     paths: {
         artifacts: "artifacts",
         cache: "cache",
-        sources: "src/contracts",
-        tests: "src/test",
-        deploy: "src/deploy",
-        deployments: "deployments",
+        tests: "src/test/",
+        sources: "src/contracts/core",
+        deploy: "src/deploy/",
+        deployments: "deployments/",
     },
     external: {
         contracts: [
             {
-                artifacts: "./node_modules/@kreskolabs/gnosis-safe-contracts/build/artifacts",
+                artifacts: "@kreskolabs/gnosis-safe-contracts/build/artifacts",
             },
         ],
     },

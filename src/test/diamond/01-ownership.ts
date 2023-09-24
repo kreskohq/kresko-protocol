@@ -1,9 +1,10 @@
-import hre from "hardhat";
-import { withFixture, Role, wrapContractWithSigner } from "@utils/test";
 import { expect } from "@test/chai";
+import { Role, diamondFixture, wrapContractWithSigner } from "@utils/test";
 
 describe("Diamond", () => {
-    withFixture(["diamond-init"]);
+    beforeEach(async function () {
+        await diamondFixture();
+    });
     describe("#ownership", () => {
         it("sets correct owner", async function () {
             expect(await hre.Diamond.owner()).to.equal(hre.addr.deployer);

@@ -119,7 +119,7 @@ export const hardhatUsers = {
     funder: {
         default: 52,
     },
-    collateralPoolSwapRecipient: {
+    scdpSwapFeeRecipient: {
         default: 53,
     },
 };

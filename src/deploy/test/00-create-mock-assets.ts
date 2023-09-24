@@ -2,23 +2,45 @@ import type { DeployFunction } from "hardhat-deploy/types";
 import { getLogger } from "@kreskolabs/lib";
 import { addMockCollateralAsset } from "@utils/test/helpers/collaterals";
 import { addMockKreskoAsset } from "@utils/test/helpers/krassets";
+import { defaultCollateralArgs, defaultKrAssetArgs } from "@utils/test";
 
 const func: DeployFunction = async function (hre) {
-    const logger = getLogger("deploy-oracle");
+    const logger = getLogger("mock-assets");
     if (!hre.Diamond) {
         throw new Error("No diamond deployed");
     }
 
-    const { deployer, feedValidator } = await hre.ethers.getNamedSigners();
-
-    if (hre.network.name === "hardhat" && (await hre.ethers.provider.getBalance(feedValidator.address)).eq(0)) {
-        await deployer.sendTransaction({
-            to: feedValidator.address,
-            value: hre.ethers.utils.parseEther("10"),
-        });
-    }
     await addMockCollateralAsset();
+    await addMockCollateralAsset({
+        ...defaultCollateralArgs,
+        name: "MockCollateral2",
+        redstoneId: "MockCollateral2",
+        symbol: "MockCollateral2",
+        decimals: 18,
+    });
+    await addMockCollateralAsset({
+        ...defaultCollateralArgs,
+        name: "MockCollateral8Dec",
+        redstoneId: "MockCollateral8Dec",
+        symbol: "MockCollateral8Dec",
+        decimals: 8,
+    });
     await addMockKreskoAsset();
+    await addMockKreskoAsset({
+        ...defaultKrAssetArgs,
+        name: "MockKreskoAsset2",
+        redstoneId: "MockKreskoAsset2",
+        symbol: "MockKreskoAsset2",
+    });
+    await addMockKreskoAsset(
+        {
+            ...defaultKrAssetArgs,
+            name: "MockKreskoAssetCollateral",
+            redstoneId: "MockKreskoAssetCollateral",
+            symbol: "MockKreskoAssetCollateral",
+        },
+        true,
+    );
 
     logger.log("Added mock assets");
 };

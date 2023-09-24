@@ -1,8 +1,7 @@
 import { GetContractTypes } from "@kreskolabs/configs";
 import { Address } from "hardhat-deploy/types";
 import type * as Contracts from "./typechain";
-import { ICollateralPoolConfigFacet } from "./typechain";
-import { PositionsInitializerStruct } from "./typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Positions";
+import { SCDPInitArgsStruct } from "./typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 
 export type Split<S extends string, D extends string> = string extends S
     ? string[]
@@ -40,18 +39,10 @@ export type ContractNames = keyof ContractTypes;
 
 export type ContractExports =
     | Contracts.Diamond
-    | Contracts.Multisender
-    | Contracts.UniswapMath
-    | Contracts.UniswapV2LiquidityMathLibrary
     | Contracts.WETH9
-    | Contracts.UniswapV2Pair
-    | Contracts.UniswapV2Factory
-    | Contracts.UniswapV2Router02
     | Contracts.KreskoAsset
     | Contracts.KreskoAssetAnchor
-    | Contracts.FluxPriceFeedFactory
-    | Contracts.FluxPriceFeed
-    | Contracts.UniswapV2Oracle
+    | Contracts.AggregatorV3Interface
     | Contracts.ERC20;
 
 // type x = ContractTypes["IKresko"];
@@ -85,11 +76,6 @@ export type NetworkConfig = {
         protocolParams: Omit<KreskoConstructor, "feeRecipient">;
         collaterals: Asset[];
         krAssets: Asset[];
-        pools: [Asset, Asset, number][];
-        rewardTokens: Asset[];
-        rewardTokenAmounts: number[];
-        rewardsPerBlock: number[];
-        stakingPools: StakingPoolConfig[];
         gnosisSafeDeployments?: GnosisSafeDeployment[];
     };
 };
@@ -98,13 +84,9 @@ export type MinterInitializer<A> = {
     name: "ConfigurationFacet";
     args: A;
 };
-export type CollateraPoolInitializer = {
-    name: "CollateralPoolConfigFacet";
-    args: ICollateralPoolConfigFacet.CollateralPoolConfigStruct;
-};
-export type PositionsInitializer = {
-    name: "PositionsConfigFacet";
-    args: PositionsInitializerStruct;
+export type SCDPInitializer = {
+    name: "SCDPConfigFacet";
+    args: SCDPInitArgsStruct;
 };
 
 export type GnosisSafeDeployment = {

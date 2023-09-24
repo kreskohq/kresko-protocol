@@ -1969,7 +1969,7 @@ export const deployments = {
                             type: "address",
                         },
                     ],
-                    name: "getAccountCollateralValue",
+                    name: "accountCollateralValue",
                     outputs: [
                         {
                             internalType: "uint256",
@@ -2036,7 +2036,7 @@ export const deployments = {
                             type: "address",
                         },
                     ],
-                    name: "getCollateralAdjustedAndRealValue",
+                    name: "getAccountCollateralValueOf",
                     outputs: [
                         {
                             internalType: "uint256",
@@ -2084,7 +2084,7 @@ export const deployments = {
                             type: "address",
                         },
                     ],
-                    name: "getDepositedCollateralAssetIndex",
+                    name: "getAccountDepositIndex",
                     outputs: [
                         {
                             internalType: "uint256",
@@ -2103,7 +2103,7 @@ export const deployments = {
                             type: "address",
                         },
                     ],
-                    name: "getDepositedCollateralAssets",
+                    name: "getAccountCollateralAssets",
                     outputs: [
                         {
                             internalType: "address[]",
@@ -2682,7 +2682,7 @@ export const deployments = {
                             type: "uint256",
                         },
                     ],
-                    name: "updateMinimumDebtValue",
+                    name: "updateMinDebtValue",
                     outputs: [],
                     stateMutability: "nonpayable",
                     type: "function",
@@ -3618,7 +3618,7 @@ export const deployments = {
                             type: "bool",
                         },
                     ],
-                    name: "getCollateralValueAndOraclePrice",
+                    name: "getCollateralAmountToValue",
                     outputs: [
                         {
                             internalType: "uint256",

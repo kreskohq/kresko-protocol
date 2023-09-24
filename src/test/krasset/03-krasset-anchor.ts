@@ -1,16 +1,14 @@
 import { toBig } from "@kreskolabs/lib";
 import { expect } from "@test/chai";
-import { withFixture, Role, defaultMintAmount, defaultKrAssetArgs } from "@utils/test";
-import { KreskoAssetAnchor } from "types/typechain/src/contracts/kreskoasset/KreskoAssetAnchor";
+import { Role, defaultMintAmount, kreskoAssetFixture } from "@utils/test";
+import { KreskoAssetAnchor } from "types/typechain";
 
 describe("KreskoAssetAnchor", () => {
     let KreskoAsset: KreskoAsset;
     let KreskoAssetAnchor: KreskoAssetAnchor;
-    withFixture(["minter-test", "kresko-assets", "collaterals"]);
+
     beforeEach(async function () {
-        const asset = hre.krAssets.find(asset => asset!.deployArgs!.symbol === defaultKrAssetArgs.symbol)!;
-        KreskoAsset = asset.contract;
-        KreskoAssetAnchor = asset.anchor;
+        ({ KreskoAsset, KreskoAssetAnchor } = await kreskoAssetFixture());
 
         // Grant minting rights for test deployer
         await Promise.all([

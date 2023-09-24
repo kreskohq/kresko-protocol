@@ -59,9 +59,10 @@ extendEnvironment(function (hre) {
                         { dataFeedId: "BTC", value: 0 },
                     ],
                 },
-            ) as unknown as TC[typeof type];
+            ) as ContractTypes[typeof type];
         }
-        return hre.ethers.getContractAt(type, deployment.address) as unknown as TC[typeof type];
+
+        return (await hre.ethers.getContractAt(type, deployment.address)) as unknown as TC[typeof type];
     };
 
     hre.deploy = async (type, options) => {
@@ -85,6 +86,7 @@ extendEnvironment(function (hre) {
 
         try {
             const implementation = await hre.getContractOrFork(type, deploymentId);
+
             return [
                 implementation,
                 implementation.interface.fragments

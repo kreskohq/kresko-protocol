@@ -9,9 +9,19 @@ import type { BytesLike } from "ethers";
 import { DeployResult } from "hardhat-deploy/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ContractTypes } from "types";
-import { KreskoAssetAnchor } from "types/typechain/src/contracts/kreskoasset";
 import type * as Contracts from "./typechain";
-import { CollateralAssetStruct, KrAssetStructOutput } from "./typechain/src/contracts/minter/facets/StateFacet";
+import { OracleType } from "@utils/test/oracles";
+import {
+    KrAssetStructOutput,
+    CollateralAssetStruct,
+} from "./typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
+import { MockOracle } from "./typechain";
+import {
+    getBalanceCollateralFunc,
+    getBalanceKrAssetFunc,
+    setBalanceCollateralFunc,
+    setBalanceKrAssetFunc,
+} from "@utils/test/helpers/smock";
 declare global {
     const hre: HardhatRuntimeEnvironment;
     /* -------------------------------------------------------------------------- */
@@ -23,22 +33,16 @@ declare global {
         krAsset?: boolean;
         collateral?: boolean;
         address: string;
-        contract: TC["KreskoAsset"];
+        contract: MockContract<Contracts.KreskoAsset>;
         deployArgs?: TestKreskoAssetArgs;
         kresko: () => Promise<KrAssetStructOutput>;
-        mocks: {
-            contract: MockContract<KreskoAsset>;
-            clFeed: MockContract<Contracts.MockAggregatorV3>;
-            fluxFeed: FakeContract<FluxPriceFeed>;
-            anchor?: MockContract<KreskoAssetAnchor>;
-        };
-        anchor: KreskoAssetAnchor;
-        priceFeed: Contracts.MockAggregatorV3;
-        setBalance: (user: SignerWithAddress, balance: BigNumber) => Promise<void>;
+        anchor: MockContract<Contracts.KreskoAssetAnchor>;
+        priceFeed: FakeContract<MockOracle>;
+        setBalance: ReturnType<typeof setBalanceKrAssetFunc>;
+        balanceOf: ReturnType<typeof getBalanceKrAssetFunc>;
         setPrice: (price: number) => void;
+        setOracleOrder: (order: [OracleType, OracleType]) => void;
         getPrice: () => Promise<BigNumber>;
-        setMarketOpen: (marketOpen: boolean) => void;
-        getMarketOpen: () => Promise<boolean>;
         update: (update: TestKreskoAssetUpdate) => Promise<TestKrAsset>;
     };
     type TestCollateral = {
@@ -46,18 +50,13 @@ declare global {
         collateral?: boolean;
         krAsset?: boolean;
         deployArgs: TestCollateralAssetArgs;
-        contract: ERC20Upgradeable;
+        contract: MockContract<ERC20Upgradeable>;
         kresko: () => Promise<CollateralAssetStruct>;
-        mocks?: {
-            contract: MockContract<ERC20Upgradeable>;
-            clFeed: MockContract<Contracts.MockAggregatorV3>;
-            fluxFeed: FakeContract<FluxPriceFeed>;
-            anchor?: MockContract<KreskoAssetAnchor>;
-        };
-        priceFeed: Contracts.MockAggregatorV3;
-        anchor: KreskoAssetAnchor;
+        priceFeed: FakeContract<MockOracle>;
         setPrice: (price: number) => void;
-        setBalance: (user: SignerWithAddress, amount: BigNumber) => Promise<void>;
+        setOracleOrder: (order: [OracleType, OracleType]) => Promise<any>;
+        setBalance: ReturnType<typeof setBalanceCollateralFunc>;
+        balanceOf: ReturnType<typeof getBalanceCollateralFunc>;
         getPrice: () => Promise<BigNumber>;
         update: (update: TestCollateralAssetUpdate) => Promise<TestCollateral>;
     };
@@ -69,22 +68,19 @@ declare global {
     /* -------------------------------------------------------------------------- */
     /*                                   Oracles                                  */
     /* -------------------------------------------------------------------------- */
-    type SequencerUptimeFeed = Contracts.MockSequencerUptimeFeed;
-    type FluxPriceFeed = TC["FluxPriceFeed"];
-    type FluxPriceFeedFactory = TC["FluxPriceFeedFactory"];
-    type UniV2Router = Contracts.UniswapV2Router02;
-    type UniV2Factory = Contracts.UniswapV2Factory;
+    // type UniV2Router = Contracts.UniswapV2Router02;
+    // type UniV2Factory = Contracts.UniswapV2Factory;
     /* -------------------------------------------------------------------------- */
     /*                               Misc Contracts                               */
     /* -------------------------------------------------------------------------- */
 
     type Contract = import("ethers").Contract;
-    type GnosisSafeL2 = TC["GnosisSafeL2"];
+    type GnosisSafeL2 = any;
+
     type KreskoAsset = TC["KreskoAsset"];
-    type KrStaking = TC["KrStaking"];
-    type WETH9 = TC["WETH9"];
+    type KrStaking = any;
     type ERC20Upgradeable = TC["ERC20Upgradeable"];
-    type IERC20 = TC["IERC20"];
+    type IERC20 = TC["IERC20Permit"];
     type BigNumberish = import("ethers").BigNumberish;
     type BigNumber = import("ethers").BigNumber;
     /* -------------------------------------------------------------------------- */
@@ -96,7 +92,6 @@ declare global {
     /* -------------------------------------------------------------------------- */
     /*                                 Deployments                                */
     /* -------------------------------------------------------------------------- */
-    type Artifact = import("hardhat/types").Artifact;
 
     // type DeployResultWithSignaturesUnknown<C extends Contract> = readonly [C, string[], DeployResult];
     type DeployResultWithSignatures<T> = readonly [T, string[], DeployResult];
@@ -108,8 +103,8 @@ declare global {
         council?: string;
         treasury?: string;
         extOracleDecimals: number;
-        minimumCollateralizationRatio: number;
-        minimumDebtValue: number;
+        minCollateralRatio: number;
+        minDebtValue: number;
         liquidationThreshold: number;
         oracleDeviationPct: number;
 
@@ -130,13 +125,5 @@ declare global {
         name: string;
         symbol: string;
         owner: string;
-    }
-    interface Network {
-        rpcUrl?: string;
-        chainId?: number;
-        tags: string[];
-        gasPrice?: number | "auto" | undefined;
-        live?: boolean;
-        saveDeployments?: boolean;
     }
 }

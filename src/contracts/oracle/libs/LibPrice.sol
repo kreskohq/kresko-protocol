@@ -84,8 +84,7 @@ library LibPrice {
      */
     function _checkSequencerUptimeFeed() private view returns (bool) {
         if (ms().sequencerUptimeFeed != address(0)) {
-            (, int256 answer, uint256 startedAt, , ) = AggregatorV3Interface(ms().sequencerUptimeFeed)
-                .latestRoundData();
+            (, int256 answer, uint256 startedAt, , ) = AggregatorV3Interface(ms().sequencerUptimeFeed).latestRoundData();
             bool isSequencerUp = answer == 0;
             if (!isSequencerUp) {
                 return false;

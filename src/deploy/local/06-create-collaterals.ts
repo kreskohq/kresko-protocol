@@ -1,8 +1,8 @@
-import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { testnetConfigs } from "@deploy-config/arbitrumGoerli";
 import type { DeployFunction } from "hardhat-deploy/types";
-import { WETH } from "types/typechain/src/contracts/test/WETH";
-import { getLogger, toBig } from "@kreskolabs/lib";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+
+import { getLogger } from "@kreskolabs/lib";
 import { TASK_DEPLOY_TOKEN } from "@tasks";
 const logger = getLogger("deploy-tokens");
 
@@ -17,15 +17,6 @@ const deploy: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
         const isDeployed = await hre.deployments.getOrNull(collateral.symbol);
 
         if (collateral.symbol === "WETH") {
-            let WETH: WETH;
-            if (!isDeployed) {
-                [WETH] = await hre.deploy("WETH", {
-                    from: hre.users.deployer.address,
-                });
-            } else {
-                WETH = await hre.getContractOrFork("WETH");
-            }
-            await WETH["deposit(uint256)"](toBig(collateral.mintAmount!));
             continue;
         }
         if (isDeployed != null || !!collateral.kFactor) continue;

@@ -24,6 +24,8 @@ task(TASK_DEPLOY_KISS)
             operator: Diamond.address,
         };
 
+        const VAULT_ADDRESS = hre.ethers.constants.AddressZero;
+
         const [KISSContract] = await hre.deploy("KISS", {
             from: deployer.address,
             contract: "KISS",
@@ -33,7 +35,7 @@ task(TASK_DEPLOY_KISS)
                 proxyContract: "OptimizedTransparentProxy",
                 execute: {
                     methodName: "initialize",
-                    args: [args.name, args.symbol, args.decimals, args.admin, args.operator],
+                    args: [args.name, args.symbol, args.decimals, args.admin, args.operator, VAULT_ADDRESS],
                 },
             },
         });
@@ -63,7 +65,7 @@ task(TASK_DEPLOY_KISS)
                 openFee: defaultKrAssetArgs.openFee,
             },
             mocks: {} as any,
-            kresko: async () => await hre.Diamond.kreskoAsset(KISSContract.address),
+            kresko: async () => await hre.Diamond.getKreskoAsset(KISSContract.address),
             getPrice: async () => toBig(1, 8),
             priceFeed: {} as any,
         };

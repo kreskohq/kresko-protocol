@@ -5,7 +5,6 @@ cache/
 coverage/
 dist/
 lib/
-forge/
 temp/**/*
 types/**/*
 node_modules/

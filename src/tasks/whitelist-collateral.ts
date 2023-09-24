@@ -4,7 +4,8 @@ import { anchorTokenPrefix } from "@deploy-config/shared";
 import { task, types } from "hardhat/config";
 import { TASK_WHITELIST_COLLATERAL } from "./names";
 import { redstoneMap } from "@deploy-config/arbitrumGoerli";
-import { PromiseOrValue } from "types/typechain/common";
+import { OracleConfigurationStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
+import { OracleType } from "@utils/test/oracles";
 
 task(TASK_WHITELIST_COLLATERAL)
     .addParam("symbol", "Name of the collateral")
@@ -27,7 +28,7 @@ task(TASK_WHITELIST_COLLATERAL)
 
         logger.log("Collateral address", Collateral.address);
 
-        const collateralAsset = await kresko.collateralAsset(Collateral.address);
+        const collateralAsset = await kresko.getCollateralAsset(Collateral.address);
         const anchor = await hre.deployments.getOrNull(anchorTokenPrefix + symbol);
         const exists = collateralAsset.exists;
 
@@ -51,7 +52,7 @@ task(TASK_WHITELIST_COLLATERAL)
             const redstone = redstoneMap[symbol as keyof typeof redstoneMap];
             if (!redstone) throw new Error(`Redstone not found for ${symbol}`);
 
-            const oracles: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>] = [0, 1];
+            const oracleIds: [number, number] = [OracleType.Redstone, OracleType.Chainlink];
 
             const config = {
                 anchor: anchor?.address ?? hre.ethers.constants.AddressZero,
@@ -59,13 +60,16 @@ task(TASK_WHITELIST_COLLATERAL)
                 liquidationIncentive: toBig(process.env.LIQUIDATION_INCENTIVE!),
                 decimals: await Collateral.decimals(),
                 exists: true,
-                oracles: oracles,
                 id: redstone,
+                oracles: oracleIds,
             };
 
-            await kresko.setChainlinkFeeds([redstone], [oracleAddr]);
+            const oracleConfig: OracleConfigurationStruct = {
+                oracleIds: oracleIds,
+                feeds: [hre.ethers.constants.AddressZero, oracleAddr],
+            };
 
-            const tx = await kresko.addCollateralAsset(Collateral.address, config);
+            const tx = await kresko.addCollateralAsset(Collateral.address, oracleConfig, config);
             if (log) {
                 const collateralDecimals = await Collateral.decimals();
                 logger.log(symbol, "decimals", collateralDecimals);

@@ -35,10 +35,7 @@ contract OracleConfigFacet is DiamondModifiers {
         require(_assets.length == _feeds.length, "assets-feeds-length");
         for (uint256 i; i < _assets.length; i++) {
             require(_feeds[i] != address(0), "feed-0");
-            os().oracles[_assets[i]][uint8(OracleType.Api3)] = Oracle(
-                _feeds[i],
-                OracleViewFacet(address(this)).api3Price
-            );
+            os().oracles[_assets[i]][uint8(OracleType.Api3)] = Oracle(_feeds[i], OracleViewFacet(address(this)).api3Price);
         }
     }
 }
