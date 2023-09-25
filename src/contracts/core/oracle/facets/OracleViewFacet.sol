@@ -52,7 +52,7 @@ contract OracleViewFacet {
      * @param _assetId The asset id (bytes32).
      * @return uint256 redstone price.
      */
-    function redstonePrice(bytes32 _assetId, address) external view returns (uint256) {
+    function redstonePrice(bytes32 _assetId) external view returns (uint256) {
         return Redstone.getPrice(_assetId);
     }
 
