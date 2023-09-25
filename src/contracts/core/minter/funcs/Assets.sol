@@ -183,13 +183,4 @@ library MAssets {
     function redstonePrice(KrAsset memory self) internal view returns (uint256) {
         return Redstone.getPrice(self.id);
     }
-
-    // /**
-    //  * @notice Get Redstone value for @param _assetAmount of @param self in uint256
-    //  * @param self the kresko asset struct
-    //  * @param _assetAmount the amount to convert
-    //  */
-    // function _uintUSDRedstone(KrAsset memory self, uint256 _assetAmount) private view returns (uint256) {
-    //     return redstonePrice(self).wadMul(_assetAmount);
-    // }
 }
