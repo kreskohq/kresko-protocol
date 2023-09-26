@@ -180,7 +180,12 @@ enum Action {
     Withdraw,
     Repay,
     Borrow,
-    Liquidation
+    Liquidation,
+    SCDPDeposit,
+    SCDPSwap,
+    SCDPWithdraw,
+    SCDPRepay,
+    SCDPLiquidation
 }
 
 /**

@@ -1,7 +1,11 @@
 import { GetContractTypes } from "@kreskolabs/configs";
 import { Address } from "hardhat-deploy/types";
 import type * as Contracts from "./typechain";
-import { SCDPInitArgsStruct } from "./typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
+import {
+    CommonInitArgsStruct,
+    MinterInitArgsStruct,
+    SCDPInitArgsStruct,
+} from "./typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 
 export type Split<S extends string, D extends string> = string extends S
     ? string[]
@@ -80,13 +84,17 @@ export type NetworkConfig = {
     };
 };
 
-export type MinterInitializer<A> = {
+export type MinterInitializer = {
     name: "ConfigurationFacet";
-    args: A;
+    args: MinterInitArgsStruct;
 };
 export type SCDPInitializer = {
     name: "SCDPConfigFacet";
     args: SCDPInitArgsStruct;
+};
+export type CommonInitializer = {
+    name: "CommonConfigurationFacet";
+    args: CommonInitArgsStruct;
 };
 
 export type GnosisSafeDeployment = {

@@ -5,8 +5,7 @@
 import { toBig } from "@kreskolabs/lib";
 import { envCheck } from "@utils/general";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
-import type { SCDPInitializer, MinterInitializer } from "types";
-import { MinterInitArgsStruct } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
+import type { SCDPInitializer, MinterInitializer, CommonInitializer } from "types";
 import { redstoneMap, testnetConfigs } from "./arbitrumGoerli";
 import { ethers } from "ethers";
 
@@ -15,7 +14,6 @@ envCheck();
 export const defaultRedstoneDataPoints = [
     { dataFeedId: "DAI", value: 0 },
     { dataFeedId: "USDC", value: 0 },
-    // { dataFeedId: "USDf", value: 0 },
     { dataFeedId: "ETH", value: 0 },
     { dataFeedId: "BTC", value: 0 },
     { dataFeedId: "KISS", value: 0 },
@@ -23,56 +21,12 @@ export const defaultRedstoneDataPoints = [
     { dataFeedId: "MockCollateral8Dec", value: 0 },
     { dataFeedId: "MockCollateral", value: 0 },
     { dataFeedId: "MockCollateral2", value: 0 },
-    // { dataFeedId: "MockCollateral3", value: 0 },
-    // { dataFeedId: "MockCollateral4", value: 0 },
-    // { dataFeedId: "MockCollateral5", value: 0 },
-    // { dataFeedId: "MockCollateral6", value: 0 },
-    // { dataFeedId: "MockCollateral7", value: 0 },
-    // { dataFeedId: "MockCollateral8", value: 0 },
     { dataFeedId: "MockCollateralSCDP1", value: 0 },
     { dataFeedId: "MockCollateralSCDP2", value: 0 },
-    // { dataFeedId: "MockKrAsset", value: 0 },
     { dataFeedId: "MockKreskoAsset", value: 0 },
     { dataFeedId: "MockKreskoAssetSCDP1", value: 0 },
     { dataFeedId: "MockKreskoAssetSCDP2", value: 0 },
     { dataFeedId: "MockKreskoAsset2", value: 0 },
-    // { dataFeedId: "MockKreskoAsset3", value: 0 },
-    // { dataFeedId: "MockKreskoAsset4", value: 0 },
-    // { dataFeedId: "MockKreskoAsset5", value: 0 },
-    // { dataFeedId: "MockKreskoAsset6", value: 0 },
-    // { dataFeedId: "MockKreskoAsset7", value: 0 },
-    // { dataFeedId: "MockKreskoAssetLeverage1", value: 0 },
-    // { dataFeedId: "MockKreskoAssetLeverage2", value: 0 },
-    // { dataFeedId: "Collateral", value: 0 },
-    // { dataFeedId: "CollateralAsset", value: 0 },
-    // { dataFeedId: "CollateralAsset1", value: 0 },
-    // { dataFeedId: "CollateralAsset2", value: 0 },
-    // { dataFeedId: "CollateralAsset3", value: 0 },
-    // { dataFeedId: "KreskoAsset", value: 0 },
-    // { dataFeedId: "KreskoAsset1", value: 0 },
-    // { dataFeedId: "KreskoAsset2", value: 0 },
-    // { dataFeedId: "KreskoAsset3", value: 0 },
-    // { dataFeedId: "KreskoAsset4", value: 0 },
-    // { dataFeedId: "KreskoAsset5", value: 0 },
-    // { dataFeedId: "KreskoAssetPrice10USD", value: 0 },
-    // { dataFeedId: "MockCollateralLiquidations2", value: 0 },
-    // { dataFeedId: "CollateralAsset", value: 0 },
-    // { dataFeedId: "CollateralAssetNew", value: 0 },
-    // { dataFeedId: "Collateral18Dec", value: 0 },
-    // { dataFeedId: "Collateral8Dec", value: 0 },
-    // { dataFeedId: "Collateral21Dec", value: 0 },
-    // { dataFeedId: "CollateralAsset8Dec", value: 0 },
-    // { dataFeedId: "KreskoAssetLiquidation", value: 0 },
-    // { dataFeedId: "MockKreskoAssetCollateral", value: 0 },
-    // { dataFeedId: "KreskoAssetLiquidate", value: 0 },
-    // { dataFeedId: "SecondKreskoAsset", value: 0 },
-    // { dataFeedId: "SecondCollateral", value: 0 },
-    // { dataFeedId: "krasset2", value: 0 },
-    // { dataFeedId: "krasset3", value: 0 },
-    // { dataFeedId: "updated", value: 0 },
-    // { dataFeedId: "krasset4", value: 0 },
-    // { dataFeedId: "quick", value: 0 },
-    // { dataFeedId: "KreskoAssetPrice100USD", value: 0 },
 ];
 
 export const allRedstoneAssets = {
@@ -111,6 +65,8 @@ export const diamondFacets = [
 
 export const anchorTokenPrefix = "a";
 
+export const commonFacets = ["CommonConfigurationFacet", "CommonStateFacet", "AssetConfigurationFacet"] as const;
+
 export const minterFacets = [
     "AccountStateFacet",
     "BurnFacet",
@@ -120,8 +76,6 @@ export const minterFacets = [
     "MintFacet",
     "SafetyCouncilFacet",
     "StateFacet",
-    "OracleViewFacet",
-    "OracleConfigFacet",
 ] as const;
 
 export const peripheryFacets = ["UIDataProviderFacet", "UIDataProviderFacet2", "BurnHelperFacet"];
@@ -140,22 +94,29 @@ export const getDeploymentUsers = async (hre: HardhatRuntimeEnvironment) => {
     return { admin: users.admin, multisig, treasury, swapFeeRecipient: users.scdpSwapFeeRecipient };
 };
 
-export const getMinterInitializer = async (
-    hre: HardhatRuntimeEnvironment,
-): Promise<MinterInitializer<MinterInitArgsStruct>> => {
-    const { treasury, admin, multisig } = await getDeploymentUsers(hre);
-
+export const getMinterInitializer = async (hre: HardhatRuntimeEnvironment): Promise<MinterInitializer> => {
     const config = testnetConfigs[hre.network.name].protocolParams;
 
     return {
         name: "ConfigurationFacet",
         args: {
+            minCollateralRatio: toBig(config.minCollateralRatio),
+            liquidationThreshold: toBig(config.liquidationThreshold),
+        },
+    };
+};
+export const getInitializer = async (hre: HardhatRuntimeEnvironment): Promise<CommonInitializer> => {
+    const { treasury, admin, multisig } = await getDeploymentUsers(hre);
+
+    const config = testnetConfigs[hre.network.name].protocolParams;
+
+    return {
+        name: "CommonConfigurationFacet",
+        args: {
             admin,
             treasury,
             council: multisig,
-            minCollateralRatio: toBig(config.minCollateralRatio),
             minDebtValue: toBig(config.minDebtValue, 8),
-            liquidationThreshold: toBig(config.liquidationThreshold),
             extOracleDecimals: config.extOracleDecimals,
             oracleDeviationPct: toBig(config.oracleDeviationPct),
             sequencerUptimeFeed: hre.network.live ? config.sequencerUptimeFeed : ethers.constants.AddressZero,

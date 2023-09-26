@@ -8,14 +8,13 @@ import { TASK_WRITE_ORACLE_JSON } from "../names";
 const logger = getLogger(TASK_WRITE_ORACLE_JSON);
 
 task(TASK_WRITE_ORACLE_JSON).setAction(async function (_taskArgs: TaskArguments, hre) {
-    const Kresko = await hre.getContractOrFork("Kresko");
     const values = [];
     for (const collateral of testnetConfigs[hre.network.name].collaterals) {
         let contract = await hre.getContractOrFork("ERC20Upgradeable", collateral.symbol);
         if (collateral.symbol === "WETH") {
             contract = await hre.ethers.getContractAt("ERC20Upgradeable", "0x4200000000000000000000000000000000000006");
         }
-        const collateralInfo = await Kresko.getAsset(contract.address);
+
         if (!collateral.oracle) continue;
 
         if (collateral.symbol === "" || collateral.symbol === "WETH") {
@@ -24,7 +23,7 @@ task(TASK_WRITE_ORACLE_JSON).setAction(async function (_taskArgs: TaskArguments,
                 assetAddress: contract.address,
                 assetType: "collateral",
                 feed: collateral.oracle.description,
-                pricefeed: collateralInfo.oracle,
+                pricefeed: await hre.Diamond.getFeedForAddress(contract.address, 1),
             });
             continue;
         }
@@ -33,19 +32,18 @@ task(TASK_WRITE_ORACLE_JSON).setAction(async function (_taskArgs: TaskArguments,
             assetAddress: contract.address,
             assetType: "collateral",
             feed: collateral.oracle.description,
-            pricefeed: collateralInfo.oracle,
+            pricefeed: await hre.Diamond.getFeedForAddress(contract.address, 1),
         });
     }
     for (const krAsset of testnetConfigs[hre.network.name].krAssets) {
         const contract = await hre.getContractOrFork("ERC20Upgradeable", krAsset.symbol);
-        const krAssetInfo = await Kresko.getAsset(contract.address);
         if (!krAsset.oracle) continue;
         values.push({
             asset: await contract.symbol(),
             assetAddress: contract.address,
             assetType: "krAsset",
             feed: krAsset.oracle.description,
-            pricefeed: krAssetInfo.oracle,
+            pricefeed: await hre.Diamond.getFeedForAddress(contract.address, 1),
         });
     }
 

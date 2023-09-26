@@ -228,7 +228,7 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, CModifiers, DSModi
         require(_config.pushedPrice().price != 0, Error.ZERO_PRICE);
     }
 
-    function _validateMinterCollateral(Asset memory _config) internal {
+    function _validateMinterCollateral(Asset memory _config) internal view {
         require(_config.factor <= Constants.ONE_HUNDRED_PERCENT, Error.COLLATERAL_INVALID_FACTOR);
         require(
             _config.liquidationIncentive >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
@@ -241,7 +241,7 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, CModifiers, DSModi
         require(_config.decimals != 0, "deposit-limit-too-high");
     }
 
-    function _validateMinterKrAsset(address _asset, Asset memory _config) internal {
+    function _validateMinterKrAsset(address _asset, Asset memory _config) internal view {
         require(_config.kFactor >= Constants.ONE_HUNDRED_PERCENT, Error.KRASSET_INVALID_FACTOR);
         require(_config.closeFee <= Constants.MAX_CLOSE_FEE, Error.PARAM_CLOSE_FEE_TOO_HIGH);
         require(_config.openFee <= Constants.MAX_OPEN_FEE, Error.PARAM_OPEN_FEE_TOO_HIGH);
@@ -255,13 +255,13 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, CModifiers, DSModi
         require(IKreskoAsset(_asset).hasRole(Role.OPERATOR, address(this)), Error.NOT_OPERATOR);
     }
 
-    function _validateSCDPDepositAsset(Asset memory _config) internal {
+    function _validateSCDPDepositAsset(Asset memory _config) internal view {
         require(_config.factor <= Constants.ONE_HUNDRED_PERCENT, Error.COLLATERAL_INVALID_FACTOR);
         require(_config.depositLimitSCDP <= type(uint128).max, "deposit-limit-too-high");
         require(_config.decimals != 0, "deposit-limit-too-high");
     }
 
-    function _validateSCDPKrAsset(Asset memory _config) internal {
+    function _validateSCDPKrAsset(Asset memory _config) internal view {
         require(_config.closeFeeSCDP <= Constants.MAX_CLOSE_FEE, Error.PARAM_CLOSE_FEE_TOO_HIGH);
         require(_config.openFeeSCDP <= Constants.MAX_OPEN_FEE, Error.PARAM_OPEN_FEE_TOO_HIGH);
         require(_config.protocolFeeSCDP <= Constants.MAX_COLLATERAL_POOL_PROTOCOL_FEE, "krasset-protocol-fee-too-high");
