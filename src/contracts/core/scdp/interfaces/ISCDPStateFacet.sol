@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
-import {SCDPCollateral, SCDPKrAsset, GlobalData} from "scdp/Types.sol";
+import {GlobalData} from "scdp/Types.sol";
 
 interface ISCDPStateFacet {
     /**
@@ -51,12 +51,6 @@ interface ISCDPStateFacet {
     function getDepositAssetsSCDP() external view returns (address[] memory);
 
     /**
-     * @notice Get the deposit configuration for `_depositAsset`
-     * @param _depositAsset The deposit asset
-     */
-    function getCollateralSCDP(address _depositAsset) external view returns (SCDPCollateral memory);
-
-    /**
      * @notice Get the total collateral deposits for `_collateralAsset`
      * @param _collateralAsset The collateral asset
      */
@@ -80,12 +74,6 @@ interface ISCDPStateFacet {
      * @param _ignoreFactors Ignore factors when calculating collateral value.
      */
     function getTotalCollateralValueSCDP(bool _ignoreFactors) external view returns (uint256);
-
-    /**
-     * @notice Get the collateral configuration for `_krAsset`
-     * @param _krAsset The collateral asset
-     */
-    function getKreskoAssetSCDP(address _krAsset) external view returns (SCDPKrAsset memory);
 
     /**
      * @notice Get all pool KreskoAssets

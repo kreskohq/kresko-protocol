@@ -5,8 +5,9 @@ import {IERC165Facet} from "diamond/interfaces/IERC165Facet.sol";
 import {Role} from "common/Types.sol";
 import {ds, DiamondState} from "diamond/State.sol";
 import {DSModifiers} from "diamond/Modifiers.sol";
+import {CModifiers} from "common/Modifiers.sol";
 
-contract ERC165Facet is IERC165Facet, DSModifiers {
+contract ERC165Facet is IERC165Facet, DSModifiers, CModifiers {
     /// @inheritdoc IERC165Facet
     function supportsInterface(bytes4 _interfaceId) external view override returns (bool) {
         return ds().supportedInterfaces[_interfaceId];

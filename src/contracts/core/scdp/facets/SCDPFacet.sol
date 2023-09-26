@@ -4,22 +4,20 @@ pragma solidity >=0.8.19;
 import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
 import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {WadRay} from "libs/WadRay.sol";
+
 import {Error} from "common/Errors.sol";
 import {burnSCDP} from "common/funcs/Actions.sol";
 import {fromWad, valueToAmount} from "common/funcs/Math.sol";
-
-import {DSModifiers} from "diamond/Modifiers.sol";
-import {ms, MinterState} from "minter/State.sol";
-import {CollateralAsset, KrAsset} from "minter/Types.sol";
-import {collateralAmountWrite} from "minter/funcs/Conversions.sol";
+import {CModifiers} from "common/Modifiers.sol";
+import {cs} from "common/State.sol";
+import {Asset} from "common/Types.sol";
 
 import {ISCDPFacet} from "scdp/interfaces/ISCDPFacet.sol";
-import {SCDPKrAsset} from "scdp/Types.sol";
 import {scdp, SCDPState} from "scdp/State.sol";
 import {maxLiqValueSCDP} from "scdp/funcs/Liquidations.sol";
 import {SEvent} from "scdp/Events.sol";
 
-contract SCDPFacet is ISCDPFacet, DSModifiers {
+contract SCDPFacet is ISCDPFacet, CModifiers {
     using SafeERC20Permit for IERC20Permit;
     using WadRay for uint256;
 
@@ -53,19 +51,19 @@ contract SCDPFacet is ISCDPFacet, DSModifiers {
     function repaySCDP(address _repayKrAsset, uint256 _repayAmount, address _seizeCollateral) external nonReentrant {
         require(_repayAmount != 0, "repay-zero");
         SCDPState storage s = scdp();
-        MinterState storage m = ms();
         require(s.debt[_repayKrAsset] >= _repayAmount, "repay-too-much");
 
-        uint256 seizedAmount = m.kreskoAssets[_repayKrAsset].uintUSD(_repayAmount).wadDiv(
-            m.collateralAssets[_seizeCollateral].price()
-        );
-        require(s.swapDeposits[_seizeCollateral] >= seizedAmount, "no-swap-deposits");
+        Asset memory krAsset = cs().assets[_repayKrAsset];
+        Asset memory seizeAsset = cs().assets[_seizeCollateral];
 
-        s.debt[_repayKrAsset] -= burnSCDP(_repayKrAsset, _repayAmount, msg.sender);
+        uint256 seizedAmount = krAsset.uintUSD(_repayAmount).wadDiv(seizeAsset.price());
+        require(s.sDeposits[_seizeCollateral].swapDeposits >= seizedAmount, "no-swap-deposits");
 
-        uint256 seizedAmountInternal = collateralAmountWrite(_repayKrAsset, seizedAmount);
-        s.swapDeposits[_seizeCollateral] -= seizedAmountInternal;
-        s.totalDeposits[_seizeCollateral] -= seizedAmountInternal;
+        s.debt[_repayKrAsset] -= burnSCDP(krAsset, _repayAmount, msg.sender);
+
+        uint128 seizedAmountInternal = uint128(seizeAsset.amountWrite(seizedAmount));
+        s.sDeposits[_seizeCollateral].swapDeposits -= seizedAmountInternal;
+        s.sDeposits[_seizeCollateral].totalDeposits -= seizedAmountInternal;
 
         // solhint-disable-next-line avoid-tx-origin
         emit SEvent.SCDPRepay(tx.origin, _repayKrAsset, _repayAmount, _seizeCollateral, seizedAmount);
@@ -76,30 +74,30 @@ contract SCDPFacet is ISCDPFacet, DSModifiers {
     }
 
     function getMaxLiqValueSCDP(address _kreskoAsset, address _seizeCollateral) external view returns (uint256) {
-        return maxLiqValueSCDP(scdp().krAsset[_kreskoAsset], ms().kreskoAssets[_kreskoAsset], _seizeCollateral);
+        Asset memory krAsset = cs().assets[_kreskoAsset];
+        Asset memory seizeAsset = cs().assets[_seizeCollateral];
+        return maxLiqValueSCDP(krAsset, seizeAsset, _seizeCollateral);
     }
 
     /// @inheritdoc ISCDPFacet
     function liquidateSCDP(address _repayKrAsset, uint256 _repayAmount, address _seizeCollateral) external nonReentrant {
         SCDPState storage s = scdp();
-        MinterState storage m = ms();
         require(s.debt[_repayKrAsset] >= _repayAmount, "liquidate-too-much");
         require(s.isLiquidatableSCDP(), "not-liquidatable");
 
-        CollateralAsset memory collateral = m.collateralAssets[_seizeCollateral];
-        KrAsset memory krAsset = m.kreskoAssets[_repayKrAsset];
-        SCDPKrAsset memory scdpKrAsset = s.krAsset[_repayKrAsset];
+        Asset memory krAsset = cs().assets[_repayKrAsset];
+        Asset memory seizeAsset = cs().assets[_seizeCollateral];
         uint256 repayAmountUSD = krAsset.uintUSD(_repayAmount);
 
-        require(maxLiqValueSCDP(scdpKrAsset, krAsset, _seizeCollateral) >= repayAmountUSD, Error.LIQUIDATION_OVERFLOW);
+        require(maxLiqValueSCDP(krAsset, seizeAsset, _seizeCollateral) >= repayAmountUSD, Error.LIQUIDATION_OVERFLOW);
 
         uint256 seizeAmount = fromWad(
-            collateral.decimals,
-            valueToAmount(scdpKrAsset.liquidationIncentive, collateral.price(), repayAmountUSD)
+            seizeAsset.decimals,
+            valueToAmount(krAsset.liquidationIncentive, seizeAsset.price(), repayAmountUSD)
         );
 
-        s.debt[_repayKrAsset] -= burnSCDP(_repayKrAsset, _repayAmount, msg.sender);
-        s.handleSeizeSCDP(_seizeCollateral, seizeAmount);
+        s.debt[_repayKrAsset] -= burnSCDP(krAsset, _repayAmount, msg.sender);
+        s.handleSeizeSCDP(_seizeCollateral, seizeAsset, seizeAmount);
 
         IERC20Permit(_seizeCollateral).safeTransfer(msg.sender, seizeAmount);
 

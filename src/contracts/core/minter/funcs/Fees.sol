@@ -8,8 +8,8 @@ import {WadRay} from "libs/WadRay.sol";
 import {fromWad} from "common/funcs/Math.sol";
 
 import {ms} from "minter/State.sol";
-import {collateralAmountToValue} from "minter/funcs/Conversions.sol";
-import {KrAsset} from "minter/Types.sol";
+import {cs} from "common/State.sol";
+import {Asset} from "common/Types.sol";
 import {MEvent} from "minter/Events.sol";
 
 using WadRay for uint256;
@@ -28,10 +28,9 @@ using Arrays for address[];
  * @param _kreskoAsset The address of the kresko asset being minted.
  * @param _kreskoAssetAmountMinted The amount of the kresko asset being minted.
  */
-function handleMinterOpenFee(address _account, address _kreskoAsset, uint256 _kreskoAssetAmountMinted) {
-    KrAsset memory krAsset = ms().kreskoAssets[_kreskoAsset];
+function handleMinterOpenFee(address _account, Asset memory _kreskoAsset, uint256 _kreskoAssetAmountMinted) {
     // Calculate the value of the fee according to the value of the krAssets being minted.
-    uint256 feeValue = krAsset.uintUSD(_kreskoAssetAmountMinted, ms().oracleDeviationPct).wadMul(krAsset.openFee);
+    uint256 feeValue = _kreskoAsset.uintUSD(_kreskoAssetAmountMinted).wadMul(_kreskoAsset.openFee);
 
     // Do nothing if the fee value is 0.
     if (feeValue == 0) {
@@ -45,16 +44,15 @@ function handleMinterOpenFee(address _account, address _kreskoAsset, uint256 _kr
     // other elements in the array.
     for (uint256 i = accountCollaterals.length - 1; i >= 0; i--) {
         address currentCollateral = accountCollaterals[i];
+        Asset memory asset = cs().assets[currentCollateral];
 
-        (uint256 transferAmount, uint256 feeValuePaid) = calcMinterFee(currentCollateral, _account, feeValue, i);
+        (uint256 transferAmount, uint256 feeValuePaid) = calcMinterFee(currentCollateral, asset, _account, feeValue, i);
 
         // Remove the transferAmount from the stored deposit for the account.
-        ms().collateralDeposits[_account][currentCollateral] -= ms().collateralAssets[currentCollateral].toNonRebasingAmount(
-            transferAmount
-        );
+        ms().collateralDeposits[_account][currentCollateral] -= asset.toNonRebasingAmount(transferAmount);
 
         // Transfer the fee to the feeRecipient.
-        IERC20Permit(currentCollateral).safeTransfer(ms().feeRecipient, transferAmount);
+        IERC20Permit(currentCollateral).safeTransfer(cs().feeRecipient, transferAmount);
         emit MEvent.OpenFeePaid(_account, currentCollateral, transferAmount, feeValuePaid);
 
         feeValue = feeValue - feeValuePaid;
@@ -73,10 +71,9 @@ function handleMinterOpenFee(address _account, address _kreskoAsset, uint256 _kr
  * @param _kreskoAsset The address of the kresko asset being burned.
  * @param _burnAmount The amount of the kresko asset being burned.
  */
-function handleMinterCloseFee(address _account, address _kreskoAsset, uint256 _burnAmount) {
-    KrAsset memory krAsset = ms().kreskoAssets[_kreskoAsset];
+function handleMinterCloseFee(address _account, Asset memory _kreskoAsset, uint256 _burnAmount) {
     // Calculate the value of the fee according to the value of the krAssets being burned.
-    uint256 feeValue = krAsset.uintUSD(_burnAmount, ms().oracleDeviationPct).wadMul(krAsset.closeFee);
+    uint256 feeValue = _kreskoAsset.uintUSD(_burnAmount).wadMul(_kreskoAsset.closeFee);
 
     // Do nothing if the fee value is 0.
     if (feeValue == 0) {
@@ -91,16 +88,14 @@ function handleMinterCloseFee(address _account, address _kreskoAsset, uint256 _b
 
     for (uint256 i = accountCollaterals.length - 1; i >= 0; i--) {
         address currentCollateral = accountCollaterals[i];
-
-        (uint256 transferAmount, uint256 feeValuePaid) = calcMinterFee(currentCollateral, _account, feeValue, i);
+        Asset memory asset = cs().assets[currentCollateral];
+        (uint256 transferAmount, uint256 feeValuePaid) = calcMinterFee(currentCollateral, asset, _account, feeValue, i);
 
         // Remove the transferAmount from the stored deposit for the account.
-        ms().collateralDeposits[_account][currentCollateral] -= ms().collateralAssets[currentCollateral].toNonRebasingAmount(
-            transferAmount
-        );
+        ms().collateralDeposits[_account][currentCollateral] -= asset.toNonRebasingAmount(transferAmount);
 
         // Transfer the fee to the feeRecipient.
-        IERC20Permit(currentCollateral).safeTransfer(ms().feeRecipient, transferAmount);
+        IERC20Permit(currentCollateral).safeTransfer(cs().feeRecipient, transferAmount);
         emit MEvent.CloseFeePaid(_account, currentCollateral, transferAmount, feeValuePaid);
 
         feeValue = feeValue - feeValuePaid;
@@ -123,18 +118,19 @@ function handleMinterCloseFee(address _account, address _kreskoAsset, uint256 _b
  */
 function calcMinterFee(
     address _collateralAsset,
+    Asset memory _asset,
     address _account,
     uint256 _feeValue,
     uint256 _collateralAssetIndex
 ) returns (uint256 transferAmount, uint256 feeValuePaid) {
-    uint256 depositAmount = ms().accountCollateralAmount(_account, _collateralAsset);
+    uint256 depositAmount = ms().accountCollateralAmount(_account, _collateralAsset, _asset);
 
     // Don't take the collateral asset's collateral factor into consideration.
-    (uint256 depositValue, uint256 oraclePrice) = collateralAmountToValue(_collateralAsset, depositAmount, true);
+    (uint256 depositValue, uint256 oraclePrice) = _asset.collateralAmountToValue(depositAmount, true);
 
     if (_feeValue < depositValue) {
         // If feeValue < depositValue, the entire fee can be charged for this collateral asset.
-        transferAmount = fromWad(ms().collateralAssets[_collateralAsset].decimals, _feeValue.wadDiv(oraclePrice));
+        transferAmount = fromWad(_asset.decimals, _feeValue.wadDiv(oraclePrice));
         feeValuePaid = _feeValue;
     } else {
         // If the feeValue >= depositValue, the entire deposit should be taken as the fee.

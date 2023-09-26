@@ -5,26 +5,25 @@ import {WadRay} from "libs/WadRay.sol";
 import {MaxLiqVars} from "common/Types.sol";
 import {calcMaxLiqValue} from "common/funcs/Math.sol";
 
-import {ms} from "minter/State.sol";
-import {CollateralAsset, KrAsset} from "minter/Types.sol";
-
-import {SCDPKrAsset} from "scdp/Types.sol";
+import {cs} from "common/State.sol";
+import {Asset} from "common/Types.sol";
 import {scdp, sdi} from "scdp/State.sol";
+import {Asset} from "common/Types.sol";
 
 using WadRay for uint256;
 
 function maxLiqValueSCDP(
-    SCDPKrAsset memory _repaySCDPKrAsset,
-    KrAsset memory _repayKreskoAsset,
-    address _seizedCollateral
+    Asset memory _repayAsset,
+    Asset memory _seizeAsset,
+    address _seizeAssetAddr
 ) view returns (uint256 maxLiquidatableUSD) {
-    MaxLiqVars memory vars = _getMaxLiqVarsSCDP(_repayKreskoAsset, _seizedCollateral);
+    MaxLiqVars memory vars = _getMaxLiqVarsSCDP(_repayAsset, _seizeAsset, _seizeAssetAddr);
     // Account is not liquidatable
     if (vars.accountCollateralValue >= (vars.minCollateralValue)) {
         return 0;
     }
 
-    maxLiquidatableUSD = calcMaxLiqValue(vars, _repaySCDPKrAsset);
+    maxLiquidatableUSD = calcMaxLiqValue(vars, _repayAsset);
 
     if (vars.seizeCollateralAccountValue < maxLiquidatableUSD) {
         return vars.seizeCollateralAccountValue;
@@ -35,25 +34,27 @@ function maxLiqValueSCDP(
     }
 }
 
-function _getMaxLiqVarsSCDP(KrAsset memory _repayKreskoAsset, address _seizedCollateral) view returns (MaxLiqVars memory) {
+function _getMaxLiqVarsSCDP(
+    Asset memory _repayAsset,
+    Asset memory _seizeAsset,
+    address _seizeAssetAddr
+) view returns (MaxLiqVars memory) {
     uint256 maxLiquidationRatio = scdp().maxLiquidationRatio;
     uint256 minCollateralValue = sdi().effectiveDebtValue().wadMul(maxLiquidationRatio);
 
     (uint256 totalCollateralValue, uint256 seizeCollateralValue) = scdp().collateralValueSCDP(
-        _seizedCollateral,
-        scdp().totalDeposits[_seizedCollateral],
+        _seizeAssetAddr,
+        scdp().sDeposits[_seizeAssetAddr].totalDeposits,
         false
     );
 
-    CollateralAsset memory collateral = ms().collateralAssets[_seizedCollateral];
-
     return
         MaxLiqVars({
-            collateral: collateral,
+            collateral: _seizeAsset,
             accountCollateralValue: totalCollateralValue,
-            debtFactor: _repayKreskoAsset.kFactor.wadMul(maxLiquidationRatio).wadDiv(collateral.factor),
+            debtFactor: uint128(_repayAsset.kFactor.wadMul(maxLiquidationRatio).wadDiv(_seizeAsset.factor)),
             minCollateralValue: minCollateralValue,
-            minDebtValue: ms().minDebtValue,
+            minDebtValue: cs().minDebtValue,
             seizeCollateralAccountValue: seizeCollateralValue,
             maxLiquidationRatio: maxLiquidationRatio
         });

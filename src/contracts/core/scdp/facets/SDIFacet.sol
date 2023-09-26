@@ -5,7 +5,8 @@ import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {AggregatorV3Interface} from "vendor/AggregatorV3Interface.sol";
 import {Role} from "common/Types.sol";
 import {SDIPrice} from "common/funcs/Prices.sol";
-
+import {cs} from "common/State.sol";
+import {CModifiers} from "common/Modifiers.sol";
 import {DSModifiers} from "diamond/Modifiers.sol";
 
 import {krAssetAmountToSDI} from "scdp/funcs/Conversions.sol";
@@ -13,7 +14,7 @@ import {sdi} from "scdp/State.sol";
 import {CoverAsset} from "scdp/Types.sol";
 import {ISDIFacet} from "scdp/interfaces/ISDIFacet.sol";
 
-contract SDIFacet is ISDIFacet, DSModifiers {
+contract SDIFacet is ISDIFacet, DSModifiers, CModifiers {
     function initialize(address coverRecipient) external onlyOwner {
         sdi().coverRecipient = coverRecipient;
     }
@@ -43,11 +44,11 @@ contract SDIFacet is ISDIFacet, DSModifiers {
     }
 
     function previewSCDPBurn(address asset, uint256 burnAmount, bool ignoreFactors) external view returns (uint256 shares) {
-        return krAssetAmountToSDI(asset, burnAmount, ignoreFactors);
+        return krAssetAmountToSDI(cs().assets[asset], burnAmount, ignoreFactors);
     }
 
     function previewSCDPMint(address asset, uint256 mintAmount, bool ignoreFactors) external view returns (uint256 shares) {
-        return krAssetAmountToSDI(asset, mintAmount, ignoreFactors);
+        return krAssetAmountToSDI(cs().assets[asset], mintAmount, ignoreFactors);
     }
 
     /// @notice Get the price of SDI in USD, oracle precision.

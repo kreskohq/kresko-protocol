@@ -1,66 +1,58 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19;
 
-import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
-import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {WadRay} from "libs/WadRay.sol";
-
-import {collateralAmountWrite} from "minter/funcs/Conversions.sol";
-
+import {Asset} from "common/Types.sol";
+import {cs} from "common/State.sol";
 import {SCDPState} from "scdp/State.sol";
 
 library SDeposits {
     using WadRay for uint256;
     using WadRay for uint128;
-    using SafeERC20Permit for IERC20Permit;
 
     /**
      * @notice Records a deposit of collateral asset.
      * @dev Saves principal, scaled and global deposit amounts.
      * @param _account depositor
-     * @param _depositAsset the deposit asset
-     * @param _depositAmount amount of collateral asset to deposit
+     * @param _assetAddr the deposit asset
+     * @param _amount amount of collateral asset to deposit
      */
-    function handleDepositSCDP(
-        SCDPState storage self,
-        address _account,
-        address _depositAsset,
-        uint256 _depositAmount
-    ) internal {
-        require(self.isDepositEnabled[_depositAsset], "deposit-not-enabled");
-        uint256 depositAmount = collateralAmountWrite(_depositAsset, _depositAmount);
+    function handleDepositSCDP(SCDPState storage self, address _account, address _assetAddr, uint256 _amount) internal {
+        Asset memory asset = cs().assets[_assetAddr];
+        require(asset.isSCDPDepositAsset, "deposit-not-enabled");
+        uint128 depositAmount = uint128(asset.amountWrite(_amount));
 
         unchecked {
             // Save global deposits.
-            self.totalDeposits[_depositAsset] += depositAmount;
+            self.sDeposits[_assetAddr].totalDeposits += depositAmount;
             // Save principal deposits.
-            self.depositsPrincipal[_account][_depositAsset] += depositAmount;
+            self.depositsPrincipal[_account][_assetAddr] += depositAmount;
             // Save scaled deposits.
-            self.deposits[_account][_depositAsset] += depositAmount.wadToRay().rayDiv(
-                self.collateral[_depositAsset].liquidityIndex
-            );
+            self.deposits[_account][_assetAddr] += depositAmount.wadToRay().rayDiv(asset.liquidityIndexSCDP);
         }
 
-        require(self.userDepositAmount(_depositAsset) <= self.collateral[_depositAsset].depositLimit, "deposit-limit");
+        require(self.userDepositAmount(_assetAddr, asset) <= asset.depositLimitSCDP, "deposit-limit");
     }
 
     /**
-     * @notice Records a withdrawal of collateral asset.
-     * @param self Collateral Pool State
-     * @param _account the withdrawing account
-     * @param _depositAsset the deposit asset
-     * @param amountOut The actual amount of collateral withdrawn
+     * @notice Records a withdrawal of collateral asset from the SCDP.
+     * @param _account The withdrawing account
+     * @param _assetAddr the deposit asset
+     * @param _amount The amount of collateral withdrawn
+     * @return amountOut The actual amount of collateral withdrawn
+     * @return feesOut The fees paid for during the withdrawal
      */
     function handleWithdrawSCDP(
         SCDPState storage self,
         address _account,
-        address _depositAsset,
+        address _assetAddr,
         uint256 _amount
     ) internal returns (uint256 amountOut, uint256 feesOut) {
         // Do not check for isEnabled, always allow withdrawals.
+        Asset memory asset = cs().assets[_assetAddr];
 
         // Get accounts principal deposits.
-        uint256 depositsPrincipal = self.accountPrincipalDeposits(_account, _depositAsset);
+        uint256 depositsPrincipal = self.accountPrincipalDeposits(_account, _assetAddr, asset);
 
         if (depositsPrincipal >= _amount) {
             // == Principal can cover possibly rebased `_amount` requested.
@@ -68,52 +60,55 @@ library SDeposits {
             amountOut = _amount;
             // 2. No fees.
             // 3. Possibly un-rebased amount for internal bookeeping.
-            uint256 amountWrite = collateralAmountWrite(_depositAsset, _amount);
+            uint128 amountWrite = uint128(asset.amountWrite(_amount));
             unchecked {
                 // 4. Reduce global deposits.
-                self.totalDeposits[_depositAsset] -= amountWrite;
+                self.sDeposits[_assetAddr].totalDeposits -= amountWrite;
                 // 5. Reduce principal deposits.
-                self.depositsPrincipal[_account][_depositAsset] -= amountWrite;
+                self.depositsPrincipal[_account][_assetAddr] -= amountWrite;
                 // 6. Reduce scaled deposits.
-                self.deposits[_account][_depositAsset] -= amountWrite.wadToRay().rayDiv(
-                    self.collateral[_depositAsset].liquidityIndex
-                );
+                self.deposits[_account][_assetAddr] -= amountWrite.wadToRay().rayDiv(asset.liquidityIndexSCDP);
             }
         } else {
             // == Principal can't cover possibly rebased `_amount` requested, send full collateral available.
             // 1. We send all collateral.
             amountOut = depositsPrincipal;
             // 2. With fees.
-            feesOut = self.accountDepositsWithFees(_account, _depositAsset) - depositsPrincipal;
+            feesOut = self.accountDepositsWithFees(_account, _assetAddr, asset) - depositsPrincipal;
             // 3. Ensure this is actually the case.
             require(feesOut != 0, "withdrawal-violation");
             // 4. Wipe account collateral deposits.
-            self.depositsPrincipal[_account][_depositAsset] = 0;
-            self.deposits[_account][_depositAsset] = 0;
+            self.depositsPrincipal[_account][_assetAddr] = 0;
+            self.deposits[_account][_assetAddr] = 0;
             // 5. Reduce global by ONLY by the principal, fees are NOT collateral.
-            self.totalDeposits[_depositAsset] -= collateralAmountWrite(_depositAsset, depositsPrincipal);
+            self.sDeposits[_assetAddr].totalDeposits -= uint128(asset.amountWrite(depositsPrincipal));
         }
     }
 
-    /// @notice This function seizes collateral from the shared pool
-    /// @notice Adjusts all deposits in the case where swap deposits do not cover the amount.
-    function handleSeizeSCDP(SCDPState storage self, address _seizeAsset, uint256 _seizeAmount) internal {
-        uint256 swapDeposits = self.swapDepositAmount(_seizeAsset);
+    /**
+     * @notice This function seizes collateral from the shared pool
+     * @notice Adjusts all deposits in the case where swap deposits do not cover the amount.
+     * @param _sAssetAddr The seized asset address.
+     * @param _sAsset The asset struct (Asset).
+     * @param _seizeAmount The seize amount (uint256).
+     */
+    function handleSeizeSCDP(SCDPState storage self, address _sAssetAddr, Asset memory _sAsset, uint256 _seizeAmount) internal {
+        uint128 swapDeposits = self.swapDepositAmount(_sAssetAddr, _sAsset);
 
         if (swapDeposits >= _seizeAmount) {
-            uint256 amountOut = collateralAmountWrite(_seizeAsset, _seizeAmount);
+            uint128 amountOut = uint128(_sAsset.amountWrite(_seizeAmount));
             // swap deposits cover the amount
-            self.swapDeposits[_seizeAsset] -= amountOut;
-            self.totalDeposits[_seizeAsset] -= amountOut;
+            self.sDeposits[_sAssetAddr].swapDeposits -= amountOut;
+            self.sDeposits[_sAssetAddr].totalDeposits -= amountOut;
         } else {
             // swap deposits do not cover the amount
-            uint256 amountToCover = _seizeAmount - swapDeposits;
+            uint256 amountToCover = uint128(_seizeAmount - swapDeposits);
             // reduce everyones deposits by the same ratio
-            self.collateral[_seizeAsset].liquidityIndex -= uint128(
-                amountToCover.wadToRay().rayDiv(self.userDepositAmount(_seizeAsset).wadToRay())
+            cs().assets[_sAssetAddr].liquidityIndexSCDP -= uint128(
+                amountToCover.wadToRay().rayDiv(self.userDepositAmount(_sAssetAddr, _sAsset).wadToRay())
             );
-            self.swapDeposits[_seizeAsset] = 0;
-            self.totalDeposits[_seizeAsset] -= collateralAmountWrite(_seizeAsset, amountToCover);
+            self.sDeposits[_sAssetAddr].swapDeposits = 0;
+            self.sDeposits[_sAssetAddr].totalDeposits -= uint128(_sAsset.amountWrite(amountToCover));
         }
     }
 }

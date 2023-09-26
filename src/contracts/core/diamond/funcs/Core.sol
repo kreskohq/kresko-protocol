@@ -5,11 +5,8 @@ import {IERC165} from "vendor/IERC165.sol";
 import {Meta} from "libs/Meta.sol";
 import {Error} from "common/Errors.sol";
 import {AuthEvent} from "common/Events.sol";
-import {NOT_ENTERED} from "common/Types.sol";
-
 import {IDiamondLoupeFacet} from "diamond/interfaces/IDiamondLoupeFacet.sol";
 import {IDiamondOwnershipFacet} from "diamond/interfaces/IDiamondOwnershipFacet.sol";
-import {IAuthorizationFacet} from "diamond/interfaces/IAuthorizationFacet.sol";
 import {IDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
 import {DiamondState} from "diamond/State.sol";
 
@@ -22,7 +19,6 @@ library DCore {
     /// @notice Only called on the first deployment
     function initialize(DiamondState storage self, address _owner) internal {
         require(!self.initialized, Error.ALREADY_INITIALIZED);
-        self.entered = NOT_ENTERED;
         self.initialized = true;
         self.storageVersion++;
         self.diamondDomainSeparator = Meta.domainSeparator("Kresko Protocol", "V1");
@@ -32,7 +28,6 @@ library DCore {
         self.supportedInterfaces[type(IERC165).interfaceId] = true;
         self.supportedInterfaces[type(IDiamondCutFacet).interfaceId] = true;
         self.supportedInterfaces[type(IDiamondOwnershipFacet).interfaceId] = true;
-        self.supportedInterfaces[type(IAuthorizationFacet).interfaceId] = true;
 
         emit AuthEvent.OwnershipTransferred(address(0), _owner);
     }

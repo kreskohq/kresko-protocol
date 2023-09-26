@@ -2,9 +2,6 @@
 pragma solidity ^0.8.0;
 
 interface ISCDPSwapFacet {
-    /// @notice Get a price for an asset. It is `extOracleDecimals()` of precision.
-    function getPriceSCDP(address _asset) external view returns (uint256 price);
-
     /**
      * @notice Preview the amount out received.
      * @param _assetIn The asset to pay with.

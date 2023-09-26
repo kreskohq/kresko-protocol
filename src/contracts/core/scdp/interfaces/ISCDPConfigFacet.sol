@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import {SCDPKrAsset, SCDPCollateral, SCDPInitArgs, PairSetter} from "scdp/Types.sol";
+import {SCDPInitArgs, PairSetter} from "scdp/Types.sol";
 
 interface ISCDPConfigFacet {
     /**
@@ -22,30 +22,8 @@ interface ISCDPConfigFacet {
     /// @notice Set the pool liquidation threshold.
     function setLiquidationThresholdSCDP(uint256 _lt) external;
 
-    /**
-     * @notice Add deposit assets in SCDP.
-     * Only callable by admin.
-     * @param _depositAssets The list of assets to enable
-     * @param _configurations The configurations for the assets. Must match length above.
-     */
-    function addDepositAssetsSCDP(address[] calldata _depositAssets, SCDPCollateral[] memory _configurations) external;
-
-    /**
-     * @notice Enable kresko assets in the pool.
-     * Only callable by admin.
-     * @param _enabledKrAssets The list of KreskoAssets to enable
-     * @param _configurations The configurations for the KreskoAssets. Must match length above.
-     */
-    function addKrAssetsSCDP(address[] calldata _enabledKrAssets, SCDPKrAsset[] memory _configurations) external;
-
-    /**
-     * @notice Update the KreskoAsset pool configuration.
-     * Only callable by admin.
-     * @param _asset The KreskoAsset to update
-     * @param _configuration The configuration.
-     * emits PoolKrAssetUpdated
-     */
-    function updateKrAssetSCDP(address _asset, SCDPKrAsset memory _configuration) external;
+    /// @notice Set the @param _newliquidationIncentive for @param _krAsset.
+    function updateLiquidationIncentiveSCDP(address _krAsset, uint256 _newLiquidationIncentive) external;
 
     /**
      * @notice Update the deposit asset limit configuration.
@@ -110,5 +88,5 @@ interface ISCDPConfigFacet {
      * @param _closeFee The new close fee.
      * @param _protocolFee The protocol fee share.
      */
-    function setSwapFee(address _krAsset, uint256 _openFee, uint256 _closeFee, uint256 _protocolFee) external;
+    function setSwapFee(address _krAsset, uint64 _openFee, uint64 _closeFee, uint128 _protocolFee) external;
 }

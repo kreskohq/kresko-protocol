@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19;
 
-import {RoleData} from "common/Types.sol";
-import {EnumerableSet} from "libs/EnumerableSet.sol";
 import {DCore} from "diamond/funcs/Core.sol";
 import {DCuts} from "diamond/funcs/Cuts.sol";
 
@@ -32,6 +30,8 @@ struct DiamondState {
     address[] facetAddresses;
     /// @notice ERC165 query implementation
     mapping(bytes4 => bool) supportedInterfaces;
+    /// @notice address(this) replacement for FF
+    address self;
     /* -------------------------------------------------------------------------- */
     /*                               Initialization                               */
     /* -------------------------------------------------------------------------- */
@@ -48,17 +48,6 @@ struct DiamondState {
     address pendingOwner;
     /// @notice Storage version
     uint8 storageVersion;
-    /// @notice address(this) replacement for FF
-    address self;
-    /* -------------------------------------------------------------------------- */
-    /*                               Access Control                               */
-    /* -------------------------------------------------------------------------- */
-    mapping(bytes32 => RoleData) _roles;
-    mapping(bytes32 => EnumerableSet.AddressSet) _roleMembers;
-    /* -------------------------------------------------------------------------- */
-    /*                                 Reentrancy                                 */
-    /* -------------------------------------------------------------------------- */
-    uint256 entered;
 }
 
 /* -------------------------------------------------------------------------- */

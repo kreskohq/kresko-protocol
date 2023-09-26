@@ -32,12 +32,7 @@ library DCuts {
     /*                              Diamond Functions                             */
     /* -------------------------------------------------------------------------- */
 
-    function cut(
-        DiamondState storage self,
-        FacetCut[] memory _diamondCut,
-        address _init,
-        bytes memory _calldata
-    ) internal {
+    function cut(DiamondState storage self, FacetCut[] memory _diamondCut, address _init, bytes memory _calldata) internal {
         for (uint256 facetIndex; facetIndex < _diamondCut.length; facetIndex++) {
             FacetCutAction action = _diamondCut[facetIndex].action;
             if (action == FacetCutAction.Add) {
@@ -54,11 +49,7 @@ library DCuts {
         initializeDiamondCut(_init, _calldata);
     }
 
-    function addFunctions(
-        DiamondState storage self,
-        address _facetAddress,
-        bytes4[] memory _functionSelectors
-    ) internal {
+    function addFunctions(DiamondState storage self, address _facetAddress, bytes4[] memory _functionSelectors) internal {
         require(_functionSelectors.length > 0, "DiamondCut: No selectors in facet to cut");
         require(_facetAddress != address(0), "DiamondCut: Add facet can't be address(0)");
         uint96 selectorPosition = uint96(self.facetFunctionSelectors[_facetAddress].functionSelectors.length);
@@ -75,11 +66,7 @@ library DCuts {
         }
     }
 
-    function replaceFunctions(
-        DiamondState storage self,
-        address _facetAddress,
-        bytes4[] memory _functionSelectors
-    ) internal {
+    function replaceFunctions(DiamondState storage self, address _facetAddress, bytes4[] memory _functionSelectors) internal {
         require(_functionSelectors.length > 0, "DiamondCut: No selectors in facet to cut");
         require(_facetAddress != address(0), "DiamondCut: Add facet can't be address(0)");
         uint96 selectorPosition = uint96(self.facetFunctionSelectors[_facetAddress].functionSelectors.length);
@@ -97,11 +84,7 @@ library DCuts {
         }
     }
 
-    function removeFunctions(
-        DiamondState storage self,
-        address _facetAddress,
-        bytes4[] memory _functionSelectors
-    ) internal {
+    function removeFunctions(DiamondState storage self, address _facetAddress, bytes4[] memory _functionSelectors) internal {
         require(_functionSelectors.length > 0, "DiamondCut: No selectors in facet to cut");
         // if function does not exist then do nothing and return
         require(_facetAddress == address(0), "DiamondCut: Remove facet address must be address(0)");

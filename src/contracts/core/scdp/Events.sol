@@ -29,13 +29,7 @@ library SEvent {
     event SCDPCollateralUpdated(address indexed _asset, uint256 liquidationThreshold);
 
     // Emitted when a kresko asset is updated.
-    event SCDPKrAssetUpdated(
-        address indexed _asset,
-        uint256 openFee,
-        uint256 closeFee,
-        uint256 protocolFee,
-        uint256 supplyLimit
-    );
+    event SCDPKrAssetUpdated(address indexed _asset, uint64 openFee, uint64 closeFee, uint128 protocolFee, uint256 supplyLimit);
 
     event Swap(address indexed who, address indexed assetIn, address indexed assetOut, uint256 amountIn, uint256 amountOut);
     event SwapFee(address indexed feeAsset, address indexed assetIn, uint256 feeAmount, uint256 protocolFeeAmount);

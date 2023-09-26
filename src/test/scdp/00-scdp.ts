@@ -750,7 +750,18 @@ describe("SCDP", async function () {
                 expect(feeAmountProtocol).to.equal(expectedProtocolFee);
             });
 
-            it("should be able to swap, shared debt == 0 | swap collateral == 0 upgraded", async function () {
+            it.only("test1", async function () {
+                const tx = await KreskoSwapper.swapSCDP(
+                    swapper.address,
+                    f.KISS.address,
+                    f.KrAsset2.address,
+                    toBig(ONE_USD),
+                    0,
+                );
+                console.debug("gas used unpacked", (await tx.wait()).gasUsed.toString());
+            });
+
+            it("should be able to swap, shared debt == 0 | swap collateral == 0", async function () {
                 const swapAmount = toBig(ONE_USD); // $1
                 const expectedAmountOut = toBig(0.0096); // $100 * 0.0096 = $0.96
 

@@ -21,20 +21,24 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
     KreskoAsset internal KISS;
     KreskoAsset internal krETH;
     KreskoAsset internal krJPY;
+    KreskoAsset internal krTSLA;
     KreskoAssetAnchor internal aKISS;
     KreskoAssetAnchor internal akrETH;
     KreskoAssetAnchor internal akrJPY;
+    KreskoAssetAnchor internal akrTSLA;
 
     MockOracle internal usdcOracle;
     MockOracle internal ethOracle;
     MockOracle internal jpyOracle;
     MockOracle internal kissOracle;
+    MockOracle internal tslaOracle;
 
     string usdcPrice = "USDC:1:8";
     string ethPrice = "ETH:2000:8";
     string jpyPrice = "JPY:1:8";
     string kissPrice = "KISS:1:8";
-    string initialPrices = "USDC:1:8,ETH:2000:8,JPY:1:8,KISS:1:8";
+    string tslaPrice = "TSLA:1:8";
+    string initialPrices = "USDC:1:8,ETH:2000:8,JPY:1:8,KISS:1:8,TSLA:1:8";
 
     function setUp() public users(address(11), address(22), address(33)) {
         vm.startPrank(admin);
@@ -44,17 +48,24 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         (KISS, aKISS, kissOracle) = deployAndWhitelistKrAsset("KISS", bytes32("KISS"), admin, 1e8);
         (krETH, akrETH, ethOracle) = deployAndWhitelistKrAsset("krETH", bytes32("ETH"), admin, 2000e8);
         (krJPY, akrJPY, jpyOracle) = deployAndWhitelistKrAsset("krJPY", bytes32("JPY"), admin, 1e8);
+        (krTSLA, akrTSLA, tslaOracle) = deployAndWhitelistKrAsset("krTSLA", bytes32("TSLA"), admin, 1e8);
 
         kresko.setFeeAssetSCDP(address(KISS));
 
-        whitelistCollateral(address(KISS), address(aKISS), address(kissOracle), bytes32("KISS"));
-        enableSCDPCollateral(address(usdc), initialPrices);
-        enableSCDPCollateral(address(KISS), initialPrices);
-        enableSCDPKrAsset(address(krETH), initialPrices);
-        enableSCDPKrAsset(address(krJPY), initialPrices);
-        enableSCDPKrAsset(address(KISS), initialPrices);
+        // whitelistCollateral(address(KISS), address(aKISS), address(kissOracle), bytes32("KISS"));
+        // whitelistCollateral(address(krJPY), address(akrJPY), address(kissOracle), bytes32("JPY"));
+        // whitelistCollateral(address(krETH), address(akrETH), address(kissOracle), bytes32("ETH"));
+        // whitelistCollateral(address(krTSLA), address(akrTSLA), address(tslaOracle), bytes32("TSLA"));
+        // enableSCDPCollateral(address(usdc), initialPrices);
+        // enableSCDPCollateral(address(KISS), initialPrices);
+        // enableSCDPKrAsset(address(krETH), initialPrices);
+        // enableSCDPKrAsset(address(krJPY), initialPrices);
+        // enableSCDPKrAsset(address(krTSLA), initialPrices);
+        // enableSCDPKrAsset(address(KISS), initialPrices);
         enableSwapBothWays(address(KISS), address(krETH), true);
         enableSwapBothWays(address(krJPY), address(krETH), true);
+        enableSwapBothWays(address(krTSLA), address(krETH), true);
+        enableSwapBothWays(address(krJPY), address(krTSLA), true);
         kresko.addAssetSDI(address(KISS), address(kissOracle), bytes32("KISS"));
         vm.stopPrank();
         _approvals(user0);
@@ -66,6 +77,8 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         staticCall(kresko.getEffectiveSDIDebt.selector, initialPrices).equals(0, "debt should be 0");
         staticCall(kresko.totalSDI.selector, initialPrices).equals(0, "total supply should be 0");
         kresko.getSDICoverAsset(address(KISS)).enabled.equals(true);
+        kresko.getAsset(address(usdc)).liquidityIndexSCDP.equals(1e27);
+        kresko.getAsset(address(KISS)).liquidityIndexSCDP.equals(1e27);
     }
 
     function testDeposit() public {
@@ -124,7 +137,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         logSimple("#2 Cover 1000 KISS ($1,000)");
 
         ethOracle.setPrice(2666e8);
-        string memory newPrices = "USDC:1:8,ETH:2666:8,JPY:1:8,KISS:1:8";
+        string memory newPrices = "USDC:1:8,ETH:2666:8,JPY:1:8,KISS:1:8;TSLA:1:8";
 
         uint256 totalCoverAfter = staticCall(kresko.getSDICoverAmount.selector, newPrices);
 

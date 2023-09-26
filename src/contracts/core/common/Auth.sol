@@ -8,7 +8,7 @@ import {Meta} from "libs/Meta.sol";
 import {AuthEvent} from "common/Events.sol";
 import {Error} from "common/Errors.sol";
 import {Role} from "common/Types.sol";
-import {ds} from "diamond/State.sol";
+import {cs} from "common/State.sol";
 
 interface IGnosisSafeL2 {
     function isOwner(address owner) external view returns (bool);
@@ -25,11 +25,11 @@ library Auth {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     function hasRole(bytes32 role, address account) internal view returns (bool) {
-        return ds()._roles[role].members[account];
+        return cs()._roles[role].members[account];
     }
 
     function getRoleMemberCount(bytes32 role) internal view returns (uint256) {
-        return ds()._roleMembers[role].length();
+        return cs()._roleMembers[role].length();
     }
 
     /**
@@ -73,11 +73,11 @@ library Auth {
      * To change a role's admin, use {_setRoleAdmin}.
      */
     function getRoleAdmin(bytes32 role) internal view returns (bytes32) {
-        return ds()._roles[role].adminRole;
+        return cs()._roles[role].adminRole;
     }
 
     function getRoleMember(bytes32 role, uint256 index) internal view returns (address) {
-        return ds()._roleMembers[role].at(index);
+        return cs()._roleMembers[role].at(index);
     }
 
     /**
@@ -88,8 +88,8 @@ library Auth {
         require(getRoleMemberCount(Role.SAFETY_COUNCIL) == 0, Error.SAFETY_COUNCIL_EXISTS);
         require(IGnosisSafeL2(_councilAddress).isOwner(msg.sender), Error.ADDRESS_INVALID_SAFETY_COUNCIL);
 
-        ds()._roles[Role.SAFETY_COUNCIL].members[_councilAddress] = true;
-        ds()._roleMembers[Role.SAFETY_COUNCIL].add(_councilAddress);
+        cs()._roles[Role.SAFETY_COUNCIL].members[_councilAddress] = true;
+        cs()._roleMembers[Role.SAFETY_COUNCIL].add(_councilAddress);
 
         emit AuthEvent.RoleGranted(Role.SAFETY_COUNCIL, _councilAddress, Meta.msgSender());
     }
@@ -99,11 +99,11 @@ library Auth {
         require(IGnosisSafeL2(_newCouncil).getOwners().length >= 5, Error.MULTISIG_NOT_ENOUGH_OWNERS);
 
         // As this is called by the multisig - just check that it's not an EOA
-        ds()._roles[Role.SAFETY_COUNCIL].members[msg.sender] = false;
-        ds()._roleMembers[Role.SAFETY_COUNCIL].remove(msg.sender);
+        cs()._roles[Role.SAFETY_COUNCIL].members[msg.sender] = false;
+        cs()._roleMembers[Role.SAFETY_COUNCIL].remove(msg.sender);
 
-        ds()._roles[Role.SAFETY_COUNCIL].members[_newCouncil] = true;
-        ds()._roleMembers[Role.SAFETY_COUNCIL].add(_newCouncil);
+        cs()._roles[Role.SAFETY_COUNCIL].members[_newCouncil] = true;
+        cs()._roleMembers[Role.SAFETY_COUNCIL].add(_newCouncil);
     }
 
     /**
@@ -162,7 +162,7 @@ library Auth {
      */
     function _setRoleAdmin(bytes32 role, bytes32 adminRole) internal {
         bytes32 previousAdminRole = getRoleAdmin(role);
-        ds()._roles[role].adminRole = adminRole;
+        cs()._roles[role].adminRole = adminRole;
         emit AuthEvent.RoleAdminChanged(role, previousAdminRole, adminRole);
     }
 
@@ -175,8 +175,8 @@ library Auth {
      */
     function _grantRole(bytes32 role, address account) internal ensureNotSafetyCouncil(role) {
         if (!hasRole(role, account)) {
-            ds()._roles[role].members[account] = true;
-            ds()._roleMembers[role].add(account);
+            cs()._roles[role].members[account] = true;
+            cs()._roleMembers[role].add(account);
             emit AuthEvent.RoleGranted(role, account, Meta.msgSender());
         }
     }
@@ -188,8 +188,8 @@ library Auth {
      */
     function _revokeRole(bytes32 role, address account) internal {
         if (hasRole(role, account)) {
-            ds()._roles[role].members[account] = false;
-            ds()._roleMembers[role].remove(account);
+            cs()._roles[role].members[account] = false;
+            cs()._roleMembers[role].remove(account);
             emit AuthEvent.RoleRevoked(role, account, Meta.msgSender());
         }
     }

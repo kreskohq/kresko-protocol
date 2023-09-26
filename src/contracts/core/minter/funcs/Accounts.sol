@@ -3,9 +3,9 @@ pragma solidity >=0.8.19;
 
 import {WadRay} from "libs/WadRay.sol";
 import {Error} from "common/Errors.sol";
-
+import {cs} from "common/State.sol";
+import {Asset} from "common/Types.sol";
 import {MinterState} from "minter/State.sol";
-import {krAssetAmountToValue, collateralAmountToValue, collateralAmountRead} from "minter/funcs/Conversions.sol";
 
 library MAccounts {
     using WadRay for uint256;
@@ -51,8 +51,8 @@ library MAccounts {
     function accountDebtValue(MinterState storage self, address _account) internal view returns (uint256 value) {
         address[] memory assets = self.mintedKreskoAssets[_account];
         for (uint256 i; i < assets.length; ) {
-            address asset = assets[i];
-            value += krAssetAmountToValue(asset, self.accountDebtAmount(_account, asset), false);
+            Asset memory asset = cs().assets[assets[i]];
+            value += asset.debtAmountToValue(self.accountDebtAmount(_account, assets[i], asset), false);
             unchecked {
                 i++;
             }
@@ -63,12 +63,18 @@ library MAccounts {
     /**
      * @notice Get `_account` principal debt amount for `_asset`
      * @dev Principal debt is rebase adjusted due to possible stock splits/reverse splits
-     * @param _asset The asset address
      * @param _account The account to query amount for
+     * @param _asset The asset address
+     * @param asset The asset struct
      * @return Amount of principal debt for `_asset`
      */
-    function accountDebtAmount(MinterState storage self, address _account, address _asset) internal view returns (uint256) {
-        return self.kreskoAssets[_asset].toRebasingAmount(self.kreskoAssetDebt[_account][_asset]);
+    function accountDebtAmount(
+        MinterState storage self,
+        address _account,
+        address _asset,
+        Asset memory asset
+    ) internal view returns (uint256) {
+        return asset.toRebasingAmount(self.kreskoAssetDebt[_account][_asset]);
     }
 
     /**
@@ -135,16 +141,18 @@ library MAccounts {
     /**
      * @notice Get deposited collateral asset amount for an account
      * @notice Performs rebasing conversion for KreskoAssets
-     * @param _asset The asset address
+     * @param _assetAddress The asset address
+     * @param _asset The asset struct
      * @param _account The account to query amount for
      * @return uint256 amount of collateral for `_asset`
      */
     function accountCollateralAmount(
         MinterState storage self,
         address _account,
-        address _asset
+        address _assetAddress,
+        Asset memory _asset
     ) internal view returns (uint256) {
-        return collateralAmountRead(_asset, self.collateralDeposits[_account][_asset]);
+        return _asset.amountRead(self.collateralDeposits[_account][_assetAddress]);
     }
 
     /**
@@ -159,11 +167,9 @@ library MAccounts {
     ) internal view returns (uint256 totalCollateralValue) {
         address[] memory assets = self.depositedCollateralAssets[_account];
         for (uint256 i; i < assets.length; ) {
-            address asset = assets[i];
-
-            (uint256 collateralValue, ) = collateralAmountToValue(
-                asset,
-                self.accountCollateralAmount(_account, asset),
+            Asset memory asset = cs().assets[assets[i]];
+            (uint256 collateralValue, ) = asset.collateralAmountToValue(
+                self.accountCollateralAmount(_account, assets[i], asset),
                 false // Take the collateral factor into consideration.
             );
             totalCollateralValue += collateralValue;
@@ -190,14 +196,13 @@ library MAccounts {
     ) internal view returns (uint256 totalCollateralValue, uint256 specificValue) {
         address[] memory assets = self.depositedCollateralAssets[_account];
         for (uint256 i; i < assets.length; ) {
-            address asset = assets[i];
-            (uint256 collateralValue, ) = collateralAmountToValue(
-                asset,
-                self.accountCollateralAmount(_account, asset),
+            Asset memory asset = cs().assets[assets[i]];
+            (uint256 collateralValue, ) = asset.collateralAmountToValue(
+                self.accountCollateralAmount(_account, assets[i], asset),
                 false // Take the collateral factor into consideration.
             );
             totalCollateralValue += collateralValue;
-            if (asset == _collateralAsset) {
+            if (assets[i] == _collateralAsset) {
                 specificValue = collateralValue;
             }
 

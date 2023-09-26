@@ -94,6 +94,9 @@ library Error {
     string public constant SEQUENCER_DOWN_NO_REDSTONE_ORACLE = "254"; // Sequencer down and redstone oracle not in oracles list
     string public constant NO_PUSH_ORACLE = "255"; // Sequencer down and redstone oracle not in oracles list
     string public constant ZERO_PRICE = "256"; // Sequencer down and redstone oracle not in oracles list
+    string public constant NO_ORACLE_PRICE = "257"; // All oracles returned 0 value
+    string public constant ASSET_ALREADY_EXISTS = "258"; // Asset already exists
+    string public constant ASSET_DOES_NOT_EXIST = "259"; // Asset does not exist
 
     /* -------------------------------------------------------------------------- */
     /*                                   3. Staking                               */

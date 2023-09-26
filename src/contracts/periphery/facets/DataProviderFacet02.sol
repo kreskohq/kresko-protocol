@@ -34,7 +34,7 @@
 //         krAssets = LibUI.krAssetInfos(_krAssets);
 //         protocolParams = LibUI.ProtocolParams({
 //             minCollateralRatio: ms().minCollateralRatio,
-//             minDebtValue: ms().minDebtValue,
+//             minDebtValue: cs().minDebtValue,
 //             liquidationThreshold: ms().liquidationThreshold
 //         });
 //     }

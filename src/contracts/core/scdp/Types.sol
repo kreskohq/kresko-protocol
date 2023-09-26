@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
-
+import {Asset} from "common/Types.sol";
 import {AggregatorV3Interface} from "vendor/AggregatorV3Interface.sol";
 /**
  * @notice SCDP initializer configuration.
@@ -14,25 +14,16 @@ struct SCDPInitArgs {
     uint256 lt;
 }
 
-struct SCDPCollateral {
-    uint128 liquidityIndex;
-    uint256 depositLimit;
-    uint8 decimals;
-}
-
-struct SCDPKrAsset {
-    uint256 liquidationIncentive;
-    uint256 protocolFee; // Taken from the open+close fee. Goes to protocol.
-    uint256 openFee;
-    uint256 closeFee;
-    uint256 supplyLimit;
-}
-
 // Used for setting swap pairs enabled or disabled in the pool.
 struct PairSetter {
     address assetIn;
     address assetOut;
     bool enabled;
+}
+
+struct SharedDeposits {
+    uint128 totalDeposits;
+    uint128 swapDeposits;
 }
 
 /**
@@ -63,7 +54,7 @@ struct GlobalData {
  * Periphery asset data
  */
 struct AssetData {
-    address asset;
+    address addr;
     uint256 depositAmount;
     uint256 depositValue;
     uint256 depositValueAdjusted;
@@ -71,8 +62,7 @@ struct AssetData {
     uint256 debtValue;
     uint256 debtValueAdjusted;
     uint256 swapDeposits;
-    SCDPKrAsset krAsset;
-    SCDPCollateral collateralAsset;
+    Asset asset;
     uint256 assetPrice;
     string symbol;
 }

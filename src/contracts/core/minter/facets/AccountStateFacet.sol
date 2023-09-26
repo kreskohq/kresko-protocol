@@ -2,14 +2,13 @@
 pragma solidity >=0.8.19;
 
 import {WadRay} from "libs/WadRay.sol";
-
 import {Error} from "common/Errors.sol";
+import {cs} from "common/State.sol";
+import {Asset, Fee} from "common/Types.sol";
 import {fromWad} from "common/funcs/Math.sol";
 
 import {IAccountStateFacet} from "minter/interfaces/IAccountStateFacet.sol";
 import {ms} from "minter/State.sol";
-import {KrAsset, Fee} from "minter/Types.sol";
-import {collateralAmountToValue} from "minter/funcs/Conversions.sol";
 
 /**
  * @author Kresko
@@ -46,7 +45,7 @@ contract AccountStateFacet is IAccountStateFacet {
 
     /// @inheritdoc IAccountStateFacet
     function getAccountDebtAmount(address _account, address _asset) external view returns (uint256) {
-        return ms().accountDebtAmount(_account, _asset);
+        return ms().accountDebtAmount(_account, _asset, cs().assets[_asset]);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -60,7 +59,7 @@ contract AccountStateFacet is IAccountStateFacet {
 
     /// @inheritdoc IAccountStateFacet
     function getAccountCollateralAmount(address _account, address _asset) external view returns (uint256) {
-        return ms().accountCollateralAmount(_account, _asset);
+        return ms().accountCollateralAmount(_account, _asset, cs().assets[_asset]);
     }
 
     /// @inheritdoc IAccountStateFacet
@@ -97,7 +96,8 @@ contract AccountStateFacet is IAccountStateFacet {
         address _account,
         address _asset
     ) external view returns (uint256 adjustedValue, uint256 realValue) {
-        return collateralAmountToValue(_asset, ms().accountCollateralAmount(_account, _asset), false);
+        Asset memory asset = cs().assets[_asset];
+        return asset.collateralAmountToValue(ms().accountCollateralAmount(_account, _asset, asset), false);
     }
 
     /// @inheritdoc IAccountStateFacet
@@ -118,12 +118,10 @@ contract AccountStateFacet is IAccountStateFacet {
     ) external view returns (address[] memory, uint256[] memory) {
         require(_feeType <= 1, Error.INVALID_FEE_TYPE);
 
-        KrAsset memory krAsset = ms().kreskoAssets[_kreskoAsset];
+        Asset memory asset = cs().assets[_kreskoAsset];
 
         // Calculate the value of the fee according to the value of the krAsset
-        uint256 feeValue = krAsset.uintUSD(_kreskoAssetAmount, ms().oracleDeviationPct).wadMul(
-            Fee(_feeType) == Fee.Open ? krAsset.openFee : krAsset.closeFee
-        );
+        uint256 feeValue = asset.uintUSD(_kreskoAssetAmount).wadMul(Fee(_feeType) == Fee.Open ? asset.openFee : asset.closeFee);
 
         address[] memory accountCollateralAssets = ms().depositedCollateralAssets[_account];
 
@@ -138,17 +136,18 @@ contract AccountStateFacet is IAccountStateFacet {
 
         for (uint256 i = accountCollateralAssets.length - 1; i >= 0; i--) {
             address collateralAssetAddress = accountCollateralAssets[i];
+            Asset memory collateralAsset = cs().assets[collateralAssetAddress];
 
-            uint256 depositAmount = ms().accountCollateralAmount(_account, collateralAssetAddress);
+            uint256 depositAmount = ms().accountCollateralAmount(_account, collateralAssetAddress, collateralAsset);
 
             // Don't take the collateral asset's collateral factor into consideration.
-            (uint256 depositValue, uint256 oraclePrice) = collateralAmountToValue(collateralAssetAddress, depositAmount, true);
+            (uint256 depositValue, uint256 oraclePrice) = collateralAsset.collateralAmountToValue(depositAmount, true);
 
             uint256 feeValuePaid;
             uint256 transferAmount;
             // If feeValue < depositValue, the entire fee can be charged for this collateral asset.
             if (feeValue < depositValue) {
-                transferAmount = fromWad(ms().collateralAssets[collateralAssetAddress].decimals, feeValue.wadDiv(oraclePrice));
+                transferAmount = fromWad(collateralAsset.decimals, feeValue.wadDiv(oraclePrice));
                 feeValuePaid = feeValue;
             } else {
                 transferAmount = depositAmount;

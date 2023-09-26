@@ -1,20 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {Arrays} from "libs/Arrays.sol";
 import {Error} from "common/Errors.sol";
 import {Role} from "common/Types.sol";
 import {mintKrAsset} from "common/funcs/Actions.sol";
+import {CModifiers} from "common/Modifiers.sol";
+import {cs} from "common/State.sol";
+import {Asset, Action} from "common/Types.sol";
 
-import {DSModifiers} from "diamond/Modifiers.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
-
 import {IMintFacet} from "minter/interfaces/IMintFacet.sol";
-import {MSModifiers} from "minter/Modifiers.sol";
+
 import {MEvent} from "minter/Events.sol";
 import {ms, MinterState} from "minter/State.sol";
-import {Action, KrAsset} from "minter/Types.sol";
-import {minCollateralValueAtRatio} from "minter/funcs/Common.sol";
 import {handleMinterOpenFee} from "minter/funcs/Fees.sol";
 
 /**
@@ -22,8 +20,7 @@ import {handleMinterOpenFee} from "minter/funcs/Fees.sol";
  * @title MintFacet
  * @notice Main end-user functionality concerning minting kresko assets
  */
-
-contract MintFacet is DSModifiers, MSModifiers, IMintFacet {
+contract MintFacet is IMintFacet, CModifiers {
     /* -------------------------------------------------------------------------- */
     /*                                  KrAssets                                  */
     /* -------------------------------------------------------------------------- */
@@ -37,11 +34,11 @@ contract MintFacet is DSModifiers, MSModifiers, IMintFacet {
         require(_mintAmount > 0, Error.ZERO_MINT);
 
         MinterState storage s = ms();
-        if (s.safetyStateSet) {
+        if (cs().safetyStateSet) {
             super.ensureNotPaused(_kreskoAsset, Action.Borrow);
         }
         // Enforce krAsset's total supply limit
-        KrAsset memory krAsset = s.kreskoAssets[_kreskoAsset];
+        Asset memory krAsset = cs().assets[_kreskoAsset];
         require(krAsset.marketStatus(), Error.KRASSET_MARKET_CLOSED);
 
         require(
@@ -50,7 +47,7 @@ contract MintFacet is DSModifiers, MSModifiers, IMintFacet {
         );
 
         if (krAsset.openFee > 0) {
-            handleMinterOpenFee(_account, _kreskoAsset, _mintAmount);
+            handleMinterOpenFee(_account, krAsset, _mintAmount);
         }
         {
             // Get the account's current minimum collateral value required to maintain current debts.
@@ -58,18 +55,15 @@ contract MintFacet is DSModifiers, MSModifiers, IMintFacet {
             // Verify that minter has sufficient collateral to back current debt + new requested debt.
             require(
                 s.accountMinCollateralAtRatio(_account, s.minCollateralRatio) +
-                    minCollateralValueAtRatio(_kreskoAsset, _mintAmount, s.minCollateralRatio) <=
+                    krAsset.minCollateralValueAtRatio(_mintAmount, s.minCollateralRatio) <=
                     s.accountCollateralValue(_account),
                 Error.KRASSET_COLLATERAL_LOW
             );
         }
 
         // The synthetic asset debt position must be greater than the minimum debt position value
-        uint256 existingDebt = s.accountDebtAmount(_account, _kreskoAsset);
-        require(
-            krAsset.uintUSD(existingDebt + _mintAmount, s.oracleDeviationPct) >= s.minDebtValue,
-            Error.KRASSET_MINT_AMOUNT_LOW
-        );
+        uint256 existingDebt = s.accountDebtAmount(_account, _kreskoAsset, krAsset);
+        require(krAsset.uintUSD(existingDebt + _mintAmount) >= cs().minDebtValue, Error.KRASSET_MINT_AMOUNT_LOW);
 
         // If the account does not have an existing debt for this Kresko Asset,
         // push it to the list of the account's minted Kresko Assets.

@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import {CollateralAsset} from "minter/Types.sol";
+import {CAsset} from "common/funcs/Asset.sol";
+
+using CAsset for Asset global;
 
 /* -------------------------------------------------------------------------- */
 /*                               Access Control                               */
 /* -------------------------------------------------------------------------- */
-struct RoleData {
-    mapping(address => bool) members;
-    bytes32 adminRole;
-}
 
 library Role {
     /// @dev role that grants other roles
@@ -36,18 +34,163 @@ uint256 constant ENTERED = 2;
 /* ========================================================================== */
 /*                                   Structs                                  */
 /* ========================================================================== */
+struct Oracle {
+    address feed;
+    function(address) external view returns (uint256) priceGetter;
+}
+
+enum OracleType {
+    Redstone,
+    Chainlink,
+    API3
+}
+
+struct FeedConfiguration {
+    OracleType[2] oracleIds;
+    address[2] feeds;
+}
+
+/**
+ * @notice Information on an asset that can be used within the protocol.
+ */
+struct Asset {
+    /// @notice The bytes identifier, eg. bytes32('ETH'), derived from Redstone ID. Used mainly for oracle
+    bytes32 id;
+    /// @notice The collateral factor used for calculating the value of the collateral.
+    uint256 factor;
+    /// @notice The KFactor which is reverse of cFactor.
+    uint256 kFactor;
+    /// @notice The supply limit if the asset is a Kresko Asset.
+    uint256 supplyLimit;
+    /// @notice The fee when minted through the Minter.
+    uint256 openFee;
+    /// @notice The fee when burned through the Minter.
+    uint256 closeFee;
+    /// @notice The fee when asset is the "Asset In" in SCDP swaps.
+    uint256 openFeeSCDP;
+    /// @notice The fee when asset is the "Asset Out" in SCDP swaps.
+    uint256 closeFeeSCDP;
+    /// @notice The protocol fee share when used in SCDP swaps
+    uint256 protocolFeeSCDP;
+    /// @notice The liquidation incentive when seized in Minter liquidations.
+    uint256 liquidationIncentive;
+    /// @notice The liquidation incentive when repaid in SCDP liquidations.
+    uint256 liquidationIncentiveSCDP;
+    /// @notice The scaled index for the asset, used for fee sharing in SCDP deposits.
+    uint256 liquidityIndexSCDP; // no need to pack this, it's not used with depositLimit
+    /// @notice The deposit amount limit within SCDP deposits.
+    uint256 depositLimitSCDP;
+    /// @notice If the asset is a KreskoAsset, the anchor address.
+    address anchor;
+    /// @notice The oracle ordering for the asset.
+    OracleType[2] oracles;
+    /// @notice The decimals for the token, stored here to avoid repetitive external calls.
+    uint8 decimals;
+    /// @notice Whether the collateral asset exists in the Minter.
+    bool isCollateral;
+    /// @notice Whether the asset is mintable through the Minter.
+    bool isKrAsset;
+    /// @notice Whether the asset is mintable through SCDP.
+    bool isSCDPKrAsset;
+    /// @notice Whether the asset is a collateral asset in SCDP.
+    bool isSCDPCollateral;
+    /// @notice Whether the asset is a deposit asset in SCDP.
+    bool isSCDPDepositAsset;
+}
+
+struct RoleData {
+    mapping(address => bool) members;
+    bytes32 adminRole;
+}
 
 struct MaxLiqVars {
-    CollateralAsset collateral;
+    Asset collateral;
     uint256 accountCollateralValue;
     uint256 minCollateralValue;
     uint256 seizeCollateralAccountValue;
     uint256 maxLiquidationRatio;
-    uint256 minDebtValue;
-    uint256 debtFactor;
+    uint128 minDebtValue;
+    uint128 debtFactor;
 }
 
 struct PushPrice {
     uint256 price;
     uint256 timestamp;
+}
+
+/// @notice Configuration for pausing `Action`
+struct Pause {
+    bool enabled;
+    uint256 timestamp0;
+    uint256 timestamp1;
+}
+
+/// @notice Safety configuration for assets
+struct SafetyState {
+    Pause pause;
+}
+
+/**
+ * @notice Initialization arguments for common values
+ */
+struct CommonInitArgs {
+    address admin;
+    address council;
+    address treasury;
+    uint128 minDebtValue;
+    uint248 oracleDeviationPct;
+    address sequencerUptimeFeed;
+    uint48 sequencerGracePeriodTime;
+    uint48 oracleTimeout;
+    address kreskian;
+    address questForKresk;
+    uint8 extOracleDecimals;
+    uint8 phase;
+}
+
+struct SCDPCollateralArgs {
+    uint256 liquidityIndex; // no need to pack this, it's not used with depositLimit
+    uint256 depositLimit;
+    uint8 decimals;
+}
+
+struct SCDPKrAssetArgs {
+    uint256 liquidationIncentive;
+    uint256 supplyLimit;
+    uint128 protocolFee; // Taken from the open+close fee. Goes to protocol.
+    uint64 openFee;
+    uint64 closeFee;
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                    ENUM                                    */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * @dev Protocol user facing actions
+ *
+ * Deposit = 0
+ * Withdraw = 1,
+ * Repay = 2,
+ * Borrow = 3,
+ * Liquidate = 4
+ */
+enum Action {
+    Deposit,
+    Withdraw,
+    Repay,
+    Borrow,
+    Liquidation
+}
+
+/**
+ * @dev Fee types
+ *
+ * Open = 0
+ * Close = 1
+ */
+
+enum Fee {
+    Open,
+    Close
 }

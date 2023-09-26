@@ -4,31 +4,33 @@ pragma solidity >=0.8.19;
 import {WadRay} from "libs/WadRay.sol";
 import {calcMaxLiqValue} from "common/funcs/Math.sol";
 import {MaxLiqVars} from "common/Types.sol";
-
-import {CollateralAsset, KrAsset} from "minter/Types.sol";
 import {ms} from "minter/State.sol";
+import {Asset} from "common/Types.sol";
+import {cs} from "common/State.sol";
 
 using WadRay for uint256;
 
 /**
  * @dev Calculates the total value that can be liquidated for a liquidation pair
  * @param _account address to liquidate
- * @param _repayKreskoAsset address of the kreskoAsset being repaid on behalf of the liquidatee
- * @param _seizedCollateral The collateral asset being seized in the liquidation
+ * @param _repayAsset Struct of the asset being repaid on behalf of the liquidatee
+ * @param _seizeAsset Struct of the asset being seized from the liquidatee
+ * @param _seizeAssetAddr The collateral asset being seized in the liquidation
  * @return maxLiquidatableUSD USD value that can be liquidated, 0 if the pair has no liquidatable value
  */
 function maxLiquidatableValue(
     address _account,
-    KrAsset memory _repayKreskoAsset,
-    address _seizedCollateral
+    Asset memory _repayAsset,
+    Asset memory _seizeAsset,
+    address _seizeAssetAddr
 ) view returns (uint256 maxLiquidatableUSD) {
-    MaxLiqVars memory vars = _createVars(_account, _repayKreskoAsset, _seizedCollateral);
+    MaxLiqVars memory vars = _createVars(_account, _repayAsset, _seizeAsset, _seizeAssetAddr);
     // Account is not liquidatable
     if (vars.accountCollateralValue >= (vars.minCollateralValue)) {
         return 0;
     }
 
-    maxLiquidatableUSD = calcMaxLiqValue(vars, _repayKreskoAsset.closeFee);
+    maxLiquidatableUSD = calcMaxLiqValue(vars, _repayAsset.closeFee);
 
     if (vars.seizeCollateralAccountValue < maxLiquidatableUSD) {
         return vars.seizeCollateralAccountValue;
@@ -41,26 +43,25 @@ function maxLiquidatableValue(
 
 function _createVars(
     address _account,
-    KrAsset memory _repayKreskoAsset,
-    address _seizedCollateral
+    Asset memory _repayAsset,
+    Asset memory _seizeAsset,
+    address _seizeAssetAddr
 ) view returns (MaxLiqVars memory) {
     uint256 maxLiquidationRatio = ms().maxLiquidationRatio;
     uint256 minCollateralValue = ms().accountMinCollateralAtRatio(_account, maxLiquidationRatio);
 
     (uint256 accountCollateralValue, uint256 seizeCollateralAccountValue) = ms().accountCollateralAssetValue(
         _account,
-        _seizedCollateral
+        _seizeAssetAddr
     );
-
-    CollateralAsset memory collateral = ms().collateralAssets[_seizedCollateral];
 
     return
         MaxLiqVars({
-            collateral: collateral,
+            collateral: _seizeAsset,
             accountCollateralValue: accountCollateralValue,
-            debtFactor: _repayKreskoAsset.kFactor.wadMul(maxLiquidationRatio).wadDiv(collateral.factor),
+            debtFactor: uint128(_repayAsset.kFactor.wadMul(maxLiquidationRatio).wadDiv(_seizeAsset.factor)),
             minCollateralValue: minCollateralValue,
-            minDebtValue: ms().minDebtValue,
+            minDebtValue: cs().minDebtValue,
             seizeCollateralAccountValue: seizeCollateralAccountValue,
             maxLiquidationRatio: maxLiquidationRatio
         });

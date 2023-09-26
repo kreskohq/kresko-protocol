@@ -2,40 +2,49 @@
 pragma solidity >=0.8.19;
 
 import {WadRay} from "libs/WadRay.sol";
-import {collateralAmountRead, collateralAmountToValue} from "minter/funcs/Conversions.sol";
 import {SCDPState} from "scdp/State.sol";
 import {UserAssetData} from "scdp/Types.sol";
+import {cs} from "common/State.sol";
+import {Asset} from "common/Types.sol";
 
 library SAccounts {
     using WadRay for uint256;
 
     /**
      * @notice Get accounts interested scaled debt amount for a KreskoAsset.
-     * @param _asset The asset address
      * @param _account The account to get the amount for
+     * @param _assetAddr The asset address
+     * @param _asset The asset struct
      * @return Amount of scaled debt.
      */
-    function accountDepositsWithFees(SCDPState storage self, address _account, address _asset) internal view returns (uint256) {
-        uint256 deposits = collateralAmountRead(_asset, self.deposits[_account][_asset]);
+    function accountDepositsWithFees(
+        SCDPState storage self,
+        address _account,
+        address _assetAddr,
+        Asset memory _asset
+    ) internal view returns (uint256) {
+        uint256 deposits = _asset.amountRead(self.deposits[_account][_assetAddr]);
         if (deposits == 0) {
             return 0;
         }
-        return deposits.rayMul(self.collateral[_asset].liquidityIndex).rayToWad();
+        return deposits.rayMul(_asset.liquidityIndexSCDP).rayToWad();
     }
 
     /**
-     * @notice Get accounts principle collateral deposits.
+     * @notice Get accounts principle deposits.
      * @param _account The account to get the amount for
-     * @param _collateralAsset The collateral asset address
+     * @param _assetAddr The deposit asset address
+     * @param _asset The deposit asset struct
      * @return uint256 Amount of scaled debt.
      */
     function accountPrincipalDeposits(
         SCDPState storage self,
         address _account,
-        address _collateralAsset
+        address _assetAddr,
+        Asset memory _asset
     ) internal view returns (uint256) {
-        uint256 deposits = self.accountDepositsWithFees(_account, _collateralAsset);
-        uint256 depositsPrincipal = collateralAmountRead(_collateralAsset, self.depositsPrincipal[_account][_collateralAsset]);
+        uint256 deposits = self.accountDepositsWithFees(_account, _assetAddr, _asset);
+        uint256 depositsPrincipal = _asset.amountRead(self.depositsPrincipal[_account][_assetAddr]);
 
         if (deposits == 0) {
             return 0;
@@ -45,23 +54,25 @@ library SAccounts {
         return depositsPrincipal;
     }
 
+    /// @notice Periphery
     function accountDepositAmountsAndValues(
         SCDPState storage self,
         address _account,
-        address _depositAsset
+        address _assetAddr
     ) internal view returns (UserAssetData memory result) {
-        result.depositAmountWithFees = self.accountDepositsWithFees(_account, _depositAsset);
-        result.depositAmount = collateralAmountRead(_depositAsset, self.depositsPrincipal[_account][_depositAsset]);
+        Asset memory asset = cs().assets[_assetAddr];
+        result.depositAmountWithFees = self.accountDepositsWithFees(_account, _assetAddr, asset);
+        result.depositAmount = asset.amountRead(self.depositsPrincipal[_account][_assetAddr]);
         if (result.depositAmountWithFees < result.depositAmount) {
             result.depositAmount = result.depositAmountWithFees;
         }
-        (result.depositValue, result.assetPrice) = collateralAmountToValue(_depositAsset, result.depositAmount, true);
-        (result.depositValueWithFees, ) = collateralAmountToValue(_depositAsset, result.depositAmountWithFees, true);
-        result.asset = _depositAsset;
+        (result.depositValue, result.assetPrice) = asset.collateralAmountToValue(result.depositAmount, true);
+        (result.depositValueWithFees, ) = asset.collateralAmountToValue(result.depositAmountWithFees, true);
+        result.asset = _assetAddr;
     }
 
     /**
-     * @notice Returns the value of the collateral assets in the pool for `_account`.
+     * @notice Returns the value of the deposits for `_account`.
      * @param _account Account to get total deposit value for
      * @param _ignoreFactors Whether to ignore cFactor and kFactor
      */
@@ -72,10 +83,9 @@ library SAccounts {
     ) internal view returns (uint256 totalValue) {
         address[] memory assets = self.collaterals;
         for (uint256 i; i < assets.length; ) {
-            address asset = assets[i];
-            (uint256 assetValue, ) = collateralAmountToValue(
-                asset,
-                self.accountPrincipalDeposits(_account, asset),
+            Asset memory asset = cs().assets[assets[i]];
+            (uint256 assetValue, ) = asset.collateralAmountToValue(
+                self.accountPrincipalDeposits(_account, assets[i], asset),
                 _ignoreFactors
             );
 
@@ -98,8 +108,11 @@ library SAccounts {
     ) internal view returns (uint256 totalValue) {
         address[] memory assets = self.collaterals;
         for (uint256 i; i < assets.length; ) {
-            address asset = assets[i];
-            (uint256 assetValue, ) = collateralAmountToValue(asset, self.accountDepositsWithFees(_account, asset), true);
+            Asset memory asset = cs().assets[assets[i]];
+            (uint256 assetValue, ) = asset.collateralAmountToValue(
+                self.accountDepositsWithFees(_account, assets[i], asset),
+                true
+            );
 
             totalValue += assetValue;
 
@@ -109,6 +122,7 @@ library SAccounts {
         }
     }
 
+    /// @notice Periphery
     function accountTotalDepositValues(
         SCDPState storage self,
         address _account,

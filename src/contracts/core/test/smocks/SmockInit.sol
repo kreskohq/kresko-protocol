@@ -6,12 +6,12 @@ import {Role} from "common/Types.sol";
 import {Auth} from "common/Auth.sol";
 import {ds} from "diamond/State.sol";
 import {DSModifiers} from "diamond/Modifiers.sol";
-
+import {CModifiers} from "common/Modifiers.sol";
 import {ISmockFacet} from "./ISmockFacet.sol";
 import {TEST_OPERATOR_ROLE} from "./SmockFacet.sol";
 import {SmockStorage} from "./SmockStorage.sol";
 
-contract SmockInit is DSModifiers {
+contract SmockInit is DSModifiers, CModifiers {
     function initialize(address _operator) external onlyOwner onlyRole(Role.ADMIN) {
         require(msg.sender == ds().contractOwner, "WithStorage: Not owner");
         SmockStorage.initialize(_operator);

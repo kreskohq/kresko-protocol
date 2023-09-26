@@ -2,14 +2,12 @@
 pragma solidity >=0.8.19;
 
 import {Error} from "common/Errors.sol";
-import {Role} from "common/Types.sol";
+import {Role, Action, SafetyState, Pause} from "common/Types.sol";
+import {CModifiers} from "common/Modifiers.sol";
+import {ISafetyCouncilFacet} from "common/interfaces/ISafetyCouncilFacet.sol";
+import {cs} from "common/State.sol";
 
-import {DSModifiers} from "diamond/Modifiers.sol";
-
-import {ISafetyCouncilFacet} from "minter/interfaces/ISafetyCouncilFacet.sol";
 import {MEvent} from "minter/Events.sol";
-import {Action, SafetyState, Pause} from "minter/Types.sol";
-import {MSModifiers} from "minter/Modifiers.sol";
 import {ms} from "minter/State.sol";
 
 /* solhint-disable not-rely-on-time */
@@ -19,7 +17,7 @@ import {ms} from "minter/State.sol";
  * @title SafetyCouncilFacet - protocol safety controls
  * @notice `Role.SAFETY_COUNCIL` must be a multisig.
  */
-contract SafetyCouncilFacet is MSModifiers, DSModifiers, ISafetyCouncilFacet {
+contract SafetyCouncilFacet is CModifiers, ISafetyCouncilFacet {
     /// @inheritdoc ISafetyCouncilFacet
     function toggleAssetsPaused(
         address[] calldata _assets,
@@ -32,12 +30,9 @@ contract SafetyCouncilFacet is MSModifiers, DSModifiers, ISafetyCouncilFacet {
         for (uint256 i; i < _assets.length; i++) {
             address asset = _assets[i];
             // Revert if invalid address is supplied
-            require(
-                ms().collateralAssets[asset].exists || ms().kreskoAssets[asset].exists,
-                Error.INVALID_ASSET_SUPPLIED
-            );
+            require(cs().assets[asset].isCollateral || cs().assets[asset].isKrAsset, Error.INVALID_ASSET_SUPPLIED);
             // Get the safety state
-            SafetyState memory safetyState = ms().safetyState[asset][_action];
+            SafetyState memory safetyState = cs().safetyState[asset][_action];
             // Flip the previous value
             bool willPause = !safetyState.pause.enabled;
             // Set a global flag in case any asset gets set to true
@@ -45,7 +40,7 @@ contract SafetyCouncilFacet is MSModifiers, DSModifiers, ISafetyCouncilFacet {
                 enabled = true;
             }
             // Update the state for this asset
-            ms().safetyState[asset][_action].pause = Pause(
+            cs().safetyState[asset][_action].pause = Pause(
                 willPause,
                 block.timestamp,
                 _withDuration ? block.timestamp + _duration : 0
@@ -57,21 +52,21 @@ contract SafetyCouncilFacet is MSModifiers, DSModifiers, ISafetyCouncilFacet {
 
     /// @inheritdoc ISafetyCouncilFacet
     function setSafetyStateSet(bool val) external override onlyRole(Role.SAFETY_COUNCIL) {
-        ms().safetyStateSet = val;
+        cs().safetyStateSet = val;
     }
 
     /// @inheritdoc ISafetyCouncilFacet
     function safetyStateSet() external view override returns (bool) {
-        return ms().safetyStateSet;
+        return cs().safetyStateSet;
     }
 
     /// @inheritdoc ISafetyCouncilFacet
     function safetyStateFor(address _asset, Action _action) external view override returns (SafetyState memory) {
-        return ms().safetyState[_asset][_action];
+        return cs().safetyState[_asset][_action];
     }
 
     /// @inheritdoc ISafetyCouncilFacet
     function assetActionPaused(Action _action, address _asset) external view returns (bool) {
-        return ms().safetyState[_asset][_action].pause.enabled;
+        return cs().safetyState[_asset][_action].pause.enabled;
     }
 }

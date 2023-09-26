@@ -3,10 +3,8 @@ pragma solidity >=0.8.19;
 
 import {WadRay} from "libs/WadRay.sol";
 import {toWad} from "common/funcs/Math.sol";
-import {collateralAmountRead, collateralAmountToValue, collateralAmountToValues} from "minter/funcs/Conversions.sol";
-import {CollateralAsset} from "minter/Types.sol";
-import {ms} from "minter/State.sol";
-import {SCDPKrAsset} from "scdp/Types.sol";
+import {cs} from "common/State.sol";
+import {Asset} from "common/Types.sol";
 import {SCDPState, sdi} from "scdp/State.sol";
 
 library SCommon {
@@ -49,8 +47,8 @@ library SCommon {
     function totalCollateralValueSCDP(SCDPState storage self, bool _ignoreFactors) internal view returns (uint256 value) {
         address[] memory assets = self.collaterals;
         for (uint256 i; i < assets.length; ) {
-            address asset = assets[i];
-            (uint256 assetValue, ) = collateralAmountToValue(asset, self.totalDepositAmount(asset), _ignoreFactors);
+            Asset memory asset = cs().assets[assets[i]];
+            (uint256 assetValue, ) = asset.collateralAmountToValue(self.totalDepositAmount(assets[i], asset), _ignoreFactors);
             value += assetValue;
 
             unchecked {
@@ -67,10 +65,9 @@ library SCommon {
     function totalCollateralValuesSCDP(SCDPState storage self) internal view returns (uint256 value, uint256 valueAdjusted) {
         address[] memory assets = self.collaterals;
         for (uint256 i; i < assets.length; ) {
-            address asset = assets[i];
-            (uint256 assetValue, uint256 assetValueAdjusted, ) = collateralAmountToValues(
-                asset,
-                self.totalDepositAmount(asset)
+            Asset memory asset = cs().assets[assets[i]];
+            (uint256 assetValue, uint256 assetValueAdjusted, ) = asset.collateralAmountToValues(
+                self.totalDepositAmount(assets[i], asset)
             );
             value += assetValue;
             valueAdjusted += assetValueAdjusted;
@@ -96,19 +93,15 @@ library SCommon {
     ) internal view returns (uint256 totalValue, uint256 amountValue) {
         address[] memory assets = self.collaterals;
         for (uint256 i; i < assets.length; ) {
-            address asset = assets[i];
-            (uint256 assetValue, uint256 price) = collateralAmountToValue(
-                asset,
-                self.totalDepositAmount(asset),
+            Asset memory asset = cs().assets[assets[i]];
+            (uint256 assetValue, uint256 price) = asset.collateralAmountToValue(
+                self.totalDepositAmount(assets[i], asset),
                 _ignoreFactors
             );
 
             totalValue += assetValue;
-            if (asset == _collateralAsset) {
-                CollateralAsset memory collateral = ms().collateralAssets[_collateralAsset];
-                amountValue = toWad(collateral.decimals, _amount).wadMul(
-                    _ignoreFactors ? price : price.wadMul(collateral.factor)
-                );
+            if (assets[i] == _collateralAsset) {
+                amountValue = toWad(asset.decimals, _amount).wadMul(_ignoreFactors ? price : price.wadMul(asset.factor));
             }
 
             unchecked {
@@ -119,48 +112,55 @@ library SCommon {
 
     /**
      * @notice Get pool collateral deposits of an asset.
-     * @param _asset The asset address
+     * @param _assetAddress The asset address
+     * @param _asset The asset struct
      * @return Amount of scaled debt.
      */
-    function totalDepositAmount(SCDPState storage self, address _asset) internal view returns (uint256) {
-        return collateralAmountRead(_asset, self.totalDeposits[_asset]);
+    function totalDepositAmount(
+        SCDPState storage self,
+        address _assetAddress,
+        Asset memory _asset
+    ) internal view returns (uint128) {
+        return uint128(_asset.amountRead(self.sDeposits[_assetAddress].totalDeposits));
     }
 
     /**
      * @notice Get pool user collateral deposits of an asset.
-     * @param _asset The asset address
+     * @param _assetAddress The asset address
+     * @param _asset The asset struct
      * @return Amount of scaled debt.
      */
-    function userDepositAmount(SCDPState storage self, address _asset) internal view returns (uint256) {
-        return collateralAmountRead(_asset, self.totalDeposits[_asset] - self.swapDeposits[_asset]);
+    function userDepositAmount(
+        SCDPState storage self,
+        address _assetAddress,
+        Asset memory _asset
+    ) internal view returns (uint128) {
+        return
+            uint128(
+                _asset.amountRead(self.sDeposits[_assetAddress].totalDeposits - self.sDeposits[_assetAddress].swapDeposits)
+            );
     }
 
     /**
      * @notice Get "swap" collateral deposits.
-     * @param _asset The asset address
+     * @param _assetAddress The asset address
+     * @param _asset The asset struct.
      * @return Amount of debt.
      */
-    function swapDepositAmount(SCDPState storage self, address _asset) internal view returns (uint256) {
-        return collateralAmountRead(_asset, self.swapDeposits[_asset]);
-    }
-
-    /**
-     * @notice Check that assets can be swapped.
-     * @return feePercentage fee percentage for this swap
-     */
-    function checkAssets(
+    function swapDepositAmount(
         SCDPState storage self,
-        address _assetIn,
-        address _assetOut
-    ) internal view returns (uint256 feePercentage, uint256 protocolFee) {
-        require(self.isSwapEnabled[_assetIn][_assetOut], "swap-disabled");
-        require(self.isEnabled[_assetIn], "asset-in-disabled");
-        require(self.isEnabled[_assetOut], "asset-out-disabled");
-        require(_assetIn != _assetOut, "same-asset");
-        SCDPKrAsset memory assetIn = self.krAsset[_assetIn];
-        SCDPKrAsset memory assetOut = self.krAsset[_assetOut];
-
-        feePercentage = assetOut.openFee + assetIn.closeFee;
-        protocolFee = assetIn.protocolFee + assetOut.protocolFee;
+        address _assetAddress,
+        Asset memory _asset
+    ) internal view returns (uint128) {
+        return uint128(_asset.amountRead(self.sDeposits[_assetAddress].swapDeposits));
     }
+}
+
+/**
+ * @notice Check that assets can be swapped.
+ * @return feePercentage fee percentage for this swap
+ */
+function getSwapFee(Asset memory _assetIn, Asset memory _assetOut) view returns (uint256 feePercentage, uint256 protocolFee) {
+    feePercentage = _assetOut.openFeeSCDP + _assetIn.closeFeeSCDP;
+    protocolFee = _assetIn.protocolFeeSCDP + _assetOut.protocolFeeSCDP;
 }

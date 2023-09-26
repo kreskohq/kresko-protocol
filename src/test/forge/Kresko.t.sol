@@ -9,10 +9,9 @@ import {MockERC20} from "mocks/MockERC20.sol";
 import {DeployHelper} from "./utils/DeployHelper.sol";
 import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
-import {SCDPCollateral, SCDPKrAsset} from "scdp/Types.sol";
+import {Asset} from "common/Types.sol";
 
 // solhint-disable
-
 contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
     using LibTest for *;
 
@@ -39,12 +38,12 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
 
         deployDiamond(admin, address(new MockSequencerUptimeFeed()));
         vm.warp(3601);
-        (usdc, usdcOracle) = deployAndWhitelistCollateral("USDC", bytes32("USDC"), 18, 1e8);
-        (krETH, , ethOracle) = deployAndWhitelistKrAsset("krETH", bytes32("ETH"), admin, 2000e8);
-        (KISS, , kissOracle) = deployAndWhitelistKrAsset("KISS", bytes32("KISS"), admin, 1e8);
-        (krJPY, , jpyOracle) = deployAndWhitelistKrAsset("krJPY", bytes32("JPY"), admin, 1e8);
-        enableSCDPCollateral(address(usdc), initialPrices);
-        enableSCDPKrAsset(address(krETH), initialPrices);
+        // (usdc, usdcOracle) = deployAndWhitelistCollateral("USDC", bytes32("USDC"), 18, 1e8);
+        // (krETH, , ethOracle) = deployAndWhitelistKrAsset("krETH", bytes32("ETH"), admin, 2000e8);
+        // (KISS, , kissOracle) = deployAndWhitelistKrAsset("KISS", bytes32("KISS"), admin, 1e8);
+        // (krJPY, , jpyOracle) = deployAndWhitelistKrAsset("krJPY", bytes32("JPY"), admin, 1e8);
+        // enableSCDPCollateral(address(usdc), initialPrices);
+        // enableSCDPKrAsset(address(krETH), initialPrices);
         enableSwapBothWays(address(usdc), address(krETH), true);
         enableSwapSingleWay(address(krJPY), address(krETH), true);
 
@@ -53,23 +52,25 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
 
     function testSetup() public {
         kresko.owner().equals(admin);
-        SCDPCollateral memory usdcConfig = kresko.getCollateralSCDP(address(usdc));
-        SCDPKrAsset memory krETHConfig = kresko.getKreskoAssetSCDP(address(krETH));
+        Asset memory usdcConfig = kresko.getAsset(address(usdc));
+        Asset memory krETHConfig = kresko.getAsset(address(krETH));
         kresko.getMinCollateralRatio().equals(1.5e18);
         kresko.getCurrentParametersSCDP().mcr.equals(2e18);
         kresko.getCurrentParametersSCDP().lt.equals(1.5e18);
-        kresko.getCollateralAsset(address(usdc)).exists.equals(true);
+        usdcConfig.isSCDPCollateral.equals(true);
+        usdcConfig.isSCDPDepositAsset.equals(true);
 
         usdcConfig.decimals.equals(usdc.decimals());
-        usdcConfig.depositLimit.equals(type(uint256).max);
-        usdcConfig.liquidityIndex.equals(1e27);
+        usdcConfig.depositLimitSCDP.equals(type(uint256).max);
+        usdcConfig.liquidityIndexSCDP.equals(1e27);
 
-        kresko.getKreskoAsset(address(krETH)).exists.equals(true);
-        krETHConfig.liquidationIncentive.equals(1.1e18);
+        krETHConfig.isKrAsset.equals(true);
+        krETHConfig.isSCDPKrAsset.equals(true);
+        krETHConfig.liquidationIncentiveSCDP.equals(1.1e18);
         krETHConfig.openFee.equals(0.005e18);
         krETHConfig.closeFee.equals(0.005e18);
         krETHConfig.supplyLimit.equals(type(uint256).max);
-        krETHConfig.protocolFee.equals(0.25e18);
+        krETHConfig.protocolFeeSCDP.equals(0.25e18);
 
         kresko.getSwapEnabledSCDP(address(usdc), address(krETH)).equals(true);
         kresko.getSwapEnabledSCDP(address(krETH), address(usdc)).equals(true);

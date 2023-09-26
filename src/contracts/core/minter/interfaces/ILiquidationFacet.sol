@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
+import {Asset} from "common/Types.sol";
+
 interface ILiquidationFacet {
     /**
      * @notice Attempts to liquidate an account by repaying the portion of the account's Kresko asset
@@ -40,8 +42,10 @@ interface ILiquidationFacet {
         uint256 repayAmount;
         uint256 seizeAmount;
         address repayAsset;
+        Asset krAsset;
         uint256 repayAssetIndex;
         address seizedAsset;
+        Asset collateral;
         uint256 seizedAssetIndex;
         bool allowSeizeUnderflow;
     }

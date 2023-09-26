@@ -41,6 +41,5 @@ const dataPackage = new DataPackage(dataPoints, timestampMilliseconds);
 const signedDataPackages = [dataPackage.sign(PRIVATE_KEY_1)];
 
 const payload = RedstonePayload.prepare(signedDataPackages, "");
-
 process.stdout.write("0x" + payload);
 process.exit(0);

@@ -2,7 +2,8 @@
 pragma solidity >=0.8.19;
 
 import {WadRay} from "libs/WadRay.sol";
-import {kreskoAssetAmount, krAssetAmountToValue, krAssetAmountToValues} from "minter/funcs/Conversions.sol";
+import {Asset} from "common/Types.sol";
+import {cs} from "common/State.sol";
 import {SCDPState} from "scdp/State.sol";
 
 library SDebt {
@@ -25,8 +26,8 @@ library SDebt {
     ) internal view returns (uint256 value) {
         address[] memory assets = self.krAssets;
         for (uint256 i; i < assets.length; ) {
-            address asset = assets[i];
-            value += krAssetAmountToValue(asset, kreskoAssetAmount(asset, self.debt[asset]), _ignorekFactor);
+            Asset memory asset = cs().assets[assets[i]];
+            value += asset.debtAmountToValue(asset.toRebasingAmount(self.debt[assets[i]]), _ignorekFactor);
             unchecked {
                 i++;
             }
@@ -52,10 +53,9 @@ library SDebt {
     ) internal view returns (uint256 value, uint256 valueAdjusted) {
         address[] memory assets = self.krAssets;
         for (uint256 i; i < assets.length; ) {
-            address asset = assets[i];
-            (uint256 valueUnadjusted, uint256 adjusted, ) = krAssetAmountToValues(
-                asset,
-                kreskoAssetAmount(asset, self.debt[asset])
+            Asset memory asset = cs().assets[assets[i]];
+            (uint256 valueUnadjusted, uint256 adjusted, ) = asset.debtAmountToValues(
+                asset.toRebasingAmount(self.debt[assets[i]])
             );
             value += valueUnadjusted;
             valueAdjusted += adjusted;

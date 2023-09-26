@@ -5,13 +5,11 @@ import {AggregatorV3Interface} from "vendor/AggregatorV3Interface.sol";
 import {IProxy} from "vendor/IProxy.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {isSequencerUp} from "common/funcs/Utils.sol";
-import {PushPrice} from "common/Types.sol";
+import {PushPrice, Oracle, OracleType} from "common/Types.sol";
 import {Error} from "common/Errors.sol";
 import {Redstone} from "libs/Redstone.sol";
-import {ms} from "minter/State.sol";
+import {cs} from "common/State.sol";
 import {scdp, sdi} from "scdp/State.sol";
-import {os} from "oracle/State.sol";
-import {Oracle, OracleType} from "oracle/Types.sol";
 
 using WadRay for uint256;
 
@@ -23,7 +21,7 @@ using WadRay for uint256;
 function SDIPrice() view returns (uint256) {
     uint256 totalValue = scdp().totalDebtValueAtRatioSCDP(1 ether, false);
     if (totalValue == 0) {
-        return 10 ** ms().extOracleDecimals;
+        return 10 ** cs().extOracleDecimals;
     }
     return totalValue.wadDiv(sdi().totalDebt);
 }
@@ -50,11 +48,11 @@ function safePrice(bytes32 id, OracleType[2] memory oracles, uint256 _oracleDevi
  * @return uint256 oracle price.
  */
 function oraclePrice(OracleType _oracleId, bytes32 _assetId) view returns (uint256) {
-    if (_oracleId == OracleType.Redstone) {
-        return Redstone.getPrice(_assetId);
+    if (_oracleId != OracleType.Redstone) {
+        Oracle memory oracle = cs().oracles[_assetId][_oracleId];
+        return oracle.priceGetter(oracle.feed);
     }
-    Oracle memory oracle = os().oracles[_assetId][_oracleId];
-    return oracle.priceGetter(oracle.feed);
+    return Redstone.getPrice(_assetId);
 }
 
 /**
@@ -66,12 +64,12 @@ function oraclePrice(OracleType _oracleId, bytes32 _assetId) view returns (uint2
 function pushPrice(OracleType[2] memory oracles, bytes32 _assetId) view returns (PushPrice memory) {
     for (uint8 i; i < oracles.length; i++) {
         OracleType oracleType = oracles[i];
-        Oracle memory oracle = os().oracles[_assetId][oracles[i]];
+        Oracle memory oracle = cs().oracles[_assetId][oracles[i]];
 
         if (oracleType == OracleType.Chainlink) {
             return aggregatorV3PriceWithTimestamp(oracle.feed);
         } else if (oracleType == OracleType.API3) {
-            return api3PriceWithTimestamp(oracle.feed);
+            return API3PriceWithTimestamp(oracle.feed);
         }
     }
 
@@ -87,10 +85,11 @@ function pushPrice(OracleType[2] memory oracles, bytes32 _assetId) view returns 
  * @param _oracleDeviationPct the deviation percentage to use for the oracle
  * @return uint256 the price to use
  */
-
 function deducePriceToUse(uint256 _primaryPrice, uint256 _referencePrice, uint256 _oracleDeviationPct) pure returns (uint256) {
-    if (_primaryPrice == 0 && _referencePrice > 0) return _referencePrice;
+    if (_primaryPrice == 0 && _referencePrice == 0) revert(Error.NO_ORACLE_PRICE);
+
     if (_referencePrice == 0) return _primaryPrice;
+    if (_primaryPrice == 0) return _referencePrice;
     if (
         (_referencePrice.wadMul(1 ether - _oracleDeviationPct) <= _primaryPrice) &&
         (_referencePrice.wadMul(1 ether + _oracleDeviationPct) >= _primaryPrice)
@@ -121,7 +120,7 @@ function aggregatorV3Price(address _oracle) view returns (uint256) {
     (, int256 answer, , uint256 updatedAt, ) = AggregatorV3Interface(_oracle).latestRoundData();
     require(answer >= 0, Error.NEGATIVE_ORACLE_PRICE);
     // returning zero if oracle price is too old so that fallback oracle is used instead.
-    if (block.timestamp - updatedAt > ms().oracleTimeout) {
+    if (block.timestamp - updatedAt > cs().oracleTimeout) {
         return 0;
     }
     return uint256(answer);
@@ -137,29 +136,29 @@ function aggregatorV3PriceWithTimestamp(address _oracle) view returns (PushPrice
     (, int256 answer, , uint256 updatedAt, ) = AggregatorV3Interface(_oracle).latestRoundData();
     require(answer >= 0, Error.NEGATIVE_ORACLE_PRICE);
     // returning zero if oracle price is too old so that fallback oracle is used instead.
-    if (block.timestamp - updatedAt > ms().oracleTimeout) {
+    if (block.timestamp - updatedAt > cs().oracleTimeout) {
         return PushPrice(0, updatedAt);
     }
     return PushPrice(uint256(answer), updatedAt);
 }
 
-function api3Price(address _feed) view returns (uint256) {
+function API3Price(address _feed) view returns (uint256) {
     (int256 answer, uint256 updatedAt) = IProxy(_feed).read();
     require(answer >= 0, Error.NEGATIVE_ORACLE_PRICE);
     // returning zero if oracle price is too old so that fallback oracle is used instead.
     // NOTE: there can be a case where both chainlink and api3 oracles are down, in that case 0 will be returned ???
-    if (block.timestamp - updatedAt > ms().oracleTimeout) {
+    if (block.timestamp - updatedAt > cs().oracleTimeout) {
         return 0;
     }
     return uint256(answer / 1e10); // @todo actual decimals
 }
 
-function api3PriceWithTimestamp(address _feed) view returns (PushPrice memory) {
+function API3PriceWithTimestamp(address _feed) view returns (PushPrice memory) {
     (int256 answer, uint256 updatedAt) = IProxy(_feed).read();
     require(answer >= 0, Error.NEGATIVE_ORACLE_PRICE);
     // returning zero if oracle price is too old so that fallback oracle is used instead.
     // NOTE: there can be a case where both chainlink and api3 oracles are down, in that case 0 will be returned ???
-    if (block.timestamp - updatedAt > ms().oracleTimeout) {
+    if (block.timestamp - updatedAt > cs().oracleTimeout) {
         return PushPrice(0, updatedAt);
     }
     return PushPrice(uint256(answer / 1e10), updatedAt); // @todo actual decimals
@@ -174,7 +173,7 @@ function api3PriceWithTimestamp(address _feed) view returns (PushPrice memory) {
  * @return wadPrice with 18 decimals
  */
 function oraclePriceToWad(uint256 _priceWithOracleDecimals) view returns (uint256) {
-    uint256 oracleDecimals = ms().extOracleDecimals;
+    uint256 oracleDecimals = cs().extOracleDecimals;
     if (oracleDecimals == 18) {
         return _priceWithOracleDecimals;
     }
@@ -187,7 +186,7 @@ function oraclePriceToWad(uint256 _priceWithOracleDecimals) view returns (uint25
  * @return wadPrice price with 18 decimals
  */
 function oraclePriceToWad(int256 _priceWithOracleDecimals) view returns (uint256) {
-    uint256 oracleDecimals = ms().extOracleDecimals;
+    uint256 oracleDecimals = cs().extOracleDecimals;
     if (oracleDecimals >= 18) return uint256(_priceWithOracleDecimals);
     return uint256(_priceWithOracleDecimals) * 10 ** (18 - oracleDecimals);
 }
@@ -195,7 +194,7 @@ function oraclePriceToWad(int256 _priceWithOracleDecimals) view returns (uint256
 /// @notice get oracle decimal precision USD value for `amount`.
 /// @param amount amount of tokens to get USD value for.
 function usdWad(uint256 amount, uint256 price, uint256 decimals) view returns (uint256) {
-    return (amount * (10 ** (18 - ms().extOracleDecimals)) * price) / 10 ** decimals;
+    return (amount * (10 ** (18 - cs().extOracleDecimals)) * price) / 10 ** decimals;
 }
 
 /**
@@ -204,7 +203,7 @@ function usdWad(uint256 amount, uint256 price, uint256 decimals) view returns (u
  * @param wadValue result with 18 decimals
  */
 function divByPrice(uint256 _value, uint256 _priceWithOracleDecimals) view returns (uint256 wadValue) {
-    uint8 oracleDecimals = ms().extOracleDecimals;
+    uint8 oracleDecimals = cs().extOracleDecimals;
     if (oracleDecimals >= 18) return _priceWithOracleDecimals;
     return (_value * 10 ** oracleDecimals) / _priceWithOracleDecimals;
 }
@@ -214,7 +213,7 @@ function divByPrice(uint256 _value, uint256 _priceWithOracleDecimals) view retur
  * @param _wadPrice value with extOracleDecimals
  */
 function fromWadPriceToUint(uint256 _wadPrice) view returns (uint256 priceWithOracleDecimals) {
-    uint8 oracleDecimals = ms().extOracleDecimals;
+    uint8 oracleDecimals = cs().extOracleDecimals;
     if (oracleDecimals == 18) return _wadPrice;
     return _wadPrice / 10 ** (18 - oracleDecimals);
 }

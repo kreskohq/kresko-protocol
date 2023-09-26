@@ -3,7 +3,7 @@ pragma solidity >=0.8.19;
 
 import {WadRay} from "libs/WadRay.sol";
 import {MaxLiqVars} from "common/Types.sol";
-import {SCDPKrAsset} from "scdp/Types.sol";
+import {Asset} from "common/Types.sol";
 
 using WadRay for uint256;
 
@@ -15,8 +15,8 @@ function calcMaxLiqValue(MaxLiqVars memory vars, uint256 _closeFee) pure returns
     return _calcMaxLiqValue(vars, (vars.debtFactor - vars.collateral.liquidationIncentive - _closeFee).wadDiv(vars.debtFactor));
 }
 
-function calcMaxLiqValue(MaxLiqVars memory vars, SCDPKrAsset memory _repayKreskoAsset) pure returns (uint256) {
-    return _calcMaxLiqValue(vars, (vars.debtFactor - _repayKreskoAsset.liquidationIncentive).wadDiv(vars.debtFactor));
+function calcMaxLiqValue(MaxLiqVars memory vars, Asset memory _repayKrAsset) pure returns (uint256) {
+    return _calcMaxLiqValue(vars, (vars.debtFactor - _repayKrAsset.liquidationIncentiveSCDP).wadDiv(vars.debtFactor));
 }
 
 /**

@@ -4,14 +4,13 @@ pragma solidity >=0.8.19;
 import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
 import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {Role} from "common/Types.sol";
-
-import {DSModifiers} from "diamond/Modifiers.sol";
+import {CModifiers} from "common/Modifiers.sol";
+import {cs} from "common/State.sol";
+import {Asset, Action} from "common/Types.sol";
 
 import {IDepositWithdrawFacet} from "minter/interfaces/IDepositWithdrawFacet.sol";
 import {ICollateralReceiver} from "minter/interfaces/ICollateralReceiver.sol";
 import {ms} from "minter/State.sol";
-import {Action} from "minter/Types.sol";
-import {MSModifiers} from "minter/Modifiers.sol";
 
 /**
  * @author Kresko
@@ -19,7 +18,7 @@ import {MSModifiers} from "minter/Modifiers.sol";
  * @notice Main end-user functionality concerning collateral asset deposits and withdrawals within the Kresko protocol
  */
 
-contract DepositWithdrawFacet is DSModifiers, MSModifiers, IDepositWithdrawFacet {
+contract DepositWithdrawFacet is CModifiers, IDepositWithdrawFacet {
     using SafeERC20Permit for IERC20Permit;
 
     /* -------------------------------------------------------------------------- */
@@ -32,7 +31,7 @@ contract DepositWithdrawFacet is DSModifiers, MSModifiers, IDepositWithdrawFacet
         address _collateralAsset,
         uint256 _depositAmount
     ) external nonReentrant gate collateralAssetExists(_collateralAsset) {
-        if (ms().safetyStateSet) {
+        if (cs().safetyStateSet) {
             super.ensureNotPaused(_collateralAsset, Action.Deposit);
         }
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
@@ -49,14 +48,21 @@ contract DepositWithdrawFacet is DSModifiers, MSModifiers, IDepositWithdrawFacet
         uint256 _withdrawAmount,
         uint256 _depositedCollateralAssetIndex
     ) external nonReentrant collateralAssetExists(_collateralAsset) onlyRoleIf(_account != msg.sender, Role.MANAGER) {
-        if (ms().safetyStateSet) {
+        if (cs().safetyStateSet) {
             ensureNotPaused(_collateralAsset, Action.Withdraw);
         }
-
-        uint256 collateralAmount = ms().accountCollateralAmount(_account, _collateralAsset);
+        Asset memory asset = cs().assets[_collateralAsset];
+        uint256 collateralAmount = ms().accountCollateralAmount(_account, _collateralAsset, asset);
         _withdrawAmount = (_withdrawAmount > collateralAmount ? collateralAmount : _withdrawAmount);
 
-        ms().handleWithdrawal(_account, _collateralAsset, _withdrawAmount, collateralAmount, _depositedCollateralAssetIndex);
+        ms().handleWithdrawal(
+            _account,
+            _collateralAsset,
+            asset,
+            _withdrawAmount,
+            collateralAmount,
+            _depositedCollateralAssetIndex
+        );
 
         IERC20Permit(_collateralAsset).safeTransfer(_account, _withdrawAmount);
     }
@@ -69,15 +75,22 @@ contract DepositWithdrawFacet is DSModifiers, MSModifiers, IDepositWithdrawFacet
         uint256 _depositedCollateralAssetIndex,
         bytes memory _userData
     ) external collateralAssetExists(_collateralAsset) onlyRole(Role.MANAGER) {
-        if (ms().safetyStateSet) {
+        if (cs().safetyStateSet) {
             ensureNotPaused(_collateralAsset, Action.Withdraw);
         }
-
-        uint256 collateralDeposits = ms().accountCollateralAmount(_account, _collateralAsset);
+        Asset memory asset = cs().assets[_collateralAsset];
+        uint256 collateralDeposits = ms().accountCollateralAmount(_account, _collateralAsset, asset);
         _withdrawAmount = (_withdrawAmount > collateralDeposits ? collateralDeposits : _withdrawAmount);
 
         // perform unchecked withdrawal
-        ms().recordWithdrawal(_account, _collateralAsset, _withdrawAmount, collateralDeposits, _depositedCollateralAssetIndex);
+        ms().recordWithdrawal(
+            _account,
+            _collateralAsset,
+            asset,
+            _withdrawAmount,
+            collateralDeposits,
+            _depositedCollateralAssetIndex
+        );
 
         // transfer the withdrawn asset to the caller
         IERC20Permit(_collateralAsset).safeTransfer(msg.sender, _withdrawAmount);
@@ -97,6 +110,6 @@ contract DepositWithdrawFacet is DSModifiers, MSModifiers, IDepositWithdrawFacet
          Emits MinterEvent.UncheckedCollateralWithdrawn
          _withdrawAmount is 0 since deposits reduced in recordCollateralWithdrawal
         */
-        ms().verifyAccountCollateral(_account, _collateralAsset, 0);
+        ms().verifyAccountCollateral(_account, asset, 0);
     }
 }

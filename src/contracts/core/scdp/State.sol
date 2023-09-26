@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {CoverAsset, SCDPCollateral, SCDPKrAsset} from "scdp/Types.sol";
+import {CoverAsset, SharedDeposits} from "scdp/Types.sol";
 import {SCommon} from "scdp/funcs/Common.sol";
 import {SDeposits} from "scdp/funcs/Deposits.sol";
 import {SAccounts} from "scdp/funcs/Accounts.sol";
@@ -34,10 +34,11 @@ struct SCDPState {
     /* -------------------------------------------------------------------------- */
     /// @notice Mapping of krAsset -> pooled debt
     mapping(address => uint256) debt;
-    /// @notice Mapping of collateral -> pooled deposits
-    mapping(address => uint256) totalDeposits;
-    /// @notice Mapping of asset -> swap owned deposit assets
-    mapping(address => uint256) swapDeposits;
+    mapping(address => SharedDeposits) sDeposits;
+    // /// @notice Mapping of collateral -> pooled deposits
+    // mapping(address => uint256) totalDeposits;
+    // /// @notice Mapping of asset -> swap owned deposit assets
+    // mapping(address => uint256) swapDeposits;
     /// @notice Mapping of account -> depositAsset -> deposit amount.
     mapping(address => mapping(address => uint256)) deposits;
     /// @notice Mapping of account -> depositAsset -> principal deposit amount.
@@ -45,16 +46,10 @@ struct SCDPState {
     /* -------------------------------------------------------------------------- */
     /*                             Asset Configuration                            */
     /* -------------------------------------------------------------------------- */
-    /// @notice Mapping of depositAsset -> SCDPCollateral configuration
-    mapping(address => SCDPCollateral) collateral;
-    /// @notice Mapping of krAsset -> SCDPKrAsset configuration
-    mapping(address => SCDPKrAsset) krAsset;
     /// @notice Mapping of asset -> asset -> swap enabled
     mapping(address => mapping(address => bool)) isSwapEnabled;
     /// @notice Mapping of asset -> enabled
     mapping(address => bool) isEnabled;
-    /// @notice Deposit assets that are enabled
-    mapping(address => bool) isDepositEnabled;
     /// @notice Array of assets that are deposit assets and can be swapped
     address[] collaterals;
     /// @notice Array of kresko assets that can be minted and swapped.
@@ -66,10 +61,11 @@ struct SCDPState {
     uint256 minCollateralRatio;
     /// @notice The collateralization ratio at which positions may be liquidated.
     uint256 liquidationThreshold;
-    /// @notice User swap fee receiver
-    address swapFeeRecipient;
     /// @notice Liquidation Overflow Multiplier, multiplies max liquidatable value.
     uint256 maxLiquidationRatio;
+    /// @notice User swap fee receiver
+    address swapFeeRecipient;
+    /// @notice The asset to convert fees into
     address feeAsset;
 }
 

@@ -6,11 +6,11 @@ import {Role} from "common/Types.sol";
 import {Error} from "common/Errors.sol";
 
 import {DSModifiers} from "diamond/Modifiers.sol";
-
+import {cs} from "common/State.sol";
+import {Asset, Action} from "common/Types.sol";
 import {IBurnHelperFacet} from "./IBurnHelperFacet.sol";
-import {MSModifiers} from "minter/Modifiers.sol";
+import {CModifiers} from "common/Modifiers.sol";
 import {MEvent} from "minter/Events.sol";
-import {Action} from "minter/Types.sol";
 import {ms, MinterState} from "minter/State.sol";
 import {handleMinterCloseFee} from "minter/funcs/Fees.sol";
 
@@ -20,7 +20,7 @@ import {handleMinterCloseFee} from "minter/funcs/Fees.sol";
  * @notice Helper functions for reducing positions
  */
 
-contract BurnHelperFacet is IBurnHelperFacet, DSModifiers, MSModifiers {
+contract BurnHelperFacet is IBurnHelperFacet, DSModifiers, CModifiers {
     using Arrays for address[];
 
     /// @inheritdoc IBurnHelperFacet
@@ -29,16 +29,17 @@ contract BurnHelperFacet is IBurnHelperFacet, DSModifiers, MSModifiers {
         address _kreskoAsset
     ) public nonReentrant kreskoAssetExists(_kreskoAsset) onlyRoleIf(_account != msg.sender, Role.MANAGER) {
         MinterState storage s = ms();
-        if (s.safetyStateSet) {
+        if (cs().safetyStateSet) {
             super.ensureNotPaused(_kreskoAsset, Action.Repay);
         }
+        Asset memory asset = cs().assets[_kreskoAsset];
 
         // Get accounts principal debt
-        uint256 principalDebt = s.accountDebtAmount(_account, _kreskoAsset);
+        uint256 principalDebt = s.accountDebtAmount(_account, _kreskoAsset, asset);
         require(principalDebt != 0, Error.ZERO_BURN);
 
         // Charge the burn fee from collateral of _account
-        handleMinterCloseFee(_account, _kreskoAsset, principalDebt);
+        handleMinterCloseFee(_account, asset, principalDebt);
 
         // Record the burn
         s.burn(_kreskoAsset, s.kreskoAssets[_kreskoAsset].anchor, principalDebt, _account);

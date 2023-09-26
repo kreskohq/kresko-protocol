@@ -3,23 +3,24 @@ pragma solidity >=0.8.19;
 
 import {SafeERC20Permit, IERC20Permit} from "vendor/SafeERC20Permit.sol";
 import {Arrays} from "libs/Arrays.sol";
-import {WadRay} from "libs/WadRay.sol";
-import {Role} from "common/Types.sol";
-import {Error} from "common/Errors.sol";
 import {DSModifiers} from "diamond/Modifiers.sol";
 import {ds} from "diamond/State.sol";
-import {DiamondEvent} from "common/Events.sol";
 
-import {Constants} from "minter/Constants.sol";
-import {MSModifiers} from "minter/Modifiers.sol";
-import {ms} from "minter/State.sol";
+import {Role} from "common/Types.sol";
+import {DiamondEvent} from "common/Events.sol";
+import {CModifiers} from "common/Modifiers.sol";
+import {cs} from "common/State.sol";
+import {Constants} from "common/Constants.sol";
+import {Error} from "common/Errors.sol";
+
+import {MEvent} from "minter/Events.sol";
 
 import {ISCDPConfigFacet} from "scdp/interfaces/ISCDPConfigFacet.sol";
-import {SCDPCollateral, SCDPKrAsset, SCDPInitArgs, PairSetter} from "scdp/Types.sol";
+import {SCDPInitArgs, PairSetter} from "scdp/Types.sol";
 import {scdp} from "scdp/State.sol";
 import {SEvent} from "scdp/Events.sol";
 
-contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, MSModifiers {
+contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, CModifiers {
     using SafeERC20Permit for IERC20Permit;
     using Arrays for address[];
 
@@ -71,76 +72,32 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, MSModifiers {
         scdp().maxLiquidationRatio = _mlr;
     }
 
-    /// @inheritdoc ISCDPConfigFacet
-    function addDepositAssetsSCDP(
-        address[] calldata _depositAssets,
-        SCDPCollateral[] memory _configurations
-    ) external onlyRole(Role.ADMIN) {
-        require(_depositAssets.length == _configurations.length, "collateral-length-mismatch");
-        for (uint256 i; i < _depositAssets.length; i++) {
-            address depositAsset = _depositAssets[i];
-            // Checks
-            require(ms().collateralAssets[depositAsset].pushedPrice().price != 0, Error.ZERO_PRICE);
-            require(_configurations[i].depositLimit != 0, "krasset-supply-limit-zero");
-            require(scdp().collateral[depositAsset].liquidityIndex == 0, "collateral-already-enabled");
-
-            // We don't care what values are set for decimals or liquidityIndex. Overriding.
-            _configurations[i].decimals = IERC20Permit(depositAsset).decimals();
-            _configurations[i].liquidityIndex = uint128(WadRay.RAY);
-
-            // Save to state
-            scdp().collateral[depositAsset] = _configurations[i];
-            scdp().isDepositEnabled[depositAsset] = true;
-
-            // Enable the asset if it's not enabled, eg. if it's already a Kresko Asset.
-            if (!scdp().isEnabled[depositAsset]) {
-                scdp().isEnabled[depositAsset] = true;
-                scdp().collaterals.push(depositAsset);
-            }
-        }
-    }
-
-    /// @inheritdoc ISCDPConfigFacet
-    function addKrAssetsSCDP(
-        address[] calldata _enabledKrAssets,
-        SCDPKrAsset[] memory _configurations
-    ) external onlyRole(Role.ADMIN) {
-        require(_enabledKrAssets.length == _configurations.length, "krasset-length-mismatch");
-        for (uint256 i; i < _enabledKrAssets.length; i++) {
-            address enabledKrAsset = _enabledKrAssets[i];
-            // Checks
-            require(ms().kreskoAssets[enabledKrAsset].pushedPrice().price != 0, Error.ZERO_PRICE);
-            require(scdp().krAsset[enabledKrAsset].supplyLimit == 0, "krasset-already-enabled");
-            require(_configurations[i].supplyLimit > 0, "krasset-supply-limit-zero");
-            require(
-                _configurations[i].protocolFee <= Constants.MAX_COLLATERAL_POOL_PROTOCOL_FEE,
-                "krasset-protocol-fee-too-high"
-            );
-            require(_configurations[i].liquidationIncentive >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER, "li-too-low");
-            require(_configurations[i].liquidationIncentive <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER, "li-too-high");
-
-            // Save to state
-            scdp().krAsset[enabledKrAsset] = _configurations[i];
-            scdp().krAssets.push(enabledKrAsset);
-
-            // Enable the asset if it's not enabled. eg. if it's already a collateral.
-            if (!scdp().isEnabled[enabledKrAsset]) {
-                scdp().collaterals.push(enabledKrAsset); // Swap deposits count as collateral.
-                scdp().isEnabled[enabledKrAsset] = true;
-            }
-        }
-    }
-
-    /// @inheritdoc ISCDPConfigFacet
-    function updateKrAssetSCDP(address _asset, SCDPKrAsset memory _configuration) external onlyRole(Role.ADMIN) {
-        require(_configuration.liquidationIncentive >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER, "li-too-low");
-        require(_configuration.liquidationIncentive <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER, "li-too-high");
-        scdp().krAsset[_asset] = _configuration;
-    }
+    /* -------------------------------------------------------------------------- */
+    /*                                   Assets                                   */
+    /* -------------------------------------------------------------------------- */
 
     /// @inheritdoc ISCDPConfigFacet
     function updateDepositLimitSCDP(address _asset, uint256 _newDepositLimit) external onlyRole(Role.ADMIN) {
-        scdp().collateral[_asset].depositLimit = _newDepositLimit;
+        require(_newDepositLimit <= type(uint128).max, "deposit-limit-too-high");
+        cs().assets[_asset].depositLimitSCDP = _newDepositLimit;
+    }
+
+    /// @inheritdoc ISCDPConfigFacet
+    function updateLiquidationIncentiveSCDP(
+        address _krAsset,
+        uint256 _newLiquidationIncentive
+    ) public kreskoAssetExists(_krAsset) onlyRole(Role.ADMIN) {
+        require(
+            _newLiquidationIncentive >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
+            Error.PARAM_LIQUIDATION_INCENTIVE_LOW
+        );
+        require(
+            _newLiquidationIncentive <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER,
+            Error.PARAM_LIQUIDATION_INCENTIVE_HIGH
+        );
+
+        cs().assets[_krAsset].liquidationIncentiveSCDP = _newLiquidationIncentive;
+        emit MEvent.LiquidationIncentiveMultiplierUpdated(_krAsset, _newLiquidationIncentive);
     }
 
     /// @inheritdoc ISCDPConfigFacet
@@ -156,8 +113,8 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, MSModifiers {
                 if (enabledAsset == enabledAssets[j]) {
                     scdp().isEnabled[enabledAsset] = true;
                     if (enableDeposits) {
-                        require(scdp().collateral[enabledAsset].decimals != 0, "not-deposit-asset");
-                        scdp().isDepositEnabled[enabledAsset] = true;
+                        require(cs().assets[enabledAsset].decimals != 0, "not-deposit-asset");
+                        cs().assets[enabledAsset].isSCDPDepositAsset = true;
                     }
                     didEnable = true;
                 }
@@ -178,7 +135,7 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, MSModifiers {
             // Remove the assets from enabled list.
             for (uint256 j; j < enabledAssets.length; j++) {
                 if (disabledAsset == enabledAssets[j]) {
-                    scdp().isDepositEnabled[disabledAsset] = false;
+                    cs().assets[disabledAsset].isSCDPDepositAsset = false;
                     if (!onlyDeposits) {
                         scdp().isEnabled[disabledAsset] = false;
                     }
@@ -200,11 +157,13 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, MSModifiers {
             // Remove the assets from enabled list.
             for (uint256 j; j < enabledCollaterals.length; j++) {
                 if (removedAsset == enabledCollaterals[j]) {
-                    require(scdp().userDepositAmount(removedAsset) == 0, "remove-collateral-has-deposits");
+                    require(
+                        scdp().userDepositAmount(removedAsset, cs().assets[removedAsset]) == 0,
+                        "remove-collateral-has-deposits"
+                    );
                     scdp().collaterals.removeAddress(removedAsset, j);
                     scdp().isEnabled[removedAsset] = false;
-                    scdp().isDepositEnabled[removedAsset] = false;
-                    delete scdp().collateral[removedAsset];
+                    cs().assets[removedAsset].isSCDPDepositAsset = false;
                     didRemove = true;
                 }
             }
@@ -228,8 +187,7 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, MSModifiers {
                     require(scdp().debt[removedAsset] == 0, "remove-krasset-has-debt");
                     scdp().krAssets.removeAddress(removedAsset, j);
                     scdp().isEnabled[removedAsset] = false;
-                    scdp().isDepositEnabled[removedAsset] = false;
-                    delete scdp().krAsset[removedAsset];
+                    cs().assets[removedAsset].isSCDPDepositAsset = false;
                     didRemove = true;
                 }
             }
@@ -243,13 +201,13 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, MSModifiers {
     /// @inheritdoc ISCDPConfigFacet
     function setSwapFee(
         address _krAsset,
-        uint256 _openFee,
-        uint256 _closeFee,
-        uint256 _protocolFee
+        uint64 _openFee,
+        uint64 _closeFee,
+        uint128 _protocolFee
     ) external onlyRole(Role.ADMIN) {
-        scdp().krAsset[_krAsset].openFee = _openFee;
-        scdp().krAsset[_krAsset].closeFee = _closeFee;
-        scdp().krAsset[_krAsset].protocolFee = _protocolFee;
+        cs().assets[_krAsset].openFeeSCDP = _openFee;
+        cs().assets[_krAsset].closeFeeSCDP = _closeFee;
+        cs().assets[_krAsset].protocolFeeSCDP = _protocolFee;
         emit SEvent.FeeSet(_krAsset, _openFee, _closeFee, _protocolFee);
     }
 
