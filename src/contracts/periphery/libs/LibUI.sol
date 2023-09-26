@@ -219,20 +219,10 @@ library LibUI {
         result = new Price[](_assets.length);
 
         for (uint256 i; i < _assets.length; i++) {
-            uint256 redstonePrice;
-            PushPrice memory pushPrice;
-            uint256 price;
-            if (ms().collateralAssets[_assets[i]].id != bytes32(0)) {
-                redstonePrice = ms().collateralAssets[_assets[i]].redstonePrice();
-                pushPrice = ms().collateralAssets[_assets[i]].pushedPrice();
-                price = ms().collateralAssets[_assets[i]].price();
-            } else if (ms().kreskoAssets[_assets[i]].id != bytes32(0)) {
-                redstonePrice = ms().kreskoAssets[_assets[i]].redstonePrice();
-                pushPrice = ms().kreskoAssets[_assets[i]].pushedPrice();
-                price = ms().kreskoAssets[_assets[i]].price();
-            } else {
-                revert("BatchOracleValues: Asset not found");
-            }
+            Asset memory asset = cs().assets[_assets[i]];
+            uint256 redstonePrice = Redstone.getPrice(asset.id);
+            PushPrice memory pushPrice = asset.pushedPrice();
+            uint256 price = asset.price();
 
             result[i] = Price({
                 price: price,
@@ -241,7 +231,7 @@ library LibUI {
                 timestamp: pushPrice.timestamp,
                 assetAddress: _assets[i],
                 roundId: 0,
-                marketOpen: ms().kreskoAssets[_assets[i]].marketStatus()
+                marketOpen: asset.marketStatus()
             });
         }
     }
@@ -250,7 +240,7 @@ library LibUI {
         result = new krAssetInfo[](assetAddresses.length);
         for (uint256 i; i < assetAddresses.length; i++) {
             address assetAddress = assetAddresses[i];
-            KrAsset memory krAsset = ms().kreskoAssets[assetAddress];
+            Asset memory krAsset = cs().assets[assetAddress];
             result[i] = krAssetInfo({
                 value: krAssetAmountToValue(assetAddress, 1 ether, false),
                 oracles: krAsset.oracles,
@@ -259,7 +249,7 @@ library LibUI {
                 openFee: krAsset.openFee,
                 kFactor: krAsset.kFactor,
                 price: krAsset.price(),
-                marketOpen: ms().kreskoAssets[assetAddress].marketStatus(),
+                marketOpen: krAsset.marketStatus(),
                 symbol: IERC20Permit(assetAddress).symbol(),
                 name: IERC20Permit(assetAddress).name(),
                 redstoneId: krAsset.id
@@ -271,10 +261,11 @@ library LibUI {
         result = new CollateralAssetInfo[](assetAddresses.length);
         for (uint256 i; i < assetAddresses.length; i++) {
             address assetAddress = assetAddresses[i];
-            CollateralAsset memory collateralAsset = ms().collateralAssets[assetAddress];
+            Asset memory collateralAsset = cs().assets[assetAddress];
+
             uint8 decimals = IERC20Permit(assetAddress).decimals();
 
-            (uint256 value, uint256 price) = collateralAmountToValue(assetAddress, 1 * 10 ** decimals, false);
+            (uint256 value, uint256 price) = collateralAsset.collateralAmountToValue(1 * 10 ** decimals, false);
 
             result[i] = CollateralAssetInfo({
                 value: value,
@@ -302,24 +293,25 @@ library LibUI {
                 address assetAddress = collateralAssetAddresses[i];
                 uint8 decimals = IERC20Permit(assetAddress).decimals();
 
-                uint256 amount = ms().accountCollateralAmount(_account, assetAddress);
+                Asset memory collateralAsset = cs().assets[assetAddress];
+                uint256 amount = ms().accountCollateralAmount(_account, assetAddress, collateralAsset);
 
-                (uint256 amountUSD, uint256 price) = collateralAmountToValue(assetAddress, amount, true);
+                (uint256 amountUSD, uint256 price) = collateralAsset.collateralAmountToValue(amount, true);
 
                 totalCollateralUSD += amountUSD;
                 result[i] = CollateralAssetInfoUser({
                     amount: amount,
                     amountUSD: amountUSD,
-                    liquidationIncentive: ms().collateralAssets[assetAddress].liquidationIncentive,
-                    oracles: ms().collateralAssets[assetAddress].oracles,
+                    liquidationIncentive: collateralAsset.liquidationIncentive,
+                    oracles: collateralAsset.oracles,
                     assetAddress: assetAddress,
-                    cFactor: ms().collateralAssets[assetAddress].factor,
+                    cFactor: collateralAsset.factor,
                     decimals: decimals,
                     index: i,
                     price: price,
                     symbol: IERC20Permit(assetAddress).symbol(),
                     name: IERC20Permit(assetAddress).name(),
-                    redstoneId: ms().collateralAssets[assetAddress].id
+                    redstoneId: collateralAsset.id
                 });
             }
         }
@@ -331,10 +323,10 @@ library LibUI {
             result = new krAssetInfoUser[](krAssetAddresses.length);
             for (uint256 i; i < krAssetAddresses.length; i++) {
                 address assetAddress = krAssetAddresses[i];
-                KrAsset memory krAsset = ms().kreskoAssets[assetAddress];
-                uint256 amount = ms().accountDebtAmount(_account, assetAddress);
+                Asset memory krAsset = cs().assets[assetAddress];
+                uint256 amount = ms().accountDebtAmount(_account, assetAddress, krAsset);
 
-                uint256 amountUSD = krAssetAmountToValue(assetAddress, amount, true);
+                uint256 amountUSD = krAsset.debtAmountToValue(amount, true);
                 totalDebtUSD + amountUSD;
                 result[i] = krAssetInfoUser({
                     assetAddress: assetAddress,

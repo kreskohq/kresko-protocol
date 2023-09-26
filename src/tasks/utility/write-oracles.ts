@@ -15,7 +15,7 @@ task(TASK_WRITE_ORACLE_JSON).setAction(async function (_taskArgs: TaskArguments,
         if (collateral.symbol === "WETH") {
             contract = await hre.ethers.getContractAt("ERC20Upgradeable", "0x4200000000000000000000000000000000000006");
         }
-        const collateralInfo = await Kresko.collateralAsset(contract.address);
+        const collateralInfo = await Kresko.getAsset(contract.address);
         if (!collateral.oracle) continue;
 
         if (collateral.symbol === "" || collateral.symbol === "WETH") {
@@ -38,7 +38,7 @@ task(TASK_WRITE_ORACLE_JSON).setAction(async function (_taskArgs: TaskArguments,
     }
     for (const krAsset of testnetConfigs[hre.network.name].krAssets) {
         const contract = await hre.getContractOrFork("ERC20Upgradeable", krAsset.symbol);
-        const krAssetInfo = await Kresko.collateralAsset(contract.address);
+        const krAssetInfo = await Kresko.getAsset(contract.address);
         if (!krAsset.oracle) continue;
         values.push({
             asset: await contract.symbol(),
