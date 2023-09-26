@@ -34,7 +34,11 @@ interface IKreskoAsset is IERC20Permit, IAccessControlEnumerableUpgradeable, IER
         string memory _symbol,
         uint8 _decimals,
         address _admin,
-        address _kresko
+        address _kresko,
+        address _token,
+        address _feeReipient,
+        uint256 _openFee,
+        uint256 _closeFee
     ) external;
 
     function kresko() external view returns (address);
@@ -103,4 +107,22 @@ interface IKreskoAsset is IERC20Permit, IAccessControlEnumerableUpgradeable, IER
      * @param _amount The amount of tokens to burn.
      */
     function burn(address _from, uint256 _amount) external;
+
+    /**
+     * @notice Triggers stopped state.
+     *
+     * Requirements:
+     *
+     * - The contract must not be paused.
+     */
+    function pause() external;
+
+    /**
+     * @notice  Returns to normal state.
+     *
+     * Requirements:
+     *
+     * - The contract must be paused.
+     */
+    function unpause() external;
 }

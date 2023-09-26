@@ -3,11 +3,15 @@ pragma solidity >=0.8.19;
 
 // solhint-disable-next-line
 import {AccessControlEnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
+import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import {ERC20Upgradeable} from "vendor/ERC20Upgradeable.sol";
 import {IERC165} from "vendor/IERC165.sol";
+import {IKreskoAssetIssuer} from "./IKreskoAssetIssuer.sol";
 import {Error} from "common/Errors.sol";
 import {Role} from "common/Types.sol";
 import {Rebaser} from "./Rebaser.sol";
+import {WadRay} from "libs/WadRay.sol";
 import {IKreskoAsset, ISyncable} from "./IKreskoAsset.sol";
 
 /**
@@ -19,15 +23,20 @@ import {IKreskoAsset, ISyncable} from "./IKreskoAsset.sol";
  * @notice Minting, burning and rebasing can only be performed by the `Role.OPERATOR`
  */
 
-contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IKreskoAsset {
+contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, PausableUpgradeable, IKreskoAsset {
     using Rebaser for uint256;
+    using WadRay for uint256;
+
     Rebase private _rebaseInfo;
     address public kresko;
     bool public isRebased;
-
-    constructor() {
-        //
-    }
+    address public anchor;
+    address public token;
+    uint8 public tokenDecimals;
+    bool public nativeTokenEnabled;
+    address payable public feeRecipient;
+    uint256 public openFee;
+    uint256 public closeFee;
 
     /// @inheritdoc IKreskoAsset
     function initialize(
@@ -35,10 +44,18 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
         string memory _symbol,
         uint8 _decimals,
         address _admin,
-        address _kresko
+        address _kresko,
+        address _token,
+        uint8 _tokenDecimals,
+        address _feeReipient,
+        uint256 _openFee,
+        uint256 _closeFee
     ) external initializer {
         // ERC20
         __ERC20Upgradeable_init(_name, _symbol, _decimals);
+
+        // Setup Pausing
+        __Pausable_init();
 
         // This does nothing but doesn't hurt to make sure it's called
         __AccessControlEnumerable_init();
@@ -52,7 +69,67 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
 
         // Setup the protocol
         _setupRole(Role.OPERATOR, _kresko);
+
         kresko = _kresko;
+        token = _token;
+        tokenDecimals = _tokenDecimals;
+
+        require(_feeReipient != address(0), Error.ZERO_ADDRESS);
+        feeRecipient = payable(_feeReipient);
+
+        require(_openFee <= 1 ether, "fee-high");
+        openFee = _openFee;
+
+        require(_closeFee <= 1 ether, "fee-high");
+        closeFee = _closeFee;
+    }
+
+    /**
+     * @notice Sets anchor token address
+     * @dev Has modifiers: onlyRole.
+     * @param _anchor The anchor address.
+     */
+    function setAnchorToken(address _anchor) external onlyRole(Role.ADMIN) {
+        anchor = _anchor;
+    }
+
+    /**
+     * @notice Enables depositing native token ETH in case of krETH
+     * @dev Has modifiers: onlyRole.
+     * @param _enabled The enabled (bool).
+     */
+    function enableNativeToken(bool _enabled) external onlyRole(Role.ADMIN) {
+        nativeTokenEnabled = _enabled;
+    }
+
+    /**
+     * @notice Sets fee recipient address
+     * @dev Has modifiers: onlyRole.
+     * @param _feeRecipient The fee recipient address.
+     */
+    function setFeeRecipient(address _feeRecipient) external onlyRole(Role.ADMIN) {
+        require(_feeRecipient != address(0), Error.ADDRESS_INVALID_FEERECIPIENT);
+        feeRecipient = payable(_feeRecipient);
+    }
+
+    /**
+     * @notice Sets deposit fee
+     * @dev Has modifiers: onlyRole.
+     * @param _openFee The open fee (uint256).
+     */
+    function setOpenFee(uint256 _openFee) external onlyRole(Role.ADMIN) {
+        require(_openFee <= 1 ether, "fee-high");
+        openFee = _openFee;
+    }
+
+    /**
+     * @notice Sets withdraw fee
+     * @dev Has modifiers: onlyRole.
+     * @param _closeFee The open fee (uint256).
+     */
+    function setCloseFee(uint256 _closeFee) external onlyRole(Role.ADMIN) {
+        require(_closeFee <= 1 ether, "fee-high");
+        closeFee = _closeFee;
     }
 
     /* -------------------------------------------------------------------------- */
@@ -90,6 +167,16 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
         address _account
     ) public view override(ERC20Upgradeable, IKreskoAsset) returns (uint256) {
         return _allowances[_owner][_account];
+    }
+
+    /// @inheritdoc IKreskoAsset
+    function pause() public onlyRole(Role.ADMIN) {
+        _pause();
+    }
+
+    /// @inheritdoc IKreskoAsset
+    function unpause() public onlyRole(Role.ADMIN) {
+        _unpause();
     }
 
     /* -------------------------------------------------------------------------- */
@@ -183,9 +270,76 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
         emit Transfer(_from, address(0), _amount);
     }
 
+    function deposit(address _to, uint256 _amount) external whenNotPaused {
+        IERC20Upgradeable(token).transferFrom(msg.sender, address(this), _amount);
+        uint256 openFee = _calcOpenFee(_amount);
+        if (openFee != 0) {
+            _amount -= openFee;
+            feeRecipient.transfer(openFee);
+        }
+        uint256 minted = IKreskoAssetIssuer(anchor).issue({
+            _assets: _adjustDecimals(_amount, tokenDecimals, decimals),
+            _to: _to
+        });
+        require(minted != 0, "zero-mint");
+    }
+
+    function withdraw(uint256 _amount, bool _receiveNativeToken) external whenNotPaused {
+        IKreskoAssetIssuer(anchor).destroy({_assets: _amount, _from: msg.sender});
+
+        uint256 closeFee = _calcCloseFee(_amount);
+
+        if (closeFee != 0) {
+            _amount -= closeFee;
+        }
+
+        if (_receiveNativeToken && nativeTokenEnabled) {
+            if (closeFee != 0) {
+                feeRecipient.transfer(closeFee);
+            }
+            payable(msg.sender).transfer(_amount);
+        } else {
+            if (closeFee != 0) {
+                IERC20Upgradeable(token).transfer(feeRecipient, _adjustDecimals(closeFee, tokenDecimals, decimals));
+            }
+            IERC20Upgradeable(token).transfer(msg.sender, _adjustDecimals(_amount, tokenDecimals, decimals));
+        }
+    }
+
+    receive() external payable {
+        require(nativeTokenEnabled, "native token disabled");
+        require(msg.value != 0, "zero-value");
+
+        uint256 openFee = _calcOpenFee(msg.value);
+        uint256 amount = msg.value;
+
+        if (openFee != 0) {
+            amount -= openFee;
+            feeRecipient.transfer(openFee);
+        }
+
+        uint256 minted = IKreskoAssetIssuer(anchor).issue({_assets: amount, _to: msg.sender});
+        require(minted != 0, "zero-mint");
+    }
+
     /* -------------------------------------------------------------------------- */
     /*                                  Internal                                  */
     /* -------------------------------------------------------------------------- */
+
+    function _calcOpenFee(uint256 _amount) internal view returns (uint256) {
+        return _amount.wadMul(openFee);
+    }
+
+    function _calcCloseFee(uint256 _amount) internal view returns (uint256) {
+        return _amount.wadMul(closeFee);
+    }
+
+    function _adjustDecimals(uint256 _amount, uint8 _fromDecimal, uint8 _toDecimal) internal view returns (uint256) {
+        return
+            _fromDecimal <= _toDecimal
+                ? _amount * (10 ** (_toDecimal - _fromDecimal))
+                : _amount / (10 ** (_fromDecimal - _toDecimal));
+    }
 
     /// @dev Internal balances are always unrebased, events emitted are not.
     function _transfer(address _from, address _to, uint256 _amount) internal returns (bool) {

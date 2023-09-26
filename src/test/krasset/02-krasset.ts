@@ -10,6 +10,22 @@ describe("KreskoAsset", () => {
         // Grant minting rights for test deployer
         await KreskoAsset.grantRole(Role.OPERATOR, hre.addr.deployer);
     });
+    describe("Deposit", () => {
+        it("cannot deposit when paused", async function () {});
+        it("can deposit with token", async function () {});
+        it("cannot deposit native token if not enabled", async function () {});
+        it("can deposit native token if enabled", async function () {});
+        it("transfers the correct fees to feeRecipient", async function () {});
+    });
+    describe("Withdraw", () => {
+        beforeEach(async function () {
+            // Deposit some tokens here
+        });
+        it("cannot withdraw when paused", async function () {});
+        it("can withdraw", async function () {});
+        it("can withdraw native token if enabled", async function () {});
+        it("transfers the correct fees to feeRecipient", async function () {});
+    });
     describe("#rebase", () => {
         it("can set a positive rebase", async function () {
             const denominator = toBig("1.525");

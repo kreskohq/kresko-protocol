@@ -143,22 +143,10 @@ function aggregatorV3PriceWithTimestamp(address _oracle) view returns (PushPrice
     return PushPrice(uint256(answer), updatedAt);
 }
 
-function api3Price(address _feed) view returns (uint256) {
-    (int256 answer, uint256 updatedAt) = IProxy(_feed).read();
-    require(answer >= 0, Error.NEGATIVE_ORACLE_PRICE);
-    // returning zero if oracle price is too old so that fallback oracle is used instead.
-    // NOTE: there can be a case where both chainlink and api3 oracles are down, in that case 0 will be returned ???
-    if (block.timestamp - updatedAt > ms().oracleTimeout) {
-        return 0;
-    }
-    return uint256(answer / 1e10); // @todo actual decimals
-}
-
 function api3PriceWithTimestamp(address _feed) view returns (PushPrice memory) {
     (int256 answer, uint256 updatedAt) = IProxy(_feed).read();
     require(answer >= 0, Error.NEGATIVE_ORACLE_PRICE);
     // returning zero if oracle price is too old so that fallback oracle is used instead.
-    // NOTE: there can be a case where both chainlink and api3 oracles are down, in that case 0 will be returned ???
     if (block.timestamp - updatedAt > ms().oracleTimeout) {
         return PushPrice(0, updatedAt);
     }
