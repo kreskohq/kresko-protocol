@@ -27,6 +27,7 @@ contract OracleViewFacet {
         } else if (ms().kreskoAssets[_asset].exists) {
             return os().oracles[ms().kreskoAssets[_asset].id][_oracleType].feed;
         }
+        revert("no-feed");
     }
 
     function getPriceOfAsset(address _asset) external view returns (uint256) {

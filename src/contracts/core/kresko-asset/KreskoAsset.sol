@@ -272,10 +272,10 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
 
     function deposit(address _to, uint256 _amount) external whenNotPaused {
         IERC20Upgradeable(token).transferFrom(msg.sender, address(this), _amount);
-        uint256 openFee = _calcOpenFee(_amount);
-        if (openFee != 0) {
-            _amount -= openFee;
-            feeRecipient.transfer(openFee);
+        uint256 fee = _calcOpenFee(_amount);
+        if (fee != 0) {
+            _amount -= fee;
+            feeRecipient.transfer(fee);
         }
         uint256 minted = IKreskoAssetIssuer(anchor).issue({
             _assets: _adjustDecimals(_amount, tokenDecimals, decimals),
@@ -287,20 +287,20 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
     function withdraw(uint256 _amount, bool _receiveNativeToken) external whenNotPaused {
         IKreskoAssetIssuer(anchor).destroy({_assets: _amount, _from: msg.sender});
 
-        uint256 closeFee = _calcCloseFee(_amount);
+        uint256 fee = _calcCloseFee(_amount);
 
-        if (closeFee != 0) {
-            _amount -= closeFee;
+        if (fee != 0) {
+            _amount -= fee;
         }
 
         if (_receiveNativeToken && nativeTokenEnabled) {
-            if (closeFee != 0) {
-                feeRecipient.transfer(closeFee);
+            if (fee != 0) {
+                feeRecipient.transfer(fee);
             }
             payable(msg.sender).transfer(_amount);
         } else {
-            if (closeFee != 0) {
-                IERC20Upgradeable(token).transfer(feeRecipient, _adjustDecimals(closeFee, tokenDecimals, decimals));
+            if (fee != 0) {
+                IERC20Upgradeable(token).transfer(feeRecipient, _adjustDecimals(fee, tokenDecimals, decimals));
             }
             IERC20Upgradeable(token).transfer(msg.sender, _adjustDecimals(_amount, tokenDecimals, decimals));
         }
@@ -310,12 +310,12 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
         require(nativeTokenEnabled, "native token disabled");
         require(msg.value != 0, "zero-value");
 
-        uint256 openFee = _calcOpenFee(msg.value);
+        uint256 fee = _calcOpenFee(msg.value);
         uint256 amount = msg.value;
 
-        if (openFee != 0) {
-            amount -= openFee;
-            feeRecipient.transfer(openFee);
+        if (fee != 0) {
+            amount -= fee;
+            feeRecipient.transfer(fee);
         }
 
         uint256 minted = IKreskoAssetIssuer(anchor).issue({_assets: amount, _to: msg.sender});
@@ -334,7 +334,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
         return _amount.wadMul(closeFee);
     }
 
-    function _adjustDecimals(uint256 _amount, uint8 _fromDecimal, uint8 _toDecimal) internal view returns (uint256) {
+    function _adjustDecimals(uint256 _amount, uint8 _fromDecimal, uint8 _toDecimal) internal pure returns (uint256) {
         return
             _fromDecimal <= _toDecimal
                 ? _amount * (10 ** (_toDecimal - _fromDecimal))

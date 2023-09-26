@@ -36,6 +36,7 @@ interface IKreskoAsset is IERC20Permit, IAccessControlEnumerableUpgradeable, IER
         address _admin,
         address _kresko,
         address _token,
+        uint8 _tokenDecimals,
         address _feeReipient,
         uint256 _openFee,
         uint256 _closeFee
