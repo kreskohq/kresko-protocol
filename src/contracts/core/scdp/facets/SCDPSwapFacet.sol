@@ -109,7 +109,7 @@ contract SCDPSwapFacet is ISCDPSwapFacet, CModifiers {
     ) internal returns (uint256 amountOut) {
         // Check that assets can be swapped, get the fee percentages.
         if (!scdp().isSwapEnabled[_assetIn][_assetOut]) {
-            revert SError.SWAP_NOT_ENABLED();
+            revert SError.SWAP_NOT_ENABLED(_assetIn, _assetOut);
         } else if (_assetIn == _assetOut) {
             revert CError.IDENTICAL_ASSETS();
         }
