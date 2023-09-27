@@ -4,14 +4,17 @@ pragma solidity >=0.8.19;
 import {AggregatorV3Interface} from "vendor/AggregatorV3Interface.sol";
 import {IProxy} from "vendor/IProxy.sol";
 import {WadRay} from "libs/WadRay.sol";
+import {Percentages} from "libs/Percentages.sol";
 import {isSequencerUp} from "common/funcs/Utils.sol";
 import {PushPrice, Oracle, OracleType} from "common/Types.sol";
-import {Error} from "common/Errors.sol";
+import {Percents} from "common/Constants.sol";
+import {CError} from "common/Errors.sol";
 import {Redstone} from "libs/Redstone.sol";
 import {cs} from "common/State.sol";
 import {scdp, sdi} from "scdp/State.sol";
 
 using WadRay for uint256;
+using Percentages for uint256;
 
 /* -------------------------------------------------------------------------- */
 /*                                   Getters                                  */
@@ -19,7 +22,7 @@ using WadRay for uint256;
 
 /// @notice Get the price of SDI in USD, oracle precision.
 function SDIPrice() view returns (uint256) {
-    uint256 totalValue = scdp().totalDebtValueAtRatioSCDP(1 ether, false);
+    uint256 totalValue = scdp().totalDebtValueAtRatioSCDP(Percents.ONE_HUNDRED_PERCENT, false);
     if (totalValue == 0) {
         return 10 ** cs().extOracleDecimals;
     }
@@ -74,7 +77,7 @@ function pushPrice(OracleType[2] memory oracles, bytes32 _assetId) view returns 
     }
 
     // Revert if no push oracle is found
-    revert(Error.NO_PUSH_ORACLE);
+    revert CError.NO_PUSH_ORACLE_SET(string(abi.encodePacked(_assetId)));
 }
 
 /**
@@ -86,19 +89,21 @@ function pushPrice(OracleType[2] memory oracles, bytes32 _assetId) view returns 
  * @return uint256 the price to use
  */
 function deducePriceToUse(uint256 _primaryPrice, uint256 _referencePrice, uint256 _oracleDeviationPct) pure returns (uint256) {
-    if (_primaryPrice == 0 && _referencePrice == 0) revert(Error.NO_ORACLE_PRICE);
+    if (_primaryPrice == 0 && _referencePrice == 0) {
+        revert CError.ZERO_PRICE();
+    }
 
     if (_referencePrice == 0) return _primaryPrice;
     if (_primaryPrice == 0) return _referencePrice;
     if (
-        (_referencePrice.wadMul(1 ether - _oracleDeviationPct) <= _primaryPrice) &&
-        (_referencePrice.wadMul(1 ether + _oracleDeviationPct) >= _primaryPrice)
+        (_referencePrice.percentMul(1e4 - _oracleDeviationPct) <= _primaryPrice) &&
+        (_referencePrice.percentMul(1e4 + _oracleDeviationPct) >= _primaryPrice)
     ) {
         return _primaryPrice;
     }
 
     // Revert if price deviates more than `_oracleDeviationPct`
-    revert(Error.ORACLE_PRICE_UNSTABLE);
+    revert CError.PRICE_UNSTABLE(_primaryPrice, _referencePrice);
 }
 
 function handleSequencerDown(OracleType[2] memory oracles, uint256[2] memory prices) pure returns (uint256) {
@@ -107,7 +112,7 @@ function handleSequencerDown(OracleType[2] memory oracles, uint256[2] memory pri
     } else if (oracles[1] == OracleType.Redstone) {
         return prices[1];
     }
-    revert(Error.SEQUENCER_DOWN_NO_REDSTONE_ORACLE);
+    revert CError.SEQUENCER_DOWN_NO_REDSTONE_AVAILABLE();
 }
 
 /**
@@ -118,7 +123,9 @@ function handleSequencerDown(OracleType[2] memory oracles, uint256[2] memory pri
  */
 function aggregatorV3Price(address _oracle) view returns (uint256) {
     (, int256 answer, , uint256 updatedAt, ) = AggregatorV3Interface(_oracle).latestRoundData();
-    require(answer >= 0, Error.NEGATIVE_ORACLE_PRICE);
+    if (answer < 0) {
+        revert CError.NEGATIVE_PRICE(answer);
+    }
     // returning zero if oracle price is too old so that fallback oracle is used instead.
     if (block.timestamp - updatedAt > cs().oracleTimeout) {
         return 0;
@@ -134,7 +141,9 @@ function aggregatorV3Price(address _oracle) view returns (uint256) {
  */
 function aggregatorV3PriceWithTimestamp(address _oracle) view returns (PushPrice memory) {
     (, int256 answer, , uint256 updatedAt, ) = AggregatorV3Interface(_oracle).latestRoundData();
-    require(answer >= 0, Error.NEGATIVE_ORACLE_PRICE);
+    if (answer < 0) {
+        revert CError.NEGATIVE_PRICE(answer);
+    }
     // returning zero if oracle price is too old so that fallback oracle is used instead.
     if (block.timestamp - updatedAt > cs().oracleTimeout) {
         return PushPrice(0, updatedAt);
@@ -144,7 +153,9 @@ function aggregatorV3PriceWithTimestamp(address _oracle) view returns (PushPrice
 
 function API3Price(address _feed) view returns (uint256) {
     (int256 answer, uint256 updatedAt) = IProxy(_feed).read();
-    require(answer >= 0, Error.NEGATIVE_ORACLE_PRICE);
+    if (answer < 0) {
+        revert CError.NEGATIVE_PRICE(answer);
+    }
     // returning zero if oracle price is too old so that fallback oracle is used instead.
     // NOTE: there can be a case where both chainlink and api3 oracles are down, in that case 0 will be returned ???
     if (block.timestamp - updatedAt > cs().oracleTimeout) {
@@ -155,7 +166,9 @@ function API3Price(address _feed) view returns (uint256) {
 
 function API3PriceWithTimestamp(address _feed) view returns (PushPrice memory) {
     (int256 answer, uint256 updatedAt) = IProxy(_feed).read();
-    require(answer >= 0, Error.NEGATIVE_ORACLE_PRICE);
+    if (answer < 0) {
+        revert CError.NEGATIVE_PRICE(answer);
+    }
     // returning zero if oracle price is too old so that fallback oracle is used instead.
     // NOTE: there can be a case where both chainlink and api3 oracles are down, in that case 0 will be returned ???
     if (block.timestamp - updatedAt > cs().oracleTimeout) {

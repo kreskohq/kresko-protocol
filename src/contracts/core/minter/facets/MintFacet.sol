@@ -86,7 +86,9 @@ contract MintFacet is IMintFacet, CModifiers {
         }
 
         // Record the mint.
-        s.kreskoAssetDebt[_account][_kreskoAsset] += mintKrAsset(_mintAmount, _account, krAsset.anchor);
+        unchecked {
+            s.kreskoAssetDebt[_account][_kreskoAsset] += mintKrAsset(_mintAmount, _account, krAsset.anchor);
+        }
 
         // Emit logs
         emit MEvent.KreskoAssetMinted(_account, _kreskoAsset, _mintAmount);

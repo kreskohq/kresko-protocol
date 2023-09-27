@@ -28,8 +28,8 @@ library Role {
 
 /// @dev set the initial value to 1 as we do not
 /// wanna hinder possible gas refunds by setting it to 0 on exit.
-uint256 constant NOT_ENTERED = 1;
-uint256 constant ENTERED = 2;
+uint8 constant NOT_ENTERED = 1;
+uint8 constant ENTERED = 2;
 
 /* ========================================================================== */
 /*                                   Structs                                  */
@@ -54,36 +54,36 @@ struct FeedConfiguration {
  * @notice Information on an asset that can be used within the protocol.
  */
 struct Asset {
-    /// @notice The bytes identifier, eg. bytes32('ETH'), derived from Redstone ID. Used mainly for oracle
-    bytes32 id;
-    /// @notice The collateral factor used for calculating the value of the collateral.
-    uint256 factor;
-    /// @notice The KFactor which is reverse of cFactor.
-    uint256 kFactor;
-    /// @notice The supply limit if the asset is a Kresko Asset.
-    uint256 supplyLimit;
-    /// @notice The fee when minted through the Minter.
-    uint256 openFee;
-    /// @notice The fee when burned through the Minter.
-    uint256 closeFee;
-    /// @notice The fee when asset is the "Asset In" in SCDP swaps.
-    uint256 openFeeSCDP;
-    /// @notice The fee when asset is the "Asset Out" in SCDP swaps.
-    uint256 closeFeeSCDP;
-    /// @notice The protocol fee share when used in SCDP swaps
-    uint256 protocolFeeSCDP;
-    /// @notice The liquidation incentive when seized in Minter liquidations.
-    uint256 liquidationIncentive;
-    /// @notice The liquidation incentive when repaid in SCDP liquidations.
-    uint256 liquidationIncentiveSCDP;
-    /// @notice The scaled index for the asset, used for fee sharing in SCDP deposits.
-    uint256 liquidityIndexSCDP; // no need to pack this, it's not used with depositLimit
-    /// @notice The deposit amount limit within SCDP deposits.
-    uint256 depositLimitSCDP;
+    /// @notice The bytes identifier, eg. bytes16('ETH'), derived from Redstone ID. Used mainly for oracle
+    bytes12 id;
     /// @notice If the asset is a KreskoAsset, the anchor address.
     address anchor;
     /// @notice The oracle ordering for the asset.
     OracleType[2] oracles;
+    /// @notice The collateral factor used for calculating the value of the collateral.
+    uint16 factor;
+    /// @notice The KFactor which is reverse of cFactor.
+    uint16 kFactor;
+    /// @notice The fee when minted through the Minter.
+    uint16 openFee;
+    /// @notice The fee when burned through the Minter.
+    uint16 closeFee;
+    /// @notice The liquidation incentive when seized in Minter liquidations.
+    uint16 liquidationIncentive;
+    /// @notice The supply limit if the asset is a Kresko Asset.
+    uint128 supplyLimit;
+    /// @notice The deposit amount limit within SCDP deposits.
+    uint128 depositLimitSCDP;
+    /// @notice The scaled index for the asset, used for fee sharing and liquidations in SCDP deposits.
+    uint128 liquidityIndexSCDP; // no need to pack this, it's not used with depositLimit
+    /// @notice The fee when asset is the "Asset In" in SCDP swaps.
+    uint16 openFeeSCDP;
+    /// @notice The fee when asset is the "Asset Out" in SCDP swaps.
+    uint16 closeFeeSCDP;
+    /// @notice The liquidation incentive when repaid in SCDP liquidations.
+    uint16 liquidationIncentiveSCDP;
+    /// @notice The protocol fee share when used in SCDP swaps
+    uint16 protocolFeeSCDP;
     /// @notice The decimals for the token, stored here to avoid repetitive external calls.
     uint8 decimals;
     /// @notice Whether the collateral asset exists in the Minter.
@@ -96,6 +96,8 @@ struct Asset {
     bool isSCDPCollateral;
     /// @notice Whether the asset is a deposit asset in SCDP.
     bool isSCDPDepositAsset;
+    /// @notice Whether the asset is a deposit asset in SCDP.
+    bool isSCDPCoverAsset;
 }
 
 struct RoleData {
@@ -108,9 +110,9 @@ struct MaxLiqVars {
     uint256 accountCollateralValue;
     uint256 minCollateralValue;
     uint256 seizeCollateralAccountValue;
-    uint256 maxLiquidationRatio;
-    uint128 minDebtValue;
-    uint128 debtFactor;
+    uint192 minDebtValue;
+    uint32 maxLiquidationRatio;
+    uint32 debtFactor;
 }
 
 struct PushPrice {
@@ -137,29 +139,29 @@ struct CommonInitArgs {
     address admin;
     address council;
     address treasury;
-    uint128 minDebtValue;
-    uint248 oracleDeviationPct;
+    uint64 minDebtValue;
+    uint16 oracleDeviationPct;
+    uint8 extOracleDecimals;
     address sequencerUptimeFeed;
-    uint48 sequencerGracePeriodTime;
-    uint48 oracleTimeout;
+    uint24 sequencerGracePeriodTime;
+    uint32 oracleTimeout;
     address kreskian;
     address questForKresk;
-    uint8 extOracleDecimals;
     uint8 phase;
 }
 
 struct SCDPCollateralArgs {
-    uint256 liquidityIndex; // no need to pack this, it's not used with depositLimit
-    uint256 depositLimit;
+    uint128 liquidityIndex; // no need to pack this, it's not used with depositLimit
+    uint128 depositLimit;
     uint8 decimals;
 }
 
 struct SCDPKrAssetArgs {
-    uint256 liquidationIncentive;
-    uint256 supplyLimit;
-    uint128 protocolFee; // Taken from the open+close fee. Goes to protocol.
-    uint64 openFee;
-    uint64 closeFee;
+    uint128 supplyLimit;
+    uint16 liquidationIncentive;
+    uint16 protocolFee; // Taken from the open+close fee. Goes to protocol.
+    uint16 openFee;
+    uint16 closeFee;
 }
 
 /* -------------------------------------------------------------------------- */

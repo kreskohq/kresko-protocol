@@ -4,9 +4,11 @@ pragma solidity >=0.8.19;
 import {WadRay} from "libs/WadRay.sol";
 import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {ISCDPStateFacet} from "scdp/interfaces/ISCDPStateFacet.sol";
-import {AssetData, UserData, GlobalData} from "scdp/Types.sol";
+import {AssetData, UserData, GlobalData, UserAssetData} from "scdp/Types.sol";
 import {scdp, sdi} from "scdp/State.sol";
+import {Percents} from "common/Constants.sol";
 import {cs} from "common/State.sol";
+import {toWad} from "common/funcs/Math.sol";
 import {Asset} from "common/Types.sol";
 
 /**
@@ -14,7 +16,6 @@ import {Asset} from "common/Types.sol";
  * @author Kresko
  * @notice  This facet is used to view the state of the scdp.
  */
-
 contract SCDPStateFacet is ISCDPStateFacet {
     using WadRay for uint256;
 
@@ -139,18 +140,18 @@ contract SCDPStateFacet is ISCDPStateFacet {
     /// @inheritdoc ISCDPStateFacet
     function getDebtSCDP(address _kreskoAsset) external view returns (uint256) {
         Asset memory asset = cs().assets[_kreskoAsset];
-        return asset.toRebasingAmount(scdp().debt[_kreskoAsset]);
+        return asset.toRebasingAmount(scdp().assetData[_kreskoAsset].debt);
     }
 
     /// @inheritdoc ISCDPStateFacet
     function getDebtValueSCDP(address _kreskoAsset, bool _ignoreFactors) external view returns (uint256) {
         Asset memory asset = cs().assets[_kreskoAsset];
-        return asset.debtAmountToValue(asset.toRebasingAmount(scdp().debt[_kreskoAsset]), _ignoreFactors);
+        return asset.debtAmountToValue(asset.toRebasingAmount(scdp().assetData[_kreskoAsset].debt), _ignoreFactors);
     }
 
     /// @inheritdoc ISCDPStateFacet
     function getTotalDebtValueSCDP(bool _ignoreFactors) external view returns (uint256) {
-        return scdp().totalDebtValueAtRatioSCDP(1 ether, _ignoreFactors);
+        return scdp().totalDebtValueAtRatioSCDP(Percents.ONE_HUNDRED_PERCENT, _ignoreFactors);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -185,9 +186,9 @@ contract SCDPStateFacet is ISCDPStateFacet {
 
     /// @inheritdoc ISCDPStateFacet
     function getStatisticsSCDP() external view returns (GlobalData memory) {
-        (uint256 debtValue, uint256 debtValueAdjusted) = scdp().totalDebtValuesAtRatioSCDP(1 ether);
+        (uint256 debtValue, uint256 debtValueAdjusted) = totalDebtValuesAtRatioSCDP(1e4);
         uint256 effectiveDebtValue = sdi().effectiveDebtValue();
-        (uint256 collateralValue, uint256 collateralValueAdjusted) = scdp().totalCollateralValuesSCDP();
+        (uint256 collateralValue, uint256 collateralValueAdjusted) = totalCollateralValuesSCDP();
         return
             GlobalData({
                 collateralValue: collateralValue,
@@ -203,7 +204,7 @@ contract SCDPStateFacet is ISCDPStateFacet {
 
     function getAccountInfoSCDP(address _account, address[] memory _assets) public view returns (UserData memory result) {
         result.account = _account;
-        (result.totalDepositValue, result.totalDepositValueWithFees, result.deposits) = scdp().accountTotalDepositValues(
+        (result.totalDepositValue, result.totalDepositValueWithFees, result.deposits) = accountTotalDepositValues(
             _account,
             _assets
         );
@@ -230,14 +231,14 @@ contract SCDPStateFacet is ISCDPStateFacet {
         bool isKrAsset = asset.isSCDPKrAsset;
         bool isCollateral = asset.isSCDPCollateral;
         uint256 depositAmount = isCollateral ? scdp().totalDepositAmount(_asset, asset) : 0;
-        uint256 debtAmount = isKrAsset ? asset.toRebasingAmount(scdp().debt[_asset]) : 0;
+        uint256 debtAmount = isKrAsset ? asset.toRebasingAmount(scdp().assetData[_asset].debt) : 0;
 
         (uint256 debtValue, uint256 debtValueAdjusted, uint256 krAssetPrice) = isKrAsset
-            ? asset.debtAmountToValues(debtAmount)
+            ? debtAmountToValues(asset, debtAmount)
             : (0, 0, 0);
 
         (uint256 depositValue, uint256 depositValueAdjusted, uint256 collateralPrice) = isCollateral
-            ? asset.collateralAmountToValues(depositAmount)
+            ? collateralAmountToValues(asset, depositAmount)
             : (0, 0, 0);
         return
             AssetData({
@@ -267,4 +268,119 @@ contract SCDPStateFacet is ISCDPStateFacet {
             }
         }
     }
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   Helpers                                  */
+/* -------------------------------------------------------------------------- */
+using WadRay for uint256;
+
+import {Percentages} from "libs/Percentages.sol";
+using Percentages for uint256;
+
+function collateralAmountToValues(
+    Asset memory self,
+    uint256 _amount
+) view returns (uint256 value, uint256 valueAdjusted, uint256 price) {
+    price = self.price();
+    value = toWad(self.decimals, _amount).wadMul(price);
+    valueAdjusted = value.percentMul(self.factor);
+}
+
+function debtAmountToValues(
+    Asset memory self,
+    uint256 _amount
+) view returns (uint256 value, uint256 valueAdjusted, uint256 price) {
+    price = self.price();
+    value = _amount.wadMul(price);
+    valueAdjusted = value.percentMul(self.kFactor);
+}
+
+/**
+ * @notice Calculates the total collateral value of collateral assets in the pool.
+ * @return value in USD
+ * @return valueAdjusted Value adjusted by cFactors in USD
+ */
+function totalCollateralValuesSCDP() view returns (uint256 value, uint256 valueAdjusted) {
+    address[] memory assets = scdp().collaterals;
+    for (uint256 i; i < assets.length; ) {
+        Asset memory asset = cs().assets[assets[i]];
+        uint256 depositAmount = scdp().totalDepositAmount(assets[i], asset);
+        if (depositAmount != 0) {
+            (uint256 assetValue, uint256 assetValueAdjusted, ) = collateralAmountToValues(asset, depositAmount);
+            value += assetValue;
+            valueAdjusted += assetValueAdjusted;
+        }
+
+        unchecked {
+            i++;
+        }
+    }
+}
+
+/**
+ * @notice Returns the values of the krAsset held in the pool at a ratio.
+ * @param _ratio ratio
+ * @return value in USD
+ * @return valueAdjusted Value adjusted by kFactors in USD
+ */
+function totalDebtValuesAtRatioSCDP(uint256 _ratio) view returns (uint256 value, uint256 valueAdjusted) {
+    address[] memory assets = scdp().krAssets;
+    for (uint256 i; i < assets.length; ) {
+        Asset memory asset = cs().assets[assets[i]];
+        uint256 debtAmount = asset.toRebasingAmount(scdp().assetData[assets[i]].debt);
+        unchecked {
+            if (debtAmount != 0) {
+                (uint256 valueUnadjusted, uint256 adjusted, ) = debtAmountToValues(asset, debtAmount);
+                value += valueUnadjusted;
+                valueAdjusted += adjusted;
+            }
+            i++;
+        }
+    }
+
+    if (_ratio != 1e4) {
+        value = value.percentMul(_ratio);
+        valueAdjusted = valueAdjusted.percentMul(_ratio);
+    }
+}
+
+function accountTotalDepositValues(
+    address _account,
+    address[] memory _assetData
+) view returns (uint256 totalValue, uint256 totalValueWithFees, UserAssetData[] memory datas) {
+    address[] memory assets = scdp().collaterals;
+    datas = new UserAssetData[](_assetData.length);
+    for (uint256 i; i < assets.length; ) {
+        address asset = assets[i];
+        UserAssetData memory assetData = accountDepositAmountsAndValues(_account, asset);
+
+        totalValue += assetData.depositValue;
+        totalValueWithFees += assetData.depositValueWithFees;
+
+        for (uint256 j; j < _assetData.length; ) {
+            if (asset == _assetData[j]) {
+                datas[j] = assetData;
+            }
+            unchecked {
+                j++;
+            }
+        }
+
+        unchecked {
+            i++;
+        }
+    }
+}
+
+function accountDepositAmountsAndValues(address _account, address _assetAddr) view returns (UserAssetData memory result) {
+    Asset memory asset = cs().assets[_assetAddr];
+    result.depositAmountWithFees = scdp().accountDepositsWithFees(_account, _assetAddr, asset);
+    result.depositAmount = asset.amountRead(scdp().depositsPrincipal[_account][_assetAddr]);
+    if (result.depositAmountWithFees < result.depositAmount) {
+        result.depositAmount = result.depositAmountWithFees;
+    }
+    (result.depositValue, result.assetPrice) = asset.collateralAmountToValue(result.depositAmount, true);
+    (result.depositValueWithFees, ) = asset.collateralAmountToValue(result.depositAmountWithFees, true);
+    result.asset = _assetAddr;
 }

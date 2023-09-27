@@ -5,11 +5,13 @@ import {WadRay} from "libs/WadRay.sol";
 import {Redstone} from "libs/Redstone.sol";
 import {Asset, PushPrice} from "common/Types.sol";
 import {toWad} from "common/funcs/Math.sol";
-import {safePrice, pushPrice, oraclePriceToWad} from "common/funcs/Prices.sol";
+import {safePrice, pushPrice, oraclePriceToWad, SDIPrice} from "common/funcs/Prices.sol";
 import {cs} from "common/State.sol";
+import {Percentages} from "libs/Percentages.sol";
 
 library CAsset {
     using WadRay for uint256;
+    using Percentages for uint256;
 
     function price(Asset memory self) internal view returns (uint256) {
         return safePrice(self.id, self.oracles, cs().oracleDeviationPct);
@@ -44,7 +46,7 @@ library CAsset {
         return Redstone.getPrice(self.id);
     }
 
-    function marketStatus(Asset memory self) internal pure returns (bool) {
+    function marketStatus(Asset memory) internal pure returns (bool) {
         return true;
     }
 
@@ -56,28 +58,20 @@ library CAsset {
      * @param _amount The amount of the collateral asset to calculate the collateral value for.
      * @param _ignoreFactor Boolean indicating if the asset's collateral factor should be ignored.
      * @return value The collateral value for the provided amount of the collateral asset.
-     * @return price The current price of the collateral asset.
+     * @return assetPrice The current price of the collateral asset.
      */
     function collateralAmountToValue(
         Asset memory self,
         uint256 _amount,
         bool _ignoreFactor
-    ) internal view returns (uint256 value, uint256 price) {
-        price = self.price(cs().oracleDeviationPct);
-        value = toWad(self.decimals, _amount).wadMul(price);
+    ) internal view returns (uint256 value, uint256 assetPrice) {
+        assetPrice = self.price();
+        if (_amount == 0) return (0, assetPrice);
+        value = toWad(self.decimals, _amount).wadMul(assetPrice);
 
         if (!_ignoreFactor) {
-            value = value.wadMul(self.factor);
+            value = value.percentMul(self.factor);
         }
-    }
-
-    function collateralAmountToValues(
-        Asset memory self,
-        uint256 _amount
-    ) internal view returns (uint256 value, uint256 valueAdjusted, uint256 price) {
-        price = self.price(cs().oracleDeviationPct);
-        value = toWad(self.decimals, _amount).wadMul(price);
-        valueAdjusted = value.wadMul(self.factor);
     }
 
     /**
@@ -87,22 +81,14 @@ library CAsset {
      * @return The value for the provided amount of the Kresko asset.
      */
     function debtAmountToValue(Asset memory self, uint256 _amount, bool _ignoreKFactor) internal view returns (uint256) {
+        if (_amount == 0) return 0;
         uint256 value = self.uintUSD(_amount);
 
         if (!_ignoreKFactor) {
-            value = value.wadMul(self.kFactor);
+            value = value.percentMul(self.kFactor);
         }
 
         return value;
-    }
-
-    function debtAmountToValues(
-        Asset memory self,
-        uint256 _amount
-    ) internal view returns (uint256 value, uint256 valueAdjusted, uint256 price) {
-        price = self.price(cs().oracleDeviationPct);
-        value = _amount.wadMul(price);
-        valueAdjusted = value.wadMul(self.kFactor);
     }
 
     /**
@@ -112,12 +98,19 @@ library CAsset {
      * @return uint256 The amount for the provided value of the Kresko asset.
      */
     function debtValueToAmount(Asset memory self, uint256 _value, bool _ignoreKFactor) internal view returns (uint256) {
-        uint256 price = self.price(cs().oracleDeviationPct);
+        if (_value == 0) return 0;
+
+        uint256 currentPrice = self.price();
         if (!_ignoreKFactor) {
-            price = price.wadMul(self.kFactor);
+            currentPrice = currentPrice.percentMul(self.kFactor);
         }
 
-        return _value.wadDiv(price);
+        return _value.wadDiv(currentPrice);
+    }
+
+    /// @notice Preview SDI amount from krAsset amount.
+    function debtAmountToSDI(Asset memory asset, uint256 amount, bool ignoreFactors) internal view returns (uint256 shares) {
+        return asset.debtAmountToValue(amount, ignoreFactors).wadDiv(SDIPrice());
     }
 
     /* -------------------------------------------------------------------------- */
@@ -128,14 +121,16 @@ library CAsset {
      * @param _asset The asset being checked.
      * @param _burnAmount The amount being burned
      * @param _debtAmount The debt amount of `_account`
-     * @return amount == 0 or >= minDebtAmount
+     * @return amount >= minDebtAmount
      */
     function checkDust(Asset memory _asset, uint256 _burnAmount, uint256 _debtAmount) internal view returns (uint256 amount) {
+        if (_burnAmount == _debtAmount) return _burnAmount;
         // If the requested burn would put the user's debt position below the minimum
         // debt value, close up to the minimum debt value instead.
         uint256 krAssetValue = _asset.debtAmountToValue(_debtAmount - _burnAmount, true);
-        if (krAssetValue > 0 && krAssetValue < cs().minDebtValue) {
-            uint256 minDebtAmount = uint256(cs().minDebtValue).wadDiv(_asset.price());
+        uint256 minDebtValue = cs().minDebtValue;
+        if (krAssetValue > 0 && krAssetValue < minDebtValue) {
+            uint256 minDebtAmount = minDebtValue.wadDiv(_asset.price());
             amount = _debtAmount - minDebtAmount;
         } else {
             amount = _burnAmount;
@@ -155,8 +150,9 @@ library CAsset {
         uint256 _amount,
         uint256 _ratio
     ) internal view returns (uint256 minCollateralValue) {
+        if (_amount == 0) return 0;
         // Calculate the collateral value required to back this Kresko asset amount at the given ratio
-        return _krAsset.debtAmountToValue(_amount, false).wadMul(_ratio);
+        return _krAsset.debtAmountToValue(_amount, false).percentMul(_ratio);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -164,6 +160,7 @@ library CAsset {
     /* -------------------------------------------------------------------------- */
 
     function amountWrite(Asset memory self, uint256 _amount) internal view returns (uint256 possiblyUnrebasedAmount) {
+        if (_amount == 0) return 0;
         return self.toNonRebasingAmount(_amount);
     }
 
@@ -173,6 +170,7 @@ library CAsset {
      * @return possiblyRebasedAmount amount of collateral for `self`
      */
     function amountRead(Asset memory self, uint256 _amount) internal view returns (uint256 possiblyRebasedAmount) {
+        if (_amount == 0) return 0;
         return self.toRebasingAmount(_amount);
     }
 
@@ -182,6 +180,7 @@ library CAsset {
      * @param _nonRebasedAmount the amount to convert
      */
     function toRebasingAmount(Asset memory self, uint256 _nonRebasedAmount) internal view returns (uint256) {
+        if (_nonRebasedAmount == 0) return 0;
         if (self.anchor != address(0)) {
             return IKreskoAssetAnchor(self.anchor).convertToAssets(_nonRebasedAmount);
         }
@@ -194,6 +193,7 @@ library CAsset {
      * @param _maybeRebasedAmount the amount to convert
      */
     function toNonRebasingAmount(Asset memory self, uint256 _maybeRebasedAmount) internal view returns (uint256) {
+        if (_maybeRebasedAmount == 0) return 0;
         if (self.anchor != address(0)) {
             return IKreskoAssetAnchor(self.anchor).convertToShares(_maybeRebasedAmount);
         }

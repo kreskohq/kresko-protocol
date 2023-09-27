@@ -2,41 +2,62 @@
 pragma solidity >=0.8.19;
 
 import {WadRay} from "libs/WadRay.sol";
+import {Percentages} from "libs/Percentages.sol";
 import {toWad} from "common/funcs/Math.sol";
 import {cs} from "common/State.sol";
 import {Asset} from "common/Types.sol";
 import {SCDPState, sdi} from "scdp/State.sol";
 
-library SCommon {
+library SGlobal {
     using WadRay for uint256;
+    using Percentages for uint256;
 
     /**
      * @notice Checks whether the shared debt pool can be liquidated.
      */
     function isLiquidatableSCDP(SCDPState storage self) internal view returns (bool) {
-        return !self.checkSCDPRatio(self.liquidationThreshold);
+        return self.debtExceedsCollateral(self.liquidationThreshold);
     }
 
-    // /**
-    //  * @notice Checks whether the collateral ratio is equal to or above to ratio supplied.
-    //  * @param _collateralRatio ratio to check
-    //  */
-    // function checkSCDPRatioWithdrawal(SCDPState storage self, uint256 _collateralRatio) internal view returns (bool) {
-    //     return
-    //         self.totalCollateralValueSCDP(
-    //             false // dont ignore cFactor
-    //         ) >= self.totalDebtValueAtRatioSCDP(_collateralRatio, false); // dont ignore kFactors or MCR;
-    // }
-
     /**
-     * @notice Checks whether the collateral ratio is equal to or above to ratio supplied.
+     * @notice Checks whether the collateral value is below debt (*ratio) supplied.
      * @param _ratio ratio to check
      */
-    function checkSCDPRatio(SCDPState storage self, uint256 _ratio) internal view returns (bool) {
+    function debtExceedsCollateral(SCDPState storage self, uint256 _ratio) internal view returns (bool) {
         return
+            sdi().effectiveDebtValue().percentMul(_ratio) >
             self.totalCollateralValueSCDP(
                 false // dont ignore cFactor
-            ) >= sdi().effectiveDebtValue().wadMul(_ratio);
+            );
+    }
+
+    /**
+     * @notice Returns the value of the krAsset held in the pool at a ratio.
+     * @param _ratio ratio
+     * @param _ignorekFactor ignore kFactor
+     * @return value in USD
+     */
+    function totalDebtValueAtRatioSCDP(
+        SCDPState storage self,
+        uint256 _ratio,
+        bool _ignorekFactor
+    ) internal view returns (uint256 value) {
+        address[] memory assets = self.krAssets;
+        for (uint256 i; i < assets.length; ) {
+            Asset memory asset = cs().assets[assets[i]];
+            uint256 debtAmount = asset.toRebasingAmount(self.assetData[assets[i]].debt);
+            unchecked {
+                if (debtAmount != 0) {
+                    value += asset.debtAmountToValue(debtAmount, _ignorekFactor);
+                }
+                i++;
+            }
+        }
+
+        // We dont need to multiply this.
+        if (_ratio != 1 ether) {
+            value = value.percentMul(_ratio);
+        }
     }
 
     /**
@@ -48,29 +69,13 @@ library SCommon {
         address[] memory assets = self.collaterals;
         for (uint256 i; i < assets.length; ) {
             Asset memory asset = cs().assets[assets[i]];
-            (uint256 assetValue, ) = asset.collateralAmountToValue(self.totalDepositAmount(assets[i], asset), _ignoreFactors);
-            value += assetValue;
-
-            unchecked {
-                i++;
+            uint256 depositAmount = self.totalDepositAmount(assets[i], asset);
+            if (depositAmount != 0) {
+                (uint256 assetValue, ) = asset.collateralAmountToValue(depositAmount, _ignoreFactors);
+                unchecked {
+                    value += assetValue;
+                }
             }
-        }
-    }
-
-    /**
-     * @notice Calculates the total collateral value of collateral assets in the pool.
-     * @return value in USD
-     * @return valueAdjusted Value adjusted by cFactors in USD
-     */
-    function totalCollateralValuesSCDP(SCDPState storage self) internal view returns (uint256 value, uint256 valueAdjusted) {
-        address[] memory assets = self.collaterals;
-        for (uint256 i; i < assets.length; ) {
-            Asset memory asset = cs().assets[assets[i]];
-            (uint256 assetValue, uint256 assetValueAdjusted, ) = asset.collateralAmountToValues(
-                self.totalDepositAmount(assets[i], asset)
-            );
-            value += assetValue;
-            valueAdjusted += assetValueAdjusted;
 
             unchecked {
                 i++;
@@ -94,14 +99,17 @@ library SCommon {
         address[] memory assets = self.collaterals;
         for (uint256 i; i < assets.length; ) {
             Asset memory asset = cs().assets[assets[i]];
-            (uint256 assetValue, uint256 price) = asset.collateralAmountToValue(
-                self.totalDepositAmount(assets[i], asset),
-                _ignoreFactors
-            );
-
-            totalValue += assetValue;
-            if (assets[i] == _collateralAsset) {
-                amountValue = toWad(asset.decimals, _amount).wadMul(_ignoreFactors ? price : price.wadMul(asset.factor));
+            uint256 depositAmount = self.totalDepositAmount(assets[i], asset);
+            if (depositAmount != 0) {
+                (uint256 assetValue, uint256 price) = asset.collateralAmountToValue(depositAmount, _ignoreFactors);
+                unchecked {
+                    totalValue += assetValue;
+                }
+                if (assets[i] == _collateralAsset) {
+                    amountValue = toWad(asset.decimals, _amount).wadMul(
+                        _ignoreFactors ? price : price.percentMul(asset.factor)
+                    );
+                }
             }
 
             unchecked {
@@ -121,7 +129,7 @@ library SCommon {
         address _assetAddress,
         Asset memory _asset
     ) internal view returns (uint128) {
-        return uint128(_asset.amountRead(self.sDeposits[_assetAddress].totalDeposits));
+        return uint128(_asset.toRebasingAmount(self.assetData[_assetAddress].totalDeposits));
     }
 
     /**
@@ -134,11 +142,9 @@ library SCommon {
         SCDPState storage self,
         address _assetAddress,
         Asset memory _asset
-    ) internal view returns (uint128) {
+    ) internal view returns (uint256) {
         return
-            uint128(
-                _asset.amountRead(self.sDeposits[_assetAddress].totalDeposits - self.sDeposits[_assetAddress].swapDeposits)
-            );
+            _asset.toRebasingAmount(self.assetData[_assetAddress].totalDeposits - self.assetData[_assetAddress].swapDeposits);
     }
 
     /**
@@ -152,15 +158,6 @@ library SCommon {
         address _assetAddress,
         Asset memory _asset
     ) internal view returns (uint128) {
-        return uint128(_asset.amountRead(self.sDeposits[_assetAddress].swapDeposits));
+        return uint128(_asset.toRebasingAmount(self.assetData[_assetAddress].swapDeposits));
     }
-}
-
-/**
- * @notice Check that assets can be swapped.
- * @return feePercentage fee percentage for this swap
- */
-function getSwapFee(Asset memory _assetIn, Asset memory _assetOut) view returns (uint256 feePercentage, uint256 protocolFee) {
-    feePercentage = _assetOut.openFeeSCDP + _assetIn.closeFeeSCDP;
-    protocolFee = _assetIn.protocolFeeSCDP + _assetOut.protocolFeeSCDP;
 }

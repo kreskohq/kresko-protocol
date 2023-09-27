@@ -242,7 +242,7 @@ library LibUI {
             address assetAddress = assetAddresses[i];
             Asset memory krAsset = cs().assets[assetAddress];
             result[i] = krAssetInfo({
-                value: krAssetAmountToValue(assetAddress, 1 ether, false),
+                value: krAssetAmountToValue(assetAddress, 1e4, false),
                 oracles: krAsset.oracles,
                 assetAddress: assetAddress,
                 closeFee: krAsset.closeFee,

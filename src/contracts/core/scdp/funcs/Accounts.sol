@@ -54,23 +54,6 @@ library SAccounts {
         return depositsPrincipal;
     }
 
-    /// @notice Periphery
-    function accountDepositAmountsAndValues(
-        SCDPState storage self,
-        address _account,
-        address _assetAddr
-    ) internal view returns (UserAssetData memory result) {
-        Asset memory asset = cs().assets[_assetAddr];
-        result.depositAmountWithFees = self.accountDepositsWithFees(_account, _assetAddr, asset);
-        result.depositAmount = asset.amountRead(self.depositsPrincipal[_account][_assetAddr]);
-        if (result.depositAmountWithFees < result.depositAmount) {
-            result.depositAmount = result.depositAmountWithFees;
-        }
-        (result.depositValue, result.assetPrice) = asset.collateralAmountToValue(result.depositAmount, true);
-        (result.depositValueWithFees, ) = asset.collateralAmountToValue(result.depositAmountWithFees, true);
-        result.asset = _assetAddr;
-    }
-
     /**
      * @notice Returns the value of the deposits for `_account`.
      * @param _account Account to get total deposit value for
@@ -84,14 +67,13 @@ library SAccounts {
         address[] memory assets = self.collaterals;
         for (uint256 i; i < assets.length; ) {
             Asset memory asset = cs().assets[assets[i]];
-            (uint256 assetValue, ) = asset.collateralAmountToValue(
-                self.accountPrincipalDeposits(_account, assets[i], asset),
-                _ignoreFactors
-            );
-
-            totalValue += assetValue;
+            uint256 depositAmount = self.accountPrincipalDeposits(_account, assets[i], asset);
 
             unchecked {
+                if (depositAmount != 0) {
+                    (uint256 assetValue, ) = asset.collateralAmountToValue(depositAmount, _ignoreFactors);
+                    totalValue += assetValue;
+                }
                 i++;
             }
         }
@@ -109,44 +91,12 @@ library SAccounts {
         address[] memory assets = self.collaterals;
         for (uint256 i; i < assets.length; ) {
             Asset memory asset = cs().assets[assets[i]];
-            (uint256 assetValue, ) = asset.collateralAmountToValue(
-                self.accountDepositsWithFees(_account, assets[i], asset),
-                true
-            );
-
-            totalValue += assetValue;
-
+            uint256 depositsWithFees = self.accountDepositsWithFees(_account, assets[i], asset);
             unchecked {
-                i++;
-            }
-        }
-    }
-
-    /// @notice Periphery
-    function accountTotalDepositValues(
-        SCDPState storage self,
-        address _account,
-        address[] memory _assetData
-    ) internal view returns (uint256 totalValue, uint256 totalValueWithFees, UserAssetData[] memory datas) {
-        address[] memory assets = self.collaterals;
-        datas = new UserAssetData[](_assetData.length);
-        for (uint256 i; i < assets.length; ) {
-            address asset = assets[i];
-            UserAssetData memory assetData = self.accountDepositAmountsAndValues(_account, asset);
-
-            totalValue += assetData.depositValue;
-            totalValueWithFees += assetData.depositValueWithFees;
-
-            for (uint256 j; j < _assetData.length; ) {
-                if (asset == _assetData[j]) {
-                    datas[j] = assetData;
+                if (depositsWithFees != 0) {
+                    (uint256 assetValue, ) = asset.collateralAmountToValue(depositsWithFees, true);
+                    totalValue += assetValue;
                 }
-                unchecked {
-                    j++;
-                }
-            }
-
-            unchecked {
                 i++;
             }
         }

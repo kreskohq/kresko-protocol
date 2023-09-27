@@ -35,15 +35,20 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
 
     function setUp() public users(address(111), address(222), address(333)) {
         vm.startPrank(admin);
-
-        deployDiamond(admin, address(new MockSequencerUptimeFeed()));
+        DeployParams memory params = DeployParams({
+            admin: admin,
+            seqFeed: address(new MockSequencerUptimeFeed()),
+            minterMcr: 150e2,
+            minterLt: 140e2,
+            scdpMcr: 200e2,
+            scdpLt: 150e2
+        });
+        deployDiamond(params);
         vm.warp(3601);
-        // (usdc, usdcOracle) = deployAndWhitelistCollateral("USDC", bytes32("USDC"), 18, 1e8);
-        // (krETH, , ethOracle) = deployAndWhitelistKrAsset("krETH", bytes32("ETH"), admin, 2000e8);
-        // (KISS, , kissOracle) = deployAndWhitelistKrAsset("KISS", bytes32("KISS"), admin, 1e8);
-        // (krJPY, , jpyOracle) = deployAndWhitelistKrAsset("krJPY", bytes32("JPY"), admin, 1e8);
-        // enableSCDPCollateral(address(usdc), initialPrices);
-        // enableSCDPKrAsset(address(krETH), initialPrices);
+        (usdc, usdcOracle) = deployAndAddCollateral("USDC", bytes32("USDC"), 18, 1e8, true);
+        (krETH, , ethOracle) = deployAndWhitelistKrAsset("krETH", bytes32("ETH"), params.admin, 2000e8, true, true, false);
+        (KISS, , kissOracle) = deployAndWhitelistKrAsset("KISS", bytes32("KISS"), params.admin, 1e8, true, false, false);
+        (krJPY, , jpyOracle) = deployAndWhitelistKrAsset("krJPY", bytes32("JPY"), params.admin, 1e8, true, false, false);
         enableSwapBothWays(address(usdc), address(krETH), true);
         enableSwapSingleWay(address(krJPY), address(krETH), true);
 
@@ -54,23 +59,23 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         kresko.owner().equals(admin);
         Asset memory usdcConfig = kresko.getAsset(address(usdc));
         Asset memory krETHConfig = kresko.getAsset(address(krETH));
-        kresko.getMinCollateralRatio().equals(1.5e18);
-        kresko.getCurrentParametersSCDP().mcr.equals(2e18);
-        kresko.getCurrentParametersSCDP().lt.equals(1.5e18);
+        kresko.getMinCollateralRatio().equals(150e2);
+        kresko.getCurrentParametersSCDP().mcr.equals(200e2);
+        kresko.getCurrentParametersSCDP().lt.equals(150e2);
         usdcConfig.isSCDPCollateral.equals(true);
         usdcConfig.isSCDPDepositAsset.equals(true);
 
         usdcConfig.decimals.equals(usdc.decimals());
-        usdcConfig.depositLimitSCDP.equals(type(uint256).max);
+        usdcConfig.depositLimitSCDP.equals(type(uint128).max);
         usdcConfig.liquidityIndexSCDP.equals(1e27);
 
         krETHConfig.isKrAsset.equals(true);
         krETHConfig.isSCDPKrAsset.equals(true);
-        krETHConfig.liquidationIncentiveSCDP.equals(1.1e18);
-        krETHConfig.openFee.equals(0.005e18);
-        krETHConfig.closeFee.equals(0.005e18);
-        krETHConfig.supplyLimit.equals(type(uint256).max);
-        krETHConfig.protocolFeeSCDP.equals(0.25e18);
+        krETHConfig.liquidationIncentiveSCDP.equals(110e2);
+        krETHConfig.openFee.equals(2e2);
+        krETHConfig.closeFee.equals(2e2);
+        krETHConfig.supplyLimit.equals(type(uint128).max);
+        krETHConfig.protocolFeeSCDP.equals(25e2);
 
         kresko.getSwapEnabledSCDP(address(usdc), address(krETH)).equals(true);
         kresko.getSwapEnabledSCDP(address(krETH), address(usdc)).equals(true);
@@ -89,6 +94,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
 
         kresko.depositCollateral(user0, address(usdc), depositAmount);
         kresko.getAccountCollateralAmount(user0, address(usdc)).equals(depositAmount);
+
         staticCall(kresko.getAccountCollateralValue.selector, user0, usdcPrice).equals(100e8);
     }
 
@@ -103,7 +109,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         kresko.getAccountCollateralAmount(user0, address(usdc)).equals(depositAmount);
 
         call(kresko.mintKreskoAsset.selector, user0, address(krJPY), mintAmount, initialPrices);
-        staticCall(kresko.getAccountCollateralValue.selector, user0, usdcPrice).equals(1000e8);
+        staticCall(kresko.getAccountCollateralValue.selector, user0, usdcPrice).equals(998e8);
         staticCall(kresko.getAccountDebtValue.selector, user0, initialPrices).equals(120e8);
     }
 
@@ -119,7 +125,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
 
         call(kresko.mintKreskoAsset.selector, user0, address(krJPY), mintAmount, initialPrices);
         call(kresko.burnKreskoAsset.selector, user0, address(krJPY), mintAmount, 0, initialPrices);
-        staticCall(kresko.getAccountCollateralValue.selector, user0, usdcPrice).equals(998e8);
+        staticCall(kresko.getAccountCollateralValue.selector, user0, usdcPrice).equals(996e8);
         staticCall(kresko.getAccountDebtValue.selector, user0, initialPrices).equals(0);
     }
 
@@ -137,7 +143,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         call(kresko.burnKreskoAsset.selector, user0, address(krJPY), mintAmount, 0, initialPrices);
         call(kresko.withdrawCollateral.selector, user0, address(usdc), 998e18, 0, initialPrices);
 
-        staticCall(kresko.getAccountCollateralValue.selector, user0, usdcPrice).equals(0e8);
+        staticCall(kresko.getAccountCollateralValue.selector, user0, usdcPrice).equals(0);
         staticCall(kresko.getAccountDebtValue.selector, user0, initialPrices).equals(0);
     }
 

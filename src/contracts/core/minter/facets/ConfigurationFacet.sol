@@ -2,10 +2,10 @@
 pragma solidity >=0.8.19;
 
 import {Role} from "common/Types.sol";
-import {Error} from "common/Errors.sol";
+import {CError} from "common/Errors.sol";
 import {DiamondEvent} from "common/Events.sol";
 import {CModifiers} from "common/Modifiers.sol";
-import {Constants} from "common/Constants.sol";
+import {Percents} from "common/Constants.sol";
 import {cs} from "common/State.sol";
 
 import {DSModifiers} from "diamond/Modifiers.sol";
@@ -34,25 +34,33 @@ contract ConfigurationFacet is DSModifiers, CModifiers, IConfigurationFacet {
     }
 
     /// @inheritdoc IConfigurationFacet
-    function updateMinCollateralRatio(uint256 _newMinCollateralRatio) public override onlyRole(Role.ADMIN) {
-        require(_newMinCollateralRatio >= Constants.MIN_COLLATERALIZATION_RATIO, Error.PARAM_MIN_COLLATERAL_RATIO_LOW);
-        require(_newMinCollateralRatio >= ms().liquidationThreshold, Error.PARAM_COLLATERAL_RATIO_LOW_THAN_LT);
+    function updateMinCollateralRatio(uint32 _newMinCollateralRatio) public override onlyRole(Role.ADMIN) {
+        if (_newMinCollateralRatio < Percents.ONE_HUNDRED_PERCENT) {
+            revert CError.INVALID_MCR(_newMinCollateralRatio);
+        } else if (_newMinCollateralRatio < ms().liquidationThreshold) {
+            revert CError.INVALID_MCR(_newMinCollateralRatio);
+        }
         ms().minCollateralRatio = _newMinCollateralRatio;
         emit MEvent.MinimumCollateralizationRatioUpdated(_newMinCollateralRatio);
     }
 
     /// @inheritdoc IConfigurationFacet
-    function updateLiquidationThreshold(uint256 _newThreshold) public override onlyRole(Role.ADMIN) {
-        require(_newThreshold >= Constants.MIN_COLLATERALIZATION_RATIO, "lt-too-low");
-        require(_newThreshold <= ms().minCollateralRatio, Error.INVALID_LT);
+    function updateLiquidationThreshold(uint32 _newThreshold) public override onlyRole(Role.ADMIN) {
+        if (_newThreshold < Percents.ONE_HUNDRED_PERCENT) {
+            revert CError.INVALID_LT(_newThreshold);
+        } else if (_newThreshold > ms().minCollateralRatio) {
+            revert CError.INVALID_LT(_newThreshold);
+        }
         ms().liquidationThreshold = _newThreshold;
-        ms().maxLiquidationRatio = _newThreshold + Constants.ONE_PERCENT;
+        ms().maxLiquidationRatio = _newThreshold + Percents.ONE_PERCENT;
         emit MEvent.LiquidationThresholdUpdated(_newThreshold);
     }
 
     /// @inheritdoc IConfigurationFacet
-    function updateMaxLiquidationRatio(uint256 _newMaxLiquidationRatio) public override onlyRole(Role.ADMIN) {
-        require(_newMaxLiquidationRatio >= ms().liquidationThreshold, Error.PARAM_LIQUIDATION_OVERFLOW_LOW);
+    function updateMaxLiquidationRatio(uint32 _newMaxLiquidationRatio) public override onlyRole(Role.ADMIN) {
+        if (_newMaxLiquidationRatio < ms().liquidationThreshold) {
+            revert CError.INVALID_MLR(_newMaxLiquidationRatio);
+        }
         ms().maxLiquidationRatio = _newMaxLiquidationRatio;
 
         emit MEvent.MaxLiquidationRatioUpdated(_newMaxLiquidationRatio);
@@ -61,17 +69,13 @@ contract ConfigurationFacet is DSModifiers, CModifiers, IConfigurationFacet {
     /// @inheritdoc IConfigurationFacet
     function updateLiquidationIncentive(
         address _collateralAsset,
-        uint256 _newLiquidationIncentive
-    ) public override collateralAssetExists(_collateralAsset) onlyRole(Role.ADMIN) {
-        require(
-            _newLiquidationIncentive >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
-            Error.PARAM_LIQUIDATION_INCENTIVE_LOW
-        );
-        require(
-            _newLiquidationIncentive <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER,
-            Error.PARAM_LIQUIDATION_INCENTIVE_HIGH
-        );
-
+        uint16 _newLiquidationIncentive
+    ) public override collateralExists(_collateralAsset) onlyRole(Role.ADMIN) {
+        if (_newLiquidationIncentive < Percents.ONE_HUNDRED_PERCENT) {
+            revert CError.INVALID_LIQUIDATION_INCENTIVE(_newLiquidationIncentive);
+        } else if (_newLiquidationIncentive > Percents.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER) {
+            revert CError.INVALID_LIQUIDATION_INCENTIVE(_newLiquidationIncentive);
+        }
         cs().assets[_collateralAsset].liquidationIncentive = _newLiquidationIncentive;
         emit MEvent.LiquidationIncentiveMultiplierUpdated(_collateralAsset, _newLiquidationIncentive);
     }
@@ -79,9 +83,12 @@ contract ConfigurationFacet is DSModifiers, CModifiers, IConfigurationFacet {
     /// @inheritdoc IConfigurationFacet
     function updateCollateralFactor(
         address _collateralAsset,
-        uint256 _newFactor
-    ) public override collateralAssetExists(_collateralAsset) onlyRole(Role.ADMIN) {
-        require(_newFactor <= Constants.ONE_HUNDRED_PERCENT, Error.COLLATERAL_INVALID_FACTOR);
+        uint16 _newFactor
+    ) public override collateralExists(_collateralAsset) onlyRole(Role.ADMIN) {
+        if (_newFactor > Percents.ONE_HUNDRED_PERCENT) {
+            revert CError.INVALID_FACTOR(_newFactor);
+        }
+
         cs().assets[_collateralAsset].factor = _newFactor;
         emit MEvent.CFactorUpdated(_collateralAsset, _newFactor);
     }
@@ -89,9 +96,11 @@ contract ConfigurationFacet is DSModifiers, CModifiers, IConfigurationFacet {
     /// @inheritdoc IConfigurationFacet
     function updateKFactor(
         address _kreskoAsset,
-        uint256 _newFactor
+        uint16 _newFactor
     ) public override kreskoAssetExists(_kreskoAsset) onlyRole(Role.ADMIN) {
-        require(_newFactor >= Constants.ONE_HUNDRED_PERCENT, Error.KRASSET_INVALID_FACTOR);
+        if (_newFactor < Percents.ONE_HUNDRED_PERCENT) {
+            revert CError.INVALID_FACTOR(_newFactor);
+        }
         cs().assets[_kreskoAsset].kFactor = _newFactor;
         emit MEvent.KFactorUpdated(_kreskoAsset, _newFactor);
     }

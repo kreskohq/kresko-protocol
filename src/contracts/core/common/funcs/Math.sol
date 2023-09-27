@@ -2,21 +2,30 @@
 pragma solidity >=0.8.19;
 
 import {WadRay} from "libs/WadRay.sol";
+import {Percentages} from "libs/Percentages.sol";
 import {MaxLiqVars} from "common/Types.sol";
 import {Asset} from "common/Types.sol";
 
 using WadRay for uint256;
+using Percentages for uint256;
+using Percentages for uint16;
+using Percentages for uint32;
 
 /* -------------------------------------------------------------------------- */
 /*                                Liquidations                                */
 /* -------------------------------------------------------------------------- */
 
-function calcMaxLiqValue(MaxLiqVars memory vars, uint256 _closeFee) pure returns (uint256) {
-    return _calcMaxLiqValue(vars, (vars.debtFactor - vars.collateral.liquidationIncentive - _closeFee).wadDiv(vars.debtFactor));
+function calcMaxLiqValue(MaxLiqVars memory vars, uint16 _closeFee) pure returns (uint256) {
+    return
+        _calcMaxLiqValue(
+            vars,
+            uint32((vars.debtFactor - vars.collateral.liquidationIncentive - _closeFee).percentDiv(vars.debtFactor))
+        );
 }
 
 function calcMaxLiqValue(MaxLiqVars memory vars, Asset memory _repayKrAsset) pure returns (uint256) {
-    return _calcMaxLiqValue(vars, (vars.debtFactor - _repayKrAsset.liquidationIncentiveSCDP).wadDiv(vars.debtFactor));
+    return
+        _calcMaxLiqValue(vars, uint32((vars.debtFactor - _repayKrAsset.liquidationIncentiveSCDP).percentDiv(vars.debtFactor)));
 }
 
 /**
@@ -31,11 +40,12 @@ function calcMaxLiqValue(MaxLiqVars memory vars, Asset memory _repayKrAsset) pur
  * @param vars liquidation variables struct
  * @param _valuePerUSDRepaid Pre-calculated value per USD repaid
  */
-function _calcMaxLiqValue(MaxLiqVars memory vars, uint256 _valuePerUSDRepaid) pure returns (uint256) {
+function _calcMaxLiqValue(MaxLiqVars memory vars, uint32 _valuePerUSDRepaid) pure returns (uint256) {
     return
-        (vars.minCollateralValue - vars.accountCollateralValue).wadDiv(_valuePerUSDRepaid).wadDiv(vars.debtFactor).wadDiv(
-            vars.collateral.factor
-        );
+        (vars.minCollateralValue - vars.accountCollateralValue)
+            .percentDiv(_valuePerUSDRepaid)
+            .percentDiv(vars.debtFactor)
+            .percentDiv(vars.collateral.factor);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -48,11 +58,11 @@ function _calcMaxLiqValue(MaxLiqVars memory vars, uint256 _valuePerUSDRepaid) pu
  * @param _price The price in USD for the output asset.
  * @param _repayValue Value to be converted to amount.
  */
-function valueToAmount(uint256 _incentiveMultiplier, uint256 _price, uint256 _repayValue) pure returns (uint256) {
+function valueToAmount(uint16 _incentiveMultiplier, uint256 _price, uint256 _repayValue) pure returns (uint256) {
     // Seize amount = (repay amount USD * liquidation incentive / collateral price USD).
     // Denominate seize amount in collateral type
     // Apply liquidation incentive multiplier
-    return _repayValue.wadMul(_incentiveMultiplier).wadDiv(_price);
+    return _repayValue.percentMul(_incentiveMultiplier).wadDiv(_price);
 }
 
 /**

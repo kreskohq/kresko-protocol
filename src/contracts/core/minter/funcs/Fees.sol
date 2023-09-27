@@ -5,6 +5,7 @@ import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
 import {Arrays} from "libs/Arrays.sol";
 import {WadRay} from "libs/WadRay.sol";
+import {Percentages} from "libs/Percentages.sol";
 import {fromWad} from "common/funcs/Math.sol";
 
 import {ms} from "minter/State.sol";
@@ -14,6 +15,7 @@ import {MEvent} from "minter/Events.sol";
 
 using WadRay for uint256;
 using SafeERC20Permit for IERC20Permit;
+using Percentages for uint256;
 using Arrays for address[];
 
 /* -------------------------------------------------------------------------- */
@@ -30,7 +32,7 @@ using Arrays for address[];
  */
 function handleMinterOpenFee(address _account, Asset memory _kreskoAsset, uint256 _kreskoAssetAmountMinted) {
     // Calculate the value of the fee according to the value of the krAssets being minted.
-    uint256 feeValue = _kreskoAsset.uintUSD(_kreskoAssetAmountMinted).wadMul(_kreskoAsset.openFee);
+    uint256 feeValue = _kreskoAsset.uintUSD(_kreskoAssetAmountMinted).percentMul(_kreskoAsset.openFee);
 
     // Do nothing if the fee value is 0.
     if (feeValue == 0) {
@@ -73,7 +75,7 @@ function handleMinterOpenFee(address _account, Asset memory _kreskoAsset, uint25
  */
 function handleMinterCloseFee(address _account, Asset memory _kreskoAsset, uint256 _burnAmount) {
     // Calculate the value of the fee according to the value of the krAssets being burned.
-    uint256 feeValue = _kreskoAsset.uintUSD(_burnAmount).wadMul(_kreskoAsset.closeFee);
+    uint256 feeValue = _kreskoAsset.uintUSD(_burnAmount).percentMul(_kreskoAsset.closeFee);
 
     // Do nothing if the fee value is 0.
     if (feeValue == 0) {

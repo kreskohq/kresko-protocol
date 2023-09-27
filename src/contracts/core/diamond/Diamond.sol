@@ -7,7 +7,7 @@ pragma solidity ^0.8.0;
 
 import {Auth, Role} from "common/Auth.sol";
 import {DiamondEvent} from "common/Events.sol";
-import {Error} from "common/Errors.sol";
+import {CError} from "common/Errors.sol";
 
 import {ds} from "./State.sol";
 import {FacetCut, Initialization} from "./Types.sol";
@@ -31,7 +31,11 @@ contract Diamond {
     fallback() external payable {
         // get facet from function selectors
         address facet = ds().selectorToFacetAndPosition[msg.sig].facetAddress;
-        require(facet != address(0), Error.DIAMOND_INVALID_FUNCTION_SIGNATURE);
+
+        if (facet == address(0)) {
+            revert CError.DIAMOND_FUNCTION_NOT_FOUND();
+        }
+
         // Execute external function from facet using delegatecall and return any value.
         assembly {
             // copy function selector and any arguments

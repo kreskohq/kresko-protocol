@@ -2,6 +2,7 @@
 pragma solidity >=0.8.19;
 
 import {WadRay} from "libs/WadRay.sol";
+import {Percentages} from "libs/Percentages.sol";
 import {MaxLiqVars} from "common/Types.sol";
 import {calcMaxLiqValue} from "common/funcs/Math.sol";
 
@@ -11,6 +12,8 @@ import {scdp, sdi} from "scdp/State.sol";
 import {Asset} from "common/Types.sol";
 
 using WadRay for uint256;
+using Percentages for uint256;
+using Percentages for uint16;
 
 function maxLiqValueSCDP(
     Asset memory _repayAsset,
@@ -39,12 +42,12 @@ function _getMaxLiqVarsSCDP(
     Asset memory _seizeAsset,
     address _seizeAssetAddr
 ) view returns (MaxLiqVars memory) {
-    uint256 maxLiquidationRatio = scdp().maxLiquidationRatio;
-    uint256 minCollateralValue = sdi().effectiveDebtValue().wadMul(maxLiquidationRatio);
+    uint32 maxLiquidationRatio = scdp().maxLiquidationRatio;
+    uint256 minCollateralValue = sdi().effectiveDebtValue().percentMul(maxLiquidationRatio);
 
     (uint256 totalCollateralValue, uint256 seizeCollateralValue) = scdp().collateralValueSCDP(
         _seizeAssetAddr,
-        scdp().sDeposits[_seizeAssetAddr].totalDeposits,
+        scdp().assetData[_seizeAssetAddr].totalDeposits,
         false
     );
 
@@ -52,7 +55,7 @@ function _getMaxLiqVarsSCDP(
         MaxLiqVars({
             collateral: _seizeAsset,
             accountCollateralValue: totalCollateralValue,
-            debtFactor: uint128(_repayAsset.kFactor.wadMul(maxLiquidationRatio).wadDiv(_seizeAsset.factor)),
+            debtFactor: uint32(_repayAsset.kFactor.percentMul(maxLiquidationRatio).percentDiv(_seizeAsset.factor)),
             minCollateralValue: minCollateralValue,
             minDebtValue: cs().minDebtValue,
             seizeCollateralAccountValue: seizeCollateralValue,

@@ -2,6 +2,7 @@
 pragma solidity >=0.8.19;
 
 import {WadRay} from "libs/WadRay.sol";
+import {Percentages} from "libs/Percentages.sol";
 import {Error} from "common/Errors.sol";
 import {cs} from "common/State.sol";
 import {Asset} from "common/Types.sol";
@@ -9,6 +10,7 @@ import {MinterState} from "minter/State.sol";
 
 library MAccounts {
     using WadRay for uint256;
+    using Percentages for uint256;
 
     /* -------------------------------------------------------------------------- */
     /*                             Account Liquidation                            */
@@ -52,8 +54,11 @@ library MAccounts {
         address[] memory assets = self.mintedKreskoAssets[_account];
         for (uint256 i; i < assets.length; ) {
             Asset memory asset = cs().assets[assets[i]];
-            value += asset.debtAmountToValue(self.accountDebtAmount(_account, assets[i], asset), false);
+            uint256 debtAmount = self.accountDebtAmount(_account, assets[i], asset);
             unchecked {
+                if (debtAmount != 0) {
+                    value += asset.debtAmountToValue(debtAmount, false);
+                }
                 i++;
             }
         }
@@ -122,7 +127,7 @@ library MAccounts {
         address _account,
         uint256 _ratio
     ) internal view returns (uint256) {
-        return self.accountDebtValue(_account).wadMul(_ratio);
+        return self.accountDebtValue(_account).percentMul(_ratio);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -168,12 +173,15 @@ library MAccounts {
         address[] memory assets = self.depositedCollateralAssets[_account];
         for (uint256 i; i < assets.length; ) {
             Asset memory asset = cs().assets[assets[i]];
-            (uint256 collateralValue, ) = asset.collateralAmountToValue(
-                self.accountCollateralAmount(_account, assets[i], asset),
-                false // Take the collateral factor into consideration.
-            );
-            totalCollateralValue += collateralValue;
+            uint256 collateralAmount = self.accountCollateralAmount(_account, assets[i], asset);
             unchecked {
+                if (collateralAmount != 0) {
+                    (uint256 collateralValue, ) = asset.collateralAmountToValue(
+                        collateralAmount,
+                        false // Take the collateral factor into consideration.
+                    );
+                    totalCollateralValue += collateralValue;
+                }
                 i++;
             }
         }
@@ -183,7 +191,6 @@ library MAccounts {
 
     /**
      * @notice Gets the collateral value of a particular account including extra return value for specific collateral.
-     * @dev O(# of different deposited collateral assets by account) complexity.
      * @param _account The account to calculate the collateral value for.
      * @param _collateralAsset The collateral asset to get the collateral value.
      * @return totalCollateralValue The collateral value of a particular account.
@@ -197,16 +204,19 @@ library MAccounts {
         address[] memory assets = self.depositedCollateralAssets[_account];
         for (uint256 i; i < assets.length; ) {
             Asset memory asset = cs().assets[assets[i]];
-            (uint256 collateralValue, ) = asset.collateralAmountToValue(
-                self.accountCollateralAmount(_account, assets[i], asset),
-                false // Take the collateral factor into consideration.
-            );
-            totalCollateralValue += collateralValue;
-            if (assets[i] == _collateralAsset) {
-                specificValue = collateralValue;
-            }
+            uint256 collateralAmount = self.accountCollateralAmount(_account, assets[i], asset);
 
             unchecked {
+                if (collateralAmount != 0) {
+                    (uint256 collateralValue, ) = asset.collateralAmountToValue(
+                        collateralAmount,
+                        false // Take the collateral factor into consideration.
+                    );
+                    if (assets[i] == _collateralAsset) {
+                        specificValue = collateralValue;
+                    }
+                    totalCollateralValue += collateralValue;
+                }
                 i++;
             }
         }

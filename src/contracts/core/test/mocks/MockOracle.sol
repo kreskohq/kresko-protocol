@@ -9,10 +9,10 @@ contract MockOracle is AggregatorV3Interface {
     uint256 public override version = 1;
     int256 public initialAnswer;
 
-    constructor(string memory _description, uint256 _initialAnswer, uint8 decimals) {
+    constructor(string memory _description, uint256 _initialAnswer, uint8 _decimals) {
         description = _description;
         initialAnswer = int256(_initialAnswer);
-        decimals = decimals;
+        decimals = _decimals;
     }
 
     function setPrice(uint256 _answer) external {
@@ -24,7 +24,7 @@ contract MockOracle is AggregatorV3Interface {
     }
 
     function getRoundData(
-        uint80 _roundId
+        uint80
     )
         external
         view

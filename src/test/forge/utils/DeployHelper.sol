@@ -41,11 +41,21 @@ import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {KreskoAssetAnchor} from "kresko-asset/KreskoAssetAnchor.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 import {RedstoneHelper} from "./RedstoneHelper.sol";
+import "forge-std/Test.sol";
 
 abstract contract DeployHelper is RedstoneHelper {
     address[] internal councilUsers;
     address public constant TREASURY = address(0xFEE);
     IKresko internal kresko;
+
+    struct DeployParams {
+        uint16 minterMcr;
+        uint16 minterLt;
+        uint16 scdpMcr;
+        uint16 scdpLt;
+        address admin;
+        address seqFeed;
+    }
 
     function getInitializer(address admin, address sequencerUptimeFeed) internal returns (CommonInitArgs memory init) {
         init.admin = admin;
@@ -53,224 +63,175 @@ abstract contract DeployHelper is RedstoneHelper {
         init.council = address(LibSafe.createSafe(admin));
         init.extOracleDecimals = 8;
         init.minDebtValue = 10e8;
-        init.oracleDeviationPct = 0.01e18;
+        init.oracleDeviationPct = 0.01e4;
         init.sequencerUptimeFeed = sequencerUptimeFeed;
         init.sequencerGracePeriodTime = 3600;
-        init.oracleTimeout = type(uint48).max;
+        init.oracleTimeout = type(uint32).max;
         init.phase = 3;
     }
 
-    function getMinterInitializer(uint256 mcr, uint256 lt) internal returns (MinterInitArgs memory init) {
+    function getMinterInitializer(uint16 mcr, uint16 lt) internal pure returns (MinterInitArgs memory init) {
         init.minCollateralRatio = mcr;
         init.liquidationThreshold = lt;
     }
 
-    function deployDiamond(address admin, address seqFeed) internal returns (IKresko) {
-        /* ------------------------------ DiamondFacets ----------------------------- */
-        (FacetCut[] memory _dFacets, Initialization[] memory dInit) = diamondFacets();
-
-        kresko = IKresko(address(new Diamond(admin, _dFacets, dInit)));
-
-        // /* ------------------------------ MinterFacets ------------------------------ */
-        (FacetCut[] memory _mFacets, Initialization memory mInit) = minterFacets(admin, seqFeed);
-        kresko.diamondCut(_mFacets, mInit.initContract, mInit.initData);
-
-        // /* ------------------------------- SCDPFacets ------------------------------- */
-
-        (FacetCut[] memory _sFacets, Initialization memory sInit) = scdpFacets();
-        kresko.diamondCut(_sFacets, sInit.initContract, sInit.initData);
-        //0x5038b245
-        return (kresko);
+    function deployDiamond(DeployParams memory params) internal returns (IKresko) {
+        FacetCut[] memory facets = new FacetCut[](22);
+        Initialization[] memory initializers = new Initialization[](3);
+        /* --------------------------------- Diamond -------------------------------- */
+        diamondFacets(facets);
+        /* --------------------------------- Common --------------------------------- */
+        initializers[0] = commonFacets(params, facets);
+        /* --------------------------------- Minter --------------------------------- */
+        initializers[1] = minterFacets(params, facets);
+        /* ---------------------------------- SCDP ---------------------------------- */
+        initializers[2] = scdpFacets(params, facets);
+        return (kresko = IKresko(address(new Diamond(params.admin, facets, initializers))));
     }
 
-    function diamondFacets() internal returns (FacetCut[] memory, Initialization[] memory) {
-        FacetCut[] memory _diamondCut = new FacetCut[](4);
-        _diamondCut[0] = FacetCut({
+    function diamondFacets(FacetCut[] memory facets) internal returns (Initialization memory) {
+        facets[0] = FacetCut({
             facetAddress: address(new DiamondCutFacet()),
             action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("DiamondCutFacet")
         });
-        _diamondCut[1] = FacetCut({
+        facets[1] = FacetCut({
             facetAddress: address(new DiamondOwnershipFacet()),
             action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("DiamondOwnershipFacet")
         });
-        _diamondCut[2] = FacetCut({
+        facets[2] = FacetCut({
             facetAddress: address(new DiamondLoupeFacet()),
             action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("DiamondLoupeFacet")
         });
-        _diamondCut[3] = FacetCut({
+        facets[3] = FacetCut({
             facetAddress: address(new ERC165Facet()),
             action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("ERC165Facet")
         });
 
-        Initialization[] memory diamondInit = new Initialization[](1);
-        diamondInit[0] = Initialization({initContract: address(0), initData: ""});
-        return (_diamondCut, diamondInit);
+        return Initialization({initContract: address(0), initData: ""});
     }
 
-    function minterFacets(
-        address admin,
-        address sequencerUptimeFeed
-    ) internal returns (FacetCut[] memory, Initialization memory) {
+    function commonFacets(DeployParams memory params, FacetCut[] memory facets) internal returns (Initialization memory) {
         address configurationFacetAddress = address(new CommonConfigurationFacet());
-        FacetCut[] memory _diamondCut = new FacetCut[](12);
-
-        _diamondCut[0] = FacetCut({
-            facetAddress: address(new AuthorizationFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: DiamondHelper.getSelectorsFromArtifact("AuthorizationFacet")
-        });
-        _diamondCut[1] = FacetCut({
+        facets[4] = FacetCut({
             facetAddress: configurationFacetAddress,
             action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("CommonConfigurationFacet")
         });
-        _diamondCut[2] = FacetCut({
-            facetAddress: address(new AssetConfigurationFacet()),
+        facets[5] = FacetCut({
+            facetAddress: address(new AuthorizationFacet()),
             action: FacetCutAction.Add,
-            functionSelectors: DiamondHelper.getSelectorsFromArtifact("AssetConfigurationFacet")
+            functionSelectors: DiamondHelper.getSelectorsFromArtifact("AuthorizationFacet")
         });
-        _diamondCut[3] = FacetCut({
-            facetAddress: address(new AssetStateFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: DiamondHelper.getSelectorsFromArtifact("AssetStateFacet")
-        });
-        _diamondCut[4] = FacetCut({
-            facetAddress: address(new MintFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: DiamondHelper.getSelectorsFromArtifact("MintFacet")
-        });
-        _diamondCut[5] = FacetCut({
-            facetAddress: address(new BurnFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: DiamondHelper.getSelectorsFromArtifact("BurnFacet")
-        });
-        _diamondCut[6] = FacetCut({
-            facetAddress: address(new StateFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: DiamondHelper.getSelectorsFromArtifact("StateFacet")
-        });
-        _diamondCut[7] = FacetCut({
-            facetAddress: address(new ConfigurationFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: DiamondHelper.getSelectorsFromArtifact("ConfigurationFacet")
-        });
-        _diamondCut[8] = FacetCut({
-            facetAddress: address(new DepositWithdrawFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: DiamondHelper.getSelectorsFromArtifact("DepositWithdrawFacet")
-        });
-
-        _diamondCut[9] = FacetCut({
-            facetAddress: address(new AccountStateFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: DiamondHelper.getSelectorsFromArtifact("AccountStateFacet")
-        });
-        _diamondCut[10] = FacetCut({
-            facetAddress: address(new LiquidationFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: DiamondHelper.getSelectorsFromArtifact("LiquidationFacet")
-        });
-        _diamondCut[11] = FacetCut({
-            facetAddress: address(new SafetyCouncilFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: DiamondHelper.getSelectorsFromArtifact("SafetyCouncilFacet")
-        });
-        _diamondCut[12] = FacetCut({
+        facets[6] = FacetCut({
             facetAddress: address(new CommonStateFacet()),
             action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("CommonStateFacet")
         });
+        facets[7] = FacetCut({
+            facetAddress: address(new AssetConfigurationFacet()),
+            action: FacetCutAction.Add,
+            functionSelectors: DiamondHelper.getSelectorsFromArtifact("AssetConfigurationFacet")
+        });
+        facets[8] = FacetCut({
+            facetAddress: address(new AssetStateFacet()),
+            action: FacetCutAction.Add,
+            functionSelectors: DiamondHelper.getSelectorsFromArtifact("AssetStateFacet")
+        });
+        facets[9] = FacetCut({
+            facetAddress: address(new SafetyCouncilFacet()),
+            action: FacetCutAction.Add,
+            functionSelectors: DiamondHelper.getSelectorsFromArtifact("SafetyCouncilFacet")
+        });
+        bytes memory initData = abi.encodeWithSelector(
+            CommonConfigurationFacet.initializeCommon.selector,
+            getInitializer(params.admin, params.seqFeed)
+        );
+        return Initialization({initContract: configurationFacetAddress, initData: initData});
+    }
 
-        // _diamondCut[12] = FacetCut({
-        //     facetAddress: address(new BurnHelperFacet()),
-        //     action: FacetCutAction.Add,
-        //     functionSelectors: DiamondHelper.getSelectorsFromArtifact("BurnHelperFacet")
-        // });
+    function minterFacets(DeployParams memory params, FacetCut[] memory facets) internal returns (Initialization memory) {
+        address configurationFacetAddress = address(new ConfigurationFacet());
+        facets[10] = FacetCut({
+            facetAddress: configurationFacetAddress,
+            action: FacetCutAction.Add,
+            functionSelectors: DiamondHelper.getSelectorsFromArtifact("ConfigurationFacet")
+        });
+        facets[11] = FacetCut({
+            facetAddress: address(new MintFacet()),
+            action: FacetCutAction.Add,
+            functionSelectors: DiamondHelper.getSelectorsFromArtifact("MintFacet")
+        });
+        facets[12] = FacetCut({
+            facetAddress: address(new BurnFacet()),
+            action: FacetCutAction.Add,
+            functionSelectors: DiamondHelper.getSelectorsFromArtifact("BurnFacet")
+        });
+        facets[13] = FacetCut({
+            facetAddress: address(new StateFacet()),
+            action: FacetCutAction.Add,
+            functionSelectors: DiamondHelper.getSelectorsFromArtifact("StateFacet")
+        });
+        facets[14] = FacetCut({
+            facetAddress: address(new DepositWithdrawFacet()),
+            action: FacetCutAction.Add,
+            functionSelectors: DiamondHelper.getSelectorsFromArtifact("DepositWithdrawFacet")
+        });
+        facets[15] = FacetCut({
+            facetAddress: address(new AccountStateFacet()),
+            action: FacetCutAction.Add,
+            functionSelectors: DiamondHelper.getSelectorsFromArtifact("AccountStateFacet")
+        });
+        facets[16] = FacetCut({
+            facetAddress: address(new LiquidationFacet()),
+            action: FacetCutAction.Add,
+            functionSelectors: DiamondHelper.getSelectorsFromArtifact("LiquidationFacet")
+        });
 
         bytes memory initData = abi.encodeWithSelector(
             ConfigurationFacet.initializeMinter.selector,
-            getInitializer(admin, sequencerUptimeFeed)
+            getMinterInitializer(params.minterMcr, params.minterLt)
         );
-        return (_diamondCut, Initialization(configurationFacetAddress, initData));
+        return Initialization(configurationFacetAddress, initData);
     }
 
-    function scdpFacets() internal returns (FacetCut[] memory, Initialization memory) {
+    function scdpFacets(DeployParams memory params, FacetCut[] memory facets) internal returns (Initialization memory) {
         address configurationFacetAddress = address(new SCDPConfigFacet());
-        FacetCut[] memory _diamondCut = new FacetCut[](5);
-        _diamondCut[0] = FacetCut({
+
+        facets[17] = FacetCut({
             facetAddress: address(new SCDPFacet()),
             action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("SCDPFacet")
         });
-        _diamondCut[1] = FacetCut({
+        facets[18] = FacetCut({
             facetAddress: address(new SCDPStateFacet()),
             action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("SCDPStateFacet")
         });
-        _diamondCut[2] = FacetCut({
+        facets[19] = FacetCut({
             facetAddress: configurationFacetAddress,
             action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("SCDPConfigFacet")
         });
-        _diamondCut[3] = FacetCut({
+        facets[20] = FacetCut({
             facetAddress: address(new SCDPSwapFacet()),
             action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("SCDPSwapFacet")
         });
-        _diamondCut[4] = FacetCut({
+        facets[21] = FacetCut({
             facetAddress: address(new SDIFacet()),
             action: FacetCutAction.Add,
             functionSelectors: DiamondHelper.getSelectorsFromArtifact("SDIFacet")
         });
         bytes memory initData = abi.encodeWithSelector(
             SCDPConfigFacet.initializeSCDP.selector,
-            SCDPInitArgs({swapFeeRecipient: TREASURY, mcr: 2e18, lt: 1.5e18})
+            SCDPInitArgs({swapFeeRecipient: TREASURY, mcr: params.scdpMcr, lt: params.scdpLt})
         );
-        return (_diamondCut, Initialization(configurationFacetAddress, initData));
+        return Initialization(configurationFacetAddress, initData);
     }
-
-    // function enableSCDPCollateral(address asset, string memory prices) internal {
-    //     Asset[] memory configurations = new Asset[](1);
-    //     configurations[0] = Asset({
-    //         decimals: MockERC20(asset).decimals(),
-    //         depositLimit: type(uint128).max,
-    //         liquidityIndex: 1e27
-    //     });
-    //     address[] memory assets = new address[](1);
-    //     assets[0] = asset;
-
-    //     bytes memory redstonePayload = getRedstonePayload(prices);
-    //     (bool success, bytes memory data) = address(kresko).call(
-    //         abi.encodePacked(
-    //             abi.encodeWithSelector(kresko.enableSCDPCollateral.selector, assets, configurations),
-    //             redstonePayload
-    //         )
-    //     );
-    //     require(success, _getRevertMsg(data));
-    // }
-
-    // function enableSCDPKrAsset(address asset, string memory prices) internal {
-    //     Asset[] memory configurations = new Asset[](1);
-    //     configurations[0] = Asset({
-    //         protocolFee: 0.25e18,
-    //         liquidationIncentive: 1.1e18,
-    //         openFee: 0.005e18,
-    //         closeFee: 0.005e18,
-    //         supplyLimit: type(uint256).max
-    //     });
-    //     address[] memory assets = new address[](1);
-    //     assets[0] = asset;
-
-    //     bytes memory redstonePayload = getRedstonePayload(prices);
-    //     (bool success, bytes memory data) = address(kresko).call(
-    //         abi.encodePacked(abi.encodeWithSelector(kresko.addKrAssetsSCDP.selector, assets, configurations), redstonePayload)
-    //     );
-    //     require(success, _getRevertMsg(data));
-    // }
 
     function enableSwapBothWays(address asset0, address asset1, bool enabled) internal {
         PairSetter[] memory swapPairsEnabled = new PairSetter[](2);
@@ -286,7 +247,10 @@ abstract contract DeployHelper is RedstoneHelper {
         string memory _symbol,
         bytes32 redstoneId,
         address admin,
-        uint256 price
+        uint256 price,
+        bool asCollateral,
+        bool asSCDPKrAsset,
+        bool asSCDPDepositAsset
     ) internal returns (KreskoAsset krAsset, KreskoAssetAnchor anchor, MockOracle oracle) {
         krAsset = new KreskoAsset();
         krAsset.initialize(_symbol, _symbol, 18, admin, address(kresko));
@@ -295,56 +259,104 @@ abstract contract DeployHelper is RedstoneHelper {
 
         krAsset.grantRole(keccak256("kresko.roles.minter.operator"), address(anchor));
         oracle = new MockOracle(_symbol, price, 8);
-        OracleType[2] memory oracleTypes = [OracleType.Redstone, OracleType.Chainlink];
-        Asset memory asset = Asset({
-            supplyLimit: type(uint256).max,
-            closeFee: 0.02e18,
-            openFee: 0,
-            exists: true,
-            id: redstoneId,
-            isKrAsset: true,
-            anchor: address(anchor),
-            oracles: oracleTypes,
-            kFactor: 1.2e18
-        });
-        kresko.addAsset(address(krAsset), asset, FeedConfiguration(oracleTypes, [address(0), address(oracle)]), true);
+        addInternalAsset(
+            address(krAsset),
+            address(anchor),
+            address(oracle),
+            redstoneId,
+            asCollateral,
+            asSCDPKrAsset,
+            asSCDPDepositAsset
+        );
         return (krAsset, anchor, oracle);
     }
 
-    function deployAndWhitelistCollateral(
+    function deployAndAddCollateral(
         string memory id,
         bytes32 redstoneId,
         uint8 decimals,
-        uint256 price
+        uint256 price,
+        bool asSCDPDepositAsset
     ) internal returns (MockERC20 collateral, MockOracle oracle) {
         collateral = new MockERC20(id, id, decimals, 0);
         oracle = new MockOracle(id, price, 8);
-        OracleType[2] memory oracleTypes = [OracleType.Redstone, OracleType.Chainlink];
-        Asset memory asset = Asset({
-            factor: 1e18,
-            exists: true,
-            id: redstoneId,
-            anchor: address(0),
-            oracles: oracleTypes,
-            decimals: MockERC20(collateral).decimals(),
-            liquidationIncentive: 1.1e18
-        });
-        kresko.addAsset(address(collateral), asset, FeedConfiguration(oracleTypes, [address(0), address(oracle)]), true);
+        addExternalAsset(address(collateral), address(oracle), redstoneId, asSCDPDepositAsset);
         return (collateral, oracle);
     }
 
-    function whitelistCollateral(address collateral, address anchor, address oracle, bytes32 redstoneId) internal {
+    function addExternalAsset(address asset, address oracle, bytes32 redstoneId, bool isSCDPDepositAsset) internal {
         OracleType[2] memory oracleTypes = [OracleType.Redstone, OracleType.Chainlink];
-        Asset memory asset = Asset({
-            factor: 1e18,
-            exists: true,
-            id: redstoneId,
-            anchor: anchor,
-            oracles: oracleTypes,
-            decimals: MockERC20(collateral).decimals(),
-            liquidationIncentive: 1.1e18
-        });
-        kresko.addAsset(collateral, asset, FeedConfiguration(oracleTypes, [address(0), oracle]), false);
+        FeedConfiguration memory feeds = FeedConfiguration(oracleTypes, [address(0), oracle]);
+        Asset memory config = kresko.getAsset(asset);
+        config.id = bytes12(redstoneId);
+        config.factor = 1e4;
+        config.liquidationIncentive = 1.1e4;
+        config.isCollateral = true;
+        config.oracles = oracleTypes;
+
+        if (isSCDPDepositAsset) {
+            config.isSCDPDepositAsset = true;
+            config.isSCDPCollateral = true;
+            config.liquidationIncentiveSCDP = 1.1e4;
+            config.depositLimitSCDP = type(uint128).max;
+        }
+        kresko.addAsset(asset, config, feeds, true);
+    }
+
+    function addInternalAsset(
+        address asset,
+        address anchor,
+        address oracle,
+        bytes32 redstoneId,
+        bool isCollateral,
+        bool isSCDPKrAsset,
+        bool isSCDPDepositAsset
+    ) internal {
+        OracleType[2] memory oracleTypes = [OracleType.Redstone, OracleType.Chainlink];
+        FeedConfiguration memory feeds = FeedConfiguration(oracleTypes, [address(0), oracle]);
+        Asset memory config;
+        config.id = bytes12(redstoneId);
+        config.kFactor = 1.2e4;
+        config.liquidationIncentive = 1.1e4;
+        config.isKrAsset = true;
+        config.openFee = 0.02e4;
+        config.closeFee = 0.02e4;
+        config.anchor = anchor;
+        config.oracles = oracleTypes;
+        config.supplyLimit = type(uint128).max;
+
+        if (isCollateral) {
+            config.isCollateral = true;
+            config.factor = 1e4;
+            config.liquidationIncentive = 1.1e4;
+        }
+
+        if (isSCDPKrAsset) {
+            config.isSCDPKrAsset = true;
+            config.isSCDPCollateral = true;
+            config.openFeeSCDP = 0.02e4;
+            config.closeFeeSCDP = 0.02e4;
+            config.protocolFeeSCDP = 0.25e4;
+            config.liquidationIncentiveSCDP = 1.1e4;
+        }
+
+        if (isSCDPDepositAsset) {
+            config.isSCDPDepositAsset = true;
+            config.depositLimitSCDP = type(uint128).max;
+        }
+
+        kresko.addAsset(asset, config, feeds, true);
+    }
+
+    function whitelistCollateral(address asset) internal {
+        Asset memory config = kresko.getAsset(asset);
+        require(config.id != bytes32(0), "Asset does not exist");
+
+        config.liquidationIncentive = 1.1e4;
+        config.isCollateral = true;
+        config.factor = 1e4;
+        config.oracles = [OracleType.Redstone, OracleType.Chainlink];
+        kresko.updateAsset(asset, config);
     }
 
     function staticCall(address target, bytes4 selector, string memory prices) public returns (uint256) {
@@ -477,11 +489,11 @@ contract GnosisSafeL2Mock {
         uint256 _payment
     ) public {}
 
-    function isOwner(address owner) external view returns (bool) {
+    function isOwner(address) external pure returns (bool) {
         return true;
     }
 
-    function getOwners() external view returns (address[] memory) {
+    function getOwners() external pure returns (address[] memory) {
         address[] memory owners = new address[](6);
         owners[0] = address(0x0);
         owners[1] = address(0x011);

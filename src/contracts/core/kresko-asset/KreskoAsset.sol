@@ -158,7 +158,9 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
     /// @inheritdoc IKreskoAsset
     function mint(address _to, uint256 _amount) external onlyRole(Role.OPERATOR) {
         uint256 normalizedAmount = _amount.unrebase(_rebaseInfo);
-        _totalSupply += normalizedAmount;
+        unchecked {
+            _totalSupply += normalizedAmount;
+        }
 
         // Cannot overflow because the sum of all user
         // balances can't exceed the max uint256 value.

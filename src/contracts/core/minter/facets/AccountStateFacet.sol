@@ -2,6 +2,7 @@
 pragma solidity >=0.8.19;
 
 import {WadRay} from "libs/WadRay.sol";
+import {Percentages} from "libs/Percentages.sol";
 import {Error} from "common/Errors.sol";
 import {cs} from "common/State.sol";
 import {Asset, Fee} from "common/Types.sol";
@@ -18,6 +19,7 @@ import {ms} from "minter/State.sol";
 
 contract AccountStateFacet is IAccountStateFacet {
     using WadRay for uint256;
+    using Percentages for uint256;
 
     /// @inheritdoc IAccountStateFacet
     function getAccountLiquidatable(address _account) external view returns (bool) {
@@ -121,7 +123,9 @@ contract AccountStateFacet is IAccountStateFacet {
         Asset memory asset = cs().assets[_kreskoAsset];
 
         // Calculate the value of the fee according to the value of the krAsset
-        uint256 feeValue = asset.uintUSD(_kreskoAssetAmount).wadMul(Fee(_feeType) == Fee.Open ? asset.openFee : asset.closeFee);
+        uint256 feeValue = asset.uintUSD(_kreskoAssetAmount).percentMul(
+            Fee(_feeType) == Fee.Open ? asset.openFee : asset.closeFee
+        );
 
         address[] memory accountCollateralAssets = ms().depositedCollateralAssets[_account];
 

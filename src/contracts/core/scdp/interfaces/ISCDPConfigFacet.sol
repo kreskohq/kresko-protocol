@@ -17,13 +17,16 @@ interface ISCDPConfigFacet {
     function setFeeAssetSCDP(address asset) external;
 
     /// @notice Set the pool minimum collateralization ratio.
-    function setMinCollateralRatioSCDP(uint256 _mcr) external;
+    function setMinCollateralRatioSCDP(uint32 _mcr) external;
 
     /// @notice Set the pool liquidation threshold.
-    function setLiquidationThresholdSCDP(uint256 _lt) external;
+    function setLiquidationThresholdSCDP(uint32 _lt) external;
+
+    /// @notice Set the pool max liquidation ratio.
+    function setMaxLiquidationRatioSCDP(uint32 _mlr) external;
 
     /// @notice Set the @param _newliquidationIncentive for @param _krAsset.
-    function updateLiquidationIncentiveSCDP(address _krAsset, uint256 _newLiquidationIncentive) external;
+    function updateLiquidationIncentiveSCDP(address _krAsset, uint16 _newLiquidationIncentive) external;
 
     /**
      * @notice Update the deposit asset limit configuration.
@@ -32,7 +35,7 @@ interface ISCDPConfigFacet {
      * @param _newDepositLimit The new deposit limit for the collateral
      * emits PoolCollateralUpdated
      */
-    function updateDepositLimitSCDP(address _asset, uint256 _newDepositLimit) external;
+    function updateDepositLimitSCDP(address _asset, uint128 _newDepositLimit) external;
 
     /**
      * @notice Disabled swaps and deposits for assets.
@@ -88,5 +91,5 @@ interface ISCDPConfigFacet {
      * @param _closeFee The new close fee.
      * @param _protocolFee The protocol fee share.
      */
-    function setSwapFee(address _krAsset, uint64 _openFee, uint64 _closeFee, uint128 _protocolFee) external;
+    function setSwapFee(address _krAsset, uint16 _openFee, uint16 _closeFee, uint16 _protocolFee) external;
 }

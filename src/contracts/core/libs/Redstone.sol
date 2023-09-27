@@ -172,7 +172,9 @@ library Redstone {
         // Extracting the number of data packages from calldata
         uint256 calldataNegativeOffset = _extractByteSizeOfUnsignedMetadata();
         uint256 dataPackagesCount = _extractDataPackagesCountFromCalldata(calldataNegativeOffset);
-        calldataNegativeOffset += DATA_PACKAGES_COUNT_BS;
+        unchecked {
+            calldataNegativeOffset += DATA_PACKAGES_COUNT_BS;
+        }
 
         // Saving current free memory pointer
         uint256 freeMemPtr;
@@ -190,7 +192,9 @@ library Redstone {
                 valuesForDataFeeds,
                 calldataNegativeOffset
             );
-            calldataNegativeOffset += dataPackageByteSize;
+            unchecked {
+                calldataNegativeOffset += dataPackageByteSize;
+            }
 
             // Shifting memory pointer back to the "safe" value
             assembly {
@@ -242,42 +246,42 @@ library Redstone {
             bytes memory signedMessage;
             uint256 signedMessageBytesCount;
 
-            signedMessageBytesCount =
-                dataPointsCount.mul(eachDataPointValueByteSize + DATA_POINT_SYMBOL_BS) +
-                DATA_PACKAGE_WITHOUT_DATA_POINTS_AND_SIG_BS; //DATA_POINT_VALUE_BYTE_SIZE_BS + TIMESTAMP_BS + DATA_POINTS_COUNT_BS
+            unchecked {
+                signedMessageBytesCount =
+                    dataPointsCount.mul(eachDataPointValueByteSize + DATA_POINT_SYMBOL_BS) +
+                    DATA_PACKAGE_WITHOUT_DATA_POINTS_AND_SIG_BS; //DATA_POINT_VALUE_BYTE_SIZE_BS + TIMESTAMP_BS + DATA_POINTS_COUNT_BS
+                uint256 timestampCalldataOffset = msg.data.length.sub(
+                    calldataNegativeOffset + TIMESTAMP_NEGATIVE_OFFSET_IN_DATA_PACKAGE_WITH_STANDARD_SLOT_BS
+                );
 
-            uint256 timestampCalldataOffset = msg.data.length.sub(
-                calldataNegativeOffset + TIMESTAMP_NEGATIVE_OFFSET_IN_DATA_PACKAGE_WITH_STANDARD_SLOT_BS
-            );
+                uint256 signedMessageCalldataOffset = msg.data.length.sub(
+                    calldataNegativeOffset + SIG_BS + signedMessageBytesCount
+                );
 
-            uint256 signedMessageCalldataOffset = msg.data.length.sub(
-                calldataNegativeOffset + SIG_BS + signedMessageBytesCount
-            );
+                assembly {
+                    // Extracting the signed message
+                    signedMessage := extractBytesFromCalldata(signedMessageCalldataOffset, signedMessageBytesCount)
 
-            assembly {
-                // Extracting the signed message
-                signedMessage := extractBytesFromCalldata(signedMessageCalldataOffset, signedMessageBytesCount)
+                    // Hashing the signed message
+                    signedHash := keccak256(add(signedMessage, BYTES_ARR_LEN_VAR_BS), signedMessageBytesCount)
 
-                // Hashing the signed message
-                signedHash := keccak256(add(signedMessage, BYTES_ARR_LEN_VAR_BS), signedMessageBytesCount)
+                    // Extracting timestamp
+                    extractedTimestamp := calldataload(timestampCalldataOffset)
 
-                // Extracting timestamp
-                extractedTimestamp := calldataload(timestampCalldataOffset)
+                    function initByteArray(bytesCount) -> ptr {
+                        ptr := mload(FREE_MEMORY_PTR)
+                        mstore(ptr, bytesCount)
+                        ptr := add(ptr, BYTES_ARR_LEN_VAR_BS)
+                        mstore(FREE_MEMORY_PTR, add(ptr, bytesCount))
+                    }
 
-                function initByteArray(bytesCount) -> ptr {
-                    ptr := mload(FREE_MEMORY_PTR)
-                    mstore(ptr, bytesCount)
-                    ptr := add(ptr, BYTES_ARR_LEN_VAR_BS)
-                    mstore(FREE_MEMORY_PTR, add(ptr, bytesCount))
-                }
-
-                function extractBytesFromCalldata(offset, bytesCount) -> extractedBytes {
-                    let extractedBytesStartPtr := initByteArray(bytesCount)
-                    calldatacopy(extractedBytesStartPtr, offset, bytesCount)
-                    extractedBytes := sub(extractedBytesStartPtr, BYTES_ARR_LEN_VAR_BS)
+                    function extractBytesFromCalldata(offset, bytesCount) -> extractedBytes {
+                        let extractedBytesStartPtr := initByteArray(bytesCount)
+                        calldatacopy(extractedBytesStartPtr, offset, bytesCount)
+                        extractedBytes := sub(extractedBytesStartPtr, BYTES_ARR_LEN_VAR_BS)
+                    }
                 }
             }
-
             // Validating timestamp
             validateTimestamp(extractedTimestamp);
 
@@ -290,7 +294,7 @@ library Redstone {
         {
             bytes32 dataPointDataFeedId;
             uint256 dataPointValue;
-            for (uint256 dataPointIndex = 0; dataPointIndex < dataPointsCount; dataPointIndex++) {
+            for (uint256 dataPointIndex; dataPointIndex < dataPointsCount; ) {
                 // Extracting data feed id and value for the current data point
                 (dataPointDataFeedId, dataPointValue) = _extractDataPointValueAndDataFeedId(
                     calldataNegativeOffset,
@@ -298,7 +302,7 @@ library Redstone {
                     dataPointIndex
                 );
 
-                for (uint256 dataFeedIdIndex = 0; dataFeedIdIndex < dataFeedIds.length; dataFeedIdIndex++) {
+                for (uint256 dataFeedIdIndex; dataFeedIdIndex < dataFeedIds.length; ) {
                     if (dataPointDataFeedId == dataFeedIds[dataFeedIdIndex]) {
                         uint256 bitmapSignersForDataFeedId = signersBitmapForDataFeedIds[dataFeedIdIndex];
 
@@ -309,14 +313,15 @@ library Redstone {
                             ) /* current signer was not counted for current dataFeedId */ &&
                             uniqueSignerCountForDataFeedIds[dataFeedIdIndex] < getUniqueSignersThreshold()
                         ) {
-                            // Increase unique signer counter
-                            uniqueSignerCountForDataFeedIds[dataFeedIdIndex]++;
+                            unchecked {
+                                // Increase unique signer counter
+                                uniqueSignerCountForDataFeedIds[dataFeedIdIndex]++;
 
-                            // Add new value
-                            valuesForDataFeeds[dataFeedIdIndex][
-                                uniqueSignerCountForDataFeedIds[dataFeedIdIndex] - 1
-                            ] = dataPointValue;
-
+                                // Add new value
+                                valuesForDataFeeds[dataFeedIdIndex][
+                                    uniqueSignerCountForDataFeedIds[dataFeedIdIndex] - 1
+                                ] = dataPointValue;
+                            }
                             // Update signers bitmap
                             signersBitmapForDataFeedIds[dataFeedIdIndex] = BitmapLib.setBitInBitmap(
                                 bitmapSignersForDataFeedId,
@@ -327,12 +332,20 @@ library Redstone {
                         // Breaking, as there couldn't be several indexes for the same feed ID
                         break;
                     }
+                    unchecked {
+                        dataFeedIdIndex++;
+                    }
+                }
+                unchecked {
+                    dataPointIndex++;
                 }
             }
         }
 
         // Return total data package byte size
-        return DATA_PACKAGE_WITHOUT_DATA_POINTS_BS + (eachDataPointValueByteSize + DATA_POINT_SYMBOL_BS) * dataPointsCount;
+        unchecked {
+            return DATA_PACKAGE_WITHOUT_DATA_POINTS_BS + (eachDataPointValueByteSize + DATA_POINT_SYMBOL_BS) * dataPointsCount;
+        }
     }
 
     /**
@@ -353,7 +366,7 @@ library Redstone {
         uint256[] memory aggregatedValues = new uint256[](valuesForDataFeeds.length);
         uint256 uniqueSignersThreshold = getUniqueSignersThreshold();
 
-        for (uint256 dataFeedIndex = 0; dataFeedIndex < valuesForDataFeeds.length; dataFeedIndex++) {
+        for (uint256 dataFeedIndex; dataFeedIndex < valuesForDataFeeds.length; ) {
             if (uniqueSignerCountForDataFeedIds[dataFeedIndex] < uniqueSignersThreshold) {
                 revert RedstoneError.InsufficientNumberOfUniqueSigners(
                     uniqueSignerCountForDataFeedIds[dataFeedIndex],
@@ -362,6 +375,9 @@ library Redstone {
             }
             uint256 aggregatedValueForDataFeedId = aggregateValues(valuesForDataFeeds[dataFeedIndex]);
             aggregatedValues[dataFeedIndex] = aggregatedValueForDataFeedId;
+            unchecked {
+                dataFeedIndex++;
+            }
         }
 
         return aggregatedValues;
@@ -377,21 +393,23 @@ library Redstone {
         uint32 eachDataPointValueByteSize_;
 
         // Extract data points count
-        uint256 negativeCalldataOffset = calldataNegativeOffsetForDataPackage + SIG_BS;
-        uint256 calldataOffset = msg.data.length.sub(negativeCalldataOffset + STANDARD_SLOT_BS);
-        assembly {
-            dataPointsCount_ := calldataload(calldataOffset)
-        }
+        unchecked {
+            uint256 negativeCalldataOffset = calldataNegativeOffsetForDataPackage + SIG_BS;
+            uint256 calldataOffset = msg.data.length.sub(negativeCalldataOffset + STANDARD_SLOT_BS);
+            assembly {
+                dataPointsCount_ := calldataload(calldataOffset)
+            }
 
-        // Extract each data point value size
-        calldataOffset = calldataOffset.sub(DATA_POINTS_COUNT_BS);
-        assembly {
-            eachDataPointValueByteSize_ := calldataload(calldataOffset)
-        }
+            // Extract each data point value size
+            calldataOffset = calldataOffset.sub(DATA_POINTS_COUNT_BS);
+            assembly {
+                eachDataPointValueByteSize_ := calldataload(calldataOffset)
+            }
 
-        // Prepare returned values
-        dataPointsCount = dataPointsCount_;
-        eachDataPointValueByteSize = eachDataPointValueByteSize_;
+            // Prepare returned values
+            dataPointsCount = dataPointsCount_;
+            eachDataPointValueByteSize = eachDataPointValueByteSize_;
+        }
     }
 
     function _extractByteSizeOfUnsignedMetadata() private pure returns (uint256) {
@@ -413,24 +431,28 @@ library Redstone {
         assembly {
             unsignedMetadataByteSize := calldataload(sub(calldatasize(), REDSTONE_MARKER_BS_PLUS_STANDARD_SLOT_BS))
         }
-        uint256 calldataNegativeOffset = unsignedMetadataByteSize + UNSIGNED_METADATA_BYTE_SIZE_BS + REDSTONE_MARKER_BS;
-        if (calldataNegativeOffset + DATA_PACKAGES_COUNT_BS > msg.data.length) {
-            revert RedstoneError.IncorrectUnsignedMetadataSize();
+        unchecked {
+            uint256 calldataNegativeOffset = unsignedMetadataByteSize + UNSIGNED_METADATA_BYTE_SIZE_BS + REDSTONE_MARKER_BS;
+            if (calldataNegativeOffset + DATA_PACKAGES_COUNT_BS > msg.data.length) {
+                revert RedstoneError.IncorrectUnsignedMetadataSize();
+            }
+            return calldataNegativeOffset;
         }
-        return calldataNegativeOffset;
     }
 
     function _extractDataPackagesCountFromCalldata(
         uint256 calldataNegativeOffset
     ) private pure returns (uint16 dataPackagesCount) {
-        uint256 calldataNegativeOffsetWithStandardSlot = calldataNegativeOffset + STANDARD_SLOT_BS;
-        if (calldataNegativeOffsetWithStandardSlot > msg.data.length) {
-            revert RedstoneError.CalldataOverOrUnderFlow();
+        unchecked {
+            uint256 calldataNegativeOffsetWithStandardSlot = calldataNegativeOffset + STANDARD_SLOT_BS;
+            if (calldataNegativeOffsetWithStandardSlot > msg.data.length) {
+                revert RedstoneError.CalldataOverOrUnderFlow();
+            }
+            assembly {
+                dataPackagesCount := calldataload(sub(calldatasize(), calldataNegativeOffsetWithStandardSlot))
+            }
+            return dataPackagesCount;
         }
-        assembly {
-            dataPackagesCount := calldataload(sub(calldatasize(), calldataNegativeOffsetWithStandardSlot))
-        }
-        return dataPackagesCount;
     }
 
     function _extractDataPointValueAndDataFeedId(
@@ -524,9 +546,11 @@ library Redstone {
         uint256 calldataNegativeOffset = _extractByteSizeOfUnsignedMetadata();
         uint256 dataPackagesCount = _extractDataPackagesCountFromCalldata(calldataNegativeOffset);
         calldataNegativeOffset += DATA_PACKAGES_COUNT_BS;
-        for (uint256 dataPackageIndex = 0; dataPackageIndex < dataPackagesCount; dataPackageIndex++) {
-            uint256 dataPackageByteSize = _getDataPackageByteSize(calldataNegativeOffset);
-            calldataNegativeOffset += dataPackageByteSize;
+        for (uint256 dataPackageIndex; dataPackageIndex < dataPackagesCount; ) {
+            calldataNegativeOffset += _getDataPackageByteSize(calldataNegativeOffset);
+            unchecked {
+                dataPackageIndex++;
+            }
         }
 
         return calldataNegativeOffset;

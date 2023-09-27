@@ -4,6 +4,7 @@ pragma solidity >=0.8.19;
 import {WadRay} from "libs/WadRay.sol";
 import {Asset} from "common/Types.sol";
 import {cs} from "common/State.sol";
+import {CError} from "common/Errors.sol";
 import {SCDPState} from "scdp/State.sol";
 
 library SDeposits {
@@ -19,19 +20,23 @@ library SDeposits {
      */
     function handleDepositSCDP(SCDPState storage self, address _account, address _assetAddr, uint256 _amount) internal {
         Asset memory asset = cs().assets[_assetAddr];
-        require(asset.isSCDPDepositAsset, "deposit-not-enabled");
-        uint128 depositAmount = uint128(asset.amountWrite(_amount));
+        if (!asset.isSCDPDepositAsset) {
+            revert CError.INVALID_DEPOSIT_ASSET(_assetAddr);
+        }
+
+        uint128 depositAmount = uint128(asset.toNonRebasingAmount(_amount));
 
         unchecked {
             // Save global deposits.
-            self.sDeposits[_assetAddr].totalDeposits += depositAmount;
+            self.assetData[_assetAddr].totalDeposits += depositAmount;
             // Save principal deposits.
             self.depositsPrincipal[_account][_assetAddr] += depositAmount;
             // Save scaled deposits.
             self.deposits[_account][_assetAddr] += depositAmount.wadToRay().rayDiv(asset.liquidityIndexSCDP);
         }
-
-        require(self.userDepositAmount(_assetAddr, asset) <= asset.depositLimitSCDP, "deposit-limit");
+        if (self.userDepositAmount(_assetAddr, asset) > asset.depositLimitSCDP) {
+            revert CError.DEPOSIT_LIMIT(asset.depositLimitSCDP);
+        }
     }
 
     /**
@@ -63,7 +68,7 @@ library SDeposits {
             uint128 amountWrite = uint128(asset.amountWrite(_amount));
             unchecked {
                 // 4. Reduce global deposits.
-                self.sDeposits[_assetAddr].totalDeposits -= amountWrite;
+                self.assetData[_assetAddr].totalDeposits -= amountWrite;
                 // 5. Reduce principal deposits.
                 self.depositsPrincipal[_account][_assetAddr] -= amountWrite;
                 // 6. Reduce scaled deposits.
@@ -76,12 +81,15 @@ library SDeposits {
             // 2. With fees.
             feesOut = self.accountDepositsWithFees(_account, _assetAddr, asset) - depositsPrincipal;
             // 3. Ensure this is actually the case.
-            require(feesOut != 0, "withdrawal-violation");
+            if (feesOut == 0) {
+                revert CError.WITHDRAWAL_VIOLATION();
+            }
+
             // 4. Wipe account collateral deposits.
             self.depositsPrincipal[_account][_assetAddr] = 0;
             self.deposits[_account][_assetAddr] = 0;
             // 5. Reduce global by ONLY by the principal, fees are NOT collateral.
-            self.sDeposits[_assetAddr].totalDeposits -= uint128(asset.amountWrite(depositsPrincipal));
+            self.assetData[_assetAddr].totalDeposits -= uint128(asset.amountWrite(depositsPrincipal));
         }
     }
 
@@ -98,8 +106,10 @@ library SDeposits {
         if (swapDeposits >= _seizeAmount) {
             uint128 amountOut = uint128(_sAsset.amountWrite(_seizeAmount));
             // swap deposits cover the amount
-            self.sDeposits[_sAssetAddr].swapDeposits -= amountOut;
-            self.sDeposits[_sAssetAddr].totalDeposits -= amountOut;
+            unchecked {
+                self.assetData[_sAssetAddr].swapDeposits -= amountOut;
+                self.assetData[_sAssetAddr].totalDeposits -= amountOut;
+            }
         } else {
             // swap deposits do not cover the amount
             uint256 amountToCover = uint128(_seizeAmount - swapDeposits);
@@ -107,8 +117,8 @@ library SDeposits {
             cs().assets[_sAssetAddr].liquidityIndexSCDP -= uint128(
                 amountToCover.wadToRay().rayDiv(self.userDepositAmount(_sAssetAddr, _sAsset).wadToRay())
             );
-            self.sDeposits[_sAssetAddr].swapDeposits = 0;
-            self.sDeposits[_sAssetAddr].totalDeposits -= uint128(_sAsset.amountWrite(amountToCover));
+            self.assetData[_sAssetAddr].swapDeposits = 0;
+            self.assetData[_sAssetAddr].totalDeposits -= uint128(_sAsset.amountWrite(amountToCover));
         }
     }
 }

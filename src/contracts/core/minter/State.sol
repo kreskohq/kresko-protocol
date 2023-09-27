@@ -34,14 +34,14 @@ struct MinterState {
     /*                           Configurable Parameters                          */
     /* -------------------------------------------------------------------------- */
 
-    /// @notice Max liquidation ratio, this is the max collateral ratio liquidations can liquidate to.
-    uint256 maxLiquidationRatio;
     /// @notice The recipient of protocol fees.
     address feeRecipient;
+    /// @notice Max liquidation ratio, this is the max collateral ratio liquidations can liquidate to.
+    uint32 maxLiquidationRatio;
     /// @notice The minimum ratio of collateral to debt that can be taken by direct action.
-    uint256 minCollateralRatio;
+    uint32 minCollateralRatio;
     /// @notice The collateralization ratio at which positions may be liquidated.
-    uint256 liquidationThreshold;
+    uint32 liquidationThreshold;
 }
 
 /* -------------------------------------------------------------------------- */

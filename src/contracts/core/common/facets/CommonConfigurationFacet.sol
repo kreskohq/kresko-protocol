@@ -9,8 +9,8 @@ import {Constants} from "common/Constants.sol";
 import {CommonInitArgs, Role, NOT_ENTERED} from "common/Types.sol";
 import {ICommonConfigurationFacet} from "common/interfaces/ICommonConfigurationFacet.sol";
 import {IAuthorizationFacet} from "common/interfaces/IAuthorizationFacet.sol";
-import {Error} from "common/Errors.sol";
-import {cs} from "common/State.sol";
+import {CError, Error} from "common/Errors.sol";
+import {cs, gs} from "common/State.sol";
 import {Auth} from "common/Auth.sol";
 
 import {MEvent} from "minter/Events.sol";
@@ -18,7 +18,9 @@ import {ds} from "diamond/State.sol";
 
 contract CommonConfigurationFacet is ICommonConfigurationFacet, CModifiers, DSModifiers {
     function initializeCommon(CommonInitArgs memory args) external onlyOwner {
-        require(ds().storageVersion == 1, Error.ALREADY_INITIALIZED);
+        if (ds().storageVersion != 1) {
+            revert(Error.ALREADY_INITIALIZED);
+        }
         cs().entered = NOT_ENTERED;
         // Temporarily set ADMIN role for deployer
         Auth._grantRole(Role.DEFAULT_ADMIN, msg.sender);
@@ -54,8 +56,10 @@ contract CommonConfigurationFacet is ICommonConfigurationFacet, CModifiers, DSMo
     }
 
     /// @inheritdoc ICommonConfigurationFacet
-    function updateMinDebtValue(uint128 _newMinDebtValue) public override onlyRole(Role.ADMIN) {
-        require(_newMinDebtValue <= Constants.MAX_MIN_DEBT_VALUE, Error.PARAM_MIN_DEBT_AMOUNT_HIGH);
+    function updateMinDebtValue(uint64 _newMinDebtValue) public override onlyRole(Role.ADMIN) {
+        if (_newMinDebtValue > Constants.MAX_MIN_DEBT_VALUE) {
+            revert CError.INVALID_MIN_DEBT(_newMinDebtValue);
+        }
         cs().minDebtValue = _newMinDebtValue;
 
         emit MEvent.MinimumDebtValueUpdated(_newMinDebtValue);
@@ -63,7 +67,9 @@ contract CommonConfigurationFacet is ICommonConfigurationFacet, CModifiers, DSMo
 
     /// @inheritdoc ICommonConfigurationFacet
     function updateFeeRecipient(address _newFeeRecipient) public override onlyRole(Role.ADMIN) {
-        require(_newFeeRecipient != address(0), Error.ADDRESS_INVALID_FEERECIPIENT);
+        if (_newFeeRecipient == address(0)) {
+            revert CError.INVALID_FEE_RECIPIENT(_newFeeRecipient);
+        }
 
         cs().feeRecipient = _newFeeRecipient;
         emit MEvent.FeeRecipientUpdated(_newFeeRecipient);
@@ -75,8 +81,10 @@ contract CommonConfigurationFacet is ICommonConfigurationFacet, CModifiers, DSMo
     }
 
     /// @inheritdoc ICommonConfigurationFacet
-    function updateOracleDeviationPct(uint248 _oracleDeviationPct) public onlyRole(Role.ADMIN) {
-        require(_oracleDeviationPct <= 1 ether, Error.INVALID_ORACLE_DEVIATION_PCT);
+    function updateOracleDeviationPct(uint16 _oracleDeviationPct) public onlyRole(Role.ADMIN) {
+        if (_oracleDeviationPct > 1e4) {
+            revert CError.INVALID_ORACLE_DEVIATION(_oracleDeviationPct);
+        }
         cs().oracleDeviationPct = _oracleDeviationPct;
     }
 
@@ -86,27 +94,27 @@ contract CommonConfigurationFacet is ICommonConfigurationFacet, CModifiers, DSMo
     }
 
     /// @inheritdoc ICommonConfigurationFacet
-    function updateSequencerGracePeriodTime(uint48 _sequencerGracePeriodTime) public onlyRole(Role.ADMIN) {
+    function updateSequencerGracePeriodTime(uint24 _sequencerGracePeriodTime) public onlyRole(Role.ADMIN) {
         cs().sequencerGracePeriodTime = _sequencerGracePeriodTime;
     }
 
     /// @inheritdoc ICommonConfigurationFacet
-    function updateOracleTimeout(uint48 _oracleTimeout) public onlyRole(Role.ADMIN) {
+    function updateOracleTimeout(uint32 _oracleTimeout) public onlyRole(Role.ADMIN) {
         cs().oracleTimeout = _oracleTimeout;
     }
 
     /// @inheritdoc ICommonConfigurationFacet
     function updatePhase(uint8 _phase) public override onlyRole(Role.ADMIN) {
-        cs().phase = _phase;
+        gs().phase = _phase;
     }
 
     /// @inheritdoc ICommonConfigurationFacet
     function updateKreskian(address _kreskian) public override onlyRole(Role.ADMIN) {
-        cs().kreskian = _kreskian;
+        gs().kreskian = _kreskian;
     }
 
     /// @inheritdoc ICommonConfigurationFacet
     function updateQuestForKresk(address _questForKresk) public override onlyRole(Role.ADMIN) {
-        cs().questForKresk = _questForKresk;
+        gs().questForKresk = _questForKresk;
     }
 }

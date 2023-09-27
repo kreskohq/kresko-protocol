@@ -3,6 +3,60 @@ pragma solidity <0.9.0;
 
 /* solhint-disable max-line-length */
 
+library CError {
+    error SEIZE_UNDERFLOW(uint256, uint256);
+    error DEBT_EXCEEDS_COLLATERAL();
+    error DEPOSIT_LIMIT(uint256);
+    error INVALID_MIN_DEBT(uint256);
+    error INVALID_FEE(uint256);
+    error INVALID_MCR(uint256);
+    error COLLATERAL_DOES_NOT_EXIST(address);
+    error KRASSET_DOES_NOT_EXIST(address);
+    error INVALID_MLR(uint256);
+    error INVALID_LT(uint256);
+    error INVALID_PROTOCOL_FEE(uint256);
+    error INVALID_ORACLE_DEVIATION(uint256);
+    error INVALID_FEE_RECIPIENT(address);
+    error INVALID_LIQUIDATION_INCENTIVE(uint256);
+    error LIQUIDATION_AMOUNT_OVERFLOW(uint256, uint256);
+    error LIQUIDATION_VALUE_OVERFLOW(uint256);
+    error WITHDRAWAL_VIOLATION();
+    error INVALID_DEPOSIT_ASSET(address);
+    error IDENTICAL_ASSETS();
+    error NO_PUSH_PRICE(string);
+    error NO_PUSH_ORACLE_SET(string);
+    error ZERO_ADDRESS();
+    error ZERO_PRICE();
+    error SEQUENCER_DOWN_NO_REDSTONE_AVAILABLE();
+    error NEGATIVE_PRICE(int256);
+    error PRICE_UNSTABLE(uint256, uint256);
+    error ORACLE_ZERO_ADDRESS();
+    error ASSET_DOES_NOT_EXIST(address);
+    error ASSET_ALREADY_EXISTS(address);
+    error INVALID_ASSET_ID();
+    error MISSING_PHASE_3_NFT();
+    error MISSING_PHASE_2_NFT();
+    error MISSING_PHASE_1_NFT();
+    error DIAMOND_FUNCTION_NOT_FOUND();
+    error RE_ENTRANCY();
+    error INVALID_PRICE();
+    error INVALID_API3_PRICE();
+    error INVALID_CL_PRICE();
+    error ARRAY_LENGTH_MISMATCH(uint256, uint256);
+    error ACTION_PAUSED_FOR_ASSET();
+    error INVALID_FACTOR(uint256);
+    error INVALID_MINTER_FEE(uint256);
+    error INVALID_DECIMALS(uint256);
+    error INVALID_KRASSET_CONTRACT();
+    error INVALID_KRASSET_ANCHOR();
+    error SUPPLY_LIMIT(uint256);
+    error CANNOT_LIQUIDATE();
+    error INVALID_KRASSET_OPERATOR();
+    error ZERO_REPAY();
+    error SELF_LIQUIDATION();
+    error REPAY_OVERFLOW(uint256, uint256);
+}
+
 /**
  * @author Kresko
  * @title Error codes

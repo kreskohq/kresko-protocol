@@ -2,6 +2,7 @@
 pragma solidity >=0.8.19;
 
 import {WadRay} from "libs/WadRay.sol";
+import {Percentages} from "libs/Percentages.sol";
 import {calcMaxLiqValue} from "common/funcs/Math.sol";
 import {MaxLiqVars} from "common/Types.sol";
 import {ms} from "minter/State.sol";
@@ -9,6 +10,8 @@ import {Asset} from "common/Types.sol";
 import {cs} from "common/State.sol";
 
 using WadRay for uint256;
+using Percentages for uint256;
+using Percentages for uint16;
 
 /**
  * @dev Calculates the total value that can be liquidated for a liquidation pair
@@ -47,7 +50,7 @@ function _createVars(
     Asset memory _seizeAsset,
     address _seizeAssetAddr
 ) view returns (MaxLiqVars memory) {
-    uint256 maxLiquidationRatio = ms().maxLiquidationRatio;
+    uint32 maxLiquidationRatio = ms().maxLiquidationRatio;
     uint256 minCollateralValue = ms().accountMinCollateralAtRatio(_account, maxLiquidationRatio);
 
     (uint256 accountCollateralValue, uint256 seizeCollateralAccountValue) = ms().accountCollateralAssetValue(
@@ -59,7 +62,7 @@ function _createVars(
         MaxLiqVars({
             collateral: _seizeAsset,
             accountCollateralValue: accountCollateralValue,
-            debtFactor: uint128(_repayAsset.kFactor.wadMul(maxLiquidationRatio).wadDiv(_seizeAsset.factor)),
+            debtFactor: uint32(_repayAsset.kFactor.percentMul(maxLiquidationRatio).percentDiv(_seizeAsset.factor)),
             minCollateralValue: minCollateralValue,
             minDebtValue: cs().minDebtValue,
             seizeCollateralAccountValue: seizeCollateralAccountValue,

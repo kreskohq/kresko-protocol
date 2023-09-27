@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19;
 
-import {Error} from "common/Errors.sol";
+import {CError} from "common/Errors.sol";
 import {Auth} from "common/Auth.sol";
 import {NOT_ENTERED, ENTERED, Action} from "common/Types.sol";
-import {cs} from "common/State.sol";
+import {cs, gs} from "common/State.sol";
 import {IERC1155} from "common/interfaces/IERC1155.sol";
 
 contract CModifiers {
@@ -35,7 +35,9 @@ contract CModifiers {
     }
 
     modifier nonReentrant() {
-        require(cs().entered == NOT_ENTERED, Error.RE_ENTRANCY);
+        if (cs().entered == ENTERED) {
+            revert CError.RE_ENTRANCY();
+        }
         cs().entered = ENTERED;
         _;
         cs().entered = NOT_ENTERED;
@@ -45,17 +47,10 @@ contract CModifiers {
      * @notice Reverts if a collateral asset does not exist within the protocol.
      * @param _collateralAsset The address of the collateral asset.
      */
-    modifier collateralAssetExists(address _collateralAsset) {
-        require(cs().assets[_collateralAsset].isCollateral, Error.COLLATERAL_DOESNT_EXIST);
-        _;
-    }
-
-    /**
-     * @notice Reverts if a collateral asset already exists within the protocol.
-     * @param _collateralAsset The address of the collateral asset.
-     */
-    modifier collateralAssetDoesNotExist(address _collateralAsset) {
-        require(!cs().assets[_collateralAsset].isCollateral, Error.COLLATERAL_EXISTS);
+    modifier collateralExists(address _collateralAsset) {
+        if (!cs().assets[_collateralAsset].isCollateral) {
+            revert CError.COLLATERAL_DOES_NOT_EXIST(_collateralAsset);
+        }
         _;
     }
 
@@ -65,39 +60,37 @@ contract CModifiers {
      * @param _kreskoAsset The address of the Kresko asset.
      */
     modifier kreskoAssetExists(address _kreskoAsset) {
-        require(cs().assets[_kreskoAsset].isKrAsset, Error.KRASSET_DOESNT_EXIST);
-        _;
-    }
-
-    /**
-     * @notice Reverts if the symbol of a Kresko asset already exists within the protocol.
-     * @param _kreskoAsset The address of the Kresko asset.
-     */
-    modifier kreskoAssetDoesNotExist(address _kreskoAsset) {
-        require(!cs().assets[_kreskoAsset].isKrAsset, Error.KRASSET_EXISTS);
+        if (!cs().assets[_kreskoAsset].isKrAsset) {
+            revert CError.KRASSET_DOES_NOT_EXIST(_kreskoAsset);
+        }
         _;
     }
 
     /// @notice Reverts if the caller does not have the required NFT's for the gated phase
     modifier gate() {
-        uint8 phase = cs().phase;
+        uint8 phase = gs().phase;
         if (phase <= 2) {
-            require(IERC1155(cs().kreskian).balanceOf(msg.sender, 0) > 0, Error.MISSING_PHASE_3_NFT);
+            if (IERC1155(gs().kreskian).balanceOf(msg.sender, 0) == 0) {
+                revert CError.MISSING_PHASE_3_NFT();
+            }
         }
         if (phase == 1) {
-            require(
-                IERC1155(cs().questForKresk).balanceOf(msg.sender, 2) > 0 ||
-                    IERC1155(cs().questForKresk).balanceOf(msg.sender, 3) > 0,
-                Error.MISSING_PHASE_2_NFT
-            );
+            IERC1155 questForKresk = IERC1155(gs().questForKresk);
+            if (questForKresk.balanceOf(msg.sender, 2) == 0 && questForKresk.balanceOf(msg.sender, 3) == 0) {
+                revert CError.MISSING_PHASE_2_NFT();
+            }
         } else if (phase == 0) {
-            require(IERC1155(cs().questForKresk).balanceOf(msg.sender, 3) > 0, Error.MISSING_PHASE_1_NFT);
+            if (IERC1155(gs().questForKresk).balanceOf(msg.sender, 3) > 0) {
+                revert CError.MISSING_PHASE_1_NFT();
+            }
         }
         _;
     }
 
     /// @dev Simple check for the enabled flag
     function ensureNotPaused(address _asset, Action _action) internal view virtual {
-        require(!cs().safetyState[_asset][_action].pause.enabled, Error.ACTION_PAUSED_FOR_ASSET);
+        if (cs().safetyState[_asset][_action].pause.enabled) {
+            revert CError.ACTION_PAUSED_FOR_ASSET();
+        }
     }
 }

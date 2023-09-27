@@ -9,7 +9,7 @@ import {WadRay} from "libs/WadRay.sol";
 
 import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
 
-import {Error} from "common/Errors.sol";
+import {CError} from "common/Errors.sol";
 import {valueToAmount, fromWad} from "common/funcs/Math.sol";
 import {CModifiers} from "common/Modifiers.sol";
 import {Asset} from "common/Types.sol";
@@ -22,6 +22,7 @@ import {ms, MinterState} from "minter/State.sol";
 import {handleMinterCloseFee} from "minter/funcs/Fees.sol";
 import {maxLiquidatableValue} from "minter/funcs/Liquidations.sol";
 
+// solhint-disable code-complexity
 /**
  * @author Kresko
  * @title LiquidationFacet
@@ -49,16 +50,22 @@ contract LiquidationFacet is CModifiers, ILiquidationFacet {
 
         /* ------------------------------ Sanity checks ----------------------------- */
         {
-            // No zero repays
-            require(_repayAmount != 0, Error.ZERO_REPAY);
-            // Borrower cannot liquidate themselves
-            require(msg.sender != _account, Error.SELF_LIQUIDATION);
-            // krAsset exists
-            require(krAsset.isKrAsset, Error.KRASSET_DOESNT_EXIST);
-            // Collateral exists
-            require(collateral.isCollateral, Error.COLLATERAL_DOESNT_EXIST);
-            // Check that this account is below its minimum collateralization ratio and can be liquidated.
-            require(s.isAccountLiquidatable(_account), Error.NOT_LIQUIDATABLE);
+            if (_repayAmount == 0) {
+                // No zero repays
+                revert CError.ZERO_REPAY();
+            } else if (msg.sender == _account) {
+                // Borrower cannot liquidate themselves
+                revert CError.SELF_LIQUIDATION();
+            } else if (!krAsset.isKrAsset) {
+                // krAsset exists
+                revert CError.KRASSET_DOES_NOT_EXIST(_repayAsset);
+            } else if (!collateral.isCollateral) {
+                // Collateral exists
+                revert CError.COLLATERAL_DOES_NOT_EXIST(_seizeAsset);
+            } else if (!s.isAccountLiquidatable(_account)) {
+                // Check that this account is below its minimum collateralization ratio and can be liquidated.
+                revert CError.CANNOT_LIQUIDATE();
+            }
         }
 
         /* ------------------------------ Amount checks ----------------------------- */
@@ -71,7 +78,9 @@ contract LiquidationFacet is CModifiers, ILiquidationFacet {
             uint256 krAssetDebt = s.accountDebtAmount(_account, _repayAsset, krAsset);
 
             // Cannot liquidate more than the account's debt
-            require(krAssetDebt >= _repayAmount, Error.KRASSET_BURN_AMOUNT_OVERFLOW);
+            if (_repayAmount > krAssetDebt) {
+                revert CError.LIQUIDATION_AMOUNT_OVERFLOW(krAssetDebt, _repayAmount);
+            }
 
             // We limit liquidations to exactly Liquidation Threshold here.
             uint256 maxLiquidatableUSD = maxLiquidatableValue(_account, krAsset, collateral, _seizeAsset);
@@ -156,7 +165,7 @@ contract LiquidationFacet is CModifiers, ILiquidationFacet {
 
             return params.seizeAmount;
         } else if (collateralDeposits < params.seizeAmount) {
-            require(params.allowSeizeUnderflow, Error.SEIZED_COLLATERAL_UNDERFLOW);
+            revert CError.SEIZE_UNDERFLOW(collateralDeposits, params.seizeAmount);
         }
 
         /* ------------------- Exact or below collateral deposits ------------------- */

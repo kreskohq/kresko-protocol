@@ -9,8 +9,8 @@ pragma solidity >=0.8.19;
  * @notice Initialization arguments for the protocol
  */
 struct MinterInitArgs {
-    uint256 liquidationThreshold;
-    uint256 minCollateralRatio;
+    uint32 liquidationThreshold;
+    uint32 minCollateralRatio;
 }
 
 /**
@@ -18,7 +18,7 @@ struct MinterInitArgs {
  */
 
 struct MinterParams {
-    uint256 minCollateralRatio;
-    uint256 liquidationThreshold;
-    uint256 maxLiquidationRatio;
+    uint32 minCollateralRatio;
+    uint32 liquidationThreshold;
+    uint32 maxLiquidationRatio;
 }

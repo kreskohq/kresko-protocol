@@ -10,11 +10,11 @@ import {Role} from "common/Types.sol";
 import {DiamondEvent} from "common/Events.sol";
 import {CModifiers} from "common/Modifiers.sol";
 import {cs} from "common/State.sol";
-import {Constants} from "common/Constants.sol";
-import {Error} from "common/Errors.sol";
-
+import {Constants, Percents} from "common/Constants.sol";
+import {CError} from "common/Errors.sol";
 import {MEvent} from "minter/Events.sol";
 
+import {SError} from "scdp/Errors.sol";
 import {ISCDPConfigFacet} from "scdp/interfaces/ISCDPConfigFacet.sol";
 import {SCDPInitArgs, PairSetter} from "scdp/Types.sol";
 import {scdp} from "scdp/State.sol";
@@ -26,15 +26,19 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, CModifiers {
 
     /// @inheritdoc ISCDPConfigFacet
     function initializeSCDP(SCDPInitArgs memory _init) external onlyOwner {
-        require(_init.mcr >= Constants.MIN_COLLATERALIZATION_RATIO, "mcr-too-low");
-        require(_init.lt >= Constants.MIN_COLLATERALIZATION_RATIO, "lt-too-low");
-        require(_init.lt <= _init.mcr, "lt-too-high");
-        require(_init.swapFeeRecipient != address(0), "invalid-fee-receiver");
-
+        if (_init.mcr < Percents.ONE_HUNDRED_PERCENT + Percents.ONE_PERCENT) {
+            revert CError.INVALID_MCR(_init.mcr);
+        } else if (_init.lt < Percents.ONE_HUNDRED_PERCENT + Percents.ONE_PERCENT) {
+            revert CError.INVALID_LT(_init.lt);
+        } else if (_init.lt > _init.mcr) {
+            revert CError.INVALID_LT(_init.lt);
+        } else if (_init.swapFeeRecipient == address(0)) {
+            revert CError.INVALID_FEE_RECIPIENT(_init.swapFeeRecipient);
+        }
         scdp().minCollateralRatio = _init.mcr;
         scdp().liquidationThreshold = _init.lt;
         scdp().swapFeeRecipient = _init.swapFeeRecipient;
-        scdp().maxLiquidationRatio = _init.lt + Constants.BASIS_POINT;
+        scdp().maxLiquidationRatio = _init.lt + Percents.BASIS_POINT;
 
         emit DiamondEvent.Initialized(msg.sender, ds().storageVersion++);
     }
@@ -54,21 +58,28 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, CModifiers {
     }
 
     /// @inheritdoc ISCDPConfigFacet
-    function setMinCollateralRatioSCDP(uint256 _mcr) external onlyRole(Role.ADMIN) {
-        require(_mcr >= Constants.MIN_COLLATERALIZATION_RATIO, "mcr-too-low");
+    function setMinCollateralRatioSCDP(uint32 _mcr) external onlyRole(Role.ADMIN) {
+        if (_mcr < Percents.ONE_HUNDRED_PERCENT + Percents.ONE_PERCENT) {
+            revert CError.INVALID_MCR(_mcr);
+        }
         scdp().minCollateralRatio = _mcr;
     }
 
     /// @inheritdoc ISCDPConfigFacet
-    function setLiquidationThresholdSCDP(uint256 _lt) external onlyRole(Role.ADMIN) {
-        require(_lt >= Constants.MIN_COLLATERALIZATION_RATIO, "mcr-too-low");
-        require(_lt <= scdp().minCollateralRatio, "lt-too-high");
+    function setLiquidationThresholdSCDP(uint32 _lt) external onlyRole(Role.ADMIN) {
+        if (_lt < Percents.ONE_HUNDRED_PERCENT + Percents.ONE_PERCENT) {
+            revert CError.INVALID_LT(_lt);
+        } else if (_lt > scdp().minCollateralRatio) {
+            revert CError.INVALID_LT(_lt);
+        }
         scdp().liquidationThreshold = _lt;
-        scdp().maxLiquidationRatio = _lt + Constants.ONE_PERCENT;
+        scdp().maxLiquidationRatio = _lt + Percents.ONE_PERCENT;
     }
 
-    function setMaxLiquidationRatioSCDP(uint256 _mlr) external onlyRole(Role.ADMIN) {
-        require(_mlr >= scdp().liquidationThreshold, "mlr-too-lo");
+    function setMaxLiquidationRatioSCDP(uint32 _mlr) external onlyRole(Role.ADMIN) {
+        if (_mlr < scdp().liquidationThreshold) {
+            revert CError.INVALID_MLR(_mlr);
+        }
         scdp().maxLiquidationRatio = _mlr;
     }
 
@@ -77,24 +88,20 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, CModifiers {
     /* -------------------------------------------------------------------------- */
 
     /// @inheritdoc ISCDPConfigFacet
-    function updateDepositLimitSCDP(address _asset, uint256 _newDepositLimit) external onlyRole(Role.ADMIN) {
-        require(_newDepositLimit <= type(uint128).max, "deposit-limit-too-high");
+    function updateDepositLimitSCDP(address _asset, uint128 _newDepositLimit) external onlyRole(Role.ADMIN) {
         cs().assets[_asset].depositLimitSCDP = _newDepositLimit;
     }
 
     /// @inheritdoc ISCDPConfigFacet
     function updateLiquidationIncentiveSCDP(
         address _krAsset,
-        uint256 _newLiquidationIncentive
+        uint16 _newLiquidationIncentive
     ) public kreskoAssetExists(_krAsset) onlyRole(Role.ADMIN) {
-        require(
-            _newLiquidationIncentive >= Constants.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER,
-            Error.PARAM_LIQUIDATION_INCENTIVE_LOW
-        );
-        require(
-            _newLiquidationIncentive <= Constants.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER,
-            Error.PARAM_LIQUIDATION_INCENTIVE_HIGH
-        );
+        if (_newLiquidationIncentive < Percents.ONE_HUNDRED_PERCENT) {
+            revert CError.INVALID_LIQUIDATION_INCENTIVE(_newLiquidationIncentive);
+        } else if (_newLiquidationIncentive > Percents.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER) {
+            revert CError.INVALID_LIQUIDATION_INCENTIVE(_newLiquidationIncentive);
+        }
 
         cs().assets[_krAsset].liquidationIncentiveSCDP = _newLiquidationIncentive;
         emit MEvent.LiquidationIncentiveMultiplierUpdated(_krAsset, _newLiquidationIncentive);
@@ -184,7 +191,7 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, CModifiers {
             for (uint256 j; j < enabledKrAssets.length; j++) {
                 if (removedAsset == enabledKrAssets[j]) {
                     // Make sure the asset has no debt.
-                    require(scdp().debt[removedAsset] == 0, "remove-krasset-has-debt");
+                    require(scdp().assetData[removedAsset].debt == 0, "remove-krasset-has-debt");
                     scdp().krAssets.removeAddress(removedAsset, j);
                     scdp().isEnabled[removedAsset] = false;
                     cs().assets[removedAsset].isSCDPDepositAsset = false;
@@ -201,10 +208,17 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, CModifiers {
     /// @inheritdoc ISCDPConfigFacet
     function setSwapFee(
         address _krAsset,
-        uint64 _openFee,
-        uint64 _closeFee,
-        uint128 _protocolFee
+        uint16 _openFee,
+        uint16 _closeFee,
+        uint16 _protocolFee
     ) external onlyRole(Role.ADMIN) {
+        if (_openFee > Percents.TWENTY_FIVE) {
+            revert CError.INVALID_FEE(_openFee);
+        } else if (_closeFee > Percents.TWENTY_FIVE) {
+            revert CError.INVALID_FEE(_closeFee);
+        } else if (_protocolFee > Percents.FIFTY) {
+            revert CError.INVALID_PROTOCOL_FEE(_protocolFee);
+        }
         cs().assets[_krAsset].openFeeSCDP = _openFee;
         cs().assets[_krAsset].closeFeeSCDP = _closeFee;
         cs().assets[_krAsset].protocolFeeSCDP = _protocolFee;

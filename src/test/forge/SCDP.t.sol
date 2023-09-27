@@ -10,11 +10,17 @@ import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
 import {DeployHelper} from "./utils/DeployHelper.sol";
 import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {KreskoAssetAnchor} from "kresko-asset/KreskoAssetAnchor.sol";
+import {Asset} from "common/Types.sol";
+import {Percentages} from "libs/Percentages.sol";
+import {WadRay} from "libs/WadRay.sol";
 
 // solhint-disable
 
 contract SCDPTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
     using LibTest for *;
+    using WadRay for uint256;
+    using Percentages for uint256;
+
     address internal admin = address(0xABABAB);
 
     MockERC20 internal usdc;
@@ -42,31 +48,43 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
 
     function setUp() public users(address(11), address(22), address(33)) {
         vm.startPrank(admin);
-        deployDiamond(admin, address(new MockSequencerUptimeFeed()));
+        DeployParams memory params = DeployParams({
+            admin: admin,
+            seqFeed: address(new MockSequencerUptimeFeed()),
+            minterMcr: 150e2,
+            minterLt: 140e2,
+            scdpMcr: 200e2,
+            scdpLt: 150e2
+        });
+        deployDiamond(params);
         vm.warp(3602);
-        (usdc, usdcOracle) = deployAndWhitelistCollateral("USDC", bytes32("USDC"), 18, 1e8);
-        (KISS, aKISS, kissOracle) = deployAndWhitelistKrAsset("KISS", bytes32("KISS"), admin, 1e8);
-        (krETH, akrETH, ethOracle) = deployAndWhitelistKrAsset("krETH", bytes32("ETH"), admin, 2000e8);
-        (krJPY, akrJPY, jpyOracle) = deployAndWhitelistKrAsset("krJPY", bytes32("JPY"), admin, 1e8);
-        (krTSLA, akrTSLA, tslaOracle) = deployAndWhitelistKrAsset("krTSLA", bytes32("TSLA"), admin, 1e8);
-
+        (usdc, usdcOracle) = deployAndAddCollateral("USDC", bytes32("USDC"), 18, 1e8, true);
+        (KISS, aKISS, kissOracle) = deployAndWhitelistKrAsset("KISS", bytes32("KISS"), params.admin, 1e8, true, true, true);
+        (krETH, akrETH, ethOracle) = deployAndWhitelistKrAsset(
+            "krETH",
+            bytes32("ETH"),
+            params.admin,
+            2000e8,
+            true,
+            true,
+            false
+        );
+        (krJPY, akrJPY, jpyOracle) = deployAndWhitelistKrAsset("krJPY", bytes32("JPY"), params.admin, 1e8, true, true, false);
+        (krTSLA, akrTSLA, tslaOracle) = deployAndWhitelistKrAsset(
+            "krTSLA",
+            bytes32("TSLA"),
+            params.admin,
+            1e8,
+            true,
+            true,
+            false
+        );
         kresko.setFeeAssetSCDP(address(KISS));
-
-        // whitelistCollateral(address(KISS), address(aKISS), address(kissOracle), bytes32("KISS"));
-        // whitelistCollateral(address(krJPY), address(akrJPY), address(kissOracle), bytes32("JPY"));
-        // whitelistCollateral(address(krETH), address(akrETH), address(kissOracle), bytes32("ETH"));
-        // whitelistCollateral(address(krTSLA), address(akrTSLA), address(tslaOracle), bytes32("TSLA"));
-        // enableSCDPCollateral(address(usdc), initialPrices);
-        // enableSCDPCollateral(address(KISS), initialPrices);
-        // enableSCDPKrAsset(address(krETH), initialPrices);
-        // enableSCDPKrAsset(address(krJPY), initialPrices);
-        // enableSCDPKrAsset(address(krTSLA), initialPrices);
-        // enableSCDPKrAsset(address(KISS), initialPrices);
         enableSwapBothWays(address(KISS), address(krETH), true);
         enableSwapBothWays(address(krJPY), address(krETH), true);
         enableSwapBothWays(address(krTSLA), address(krETH), true);
         enableSwapBothWays(address(krJPY), address(krTSLA), true);
-        kresko.addAssetSDI(address(KISS), address(kissOracle), bytes32("KISS"));
+        kresko.enableCoverAssetSDI(address(KISS));
         vm.stopPrank();
         _approvals(user0);
         _approvals(user1);
@@ -76,13 +94,16 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
     function testSetup() public {
         staticCall(kresko.getEffectiveSDIDebt.selector, initialPrices).equals(0, "debt should be 0");
         staticCall(kresko.totalSDI.selector, initialPrices).equals(0, "total supply should be 0");
-        kresko.getSDICoverAsset(address(KISS)).enabled.equals(true);
+        Asset memory kissConfig = kresko.getAsset(address(KISS));
         kresko.getAsset(address(usdc)).liquidityIndexSCDP.equals(1e27);
-        kresko.getAsset(address(KISS)).liquidityIndexSCDP.equals(1e27);
+        kissConfig.liquidityIndexSCDP.equals(1e27);
+        kissConfig.isSCDPCoverAsset.equals(true);
     }
 
     function testDeposit() public {
         uint256 amount = 1000e18;
+
+        usdc.mint(user0, 1000e18);
         poolDeposit(user0, address(usdc), amount, initialPrices);
         staticCall(kresko.totalSDI.selector, initialPrices).equals(0, "total supply should be 0");
         usdc.balanceOf(address(kresko)).equals(amount);
@@ -91,7 +112,9 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
     }
 
     function testWithdraw() public {
+        usdc.mint(user0, 1000e18);
         poolDeposit(user0, address(usdc), 1000e18, initialPrices);
+
         poolWithdraw(user0, address(usdc), 1000e18, initialPrices);
         staticCall(kresko.getTotalCollateralValueSCDP.selector, true, initialPrices).equals(0);
     }
@@ -99,11 +122,18 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
     function testSwap() public {
         uint256 depositAmount = 10000e18;
         uint256 borrowAmount = 1000e18;
-        uint256 swapAmount = 1000e18;
+        uint256 swapAmount = borrowAmount / 4;
 
-        usdc.mint(user0, depositAmount);
+        usdc.mint(user0, depositAmount * 2);
         usdc.mint(user1, depositAmount);
+
+        vm.startPrank(user0);
+        kresko.depositCollateral(user0, address(usdc), depositAmount);
+        call(kresko.mintKreskoAsset.selector, user0, address(KISS), borrowAmount, initialPrices);
+
+        vm.stopPrank();
         poolDeposit(user0, address(usdc), depositAmount, initialPrices);
+        poolDeposit(user0, address(KISS), borrowAmount, initialPrices);
 
         vm.startPrank(user1);
         kresko.depositCollateral(user1, address(usdc), depositAmount);
@@ -118,10 +148,10 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
     function testCover() public {
         vm.startPrank(user0);
         initSCDPETH();
-        logSimple("#1 Init: $15,000 collateral | Swap $5,000 KISS -> krETH");
+        logSimple("#1 Init: $15,000 collateral (-fees) | Swap $5,000 KISS -> krETH (-fees)");
 
-        staticCall(kresko.getEffectiveSDIDebt.selector, initialPrices).equals(5940e18);
-        kresko.getTotalSDIDebt.equals(5940e18, "total-debt");
+        staticCall(kresko.getEffectiveSDIDebt.selector, initialPrices).equals(5760e18);
+        kresko.getTotalSDIDebt.equals(5760e18, "total-debt");
 
         changePrank(user1);
         mintKISS(user1, 1000e18);
@@ -130,14 +160,14 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         uint256 totalCoverBefore = staticCall(kresko.getSDICoverAmount.selector, initialPrices);
         totalCoverBefore.equals(1000e18, "total-cover-before");
 
-        kresko.getTotalSDIDebt.equals(5940e18, "total-debt");
-        staticCall(kresko.getEffectiveSDIDebt.selector, initialPrices).equals(4940e18);
+        kresko.getTotalSDIDebt.equals(5760e18, "total-debt");
+        staticCall(kresko.getEffectiveSDIDebt.selector, initialPrices).equals(4760e18);
         staticCall(kresko.getSDIPrice.selector, initialPrices).equals(1e8, "sdi-price");
 
         logSimple("#2 Cover 1000 KISS ($1,000)");
 
         ethOracle.setPrice(2666e8);
-        string memory newPrices = "USDC:1:8,ETH:2666:8,JPY:1:8,KISS:1:8;TSLA:1:8";
+        string memory newPrices = "USDC:1:8,ETH:2666:8,JPY:1:8,KISS:1:8,TSLA:1:8";
 
         uint256 totalCoverAfter = staticCall(kresko.getSDICoverAmount.selector, newPrices);
 
@@ -224,7 +254,6 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         swapValueWad = ((scdpDepositAmount / 2) * 1e8) / kissOracle.price();
 
         call(kresko.swapSCDP.selector, user0, address(KISS), address(krETH), swapValueWad, 0, initialPrices);
-        console.log("success");
     }
 
     function mintKISS(address user, uint256 amount) internal {
@@ -234,7 +263,6 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
     }
 
     function poolDeposit(address user, address asset, uint256 amount, string memory prices) internal prankAddr(user) {
-        MockERC20(asset).mint(user, amount);
         call(kresko.depositSCDP.selector, user, asset, amount, prices);
     }
 
