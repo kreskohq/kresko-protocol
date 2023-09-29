@@ -5,7 +5,7 @@ import {AggregatorV3Interface} from "vendor/AggregatorV3Interface.sol";
 import {IProxy} from "vendor/IProxy.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {Strings} from "libs/Strings.sol";
-import {Percentages} from "libs/Percentages.sol";
+import {PercentageMath} from "libs/PercentageMath.sol";
 import {isSequencerUp} from "common/funcs/Utils.sol";
 import {PushPrice, Oracle, OracleType} from "common/Types.sol";
 import {Percents} from "common/Constants.sol";
@@ -15,7 +15,7 @@ import {cs} from "common/State.sol";
 import {scdp, sdi} from "scdp/State.sol";
 
 using WadRay for uint256;
-using Percentages for uint256;
+using PercentageMath for uint256;
 using Strings for bytes32;
 using Strings for bytes12;
 

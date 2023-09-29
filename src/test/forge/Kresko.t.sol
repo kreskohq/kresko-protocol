@@ -6,7 +6,7 @@ import {LibTest} from "kresko-helpers/utils/LibTest.sol";
 import {TestBase} from "kresko-helpers/utils/TestBase.sol";
 import {MockOracle} from "mocks/MockOracle.sol";
 import {Strings} from "libs/Strings.sol";
-import {Percentages} from "libs/Percentages.sol";
+import {PercentageMath} from "libs/PercentageMath.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
 import {DeployHelper} from "./utils/DeployHelper.sol";
 import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
@@ -17,7 +17,7 @@ import {Asset} from "common/Types.sol";
 contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
     using LibTest for *;
     using Strings for uint256;
-    using Percentages for uint256;
+    using PercentageMath for uint256;
 
     address internal admin = address(0xABABAB);
 
@@ -79,7 +79,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         krETHConfig.openFee.equals(2e2);
         krETHConfig.closeFee.equals(2e2);
         krETHConfig.supplyLimit.equals(type(uint128).max);
-        krETHConfig.protocolFeeSCDP.equals(25e2);
+        krETHConfig.protocolFeeShareSCDP.equals(25e2);
 
         kresko.getSwapEnabledSCDP(address(usdc), address(krETH)).equals(true);
         kresko.getSwapEnabledSCDP(address(krETH), address(usdc)).equals(true);

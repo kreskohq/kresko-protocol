@@ -3,7 +3,7 @@ pragma solidity >=0.8.19;
 
 import {SafeERC20Permit, IERC20Permit} from "vendor/SafeERC20Permit.sol";
 import {WadRay} from "libs/WadRay.sol";
-import {Percentages} from "libs/Percentages.sol";
+import {PercentageMath} from "libs/PercentageMath.sol";
 import {CModifiers} from "common/Modifiers.sol";
 import {cs} from "common/State.sol";
 import {Asset} from "common/Types.sol";
@@ -19,7 +19,7 @@ import "hardhat/console.sol";
 contract SCDPSwapFacet is ISCDPSwapFacet, CModifiers {
     using SafeERC20Permit for IERC20Permit;
     using WadRay for uint256;
-    using Percentages for uint256;
+    using PercentageMath for uint256;
 
     /// @inheritdoc ISCDPSwapFacet
     function cumulateIncomeSCDP(address _incomeAsset, uint256 _amount) external nonReentrant returns (uint256) {

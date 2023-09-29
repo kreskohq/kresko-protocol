@@ -84,13 +84,13 @@ interface IAccountStateFacet {
      * @dev The adjusted value of collateral is the value of collateral after adjusting for the cFactor
      * @param _account The account to get the collateral values for.
      * @param _asset The asset to get the collateral values for.
-     * @return adjustedValue The adjusted value of the collateral.
-     * @return realValue The real value of the collateral.
+     * @return value The unadjusted value of the collateral.
+     * @return valueAdjusted The adjusted value of the collateral.
      */
     function getAccountCollateralValueOf(
         address _account,
         address _asset
-    ) external view returns (uint256 adjustedValue, uint256 realValue);
+    ) external view returns (uint256 value, uint256 valueAdjusted);
 
     /**
      * @notice Gets an index for the collateral asset the account has deposited.

@@ -61,15 +61,15 @@ struct UserAssetData {
     address asset;
     uint256 assetPrice;
     uint256 depositAmount;
-    uint256 depositAmountWithFees;
+    uint256 scaledDepositAmount;
     uint256 depositValue;
-    uint256 depositValueWithFees;
+    uint256 scaledDepositValue;
 }
 
 struct UserData {
     address account;
     uint256 totalDepositValue;
-    uint256 totalDepositValueWithFees;
+    uint256 totalScaledDepositValue;
     uint256 totalFeesValue;
     UserAssetData[] deposits;
 }

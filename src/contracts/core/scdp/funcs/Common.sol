@@ -70,8 +70,7 @@ library SGlobal {
             Asset memory asset = cs().assets[assets[i]];
             uint256 depositAmount = self.totalDepositAmount(assets[i], asset);
             if (depositAmount != 0) {
-                (uint256 assetValue, ) = asset.collateralAmountToValue(depositAmount, _ignoreFactors);
-                value += assetValue;
+                value += asset.collateralAmountToValue(depositAmount, _ignoreFactors);
             }
 
             unchecked {
@@ -98,7 +97,7 @@ library SGlobal {
             Asset memory asset = cs().assets[assets[i]];
             uint256 depositAmount = self.totalDepositAmount(assets[i], asset);
             if (depositAmount != 0) {
-                (uint256 assetValue, uint256 price) = asset.collateralAmountToValue(depositAmount, _ignoreFactors);
+                (uint256 assetValue, uint256 price) = asset.collateralAmountToValueWithPrice(depositAmount, _ignoreFactors);
                 totalValue += assetValue;
                 if (assets[i] == _collateralAsset) {
                     amountValue = toWad(asset.decimals, _amount).wadMul(_ignoreFactors ? price : price.wadMul(asset.factor));
@@ -122,7 +121,7 @@ library SGlobal {
         address _assetAddress,
         Asset memory _asset
     ) internal view returns (uint128) {
-        return uint128(_asset.amountRead(self.assetData[_assetAddress].totalDeposits));
+        return uint128(_asset.toRebasingAmount(self.assetData[_assetAddress].totalDeposits));
     }
 
     /**
@@ -137,7 +136,7 @@ library SGlobal {
         Asset memory _asset
     ) internal view returns (uint256) {
         SCDPAssetData memory assetData = self.assetData[_assetAddress];
-        return _asset.amountRead(assetData.totalDeposits - assetData.swapDeposits);
+        return _asset.toRebasingAmount(assetData.totalDeposits - assetData.swapDeposits);
     }
 
     /**
@@ -151,6 +150,6 @@ library SGlobal {
         address _assetAddress,
         Asset memory _asset
     ) internal view returns (uint128) {
-        return uint128(_asset.amountRead(self.assetData[_assetAddress].swapDeposits));
+        return uint128(_asset.toRebasingAmount(self.assetData[_assetAddress].swapDeposits));
     }
 }

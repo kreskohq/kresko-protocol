@@ -18,13 +18,13 @@ export const getAssetConfig = async (
 ): Promise<AssetConfig> => {
     if (!config.krAssetConfig && !config.collateralConfig && !config.scdpDepositConfig && !config.scdpKrAssetConfig)
         throw new Error("No config provided");
-    const redstoneId = defaultRedstoneDataPoints.find(i => i.dataFeedId === config.id);
-    if (!redstoneId) throw new Error(`No redstoneId found for ${config.id}`);
+    const configuredDataPoint = defaultRedstoneDataPoints.find(i => i.dataFeedId === config.underlyingId);
+    if (!configuredDataPoint) throw new Error(`No configure price data point: ${config.symbol} ${config.underlyingId}`);
 
     const [decimals, symbol] = await Promise.all([asset.decimals(), asset.symbol()]);
 
     let assetStruct: AssetStruct = {
-        id: formatBytesString(redstoneId.dataFeedId, 12),
+        underlyingId: formatBytesString(config.underlyingId, 12),
         oracles: (config.oracleIds as any) ?? [OracleType.Redstone, OracleType.Chainlink],
         isCollateral: !!config.collateralConfig,
         isSCDPDepositAsset: !!config.scdpDepositConfig,
@@ -33,10 +33,10 @@ export const getAssetConfig = async (
         factor: config.collateralConfig?.cFactor ?? 0,
         liqIncentive: config.collateralConfig?.liqIncentive ?? 0,
         depositLimitSCDP: config.scdpDepositConfig?.depositLimitSCDP ?? 0,
-        openFeeSCDP: config.scdpKrAssetConfig?.openFeeSCDP ?? 0,
-        closeFeeSCDP: config.scdpKrAssetConfig?.closeFeeSCDP ?? 0,
+        swapInFeeSCDP: config.scdpKrAssetConfig?.swapInFeeSCDP ?? 0,
+        swapOutFeeSCDP: config.scdpKrAssetConfig?.swapOutFeeSCDP ?? 0,
         liqIncentiveSCDP: config.scdpKrAssetConfig?.liqIncentiveSCDP ?? 0,
-        protocolFeeSCDP: config.scdpKrAssetConfig?.protocolFeeSCDP ?? 0,
+        protocolFeeShareSCDP: config.scdpKrAssetConfig?.protocolFeeShareSCDP ?? 0,
         kFactor: config.krAssetConfig?.kFactor ?? 0,
         supplyLimit: config.krAssetConfig?.supplyLimit ?? 0,
         closeFee: config.krAssetConfig?.closeFee ?? 0,
@@ -95,8 +95,8 @@ export const wrapContractWithSigner = <T>(contract: T, signer: Signer) =>
     }) as T;
 
 export const getHealthFactor = async (user: SignerWithAddress) => {
-    const accountKrAssetValue = (await hre.Diamond.getAccountDebtValue(user.address)).toJS(8);
-    const accountCollateral = (await hre.Diamond.getAccountCollateralValue(user.address)).toJS(8);
+    const accountKrAssetValue = (await hre.Diamond.getAccountDebtValue(user.address)).num(8);
+    const accountCollateral = (await hre.Diamond.getAccountCollateralValue(user.address)).num(8);
 
     return accountCollateral / accountKrAssetValue;
 };

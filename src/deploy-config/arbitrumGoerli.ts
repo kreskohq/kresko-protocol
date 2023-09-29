@@ -20,18 +20,6 @@ import {
 import { ethers } from "ethers";
 import { toBig } from "@utils/values";
 
-export const redstoneMap = {
-    krETH: "ETH",
-    krBTC: "BTC",
-    krTSLA: "TSLA",
-    WETH: "ETH",
-    ETH: "ETH",
-    WBTC: "BTC",
-    KISS: "USDC",
-    DAI: "DAI",
-    USDC: "USDC",
-};
-
 export const oracles = {
     ARB: {
         name: "ARB/USD",
@@ -87,7 +75,7 @@ export type AssetConfigExtended = AssetArgs & {
 };
 export const assets = {
     DAI: {
-        id: "DAI",
+        underlyingId: "DAI",
         name: "Dai",
         symbol: "DAI",
         decimals: 18,
@@ -104,7 +92,7 @@ export const assets = {
         mintAmount: 1_000_000,
     },
     WETH: {
-        id: "ETH",
+        underlyingId: "ETH",
         name: "Wrapped Ether",
         symbol: "WETH",
         decimals: 18,
@@ -119,7 +107,7 @@ export const assets = {
     },
     // KRASSETS
     KISS: {
-        id: "KISS",
+        underlyingId: "KISS",
         name: "Kresko Integrated Stable System",
         symbol: "KISS",
         decimals: 18,
@@ -139,15 +127,15 @@ export const assets = {
             supplyLimit: defaultSupplyLimit,
         },
         scdpKrAssetConfig: {
-            openFeeSCDP: 0,
-            closeFeeSCDP: 0.02e4,
-            protocolFeeSCDP: 0.005e4,
+            swapInFeeSCDP: 0,
+            swapOutFeeSCDP: 0.02e4,
+            protocolFeeShareSCDP: 0.005e4,
             liqIncentiveSCDP: 1.05e4,
         },
         mintAmount: 50_000_000,
     },
     krBTC: {
-        id: "BTC",
+        underlyingId: "BTC",
         name: "Kresko Asset: Bitcoin",
         symbol: "krBTC",
         decimals: 18,
@@ -169,7 +157,7 @@ export const assets = {
         mintAmount: 5,
     },
     krETH: {
-        id: "ETH",
+        underlyingId: "ETH",
         name: "Kresko Assets: Ether",
         symbol: "krETH",
         decimals: 18,
@@ -224,8 +212,8 @@ export const minterInitArgs: MinterInitArgsStruct = {
     liquidationThreshold: 1.4e4,
 };
 export const scdpInitArgs: SCDPInitArgsStruct = {
-    minCollateralRatio: 1.5e4,
-    liquidationThreshold: 1.4e4,
+    minCollateralRatio: 5e4,
+    liquidationThreshold: 2e4,
     swapFeeRecipient: "",
 };
 export const testnetConfigs: NetworkConfig = {

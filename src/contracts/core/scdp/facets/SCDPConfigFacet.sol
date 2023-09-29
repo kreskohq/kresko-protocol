@@ -218,9 +218,9 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, CModifiers {
         } else if (_protocolFee > Percents.FIFTY) {
             revert CError.INVALID_PROTOCOL_FEE(_krAsset, _protocolFee, Percents.FIFTY);
         }
-        cs().assets[_krAsset].openFeeSCDP = _openFee;
-        cs().assets[_krAsset].closeFeeSCDP = _closeFee;
-        cs().assets[_krAsset].protocolFeeSCDP = _protocolFee;
+        cs().assets[_krAsset].swapInFeeSCDP = _openFee;
+        cs().assets[_krAsset].swapOutFeeSCDP = _closeFee;
+        cs().assets[_krAsset].protocolFeeShareSCDP = _protocolFee;
         emit SEvent.FeeSet(_krAsset, _openFee, _closeFee, _protocolFee);
     }
 

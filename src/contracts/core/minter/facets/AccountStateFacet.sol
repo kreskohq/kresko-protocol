@@ -2,7 +2,7 @@
 pragma solidity >=0.8.19;
 
 import {WadRay} from "libs/WadRay.sol";
-import {Percentages} from "libs/Percentages.sol";
+import {PercentageMath} from "libs/PercentageMath.sol";
 import {Error} from "common/Errors.sol";
 import {cs} from "common/State.sol";
 import {Asset, Fee} from "common/Types.sol";
@@ -10,6 +10,7 @@ import {fromWad} from "common/funcs/Math.sol";
 
 import {IAccountStateFacet} from "minter/interfaces/IAccountStateFacet.sol";
 import {ms} from "minter/State.sol";
+import {collateralAmountToValues, debtAmountToValues} from "common/funcs/Helpers.sol";
 
 /**
  * @author Kresko
@@ -19,7 +20,7 @@ import {ms} from "minter/State.sol";
 
 contract AccountStateFacet is IAccountStateFacet {
     using WadRay for uint256;
-    using Percentages for uint256;
+    using PercentageMath for uint256;
 
     /// @inheritdoc IAccountStateFacet
     function getAccountLiquidatable(address _account) external view returns (bool) {
@@ -97,9 +98,9 @@ contract AccountStateFacet is IAccountStateFacet {
     function getAccountCollateralValueOf(
         address _account,
         address _asset
-    ) external view returns (uint256 adjustedValue, uint256 realValue) {
+    ) external view returns (uint256 value, uint256 adjustedValue) {
         Asset memory asset = cs().assets[_asset];
-        return asset.collateralAmountToValue(ms().accountCollateralAmount(_account, _asset, asset), false);
+        (value, adjustedValue, ) = collateralAmountToValues(asset, ms().accountCollateralAmount(_account, _asset, asset));
     }
 
     /// @inheritdoc IAccountStateFacet
@@ -145,7 +146,7 @@ contract AccountStateFacet is IAccountStateFacet {
             uint256 depositAmount = ms().accountCollateralAmount(_account, collateralAssetAddress, collateralAsset);
 
             // Don't take the collateral asset's collateral factor into consideration.
-            (uint256 depositValue, uint256 oraclePrice) = collateralAsset.collateralAmountToValue(depositAmount, true);
+            (uint256 depositValue, uint256 oraclePrice) = collateralAsset.collateralAmountToValueWithPrice(depositAmount, true);
 
             uint256 feeValuePaid;
             uint256 transferAmount;

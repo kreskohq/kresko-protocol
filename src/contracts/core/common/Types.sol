@@ -10,9 +10,9 @@ using CAsset for Asset global;
 /* -------------------------------------------------------------------------- */
 
 library Role {
-    /// @dev role that grants other roles
+    /// @dev Meta role for all roles.
     bytes32 internal constant DEFAULT_ADMIN = 0x00;
-    /// @dev  keccak256("kresko.roles.minter.admin")
+    /// @dev keccak256("kresko.roles.minter.admin")
     bytes32 internal constant ADMIN = 0xb9dacdf02281f2e98ddbadaaf44db270b3d5a916342df47c59f77937a6bcd5d8;
     /// @dev keccak256("kresko.roles.minter.operator")
     bytes32 internal constant OPERATOR = 0x112e48a576fb3a75acc75d9fcf6e0bc670b27b1dbcd2463502e10e68cf57d6fd;
@@ -26,19 +26,21 @@ library Role {
 /*                                 Reentrancy                                 */
 /* -------------------------------------------------------------------------- */
 
-/// @dev set the initial value to 1 as we do not
-/// wanna hinder possible gas refunds by setting it to 0 on exit.
+/// @dev Set the initial value to 1, (not hindering possible gas refunds by setting it to 0 on exit).
 uint8 constant NOT_ENTERED = 1;
 uint8 constant ENTERED = 2;
 
 /* ========================================================================== */
 /*                                   Structs                                  */
 /* ========================================================================== */
+
+/// @notice Oracle configuration mapped to `Asset.underlyingId`.
 struct Oracle {
     address feed;
     function(address) external view returns (uint256) priceGetter;
 }
 
+/// @notice Supported oracle providers.
 enum OracleType {
     Redstone,
     Chainlink,
@@ -46,9 +48,9 @@ enum OracleType {
 }
 
 /**
- * @notice Configuration for an oracle.
- * @param oracleIds The oracle identifiers.
- * @param feeds The feed addresses.
+ * @notice Feed configuration.
+ * @param oracleIds List of two supported oracle providers.
+ * @param feeds List of two feed addresses matching to the providers supplied. Redstone will be address(0).
  */
 struct FeedConfiguration {
     OracleType[2] oracleIds;
@@ -56,60 +58,82 @@ struct FeedConfiguration {
 }
 
 /**
- * @notice Information on an asset that can be used within the protocol.
+ * @title Protocol Asset Configuration
+ * @author Kresko
+ * @notice All assets in the protocol share this configuration.
+ * @notice underlyingId is not unique, eg. krETH and WETH both would use bytes12('ETH')
+ * @dev Percentages use 2 decimals: 1e4 (10000) == 100.00%. See {PercentageMath.sol}.
+ * @dev Note that the percentage value for uint16 caps at 655.36%.
  */
 struct Asset {
-    /// @notice The bytes identifier, eg. bytes16('ETH'), derived from Redstone ID. Used mainly for oracle
-    bytes12 id;
-    /// @notice If the asset is a KreskoAsset, the anchor address.
+    /// @notice Bytes identifier for the underlying, not unique, matches Redstone IDs. eg. bytes12('ETH').
+    /// @notice Packed to 12, so maximum 12 chars.
+    bytes12 underlyingId;
+    /// @notice Kresko Asset Anchor address.
     address anchor;
-    /// @notice The oracle ordering for the asset. 0 is primary and 1 is the reference price.
+    /// @notice Oracle provider priority for this asset.
+    /// @notice Provider at index 0 is the primary price source.
+    /// @notice Provider at index 1 is the reference price for deviation check and also the fallback price.
     OracleType[2] oracles;
-    /// @notice The collateral factor used for calculating the value of the collateral.
+    /// @notice Percentage multiplier which decreases collateral asset valuation (if < 100%), mitigating price risk.
+    /// @notice Always <= 100% or 1e4.
     uint16 factor;
-    /// @notice The KFactor which is reverse of cFactor.
+    /// @notice Percentage multiplier which increases debt asset valution (if > 100%), mitigating price risk.
+    /// @notice Always >= 100% or 1e4.
     uint16 kFactor;
-    /// @notice The fee when minted through the Minter.
+    /// @notice Minter fee percent for opening a debt position. <= 25%.
+    /// @notice Fee is deducted from collaterals.
     uint16 openFee;
-    /// @notice The fee when burned through the Minter.
+    /// @notice Minter fee percent for closing a debt position. <= 25%.
+    /// @notice Fee is deducted from collaterals.
     uint16 closeFee;
-    /// @notice The liquidation incentive when seized in Minter liquidations.
+    /// @notice Minter liquidation incentive when asset is the seized collateral in a liquidation.
     uint16 liqIncentive;
-    /// @notice The supply limit if the asset is a Kresko Asset.
+    /// @notice Supply limit for Kresko Assets.
+    /// @dev NOTE: uint128
     uint128 supplyLimit;
-    /// @notice The deposit amount limit within SCDP deposits.
+    /// @notice SCDP deposit limit for the asset.
+    /// @dev NOTE: uint128.
     uint128 depositLimitSCDP;
-    /// @notice The scaled index for the asset, used for fee sharing and liquidations in SCDP deposits.
-    uint128 liquidityIndexSCDP; // no need to pack this, it's not used with depositLimit
-    /// @notice The fee when asset is the "Asset In" in SCDP swaps.
-    uint16 openFeeSCDP;
-    /// @notice The fee when asset is the "Asset Out" in SCDP swaps.
-    uint16 closeFeeSCDP;
-    /// @notice The liquidation incentive when repaid in SCDP liquidations.
+    /// @notice SCDP liquidity index (RAY precision). Scales the deposits globally:
+    /// @notice 1) Increased from fees accrued into deposits.
+    /// @notice 2) Decreased from liquidations where swap collateral does not cover value required.
+    /// @dev NOTE: uint128
+    uint128 liquidityIndexSCDP;
+    /// @notice SCDP fee percent when swapped as "asset in". Cap 25% == a.inFee + b.outFee <= 50%.
+    uint16 swapInFeeSCDP;
+    /// @notice SCDP fee percent when swapped as "asset out". Cap 25% == a.outFee + b.inFee <= 50%.
+    uint16 swapOutFeeSCDP;
+    /// @notice SCDP protocol cut of the swap fees. Cap 50% == a.feeShare + b.feeShare <= 100%.
+    uint16 protocolFeeShareSCDP;
+    /// @notice SCDP liquidation incentive, defined for Kresko Assets.
+    /// @notice Applied as discount for seized collateral when the KrAsset is repaid in a liquidation.
     uint16 liqIncentiveSCDP;
-    /// @notice The protocol fee share when used in SCDP swaps
-    uint16 protocolFeeSCDP;
-    /// @notice The decimals for the token, stored here to avoid repetitive external calls.
+    /// @notice ERC20 decimals of the asset, queried and saved once during setup.
+    /// @notice Kresko Assets have 18 decimals.
     uint8 decimals;
-    /// @notice Whether the collateral asset exists in the Minter.
+    /// @notice Asset can be deposited as collateral in the Minter.
     bool isCollateral;
-    /// @notice Whether the asset is mintable through the Minter.
+    /// @notice Asset can be minted as debt from the Minter.
     bool isKrAsset;
-    /// @notice Whether the asset is mintable through SCDP.
-    bool isSCDPKrAsset;
-    /// @notice Whether the asset is a collateral asset in SCDP.
-    bool isSCDPCollateral;
-    /// @notice Whether the asset is a deposit asset in SCDP.
+    /// @notice Asset can be deposited as collateral in the SCDP.
     bool isSCDPDepositAsset;
-    /// @notice Whether the asset is a deposit asset in SCDP.
+    /// @notice Asset can be minted through swaps in the SCDP.
+    bool isSCDPKrAsset;
+    /// @notice Asset is included in the total collateral value calculation for the SCDP.
+    /// @notice KrAssets will be true by default - since they are indirectly deposited through swaps.
+    bool isSCDPCollateral;
+    /// @notice Asset can be used to cover SCDP debt.
     bool isSCDPCoverAsset;
 }
 
+/// @notice The access control role data.
 struct RoleData {
     mapping(address => bool) members;
     bytes32 adminRole;
 }
 
+/// @notice Variables used for calculating the max liquidation value.
 struct MaxLiqVars {
     Asset collateral;
     uint256 accountCollateralValue;
@@ -120,6 +144,7 @@ struct MaxLiqVars {
     uint32 debtFactor;
 }
 
+/// @notice Convenience struct for returning push price data
 struct PushPrice {
     uint256 price;
     uint256 timestamp;

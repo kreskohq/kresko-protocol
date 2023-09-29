@@ -2,7 +2,7 @@
 pragma solidity >=0.8.19;
 
 import {WadRay} from "libs/WadRay.sol";
-import {Percentages} from "libs/Percentages.sol";
+import {PercentageMath} from "libs/PercentageMath.sol";
 import {Error} from "common/Errors.sol";
 import {cs} from "common/State.sol";
 import {Asset} from "common/Types.sol";
@@ -10,7 +10,7 @@ import {MinterState} from "minter/State.sol";
 
 library MAccounts {
     using WadRay for uint256;
-    using Percentages for uint256;
+    using PercentageMath for uint256;
 
     /* -------------------------------------------------------------------------- */
     /*                             Account Liquidation                            */
@@ -157,7 +157,7 @@ library MAccounts {
         address _assetAddress,
         Asset memory _asset
     ) internal view returns (uint256) {
-        return _asset.amountRead(self.collateralDeposits[_account][_assetAddress]);
+        return _asset.toRebasingAmount(self.collateralDeposits[_account][_assetAddress]);
     }
 
     /**
@@ -176,11 +176,10 @@ library MAccounts {
             uint256 collateralAmount = self.accountCollateralAmount(_account, assets[i], asset);
             unchecked {
                 if (collateralAmount != 0) {
-                    (uint256 collateralValue, ) = asset.collateralAmountToValue(
+                    totalCollateralValue += asset.collateralAmountToValue(
                         collateralAmount,
                         false // Take the collateral factor into consideration.
                     );
-                    totalCollateralValue += collateralValue;
                 }
                 i++;
             }
@@ -208,14 +207,14 @@ library MAccounts {
 
             unchecked {
                 if (collateralAmount != 0) {
-                    (uint256 collateralValue, ) = asset.collateralAmountToValue(
+                    uint256 collateralValue = asset.collateralAmountToValue(
                         collateralAmount,
                         false // Take the collateral factor into consideration.
                     );
+                    totalCollateralValue += collateralValue;
                     if (assets[i] == _collateralAsset) {
                         specificValue = collateralValue;
                     }
-                    totalCollateralValue += collateralValue;
                 }
                 i++;
             }

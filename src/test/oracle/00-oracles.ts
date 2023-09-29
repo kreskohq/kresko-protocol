@@ -35,7 +35,7 @@ describe("Oracles", () => {
             const redstoneCollateralPrice = 20;
 
             const redstoneDiamond: Kresko = wrapPrices(hre.Diamond, [
-                { dataFeedId: testCollateralConfig.id, value: redstoneCollateralPrice },
+                { dataFeedId: testCollateralConfig.underlyingId, value: redstoneCollateralPrice },
             ]);
 
             expect(await redstoneDiamond.getAccountCollateralValue(user.address)).to.equal(
@@ -53,7 +53,7 @@ describe("Oracles", () => {
             const redstoneCollateralPrice = 11;
 
             const redstoneDiamond = wrapPrices(hre.Diamond, [
-                { dataFeedId: testCollateralConfig.id, value: redstoneCollateralPrice },
+                { dataFeedId: testCollateralConfig.underlyingId, value: redstoneCollateralPrice },
             ]);
 
             expect(await redstoneDiamond.getAccountCollateralValue(user.address)).to.equal(
@@ -68,7 +68,7 @@ describe("Oracles", () => {
 
             const redstoneCollateralPrice = 10;
             const redstoneDiamond = wrapPrices(hre.Diamond, [
-                { dataFeedId: testCollateralConfig.id, value: redstoneCollateralPrice },
+                { dataFeedId: testCollateralConfig.underlyingId, value: redstoneCollateralPrice },
             ]);
 
             // should revert if price deviates more than oracleDeviationPct
@@ -82,7 +82,7 @@ describe("Oracles", () => {
 
             const redstoneCollateralPrice = 200;
             const redstoneDiamond = wrapPrices(hre.Diamond, [
-                { dataFeedId: testCollateralConfig.id, value: redstoneCollateralPrice },
+                { dataFeedId: testCollateralConfig.underlyingId, value: redstoneCollateralPrice },
             ]);
 
             /// set sequencer uptime feed address

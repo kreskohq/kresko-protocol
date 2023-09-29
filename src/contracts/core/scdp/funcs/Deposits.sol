@@ -65,7 +65,7 @@ library SDeposits {
             amountOut = _amount;
             // 2. No fees.
             // 3. Possibly un-rebased amount for internal bookeeping.
-            uint128 amountWrite = uint128(asset.amountWrite(_amount));
+            uint128 amountWrite = uint128(asset.toNonRebasingAmount(_amount));
             unchecked {
                 // 4. Reduce global deposits.
                 self.assetData[_assetAddr].totalDeposits -= amountWrite;
@@ -79,7 +79,7 @@ library SDeposits {
             // 1. We send all collateral.
             amountOut = depositsPrincipal;
             // 2. With fees.
-            feesOut = self.accountDepositsWithFees(_account, _assetAddr, asset) - depositsPrincipal;
+            feesOut = self.accountScaledDeposits(_account, _assetAddr, asset) - depositsPrincipal;
             // 3. Ensure this is actually the case.
             if (feesOut == 0) {
                 revert CError.WITHDRAWAL_VIOLATION(_assetAddr);
@@ -89,7 +89,7 @@ library SDeposits {
             self.depositsPrincipal[_account][_assetAddr] = 0;
             self.deposits[_account][_assetAddr] = 0;
             // 5. Reduce global by ONLY by the principal, fees are NOT collateral.
-            self.assetData[_assetAddr].totalDeposits -= uint128(asset.amountWrite(depositsPrincipal));
+            self.assetData[_assetAddr].totalDeposits -= uint128(asset.toNonRebasingAmount(depositsPrincipal));
         }
     }
 
@@ -104,7 +104,7 @@ library SDeposits {
         uint128 swapDeposits = self.swapDepositAmount(_sAssetAddr, _sAsset);
 
         if (swapDeposits >= _seizeAmount) {
-            uint128 amountOut = uint128(_sAsset.amountWrite(_seizeAmount));
+            uint128 amountOut = uint128(_sAsset.toNonRebasingAmount(_seizeAmount));
             // swap deposits cover the amount
             unchecked {
                 self.assetData[_sAssetAddr].swapDeposits -= amountOut;
@@ -118,7 +118,7 @@ library SDeposits {
                 amountToCover.wadToRay().rayDiv(self.userDepositAmount(_sAssetAddr, _sAsset).wadToRay())
             );
             self.assetData[_sAssetAddr].swapDeposits = 0;
-            self.assetData[_sAssetAddr].totalDeposits -= uint128(_sAsset.amountWrite(amountToCover));
+            self.assetData[_sAssetAddr].totalDeposits -= uint128(_sAsset.toNonRebasingAmount(amountToCover));
         }
     }
 }

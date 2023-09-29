@@ -1,17 +1,18 @@
-import { FakeContract, MockContract } from "@defi-wonderland/smock";
+import type { FakeContract, MockContract } from "@defi-wonderland/smock";
 import {
     getBalanceCollateralFunc,
     getBalanceKrAssetFunc,
     setBalanceCollateralFunc,
     setBalanceKrAssetFunc,
 } from "@utils/test/helpers/smock";
-import type { BaseContract, BytesLike } from "ethers";
-import { DeployResult } from "hardhat-deploy/types";
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { AssetArgs, AssetConfig, ContractTypes, OracleType } from "types";
+import type { BytesLike } from "ethers";
+import type { DeployResult } from "hardhat-deploy/types";
+import type { HardhatRuntimeEnvironment } from "hardhat/types";
+import type { AssetArgs, AssetConfig, ContractTypes, OracleType } from "types";
 import type * as Contracts from "./typechain";
-import { MockOracle } from "./typechain";
-import { AssetStruct } from "./typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
+import type { MockOracle } from "./typechain";
+import type { AssetStruct } from "./typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
+
 declare global {
     const hre: HardhatRuntimeEnvironment;
     /* -------------------------------------------------------------------------- */
@@ -21,7 +22,7 @@ declare global {
     type TestExtAsset = TestAsset<ERC20Upgradeable, "mock">;
     type TestKrAsset = TestAsset<KreskoAsset, "mock">;
     type TestAsset<C extends ERC20Upgradeable | KreskoAsset, T extends "mock" | undefined = undefined> = {
-        id: string;
+        underlyingId: string;
         address: string;
         isKrAsset?: boolean;
         isCollateral?: boolean;
@@ -46,31 +47,7 @@ declare global {
         getPrice: () => Promise<BigNumber>;
         update: (update: AssetArgs) => Promise<TestAsset<C, T>>;
     };
-    // type TestCollateral = {
-    //     address: string;
-    //     isKrAsset?: boolean;
-    //     krAsset?: boolean;
-    //     config: AssetConfig;
-    //     contract: MockContract<ERC20Upgradeable>;
-    //     assetInfo: () => Promise<AssetStruct>;
-    //     priceFeed: FakeContract<MockOracle>;
-    //     setPrice: (price: number) => void;
-    //     setOracleOrder: (order: [OracleType, OracleType]) => Promise<any>;
-    //     setBalance: ReturnType<typeof setBalanceCollateralFunc>;
-    //     balanceOf: ReturnType<typeof getBalanceCollateralFunc>;
-    //     getPrice: () => Promise<BigNumber>;
-    //     update: (update: AssetArgs) => Promise<TestCollateral>;
-    // };
 
-    // type TestAsset = TestCollateral | TestKrAsset;
-    /* -------------------------------------------------------------------------- */
-    /*                                   Oracles                                  */
-    /* -------------------------------------------------------------------------- */
-    // type UniV2Router = Contracts.UniswapV2Router02;
-    // type UniV2Factory = Contracts.UniswapV2Factory;
-    /* -------------------------------------------------------------------------- */
-    /*                               Misc Contracts                               */
-    /* -------------------------------------------------------------------------- */
     export type TestTokenSymbols =
         | "USDC"
         | "TSLA"

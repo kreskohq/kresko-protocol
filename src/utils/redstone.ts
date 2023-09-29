@@ -21,6 +21,32 @@ export const wrapPrices = (contract: Kresko, prices: DataPoints, signer?: any) =
     }) as Kresko;
 
 export type TestAssetIds = TestTokenSymbols;
+export const redstoneMap = {
+    krETH: "ETH",
+    krBTC: "BTC",
+    krTSLA: "TSLA",
+    WETH: "ETH",
+    ETH: "ETH",
+    WBTC: "BTC",
+    KISS: "KISS",
+    DAI: "DAI",
+    USDC: "USDC",
+    USDT: "USDT",
+    TSLA: "TSLA",
+    BTC: "BTC",
+    Coll8Dec: "Coll8Dec",
+    Coll21Dec: "Coll21Dec",
+    Coll18Dec: "Coll18Dec",
+    Collateral: "Collateral",
+    Collateral2: "Collateral2",
+    Collateral3: "Collateral3",
+    Collateral4: "Collateral4",
+    KrAsset: "KrAsset",
+    KrAsset2: "KrAsset2",
+    KrAsset3: "KrAsset3",
+    KrAsset4: "KrAsset4",
+    KrAsset5: "KrAsset5",
+};
 
 export const defaultRedstoneDataPoints: TestDataPackage[] = [
     { dataFeedId: "DAI", value: 0 },
@@ -38,6 +64,7 @@ export const defaultRedstoneDataPoints: TestDataPackage[] = [
     { dataFeedId: "KrAsset2", value: 0 },
     { dataFeedId: "KrAsset3", value: 0 },
     { dataFeedId: "KrAsset4", value: 0 },
+    { dataFeedId: "KrAsset5", value: 0 },
 ];
-export type TestDataPackage = { dataFeedId: AllAssetIds; value: number };
-export type AllAssetIds = TestAssetIds | "ETH" | (typeof assets)[keyof typeof assets]["id"];
+export type TestDataPackage = { dataFeedId: AllUnderlyingIds; value: number };
+export type AllUnderlyingIds = TestAssetIds | "ETH" | (typeof assets)[keyof typeof assets]["underlyingId"];

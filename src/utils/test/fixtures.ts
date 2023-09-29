@@ -177,9 +177,11 @@ export const defaultFixture = hre.deployments.createFixture<DefaultFixture, {}>(
 
     const depositAmount = toBig(1000);
     const mintAmount = toBig(100);
-    const DefaultCollateral = hre.extAssets!.find(c => c.config.args.id === testCollateralConfig.id)!;
-    const Collateral2 = hre.extAssets!.find(c => c.config.args.id === "Collateral2")!;
-    const DefaultKrAsset = hre.krAssets!.find(k => k.config.args.id === testKrAssetConfig.id)!;
+    const DefaultCollateral = hre.extAssets!.find(
+        c => c.config.args.underlyingId === testCollateralConfig.underlyingId,
+    )!;
+    const Collateral2 = hre.extAssets!.find(c => c.config.args.underlyingId === "Collateral2")!;
+    const DefaultKrAsset = hre.krAssets!.find(k => k.config.args.underlyingId === testKrAssetConfig.underlyingId)!;
 
     let blankUser = hre.users.userOne;
     let userWithDeposits = hre.users.userTwo;
@@ -225,7 +227,7 @@ export const assetValuesFixture = hre.deployments.createFixture<AssetValuesFixtu
     await time.increase(3602);
 
     const KreskoAsset = await addMockKreskoAsset({
-        id: "KrAsset5",
+        underlyingId: "KrAsset5",
         symbol: "KrAsset5",
         price: TEN_USD,
         marketOpen: true,
@@ -238,7 +240,7 @@ export const assetValuesFixture = hre.deployments.createFixture<AssetValuesFixtu
         },
     });
     const CollateralAsset = await addMockExtAsset({
-        id: "Coll18Dec",
+        underlyingId: "Coll18Dec",
         symbol: "Coll18Dec",
         price: TEN_USD,
         decimals: 18,
@@ -249,7 +251,7 @@ export const assetValuesFixture = hre.deployments.createFixture<AssetValuesFixtu
     });
 
     const CollateralAsset8Dec = await addMockExtAsset({
-        id: "Coll8Dec",
+        underlyingId: "Coll8Dec",
         symbol: "Coll8Dec",
         price: TEN_USD,
         collateralConfig: {
@@ -259,7 +261,7 @@ export const assetValuesFixture = hre.deployments.createFixture<AssetValuesFixtu
         decimals: 8, // eg USDT
     });
     const CollateralAsset21Dec = await addMockExtAsset({
-        id: "Coll21Dec",
+        underlyingId: "Coll21Dec",
         symbol: "Coll21Dec",
         price: TEN_USD,
         collateralConfig: {
@@ -304,10 +306,12 @@ export const depositWithdrawFixture = hre.deployments.createFixture<DepositWithd
 
     const withdrawer = hre.users.userThree;
 
-    const DefaultCollateral = hre.extAssets!.find(c => c.config.args.id === testCollateralConfig.id)!;
+    const DefaultCollateral = hre.extAssets!.find(
+        c => c.config.args.underlyingId === testCollateralConfig.underlyingId,
+    )!;
 
-    const DefaultKrAsset = hre.krAssets!.find(k => k.config.args.id === testKrAssetConfig.id)!;
-    const KrAssetCollateral = hre.krAssets!.find(k => k.config.args.id === "KrAsset3")!;
+    const DefaultKrAsset = hre.krAssets!.find(k => k.config.args.underlyingId === testKrAssetConfig.underlyingId)!;
+    const KrAssetCollateral = hre.krAssets!.find(k => k.config.args.underlyingId === "KrAsset3")!;
 
     const initialDeposits = toBig(10000);
     const initialBalance = toBig(100000);
@@ -335,7 +339,7 @@ export const depositWithdrawFixture = hre.deployments.createFixture<DepositWithd
         ],
         Collateral: DefaultCollateral,
         KrAsset: DefaultKrAsset,
-        Collateral2: hre.extAssets!.find(c => c.config.args.id === "Collateral2")!,
+        Collateral2: hre.extAssets!.find(c => c.config.args.underlyingId === "Collateral2")!,
         KrAssetCollateral,
     };
 });
@@ -360,11 +364,13 @@ export const mintRepayFixture = hre.deployments.createFixture<MintRepayFixture, 
     }
     await time.increase(3602);
 
-    const DefaultCollateral = hre.extAssets!.find(c => c.config.args.id === testCollateralConfig.id)!;
+    const DefaultCollateral = hre.extAssets!.find(
+        c => c.config.args.underlyingId === testCollateralConfig.underlyingId,
+    )!;
 
-    const DefaultKrAsset = hre.krAssets!.find(k => k.config.args.id === testKrAssetConfig.id)!;
-    const KrAsset2 = hre.krAssets!.find(k => k.config.args.id === "KrAsset2")!;
-    const KrAssetCollateral = hre.krAssets!.find(k => k.config.args.id === "KrAsset3")!;
+    const DefaultKrAsset = hre.krAssets!.find(k => k.config.args.underlyingId === testKrAssetConfig.underlyingId)!;
+    const KrAsset2 = hre.krAssets!.find(k => k.config.args.underlyingId === "KrAsset2")!;
+    const KrAssetCollateral = hre.krAssets!.find(k => k.config.args.underlyingId === "KrAsset3")!;
 
     await DefaultKrAsset.contract.grantRole(Role.OPERATOR, hre.users.deployer.address);
 
@@ -405,7 +411,7 @@ export const mintRepayFixture = hre.deployments.createFixture<MintRepayFixture, 
         Collateral: DefaultCollateral,
         KrAsset: DefaultKrAsset,
         KrAsset2,
-        Collateral2: hre.extAssets!.find(c => c.config.args.id === "Collateral2")!,
+        Collateral2: hre.extAssets!.find(c => c.config.args.underlyingId === "Collateral2")!,
         KrAssetCollateral,
     };
 });
@@ -443,16 +449,18 @@ export const liquidationsFixture = hre.deployments.createFixture<LiquidationFixt
     }
     await time.increase(3602);
 
-    const KrAssetCollateral = hre.krAssets!.find(k => k.config.args.id === "KrAsset3")!;
-    const DefaultCollateral = hre.extAssets.find(c => c.config.args.id === testCollateralConfig.id)!;
+    const KrAssetCollateral = hre.krAssets!.find(k => k.config.args.underlyingId === "KrAsset3")!;
+    const DefaultCollateral = hre.extAssets.find(
+        c => c.config.args.underlyingId === testCollateralConfig.underlyingId,
+    )!;
 
-    const Collateral2 = hre.extAssets.find(c => c.config.args.id === "Collateral2")!;
+    const Collateral2 = hre.extAssets.find(c => c.config.args.underlyingId === "Collateral2")!;
 
-    const Collateral8Dec = hre.extAssets.find(c => c.config.args.id === "Coll8Dec")!;
+    const Collateral8Dec = hre.extAssets.find(c => c.config.args.underlyingId === "Coll8Dec")!;
 
-    const KreskoAsset2 = hre.krAssets.find(c => c.config.args.id === "KrAsset2")!;
+    const KreskoAsset2 = hre.krAssets.find(c => c.config.args.underlyingId === "KrAsset2")!;
 
-    const DefaultKrAsset = hre.krAssets.find(c => c.config.args.id === testKrAssetConfig.id)!;
+    const DefaultKrAsset = hre.krAssets.find(c => c.config.args.underlyingId === testKrAssetConfig.underlyingId)!;
 
     await DefaultKrAsset.contract.grantRole(Role.OPERATOR, hre.users.deployer.address);
 

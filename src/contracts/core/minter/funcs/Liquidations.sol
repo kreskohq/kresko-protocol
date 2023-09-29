@@ -2,7 +2,7 @@
 pragma solidity >=0.8.19;
 
 import {WadRay} from "libs/WadRay.sol";
-import {Percentages} from "libs/Percentages.sol";
+import {PercentageMath} from "libs/PercentageMath.sol";
 import {calcMaxLiqValue} from "common/funcs/Math.sol";
 import {MaxLiqVars} from "common/Types.sol";
 import {ms} from "minter/State.sol";
@@ -10,8 +10,8 @@ import {Asset} from "common/Types.sol";
 import {cs} from "common/State.sol";
 
 using WadRay for uint256;
-using Percentages for uint256;
-using Percentages for uint16;
+using PercentageMath for uint256;
+using PercentageMath for uint16;
 
 /**
  * @dev Calculates the total value that can be liquidated for a liquidation pair

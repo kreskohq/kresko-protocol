@@ -2,14 +2,14 @@
 pragma solidity >=0.8.19;
 
 import {WadRay} from "libs/WadRay.sol";
-import {Percentages} from "libs/Percentages.sol";
+import {PercentageMath} from "libs/PercentageMath.sol";
 import {MaxLiqVars} from "common/Types.sol";
 import {Asset} from "common/Types.sol";
-
+import "hardhat/console.sol";
 using WadRay for uint256;
-using Percentages for uint256;
-using Percentages for uint16;
-using Percentages for uint32;
+using PercentageMath for uint256;
+using PercentageMath for uint16;
+using PercentageMath for uint32;
 
 /* -------------------------------------------------------------------------- */
 /*                                Liquidations                                */
@@ -24,6 +24,7 @@ function calcMaxLiqValue(MaxLiqVars memory vars, uint16 _closeFee) pure returns 
 }
 
 function calcMaxLiqValue(MaxLiqVars memory vars, Asset memory _repayKrAsset) pure returns (uint256) {
+    console.log("debtPerUsd", uint32((vars.debtFactor - _repayKrAsset.liqIncentiveSCDP).percentDiv(vars.debtFactor)));
     return _calcMaxLiqValue(vars, uint32((vars.debtFactor - _repayKrAsset.liqIncentiveSCDP).percentDiv(vars.debtFactor)));
 }
 

@@ -18,8 +18,8 @@ import {SCDPAssetData} from "scdp/Types.sol";
  */
 function getSwapFee(Asset memory _assetIn, Asset memory _assetOut) pure returns (uint256 feePercentage, uint256 protocolFee) {
     unchecked {
-        feePercentage = _assetIn.closeFeeSCDP + _assetOut.openFeeSCDP;
-        protocolFee = _assetIn.protocolFeeSCDP + _assetOut.protocolFeeSCDP;
+        feePercentage = _assetIn.swapOutFeeSCDP + _assetOut.swapInFeeSCDP;
+        protocolFee = _assetIn.protocolFeeShareSCDP + _assetOut.protocolFeeShareSCDP;
     }
 }
 

@@ -204,14 +204,18 @@ library MCore {
         // collateral value.
         // Get the account's current collateral value.
         uint256 collateralValue = self.accountCollateralValue(_account);
-        // Get the collateral value that the account will lose as a result of this withdrawal.
-        (uint256 withdrawnCollateralValue, ) = _collateralAsset.collateralAmountToValue(
-            _withdrawAmount,
-            false // Take the collateral factor into consideration.
-        );
         // Get the account's minimum collateral value.
         uint256 minCollateralValue = self.accountMinCollateralAtRatio(_account, self.minCollateralRatio);
         // Require accountMinCollateralValue <= accountCollateralValue - withdrawnCollateralValue.
-        require(minCollateralValue <= collateralValue - withdrawnCollateralValue, Error.COLLATERAL_INSUFFICIENT_AMOUNT);
+        require(
+            minCollateralValue <=
+                collateralValue -
+                    // Get the withdrawn collateral value.
+                    _collateralAsset.collateralAmountToValue(
+                        _withdrawAmount,
+                        false // Take the collateral factor into consideration.
+                    ),
+            Error.COLLATERAL_INSUFFICIENT_AMOUNT
+        );
     }
 }

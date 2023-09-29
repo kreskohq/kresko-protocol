@@ -5,7 +5,7 @@ import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
 import {Arrays} from "libs/Arrays.sol";
 import {WadRay} from "libs/WadRay.sol";
-import {Percentages} from "libs/Percentages.sol";
+import {PercentageMath} from "libs/PercentageMath.sol";
 import {fromWad} from "common/funcs/Math.sol";
 
 import {ms} from "minter/State.sol";
@@ -15,7 +15,7 @@ import {MEvent} from "minter/Events.sol";
 
 using WadRay for uint256;
 using SafeERC20Permit for IERC20Permit;
-using Percentages for uint256;
+using PercentageMath for uint256;
 using Arrays for address[];
 
 /* -------------------------------------------------------------------------- */
@@ -128,7 +128,7 @@ function calcMinterFee(
     uint256 depositAmount = ms().accountCollateralAmount(_account, _collateralAsset, _asset);
 
     // Don't take the collateral asset's collateral factor into consideration.
-    (uint256 depositValue, uint256 oraclePrice) = _asset.collateralAmountToValue(depositAmount, true);
+    (uint256 depositValue, uint256 oraclePrice) = _asset.collateralAmountToValueWithPrice(depositAmount, true);
 
     if (_feeValue < depositValue) {
         // If feeValue < depositValue, the entire fee can be charged for this collateral asset.

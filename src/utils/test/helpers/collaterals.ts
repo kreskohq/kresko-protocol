@@ -30,7 +30,7 @@ export const addMockExtAsset = async (args = testCollateralConfig): Promise<Test
     ]);
     await wrapKresko(hre.Diamond, deployer).addAsset(contract.address, config.assetStruct, config.feedConfig, true);
     const asset: TestAsset<ERC20Upgradeable, "mock"> = {
-        id: args.id,
+        underlyingId: args.underlyingId,
         anchor: null,
         address: contract.address,
         contract: contract,

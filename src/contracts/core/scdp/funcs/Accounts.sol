@@ -11,19 +11,20 @@ library SAccounts {
     using WadRay for uint256;
 
     /**
-     * @notice Get accounts interested scaled debt amount for a KreskoAsset.
+     * @notice Get accounts deposit amount that is scaled by the liquidity index.
+     * @notice The liquidity index is updated when: A) Income is accrued B) Liquidation occurs.
      * @param _account The account to get the amount for
      * @param _assetAddr The asset address
      * @param _asset The asset struct
      * @return Amount of scaled debt.
      */
-    function accountDepositsWithFees(
+    function accountScaledDeposits(
         SCDPState storage self,
         address _account,
         address _assetAddr,
         Asset memory _asset
     ) internal view returns (uint256) {
-        uint256 deposits = _asset.amountRead(self.deposits[_account][_assetAddr]);
+        uint256 deposits = _asset.toRebasingAmount(self.deposits[_account][_assetAddr]);
         if (deposits == 0) {
             return 0;
         }
@@ -31,25 +32,27 @@ library SAccounts {
     }
 
     /**
-     * @notice Get accounts principle deposits.
+     * @notice Get accounts principal deposits.
+     * @notice Uses scaled deposits if its lower than principal (realizing liquidations).
      * @param _account The account to get the amount for
      * @param _assetAddr The deposit asset address
      * @param _asset The deposit asset struct
-     * @return uint256 Amount of scaled debt.
+     * @return principalDeposits The principal deposit amount for the account.
      */
     function accountPrincipalDeposits(
         SCDPState storage self,
         address _account,
         address _assetAddr,
         Asset memory _asset
-    ) internal view returns (uint256) {
-        uint256 deposits = self.accountDepositsWithFees(_account, _assetAddr, _asset);
-        uint256 depositsPrincipal = _asset.amountRead(self.depositsPrincipal[_account][_assetAddr]);
-
-        if (deposits == 0) {
+    ) internal view returns (uint256 principalDeposits) {
+        uint256 scaledDeposits = self.accountScaledDeposits(_account, _assetAddr, _asset);
+        if (scaledDeposits == 0) {
             return 0;
-        } else if (deposits < depositsPrincipal) {
-            return deposits;
+        }
+
+        uint256 depositsPrincipal = _asset.toRebasingAmount(self.depositsPrincipal[_account][_assetAddr]);
+        if (scaledDeposits < depositsPrincipal) {
+            return scaledDeposits;
         }
         return depositsPrincipal;
     }
@@ -68,11 +71,9 @@ library SAccounts {
         for (uint256 i; i < assets.length; ) {
             Asset memory asset = cs().assets[assets[i]];
             uint256 depositAmount = self.accountPrincipalDeposits(_account, assets[i], asset);
-
             unchecked {
                 if (depositAmount != 0) {
-                    (uint256 assetValue, ) = asset.collateralAmountToValue(depositAmount, _ignoreFactors);
-                    totalValue += assetValue;
+                    totalValue += asset.collateralAmountToValue(depositAmount, _ignoreFactors);
                 }
                 i++;
             }
@@ -80,22 +81,21 @@ library SAccounts {
     }
 
     /**
-     * @notice Returns the value of the collateral assets in the pool for `_account` with fees.
+     * @notice Returns the value of the collateral assets in the pool for `_account` for the scaled deposit amount.
      * @notice Ignores all factors.
      * @param _account account
      */
-    function accountTotalDepositValueWithFees(
+    function accountTotalScaledDepositsValue(
         SCDPState storage self,
         address _account
     ) internal view returns (uint256 totalValue) {
         address[] memory assets = self.collaterals;
         for (uint256 i; i < assets.length; ) {
             Asset memory asset = cs().assets[assets[i]];
-            uint256 depositsWithFees = self.accountDepositsWithFees(_account, assets[i], asset);
+            uint256 scaledDeposits = self.accountScaledDeposits(_account, assets[i], asset);
             unchecked {
-                if (depositsWithFees != 0) {
-                    (uint256 assetValue, ) = asset.collateralAmountToValue(depositsWithFees, true);
-                    totalValue += assetValue;
+                if (scaledDeposits != 0) {
+                    totalValue += asset.collateralAmountToValue(scaledDeposits, true);
                 }
                 i++;
             }

@@ -1,10 +1,10 @@
-import { fromBig, toBig } from "@kreskolabs/lib";
 import { wrapKresko } from "@utils/redstone";
 import optimized from "@utils/test/helpers/optimizations";
 import { BigNumber } from "ethers";
 import hre from "hardhat";
 import { depositCollateral, depositMockCollateral } from "./collaterals";
 import { mintKrAsset } from "./krassets";
+import { fromBig, toBig } from "@utils/values";
 export const getLiqAmount = async (user: SignerWithAddress, krAsset: any, collateral: any, log = false) => {
     const [maxLiquidatableValue, krAssetPrice] = await Promise.all([
         hre.Diamond.getMaxLiquidation(user.address, krAsset.address, collateral.address),
@@ -95,7 +95,7 @@ export const liquidate = async (
         if (krAsset.address === collateral.address) {
             await depositMockCollateral({
                 user: hre.users.liquidator,
-                asset: hre.collaterals.find(c => c.config.args.id === "MockCollateral2")!,
+                asset: hre.extAssets.find(c => c.config.args.underlyingId === "Collateral2")!,
                 amount: toBig(100_000),
             });
         } else {

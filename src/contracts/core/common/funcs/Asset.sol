@@ -7,22 +7,26 @@ import {Asset, PushPrice} from "common/Types.sol";
 import {toWad} from "common/funcs/Math.sol";
 import {safePrice, pushPrice, oraclePriceToWad, SDIPrice} from "common/funcs/Prices.sol";
 import {cs} from "common/State.sol";
-import {Percentages} from "libs/Percentages.sol";
+import {PercentageMath} from "libs/PercentageMath.sol";
 
 library CAsset {
     using WadRay for uint256;
-    using Percentages for uint256;
+    using PercentageMath for uint256;
+
+    /* -------------------------------------------------------------------------- */
+    /*                                Asset Prices                                */
+    /* -------------------------------------------------------------------------- */
 
     function price(Asset memory self) internal view returns (uint256) {
-        return safePrice(self.id, self.oracles, cs().oracleDeviationPct);
+        return safePrice(self.underlyingId, self.oracles, cs().oracleDeviationPct);
     }
 
     function price(Asset memory self, uint256 oracleDeviationPct) internal view returns (uint256) {
-        return safePrice(self.id, self.oracles, oracleDeviationPct);
+        return safePrice(self.underlyingId, self.oracles, oracleDeviationPct);
     }
 
     function pushedPrice(Asset memory self) internal view returns (PushPrice memory) {
-        return pushPrice(self.oracles, self.id);
+        return pushPrice(self.oracles, self.underlyingId);
     }
 
     /**
@@ -43,7 +47,7 @@ library CAsset {
      * @notice Get the oracle price of an asset in uint256 with oracleDecimals
      */
     function redstonePrice(Asset memory self) internal view returns (uint256) {
-        return Redstone.getPrice(self.id);
+        return Redstone.getPrice(self.underlyingId);
     }
 
     function marketStatus(Asset memory) internal pure returns (bool) {
@@ -55,12 +59,31 @@ library CAsset {
     /* -------------------------------------------------------------------------- */
     /**
      * @notice Gets the collateral value for a single collateral asset and amount.
-     * @param _amount The amount of the collateral asset to calculate the collateral value for.
-     * @param _ignoreFactor Boolean indicating if the asset's collateral factor should be ignored.
-     * @return value The collateral value for the provided amount of the collateral asset.
-     * @return assetPrice The current price of the collateral asset.
+     * @param _amount Amount of asset to get the value for.
+     * @param _ignoreFactor Should collateral factor be ignored.
+     * @return value  Value for `_amount` of the asset.
      */
     function collateralAmountToValue(
+        Asset memory self,
+        uint256 _amount,
+        bool _ignoreFactor
+    ) internal view returns (uint256 value) {
+        if (_amount == 0) return 0;
+        value = toWad(self.decimals, _amount).wadMul(self.price());
+
+        if (!_ignoreFactor) {
+            value = value.percentMul(self.factor);
+        }
+    }
+
+    /**
+     * @notice Gets the collateral value for `_amount` and returns the price used.
+     * @param _amount Amount of asset
+     * @param _ignoreFactor Should collateral factor be ignored.
+     * @return value Value for `_amount` of the asset.
+     * @return assetPrice Price of the collateral asset.
+     */
+    function collateralAmountToValueWithPrice(
         Asset memory self,
         uint256 _amount,
         bool _ignoreFactor
@@ -76,36 +99,34 @@ library CAsset {
 
     /**
      * @notice Gets the USD value for a single Kresko asset and amount.
-     * @param _amount The amount of the Kresko asset to calculate the value for.
+     * @param _amount Amount of the Kresko asset to calculate the value for.
      * @param _ignoreKFactor Boolean indicating if the asset's k-factor should be ignored.
-     * @return The value for the provided amount of the Kresko asset.
+     * @return value Value for the provided amount of the Kresko asset.
      */
-    function debtAmountToValue(Asset memory self, uint256 _amount, bool _ignoreKFactor) internal view returns (uint256) {
+    function debtAmountToValue(Asset memory self, uint256 _amount, bool _ignoreKFactor) internal view returns (uint256 value) {
         if (_amount == 0) return 0;
-        uint256 value = self.uintUSD(_amount);
+        value = self.uintUSD(_amount);
 
         if (!_ignoreKFactor) {
             value = value.percentMul(self.kFactor);
         }
-
-        return value;
     }
 
     /**
      * @notice Gets the amount for a single debt asset and value.
-     * @param _value The value of the asset to calculate the amount for.
+     * @param _value Value of the asset to calculate the amount for.
      * @param _ignoreKFactor Boolean indicating if the asset's k-factor should be ignored.
-     * @return uint256 The amount for the provided value of the Kresko asset.
+     * @return amount Amount for the provided value of the Kresko asset.
      */
-    function debtValueToAmount(Asset memory self, uint256 _value, bool _ignoreKFactor) internal view returns (uint256) {
+    function debtValueToAmount(Asset memory self, uint256 _value, bool _ignoreKFactor) internal view returns (uint256 amount) {
         if (_value == 0) return 0;
 
-        uint256 currentPrice = self.price();
+        uint256 assetPrice = self.price();
         if (!_ignoreKFactor) {
-            currentPrice = currentPrice.percentMul(self.kFactor);
+            assetPrice = assetPrice.percentMul(self.kFactor);
         }
 
-        return _value.wadDiv(currentPrice);
+        return _value.wadDiv(assetPrice);
     }
 
     /// @notice Preview SDI amount from krAsset amount.
@@ -114,13 +135,14 @@ library CAsset {
     }
 
     /* -------------------------------------------------------------------------- */
-    /*                                    Utils                                   */
+    /*                                 Minter Util                                */
     /* -------------------------------------------------------------------------- */
+
     /**
      * @notice Check that amount does not put the user's debt position below the minimum debt value.
-     * @param _asset The asset being checked.
-     * @param _burnAmount The amount being burned
-     * @param _debtAmount The debt amount of `_account`
+     * @param _asset Asset being burned.
+     * @param _burnAmount Debt amount burned.
+     * @param _debtAmount Debt amount before burn.
      * @return amount >= minDebtAmount
      */
     function checkDust(Asset memory _asset, uint256 _burnAmount, uint256 _debtAmount) internal view returns (uint256 amount) {
@@ -140,10 +162,10 @@ library CAsset {
     /**
      * @notice Get the minimum collateral value required to
      * back a Kresko asset amount at a given collateralization ratio.
-     * @param _krAsset The address of the Kresko asset.
-     * @param _amount The Kresko Asset debt amount.
-     * @param _ratio The collateralization ratio required: higher ratio = more collateral required.
-     * @return minCollateralValue is the minimum collateral value required for this Kresko Asset amount.
+     * @param _krAsset Address of the Kresko asset.
+     * @param _amount Kresko Asset debt amount.
+     * @param _ratio Collateralization ratio for the minimum collateral value.
+     * @return minCollateralValue Minimum collateral value required for `_amount` of the Kresko Asset.
      */
     function minCollateralValueAtRatio(
         Asset memory _krAsset,
@@ -156,43 +178,35 @@ library CAsset {
     }
 
     /* -------------------------------------------------------------------------- */
-    /*                                Rebase Utils                                */
+    /*                                   Rebase                                   */
     /* -------------------------------------------------------------------------- */
-
-    function amountWrite(Asset memory self, uint256 _amount) internal view returns (uint256 possiblyUnrebasedAmount) {
-        if (_amount == 0) return 0;
-        return self.toNonRebasingAmount(_amount);
-    }
-
-    /**
-     * @notice Get asset amount for viewing, since if the asset is a KreskoAsset, it can be rebased.
-     * @param _amount The asset amount,
-     * @return possiblyRebasedAmount amount of collateral for `self`
-     */
-    function amountRead(Asset memory self, uint256 _amount) internal view returns (uint256 possiblyRebasedAmount) {
-        if (_amount == 0) return 0;
-        return self.toRebasingAmount(_amount);
-    }
 
     /**
      * @notice Amount of non rebasing tokens -> amount of rebasing tokens
-     * @param self the asset struct
-     * @param _nonRebasedAmount the amount to convert
+     * @dev DO use this function when reading values storage.
+     * @dev DONT use this function when writing to storage.
+     * @param _unrebasedAmount Unrebased amount to convert.
+     * @return maybeRebasedAmount Possibly rebased amount of asset
      */
-    function toRebasingAmount(Asset memory self, uint256 _nonRebasedAmount) internal view returns (uint256) {
-        if (_nonRebasedAmount == 0) return 0;
+    function toRebasingAmount(Asset memory self, uint256 _unrebasedAmount) internal view returns (uint256 maybeRebasedAmount) {
+        if (_unrebasedAmount == 0) return 0;
         if (self.anchor != address(0)) {
-            return IKreskoAssetAnchor(self.anchor).convertToAssets(_nonRebasedAmount);
+            return IKreskoAssetAnchor(self.anchor).convertToAssets(_unrebasedAmount);
         }
-        return _nonRebasedAmount;
+        return _unrebasedAmount;
     }
 
     /**
      * @notice Amount of rebasing tokens -> amount of non rebasing tokens
-     * @param self the asset struct
-     * @param _maybeRebasedAmount the amount to convert
+     * @dev DONT use this function when reading from storage.
+     * @dev DO use this function when writing to storage.
+     * @param _maybeRebasedAmount Possibly rebased amount of asset.
+     * @return maybeUnrebasedAmount Possibly unrebased amount of asset
      */
-    function toNonRebasingAmount(Asset memory self, uint256 _maybeRebasedAmount) internal view returns (uint256) {
+    function toNonRebasingAmount(
+        Asset memory self,
+        uint256 _maybeRebasedAmount
+    ) internal view returns (uint256 maybeUnrebasedAmount) {
         if (_maybeRebasedAmount == 0) return 0;
         if (self.anchor != address(0)) {
             return IKreskoAssetAnchor(self.anchor).convertToShares(_maybeRebasedAmount);

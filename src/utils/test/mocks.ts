@@ -25,7 +25,7 @@ export const defaultCloseFee = 0.02e4; // 2%
 export const defaultOpenFee = 0; // 0%
 
 export const testKrAssetConfig: AssetArgs = {
-    id: "KrAsset",
+    underlyingId: "KrAsset",
     name: "KrAsset",
     symbol: "KrAsset",
     marketOpen: true,
@@ -42,7 +42,7 @@ export const testKrAssetConfig: AssetArgs = {
 };
 
 export const testCollateralConfig: AssetArgs = {
-    id: "Collateral",
+    underlyingId: "Collateral",
     name: "Collateral",
     symbol: "Collateral",
     price: TEN_USD,

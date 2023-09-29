@@ -1,4 +1,3 @@
-import { redstoneMap } from "@deploy-config/arbitrumGoerli";
 import { getLogger } from "@kreskolabs/lib";
 import { getAnchorNameAndSymbol } from "@utils/strings";
 import { getAssetConfig } from "@utils/test/helpers/general";
@@ -7,6 +6,7 @@ import { task, types } from "hardhat/config";
 import { AssetArgs } from "types";
 import { TASK_ADD_ASSET } from "./names";
 import { testKrAssetConfig } from "@utils/test/mocks";
+import { redstoneMap } from "@utils/redstone";
 type AddAssetArgs = {
     address: string;
     assetConfig: AssetArgs;
@@ -42,8 +42,8 @@ task(TASK_ADD_ASSET)
         if (config.collateralConfig && config.collateralConfig.cFactor === 0) {
             throw new Error("Invalid cFactor for " + config.symbol);
         }
-        const redstoneId = redstoneMap[config.id as keyof typeof redstoneMap];
-        if (!redstoneId) throw new Error(`Redstone not found for ${config.symbol}`);
+        const redstoneId = redstoneMap[config.underlyingId as keyof typeof redstoneMap];
+        if (!redstoneId) throw new Error(`RedstoneId not found for ${config.symbol}`);
 
         hre.checkAddress(config.feed, `Invalid oracle address: ${config.feed}, Kresko Asset: ${config.symbol}`);
 
@@ -56,7 +56,7 @@ task(TASK_ADD_ASSET)
         const assetInfo = await Kresko.getAsset(Asset.address);
         const exists = assetInfo.decimals != 0;
         const asset: TestAsset<typeof Asset> = {
-            id: config.id,
+            underlyingId: config.underlyingId,
             address: Asset.address,
             isMocked: false,
             // @ts-expect-error

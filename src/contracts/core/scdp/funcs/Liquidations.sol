@@ -2,7 +2,7 @@
 pragma solidity >=0.8.19;
 
 import {WadRay} from "libs/WadRay.sol";
-import {Percentages} from "libs/Percentages.sol";
+import {PercentageMath} from "libs/PercentageMath.sol";
 import {MaxLiqVars} from "common/Types.sol";
 import {calcMaxLiqValue} from "common/funcs/Math.sol";
 
@@ -10,17 +10,17 @@ import {cs} from "common/State.sol";
 import {Asset} from "common/Types.sol";
 import {scdp, sdi} from "scdp/State.sol";
 import {Asset} from "common/Types.sol";
-
+import "hardhat/console.sol";
 using WadRay for uint256;
-using Percentages for uint256;
-using Percentages for uint16;
+using PercentageMath for uint256;
+using PercentageMath for uint16;
 
 function maxLiqValueSCDP(
     Asset memory _repayAsset,
     Asset memory _seizeAsset,
     address _seizeAssetAddr
 ) view returns (uint256 maxLiquidatableUSD) {
-    MaxLiqVars memory vars = _getMaxLiqVarsSCDP(_repayAsset, _seizeAsset, _seizeAssetAddr);
+    MaxLiqVars memory vars = _createLiqVarsSCDP(_repayAsset, _seizeAsset, _seizeAssetAddr);
     // Account is not liquidatable
     if (vars.accountCollateralValue >= (vars.minCollateralValue)) {
         return 0;
@@ -37,12 +37,13 @@ function maxLiqValueSCDP(
     }
 }
 
-function _getMaxLiqVarsSCDP(
+function _createLiqVarsSCDP(
     Asset memory _repayAsset,
     Asset memory _seizeAsset,
     address _seizeAssetAddr
 ) view returns (MaxLiqVars memory) {
     uint32 maxLiquidationRatio = scdp().maxLiquidationRatio;
+    console.log("mlr", maxLiquidationRatio);
     uint256 minCollateralValue = sdi().effectiveDebtValue().percentMul(maxLiquidationRatio);
 
     (uint256 totalCollateralValue, uint256 seizeCollateralValue) = scdp().collateralValueSCDP(

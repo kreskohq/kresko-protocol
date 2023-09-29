@@ -5,6 +5,7 @@ import {ms} from "minter/State.sol";
 import {cs} from "common/State.sol";
 import {IStateFacet} from "minter/interfaces/IStateFacet.sol";
 import {MinterParams} from "minter/Types.sol";
+import {collateralAmountToValues, debtAmountToValues} from "common/funcs/Helpers.sol";
 
 /**
  * @author Kresko
@@ -50,20 +51,18 @@ contract StateFacet is IStateFacet {
     }
 
     /// @inheritdoc IStateFacet
-    function getCollateralAmountToValue(
+    function getCollateralValueWithPrice(
         address _collateralAsset,
-        uint256 _amount,
-        bool _ignoreCollateralFactor
-    ) external view returns (uint256 value, uint256 oraclePrice) {
-        return cs().assets[_collateralAsset].collateralAmountToValue(_amount, _ignoreCollateralFactor);
+        uint256 _amount
+    ) external view returns (uint256 value, uint256 adjustedValue, uint256 price) {
+        return collateralAmountToValues(cs().assets[_collateralAsset], _amount);
     }
 
     /// @inheritdoc IStateFacet
-    function getDebtAmountToValue(
+    function getDebtValueWithPrice(
         address _kreskoAsset,
-        uint256 _amount,
-        bool _ignoreKFactor
-    ) external view returns (uint256 value) {
-        return cs().assets[_kreskoAsset].debtAmountToValue(_amount, _ignoreKFactor);
+        uint256 _amount
+    ) external view returns (uint256 value, uint256 adjustedValue, uint256 price) {
+        return debtAmountToValues(cs().assets[_kreskoAsset], _amount);
     }
 }

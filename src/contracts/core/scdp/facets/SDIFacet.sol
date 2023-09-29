@@ -87,10 +87,10 @@ contract SDIFacet is ISDIFacet, DSModifiers, CModifiers {
 
     function enableCoverAssetSDI(address _assetAddr) external onlyRole(Role.ADMIN) {
         Asset memory asset = cs().assets[_assetAddr];
-        if (asset.id == EMPTY_BYTES12) {
+        if (asset.underlyingId == EMPTY_BYTES12) {
             revert SError.INVALID_ASSET_SDI(_assetAddr);
         } else if (asset.pushedPrice().price == 0) {
-            revert CError.NO_PUSH_PRICE(asset.id.toString());
+            revert CError.NO_PUSH_PRICE(asset.underlyingId.toString());
         } else if (asset.isSCDPCoverAsset) {
             revert SError.ASSET_ALREADY_ENABLED_SDI(_assetAddr);
         }

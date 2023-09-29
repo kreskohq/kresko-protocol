@@ -8,7 +8,7 @@ interface ISCDPStateFacet {
      * @param _account The account.
      * @param _depositAsset The deposit asset.
      */
-    function getAccountDepositWithFeesSCDP(address _account, address _depositAsset) external view returns (uint256);
+    function getAccountScaledDepositsSCDP(address _account, address _depositAsset) external view returns (uint256);
 
     /**
      * @notice Get the total collateral principal deposits for `_account`
@@ -31,7 +31,7 @@ interface ISCDPStateFacet {
      * @param _account The account.
      * @param _depositAsset The collateral asset
      */
-    function getAccountDepositValueWithFeesSCDP(address _account, address _depositAsset) external view returns (uint256);
+    function getAccountScaledDepositValueCDP(address _account, address _depositAsset) external view returns (uint256);
 
     /**
      * @notice Get the total collateral deposit value for `_account`
@@ -43,7 +43,7 @@ interface ISCDPStateFacet {
      * @notice Get the full value of account and fees for `_account`
      * @param _account The account.
      */
-    function getAccountTotalDepositsValueWithFeesSCDP(address _account) external view returns (uint256);
+    function getAccountTotalScaledDepositsValueSCDP(address _account) external view returns (uint256);
 
     /**
      * @notice Get all pool CollateralAssets

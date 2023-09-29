@@ -12,7 +12,7 @@ import "@nomicfoundation/hardhat-foundry";
 import "hardhat-diamond-abi";
 // note: hardhat-diamond-abi should always be exported before typechain if used together
 import "@typechain/hardhat";
-import "@nomicfoundation/hardhat-ethers";
+import "@nomiclabs/hardhat-ethers";
 import "hardhat-deploy";
 import "hardhat-deploy-ethers";
 import "@nomicfoundation/hardhat-chai-matchers";

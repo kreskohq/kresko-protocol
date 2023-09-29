@@ -30,7 +30,7 @@
   "solidity.initExclude": ["test"],
   "solidity.libs": ["node_modules", "lib"],
   "solidity.libSources": ["src", "contracts"],
-  "solidity.enabledAsYouTypeCompilationErrorCheck": true,
+  "solidity.enabledAsYouTypeCompilationErrorCheck": false,
   "solidity.remappings": [
     "ds-test/=lib/forge-std/lib/ds-test/src/",
     "forge-std/=lib/forge-std/src/",

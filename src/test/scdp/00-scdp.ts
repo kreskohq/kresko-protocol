@@ -8,11 +8,10 @@ import { SCDPFixture, scdpFixture } from "@utils/test/fixtures";
 import { addMockExtAsset, depositCollateral } from "@utils/test/helpers/collaterals";
 import { wrapContractWithSigner } from "@utils/test/helpers/general";
 import { addMockKreskoAsset, mintKrAsset } from "@utils/test/helpers/krassets";
-import { TEN_USD, defaultSupplyLimit, testCollateralConfig } from "@utils/test/mocks";
+import { defaultSupplyLimit, testCollateralConfig } from "@utils/test/mocks";
 import { MaxUint128, RAY, toBig } from "@utils/values";
 import { ethers } from "hardhat";
 import { SCDPDepositAssetConfig, SCDPKrAssetConfig } from "types";
-import { CError, CError__factory, Error__factory, SCDPFacet__factory } from "types/typechain";
 import {
     AssetStruct,
     Kresko,
@@ -22,9 +21,9 @@ import {
 } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 
 const scdpKrAssetConfig: SCDPKrAssetConfig = {
-    openFeeSCDP: 0.01e4,
-    closeFeeSCDP: 0.01e4,
-    protocolFeeSCDP: 0.25e4,
+    swapInFeeSCDP: 0.01e4,
+    swapOutFeeSCDP: 0.01e4,
+    protocolFeeShareSCDP: 0.25e4,
     liqIncentiveSCDP: 1.05e4,
 };
 
@@ -33,20 +32,20 @@ const scdpCollateralConfig: SCDPDepositAssetConfig = {
 };
 
 // const swapKrAssetConfig = {
-//     openFeeSCDP: 0.015e4,
-//     closeFeeSCDP: 0.015e4,
+//     swapInFeeSCDP: 0.015e4,
+//     swapOutFeeSCDP: 0.015e4,
 //     liqIncentiveSCDP: 1.05e4,
-//     protocolFeeSCDP: 0.25e4,
+//     protocolFeeShareSCDP: 0.25e4,
 // };
 const scdpKISSConfig = {
-    openFeeSCDP: 0.025e4,
-    closeFeeSCDP: 0.025e4,
+    swapInFeeSCDP: 0.025e4,
+    swapOutFeeSCDP: 0.025e4,
     liqIncentiveSCDP: 1.05e4,
-    protocolFeeSCDP: 0.25e4,
+    protocolFeeShareSCDP: 0.25e4,
 };
 
-const FEE_KISS_KRASSET = Number(scdpKISSConfig.closeFeeSCDP) + Number(scdpKrAssetConfig.openFeeSCDP);
-const FEE_KRASSET_KRASSET = Number(scdpKrAssetConfig.closeFeeSCDP) + Number(scdpKrAssetConfig.openFeeSCDP);
+const FEE_KISS_KRASSET = Number(scdpKISSConfig.swapOutFeeSCDP) + Number(scdpKrAssetConfig.swapInFeeSCDP);
+const FEE_KRASSET_KRASSET = Number(scdpKrAssetConfig.swapOutFeeSCDP) + Number(scdpKrAssetConfig.swapInFeeSCDP);
 const ONE_USD = 1;
 
 const collateralPrice = 10;
@@ -57,7 +56,7 @@ const initialDepositValue = toBig(depositAmount, 8);
 
 const createAssets = () => [
     addMockKreskoAsset({
-        id: "KrAsset3",
+        underlyingId: "KrAsset3",
         price: collateralPrice,
         symbol: "KrAsset3",
         krAssetConfig: {
@@ -75,7 +74,7 @@ const createAssets = () => [
         marketOpen: true,
     }),
     addMockKreskoAsset({
-        id: "KrAsset4",
+        underlyingId: "KrAsset4",
         price: KreskoAsset2Price,
         symbol: "KrAsset4",
         krAssetConfig: {
@@ -93,7 +92,7 @@ const createAssets = () => [
         marketOpen: true,
     }),
     addMockKreskoAsset({
-        id: "KISS",
+        underlyingId: "KISS",
         price: ONE_USD,
         symbol: "KISS",
         krAssetConfig: {
@@ -116,7 +115,7 @@ const createAssets = () => [
 const createCollaterals = () => [
     addMockExtAsset({
         ...testCollateralConfig,
-        id: "Collateral3",
+        underlyingId: "Collateral3",
         name: "Collateral3",
         symbol: "Collateral3",
         price: collateralPrice,
@@ -127,7 +126,7 @@ const createCollaterals = () => [
     }),
     addMockExtAsset({
         ...testCollateralConfig,
-        id: "Collateral4",
+        underlyingId: "Collateral4",
         symbol: "Collateral4",
         price: collateralPrice,
         scdpDepositConfig: {
@@ -280,26 +279,26 @@ describe.only("SCDP", async function () {
 
             it("should be able to add whitelisted kresko asset", async () => {
                 const assetInfo = await hre.Diamond.getAsset(f.KrAsset.address);
-                expect(assetInfo.openFeeSCDP).to.equal(scdpKrAssetConfig.openFeeSCDP);
-                expect(assetInfo.closeFeeSCDP).to.equal(scdpKrAssetConfig.closeFeeSCDP);
+                expect(assetInfo.swapInFeeSCDP).to.equal(scdpKrAssetConfig.swapInFeeSCDP);
+                expect(assetInfo.swapOutFeeSCDP).to.equal(scdpKrAssetConfig.swapOutFeeSCDP);
                 expect(assetInfo.liqIncentiveSCDP).to.equal(scdpKrAssetConfig.liqIncentiveSCDP);
-                expect(assetInfo.protocolFeeSCDP).to.equal(scdpKrAssetConfig.protocolFeeSCDP);
+                expect(assetInfo.protocolFeeShareSCDP).to.equal(scdpKrAssetConfig.protocolFeeShareSCDP);
                 expect(await hre.Diamond.getAssetEnabledSCDP(f.KrAsset.address)).to.equal(true);
             });
 
             it("should be able to update a whitelisted kresko asset", async () => {
                 const update: AssetStruct = {
                     ...f.KrAsset.config.assetStruct,
-                    openFeeSCDP: 0.05e4,
-                    closeFeeSCDP: 0.05e4,
+                    swapInFeeSCDP: 0.05e4,
+                    swapOutFeeSCDP: 0.05e4,
                     liqIncentiveSCDP: 1.06e4,
-                    protocolFeeSCDP: 0.4e4,
+                    protocolFeeShareSCDP: 0.4e4,
                 };
                 await hre.Diamond.updateAsset(f.KrAsset.address, update);
                 const assetInfo = await hre.Diamond.getAsset(f.KrAsset.address);
-                expect(assetInfo.openFeeSCDP).to.equal(update.openFeeSCDP);
-                expect(assetInfo.closeFeeSCDP).to.equal(update.closeFeeSCDP);
-                expect(assetInfo.protocolFeeSCDP).to.equal(update.protocolFeeSCDP);
+                expect(assetInfo.swapInFeeSCDP).to.equal(update.swapInFeeSCDP);
+                expect(assetInfo.swapOutFeeSCDP).to.equal(update.swapOutFeeSCDP);
+                expect(assetInfo.protocolFeeShareSCDP).to.equal(update.protocolFeeShareSCDP);
                 expect(assetInfo.liqIncentiveSCDP).to.equal(update.liqIncentiveSCDP);
 
                 const krAssets = await hre.Diamond.getKreskoAssetsSCDP();
@@ -391,12 +390,12 @@ describe.only("SCDP", async function () {
                     const balance = await f.Collateral.balanceOf(userInfo.account);
 
                     expect(balance).to.equal(0);
-                    expect(userInfo.deposits[0].depositAmountWithFees).to.equal(depositAmount18Dec);
+                    expect(userInfo.deposits[0].scaledDepositAmount).to.equal(depositAmount18Dec);
                     expect(userInfo.deposits[0].depositAmount).to.equal(depositAmount18Dec);
                     expect(userInfo.totalDepositValue).to.equal(expectedValueUnadjusted);
-                    expect(userInfo.totalDepositValueWithFees).to.equal(expectedValueUnadjusted);
+                    expect(userInfo.totalScaledDepositValue).to.equal(expectedValueUnadjusted);
                     expect(userInfo.deposits[0].depositValue).to.equal(expectedValueUnadjusted);
-                    expect(userInfo.deposits[0].depositValueWithFees).to.equal(expectedValueUnadjusted);
+                    expect(userInfo.deposits[0].scaledDepositValue).to.equal(expectedValueUnadjusted);
                 }
 
                 expect(await f.Collateral.balanceOf(hre.Diamond.address)).to.equal(
@@ -518,9 +517,9 @@ describe.only("SCDP", async function () {
                 for (const userInfo of userInfos) {
                     expect(await f.Collateral.balanceOf(userInfo.account)).to.equal(depositAmount18Dec);
                     expect(userInfo.deposits[0].depositAmount).to.equal(0);
-                    expect(userInfo.deposits[0].depositAmountWithFees).to.equal(0);
+                    expect(userInfo.deposits[0].scaledDepositAmount).to.equal(0);
                     expect(userInfo.deposits[1].depositAmount).to.equal(0);
-                    expect(userInfo.deposits[1].depositAmountWithFees).to.equal(0);
+                    expect(userInfo.deposits[1].scaledDepositAmount).to.equal(0);
                     expect(userInfo.totalDepositValue).to.equal(0);
                 }
 
@@ -581,12 +580,10 @@ describe.only("SCDP", async function () {
                     expect(balance18Dec).to.equal(partialWithdraw);
                     expect(balance8Dec).to.equal(partialWithdraw8Dec);
                     expect(userInfo.deposits[0].depositAmount).to.equal(depositAmount18Dec.sub(partialWithdraw));
-                    expect(userInfo.deposits[0].depositAmountWithFees).to.equal(
-                        depositAmount18Dec.sub(partialWithdraw),
-                    );
+                    expect(userInfo.deposits[0].scaledDepositAmount).to.equal(depositAmount18Dec.sub(partialWithdraw));
 
                     expect(userInfo.deposits[1].depositAmount).to.equal(depositAmount8Dec.sub(partialWithdraw8Dec));
-                    expect(userInfo.deposits[1].depositAmountWithFees).to.equal(
+                    expect(userInfo.deposits[1].scaledDepositAmount).to.equal(
                         depositAmount8Dec.sub(partialWithdraw8Dec),
                     );
 
@@ -658,9 +655,9 @@ describe.only("SCDP", async function () {
                     [f.Collateral.address],
                 )) {
                     expect(data.deposits[0].depositValue).to.equal(expectedValueNoFees);
-                    expect(data.deposits[0].depositValueWithFees).to.equal(expectedValueFees);
+                    expect(data.deposits[0].scaledDepositValue).to.equal(expectedValueFees);
                     expect(data.totalDepositValue).to.equal(expectedValueNoFees);
-                    expect(data.totalDepositValueWithFees).to.equal(expectedValueFees);
+                    expect(data.totalScaledDepositValue).to.equal(expectedValueFees);
                 }
 
                 // withdraw principal
@@ -680,8 +677,8 @@ describe.only("SCDP", async function () {
                 )) {
                     const balance = await f.Collateral.balanceOf(user.account);
                     expect(user.deposits[0].depositValue).to.equal(0);
-                    expect(user.deposits[0].depositValueWithFees).to.equal(expectedValueFees.sub(expectedValueNoFees));
-                    expect(user.totalDepositValueWithFees).to.equal(expectedValueFees.sub(expectedValueNoFees));
+                    expect(user.deposits[0].scaledDepositValue).to.equal(expectedValueFees.sub(expectedValueNoFees));
+                    expect(user.totalScaledDepositValue).to.equal(expectedValueFees.sub(expectedValueNoFees));
                     expect(user.totalDepositValue).to.equal(0);
                     expect(balance).to.equal(depositAmount18Dec);
                 }
@@ -716,9 +713,9 @@ describe.only("SCDP", async function () {
                     const balance = await f.Collateral.balanceOf(data.account);
                     expect(balance).to.equal(depositAmount18Dec.add(depositAmount18Dec));
                     expect(data.deposits[0].depositValue).to.equal(0);
-                    expect(data.deposits[0].depositValueWithFees).to.equal(0);
+                    expect(data.deposits[0].scaledDepositValue).to.equal(0);
                     expect(data.totalDepositValue).to.equal(0);
-                    expect(data.totalDepositValueWithFees).to.equal(0);
+                    expect(data.totalScaledDepositValue).to.equal(0);
                 }
 
                 // nothing left in protocol.
@@ -1060,14 +1057,14 @@ describe.only("SCDP", async function () {
 
                 const swapAmount = toBig(ONE_USD * 2600); // $1
 
-                const balFeesBefore = await KreskoSwapper.getAccountDepositValueWithFeesSCDP(
+                const balFeesBefore = await KreskoSwapper.getAccountScaledDepositsSCDP(
                     depositor.address,
                     f.KISS.address,
                 );
 
                 await KreskoSwapper.swapSCDP(swapper.address, f.KISS.address, f.KrAsset2.address, swapAmount, 0);
 
-                const balFeesAfterFirst = await KreskoSwapper.getAccountDepositValueWithFeesSCDP(
+                const balFeesAfterFirst = await KreskoSwapper.getAccountScaledDepositsSCDP(
                     depositor.address,
                     f.KISS.address,
                 );
@@ -1080,7 +1077,7 @@ describe.only("SCDP", async function () {
                     f.KrAsset2.balanceOf(swapper.address),
                     0,
                 );
-                const balFeesAfterSecond = await KreskoSwapper.getAccountDepositValueWithFeesSCDP(
+                const balFeesAfterSecond = await KreskoSwapper.getAccountScaledDepositsSCDP(
                     depositor.address,
                     f.KISS.address,
                 );
@@ -1098,7 +1095,7 @@ describe.only("SCDP", async function () {
                 );
 
                 const [feesAfterThird, feesAfter] = await Promise.all([
-                    KreskoSwapper.getAccountDepositValueWithFeesSCDP(depositor.address, f.KISS.address),
+                    KreskoSwapper.getAccountScaledDepositsSCDP(depositor.address, f.KISS.address),
                     KreskoSwapper.getAccountDepositFeesGainedSCDP(depositor.address, f.KISS.address),
                 ]);
 
@@ -1114,7 +1111,7 @@ describe.only("SCDP", async function () {
 
                 const [depositsAfterFourth, feesAfterFourth] = await Promise.all([
                     KreskoSwapper.getAccountDepositValueSCDP(depositor.address, f.KISS.address),
-                    KreskoSwapper.getAccountDepositValueWithFeesSCDP(depositor.address, f.KISS.address),
+                    KreskoSwapper.getAccountScaledDepositsSCDP(depositor.address, f.KISS.address),
                 ]);
 
                 expect(depositsAfterFourth).to.eq(0);
@@ -1190,7 +1187,7 @@ describe.only("SCDP", async function () {
                 const swapAmount = toBig(ONE_USD * 2600);
 
                 await KreskoSwapper.swapSCDP(swapper.address, f.KISS.address, f.KrAsset2.address, swapAmount, 0);
-                const newKreskoAssetPrice = 700;
+                const newKreskoAssetPrice = 500;
                 f.KrAsset2.setPrice(newKreskoAssetPrice);
 
                 const [scdpParams, maxLiquidatable, krAssetPrice, statsBefore] = await Promise.all([
@@ -1200,7 +1197,10 @@ describe.only("SCDP", async function () {
                     hre.Diamond.getStatisticsSCDP(),
                 ]);
                 const repayAmount = maxLiquidatable.wadDiv(krAssetPrice);
-
+                console.log({
+                    statsBefore: statsBefore,
+                    repayAmount,
+                });
                 await f.KrAsset2.setBalance(hre.users.liquidator, repayAmount.add((1e18).toString()));
                 expect(statsBefore.cr).to.lt(scdpParams.liquidationThreshold);
                 expect(statsBefore.cr).to.gt(1e4);
@@ -1221,8 +1221,8 @@ describe.only("SCDP", async function () {
                 // console.log("liq", (await tx.wait()).gasUsed.toString());
                 expect(statsAfter.cr).to.gt(scdpParams.liquidationThreshold);
                 console.log({
-                    statsBefore: statsBefore.cr.toString(),
-                    statsAfter: statsAfter.cr.toString(),
+                    statsBefore,
+                    statsAfter,
                     liquidatableAfter,
                     repayAmount,
                 });
@@ -1251,7 +1251,7 @@ describe.only("SCDP", async function () {
 
                 const [principalDeposits, depositsWithFees, params] = await Promise.all([
                     hre.Diamond.getAccountDepositSCDP(depositor.address, f.Collateral8Dec.address),
-                    hre.Diamond.getAccountDepositWithFeesSCDP(depositor.address, f.Collateral8Dec.address),
+                    hre.Diamond.getAccountScaledDepositsSCDP(depositor.address, f.Collateral8Dec.address),
                     hre.Diamond.getCurrentParametersSCDP(),
                 ]);
                 expect(principalDeposits).to.eq(expectedDepositsAfter);
@@ -1265,7 +1265,7 @@ describe.only("SCDP", async function () {
                 ).to.not.be.reverted;
                 const [principalEnd, depositsWithFeesEnd] = await Promise.all([
                     hre.Diamond.getAccountDepositSCDP(depositor.address, f.Collateral8Dec.address),
-                    hre.Diamond.getAccountDepositWithFeesSCDP(depositor.address, f.Collateral8Dec.address),
+                    hre.Diamond.getAccountScaledDepositsSCDP(depositor.address, f.Collateral8Dec.address),
                 ]);
                 expect(principalEnd).to.eq(0);
                 expect(depositsWithFeesEnd).to.eq(0);

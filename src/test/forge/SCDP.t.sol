@@ -11,7 +11,7 @@ import {DeployHelper} from "./utils/DeployHelper.sol";
 import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {KreskoAssetAnchor} from "kresko-asset/KreskoAssetAnchor.sol";
 import {Asset} from "common/Types.sol";
-import {Percentages} from "libs/Percentages.sol";
+import {PercentageMath} from "libs/PercentageMath.sol";
 import {WadRay} from "libs/WadRay.sol";
 
 // solhint-disable
@@ -19,7 +19,7 @@ import {WadRay} from "libs/WadRay.sol";
 contract SCDPTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
     using LibTest for *;
     using WadRay for uint256;
-    using Percentages for uint256;
+    using PercentageMath for uint256;
 
     address internal admin = address(0xABABAB);
 

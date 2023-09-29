@@ -57,7 +57,7 @@ export const addMockKreskoAsset = async (args = testKrAssetConfig): Promise<Test
     ]);
 
     const asset: TestAsset<KreskoAsset, "mock"> = {
-        id: args.id,
+        underlyingId: args.underlyingId,
         isKrAsset: true,
         isCollateral: !!args.collateralConfig,
         address: krAsset.address,
@@ -148,7 +148,7 @@ export const leverageKrAsset = async (
 
     const collateralValueRequired = krAssetValueBig.percentMul(mcrBig);
 
-    const price = collateralValue.toJS(8);
+    const price = collateralValue.num(8);
     const collateralAmount = collateralValueRequired.wadDiv(await collateralToUse.getPrice());
 
     await collateralToUse.setBalance(user, collateralAmount, hre.Diamond.address);
@@ -192,8 +192,8 @@ export const leverageKrAsset = async (
         user.address,
     );
 
-    const withdrawAmount = accountCollateral.sub(accountMinCollateralRequired).toJS(8) / price - 0.1;
-    const amountToWithdraw = withdrawAmount.toBN(18);
+    const withdrawAmount = accountCollateral.sub(accountMinCollateralRequired).num(8) / price - 0.1;
+    const amountToWithdraw = withdrawAmount.bn();
 
     if (amountToWithdraw.gt(0)) {
         await UserKresko.withdrawCollateral(

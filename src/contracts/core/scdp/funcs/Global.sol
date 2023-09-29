@@ -2,7 +2,7 @@
 pragma solidity >=0.8.19;
 
 import {WadRay} from "libs/WadRay.sol";
-import {Percentages} from "libs/Percentages.sol";
+import {PercentageMath} from "libs/PercentageMath.sol";
 import {Percents} from "common/Constants.sol";
 import {toWad} from "common/funcs/Math.sol";
 import {cs} from "common/State.sol";
@@ -11,7 +11,7 @@ import {SCDPState, sdi} from "scdp/State.sol";
 
 library SGlobal {
     using WadRay for uint256;
-    using Percentages for uint256;
+    using PercentageMath for uint256;
 
     /**
      * @notice Checks whether the shared debt pool can be liquidated.
@@ -72,9 +72,8 @@ library SGlobal {
             Asset memory asset = cs().assets[assets[i]];
             uint256 depositAmount = self.totalDepositAmount(assets[i], asset);
             if (depositAmount != 0) {
-                (uint256 assetValue, ) = asset.collateralAmountToValue(depositAmount, _ignoreFactors);
                 unchecked {
-                    value += assetValue;
+                    value += asset.collateralAmountToValue(depositAmount, _ignoreFactors);
                 }
             }
 
@@ -102,7 +101,7 @@ library SGlobal {
             Asset memory asset = cs().assets[assets[i]];
             uint256 depositAmount = self.totalDepositAmount(assets[i], asset);
             if (depositAmount != 0) {
-                (uint256 assetValue, uint256 price) = asset.collateralAmountToValue(depositAmount, _ignoreFactors);
+                (uint256 assetValue, uint256 price) = asset.collateralAmountToValueWithPrice(depositAmount, _ignoreFactors);
                 unchecked {
                     totalValue += assetValue;
                 }

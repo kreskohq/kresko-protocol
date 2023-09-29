@@ -1,3 +1,7 @@
+import { AssetConfigExtended } from "@deploy-config/arbitrumGoerli";
+import { AllTokenSymbols } from "@deploy-config/shared";
+import { AllUnderlyingIds } from "@utils/redstone";
+import { BigNumber } from "ethers";
 import { Address } from "hardhat-deploy/types";
 import type * as Contracts from "./typechain";
 import {
@@ -7,10 +11,6 @@ import {
     MinterInitArgsStruct,
     SCDPInitArgsStruct,
 } from "./typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
-import { AssetConfigExtended, assets } from "@deploy-config/arbitrumGoerli";
-import { BigNumber } from "ethers";
-import { AllTokenSymbols } from "@deploy-config/shared";
-import { AllAssetIds } from "@utils/redstone";
 
 export type Split<S extends string, D extends string> = string extends S
     ? string[]
@@ -90,7 +90,7 @@ export type AssetConfig = {
     extendedInfo: ExtendedInfo;
 };
 export type AssetArgs = {
-    id: AllAssetIds;
+    underlyingId: AllUnderlyingIds;
     getPrice?: () => Promise<BigNumber>;
     getMarketStatus?: () => Promise<boolean>;
     symbol: AllTokenSymbols;
@@ -116,10 +116,10 @@ export type KrAssetConfig = {
 };
 
 export type SCDPKrAssetConfig = {
-    openFeeSCDP: BigNumberish;
-    closeFeeSCDP: BigNumberish;
+    swapInFeeSCDP: BigNumberish;
+    swapOutFeeSCDP: BigNumberish;
     liqIncentiveSCDP: BigNumberish;
-    protocolFeeSCDP: BigNumberish;
+    protocolFeeShareSCDP: BigNumberish;
 };
 
 export type CollateralConfig = {

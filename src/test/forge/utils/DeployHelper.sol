@@ -273,7 +273,7 @@ abstract contract DeployHelper is RedstoneHelper {
 
     function deployAndAddCollateral(
         string memory id,
-        bytes32 redstoneId,
+        bytes12 redstoneId,
         uint8 decimals,
         uint256 price,
         bool asSCDPDepositAsset
@@ -284,11 +284,11 @@ abstract contract DeployHelper is RedstoneHelper {
         return (collateral, oracle);
     }
 
-    function addExternalAsset(address asset, address oracle, bytes32 redstoneId, bool isSCDPDepositAsset) internal {
+    function addExternalAsset(address asset, address oracle, bytes12 redstoneId, bool isSCDPDepositAsset) internal {
         OracleType[2] memory oracleTypes = [OracleType.Redstone, OracleType.Chainlink];
         FeedConfiguration memory feeds = FeedConfiguration(oracleTypes, [address(0), oracle]);
         Asset memory config = kresko.getAsset(asset);
-        config.id = bytes12(redstoneId);
+        config.underlyingId = bytes12(redstoneId);
         config.factor = 1e4;
         config.liqIncentive = 1.1e4;
         config.isCollateral = true;
@@ -307,7 +307,7 @@ abstract contract DeployHelper is RedstoneHelper {
         address asset,
         address anchor,
         address oracle,
-        bytes32 redstoneId,
+        bytes12 underlyingId,
         bool isCollateral,
         bool isSCDPKrAsset,
         bool isSCDPDepositAsset
@@ -315,7 +315,7 @@ abstract contract DeployHelper is RedstoneHelper {
         OracleType[2] memory oracleTypes = [OracleType.Redstone, OracleType.Chainlink];
         FeedConfiguration memory feeds = FeedConfiguration(oracleTypes, [address(0), oracle]);
         Asset memory config;
-        config.id = bytes12(redstoneId);
+        config.underlyingId = bytes12(underlyingId);
         config.kFactor = 1.2e4;
         config.liqIncentive = 1.1e4;
         config.isKrAsset = true;
@@ -334,9 +334,9 @@ abstract contract DeployHelper is RedstoneHelper {
         if (isSCDPKrAsset) {
             config.isSCDPKrAsset = true;
             config.isSCDPCollateral = true;
-            config.openFeeSCDP = 0.02e4;
-            config.closeFeeSCDP = 0.02e4;
-            config.protocolFeeSCDP = 0.25e4;
+            config.swapInFeeSCDP = 0.02e4;
+            config.swapOutFeeSCDP = 0.02e4;
+            config.protocolFeeShareSCDP = 0.25e4;
             config.liqIncentiveSCDP = 1.1e4;
         }
 
@@ -350,7 +350,7 @@ abstract contract DeployHelper is RedstoneHelper {
 
     function whitelistCollateral(address asset) internal {
         Asset memory config = kresko.getAsset(asset);
-        require(config.id != bytes32(0), "Asset does not exist");
+        require(config.underlyingId != bytes12(0), "Asset does not exist");
 
         config.liqIncentive = 1.1e4;
         config.isCollateral = true;

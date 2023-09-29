@@ -33,7 +33,7 @@ library LibUI {
         uint256 price;
         string symbol;
         string name;
-        bytes32 redstoneId;
+        bytes32 underlyingId;
     }
 
     struct CollateralAssetInfo {
@@ -47,7 +47,7 @@ library LibUI {
         string symbol;
         string name;
         bool marketOpen;
-        bytes32 redstoneId;
+        bytes32 underlyingId;
     }
 
     struct ProtocolParams {
@@ -67,13 +67,13 @@ library LibUI {
         string symbol;
         string name;
         bool marketOpen;
-        bytes32 redstoneId;
+        bytes32 underlyingId;
     }
 
     struct KreskoUser {
         krAssetInfoUser[] krAssets;
         CollateralAssetInfoUser[] collateralAssets;
-        bytes32[] redstoneIds;
+        bytes32[] underlyingIds;
         uint256 healthFactor;
         uint256 debtUSD;
         uint256 collateralUSD;
@@ -152,7 +152,7 @@ library LibUI {
         string name;
         uint256 openFee;
         uint256 closeFee;
-        bytes32 redstoneId;
+        bytes32 underlyingId;
     }
 
     function getBalances(
@@ -220,7 +220,7 @@ library LibUI {
 
         for (uint256 i; i < _assets.length; i++) {
             Asset memory asset = cs().assets[_assets[i]];
-            uint256 redstonePrice = Redstone.getPrice(asset.id);
+            uint256 redstonePrice = Redstone.getPrice(asset.underlyingId);
             PushPrice memory pushPrice = asset.pushedPrice();
             uint256 price = asset.price();
 
@@ -252,7 +252,7 @@ library LibUI {
                 marketOpen: krAsset.marketStatus(),
                 symbol: IERC20Permit(assetAddress).symbol(),
                 name: IERC20Permit(assetAddress).name(),
-                redstoneId: krAsset.id
+                underlyingId: krAsset.underlyingId
             });
         }
     }
@@ -265,7 +265,7 @@ library LibUI {
 
             uint8 decimals = IERC20Permit(assetAddress).decimals();
 
-            (uint256 value, uint256 price) = collateralAsset.collateralAmountToValue(1 * 10 ** decimals, false);
+            (uint256 value, uint256 price) = collateralAsset.collateralAmountToValueWithPrice(1 * 10 ** decimals, false);
 
             result[i] = CollateralAssetInfo({
                 value: value,
@@ -278,7 +278,7 @@ library LibUI {
                 marketOpen: true,
                 symbol: IERC20Permit(assetAddress).symbol(),
                 name: IERC20Permit(assetAddress).name(),
-                redstoneId: collateralAsset.id
+                underlyingId: collateralAsset.underlyingId
             });
         }
     }
@@ -296,7 +296,7 @@ library LibUI {
                 Asset memory collateralAsset = cs().assets[assetAddress];
                 uint256 amount = ms().accountCollateralAmount(_account, assetAddress, collateralAsset);
 
-                (uint256 amountUSD, uint256 price) = collateralAsset.collateralAmountToValue(amount, true);
+                (uint256 amountUSD, uint256 price) = collateralAsset.collateralAmountToValueWithPrice(amount, true);
 
                 totalCollateralUSD += amountUSD;
                 result[i] = CollateralAssetInfoUser({
@@ -311,7 +311,7 @@ library LibUI {
                     price: price,
                     symbol: IERC20Permit(assetAddress).symbol(),
                     name: IERC20Permit(assetAddress).name(),
-                    redstoneId: collateralAsset.id
+                    underlyingId: collateralAsset.underlyingId
                 });
             }
         }
@@ -340,7 +340,7 @@ library LibUI {
                     price: krAsset.price(),
                     symbol: IERC20Permit(assetAddress).symbol(),
                     name: IERC20Permit(assetAddress).name(),
-                    redstoneId: krAsset.id
+                    underlyingId: krAsset.underlyingId
                 });
             }
         }
@@ -363,11 +363,11 @@ library LibUI {
     ) internal pure returns (bytes32[] memory result) {
         result = new bytes32[](krInfos.length + collateralInfos.length);
         for (uint256 i; i < krInfos.length; i++) {
-            result[i] = krInfos[i].redstoneId;
+            result[i] = krInfos[i].underlyingId;
         }
 
         for (uint256 i; i < collateralInfos.length; i++) {
-            result[i + krInfos.length] = collateralInfos[i].redstoneId;
+            result[i + krInfos.length] = collateralInfos[i].underlyingId;
         }
     }
 
@@ -379,7 +379,7 @@ library LibUI {
             user = KreskoUser({
                 collateralAssets: collateralInfos,
                 krAssets: krInfos,
-                redstoneIds: getRedstoneIds(krInfos, collateralInfos),
+                underlyingIds: getRedstoneIds(krInfos, collateralInfos),
                 borrowingPowerUSD: borrowingPowerUSD(_account),
                 healthFactor: healthFactorFor(_account),
                 debtUSD: ms().accountDebtValue(_account),

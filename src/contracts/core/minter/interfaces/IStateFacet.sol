@@ -26,20 +26,25 @@ interface IStateFacet {
      * @notice Gets the USD value for a single collateral asset and amount.
      * @param _collateralAsset The address of the collateral asset.
      * @param _amount The amount of the collateral asset to calculate the value for.
-     * @param _ignoreCollateralFactor Boolean indicating if the asset's collateral factor should be ignored.
+     * @return value The unadjusted value for the provided amount of the collateral asset.
+     * @return adjustedValue The (cFactor) adjusted value for the provided amount of the collateral asset.
+     * @return price The price of the collateral asset.
      */
-    function getCollateralAmountToValue(
+    function getCollateralValueWithPrice(
         address _collateralAsset,
-        uint256 _amount,
-        bool _ignoreCollateralFactor
-    ) external view returns (uint256, uint256);
+        uint256 _amount
+    ) external view returns (uint256 value, uint256 adjustedValue, uint256 price);
 
     /**
      * @notice Gets the USD value for a single Kresko asset and amount.
      * @param _kreskoAsset The address of the Kresko asset.
      * @param _amount The amount of the Kresko asset to calculate the value for.
-     * @param _ignoreKFactor Boolean indicating if the asset's k-factor should be ignored.
-     * @return The value for the provided amount of the Kresko asset.
+     * @return value The unadjusted value for the provided amount of the debt asset.
+     * @return adjustedValue The (kFactor) adjusted value for the provided amount of the debt asset.
+     * @return price The price of the debt asset.
      */
-    function getDebtAmountToValue(address _kreskoAsset, uint256 _amount, bool _ignoreKFactor) external view returns (uint256);
+    function getDebtValueWithPrice(
+        address _kreskoAsset,
+        uint256 _amount
+    ) external view returns (uint256 value, uint256 adjustedValue, uint256 price);
 }

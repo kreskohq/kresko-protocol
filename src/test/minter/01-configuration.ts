@@ -154,7 +154,7 @@ describe("Minter - Configuration", function () {
                 closeFee: 0.052e4,
                 openFee: 0.052e4,
                 isSCDPKrAsset: true,
-                openFeeSCDP: 0.052e4,
+                swapInFeeSCDP: 0.052e4,
                 anchor: f.KrAsset.anchor.address,
             };
 
@@ -166,7 +166,7 @@ describe("Minter - Configuration", function () {
             expect(newValues.kFactor).to.equal(update2.kFactor);
             expect(newValues.openFee).to.equal(update2.closeFee);
             expect(newValues.closeFee).to.equal(update2.openFee);
-            expect(newValues.openFeeSCDP).to.equal(update2.openFeeSCDP);
+            expect(newValues.swapInFeeSCDP).to.equal(update2.swapInFeeSCDP);
             expect(newValues.supplyLimit).to.equal(update2.supplyLimit);
         });
     });
