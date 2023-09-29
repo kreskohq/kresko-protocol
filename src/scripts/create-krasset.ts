@@ -1,14 +1,22 @@
 import { Role } from "@utils/test/roles";
-import { anchorTokenPrefix, getDeploymentUsers } from "@deploy-config/shared";
+import { AllTokenSymbols, getDeploymentUsers } from "@deploy-config/shared";
+import { getAnchorNameAndSymbol } from "@utils/strings";
+import { KreskoAssetAnchor } from "types/typechain";
 
-export async function createKrAsset(name: string, symbol: string, decimals = 18) {
+export async function createKrAsset<T extends AllTokenSymbols>(
+    symbol: T,
+    name: string,
+    decimals = 18,
+): Promise<{ KreskoAsset: KreskoAsset; KreskoAssetAnchor: KreskoAssetAnchor }> {
     const { deployer } = await hre.ethers.getNamedSigners();
     const { admin } = await getDeploymentUsers(hre);
-    const anchorSymbol = anchorTokenPrefix + symbol;
+
+    const { anchorName, anchorSymbol } = getAnchorNameAndSymbol(symbol, name);
 
     const Kresko = await hre.getContractOrFork("Kresko");
     const kreskoAssetInitArgs = [name, symbol, decimals, admin, Kresko.address];
-
+    const num = 100;
+    num.RAY;
     const [KreskoAsset] = await hre.deploy("KreskoAsset", {
         from: deployer.address,
         log: true,
@@ -23,7 +31,7 @@ export async function createKrAsset(name: string, symbol: string, decimals = 18)
         },
     });
 
-    const kreskoAssetAnchorInitArgs = [KreskoAsset.address, name, anchorSymbol, admin];
+    const kreskoAssetAnchorInitArgs = [KreskoAsset.address, anchorName, anchorSymbol, admin];
 
     const [KreskoAssetAnchor] = await hre.deploy("KreskoAssetAnchor", {
         from: deployer.address,
@@ -42,25 +50,8 @@ export async function createKrAsset(name: string, symbol: string, decimals = 18)
 
     await KreskoAsset.grantRole(Role.OPERATOR, KreskoAssetAnchor.address);
 
-    const asset: any = {
-        address: KreskoAsset.address,
-        contract: KreskoAsset,
-        anchor: KreskoAssetAnchor,
-        deployArgs: {
-            name,
-            symbol,
-            decimals,
-            anchorSymbol,
-        },
+    return {
+        KreskoAsset,
+        KreskoAssetAnchor,
     };
-
-    const found = hre.krAssets.findIndex(c => c.address === asset.address);
-    if (found === -1) {
-        hre.krAssets.push(asset);
-        hre.allAssets.push(asset);
-    } else {
-        hre.krAssets = hre.krAssets.map(c => (c.address === c.address ? asset : c));
-        hre.allAssets = hre.allAssets.map(c => (c.address === asset.address && c.collateral ? asset : c));
-    }
-    return asset;
 }

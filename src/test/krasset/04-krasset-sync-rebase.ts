@@ -1,8 +1,9 @@
-import { toBig } from "@kreskolabs/lib";
-import { Role, defaultCollateralArgs, defaultMintAmount } from "@utils/test";
 import { addLiquidity } from "@utils/test/helpers/amm";
 import { depositMockCollateral } from "@utils/test/helpers/collaterals";
 import { mintKrAsset } from "@utils/test/helpers/krassets";
+import { defaultMintAmount, testCollateralConfig } from "@utils/test/mocks";
+import { Role } from "@utils/test/roles";
+import { toBig } from "@utils/values";
 import { expect } from "chai";
 import hre from "hardhat";
 
@@ -10,7 +11,7 @@ describe.skip("Test KreskoAsset with Rebase and sync", () => {
     let KreskoAsset: TestKrAsset;
 
     beforeEach(async function () {
-        KreskoAsset = this.krAssets.find(asset => asset.deployArgs!.symbol === "krETH")!;
+        KreskoAsset = this.krAssets.find(asset => asset.config.args.symbol === "krETH")!;
 
         const KISS = await hre.getContractOrFork("KISS");
         // [hre.UniV2Factory] = await hre.deploy("UniswapV2Factory", {
@@ -22,7 +23,7 @@ describe.skip("Test KreskoAsset with Rebase and sync", () => {
 
         await depositMockCollateral({
             user: hre.users.testUserEight,
-            asset: this.collaterals.find(c => c.deployArgs!.name === defaultCollateralArgs.name)!,
+            asset: this.collaterals.find(c => c.config.args.id === testCollateralConfig.id)!,
             amount: toBig(100000),
         });
         await mintKrAsset({

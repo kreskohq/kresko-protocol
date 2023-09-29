@@ -41,7 +41,7 @@ contract CommonConfigurationFacet is ICommonConfigurationFacet, CModifiers, DSMo
 
         updateFeeRecipient(args.treasury);
         updateMinDebtValue(args.minDebtValue);
-        updateExtOracleDecimals(args.extOracleDecimals);
+        updateExtOracleDecimals(args.oracleDecimals);
         updateSequencerUptimeFeed(args.sequencerUptimeFeed);
         updateOracleDeviationPct(args.oracleDeviationPct);
         updateSequencerGracePeriodTime(args.sequencerGracePeriodTime);
@@ -58,7 +58,7 @@ contract CommonConfigurationFacet is ICommonConfigurationFacet, CModifiers, DSMo
     /// @inheritdoc ICommonConfigurationFacet
     function updateMinDebtValue(uint64 _newMinDebtValue) public override onlyRole(Role.ADMIN) {
         if (_newMinDebtValue > Constants.MAX_MIN_DEBT_VALUE) {
-            revert CError.INVALID_MIN_DEBT(_newMinDebtValue);
+            revert CError.INVALID_MIN_DEBT(_newMinDebtValue, Constants.MAX_MIN_DEBT_VALUE);
         }
         cs().minDebtValue = _newMinDebtValue;
 
@@ -77,13 +77,13 @@ contract CommonConfigurationFacet is ICommonConfigurationFacet, CModifiers, DSMo
 
     /// @inheritdoc ICommonConfigurationFacet
     function updateExtOracleDecimals(uint8 _decimals) public onlyRole(Role.ADMIN) {
-        cs().extOracleDecimals = _decimals;
+        cs().oracleDecimals = _decimals;
     }
 
     /// @inheritdoc ICommonConfigurationFacet
     function updateOracleDeviationPct(uint16 _oracleDeviationPct) public onlyRole(Role.ADMIN) {
         if (_oracleDeviationPct > 1e4) {
-            revert CError.INVALID_ORACLE_DEVIATION(_oracleDeviationPct);
+            revert CError.INVALID_ORACLE_DEVIATION(_oracleDeviationPct, 1e4);
         }
         cs().oracleDeviationPct = _oracleDeviationPct;
     }

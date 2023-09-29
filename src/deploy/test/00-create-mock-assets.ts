@@ -1,8 +1,8 @@
 import type { DeployFunction } from "hardhat-deploy/types";
 import { getLogger } from "@kreskolabs/lib";
-import { addMockCollateralAsset } from "@utils/test/helpers/collaterals";
+import { addMockExtAsset } from "@utils/test/helpers/collaterals";
 import { addMockKreskoAsset } from "@utils/test/helpers/krassets";
-import { defaultCollateralArgs, defaultKrAssetArgs } from "@utils/test";
+import { testCollateralConfig, testKrAssetConfig } from "@utils/test/mocks";
 
 const func: DeployFunction = async function (hre) {
     const logger = getLogger("mock-assets");
@@ -10,37 +10,31 @@ const func: DeployFunction = async function (hre) {
         throw new Error("No diamond deployed");
     }
 
-    await addMockCollateralAsset();
-    await addMockCollateralAsset({
-        ...defaultCollateralArgs,
-        name: "MockCollateral2",
-        redstoneId: "MockCollateral2",
-        symbol: "MockCollateral2",
+    await addMockExtAsset();
+    await addMockExtAsset({
+        ...testCollateralConfig,
+        id: "Collateral2",
+        symbol: "Collateral2",
         decimals: 18,
     });
-    await addMockCollateralAsset({
-        ...defaultCollateralArgs,
-        name: "MockCollateral8Dec",
-        redstoneId: "MockCollateral8Dec",
-        symbol: "MockCollateral8Dec",
+    await addMockExtAsset({
+        ...testCollateralConfig,
+        id: "Coll8Dec",
+        symbol: "Coll8Dec",
         decimals: 8,
     });
     await addMockKreskoAsset();
     await addMockKreskoAsset({
-        ...defaultKrAssetArgs,
-        name: "MockKreskoAsset2",
-        redstoneId: "MockKreskoAsset2",
-        symbol: "MockKreskoAsset2",
+        ...testKrAssetConfig,
+        id: "KrAsset2",
+        symbol: "KrAsset2",
     });
-    await addMockKreskoAsset(
-        {
-            ...defaultKrAssetArgs,
-            name: "MockKreskoAssetCollateral",
-            redstoneId: "MockKreskoAssetCollateral",
-            symbol: "MockKreskoAssetCollateral",
-        },
-        true,
-    );
+    await addMockKreskoAsset({
+        ...testKrAssetConfig,
+        id: "KrAsset3",
+        symbol: "KrAsset3",
+        collateralConfig: testCollateralConfig.collateralConfig,
+    });
 
     logger.log("Added mock assets");
 };

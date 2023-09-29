@@ -35,7 +35,7 @@ library SDeposits {
             self.deposits[_account][_assetAddr] += depositAmount.wadToRay().rayDiv(asset.liquidityIndexSCDP);
         }
         if (self.userDepositAmount(_assetAddr, asset) > asset.depositLimitSCDP) {
-            revert CError.DEPOSIT_LIMIT(asset.depositLimitSCDP);
+            revert CError.DEPOSIT_LIMIT(_assetAddr, self.userDepositAmount(_assetAddr, asset), asset.depositLimitSCDP);
         }
     }
 
@@ -82,7 +82,7 @@ library SDeposits {
             feesOut = self.accountDepositsWithFees(_account, _assetAddr, asset) - depositsPrincipal;
             // 3. Ensure this is actually the case.
             if (feesOut == 0) {
-                revert CError.WITHDRAWAL_VIOLATION();
+                revert CError.WITHDRAWAL_VIOLATION(_assetAddr);
             }
 
             // 4. Wipe account collateral deposits.

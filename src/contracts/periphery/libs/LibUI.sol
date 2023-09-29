@@ -27,7 +27,7 @@ library LibUI {
         uint256 amount;
         uint256 amountUSD;
         uint256 cFactor;
-        uint256 liquidationIncentive;
+        uint256 liqIncentive;
         uint8 decimals;
         uint256 index;
         uint256 price;
@@ -41,7 +41,7 @@ library LibUI {
         OracleType[2] oracles;
         uint256 price;
         uint256 value;
-        uint256 liquidationIncentive;
+        uint256 liqIncentive;
         uint256 cFactor;
         uint8 decimals;
         string symbol;
@@ -271,7 +271,7 @@ library LibUI {
                 value: value,
                 oracles: collateralAsset.oracles,
                 assetAddress: assetAddress,
-                liquidationIncentive: collateralAsset.liquidationIncentive,
+                liqIncentive: collateralAsset.liqIncentive,
                 cFactor: collateralAsset.factor,
                 decimals: decimals,
                 price: price,
@@ -302,7 +302,7 @@ library LibUI {
                 result[i] = CollateralAssetInfoUser({
                     amount: amount,
                     amountUSD: amountUSD,
-                    liquidationIncentive: collateralAsset.liquidationIncentive,
+                    liqIncentive: collateralAsset.liqIncentive,
                     oracles: collateralAsset.oracles,
                     assetAddress: assetAddress,
                     cFactor: collateralAsset.factor,

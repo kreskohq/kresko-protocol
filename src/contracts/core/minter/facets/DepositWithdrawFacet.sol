@@ -30,7 +30,7 @@ contract DepositWithdrawFacet is CModifiers, IDepositWithdrawFacet {
         address _account,
         address _collateralAsset,
         uint256 _depositAmount
-    ) external nonReentrant gate collateralExists(_collateralAsset) {
+    ) external nonReentrant gate isCollateral(_collateralAsset) {
         if (cs().safetyStateSet) {
             super.ensureNotPaused(_collateralAsset, Action.Deposit);
         }
@@ -47,7 +47,7 @@ contract DepositWithdrawFacet is CModifiers, IDepositWithdrawFacet {
         address _collateralAsset,
         uint256 _withdrawAmount,
         uint256 _depositedCollateralAssetIndex
-    ) external nonReentrant collateralExists(_collateralAsset) onlyRoleIf(_account != msg.sender, Role.MANAGER) {
+    ) external nonReentrant isCollateral(_collateralAsset) onlyRoleIf(_account != msg.sender, Role.MANAGER) {
         if (cs().safetyStateSet) {
             ensureNotPaused(_collateralAsset, Action.Withdraw);
         }
@@ -74,7 +74,7 @@ contract DepositWithdrawFacet is CModifiers, IDepositWithdrawFacet {
         uint256 _withdrawAmount,
         uint256 _depositedCollateralAssetIndex,
         bytes memory _userData
-    ) external collateralExists(_collateralAsset) onlyRole(Role.MANAGER) {
+    ) external isCollateral(_collateralAsset) onlyRole(Role.MANAGER) {
         if (cs().safetyStateSet) {
             ensureNotPaused(_collateralAsset, Action.Withdraw);
         }

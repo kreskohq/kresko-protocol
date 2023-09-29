@@ -1,6 +1,6 @@
-import { INFURA_API_KEY, RPC_URL, ETHERSCAN, chains } from "@kreskolabs/configs";
-import { parseUnits } from "ethers/lib/utils";
-import { HttpNetworkConfig, NetworksUserConfig } from "hardhat/types";
+import { INFURA_API_KEY, RPC_URL, ETHERSCAN } from "@kreskolabs/configs";
+import type { HttpNetworkConfig, NetworksUserConfig } from "hardhat/types";
+import * as chains from "viem/chains";
 
 export const networks = (mnemonic: string): NetworksUserConfig => ({
     hardhat: {
@@ -13,7 +13,7 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
         allowUnlimitedContractSize: !!process.env.CI,
         initialBaseFeePerGas: process.env.CI ? 0 : undefined,
         gasPrice: process.env.CI ? 1 : undefined,
-        chainId: chains.localhost.id,
+        chainId: chains.hardhat.id,
         tags: ["local"],
         hardfork: "merge",
     },
@@ -22,13 +22,13 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
             mnemonic,
             count: 100,
         },
-        chainId: chains.localhost.id,
+        chainId: chains.hardhat.id,
         tags: ["local"],
     },
     ethereum: {
         accounts: { mnemonic },
         url: RPC_URL().mainnet.infura,
-        chainId: chains.mainnet.id,
+        chainId: 1,
         tags: ["ethereum"],
         verify: {
             etherscan: ETHERSCAN.mainnet.config,
@@ -46,7 +46,7 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
     sepolia: {
         accounts: { mnemonic },
         url: RPC_URL().sepolia.alchemy,
-        chainId: chains.sepolia.id,
+        chainId: 11155111,
         tags: ["sepolia"],
         verify: {
             etherscan: ETHERSCAN.sepolia.config,
@@ -65,6 +65,14 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
         accounts: { mnemonic },
         url: RPC_URL().arbitrumGoerli.alchemy,
         chainId: chains.arbitrumGoerli.id,
+        verify: {
+            etherscan: ETHERSCAN.arbitrumGoerli.config,
+        },
+    },
+    arbitrumSepolia: {
+        accounts: { mnemonic },
+        url: RPC_URL().arbitrumGoerli.alchemy,
+        chainId: 421614,
         verify: {
             etherscan: ETHERSCAN.arbitrumGoerli.config,
         },
@@ -92,7 +100,7 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
         accounts: { mnemonic, count: 100 },
         url: RPC_URL().optimismGoerli.alchemy,
         chainId: chains.optimismGoerli.id,
-        gasPrice: +parseUnits("0.0001", "gwei"),
+        gasPrice: 100000,
         verify: {
             etherscan: ETHERSCAN.optimismGoerli.config,
         },

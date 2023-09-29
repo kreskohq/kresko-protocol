@@ -10,6 +10,7 @@ import {Percents} from "common/Constants.sol";
 import {cs} from "common/State.sol";
 import {toWad} from "common/funcs/Math.sol";
 import {Asset} from "common/Types.sol";
+import {Percentages} from "libs/Percentages.sol";
 
 /**
  * @title SCDPStateFacet
@@ -151,7 +152,7 @@ contract SCDPStateFacet is ISCDPStateFacet {
 
     /// @inheritdoc ISCDPStateFacet
     function getTotalDebtValueSCDP(bool _ignoreFactors) external view returns (uint256) {
-        return scdp().totalDebtValueAtRatioSCDP(Percents.ONE_HUNDRED_PERCENT, _ignoreFactors);
+        return scdp().totalDebtValueAtRatioSCDP(Percents.HUNDRED, _ignoreFactors);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -181,7 +182,7 @@ contract SCDPStateFacet is ISCDPStateFacet {
         uint256 collateralValue = scdp().totalCollateralValueSCDP(false);
         uint256 debtValue = sdi().effectiveDebtValue();
         if (debtValue == 0) return 0;
-        return collateralValue.wadDiv(debtValue);
+        return collateralValue.percentDiv(debtValue);
     }
 
     /// @inheritdoc ISCDPStateFacet
@@ -196,9 +197,9 @@ contract SCDPStateFacet is ISCDPStateFacet {
                 debtValue: debtValue,
                 debtValueAdjusted: debtValueAdjusted,
                 effectiveDebtValue: effectiveDebtValue,
-                cr: debtValue == 0 ? 0 : collateralValue.wadDiv(effectiveDebtValue),
-                crDebtValue: debtValue == 0 ? 0 : collateralValue.wadDiv(debtValue),
-                crDebtValueAdjusted: debtValueAdjusted == 0 ? 0 : collateralValueAdjusted.wadDiv(debtValueAdjusted)
+                cr: debtValue == 0 ? 0 : collateralValue.percentDiv(effectiveDebtValue),
+                crDebtValue: debtValue == 0 ? 0 : collateralValue.percentDiv(debtValue),
+                crDebtValueAdjusted: debtValueAdjusted == 0 ? 0 : collateralValueAdjusted.percentDiv(debtValueAdjusted)
             });
     }
 
@@ -274,8 +275,6 @@ contract SCDPStateFacet is ISCDPStateFacet {
 /*                                   Helpers                                  */
 /* -------------------------------------------------------------------------- */
 using WadRay for uint256;
-
-import {Percentages} from "libs/Percentages.sol";
 using Percentages for uint256;
 
 function collateralAmountToValues(

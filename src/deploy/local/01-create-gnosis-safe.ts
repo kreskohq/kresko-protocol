@@ -1,7 +1,8 @@
-import { getLogger, getNamedEvent } from "@kreskolabs/lib";
-import { DeployFunction } from "hardhat-deploy/types";
+import { getLogger } from "@kreskolabs/lib";
+import { getNamedEvent } from "@utils/events";
+import type { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { ProxyCreationEvent } from "types/typechain/src/contracts/vendor/gnosis/GnosisSafeProxyFactory";
+
 // import { executeContractCallWithSigners } from "@utils/gnosis";
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -41,7 +42,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (!creationTx.data) throw new Error("No data found in gnosis creationTx");
     const tx = await Factory.createProxy(MasterCopy.address, creationTx.data);
 
-    const creationEvent = await getNamedEvent<ProxyCreationEvent>(tx, "ProxyCreation");
+    const creationEvent = await getNamedEvent<any>(tx, "ProxyCreation");
 
     const receipt = await tx.wait();
 
@@ -67,7 +68,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     hre.Multisig = SafeProxy;
 };
 
-deploy.tags = ["local", "gnosis-safe", "all"];
+deploy.tags = ["all", "local", "gnosis-safe"];
 // deploy.skip = async hre => hre.network.live;
 
 export default deploy;

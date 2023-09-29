@@ -24,7 +24,7 @@ contract Vault is IVault, ERC20 {
     using VAssets for uint256;
     using VAssets for VaultAsset;
 
-    uint256 public constant ONE_HUNDRED_PERCENT = 1 ether;
+    uint256 public constant HUNDRED = 1 ether;
 
     /* -------------------------------------------------------------------------- */
     /*                                    State                                   */
@@ -387,14 +387,14 @@ contract Vault is IVault, ERC20 {
 
     /// @inheritdoc IVault
     function setDepositFee(address asset, uint256 fee) external onlyGovernance {
-        if (fee > ONE_HUNDRED_PERCENT) revert InvalidFee(fee);
+        if (fee > HUNDRED) revert InvalidFee(fee);
 
         _assets[asset].depositFee = fee;
     }
 
     /// @inheritdoc IVault
     function setWithdrawFee(address asset, uint256 fee) external onlyGovernance {
-        if (fee > ONE_HUNDRED_PERCENT) revert InvalidFee(fee);
+        if (fee > HUNDRED) revert InvalidFee(fee);
         _assets[asset].withdrawFee = fee;
     }
 

@@ -2,13 +2,12 @@ import { testnetConfigs } from "@deploy-config/arbitrumGoerli";
 import { fromBig, getLogger, toBig } from "@kreskolabs/lib";
 import { TASK_MINT_OPTIMAL } from "@tasks";
 import { wrapKresko } from "@utils/redstone";
-import type { DeployFunction } from "hardhat-deploy/types";
-import type { HardhatRuntimeEnvironment } from "hardhat/types";
+import type { DeployFunction } from "hardhat-deploy/dist/types";
 
 const logger = getLogger("mint-krassets");
 
-const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-    const krAssets = testnetConfigs[hre.network.name].krAssets;
+const deploy: DeployFunction = async function (hre) {
+    const krAssets = testnetConfigs[hre.network.name].assets.filter(a => !!a.krAssetConfig);
 
     const kresko = await hre.getContractOrFork("Kresko");
     const { deployer } = await hre.ethers.getNamedSigners();
@@ -43,21 +42,29 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         });
     }
 };
-deploy.tags = ["local", "mint-krassets"];
-deploy.dependencies = ["collaterals"];
+deploy.tags = ["all", "local", "mint-krassets"];
+deploy.dependencies = ["add-assets"];
 
 deploy.skip = async hre => {
-    if (hre.network.name === "hardhat") return true;
-    const krAssets = testnetConfigs[hre.network.name].krAssets;
+    if (hre.network.name === "hardhat") {
+        logger.log("Skip: Mint KrAssets, is hardhat network");
+        return true;
+    }
+    const krAssets = testnetConfigs[hre.network.name].assets.filter(a => !!a.krAssetConfig);
+    if (!krAssets.length) {
+        logger.log("Skip: Mint KrAssets, no krAssets configured");
+        return true;
+    }
+
     const kresko = await hre.getContractOrFork("Kresko");
     const lastAsset = await hre.deployments.get(krAssets[krAssets.length - 1].symbol);
 
     const { deployer } = await hre.getNamedAccounts();
-    const isFinished = fromBig(await kresko.getAccountDebtAmount(deployer, lastAsset.address)) > 0;
-    if (isFinished) {
-        logger.log("Skipping minting krAssets");
+    if (fromBig(await kresko.getAccountDebtAmount(deployer, lastAsset.address)) > 0) {
+        logger.log("Skip: Mint krAssets, already minted.");
+        return true;
     }
-    return isFinished;
+    return false;
 };
 
 export default deploy;

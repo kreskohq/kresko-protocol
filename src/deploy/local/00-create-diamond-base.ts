@@ -1,4 +1,3 @@
-import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction, FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
 import { mergeABIs } from "hardhat-deploy/dist/src/utils";
 import { getLogger } from "@kreskolabs/lib";
@@ -6,7 +5,7 @@ import { diamondFacets } from "@deploy-config/shared";
 
 const logger = getLogger("create-diamond");
 
-const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+const deploy: DeployFunction = async function (hre) {
     // #1 Do not use `add-facets.ts` for the initial diamond, set the initial facets in the constructor
     const InitialFacets: FacetCut[] = [];
     const ABIs = [];
@@ -44,7 +43,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         InitialFacets.push(facetCutAdd);
         ABIs.push(Artifact.abi);
     }
-    const [, _signatures, deployment] = await hre.deploy("Diamond", {
+    const [, , deployment] = await hre.deploy("Diamond", {
         from: deployer,
         log: true,
         args: [deployer, InitialFacets, []],
@@ -71,7 +70,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     logger.success("Diamond deployed @", Diamond.address, "with", deployment.facets.length, "facets");
 };
 
-deploy.tags = ["local", "minter-test", "diamond-init", "all"];
+deploy.tags = ["all", "local", "protocol-test", "diamond-init"];
 // deploy.skip = async hre => hre.network.live;
 
 export default deploy;

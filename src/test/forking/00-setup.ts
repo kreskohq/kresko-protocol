@@ -51,7 +51,7 @@ import { expect } from "@test/chai";
             // expect(stateFacetNew.length).to.be.greaterThan(0);
             // expect(stateFacet.length).to.equal(0);
             // expect(facetsAfter).to.not.deep.equal(facetsBefore);
-            // expect((await Kresko.collateralAsset(krETH.address)).liquidationIncentive).to.equal(toBig(1.05));
+            // expect((await Kresko.collateralAsset(krETH.address)).liqIncentive).to.equal(toBig(1.05));
             // await expect(Kresko.depositCollateral(deployer, krETH.address, toBig(1))).to.not.be.reverted;
             // await expect(Kresko.mintKreskoAsset(deployer, krETH.address, toBig(0.1))).to.not.be.reverted;
             // const burnIdx = await Kresko.getMintedKreskoAssetsIndex(deployer, krETH.address);

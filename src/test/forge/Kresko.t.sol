@@ -5,6 +5,8 @@ import {console} from "forge-std/Test.sol";
 import {LibTest} from "kresko-helpers/utils/LibTest.sol";
 import {TestBase} from "kresko-helpers/utils/TestBase.sol";
 import {MockOracle} from "mocks/MockOracle.sol";
+import {Strings} from "libs/Strings.sol";
+import {Percentages} from "libs/Percentages.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
 import {DeployHelper} from "./utils/DeployHelper.sol";
 import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
@@ -14,6 +16,8 @@ import {Asset} from "common/Types.sol";
 // solhint-disable
 contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
     using LibTest for *;
+    using Strings for uint256;
+    using Percentages for uint256;
 
     address internal admin = address(0xABABAB);
 
@@ -60,8 +64,8 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         Asset memory usdcConfig = kresko.getAsset(address(usdc));
         Asset memory krETHConfig = kresko.getAsset(address(krETH));
         kresko.getMinCollateralRatio().equals(150e2);
-        kresko.getCurrentParametersSCDP().mcr.equals(200e2);
-        kresko.getCurrentParametersSCDP().lt.equals(150e2);
+        kresko.getCurrentParametersSCDP().minCollateralRatio.equals(200e2);
+        kresko.getCurrentParametersSCDP().liquidationThreshold.equals(150e2);
         usdcConfig.isSCDPCollateral.equals(true);
         usdcConfig.isSCDPDepositAsset.equals(true);
 
@@ -71,7 +75,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
 
         krETHConfig.isKrAsset.equals(true);
         krETHConfig.isSCDPKrAsset.equals(true);
-        krETHConfig.liquidationIncentiveSCDP.equals(110e2);
+        krETHConfig.liqIncentiveSCDP.equals(110e2);
         krETHConfig.openFee.equals(2e2);
         krETHConfig.closeFee.equals(2e2);
         krETHConfig.supplyLimit.equals(type(uint128).max);

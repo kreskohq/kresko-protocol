@@ -1,67 +1,21 @@
-import { smock } from "@defi-wonderland/smock";
-import { allRedstoneAssets } from "@deploy-config/shared";
+import { FakeContract, MockContract, smock } from "@defi-wonderland/smock";
 import { toBig } from "@kreskolabs/lib";
-import { envCheck } from "@utils/general";
 import { wrapKresko } from "@utils/redstone";
-import hre from "hardhat";
+import { AssetArgs } from "types";
+import { ERC20Upgradeable__factory, MockOracle } from "types/typechain";
+import { InputArgs, testCollateralConfig } from "../mocks";
+import { getAssetConfig } from "./general";
 import optimized from "./optimizations";
-import { ERC20Upgradeable__factory } from "types/typechain";
-import {
-    CollateralAssetStruct,
-    OracleConfigurationStruct,
-} from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
-import { InputArgs, TestCollateralAssetArgs, TestCollateralAssetUpdate, defaultCollateralArgs } from "../mocks";
-import { OracleType } from "../oracles";
 import { getFakeOracle, setPrice } from "./oracle";
 import { getBalanceCollateralFunc, setBalanceCollateralFunc } from "./smock";
+import { envCheck } from "@utils/env";
 
 envCheck();
 
-export const getCollateralConfig = async (
-    asset: { symbol: Function; decimals: Function },
-    anchor: string,
-    cFactor: BigNumber,
-    liquidationIncentive: BigNumber,
-    pushOracle: string,
-    customRedstoneId?: string,
-    oracleIds: [OracleType, OracleType] = [OracleType.Redstone, OracleType.Chainlink],
-): Promise<[OracleConfigurationStruct, CollateralAssetStruct]> => {
-    if (cFactor.gt(toBig(1))) throw new Error("cFactor must be less than 1");
-    if (liquidationIncentive.lt(toBig(1))) throw new Error("Liquidation incentive must be greater than 1");
-    const [decimals, symbol] = await Promise.all([asset.decimals(), asset.symbol()]);
-    const redstoneId = customRedstoneId
-        ? hre.ethers.utils.formatBytes32String(customRedstoneId)
-        : allRedstoneAssets[symbol as keyof typeof allRedstoneAssets];
-    if (!redstoneId) {
-        throw new Error(`redstoneId not found for ${symbol}`);
-    }
-
-    const oracleConfig: OracleConfigurationStruct = {
-        oracleIds: oracleIds,
-        feeds:
-            oracleIds[0] === OracleType.Redstone
-                ? [hre.ethers.constants.AddressZero, pushOracle]
-                : [pushOracle, hre.ethers.constants.AddressZero],
-    };
-    const AssetConfig: CollateralAssetStruct = {
-        anchor,
-        factor: cFactor,
-        liquidationIncentive,
-        decimals,
-        exists: true,
-        id: redstoneId,
-        oracles: oracleIds,
-    };
-    return [oracleConfig, AssetConfig];
-};
-
-export const addMockCollateralAsset = async (
-    args: TestCollateralAssetArgs = defaultCollateralArgs,
-): Promise<TestCollateral> => {
+export const addMockExtAsset = async (args = testCollateralConfig): Promise<TestAsset<ERC20Upgradeable, "mock">> => {
     const { deployer } = await hre.ethers.getNamedSigners();
-    const { name, price, factor, symbol, decimals } = args;
-    const cFactor = toBig(factor);
-    const [fakeFeed, contract] = await Promise.all([
+    const { name, price, symbol, decimals } = args;
+    const [fakeFeed, contract]: [FakeContract<MockOracle>, MockContract<ERC20Upgradeable>] = await Promise.all([
         getFakeOracle(price),
         (await smock.mock<ERC20Upgradeable__factory>("ERC20Upgradeable")).deploy(),
     ]);
@@ -71,68 +25,50 @@ export const addMockCollateralAsset = async (
     contract.decimals.returns(decimals);
 
     const [config] = await Promise.all([
-        getCollateralConfig(
-            contract,
-            hre.ethers.constants.AddressZero,
-            cFactor,
-            toBig(process.env.LIQUIDATION_INCENTIVE!),
-            args.pushOracle || fakeFeed.address,
-            args.redstoneId,
-            args.oracleIds,
-        ),
+        getAssetConfig(contract, { ...args, feed: fakeFeed.address }),
         contract.setVariable("_initialized", 0),
     ]);
-    await wrapKresko(hre.Diamond, deployer).addCollateralAsset(contract.address, ...config);
-
-    const asset: TestCollateral = {
+    await wrapKresko(hre.Diamond, deployer).addAsset(contract.address, config.assetStruct, config.feedConfig, true);
+    const asset: TestAsset<ERC20Upgradeable, "mock"> = {
+        id: args.id,
+        anchor: null,
         address: contract.address,
-        contract,
-        kresko: () => hre.Diamond.getCollateralAsset(contract.address),
+        contract: contract,
+        assetInfo: () => hre.Diamond.getAsset(contract.address),
         priceFeed: fakeFeed,
-        deployArgs: args,
+        config,
         setPrice: price => setPrice(fakeFeed, price),
-        setOracleOrder: order => hre.Diamond.updateCollateralOracleOrder(contract.address, order),
+        setOracleOrder: order => hre.Diamond.updateOracleOrder(contract.address, order),
         getPrice: async () => (await fakeFeed.latestRoundData())[1],
         setBalance: setBalanceCollateralFunc(contract),
         balanceOf: getBalanceCollateralFunc(contract),
         update: update => updateCollateralAsset(contract.address, update),
     };
-    const found = hre.collaterals.findIndex(c => c.address === asset.address);
+    const found = hre.extAssets.findIndex(c => c.address === asset.address);
     if (found === -1) {
-        hre.collaterals.push(asset);
+        hre.extAssets.push(asset);
         hre.allAssets.push(asset);
     } else {
-        hre.collaterals = hre.collaterals.map(c => (c.address === asset.address ? asset : c));
-        hre.allAssets = hre.allAssets.map(c => (c.address === asset.address && c.collateral ? asset : c));
+        hre.extAssets = hre.extAssets.map(c => (c.address === asset.address ? asset : c));
+        hre.allAssets = hre.allAssets.map(c => (c.address === asset.address ? asset : c));
     }
     return asset;
 };
 
-export const updateCollateralAsset = async (address: string, args: TestCollateralAssetUpdate) => {
+export const updateCollateralAsset = async (address: string, args: AssetArgs) => {
     const { deployer } = await hre.ethers.getNamedSigners();
-    const collateral = hre.collaterals.find(c => c.address === address);
+    const collateral = hre.extAssets.find(c => c.address === address);
     if (!collateral) throw new Error(`Collateral ${address} not found`);
-
-    await wrapKresko(hre.Diamond, deployer).updateCollateralAsset(
-        collateral!.address,
-        ...(await getCollateralConfig(
-            collateral!.contract,
-            hre.ethers.constants.AddressZero,
-            toBig(args.factor),
-            toBig(process.env.LIQUIDATION_INCENTIVE!),
-            args.pushOracle || collateral.priceFeed.address,
-            args.redstoneId,
-            args.oracleIds,
-        )),
-    );
-    collateral.deployArgs = { ...collateral.deployArgs, ...args };
-    const found = hre.collaterals.findIndex(c => c.address === collateral.address);
+    const config = await getAssetConfig(collateral.contract, args);
+    await wrapKresko(hre.Diamond, deployer).updateAsset(collateral!.address, config.assetStruct);
+    collateral.config = config;
+    const found = hre.extAssets.findIndex(c => c.address === collateral.address);
     if (found === -1) {
-        hre.collaterals.push(collateral);
+        hre.extAssets.push(collateral);
         hre.allAssets.push(collateral);
     } else {
-        hre.collaterals = hre.collaterals.map(c => (c.address === collateral.address ? collateral : c));
-        hre.allAssets = hre.allAssets.map(c => (c.address === collateral.address && c.collateral ? collateral : c));
+        hre.extAssets = hre.extAssets.map(c => (c.address === collateral.address ? collateral : c));
+        hre.allAssets = hre.allAssets.map(c => (c.address === collateral.address ? collateral : c));
     }
     return collateral;
 };

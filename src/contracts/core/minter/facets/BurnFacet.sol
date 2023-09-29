@@ -27,7 +27,7 @@ contract BurnFacet is CModifiers, IBurnFacet {
         address _kreskoAsset,
         uint256 _burnAmount,
         uint256 _mintedKreskoAssetIndex
-    ) external nonReentrant kreskoAssetExists(_kreskoAsset) onlyRoleIf(_account != msg.sender, Role.MANAGER) {
+    ) external nonReentrant isKrAsset(_kreskoAsset) onlyRoleIf(_account != msg.sender, Role.MANAGER) {
         if (_burnAmount == 0) {
             revert MError.ZERO_BURN();
         }

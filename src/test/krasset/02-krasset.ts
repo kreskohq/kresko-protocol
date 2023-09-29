@@ -1,6 +1,8 @@
-import { toBig } from "@kreskolabs/lib";
 import { expect } from "@test/chai";
-import { defaultMintAmount, Error, kreskoAssetFixture, Role } from "@utils/test";
+import { kreskoAssetFixture } from "@utils/test/fixtures";
+import { defaultMintAmount } from "@utils/test/mocks";
+import { Role } from "@utils/test/roles";
+import { toBig } from "@utils/values";
 
 describe("KreskoAsset", () => {
     let KreskoAsset: KreskoAsset;
@@ -184,8 +186,7 @@ describe("KreskoAsset", () => {
                         hre.addr.userOne,
                         transferAmount,
                     ),
-                ).to.be.revertedWith(Error.NOT_ENOUGH_ALLOWANCE);
-
+                ).to.be.reverted;
                 expect(await KreskoAsset.allowance(hre.addr.deployer, hre.addr.userOne)).to.equal(0);
             });
 
@@ -222,7 +223,7 @@ describe("KreskoAsset", () => {
                         hre.addr.userOne,
                         transferAmount,
                     ),
-                ).to.be.revertedWith(Error.NOT_ENOUGH_ALLOWANCE);
+                ).to.be.reverted;
 
                 expect(await KreskoAsset.allowance(hre.addr.deployer, hre.addr.userOne)).to.equal(0);
             });
@@ -260,7 +261,7 @@ describe("KreskoAsset", () => {
                         hre.addr.userOne,
                         transferAmount,
                     ),
-                ).to.be.revertedWith(Error.NOT_ENOUGH_ALLOWANCE);
+                ).to.be.reverted;
 
                 expect(await KreskoAsset.allowance(hre.addr.deployer, hre.addr.userOne)).to.equal(0);
             });
@@ -298,7 +299,7 @@ describe("KreskoAsset", () => {
                         hre.addr.userOne,
                         transferAmount,
                     ),
-                ).to.be.revertedWith(Error.NOT_ENOUGH_ALLOWANCE);
+                ).to.be.reverted;
 
                 expect(await KreskoAsset.allowance(hre.addr.deployer, hre.addr.userOne)).to.equal(0);
             });

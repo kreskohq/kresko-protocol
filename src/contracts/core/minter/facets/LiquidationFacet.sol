@@ -99,10 +99,7 @@ contract LiquidationFacet is CModifiers, ILiquidationFacet {
             ExecutionParams(
                 _account,
                 _repayAmount,
-                fromWad(
-                    collateral.decimals,
-                    valueToAmount(collateral.liquidationIncentive, collateral.price(), repayAmountUSD)
-                ),
+                fromWad(collateral.decimals, valueToAmount(collateral.liqIncentive, collateral.price(), repayAmountUSD)),
                 _repayAsset,
                 krAsset,
                 _repayAssetIndex,

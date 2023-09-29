@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // Deployment
-import { HardhatUserConfig } from "hardhat/config";
+import type { HardhatUserConfig } from "hardhat/config";
 import { resolve } from "path";
 import "tsconfig-paths/register";
 import "@nomicfoundation/hardhat-foundry";
@@ -12,9 +12,10 @@ import "@nomicfoundation/hardhat-foundry";
 import "hardhat-diamond-abi";
 // note: hardhat-diamond-abi should always be exported before typechain if used together
 import "@typechain/hardhat";
-import "@nomiclabs/hardhat-ethers";
+import "@nomicfoundation/hardhat-ethers";
 import "hardhat-deploy";
 import "hardhat-deploy-ethers";
+import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomiclabs/hardhat-etherscan";
 import "@nomiclabs/hardhat-web3";
 import "hardhat-contract-sizer";
@@ -58,7 +59,7 @@ if (process.env.EXPORT) {
 }
 
 const config: HardhatUserConfig = {
-    solidity: { compilers },
+    solidity: compilers,
     networks: handleForking(networks(mnemonic)),
     namedAccounts: users,
     mocha: {

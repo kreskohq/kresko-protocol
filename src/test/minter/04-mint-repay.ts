@@ -1,10 +1,14 @@
-import { fromBig, getInternalEvent, toBig } from "@kreskolabs/lib";
-import { Fee, MintRepayFixture, Role, TEN_USD, defaultKrAssetArgs, mintRepayFixture } from "@test-utils";
+import { getInternalEvent } from "@utils/events";
 import { Error } from "@utils/test/errors";
+import Fee from "@utils/test/fees";
+import { MintRepayFixture, mintRepayFixture } from "@utils/test/fixtures";
 import { fromScaledAmount, toScaledAmount } from "@utils/test/helpers/calculations";
 import { withdrawCollateral } from "@utils/test/helpers/collaterals";
 import { burnKrAsset, getDebtIndexAdjustedBalance, mintKrAsset } from "@utils/test/helpers/krassets";
 import optimized from "@utils/test/helpers/optimizations";
+import { TEN_USD } from "@utils/test/mocks";
+import Role from "@utils/test/roles";
+import { fromBig, toBig } from "@utils/values";
 import { expect } from "chai";
 import { Kresko } from "types/typechain";
 import {
@@ -28,7 +32,7 @@ describe("Minter", function () {
     beforeEach(async function () {
         f = await mintRepayFixture();
         [[user1, User1], [user2, User2]] = f.users;
-        f.reset();
+        await f.reset();
     });
     this.slow(200);
     describe("#mint+burn", () => {
@@ -236,10 +240,10 @@ describe("Minter", function () {
                 await expect(User1.depositCollateral(user1.address, f.Collateral.address, toBig(10000))).not.to.be
                     .reverted;
 
-                const krAsset = await hre.Diamond.getKreskoAsset(f.KrAsset.address);
-                const overSupplyLimit = fromBig(krAsset.supplyLimit) + 1;
+                const krAsset = await hre.Diamond.getAsset(f.KrAsset.address);
+                const overSupplyLimit = krAsset.supplyLimit.add(1);
                 await expect(
-                    User1.mintKreskoAsset(user1.address, f.KrAsset.address, toBig(overSupplyLimit)),
+                    User1.mintKreskoAsset(user1.address, f.KrAsset.address, overSupplyLimit),
                 ).to.be.revertedWith(Error.KRASSET_MAX_SUPPLY_REACHED);
             });
 
@@ -683,7 +687,7 @@ describe("Minter", function () {
 
                 const minDebtValue = fromBig(await optimized.getMinDebtValue(), 8);
 
-                const oraclePrice = f.KrAsset.deployArgs!.price;
+                const oraclePrice = f.KrAsset.config.args!.price;
                 const burnAmount = toBig(fromBig(userOneDebt) - minDebtValue / oraclePrice!);
 
                 // Burn Kresko asset
@@ -773,8 +777,11 @@ describe("Minter", function () {
                     const openFeeBig = toBig(openFee); // use toBig() to emulate closeFee's 18 decimals on contract
 
                     await f.KrAsset.update({
-                        ...defaultKrAssetArgs,
-                        openFee,
+                        ...f.KrAsset.config.args,
+                        krAssetConfig: {
+                            ...f.KrAsset.config.args.krAssetConfig!,
+                            openFee: openFeeBig,
+                        },
                     });
                     const mintAmount = toBig(1);
                     const mintValue = mintAmount.mul(TEN_USD);
@@ -826,9 +833,9 @@ describe("Minter", function () {
                 it("should charge the protocol close fee with a single collateral asset if the deposit amount is sufficient and emit CloseFeePaid event", async function () {
                     const burnAmount = toBig(1);
                     const burnValue = burnAmount.mul(TEN_USD);
-                    const closeFee = toBig(f.KrAsset.deployArgs!.closeFee); // use toBig() to emulate closeFee's 18 decimals on contract
+                    const closeFee = f.KrAsset.config.args.krAssetConfig!.closeFee; // use toBig() to emulate closeFee's 18 decimals on contract
                     const expectedFeeValue = burnValue.mul(closeFee);
-                    const expectedCollateralFeeAmount = expectedFeeValue.div(f.Collateral.deployArgs!.price);
+                    const expectedCollateralFeeAmount = expectedFeeValue.div(f.Collateral.config.args!.price!);
                     const feeRecipient = await hre.Diamond.getFeeRecipient();
                     // Get the balances prior to the fee being charged.
                     const kreskoCollateralAssetBalanceBefore = await f.Collateral.balanceOf(hre.Diamond.address);
@@ -870,15 +877,15 @@ describe("Minter", function () {
                 });
                 it("should charge correct protocol close fee after a positive rebase", async function () {
                     const wAmount = 1;
-                    const burnAmount = 1;
-                    const expectedFeeAmount = toBig(burnAmount * f.KrAsset.deployArgs!.closeFee);
-                    const expectedFeeValue = toBig(burnAmount * TEN_USD * f.KrAsset.deployArgs!.closeFee, 8);
+                    const burnAmount = toBig(1);
+                    const expectedFeeAmount = burnAmount.percentMul(f.KrAsset.config.args.krAssetConfig!.closeFee);
+                    const expectedFeeValue = expectedFeeAmount.mul(toBig(TEN_USD, 8));
 
                     const event = await getInternalEvent<CloseFeePaidEventObject>(
                         await burnKrAsset({
                             user: user2,
                             asset: f.KrAsset,
-                            amount: toBig(burnAmount),
+                            amount: burnAmount,
                         }),
                         hre.Diamond,
                         "CloseFeePaid",
@@ -892,7 +899,7 @@ describe("Minter", function () {
                     const positive = true;
                     f.KrAsset.setPrice(TEN_USD / denominator);
                     await f.KrAsset.contract.rebase(toBig(denominator), positive, []);
-                    const burnAmountRebase = burnAmount * denominator;
+                    const burnAmountRebase = burnAmount.mul(denominator);
 
                     await withdrawCollateral({
                         user: user2,
@@ -903,7 +910,7 @@ describe("Minter", function () {
                         await burnKrAsset({
                             user: user2,
                             asset: f.KrAsset,
-                            amount: toBig(burnAmountRebase),
+                            amount: burnAmountRebase,
                         }),
                         hre.Diamond,
                         "CloseFeePaid",
@@ -914,16 +921,15 @@ describe("Minter", function () {
                 });
                 it("should charge correct protocol close fee after a negative rebase", async function () {
                     const wAmount = 1;
-                    const burnAmount = 1;
-                    const expectedFeeAmount = toBig(burnAmount * f.KrAsset.deployArgs!.closeFee);
-
-                    const expectedFeeValue = toBig(burnAmount * TEN_USD * f.KrAsset.deployArgs!.closeFee, 8);
+                    const burnAmount = toBig(1);
+                    const expectedFeeAmount = burnAmount.percentMul(f.KrAsset.config.args.krAssetConfig!.closeFee);
+                    const expectedFeeValue = expectedFeeAmount.mul(toBig(TEN_USD, 8));
 
                     const event = await getInternalEvent<CloseFeePaidEventObject>(
                         await burnKrAsset({
                             user: user2,
                             asset: f.KrAsset,
-                            amount: toBig(burnAmount),
+                            amount: burnAmount,
                         }),
                         hre.Diamond,
                         "CloseFeePaid",
@@ -938,7 +944,7 @@ describe("Minter", function () {
                     const priceAfter = fromBig(await f.KrAsset.getPrice(), 8) * denominator;
                     f.KrAsset.setPrice(priceAfter);
                     await f.KrAsset.contract.rebase(toBig(denominator), positive, []);
-                    const burnAmountRebase = burnAmount / denominator;
+                    const burnAmountRebase = burnAmount.div(denominator);
 
                     await withdrawCollateral({
                         user: user2,
@@ -949,7 +955,7 @@ describe("Minter", function () {
                         await burnKrAsset({
                             user: user2,
                             asset: f.KrAsset,
-                            amount: toBig(burnAmountRebase),
+                            amount: burnAmountRebase,
                         }),
                         hre.Diamond,
                         "CloseFeePaid",

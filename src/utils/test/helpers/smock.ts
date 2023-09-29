@@ -21,7 +21,7 @@ export function setBalanceKrAssetFunc(krAsset: MockContract<KreskoAsset>, akrAss
                 : ((await krAsset.getVariable("_balances", [hre.Diamond.address])) as BigNumber);
         } catch {}
 
-        return Promise.all([
+        await Promise.all([
             akrAsset.setVariables({
                 _totalSupply: atSupply.add(amount),
                 _balances: {

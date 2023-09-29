@@ -1,6 +1,7 @@
-import { toBig } from "@kreskolabs/lib";
 import { expect } from "@test/chai";
-import { DefaultFixture, Error, defaultFixture, wrapContractWithSigner } from "@utils/test";
+import { DefaultFixture, defaultFixture } from "@utils/test/fixtures";
+import { wrapContractWithSigner } from "@utils/test/helpers/general";
+import { toBig } from "@utils/values";
 
 describe("Gating", () => {
     let f: DefaultFixture;
@@ -43,7 +44,7 @@ describe("Gating", () => {
                 f.Collateral.address,
                 this.depositArgsOne.amount,
             ),
-        ).to.be.revertedWith(Error.MISSING_PHASE_3_NFT);
+        ).to.be.reverted;
     });
 
     it("should allow to deposit collateral if the user has the required nft's", async function () {

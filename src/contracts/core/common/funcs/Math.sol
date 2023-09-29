@@ -19,20 +19,19 @@ function calcMaxLiqValue(MaxLiqVars memory vars, uint16 _closeFee) pure returns 
     return
         _calcMaxLiqValue(
             vars,
-            uint32((vars.debtFactor - vars.collateral.liquidationIncentive - _closeFee).percentDiv(vars.debtFactor))
+            uint32((vars.debtFactor - vars.collateral.liqIncentive - _closeFee).percentDiv(vars.debtFactor))
         );
 }
 
 function calcMaxLiqValue(MaxLiqVars memory vars, Asset memory _repayKrAsset) pure returns (uint256) {
-    return
-        _calcMaxLiqValue(vars, uint32((vars.debtFactor - _repayKrAsset.liquidationIncentiveSCDP).percentDiv(vars.debtFactor)));
+    return _calcMaxLiqValue(vars, uint32((vars.debtFactor - _repayKrAsset.liqIncentiveSCDP).percentDiv(vars.debtFactor)));
 }
 
 /**
  * @notice Calculates the maximum USD value of a given kreskoAsset that can be liquidated given a liquidation pair
  * Calculates the value gained per USD repaid in liquidation for a given kreskoAsset
  * debtFactor = debtFactor = k * LT / cFactor;
- * valPerUSD = (DebtFactor - Asset closeFee - liquidationIncentive) / DebtFactor
+ * valPerUSD = (DebtFactor - Asset closeFee - liqIncentive) / DebtFactor
  *
  * Calculates the maximum amount of USD value that can be liquidated given the account's collateral value
  * maxLiquidatableUSD = (MCV - ACV) / valPerUSD / debtFactor / cFactor * LOM

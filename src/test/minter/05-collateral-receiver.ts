@@ -1,7 +1,8 @@
-import { DefaultFixture, Role, defaultFixture } from "@test-utils";
 import { getMaxWithdrawal } from "@utils/test/helpers/collaterals";
 import optimized from "@utils/test/helpers/optimizations";
 import { expect } from "../chai";
+import { DefaultFixture, defaultFixture } from "@utils/test/fixtures";
+import Role from "@utils/test/roles";
 
 describe("CollateralReceiver - UncheckedCollateralWithdraw", () => {
     let f: DefaultFixture;

@@ -25,7 +25,7 @@ interface ISCDPConfigFacet {
     /// @notice Set the pool max liquidation ratio.
     function setMaxLiquidationRatioSCDP(uint32 _mlr) external;
 
-    /// @notice Set the @param _newliquidationIncentive for @param _krAsset.
+    /// @notice Set the @param _newliqIncentive for @param _krAsset.
     function updateLiquidationIncentiveSCDP(address _krAsset, uint16 _newLiquidationIncentive) external;
 
     /**

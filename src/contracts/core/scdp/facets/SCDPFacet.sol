@@ -116,7 +116,7 @@ contract SCDPFacet is ISCDPFacet, CModifiers {
 
         uint256 seizedAmount = fromWad(
             seizeAsset.decimals,
-            valueToAmount(krAsset.liquidationIncentive, seizeAsset.price(), repayAmountUSD)
+            valueToAmount(krAsset.liqIncentive, seizeAsset.price(), repayAmountUSD)
         );
 
         s.assetData[_repayKrAsset].debt -= burnSCDP(krAsset, _repayAmount, msg.sender);

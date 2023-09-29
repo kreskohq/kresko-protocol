@@ -2,8 +2,9 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
 import { getInternalEvent } from "@kreskolabs/lib";
-import { Action, DefaultFixture, defaultFixture } from "@test-utils";
 import { executeContractCallWithSigners } from "@utils/gnosis/utils/execution";
+import Action from "@utils/test/actions";
+import { DefaultFixture, defaultFixture } from "@utils/test/fixtures";
 import { expect } from "chai";
 import { SafetyStateChangeEventObject } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 

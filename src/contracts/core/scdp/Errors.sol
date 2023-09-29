@@ -10,7 +10,7 @@ library SError {
     error SWAP_ZERO_AMOUNT();
     error INVALID_INCOME_ASSET(address);
     error ASSET_NOT_ENABLED(address);
-    error INVALID_ASSET_SDI();
-    error ASSET_ALREADY_ENABLED_SDI();
-    error ASSET_ALREADY_DISABLED_SDI();
+    error INVALID_ASSET_SDI(address);
+    error ASSET_ALREADY_ENABLED_SDI(address);
+    error ASSET_ALREADY_DISABLED_SDI(address);
 }

@@ -9,6 +9,10 @@ pragma solidity >=0.8.19;
 library Strings {
     bytes16 private constant _HEX_SYMBOLS = "0123456789abcdef";
 
+    function toString(bytes32 value) internal pure returns (string memory) {
+        return string(abi.encodePacked(value));
+    }
+
     /**
      * @dev Converts a `uint256` to its ASCII `string` decimal representation.
      */

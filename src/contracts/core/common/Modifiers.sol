@@ -44,24 +44,44 @@ contract CModifiers {
     }
 
     /**
-     * @notice Reverts if a collateral asset does not exist within the protocol.
-     * @param _collateralAsset The address of the collateral asset.
+     * @notice Reverts if address is not a collateral asset.
+     * @param _assetAddr The address of the asset.
      */
-    modifier collateralExists(address _collateralAsset) {
-        if (!cs().assets[_collateralAsset].isCollateral) {
-            revert CError.COLLATERAL_DOES_NOT_EXIST(_collateralAsset);
+    modifier isCollateral(address _assetAddr) {
+        if (!cs().assets[_assetAddr].isCollateral) {
+            revert CError.COLLATERAL_DOES_NOT_EXIST(_assetAddr);
         }
         _;
     }
 
     /**
-     * @notice Reverts if a Kresko asset does not exist within the protocol. Does not revert if
-     * the Kresko asset is not mintable.
-     * @param _kreskoAsset The address of the Kresko asset.
+     * @notice Reverts if address is not a Kresko Asset.
+     * @param _assetAddr The address of the asset.
      */
-    modifier kreskoAssetExists(address _kreskoAsset) {
-        if (!cs().assets[_kreskoAsset].isKrAsset) {
-            revert CError.KRASSET_DOES_NOT_EXIST(_kreskoAsset);
+    modifier isKrAsset(address _assetAddr) {
+        if (!cs().assets[_assetAddr].isKrAsset) {
+            revert CError.KRASSET_DOES_NOT_EXIST(_assetAddr);
+        }
+        _;
+    }
+
+    /**
+     * @notice Reverts if address is not a Kresko Asset.
+     * @param _assetAddr The address of the asset.
+     */
+    modifier isSCDPDepositAsset(address _assetAddr) {
+        if (!cs().assets[_assetAddr].isSCDPDepositAsset) {
+            revert CError.KRASSET_DOES_NOT_EXIST(_assetAddr);
+        }
+        _;
+    }
+    /**
+     * @notice Reverts if address is not a Kresko Asset.
+     * @param _assetAddr The address of the asset.
+     */
+    modifier isSCDPKrAsset(address _assetAddr) {
+        if (!cs().assets[_assetAddr].isSCDPKrAsset) {
+            revert CError.KRASSET_DOES_NOT_EXIST(_assetAddr);
         }
         _;
     }
@@ -88,8 +108,8 @@ contract CModifiers {
     }
 
     /// @dev Simple check for the enabled flag
-    function ensureNotPaused(address _asset, Action _action) internal view virtual {
-        if (cs().safetyState[_asset][_action].pause.enabled) {
+    function ensureNotPaused(address _assetAddr, Action _action) internal view virtual {
+        if (cs().safetyState[_assetAddr][_action].pause.enabled) {
             revert CError.ACTION_PAUSED_FOR_ASSET();
         }
     }

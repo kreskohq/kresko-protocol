@@ -58,6 +58,7 @@ struct SDIState {
     uint256 totalCover;
     address coverRecipient;
     address[] coverAssets;
+    uint8 sdiPricePrecision;
 }
 
 /* -------------------------------------------------------------------------- */

@@ -1,70 +1,68 @@
 import { FakeContract, MockContract } from "@defi-wonderland/smock";
 import {
-    TestCollateralAssetArgs,
-    TestCollateralAssetUpdate,
-    TestKreskoAssetArgs,
-    TestKreskoAssetUpdate,
-} from "@utils/test";
-import type { BytesLike } from "ethers";
-import { DeployResult } from "hardhat-deploy/types";
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { ContractTypes } from "types";
-import type * as Contracts from "./typechain";
-import { OracleType } from "@utils/test/oracles";
-import {
-    KrAssetStructOutput,
-    CollateralAssetStruct,
-} from "./typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
-import { MockOracle } from "./typechain";
-import {
     getBalanceCollateralFunc,
     getBalanceKrAssetFunc,
     setBalanceCollateralFunc,
     setBalanceKrAssetFunc,
 } from "@utils/test/helpers/smock";
+import type { BaseContract, BytesLike } from "ethers";
+import { DeployResult } from "hardhat-deploy/types";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { AssetArgs, AssetConfig, ContractTypes, OracleType } from "types";
+import type * as Contracts from "./typechain";
+import { MockOracle } from "./typechain";
+import { AssetStruct } from "./typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 declare global {
     const hre: HardhatRuntimeEnvironment;
     /* -------------------------------------------------------------------------- */
     /*                              Minter Contracts                              */
     /* -------------------------------------------------------------------------- */
     export type TC = ContractTypes;
-
-    type TestKrAsset = {
-        krAsset?: boolean;
-        collateral?: boolean;
+    type TestExtAsset = TestAsset<ERC20Upgradeable, "mock">;
+    type TestKrAsset = TestAsset<KreskoAsset, "mock">;
+    type TestAsset<C extends ERC20Upgradeable | KreskoAsset, T extends "mock" | undefined = undefined> = {
+        id: string;
         address: string;
-        contract: MockContract<Contracts.KreskoAsset>;
-        deployArgs?: TestKreskoAssetArgs;
-        kresko: () => Promise<KrAssetStructOutput>;
-        anchor: MockContract<Contracts.KreskoAssetAnchor>;
-        priceFeed: FakeContract<MockOracle>;
-        setBalance: ReturnType<typeof setBalanceKrAssetFunc>;
-        balanceOf: ReturnType<typeof getBalanceKrAssetFunc>;
-        setPrice: (price: number) => void;
-        setOracleOrder: (order: [OracleType, OracleType]) => void;
-        getPrice: () => Promise<BigNumber>;
-        update: (update: TestKreskoAssetUpdate) => Promise<TestKrAsset>;
-    };
-    type TestCollateral = {
-        address: string;
-        collateral?: boolean;
-        krAsset?: boolean;
-        deployArgs: TestCollateralAssetArgs;
-        contract: MockContract<ERC20Upgradeable>;
-        kresko: () => Promise<CollateralAssetStruct>;
-        priceFeed: FakeContract<MockOracle>;
+        isKrAsset?: boolean;
+        isCollateral?: boolean;
+        isMocked?: boolean;
+        contract: T extends "mock" ? MockContract<C> : C;
+        config: AssetConfig;
+        assetInfo: () => Promise<AssetStruct>;
+        anchor: C extends KreskoAsset
+            ? T extends "mock"
+                ? MockContract<Contracts.KreskoAssetAnchor>
+                : Contracts.KreskoAssetAnchor
+            : null;
+        priceFeed: T extends "mock" ? FakeContract<MockOracle> : MockOracle;
+        setBalance: T extends KreskoAsset
+            ? ReturnType<typeof setBalanceKrAssetFunc>
+            : ReturnType<typeof setBalanceCollateralFunc>;
+        balanceOf: T extends KreskoAsset
+            ? ReturnType<typeof getBalanceKrAssetFunc>
+            : ReturnType<typeof getBalanceCollateralFunc>;
         setPrice: (price: number) => void;
         setOracleOrder: (order: [OracleType, OracleType]) => Promise<any>;
-        setBalance: ReturnType<typeof setBalanceCollateralFunc>;
-        balanceOf: ReturnType<typeof getBalanceCollateralFunc>;
         getPrice: () => Promise<BigNumber>;
-        update: (update: TestCollateralAssetUpdate) => Promise<TestCollateral>;
+        update: (update: AssetArgs) => Promise<TestAsset<C, T>>;
     };
+    // type TestCollateral = {
+    //     address: string;
+    //     isKrAsset?: boolean;
+    //     krAsset?: boolean;
+    //     config: AssetConfig;
+    //     contract: MockContract<ERC20Upgradeable>;
+    //     assetInfo: () => Promise<AssetStruct>;
+    //     priceFeed: FakeContract<MockOracle>;
+    //     setPrice: (price: number) => void;
+    //     setOracleOrder: (order: [OracleType, OracleType]) => Promise<any>;
+    //     setBalance: ReturnType<typeof setBalanceCollateralFunc>;
+    //     balanceOf: ReturnType<typeof getBalanceCollateralFunc>;
+    //     getPrice: () => Promise<BigNumber>;
+    //     update: (update: AssetArgs) => Promise<TestCollateral>;
+    // };
 
-    type TestKrAssets = TestKrAsset[];
-    type TestCollaterals = TestCollateral[];
-
-    type TestAsset = TestCollateral | TestKrAsset;
+    // type TestAsset = TestCollateral | TestKrAsset;
     /* -------------------------------------------------------------------------- */
     /*                                   Oracles                                  */
     /* -------------------------------------------------------------------------- */
@@ -73,7 +71,22 @@ declare global {
     /* -------------------------------------------------------------------------- */
     /*                               Misc Contracts                               */
     /* -------------------------------------------------------------------------- */
-
+    export type TestTokenSymbols =
+        | "USDC"
+        | "TSLA"
+        | "Collateral"
+        | "Coll8Dec"
+        | "Coll18Dec"
+        | "Coll21Dec"
+        | "Collateral2"
+        | "Collateral3"
+        | "Collateral4"
+        | "KreskoAsset"
+        | "KrAsset"
+        | "KrAsset2"
+        | "KrAsset3"
+        | "KrAsset4"
+        | "KrAsset5";
     type Contract = import("ethers").Contract;
     type GnosisSafeL2 = any;
 
@@ -97,33 +110,4 @@ declare global {
     type DeployResultWithSignatures<T> = readonly [T, string[], DeployResult];
 
     type DiamondCutInitializer = [string, BytesLike];
-
-    interface KreskoConstructor {
-        admin?: string;
-        council?: string;
-        treasury?: string;
-        extOracleDecimals: number;
-        minCollateralRatio: number;
-        minDebtValue: number;
-        liquidationThreshold: number;
-        oracleDeviationPct: number;
-
-        sequencerUptimeFeed: string;
-        sequencerGracePeriodTime: BigNumberish;
-        oracleTimeout: BigNumberish;
-    }
-    interface KreskoAssetInitializer {
-        name: string;
-        symbol: string;
-        decimals: number;
-        owner: string;
-        kresko: string;
-    }
-
-    interface KreskoAssetAnchorInitializer {
-        krAsset: string;
-        name: string;
-        symbol: string;
-        owner: string;
-    }
 }

@@ -37,35 +37,27 @@ export const getLiqAmount = async (user: SignerWithAddress, krAsset: any, collat
 };
 export const getExpectedMaxLiq = async (user: SignerWithAddress, krAsset: any, collateral: any) => {
     const liquidationThreshold = await optimized.getMaxLiquidationRatio();
-    const [collateralValue, minCollateralValue, kreskoAsset, collateralAsset, collateralDepositValue, minDebt] =
-        await Promise.all([
-            hre.Diamond.getAccountCollateralValue(user.address),
-            hre.Diamond.getAccountMinCollateralAtRatio(user.address, liquidationThreshold),
-            hre.Diamond.getKreskoAsset(krAsset.address),
-            hre.Diamond.getCollateralAsset(collateral.address),
-            hre.Diamond.getCollateralAmountToValue(
-                collateral.address,
-                optimized.getAccountCollateralAmount(user.address, collateral.address),
-                false,
-            ),
-            optimized.getMinDebtValue(),
-        ]);
+    const [collateralValue, minCollateralValue, asset, collateralDepositValue, minDebt] = await Promise.all([
+        hre.Diamond.getAccountCollateralValue(user.address),
+        hre.Diamond.getAccountMinCollateralAtRatio(user.address, liquidationThreshold),
+        hre.Diamond.getAsset(krAsset.address),
+        hre.Diamond.getCollateralAmountToValue(
+            collateral.address,
+            optimized.getAccountCollateralAmount(user.address, collateral.address),
+            false,
+        ),
+        optimized.getMinDebtValue(),
+    ]);
 
     const valueUnder = minCollateralValue.sub(collateralValue);
-    const debtFactor = kreskoAsset.kFactor.wadMul(liquidationThreshold).wadDiv(collateralAsset.factor);
+    const debtFactor = BigNumber.from(asset.kFactor).percentMul(liquidationThreshold).percentDiv(asset.factor);
     if (collateralValue.gte(minCollateralValue)) {
         return BigNumber.from(0);
     }
 
-    const valueGainPerUSDRepaid = debtFactor
-        .sub(collateralAsset.liquidationIncentive)
-        .sub(kreskoAsset.closeFee)
-        .wadDiv(debtFactor);
+    const valueGainPerUSDRepaid = debtFactor.sub(asset.liqIncentive).sub(asset.closeFee).wadDiv(debtFactor);
 
-    const maxLiquidatableUSD = valueUnder
-        .wadDiv(valueGainPerUSDRepaid)
-        .wadDiv(debtFactor)
-        .wadDiv(collateralAsset.factor);
+    const maxLiquidatableUSD = valueUnder.wadDiv(valueGainPerUSDRepaid).wadDiv(debtFactor).percentDiv(asset.factor);
 
     if (collateralDepositValue.value.lt(maxLiquidatableUSD)) {
         return collateralDepositValue.value;
@@ -101,10 +93,9 @@ export const liquidate = async (
     const liquidatorBal = await krAsset.balanceOf(hre.users.liquidator);
     if (liquidatorBal.lt(liquidationAmount)) {
         if (krAsset.address === collateral.address) {
-            const mockCollateral2 = hre.collaterals.find(c => c.deployArgs.name === "MockCollateral2");
             await depositMockCollateral({
                 user: hre.users.liquidator,
-                asset: mockCollateral2!,
+                asset: hre.collaterals.find(c => c.config.args.id === "MockCollateral2")!,
                 amount: toBig(100_000),
             });
         } else {

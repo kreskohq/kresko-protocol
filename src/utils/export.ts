@@ -3,24 +3,7 @@ import { exec } from "child_process";
 import { subtask } from "hardhat/config";
 import { getFullyQualifiedName } from "hardhat/utils/contract-names";
 import type { PublicConfig as RunTypeChainConfig } from "typechain";
-export const coreExports = [
-    "Kresko",
-    "KrStaking",
-    "KrStakingHelper",
-    "KreskoAsset",
-    "KreskoAssetAnchor",
-    "UniswapV2Router02",
-    "UniswapV2Factory",
-    "UniswapMath",
-    "UniswapV2Pair",
-    "UniswapV2LiquidityMathLibrary",
-    "KISS",
-    "Positions",
-    "FunderTestnetExtended",
-    "UniswapV2Oracle",
-    "ERC20Upgradeable",
-    "WETH",
-];
+export const coreExports = ["Kresko", "Vault", "KreskoAsset", "KreskoAssetAnchor", "KISS", "ERC20Upgradeable", "WETH"];
 function getFQNamesFromCompilationOutput(compileSolOutput: any): string[] {
     const allFQNNamesNested = compileSolOutput.artifactsEmittedPerJob.map((a: any) => {
         return a.artifactsEmittedPerFile.map((artifactPerFile: any) => {

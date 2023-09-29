@@ -1,5 +1,7 @@
 import { expect } from "@test/chai";
-import { Role, diamondFixture, wrapContractWithSigner } from "@utils/test";
+import { diamondFixture } from "@utils/test/fixtures";
+import { wrapContractWithSigner } from "@utils/test/helpers/general";
+import Role from "@utils/test/roles";
 
 describe("Diamond", () => {
     beforeEach(async function () {

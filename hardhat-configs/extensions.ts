@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { signatureFilters } from "@deploy-config/shared";
 import { Fragment } from "@ethersproject/abi";
 import { WrapperBuilder } from "@redstone-finance/evm-connector";
 import { checkAddress } from "@scripts/check-address";
-import { getAddresses, getUsers } from "@utils/general";
+import { getAddresses, getUsers } from "@utils/hardhat";
 import { extendEnvironment } from "hardhat/config";
-import SharedConfig from "src/deploy-config/shared";
 import { ContractTypes } from "types";
 
 extendEnvironment(async function (hre) {
@@ -19,7 +19,7 @@ extendEnvironment(function (hre) {
     /*                                   VALUES                                   */
     /* -------------------------------------------------------------------------- */
     hre.facets = [];
-    hre.collaterals = [];
+    hre.extAssets = [];
     hre.krAssets = [];
     hre.allAssets = [];
     hre.checkAddress = checkAddress;
@@ -45,6 +45,31 @@ extendEnvironment(function (hre) {
 
         if (!deployment) {
             throw new Error(`${deploymentId} not deployed on ${hre.network.name} network`);
+        }
+        if (type === "Kresko") {
+            return WrapperBuilder.wrap(await hre.ethers.getContractAt(type, deployment.address)).usingSimpleNumericMock(
+                {
+                    mockSignersCount: 1,
+                    timestampMilliseconds: Date.now(),
+                    dataPoints: [
+                        { dataFeedId: "DAI", value: 0 },
+                        { dataFeedId: "USDC", value: 0 },
+                        { dataFeedId: "TSLA", value: 0 },
+                        { dataFeedId: "ETH", value: 0 },
+                        { dataFeedId: "BTC", value: 0 },
+                    ],
+                },
+            ) as ContractTypes[typeof type];
+        }
+
+        return (await hre.ethers.getContractAt(type, deployment.address)) as unknown as TC[typeof type];
+    };
+    hre.getContractOrNull = async (type, deploymentName) => {
+        const deploymentId = deploymentName ? deploymentName : type;
+        const deployment = await hre.getDeploymentOrFork(deploymentId);
+
+        if (!deployment) {
+            return null;
         }
         if (type === "Kresko") {
             return WrapperBuilder.wrap(await hre.ethers.getContractAt(type, deployment.address)).usingSimpleNumericMock(
@@ -93,7 +118,7 @@ extendEnvironment(function (hre) {
                     .filter(
                         frag =>
                             frag.type === "function" &&
-                            !SharedConfig.signatureFilters.some(f => f.indexOf(frag.name.toLowerCase()) > -1),
+                            !signatureFilters.some(f => f.indexOf(frag.name.toLowerCase()) > -1),
                     )
                     .map(frag => implementation.interface.getSighash(frag)),
 
@@ -111,7 +136,7 @@ extendEnvironment(function (hre) {
                         .filter(
                             frag =>
                                 frag.type === "function" &&
-                                !SharedConfig.signatureFilters.some(f => f.indexOf(frag.name.toLowerCase()) > -1),
+                                !signatureFilters.some(f => f.indexOf(frag.name.toLowerCase()) > -1),
                         )
                         .map(frag => implementation.interface.getSighash(frag)),
                     deployment,
@@ -125,20 +150,12 @@ extendEnvironment(function (hre) {
         Fragment.from(from)?.type === "function" && hre.ethers.utils.Interface.getSighash(Fragment.from(from));
     hre.getSignatures = abi =>
         new hre.ethers.utils.Interface(abi).fragments
-            .filter(
-                f =>
-                    f.type === "function" &&
-                    !SharedConfig.signatureFilters.some(s => s.indexOf(f.name.toLowerCase()) > -1),
-            )
+            .filter(f => f.type === "function" && !signatureFilters.some(s => s.indexOf(f.name.toLowerCase()) > -1))
             .map(hre.ethers.utils.Interface.getSighash);
 
     hre.getSignaturesWithNames = abi =>
         new hre.ethers.utils.Interface(abi).fragments
-            .filter(
-                f =>
-                    f.type === "function" &&
-                    !SharedConfig.signatureFilters.some(s => s.indexOf(f.name.toLowerCase()) > -1),
-            )
+            .filter(f => f.type === "function" && !signatureFilters.some(s => s.indexOf(f.name.toLowerCase()) > -1))
             .map(fragment => ({
                 name: fragment.name,
                 sig: hre.ethers.utils.Interface.getSighash(fragment),

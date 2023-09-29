@@ -6,52 +6,53 @@ pragma solidity <0.9.0;
 library CError {
     error SEIZE_UNDERFLOW(uint256, uint256);
     error DEBT_EXCEEDS_COLLATERAL();
-    error DEPOSIT_LIMIT(uint256);
-    error INVALID_MIN_DEBT(uint256);
-    error INVALID_FEE(uint256);
-    error INVALID_MCR(uint256);
+    error DEPOSIT_LIMIT(address, uint256, uint256);
+    error INVALID_MIN_DEBT(uint256, uint256);
+    error INVALID_SCDP_FEE(address, uint256, uint256);
+    error INVALID_MCR(uint256, uint256);
     error COLLATERAL_DOES_NOT_EXIST(address);
     error KRASSET_DOES_NOT_EXIST(address);
-    error INVALID_MLR(uint256);
-    error INVALID_LT(uint256);
-    error INVALID_PROTOCOL_FEE(uint256);
-    error INVALID_ORACLE_DEVIATION(uint256);
+    error INVALID_MLR(uint256, uint256);
+    error INVALID_LT(uint256, uint256);
+    error INVALID_PROTOCOL_FEE(address, uint256, uint256);
+    error INVALID_ORACLE_DEVIATION(uint256, uint256);
     error INVALID_FEE_RECIPIENT(address);
-    error INVALID_LIQUIDATION_INCENTIVE(uint256);
+    error INVALID_LIQ_INCENTIVE(address, uint256, uint256);
     error LIQUIDATION_AMOUNT_OVERFLOW(uint256, uint256);
     error LIQUIDATION_VALUE_OVERFLOW(uint256);
-    error WITHDRAWAL_VIOLATION();
+    error WITHDRAWAL_VIOLATION(address);
     error INVALID_DEPOSIT_ASSET(address);
     error IDENTICAL_ASSETS();
     error NO_PUSH_PRICE(string);
     error NO_PUSH_ORACLE_SET(string);
     error ZERO_ADDRESS();
-    error ZERO_PRICE();
+    error ZERO_PRICE(string);
     error SEQUENCER_DOWN_NO_REDSTONE_AVAILABLE();
-    error NEGATIVE_PRICE(int256);
+    error NEGATIVE_PRICE(address, int256);
     error PRICE_UNSTABLE(uint256, uint256);
-    error ORACLE_ZERO_ADDRESS();
+    error ORACLE_ZERO_ADDRESS(string);
     error ASSET_DOES_NOT_EXIST(address);
     error ASSET_ALREADY_EXISTS(address);
-    error INVALID_ASSET_ID();
+    error INVALID_ASSET_ID(address);
     error MISSING_PHASE_3_NFT();
     error MISSING_PHASE_2_NFT();
     error MISSING_PHASE_1_NFT();
     error DIAMOND_FUNCTION_NOT_FOUND();
     error RE_ENTRANCY();
     error INVALID_PRICE();
-    error INVALID_API3_PRICE();
-    error INVALID_CL_PRICE();
-    error ARRAY_LENGTH_MISMATCH(uint256, uint256);
+    error INVALID_API3_PRICE(string);
+    error INVALID_CL_PRICE(string);
+    error ARRAY_LENGTH_MISMATCH(string, uint256, uint256);
     error ACTION_PAUSED_FOR_ASSET();
-    error INVALID_FACTOR(uint256);
-    error INVALID_MINTER_FEE(uint256);
-    error INVALID_DECIMALS(uint256);
-    error INVALID_KRASSET_CONTRACT();
-    error INVALID_KRASSET_ANCHOR();
-    error SUPPLY_LIMIT(uint256);
+    error INVALID_KFACTOR(address, uint256, uint256);
+    error INVALID_CFACTOR(address, uint256, uint256);
+    error INVALID_MINTER_FEE(address, uint256, uint256);
+    error INVALID_DECIMALS(address, uint256);
+    error INVALID_KRASSET_CONTRACT(address);
+    error INVALID_KRASSET_ANCHOR(address);
+    error SUPPLY_LIMIT(address, uint256, uint256);
     error CANNOT_LIQUIDATE();
-    error INVALID_KRASSET_OPERATOR();
+    error INVALID_KRASSET_OPERATOR(address);
     error ZERO_REPAY();
     error SELF_LIQUIDATION();
     error REPAY_OVERFLOW(uint256, uint256);
@@ -136,7 +137,7 @@ library Error {
     string public constant KRASSET_MARKET_CLOSED = "242"; // KrAsset's market is currently closed
     string public constant NO_KRASSETS_MINTED = "243"; // Account has no active KreskoAsset positions
     string public constant NO_COLLATERAL_DEPOSITS = "244"; // Account has no active Collateral deposits
-    string public constant INVALID_ORACLE_DECIMALS = "245"; // Oracle decimals do not match extOracleDecimals
+    string public constant INVALID_ORACLE_DECIMALS = "245"; // Oracle decimals do not match oracleDecimals
     string public constant PARAM_LIQUIDATION_OVERFLOW_LOW = "246"; // Liquidation overflow is less than MIN_LIQUIDATION_OVERFLOW
     string public constant INVALID_ORACLE_DEVIATION_PCT = "247"; // Oracle deviation percentage is greater than 100%
     string public constant SEIZED_COLLATERAL_UNDERFLOW = "248"; // Amount of collateral seized is less than the amount calculated.

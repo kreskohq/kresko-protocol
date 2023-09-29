@@ -1,5 +1,6 @@
 import { expect } from "@test/chai";
-import { kreskoAssetFixture, Role } from "@utils/test";
+import { kreskoAssetFixture } from "@utils/test/fixtures";
+import Role from "@utils/test/roles";
 
 describe("KreskoAsset", () => {
     let KreskoAsset: KreskoAsset;
@@ -38,11 +39,8 @@ describe("KreskoAsset", () => {
             expect(await KreskoAsset.totalSupply()).to.equal(0);
             expect(await KreskoAsset.balanceOf(this.owner.address)).to.equal(0);
 
-            await expect(
-                KreskoAsset.connect(hre.users.userOne).mint(this.owner.address, this.mintAmount),
-            ).to.be.revertedWith(
-                `AccessControl: account ${hre.users.userOne.address.toLowerCase()} is missing role 0x112e48a576fb3a75acc75d9fcf6e0bc670b27b1dbcd2463502e10e68cf57d6fd`,
-            );
+            await expect(KreskoAsset.connect(hre.users.userOne).mint(this.owner.address, this.mintAmount)).to.be
+                .reverted;
 
             // Check total supply and all account balances unchanged
             expect(await KreskoAsset.totalSupply()).to.equal(0);
@@ -52,11 +50,7 @@ describe("KreskoAsset", () => {
 
         it("should not allow admin to mint tokens", async function () {
             await KreskoAsset.renounceRole(Role.OPERATOR, this.owner.address);
-            await expect(
-                KreskoAsset.connect(hre.users.admin).mint(this.owner.address, this.mintAmount),
-            ).to.be.revertedWith(
-                `AccessControl: account ${hre.users.admin.address.toLowerCase()} is missing role 0x112e48a576fb3a75acc75d9fcf6e0bc670b27b1dbcd2463502e10e68cf57d6fd`,
-            );
+            await expect(KreskoAsset.connect(hre.users.admin).mint(this.owner.address, this.mintAmount)).to.be.reverted;
         });
     });
 

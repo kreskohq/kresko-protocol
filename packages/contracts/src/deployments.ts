@@ -1394,7 +1394,7 @@ export const deployments = {
                         {
                             indexed: false,
                             internalType: "uint256",
-                            name: "liquidationIncentive",
+                            name: "liqIncentive",
                             type: "uint256",
                         },
                     ],
@@ -1431,7 +1431,7 @@ export const deployments = {
                         {
                             indexed: false,
                             internalType: "uint256",
-                            name: "liquidationIncentive",
+                            name: "liqIncentive",
                             type: "uint256",
                         },
                     ],
@@ -2348,7 +2348,7 @@ export const deployments = {
                                 },
                                 {
                                     internalType: "uint256",
-                                    name: "liquidationIncentive",
+                                    name: "liqIncentive",
                                     type: "uint256",
                                 },
                                 {
@@ -2494,7 +2494,7 @@ export const deployments = {
                                 },
                                 {
                                     internalType: "uint256",
-                                    name: "liquidationIncentive",
+                                    name: "liqIncentive",
                                     type: "uint256",
                                 },
                                 {
@@ -2626,7 +2626,7 @@ export const deployments = {
                         },
                         {
                             internalType: "uint256",
-                            name: "_liquidationIncentiveMultiplier",
+                            name: "_liqIncentiveMultiplier",
                             type: "uint256",
                         },
                     ],
@@ -3475,7 +3475,7 @@ export const deployments = {
                                 },
                                 {
                                     internalType: "uint256",
-                                    name: "liquidationIncentive",
+                                    name: "liqIncentive",
                                     type: "uint256",
                                 },
                                 {
@@ -3526,7 +3526,7 @@ export const deployments = {
                 },
                 {
                     inputs: [],
-                    name: "extOracleDecimals",
+                    name: "oracleDecimals",
                     outputs: [
                         {
                             internalType: "uint8",
@@ -3583,7 +3583,7 @@ export const deployments = {
                                 },
                                 {
                                     internalType: "uint8",
-                                    name: "extOracleDecimals",
+                                    name: "oracleDecimals",
                                     type: "uint8",
                                 },
                                 {
@@ -3745,7 +3745,7 @@ export const deployments = {
                 },
                 {
                     inputs: [],
-                    name: "liquidationIncentiveMultiplier",
+                    name: "liqIncentiveMultiplier",
                     outputs: [
                         {
                             internalType: "uint256",
@@ -4010,7 +4010,7 @@ export const deployments = {
                                         },
                                         {
                                             internalType: "uint256",
-                                            name: "liquidationIncentive",
+                                            name: "liqIncentive",
                                             type: "uint256",
                                         },
                                         {
@@ -4283,7 +4283,7 @@ export const deployments = {
                                 },
                                 {
                                     internalType: "uint256",
-                                    name: "liquidationIncentive",
+                                    name: "liqIncentive",
                                     type: "uint256",
                                 },
                                 {

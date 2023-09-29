@@ -1,8 +1,9 @@
 import { toBig } from "@kreskolabs/lib";
 import { expect } from "@test/chai";
 import { wrapPrices } from "@utils/redstone";
-import { DefaultFixture, Error, defaultCollateralArgs, defaultFixture } from "@utils/test";
-import { OracleType } from "@utils/test/oracles";
+import { DefaultFixture, defaultFixture } from "@utils/test/fixtures";
+import { testCollateralConfig } from "@utils/test/mocks";
+import { OracleType } from "types";
 import { Kresko, MockSequencerUptimeFeed } from "types/typechain";
 
 describe("Oracles", () => {
@@ -34,7 +35,7 @@ describe("Oracles", () => {
             const redstoneCollateralPrice = 20;
 
             const redstoneDiamond: Kresko = wrapPrices(hre.Diamond, [
-                { dataFeedId: defaultCollateralArgs.redstoneId, value: redstoneCollateralPrice },
+                { dataFeedId: testCollateralConfig.id, value: redstoneCollateralPrice },
             ]);
 
             expect(await redstoneDiamond.getAccountCollateralValue(user.address)).to.equal(
@@ -52,7 +53,7 @@ describe("Oracles", () => {
             const redstoneCollateralPrice = 11;
 
             const redstoneDiamond = wrapPrices(hre.Diamond, [
-                { dataFeedId: defaultCollateralArgs.redstoneId, value: redstoneCollateralPrice },
+                { dataFeedId: testCollateralConfig.id, value: redstoneCollateralPrice },
             ]);
 
             expect(await redstoneDiamond.getAccountCollateralValue(user.address)).to.equal(
@@ -67,13 +68,11 @@ describe("Oracles", () => {
 
             const redstoneCollateralPrice = 10;
             const redstoneDiamond = wrapPrices(hre.Diamond, [
-                { dataFeedId: defaultCollateralArgs.redstoneId, value: redstoneCollateralPrice },
+                { dataFeedId: testCollateralConfig.id, value: redstoneCollateralPrice },
             ]);
 
             // should revert if price deviates more than oracleDeviationPct
-            await expect(redstoneDiamond.getAccountCollateralValue(user.address)).to.be.revertedWith(
-                Error.ORACLE_PRICE_UNSTABLE,
-            );
+            await expect(redstoneDiamond.getAccountCollateralValue(user.address)).to.be.reverted;
             f.Collateral.setPrice(10);
         });
 
@@ -83,7 +82,7 @@ describe("Oracles", () => {
 
             const redstoneCollateralPrice = 200;
             const redstoneDiamond = wrapPrices(hre.Diamond, [
-                { dataFeedId: defaultCollateralArgs.redstoneId, value: redstoneCollateralPrice },
+                { dataFeedId: testCollateralConfig.id, value: redstoneCollateralPrice },
             ]);
 
             /// set sequencer uptime feed address

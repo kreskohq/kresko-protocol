@@ -1,6 +1,5 @@
-import { getPriceFromTwelveData, toBig } from "@kreskolabs/lib";
-import { ethers } from "ethers";
-import { Asset, GnosisSafeDeployment, NetworkConfig } from "types";
+import { getPriceFromTwelveData } from "@kreskolabs/lib";
+import { AssetArgs, GnosisSafeDeployment, NetworkConfig, OracleType } from "types";
 import {
     CompatibilityFallbackHandler,
     CreateCall,
@@ -12,27 +11,25 @@ import {
     SignMessageLib,
     SimulateTxAccessor,
 } from "./gnosis-safe";
+import { defaultSupplyLimit } from "@utils/test/mocks";
+import {
+    CommonInitArgsStruct,
+    MinterInitArgsStruct,
+    SCDPInitArgsStruct,
+} from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
+import { ethers } from "ethers";
+import { toBig } from "@utils/values";
 
-const defaultParams: Omit<KreskoConstructor, "feeRecipient"> = {
-    extOracleDecimals: 8,
-    minCollateralRatio: 1.5,
-    minDebtValue: 10,
-    liquidationThreshold: 1.4,
-    oracleDeviationPct: 0.1,
-    sequencerGracePeriodTime: 3600,
-    sequencerUptimeFeed: "0x4da69F028a5790fCCAfe81a75C0D24f46ceCDd69",
-    oracleTimeout: ethers.constants.MaxUint256,
-};
 export const redstoneMap = {
-    krETH: ethers.utils.formatBytes32String("ETH"),
-    krBTC: ethers.utils.formatBytes32String("BTC"),
-    krTSLA: ethers.utils.formatBytes32String("TSLA"),
-    WETH: ethers.utils.formatBytes32String("ETH"),
-    ETH: ethers.utils.formatBytes32String("ETH"),
-    WBTC: ethers.utils.formatBytes32String("BTC"),
-    KISS: ethers.utils.formatBytes32String("USDC"),
-    DAI: ethers.utils.formatBytes32String("DAI"),
-    USDC: ethers.utils.formatBytes32String("USDC"),
+    krETH: "ETH",
+    krBTC: "BTC",
+    krTSLA: "TSLA",
+    WETH: "ETH",
+    ETH: "ETH",
+    WBTC: "BTC",
+    KISS: "USDC",
+    DAI: "DAI",
+    USDC: "USDC",
 };
 
 export const oracles = {
@@ -83,82 +80,119 @@ export const oracles = {
     },
 };
 
-export const assets: { [asset: string]: Asset } = {
+export type AssetConfigExtended = AssetArgs & {
+    getMarketOpen: () => Promise<boolean>;
+    getPrice: () => Promise<BigNumber>;
+    mintAmount?: number;
+};
+export const assets = {
     DAI: {
+        id: "DAI",
         name: "Dai",
         symbol: "DAI",
         decimals: 18,
-        price: async () => {
-            return toBig("1", 8);
-        },
-        marketOpen: async () => {
+        oracleIds: [OracleType.Redstone, OracleType.Chainlink] as const,
+        getPrice: async () => toBig("1", 8),
+        getMarketOpen: async () => {
             return true;
         },
-        oracle: oracles.DAI,
-        cFactor: 0.9,
-        mintAmount: 150_000_000,
-        testAsset: true,
+        feed: oracles.DAI.chainlink,
+        collateralConfig: {
+            cFactor: 0.9e4,
+            liqIncentive: 1.05e4,
+        },
+        mintAmount: 1_000_000,
     },
     WETH: {
+        id: "ETH",
         name: "Wrapped Ether",
         symbol: "WETH",
         decimals: 18,
-        price: async () => toBig(await getPriceFromTwelveData("ETH/USD"), 8),
-        marketOpen: async () => {
-            return true;
+        oracleIds: [OracleType.Redstone, OracleType.Chainlink] as const,
+        getPrice: async () => toBig(await getPriceFromTwelveData("ETH/USD"), 8),
+        getMarketOpen: async () => true,
+        feed: oracles.ETH.chainlink,
+        collateralConfig: {
+            cFactor: 0.9e4,
+            liqIncentive: 1.05e4,
         },
-        oracle: oracles.ETH,
-        cFactor: 0.9,
     },
     // KRASSETS
     KISS: {
+        id: "KISS",
         name: "Kresko Integrated Stable System",
         symbol: "KISS",
         decimals: 18,
-        price: async () => {
-            return toBig("1", 8);
+        oracleIds: [OracleType.Redstone, OracleType.Chainlink] as const,
+        getPrice: async () => toBig("1", 8),
+        getMarketOpen: async () => true,
+        feed: oracles.KISS.chainlink,
+        collateralConfig: {
+            cFactor: 0.95e4,
+            liqIncentive: 1.05e4,
         },
-        marketOpen: async () => {
-            return true;
+        krAssetConfig: {
+            anchor: null,
+            kFactor: 1.1e4,
+            openFee: 0,
+            closeFee: 0,
+            supplyLimit: defaultSupplyLimit,
         },
-        oracle: oracles.KISS,
-        cFactor: 0.95,
-        kFactor: 1,
+        scdpKrAssetConfig: {
+            openFeeSCDP: 0,
+            closeFeeSCDP: 0.02e4,
+            protocolFeeSCDP: 0.005e4,
+            liqIncentiveSCDP: 1.05e4,
+        },
         mintAmount: 50_000_000,
     },
     krBTC: {
+        id: "BTC",
         name: "Kresko Asset: Bitcoin",
         symbol: "krBTC",
         decimals: 18,
-        price: async () => toBig(await getPriceFromTwelveData("BTC/USD"), 8),
-        marketOpen: async () => {
-            return true;
+        oracleIds: [OracleType.Redstone, OracleType.Chainlink] as const,
+        getPrice: async () => toBig(await getPriceFromTwelveData("BTC/USD"), 8),
+        getMarketOpen: async () => true,
+        feed: oracles.BTC.chainlink,
+        krAssetConfig: {
+            anchor: null,
+            kFactor: 1.05e4,
+            openFee: 0,
+            closeFee: 0.02e4,
+            supplyLimit: defaultSupplyLimit,
         },
-        oracle: oracles.BTC,
-        kFactor: 1.1,
-        cFactor: 1,
+        collateralConfig: {
+            cFactor: 1e4,
+            liqIncentive: 1.1e4,
+        },
         mintAmount: 5,
     },
     krETH: {
-        name: "Kresko Asset: Ether",
+        id: "ETH",
+        name: "Kresko Assets: Ether",
         symbol: "krETH",
         decimals: 18,
-        price: async () => toBig(await getPriceFromTwelveData("ETH/USD"), 8),
-        marketOpen: async () => {
+        oracleIds: [OracleType.Redstone, OracleType.Chainlink] as const,
+        getPrice: async () => toBig(await getPriceFromTwelveData("ETH/USD"), 8),
+        getMarketOpen: async () => {
             return true;
         },
-        oracle: oracles.ETH,
-        kFactor: 1.05,
-        cFactor: 1,
+        feed: oracles.ETH.chainlink,
+        krAssetConfig: {
+            anchor: null,
+            kFactor: 1.05e4,
+            openFee: 0,
+            closeFee: 0.02e4,
+            supplyLimit: defaultSupplyLimit,
+        },
+        collateralConfig: {
+            cFactor: 1e4,
+            liqIncentive: 1.1e4,
+        },
         mintAmount: 64,
     },
-    krCUBE: {
-        name: "krCUBE",
-        symbol: "krCUBE",
-        decimals: 18,
-        mintAmount: 1_000_000,
-    },
-};
+} as const;
 
 const gnosisSafeDeployments: GnosisSafeDeployment[] = [
     CompatibilityFallbackHandler,
@@ -171,24 +205,56 @@ const gnosisSafeDeployments: GnosisSafeDeployment[] = [
     SignMessageLib,
     SimulateTxAccessor,
 ];
+const commonInitAgs = (
+    gate?: boolean,
+): Omit<CommonInitArgsStruct, "feeRecipient" | "admin" | "council" | "treasury"> => ({
+    oracleDecimals: 8,
+    questForKresk: ethers.constants.AddressZero,
+    kreskian: ethers.constants.AddressZero,
+    phase: !gate ? 3 : 0, // 0 = phase 1, 1 = phase 2, 2 = phase 3, 3 = no gating (subject to change)
+    minDebtValue: 10,
+    oracleDeviationPct: 0.1e4,
+    sequencerGracePeriodTime: 3600,
+    sequencerUptimeFeed: "0x4da69F028a5790fCCAfe81a75C0D24f46ceCDd69",
+    oracleTimeout: 6.5e4,
+});
 
+export const minterInitArgs: MinterInitArgsStruct = {
+    minCollateralRatio: 1.5e4,
+    liquidationThreshold: 1.4e4,
+};
+export const scdpInitArgs: SCDPInitArgsStruct = {
+    minCollateralRatio: 1.5e4,
+    liquidationThreshold: 1.4e4,
+    swapFeeRecipient: "",
+};
 export const testnetConfigs: NetworkConfig = {
+    all: {
+        commonInitAgs: commonInitAgs(false),
+        minterInitArgs,
+        scdpInitArgs,
+        assets: [assets.DAI, assets.KISS, assets.WETH, assets.krBTC, assets.krETH],
+        gnosisSafeDeployments,
+    },
     hardhat: {
-        protocolParams: defaultParams,
-        collaterals: [assets.KISS, assets.krETH],
-        krAssets: [assets.KISS, assets.krETH],
+        commonInitAgs: commonInitAgs(false),
+        minterInitArgs,
+        scdpInitArgs,
+        assets: [assets.KISS, assets.krETH],
         gnosisSafeDeployments,
     },
     localhost: {
-        protocolParams: defaultParams,
-        collaterals: [assets.DAI, assets.KISS, assets.krBTC, assets.krETH],
-        krAssets: [assets.KISS, assets.krBTC, assets.krETH],
+        commonInitAgs: commonInitAgs(false),
+        minterInitArgs,
+        scdpInitArgs,
+        assets: [assets.DAI, assets.KISS, assets.krBTC, assets.krETH],
         gnosisSafeDeployments,
     },
     arbitrumGoerli: {
-        protocolParams: defaultParams,
-        collaterals: [assets.DAI, assets.KISS, assets.krBTC, assets.krETH],
-        krAssets: [assets.KISS, assets.krBTC, assets.krETH],
+        commonInitAgs: commonInitAgs(true),
+        minterInitArgs,
+        scdpInitArgs,
+        assets: [assets.DAI, assets.KISS, assets.krBTC, assets.krETH],
         gnosisSafeDeployments,
     },
 };

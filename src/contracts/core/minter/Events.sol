@@ -13,17 +13,29 @@ library MEvent {
      * @dev Can only be emitted once for a given collateral asset.
      * @param collateralAsset The address of the collateral asset.
      * @param factor The collateral factor.
-     * @param liquidationIncentive The liquidation incentive
+     * @param liqIncentive The liquidation incentive
      */
-    event CollateralAssetAdded(address indexed collateralAsset, uint256 factor, address anchor, uint256 liquidationIncentive);
+    event CollateralAssetAdded(
+        string indexed id,
+        address indexed collateralAsset,
+        uint256 factor,
+        address anchor,
+        uint256 liqIncentive
+    );
 
     /**
      * @notice Emitted when a collateral asset is updated.
      * @param collateralAsset The address of the collateral asset.
      * @param factor The collateral factor.
-     * @param liquidationIncentive The liquidation incentive
+     * @param liqIncentive The liquidation incentive
      */
-    event CollateralAssetUpdated(address indexed collateralAsset, uint256 factor, address anchor, uint256 liquidationIncentive);
+    event CollateralAssetUpdated(
+        string indexed id,
+        address indexed collateralAsset,
+        uint256 factor,
+        address anchor,
+        uint256 liqIncentive
+    );
 
     /**
      * @notice Emitted when an account deposits collateral.
@@ -70,6 +82,7 @@ library MEvent {
      * @param openFee The open fee percentage.
      */
     event KreskoAssetAdded(
+        string indexed id,
         address indexed kreskoAsset,
         address anchor,
         uint256 kFactor,
@@ -87,6 +100,7 @@ library MEvent {
      * @param openFee The open fee percentage.
      */
     event KreskoAssetUpdated(
+        string indexed id,
         address indexed kreskoAsset,
         address anchor,
         uint256 kFactor,
@@ -234,9 +248,9 @@ library MEvent {
     /**
      * @notice Emitted when the liquidation incentive multiplier is updated.
      * @param asset The collateral asset being updated.
-     * @param liquidationIncentiveMultiplier The new liquidation incentive multiplier raw value.
+     * @param liqIncentiveMultiplier The new liquidation incentive multiplier raw value.
      */
-    event LiquidationIncentiveMultiplierUpdated(address indexed asset, uint256 liquidationIncentiveMultiplier);
+    event LiquidationIncentiveMultiplierUpdated(address indexed asset, uint256 liqIncentiveMultiplier);
 
     /**
      * @notice Emitted when the max liquidation ratio is updated.

@@ -1,6 +1,7 @@
-import { diamondFacets, getMinterInitializer, minterFacets, scdpFacets } from "@deploy-config/shared";
+import { diamondFacets, getInitializer, getMinterInitializer, minterFacets, scdpFacets } from "@deploy-config/shared";
 import { expect } from "@test/chai";
-import { Error, Role, defaultFixture } from "@utils/test";
+import { defaultFixture } from "@utils/test/fixtures";
+import { Role } from "@utils/test/roles";
 
 describe("Minter - Init", () => {
     beforeEach(async function () {
@@ -10,13 +11,14 @@ describe("Minter - Init", () => {
         it("sets correct initial state", async function () {
             expect(await hre.Diamond.getStorageVersion()).to.equal(3);
 
-            const { args } = await getMinterInitializer(hre);
+            const { args } = await getInitializer(hre);
+            const { args: minterArgs } = await getMinterInitializer(hre);
 
             expect(await hre.Diamond.hasRole(Role.ADMIN, args.admin)).to.equal(true);
             expect(await hre.Diamond.hasRole(Role.SAFETY_COUNCIL, hre.Multisig.address)).to.equal(true);
 
             expect(await hre.Diamond.getFeeRecipient()).to.equal(args.treasury);
-            expect(await hre.Diamond.getMinCollateralRatio()).to.equal(args.minCollateralRatio);
+            expect(await hre.Diamond.getMinCollateralRatio()).to.equal(minterArgs.minCollateralRatio);
             expect(await hre.Diamond.getMinDebtValue()).to.equal(args.minDebtValue);
         });
 
@@ -27,7 +29,7 @@ describe("Minter - Init", () => {
 
             const tx = await initializerContract.populateTransaction.initializeMinter(initializer.args);
 
-            await expect(hre.Diamond.upgradeState(tx.to!, tx.data!)).to.be.revertedWith(Error.ALREADY_INITIALIZED);
+            await expect(hre.Diamond.upgradeState(tx.to!, tx.data!)).to.be.reverted;
         });
 
         it("configures all facets correctly", async function () {

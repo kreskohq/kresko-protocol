@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
+import {Strings} from "libs/Strings.sol";
 import {Role} from "common/Types.sol";
 import {SDIPrice} from "common/funcs/Prices.sol";
 import {cs} from "common/State.sol";
+import {EMPTY_BYTES12} from "common/Constants.sol";
 import {CModifiers} from "common/Modifiers.sol";
 import {CError} from "common/Errors.sol";
 import {Asset} from "common/Types.sol";
@@ -15,8 +17,11 @@ import {sdi} from "scdp/State.sol";
 import {ISDIFacet} from "scdp/interfaces/ISDIFacet.sol";
 
 contract SDIFacet is ISDIFacet, DSModifiers, CModifiers {
-    function initialize(address coverRecipient) external onlyOwner {
-        sdi().coverRecipient = coverRecipient;
+    using Strings for bytes12;
+    using Strings for bytes32;
+
+    function initialize(address _coverRecipient) external onlyOwner {
+        sdi().coverRecipient = _coverRecipient;
     }
 
     /* -------------------------------------------------------------------------- */
@@ -43,12 +48,20 @@ contract SDIFacet is ISDIFacet, DSModifiers, CModifiers {
         return sdi().totalCoverAmount();
     }
 
-    function previewSCDPBurn(address _asset, uint256 _burnAmount, bool _ignoreFactors) external view returns (uint256 shares) {
-        return cs().assets[_asset].debtAmountToSDI(_burnAmount, _ignoreFactors);
+    function previewSCDPBurn(
+        address _assetAddr,
+        uint256 _burnAmount,
+        bool _ignoreFactors
+    ) external view returns (uint256 shares) {
+        return cs().assets[_assetAddr].debtAmountToSDI(_burnAmount, _ignoreFactors);
     }
 
-    function previewSCDPMint(address _asset, uint256 _mintAmount, bool _ignoreFactors) external view returns (uint256 shares) {
-        return cs().assets[_asset].debtAmountToSDI(_mintAmount, _ignoreFactors);
+    function previewSCDPMint(
+        address _assetAddr,
+        uint256 _mintAmount,
+        bool _ignoreFactors
+    ) external view returns (uint256 shares) {
+        return cs().assets[_assetAddr].debtAmountToSDI(_mintAmount, _ignoreFactors);
     }
 
     /// @notice Get the price of SDI in USD, oracle precision.
@@ -64,45 +77,45 @@ contract SDIFacet is ISDIFacet, DSModifiers, CModifiers {
     /*                                Functionality                               */
     /* -------------------------------------------------------------------------- */
 
-    function SDICover(address _asset, uint256 _amount) external returns (uint256 shares, uint256 value) {
-        return sdi().cover(_asset, _amount);
+    function SDICover(address _assetAddr, uint256 _amount) external returns (uint256 shares, uint256 value) {
+        return sdi().cover(_assetAddr, _amount);
     }
 
     /* -------------------------------------------------------------------------- */
     /*                                    Admin                                   */
     /* -------------------------------------------------------------------------- */
 
-    function enableCoverAssetSDI(address _asset) external onlyRole(Role.ADMIN) {
-        Asset memory asset = cs().assets[_asset];
-        if (asset.id == bytes12("")) {
-            revert SError.INVALID_ASSET_SDI();
+    function enableCoverAssetSDI(address _assetAddr) external onlyRole(Role.ADMIN) {
+        Asset memory asset = cs().assets[_assetAddr];
+        if (asset.id == EMPTY_BYTES12) {
+            revert SError.INVALID_ASSET_SDI(_assetAddr);
         } else if (asset.pushedPrice().price == 0) {
-            revert CError.NO_PUSH_PRICE(string(abi.encodePacked(asset.id)));
+            revert CError.NO_PUSH_PRICE(asset.id.toString());
         } else if (asset.isSCDPCoverAsset) {
-            revert SError.ASSET_ALREADY_ENABLED_SDI();
+            revert SError.ASSET_ALREADY_ENABLED_SDI(_assetAddr);
         }
 
-        cs().assets[_asset].isSCDPCoverAsset = true;
+        cs().assets[_assetAddr].isSCDPCoverAsset = true;
         bool shouldPushToAssets = true;
         for (uint256 i; i < sdi().coverAssets.length; i++) {
-            if (sdi().coverAssets[i] == _asset) {
+            if (sdi().coverAssets[i] == _assetAddr) {
                 shouldPushToAssets = false;
             }
         }
         if (shouldPushToAssets) {
-            sdi().coverAssets.push(_asset);
+            sdi().coverAssets.push(_assetAddr);
         }
     }
 
-    function disableCoverAssetSDI(address _asset) external onlyRole(Role.ADMIN) {
-        if (!cs().assets[_asset].isSCDPCoverAsset) {
-            revert SError.ASSET_ALREADY_DISABLED_SDI();
+    function disableCoverAssetSDI(address _assetAddr) external onlyRole(Role.ADMIN) {
+        if (!cs().assets[_assetAddr].isSCDPCoverAsset) {
+            revert SError.ASSET_ALREADY_DISABLED_SDI(_assetAddr);
         }
 
-        cs().assets[_asset].isSCDPCoverAsset = false;
+        cs().assets[_assetAddr].isSCDPCoverAsset = false;
     }
 
-    function setCoverRecipientSDI(address _coverRecipient) external onlyRole(Role.ADMIN) {
-        sdi().coverRecipient = _coverRecipient;
+    function setCoverRecipientSDI(address _newCoverRecipient) external onlyRole(Role.ADMIN) {
+        sdi().coverRecipient = _newCoverRecipient;
     }
 }

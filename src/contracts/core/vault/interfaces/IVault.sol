@@ -215,9 +215,9 @@ interface IVault {
 
     /**
      * @notice Sets a new oracle decimals
-     * @param _extOracleDecimals New oracle decimal precision
+     * @param _oracleDecimals New oracle decimal precision
      */
-    function setOracleDecimals(uint8 _extOracleDecimals) external;
+    function setOracleDecimals(uint8 _oracleDecimals) external;
 
     /**
      * @notice Sets the max deposit amount for a asset

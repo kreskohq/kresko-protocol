@@ -1,6 +1,7 @@
 import { MockContract } from "@defi-wonderland/smock";
 import { toBig } from "@kreskolabs/lib";
 import { BigNumber } from "ethers";
+import hre from "hardhat";
 
 const keccak256 = hre.ethers.utils.keccak256;
 const hexZeroPad = hre.ethers.utils.hexZeroPad;

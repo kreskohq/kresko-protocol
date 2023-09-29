@@ -45,6 +45,11 @@ enum OracleType {
     API3
 }
 
+/**
+ * @notice Configuration for an oracle.
+ * @param oracleIds The oracle identifiers.
+ * @param feeds The feed addresses.
+ */
 struct FeedConfiguration {
     OracleType[2] oracleIds;
     address[2] feeds;
@@ -58,7 +63,7 @@ struct Asset {
     bytes12 id;
     /// @notice If the asset is a KreskoAsset, the anchor address.
     address anchor;
-    /// @notice The oracle ordering for the asset.
+    /// @notice The oracle ordering for the asset. 0 is primary and 1 is the reference price.
     OracleType[2] oracles;
     /// @notice The collateral factor used for calculating the value of the collateral.
     uint16 factor;
@@ -69,7 +74,7 @@ struct Asset {
     /// @notice The fee when burned through the Minter.
     uint16 closeFee;
     /// @notice The liquidation incentive when seized in Minter liquidations.
-    uint16 liquidationIncentive;
+    uint16 liqIncentive;
     /// @notice The supply limit if the asset is a Kresko Asset.
     uint128 supplyLimit;
     /// @notice The deposit amount limit within SCDP deposits.
@@ -81,7 +86,7 @@ struct Asset {
     /// @notice The fee when asset is the "Asset Out" in SCDP swaps.
     uint16 closeFeeSCDP;
     /// @notice The liquidation incentive when repaid in SCDP liquidations.
-    uint16 liquidationIncentiveSCDP;
+    uint16 liqIncentiveSCDP;
     /// @notice The protocol fee share when used in SCDP swaps
     uint16 protocolFeeSCDP;
     /// @notice The decimals for the token, stored here to avoid repetitive external calls.
@@ -141,7 +146,7 @@ struct CommonInitArgs {
     address treasury;
     uint64 minDebtValue;
     uint16 oracleDeviationPct;
-    uint8 extOracleDecimals;
+    uint8 oracleDecimals;
     address sequencerUptimeFeed;
     uint24 sequencerGracePeriodTime;
     uint32 oracleTimeout;
@@ -158,7 +163,7 @@ struct SCDPCollateralArgs {
 
 struct SCDPKrAssetArgs {
     uint128 supplyLimit;
-    uint16 liquidationIncentive;
+    uint16 liqIncentive;
     uint16 protocolFee; // Taken from the open+close fee. Goes to protocol.
     uint16 openFee;
     uint16 closeFee;

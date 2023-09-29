@@ -1,11 +1,10 @@
-import { DeployFunction } from "hardhat-deploy/types";
+import type { DeployFunction } from "hardhat-deploy/dist/types";
 import { getLogger } from "@kreskolabs/lib";
-import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { testnetConfigs } from "@deploy-config/arbitrumGoerli";
 
 const logger = getLogger("gnosis-safe-contracts-for-tests");
 
-const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+const deploy: DeployFunction = async function (hre) {
     switch (hre.network.name) {
         // For public chains we use the pre-deployed contracts
         case "opgoerli": {
@@ -122,6 +121,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     logger.success("safe contracts succesfully deployed");
 };
 
-deploy.tags = ["local", "gnosis-safe", "all"];
+deploy.tags = ["all", "local", "gnosis-safe"];
 // deploy.skip = async hre => hre.network.live;
 export default deploy;

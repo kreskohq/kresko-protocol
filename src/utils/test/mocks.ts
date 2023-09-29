@@ -1,60 +1,14 @@
-import { anchorTokenPrefix } from "@deploy-config/shared";
-import { toBig, oneRay } from "@kreskolabs/lib";
-import { OracleType } from "./oracles";
+import { MaxUint128, toBig } from "@utils/values";
+import { AssetArgs, OracleType } from "types";
 
-export type TestCollateralAssetArgs = {
-    name: string;
-    symbol: string;
-    redstoneId: string;
-    price: number;
-    factor: number;
-    decimals: number;
-    pushOracle?: string;
-    oracleIds?: [OracleType, OracleType];
-};
-
-export type TestCollateralAssetUpdate = {
-    name: string;
-    factor: number;
-    price?: any;
-    pushOracle?: string;
-    oracleIds?: [OracleType, OracleType];
-    redstoneId: string;
-};
 export type InputArgs = {
     user: SignerWithAddress;
-    asset: TestAsset;
+    asset: TestAsset<any, any>;
     amount: BigNumber;
 };
 
 export type InputArgsSimple = Omit<InputArgs, "asset"> & {
     asset: { address: string };
-};
-
-export type TestKreskoAssetArgs = {
-    name: string;
-    symbol?: string;
-    anchorSymbol?: string;
-    price?: number;
-    marketOpen?: boolean;
-    oracle?: string;
-    oracleIds?: [OracleType, OracleType];
-    factor: number;
-    supplyLimit: number;
-    closeFee: number;
-    openFee: number;
-    redstoneId: string;
-};
-export type TestKreskoAssetUpdate = {
-    name: string;
-    oracle?: string;
-    oracleIds?: [OracleType, OracleType];
-    factor: number;
-    supplyLimit: number;
-    closeFee: number;
-    openFee: number;
-    price?: number;
-    redstoneId: string;
 };
 
 export const TEN_USD = 10;
@@ -66,45 +20,52 @@ export const defaultDecimals = 18;
 export const defaultDepositAmount = toBig(10, defaultDecimals);
 export const defaultMintAmount = toBig(100, defaultDecimals);
 
-export const defaultSupplyLimit = 1000000000;
-export const defaultCloseFee = 0.02; // 2%
+export const defaultSupplyLimit = MaxUint128;
+export const defaultCloseFee = 0.02e4; // 2%
 export const defaultOpenFee = 0; // 0%
-export const BASIS_POINT = oneRay.div(10000);
-export const ONE_PERCENT = oneRay.div(100);
-export const defaultKrAssetArgs = {
-    name: "MockKreskoAsset",
-    symbol: "MockKreskoAsset",
-    redstoneId: "MockKreskoAsset",
-    anchorTokenPrefix: anchorTokenPrefix + "MockKreskoAsset",
-    price: TEN_USD,
-    oracleIds: [OracleType.Redstone, OracleType.Chainlink] as [OracleType, OracleType],
+
+export const testKrAssetConfig: AssetArgs = {
+    id: "KrAsset",
+    name: "KrAsset",
+    symbol: "KrAsset",
     marketOpen: true,
-    factor: 1,
-    supplyLimit: defaultSupplyLimit,
-    closeFee: defaultCloseFee,
-    openFee: defaultOpenFee,
+    price: TEN_USD,
+    krAssetConfig: {
+        anchorSymbol: "aKrAsset",
+        closeFee: defaultCloseFee,
+        openFee: defaultOpenFee,
+        kFactor: 1e4,
+        supplyLimit: defaultSupplyLimit,
+        anchor: null,
+    },
+    oracleIds: [OracleType.Redstone, OracleType.Chainlink] as [OracleType, OracleType],
 };
 
-export const defaultCollateralArgs: TestCollateralAssetArgs = {
-    name: "MockCollateral",
-    symbol: "MockCollateral",
-    redstoneId: "MockCollateral",
+export const testCollateralConfig: AssetArgs = {
+    id: "Collateral",
+    name: "Collateral",
+    symbol: "Collateral",
     price: TEN_USD,
-    factor: 1,
+    marketOpen: true,
+    collateralConfig: {
+        cFactor: 1e4,
+        liqIncentive: 1.1e4,
+    },
     decimals: defaultDecimals,
     oracleIds: [OracleType.Redstone, OracleType.Chainlink] as [OracleType, OracleType],
 };
-
-export const getNewMinterParams = (feeRecipient: string) => ({
-    minCollateralRatio: toBig(1.4),
+export const testCommonParams = (feeRecipient: string) => ({
     minDebtValue: toBig(20, 8),
-    liquidationThreshold: toBig(1.3),
     feeRecipient: feeRecipient,
-    MLR: toBig(1.32),
-    oracleDeviationPct: toBig(0.2),
+    oracleDeviationPct: 0.02e4,
     phase: 3,
     kreskian: hre.ethers.constants.AddressZero,
     questForKresk: hre.ethers.constants.AddressZero,
+});
+export const testMinterParams = (feeRecipient: string) => ({
+    minCollateralRatio: toBig(1.4),
+    liquidationThreshold: toBig(1.3),
+    MLR: toBig(1.32),
 });
 
 export default {
@@ -113,11 +74,12 @@ export default {
     openFee: defaultOpenFee,
     mintAmount: defaultMintAmount,
     depositAmount: defaultDepositAmount,
-    collateralArgs: defaultCollateralArgs,
-    krAssetArgs: defaultKrAssetArgs,
+    testCollateralConfig,
+    testKrAssetConfig,
     oracle: {
         price: TEN_USD,
         decimals: defaultOracleDecimals,
     },
-    getNewMinterParams,
+    testCommonParams,
+    testMinterParams,
 };

@@ -23,7 +23,7 @@ contract CommonStateFacet is ICommonStateFacet {
 
     /// @inheritdoc ICommonStateFacet
     function getExtOracleDecimals() external view returns (uint8) {
-        return cs().extOracleDecimals;
+        return cs().oracleDecimals;
     }
 
     /// @inheritdoc ICommonStateFacet

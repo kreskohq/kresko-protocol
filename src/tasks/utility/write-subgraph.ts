@@ -29,28 +29,20 @@ const subgraphExports: SubgraphExport[] = [
         outputName: "Kresko",
     },
     {
-        deployment: "krCUBE",
-    },
-    "KrStaking",
-    "KrStakingHelper",
-    {
-        artifact: "MockAggregatorV3",
-        includedABI: ["NewTransmission"],
-    },
-    {
         artifact: "KreskoAsset",
+        excludedABI: commonABIs,
+    },
+    {
+        artifact: "KISS",
+        excludedABI: commonABIs,
+    },
+    {
+        artifact: "Vault",
         excludedABI: commonABIs,
     },
     {
         artifact: "ERC20Upgradeable",
         outputName: "ERC20",
-    },
-    "UniswapV2Factory",
-    "UniswapV2Router02",
-    "UniswapV2Oracle",
-    {
-        artifact: "UniswapV2Pair",
-        excludedABI: commonABIs,
     },
 ];
 

@@ -1,4 +1,5 @@
 import type { FakeContract } from "@defi-wonderland/smock";
+
 import { Fragment, FunctionFragment, JsonFragment } from "@ethersproject/abi";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { checkAddress } from "@scripts/check-address";
@@ -7,7 +8,6 @@ import { hardhatUsers } from "hardhat-configs/users";
 import { ABI, DeployOptions, Deployment, Facet } from "hardhat-deploy/dist/types";
 import "hardhat/types/config";
 import "mocha";
-import type { UniswapV2Factory, UniswapV2Pair, UniswapV2Router02 } from "types/typechain";
 import * as Contracts from "./typechain";
 /* ========================================================================== */
 /*                             TEST AUGMENTATIONS                             */
@@ -50,10 +50,10 @@ declare module "mocha" {
         Multisig: GnosisSafeL2;
         Diamond: TC["Kresko"];
         DiamondDeployment: Deployment;
-        collaterals: TestCollateral[];
-        collateral: TestCollateral;
-        krAsset: TestKrAsset;
-        krAssets: TestKrAsset[];
+        krAssets: TestAsset<KreskoAsset, "mock">[];
+        collateral: TestAsset<ERC20Upgradeable>;
+        krAsset: TestAsset<KreskoAsset>;
+        collaterals: TestAsset<ERC20Upgradeable>[];
         /* -------------------------------------------------------------------------- */
         /*                              Misc / Deprecated                             */
         /* -------------------------------------------------------------------------- */
@@ -105,6 +105,7 @@ declare module "hardhat/types/runtime" {
         checkAddress: typeof checkAddress;
         getDeploymentOrFork: (deploymentName: string) => Promise<Deployment | null>;
         getContractOrFork: <T extends keyof TC>(type: T, deploymentName?: string) => Promise<TC[T]>;
+        getContractOrNull: <T extends keyof TC>(type: T, deploymentName?: string) => Promise<TC[T] | null>;
         forking: {
             provider: providers.JsonRpcProvider;
             deploy: <T extends keyof TC>(
@@ -131,25 +132,65 @@ declare module "hardhat/types/runtime" {
         /*                                 Deployment                                 */
         /* -------------------------------------------------------------------------- */
 
-        krAssets: TestKrAsset[];
-        collateral: TestCollateral;
-        krAsset: TestKrAsset;
-        collaterals: TestCollateral[];
+        krAssets: TestAsset<KreskoAsset, "mock">[];
+        collateral: TestAsset<ERC20Upgradeable, "mock">;
+        krAsset: TestAsset<KreskoAsset, "mock">;
+        extAssets: TestAsset<ERC20Upgradeable, "mock">[];
         facets: { name: string; address: string; functions: number }[];
 
         /* -------------------------------------------------------------------------- */
         /*                             Misc / Deprecating                             */
         /* -------------------------------------------------------------------------- */
 
-        allAssets: TestAsset[];
-        uniPairs: {
-            [name: string]: UniswapV2Pair;
-        };
+        allAssets: TestAsset<ERC20Upgradeable | KreskoAsset, any>[];
+
         DiamondDeployment: Deployment;
         Diamond: TC["Kresko"];
-        Multisig: TC["GnosisSafeL2"];
+        Multisig: any;
 
-        UniV2Factory: UniswapV2Factory;
-        UniV2Router: UniswapV2Router02;
+        UniV2Factory: any;
+        UniV2Router: any;
+    }
+}
+
+declare module "ethers" {
+    interface BigNumber {
+        ray: () => BigNumber;
+        wad: () => BigNumber;
+        HALF_RAY: () => BigNumber;
+        HALF_WAD: () => BigNumber;
+        HALF_PERCENTAGE: () => BigNumber;
+        PERCENTAGE_FACTOR: () => BigNumber;
+        wadMul: (a: BigNumberish) => BigNumber;
+        wadDiv: (a: BigNumberish) => BigNumber;
+        rayMul: (a: BigNumberish) => BigNumber;
+        rayDiv: (a: BigNumberish) => BigNumber;
+        percentMul: (a: BigNumberish) => BigNumber;
+        percentDiv: (a: BigNumberish) => BigNumber;
+        rayToWad: () => BigNumber;
+        wadToRay: () => BigNumber;
+        negated: () => BigNumber;
+        num(decimals?: number): number;
+        str(decimals?: number): string;
+    }
+}
+declare global {
+    interface Number {
+        bn: (decimals?: number) => BigNumber;
+
+        RAY: BigNumber;
+        WAD: BigNumber;
+        HALF_RAY: BigNumber;
+        HALF_WAD: BigNumber;
+        HALF_PERCENTAGE: BigNumber;
+        PERCENTAGE_FACTOR: BigNumber;
+        rayMul: (b: BigNumberish) => BigNumber;
+        rayDiv: (b: BigNumberish) => BigNumber;
+        wadMul: (B: BigNumberish) => BigNumber;
+        wadDiv: (B: BigNumberish) => BigNumber;
+        percentMul: (b: BigNumberish) => BigNumber;
+        percentDiv: (b: BigNumberish) => BigNumber;
+        wadToRay: (a: BigNumberish) => BigNumber;
+        rayToWad: (a: BigNumberish) => BigNumber;
     }
 }

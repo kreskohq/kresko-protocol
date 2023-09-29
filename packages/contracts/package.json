@@ -1,7 +1,7 @@
 {
     "name": "@kreskolabs/contracts",
     "description": "Typechain and contract deployments for front-end",
-    "version": "6.0.12",
+    "version": "6.0.14",
     "type": "module",
     "author": {
         "name": "Kresko Labs",
@@ -15,16 +15,14 @@
         "solidity",
         "typechain"
     ],
-    "main": "./dist/index.js",
+    "main": "./dist/index.cjs",
+    "module": "./dist/index.mjs",
     "types": "./dist/index.d.ts",
     "exports": {
         ".": {
-            "import": "./dist/index.js",
+            "import": "./dist/index.mjs",
+            "require": "./dist/index.cjs",
             "types": "./dist/index.d.ts"
-        },
-        "./deployments": {
-            "import": "./dist/deployments.js",
-            "types": "./dist/deployments.d.ts"
         }
     },
     "scripts": {

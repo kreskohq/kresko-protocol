@@ -61,7 +61,7 @@ abstract contract DeployHelper is RedstoneHelper {
         init.admin = admin;
         init.treasury = TREASURY;
         init.council = address(LibSafe.createSafe(admin));
-        init.extOracleDecimals = 8;
+        init.oracleDecimals = 8;
         init.minDebtValue = 10e8;
         init.oracleDeviationPct = 0.01e4;
         init.sequencerUptimeFeed = sequencerUptimeFeed;
@@ -228,7 +228,7 @@ abstract contract DeployHelper is RedstoneHelper {
         });
         bytes memory initData = abi.encodeWithSelector(
             SCDPConfigFacet.initializeSCDP.selector,
-            SCDPInitArgs({swapFeeRecipient: TREASURY, mcr: params.scdpMcr, lt: params.scdpLt})
+            SCDPInitArgs({swapFeeRecipient: TREASURY, minCollateralRatio: params.scdpMcr, liquidationThreshold: params.scdpLt})
         );
         return Initialization(configurationFacetAddress, initData);
     }
@@ -290,14 +290,14 @@ abstract contract DeployHelper is RedstoneHelper {
         Asset memory config = kresko.getAsset(asset);
         config.id = bytes12(redstoneId);
         config.factor = 1e4;
-        config.liquidationIncentive = 1.1e4;
+        config.liqIncentive = 1.1e4;
         config.isCollateral = true;
         config.oracles = oracleTypes;
 
         if (isSCDPDepositAsset) {
             config.isSCDPDepositAsset = true;
             config.isSCDPCollateral = true;
-            config.liquidationIncentiveSCDP = 1.1e4;
+            config.liqIncentiveSCDP = 1.1e4;
             config.depositLimitSCDP = type(uint128).max;
         }
         kresko.addAsset(asset, config, feeds, true);
@@ -317,7 +317,7 @@ abstract contract DeployHelper is RedstoneHelper {
         Asset memory config;
         config.id = bytes12(redstoneId);
         config.kFactor = 1.2e4;
-        config.liquidationIncentive = 1.1e4;
+        config.liqIncentive = 1.1e4;
         config.isKrAsset = true;
         config.openFee = 0.02e4;
         config.closeFee = 0.02e4;
@@ -328,7 +328,7 @@ abstract contract DeployHelper is RedstoneHelper {
         if (isCollateral) {
             config.isCollateral = true;
             config.factor = 1e4;
-            config.liquidationIncentive = 1.1e4;
+            config.liqIncentive = 1.1e4;
         }
 
         if (isSCDPKrAsset) {
@@ -337,7 +337,7 @@ abstract contract DeployHelper is RedstoneHelper {
             config.openFeeSCDP = 0.02e4;
             config.closeFeeSCDP = 0.02e4;
             config.protocolFeeSCDP = 0.25e4;
-            config.liquidationIncentiveSCDP = 1.1e4;
+            config.liqIncentiveSCDP = 1.1e4;
         }
 
         if (isSCDPDepositAsset) {
@@ -352,7 +352,7 @@ abstract contract DeployHelper is RedstoneHelper {
         Asset memory config = kresko.getAsset(asset);
         require(config.id != bytes32(0), "Asset does not exist");
 
-        config.liquidationIncentive = 1.1e4;
+        config.liqIncentive = 1.1e4;
         config.isCollateral = true;
         config.factor = 1e4;
         config.oracles = [OracleType.Redstone, OracleType.Chainlink];

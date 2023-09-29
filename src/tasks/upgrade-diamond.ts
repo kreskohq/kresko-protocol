@@ -8,14 +8,14 @@ const logger = getLogger(TASK_UPGRADE_DIAMOND);
 
 task(TASK_UPGRADE_DIAMOND, "Upgrade diamond").setAction(async function (args, hre) {
     logger.log("Upgrading diamond..");
-    const [initializer] = await hre.deploy("FacetUpgrade16052023");
+    const [initializer] = await hre.deploy("CommonConfigurationFacet");
 
     await updateFacets({
         multisig: true,
         facetNames: minterFacets,
         initializer: {
             contract: initializer,
-            func: "initialize",
+            func: "initializeCommon",
             args: [],
         },
     });

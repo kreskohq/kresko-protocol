@@ -14,6 +14,7 @@ import {SError} from "scdp/Errors.sol";
 import {scdp} from "scdp/State.sol";
 import {SEvent} from "scdp/Events.sol";
 import {getSwapFee} from "scdp/funcs/Swap.sol";
+import "hardhat/console.sol";
 
 contract SCDPSwapFacet is ISCDPSwapFacet, CModifiers {
     using SafeERC20Permit for IERC20Permit;

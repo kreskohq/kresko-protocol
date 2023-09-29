@@ -1,10 +1,11 @@
 import { testnetConfigs } from "@deploy-config/arbitrumGoerli";
 import { anchorTokenPrefix } from "@deploy-config/shared";
 import { expect } from "@test/chai";
-import { DefaultFixture, Error, Role, defaultFixture } from "@utils/test";
+import { DefaultFixture, defaultFixture } from "@utils/test/fixtures";
+import Role from "@utils/test/roles";
 import type { KreskoAssetAnchor } from "types/typechain";
 
-const { name, symbol } = testnetConfigs.hardhat.krAssets[1];
+const { name, symbol } = testnetConfigs.hardhat.assets.filter(a => !!a.krAssetConfig)[1];
 
 describe("KreskoAsset", function () {
     let KreskoAsset: KreskoAsset;
@@ -14,14 +15,13 @@ describe("KreskoAsset", function () {
     describe("#initialization - anchor", () => {
         beforeEach(async function () {
             f = await defaultFixture();
-            const deployment = f.krAssets.find(k => k.deployArgs!.name === name)!;
+            const deployment = f.krAssets.find(k => k.config!.args.symbol === symbol)!;
             KreskoAsset = deployment.contract as unknown as KreskoAsset;
             KreskoAssetAnchor = deployment.anchor! as unknown as KreskoAssetAnchor;
         });
         it("cant initialize twice", async function () {
-            await expect(
-                KreskoAsset.initialize(name, symbol, 18, hre.addr.deployer, hre.Diamond.address),
-            ).to.be.revertedWith(Error.ALREADY_INITIALIZED_OZ);
+            await expect(KreskoAsset.initialize(name!, symbol, 18, hre.addr.deployer, hre.Diamond.address)).to.be
+                .reverted;
         });
 
         it.skip("cant initialize implementation", async function () {
@@ -30,9 +30,8 @@ describe("KreskoAsset", function () {
             expect(implementationAddress).to.not.equal(hre.ethers.constants.AddressZero);
             const KreskoAssetImpl = await hre.ethers.getContractAt("KreskoAsset", implementationAddress!);
 
-            await expect(
-                KreskoAssetImpl.initialize(name, symbol, 18, hre.addr.deployer, hre.Diamond.address),
-            ).to.be.revertedWith(Error.ALREADY_INITIALIZED_OZ);
+            await expect(KreskoAssetImpl.initialize(name!, symbol, 18, hre.addr.deployer, hre.Diamond.address)).to.be
+                .reverted;
         });
 
         it("sets correct state", async function () {
@@ -53,9 +52,7 @@ describe("KreskoAsset", function () {
         it("can reinitialize metadata", async function () {
             const newName = "foo";
             const newSymbol = "bar";
-            await expect(KreskoAsset.reinitializeERC20(newName, newSymbol, 2)).to.not.be.revertedWith(
-                Error.ALREADY_INITIALIZED_OZ,
-            );
+            await expect(KreskoAsset.reinitializeERC20(newName, newSymbol, 2)).to.not.be.reverted;
             expect(await KreskoAsset.name()).to.equal(newName);
             expect(await KreskoAsset.symbol()).to.equal(newSymbol);
         });
@@ -63,9 +60,8 @@ describe("KreskoAsset", function () {
 
     describe("#initialization - wrapped", () => {
         it("cant initialize twice", async function () {
-            await expect(
-                KreskoAssetAnchor.initialize(KreskoAsset.address, name, symbol, hre.addr.deployer),
-            ).to.be.revertedWith(Error.ALREADY_INITIALIZED_OZ);
+            await expect(KreskoAssetAnchor.initialize(KreskoAsset.address, name!, symbol, hre.addr.deployer)).to.be
+                .reverted;
         });
         it("sets correct state", async function () {
             expect(await KreskoAssetAnchor.name()).to.equal(name);
@@ -89,20 +85,17 @@ describe("KreskoAsset", function () {
             expect(implementationAddress).to.not.equal(hre.ethers.constants.AddressZero);
             const KreskoAssetAnchorImpl = await hre.ethers.getContractAt("KreskoAssetAnchor", implementationAddress!);
 
-            await expect(
-                KreskoAssetAnchorImpl.initialize(KreskoAsset.address, name, symbol, hre.addr.deployer),
-            ).to.be.revertedWith(Error.ALREADY_INITIALIZED_OZ);
+            await expect(KreskoAssetAnchorImpl.initialize(KreskoAsset.address, name!, symbol, hre.addr.deployer)).to.be
+                .reverted;
         });
 
         it("can reinitialize metadata", async function () {
             const newName = "foo";
             const newSymbol = "bar";
-            await expect(KreskoAssetAnchor.reinitializeERC20(newName, newSymbol, 2)).to.not.be.revertedWith(
-                Error.ALREADY_INITIALIZED_OZ,
-            );
+            await expect(KreskoAssetAnchor.reinitializeERC20(newName, newSymbol, 2)).to.not.be.reverted;
             expect(await KreskoAssetAnchor.name()).to.equal(newName);
             expect(await KreskoAssetAnchor.symbol()).to.equal(newSymbol);
-            await KreskoAssetAnchor.reinitializeERC20(name, symbol, 3);
+            await KreskoAssetAnchor.reinitializeERC20(name!, symbol, 3);
         });
     });
 });

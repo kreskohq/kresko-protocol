@@ -1,4 +1,4 @@
-import { defaultRedstoneDataPoints } from "@deploy-config/shared";
+import { assets } from "@deploy-config/arbitrumGoerli";
 import { WrapperBuilder } from "@redstone-finance/evm-connector";
 import { Kresko } from "types/typechain";
 
@@ -19,3 +19,25 @@ export const wrapPrices = (contract: Kresko, prices: DataPoints, signer?: any) =
         timestampMilliseconds: Date.now(),
         dataPoints: prices,
     }) as Kresko;
+
+export type TestAssetIds = TestTokenSymbols;
+
+export const defaultRedstoneDataPoints: TestDataPackage[] = [
+    { dataFeedId: "DAI", value: 0 },
+    { dataFeedId: "USDC", value: 0 },
+    { dataFeedId: "ETH", value: 0 },
+    { dataFeedId: "BTC", value: 0 },
+    { dataFeedId: "KISS", value: 0 },
+    { dataFeedId: "TSLA", value: 0 },
+    { dataFeedId: "Coll8Dec", value: 0 },
+    { dataFeedId: "Collateral", value: 0 },
+    { dataFeedId: "Collateral2", value: 0 },
+    { dataFeedId: "Collateral3", value: 0 },
+    { dataFeedId: "Collateral4", value: 0 },
+    { dataFeedId: "KrAsset", value: 0 },
+    { dataFeedId: "KrAsset2", value: 0 },
+    { dataFeedId: "KrAsset3", value: 0 },
+    { dataFeedId: "KrAsset4", value: 0 },
+];
+export type TestDataPackage = { dataFeedId: AllAssetIds; value: number };
+export type AllAssetIds = TestAssetIds | "ETH" | (typeof assets)[keyof typeof assets]["id"];

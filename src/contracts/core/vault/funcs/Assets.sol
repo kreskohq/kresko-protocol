@@ -88,14 +88,14 @@ library VAssets {
 
     /// @notice get oracle decimal precision USD value for `amount`.
     /// @param amount amount of tokens to get USD value for.
-    function usdWad(VaultAsset memory self, uint256 amount, uint8 extOracleDecimals) internal view returns (uint256) {
-        return (amount * (10 ** (18 - extOracleDecimals)) * self.price()) / 10 ** self.token.decimals();
+    function usdWad(VaultAsset memory self, uint256 amount, uint8 oracleDecimals) internal view returns (uint256) {
+        return (amount * (10 ** (18 - oracleDecimals)) * self.price()) / 10 ** self.token.decimals();
     }
 
     /// @notice get oracle decimal precision USD value for `amount`.
     /// @param amount amount of tokens to get USD value for.
-    function usdRay(VaultAsset memory self, uint256 amount, uint8 extOracleDecimals) internal view returns (uint256) {
-        return (amount * (10 ** (27 - extOracleDecimals)) * self.price()) / 10 ** self.token.decimals();
+    function usdRay(VaultAsset memory self, uint256 amount, uint8 oracleDecimals) internal view returns (uint256) {
+        return (amount * (10 ** (27 - oracleDecimals)) * self.price()) / 10 ** self.token.decimals();
     }
 
     /// @notice get oracle decimal precision USD value for `amount`.

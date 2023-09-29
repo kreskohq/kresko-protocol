@@ -5,6 +5,7 @@ import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {IERC165} from "vendor/IERC165.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {Arrays} from "libs/Arrays.sol";
+import {Strings} from "libs/Strings.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
 import {DSModifiers} from "diamond/Modifiers.sol";
@@ -16,7 +17,7 @@ import {MEvent} from "minter/Events.sol";
 import {IAssetConfigurationFacet} from "common/interfaces/IAssetConfigurationFacet.sol";
 import {AssetStateFacet} from "common/facets/AssetStateFacet.sol";
 import {CModifiers} from "common/Modifiers.sol";
-import {Percents} from "common/Constants.sol";
+import {Percents, EMPTY_BYTES12} from "common/Constants.sol";
 import {Asset, Role, Oracle, OracleType, FeedConfiguration} from "common/Types.sol";
 import {CError} from "common/Errors.sol";
 import {cs} from "common/State.sol";
@@ -25,29 +26,32 @@ import {cs} from "common/State.sol";
 contract AssetConfigurationFacet is IAssetConfigurationFacet, CModifiers, DSModifiers {
     using WadRay for uint256;
     using Arrays for address[];
+    using Strings for bytes12;
+    using Strings for bytes32;
 
     /// @inheritdoc IAssetConfigurationFacet
     function addAsset(
-        address _asset,
+        address _assetAddr,
         Asset memory _config,
-        FeedConfiguration memory _feeds,
-        bool setFeeds
+        FeedConfiguration memory _feedConfig,
+        bool _setFeeds
     ) external onlyRole(Role.ADMIN) {
-        if (_asset == address(0)) {
+        if (_assetAddr == address(0)) {
             revert CError.ZERO_ADDRESS();
-        } else if (cs().assets[_asset].id != bytes12("")) {
-            revert CError.ASSET_ALREADY_EXISTS(_asset);
+        } else if (cs().assets[_assetAddr].id != EMPTY_BYTES12) {
+            revert CError.ASSET_ALREADY_EXISTS(_assetAddr);
         }
-
-        _config.decimals = IERC20Permit(_asset).decimals();
+        _config.decimals = IERC20Permit(_assetAddr).decimals();
+        string memory assetIdStr = _config.id.toString();
         if (_config.isCollateral) {
-            _validateMinterCollateral(_config);
-            emit MEvent.CollateralAssetAdded(_asset, _config.factor, _config.anchor, _config.liquidationIncentive);
+            _validateMinterCollateral(_assetAddr, _config);
+            emit MEvent.CollateralAssetAdded(assetIdStr, _assetAddr, _config.factor, _config.anchor, _config.liqIncentive);
         }
         if (_config.isKrAsset) {
-            _validateMinterKrAsset(_asset, _config);
+            _validateMinterKrAsset(_assetAddr, _config);
             emit MEvent.KreskoAssetAdded(
-                _asset,
+                assetIdStr,
+                _assetAddr,
                 _config.anchor,
                 _config.kFactor,
                 _config.supplyLimit,
@@ -56,57 +60,59 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, CModifiers, DSModi
             );
         }
         if (_config.isSCDPDepositAsset) {
-            _validateSCDPDepositAsset(_config);
+            _validateSCDPDepositAsset(_assetAddr, _config);
             _config.liquidityIndexSCDP = uint128(WadRay.RAY);
         }
         if (_config.isSCDPKrAsset) {
-            _validateSCDPKrAsset(_config);
-            scdp().krAssets.push(_asset);
+            _validateSCDPKrAsset(_assetAddr, _config);
+            scdp().krAssets.push(_assetAddr);
         }
         if (_config.isSCDPKrAsset || _config.isSCDPDepositAsset) {
-            scdp().isEnabled[_asset] = true;
-            scdp().collaterals.push(_asset);
+            scdp().isEnabled[_assetAddr] = true;
+            scdp().collaterals.push(_assetAddr);
         }
-        if (setFeeds) {
-            updateFeeds(_config.id, _feeds);
+        if (_setFeeds) {
+            updateFeeds(_config.id, _feedConfig);
         }
 
         /* ---------------------------------- Save ---------------------------------- */
-        cs().assets[_asset] = _config;
-        if (cs().assets[_asset].pushedPrice().price == 0) {
-            revert CError.NO_PUSH_PRICE(string(abi.encodePacked(_config.id)));
+        cs().assets[_assetAddr] = _config;
+        if (cs().assets[_assetAddr].pushedPrice().price == 0) {
+            revert CError.NO_PUSH_PRICE(assetIdStr);
         }
     }
 
     /// @inheritdoc IAssetConfigurationFacet
-    function updateAsset(address _asset, Asset memory _config) external onlyRole(Role.ADMIN) {
-        if (_asset == address(0)) {
+    function updateAsset(address _assetAddr, Asset memory _config) external onlyRole(Role.ADMIN) {
+        if (_assetAddr == address(0)) {
             revert CError.ZERO_ADDRESS();
-        } else if (cs().assets[_asset].id == bytes12("")) {
-            revert CError.ASSET_DOES_NOT_EXIST(_asset);
-        } else if (_config.id == bytes12("")) {
-            revert CError.INVALID_ASSET_ID();
+        } else if (cs().assets[_assetAddr].id == EMPTY_BYTES12) {
+            revert CError.ASSET_DOES_NOT_EXIST(_assetAddr);
+        } else if (_config.id == EMPTY_BYTES12) {
+            revert CError.INVALID_ASSET_ID(_assetAddr);
         }
 
-        Asset memory asset = cs().assets[_asset];
+        Asset storage asset = cs().assets[_assetAddr];
+        string memory assetIdStr = _config.id.toString();
         asset.id = _config.id;
         asset.oracles = _config.oracles;
 
         if (_config.isCollateral) {
-            _validateMinterCollateral(_config);
+            _validateMinterCollateral(_assetAddr, _config);
             asset.factor = _config.factor;
-            asset.liquidationIncentive = _config.liquidationIncentive;
-            emit MEvent.CollateralAssetUpdated(_asset, _config.factor, _config.anchor, _config.liquidationIncentive);
+            asset.liqIncentive = _config.liqIncentive;
+            emit MEvent.CollateralAssetUpdated(assetIdStr, _assetAddr, _config.factor, _config.anchor, _config.liqIncentive);
         }
         if (_config.isKrAsset) {
-            _validateMinterKrAsset(_asset, _config);
+            _validateMinterKrAsset(_assetAddr, _config);
             asset.kFactor = _config.kFactor;
             asset.supplyLimit = _config.supplyLimit;
             asset.closeFee = _config.closeFee;
             asset.openFee = _config.openFee;
             asset.anchor = _config.anchor;
             emit MEvent.KreskoAssetUpdated(
-                _asset,
+                assetIdStr,
+                _assetAddr,
                 _config.anchor,
                 _config.kFactor,
                 _config.supplyLimit,
@@ -116,40 +122,47 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, CModifiers, DSModi
         }
 
         if (_config.isSCDPDepositAsset) {
-            _validateSCDPDepositAsset(_config);
+            _validateSCDPDepositAsset(_assetAddr, _config);
             if (asset.liquidityIndexSCDP == 0) {
-                _config.liquidityIndexSCDP = uint128(WadRay.RAY);
+                asset.liquidityIndexSCDP = uint128(WadRay.RAY);
             }
             asset.depositLimitSCDP = _config.depositLimitSCDP;
         }
 
         if (_config.isSCDPKrAsset) {
-            _validateSCDPKrAsset(_config);
+            _validateSCDPKrAsset(_assetAddr, _config);
             asset.openFeeSCDP = _config.openFeeSCDP;
             asset.closeFeeSCDP = _config.closeFeeSCDP;
             asset.protocolFeeSCDP = _config.protocolFeeSCDP;
-            asset.liquidationIncentiveSCDP = _config.liquidationIncentiveSCDP;
+            asset.liqIncentiveSCDP = _config.liqIncentiveSCDP;
             bool shouldAddToKrAssets = true;
             for (uint256 i; i < scdp().krAssets.length; i++) {
-                if (scdp().krAssets[i] == _asset) {
+                if (scdp().krAssets[i] == _assetAddr) {
                     shouldAddToKrAssets = false;
                 }
             }
             if (shouldAddToKrAssets) {
-                scdp().krAssets.push(_asset);
+                scdp().krAssets.push(_assetAddr);
             }
         }
 
-        if (asset.isCollateral && !_config.isCollateral) {}
         if (asset.isKrAsset && !_config.isKrAsset) {
             asset.supplyLimit = 0;
-            emit MEvent.KreskoAssetUpdated(_asset, _config.anchor, _config.kFactor, 0, _config.closeFee, _config.openFee);
+            emit MEvent.KreskoAssetUpdated(
+                assetIdStr,
+                _assetAddr,
+                _config.anchor,
+                _config.kFactor,
+                0,
+                _config.closeFee,
+                _config.openFee
+            );
         }
         if (asset.isSCDPKrAsset && !_config.isSCDPKrAsset) {
-            scdp().isEnabled[_asset] = false;
+            scdp().isEnabled[_assetAddr] = false;
             for (uint256 i; i < scdp().krAssets.length; i++) {
-                if (scdp().krAssets[i] == _asset) {
-                    scdp().krAssets.removeAddress(_asset, i);
+                if (scdp().krAssets[i] == _assetAddr) {
+                    scdp().krAssets.removeAddress(_assetAddr, i);
                 }
             }
         }
@@ -158,7 +171,7 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, CModifiers, DSModi
             asset.depositLimitSCDP = 0;
         }
         if (asset.isSCDPCollateral && !_config.isSCDPCollateral) {
-            scdp().isEnabled[_asset] = false;
+            scdp().isEnabled[_assetAddr] = false;
         }
 
         asset.isCollateral = _config.isCollateral;
@@ -166,167 +179,167 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, CModifiers, DSModi
         asset.isSCDPDepositAsset = _config.isSCDPDepositAsset;
         asset.isSCDPKrAsset = _config.isSCDPKrAsset;
 
-        if (cs().assets[_asset].pushedPrice().price == 0) {
-            revert CError.NO_PUSH_PRICE(string(abi.encodePacked(_config.id)));
+        if (cs().assets[_assetAddr].pushedPrice().price == 0) {
+            revert CError.NO_PUSH_PRICE(assetIdStr);
         }
 
         if (asset.isSCDPDepositAsset || asset.isSCDPKrAsset) {
             bool shouldAddToCollaterals = true;
             for (uint256 i; i < scdp().collaterals.length; i++) {
-                if (scdp().collaterals[i] == _asset) {
+                if (scdp().collaterals[i] == _assetAddr) {
                     shouldAddToCollaterals = false;
                 }
             }
             if (shouldAddToCollaterals) {
-                scdp().collaterals.push(_asset);
+                scdp().collaterals.push(_assetAddr);
             }
         }
     }
 
     /// @inheritdoc IAssetConfigurationFacet
-    function updateFeeds(bytes32 _assetId, FeedConfiguration memory _config) public onlyRole(Role.ADMIN) {
-        if (_config.oracleIds.length != _config.feeds.length) {
-            revert CError.ARRAY_LENGTH_MISMATCH(_config.oracleIds.length, _config.feeds.length);
+    function updateFeeds(bytes12 _assetId, FeedConfiguration memory _feedConfig) public onlyRole(Role.ADMIN) {
+        if (_feedConfig.oracleIds.length != _feedConfig.feeds.length) {
+            revert CError.ARRAY_LENGTH_MISMATCH(_assetId.toString(), _feedConfig.oracleIds.length, _feedConfig.feeds.length);
         }
-        for (uint256 i; i < _config.oracleIds.length; i++) {
-            if (_config.oracleIds[i] == OracleType.Chainlink) {
-                setChainLinkFeed(_assetId, _config.feeds[i]);
-            } else if (_config.oracleIds[i] == OracleType.API3) {
-                setApi3Feed(_assetId, _config.feeds[i]);
+        for (uint256 i; i < _feedConfig.oracleIds.length; i++) {
+            if (_feedConfig.oracleIds[i] == OracleType.Chainlink) {
+                setChainLinkFeed(_assetId, _feedConfig.feeds[i]);
+            } else if (_feedConfig.oracleIds[i] == OracleType.API3) {
+                setApi3Feed(_assetId, _feedConfig.feeds[i]);
             }
         }
     }
 
     /// @inheritdoc IAssetConfigurationFacet
-    function setChainlinkFeeds(bytes32[] calldata _assets, address[] calldata _feeds) public onlyRole(Role.ADMIN) {
-        if (_assets.length != _feeds.length) {
-            revert CError.ARRAY_LENGTH_MISMATCH(_assets.length, _feeds.length);
+    function setChainlinkFeeds(bytes12[] calldata _assetIds, address[] calldata _feeds) public onlyRole(Role.ADMIN) {
+        if (_assetIds.length != _feeds.length) {
+            revert CError.ARRAY_LENGTH_MISMATCH("", _assetIds.length, _feeds.length);
         }
-        for (uint256 i; i < _assets.length; i++) {
-            setChainLinkFeed(_assets[i], _feeds[i]);
-        }
-    }
-
-    /// @inheritdoc IAssetConfigurationFacet
-    function setApi3Feeds(bytes32[] calldata _assets, address[] calldata _feeds) public onlyRole(Role.ADMIN) {
-        if (_assets.length != _feeds.length) {
-            revert CError.ARRAY_LENGTH_MISMATCH(_assets.length, _feeds.length);
-        }
-        for (uint256 i; i < _assets.length; i++) {
-            setApi3Feed(_assets[i], _feeds[i]);
+        for (uint256 i; i < _assetIds.length; i++) {
+            setChainLinkFeed(_assetIds[i], _feeds[i]);
         }
     }
 
     /// @inheritdoc IAssetConfigurationFacet
-    function setChainLinkFeed(bytes32 _asset, address _feed) public onlyRole(Role.ADMIN) {
-        if (_feed == address(0)) {
-            revert CError.ORACLE_ZERO_ADDRESS();
+    function setApi3Feeds(bytes12[] calldata _assetIds, address[] calldata _feeds) public onlyRole(Role.ADMIN) {
+        if (_assetIds.length != _feeds.length) {
+            revert CError.ARRAY_LENGTH_MISMATCH("", _assetIds.length, _feeds.length);
         }
-        cs().oracles[_asset][OracleType.Chainlink] = Oracle(_feed, AssetStateFacet(address(this)).getChainlinkPrice);
-        if (AssetStateFacet(address(this)).getChainlinkPrice(_feed) == 0) {
-            revert CError.INVALID_CL_PRICE();
+        for (uint256 i; i < _assetIds.length; i++) {
+            setApi3Feed(_assetIds[i], _feeds[i]);
         }
     }
 
     /// @inheritdoc IAssetConfigurationFacet
-    function setApi3Feed(bytes32 _asset, address _feed) public onlyRole(Role.ADMIN) {
-        if (_feed == address(0)) {
+    function setChainLinkFeed(bytes12 _assetId, address _feedAddr) public onlyRole(Role.ADMIN) {
+        if (_feedAddr == address(0)) {
+            revert CError.ORACLE_ZERO_ADDRESS(_assetId.toString());
+        }
+        cs().oracles[_assetId][OracleType.Chainlink] = Oracle(_feedAddr, AssetStateFacet(address(this)).getChainlinkPrice);
+        if (AssetStateFacet(address(this)).getChainlinkPrice(_feedAddr) == 0) {
+            revert CError.INVALID_CL_PRICE(_assetId.toString());
+        }
+    }
+
+    /// @inheritdoc IAssetConfigurationFacet
+    function setApi3Feed(bytes12 _assetId, address _feedAddr) public onlyRole(Role.ADMIN) {
+        if (_feedAddr == address(0)) {
             revert CError.ZERO_ADDRESS();
         }
-        cs().oracles[_asset][OracleType.API3] = Oracle(_feed, AssetStateFacet(address(this)).getAPI3Price);
+        cs().oracles[_assetId][OracleType.API3] = Oracle(_feedAddr, AssetStateFacet(address(this)).getAPI3Price);
 
-        if (AssetStateFacet(address(this)).getAPI3Price(_feed) == 0) {
-            revert CError.INVALID_API3_PRICE();
+        if (AssetStateFacet(address(this)).getAPI3Price(_feedAddr) == 0) {
+            revert CError.INVALID_API3_PRICE(_assetId.toString());
         }
     }
 
     /// @inheritdoc IAssetConfigurationFacet
-    function updateOracleOrder(address _asset, OracleType[2] memory _newOrder) external onlyRole(Role.ADMIN) {
-        if (cs().assets[_asset].id == bytes12("")) {
-            revert CError.ASSET_DOES_NOT_EXIST(_asset);
+    function updateOracleOrder(address _assetAddr, OracleType[2] memory _newOracleOrder) external onlyRole(Role.ADMIN) {
+        if (cs().assets[_assetAddr].id == EMPTY_BYTES12) {
+            revert CError.ASSET_DOES_NOT_EXIST(_assetAddr);
         }
 
-        cs().assets[_asset].oracles = _newOrder;
+        cs().assets[_assetAddr].oracles = _newOracleOrder;
 
-        if (cs().assets[_asset].pushedPrice().price == 0) {
-            revert CError.NO_PUSH_PRICE(string(abi.encodePacked(cs().assets[_asset].id)));
+        if (cs().assets[_assetAddr].pushedPrice().price == 0) {
+            revert CError.NO_PUSH_PRICE(cs().assets[_assetAddr].id.toString());
         }
     }
 
     /// @inheritdoc IAssetConfigurationFacet
-    function validateAssetConfig(address _asset, Asset memory _config) external view {
+    function validateAssetConfig(address _assetAddr, Asset memory _config) external view {
         if (_config.isCollateral) {
-            _validateMinterCollateral(_config);
+            _validateMinterCollateral(_assetAddr, _config);
         }
         if (_config.isKrAsset) {
-            _validateMinterKrAsset(_asset, _config);
+            _validateMinterKrAsset(_assetAddr, _config);
         }
         if (_config.isSCDPDepositAsset) {
-            _validateSCDPDepositAsset(_config);
+            _validateSCDPDepositAsset(_assetAddr, _config);
         }
         if (_config.isSCDPKrAsset) {
-            _validateSCDPKrAsset(_config);
+            _validateSCDPKrAsset(_assetAddr, _config);
         }
 
         if (_config.pushedPrice().price == 0) {
-            revert CError.NO_PUSH_PRICE(string(abi.encodePacked(_config.id)));
+            revert CError.NO_PUSH_PRICE(_config.id.toString());
         }
     }
 
-    function _validateMinterCollateral(Asset memory _config) internal pure {
-        if (_config.factor > Percents.ONE_HUNDRED_PERCENT) {
-            revert CError.INVALID_FACTOR(_config.factor);
-        } else if (_config.liquidationIncentive > Percents.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER) {
-            revert CError.INVALID_LIQUIDATION_INCENTIVE(_config.liquidationIncentive);
-        } else if (_config.liquidationIncentive < Percents.ONE_HUNDRED_PERCENT) {
-            revert CError.INVALID_LIQUIDATION_INCENTIVE(_config.liquidationIncentive);
+    function _validateMinterCollateral(address _assetAddr, Asset memory _config) internal pure {
+        if (_config.factor > Percents.HUNDRED) {
+            revert CError.INVALID_CFACTOR(_assetAddr, _config.factor, Percents.HUNDRED);
+        } else if (_config.liqIncentive > Percents.MAX_LIQ_INCENTIVE) {
+            revert CError.INVALID_LIQ_INCENTIVE(_assetAddr, _config.liqIncentive, Percents.MAX_LIQ_INCENTIVE);
+        } else if (_config.liqIncentive < Percents.HUNDRED) {
+            revert CError.INVALID_LIQ_INCENTIVE(_assetAddr, _config.liqIncentive, Percents.HUNDRED);
         } else if (_config.decimals == 0) {
-            revert CError.INVALID_DECIMALS(_config.decimals);
+            revert CError.INVALID_DECIMALS(_assetAddr, _config.decimals);
         }
     }
 
-    function _validateMinterKrAsset(address _asset, Asset memory _config) internal view {
-        if (_config.kFactor < Percents.ONE_HUNDRED_PERCENT) {
-            revert CError.INVALID_FACTOR(_config.kFactor);
+    function _validateMinterKrAsset(address _assetAddr, Asset memory _config) internal view {
+        if (_config.kFactor < Percents.HUNDRED) {
+            revert CError.INVALID_KFACTOR(_assetAddr, _config.kFactor, Percents.HUNDRED);
         } else if (_config.closeFee > Percents.TWENTY_FIVE) {
-            revert CError.INVALID_MINTER_FEE(_config.closeFee);
+            revert CError.INVALID_MINTER_FEE(_assetAddr, _config.closeFee, Percents.TWENTY_FIVE);
         } else if (_config.openFee > Percents.TWENTY_FIVE) {
-            revert CError.INVALID_MINTER_FEE(_config.openFee);
+            revert CError.INVALID_MINTER_FEE(_assetAddr, _config.openFee, Percents.TWENTY_FIVE);
         }
 
-        IERC165 asset = IERC165(_asset);
+        IERC165 asset = IERC165(_assetAddr);
         if (!asset.supportsInterface(type(IKISS).interfaceId) && !asset.supportsInterface(type(IKreskoAsset).interfaceId)) {
-            revert CError.INVALID_KRASSET_CONTRACT();
+            revert CError.INVALID_KRASSET_CONTRACT(_assetAddr);
         } else if (!IERC165(_config.anchor).supportsInterface(type(IKreskoAssetIssuer).interfaceId)) {
-            revert CError.INVALID_KRASSET_ANCHOR();
+            revert CError.INVALID_KRASSET_ANCHOR(_assetAddr);
         } else if (_config.supplyLimit > type(uint128).max) {
-            revert CError.SUPPLY_LIMIT(_config.supplyLimit);
-        } else if (!IKreskoAsset(_asset).hasRole(Role.OPERATOR, address(this))) {
-            revert CError.INVALID_KRASSET_OPERATOR();
+            revert CError.SUPPLY_LIMIT(_assetAddr, _config.supplyLimit, type(uint128).max);
+        } else if (!IKreskoAsset(_assetAddr).hasRole(Role.OPERATOR, address(this))) {
+            revert CError.INVALID_KRASSET_OPERATOR(_assetAddr);
         }
     }
 
-    function _validateSCDPDepositAsset(Asset memory _config) internal pure {
-        if (_config.factor > Percents.ONE_HUNDRED_PERCENT) {
-            revert CError.INVALID_FACTOR(_config.factor);
+    function _validateSCDPDepositAsset(address _assetAddr, Asset memory _config) internal pure {
+        if (_config.factor > Percents.HUNDRED) {
+            revert CError.INVALID_KFACTOR(_assetAddr, _config.factor, Percents.HUNDRED);
         } else if (_config.depositLimitSCDP > type(uint128).max) {
-            revert CError.DEPOSIT_LIMIT(_config.depositLimitSCDP);
+            revert CError.DEPOSIT_LIMIT(_assetAddr, _config.depositLimitSCDP, type(uint128).max);
         } else if (_config.decimals == 0) {
-            revert CError.INVALID_DECIMALS(_config.decimals);
+            revert CError.INVALID_DECIMALS(_assetAddr, _config.decimals);
         }
     }
 
-    function _validateSCDPKrAsset(Asset memory _config) internal pure {
+    function _validateSCDPKrAsset(address _assetAddr, Asset memory _config) internal pure {
         if (_config.closeFeeSCDP > Percents.TWENTY_FIVE) {
-            revert CError.INVALID_FEE(_config.closeFeeSCDP);
+            revert CError.INVALID_SCDP_FEE(_assetAddr, _config.closeFeeSCDP, Percents.TWENTY_FIVE);
         } else if (_config.openFeeSCDP > Percents.TWENTY_FIVE) {
-            revert CError.INVALID_FEE(_config.openFeeSCDP);
+            revert CError.INVALID_SCDP_FEE(_assetAddr, _config.openFeeSCDP, Percents.TWENTY_FIVE);
         } else if (_config.protocolFeeSCDP > Percents.FIFTY) {
-            revert CError.INVALID_FEE(_config.protocolFeeSCDP);
-        } else if (_config.liquidationIncentiveSCDP > Percents.MAX_LIQUIDATION_INCENTIVE_MULTIPLIER) {
-            revert CError.INVALID_LIQUIDATION_INCENTIVE(_config.liquidationIncentiveSCDP);
-        } else if (_config.liquidationIncentiveSCDP < Percents.MIN_LIQUIDATION_INCENTIVE_MULTIPLIER) {
-            revert CError.INVALID_LIQUIDATION_INCENTIVE(_config.liquidationIncentiveSCDP);
+            revert CError.INVALID_SCDP_FEE(_assetAddr, _config.protocolFeeSCDP, Percents.FIFTY);
+        } else if (_config.liqIncentiveSCDP > Percents.MAX_LIQ_INCENTIVE) {
+            revert CError.INVALID_LIQ_INCENTIVE(_assetAddr, _config.liqIncentiveSCDP, Percents.MAX_LIQ_INCENTIVE);
+        } else if (_config.liqIncentiveSCDP < Percents.MIN_LIQ_INCENTIVE) {
+            revert CError.INVALID_LIQ_INCENTIVE(_assetAddr, _config.liqIncentiveSCDP, Percents.MIN_LIQ_INCENTIVE);
         }
     }
 }

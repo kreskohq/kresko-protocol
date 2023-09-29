@@ -1,7 +1,8 @@
-import { fromBig, getLogger } from "@kreskolabs/lib";
+import { getLogger } from "@kreskolabs/lib";
 import { task, types } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
 import { TASK_MINT_OPTIMAL } from "./names";
+import { fromBig } from "@utils/values";
 
 const logger = getLogger(TASK_MINT_OPTIMAL);
 
@@ -33,9 +34,9 @@ task(TASK_MINT_OPTIMAL, "Mint KrAsset with optimal KISS collateral")
         const Kresko = await hre.getContractOrFork("Kresko");
 
         const KrAsset = (await hre.getContractOrFork("KreskoAsset", taskArgs.kreskoAsset)).connect(signer);
-        const KrAssetInfo = await Kresko.getKreskoAsset(KrAsset.address);
+        const KrAssetInfo = await Kresko.getAsset(KrAsset.address);
 
-        if (!KrAssetInfo.exists) {
+        if (!KrAssetInfo.isKrAsset) {
             throw new Error(`Kresko Asset with name ${taskArgs.kreskoAsset} does not exist`);
         }
         const mintAmount = hre.ethers.utils.parseUnits(String(taskArgs.amount), 18);
@@ -60,7 +61,7 @@ task(TASK_MINT_OPTIMAL, "Mint KrAsset with optimal KISS collateral")
             tx = await Kresko.mintKreskoAsset(address, KrAsset.address, mintAmount);
             await tx.wait();
         } catch (e) {
-            logger.error("Minting failed", e);
+            logger.error(false, "Minting failed", e);
         }
 
         logger.success(`Done minting ${taskArgs.amount} of ${taskArgs.kreskoAsset}`);

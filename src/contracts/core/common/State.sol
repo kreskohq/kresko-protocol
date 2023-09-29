@@ -29,7 +29,7 @@ struct CommonState {
     /// @notice The oracle deviation percentage between the main oracle and fallback oracle.
     uint16 oracleDeviationPct;
     /// @notice Offchain oracle decimals
-    uint8 extOracleDecimals;
+    uint8 oracleDecimals;
     /// @notice Flag tells if there is a need to perform safety checks on user actions
     bool safetyStateSet;
     /* -------------------------------------------------------------------------- */

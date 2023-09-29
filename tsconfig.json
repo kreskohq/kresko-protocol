@@ -8,12 +8,14 @@
         "emitDecoratorMetadata": true,
         "skipDefaultLibCheck": true,
         "module": "CommonJS",
+        "importHelpers": true,
         "allowJs": true,
         "moduleResolution": "node",
         "noImplicitAny": true,
         "target": "ES2020",
         "lib": ["ES2018", "DOM", "DOM.Iterable", "ES2019.Array", "ES2019.Object", "ESNext"],
         "resolveJsonModule": true,
+        "noEmit": true,
         "strict": true,
         "esModuleInterop": true,
         "baseUrl": "./",
@@ -29,5 +31,5 @@
             "tslib": ["node_modules/tslib/tslib.d.ts"]
         }
     },
-    "ts-node": { "files": true, "transpileOnly": true, "swc": true }
+    "ts-node": { "files": true, "transpileOnly": true, "swc": true, "esm": true}
 }

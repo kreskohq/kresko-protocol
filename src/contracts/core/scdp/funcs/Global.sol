@@ -3,6 +3,7 @@ pragma solidity >=0.8.19;
 
 import {WadRay} from "libs/WadRay.sol";
 import {Percentages} from "libs/Percentages.sol";
+import {Percents} from "common/Constants.sol";
 import {toWad} from "common/funcs/Math.sol";
 import {cs} from "common/State.sol";
 import {Asset} from "common/Types.sol";
@@ -55,7 +56,7 @@ library SGlobal {
         }
 
         // We dont need to multiply this.
-        if (_ratio != 1 ether) {
+        if (_ratio != Percents.HUNDRED) {
             value = value.percentMul(_ratio);
         }
     }

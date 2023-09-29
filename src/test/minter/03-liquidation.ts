@@ -1,7 +1,8 @@
-import { fromBig, getNamedEvent, toBig } from "@kreskolabs/lib";
-import { LiquidationFixture, liquidationsFixture } from "@test-utils";
 import { expect } from "@test/chai";
+import { getNamedEvent } from "@utils/events";
+import { fromBig, toBig } from "@utils/values";
 import { Error } from "@utils/test/errors";
+import { LiquidationFixture, liquidationsFixture } from "@utils/test/fixtures";
 import { depositMockCollateral } from "@utils/test/helpers/collaterals";
 import { getCR, getExpectedMaxLiq, getLiqAmount, liquidate } from "@utils/test/helpers/liquidations";
 import optimized from "@utils/test/helpers/optimizations";
@@ -9,7 +10,7 @@ import { BigNumber } from "ethers";
 import { Kresko, LiquidationOccurredEvent } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 
 const INTEREST_RATE_DELTA = 0.01;
-const USD_DELTA = toBig(0.1, "gwei");
+const USD_DELTA = toBig(0.1, 9);
 const CR_DELTA = 1e-4;
 
 // -------------------------------- Set up mock assets --------------------------------
@@ -34,7 +35,7 @@ describe("Minter - Liquidations", function () {
         [[user1, User], [user2], [user3], [user4], [user5], [liquidator, Liquidator], [liquidatorTwo, LiquidatorTwo]] =
             f.users;
 
-        f.reset();
+        await f.reset();
     });
 
     describe("#isAccountLiquidatable", () => {
@@ -313,9 +314,9 @@ describe("Minter - Liquidations", function () {
 
                 const event = await getNamedEvent<LiquidationOccurredEvent>(tx, "LiquidationOccurred");
 
-                const assetInfo = await f.Collateral.kresko();
+                const assetInfo = await f.Collateral.assetInfo();
                 const expectedSeizedCollateralAmount = allowedRepaymentValue
-                    .wadMul(BigNumber.from(assetInfo.liquidationIncentive))
+                    .wadMul(BigNumber.from(assetInfo.liqIncentive))
                     .wadDiv(await f.Collateral.getPrice());
 
                 expect(event.args.account).to.equal(user1.address);
@@ -329,7 +330,7 @@ describe("Minter - Liquidations", function () {
             });
 
             it("should not allow liquidations when account is under MCR but not under liquidation threshold", async function () {
-                f.Collateral.setPrice(f.Collateral.deployArgs!.price);
+                f.Collateral.setPrice(f.Collateral.config!.args.price!);
 
                 expect(await hre.Diamond.getAccountLiquidatable(user1.address)).to.be.false;
 

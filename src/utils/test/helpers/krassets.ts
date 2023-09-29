@@ -1,146 +1,75 @@
 import { smock } from "@defi-wonderland/smock";
-import { allRedstoneAssets, anchorTokenPrefix } from "@deploy-config/shared";
 import { toBig } from "@kreskolabs/lib";
 import { wrapKresko } from "@utils/redstone";
-import optimized from "./optimizations";
 import { BigNumber } from "ethers";
-import hre from "hardhat";
+import { AssetArgs } from "types";
 import { KreskoAssetAnchor__factory, KreskoAsset__factory } from "types/typechain";
-import {
-    KrAssetStruct,
-    OracleConfigurationStruct,
-} from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
-import { InputArgsSimple, TestKreskoAssetArgs, TestKreskoAssetUpdate, defaultKrAssetArgs } from "../mocks";
-import { OracleType } from "../oracles";
+import { InputArgsSimple, defaultCloseFee, defaultSupplyLimit, testKrAssetConfig } from "../mocks";
 import roles from "../roles";
-import { getCollateralConfig } from "./collaterals";
-import { wrapContractWithSigner } from "./general";
+import { getAssetConfig, wrapContractWithSigner } from "./general";
+import optimized from "./optimizations";
 import { getFakeOracle, setPrice } from "./oracle";
 import { getBalanceKrAssetFunc, setBalanceKrAssetFunc } from "./smock";
+import { getAnchorNameAndSymbol } from "@utils/strings";
 
-export const getDebtIndexAdjustedBalance = async (user: SignerWithAddress, asset: TestKrAsset) => {
+export const getDebtIndexAdjustedBalance = async (user: SignerWithAddress, asset: TestAsset<KreskoAsset, any>) => {
     const balance = await asset.contract.balanceOf(user.address);
     return [balance, balance];
 };
 
-export const getKrAssetConfig = async (
-    asset: { symbol: Function; redstoneId?: string },
-    anchor: string,
-    kFactor: BigNumber,
-    supplyLimit: BigNumber,
-    closeFee: BigNumber,
-    openFee: BigNumber,
-    oracle: string,
-    customRedstoneId?: string,
-    oracleIds: [OracleType, OracleType] = [OracleType.Redstone, OracleType.Chainlink],
-): Promise<[OracleConfigurationStruct, KrAssetStruct]> => {
-    const redstoneId = customRedstoneId
-        ? hre.ethers.utils.formatBytes32String(customRedstoneId)
-        : allRedstoneAssets[(await asset.symbol()) as keyof typeof allRedstoneAssets];
-    if (!redstoneId) {
-        throw new Error(`redstoneId not found for ${await asset.symbol()}`);
-    }
-    // await wrapContractWithSigner(hre.Diamond, hre.users.deployer).setChainlinkFeeds([redstoneId], [oracle]);
-
-    const oracleConfig: OracleConfigurationStruct = {
-        oracleIds: oracleIds,
-        feeds:
-            oracleIds[0] === OracleType.Redstone
-                ? [hre.ethers.constants.AddressZero, oracle]
-                : [oracle, hre.ethers.constants.AddressZero],
-    };
-    const assetConfig: KrAssetStruct = {
-        anchor,
-        kFactor,
-        oracles: oracleIds,
-        supplyLimit,
-        closeFee,
-        openFee,
-        exists: true,
-        id: redstoneId,
-    };
-    return [oracleConfig, assetConfig];
-};
-
-export const addMockKreskoAsset = async (
-    args: TestKreskoAssetArgs = defaultKrAssetArgs,
-    asCollateral?: boolean,
-): Promise<TestKrAsset> => {
+export const addMockKreskoAsset = async (args = testKrAssetConfig): Promise<TestAsset<KreskoAsset, "mock">> => {
     const deployer = hre.users.deployer;
-    const { name, symbol, price, marketOpen, factor, supplyLimit, closeFee, openFee } = args;
-
+    const { name, symbol, price, marketOpen } = args;
     const [krAsset, fakeFeed, anchorFactory] = await Promise.all([
         await (await smock.mock<KreskoAsset__factory>("KreskoAsset")).deploy(),
         getFakeOracle(price, marketOpen),
         smock.mock<KreskoAssetAnchor__factory>("KreskoAssetAnchor"),
     ]);
 
-    // create the underlying rebasing krAsset
-
     await krAsset.setVariable("_initialized", 0);
     krAsset.decimals.returns(18);
 
-    // Initialize the underlying krAsset
     const [akrAsset] = await Promise.all([
+        // Create the underlying rebasing krAsset
         anchorFactory.deploy(krAsset.address),
-        krAsset.initialize(name, symbol, 18, deployer.address, hre.Diamond.address),
+        // Initialize the underlying krAsset
+        krAsset.initialize(name || symbol, symbol, 18, deployer.address, hre.Diamond.address),
     ]);
 
     await akrAsset.setVariable("_initialized", 0);
-
-    const [krAssetConfig] = await Promise.all([
-        getKrAssetConfig(
-            krAsset,
-            akrAsset.address,
-            toBig(factor),
-            toBig(supplyLimit),
-            toBig(closeFee),
-            toBig(openFee),
-            fakeFeed.address,
-            args.redstoneId,
-            args.oracleIds,
-        ),
-        akrAsset.initialize(krAsset.address, name, anchorTokenPrefix + symbol, deployer.address),
+    const { anchorSymbol, anchorName } = getAnchorNameAndSymbol(symbol, name);
+    const [config] = await Promise.all([
+        getAssetConfig(krAsset, {
+            ...args,
+            feed: fakeFeed.address,
+            krAssetConfig: { ...args.krAssetConfig!, anchor: akrAsset.address },
+        }),
+        // Initialize the anchor for krAsset
+        akrAsset.initialize(krAsset.address, anchorName, anchorSymbol, deployer.address),
     ]);
 
     akrAsset.decimals.returns(18);
 
     // Add the asset to the protocol
     await Promise.all([
-        hre.Diamond.connect(deployer).addKreskoAsset(krAsset.address, ...krAssetConfig),
+        hre.Diamond.connect(deployer).addAsset(krAsset.address, config.assetStruct, config.feedConfig, true),
         krAsset.grantRole(roles.OPERATOR, akrAsset.address),
     ]);
-    if (asCollateral) {
-        const config = await getCollateralConfig(
-            krAsset,
-            akrAsset.address,
-            toBig(1),
-            toBig(1.05),
-            fakeFeed.address,
-            args.redstoneId,
-            args.oracleIds,
-        );
-        await hre.Diamond.connect(deployer).addCollateralAsset(krAsset.address, ...config);
-    }
 
-    // const [krAssetHasOperator, akrAssetHasOperator, akrAssetIsOperatorForKrAsset] = await Promise.all([
-    //     krAsset.hasRole(roles.OPERATOR, hre.Diamond.address),
-    //     akrAsset.hasRole(roles.OPERATOR, hre.Diamond.address),
-    //     krAsset.hasRole(roles.OPERATOR, akrAsset.address),
-    // ]);
-
-    const asset: TestKrAsset = {
-        krAsset: true,
+    const asset: TestAsset<KreskoAsset, "mock"> = {
+        id: args.id,
+        isKrAsset: true,
+        isCollateral: !!args.collateralConfig,
         address: krAsset.address,
-        kresko: () => hre.Diamond.getKreskoAsset(krAsset.address),
-        deployArgs: args,
+        assetInfo: () => hre.Diamond.getAsset(krAsset.address),
+        config,
         contract: krAsset,
         priceFeed: fakeFeed,
         anchor: akrAsset,
         setPrice: price => setPrice(fakeFeed, price),
         setBalance: setBalanceKrAssetFunc(krAsset, akrAsset),
         balanceOf: getBalanceKrAssetFunc(krAsset),
-        setOracleOrder: order => hre.Diamond.updateKrAssetOracleOrder(krAsset.address, order),
+        setOracleOrder: order => hre.Diamond.updateOracleOrder(krAsset.address, order),
         getPrice: async () => (await fakeFeed.latestRoundData())[1],
         update: update => updateKrAsset(krAsset.address, update),
     };
@@ -151,38 +80,26 @@ export const addMockKreskoAsset = async (
         hre.allAssets.push(asset);
     } else {
         hre.krAssets = hre.krAssets.map(c => (c.address === asset.address ? asset : c));
-        hre.allAssets = hre.allAssets.map(c => (c.address === asset.address && c.collateral ? asset : c));
+        hre.allAssets = hre.allAssets.map(c => (c.address === asset.address ? asset : c));
     }
     return asset;
 };
 
-export const updateKrAsset = async (address: string, args: TestKreskoAssetUpdate) => {
+export const updateKrAsset = async (address: string, args: AssetArgs) => {
     const { deployer } = await hre.ethers.getNamedSigners();
     const krAsset = hre.krAssets.find(c => c.address === address);
     if (!krAsset) throw new Error(`KrAsset ${address} not found`);
-    await wrapContractWithSigner(hre.Diamond, deployer).updateKreskoAsset(
-        krAsset.address,
-        ...(await getKrAssetConfig(
-            krAsset.contract,
-            krAsset.anchor.address,
-            toBig(args.factor),
-            toBig(args.supplyLimit),
-            toBig(args.closeFee),
-            toBig(args.openFee),
-            args.oracle || krAsset.priceFeed.address,
-            args.redstoneId,
-            args.oracleIds,
-        )),
-    );
 
-    krAsset.deployArgs = { ...krAsset.deployArgs, ...args };
+    krAsset.config = await getAssetConfig(krAsset.contract, args);
+    await wrapContractWithSigner(hre.Diamond, deployer).updateAsset(krAsset.address, krAsset.config.assetStruct);
+
     const found = hre.krAssets.findIndex(c => c.address === krAsset.address);
     if (found === -1) {
         hre.krAssets.push(krAsset);
         hre.allAssets.push(krAsset);
     } else {
         hre.krAssets = hre.krAssets.map(c => (c.address === krAsset.address ? krAsset : c));
-        hre.allAssets = hre.allAssets.map(c => (c.address === krAsset.address && c.collateral ? krAsset : c));
+        hre.allAssets = hre.allAssets.map(c => (c.address === krAsset.address ? krAsset : c));
     }
     return krAsset;
 };
@@ -207,4 +124,87 @@ export const burnKrAsset = async (args: InputArgsSimple) => {
         convert ? toBig(+amount) : amount,
         optimized.getAccountMintIndex(user.address, asset.address),
     );
+};
+
+export const leverageKrAsset = async (
+    user: SignerWithAddress,
+    krAsset: TestAsset<KreskoAsset, "mock">,
+    collateralToUse: TestAsset<any, "mock">,
+    amount: BigNumber,
+) => {
+    const [krAssetValueBig, mcrBig, [collateralValue], collateralToUseInfo, krAssetInfo] = await Promise.all([
+        hre.Diamond.getDebtAmountToValue(krAsset.address, amount, false),
+        optimized.getMinCollateralRatio(),
+        hre.Diamond.getCollateralAmountToValue(collateralToUse.address, toBig(1), false),
+        hre.Diamond.getAsset(collateralToUse.address),
+        hre.Diamond.getAsset(krAsset.address),
+    ]);
+
+    await krAsset.contract.setVariable("_allowances", {
+        [user.address]: {
+            [hre.Diamond.address]: hre.ethers.constants.MaxInt256,
+        },
+    });
+
+    const collateralValueRequired = krAssetValueBig.percentMul(mcrBig);
+
+    const price = collateralValue.toJS(8);
+    const collateralAmount = collateralValueRequired.wadDiv(await collateralToUse.getPrice());
+
+    await collateralToUse.setBalance(user, collateralAmount, hre.Diamond.address);
+
+    let addPromises: Promise<any>[] = [];
+    if (!collateralToUseInfo.isCollateral) {
+        const config = { ...collateralToUseInfo, isCollateral: true, factor: 1e4, liqIncentive: 1.1e4 };
+        addPromises.push(hre.Diamond.updateAsset(collateralToUse.address, config));
+    }
+    if (!krAssetInfo.isKrAsset) {
+        const config = {
+            ...krAssetInfo,
+            isKrAsset: true,
+            kFactor: 1e4,
+            supplyLimit: defaultSupplyLimit,
+            anchor: krAsset.anchor.address,
+            closeFee: defaultCloseFee,
+            openFee: 0,
+        };
+        addPromises.push(hre.Diamond.updateAsset(krAsset.address, config));
+    }
+    if (!krAssetInfo.isCollateral) {
+        const config = { ...krAssetInfo, isCollateral: true, factor: 1e4, liqIncentive: 1.1e4 };
+        addPromises.push(hre.Diamond.updateAsset(krAsset.address, config));
+    }
+    await Promise.all(addPromises);
+    const UserKresko = wrapKresko(hre.Diamond, user);
+    await UserKresko.depositCollateral(user.address, collateralToUse.address, collateralAmount);
+    await Promise.all([
+        UserKresko.mintKreskoAsset(user.address, krAsset.address, amount),
+        UserKresko.depositCollateral(user.address, krAsset.address, amount),
+    ]);
+
+    // Deposit krAsset and withdraw other collateral to bare minimum of within healthy range
+
+    const accountMinCollateralRequired = await hre.Diamond.getAccountMinCollateralAtRatio(
+        user.address,
+        optimized.getMinCollateralRatio(),
+    );
+    const accountCollateral = await wrapContractWithSigner(hre.Diamond, hre.users.deployer).getAccountCollateralValue(
+        user.address,
+    );
+
+    const withdrawAmount = accountCollateral.sub(accountMinCollateralRequired).toJS(8) / price - 0.1;
+    const amountToWithdraw = withdrawAmount.toBN(18);
+
+    if (amountToWithdraw.gt(0)) {
+        await UserKresko.withdrawCollateral(
+            user.address,
+            collateralToUse.address,
+            amountToWithdraw,
+            optimized.getAccountDepositIndex(user.address, collateralToUse.address),
+        );
+
+        // "burn" collateral not needed
+        collateralToUse.setBalance(user, BigNumber.from(0));
+        // await collateralToUse.contract.connect(user).transfer(hre.ethers.constants.AddressZero, amountToWithdraw);
+    }
 };

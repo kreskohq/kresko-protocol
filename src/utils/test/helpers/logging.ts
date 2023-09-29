@@ -3,7 +3,7 @@ import { fromBig } from "@kreskolabs/lib";
 export const logBalances = async (user: SignerWithAddress) => {
     const Kresko = await hre.getContractOrFork("Kresko");
 
-    const krAssets = await Kresko.getPoolKrAssets();
+    const krAssets = await Kresko.getKreskoAssetsSCDP();
     for (const krAsset of krAssets) {
         const contract = await hre.ethers.getContractAt("MockERC20", krAsset);
         const balance = fromBig(await contract.balanceOf(user.address));

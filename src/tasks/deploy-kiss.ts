@@ -1,10 +1,11 @@
+import { getDeploymentUsers } from "@deploy-config/shared";
 import { getLogger, toBig } from "@kreskolabs/lib";
-import { defaultKrAssetArgs } from "@utils/test/mocks";
+import { testKrAssetConfig } from "@utils/test/mocks";
 import { Role } from "@utils/test/roles";
 import { task, types } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
 import { TASK_DEPLOY_KISS } from "./names";
-import { getDeploymentUsers } from "@deploy-config/shared";
+import { MaxUint128 } from "@utils/values";
 
 const logger = getLogger(TASK_DEPLOY_KISS, true);
 
@@ -55,17 +56,17 @@ task(TASK_DEPLOY_KISS)
         const asset = {
             address: KISSContract.address,
             contract: KISSContract,
-            deployArgs: {
-                name: "KISS",
-                price: 1,
-                factor: 1,
-                supplyLimit: 1_000_000_000,
-                marketOpen: true,
-                closeFee: defaultKrAssetArgs.closeFee,
-                openFee: defaultKrAssetArgs.openFee,
+            config: {
+                args: {
+                    name: "KISS",
+                    price: 1,
+                    factor: 1e4,
+                    supplyLimit: MaxUint128,
+                    marketOpen: true,
+                    krAssetConfig: testKrAssetConfig.krAssetConfig,
+                },
             },
-            mocks: {} as any,
-            kresko: async () => await hre.Diamond.getKreskoAsset(KISSContract.address),
+            assetInfo: async () => hre.Diamond.getAsset(KISSContract.address),
             getPrice: async () => toBig(1, 8),
             priceFeed: {} as any,
         };

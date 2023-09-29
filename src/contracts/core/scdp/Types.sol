@@ -3,14 +3,14 @@ pragma solidity ^0.8.0;
 import {Asset} from "common/Types.sol";
 /**
  * @notice SCDP initializer configuration.
- * @param _swapFeeRecipient The swap fee recipient.
- * @param _mcr The minimum collateralization ratio.
- * @param _lt The liquidation threshold.
+ * @param swapFeeRecipient The swap fee recipient.
+ * @param minCollateralRatio The minimum collateralization ratio.
+ * @param liquidationThreshold The liquidation threshold.
  */
 struct SCDPInitArgs {
     address swapFeeRecipient;
-    uint32 mcr;
-    uint32 lt;
+    uint32 minCollateralRatio;
+    uint32 liquidationThreshold;
 }
 
 // Used for setting swap pairs enabled or disabled in the pool.

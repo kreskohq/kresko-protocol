@@ -36,11 +36,11 @@ library CAsset {
      * @notice Get the oracle price of an asset in uint256 with 18 decimals
      */
     function wadPrice(Asset memory self) private view returns (uint256) {
-        return oraclePriceToWad(self.price());
+        return oraclePriceToWad(self.price(), cs().oracleDecimals);
     }
 
     /**
-     * @notice Get the oracle price of an asset in uint256 with extOracleDecimals
+     * @notice Get the oracle price of an asset in uint256 with oracleDecimals
      */
     function redstonePrice(Asset memory self) internal view returns (uint256) {
         return Redstone.getPrice(self.id);

@@ -16,9 +16,7 @@ function isSequencerUp() view returns (bool) {
         }
         // Make sure the grace period has passed after the
         // sequencer is back up.
-
-        uint256 timeSinceUp = block.timestamp - startedAt;
-        if (timeSinceUp <= cs().sequencerGracePeriodTime) {
+        if (block.timestamp - startedAt <= cs().sequencerGracePeriodTime) {
             return false;
         }
     }
