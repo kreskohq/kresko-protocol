@@ -83,7 +83,18 @@ export const addMockKreskoAsset = async (
     // Initialize the underlying krAsset
     const [akrAsset] = await Promise.all([
         anchorFactory.deploy(krAsset.address),
-        krAsset.initialize(name, symbol, 18, deployer.address, hre.Diamond.address),
+        krAsset.initialize(
+            name,
+            symbol,
+            18,
+            deployer.address,
+            hre.Diamond.address,
+            hre.ethers.constants.AddressZero,
+            0,
+            deployer.address,
+            0,
+            0,
+        ),
     ]);
 
     await akrAsset.setVariable("_initialized", 0);

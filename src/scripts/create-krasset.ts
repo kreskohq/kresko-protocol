@@ -1,13 +1,35 @@
 import { Role } from "@utils/test/roles";
 import { anchorTokenPrefix, getDeploymentUsers } from "@deploy-config/shared";
 
-export async function createKrAsset(name: string, symbol: string, decimals = 18) {
+export async function createKrAsset(
+    name: string,
+    symbol: string,
+    decimals = 18,
+    token: string = hre.ethers.constants.AddressZero,
+    tokenDecimals = 0,
+    feeRecipient = hre.ethers.constants.AddressZero,
+    openFee = 0,
+    closeFee = 0,
+) {
     const { deployer } = await hre.ethers.getNamedSigners();
     const { admin } = await getDeploymentUsers(hre);
     const anchorSymbol = anchorTokenPrefix + symbol;
 
+    feeRecipient = feeRecipient == hre.ethers.constants.AddressZero ? deployer.address : feeRecipient;
+
     const Kresko = await hre.getContractOrFork("Kresko");
-    const kreskoAssetInitArgs = [name, symbol, decimals, admin, Kresko.address];
+    const kreskoAssetInitArgs = [
+        name,
+        symbol,
+        decimals,
+        admin,
+        Kresko.address,
+        token,
+        tokenDecimals,
+        feeRecipient,
+        openFee,
+        closeFee,
+    ];
 
     const [KreskoAsset] = await hre.deploy("KreskoAsset", {
         from: deployer.address,

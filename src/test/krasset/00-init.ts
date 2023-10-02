@@ -20,7 +20,18 @@ describe("KreskoAsset", function () {
         });
         it("cant initialize twice", async function () {
             await expect(
-                KreskoAsset.initialize(name, symbol, 18, hre.addr.deployer, hre.Diamond.address),
+                KreskoAsset.initialize(
+                    name,
+                    symbol,
+                    18,
+                    hre.addr.deployer,
+                    hre.Diamond.address,
+                    hre.ethers.constants.AddressZero,
+                    0,
+                    hre.addr.deployer,
+                    0,
+                    0,
+                ),
             ).to.be.revertedWith(Error.ALREADY_INITIALIZED_OZ);
         });
 

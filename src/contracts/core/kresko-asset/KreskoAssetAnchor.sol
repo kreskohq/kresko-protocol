@@ -5,6 +5,7 @@ import {AccessControlEnumerableUpgradeable} from "@openzeppelin/contracts-upgrad
 import {IERC165} from "vendor/IERC165.sol";
 
 import {Role} from "common/Types.sol";
+import {Error} from "common/Errors.sol";
 
 import {IKreskoAssetIssuer} from "./IKreskoAssetIssuer.sol";
 import {IKreskoAssetAnchor} from "./IKreskoAssetAnchor.sol";
@@ -32,12 +33,7 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
     constructor(IKreskoAsset _asset) payable ERC4626Upgradeable(_asset) {}
 
     /// @inheritdoc IKreskoAssetAnchor
-    function initialize(
-        IKreskoAsset _asset,
-        string memory _name,
-        string memory _symbol,
-        address _admin
-    ) external initializer {
+    function initialize(IKreskoAsset _asset, string memory _name, string memory _symbol, address _admin) external initializer {
         // ERC4626
         __ERC4626Upgradeable_init(_asset, _name, _symbol);
 
@@ -126,17 +122,32 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
         revert("NOT_ALLOWED");
     }
 
-    /// @notice reverting function, kept to maintain compatibility with ERC4626 standard
-    function mint(uint256, address) public pure override(ERC4626Upgradeable, IERC4626Upgradeable) returns (uint256) {
-        revert("NOT_ALLOWED");
+    /// @inheritdoc IKreskoAssetAnchor
+    function mint(uint256 assets) external {
+        require(msg.sender == address(asset), "NOT_ALLOWED");
+
+        uint256 shares = previewIssue(assets);
+        // Check for rounding error since we round down in previewDeposit.
+        require(shares != 0, Error.ZERO_SHARES);
+
+        // Mint shares to kresko
+        _mint(address(asset), shares);
+    }
+
+    /// @inheritdoc IKreskoAssetAnchor
+    function burn(uint256 assets) external {
+        require(msg.sender == address(asset), "NOT_ALLOWED");
+
+        uint256 shares = previewIssue(assets);
+        // Check for rounding error since we round down in previewDeposit.
+        require(shares != 0, Error.ZERO_SHARES);
+
+        // Burn shares from kresko
+        _burn(address(asset), shares);
     }
 
     /// @notice reverting function, kept to maintain compatibility with ERC4626 standard
-    function redeem(
-        uint256,
-        address,
-        address
-    ) public pure override(ERC4626Upgradeable, IERC4626Upgradeable) returns (uint256) {
+    function redeem(uint256, address, address) public pure override(ERC4626Upgradeable, IERC4626Upgradeable) returns (uint256) {
         revert("NOT_ALLOWED");
     }
 

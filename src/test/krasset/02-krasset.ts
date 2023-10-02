@@ -1,31 +1,33 @@
 import { toBig } from "@kreskolabs/lib";
 import { expect } from "@test/chai";
 import { defaultMintAmount, Error, kreskoAssetFixture, Role } from "@utils/test";
+import { KreskoAssetAnchor } from "types/typechain";
 
-describe("KreskoAsset", () => {
+describe.only("KreskoAsset", () => {
     let KreskoAsset: KreskoAsset;
-
+    let KreskoAssetAnchor: KreskoAssetAnchor;
+    let WETH: any;
     beforeEach(async function () {
-        ({ KreskoAsset } = await kreskoAssetFixture());
+        // Deploy WETH
+        [WETH] = await hre.deploy("WETH", {
+            from: hre.addr.deployer,
+        });
+        // Give WETH to deployer
+        await WETH.connect(hre.users.devOne).deposit({ value: toBig(100) });
+
+        ({ KreskoAsset, KreskoAssetAnchor } = await kreskoAssetFixture(WETH.address, await WETH.decimals()));
+
         // Grant minting rights for test deployer
         await KreskoAsset.grantRole(Role.OPERATOR, hre.addr.deployer);
+        // set Kresko Anchor token address in KreskoAsset
+        await KreskoAsset.connect(hre.users.admin).setAnchorToken(KreskoAssetAnchor.address);
+
+        // Approve WETH for KreskoAsset
+        await WETH.connect(hre.users.devOne).approve(KreskoAsset.address, hre.ethers.constants.MaxUint256);
+        // Set fee recipient
+        await KreskoAsset.connect(hre.users.admin).setFeeRecipient(hre.addr.devTwo);
     });
-    describe("Deposit", () => {
-        it("cannot deposit when paused", async function () {});
-        it("can deposit with token", async function () {});
-        it("cannot deposit native token if not enabled", async function () {});
-        it("can deposit native token if enabled", async function () {});
-        it("transfers the correct fees to feeRecipient", async function () {});
-    });
-    describe("Withdraw", () => {
-        beforeEach(async function () {
-            // Deposit some tokens here
-        });
-        it("cannot withdraw when paused", async function () {});
-        it("can withdraw", async function () {});
-        it("can withdraw native token if enabled", async function () {});
-        it("transfers the correct fees to feeRecipient", async function () {});
-    });
+
     describe("#rebase", () => {
         it("can set a positive rebase", async function () {
             const denominator = toBig("1.525");
@@ -317,6 +319,101 @@ describe("KreskoAsset", () => {
                 ).to.be.revertedWith(Error.NOT_ENOUGH_ALLOWANCE);
 
                 expect(await KreskoAsset.allowance(hre.addr.deployer, hre.addr.userOne)).to.equal(0);
+            });
+        });
+    });
+
+    describe("Deposit and Withdraw", () => {
+        describe("Deposit", () => {
+            it("cannot deposit when paused", async function () {
+                await KreskoAsset.connect(hre.users.admin).pause();
+                await expect(KreskoAsset.deposit(hre.addr.devOne, toBig(10))).to.be.revertedWith("Pausable: paused");
+                await KreskoAsset.connect(hre.users.admin).unpause();
+            });
+            it("can deposit with token", async function () {
+                await KreskoAsset.connect(hre.users.devOne).deposit(hre.addr.devOne, toBig(10));
+                expect(await KreskoAsset.balanceOf(hre.addr.devOne)).to.equal(toBig(10));
+            });
+            it("cannot deposit native token if not enabled", async function () {
+                await expect(hre.users.devOne.sendTransaction({ to: KreskoAsset.address, value: toBig(10) })).to.be
+                    .reverted;
+            });
+            it("can deposit native token if enabled", async function () {
+                await KreskoAsset.connect(hre.users.admin).enableNativeToken(true);
+                const prevBalance = await KreskoAsset.balanceOf(hre.addr.devOne);
+                await hre.users.devOne.sendTransaction({ to: KreskoAsset.address, value: toBig(10, 18) });
+                const currentBalance = await KreskoAsset.balanceOf(hre.addr.devOne);
+                expect(currentBalance.sub(prevBalance)).to.equal(toBig(10));
+            });
+            it("transfers the correct fees to feeRecipient", async function () {
+                await KreskoAsset.connect(hre.users.admin).setOpenFee(toBig(1, 17));
+                await KreskoAsset.connect(hre.users.admin).enableNativeToken(true);
+
+                let prevBalanceDevOne = await KreskoAsset.balanceOf(hre.addr.devOne);
+                const prevWETHBalanceDevTwo = await WETH.balanceOf(hre.addr.devTwo);
+
+                await KreskoAsset.connect(hre.users.devOne).deposit(hre.addr.devOne, toBig(10));
+
+                let currentBalanceDevOne = await KreskoAsset.balanceOf(hre.addr.devOne);
+                const currentWETHBalanceDevTwo = await WETH.balanceOf(hre.addr.devTwo);
+                expect(currentBalanceDevOne.sub(prevBalanceDevOne)).to.equal(toBig(9));
+                expect(currentWETHBalanceDevTwo.sub(prevWETHBalanceDevTwo)).to.equal(toBig(1));
+
+                prevBalanceDevOne = await KreskoAsset.balanceOf(hre.addr.devOne);
+                const prevBalanceDevTwo = await hre.ethers.provider.getBalance(hre.addr.devTwo);
+                await hre.users.devOne.sendTransaction({ to: KreskoAsset.address, value: toBig(10) });
+                currentBalanceDevOne = await KreskoAsset.balanceOf(hre.addr.devOne);
+                const currentBalanceDevTwo = await hre.ethers.provider.getBalance(hre.addr.devTwo);
+                expect(currentBalanceDevOne.sub(prevBalanceDevOne)).to.equal(toBig(9));
+                expect(currentBalanceDevTwo.sub(prevBalanceDevTwo)).to.equal(toBig(1));
+
+                // Set openfee to 0
+                await KreskoAsset.connect(hre.users.admin).setOpenFee(0);
+            });
+        });
+        describe("Withdraw", () => {
+            beforeEach(async function () {
+                // Deposit some tokens here
+                await KreskoAsset.connect(hre.users.devOne).deposit(hre.addr.devOne, toBig(10));
+
+                await KreskoAsset.connect(hre.users.admin).enableNativeToken(true);
+                await hre.users.devOne.sendTransaction({ to: KreskoAsset.address, value: toBig(100) });
+            });
+            it("cannot withdraw when paused", async function () {
+                await KreskoAsset.connect(hre.users.admin).pause();
+                await expect(KreskoAsset.withdraw(toBig(1), false)).to.be.revertedWith("Pausable: paused");
+                await KreskoAsset.connect(hre.users.admin).unpause();
+            });
+            it("can withdraw", async function () {
+                const prevBalance = await WETH.balanceOf(hre.addr.devOne);
+                await KreskoAsset.connect(hre.users.devOne).withdraw(toBig(1), false);
+                const currentBalance = await WETH.balanceOf(hre.addr.devOne);
+                expect(currentBalance.sub(prevBalance)).to.equal(toBig(1));
+            });
+            it("can withdraw native token if enabled", async function () {
+                await KreskoAsset.connect(hre.users.admin).enableNativeToken(true);
+                const prevBalance = await KreskoAsset.balanceOf(hre.addr.devOne);
+                await KreskoAsset.connect(hre.users.devOne).withdraw(toBig(1), true);
+                const currentBalance = await KreskoAsset.balanceOf(hre.addr.devOne);
+                expect(prevBalance.sub(currentBalance)).to.equal(toBig(1));
+            });
+            it("transfers the correct fees to feeRecipient", async function () {
+                // set close fee to 10%
+                await KreskoAsset.connect(hre.users.admin).setCloseFee(toBig(1, 17));
+
+                const prevBalanceDevOne = await WETH.balanceOf(hre.addr.devOne);
+                let prevBalanceDevTwo = await WETH.balanceOf(hre.addr.devTwo);
+                await KreskoAsset.connect(hre.users.devOne).withdraw(toBig(10), false);
+                const currentBalanceDevOne = await WETH.balanceOf(hre.addr.devOne);
+                let currentBalanceDevTwo = await WETH.balanceOf(hre.addr.devTwo);
+                expect(currentBalanceDevOne.sub(prevBalanceDevOne)).to.equal(toBig(9));
+                expect(currentBalanceDevTwo.sub(prevBalanceDevTwo)).to.equal(toBig(1));
+
+                // Withdraw native token and check if fee is transferred
+                prevBalanceDevTwo = await hre.ethers.provider.getBalance(hre.addr.devTwo);
+                await KreskoAsset.connect(hre.users.devOne).withdraw(toBig(10), true);
+                currentBalanceDevTwo = await hre.ethers.provider.getBalance(hre.addr.devTwo);
+                expect(currentBalanceDevTwo.sub(prevBalanceDevTwo)).to.equal(toBig(1));
             });
         });
     });

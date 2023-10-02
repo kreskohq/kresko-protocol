@@ -14,7 +14,6 @@ import { addMockKreskoAsset, mintKrAsset } from "./helpers/krassets";
 import { ONE_USD, TEN_USD, defaultCloseFee, defaultCollateralArgs, defaultKrAssetArgs, defaultOpenFee } from "./mocks";
 import Role from "./roles";
 import { Facet } from "hardhat-deploy/types";
-import { TASK_DEPLOY_KRASSET } from "@tasks";
 import { createKrAsset } from "@scripts/create-krasset";
 
 type SCDPFixtureParams = {
@@ -166,13 +165,16 @@ export const diamondFixture = hre.deployments.createFixture<{ facets: Facet[] },
     };
 });
 
-export const kreskoAssetFixture = hre.deployments.createFixture(async hre => {
-    const krAsset = await createKrAsset("KreskoAsset", "KreskoAsset");
-    return {
-        KreskoAsset: krAsset.contract as KreskoAsset,
-        KreskoAssetAnchor: krAsset.anchor as KreskoAssetAnchor,
-    };
-});
+export const kreskoAssetFixture = hre.deployments.createFixture(
+    async (hre, token: string = hre.ethers.constants.AddressZero, tokenDecimals: number = 18) => {
+        const krAsset = await createKrAsset("KreskoAsset", "KreskoAsset", 18, token, tokenDecimals);
+        return {
+            KreskoAsset: krAsset.contract as KreskoAsset,
+            KreskoAssetAnchor: krAsset.anchor as KreskoAssetAnchor,
+        };
+    },
+);
+
 export type DefaultFixture = {
     users: [SignerWithAddress, Kresko][];
     collaterals: TestCollateral[];

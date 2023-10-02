@@ -3,16 +3,18 @@ pragma solidity >=0.8.19;
 
 // solhint-disable-next-line
 import {AccessControlEnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
-import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import {SafeERC20Upgradeable} from "vendor/SafeERC20Upgradeable.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import {ERC20Upgradeable} from "vendor/ERC20Upgradeable.sol";
 import {IERC165} from "vendor/IERC165.sol";
-import {IKreskoAssetIssuer} from "./IKreskoAssetIssuer.sol";
+import {IKreskoAssetAnchor} from ".//IKreskoAssetAnchor.sol";
 import {Error} from "common/Errors.sol";
 import {Role} from "common/Types.sol";
 import {Rebaser} from "./Rebaser.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {IKreskoAsset, ISyncable} from "./IKreskoAsset.sol";
+
+import {console} from "hardhat/console.sol";
 
 /**
  * @title Kresko Synthethic Asset - rebasing ERC20.
@@ -24,6 +26,7 @@ import {IKreskoAsset, ISyncable} from "./IKreskoAsset.sol";
  */
 
 contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, PausableUpgradeable, IKreskoAsset {
+    using SafeERC20Upgradeable for ERC20Upgradeable;
     using Rebaser for uint256;
     using WadRay for uint256;
 
@@ -244,6 +247,10 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
 
     /// @inheritdoc IKreskoAsset
     function mint(address _to, uint256 _amount) external onlyRole(Role.OPERATOR) {
+        _mint(_to, _amount);
+    }
+
+    function _mint(address _to, uint256 _amount) internal override {
         uint256 normalizedAmount = _amount.unrebase(_rebaseInfo);
         _totalSupply += normalizedAmount;
 
@@ -258,6 +265,10 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
 
     /// @inheritdoc IKreskoAsset
     function burn(address _from, uint256 _amount) external onlyRole(Role.OPERATOR) {
+        _burn(_from, _amount);
+    }
+
+    function _burn(address _from, uint256 _amount) internal override {
         uint256 normalizedAmount = _amount.unrebase(_rebaseInfo);
 
         _balances[_from] -= normalizedAmount;
@@ -271,21 +282,24 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
     }
 
     function deposit(address _to, uint256 _amount) external whenNotPaused {
-        IERC20Upgradeable(token).transferFrom(msg.sender, address(this), _amount);
+        require(token != address(0), Error.ZERO_ADDRESS);
+        ERC20Upgradeable(token).safeTransferFrom(msg.sender, address(this), _amount);
+
         uint256 fee = _calcOpenFee(_amount);
         if (fee != 0) {
             _amount -= fee;
-            feeRecipient.transfer(fee);
+            ERC20Upgradeable(token).safeTransfer(address(feeRecipient), fee);
         }
-        uint256 minted = IKreskoAssetIssuer(anchor).issue({
-            _assets: _adjustDecimals(_amount, tokenDecimals, decimals),
-            _to: _to
-        });
-        require(minted != 0, "zero-mint");
+
+        _amount = _adjustDecimals(_amount, tokenDecimals, decimals);
+        _mint(_to, _amount);
+        IKreskoAssetAnchor(anchor).mint(_amount);
     }
 
     function withdraw(uint256 _amount, bool _receiveNativeToken) external whenNotPaused {
-        IKreskoAssetIssuer(anchor).destroy({_assets: _amount, _from: msg.sender});
+        uint256 adjustedAmount = _adjustDecimals(_amount, tokenDecimals, decimals);
+        _burn(msg.sender, adjustedAmount);
+        IKreskoAssetAnchor(anchor).burn(adjustedAmount);
 
         uint256 fee = _calcCloseFee(_amount);
 
@@ -295,14 +309,15 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
 
         if (_receiveNativeToken && nativeTokenEnabled) {
             if (fee != 0) {
-                feeRecipient.transfer(fee);
+                SafeERC20Upgradeable.safeTransferETH(feeRecipient, fee);
             }
-            payable(msg.sender).transfer(_amount);
+            SafeERC20Upgradeable.safeTransferETH(msg.sender, _amount);
         } else {
+            require(token != address(0), Error.ZERO_ADDRESS);
             if (fee != 0) {
-                IERC20Upgradeable(token).transfer(feeRecipient, _adjustDecimals(fee, tokenDecimals, decimals));
+                ERC20Upgradeable(token).safeTransfer(feeRecipient, fee);
             }
-            IERC20Upgradeable(token).transfer(msg.sender, _adjustDecimals(_amount, tokenDecimals, decimals));
+            ERC20Upgradeable(token).safeTransfer(msg.sender, _amount);
         }
     }
 
@@ -310,16 +325,16 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
         require(nativeTokenEnabled, "native token disabled");
         require(msg.value != 0, "zero-value");
 
-        uint256 fee = _calcOpenFee(msg.value);
         uint256 amount = msg.value;
 
+        uint256 fee = _calcOpenFee(amount);
         if (fee != 0) {
             amount -= fee;
-            feeRecipient.transfer(fee);
+            SafeERC20Upgradeable.safeTransferETH(feeRecipient, fee);
         }
 
-        uint256 minted = IKreskoAssetIssuer(anchor).issue({_assets: amount, _to: msg.sender});
-        require(minted != 0, "zero-mint");
+        _mint(msg.sender, amount);
+        IKreskoAssetAnchor(anchor).mint(amount);
     }
 
     /* -------------------------------------------------------------------------- */
