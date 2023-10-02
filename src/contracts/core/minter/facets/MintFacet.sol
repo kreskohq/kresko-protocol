@@ -45,14 +45,12 @@ contract MintFacet is IMintFacet, CModifiers {
             IKreskoAsset(_kreskoAsset).totalSupply() + _mintAmount <= krAsset.supplyLimit,
             Error.KRASSET_MAX_SUPPLY_REACHED
         );
-
+        // If there is a fee for opening a position, handle it
         if (krAsset.openFee > 0) {
             handleMinterOpenFee(_account, krAsset, _mintAmount);
         }
         {
-            // Get the account's current minimum collateral value required to maintain current debts.
-            // Calculate additional collateral amount required to back requested additional mint.
-            // Verify that minter has sufficient collateral to back current debt + new requested debt.
+            // Check if the account has sufficient collateral to back the new debt
             require(
                 s.accountMinCollateralAtRatio(_account, s.minCollateralRatio) +
                     krAsset.minCollateralValueAtRatio(_mintAmount, s.minCollateralRatio) <=
@@ -65,8 +63,7 @@ contract MintFacet is IMintFacet, CModifiers {
         uint256 existingDebt = s.accountDebtAmount(_account, _kreskoAsset, krAsset);
         require(krAsset.uintUSD(existingDebt + _mintAmount) >= cs().minDebtValue, Error.KRASSET_MINT_AMOUNT_LOW);
 
-        // If the account does not have an existing debt for this Kresko Asset,
-        // push it to the list of the account's minted Kresko Assets.
+        // If this is the first time the account mints this asset, add to its minted assets
         if (existingDebt == 0) {
             bool exists = false;
             uint256 length = s.mintedKreskoAssets[_account].length;

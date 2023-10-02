@@ -1,6 +1,6 @@
 import { getMinterInitializer, minterFacets } from "@deploy-config/shared";
 import type { DeployFunction } from "hardhat-deploy/dist/types";
-import { getLogger } from "@kreskolabs/lib";
+import { getLogger } from "@kreskolabs/lib/meta";
 import { addFacets } from "@scripts/add-facets";
 
 const logger = getLogger("minter-facets");

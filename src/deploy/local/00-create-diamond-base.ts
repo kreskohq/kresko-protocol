@@ -1,6 +1,6 @@
 import { DeployFunction, FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
 import { mergeABIs } from "hardhat-deploy/dist/src/utils";
-import { getLogger } from "@kreskolabs/lib";
+import { getLogger } from "@kreskolabs/lib/meta";
 import { diamondFacets } from "@deploy-config/shared";
 
 const logger = getLogger("create-diamond");

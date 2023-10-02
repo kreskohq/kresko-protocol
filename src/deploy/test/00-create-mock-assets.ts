@@ -1,5 +1,5 @@
 import type { DeployFunction } from "hardhat-deploy/types";
-import { getLogger } from "@kreskolabs/lib";
+import { getLogger } from "@kreskolabs/lib/meta";
 import { addMockExtAsset } from "@utils/test/helpers/collaterals";
 import { addMockKreskoAsset } from "@utils/test/helpers/krassets";
 import { testCollateralConfig, testKrAssetConfig } from "@utils/test/mocks";

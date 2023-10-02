@@ -1,5 +1,5 @@
 import { testnetConfigs } from "@deploy-config/arbitrumGoerli";
-import { getLogger } from "@kreskolabs/lib";
+import { getLogger } from "@kreskolabs/lib/meta";
 import { writeFileSync } from "fs";
 import { task } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";

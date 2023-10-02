@@ -1,11 +1,11 @@
 import { getDeploymentUsers } from "@deploy-config/shared";
-import { getLogger, toBig } from "@kreskolabs/lib";
+import { getLogger } from "@kreskolabs/lib/meta";
 import { testKrAssetConfig } from "@utils/test/mocks";
 import { Role } from "@utils/test/roles";
 import { task, types } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
 import { TASK_DEPLOY_KISS } from "./names";
-import { MaxUint128 } from "@utils/values";
+import { MaxUint128, toBig } from "@utils/values";
 
 const logger = getLogger(TASK_DEPLOY_KISS, true);
 

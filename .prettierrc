@@ -10,6 +10,13 @@
     "plugins": ["prettier-plugin-solidity"],
     "overrides": [
         {
+            "files": "*.json",
+            "options": {
+                "printWidth": 120,
+                "tabWidth": 2
+            }
+        },
+        {
             "files": "*.sol",
             "options": {
                 "printWidth": 128,

@@ -1,4 +1,4 @@
-import { getLogger } from "@kreskolabs/lib";
+import { getLogger } from "@kreskolabs/lib/meta";
 import { constants } from "ethers";
 import hre from "hardhat";
 import { mergeABIs } from "hardhat-deploy/dist/src/utils";

@@ -245,7 +245,7 @@ abstract contract DeployHelper is RedstoneHelper {
 
     function deployAndWhitelistKrAsset(
         string memory _symbol,
-        bytes32 redstoneId,
+        bytes12 redstoneId,
         address admin,
         uint256 price,
         bool asCollateral,

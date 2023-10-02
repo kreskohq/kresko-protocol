@@ -18,4 +18,4 @@ mochawesome-report/
 # files
 coverage.json
 .solcover.js
-*.json
+/src/**/*.json

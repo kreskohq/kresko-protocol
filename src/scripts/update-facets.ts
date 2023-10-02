@@ -1,4 +1,4 @@
-import { getLogger } from "@kreskolabs/lib";
+import { getLogger } from "@kreskolabs/lib/meta";
 import { ethers } from "ethers";
 import { writeFileSync } from "fs";
 import { FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";

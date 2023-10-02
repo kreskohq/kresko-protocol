@@ -27,7 +27,6 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, CModifiers, DSModi
     using WadRay for uint256;
     using Arrays for address[];
     using Strings for bytes12;
-    using Strings for bytes32;
 
     /// @inheritdoc IAssetConfigurationFacet
     function addAsset(

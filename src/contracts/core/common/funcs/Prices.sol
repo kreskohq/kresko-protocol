@@ -16,7 +16,6 @@ import {scdp, sdi} from "scdp/State.sol";
 
 using WadRay for uint256;
 using PercentageMath for uint256;
-using Strings for bytes32;
 using Strings for bytes12;
 
 /* -------------------------------------------------------------------------- */
@@ -26,6 +25,15 @@ using Strings for bytes12;
 /// @notice Get the price of SDI in USD, oracle precision.
 function SDIPrice() view returns (uint256) {
     uint256 totalValue = scdp().totalDebtValueAtRatioSCDP(Percents.HUNDRED, false);
+    if (totalValue == 0) {
+        return 10 ** sdi().sdiPricePrecision;
+    }
+    return totalValue.wadDiv(sdi().totalDebt);
+}
+
+/// @notice Get the price of SDI in USD, oracle precision.
+function SDIPriceStorage() view returns (uint256) {
+    uint256 totalValue = scdp().totalDebtValueAtRatioSCDPStorage(Percents.HUNDRED, false);
     if (totalValue == 0) {
         return 10 ** sdi().sdiPricePrecision;
     }
@@ -56,7 +64,7 @@ function safePrice(bytes12 _assetId, OracleType[2] memory _oracles, uint256 _ora
 /**
  * @notice Oracle price, a private view library function.
  * @param _oracleId The oracle id (uint8).
- * @param _assetId The asset id (bytes32).
+ * @param _assetId The asset id (bytes12).
  * @return uint256 oracle price.
  */
 function oraclePrice(OracleType _oracleId, bytes12 _assetId) view returns (uint256) {
@@ -70,7 +78,7 @@ function oraclePrice(OracleType _oracleId, bytes12 _assetId) view returns (uint2
 /**
  * @notice Return push oracle price.
  * @param _oracles The oracles defined.
- * @param _assetId The asset id (bytes32).
+ * @param _assetId The asset id (bytes12).
  * @return PushPrice The push oracle price and timestamp.
  */
 function pushPrice(OracleType[2] memory _oracles, bytes12 _assetId) view returns (PushPrice memory) {

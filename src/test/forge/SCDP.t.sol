@@ -58,21 +58,21 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         });
         deployDiamond(params);
         vm.warp(3602);
-        (usdc, usdcOracle) = deployAndAddCollateral("USDC", bytes32("USDC"), 18, 1e8, true);
-        (KISS, aKISS, kissOracle) = deployAndWhitelistKrAsset("KISS", bytes32("KISS"), params.admin, 1e8, true, true, true);
+        (usdc, usdcOracle) = deployAndAddCollateral("USDC", bytes12("USDC"), 18, 1e8, true);
+        (KISS, aKISS, kissOracle) = deployAndWhitelistKrAsset("KISS", bytes12("KISS"), params.admin, 1e8, true, true, true);
         (krETH, akrETH, ethOracle) = deployAndWhitelistKrAsset(
             "krETH",
-            bytes32("ETH"),
+            bytes12("ETH"),
             params.admin,
             2000e8,
             true,
             true,
             false
         );
-        (krJPY, akrJPY, jpyOracle) = deployAndWhitelistKrAsset("krJPY", bytes32("JPY"), params.admin, 1e8, true, true, false);
+        (krJPY, akrJPY, jpyOracle) = deployAndWhitelistKrAsset("krJPY", bytes12("JPY"), params.admin, 1e8, true, true, false);
         (krTSLA, akrTSLA, tslaOracle) = deployAndWhitelistKrAsset(
             "krTSLA",
-            bytes32("TSLA"),
+            bytes12("TSLA"),
             params.admin,
             1e8,
             true,

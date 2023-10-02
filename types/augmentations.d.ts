@@ -161,12 +161,12 @@ declare module "ethers" {
         HALF_WAD: () => BigNumber;
         HALF_PERCENTAGE: () => BigNumber;
         PERCENTAGE_FACTOR: () => BigNumber;
-        wadMul: (a: BigNumberish) => BigNumber;
-        wadDiv: (a: BigNumberish) => BigNumber;
-        rayMul: (a: BigNumberish) => BigNumber;
-        rayDiv: (a: BigNumberish) => BigNumber;
-        percentMul: (a: BigNumberish) => BigNumber;
-        percentDiv: (a: BigNumberish) => BigNumber;
+        wadMul: (b: BigNumberish) => BigNumber;
+        wadDiv: (b: BigNumberish) => BigNumber;
+        rayMul: (b: BigNumberish) => BigNumber;
+        rayDiv: (b: BigNumberish) => BigNumber;
+        percentMul: (b: BigNumberish) => BigNumber;
+        percentDiv: (b: BigNumberish) => BigNumber;
         rayToWad: () => BigNumber;
         wadToRay: () => BigNumber;
         negated: () => BigNumber;
@@ -186,11 +186,11 @@ declare global {
         PERCENTAGE_FACTOR: BigNumber;
         rayMul: (b: BigNumberish) => BigNumber;
         rayDiv: (b: BigNumberish) => BigNumber;
-        wadMul: (B: BigNumberish) => BigNumber;
-        wadDiv: (B: BigNumberish) => BigNumber;
-        percentMul: (b: BigNumberish) => BigNumber;
-        percentDiv: (b: BigNumberish) => BigNumber;
-        wadToRay: (a: BigNumberish) => BigNumber;
-        rayToWad: (a: BigNumberish) => BigNumber;
+        wadMul: (b: BigNumberish) => BigNumber;
+        wadDiv: (b: BigNumberish) => BigNumber;
+        percentMul: (pct: BigNumberish) => BigNumber;
+        percentDiv: (pct: BigNumberish) => BigNumber;
+        wadToRay: (b: BigNumberish) => BigNumber;
+        rayToWad: (b: BigNumberish) => BigNumber;
     }
 }

@@ -1,6 +1,6 @@
 import hre from "hardhat";
 import { FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
-import { getLogger } from "@kreskolabs/lib";
+import { getLogger } from "@kreskolabs/lib/meta";
 import { mergeABIs } from "hardhat-deploy/dist/src/utils";
 
 type Args<T> = {

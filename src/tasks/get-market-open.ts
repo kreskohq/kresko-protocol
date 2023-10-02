@@ -1,4 +1,4 @@
-import { getLogger } from "@kreskolabs/lib";
+import { getLogger } from "@kreskolabs/lib/meta";
 import { task, types } from "hardhat/config";
 import { TASK_ORACLE_LATEST_MARKET_OPEN } from "./names";
 

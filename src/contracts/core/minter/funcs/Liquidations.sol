@@ -10,7 +10,9 @@ import {Asset} from "common/Types.sol";
 import {cs} from "common/State.sol";
 
 using WadRay for uint256;
+
 using PercentageMath for uint256;
+using PercentageMath for uint32;
 using PercentageMath for uint16;
 
 /**
@@ -33,7 +35,7 @@ function maxLiquidatableValue(
         return 0;
     }
 
-    maxLiquidatableUSD = calcMaxLiqValue(vars, _repayAsset.closeFee);
+    maxLiquidatableUSD = getMLV(vars, _repayAsset.closeFee);
 
     if (vars.seizeCollateralAccountValue < maxLiquidatableUSD) {
         return vars.seizeCollateralAccountValue;
@@ -42,6 +44,10 @@ function maxLiquidatableValue(
     } else {
         return maxLiquidatableUSD;
     }
+}
+
+function getMLV(MaxLiqVars memory vars, uint16 _closeFee) pure returns (uint256) {
+    return calcMaxLiqValue(vars);
 }
 
 function _createVars(
@@ -57,14 +63,15 @@ function _createVars(
         _account,
         _seizeAssetAddr
     );
-
+    uint32 debtFactor = uint32(_repayAsset.kFactor.percentMul(maxLiquidationRatio).percentDiv(_seizeAsset.factor));
     return
         MaxLiqVars({
             collateral: _seizeAsset,
             accountCollateralValue: accountCollateralValue,
-            debtFactor: uint32(_repayAsset.kFactor.percentMul(maxLiquidationRatio).percentDiv(_seizeAsset.factor)),
+            debtFactor: debtFactor,
             minCollateralValue: minCollateralValue,
             minDebtValue: cs().minDebtValue,
+            gainFactor: uint32((debtFactor - _seizeAsset.liqIncentive - _repayAsset.closeFee).percentDiv(debtFactor)),
             seizeCollateralAccountValue: seizeCollateralAccountValue,
             maxLiquidationRatio: maxLiquidationRatio
         });

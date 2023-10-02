@@ -140,6 +140,7 @@ struct MaxLiqVars {
     uint256 minCollateralValue;
     uint256 seizeCollateralAccountValue;
     uint192 minDebtValue;
+    uint32 gainFactor;
     uint32 maxLiquidationRatio;
     uint32 debtFactor;
 }

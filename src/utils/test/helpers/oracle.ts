@@ -1,7 +1,7 @@
 import { FakeContract, smock } from "@defi-wonderland/smock";
-import { toBig } from "@kreskolabs/lib";
 import { MockOracle } from "types/typechain";
 import { TEN_USD } from "../mocks";
+import { toBig } from "@utils/values";
 
 export const getFakeOracle = async (price = TEN_USD, marketOpen = true): Promise<FakeContract<MockOracle>> => {
     const FakeOracle = await smock.fake<MockOracle>("MockOracle");

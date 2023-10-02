@@ -121,4 +121,38 @@ library SDeposits {
             self.assetData[_sAssetAddr].totalDeposits -= uint128(_sAsset.toNonRebasingAmount(amountToCover));
         }
     }
+
+    /**
+     * @notice This function seizes collateral from the shared pool
+     * @notice Adjusts all deposits in the case where swap deposits do not cover the amount.
+     * @param _sAssetAddr The seized asset address.
+     * @param _sAsset The asset struct (Asset).
+     * @param _seizeAmount The seize amount (uint256).
+     */
+    function handleSeizeSCDPStorage(
+        SCDPState storage self,
+        address _sAssetAddr,
+        Asset storage _sAsset,
+        uint256 _seizeAmount
+    ) internal {
+        uint128 swapDeposits = self.swapDepositAmountStorage(_sAssetAddr, _sAsset);
+
+        if (swapDeposits >= _seizeAmount) {
+            uint128 amountOut = uint128(_sAsset.toNonRebasingAmountStorage(_seizeAmount));
+            // swap deposits cover the amount
+            unchecked {
+                self.assetData[_sAssetAddr].swapDeposits -= amountOut;
+                self.assetData[_sAssetAddr].totalDeposits -= amountOut;
+            }
+        } else {
+            // swap deposits do not cover the amount
+            uint256 amountToCover = uint128(_seizeAmount - swapDeposits);
+            // reduce everyones deposits by the same ratio
+            cs().assets[_sAssetAddr].liquidityIndexSCDP -= uint128(
+                amountToCover.wadToRay().rayDiv(self.userDepositAmountStorage(_sAssetAddr, _sAsset).wadToRay())
+            );
+            self.assetData[_sAssetAddr].swapDeposits = 0;
+            self.assetData[_sAssetAddr].totalDeposits -= uint128(_sAsset.toNonRebasingAmountStorage(amountToCover));
+        }
+    }
 }

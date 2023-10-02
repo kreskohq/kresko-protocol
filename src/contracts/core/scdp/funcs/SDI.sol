@@ -6,7 +6,7 @@ import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
 import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {cs} from "common/State.sol";
 import {Asset} from "common/Types.sol";
-import {usdWad, SDIPrice} from "common/funcs/Prices.sol";
+import {usdWad, SDIPriceStorage, SDIPrice} from "common/funcs/Prices.sol";
 import {SDIState} from "scdp/State.sol";
 
 library SDebtIndex {
@@ -57,6 +57,20 @@ library SDebtIndex {
         return (totalDebt - coverAmount).wadMul(sdiPrice);
     }
 
+    /// @notice Returns the total effective debt value of the SCDP.
+    function effectiveDebtValueStorage(SDIState storage self) internal view returns (uint256) {
+        uint256 sdiPrice = SDIPriceStorage();
+        uint256 coverValue = self.totalCoverValueStorage();
+        uint256 coverAmount = coverValue != 0 ? coverValue.wadDiv(sdiPrice) : 0;
+        uint256 totalDebt = self.totalDebt;
+        if (coverValue == 0) {
+            return totalDebt.wadMul(sdiPrice);
+        } else if (coverAmount >= totalDebt) {
+            return 0;
+        }
+        return (totalDebt - coverAmount).wadMul(sdiPrice);
+    }
+
     function totalCoverAmount(SDIState storage self) internal view returns (uint256) {
         return self.totalCoverValue().wadDiv(SDIPrice());
     }
@@ -67,6 +81,17 @@ library SDebtIndex {
         for (uint256 i; i < assets.length; ) {
             unchecked {
                 result += coverAssetValue(self, assets[i]);
+                i++;
+            }
+        }
+    }
+
+    /// @notice Gets the total cover debt value, oracle precision
+    function totalCoverValueStorage(SDIState storage self) internal view returns (uint256 result) {
+        address[] memory assets = self.coverAssets;
+        for (uint256 i; i < assets.length; ) {
+            unchecked {
+                result += coverAssetValueStorage(self, assets[i]);
                 i++;
             }
         }
@@ -83,6 +108,16 @@ library SDebtIndex {
         if (bal == 0) return 0;
 
         Asset memory asset = cs().assets[_assetAddr];
+        if (!asset.isSCDPCoverAsset) return 0;
+        return (bal * asset.price()) / 10 ** asset.decimals;
+    }
+
+    /// @notice Get total deposit value of `asset` in USD, oracle precision.
+    function coverAssetValueStorage(SDIState storage self, address _assetAddr) internal view returns (uint256) {
+        uint256 bal = IERC20Permit(_assetAddr).balanceOf(self.coverRecipient);
+        if (bal == 0) return 0;
+
+        Asset storage asset = cs().assets[_assetAddr];
         if (!asset.isSCDPCoverAsset) return 0;
         return (bal * asset.price()) / 10 ** asset.decimals;
     }

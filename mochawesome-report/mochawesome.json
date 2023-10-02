@@ -2,14 +2,14 @@
   "stats": {
     "suites": 3,
     "tests": 1,
-    "passes": 0,
+    "passes": 1,
     "pending": 0,
-    "failures": 1,
-    "start": "2023-09-29T23:46:08.526Z",
-    "end": "2023-09-29T23:46:13.687Z",
-    "duration": 5161,
+    "failures": 0,
+    "start": "2023-10-02T21:57:41.835Z",
+    "end": "2023-10-02T21:57:45.878Z",
+    "duration": 4043,
     "testsRegistered": 1,
-    "passPercent": 0,
+    "passPercent": 100,
     "pendingPercent": 0,
     "other": 0,
     "hasOther": false,
@@ -18,7 +18,7 @@
   },
   "results": [
     {
-      "uuid": "641e2fef-4a7c-418d-947b-64853103669b",
+      "uuid": "3ffad2bd-c042-4728-bdf5-9d64419ed4bb",
       "title": "",
       "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/scdp/00-scdp.ts",
       "file": "/src/test/scdp/00-scdp.ts",
@@ -27,7 +27,7 @@
       "tests": [],
       "suites": [
         {
-          "uuid": "12841df5-1125-49da-bfcd-744f93fe972c",
+          "uuid": "7b5bd118-27e9-4f50-9b46-f11fa434b18a",
           "title": "SCDP",
           "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/scdp/00-scdp.ts",
           "file": "/src/test/scdp/00-scdp.ts",
@@ -36,7 +36,7 @@
               "title": "\"before each\" hook in \"SCDP\"",
               "fullTitle": "SCDP \"before each\" hook in \"SCDP\"",
               "timedOut": false,
-              "duration": 3395,
+              "duration": 2772,
               "state": null,
               "speed": null,
               "pass": false,
@@ -45,8 +45,8 @@
               "context": null,
               "code": "f = await (0, _fixtures.scdpFixture)({\n    krAssets: createAssets,\n    collaterals: createCollaterals\n});\n[[swapper, KreskoSwapper], [depositor, KreskoDepositor], [depositor2, KreskoDepositor2], [, KreskoLiquidator]] = f.users;",
               "err": {},
-              "uuid": "e5c8ae2e-1685-4770-b9bd-07c0a6b16d41",
-              "parentUUID": "12841df5-1125-49da-bfcd-744f93fe972c",
+              "uuid": "39c759e6-0dcf-4470-a89e-7d7d64a768b6",
+              "parentUUID": "7b5bd118-27e9-4f50-9b46-f11fa434b18a",
               "isHook": true,
               "skipped": false
             }
@@ -55,7 +55,7 @@
           "tests": [],
           "suites": [
             {
-              "uuid": "9affc2e3-d314-47c6-b376-17f9a5bda0c5",
+              "uuid": "6a24934c-379e-4d8b-b7fa-c218634bdedc",
               "title": "#Test",
               "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/scdp/00-scdp.ts",
               "file": "/src/test/scdp/00-scdp.ts",
@@ -73,8 +73,8 @@
                   "context": null,
                   "code": "await f.reset();",
                   "err": {},
-                  "uuid": "89be3b81-f582-4acf-9ada-dfae868cb501",
-                  "parentUUID": "9affc2e3-d314-47c6-b376-17f9a5bda0c5",
+                  "uuid": "80041d2e-d8e1-4c3e-94d5-3f9ba24c0570",
+                  "parentUUID": "6a24934c-379e-4d8b-b7fa-c218634bdedc",
                   "isHook": true,
                   "skipped": false
                 }
@@ -83,7 +83,7 @@
               "tests": [],
               "suites": [
                 {
-                  "uuid": "200c7233-984c-4205-8b7d-6fea0dbe2c15",
+                  "uuid": "ec7e75c1-ba23-4f58-a7fa-8b3efd2be2a5",
                   "title": "#Liquidations",
                   "fullFile": "/Users/panukettunen/Projects/kresko-protocol/src/test/scdp/00-scdp.ts",
                   "file": "/src/test/scdp/00-scdp.ts",
@@ -92,17 +92,17 @@
                       "title": "\"before each\" hook in \"#Liquidations\"",
                       "fullTitle": "SCDP #Test #Liquidations \"before each\" hook in \"#Liquidations\"",
                       "timedOut": false,
-                      "duration": 106,
+                      "duration": 116,
                       "state": null,
                       "speed": null,
                       "pass": false,
                       "fail": false,
                       "pending": false,
                       "context": null,
-                      "code": "for (const signer of f.usersArr){\n    await f.Collateral.setBalance(signer, (0, _values.toBig)(1000000));\n}\nawait f.KISS.setBalance(swapper, (0, _values.toBig)(10000));\nawait f.KISS.setBalance(depositor2, (0, _values.toBig)(10000));\nawait Promise.all([\n    KreskoDepositor.depositSCDP(depositor.address, f.Collateral.address, depositAmount18Dec),\n    KreskoDepositor.depositSCDP(depositor.address, f.Collateral8Dec.address, depositAmount8Dec),\n    KreskoDepositor2.depositSCDP(depositor2.address, f.KISS.address, depositAmount18Dec)\n]);",
+                      "code": "for (const signer of f.usersArr){\n    await f.Collateral.setBalance(signer, (0, _values.toBig)(1_000_000));\n}\nawait f.KISS.setBalance(swapper, (0, _values.toBig)(10_000));\nawait f.KISS.setBalance(depositor2, (0, _values.toBig)(10_000));\nawait Promise.all([\n    KreskoDepositor.depositSCDP(depositor.address, f.Collateral.address, depositAmount18Dec),\n    KreskoDepositor.depositSCDP(depositor.address, f.Collateral8Dec.address, depositAmount8Dec),\n    KreskoDepositor2.depositSCDP(depositor2.address, f.KISS.address, depositAmount18Dec)\n]);",
                       "err": {},
-                      "uuid": "83d6faa5-e40c-4e54-bb96-489554a4f1fd",
-                      "parentUUID": "200c7233-984c-4205-8b7d-6fea0dbe2c15",
+                      "uuid": "790b7f56-c2b8-434e-a0b5-e19af8d4fda3",
+                      "parentUUID": "ec7e75c1-ba23-4f58-a7fa-8b3efd2be2a5",
                       "isHook": true,
                       "skipped": false
                     }
@@ -113,33 +113,29 @@
                       "title": "should allow liquidating the underwater pool",
                       "fullTitle": "SCDP #Test #Liquidations should allow liquidating the underwater pool",
                       "timedOut": false,
-                      "duration": 1651,
-                      "state": "failed",
-                      "speed": null,
-                      "pass": false,
-                      "fail": true,
+                      "duration": 1149,
+                      "state": "passed",
+                      "speed": "fast",
+                      "pass": true,
+                      "fail": false,
                       "pending": false,
                       "context": null,
-                      "code": "const swapAmount = (0, _values.toBig)(ONE_USD * 2600);\nawait KreskoSwapper.swapSCDP(swapper.address, f.KISS.address, f.KrAsset2.address, swapAmount, 0);\nconst newKreskoAssetPrice = 500;\nf.KrAsset2.setPrice(newKreskoAssetPrice);\nconst [scdpParams, maxLiquidatable, krAssetPrice, statsBefore] = await Promise.all([\n    hre.Diamond.getCurrentParametersSCDP(),\n    hre.Diamond.getMaxLiqValueSCDP(f.KrAsset2.address, f.Collateral8Dec.address),\n    f.KrAsset2.getPrice(),\n    hre.Diamond.getStatisticsSCDP()\n]);\nconst repayAmount = maxLiquidatable.wadDiv(krAssetPrice);\nconsole.log({\n    statsBefore: statsBefore,\n    repayAmount\n});\nawait f.KrAsset2.setBalance(hre.users.liquidator, repayAmount.add(1e18.toString()));\n(0, _chai.expect)(statsBefore.cr).to.lt(scdpParams.liquidationThreshold);\n(0, _chai.expect)(statsBefore.cr).to.gt(1e4);\nconsole.log({\n    repayAmount,\n    maxLiquidatable\n});\nconst tx = await KreskoLiquidator.liquidateSCDP(f.KrAsset2.address, repayAmount, f.Collateral8Dec.address);\nconst [statsAfter, liquidatableAfter] = await Promise.all([\n    hre.Diamond.getStatisticsSCDP(),\n    hre.Diamond.getLiquidatableSCDP()\n]);\n// console.log(\"liq\", (await tx.wait()).gasUsed.toString());\n(0, _chai.expect)(statsAfter.cr).to.gt(scdpParams.liquidationThreshold);\nconsole.log({\n    statsBefore,\n    statsAfter,\n    liquidatableAfter,\n    repayAmount\n});\n(0, _chai.expect)(liquidatableAfter).to.eq(false);\nawait (0, _chai.expect)(KreskoLiquidator.liquidateSCDP(f.KrAsset2.address, repayAmount, f.Collateral8Dec.address)).to.be.revertedWithCustomError((0, _errors.getCError)(hre), \"CANNOT_LIQUIDATE\");\nconst event = await (0, _events.getNamedEvent)(tx, \"SCDPLiquidationOccured\");\nconst expectedSeizeAmount = repayAmount.wadMul((0, _values.toBig)(newKreskoAssetPrice, 8)).percentMul(1.05e4).wadDiv((0, _values.toBig)(collateralPrice, 8)).div(10 ** 10);\n(0, _chai.expect)(event.args.liquidator).to.eq(hre.users.liquidator.address);\n(0, _chai.expect)(event.args.seizeAmount).to.eq(expectedSeizeAmount);\n(0, _chai.expect)(event.args.repayAmount).to.eq(repayAmount);\n(0, _chai.expect)(event.args.seizeCollateral).to.eq(f.Collateral8Dec.address);\n(0, _chai.expect)(event.args.repayKreskoAsset).to.eq(f.KrAsset2.address);\nconst expectedDepositsAfter = depositAmount8Dec.sub(event.args.seizeAmount);\n(0, _chai.expect)(expectedDepositsAfter).to.be.lt(depositAmount8Dec);\nconst [principalDeposits, depositsWithFees, params] = await Promise.all([\n    hre.Diamond.getAccountDepositSCDP(depositor.address, f.Collateral8Dec.address),\n    hre.Diamond.getAccountScaledDepositsSCDP(depositor.address, f.Collateral8Dec.address),\n    hre.Diamond.getCurrentParametersSCDP()\n]);\n(0, _chai.expect)(principalDeposits).to.eq(expectedDepositsAfter);\n(0, _chai.expect)(depositsWithFees).to.eq(expectedDepositsAfter);\nawait KreskoDepositor.depositSCDP(depositor.address, f.Collateral.address, depositAmount18Dec.mul(10));\nconst stats = await hre.Diamond.getStatisticsSCDP();\n(0, _chai.expect)(stats.cr).to.gt(params.minCollateralRatio);\nawait (0, _chai.expect)(KreskoDepositor.withdrawSCDP(depositor.address, f.Collateral8Dec.address, expectedDepositsAfter)).to.not.be.reverted;\nconst [principalEnd, depositsWithFeesEnd] = await Promise.all([\n    hre.Diamond.getAccountDepositSCDP(depositor.address, f.Collateral8Dec.address),\n    hre.Diamond.getAccountScaledDepositsSCDP(depositor.address, f.Collateral8Dec.address)\n]);\n(0, _chai.expect)(principalEnd).to.eq(0);\n(0, _chai.expect)(depositsWithFeesEnd).to.eq(0);",
-                      "err": {
-                        "message": "AssertionError: expected true to equal false",
-                        "estack": "AssertionError: expected true to equal false\n    at Proxy.assertEqual (node_modules/.pnpm/chai@4.3.10/node_modules/chai/lib/chai/core/assertions.js:1038:12)\n    at Proxy.methodWrapper (node_modules/.pnpm/chai@4.3.10/node_modules/chai/lib/chai/utils/addMethod.js:57:25)\n    at Proxy.<anonymous> (node_modules/.pnpm/@nomicfoundation+hardhat-chai-matchers@1.0.6_fuw64hzp2vmsaxd67f3bqsove4/node_modules/@nomicfoundation/hardhat-chai-matchers/src/internal/bigNumber.ts:193:14)\n    at Proxy.overwritingMethodWrapper (node_modules/.pnpm/chai@4.3.10/node_modules/chai/lib/chai/utils/overwriteMethod.js:78:33)\n    at doAsserterAsyncAndAddThen (node_modules/.pnpm/chai-as-promised@7.1.1_chai@4.3.10/node_modules/chai-as-promised/lib/chai-as-promised.js:289:22)\n    at Proxy.<anonymous> (node_modules/.pnpm/chai-as-promised@7.1.1_chai@4.3.10/node_modules/chai-as-promised/lib/chai-as-promised.js:255:20)\n    at Proxy.overwritingMethodWrapper (node_modules/.pnpm/chai@4.3.10/node_modules/chai/lib/chai/utils/overwriteMethod.js:78:33)\n    at Proxy.<anonymous> (node_modules/.pnpm/chai-bn@0.3.1_chai@4.3.10/node_modules/chai-bn/chai-bn.js:49:31)\n    at Proxy.overwritingMethodWrapper (node_modules/.pnpm/chai@4.3.10/node_modules/chai/lib/chai/utils/overwriteMethod.js:78:33)\n    at Proxy.<anonymous> (node_modules/.pnpm/@ethereum-waffle+chai@3.4.4/node_modules/@ethereum-waffle/chai/dist/cjs/matchers/bigNumber.js:36:20)",
-                        "diff": "- true\n+ false\n"
-                      },
-                      "uuid": "51a619e3-b86a-42d9-b6aa-4eedeea491c9",
-                      "parentUUID": "200c7233-984c-4205-8b7d-6fea0dbe2c15",
+                      "code": "const swapAmount = (0, _values.toBig)(ONE_USD * 2600);\nawait KreskoSwapper.swapSCDP(swapper.address, f.KISS.address, f.KrAsset2.address, swapAmount, 0);\nconst newKreskoAssetPrice = 500;\nf.KrAsset2.setPrice(newKreskoAssetPrice);\nconst [scdpParams, maxLiquidatable, krAssetPrice, statsBefore] = await Promise.all([\n    hre.Diamond.getCurrentParametersSCDP(),\n    hre.Diamond.getMaxLiqValueSCDP(f.KrAsset2.address, f.Collateral8Dec.address),\n    f.KrAsset2.getPrice(),\n    hre.Diamond.getStatisticsSCDP()\n]);\nconst repayAmount = maxLiquidatable.wadDiv(krAssetPrice);\nawait f.KrAsset2.setBalance(hre.users.liquidator, repayAmount.add(1e18.toString()));\n(0, _chai.expect)(statsBefore.cr).to.lt(scdpParams.liquidationThreshold);\n(0, _chai.expect)(statsBefore.cr).to.gt(1e4);\nconst tx = await KreskoLiquidator.gasTester(f.KrAsset2.address, repayAmount, f.Collateral8Dec.address);\nconsole.log(\"Gas Used Storage\", (await tx.wait()).gasUsed.toString());\n// const txMem = await KreskoLiquidator.gasTesterMemory(\n//     f.KrAsset2.address,\n//     repayAmount,\n//     f.Collateral8Dec.address,\n// );\n// console.log(\"Gas Used Mem\", (await txMem.wait()).gasUsed.toString());\n// const txMem = await KreskoLiquidator.gasTesterMemory(\n//     f.KrAsset2.address,\n//     repayAmount,\n//     f.Collateral8Dec.address,\n// );\n// const tx2 = await KreskoLiquidator.gasTester(f.KrAsset2.address, repayAmount, f.Collateral8Dec.address);\n// const txMem2 = await KreskoLiquidator.gasTesterMemory(\n//     f.KrAsset2.address,\n//     repayAmount,\n//     f.Collateral8Dec.address,\n// );\n// const txMem23 = await KreskoLiquidator.gasTesterMemory(\n//     f.KrAsset2.address,\n//     repayAmount,\n//     f.Collateral8Dec.address,\n// );\n// const tx3 = await KreskoLiquidator.gasTester(f.KrAsset2.address, repayAmount, f.Collateral8Dec.address);\n// console.log(\"Gas Used\", {\n//     gasUsed1: (await tx.wait()).gasUsed.toString(),\n//     gasUsed2: (await tx2.wait()).gasUsed.toString(),\n//     gasUsed3: (await tx3.wait()).gasUsed.toString(),\n//     gasUsedMem1: (await txMem.wait()).gasUsed.toString(),\n//     gasUsedMem2: (await txMem2.wait()).gasUsed.toString(),\n//     gasUsedMem3: (await txMem23.wait()).gasUsed.toString(),\n// });\nreturn;\nconst [statsAfter, liquidatableAfter] = await Promise.all([\n    hre.Diamond.getStatisticsSCDP(),\n    hre.Diamond.getLiquidatableSCDP()\n]);\n(0, _chai.expect)(statsAfter.cr).to.gt(scdpParams.liquidationThreshold);\n(0, _chai.expect)(statsAfter.crDebtValueAdjusted).to.eq(2.01e4);\nconsole.debug({\n    statsBefore,\n    statsAfter\n});\n(0, _chai.expect)(liquidatableAfter).to.eq(false);\nawait (0, _chai.expect)(KreskoLiquidator.liquidateSCDP(f.KrAsset2.address, repayAmount, f.Collateral8Dec.address)).to.be.revertedWithCustomError((0, _errors.getCError)(hre), \"CANNOT_LIQUIDATE\");\nconst event = await (0, _events.getNamedEvent)(tx, \"SCDPLiquidationOccured\");\nconst expectedSeizeAmount = repayAmount.wadMul((0, _values.toBig)(newKreskoAssetPrice, 8)).percentMul(1.05e4).wadDiv((0, _values.toBig)(collateralPrice, 8)).div(10 ** 10);\n(0, _chai.expect)(event.args.liquidator).to.eq(hre.users.liquidator.address);\n(0, _chai.expect)(event.args.seizeAmount).to.eq(expectedSeizeAmount);\n(0, _chai.expect)(event.args.repayAmount).to.eq(repayAmount);\n(0, _chai.expect)(event.args.seizeCollateral).to.eq(f.Collateral8Dec.address);\n(0, _chai.expect)(event.args.repayKreskoAsset).to.eq(f.KrAsset2.address);\nconst expectedDepositsAfter = depositAmount8Dec.sub(event.args.seizeAmount);\n(0, _chai.expect)(expectedDepositsAfter).to.be.lt(depositAmount8Dec);\nconst [principalDeposits, depositsWithFees, params] = await Promise.all([\n    hre.Diamond.getAccountDepositSCDP(depositor.address, f.Collateral8Dec.address),\n    hre.Diamond.getAccountScaledDepositsSCDP(depositor.address, f.Collateral8Dec.address),\n    hre.Diamond.getCurrentParametersSCDP()\n]);\n(0, _chai.expect)(principalDeposits).to.eq(expectedDepositsAfter);\n(0, _chai.expect)(depositsWithFees).to.eq(expectedDepositsAfter);\nawait KreskoDepositor.depositSCDP(depositor.address, f.Collateral.address, depositAmount18Dec.mul(10));\nconst stats = await hre.Diamond.getStatisticsSCDP();\n(0, _chai.expect)(stats.cr).to.gt(params.minCollateralRatio);\nawait (0, _chai.expect)(KreskoDepositor.withdrawSCDP(depositor.address, f.Collateral8Dec.address, expectedDepositsAfter)).to.not.be.reverted;\nconst [principalEnd, depositsWithFeesEnd] = await Promise.all([\n    hre.Diamond.getAccountDepositSCDP(depositor.address, f.Collateral8Dec.address),\n    hre.Diamond.getAccountScaledDepositsSCDP(depositor.address, f.Collateral8Dec.address)\n]);\n(0, _chai.expect)(principalEnd).to.eq(0);\n(0, _chai.expect)(depositsWithFeesEnd).to.eq(0);",
+                      "err": {},
+                      "uuid": "9f6af9e0-f8ad-4cb3-8c71-109f72cf0d8f",
+                      "parentUUID": "ec7e75c1-ba23-4f58-a7fa-8b3efd2be2a5",
                       "isHook": false,
                       "skipped": false
                     }
                   ],
                   "suites": [],
-                  "passes": [],
-                  "failures": [
-                    "51a619e3-b86a-42d9-b6aa-4eedeea491c9"
+                  "passes": [
+                    "9f6af9e0-f8ad-4cb3-8c71-109f72cf0d8f"
                   ],
+                  "failures": [],
                   "pending": [],
                   "skipped": [],
-                  "duration": 1651,
+                  "duration": 1149,
                   "root": false,
                   "rootEmpty": false,
                   "_timeout": 30000

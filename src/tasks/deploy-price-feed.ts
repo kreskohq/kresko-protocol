@@ -1,5 +1,5 @@
 import { getDeploymentUsers } from "@deploy-config/shared";
-import { getLogger } from "@kreskolabs/lib";
+import { getLogger } from "@kreskolabs/lib/meta";
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
 import { TASK_DEPLOY_PRICE_FEED } from "./names";

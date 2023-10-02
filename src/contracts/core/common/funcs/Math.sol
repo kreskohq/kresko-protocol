@@ -5,7 +5,6 @@ import {WadRay} from "libs/WadRay.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {MaxLiqVars} from "common/Types.sol";
 import {Asset} from "common/Types.sol";
-import "hardhat/console.sol";
 using WadRay for uint256;
 using PercentageMath for uint256;
 using PercentageMath for uint16;
@@ -14,19 +13,6 @@ using PercentageMath for uint32;
 /* -------------------------------------------------------------------------- */
 /*                                Liquidations                                */
 /* -------------------------------------------------------------------------- */
-
-function calcMaxLiqValue(MaxLiqVars memory vars, uint16 _closeFee) pure returns (uint256) {
-    return
-        _calcMaxLiqValue(
-            vars,
-            uint32((vars.debtFactor - vars.collateral.liqIncentive - _closeFee).percentDiv(vars.debtFactor))
-        );
-}
-
-function calcMaxLiqValue(MaxLiqVars memory vars, Asset memory _repayKrAsset) pure returns (uint256) {
-    console.log("debtPerUsd", uint32((vars.debtFactor - _repayKrAsset.liqIncentiveSCDP).percentDiv(vars.debtFactor)));
-    return _calcMaxLiqValue(vars, uint32((vars.debtFactor - _repayKrAsset.liqIncentiveSCDP).percentDiv(vars.debtFactor)));
-}
 
 /**
  * @notice Calculates the maximum USD value of a given kreskoAsset that can be liquidated given a liquidation pair
@@ -37,13 +23,12 @@ function calcMaxLiqValue(MaxLiqVars memory vars, Asset memory _repayKrAsset) pur
  * Calculates the maximum amount of USD value that can be liquidated given the account's collateral value
  * maxLiquidatableUSD = (MCV - ACV) / valPerUSD / debtFactor / cFactor * LOM
  * @dev This function is used by getMaxLiquidation and is factored out for readability
- * @param vars liquidation variables struct
- * @param _valuePerUSDRepaid Pre-calculated value per USD repaid
+ * @param vars liquidation variables which includes above symbols
  */
-function _calcMaxLiqValue(MaxLiqVars memory vars, uint32 _valuePerUSDRepaid) pure returns (uint256) {
+function calcMaxLiqValue(MaxLiqVars memory vars) pure returns (uint256) {
     return
         (vars.minCollateralValue - vars.accountCollateralValue)
-            .percentDiv(_valuePerUSDRepaid)
+            .percentDiv(vars.gainFactor)
             .percentDiv(vars.debtFactor)
             .percentDiv(vars.collateral.factor);
 }

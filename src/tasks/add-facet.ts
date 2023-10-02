@@ -1,4 +1,4 @@
-import { getLogger } from "@kreskolabs/lib";
+import { getLogger } from "@kreskolabs/lib/meta";
 import { constants } from "ethers";
 import { FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
 import { task, types } from "hardhat/config";
@@ -81,8 +81,9 @@ task(TASK_ADD_FACET, "Add a facet to the diamond")
 
         const facet = facets.find(f => f.facetAddress === Facet.address);
         if (!facet) {
-            logger.error("Facet add failed @ ", Facet.address);
+            logger.error(false, "Facet add failed @ ", Facet.address);
             logger.error(
+                false,
                 "All facets found:",
                 facets.map(f => f.facetAddress),
             );

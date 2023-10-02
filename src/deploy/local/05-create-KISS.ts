@@ -1,5 +1,6 @@
-import { getLogger, toBig } from "@kreskolabs/lib";
 import { TASK_DEPLOY_KISS } from "@tasks";
+import { getLogger } from "@kreskolabs/lib/meta";
+import { toBig } from "@utils/values";
 import type { DeployFunction } from "hardhat-deploy/dist/types";
 
 const logger = getLogger("create-kiss");

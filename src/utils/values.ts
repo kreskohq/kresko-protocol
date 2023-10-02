@@ -49,7 +49,8 @@ const rayMul = (ray: bigint, other: bigint): bigint => {
 };
 
 const rayDiv = (ray: bigint, other: bigint): bigint => {
-    return (HALF_RAY.toBigInt() + ray * RAY.toBigInt()) / other;
+    const halfOther = other / 2n;
+    return (halfOther + ray * RAY.toBigInt()) / other;
 };
 
 const wadToRay = (wad: bigint): bigint => {

@@ -1,4 +1,4 @@
-import { getLogger } from "@kreskolabs/lib";
+import { getLogger } from "@kreskolabs/lib/meta";
 import { BigNumber } from "ethers";
 import { existsSync, mkdirSync, rmSync } from "fs";
 import path from "path";

@@ -1,7 +1,9 @@
 import { testnetConfigs } from "@deploy-config/arbitrumGoerli";
-import { fromBig, getLogger, toBig } from "@kreskolabs/lib";
+import { getLogger } from "@kreskolabs/lib/meta";
+
 import { TASK_MINT_OPTIMAL } from "@tasks";
 import { wrapKresko } from "@utils/redstone";
+import { fromBig, toBig } from "@utils/values";
 import type { DeployFunction } from "hardhat-deploy/dist/types";
 
 const logger = getLogger("mint-krassets");

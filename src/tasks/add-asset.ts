@@ -1,4 +1,4 @@
-import { getLogger } from "@kreskolabs/lib";
+import { getLogger } from "@kreskolabs/lib/meta";
 import { getAnchorNameAndSymbol } from "@utils/strings";
 import { getAssetConfig } from "@utils/test/helpers/general";
 import { task, types } from "hardhat/config";

@@ -1,7 +1,7 @@
 import { task, types } from "hardhat/config";
 import { TaskArguments } from "hardhat/types";
 import { FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
-import { getLogger } from "@kreskolabs/lib";
+import { getLogger } from "@kreskolabs/lib/meta";
 import { constants } from "ethers";
 import { TASK_REMOVE_FUNCTION } from "./names";
 

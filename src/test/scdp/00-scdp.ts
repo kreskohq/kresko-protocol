@@ -21,8 +21,8 @@ import {
 } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 
 const scdpKrAssetConfig: SCDPKrAssetConfig = {
-    swapInFeeSCDP: 0.01e4,
-    swapOutFeeSCDP: 0.01e4,
+    swapInFeeSCDP: 0.015e4,
+    swapOutFeeSCDP: 0.015e4,
     protocolFeeShareSCDP: 0.25e4,
     liqIncentiveSCDP: 1.05e4,
 };
@@ -61,8 +61,8 @@ const createAssets = () => [
         symbol: "KrAsset3",
         krAssetConfig: {
             anchor: null,
-            openFee: 0.1e4,
-            closeFee: 0.1e4,
+            openFee: 0.01e4,
+            closeFee: 0.01e4,
             kFactor: 1.25e4,
             supplyLimit: defaultSupplyLimit,
         },
@@ -79,8 +79,8 @@ const createAssets = () => [
         symbol: "KrAsset4",
         krAssetConfig: {
             anchor: null,
-            closeFee: 0.05e4,
-            openFee: 0.05e4,
+            closeFee: 0.015e4,
+            openFee: 0.015e4,
             supplyLimit: defaultSupplyLimit,
             kFactor: 1e4,
         },
@@ -1197,34 +1197,55 @@ describe.only("SCDP", async function () {
                     hre.Diamond.getStatisticsSCDP(),
                 ]);
                 const repayAmount = maxLiquidatable.wadDiv(krAssetPrice);
-                console.log({
-                    statsBefore: statsBefore,
-                    repayAmount,
-                });
+
                 await f.KrAsset2.setBalance(hre.users.liquidator, repayAmount.add((1e18).toString()));
                 expect(statsBefore.cr).to.lt(scdpParams.liquidationThreshold);
                 expect(statsBefore.cr).to.gt(1e4);
-                console.log({
-                    repayAmount,
-                    maxLiquidatable,
-                });
-                const tx = await KreskoLiquidator.liquidateSCDP(
-                    f.KrAsset2.address,
-                    repayAmount,
-                    f.Collateral8Dec.address,
-                );
 
+                const tx = await KreskoLiquidator.gasTester(f.KrAsset2.address, repayAmount, f.Collateral8Dec.address);
+                console.log("Gas Used Storage", (await tx.wait()).gasUsed.toString());
+                // const txMem = await KreskoLiquidator.gasTesterMemory(
+                //     f.KrAsset2.address,
+                //     repayAmount,
+                //     f.Collateral8Dec.address,
+                // );
+                // console.log("Gas Used Mem", (await txMem.wait()).gasUsed.toString());
+
+                // const txMem = await KreskoLiquidator.gasTesterMemory(
+                //     f.KrAsset2.address,
+                //     repayAmount,
+                //     f.Collateral8Dec.address,
+                // );
+                // const tx2 = await KreskoLiquidator.gasTester(f.KrAsset2.address, repayAmount, f.Collateral8Dec.address);
+                // const txMem2 = await KreskoLiquidator.gasTesterMemory(
+                //     f.KrAsset2.address,
+                //     repayAmount,
+                //     f.Collateral8Dec.address,
+                // );
+                // const txMem23 = await KreskoLiquidator.gasTesterMemory(
+                //     f.KrAsset2.address,
+                //     repayAmount,
+                //     f.Collateral8Dec.address,
+                // );
+                // const tx3 = await KreskoLiquidator.gasTester(f.KrAsset2.address, repayAmount, f.Collateral8Dec.address);
+                // console.log("Gas Used", {
+                //     gasUsed1: (await tx.wait()).gasUsed.toString(),
+                //     gasUsed2: (await tx2.wait()).gasUsed.toString(),
+                //     gasUsed3: (await tx3.wait()).gasUsed.toString(),
+                //     gasUsedMem1: (await txMem.wait()).gasUsed.toString(),
+                //     gasUsedMem2: (await txMem2.wait()).gasUsed.toString(),
+                //     gasUsedMem3: (await txMem23.wait()).gasUsed.toString(),
+                // });
+                return;
                 const [statsAfter, liquidatableAfter] = await Promise.all([
                     hre.Diamond.getStatisticsSCDP(),
                     hre.Diamond.getLiquidatableSCDP(),
                 ]);
-                // console.log("liq", (await tx.wait()).gasUsed.toString());
                 expect(statsAfter.cr).to.gt(scdpParams.liquidationThreshold);
-                console.log({
+                expect(statsAfter.crDebtValueAdjusted).to.eq(2.01e4);
+                console.debug({
                     statsBefore,
                     statsAfter,
-                    liquidatableAfter,
-                    repayAmount,
                 });
                 expect(liquidatableAfter).to.eq(false);
                 await expect(

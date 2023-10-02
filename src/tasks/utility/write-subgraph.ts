@@ -1,4 +1,4 @@
-import { getLogger } from "@kreskolabs/lib";
+import { getLogger } from "@kreskolabs/lib/meta";
 import { getOutDir } from "@scripts/task-utils";
 import { writeFileSync } from "fs";
 import { task } from "hardhat/config";

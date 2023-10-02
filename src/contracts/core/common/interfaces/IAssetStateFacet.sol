@@ -34,6 +34,8 @@ interface IAssetStateFacet {
      * @param _underlyingId The underlying asset id in 12 bytes.
      * @param _oracleType The oracle type.
      * @return feedAddr Feed address matching the oracle type given.
+     * @custom:signature getFeedForId(bytes12,uint8)
+     * @custom:selector 0x708a9e64
      */
     function getFeedForId(bytes12 _underlyingId, OracleType _oracleType) external view returns (address feedAddr);
 
@@ -73,10 +75,10 @@ interface IAssetStateFacet {
      * 2. Wrong signers for the price data.
      * 4. Stale price data.
      * 5. Not enough data points
-     * @param _underlyingId The reference asset id (bytes32).
+     * @param _underlyingId The reference asset id (bytes12).
      * @return uint256 Extracted price with enough unique signers.
-     * @custom:signature redstonePrice(bytes32,address)
-     * @custom:selector 0x0acb75e3
+     * @custom:signature redstonePrice(bytes12,address)
+     * @custom:selector 0xcc3c1f12
      */
     function redstonePrice(bytes12 _underlyingId, address) external view returns (uint256);
 
@@ -87,8 +89,8 @@ interface IAssetStateFacet {
      * @dev Valid call will revert if the answer is negative.
      * @param _feedAddr IProxy type feed address.
      * @return uint256 Price answer from the feed, 0 if the price is stale.
-     * @custom:signature getChainlinkPrice(address)
-     * @custom:selector 0xbd58fe56
+     * @custom:signature getAPI3Price(address)
+     * @custom:selector 0xe939010d
      */
     function getAPI3Price(address _feedAddr) external view returns (uint256);
 }

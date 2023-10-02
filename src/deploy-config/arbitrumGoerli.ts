@@ -1,4 +1,4 @@
-import { getPriceFromTwelveData } from "@kreskolabs/lib";
+import { price } from "@kreskolabs/lib";
 import { AssetArgs, GnosisSafeDeployment, NetworkConfig, OracleType } from "types";
 import {
     CompatibilityFallbackHandler,
@@ -12,7 +12,7 @@ import {
     SimulateTxAccessor,
 } from "./gnosis-safe";
 import { defaultSupplyLimit } from "@utils/test/mocks";
-import {
+import type {
     CommonInitArgsStruct,
     MinterInitArgsStruct,
     SCDPInitArgsStruct,
@@ -50,7 +50,7 @@ export const oracles = {
         name: "ETHUSD",
         description: "ETH/USD",
         chainlink: "0x62CAe0FA2da220f43a51F86Db2EDb36DcA9A5A08",
-        price: async () => toBig(await getPriceFromTwelveData("ETH/USD"), 8),
+        price: async () => toBig(await price.twelvedata("ETH/USD"), 8),
         marketOpen: async () => {
             return true;
         },
@@ -97,7 +97,7 @@ export const assets = {
         symbol: "WETH",
         decimals: 18,
         oracleIds: [OracleType.Redstone, OracleType.Chainlink] as const,
-        getPrice: async () => toBig(await getPriceFromTwelveData("ETH/USD"), 8),
+        getPrice: async () => toBig(await price.twelvedata("ETH/USD"), 8),
         getMarketOpen: async () => true,
         feed: oracles.ETH.chainlink,
         collateralConfig: {
@@ -140,7 +140,7 @@ export const assets = {
         symbol: "krBTC",
         decimals: 18,
         oracleIds: [OracleType.Redstone, OracleType.Chainlink] as const,
-        getPrice: async () => toBig(await getPriceFromTwelveData("BTC/USD"), 8),
+        getPrice: async () => toBig(await price.twelvedata("BTC/USD"), 8),
         getMarketOpen: async () => true,
         feed: oracles.BTC.chainlink,
         krAssetConfig: {
@@ -162,7 +162,7 @@ export const assets = {
         symbol: "krETH",
         decimals: 18,
         oracleIds: [OracleType.Redstone, OracleType.Chainlink] as const,
-        getPrice: async () => toBig(await getPriceFromTwelveData("ETH/USD"), 8),
+        getPrice: async () => toBig(await price.twelvedata("ETH/USD"), 8),
         getMarketOpen: async () => {
             return true;
         },
