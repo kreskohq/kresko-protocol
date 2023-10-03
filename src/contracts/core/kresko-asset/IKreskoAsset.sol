@@ -126,4 +126,18 @@ interface IKreskoAsset is IERC20Permit, IAccessControlEnumerableUpgradeable, IER
      * - The contract must be paused.
      */
     function unpause() external;
+
+    /**
+     * @notice Deposit token to receive KreskoAsset
+     * @param _to The to address.
+     * @param _amount The amount (uint256).
+     */
+    function deposit(address _to, uint256 _amount) external;
+
+    /**
+     * @notice Withdraw kreskoAsset to receive token / native token
+     * @param _amount The amount (uint256).
+     * @param _receiveNativeToken bool whether to receive native token
+     */
+    function withdraw(uint256 _amount, bool _receiveNativeToken) external;
 }

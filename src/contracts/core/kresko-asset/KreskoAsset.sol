@@ -250,37 +250,12 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
         _mint(_to, _amount);
     }
 
-    function _mint(address _to, uint256 _amount) internal override {
-        uint256 normalizedAmount = _amount.unrebase(_rebaseInfo);
-        _totalSupply += normalizedAmount;
-
-        // Cannot overflow because the sum of all user
-        // balances can't exceed the max uint256 value.
-        unchecked {
-            _balances[_to] += normalizedAmount;
-        }
-        // Emit user input amount, not the maybe unrebased amount.
-        emit Transfer(address(0), _to, _amount);
-    }
-
     /// @inheritdoc IKreskoAsset
     function burn(address _from, uint256 _amount) external onlyRole(Role.OPERATOR) {
         _burn(_from, _amount);
     }
 
-    function _burn(address _from, uint256 _amount) internal override {
-        uint256 normalizedAmount = _amount.unrebase(_rebaseInfo);
-
-        _balances[_from] -= normalizedAmount;
-        // Cannot underflow because a user's balance
-        // will never be larger than the total supply.
-        unchecked {
-            _totalSupply -= normalizedAmount;
-        }
-
-        emit Transfer(_from, address(0), _amount);
-    }
-
+    /// @inheritdoc IKreskoAsset
     function deposit(address _to, uint256 _amount) external whenNotPaused {
         require(token != address(0), Error.ZERO_ADDRESS);
         ERC20Upgradeable(token).safeTransferFrom(msg.sender, address(this), _amount);
@@ -296,6 +271,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
         IKreskoAssetAnchor(anchor).mint(_amount);
     }
 
+    /// @inheritdoc IKreskoAsset
     function withdraw(uint256 _amount, bool _receiveNativeToken) external whenNotPaused {
         uint256 adjustedAmount = _adjustDecimals(_amount, tokenDecimals, decimals);
         _burn(msg.sender, adjustedAmount);
@@ -340,6 +316,32 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
     /* -------------------------------------------------------------------------- */
     /*                                  Internal                                  */
     /* -------------------------------------------------------------------------- */
+
+    function _mint(address _to, uint256 _amount) internal override {
+        uint256 normalizedAmount = _amount.unrebase(_rebaseInfo);
+        _totalSupply += normalizedAmount;
+
+        // Cannot overflow because the sum of all user
+        // balances can't exceed the max uint256 value.
+        unchecked {
+            _balances[_to] += normalizedAmount;
+        }
+        // Emit user input amount, not the maybe unrebased amount.
+        emit Transfer(address(0), _to, _amount);
+    }
+
+    function _burn(address _from, uint256 _amount) internal override {
+        uint256 normalizedAmount = _amount.unrebase(_rebaseInfo);
+
+        _balances[_from] -= normalizedAmount;
+        // Cannot underflow because a user's balance
+        // will never be larger than the total supply.
+        unchecked {
+            _totalSupply -= normalizedAmount;
+        }
+
+        emit Transfer(_from, address(0), _amount);
+    }
 
     function _calcOpenFee(uint256 _amount) internal view returns (uint256) {
         return _amount.wadMul(openFee);
