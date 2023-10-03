@@ -3,7 +3,7 @@ import { expect } from "@test/chai";
 import { defaultMintAmount, Error, kreskoAssetFixture, Role } from "@utils/test";
 import { KreskoAssetAnchor } from "types/typechain";
 
-describe.only("KreskoAsset", () => {
+describe("KreskoAsset", () => {
     let KreskoAsset: KreskoAsset;
     let KreskoAssetAnchor: KreskoAssetAnchor;
     let WETH: any;
