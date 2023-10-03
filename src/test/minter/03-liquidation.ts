@@ -6,7 +6,6 @@ import { depositMockCollateral } from "@utils/test/helpers/collaterals";
 import { getLiqAmount, liquidate } from "@utils/test/helpers/liquidations";
 import optimized from "@utils/test/helpers/optimizations";
 import { fromBig, toBig } from "@utils/values";
-import { BigNumber } from "ethers";
 import { Kresko, LiquidationOccurredEvent } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 
 const INTEREST_RATE_DELTA = 0.01;
@@ -15,7 +14,7 @@ const CR_DELTA = 1e-4;
 
 // -------------------------------- Set up mock assets --------------------------------
 
-describe.only("Minter - Liquidations", function () {
+describe("Minter - Liquidations", function () {
   let Liquidator: Kresko;
   let LiquidatorTwo: Kresko;
   let User: Kresko;
