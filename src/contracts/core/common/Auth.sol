@@ -6,7 +6,7 @@ import {EnumerableSet} from "libs/EnumerableSet.sol";
 import {Meta} from "libs/Meta.sol";
 
 import {AuthEvent} from "common/Events.sol";
-import {Error} from "common/Errors.sol";
+import {CError} from "common/CError.sol";
 import {Role} from "common/Types.sol";
 import {cs} from "common/State.sol";
 
@@ -85,8 +85,8 @@ library Auth {
      *
      */
     function setupSecurityCouncil(address _councilAddress) internal {
-        require(getRoleMemberCount(Role.SAFETY_COUNCIL) == 0, Error.SAFETY_COUNCIL_EXISTS);
-        require(IGnosisSafeL2(_councilAddress).isOwner(msg.sender), Error.ADDRESS_INVALID_SAFETY_COUNCIL);
+        if (getRoleMemberCount(Role.SAFETY_COUNCIL) != 0) revert CError.SAFETY_COUNCIL_ALREADY_EXISTS();
+        if (!IGnosisSafeL2(_councilAddress).isOwner(msg.sender)) revert CError.SAFETY_COUNCIL_INVALID_ADDRESS(_councilAddress);
 
         cs()._roles[Role.SAFETY_COUNCIL].members[_councilAddress] = true;
         cs()._roleMembers[Role.SAFETY_COUNCIL].add(_councilAddress);
@@ -96,7 +96,8 @@ library Auth {
 
     function transferSecurityCouncil(address _newCouncil) internal {
         checkRole(Role.SAFETY_COUNCIL);
-        require(IGnosisSafeL2(_newCouncil).getOwners().length >= 5, Error.MULTISIG_NOT_ENOUGH_OWNERS);
+        uint256 owners = IGnosisSafeL2(_newCouncil).getOwners().length;
+        if (owners < 5) revert CError.MULTISIG_NOT_ENOUGH_OWNERS(owners, 5);
 
         // As this is called by the multisig - just check that it's not an EOA
         cs()._roles[Role.SAFETY_COUNCIL].members[msg.sender] = false;
@@ -150,7 +151,7 @@ library Auth {
      * - the caller must be `account`.
      */
     function _renounceRole(bytes32 role, address account) internal {
-        require(account == Meta.msgSender(), "AccessControl: can only renounce roles for self");
+        if (account != Meta.msgSender()) revert CError.ACCESS_CONTROL_NOT_SELF(account, Meta.msgSender());
 
         _revokeRole(role, account);
     }
@@ -198,7 +199,7 @@ library Auth {
      * @dev Ensure we use the explicit `grantSafetyCouncilRole` function.
      */
     modifier ensureNotSafetyCouncil(bytes32 role) {
-        require(role != Role.SAFETY_COUNCIL, Error.ADDRESS_INVALID_SAFETY_COUNCIL);
+        if (role == Role.SAFETY_COUNCIL) revert CError.SAFETY_COUNCIL_NOT_ALLOWED();
         _;
     }
 }

@@ -8,7 +8,7 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/
 import {ERC20Upgradeable} from "vendor/ERC20Upgradeable.sol";
 import {SafeERC20Upgradeable} from "vendor/SafeERC20Upgradeable.sol";
 import {Role} from "common/Types.sol";
-import {Error} from "common/Errors.sol";
+import {CError} from "common/CError.sol";
 import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
 import {IERC165} from "vendor/IERC165.sol";
 import {IKISS} from "kiss/interfaces/IKISS.sol";
@@ -37,8 +37,8 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
         address vKISS_
     ) external initializer {
         // Few sanity checks, we do not want EOA's here
-        require(kresko_.code.length > 0, Error.KRESKO_NOT_CONTRACT);
-        require(admin_.code.length > 0, Error.ADMIN_NOT_A_CONTRACT);
+        if (kresko_.code.length == 0) revert CError.NOT_A_CONTRACT(kresko_);
+        if (admin_.code.length == 0) revert CError.NOT_A_CONTRACT(admin_);
 
         // ERC20
         name = name_;
@@ -60,7 +60,7 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
     }
 
     modifier onlyContract() {
-        require(msg.sender.code.length > 0, Error.CALLER_NOT_CONTRACT);
+        if (msg.sender.code.length == 0) revert CError.NOT_A_CONTRACT(msg.sender);
         _;
     }
 
@@ -163,7 +163,7 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
         address _to
     ) public override(IKISS, AccessControlUpgradeable, IAccessControlUpgradeable) onlyRole(Role.ADMIN) {
         if (_role == Role.OPERATOR) {
-            require(_to.code.length > 0, Error.OPERATOR_NOT_CONTRACT);
+            if (_to.code.length == 0) revert CError.NOT_A_CONTRACT(_to);
         }
         _grantRole(_role, _to);
     }
@@ -216,6 +216,6 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
      */
     function _beforeTokenTransfer(address from, address to, uint256 amount) internal override {
         super._beforeTokenTransfer(from, to, amount);
-        require(!paused(), "KISS: Paused");
+        if (paused()) revert CError.PAUSED(address(this));
     }
 }

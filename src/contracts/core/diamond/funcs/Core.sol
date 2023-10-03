@@ -3,7 +3,7 @@ pragma solidity >=0.8.19;
 
 import {IERC165} from "vendor/IERC165.sol";
 import {Meta} from "libs/Meta.sol";
-import {Error} from "common/Errors.sol";
+import {CError} from "common/CError.sol";
 import {AuthEvent} from "common/Events.sol";
 import {IDiamondLoupeFacet} from "diamond/interfaces/IDiamondLoupeFacet.sol";
 import {IDiamondOwnershipFacet} from "diamond/interfaces/IDiamondOwnershipFacet.sol";
@@ -18,7 +18,10 @@ library DCore {
     /// @notice Ownership initializer
     /// @notice Only called on the first deployment
     function initialize(DiamondState storage self, address _owner) internal {
-        require(!self.initialized, Error.ALREADY_INITIALIZED);
+        if (self.initialized) {
+            revert CError.ALREADY_INITIALIZED();
+        }
+
         self.initialized = true;
         self.storageVersion++;
         self.diamondDomainSeparator = Meta.domainSeparator("Kresko Protocol", "V1");
@@ -38,8 +41,8 @@ library DCore {
      * @notice caller must be the current contract owner
      */
     function initiateOwnershipTransfer(DiamondState storage self, address _newOwner) internal {
-        require(Meta.msgSender() == self.contractOwner, Error.DIAMOND_INVALID_OWNER);
-        require(_newOwner != address(0), "DS: Owner cannot be 0-address");
+        if (Meta.msgSender() != self.contractOwner) revert CError.NOT_OWNER(Meta.msgSender(), self.contractOwner);
+        else if (_newOwner == address(0)) revert CError.ZERO_ADDRESS();
 
         self.pendingOwner = _newOwner;
 
@@ -52,7 +55,8 @@ library DCore {
      */
     function finalizeOwnershipTransfer(DiamondState storage self) internal {
         address sender = Meta.msgSender();
-        require(sender == self.pendingOwner, Error.DIAMOND_INVALID_PENDING_OWNER);
+        if (sender != self.pendingOwner) revert CError.NOT_PENDING_OWNER(sender, self.pendingOwner);
+
         self.contractOwner = self.pendingOwner;
         self.pendingOwner = address(0);
 

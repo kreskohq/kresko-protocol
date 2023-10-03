@@ -5,7 +5,7 @@ import {Arrays} from "libs/Arrays.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
 
-import {Error} from "common/Errors.sol";
+import {CError} from "common/CError.sol";
 import {Asset} from "common/Types.sol";
 import {cs} from "common/State.sol";
 import {Constants} from "common/Constants.sol";
@@ -63,8 +63,9 @@ library MCore {
         // Because the depositedCollateralAssets[_account] is pushed to if the existing
         // deposit amount is 0, require the amount to be > 0. Otherwise, the depositedCollateralAssets[_account]
         // could be filled with duplicates, causing collateral to be double-counted in the collateral value.
-        require(_depositAmount > 0, Error.ZERO_DEPOSIT);
-        Asset memory asset = cs().assets[_collateralAsset];
+        if (_depositAmount == 0) revert CError.ZERO_DEPOSIT(_collateralAsset);
+
+        Asset storage asset = cs().assets[_collateralAsset];
         // If the account does not have an existing deposit for this collateral asset,
         // push it to the list of the account's deposited collateral assets.
         uint256 existingCollateralAmount = self.accountCollateralAmount(_account, _collateralAsset, asset);
@@ -73,19 +74,18 @@ library MCore {
             self.depositedCollateralAssets[_account].push(_collateralAsset);
         }
 
-        uint256 newCollateralAmount = existingCollateralAmount + _depositAmount;
-
-        // If the collateral asset is also a kresko asset, ensure that the deposit amount is above the minimum.
-        // This is done because kresko assets can be rebased.
-        if (asset.anchor != address(0)) {
-            require(
-                newCollateralAmount >= Constants.MIN_KRASSET_COLLATERAL_AMOUNT || newCollateralAmount == 0,
-                Error.COLLATERAL_AMOUNT_TOO_LOW
-            );
-        }
-
-        // Record the deposit.
         unchecked {
+            uint256 newCollateralAmount = existingCollateralAmount + _depositAmount;
+
+            // If the collateral asset is also a kresko asset, ensure that the deposit amount is above the minimum.
+            // This is done because kresko assets can be rebased.
+            if (asset.anchor != address(0)) {
+                if (newCollateralAmount < Constants.MIN_KRASSET_COLLATERAL_AMOUNT && newCollateralAmount > 0) {
+                    revert CError.COLLATERAL_VALUE_LOW(newCollateralAmount, Constants.MIN_KRASSET_COLLATERAL_AMOUNT);
+                }
+            }
+
+            // Record the deposit.
             self.collateralDeposits[_account][_collateralAsset] = asset.toNonRebasingAmount(newCollateralAmount);
         }
 
@@ -104,25 +104,21 @@ library MCore {
         MinterState storage self,
         address _account,
         address _collateralAsset,
-        Asset memory _asset,
+        Asset storage _asset,
         uint256 _withdrawAmount,
         uint256 _collateralDeposits,
         uint256 _collateralIndex
     ) internal {
-        require(_withdrawAmount > 0, Error.ZERO_WITHDRAW);
-        require(_collateralIndex <= self.depositedCollateralAssets[_account].length - 1, Error.ARRAY_OUT_OF_BOUNDS);
-        // Ensure that the operation passes checks MCR checks
-        verifyAccountCollateral(self, _account, _asset, _withdrawAmount);
+        self.checkCollateralParams(_account, _collateralAsset, _collateralIndex, _withdrawAmount);
 
         uint256 newCollateralAmount = _collateralDeposits - _withdrawAmount;
 
         // If the collateral asset is also a kresko asset, ensure that the deposit amount is above the minimum.
         // This is done because kresko assets can be rebased.
         if (_asset.anchor != address(0)) {
-            require(
-                newCollateralAmount >= Constants.MIN_KRASSET_COLLATERAL_AMOUNT || newCollateralAmount == 0,
-                Error.COLLATERAL_AMOUNT_TOO_LOW
-            );
+            if (newCollateralAmount < Constants.MIN_KRASSET_COLLATERAL_AMOUNT && newCollateralAmount > 0) {
+                revert CError.COLLATERAL_VALUE_LOW(newCollateralAmount, Constants.MIN_KRASSET_COLLATERAL_AMOUNT);
+            }
         }
 
         // If the user is withdrawing all of the collateral asset, remove the collateral asset
@@ -134,6 +130,9 @@ library MCore {
         // Record the withdrawal.
         self.collateralDeposits[_account][_collateralAsset] = _asset.toNonRebasingAmount(newCollateralAmount);
 
+        // Verify that the account has sufficient collateral value left.
+        self.checkAccountCollateral(_account);
+
         emit MEvent.CollateralWithdrawn(_account, _collateralAsset, _withdrawAmount);
     }
 
@@ -144,39 +143,32 @@ library MCore {
      * @param _asset The collateral asset struct.
      * @param _withdrawAmount The amount of the collateral asset to withdraw.
      * @param _collateralDeposits Collateral deposits for the account.
-     * @param _depositedCollateralAssetIndex Index of the collateral asset in the account's deposited collateral assets array.
+     * @param _collateralIndex Index of the collateral asset in the account's deposited collateral assets array.
      */
-    function recordWithdrawal(
+    function handleUncheckedWithdrawal(
         MinterState storage self,
         address _account,
         address _collateralAsset,
-        Asset memory _asset,
+        Asset storage _asset,
         uint256 _withdrawAmount,
         uint256 _collateralDeposits,
-        uint256 _depositedCollateralAssetIndex
+        uint256 _collateralIndex
     ) internal {
-        require(_withdrawAmount > 0, Error.ZERO_WITHDRAW);
-        require(
-            _depositedCollateralAssetIndex <= self.depositedCollateralAssets[_account].length - 1,
-            Error.ARRAY_OUT_OF_BOUNDS
-        );
-        // ensure that the handler does not attempt to withdraw more collateral than the account has
-        require(_collateralDeposits >= _withdrawAmount, Error.COLLATERAL_INSUFFICIENT_AMOUNT);
+        self.checkCollateralParams(_account, _collateralAsset, _collateralIndex, _withdrawAmount);
         uint256 newCollateralAmount = _collateralDeposits - _withdrawAmount;
 
         // If the collateral asset is also a kresko asset, ensure that the deposit amount is above the minimum.
         // This is done because kresko assets can be rebased.
         if (_asset.anchor != address(0)) {
-            require(
-                newCollateralAmount >= Constants.MIN_KRASSET_COLLATERAL_AMOUNT || newCollateralAmount == 0,
-                Error.COLLATERAL_AMOUNT_TOO_LOW
-            );
+            if (newCollateralAmount < Constants.MIN_KRASSET_COLLATERAL_AMOUNT && newCollateralAmount > 0) {
+                revert CError.COLLATERAL_VALUE_LOW(newCollateralAmount, Constants.MIN_KRASSET_COLLATERAL_AMOUNT);
+            }
         }
 
         // If the user is withdrawing all of the collateral asset, remove the collateral asset
         // from the user's deposited collateral assets array.
         if (newCollateralAmount == 0) {
-            self.depositedCollateralAssets[_account].removeAddress(_collateralAsset, _depositedCollateralAssetIndex);
+            self.depositedCollateralAssets[_account].removeAddress(_collateralAsset, _collateralIndex);
         }
 
         // Record the withdrawal.
@@ -185,37 +177,51 @@ library MCore {
         emit MEvent.UncheckedCollateralWithdrawn(_account, _collateralAsset, _withdrawAmount);
     }
 
-    /**
-     * @notice verifies that the account collateral
-     * @param _account The address of the account to verify the collateral for.
-     * @param _collateralAsset The address of the collateral asset.
-     * @param _withdrawAmount The amount of the collateral asset to withdraw.
-     */
-
-    function verifyAccountCollateral(
+    function checkCollateralParams(
         MinterState storage self,
         address _account,
-        Asset memory _collateralAsset,
-        uint256 _withdrawAmount
+        address _collateralAsset,
+        uint256 _collateralIndex,
+        uint256 _amount
     ) internal view {
-        // Ensure the withdrawal does not result in the account having a collateral value
-        // under the minimum collateral amount required to maintain a healthy position.
-        // I.e. the new account's collateral value must still exceed the account's minimum
-        // collateral value.
-        // Get the account's current collateral value.
-        uint256 collateralValue = self.accountCollateralValue(_account);
+        if (_amount == 0) revert CError.ZERO_AMOUNT(_collateralAsset);
+        if (_collateralIndex > self.depositedCollateralAssets[_account].length - 1)
+            revert CError.INVALID_ASSET_INDEX(
+                _collateralAsset,
+                _collateralIndex,
+                self.depositedCollateralAssets[_account].length - 1
+            );
+    }
+
+    /**
+     * @notice verifies that the account has enough collateral value
+     * @param _account The address of the account to verify the collateral for.
+     */
+    function checkAccountCollateral(MinterState storage self, address _account) internal view {
+        uint256 collateralValue = self.accountTotalCollateralValue(_account);
         // Get the account's minimum collateral value.
         uint256 minCollateralValue = self.accountMinCollateralAtRatio(_account, self.minCollateralRatio);
-        // Require accountMinCollateralValue <= accountCollateralValue - withdrawnCollateralValue.
-        require(
-            minCollateralValue <=
-                collateralValue -
-                    // Get the withdrawn collateral value.
-                    _collateralAsset.collateralAmountToValue(
-                        _withdrawAmount,
-                        false // Take the collateral factor into consideration.
-                    ),
-            Error.COLLATERAL_INSUFFICIENT_AMOUNT
-        );
+
+        if (collateralValue < minCollateralValue) {
+            revert CError.COLLATERAL_VALUE_LOW(collateralValue, minCollateralValue);
+        }
+    }
+
+    function maybePushToMintedAssets(MinterState storage self, address _account, address _kreskoAsset) internal {
+        bool exists = false;
+        uint256 length = self.mintedKreskoAssets[_account].length;
+        for (uint256 i; i < length; ) {
+            if (self.mintedKreskoAssets[_account][i] == _kreskoAsset) {
+                exists = true;
+                break;
+            }
+            unchecked {
+                ++i;
+            }
+        }
+
+        if (!exists) {
+            self.mintedKreskoAssets[_account].push(_kreskoAsset);
+        }
     }
 }

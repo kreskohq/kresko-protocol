@@ -46,23 +46,18 @@ contract DepositWithdrawFacet is CModifiers, IDepositWithdrawFacet {
         address _account,
         address _collateralAsset,
         uint256 _withdrawAmount,
-        uint256 _depositedCollateralAssetIndex
+        uint256 _collateralIndex
     ) external nonReentrant isCollateral(_collateralAsset) onlyRoleIf(_account != msg.sender, Role.MANAGER) {
         if (cs().safetyStateSet) {
             ensureNotPaused(_collateralAsset, Action.Withdraw);
         }
-        Asset memory asset = cs().assets[_collateralAsset];
+        Asset storage asset = cs().assets[_collateralAsset];
         uint256 collateralAmount = ms().accountCollateralAmount(_account, _collateralAsset, asset);
+
+        // Try to send full deposits when overflowing
         _withdrawAmount = (_withdrawAmount > collateralAmount ? collateralAmount : _withdrawAmount);
 
-        ms().handleWithdrawal(
-            _account,
-            _collateralAsset,
-            asset,
-            _withdrawAmount,
-            collateralAmount,
-            _depositedCollateralAssetIndex
-        );
+        ms().handleWithdrawal(_account, _collateralAsset, asset, _withdrawAmount, collateralAmount, _collateralIndex);
 
         IERC20Permit(_collateralAsset).safeTransfer(_account, _withdrawAmount);
     }
@@ -72,24 +67,27 @@ contract DepositWithdrawFacet is CModifiers, IDepositWithdrawFacet {
         address _account,
         address _collateralAsset,
         uint256 _withdrawAmount,
-        uint256 _depositedCollateralAssetIndex,
+        uint256 _collateralIndex,
         bytes memory _userData
     ) external isCollateral(_collateralAsset) onlyRole(Role.MANAGER) {
         if (cs().safetyStateSet) {
             ensureNotPaused(_collateralAsset, Action.Withdraw);
         }
-        Asset memory asset = cs().assets[_collateralAsset];
+        Asset storage asset = cs().assets[_collateralAsset];
         uint256 collateralDeposits = ms().accountCollateralAmount(_account, _collateralAsset, asset);
+
+        // Try to send full deposits when overflowing
         _withdrawAmount = (_withdrawAmount > collateralDeposits ? collateralDeposits : _withdrawAmount);
 
         // perform unchecked withdrawal
-        ms().recordWithdrawal(
+        // Emits MinterEvent.UncheckedCollateralWithdrawn
+        ms().handleUncheckedWithdrawal(
             _account,
             _collateralAsset,
             asset,
             _withdrawAmount,
             collateralDeposits,
-            _depositedCollateralAssetIndex
+            _collateralIndex
         );
 
         // transfer the withdrawn asset to the caller
@@ -100,16 +98,14 @@ contract DepositWithdrawFacet is CModifiers, IDepositWithdrawFacet {
             _account,
             _collateralAsset,
             _withdrawAmount,
-            _depositedCollateralAssetIndex,
+            _collateralIndex,
             _userData
         );
 
         /*
          Perform the MCR check after the callback has been executed
          Ensures accountCollateralValue remains over accountMinColateralValueAtRatio(MCR)
-         Emits MinterEvent.UncheckedCollateralWithdrawn
-         _withdrawAmount is 0 since deposits reduced in recordCollateralWithdrawal
         */
-        ms().verifyAccountCollateral(_account, asset, 0);
+        ms().checkAccountCollateral(_account);
     }
 }

@@ -4,7 +4,11 @@ pragma solidity >=0.8.19;
 /* ========================================================================== */
 /*                                   STRUCTS                                  */
 /* ========================================================================== */
-
+struct MinterAccountState {
+    uint256 totalDebtValue;
+    uint256 totalCollateralValue;
+    uint256 collateralRatio;
+}
 /**
  * @notice Initialization arguments for the protocol
  */

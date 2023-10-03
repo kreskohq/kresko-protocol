@@ -38,36 +38,30 @@ interface ISCDPConfigFacet {
     function updateDepositLimitSCDP(address _asset, uint128 _newDepositLimit) external;
 
     /**
-     * @notice Disabled swaps and deposits for assets.
+     * @notice Disable or enable a deposit asset. Reverts if invalid asset.
      * Only callable by admin.
-     * @param _disabledAssets The list of assets to disable
-     * @param onlyDeposits If true, only deposits are disabled. If false, swaps are disabled as well.
+     * @param _assetAddr Asset to set.
+     * @param _enabled Whether to enable or disable the asset.
      */
-    function disableAssetsSCDP(address[] calldata _disabledAssets, bool onlyDeposits) external;
+    function setDepositAssetSCDP(address _assetAddr, bool _enabled) external;
 
     /**
-     * @notice Enables assets.
+     * @notice Disable or enable asset from collateral value calculations.
+     * Reverts if invalid asset and if disabling asset that has user deposits.
      * Only callable by admin.
-     * @param _enabledAssets The list of assets to enable
-     * @param enableDeposits If true, both deposits and swaps are enabled. If false, only swaps are enabled.
+     * @param _assetAddr Asset to set.
+     * @param _enabled Whether to enable or disable the asset.
      */
-    function enableAssetsSCDP(address[] calldata _enabledAssets, bool enableDeposits) external;
+    function setCollateralSCDP(address _assetAddr, bool _enabled) external;
 
     /**
-     * @notice Completely removes a collateral assets.
+     * @notice Disable or enable a kresko asset in SCDP.
+     * Reverts if invalid asset. Enabling will also add it to collateral value calculations.
      * Only callable by admin.
-     * _removedAssets must not have any deposits.
-     * @param _removedAssets The list of collaterals to remove
+     * @param _assetAddr Asset to set.
+     * @param _enabled Whether to enable or disable the asset.
      */
-    function removeCollateralsSCDP(address[] calldata _removedAssets) external;
-
-    /**
-     * @notice Completely remove KreskoAssets from the pool
-     * Only callable by admin.
-     * _removedAssets must not have any debt.
-     * @param _removedAssets The list of KreskoAssets to remove
-     */
-    function removeKrAssetsSCDP(address[] calldata _removedAssets) external;
+    function setKrAssetSCDP(address _assetAddr, bool _enabled) external;
 
     /**
      * @notice Set whether pairs are enabled or not. Both ways.

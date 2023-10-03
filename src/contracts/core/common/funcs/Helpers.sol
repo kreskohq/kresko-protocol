@@ -11,7 +11,7 @@ using WadRay for uint256;
 
 /// @notice Helper function to get unadjusted, adjusted and price values for collateral assets
 function collateralAmountToValues(
-    Asset memory self,
+    Asset storage self,
     uint256 _amount
 ) view returns (uint256 value, uint256 valueAdjusted, uint256 price) {
     price = self.price();
@@ -21,7 +21,7 @@ function collateralAmountToValues(
 
 /// @notice Helper function to get unadjusted, adjusted and price values for debt assets
 function debtAmountToValues(
-    Asset memory self,
+    Asset storage self,
     uint256 _amount
 ) view returns (uint256 value, uint256 valueAdjusted, uint256 price) {
     price = self.price();

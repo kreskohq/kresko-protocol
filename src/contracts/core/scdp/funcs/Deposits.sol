@@ -4,7 +4,7 @@ pragma solidity >=0.8.19;
 import {WadRay} from "libs/WadRay.sol";
 import {Asset} from "common/Types.sol";
 import {cs} from "common/State.sol";
-import {CError} from "common/Errors.sol";
+import {CError} from "common/CError.sol";
 import {SCDPState} from "scdp/State.sol";
 
 library SDeposits {
@@ -19,7 +19,7 @@ library SDeposits {
      * @param _amount amount of collateral asset to deposit
      */
     function handleDepositSCDP(SCDPState storage self, address _account, address _assetAddr, uint256 _amount) internal {
-        Asset memory asset = cs().assets[_assetAddr];
+        Asset storage asset = cs().assets[_assetAddr];
         if (!asset.isSCDPDepositAsset) {
             revert CError.INVALID_DEPOSIT_ASSET(_assetAddr);
         }
@@ -54,7 +54,7 @@ library SDeposits {
         uint256 _amount
     ) internal returns (uint256 amountOut, uint256 feesOut) {
         // Do not check for isEnabled, always allow withdrawals.
-        Asset memory asset = cs().assets[_assetAddr];
+        Asset storage asset = cs().assets[_assetAddr];
 
         // Get accounts principal deposits.
         uint256 depositsPrincipal = self.accountPrincipalDeposits(_account, _assetAddr, asset);
@@ -79,10 +79,11 @@ library SDeposits {
             // 1. We send all collateral.
             amountOut = depositsPrincipal;
             // 2. With fees.
-            feesOut = self.accountScaledDeposits(_account, _assetAddr, asset) - depositsPrincipal;
+            uint256 scaledDeposits = self.accountScaledDeposits(_account, _assetAddr, asset);
+            feesOut = scaledDeposits - depositsPrincipal;
             // 3. Ensure this is actually the case.
             if (feesOut == 0) {
-                revert CError.WITHDRAWAL_VIOLATION(_assetAddr);
+                revert CError.SCDP_WITHDRAWAL_VIOLATION(_assetAddr, _amount, depositsPrincipal, scaledDeposits);
             }
 
             // 4. Wipe account collateral deposits.
@@ -100,7 +101,12 @@ library SDeposits {
      * @param _sAsset The asset struct (Asset).
      * @param _seizeAmount The seize amount (uint256).
      */
-    function handleSeizeSCDP(SCDPState storage self, address _sAssetAddr, Asset memory _sAsset, uint256 _seizeAmount) internal {
+    function handleSeizeSCDP(
+        SCDPState storage self,
+        address _sAssetAddr,
+        Asset storage _sAsset,
+        uint256 _seizeAmount
+    ) internal {
         uint128 swapDeposits = self.swapDepositAmount(_sAssetAddr, _sAsset);
 
         if (swapDeposits >= _seizeAmount) {
@@ -114,45 +120,11 @@ library SDeposits {
             // swap deposits do not cover the amount
             uint256 amountToCover = uint128(_seizeAmount - swapDeposits);
             // reduce everyones deposits by the same ratio
-            cs().assets[_sAssetAddr].liquidityIndexSCDP -= uint128(
+            _sAsset.liquidityIndexSCDP -= uint128(
                 amountToCover.wadToRay().rayDiv(self.userDepositAmount(_sAssetAddr, _sAsset).wadToRay())
             );
             self.assetData[_sAssetAddr].swapDeposits = 0;
             self.assetData[_sAssetAddr].totalDeposits -= uint128(_sAsset.toNonRebasingAmount(amountToCover));
-        }
-    }
-
-    /**
-     * @notice This function seizes collateral from the shared pool
-     * @notice Adjusts all deposits in the case where swap deposits do not cover the amount.
-     * @param _sAssetAddr The seized asset address.
-     * @param _sAsset The asset struct (Asset).
-     * @param _seizeAmount The seize amount (uint256).
-     */
-    function handleSeizeSCDPStorage(
-        SCDPState storage self,
-        address _sAssetAddr,
-        Asset storage _sAsset,
-        uint256 _seizeAmount
-    ) internal {
-        uint128 swapDeposits = self.swapDepositAmountStorage(_sAssetAddr, _sAsset);
-
-        if (swapDeposits >= _seizeAmount) {
-            uint128 amountOut = uint128(_sAsset.toNonRebasingAmountStorage(_seizeAmount));
-            // swap deposits cover the amount
-            unchecked {
-                self.assetData[_sAssetAddr].swapDeposits -= amountOut;
-                self.assetData[_sAssetAddr].totalDeposits -= amountOut;
-            }
-        } else {
-            // swap deposits do not cover the amount
-            uint256 amountToCover = uint128(_seizeAmount - swapDeposits);
-            // reduce everyones deposits by the same ratio
-            cs().assets[_sAssetAddr].liquidityIndexSCDP -= uint128(
-                amountToCover.wadToRay().rayDiv(self.userDepositAmountStorage(_sAssetAddr, _sAsset).wadToRay())
-            );
-            self.assetData[_sAssetAddr].swapDeposits = 0;
-            self.assetData[_sAssetAddr].totalDeposits -= uint128(_sAsset.toNonRebasingAmountStorage(amountToCover));
         }
     }
 }

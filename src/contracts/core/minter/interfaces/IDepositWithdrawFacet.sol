@@ -16,14 +16,14 @@ interface IDepositWithdrawFacet {
      * @param _account The address to withdraw assets for.
      * @param _collateralAsset The address of the collateral asset.
      * @param _withdrawAmount The amount of the collateral asset to withdraw.
-     * @param _depositedCollateralAssetIndex The index of the collateral asset in the sender's deposited collateral
+     * @param _collateralIndex The index of the collateral asset in the sender's deposited collateral
      * assets array. Only needed if withdrawing the entire deposit of a particular collateral asset.
      */
     function withdrawCollateral(
         address _account,
         address _collateralAsset,
         uint256 _withdrawAmount,
-        uint256 _depositedCollateralAssetIndex
+        uint256 _collateralIndex
     ) external;
 
     /**
@@ -33,14 +33,14 @@ interface IDepositWithdrawFacet {
      * @param _account The address to withdraw assets for.
      * @param _collateralAsset The address of the collateral asset.
      * @param _withdrawAmount The amount of the collateral asset to withdraw.
-     * @param _depositedCollateralAssetIndex The index of the collateral asset in the sender's deposited collateral
+     * @param _collateralIndex The index of the collateral asset in the sender's deposited collateral
      * assets array. Only needed if withdrawing the entire deposit of a particular collateral asset.
      */
     function withdrawCollateralUnchecked(
         address _account,
         address _collateralAsset,
         uint256 _withdrawAmount,
-        uint256 _depositedCollateralAssetIndex,
+        uint256 _collateralIndex,
         bytes memory _userData
     ) external;
 }

@@ -3,35 +3,10 @@ pragma solidity >=0.8.19;
 
 import {WadRay} from "libs/WadRay.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
-import {MaxLiqVars} from "common/Types.sol";
-import {Asset} from "common/Types.sol";
+
 using WadRay for uint256;
 using PercentageMath for uint256;
 using PercentageMath for uint16;
-using PercentageMath for uint32;
-
-/* -------------------------------------------------------------------------- */
-/*                                Liquidations                                */
-/* -------------------------------------------------------------------------- */
-
-/**
- * @notice Calculates the maximum USD value of a given kreskoAsset that can be liquidated given a liquidation pair
- * Calculates the value gained per USD repaid in liquidation for a given kreskoAsset
- * debtFactor = debtFactor = k * LT / cFactor;
- * valPerUSD = (DebtFactor - Asset closeFee - liqIncentive) / DebtFactor
- *
- * Calculates the maximum amount of USD value that can be liquidated given the account's collateral value
- * maxLiquidatableUSD = (MCV - ACV) / valPerUSD / debtFactor / cFactor * LOM
- * @dev This function is used by getMaxLiquidation and is factored out for readability
- * @param vars liquidation variables which includes above symbols
- */
-function calcMaxLiqValue(MaxLiqVars memory vars) pure returns (uint256) {
-    return
-        (vars.minCollateralValue - vars.accountCollateralValue)
-            .percentDiv(vars.gainFactor)
-            .percentDiv(vars.debtFactor)
-            .percentDiv(vars.collateral.factor);
-}
 
 /* -------------------------------------------------------------------------- */
 /*                                   General                                  */

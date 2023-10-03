@@ -7,7 +7,7 @@ import {burnKrAsset} from "common/funcs/Actions.sol";
 import {cs} from "common/State.sol";
 import {Asset, Action} from "common/Types.sol";
 import {CModifiers} from "common/Modifiers.sol";
-import {MError} from "minter/Errors.sol";
+import {CError} from "common/CError.sol";
 import {IBurnFacet} from "minter/interfaces/IBurnFacet.sol";
 import {ms, MinterState} from "minter/State.sol";
 import {MEvent} from "minter/Events.sol";
@@ -29,11 +29,11 @@ contract BurnFacet is CModifiers, IBurnFacet {
         uint256 _mintedKreskoAssetIndex
     ) external nonReentrant isKrAsset(_kreskoAsset) onlyRoleIf(_account != msg.sender, Role.MANAGER) {
         if (_burnAmount == 0) {
-            revert MError.ZERO_BURN();
+            revert CError.ZERO_BURN(_kreskoAsset);
         }
         MinterState storage s = ms();
 
-        Asset memory asset = cs().assets[_kreskoAsset];
+        Asset storage asset = cs().assets[_kreskoAsset];
 
         if (cs().safetyStateSet) {
             ensureNotPaused(_kreskoAsset, Action.Repay);
@@ -42,17 +42,17 @@ contract BurnFacet is CModifiers, IBurnFacet {
         // Get accounts principal debt
         uint256 debtAmount = s.accountDebtAmount(_account, _kreskoAsset, asset);
         if (debtAmount == 0) {
-            revert MError.ZERO_DEBT();
+            revert CError.ZERO_DEBT(_kreskoAsset);
         }
 
         if (_burnAmount != type(uint256).max) {
             if (debtAmount > _burnAmount) {
-                revert MError.BURN_AMOUNT_OVERFLOW(debtAmount, _burnAmount);
+                revert CError.BURN_AMOUNT_OVERFLOW(debtAmount, _burnAmount);
             }
             // Ensure principal left is either 0 or >= minDebtValue
             _burnAmount = asset.checkDust(_burnAmount, debtAmount);
         } else {
-            // _burnAmount of uint256 max, burn all principal debt
+            // Burn full debt
             _burnAmount = debtAmount;
         }
 

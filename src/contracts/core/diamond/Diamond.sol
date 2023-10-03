@@ -7,7 +7,7 @@ pragma solidity ^0.8.0;
 
 import {Auth, Role} from "common/Auth.sol";
 import {DiamondEvent} from "common/Events.sol";
-import {CError} from "common/Errors.sol";
+import {CError} from "common/CError.sol";
 
 import {ds} from "./State.sol";
 import {FacetCut, Initialization} from "./Types.sol";

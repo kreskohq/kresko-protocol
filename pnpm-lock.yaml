@@ -44,9 +44,6 @@ devDependencies:
   '@nomicfoundation/hardhat-chai-matchers':
     specifier: ^1.0.6
     version: 1.0.6(@nomiclabs/hardhat-ethers@2.2.3)(chai@4.3.10)(ethers@5.7.2)(hardhat@2.17.1)
-  '@nomicfoundation/hardhat-ethers':
-    specifier: ^3.0.4
-    version: 3.0.4(ethers@5.7.2)(hardhat@2.17.1)
   '@nomicfoundation/hardhat-foundry':
     specifier: 1.0.3
     version: 1.0.3(hardhat@2.17.1)
@@ -1540,20 +1537,6 @@ packages:
       ethers: 5.7.2
       hardhat: 2.17.1(ts-node@10.9.1)(typescript@5.2.2)
       ordinal: 1.0.3
-    dev: true
-
-  /@nomicfoundation/hardhat-ethers@3.0.4(ethers@5.7.2)(hardhat@2.17.1):
-    resolution: {integrity: sha512-k9qbLoY7qn6C6Y1LI0gk2kyHXil2Tauj4kGzQ8pgxYXIGw8lWn8tuuL72E11CrlKaXRUvOgF0EXrv/msPI2SbA==}
-    peerDependencies:
-      ethers: ^6.1.0
-      hardhat: ^2.0.0
-    dependencies:
-      debug: 4.3.4(supports-color@8.1.1)
-      ethers: 5.7.2
-      hardhat: 2.17.1(ts-node@10.9.1)(typescript@5.2.2)
-      lodash.isequal: 4.5.0
-    transitivePeerDependencies:
-      - supports-color
     dev: true
 
   /@nomicfoundation/hardhat-foundry@1.0.3(hardhat@2.17.1):

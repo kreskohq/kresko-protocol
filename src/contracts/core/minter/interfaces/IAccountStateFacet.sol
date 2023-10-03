@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
+import {Fee} from "common/Types.sol";
+import {MinterAccountState} from "minter/Types.sol";
 
 interface IAccountStateFacet {
     // ExpectedFeeRuntimeInfo is used for stack size optimization
@@ -19,6 +21,15 @@ interface IAccountStateFacet {
     function getAccountLiquidatable(address _account) external view returns (bool);
 
     /**
+     * @notice Get account state, an external view function.
+     * @param _account The account address.
+     * @return MinterAccountState Result of getAccountState.
+     * @custom:signature getAccountState(address)
+     * @custom:selector 0x9ee2735b
+     */
+    function getAccountState(address _account) external view returns (MinterAccountState memory);
+
+    /**
      * @notice Gets an array of Kresko assets the account has minted.
      * @param _account The account to get the minted Kresko assets for.
      * @return An array of addresses of Kresko assets the account has minted.
@@ -35,10 +46,19 @@ interface IAccountStateFacet {
 
     /**
      * @notice Gets the total Kresko asset debt value in USD for an account.
+     * @notice Adjusted value means it is multiplied by kFactor.
+     * @param _account The account to calculate the Kresko asset value for.
+     * @return value The unadjusted value of debt.
+     * @return valueAdjusted The kFactor adjusted value of debt.
+     */
+    function getAccountTotalDebtValues(address _account) external view returns (uint256 value, uint256 valueAdjusted);
+
+    /**
+     * @notice Gets the total Kresko asset debt value in USD for an account.
      * @param _account The account to calculate the Kresko asset value for.
      * @return The Kresko asset value of a particular account.
      */
-    function getAccountDebtValue(address _account) external view returns (uint256);
+    function getAccountTotalDebtValue(address _account) external view returns (uint256);
 
     /**
      * @notice Get `_account` debt amount for `_asset`
@@ -49,21 +69,43 @@ interface IAccountStateFacet {
     function getAccountDebtAmount(address _account, address _asset) external view returns (uint256);
 
     /**
-     * @notice Gets the collateral value of a particular account.
-     * @dev O(# of different deposited collateral assets by account) complexity.
-     * @param _account The account to calculate the collateral value for.
-     * @return The collateral value of a particular account.
+     * @notice Get the unadjusted and the adjusted value of collateral deposits of `_asset` for `_account`.
+     * @notice Adjusted value means it is multiplied by cFactor.
+     * @param _account Account to get the collateral values for.
+     * @param _asset Asset to get the collateral values for.
+     * @return value Unadjusted value of the collateral deposits.
+     * @return valueAdjusted cFactor adjusted value of the collateral deposits.
+     * @return price Price for the collateral asset
      */
-    function getAccountCollateralValue(address _account) external view returns (uint256);
+    function getAccountCollateralValues(
+        address _account,
+        address _asset
+    ) external view returns (uint256 value, uint256 valueAdjusted, uint256 price);
+
+    /**
+     * @notice Gets the adjusted collateral value of a particular account.
+     * @param _account Account to calculate the collateral value for.
+     * @return valueAdjusted Collateral value of a particular account.
+     */
+    function getAccountTotalCollateralValue(address _account) external view returns (uint256 valueAdjusted);
+
+    /**
+     * @notice Gets the adjusted and unadjusted collateral value of `_account`.
+     * @notice Adjusted value means it is multiplied by cFactor.
+     * @param _account Account to get the values for
+     * @return value Unadjusted total value of the collateral deposits.
+     * @return valueAdjusted cFactor adjusted total value of the collateral deposits.
+     */
+    function getAccountTotalCollateralValues(address _account) external view returns (uint256 value, uint256 valueAdjusted);
 
     /**
      * @notice Get an account's minimum collateral value required
      * to back a Kresko asset amount at a given collateralization ratio.
      * @dev Accounts that have their collateral value under the minimum collateral value are considered unhealthy,
      *      accounts with their collateral value under the liquidation threshold are considered liquidatable.
-     * @param _account The account to calculate the minimum collateral value for.
-     * @param _ratio The collateralization ratio required: higher ratio = more collateral required
-     * @return The minimum collateral value of a particular account.
+     * @param _account Account to calculate the minimum collateral value for.
+     * @param _ratio Collateralization ratio required: higher ratio = more collateral required
+     * @return uint256 Minimum collateral value of a particular account.
      */
     function getAccountMinCollateralAtRatio(address _account, uint256 _ratio) external view returns (uint256);
 
@@ -74,29 +116,16 @@ interface IAccountStateFacet {
     function getAccountCollateralRatio(address _account) external view returns (uint256 ratio);
 
     /**
-     * @notice Get a list of accounts and their collateral ratios
+     * @notice Get a list of account collateral ratios
      * @return ratios of the accounts
      */
-    function getCollateralRatiosFor(address[] memory _accounts) external view returns (uint256[] memory);
-
-    /**
-     * @notice Get the adjusted value of collateral and the real value of collateral
-     * @dev The adjusted value of collateral is the value of collateral after adjusting for the cFactor
-     * @param _account The account to get the collateral values for.
-     * @param _asset The asset to get the collateral values for.
-     * @return value The unadjusted value of the collateral.
-     * @return valueAdjusted The adjusted value of the collateral.
-     */
-    function getAccountCollateralValueOf(
-        address _account,
-        address _asset
-    ) external view returns (uint256 value, uint256 valueAdjusted);
+    function getAccountCollateralRatios(address[] memory _accounts) external view returns (uint256[] memory);
 
     /**
      * @notice Gets an index for the collateral asset the account has deposited.
-     * @param _account The account to get the index for.
-     * @param _collateralAsset The asset lookup address.
-     * @return i = index of the minted collateral asset.
+     * @param _account Account to get the index for.
+     * @param _collateralAsset Asset address.
+     * @return i = the index of the minted collateral asset.
      */
     function getAccountDepositIndex(address _account, address _collateralAsset) external view returns (uint256 i);
 
@@ -129,6 +158,6 @@ interface IAccountStateFacet {
         address _account,
         address _kreskoAsset,
         uint256 _kreskoAssetAmount,
-        uint256 _feeType
+        Fee _feeType
     ) external view returns (address[] memory, uint256[] memory);
 }

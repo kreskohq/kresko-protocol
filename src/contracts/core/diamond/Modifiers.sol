@@ -2,17 +2,21 @@
 pragma solidity ^0.8.0;
 
 import {Meta} from "libs/Meta.sol";
-import {Error} from "common/Errors.sol";
+import {CError} from "common/CError.sol";
 import {ds} from "diamond/State.sol";
 
 abstract contract DSModifiers {
     modifier onlyOwner() {
-        require(Meta.msgSender() == ds().contractOwner, Error.DIAMOND_INVALID_OWNER);
+        if (Meta.msgSender() != ds().contractOwner) {
+            revert CError.NOT_OWNER(Meta.msgSender(), ds().contractOwner);
+        }
         _;
     }
 
     modifier onlyPendingOwner() {
-        require(Meta.msgSender() == ds().pendingOwner, Error.DIAMOND_INVALID_PENDING_OWNER);
+        if (Meta.msgSender() != ds().pendingOwner) {
+            revert CError.NOT_PENDING_OWNER(Meta.msgSender(), ds().pendingOwner);
+        }
         _;
     }
 }

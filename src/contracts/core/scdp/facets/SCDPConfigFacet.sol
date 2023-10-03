@@ -6,12 +6,12 @@ import {Arrays} from "libs/Arrays.sol";
 import {DSModifiers} from "diamond/Modifiers.sol";
 import {ds} from "diamond/State.sol";
 
-import {Role} from "common/Types.sol";
+import {Role, Asset} from "common/Types.sol";
 import {DiamondEvent} from "common/Events.sol";
 import {CModifiers} from "common/Modifiers.sol";
 import {cs} from "common/State.sol";
 import {Percents} from "common/Constants.sol";
-import {CError} from "common/Errors.sol";
+import {CError} from "common/CError.sol";
 import {MEvent} from "minter/Events.sol";
 
 import {ISCDPConfigFacet} from "scdp/interfaces/ISCDPConfigFacet.sol";
@@ -110,95 +110,57 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, CModifiers {
     }
 
     /// @inheritdoc ISCDPConfigFacet
-    function enableAssetsSCDP(address[] calldata _enabledAssets, bool _enableAsDepositAsset) external onlyRole(Role.ADMIN) {
-        require(_enabledAssets.length > 0, "collateral-disable-length-0");
-        address[] memory enabledAssets = scdp().collaterals;
-        bool didEnable;
-        // Loopdy by disabled assets in.
-        for (uint256 i; i < _enabledAssets.length; i++) {
-            address enabledAsset = _enabledAssets[i];
-            // Remove the assets from enabled list.
-            for (uint256 j; j < enabledAssets.length; j++) {
-                if (enabledAsset == enabledAssets[j]) {
-                    scdp().isEnabled[enabledAsset] = true;
-                    if (_enableAsDepositAsset) {
-                        require(cs().assets[enabledAsset].decimals != 0, "!depositable");
-                        cs().assets[enabledAsset].isSCDPDepositAsset = true;
-                    }
-                    didEnable = true;
-                }
-            }
+    function setDepositAssetSCDP(address _assetAddr, bool _enabled) external onlyRole(Role.ADMIN) {
+        Asset storage asset = cs().assets[_assetAddr];
+        if (!asset.isSCDPCollateral) {
+            revert CError.COLLATERAL_DOES_NOT_EXIST(_assetAddr);
+        } else if (_enabled && asset.isSCDPDepositAsset) {
+            revert CError.ASSET_ALREADY_ENABLED(_assetAddr);
+        } else if (!_enabled && !asset.isSCDPDepositAsset) {
+            revert CError.ASSET_ALREADY_DISABLED(_assetAddr);
         }
-
-        require(didEnable, "!enabled");
+        if (_enabled) {
+            scdp().collaterals.pushUnique(_assetAddr);
+        } else {
+            asset.depositLimitSCDP = 0;
+        }
+        asset.isSCDPDepositAsset = _enabled;
     }
 
     /// @inheritdoc ISCDPConfigFacet
-    function disableAssetsSCDP(address[] calldata _disabledAssets, bool _disableDepositsOnly) external onlyRole(Role.ADMIN) {
-        require(_disabledAssets.length > 0, "array");
-        address[] memory enabledAssets = scdp().collaterals;
-        bool didDisable;
-        // Loopdy by disabled assets in.
-        for (uint256 i; i < _disabledAssets.length; i++) {
-            address disabledAsset = _disabledAssets[i];
-            // Remove the assets from enabled list.
-            for (uint256 j; j < enabledAssets.length; j++) {
-                if (disabledAsset == enabledAssets[j]) {
-                    cs().assets[disabledAsset].isSCDPDepositAsset = false;
-                    if (!_disableDepositsOnly) {
-                        scdp().isEnabled[disabledAsset] = false;
-                    }
-                    didDisable = true;
-                }
-            }
+    function setKrAssetSCDP(address _assetAddr, bool _enabled) external onlyRole(Role.ADMIN) {
+        Asset storage asset = cs().assets[_assetAddr];
+        if (_enabled && asset.isKrAsset) {
+            revert CError.ASSET_ALREADY_ENABLED(_assetAddr);
+        } else if (!_enabled && !asset.isKrAsset) {
+            revert CError.ASSET_ALREADY_DISABLED(_assetAddr);
         }
-        require(didDisable, "!disabled");
+        if (_enabled) {
+            scdp().collaterals.pushUnique(_assetAddr);
+            scdp().krAssets.pushUnique(_assetAddr);
+        } else {
+            if (asset.toRebasingAmount(scdp().assetData[_assetAddr].debt) != 0) revert CError.INVALID_ASSET(_assetAddr);
+            scdp().krAssets.removeExisting(_assetAddr);
+            asset.liqIncentiveSCDP = 0;
+        }
+        asset.isSCDPKrAsset = _enabled;
     }
 
-    /// @inheritdoc ISCDPConfigFacet
-    function removeCollateralsSCDP(address[] calldata _removedAssets) external onlyRole(Role.ADMIN) {
-        require(_removedAssets.length > 0, "array");
-        address[] memory enabledCollaterals = scdp().collaterals;
-        bool didRemove;
-        // Loopdy by disabled assets in.
-        for (uint256 i; i < _removedAssets.length; i++) {
-            address removedAsset = _removedAssets[i];
-            // Remove the assets from enabled list.
-            for (uint256 j; j < enabledCollaterals.length; j++) {
-                if (removedAsset == enabledCollaterals[j]) {
-                    require(scdp().userDepositAmount(removedAsset, cs().assets[removedAsset]) == 0, "deposits");
-                    scdp().collaterals.removeAddress(removedAsset, j);
-                    scdp().isEnabled[removedAsset] = false;
-                    cs().assets[removedAsset].isSCDPDepositAsset = false;
-                    didRemove = true;
-                }
-            }
+    function setCollateralSCDP(address _assetAddr, bool _enabled) external onlyRole(Role.ADMIN) {
+        Asset storage asset = cs().assets[_assetAddr];
+        if (_enabled && asset.isSCDPCollateral) {
+            revert CError.ASSET_ALREADY_ENABLED(_assetAddr);
+        } else if (!_enabled && !asset.isSCDPCollateral) {
+            revert CError.ASSET_ALREADY_DISABLED(_assetAddr);
         }
-        require(didRemove, "!removed");
-    }
-
-    /// @inheritdoc ISCDPConfigFacet
-    function removeKrAssetsSCDP(address[] calldata _removedAssets) external onlyRole(Role.ADMIN) {
-        require(_removedAssets.length > 0, "krasset-disable-length-0");
-        address[] memory enabledKrAssets = scdp().krAssets;
-        bool didRemove;
-        // Loopdy by disabled assets in.
-        for (uint256 i; i < _removedAssets.length; i++) {
-            address removedAsset = _removedAssets[i];
-
-            // Remove the assets from enabled list.
-            for (uint256 j; j < enabledKrAssets.length; j++) {
-                if (removedAsset == enabledKrAssets[j]) {
-                    // Make sure the asset has no debt.
-                    require(scdp().assetData[removedAsset].debt == 0, "debt");
-                    scdp().krAssets.removeAddress(removedAsset, j);
-                    scdp().isEnabled[removedAsset] = false;
-                    cs().assets[removedAsset].isSCDPDepositAsset = false;
-                    didRemove = true;
-                }
-            }
+        if (_enabled) {
+            scdp().collaterals.pushUnique(_assetAddr);
+        } else {
+            if (scdp().userDepositAmount(_assetAddr, asset) != 0) revert CError.INVALID_ASSET(_assetAddr);
+            scdp().collaterals.removeExisting(_assetAddr);
+            asset.depositLimitSCDP = 0;
         }
-        require(didRemove, "!removed");
+        asset.isSCDPCollateral = _enabled;
     }
 
     /* -------------------------------------------------------------------------- */

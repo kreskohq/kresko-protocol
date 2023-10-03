@@ -3,7 +3,7 @@ pragma solidity >=0.8.19;
 
 import {ERC20} from "vendor/ERC20.sol";
 import {WadRay} from "libs/WadRay.sol";
-import {IVault} from "vault/interfaces/IVault.sol";
+import {CError} from "common/CError.sol";
 import {VaultAsset} from "vault/Types.sol";
 
 /**
@@ -21,7 +21,7 @@ library VAssets {
         (, int256 answer, , , ) = self.oracle.latestRoundData();
 
         if (answer <= 0) {
-            revert IVault.InvalidPrice(address(self.token), address(self.oracle), answer);
+            revert CError.INVALID_PRICE(address(self.token), address(self.oracle), answer);
         }
 
         return uint256(answer);

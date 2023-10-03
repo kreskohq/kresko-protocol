@@ -30,7 +30,7 @@ using Arrays for address[];
  * @param _kreskoAsset The address of the kresko asset being minted.
  * @param _kreskoAssetAmountMinted The amount of the kresko asset being minted.
  */
-function handleMinterOpenFee(address _account, Asset memory _kreskoAsset, uint256 _kreskoAssetAmountMinted) {
+function handleMinterOpenFee(address _account, Asset storage _kreskoAsset, uint256 _kreskoAssetAmountMinted) {
     // Calculate the value of the fee according to the value of the krAssets being minted.
     uint256 feeValue = _kreskoAsset.uintUSD(_kreskoAssetAmountMinted).percentMul(_kreskoAsset.openFee);
 
@@ -46,7 +46,7 @@ function handleMinterOpenFee(address _account, Asset memory _kreskoAsset, uint25
     // other elements in the array.
     for (uint256 i = accountCollaterals.length - 1; i >= 0; i--) {
         address currentCollateral = accountCollaterals[i];
-        Asset memory asset = cs().assets[currentCollateral];
+        Asset storage asset = cs().assets[currentCollateral];
 
         (uint256 transferAmount, uint256 feeValuePaid) = calcMinterFee(currentCollateral, asset, _account, feeValue, i);
 
@@ -73,7 +73,7 @@ function handleMinterOpenFee(address _account, Asset memory _kreskoAsset, uint25
  * @param _kreskoAsset The address of the kresko asset being burned.
  * @param _burnAmount The amount of the kresko asset being burned.
  */
-function handleMinterCloseFee(address _account, Asset memory _kreskoAsset, uint256 _burnAmount) {
+function handleMinterCloseFee(address _account, Asset storage _kreskoAsset, uint256 _burnAmount) {
     // Calculate the value of the fee according to the value of the krAssets being burned.
     uint256 feeValue = _kreskoAsset.uintUSD(_burnAmount).percentMul(_kreskoAsset.closeFee);
 
@@ -90,7 +90,7 @@ function handleMinterCloseFee(address _account, Asset memory _kreskoAsset, uint2
 
     for (uint256 i = accountCollaterals.length - 1; i >= 0; i--) {
         address currentCollateral = accountCollaterals[i];
-        Asset memory asset = cs().assets[currentCollateral];
+        Asset storage asset = cs().assets[currentCollateral];
         (uint256 transferAmount, uint256 feeValuePaid) = calcMinterFee(currentCollateral, asset, _account, feeValue, i);
 
         // Remove the transferAmount from the stored deposit for the account.
@@ -120,7 +120,7 @@ function handleMinterCloseFee(address _account, Asset memory _kreskoAsset, uint2
  */
 function calcMinterFee(
     address _collateralAsset,
-    Asset memory _asset,
+    Asset storage _asset,
     address _account,
     uint256 _feeValue,
     uint256 _collateralAssetIndex

@@ -22,7 +22,7 @@ library SAccounts {
         SCDPState storage self,
         address _account,
         address _assetAddr,
-        Asset memory _asset
+        Asset storage _asset
     ) internal view returns (uint256) {
         uint256 deposits = _asset.toRebasingAmount(self.deposits[_account][_assetAddr]);
         if (deposits == 0) {
@@ -43,7 +43,7 @@ library SAccounts {
         SCDPState storage self,
         address _account,
         address _assetAddr,
-        Asset memory _asset
+        Asset storage _asset
     ) internal view returns (uint256 principalDeposits) {
         uint256 scaledDeposits = self.accountScaledDeposits(_account, _assetAddr, _asset);
         if (scaledDeposits == 0) {
@@ -69,7 +69,7 @@ library SAccounts {
     ) internal view returns (uint256 totalValue) {
         address[] memory assets = self.collaterals;
         for (uint256 i; i < assets.length; ) {
-            Asset memory asset = cs().assets[assets[i]];
+            Asset storage asset = cs().assets[assets[i]];
             uint256 depositAmount = self.accountPrincipalDeposits(_account, assets[i], asset);
             unchecked {
                 if (depositAmount != 0) {
@@ -91,7 +91,7 @@ library SAccounts {
     ) internal view returns (uint256 totalValue) {
         address[] memory assets = self.collaterals;
         for (uint256 i; i < assets.length; ) {
-            Asset memory asset = cs().assets[assets[i]];
+            Asset storage asset = cs().assets[assets[i]];
             uint256 scaledDeposits = self.accountScaledDeposits(_account, assets[i], asset);
             unchecked {
                 if (scaledDeposits != 0) {

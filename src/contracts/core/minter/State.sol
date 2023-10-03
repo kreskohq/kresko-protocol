@@ -30,6 +30,9 @@ struct MinterState {
     mapping(address => mapping(address => uint256)) kreskoAssetDebt;
     /// @notice Mapping of account -> addresses of borrowed krAssets
     mapping(address => address[]) mintedKreskoAssets;
+    /* --------------------------------- Assets --------------------------------- */
+    address[] krAssets;
+    address[] collaterals;
     /* -------------------------------------------------------------------------- */
     /*                           Configurable Parameters                          */
     /* -------------------------------------------------------------------------- */

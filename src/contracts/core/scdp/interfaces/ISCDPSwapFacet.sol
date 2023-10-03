@@ -28,9 +28,9 @@ interface ISCDPSwapFacet {
 
     /**
      * @notice Accumulates fees to deposits as a fixed, instantaneous income.
-     * @param _incomeAsset the income asset
-     * @param _amount amount to accumulate
-     * @return nextLiquidityIndex the next liquidity index
+     * @param _depositAssetAddr Deposit asset to give income for
+     * @param _incomeAmount Amount to accumulate
+     * @return nextLiquidityIndex Next liquidity index for the asset.
      */
-    function cumulateIncomeSCDP(address _incomeAsset, uint256 _amount) external returns (uint256 nextLiquidityIndex);
+    function cumulateIncomeSCDP(address _depositAssetAddr, uint256 _incomeAmount) external returns (uint256 nextLiquidityIndex);
 }

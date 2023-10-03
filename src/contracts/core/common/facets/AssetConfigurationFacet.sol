@@ -4,6 +4,7 @@ pragma solidity >=0.8.19;
 import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {IERC165} from "vendor/IERC165.sol";
 import {WadRay} from "libs/WadRay.sol";
+import {PercentageMath} from "libs/PercentageMath.sol";
 import {Arrays} from "libs/Arrays.sol";
 import {Strings} from "libs/Strings.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
@@ -13,21 +14,23 @@ import {IKISS} from "kiss/interfaces/IKISS.sol";
 
 import {scdp} from "scdp/State.sol";
 import {MEvent} from "minter/Events.sol";
-
+import {ms} from "minter/State.sol";
 import {IAssetConfigurationFacet} from "common/interfaces/IAssetConfigurationFacet.sol";
 import {AssetStateFacet} from "common/facets/AssetStateFacet.sol";
 import {CModifiers} from "common/Modifiers.sol";
 import {Percents, EMPTY_BYTES12} from "common/Constants.sol";
 import {Asset, Role, Oracle, OracleType, FeedConfiguration} from "common/Types.sol";
-import {CError} from "common/Errors.sol";
+import {CError} from "common/CError.sol";
 import {cs} from "common/State.sol";
+
+using PercentageMath for uint256;
+using PercentageMath for uint16;
+using WadRay for uint256;
+using Arrays for address[];
+using Strings for bytes12;
 
 // solhint-disable code-complexity
 contract AssetConfigurationFacet is IAssetConfigurationFacet, CModifiers, DSModifiers {
-    using WadRay for uint256;
-    using Arrays for address[];
-    using Strings for bytes12;
-
     /// @inheritdoc IAssetConfigurationFacet
     function addAsset(
         address _assetAddr,
@@ -47,6 +50,7 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, CModifiers, DSModi
         if (_config.isCollateral) {
             _validateMinterCollateral(_assetAddr, _config);
             emit MEvent.CollateralAssetAdded(underlyingIdStr, _assetAddr, _config.factor, _config.anchor, _config.liqIncentive);
+            ms().collaterals.push(_assetAddr);
         }
         if (_config.isKrAsset) {
             _validateMinterKrAsset(_assetAddr, _config);
@@ -59,6 +63,7 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, CModifiers, DSModi
                 _config.closeFee,
                 _config.openFee
             );
+            ms().krAssets.push(_assetAddr);
         }
         if (_config.isSCDPDepositAsset) {
             _validateSCDPDepositAsset(_assetAddr, _config);
@@ -102,6 +107,8 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, CModifiers, DSModi
             _validateMinterCollateral(_assetAddr, _config);
             asset.factor = _config.factor;
             asset.liqIncentive = _config.liqIncentive;
+            asset.isCollateral = true;
+            ms().collaterals.pushUnique(_assetAddr);
             emit MEvent.CollateralAssetUpdated(
                 underlyingIdStr,
                 _assetAddr,
@@ -109,7 +116,12 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, CModifiers, DSModi
                 _config.anchor,
                 _config.liqIncentive
             );
+        } else if (asset.isCollateral) {
+            asset.liqIncentive = 0;
+            asset.isCollateral = false;
+            ms().collaterals.removeExisting(_assetAddr);
         }
+
         if (_config.isKrAsset) {
             _validateMinterKrAsset(_assetAddr, _config);
             asset.kFactor = _config.kFactor;
@@ -117,6 +129,9 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, CModifiers, DSModi
             asset.closeFee = _config.closeFee;
             asset.openFee = _config.openFee;
             asset.anchor = _config.anchor;
+            asset.isKrAsset = true;
+            ms().krAssets.pushUnique(_assetAddr);
+
             emit MEvent.KreskoAssetUpdated(
                 underlyingIdStr,
                 _assetAddr,
@@ -126,6 +141,11 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, CModifiers, DSModi
                 _config.closeFee,
                 _config.openFee
             );
+        } else if (asset.isKrAsset) {
+            asset.liqIncentiveSCDP = 0;
+            asset.supplyLimit = 0;
+            asset.isKrAsset = false;
+            ms().krAssets.removeExisting(_assetAddr);
         }
 
         if (_config.isSCDPDepositAsset) {
@@ -134,6 +154,10 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, CModifiers, DSModi
                 asset.liquidityIndexSCDP = uint128(WadRay.RAY);
             }
             asset.depositLimitSCDP = _config.depositLimitSCDP;
+            asset.isSCDPDepositAsset = true;
+        } else if (asset.isSCDPDepositAsset) {
+            asset.depositLimitSCDP = 0;
+            asset.isSCDPDepositAsset = false;
         }
 
         if (_config.isSCDPKrAsset) {
@@ -142,64 +166,21 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, CModifiers, DSModi
             asset.swapOutFeeSCDP = _config.swapOutFeeSCDP;
             asset.protocolFeeShareSCDP = _config.protocolFeeShareSCDP;
             asset.liqIncentiveSCDP = _config.liqIncentiveSCDP;
-            bool shouldAddToKrAssets = true;
-            for (uint256 i; i < scdp().krAssets.length; i++) {
-                if (scdp().krAssets[i] == _assetAddr) {
-                    shouldAddToKrAssets = false;
-                }
-            }
-            if (shouldAddToKrAssets) {
-                scdp().krAssets.push(_assetAddr);
-            }
-        }
-
-        if (asset.isKrAsset && !_config.isKrAsset) {
-            asset.supplyLimit = 0;
-            emit MEvent.KreskoAssetUpdated(
-                underlyingIdStr,
-                _assetAddr,
-                _config.anchor,
-                _config.kFactor,
-                0,
-                _config.closeFee,
-                _config.openFee
-            );
-        }
-        if (asset.isSCDPKrAsset && !_config.isSCDPKrAsset) {
-            scdp().isEnabled[_assetAddr] = false;
-            for (uint256 i; i < scdp().krAssets.length; i++) {
-                if (scdp().krAssets[i] == _assetAddr) {
-                    scdp().krAssets.removeAddress(_assetAddr, i);
-                }
-            }
-        }
-
-        if (asset.isSCDPDepositAsset && !_config.isSCDPDepositAsset) {
-            asset.depositLimitSCDP = 0;
-        }
-        if (asset.isSCDPCollateral && !_config.isSCDPCollateral) {
-            scdp().isEnabled[_assetAddr] = false;
-        }
-
-        asset.isCollateral = _config.isCollateral;
-        asset.isKrAsset = _config.isKrAsset;
-        asset.isSCDPDepositAsset = _config.isSCDPDepositAsset;
-        asset.isSCDPKrAsset = _config.isSCDPKrAsset;
-
-        if (cs().assets[_assetAddr].pushedPrice().price == 0) {
-            revert CError.NO_PUSH_PRICE(underlyingIdStr);
+            asset.isSCDPKrAsset = true;
+            scdp().krAssets.pushUnique(_assetAddr);
+        } else if (asset.isSCDPKrAsset) {
+            asset.isSCDPKrAsset = false;
+            asset.liqIncentiveSCDP = 0;
+            scdp().krAssets.removeExisting(_assetAddr);
         }
 
         if (asset.isSCDPDepositAsset || asset.isSCDPKrAsset) {
-            bool shouldAddToCollaterals = true;
-            for (uint256 i; i < scdp().collaterals.length; i++) {
-                if (scdp().collaterals[i] == _assetAddr) {
-                    shouldAddToCollaterals = false;
-                }
-            }
-            if (shouldAddToCollaterals) {
-                scdp().collaterals.push(_assetAddr);
-            }
+            asset.isSCDPCollateral = true;
+            scdp().collaterals.pushUnique(_assetAddr);
+        } // no deleting collaterals here
+
+        if (cs().assets[_assetAddr].pushedPrice().price == 0) {
+            revert CError.NO_PUSH_PRICE(underlyingIdStr);
         }
     }
 
@@ -288,9 +269,10 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, CModifiers, DSModi
             _validateSCDPKrAsset(_assetAddr, _config);
         }
 
-        if (_config.pushedPrice().price == 0) {
+        if (_config.checkOracles().price == 0) {
             revert CError.NO_PUSH_PRICE(_config.underlyingId.toString());
         }
+        validateLiqConfig(_assetAddr);
     }
 
     function _validateMinterCollateral(address _assetAddr, Asset memory _config) internal pure {
@@ -347,6 +329,71 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, CModifiers, DSModi
             revert CError.INVALID_LIQ_INCENTIVE(_assetAddr, _config.liqIncentiveSCDP, Percents.MAX_LIQ_INCENTIVE);
         } else if (_config.liqIncentiveSCDP < Percents.MIN_LIQ_INCENTIVE) {
             revert CError.INVALID_LIQ_INCENTIVE(_assetAddr, _config.liqIncentiveSCDP, Percents.MIN_LIQ_INCENTIVE);
+        }
+    }
+
+    function validateLiqConfig(address _assetAddr) public view {
+        Asset storage asset = cs().assets[_assetAddr];
+        if (asset.isKrAsset) {
+            address[] memory minterCollaterals = ms().collaterals;
+            for (uint256 i; i < minterCollaterals.length; i++) {
+                address collateralAddr = minterCollaterals[i];
+                Asset storage collateral = cs().assets[collateralAddr];
+                _checkLiqPercents(collateralAddr, collateral, _assetAddr, asset);
+                _checkLiqPercents(_assetAddr, asset, collateralAddr, collateral);
+            }
+        }
+
+        if (asset.isCollateral) {
+            address[] memory minterKrAssets = ms().krAssets;
+            for (uint256 i; i < minterKrAssets.length; i++) {
+                address krAssetAddr = minterKrAssets[i];
+                Asset storage krAsset = cs().assets[krAssetAddr];
+                _checkLiqPercents(_assetAddr, asset, krAssetAddr, krAsset);
+                _checkLiqPercents(krAssetAddr, krAsset, _assetAddr, asset);
+            }
+        }
+
+        if (asset.isSCDPCollateral) {
+            address[] memory scdpKrAssets = scdp().krAssets;
+            for (uint256 i; i < scdpKrAssets.length; i++) {
+                address scdpKrAssetAddr = scdpKrAssets[i];
+                Asset storage scdpKrAsset = cs().assets[scdpKrAssetAddr];
+                _checkLiqPercents(_assetAddr, asset, scdpKrAssetAddr, scdpKrAsset);
+                _checkLiqPercents(scdpKrAssetAddr, scdpKrAsset, _assetAddr, asset);
+            }
+        }
+
+        if (asset.isSCDPKrAsset) {
+            address[] memory scdpCollaterals = scdp().collaterals;
+            for (uint256 i; i < scdpCollaterals.length; i++) {
+                address scdpCollateralAddr = scdpCollaterals[i];
+                Asset storage scdpCollateral = cs().assets[scdpCollateralAddr];
+                _checkLiqPercents(_assetAddr, asset, scdpCollateralAddr, scdpCollateral);
+                _checkLiqPercents(scdpCollateralAddr, scdpCollateral, _assetAddr, asset);
+            }
+        }
+    }
+
+    function _checkLiqPercents(
+        address _seizeAssetAddr,
+        Asset storage seizeAsset,
+        address _repayAssetAddr,
+        Asset storage repayAsset
+    ) internal view {
+        if (seizeAsset.isSCDPCollateral && repayAsset.isSCDPKrAsset) {
+            uint256 seizeReductionPct = (repayAsset.liqIncentiveSCDP.percentMul(seizeAsset.factor));
+            uint256 repayIncreasePct = (repayAsset.kFactor.percentMul(scdp().maxLiquidationRatio));
+            if (seizeReductionPct >= repayIncreasePct) {
+                revert CError.SCDP_ASSET_ECONOMY(_seizeAssetAddr, seizeReductionPct, _repayAssetAddr, repayIncreasePct);
+            }
+        }
+        if (seizeAsset.isCollateral && repayAsset.isKrAsset) {
+            uint256 seizeReductionPct = (seizeAsset.liqIncentive.percentMul(seizeAsset.factor)) + repayAsset.closeFee;
+            uint256 repayIncreasePct = (repayAsset.kFactor.percentMul(ms().maxLiquidationRatio));
+            if (seizeReductionPct >= repayIncreasePct) {
+                revert CError.MINTER_ASSET_ECONOMY(_seizeAssetAddr, seizeReductionPct, _repayAssetAddr, repayIncreasePct);
+            }
         }
     }
 }

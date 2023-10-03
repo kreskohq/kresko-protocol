@@ -9,7 +9,7 @@ import {PercentageMath} from "libs/PercentageMath.sol";
 import {isSequencerUp} from "common/funcs/Utils.sol";
 import {PushPrice, Oracle, OracleType} from "common/Types.sol";
 import {Percents} from "common/Constants.sol";
-import {CError} from "common/Errors.sol";
+import {CError} from "common/CError.sol";
 import {Redstone} from "libs/Redstone.sol";
 import {cs} from "common/State.sol";
 import {scdp, sdi} from "scdp/State.sol";
@@ -25,15 +25,6 @@ using Strings for bytes12;
 /// @notice Get the price of SDI in USD, oracle precision.
 function SDIPrice() view returns (uint256) {
     uint256 totalValue = scdp().totalDebtValueAtRatioSCDP(Percents.HUNDRED, false);
-    if (totalValue == 0) {
-        return 10 ** sdi().sdiPricePrecision;
-    }
-    return totalValue.wadDiv(sdi().totalDebt);
-}
-
-/// @notice Get the price of SDI in USD, oracle precision.
-function SDIPriceStorage() view returns (uint256) {
-    uint256 totalValue = scdp().totalDebtValueAtRatioSCDPStorage(Percents.HUNDRED, false);
     if (totalValue == 0) {
         return 10 ** sdi().sdiPricePrecision;
     }
@@ -69,7 +60,7 @@ function safePrice(bytes12 _assetId, OracleType[2] memory _oracles, uint256 _ora
  */
 function oraclePrice(OracleType _oracleId, bytes12 _assetId) view returns (uint256) {
     if (_oracleId != OracleType.Redstone) {
-        Oracle memory oracle = cs().oracles[_assetId][_oracleId];
+        Oracle storage oracle = cs().oracles[_assetId][_oracleId];
         return oracle.priceGetter(oracle.feed);
     }
     return Redstone.getPrice(_assetId);
@@ -84,7 +75,7 @@ function oraclePrice(OracleType _oracleId, bytes12 _assetId) view returns (uint2
 function pushPrice(OracleType[2] memory _oracles, bytes12 _assetId) view returns (PushPrice memory) {
     for (uint8 i; i < _oracles.length; i++) {
         OracleType oracleType = _oracles[i];
-        Oracle memory oracle = cs().oracles[_assetId][_oracles[i]];
+        Oracle storage oracle = cs().oracles[_assetId][_oracles[i]];
 
         if (oracleType == OracleType.Chainlink) {
             return aggregatorV3PriceWithTimestamp(oracle.feed);

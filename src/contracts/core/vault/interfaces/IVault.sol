@@ -250,11 +250,4 @@ interface IVault {
     /* -------------------------------------------------------------------------- */
     /*                                   Errors                                   */
     /* -------------------------------------------------------------------------- */
-
-    error InvalidPrice(address token, address oracle, int256 price);
-    error InvalidDeposit(uint256 assetsIn, uint256 sharesOut);
-    error InvalidWithdraw(uint256 sharesIn, uint256 assetsOut);
-    error RoundingError(string desc, uint256 sharesIn, uint256 assetsOut);
-    error MaxDeposit(uint256 assetsIn, uint256 maxDeposit);
-    error InvalidFee(uint256 fee);
 }

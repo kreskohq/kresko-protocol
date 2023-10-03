@@ -3,7 +3,7 @@ pragma solidity >=0.8.19;
 
 import {WadRay} from "libs/WadRay.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
-import {Error} from "common/Errors.sol";
+import {CError} from "common/CError.sol";
 import {cs} from "common/State.sol";
 import {Asset} from "common/Types.sol";
 import {MinterState} from "minter/State.sol";
@@ -18,27 +18,26 @@ library MAccounts {
 
     /**
      * @notice Checks if accounts collateral value is less than required.
-     * @param _account The account to check.
-     * @return A boolean indicating if the account can be liquidated.
+     * @notice Reverts if account is not liquidatable.
+     * @param _account Account to check.
      */
-    function isAccountLiquidatable(MinterState storage self, address _account) internal view returns (bool) {
-        return self.accountCollateralValue(_account) < self.accountMinCollateralAtRatio(_account, self.liquidationThreshold);
+    function checkAccountLiquidatable(MinterState storage self, address _account) internal view {
+        uint256 collateralValue = self.accountTotalCollateralValue(_account);
+        uint256 minCollateralValue = self.accountMinCollateralAtRatio(_account, self.liquidationThreshold);
+        if (collateralValue >= minCollateralValue) {
+            revert CError.CANNOT_LIQUIDATE(collateralValue, minCollateralValue);
+        }
     }
 
     /**
-     * @notice Overload for calculating liquidatable status with a future liquidated collateral value
-     * @param _account The account to check.
-     * @param _valueLiquidated Value liquidated, eg. in a batch liquidation
-     * @return bool indicating if the account can be liquidated.
+     * @notice Gets the liquidatable status of an account.
+     * @param _account Account to check.
+     * @return bool Indicating if the account is liquidatable.
      */
-    function isAccountLiquidatable(
-        MinterState storage self,
-        address _account,
-        uint256 _valueLiquidated
-    ) internal view returns (bool) {
-        return
-            self.accountCollateralValue(_account) - _valueLiquidated <
-            (self.accountMinCollateralAtRatio(_account, self.liquidationThreshold));
+    function isAccountLiquidatable(MinterState storage self, address _account) internal view returns (bool) {
+        uint256 collateralValue = self.accountTotalCollateralValue(_account);
+        uint256 minCollateralValue = self.accountMinCollateralAtRatio(_account, self.liquidationThreshold);
+        return collateralValue < minCollateralValue;
     }
 
     /* -------------------------------------------------------------------------- */
@@ -47,13 +46,13 @@ library MAccounts {
 
     /**
      * @notice Gets the total debt value in USD for an account.
-     * @param _account The account to calculate the KreskoAsset value for.
-     * @return value The KreskoAsset debt value of the account.
+     * @param _account Account to calculate the KreskoAsset value for.
+     * @return value Total kresko asset debt value of `_account`.
      */
-    function accountDebtValue(MinterState storage self, address _account) internal view returns (uint256 value) {
+    function accountTotalDebtValue(MinterState storage self, address _account) internal view returns (uint256 value) {
         address[] memory assets = self.mintedKreskoAssets[_account];
         for (uint256 i; i < assets.length; ) {
-            Asset memory asset = cs().assets[assets[i]];
+            Asset storage asset = cs().assets[assets[i]];
             uint256 debtAmount = self.accountDebtAmount(_account, assets[i], asset);
             unchecked {
                 if (debtAmount != 0) {
@@ -66,68 +65,72 @@ library MAccounts {
     }
 
     /**
-     * @notice Get `_account` principal debt amount for `_asset`
+     * @notice Gets `_account` principal debt amount for `_asset`
      * @dev Principal debt is rebase adjusted due to possible stock splits/reverse splits
-     * @param _account The account to query amount for
-     * @param _asset The asset address
-     * @param asset The asset struct
-     * @return Amount of principal debt for `_asset`
+     * @param _account Account to get debt amount for.
+     * @param _assetAddr Kresko asset address
+     * @param _asset Asset truct for the kresko asset.
+     * @return debtAmount Amount of debt the `_account` has for `_asset`
      */
     function accountDebtAmount(
         MinterState storage self,
         address _account,
-        address _asset,
-        Asset memory asset
-    ) internal view returns (uint256) {
-        return asset.toRebasingAmount(self.kreskoAssetDebt[_account][_asset]);
+        address _assetAddr,
+        Asset storage _asset
+    ) internal view returns (uint256 debtAmount) {
+        return _asset.toRebasingAmount(self.kreskoAssetDebt[_account][_assetAddr]);
     }
 
     /**
      * @notice Gets an index for the Kresko asset the account has minted.
-     * @param _account The account to get the minted Kresko assets for.
-     * @param _kreskoAsset The asset lookup address.
-     * @return i = index of the minted Kresko asset.
+     * @param _account Account to get the minted Kresko assets for.
+     * @param _kreskoAsset Asset address.
+     * @return mintIndex Index of the minted `_kreskoAsset` in the array for the `_account`.
      */
     function accountMintIndex(
         MinterState storage self,
         address _account,
         address _kreskoAsset
-    ) internal view returns (uint256 i) {
+    ) internal view returns (uint256 mintIndex) {
         uint256 length = self.mintedKreskoAssets[_account].length;
-        require(length > 0, Error.NO_KRASSETS_MINTED);
-        for (i; i < length; ) {
-            if (self.mintedKreskoAssets[_account][i] == _kreskoAsset) {
+        if (length == 0) revert CError.NO_MINTED_ASSETS(_account);
+
+        for (mintIndex; mintIndex < length; ) {
+            if (self.mintedKreskoAssets[_account][mintIndex] == _kreskoAsset) {
                 break;
             }
             unchecked {
-                i++;
+                mintIndex++;
             }
         }
     }
 
     /**
-     * @notice Gets an array of Kresko assets the account has minted.
-     * @param _account The account to get the minted Kresko assets for.
-     * @return An array of addresses of Kresko assets the account has minted.
+     * @notice Gets an array of kresko assets the account has minted.
+     * @param _account Account to get the minted kresko assets for.
+     * @return mintedAssets Array of addresses of kresko assets the account has minted.
      */
-    function accountDebtAssets(MinterState storage self, address _account) internal view returns (address[] memory) {
+    function accountDebtAssets(
+        MinterState storage self,
+        address _account
+    ) internal view returns (address[] memory mintedAssets) {
         return self.mintedKreskoAssets[_account];
     }
 
     /**
      * @notice Gets accounts min collateral value required to cover debt at a given collateralization ratio.
-     * @dev 1. Account with min collateral value under MCR will not borrow.
-     *      2. Account with min collateral value under LT can be liquidated.
-     * @param _account The account to calculate the minimum collateral value for.
-     * @param _ratio The collateralization ratio to get min collateral value against.
-     * @return The min collateral value at given collateralization ratio for the account.
+     * @notice Account with min collateral value under MCR cannot borrow.
+     * @notice Account with min collateral value under LT can be liquidated up to maxLiquidationRatio.
+     * @param _account Account to calculate the minimum collateral value for.
+     * @param _ratio Collateralization ratio to apply for the minimum collateral value.
+     * @return minCollateralValue Minimum collateral value required for the account with `_ratio`.
      */
     function accountMinCollateralAtRatio(
         MinterState storage self,
         address _account,
         uint256 _ratio
-    ) internal view returns (uint256) {
-        return self.accountDebtValue(_account).percentMul(_ratio);
+    ) internal view returns (uint256 minCollateralValue) {
+        return self.accountTotalDebtValue(_account).percentMul(_ratio);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -135,44 +138,46 @@ library MAccounts {
     /* -------------------------------------------------------------------------- */
 
     /**
-     * @notice Gets an array of collateral assets the account has deposited.
-     * @param _account The account to get the deposited collateral assets for.
-     * @return An array of addresses of collateral assets the account has deposited.
+     * @notice Gets the array of collateral assets the account has deposited.
+     * @param _account Account to get the deposited collateral assets for.
+     * @return depositedAssets Array of deposited collateral assets for `_account`.
      */
-    function accountCollateralAssets(MinterState storage self, address _account) internal view returns (address[] memory) {
+    function accountCollateralAssets(
+        MinterState storage self,
+        address _account
+    ) internal view returns (address[] memory depositedAssets) {
         return self.depositedCollateralAssets[_account];
     }
 
     /**
-     * @notice Get deposited collateral asset amount for an account
+     * @notice Gets the deposited collateral asset amount for an account
      * @notice Performs rebasing conversion for KreskoAssets
-     * @param _assetAddress The asset address
-     * @param _asset The asset struct
-     * @param _account The account to query amount for
-     * @return uint256 amount of collateral for `_asset`
+     * @param _account Account to query amount for
+     * @param _assetAddress Collateral asset address
+     * @param _asset Asset struct of the collateral asset
+     * @return uint256 Collateral deposit amount of `_asset` for `_account`
      */
     function accountCollateralAmount(
         MinterState storage self,
         address _account,
         address _assetAddress,
-        Asset memory _asset
+        Asset storage _asset
     ) internal view returns (uint256) {
         return _asset.toRebasingAmount(self.collateralDeposits[_account][_assetAddress]);
     }
 
     /**
      * @notice Gets the collateral value of a particular account.
-     * @dev O(# of different deposited collateral assets by account) complexity.
-     * @param _account The account to calculate the collateral value for.
-     * @return totalCollateralValue The collateral value of a particular account.
+     * @param _account Account to calculate the collateral value for.
+     * @return totalCollateralValue Collateral value of a particular account.
      */
-    function accountCollateralValue(
+    function accountTotalCollateralValue(
         MinterState storage self,
         address _account
     ) internal view returns (uint256 totalCollateralValue) {
         address[] memory assets = self.depositedCollateralAssets[_account];
         for (uint256 i; i < assets.length; ) {
-            Asset memory asset = cs().assets[assets[i]];
+            Asset storage asset = cs().assets[assets[i]];
             uint256 collateralAmount = self.accountCollateralAmount(_account, assets[i], asset);
             unchecked {
                 if (collateralAmount != 0) {
@@ -189,20 +194,20 @@ library MAccounts {
     }
 
     /**
-     * @notice Gets the collateral value of a particular account including extra return value for specific collateral.
-     * @param _account The account to calculate the collateral value for.
-     * @param _collateralAsset The collateral asset to get the collateral value.
-     * @return totalCollateralValue The collateral value of a particular account.
-     * @return specificValue The collateral value of a particular account.
+     * @notice Gets the total collateral deposits value of an account while extracting value for `_collateralAsset`.
+     * @param _account Account to calculate the collateral value for.
+     * @param _collateralAsset Collateral asset to extract value for.
+     * @return totalValue Total collateral value of `_account`
+     * @return assetValue Collateral value of `_collateralAsset` for `_account`
      */
-    function accountCollateralAssetValue(
+    function accountTotalCollateralValue(
         MinterState storage self,
         address _account,
         address _collateralAsset
-    ) internal view returns (uint256 totalCollateralValue, uint256 specificValue) {
+    ) internal view returns (uint256 totalValue, uint256 assetValue) {
         address[] memory assets = self.depositedCollateralAssets[_account];
         for (uint256 i; i < assets.length; ) {
-            Asset memory asset = cs().assets[assets[i]];
+            Asset storage asset = cs().assets[assets[i]];
             uint256 collateralAmount = self.accountCollateralAmount(_account, assets[i], asset);
 
             unchecked {
@@ -211,9 +216,9 @@ library MAccounts {
                         collateralAmount,
                         false // Take the collateral factor into consideration.
                     );
-                    totalCollateralValue += collateralValue;
+                    totalValue += collateralValue;
                     if (assets[i] == _collateralAsset) {
-                        specificValue = collateralValue;
+                        assetValue = collateralValue;
                     }
                 }
                 i++;
@@ -222,24 +227,24 @@ library MAccounts {
     }
 
     /**
-     * @notice Gets an index for the collateral asset the account has deposited.
-     * @param _account The account to get the index for.
-     * @param _collateralAsset The asset lookup address.
-     * @return i = index of the minted collateral asset.
+     * @notice Gets the deposit index of `_collateralAsset` for `_account`.
+     * @param _account Account to get the index for.
+     * @param _collateralAsset Collateral asset address.
+     * @return depositIndex Index of the deposited asset in the array for `_account`.
      */
     function accountDepositIndex(
         MinterState storage self,
         address _account,
         address _collateralAsset
-    ) internal view returns (uint256 i) {
+    ) internal view returns (uint256 depositIndex) {
         uint256 length = self.depositedCollateralAssets[_account].length;
-        require(length > 0, Error.NO_COLLATERAL_DEPOSITS);
-        for (i; i < length; ) {
-            if (self.depositedCollateralAssets[_account][i] == _collateralAsset) {
+        if (length == 0) revert CError.NO_COLLATERALS_DEPOSITED(_account);
+        for (depositIndex; depositIndex < length; ) {
+            if (self.depositedCollateralAssets[_account][depositIndex] == _collateralAsset) {
                 break;
             }
             unchecked {
-                i++;
+                depositIndex++;
             }
         }
     }

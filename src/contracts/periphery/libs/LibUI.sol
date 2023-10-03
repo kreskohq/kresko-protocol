@@ -5,11 +5,11 @@ pragma solidity >=0.8.19;
 import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {PushPrice} from "common/Types.sol";
 import {IKrStaking} from "periphery/staking/interfaces/IKrStaking.sol";
+import {PercentageMath} from "libs/Percentages.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {OracleType} from "oracle/Types.sol";
 import {ms} from "minter/State.sol";
-import {KrAsset, CollateralAsset} from "minter/Types.sol";
-import {krAssetAmountToValue, collateralAmountToValue} from "minter/funcs/Conversions.sol";
+import {krAssetAmountToValue} from "minter/funcs/Conversions.sol";
 
 /* solhint-disable contract-name-camelcase */
 /* solhint-disable var-name-mixedcase */
@@ -20,6 +20,7 @@ import {krAssetAmountToValue, collateralAmountToValue} from "minter/funcs/Conver
  */
 library LibUI {
     using WadRay for uint256;
+    using PercentageMath for uint256;
 
     struct CollateralAssetInfoUser {
         address assetAddress;
@@ -219,7 +220,7 @@ library LibUI {
         result = new Price[](_assets.length);
 
         for (uint256 i; i < _assets.length; i++) {
-            Asset memory asset = cs().assets[_assets[i]];
+            Asset storage asset = cs().assets[_assets[i]];
             uint256 redstonePrice = Redstone.getPrice(asset.underlyingId);
             PushPrice memory pushPrice = asset.pushedPrice();
             uint256 price = asset.price();
@@ -240,7 +241,7 @@ library LibUI {
         result = new krAssetInfo[](assetAddresses.length);
         for (uint256 i; i < assetAddresses.length; i++) {
             address assetAddress = assetAddresses[i];
-            Asset memory krAsset = cs().assets[assetAddress];
+            Asset storage krAsset = cs().assets[assetAddress];
             result[i] = krAssetInfo({
                 value: krAssetAmountToValue(assetAddress, 1e4, false),
                 oracles: krAsset.oracles,
@@ -261,7 +262,7 @@ library LibUI {
         result = new CollateralAssetInfo[](assetAddresses.length);
         for (uint256 i; i < assetAddresses.length; i++) {
             address assetAddress = assetAddresses[i];
-            Asset memory collateralAsset = cs().assets[assetAddress];
+            Asset storage collateralAsset = cs().assets[assetAddress];
 
             uint8 decimals = IERC20Permit(assetAddress).decimals();
 
@@ -293,7 +294,7 @@ library LibUI {
                 address assetAddress = collateralAssetAddresses[i];
                 uint8 decimals = IERC20Permit(assetAddress).decimals();
 
-                Asset memory collateralAsset = cs().assets[assetAddress];
+                Asset storage collateralAsset = cs().assets[assetAddress];
                 uint256 amount = ms().accountCollateralAmount(_account, assetAddress, collateralAsset);
 
                 (uint256 amountUSD, uint256 price) = collateralAsset.collateralAmountToValueWithPrice(amount, true);
@@ -323,7 +324,7 @@ library LibUI {
             result = new krAssetInfoUser[](krAssetAddresses.length);
             for (uint256 i; i < krAssetAddresses.length; i++) {
                 address assetAddress = krAssetAddresses[i];
-                Asset memory krAsset = cs().assets[assetAddress];
+                Asset storage krAsset = cs().assets[assetAddress];
                 uint256 amount = ms().accountDebtAmount(_account, assetAddress, krAsset);
 
                 uint256 amountUSD = krAsset.debtAmountToValue(amount, true);
@@ -346,17 +347,6 @@ library LibUI {
         }
     }
 
-    function healthFactorFor(address _account) internal view returns (uint256) {
-        uint256 userDebt = ms().accountDebtValue(_account);
-        uint256 userCollateral = ms().accountCollateralValue(_account);
-
-        if (userDebt > 0) {
-            return userCollateral.wadDiv(userDebt);
-        } else {
-            return 0;
-        }
-    }
-
     function getRedstoneIds(
         krAssetInfoUser[] memory krInfos,
         CollateralAssetInfoUser[] memory collateralInfos
@@ -376,14 +366,16 @@ library LibUI {
         (CollateralAssetInfoUser[] memory collateralInfos, ) = collateralAssetInfoFor(_account);
 
         if (krInfos.length > 0 || collateralInfos.length > 0) {
+            uint256 collateralValue = ms().accountTotalCollateralValue(_account);
+            uint256 debtValue = ms().accountTotalDebtValue(_account);
             user = KreskoUser({
                 collateralAssets: collateralInfos,
                 krAssets: krInfos,
                 underlyingIds: getRedstoneIds(krInfos, collateralInfos),
                 borrowingPowerUSD: borrowingPowerUSD(_account),
-                healthFactor: healthFactorFor(_account),
-                debtUSD: ms().accountDebtValue(_account),
-                collateralUSD: ms().accountCollateralValue(_account),
+                healthFactor: collateralValue.percentDiv(debtValue),
+                debtUSD: debtValue,
+                collateralUSD: collateralValue,
                 minCollateralUSD: ms().accountMinCollateralAtRatio(_account, ms().minCollateralRatio)
             });
         }

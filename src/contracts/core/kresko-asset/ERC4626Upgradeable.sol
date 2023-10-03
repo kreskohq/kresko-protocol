@@ -5,7 +5,7 @@ import {FixedPointMathLib} from "@rari-capital/solmate/src/utils/FixedPointMathL
 import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
 import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {ERC20Upgradeable} from "vendor/ERC20Upgradeable.sol";
-import {Error} from "common/Errors.sol";
+import {CError} from "common/CError.sol";
 
 import {IKreskoAsset} from "./IKreskoAsset.sol";
 import {IERC4626Upgradeable} from "./IERC4626Upgradeable.sol";
@@ -72,10 +72,9 @@ abstract contract ERC4626Upgradeable is IERC4626Upgradeable, ERC20Upgradeable {
      * Issues the equivalent amount of assets to user
      */
     function issue(uint256 assets, address to) public virtual returns (uint256 shares) {
-        require(msg.sender == asset.kresko(), Error.ISSUER_NOT_KRESKO);
-
+        if (msg.sender != asset.kresko()) revert CError.INVALID_OPERATOR(msg.sender, asset.kresko());
         // Check for rounding error since we round down in previewDeposit.
-        require((shares = previewIssue(assets)) != 0, Error.ZERO_SHARES);
+        if ((shares = previewIssue(assets)) == 0) revert CError.ZERO_SHARES_OUT(address(this), assets);
 
         // Mint shares to kresko
         _mint(asset.kresko(), shares);
@@ -93,10 +92,9 @@ abstract contract ERC4626Upgradeable is IERC4626Upgradeable, ERC20Upgradeable {
      * Destorys the equivalent amount of assets from user
      */
     function destroy(uint256 assets, address from) public virtual returns (uint256 shares) {
-        require(msg.sender == asset.kresko(), Error.REDEEMER_NOT_KRESKO);
-
+        if (msg.sender != asset.kresko()) revert CError.INVALID_OPERATOR(msg.sender, asset.kresko());
         // Check for rounding error since we round down in previewDeposit.
-        require((shares = previewIssue(assets)) != 0, Error.ZERO_SHARES);
+        if ((shares = previewIssue(assets)) == 0) revert CError.ZERO_SHARES_IN(address(this), assets);
 
         _beforeWithdraw(assets, shares);
 
@@ -202,7 +200,7 @@ abstract contract ERC4626Upgradeable is IERC4626Upgradeable, ERC20Upgradeable {
     /// @inheritdoc IERC4626Upgradeable
     function deposit(uint256 assets, address receiver) public virtual returns (uint256 shares) {
         // Check for rounding error since we round down in previewDeposit.
-        require((shares = previewDeposit(assets)) != 0, Error.ZERO_SHARES);
+        if ((shares = previewDeposit(assets)) == 0) revert CError.ZERO_SHARES_OUT(address(this), assets);
 
         // Need to transfer before minting or ERC777s could reenter.
         asset.safeTransferFrom(msg.sender, address(this), assets);
@@ -260,7 +258,7 @@ abstract contract ERC4626Upgradeable is IERC4626Upgradeable, ERC20Upgradeable {
         }
 
         // Check for rounding error since we round down in previewRedeem.
-        require((assets = previewRedeem(shares)) != 0, Error.ZERO_ASSETS);
+        if ((assets = previewRedeem(shares)) == 0) revert CError.ZERO_ASSETS_IN(address(this), shares);
 
         _beforeWithdraw(assets, shares);
 

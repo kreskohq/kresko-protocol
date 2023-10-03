@@ -145,6 +145,20 @@ struct MaxLiqVars {
     uint32 debtFactor;
 }
 
+struct MaxLiqInfo {
+    address account;
+    address seizeAssetAddr;
+    address repayAssetAddr;
+    uint256 repayValue;
+    uint256 repayAmount;
+    uint256 seizeAmount;
+    uint256 seizeValue;
+    uint256 repayAssetPrice;
+    uint256 repayAssetIndex;
+    uint256 seizeAssetPrice;
+    uint256 seizeAssetIndex;
+}
+
 /// @notice Convenience struct for returning push price data
 struct PushPrice {
     uint256 price;

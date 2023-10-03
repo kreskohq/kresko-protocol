@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {Error} from "common/Errors.sol";
-import {Role, Action, SafetyState, Pause} from "common/Types.sol";
+import {CError} from "common/CError.sol";
+import {Role, Action, SafetyState, Pause, Asset} from "common/Types.sol";
 import {CModifiers} from "common/Modifiers.sol";
 import {ISafetyCouncilFacet} from "common/interfaces/ISafetyCouncilFacet.sol";
 import {cs} from "common/State.sol";
-
 import {MEvent} from "minter/Events.sol";
-import {ms} from "minter/State.sol";
 
 /* solhint-disable not-rely-on-time */
 
@@ -25,28 +23,31 @@ contract SafetyCouncilFacet is CModifiers, ISafetyCouncilFacet {
         bool _withDuration,
         uint256 _duration
     ) external override onlyRole(Role.SAFETY_COUNCIL) {
-        bool enabled;
         /// @dev loop through `_assets` - be it krAsset or collateral
         for (uint256 i; i < _assets.length; i++) {
-            address asset = _assets[i];
+            address assetAddr = _assets[i];
             // Revert if invalid address is supplied
-            require(cs().assets[asset].isCollateral || cs().assets[asset].isKrAsset, Error.INVALID_ASSET_SUPPLIED);
+            Asset memory asset = cs().assets[assetAddr];
+            if (!asset.isCollateral && !asset.isKrAsset && !asset.isSCDPDepositAsset && !asset.isSCDPKrAsset) {
+                revert CError.INVALID_ASSET(assetAddr);
+            }
             // Get the safety state
-            SafetyState memory safetyState = cs().safetyState[asset][_action];
+            SafetyState memory safetyState = cs().safetyState[assetAddr][_action];
             // Flip the previous value
             bool willPause = !safetyState.pause.enabled;
-            // Set a global flag in case any asset gets set to true
+
             if (willPause) {
-                enabled = true;
+                cs().safetyStateSet = true;
             }
+
             // Update the state for this asset
-            cs().safetyState[asset][_action].pause = Pause(
+            cs().safetyState[assetAddr][_action].pause = Pause(
                 willPause,
                 block.timestamp,
                 _withDuration ? block.timestamp + _duration : 0
             );
             // Emit the actions taken
-            emit MEvent.SafetyStateChange(_action, asset, willPause ? "paused" : "unpaused");
+            emit MEvent.SafetyStateChange(_action, assetAddr, willPause ? "paused" : "unpaused");
         }
     }
 

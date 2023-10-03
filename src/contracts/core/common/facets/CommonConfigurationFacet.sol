@@ -9,7 +9,7 @@ import {Constants} from "common/Constants.sol";
 import {CommonInitArgs, Role, NOT_ENTERED} from "common/Types.sol";
 import {ICommonConfigurationFacet} from "common/interfaces/ICommonConfigurationFacet.sol";
 import {IAuthorizationFacet} from "common/interfaces/IAuthorizationFacet.sol";
-import {CError, Error} from "common/Errors.sol";
+import {CError} from "common/CError.sol";
 import {cs, gs} from "common/State.sol";
 import {Auth} from "common/Auth.sol";
 
@@ -19,7 +19,7 @@ import {ds} from "diamond/State.sol";
 contract CommonConfigurationFacet is ICommonConfigurationFacet, CModifiers, DSModifiers {
     function initializeCommon(CommonInitArgs memory args) external onlyOwner {
         if (ds().storageVersion != 1) {
-            revert(Error.ALREADY_INITIALIZED);
+            revert CError.ALREADY_INITIALIZED();
         }
         cs().entered = NOT_ENTERED;
         // Temporarily set ADMIN role for deployer

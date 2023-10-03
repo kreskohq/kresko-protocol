@@ -9,6 +9,7 @@ import {VAssets} from "vault/funcs/Assets.sol";
 import {IVault} from "vault/interfaces/IVault.sol";
 import {VaultAsset} from "vault/Types.sol";
 import {VEvent} from "vault/Events.sol";
+import {CError} from "common/CError.sol";
 
 /**
  * @title Vault - A multiple deposit token vault.
@@ -67,13 +68,9 @@ contract Vault is IVault, ERC20 {
     function _checkDeposit(address asset, uint256 assetsIn, uint256 sharesOut) private view {
         uint256 depositLimit = maxDeposit(asset);
 
-        if (assetsIn > depositLimit) {
-            revert MaxDeposit(assetsIn, depositLimit);
-        } else if (sharesOut == 0) {
-            revert InvalidDeposit(assetsIn, sharesOut);
-        } else if (assetsIn == 0) {
-            revert InvalidDeposit(assetsIn, sharesOut);
-        }
+        if (assetsIn > depositLimit) revert CError.MAX_DEPOSIT_EXCEEDED(assetsIn, depositLimit);
+        else if (sharesOut == 0) revert CError.INVALID_DEPOSIT(assetsIn, sharesOut);
+        else if (assetsIn == 0) revert CError.INVALID_DEPOSIT(assetsIn, sharesOut);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -132,7 +129,7 @@ contract Vault is IVault, ERC20 {
         (assetsOut, assetFee) = previewRedeem(asset, sharesIn);
 
         if (assetsOut == 0) {
-            revert InvalidWithdraw(sharesIn, assetsOut);
+            revert CError.INVALID_WITHDRAW(sharesIn, assetsOut);
         }
 
         if (msg.sender != owner) {
@@ -169,9 +166,7 @@ contract Vault is IVault, ERC20 {
     ) public virtual check(asset) returns (uint256 sharesIn, uint256 assetFee) {
         (sharesIn, assetFee) = previewWithdraw(asset, assetsOut);
 
-        if (sharesIn == 0) {
-            revert InvalidWithdraw(sharesIn, assetsOut);
-        }
+        if (sharesIn == 0) revert CError.INVALID_WITHDRAW(sharesIn, assetsOut);
 
         if (msg.sender != owner) {
             uint256 allowed = allowance[owner][msg.sender]; // Saves gas for limited approvals.
@@ -286,9 +281,7 @@ contract Vault is IVault, ERC20 {
 
         sharesIn = assetsValue.mulDivUp(tSupply, tAssets);
 
-        if (sharesIn > tSupply) {
-            revert RoundingError("Shares in exceeds total supply. Use redeem instead", sharesIn, tSupply);
-        }
+        if (sharesIn > tSupply) revert CError.ROUNDING_ERROR("Use redeem instead.", sharesIn, tSupply);
     }
 
     /// @inheritdoc IVault
@@ -332,17 +325,19 @@ contract Vault is IVault, ERC20 {
     /// @inheritdoc IVault
     function addAsset(VaultAsset memory config) external onlyGovernance {
         address token = address(config.token);
-        require(token != address(0), "ZERO_ADDRESS");
-        require(!_assets[token].enabled, "ALREADY_SUPPORTED");
+
+        if (token == address(0)) revert CError.ZERO_ADDRESS();
+        else if (_assets[token].enabled) revert CError.ASSET_ALREADY_EXISTS(token);
 
         assetList.push(token);
         _assets[token] = config; // [TODO] Add fees.
 
         uint256 price = config.price();
         emit VEvent.AssetAdded(token, address(config.oracle), price, config.maxDeposits, block.timestamp);
-        require(price != 0, "ZERO_PRICE");
-        require(config.depositFee < 1e18, "INVALID_DEPOSIT_FEE");
-        require(config.withdrawFee < 1e18, "INVALID_WITHDRAWAL_FEE");
+
+        if (price == 0) revert CError.ZERO_PRICE(config.token.symbol());
+        else if (config.depositFee > 1e18) revert CError.INVALID_PROTOCOL_FEE(token, config.depositFee, 1e18);
+        else if (config.withdrawFee > 1e18) revert CError.INVALID_PROTOCOL_FEE(token, config.withdrawFee, 1e18);
     }
 
     /// @inheritdoc IVault
@@ -368,7 +363,7 @@ contract Vault is IVault, ERC20 {
 
         _assets[asset].oracle = AggregatorV3Interface(oracle);
         uint256 price = deleted ? 0 : _assets[asset].price();
-        require(price != 0 || deleted, "ZERO_PRICE_OR_NOT_DELETED");
+        if (price == 0 && !deleted) revert CError.ZERO_PRICE(_assets[asset].token.symbol());
 
         emit VEvent.OracleSet(asset, oracle, price, block.timestamp);
     }
@@ -387,14 +382,14 @@ contract Vault is IVault, ERC20 {
 
     /// @inheritdoc IVault
     function setDepositFee(address asset, uint256 fee) external onlyGovernance {
-        if (fee > HUNDRED) revert InvalidFee(fee);
+        if (fee > HUNDRED) revert CError.INVALID_FEE(fee, HUNDRED);
 
         _assets[asset].depositFee = fee;
     }
 
     /// @inheritdoc IVault
     function setWithdrawFee(address asset, uint256 fee) external onlyGovernance {
-        if (fee > HUNDRED) revert InvalidFee(fee);
+        if (fee > HUNDRED) revert CError.INVALID_FEE(fee, HUNDRED);
         _assets[asset].withdrawFee = fee;
     }
 

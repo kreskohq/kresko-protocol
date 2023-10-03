@@ -6,6 +6,7 @@ import {PercentageMath} from "libs/PercentageMath.sol";
 import {Percents} from "common/Constants.sol";
 import {toWad} from "common/funcs/Math.sol";
 import {cs} from "common/State.sol";
+import {CError} from "common/CError.sol";
 import {Asset} from "common/Types.sol";
 import {SCDPState, sdi} from "scdp/State.sol";
 
@@ -15,173 +16,83 @@ library SGlobal {
 
     /**
      * @notice Checks whether the shared debt pool can be liquidated.
+     * @notice Reverts if collateral value .
      */
-    function isLiquidatableSCDP(SCDPState storage self) internal view returns (bool) {
-        return self.debtExceedsCollateral(self.liquidationThreshold);
+    function checkLiquidatableSCDP(SCDPState storage self) internal view {
+        uint256 collateralValue = self.totalCollateralValueSCDP(false);
+        uint256 minCollateralValue = sdi().effectiveDebtValue().percentMul(self.liquidationThreshold);
+        if (collateralValue >= minCollateralValue) {
+            revert CError.CANNOT_LIQUIDATE(collateralValue, minCollateralValue);
+        }
     }
 
     /**
      * @notice Checks whether the shared debt pool can be liquidated.
+     * @notice Reverts if collateral value .
      */
-    function isLiquidatableSCDPStorage(SCDPState storage self) internal view returns (bool) {
-        return self.debtExceedsCollateralStorage(self.liquidationThreshold);
+    function checkCoverableSCDP(SCDPState storage self) internal view {
+        uint256 collateralValue = self.totalCollateralValueSCDP(false);
+        uint256 minCollateralValue = sdi().effectiveDebtValue().percentMul(self.minCollateralRatio);
+        if (collateralValue >= minCollateralValue) {
+            revert CError.CANNOT_COVER(collateralValue, minCollateralValue);
+        }
     }
 
     /**
-     * @notice Checks whether the collateral value is below debt (*ratio) supplied.
+     * @notice Checks whether the collateral value is less than minimum required.
+     * @notice Reverts when collateralValue is below minimum required.
      * @param _ratio ratio to check
      */
-    function debtExceedsCollateral(SCDPState storage self, uint256 _ratio) internal view returns (bool) {
-        return
-            sdi().effectiveDebtValue().percentMul(_ratio) >
-            self.totalCollateralValueSCDPStorage(
-                false // dont ignore cFactor
-            );
-    }
-
-    /**
-     * @notice Checks whether the collateral value is below debt (*ratio) supplied.
-     * @param _ratio ratio to check
-     */
-    function debtExceedsCollateralStorage(SCDPState storage self, uint256 _ratio) internal view returns (bool) {
-        return
-            sdi().effectiveDebtValueStorage().percentMul(_ratio) >
-            self.totalCollateralValueSCDPStorage(
-                false // dont ignore cFactor
-            );
+    function checkCollateralValue(SCDPState storage self, uint32 _ratio) internal view {
+        uint256 collateralValue = self.totalCollateralValueSCDP(false);
+        uint256 minCollateralValue = sdi().effectiveDebtValue().percentMul(_ratio);
+        if (collateralValue < minCollateralValue) {
+            revert CError.DEBT_EXCEEDS_COLLATERAL(collateralValue, minCollateralValue, _ratio);
+        }
     }
 
     /**
      * @notice Returns the value of the krAsset held in the pool at a ratio.
-     * @param _ratio ratio
-     * @param _ignorekFactor ignore kFactor
-     * @return value in USD
+     * @param _ratio Percentage ratio to apply for the value
+     * @param _ignorekFactor Whether to ignore kFactor
+     * @return totalValue Total value in USD
      */
     function totalDebtValueAtRatioSCDP(
         SCDPState storage self,
         uint256 _ratio,
         bool _ignorekFactor
-    ) internal view returns (uint256 value) {
+    ) internal view returns (uint256 totalValue) {
         address[] memory assets = self.krAssets;
         for (uint256 i; i < assets.length; ) {
-            Asset memory asset = cs().assets[assets[i]];
+            Asset storage asset = cs().assets[assets[i]];
             uint256 debtAmount = asset.toRebasingAmount(self.assetData[assets[i]].debt);
             unchecked {
                 if (debtAmount != 0) {
-                    value += asset.debtAmountToValue(debtAmount, _ignorekFactor);
+                    totalValue += asset.debtAmountToValue(debtAmount, _ignorekFactor);
                 }
                 i++;
             }
         }
 
-        // We dont need to multiply this.
+        // Multiply if needed
         if (_ratio != Percents.HUNDRED) {
-            value = value.percentMul(_ratio);
-        }
-    }
-
-    /**
-     * @notice Returns the value of the krAsset held in the pool at a ratio.
-     * @param _ratio ratio
-     * @param _ignorekFactor ignore kFactor
-     * @return value in USD
-     */
-    function totalDebtValueAtRatioSCDPStorage(
-        SCDPState storage self,
-        uint256 _ratio,
-        bool _ignorekFactor
-    ) internal view returns (uint256 value) {
-        address[] memory assets = self.krAssets;
-        for (uint256 i; i < assets.length; ) {
-            Asset storage asset = cs().assets[assets[i]];
-            uint256 debtAmount = asset.toRebasingAmountStorage(self.assetData[assets[i]].debt);
-            unchecked {
-                if (debtAmount != 0) {
-                    value += asset.debtAmountToValueStorage(debtAmount, _ignorekFactor);
-                }
-                i++;
-            }
-        }
-
-        // We dont need to multiply this.
-        if (_ratio != Percents.HUNDRED) {
-            value = value.percentMul(_ratio);
+            totalValue = totalValue.percentMul(_ratio);
         }
     }
 
     /**
      * @notice Calculates the total collateral value of collateral assets in the pool.
-     * @param _ignoreFactors whether to ignore factors
-     * @return value in USD
+     * @param _ignoreFactors Whether to ignore cFactor.
+     * @return totalValue Total value in USD
      */
-    function totalCollateralValueSCDP(SCDPState storage self, bool _ignoreFactors) internal view returns (uint256 value) {
-        address[] memory assets = self.collaterals;
-        for (uint256 i; i < assets.length; ) {
-            Asset memory asset = cs().assets[assets[i]];
-            uint256 depositAmount = self.totalDepositAmount(assets[i], asset);
-            if (depositAmount != 0) {
-                unchecked {
-                    value += asset.collateralAmountToValue(depositAmount, _ignoreFactors);
-                }
-            }
-
-            unchecked {
-                i++;
-            }
-        }
-    }
-
-    /**
-     * @notice Calculates the total collateral value of collateral assets in the pool.
-     * @param _ignoreFactors whether to ignore factors
-     * @return value in USD
-     */
-    function totalCollateralValueSCDPStorage(
-        SCDPState storage self,
-        bool _ignoreFactors
-    ) internal view returns (uint256 value) {
+    function totalCollateralValueSCDP(SCDPState storage self, bool _ignoreFactors) internal view returns (uint256 totalValue) {
         address[] memory assets = self.collaterals;
         for (uint256 i; i < assets.length; ) {
             Asset storage asset = cs().assets[assets[i]];
-            uint256 depositAmount = self.totalDepositAmountStorage(assets[i], asset);
-            if (depositAmount != 0) {
-                unchecked {
-                    value += asset.collateralAmountToValueStorage(depositAmount, _ignoreFactors);
-                }
-            }
-
-            unchecked {
-                i++;
-            }
-        }
-    }
-
-    /**
-     * @notice Returns the value of the collateral asset in the pool and the value of the amount.
-     * Saves gas for getting the values in the same execution.
-     * @param _collateralAsset collateral asset
-     * @param _amount amount of collateral asset
-     * @param _ignoreFactors whether to ignore cFactor and kFactor
-     */
-    function collateralValueSCDP(
-        SCDPState storage self,
-        address _collateralAsset,
-        uint256 _amount,
-        bool _ignoreFactors
-    ) internal view returns (uint256 totalValue, uint256 amountValue) {
-        address[] memory assets = self.collaterals;
-        for (uint256 i; i < assets.length; ) {
-            Asset memory asset = cs().assets[assets[i]];
             uint256 depositAmount = self.totalDepositAmount(assets[i], asset);
             if (depositAmount != 0) {
-                (uint256 assetValue, uint256 price) = asset.collateralAmountToValueWithPrice(depositAmount, _ignoreFactors);
                 unchecked {
-                    totalValue += assetValue;
-                }
-                if (assets[i] == _collateralAsset) {
-                    amountValue = toWad(asset.decimals, _amount).wadMul(
-                        _ignoreFactors ? price : price.percentMul(asset.factor)
-                    );
+                    totalValue += asset.collateralAmountToValue(depositAmount, _ignoreFactors);
                 }
             }
 
@@ -192,35 +103,29 @@ library SGlobal {
     }
 
     /**
-     * @notice Returns the value of the collateral asset in the pool and the value of the amount.
-     * Saves gas for getting the values in the same execution.
-     * @param _collateralAsset collateral asset
-     * @param _amount amount of collateral asset
-     * @param _ignoreFactors whether to ignore cFactor and kFactor
+     * @notice Calculates total collateral value while extracting single asset value.
+     * @param _collateralAsset Collateral asset to extract value for
+     * @param _ignoreFactors Whether to ignore cFactor.
+     * @return totalValue Total value in USD
+     * @return assetValue Asset value in USD
      */
-    function collateralValueSCDPStorage(
+    function totalCollateralValueSCDP(
         SCDPState storage self,
         address _collateralAsset,
-        uint256 _amount,
         bool _ignoreFactors
-    ) internal view returns (uint256 totalValue, uint256 amountValue) {
+    ) internal view returns (uint256 totalValue, uint256 assetValue) {
         address[] memory assets = self.collaterals;
         for (uint256 i; i < assets.length; ) {
             Asset storage asset = cs().assets[assets[i]];
-            uint256 depositAmount = self.totalDepositAmountStorage(assets[i], asset);
-            if (depositAmount != 0) {
-                (uint256 assetValue, uint256 price) = asset.collateralAmountToValueWithPrice(depositAmount, _ignoreFactors);
-                unchecked {
-                    totalValue += assetValue;
-                }
-                if (assets[i] == _collateralAsset) {
-                    amountValue = toWad(asset.decimals, _amount).wadMul(
-                        _ignoreFactors ? price : price.percentMul(asset.factor)
-                    );
-                }
-            }
-
+            uint256 depositAmount = self.totalDepositAmount(assets[i], asset);
             unchecked {
+                if (depositAmount != 0) {
+                    uint256 value = asset.collateralAmountToValue(depositAmount, _ignoreFactors);
+                    totalValue += value;
+                    if (assets[i] == _collateralAsset) {
+                        assetValue = value;
+                    }
+                }
                 i++;
             }
         }
@@ -235,23 +140,9 @@ library SGlobal {
     function totalDepositAmount(
         SCDPState storage self,
         address _assetAddress,
-        Asset memory _asset
-    ) internal view returns (uint128) {
-        return uint128(_asset.toRebasingAmount(self.assetData[_assetAddress].totalDeposits));
-    }
-
-    /**
-     * @notice Get pool collateral deposits of an asset.
-     * @param _assetAddress The asset address
-     * @param _asset The asset struct
-     * @return Amount of scaled debt.
-     */
-    function totalDepositAmountStorage(
-        SCDPState storage self,
-        address _assetAddress,
         Asset storage _asset
     ) internal view returns (uint128) {
-        return uint128(_asset.toRebasingAmountStorage(self.assetData[_assetAddress].totalDeposits));
+        return uint128(_asset.toRebasingAmount(self.assetData[_assetAddress].totalDeposits));
     }
 
     /**
@@ -263,27 +154,10 @@ library SGlobal {
     function userDepositAmount(
         SCDPState storage self,
         address _assetAddress,
-        Asset memory _asset
-    ) internal view returns (uint256) {
-        return
-            _asset.toRebasingAmount(self.assetData[_assetAddress].totalDeposits - self.assetData[_assetAddress].swapDeposits);
-    }
-
-    /**
-     * @notice Get pool user collateral deposits of an asset.
-     * @param _assetAddress The asset address
-     * @param _asset The asset struct
-     * @return Amount of scaled debt.
-     */
-    function userDepositAmountStorage(
-        SCDPState storage self,
-        address _assetAddress,
         Asset storage _asset
     ) internal view returns (uint256) {
         return
-            _asset.toRebasingAmountStorage(
-                self.assetData[_assetAddress].totalDeposits - self.assetData[_assetAddress].swapDeposits
-            );
+            _asset.toRebasingAmount(self.assetData[_assetAddress].totalDeposits - self.assetData[_assetAddress].swapDeposits);
     }
 
     /**
@@ -295,21 +169,7 @@ library SGlobal {
     function swapDepositAmount(
         SCDPState storage self,
         address _assetAddress,
-        Asset memory _asset
-    ) internal view returns (uint128) {
-        return uint128(_asset.toRebasingAmount(self.assetData[_assetAddress].swapDeposits));
-    }
-
-    /**
-     * @notice Get "swap" collateral deposits.
-     * @param _assetAddress The asset address
-     * @param _asset The asset struct.
-     * @return Amount of debt.
-     */
-    function swapDepositAmountStorage(
-        SCDPState storage self,
-        address _assetAddress,
-        Asset memory _asset
+        Asset storage _asset
     ) internal view returns (uint128) {
         return uint128(_asset.toRebasingAmount(self.assetData[_assetAddress].swapDeposits));
     }

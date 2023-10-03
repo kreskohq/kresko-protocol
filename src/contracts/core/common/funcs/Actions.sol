@@ -31,7 +31,7 @@ function mintKrAsset(uint256 _amount, address _to, address _anchor) returns (uin
 /// @param _asset the asset being repaid
 /// @param _burnAmount the asset amount being burned
 /// @param _from the account to burn assets from
-function burnSCDP(Asset memory _asset, uint256 _burnAmount, address _from) returns (uint256 destroyed) {
+function burnSCDP(Asset storage _asset, uint256 _burnAmount, address _from) returns (uint256 destroyed) {
     destroyed = burnKrAsset(_burnAmount, _from, _asset.anchor);
     sdi().totalDebt -= _asset.debtAmountToSDI(destroyed, false);
 }
@@ -40,7 +40,7 @@ function burnSCDP(Asset memory _asset, uint256 _burnAmount, address _from) retur
 /// @param _asset the asset requested
 /// @param _amount the asset amount requested
 /// @param _to the account to mint the assets to
-function mintSCDP(Asset memory _asset, uint256 _amount, address _to) returns (uint256 issued) {
+function mintSCDP(Asset storage _asset, uint256 _amount, address _to) returns (uint256 issued) {
     issued = mintKrAsset(_amount, _to, _asset.anchor);
     unchecked {
         sdi().totalDebt += _asset.debtAmountToSDI(issued, false);

@@ -7,13 +7,12 @@ import {SDIPrice} from "common/funcs/Prices.sol";
 import {cs} from "common/State.sol";
 import {EMPTY_BYTES12} from "common/Constants.sol";
 import {CModifiers} from "common/Modifiers.sol";
-import {CError} from "common/Errors.sol";
+import {CError} from "common/CError.sol";
 import {Asset} from "common/Types.sol";
 
 import {DSModifiers} from "diamond/Modifiers.sol";
 
-import {SError} from "scdp/Errors.sol";
-import {sdi} from "scdp/State.sol";
+import {sdi, scdp} from "scdp/State.sol";
 import {ISDIFacet} from "scdp/interfaces/ISDIFacet.sol";
 
 contract SDIFacet is ISDIFacet, DSModifiers, CModifiers {
@@ -78,6 +77,7 @@ contract SDIFacet is ISDIFacet, DSModifiers, CModifiers {
     /* -------------------------------------------------------------------------- */
 
     function SDICover(address _assetAddr, uint256 _amount) external returns (uint256 shares, uint256 value) {
+        scdp().checkCoverableSCDP();
         return sdi().cover(_assetAddr, _amount);
     }
 
@@ -86,16 +86,12 @@ contract SDIFacet is ISDIFacet, DSModifiers, CModifiers {
     /* -------------------------------------------------------------------------- */
 
     function enableCoverAssetSDI(address _assetAddr) external onlyRole(Role.ADMIN) {
-        Asset memory asset = cs().assets[_assetAddr];
-        if (asset.underlyingId == EMPTY_BYTES12) {
-            revert SError.INVALID_ASSET_SDI(_assetAddr);
-        } else if (asset.pushedPrice().price == 0) {
+        Asset storage asset = cs().assets[_assetAddr];
+        if (asset.underlyingId == EMPTY_BYTES12) {} else if (asset.pushedPrice().price == 0) {
             revert CError.NO_PUSH_PRICE(asset.underlyingId.toString());
-        } else if (asset.isSCDPCoverAsset) {
-            revert SError.ASSET_ALREADY_ENABLED_SDI(_assetAddr);
-        }
+        } else if (asset.isSCDPCoverAsset) {}
 
-        cs().assets[_assetAddr].isSCDPCoverAsset = true;
+        asset.isSCDPCoverAsset = true;
         bool shouldPushToAssets = true;
         for (uint256 i; i < sdi().coverAssets.length; i++) {
             if (sdi().coverAssets[i] == _assetAddr) {
@@ -108,9 +104,7 @@ contract SDIFacet is ISDIFacet, DSModifiers, CModifiers {
     }
 
     function disableCoverAssetSDI(address _assetAddr) external onlyRole(Role.ADMIN) {
-        if (!cs().assets[_assetAddr].isSCDPCoverAsset) {
-            revert SError.ASSET_ALREADY_DISABLED_SDI(_assetAddr);
-        }
+        if (!cs().assets[_assetAddr].isSCDPCoverAsset) {}
 
         cs().assets[_assetAddr].isSCDPCoverAsset = false;
     }

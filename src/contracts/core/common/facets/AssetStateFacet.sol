@@ -2,7 +2,7 @@
 pragma solidity >=0.8.19;
 import {Redstone} from "libs/Redstone.sol";
 import {EMPTY_BYTES12} from "common/Constants.sol";
-import {CError} from "common/Errors.sol";
+import {CError} from "common/CError.sol";
 import {Asset, OracleType} from "common/Types.sol";
 import {aggregatorV3Price, API3Price} from "common/funcs/Prices.sol";
 import {cs} from "common/State.sol";

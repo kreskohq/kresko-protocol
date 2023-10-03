@@ -5,7 +5,7 @@ pragma solidity >=0.8.19;
 import {AccessControlEnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import {ERC20Upgradeable} from "vendor/ERC20Upgradeable.sol";
 import {IERC165} from "vendor/IERC165.sol";
-import {Error} from "common/Errors.sol";
+import {CError} from "common/CError.sol";
 import {Role} from "common/Types.sol";
 import {Rebaser} from "./Rebaser.sol";
 import {IKreskoAsset, ISyncable} from "./IKreskoAsset.sol";
@@ -125,7 +125,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
         uint256 allowed = allowance(_from, msg.sender); // Saves gas for unlimited approvals.
 
         if (allowed != type(uint256).max) {
-            require(_amount <= allowed, Error.NOT_ENOUGH_ALLOWANCE);
+            if (_amount > allowed) revert CError.NO_ALLOWANCE(msg.sender, _from, _amount, allowed);
             _allowances[_from][msg.sender] -= _amount;
         }
 
@@ -138,7 +138,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
 
     /// @inheritdoc IKreskoAsset
     function rebase(uint256 _denominator, bool _positive, address[] calldata _pools) external onlyRole(Role.ADMIN) {
-        require(_denominator >= 1 ether, Error.REBASING_DENOMINATOR_LOW);
+        if (_denominator < 1 ether) revert CError.INVALID_DENOMINATOR(_denominator, 1 ether);
         if (_denominator == 1 ether) {
             isRebased = false;
             _rebaseInfo = Rebase(false, 0);
@@ -191,7 +191,8 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
 
     /// @dev Internal balances are always unrebased, events emitted are not.
     function _transfer(address _from, address _to, uint256 _amount) internal returns (bool) {
-        require(_amount <= balanceOf(_from), Error.NOT_ENOUGH_BALANCE);
+        uint256 bal = balanceOf(_from);
+        if (_amount > bal) revert CError.NOT_ENOUGH_BALANCE(_from, _amount, bal);
         uint256 normalizedAmount = _amount.unrebase(_rebaseInfo);
 
         _balances[_from] -= normalizedAmount;

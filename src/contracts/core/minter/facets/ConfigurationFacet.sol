@@ -2,7 +2,7 @@
 pragma solidity >=0.8.19;
 
 import {Role} from "common/Types.sol";
-import {CError} from "common/Errors.sol";
+import {CError} from "common/CError.sol";
 import {DiamondEvent} from "common/Events.sol";
 import {CModifiers} from "common/Modifiers.sol";
 import {Percents} from "common/Constants.sol";
@@ -28,6 +28,9 @@ contract ConfigurationFacet is DSModifiers, CModifiers, IConfigurationFacet {
     /* -------------------------------------------------------------------------- */
 
     function initializeMinter(MinterInitArgs calldata args) external onlyOwner {
+        if (ds().storageVersion > 3) {
+            revert CError.ALREADY_INITIALIZED();
+        }
         updateMinCollateralRatio(args.minCollateralRatio);
         updateLiquidationThreshold(args.liquidationThreshold);
         emit DiamondEvent.Initialized(msg.sender, ds().storageVersion++);

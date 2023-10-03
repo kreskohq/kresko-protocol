@@ -3,10 +3,12 @@ pragma solidity >=0.8.19;
 
 import {WadRay} from "libs/WadRay.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
-import {Error} from "common/Errors.sol";
+import {CError} from "common/CError.sol";
 import {cs} from "common/State.sol";
 import {Asset, Fee} from "common/Types.sol";
 import {fromWad} from "common/funcs/Math.sol";
+
+import {MinterAccountState} from "minter/Types.sol";
 
 import {IAccountStateFacet} from "minter/interfaces/IAccountStateFacet.sol";
 import {ms} from "minter/State.sol";
@@ -27,6 +29,18 @@ contract AccountStateFacet is IAccountStateFacet {
         return ms().isAccountLiquidatable(_account);
     }
 
+    /// @inheritdoc IAccountStateFacet
+    function getAccountState(address _account) external view returns (MinterAccountState memory) {
+        uint256 debtValue = ms().accountTotalDebtValue(_account);
+        uint256 collateralValue = ms().accountTotalCollateralValue(_account);
+        return
+            MinterAccountState({
+                totalDebtValue: debtValue,
+                totalCollateralValue: collateralValue,
+                collateralRatio: collateralValue.percentDiv(debtValue)
+            });
+    }
+
     /* -------------------------------------------------------------------------- */
     /*                                  KrAssets                                  */
     /* -------------------------------------------------------------------------- */
@@ -42,8 +56,13 @@ contract AccountStateFacet is IAccountStateFacet {
     }
 
     /// @inheritdoc IAccountStateFacet
-    function getAccountDebtValue(address _account) external view returns (uint256) {
-        return ms().accountDebtValue(_account);
+    function getAccountTotalDebtValues(address _account) external view returns (uint256 value, uint256 valueAdjusted) {
+        return accountTotalDebtValues(_account);
+    }
+
+    /// @inheritdoc IAccountStateFacet
+    function getAccountTotalDebtValue(address _account) external view returns (uint256) {
+        return ms().accountTotalDebtValue(_account);
     }
 
     /// @inheritdoc IAccountStateFacet
@@ -71,8 +90,22 @@ contract AccountStateFacet is IAccountStateFacet {
     }
 
     /// @inheritdoc IAccountStateFacet
-    function getAccountCollateralValue(address _account) public view returns (uint256) {
-        return ms().accountCollateralValue(_account);
+    function getAccountTotalCollateralValue(address _account) public view returns (uint256) {
+        return ms().accountTotalCollateralValue(_account);
+    }
+
+    /// @inheritdoc IAccountStateFacet
+    function getAccountTotalCollateralValues(address _account) public view returns (uint256 value, uint256 valueAdjusted) {
+        return accountTotalCollateralValues(_account);
+    }
+
+    /// @inheritdoc IAccountStateFacet
+    function getAccountCollateralValues(
+        address _account,
+        address _asset
+    ) external view returns (uint256 value, uint256 adjustedValue, uint256 price) {
+        Asset storage asset = cs().assets[_asset];
+        return collateralAmountToValues(asset, ms().accountCollateralAmount(_account, _asset, asset));
     }
 
     /// @inheritdoc IAccountStateFacet
@@ -82,29 +115,20 @@ contract AccountStateFacet is IAccountStateFacet {
 
     /// @inheritdoc IAccountStateFacet
     function getAccountCollateralRatio(address _account) public view returns (uint256 ratio) {
-        uint256 collateralValue = ms().accountCollateralValue(_account);
+        uint256 collateralValue = ms().accountTotalCollateralValue(_account);
         if (collateralValue == 0) {
             return 0;
         }
-        uint256 debtValue = ms().accountDebtValue(_account);
+        uint256 debtValue = ms().accountTotalDebtValue(_account);
         if (debtValue == 0) {
             return 0;
         }
 
-        ratio = collateralValue.wadDiv(debtValue);
+        ratio = collateralValue.percentDiv(debtValue);
     }
 
     /// @inheritdoc IAccountStateFacet
-    function getAccountCollateralValueOf(
-        address _account,
-        address _asset
-    ) external view returns (uint256 value, uint256 adjustedValue) {
-        Asset memory asset = cs().assets[_asset];
-        (value, adjustedValue, ) = collateralAmountToValues(asset, ms().accountCollateralAmount(_account, _asset, asset));
-    }
-
-    /// @inheritdoc IAccountStateFacet
-    function getCollateralRatiosFor(address[] calldata _accounts) external view returns (uint256[] memory) {
+    function getAccountCollateralRatios(address[] calldata _accounts) external view returns (uint256[] memory) {
         uint256[] memory ratios = new uint256[](_accounts.length);
         for (uint256 i; i < _accounts.length; i++) {
             ratios[i] = getAccountCollateralRatio(_accounts[i]);
@@ -117,11 +141,13 @@ contract AccountStateFacet is IAccountStateFacet {
         address _account,
         address _kreskoAsset,
         uint256 _kreskoAssetAmount,
-        uint256 _feeType
+        Fee _feeType
     ) external view returns (address[] memory, uint256[] memory) {
-        require(_feeType <= 1, Error.INVALID_FEE_TYPE);
+        if (uint8(_feeType) > 1) {
+            revert CError.INVALID_FEE_TYPE(uint8(_feeType), 1);
+        }
 
-        Asset memory asset = cs().assets[_kreskoAsset];
+        Asset storage asset = cs().assets[_kreskoAsset];
 
         // Calculate the value of the fee according to the value of the krAsset
         uint256 feeValue = asset.uintUSD(_kreskoAssetAmount).percentMul(
@@ -141,7 +167,7 @@ contract AccountStateFacet is IAccountStateFacet {
 
         for (uint256 i = accountCollateralAssets.length - 1; i >= 0; i--) {
             address collateralAssetAddress = accountCollateralAssets[i];
-            Asset memory collateralAsset = cs().assets[collateralAssetAddress];
+            Asset storage collateralAsset = cs().assets[collateralAssetAddress];
 
             uint256 depositAmount = ms().accountCollateralAmount(_account, collateralAssetAddress, collateralAsset);
 
@@ -172,5 +198,49 @@ contract AccountStateFacet is IAccountStateFacet {
             }
         }
         return (info.assets, info.amounts);
+    }
+}
+
+/**
+ * @notice Gets the collateral value of a particular account.
+ * @param _account The account to calculate the collateral value for.
+ * @return value Total collateral value
+ * @return valueAdjusted Total adjusted collateral value
+ */
+function accountTotalCollateralValues(address _account) view returns (uint256 value, uint256 valueAdjusted) {
+    address[] memory assets = ms().depositedCollateralAssets[_account];
+    for (uint256 i; i < assets.length; ) {
+        Asset storage asset = cs().assets[assets[i]];
+        uint256 collateralAmount = ms().accountCollateralAmount(_account, assets[i], asset);
+        unchecked {
+            if (collateralAmount != 0) {
+                (uint256 valUnadjusted, uint256 valAdjusted, ) = collateralAmountToValues(asset, collateralAmount);
+                value += valUnadjusted;
+                valueAdjusted += valAdjusted;
+            }
+            i++;
+        }
+    }
+}
+
+/**
+ * @notice Gets the total debt value in USD for an account.
+ * @param _account Account to calculate the KreskoAsset value for.
+ * @return value Total kresko asset debt value
+ * @return valueAdjusted Total adjusted kresko asset debt value
+ */
+function accountTotalDebtValues(address _account) view returns (uint256 value, uint256 valueAdjusted) {
+    address[] memory assets = ms().mintedKreskoAssets[_account];
+    for (uint256 i; i < assets.length; ) {
+        Asset storage asset = cs().assets[assets[i]];
+        uint256 debtAmount = ms().accountDebtAmount(_account, assets[i], asset);
+        unchecked {
+            if (debtAmount != 0) {
+                (uint256 valUnadjusted, uint256 valAdjusted, ) = debtAmountToValues(asset, debtAmount);
+                value += valUnadjusted;
+                valueAdjusted += valAdjusted;
+            }
+            i++;
+        }
     }
 }

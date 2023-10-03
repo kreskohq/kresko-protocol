@@ -5,23 +5,10 @@ import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {mintSCDP, burnSCDP} from "common/funcs/Actions.sol";
 import {Asset} from "common/Types.sol";
-import {cs} from "common/State.sol";
 
-import {SError} from "scdp/Errors.sol";
+import {CError} from "common/CError.sol";
 import {SCDPState} from "scdp/State.sol";
 import {SCDPAssetData} from "scdp/Types.sol";
-
-/**
- * @notice Get fee percentage for a swap pair.
- * @return feePercentage fee percentage for this swap
- * @return protocolFee protocol fee percentage taken from the fee
- */
-function getSwapFee(Asset memory _assetIn, Asset memory _assetOut) pure returns (uint256 feePercentage, uint256 protocolFee) {
-    unchecked {
-        feePercentage = _assetIn.swapOutFeeSCDP + _assetOut.swapInFeeSCDP;
-        protocolFee = _assetIn.protocolFeeShareSCDP + _assetOut.protocolFeeShareSCDP;
-    }
-}
 
 library Swap {
     using WadRay for uint256;
@@ -39,7 +26,7 @@ library Swap {
     function handleAssetsIn(
         SCDPState storage self,
         address _assetInAddr,
-        Asset memory _assetIn,
+        Asset storage _assetIn,
         uint256 _amountIn,
         address _assetsFrom
     ) internal returns (uint256) {
@@ -97,7 +84,7 @@ library Swap {
     function handleAssetsOut(
         SCDPState storage self,
         address _assetOutAddr,
-        Asset memory _assetOut,
+        Asset storage _assetOut,
         uint256 _valueIn,
         address _assetsTo
     ) internal returns (uint256 amountOut) {
@@ -159,23 +146,21 @@ library Swap {
     function cumulateIncome(
         SCDPState storage self,
         address _assetAddr,
-        Asset memory _asset,
+        Asset storage _asset,
         uint256 _amount
     ) internal returns (uint256 nextLiquidityIndex) {
         if (_amount == 0) {
-            revert SError.CUMULATE_AMOUNT_ZERO();
+            revert CError.CUMULATE_AMOUNT_ZERO();
         }
 
         uint256 poolDeposits = self.userDepositAmount(_assetAddr, _asset);
         if (poolDeposits == 0) {
-            revert SError.CUMULATE_NO_DEPOSITS();
+            revert CError.CUMULATE_NO_DEPOSITS();
         }
         // liquidity index increment is calculated this way: `(amount / totalLiquidity)`
         // division `amount / totalLiquidity` done in ray for precision
         unchecked {
-            return (cs().assets[_assetAddr].liquidityIndexSCDP += uint128(
-                (_amount.wadToRay().rayDiv(poolDeposits.wadToRay()))
-            ));
+            return (_asset.liquidityIndexSCDP += uint128((_amount.wadToRay().rayDiv(poolDeposits.wadToRay()))));
         }
     }
 }

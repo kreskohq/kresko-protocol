@@ -23,7 +23,7 @@ using PercentageMath for uint256;
 function totalCollateralValuesSCDP() view returns (uint256 value, uint256 valueAdjusted) {
     address[] memory assets = scdp().collaterals;
     for (uint256 i; i < assets.length; ) {
-        Asset memory asset = cs().assets[assets[i]];
+        Asset storage asset = cs().assets[assets[i]];
         uint256 depositAmount = scdp().totalDepositAmount(assets[i], asset);
         if (depositAmount != 0) {
             (uint256 assetValue, uint256 assetValueAdjusted, ) = collateralAmountToValues(asset, depositAmount);
@@ -46,7 +46,7 @@ function totalCollateralValuesSCDP() view returns (uint256 value, uint256 valueA
 function totalDebtValuesAtRatioSCDP(uint256 _ratio) view returns (uint256 value, uint256 valueAdjusted) {
     address[] memory assets = scdp().krAssets;
     for (uint256 i; i < assets.length; ) {
-        Asset memory asset = cs().assets[assets[i]];
+        Asset storage asset = cs().assets[assets[i]];
         uint256 debtAmount = asset.toRebasingAmount(scdp().assetData[assets[i]].debt);
         unchecked {
             if (debtAmount != 0) {
@@ -93,7 +93,7 @@ function accountTotalDepositValues(
 }
 
 function accountDepositAmountsAndValues(address _account, address _assetAddr) view returns (UserAssetData memory result) {
-    Asset memory asset = cs().assets[_assetAddr];
+    Asset storage asset = cs().assets[_assetAddr];
     result.scaledDepositAmount = scdp().accountScaledDeposits(_account, _assetAddr, asset);
     result.depositAmount = asset.toRebasingAmount(scdp().depositsPrincipal[_account][_assetAddr]);
     if (result.scaledDepositAmount < result.depositAmount) {

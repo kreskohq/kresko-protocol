@@ -45,13 +45,13 @@ contract SCDPStateFacet is ISCDPStateFacet {
 
     /// @inheritdoc ISCDPStateFacet
     function getAccountDepositValueSCDP(address _account, address _depositAsset) external view returns (uint256) {
-        Asset memory asset = cs().assets[_depositAsset];
+        Asset storage asset = cs().assets[_depositAsset];
         return asset.collateralAmountToValue(scdp().accountPrincipalDeposits(_account, _depositAsset, asset), true);
     }
 
     /// @inheritdoc ISCDPStateFacet
     function getAccountScaledDepositValueCDP(address _account, address _depositAsset) external view returns (uint256) {
-        Asset memory asset = cs().assets[_depositAsset];
+        Asset storage asset = cs().assets[_depositAsset];
         return asset.collateralAmountToValue(scdp().accountScaledDeposits(_account, _depositAsset, asset), true);
     }
 
@@ -110,7 +110,7 @@ contract SCDPStateFacet is ISCDPStateFacet {
 
     /// @inheritdoc ISCDPStateFacet
     function getCollateralValueSCDP(address _depositAsset, bool _ignoreFactors) external view returns (uint256) {
-        Asset memory asset = cs().assets[_depositAsset];
+        Asset storage asset = cs().assets[_depositAsset];
 
         return asset.collateralAmountToValue(scdp().totalDepositAmount(_depositAsset, asset), _ignoreFactors);
     }
@@ -131,13 +131,13 @@ contract SCDPStateFacet is ISCDPStateFacet {
 
     /// @inheritdoc ISCDPStateFacet
     function getDebtSCDP(address _kreskoAsset) external view returns (uint256) {
-        Asset memory asset = cs().assets[_kreskoAsset];
+        Asset storage asset = cs().assets[_kreskoAsset];
         return asset.toRebasingAmount(scdp().assetData[_kreskoAsset].debt);
     }
 
     /// @inheritdoc ISCDPStateFacet
     function getDebtValueSCDP(address _kreskoAsset, bool _ignoreFactors) external view returns (uint256) {
-        Asset memory asset = cs().assets[_kreskoAsset];
+        Asset storage asset = cs().assets[_kreskoAsset];
         return asset.debtAmountToValue(asset.toRebasingAmount(scdp().assetData[_kreskoAsset].debt), _ignoreFactors);
     }
 
@@ -219,7 +219,7 @@ contract SCDPStateFacet is ISCDPStateFacet {
     }
 
     function getAssetInfoSCDP(address _asset) public view returns (AssetData memory results) {
-        Asset memory asset = cs().assets[_asset];
+        Asset storage asset = cs().assets[_asset];
         bool isKrAsset = asset.isSCDPKrAsset;
         bool isCollateral = asset.isSCDPCollateral;
         uint256 depositAmount = isCollateral ? scdp().totalDepositAmount(_asset, asset) : 0;

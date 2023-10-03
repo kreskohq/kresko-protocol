@@ -3,7 +3,7 @@ pragma solidity >=0.8.19;
 
 import {Arrays} from "libs/Arrays.sol";
 import {Role} from "common/Types.sol";
-import {Error} from "common/Errors.sol";
+import {CError} from "common/CError.sol";
 
 import {DSModifiers} from "diamond/Modifiers.sol";
 import {cs} from "common/State.sol";
@@ -32,17 +32,17 @@ contract BurnHelperFacet is IBurnHelperFacet, DSModifiers, CModifiers {
         if (cs().safetyStateSet) {
             super.ensureNotPaused(_kreskoAsset, Action.Repay);
         }
-        Asset memory asset = cs().assets[_kreskoAsset];
+        Asset storage asset = cs().assets[_kreskoAsset];
 
         // Get accounts principal debt
         uint256 principalDebt = s.accountDebtAmount(_account, _kreskoAsset, asset);
-        require(principalDebt != 0, Error.ZERO_BURN);
+        if (principalDebt == 0) revert CError.ZERO_BURN(_kreskoAsset);
 
         // Charge the burn fee from collateral of _account
         handleMinterCloseFee(_account, asset, principalDebt);
 
         // Record the burn
-        s.burn(_kreskoAsset, s.kreskoAssets[_kreskoAsset].anchor, principalDebt, _account);
+        s.burn(_kreskoAsset, asset.anchor, principalDebt, _account);
 
         // All principal debt of asset is repayed remove it from minted assets array.
         s.mintedKreskoAssets[_account].removeAddress(_kreskoAsset, ms().accountMintIndex(_account, _kreskoAsset));

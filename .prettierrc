@@ -1,32 +1,32 @@
 {
-    "arrowParens": "avoid",
-    "bracketSameLine": true,
-    "bracketSpacing": true,
-    "endOfLine": "auto",
-    "printWidth": 120,
-    "singleQuote": false,
-    "tabWidth": 4,
-    "trailingComma": "all",
-    "plugins": ["prettier-plugin-solidity"],
-    "overrides": [
-        {
-            "files": "*.json",
-            "options": {
-                "printWidth": 120,
-                "tabWidth": 2
-            }
-        },
-        {
-            "files": "*.sol",
-            "options": {
-                "printWidth": 128,
-                "tabWidth": 4,
-                "useTabs": false,
-                "bracketSameLine": true,
-                "proseWrap": "preserve",
-                "singleQuote": false,
-                "bracketSpacing": false
-            }
-        }
-    ]
+  "arrowParens": "avoid",
+  "bracketSameLine": true,
+  "bracketSpacing": true,
+  "endOfLine": "auto",
+  "printWidth": 120,
+  "singleQuote": false,
+  "tabWidth": 2,
+  "trailingComma": "all",
+  "plugins": ["prettier-plugin-solidity"],
+  "overrides": [
+    {
+      "files": "*.json",
+      "options": {
+        "printWidth": 120,
+        "tabWidth": 2
+      }
+    },
+    {
+      "files": "*.sol",
+      "options": {
+        "printWidth": 128,
+        "tabWidth": 4,
+        "useTabs": false,
+        "bracketSameLine": true,
+        "proseWrap": "preserve",
+        "singleQuote": false,
+        "bracketSpacing": false
+      }
+    }
+  ]
 }
