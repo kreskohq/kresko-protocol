@@ -37,7 +37,15 @@ interface IKreskoAssetAnchor is
      */
     function reinitializeERC20(string memory _name, string memory _symbol, uint8 _version) external;
 
+    /**
+     * @notice Mint Kresko Anchor Asset to Kresko Asset (Only KreskoAsset can call)
+     * @param assets The assets (uint256).
+     */
     function mint(uint256 assets) external;
 
+    /**
+     * @notice Burn Kresko Anchor Asset to Kresko Asset (Only KreskoAsset can call)
+     * @param assets The assets (uint256).
+     */
     function burn(uint256 assets) external;
 }

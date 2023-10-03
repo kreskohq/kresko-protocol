@@ -108,20 +108,6 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
         shares = super.destroy(_assets, _from);
     }
 
-    /// @notice reverting function, kept to maintain compatibility with ERC4626 standard
-    function deposit(uint256, address) public pure override(ERC4626Upgradeable, IERC4626Upgradeable) returns (uint256) {
-        revert("NOT_ALLOWED");
-    }
-
-    /// @notice reverting function, kept to maintain compatibility with ERC4626 standard
-    function withdraw(
-        uint256,
-        address,
-        address
-    ) public pure override(ERC4626Upgradeable, IERC4626Upgradeable) returns (uint256) {
-        revert("NOT_ALLOWED");
-    }
-
     /// @inheritdoc IKreskoAssetAnchor
     function mint(uint256 assets) external {
         require(msg.sender == address(asset), "NOT_ALLOWED");
@@ -144,6 +130,20 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
 
         // Burn shares from kresko
         _burn(address(asset), shares);
+    }
+
+    /// @notice reverting function, kept to maintain compatibility with ERC4626 standard
+    function deposit(uint256, address) public pure override(ERC4626Upgradeable, IERC4626Upgradeable) returns (uint256) {
+        revert("NOT_ALLOWED");
+    }
+
+    /// @notice reverting function, kept to maintain compatibility with ERC4626 standard
+    function withdraw(
+        uint256,
+        address,
+        address
+    ) public pure override(ERC4626Upgradeable, IERC4626Upgradeable) returns (uint256) {
+        revert("NOT_ALLOWED");
     }
 
     /// @notice reverting function, kept to maintain compatibility with ERC4626 standard
